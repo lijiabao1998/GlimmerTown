@@ -211,6 +211,9 @@ let dem={1:.5,2:0,3:0};
 let msIdx=0; // 里程碑進度
 const MILES=[[50,300],[150,600],[400,1000],[900,1600],[1600,2600],[2600,4000],[4000,6000],[7000,10000]];
 let ach={};   // 已解鎖成就 id → 1
+let townName='微光小鎮';
+const NM1=['微光','晨曦','雲杉','風鈴','石楠','銀月','翠嶺','暖泉','星港','霧谷','楓橋','鹿鳴','燕泊','柳蔭','螢澤','嵐坡','鯨落','棠梨'];
+const NM2=['小鎮','村','城','港','丘','灣','岸','屯','里','洲'];
 const ACHS=[
   {id:'bridge',  nm:'跨海工程師',   t:s=>s.bridges>=1},
   {id:'park10',  nm:'綠意之城',     t:s=>s.parks>=10},
@@ -837,6 +840,9 @@ function newWorld(){
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
   recalcAllMasks();
   computeFoam();
+  townName=NM1[ri(NM1.length)]+NM2[ri(NM2.length)];
+  document.title=townName+' · 微光小鎮';
+  toast(`🏙️ 歡迎來到「${townName}」！`,'gold');
 }
 
 /* =====================================================================
@@ -1618,7 +1624,7 @@ function showStats(){
     else if(b.k===4)nP++;else nE++;}
   const f=v=>(v>=0?'+':'')+v.toFixed(1);
   $('#infoBody').innerHTML=
-    `<h3>📊 小鎮統計</h3>
+    `<h3>📊 ${townName}</h3>
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
@@ -1686,7 +1692,7 @@ function save(){
       if(t.bld)bl.push([i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age]);
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
-      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,bl,ach:Object.keys(ach)};
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,bl,ach:Object.keys(ach),nm:townName};
     localStorage.setItem(SAVEKEY,JSON.stringify(data));
   }catch(e){}
 }
@@ -1704,7 +1710,7 @@ function load(){
         mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0,deco:d.dc?+d.dc[i]:0};
     }
     for(const[i,k,lv,v,age]of d.bl)tiles[i].bld={k,lv,v,age,pw:true,h:.6};
-    money=d.money;day=d.day;msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
+    money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=clamp(d.cam.z||2,1,4);
     recalcAllMasks();
     computeFoam();
