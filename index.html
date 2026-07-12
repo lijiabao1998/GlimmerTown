@@ -482,18 +482,18 @@ function buildSprites(){
   /* ---------- 建築 ---------- */
   SPR.bld={};
   const PAL={
-    1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb']],
-       roof:['#b0563c','#54677a','#617e4b']},
-    2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae']],
-       roof:['#6b7280','#8a6f4f','#4f7d78']},
-    3:{walls:[['#b9bec6','#979da8'],['#c9c2b2','#a89f8d'],['#9aa4b2','#7d8795']],
-       roof:['#7d838d','#8d857a','#6b7480']}};
+    1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb'],['#bcd4ae','#9cb48e']],
+       roof:['#b0563c','#54677a','#617e4b','#8f6f4f']},
+    2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae'],['#f2c4cf','#d0a2ad']],
+       roof:['#6b7280','#8a6f4f','#4f7d78','#9f5f6f']},
+    3:{walls:[['#b9bec6','#979da8'],['#c9c2b2','#a89f8d'],['#9aa4b2','#7d8795'],['#adb8a4','#8d9884']],
+       roof:['#7d838d','#8d857a','#6b7480','#79806f']}};
   const SIZE={
     1:[[20,14],[24,26],[26,46]],
     2:[[22,16],[24,32],[26,54]],
     3:[[28,14],[28,22],[28,32]]};
-  const SIGNC=['#ff8a5f','#ffd45f','#7fe0c8'];
-  for(const k of[1,2,3])for(let lv=1;lv<=3;lv++)for(let v=0;v<3;v++){
+  const SIGNC=['#ff8a5f','#ffd45f','#7fe0c8','#ff9fd0'];
+  for(const k of[1,2,3])for(let lv=1;lv<=3;lv++)for(let v=0;v<4;v++){
     const[hw,h]=SIZE[k][lv-1];
     const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
     const ax=36,ay=110,by=ay-2;
@@ -981,7 +981,7 @@ function tick(){
     if(spawns>=3)break;
     const p=.10+.5*Math.max(0,dem[z])*(z===1?clamp(cityHappy+.25,.3,1):1);
     if(R()<p){
-      T(idx(x,y)).bld={k:z,lv:1,v:ri(3),age:0,pw:true,h:.6};
+      T(idx(x,y)).bld={k:z,lv:1,v:ri(4),age:0,pw:true,h:.6};
       spawns++;sPop();
     }
   }
@@ -991,7 +991,7 @@ function tick(){
     if(!b||b.k>3)continue;
     b.age++;
     if(b.lv<3&&b.pw&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035){
-      b.lv++;b.age=0;b.v=ri(3);
+      b.lv++;b.age=0;b.v=ri(4);
     }
   }
   // 經濟
