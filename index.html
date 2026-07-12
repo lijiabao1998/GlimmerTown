@@ -1077,6 +1077,25 @@ function buildSprites(){
      g.drawImage(sc,0,0);
      SPR.bld['9_1_'+v]={img:c,night:nc,ax:68,ay:148,w:136,h:150,smoke:[]};
    }}
+  /* ---------- 高地草 4 變化 ＋ 內陸崖沿 16 種（T24；置於全部既有 sprite 之後→零擾動） ---------- */
+  SPR.grassH=[];
+  for(let v=0;v<4;v++){const[c,g]=cv(64,32);
+    dia(g,32,0,32,'#8aba58');                                             // 底：黃綠（高地）
+    speck(g,32,0,32,['#79a84b','#9cc868','#83b455','#8fbd60'],80,rand);
+    diaEdge(g,9,'#9cc867');
+    diaEdge(g,6,'#79a84d');
+    if(v===1){g.fillStyle='#5f8a3f';                                      // 草叢
+      for(let i=0;i<5;i++){const x=16+ri(32),y=8+ri(16);g.fillRect(x,y,1,2);g.fillRect(x+2,y+1,1,2);}}
+    if(v===2){const fc=['#e8e070','#e8907e','#d9a8e8'];                   // 野花
+      for(let i=0;i<5;i++){g.fillStyle=fc[ri(3)];g.fillRect(18+ri(28),8+ri(15),2,1);}}
+    if(v===3){g.fillStyle='#9aa3a8';g.fillRect(24,14,3,2);g.fillRect(40,20,2,1);
+      g.fillStyle='#7d868c';g.fillRect(25,16,2,1);}                       // 碎石
+    SPR.grassH.push(c);}
+  SPR.cliffEdge=[];
+  for(let m=0;m<16;m++){const[c,g]=cv(64,32);
+    diaEdge(g,m,'#7d5c3a');                                               // 崖沿主色（深褐）
+    diaEdge(g,m,'rgba(60,42,26,.55)',32,2,28);                            // 內側陰影線
+    SPR.cliffEdge.push(c);}
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1102,6 +1121,7 @@ function genWorld(sd){
   seed=sd;R=mulberry32(sd);
   const noi=makeNoise(mulberry32(sd^0x9e37),64);
   const noi2=makeNoise(mulberry32(sd^0x51f3),64);
+  const noi3=makeNoise(mulberry32(sd^0x27b1),64);                          // 高地噪聲（T24）
   tiles=new Array(N*N);
   let water=0;
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -1109,10 +1129,33 @@ function genWorld(sd){
     let t=2;
     if(n<.40)t=0; else if(n<.455)t=1;
     if(t===0)water++;
-    const tile={t,tree:0,gv:ri(4),road:0,bridge:0,hw:0,mask:0,zone:0,bld:null,rp:false,wm:0,deco:0};
+    const el=(t===2&&noi3(x*.06,y*.06)>.62)?1:0;                           // 高地：僅草地（T24）
+    const tile={t,tree:0,gv:ri(4),road:0,bridge:0,hw:0,mask:0,zone:0,bld:null,rp:false,wm:0,deco:0,el,em:0};
     if(t===2&&noi2(x*.13,y*.13)>.62&&R()<.8)tile.tree=1+ri(4);
     else if(t===2&&R()<.015)tile.deco=1;
     tiles[idx(x,y)]=tile;
+  }
+  // ---- 河流：1-3 條，向噪聲遞減方向蜿蜒挖成真水域（T24） ----
+  const carve=(cx,cy)=>{const tl=tiles[idx(cx,cy)];if(tl.t!==0){tl.t=0;water++;}tl.tree=0;tl.deco=0;tl.el=0;};
+  const nR=1+ri(3),dirs=[[0,-1],[1,0],[0,1],[-1,0]];
+  for(let r=0;r<nR;r++){
+    let cx=0,cy=0,ok=false;
+    for(let tr=0;tr<40&&!ok;tr++){const rx=ri(N),ry=ri(N);if(tiles[idx(rx,ry)].el===1){cx=rx;cy=ry;ok=true;}} // 優先高地起點
+    if(!ok){const e=ri(4);cx=e===1?N-1:e===3?0:ri(N);cy=e===0?0:e===2?N-1:ri(N);}                              // 退化：地圖邊緣隨機點
+    let px=-1,py=-1;
+    for(let step=0;step<60;step++){
+      const wr=1+ri(2);                                                    // 路徑及其鄰寬隨機 1-2 格
+      for(let dy=-wr;dy<=wr;dy++)for(let dx=-wr;dx<=wr;dx++)
+        if(Math.abs(dx)+Math.abs(dy)<=wr&&inMap(cx+dx,cy+dy))carve(cx+dx,cy+dy);
+      let best=-1,bestV=1e9;
+      for(let d=0;d<4;d++){const nx=cx+dirs[d][0],ny=cy+dirs[d][1];
+        if(!inMap(nx,ny)||(nx===px&&ny===py))continue;
+        const v=noi(nx*.085,ny*.085);if(v<bestV){bestV=v;best=d;}}         // 向鄰格中 noi 最低者
+      if(best<0)break;
+      if(R()<.30){const cand=[];for(let d=0;d<4;d++){const nx=cx+dirs[d][0],ny=cy+dirs[d][1];if(inMap(nx,ny)&&!(nx===px&&ny===py))cand.push(d);}if(cand.length)best=cand[ri(cand.length)];} // 30% 隨機偏折
+      px=cx;py=cy;cx+=dirs[best][0];cy+=dirs[best][1];
+      if(noi(cx*.085,cy*.085)<.40){carve(cx,cy);break;}                    // 觸及原生水域→匯流停止
+    }
   }
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const tl=tiles[idx(x,y)];
@@ -1136,11 +1179,24 @@ function computeFoam(){
     t.wm=m;
   }
 }
+// 高地內陸崖沿位罩（哪幾條邊鄰接低地；el 生成後算一次，沿用 foam 位向約定，T24）
+function computeElMask(){
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=T(idx(x,y));t.em=0;
+    if(t.el!==1)continue;
+    let m=0;
+    if(inMap(x,y-1)&&T(idx(x,y-1)).el===0)m|=1;
+    if(inMap(x+1,y)&&T(idx(x+1,y)).el===0)m|=2;
+    if(inMap(x,y+1)&&T(idx(x,y+1)).el===0)m|=4;
+    if(inMap(x-1,y)&&T(idx(x-1,y)).el===0)m|=8;
+    t.em=m;
+  }
+}
 function newWorld(){
   let sd=(Math.random()*1e9)|0;
   for(let tries=0;tries<40;tries++){
     const w=genWorld(sd);
-    if(w>.06&&w<.38)break;
+    if(w>.06&&w<.42)break;
     sd=(sd*1664525+1013904223)|0;
   }
   // 找一塊開闊草地當出生視角
@@ -1160,6 +1216,7 @@ function newWorld(){
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
   recalcAllMasks();
   computeFoam();
+  computeElMask();
   townName=NM1[ri(NM1.length)]+NM2[ri(NM2.length)];
   document.title=townName+' · 微光小鎮';
   toast(`🏙️ 歡迎來到「${townName}」！`,'gold');
@@ -1723,9 +1780,10 @@ function draw(dt){
     if(!vis(sx,sy))continue;
     const t=T(idx(x,y));
     if(x===N-1||y===N-1)ctx.drawImage(SPR.cliff,sx,sy,64*z,56*z);
-    const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:SPR.grass)[t.gv&3];
+    const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:(t.el?SPR.grassH:SPR.grass))[t.gv&3];
     ctx.drawImage(base,sx,sy,64*z,32*z);
     if(t.t===0&&t.wm)ctx.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
+    if(t.em)ctx.drawImage(SPR.cliffEdge[t.em],sx,sy,64*z,32*z);           // 內陸崖沿（T24）
     if(t.ruin)ctx.drawImage(SPR.ruin,sx,sy,64*z,32*z);
     if(t.road){
       if(t.hw){ // 高速路（T21）：深路面雙白線；橋版混凝土
@@ -2413,10 +2471,10 @@ function slotInfo(n){
 function save(){
   try{
     const bl=[];
-    let ter='',tre='',rd='',zn='',dc='',rn='',rc='';
+    let ter='',tre='',rd='',zn='',dc='',rn='',rc='',el='';
     for(let i=0;i<N*N;i++){
       const t=tiles[i];
-      ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;
+      ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;el+=t.el?1:0;
       rd+=t.road?(t.hw?(t.bridge?4:3):(t.bridge?2:1)):0; // 0無 1路 2橋 3高速 4高速橋（T21）
       if(t.bld&&!t.bld.ref){                             // 多格建築只存 root（T22）
         const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];
@@ -2426,7 +2484,7 @@ function save(){
       }
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
-      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,bl,ach:Object.keys(ach),nm:townName,
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,el,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null};
     localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
   }catch(e){}
@@ -2442,7 +2500,8 @@ function load(slot){
     for(let i=0;i<N*N;i++){
       const rv=+d.rd[i]; // 0無 1路 2橋 3高速 4高速橋（舊檔僅 0-2，hw=0 天然相容，T21）
       tiles[i]={t:+d.ter[i],tree:+d.tre[i],gv:i&3,road:rv?1:0,bridge:(rv===2||rv===4)?1:0,hw:rv>=3?1:0,
-        mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0,deco:d.dc?+d.dc[i]:0,ruin:d.rn?+d.rn[i]:0,rdec:d.rc?+d.rc[i]:0};
+        mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0,deco:d.dc?+d.dc[i]:0,ruin:d.rn?+d.rn[i]:0,rdec:d.rc?+d.rc[i]:0,
+        el:d.el?+d.el[i]:0,em:0};
     }
     for(const rec of d.bl){
       const i=rec[0],k=rec[1],lv=rec[2],v=rec[3],age=rec[4];
@@ -2458,6 +2517,7 @@ function load(slot){
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=clamp(d.cam.z||2,1,4);
     recalcAllMasks();
     computeFoam();
+    computeElMask();
     cars.length=0;smokes.length=0;
     hintsOff=true;
     undoStack.length=0;undoGroup=null;
