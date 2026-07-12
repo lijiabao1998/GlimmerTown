@@ -1700,7 +1700,6 @@ function advance(dtReal){
   const dtA=Math.min(.05,dtReal);
   updCars(dtA);
   updSmoke(dtA);
-  updParticles(dtA);
 }
 function frame(ts){
   requestAnimationFrame(frame);
