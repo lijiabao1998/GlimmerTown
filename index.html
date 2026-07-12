@@ -233,6 +233,7 @@ const ACHS=[
   {id:'happy',   nm:'幸福之都',     t:()=>pop>=500&&cityHappy>=.75},
 ];
 let bailoutDay=-999;
+let loan=null; // {remain:天數, daily:120}（T16）
 let fin={taxR:0,taxC:0,taxI:0,upR:0,upP:0,upE:0,net:0};
 let tool='pan';
 let muted=false,sndMode=1;
@@ -930,7 +931,7 @@ function newWorld(){
     if(sc>bestScore){bestScore=sc;best=[x,y];}
   }
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
-  bailoutDay=-999;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
+  bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
   recalcAllMasks();
@@ -1220,6 +1221,8 @@ function tick(){
   upkeep=roads*.02+parks*.5+plants*4+fireStations*3+schools*2.5;
   fin={taxR,taxC,taxI,upR:roads*.02,upP:parks*.5,upE:plants*4,net:income-upkeep};
   money+=income-upkeep;
+  // 貸款還款（T16）
+  if(loan){money-=loan.daily;if(--loan.remain<=0){loan=null;toast('🏦 貸款已還清！','gold');}}
   // 里程碑
   if(msIdx<MILES.length&&pop>=MILES[msIdx][0]){
     const bonus=MILES[msIdx][1];money+=bonus;
@@ -1237,7 +1240,7 @@ function tick(){
   // 紓困保底（避免卡死）
   if(money<20&&income-upkeep<=0&&day-bailoutDay>60){
     money+=250;bailoutDay=day;
-    toast('🏦 小鎮銀行送來 $250 紓困金','gold');
+    toast('🏦 小鎮銀行送來 $250 紓困金（也可到 📊 面板貸款）','gold');
   }
   checkHints(plants,roads);
 }
@@ -1907,8 +1910,15 @@ function showStats(){
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
      <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS}</div>
-     <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>`;
+     <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
+     <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
+  const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
+  if(lb)lb.addEventListener('click',()=>{
+    money+=2000;loan={remain:20,daily:120};
+    toast('🏦 貸款到帳 $2000！','gold');sBuild();
+    showStats();
+  });
 }
 $('#bStats').onclick=()=>{showStats();sTick();};
 function showHelp(){
@@ -2000,7 +2010,8 @@ function save(){
       if(t.bld){const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];if(t.bld.fire)e.push(t.bld.fire);bl.push(e);}
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
-      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,bl,ach:Object.keys(ach),nm:townName};
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,bl,ach:Object.keys(ach),nm:townName,
+      ln:loan?[loan.remain,loan.daily]:null};
     localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
   }catch(e){}
 }
@@ -2019,6 +2030,7 @@ function load(slot){
     }
     for(const[i,k,lv,v,age,fire]of d.bl)tiles[i].bld={k,lv,v,age,pw:true,h:.6,fire:fire||0};
     money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
+    loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=clamp(d.cam.z||2,1,4);
     recalcAllMasks();
     computeFoam();
