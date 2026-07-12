@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d1226">
+<meta name="mobile-web-app-capable" content="yes">
+<title>微光小鎮 Glimmerville</title>
+<style>
+/* ============================================================
+   微光小鎮 Glimmerville — 原創等距像素城市建造小遊戲
+   全部美術以 Canvas 程式化手繪，無任何外部素材。
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
+  font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",system-ui,sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:none}
+#game{position:absolute;inset:0;width:100%;height:100%;display:block;
+  image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;cursor:grab}
+#game.build{cursor:crosshair}
+/* ---------- 頂部資訊列 ---------- */
+#hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:6px;
+  padding:5px 8px;background:rgba(10,14,26,.86);border-bottom:2px solid #2c3450;
+  color:#dfe6f5;font-size:13px;z-index:20;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:4px;background:#181f36;border:1px solid #303a5c;
+  border-radius:6px;padding:2px 8px;white-space:nowrap;line-height:20px}
+.chip b{font-weight:700;color:#fff}
+#money b{color:#ffd977}
+#hud .spacer{flex:1}
+.hbtn{background:#232c4a;border:1px solid #3a4670;color:#dfe6f5;border-radius:6px;
+  padding:2px 9px;font-size:13px;line-height:22px;cursor:pointer}
+.hbtn:active{background:#31407a}
+.hbtn.on{background:#3a5a2f;border-color:#5f8f4a}
+/* RCI 需求柱 */
+#rci{display:flex;align-items:flex-end;gap:3px;height:26px;padding:2px 6px;
+  background:#181f36;border:1px solid #303a5c;border-radius:6px}
+#rci .col{width:9px;height:22px;background:#0c1020;border-radius:2px;position:relative;overflow:hidden}
+#rci .col i{position:absolute;bottom:0;left:0;right:0;height:0%}
+#rci .r i{background:#58c470}#rci .c i{background:#5aa0e8}#rci .i i{background:#e8b23e}
+/* ---------- 工具列 ---------- */
+#tools{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;
+  padding:6px;background:rgba(10,14,26,.88);border:2px solid #2c3450;border-radius:12px;
+  z-index:20;max-width:96vw;overflow-x:auto}
+.tool{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  width:56px;min-width:56px;height:56px;border-radius:9px;border:2px solid #303a5c;
+  background:#181f36;color:#c9d2ea;font-size:10px;cursor:pointer}
+.tool .ic{font-size:20px;line-height:22px}
+.tool .pr{color:#8fa0c8;font-size:9px}
+.tool.sel{border-color:#ffd977;background:#33395e;color:#fff}
+.tool:active{transform:scale(.95)}
+/* ---------- 提示橫幅 ---------- */
+#hint{position:absolute;top:44px;left:50%;transform:translateX(-50%);z-index:19;
+  background:rgba(20,28,52,.94);border:1px solid #46538a;color:#ffe9ad;border-radius:8px;
+  padding:6px 12px;font-size:13px;display:none;max-width:92vw;align-items:center;gap:8px}
+#hint button{background:none;border:none;color:#8fa0c8;font-size:14px;cursor:pointer}
+/* ---------- 訊息泡 ---------- */
+#toasts{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);z-index:25;
+  display:flex;flex-direction:column-reverse;align-items:center;gap:5px;pointer-events:none}
+.toast{background:rgba(16,22,42,.94);border:1px solid #4a5788;color:#eaf0ff;border-radius:8px;
+  padding:5px 14px;font-size:13px;animation:tin .25s ease-out;white-space:nowrap}
+.toast.gold{border-color:#c9a84c;color:#ffe9ad}
+.toast.bad{border-color:#a85050;color:#ffc4c4}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+/* ---------- 檢視面板 ---------- */
+#info{position:absolute;left:10px;bottom:80px;z-index:22;background:rgba(12,17,32,.94);
+  border:2px solid #3a4670;border-radius:10px;padding:10px 14px;color:#dfe6f5;font-size:13px;
+  display:none;min-width:180px;max-width:70vw}
+#info h3{font-size:14px;color:#ffd977;margin-bottom:4px}
+#info .row{margin:2px 0;color:#c9d2ea}
+#info .x{position:absolute;top:4px;right:8px;color:#8fa0c8;cursor:pointer;font-size:15px}
+/* ---------- 拖放成本提示 ---------- */
+#dragcost{position:absolute;z-index:23;display:none;background:rgba(12,17,32,.9);
+  border:1px solid #4a5788;color:#ffd977;border-radius:6px;padding:2px 8px;font-size:12px;pointer-events:none}
+/* ---------- 縮放按鈕（手機友善） ---------- */
+#zoomer{position:absolute;right:10px;bottom:80px;z-index:20;display:flex;flex-direction:column;gap:6px}
+#zoomer button{width:40px;height:40px;font-size:20px;border-radius:9px;border:2px solid #303a5c;
+  background:rgba(16,22,42,.9);color:#dfe6f5;cursor:pointer}
+#zoomer button:active{background:#31407a}
+/* ---------- 開始畫面 ---------- */
+#start{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:14px;text-align:center;
+  background:linear-gradient(180deg,#0d1226 0%,#1b2547 55%,#33406e 100%)}
+#start h1{color:#ffe9ad;font-size:34px;letter-spacing:10px;text-shadow:0 3px 0 #7a5b1e,0 6px 14px #000}
+#start .en{color:#8fa0c8;letter-spacing:6px;font-size:13px;margin-top:-8px}
+#start .sub{color:#c9d2ea;font-size:14px;margin:6px 0 10px}
+#start button{min-width:210px;padding:12px 22px;font-size:16px;border-radius:12px;cursor:pointer;
+  border:2px solid #5f8f4a;background:#2e4a26;color:#dff5cf}
+#start button.alt{border-color:#46538a;background:#1d2745;color:#c9d2ea}
+#start button:active{transform:scale(.97)}
+#start .help{margin-top:10px;color:#96a4c9;font-size:12px;line-height:1.9;max-width:340px}
+#logo{image-rendering:pixelated;width:224px;height:128px}
+@media (max-height:520px){#logo{display:none}#start h1{font-size:26px}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <span class="chip" id="money">💰 <b>0</b></span>
+  <span class="chip" id="pop">👥 <b>0</b></span>
+  <span class="chip" id="jobs">💼 <b>0</b></span>
+  <span class="chip" id="happy">😊 <b>--</b></span>
+  <span class="chip" id="date">📅 第1年 第1天</span>
+  <span id="rci" title="需求：住宅/商業/工業">
+    <span class="col r"><i></i></span><span class="col c"><i></i></span><span class="col i"><i></i></span>
+  </span>
+  <span class="spacer"></span>
+  <button class="hbtn" id="bSpeed">▶ 1x</button>
+  <button class="hbtn" id="bSound">🔊</button>
+  <button class="hbtn" id="bSave">💾</button>
+  <button class="hbtn" id="bNew">🆕</button>
+</div>
+
+<div id="hint"><span id="hintTxt"></span><button id="hintX">✕</button></div>
+
+<div id="tools"></div>
+<div id="toasts"></div>
+<div id="dragcost"></div>
+<div id="zoomer">
+  <button id="zin">＋</button>
+  <button id="zout">－</button>
+</div>
+
+<div id="info"><span class="x" id="infoX">✕</span><div id="infoBody"></div></div>
+
+<div id="start">
+  <canvas id="logo" width="224" height="128"></canvas>
+  <h1>微光小鎮</h1>
+  <div class="en">G L I M M E R V I L L E</div>
+  <div class="sub">從一片荒野，點亮一座小鎮。</div>
+  <button id="bContinue" style="display:none">▶ 繼續上次的小鎮</button>
+  <button id="bNewGame">🌱 開拓新地圖</button>
+  <div class="help">
+    🖐 拖曳平移 ・ 滾輪／雙指縮放<br>
+    🛣 先鋪路 → 🏠 劃分區域 → ⚡ 蓋電廠供電<br>
+    建築會沿著有電的道路自己生長、繳稅給你
+  </div>
+</div>
+
+<script>
+(()=>{ 'use strict';
+/* =====================================================================
+   0. 小工具
+===================================================================== */
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+const lerp=(a,b,t)=>a+(b-a)*t;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let R=mulberry32(1); // 全域隨機（依種子重設）
+const ri=n=>Math.floor(R()*n);
+
+/* 值噪聲（地形用） */
+function makeNoise(rand,G){
+  const v=new Float32Array(G*G);
+  for(let i=0;i<G*G;i++)v[i]=rand();
+  const at=(x,y)=>{
+    const xi=Math.floor(x),yi=Math.floor(y);
+    const xf=x-xi,yf=y-yi,sx=xf*xf*(3-2*xf),sy=yf*yf*(3-2*yf);
+    const g=(a,b)=>v[((a%G)+G)%G*G+(((b%G)+G)%G)];
+    return lerp(lerp(g(xi,yi),g(xi+1,yi),sx),lerp(g(xi,yi+1),g(xi+1,yi+1),sx),sy);
+  };
+  return (x,y)=>.6*at(x,y)+.3*at(x*2.13+7,y*2.13+3)+.1*at(x*4.7+13,y*4.7+11);
+}
+
+/* =====================================================================
+   1. 常數與狀態
+===================================================================== */
+const TW=64,TH=32;         // 單格像素尺寸（精細版：每格 64×32）
+const N=72;                // 地圖邊長
+const SAVEKEY='glimmerville.v1';
+const DAYLEN=0.9;          // 一天（模擬）＝0.9 秒（1x）
+const CYCLE=110;           // 日夜循環（真實秒）
+
+// 建築種類：1住宅 2商業 3工業 4公園 5電廠
+const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠'};
+const LVNAME={
+  1:['小屋','公寓','住宅大樓'],
+  2:['小舖','商場','商業大樓'],
+  3:['工坊','工廠','重工業區']};
+const POPS =[0,8,22,54];    // 住宅各級人口
+const JOBSC=[0,5,14,38];    // 商業各級就業
+const JOBSI=[0,7,20,48];    // 工業各級就業
+const PLANT_CAP=50;         // 每座電廠供電建築數
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2};
+
+const TOOLS=[
+  {id:'pan',  ic:'🖐', nm:'檢視', pr:''},
+  {id:'road', ic:'🛣', nm:'道路', pr:'$'+COST.road},
+  {id:'zr',   ic:'🏠', nm:'住宅區', pr:'$'+COST.zone},
+  {id:'zc',   ic:'🏪', nm:'商業區', pr:'$'+COST.zone},
+  {id:'zi',   ic:'🏭', nm:'工業區', pr:'$'+COST.zone},
+  {id:'park', ic:'🌳', nm:'公園', pr:'$'+COST.park},
+  {id:'plant',ic:'⚡', nm:'電廠', pr:'$'+COST.plant},
+  {id:'doze', ic:'💥', nm:'拆除', pr:'$'+COST.doze},
+];
+
+let seed=0, tiles=null;
+let money=3000, day=1, speed=1, prevSpeed=1;
+let pop=0,jobs=0,cityHappy=.6;
+let dem={1:.5,2:0,3:0};
+let msIdx=0; // 里程碑進度
+const MILES=[[50,300],[150,600],[400,1000],[900,1600],[1600,2600],[2600,4000]];
+let bailoutDay=-999;
+let tool='pan';
+let muted=false;
+let visT=CYCLE*.38; // 視覺時間（從早晨開始）
+let simAcc=0;
+let hintsOff=false, hintShown={};
+
+// 相機（世界像素座標，z＝裝置像素縮放倍率）
+const cam={x:0,y:0,z:3};
+
+const cvs=$('#game'), ctx=cvs.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){
+  DPR=window.devicePixelRatio||1;
+  W=cvs.width=Math.round(cvs.clientWidth*DPR);
+  H=cvs.height=Math.round(cvs.clientHeight*DPR);
+  ctx.imageSmoothingEnabled=false;
+}
+window.addEventListener('resize',resize);
+
+const T=i=>tiles[i];
+const idx=(x,y)=>y*N+x;
+const inMap=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
+
+/* =====================================================================
+   2. 程式化像素美術
+===================================================================== */
+function cv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;return[c,g];}
+
+// 菱形：中心 cx、頂點 y=ty、半寬 hw（偶數），高度=hw，斜率固定 2:1
+function dia(g,cx,ty,hw,col){
+  g.fillStyle=col;
+  const hh=hw>>1;
+  for(let i=0;i<hh;i++){
+    const w=(i+1)*2;
+    g.fillRect(cx-w,ty+i,w*2,1);
+    g.fillRect(cx-w,ty+hw-1-i,w*2,1);
+  }
+}
+// 菱形內隨機點綴
+function speck(g,cx,ty,hw,cols,n,rand){
+  for(let i=0;i<n;i++){
+    const yy=1+Math.floor(rand()*(hw-2));
+    const hr=Math.max(1,(yy<hw/2?(yy+1):(hw-yy))*2-2);
+    const xx=cx-hr+Math.floor(rand()*hr*2);
+    g.fillStyle=cols[Math.floor(rand()*cols.length)];
+    g.fillRect(xx,ty+yy,2,1);
+  }
+}
+// 菱形四邊描邊（bit：1上右 2下右 4下左 8上左）
+function diaEdge(g,edges,col,cx=32,ty=0,hw=32){
+  g.fillStyle=col;
+  const hh=hw>>1;
+  for(let i=0;i<hh;i++){
+    const a=2*(i+1);
+    if(edges&1)g.fillRect(cx+a-2,ty+i,2,1);
+    if(edges&8)g.fillRect(cx-a,  ty+i,2,1);
+    const b=2*(hh-i);
+    if(edges&2)g.fillRect(cx+b-2,ty+hh+i,2,1);
+    if(edges&4)g.fillRect(cx-b,  ty+hh+i,2,1);
+  }
+}
+// 等距方塊：底頂點 (cx,by)、半寬 hw（偶數）、牆高 h；回傳屋頂菱形頂點 y
+function isoBox(g,cx,by,hw,h,cL,cR,cTop){
+  g.fillStyle=cL;
+  for(let dx=1;dx<=hw;dx++){const yF=by-(dx>>1);g.fillRect(cx-dx,yF-h,1,h);}
+  g.fillStyle=cR;
+  for(let dx=0;dx<hw;dx++){const yF=by-((dx+1)>>1);g.fillRect(cx+dx,yF-h,1,h);}
+  g.fillStyle='rgba(0,0,0,.13)';                       // 底部 AO
+  for(let dx=1;dx<=hw;dx++){const yF=by-(dx>>1);g.fillRect(cx-dx,yF-3,1,3);}
+  for(let dx=0;dx<hw;dx++){const yF=by-((dx+1)>>1);g.fillRect(cx+dx,yF-3,1,3);}
+  g.fillStyle='rgba(0,0,0,.25)';g.fillRect(cx,by-h,1,h); // 前角線
+  const rty=by-h-hw;
+  dia(g,cx,rty,hw,cTop);
+  diaEdge(g,6,shade(cTop,-26),cx,rty,hw);              // 簷口陰影
+  diaEdge(g,9,shade(cTop,16),cx,rty,hw);               // 頂緣受光
+  return rty;
+}
+// 牆上窗（含窗台與反光，跟著牆斜率排），同步畫到夜間圖層
+function windows(g,ng,cx,by,hw,h,rand,litP,opts){
+  const o=Object.assign({w:3,ht:4,gx:5,gy:7,glass:'#26314e',lit:'#ffd77a'},opts||{});
+  const put=(x,y)=>{
+    g.fillStyle=o.glass;g.fillRect(x,y,o.w,o.ht);
+    g.fillStyle='rgba(255,255,255,.28)';g.fillRect(x,y,o.w,1);
+    g.fillStyle='rgba(255,255,255,.30)';g.fillRect(x,y+o.ht,o.w,1);
+    if(ng&&rand()<litP){ng.fillStyle=o.lit;ng.fillRect(x,y,o.w,o.ht);}
+  };
+  for(let dx=2;dx<hw-o.w-1;dx+=o.gx){                  // 右牆
+    const yF=by-((dx+1)>>1);
+    for(let y=yF-h+3;y<yF-o.ht-2;y+=o.gy)put(cx+dx,y);
+  }
+  for(let dx=4;dx<hw-1;dx+=o.gx){                      // 左牆
+    const yF=by-(dx>>1);
+    for(let y=yF-h+3;y<yF-o.ht-2;y+=o.gy)put(cx-dx-o.w+1,y);
+  }
+}
+// 輪廓線後處理：透明像素貼著實體 → 描 1px 深色邊
+function outlineSprite(c,r,gc,b){
+  const g=c.getContext('2d');
+  const w=c.width,h=c.height;
+  const im=g.getImageData(0,0,w,h),a=im.data;
+  const solid=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&a[(y*w+x)*4+3]>40;
+  const marks=[];
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=(y*w+x)*4;
+    if(a[i+3]<=40&&(solid(x+1,y)||solid(x-1,y)||solid(x,y+1)||solid(x,y-1)))marks.push(i);
+  }
+  for(const i of marks){a[i]=r;a[i+1]=gc;a[i+2]=b;a[i+3]=255;}
+  g.putImageData(im,0,0);
+}
+function shade(hex,amt){
+  const n=parseInt(hex.slice(1),16);
+  const r=clamp((n>>16)+amt,0,255),g=clamp(((n>>8)&255)+amt,0,255),b=clamp((n&255)+amt,0,255);
+  return '#'+((r<<16|g<<8|b).toString(16).padStart(6,'0'));
+}
+// 建築地基板
+function plate(g,ax,ay,col){
+  col=col||'#9a9484';
+  dia(g,ax,ay-32,32,col);
+  speck(g,ax,ay-32,32,[shade(col,-10),shade(col,8)],26,()=>Math.random());
+  diaEdge(g,6,shade(col,-20),ax,ay-32,32);
+  diaEdge(g,9,shade(col,10),ax,ay-32,32);
+}
+
+const SPR={};
+function buildSprites(){
+  const rand=mulberry32(20260712);
+  /* ---------- 草地 4 變化 ---------- */
+  SPR.grass=[];
+  for(let v=0;v<4;v++){const[c,g]=cv(64,32);
+    dia(g,32,0,32,'#74b258');
+    speck(g,32,0,32,['#639a4b','#86c468','#6aa855','#7fbd60'],80,rand);
+    diaEdge(g,9,'#83c467');
+    diaEdge(g,6,'#66a04d');
+    if(v===1){g.fillStyle='#527f3f';                    // 草叢
+      for(let i=0;i<5;i++){const x=16+ri(32),y=8+ri(16);g.fillRect(x,y,1,2);g.fillRect(x+2,y+1,1,2);}}
+    if(v===2){const fc=['#e8e070','#e8907e','#d9a8e8'];  // 野花
+      for(let i=0;i<5;i++){g.fillStyle=fc[ri(3)];g.fillRect(18+ri(28),8+ri(15),2,1);}}
+    if(v===3){g.fillStyle='#9aa3a8';g.fillRect(24,14,3,2);g.fillRect(40,20,2,1);
+      g.fillStyle='#7d868c';g.fillRect(25,16,2,1);}      // 碎石
+    SPR.grass.push(c);}
+  /* ---------- 水 3 幀 ---------- */
+  SPR.water=[];
+  for(let f=0;f<3;f++){const[c,g]=cv(64,32);
+    dia(g,32,0,32,'#3671b6');
+    const r2=mulberry32(4242);
+    speck(g,32,0,32,['#2f65a5','#3c7ac0'],40,r2);
+    for(let i=0;i<20;i++){
+      const yy=3+Math.floor(r2()*26);
+      const hr=(yy<16?(yy+1):(32-yy))*2-4;
+      if(hr<6)continue;
+      const xx=32-hr+Math.floor(r2()*hr*2);
+      g.fillStyle=i%3?'#5f9fd8':'#a9d5ef';
+      g.fillRect(clamp(xx+f*2,4,57),yy,3,1);
+    }
+    SPR.water.push(c);}
+  /* ---------- 岸邊泡沫 16 種 ---------- */
+  SPR.foam=[];
+  for(let m=0;m<16;m++){const[c,g]=cv(64,32);
+    diaEdge(g,m,'#d9eef9');
+    diaEdge(g,m,'rgba(217,238,249,.45)',32,2,28);
+    SPR.foam.push(c);}
+  /* ---------- 沙 ---------- */
+  {const[c,g]=cv(64,32);dia(g,32,0,32,'#d9c689');
+   speck(g,32,0,32,['#c4b276','#e6d69e','#cfbd82'],60,rand);
+   diaEdge(g,6,'#c3b076');SPR.sand=c;}
+  /* ---------- 樹 4 變化（不含地面） ---------- */
+  SPR.tree=[];
+  for(let v=0;v<4;v++){
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(25,50,25,.22)');               // 落影
+    if(v===2){                                          // 松樹
+      sg.fillStyle='#6b4a2f';sg.fillRect(19,34,3,8);
+      sg.fillStyle='#57402a';sg.fillRect(21,34,1,8);
+      const tc=['#2f6b3f','#3a7d4b'];
+      for(let t=3;t>=0;t--){
+        const w=6+t*6,x=20-(w>>1),y=8+t*7;
+        sg.fillStyle=tc[t%2];sg.fillRect(x,y,w,7);
+        sg.fillStyle='#55a067';sg.fillRect(x,y,w,1);
+      }
+      sg.fillStyle='#2f6b3f';sg.fillRect(18,4,5,5);
+    }else if(v===3){                                    // 灌木叢
+      sg.fillStyle='#3d7a3c';sg.fillRect(8,26,14,10);sg.fillRect(20,29,12,8);
+      sg.fillStyle='#4b8f45';sg.fillRect(9,24,11,7);sg.fillRect(21,27,9,6);
+      sg.fillStyle='#63ad55';sg.fillRect(11,25,6,4);sg.fillRect(23,28,5,3);
+      sg.fillStyle='#2e5f2f';sg.fillRect(8,34,24,2);
+    }else{                                              // 闊葉樹
+      const base=v?'#38713a':'#3d7a3c', mid=v?'#468747':'#4b8f45';
+      sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+      sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+      sg.fillStyle=base;sg.fillRect(10,8,20,16);sg.fillRect(8,12,24,10);
+      sg.fillStyle=mid;sg.fillRect(12,6,16,8);sg.fillRect(13,7,14,13);
+      sg.fillStyle='#63ad55';sg.fillRect(14,7,10,7);
+      sg.fillStyle='#85c973';sg.fillRect(15,8,5,4);sg.fillRect(23,12,4,3);
+      sg.fillStyle='#2e5f2f';sg.fillRect(10,22,20,2);sg.fillRect(12,24,16,1);
+    }
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.tree.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  /* ---------- 懸崖（地圖邊緣土層） ---------- */
+  {const[c,g]=cv(64,56);
+   for(let x=0;x<64;x++){
+     const d=x<32?(x>>1)+1:((63-x)>>1)+1;
+     const yE=15+d;
+     g.fillStyle='#6d4d31';g.fillRect(x,yE,1,27);
+     g.fillStyle='#563d26';
+     for(let k=0;k<5;k++){const yy=yE+3+Math.floor(rand()*22);g.fillRect(x,yy,1,1);}
+     g.fillStyle='#5a4128';
+     g.fillRect(x,yE+8,1,1);g.fillRect(x,yE+17,1,1);
+     g.fillStyle='#86633f';g.fillRect(x,yE,1,1);
+     g.fillStyle='#463321';g.fillRect(x,yE+24,1,3);
+   }
+   SPR.cliff=c;}
+  /* ---------- 道路 16 種 ＋ 橋 16 種 ---------- */
+  SPR.road=[];SPR.bridge=[];
+  function dashSeg(g,x,y,sgn){g.fillRect(x,y,2,1);g.fillRect(x+2,y+sgn,2,1);}
+  for(let m=0;m<16;m++){
+    {const[c,g]=cv(64,32);
+     dia(g,32,0,32,'#4b4f58');
+     speck(g,32,0,32,['#565b64','#41454d','#50545d'],50,rand);
+     diaEdge(g,(~m)&15,'#b9bdc5');
+     diaEdge(g,(~m)&15,'#878e99',32,2,28);
+     g.fillStyle='#e8c860';
+     if(m===(1|4)){for(let k=-3;k<=3;k++)dashSeg(g,32+8*k-2,16-4*k,-1);}
+     if(m===(2|8)){for(let k=-3;k<=3;k++)dashSeg(g,32+8*k-2,16+4*k-1,1);}
+     if(m===15){g.fillStyle='#3e434c';g.fillRect(30,15,4,2);}
+     SPR.road.push(c);}
+    {const[c,g]=cv(64,44);
+     dia(g,32,4,32,'#7d5c3a');
+     g.fillStyle='rgba(0,0,0,.16)';
+     for(let yy=8;yy<34;yy+=4){
+       const rr=yy-4,hr=(rr<16?(rr+1):(32-rr))*2-4;
+       if(hr>4)g.fillRect(32-hr+2,yy,hr*2-4,1);
+     }
+     dia(g,32,8,24,'#4b4f58');
+     if(m&1)dia(g,48,4,16,'#4b4f58');
+     if(m&2)dia(g,48,20,16,'#4b4f58');
+     if(m&4)dia(g,16,20,16,'#4b4f58');
+     if(m&8)dia(g,16,4,16,'#4b4f58');
+     diaEdge(g,(~m)&15,'#96714a',32,4,32);
+     diaEdge(g,(~m)&15,'#5c4126',32,6,28);
+     g.fillStyle='#5c4126';g.fillRect(12,34,4,9);g.fillRect(48,34,4,9);
+     g.fillStyle='#463321';g.fillRect(12,41,4,2);g.fillRect(48,41,4,2);
+     SPR.bridge.push(c);}
+  }
+  /* ---------- 分區覆蓋層 ---------- */
+  SPR.zone={};
+  const ZC={1:'#58c470',2:'#5aa0e8',3:'#e8b23e'};
+  for(const z of[1,2,3]){const[c,g]=cv(64,32);
+    diaEdge(g,15,ZC[z]);
+    diaEdge(g,15,ZC[z],32,2,28);
+    g.fillStyle=ZC[z];
+    for(let yy=4;yy<28;yy+=4){
+      const hr=(yy<16?(yy+1):(32-yy))*2-4;
+      for(let xx=32-hr+((yy>>2)%2)*4;xx<32+hr-2;xx+=8)g.fillRect(xx,yy,3,1);
+    }
+    SPR.zone[z]=c;}
+  /* ---------- 游標 ---------- */
+  {const[c,g]=cv(64,32);diaEdge(g,15,'#ffffff');diaEdge(g,15,'rgba(255,255,255,.5)',32,2,28);SPR.cursor=c;}
+  {const[c,g]=cv(64,32);dia(g,32,0,32,'rgba(230,70,70,.38)');diaEdge(g,15,'#ff8080');SPR.cursorBad=c;}
+  /* ---------- 缺電圖示 ---------- */
+  {const[c,g]=cv(16,20),[s,sg]=cv(16,20);
+   sg.fillStyle='#ffd420';
+   [[8,1,4],[7,3,4],[6,5,4],[5,7,4],[3,9,7],[7,11,4],[6,13,3],[5,15,3],[4,17,2]]
+     .forEach(p=>sg.fillRect(p[0],p[1],p[2],2));
+   sg.fillStyle='#ffeda0';sg.fillRect(8,1,2,2);sg.fillRect(7,3,2,2);
+   outlineSprite(s,60,40,10);
+   g.drawImage(s,0,0);
+   SPR.nopow=c;}
+  /* ---------- 建築 ---------- */
+  SPR.bld={};
+  const PAL={
+    1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb']],
+       roof:['#b0563c','#54677a','#617e4b']},
+    2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae']],
+       roof:['#6b7280','#8a6f4f','#4f7d78']},
+    3:{walls:[['#b9bec6','#979da8'],['#c9c2b2','#a89f8d'],['#9aa4b2','#7d8795']],
+       roof:['#7d838d','#8d857a','#6b7480']}};
+  const SIZE={
+    1:[[20,14],[24,26],[26,46]],
+    2:[[22,16],[24,32],[26,54]],
+    3:[[28,14],[28,22],[28,32]]};
+  const SIGNC=['#ff8a5f','#ffd45f','#7fe0c8'];
+  for(const k of[1,2,3])for(let lv=1;lv<=3;lv++)for(let v=0;v<3;v++){
+    const[hw,h]=SIZE[k][lv-1];
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    const wl=PAL[k].walls[v],rf=PAL[k].roof[v];
+    const smoke=[];
+    plate(g,ax,ay,k===3?'#8f8a7c':'#9a9484');
+    const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
+    /* ------ 住宅 ------ */
+    if(k===1){
+      windows(sg,ng,ax,by,hw,h,rand,.55,lv===3?{gx:5,gy:6}:{gx:6,gy:8});
+      if(lv===1){
+        for(let i=1;i<=4;i++){                          // 金字塔屋頂
+          const hwi=hw-4*i;if(hwi<4)break;
+          dia(sg,ax,by-h-hwi-2*i,hwi,i%2?rf:shade(rf,-14));
+        }
+        sg.fillStyle='#5a4638';sg.fillRect(ax+6,by-h-17,3,9);
+        sg.fillStyle='#494037';sg.fillRect(ax+5,by-h-18,5,2);
+        for(let dx=3;dx<=7;dx++){                       // 門（貼牆斜率）
+          const yF=by-((dx+1)>>1);
+          sg.fillStyle='#5a3d28';sg.fillRect(ax+dx,yF-9,1,8);
+        }
+        sg.fillStyle='#e8c860';sg.fillRect(ax+6,by-((7)>>1)-5,1,1);
+        g.fillStyle='#4b8f45';g.fillRect(ax-17,ay-10,4,3);
+        g.fillStyle='#63ad55';g.fillRect(ax-14,ay-11,3,2);
+        g.fillStyle='#cbb98e';g.fillRect(ax+5,ay-8,4,2);g.fillRect(ax+9,ay-6,4,2);
+      }
+      if(lv===2){
+        diaEdge(sg,15,shade(rf,-20),ax,rty,hw);         // 女兒牆
+        sg.fillStyle='#b9bec6';sg.fillRect(ax-4,rty+10,7,4);
+        sg.fillStyle='#8d949e';sg.fillRect(ax-4,rty+11,7,1);
+        sg.fillStyle='rgba(0,0,0,.08)';                 // 牆面板線
+        for(let dx=6;dx<hw;dx+=6)sg.fillRect(ax-dx,by-(dx>>1)-h,1,h);
+        for(let dx=3;dx<=7;dx++){
+          const yF=by-((dx+1)>>1);
+          sg.fillStyle='#4a5568';sg.fillRect(ax+dx,yF-9,1,8);
+        }
+      }
+      if(lv===3){
+        diaEdge(sg,15,shade(rf,-20),ax,rty,hw);
+        sg.fillStyle='#98a2b0';sg.fillRect(ax-7,rty+8,8,7); // 水塔
+        sg.fillStyle='#b7c1cd';sg.fillRect(ax-7,rty+7,8,2);
+        sg.fillStyle='#6d7684';sg.fillRect(ax-7,rty+15,2,2);sg.fillRect(ax-1,rty+15,2,2);
+        sg.fillStyle='#8b95a5';sg.fillRect(ax+5,rty+6,1,7);
+        sg.fillStyle='#e05252';sg.fillRect(ax+4,rty+4,3,2);
+        ng.fillStyle='#ff6060';ng.fillRect(ax+4,rty+4,3,2);
+      }
+    }
+    /* ------ 商業 ------ */
+    if(k===2){
+      if(lv===1){
+        for(let dx=2;dx<=10;dx++){                      // 櫥窗
+          const yF=by-((dx+1)>>1);
+          sg.fillStyle='#a8cbe8';sg.fillRect(ax+dx,yF-8,1,6);
+          sg.fillStyle='#5c554a';sg.fillRect(ax+dx,yF-9,1,1);
+        }
+        ng.fillStyle='rgba(255,235,170,.8)';
+        for(let dx=2;dx<=10;dx++){const yF=by-((dx+1)>>1);ng.fillRect(ax+dx,yF-8,1,6);}
+        for(let dx=1;dx<=13;dx++){                      // 條紋遮陽棚
+          const yF=by-((dx+1)>>1);
+          sg.fillStyle=((dx/3)|0)%2?'#f2f2f2':(v===2?'#4f9d94':'#e05252');
+          sg.fillRect(ax+dx,yF-12,1,3);
+          sg.fillStyle='rgba(0,0,0,.2)';sg.fillRect(ax+dx,yF-9,1,1);
+        }
+        sg.fillStyle=SIGNC[v];sg.fillRect(ax-12,by-6-h+2,8,4);
+        ng.fillStyle=SIGNC[v];ng.fillRect(ax-12,by-6-h+2,8,4);
+        windows(sg,ng,ax,by,hw,h,rand,.6,{gx:7,gy:9});
+      }
+      if(lv===2){
+        windows(sg,ng,ax,by,hw,h,rand,.75,{w:4,ht:5,gx:6,gy:8});
+        for(let dx=2;dx<=8;dx++){                       // 玻璃入口
+          const yF=by-((dx+1)>>1);
+          sg.fillStyle='#bcd8ee';sg.fillRect(ax+dx,yF-10,1,9);
+        }
+        sg.fillStyle='#5c554a';sg.fillRect(ax+5,by-4-10,1,9);
+        sg.fillStyle='#20242c';sg.fillRect(ax-9,rty+4,18,9);  // 屋頂看板
+        for(let i=0;i<24;i++){
+          const col=SIGNC[ri(3)];
+          sg.fillStyle=col;ng.fillStyle=col;
+          const px=ax-8+ri(16),py=rty+5+ri(7);
+          sg.fillRect(px,py,1,1);ng.fillRect(px,py,1,1);
+        }
+        sg.fillStyle='#4a4f58';sg.fillRect(ax-2,rty+13,3,3);
+      }
+      if(lv===3){
+        windows(sg,ng,ax,by,hw,h,rand,.55,{w:3,ht:5,gx:4,gy:6,glass:'#31435f'});
+        const rty2=isoBox(sg,ax,rty+hw-6,hw-12,10,shade(wl[1],-10),shade(wl[0],-10),shade(rf,-8));
+        sg.fillStyle='#8b95a5';sg.fillRect(ax,rty2-6,1,7);
+        sg.fillStyle='#e05252';sg.fillRect(ax-1,rty2-8,3,2);
+        ng.fillStyle='#ff6060';ng.fillRect(ax-1,rty2-8,3,2);
+        ng.fillStyle=SIGNC[v];ng.fillRect(ax-10,rty2+6,8,3);
+        sg.fillStyle=SIGNC[v];sg.fillRect(ax-10,rty2+6,8,3);
+      }
+    }
+    /* ------ 工業 ------ */
+    if(k===3){
+      sg.fillStyle='rgba(0,0,0,.06)';                   // 浪板紋
+      for(let dx=2;dx<hw;dx+=2){
+        sg.fillRect(ax+dx,by-((dx+1)>>1)-h,1,h);
+        sg.fillRect(ax-dx,by-(dx>>1)-h,1,h);
+      }
+      if(lv===1){
+        for(let dx=2;dx<=11;dx++){                      // 捲門
+          const yF=by-((dx+1)>>1);
+          sg.fillStyle='#454a54';sg.fillRect(ax+dx,yF-10,1,9);
+          if(dx%2)sg.fillStyle='rgba(255,255,255,.08)',sg.fillRect(ax+dx,yF-10,1,9);
+        }
+        sg.fillStyle='#6a707c';sg.fillRect(ax-10,rty+4,3,9);
+        sg.fillStyle='#b5533e';sg.fillRect(ax-10,rty+4,3,2);
+        g.fillStyle='#a07648';g.fillRect(ax-20,ay-11,6,4);
+        g.fillStyle='#bf9059';g.fillRect(ax-16,ay-13,5,3);
+        windows(sg,ng,ax,by,hw,h,rand,.4,{gx:9,gy:9});
+      }
+      if(lv===2){
+        const rm=isoBox(sg,ax,rty+hw-6,hw-16,5,shade(wl[1],-14),shade(wl[0],-14),'#aebccb'); // 屋頂天窗
+        sg.fillStyle='rgba(255,255,255,.25)';
+        for(let dx=-8;dx<=8;dx+=4)sg.fillRect(ax+dx,rm+4,2,1);
+        sg.fillStyle='#8a6f5f';sg.fillRect(ax-9,rty-8,4,16);   // 磚煙囪
+        sg.fillStyle='#b5533e';sg.fillRect(ax-9,rty-8,4,3);
+        sg.fillStyle='#6d574a';sg.fillRect(ax-6,rty-8,1,16);
+        smoke.push({dx:-7,dy:rty-9-ay});
+        windows(sg,ng,ax,by,hw,h,rand,.45,{gx:7,gy:9});
+      }
+      if(lv===3){
+        sg.fillStyle='#6a707c';sg.fillRect(ax-12,rty-10,4,20);
+        sg.fillStyle='#b5533e';sg.fillRect(ax-12,rty-10,4,3);
+        sg.fillStyle='#565c68';sg.fillRect(ax-9,rty-10,1,20);
+        sg.fillStyle='#6a707c';sg.fillRect(ax-4,rty-4,4,15);
+        sg.fillStyle='#b5533e';sg.fillRect(ax-4,rty-4,4,2);
+        smoke.push({dx:-10,dy:rty-11-ay},{dx:-2,dy:rty-5-ay});
+        sg.fillStyle='#aab2bd';sg.fillRect(ax+6,rty+6,10,8);   // 儲罐
+        sg.fillStyle='#c8cfd8';sg.fillRect(ax+6,rty+5,10,2);
+        sg.fillStyle='#8d95a1';sg.fillRect(ax+6,rty+10,10,1);
+        for(let dx=0;dx<hw;dx+=4){                      // 警示條
+          const yF=by-((dx+1)>>1);
+          sg.fillStyle=dx%8?'#20242c':'#ffd420';sg.fillRect(ax+dx,yF-2,3,2);
+        }
+        windows(sg,ng,ax,by,hw,h,rand,.5,{gx:8,gy:9});
+      }
+    }
+    outlineSprite(sc,26,30,44);
+    g.drawImage(sc,0,0);
+    SPR.bld[k+'_'+lv+'_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke};
+  }
+  /* ---------- 公園 3 變化 ---------- */
+  SPR.park=[];
+  const mt=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
+    g.fillStyle='#3d7a3c';g.fillRect(x-4,y-3,10,9);
+    g.fillStyle='#4b8f45';g.fillRect(x-3,y-4,8,7);
+    g.fillStyle='#63ad55';g.fillRect(x-2,y-3,4,4);};
+  for(let v=0;v<3;v++){const[c,g]=cv(64,56);
+    const ay=53;
+    dia(g,32,ay-32,32,'#82c163');
+    speck(g,32,ay-32,32,['#6fae52','#95d276','#78b95c'],60,rand);
+    diaEdge(g,9,'#90cc72',32,ay-32,32);
+    diaEdge(g,6,'#74ad57',32,ay-32,32);
+    if(v===2){                                          // 池塘
+      dia(g,32,ay-26,12,'#4f93cf');
+      dia(g,32,ay-24,8,'#6fb0e0');
+      g.fillStyle='#bfe4f5';g.fillRect(30,ay-21,3,1);
+      diaEdge(g,15,'#d9c689',32,ay-26,12);
+      mt(g,14,ay-26);
+    }else{
+      g.fillStyle='#cbb98e';                            // 石徑
+      for(let i=0;i<5;i++)g.fillRect(12+i*8,ay-20+((i%2)*2),5,2);
+      mt(g,14,ay-28);mt(g,46,ay-24);
+      if(v===0){
+        g.fillStyle='#8a5f38';g.fillRect(38,ay-30,7,2);  // 長椅
+        g.fillRect(38,ay-28,1,2);g.fillRect(44,ay-28,1,2);
+        const fc=['#e8e070','#e8907e','#d9a8e8','#f2f2f2'];
+        for(let i=0;i<8;i++){g.fillStyle=fc[ri(4)];g.fillRect(20+ri(20),ay-14+ri(5),2,1);}
+      }
+    }
+    SPR.park.push({img:c,ax:32,ay:ay,w:64,h:56});}
+  /* ---------- 發電廠 ---------- */
+  {const[c,g]=cv(88,120),[nc,ng]=cv(88,120),[sc,sg]=cv(88,120);
+   const ax=44,ay=118,by=ay-2;
+   plate(g,ax,ay,'#8f8a7c');
+   const rty=isoBox(sg,ax,by,30,26,'#525a66','#68717e','#5b636f');
+   for(let dx=4;dx<=24;dx+=7){                          // 通風柵
+     const yF=by-((dx+1)>>1);
+     sg.fillStyle='#3a414c';sg.fillRect(ax+dx,yF-16,4,5);
+     sg.fillStyle='rgba(255,255,255,.15)';sg.fillRect(ax+dx,yF-16,4,1);
+   }
+   for(let dx=0;dx<28;dx+=4){                           // 警示條
+     const yF=by-((dx+1)>>1);
+     sg.fillStyle=dx%8?'#20242c':'#ffd420';sg.fillRect(ax+dx,yF-3,3,2);
+   }
+   windows(sg,ng,ax,by,30,26,rand,.85,{glass:'#26314e',lit:'#9fe8ff',gx:9,gy:9});
+   const stack=(x,y,w,hgt)=>{                           // 冷卻塔
+     for(let i=0;i<w;i++){
+       const k=Math.abs(i-(w-1)/2)/(w/2);
+       sg.fillStyle=shade('#7b8492',Math.round(-30*k+8));
+       sg.fillRect(x+i,y,1,hgt);
+     }
+     sg.fillStyle='#3a414c';sg.fillRect(x,y,w,2);
+     sg.fillStyle='#b5533e';sg.fillRect(x,y+3,w,3);
+   };
+   stack(ax-20,rty-18,9,30);
+   stack(ax+4,rty-10,8,24);
+   sg.fillStyle='#6d7684';                              // 變電箱
+   sg.fillRect(ax+18,by-14,7,6);sg.fillRect(ax+26,by-11,6,5);
+   sg.fillStyle='#8b95a5';sg.fillRect(ax+19,by-16,1,2);sg.fillRect(ax+22,by-16,1,2);
+   outlineSprite(sc,26,30,44);
+   g.drawImage(sc,0,0);
+   SPR.plant={img:c,night:nc,ax,ay,w:88,h:120,
+     smoke:[{dx:-16,dy:rty-19-ay},{dx:8,dy:rty-11-ay}],
+     lamp:{dx:-16,dy:rty-21-ay}};}
+  /* ---------- 小車（8 色 × 2 朝向） ---------- */
+  SPR.car=[];
+  const CARC=['#e05252','#5aa0e8','#ffd45f','#7fe0c8','#e8e8ee','#b184d8','#f2a35f','#88c46a'];
+  for(const col of CARC){
+    const[a,ag]=cv(12,8);
+    ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,6,9,1);
+    ag.fillStyle=shade(col,-40);
+    ag.fillRect(1,5,4,1);ag.fillRect(4,4,4,1);ag.fillRect(7,3,4,1);
+    ag.fillStyle=col;
+    ag.fillRect(1,3,4,2);ag.fillRect(4,2,4,2);ag.fillRect(7,1,4,2);
+    ag.fillStyle=shade(col,35);
+    ag.fillRect(1,3,4,1);ag.fillRect(4,2,4,1);ag.fillRect(7,1,4,1);
+    ag.fillStyle='#222c3d';ag.fillRect(5,2,3,2);
+    const[b,bg]=cv(12,8);
+    bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);
+    SPR.car.push({A:a,B:b});
+  }
+}
+
+/* 標題 LOGO（開始畫面的小島） */
+function drawLogo(){
+  const c=$('#logo'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.clearRect(0,0,c.width,c.height);
+  const sx=(x,y)=>112+(x-y)*32-32, sy=(x,y)=>18+(x+y)*16;
+  for(let y=0;y<3;y++)for(let x=0;x<3;x++){
+    if(x===2||y===2)g.drawImage(SPR.cliff,sx(x,y),sy(x,y));
+    g.drawImage(SPR.grass[(x*2+y)%4],sx(x,y),sy(x,y));
+  }
+  g.drawImage(SPR.road[1|4],sx(1,1),sy(1,1));
+  const put=(s,x,y)=>g.drawImage(s.img,sx(x,y)+32-s.ax,sy(x,y)+32-s.ay);
+  put(SPR.tree[0],2,0);
+  put(SPR.bld['1_1_0'],0,1);
+  put(SPR.bld['2_1_1'],2,1);
+}
+
+/* =====================================================================
+   3. 世界生成
+===================================================================== */
+function genWorld(sd){
+  seed=sd;R=mulberry32(sd);
+  const noi=makeNoise(mulberry32(sd^0x9e37),64);
+  const noi2=makeNoise(mulberry32(sd^0x51f3),64);
+  tiles=new Array(N*N);
+  let water=0;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const n=noi(x*.085,y*.085);
+    let t=2;
+    if(n<.40)t=0; else if(n<.455)t=1;
+    if(t===0)water++;
+    const tile={t,tree:0,gv:ri(4),road:0,bridge:0,mask:0,zone:0,bld:null,rp:false,wm:0};
+    if(t===2&&noi2(x*.13,y*.13)>.62&&R()<.8)tile.tree=1+ri(4);
+    tiles[idx(x,y)]=tile;
+  }
+  return water/(N*N);
+}
+// 水岸泡沫遮罩（哪幾條邊鄰接陸地）
+function computeFoam(){
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=T(idx(x,y));t.wm=0;
+    if(t.t!==0)continue;
+    let m=0;
+    if(inMap(x,y-1)&&T(idx(x,y-1)).t!==0)m|=1;
+    if(inMap(x+1,y)&&T(idx(x+1,y)).t!==0)m|=2;
+    if(inMap(x,y+1)&&T(idx(x,y+1)).t!==0)m|=4;
+    if(inMap(x-1,y)&&T(idx(x-1,y)).t!==0)m|=8;
+    t.wm=m;
+  }
+}
+function newWorld(){
+  let sd=(Math.random()*1e9)|0;
+  for(let tries=0;tries<40;tries++){
+    const w=genWorld(sd);
+    if(w>.06&&w<.38)break;
+    sd=(sd*1664525+1013904223)|0;
+  }
+  // 找一塊開闊草地當出生視角
+  let best=null,bestScore=-1;
+  for(let s=0;s<160;s++){
+    const x=6+ri(N-12),y=6+ri(N-12);
+    let sc=0;
+    for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){
+      const t=T(idx(x+dx,y+dy));
+      if(t.t===2&&!t.tree)sc++;
+    }
+    if(sc>bestScore){bestScore=sc;best=[x,y];}
+  }
+  money=3000;day=1;msIdx=0;pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
+  bailoutDay=-999;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
+  cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
+  recalcAllMasks();
+  computeFoam();
+}
+
+/* =====================================================================
+   4. 建造邏輯
+===================================================================== */
+function recalcMask(x,y){
+  const t=T(idx(x,y));if(!t.road)return;
+  let m=0;
+  if(inMap(x,y-1)&&T(idx(x,y-1)).road)m|=1;
+  if(inMap(x+1,y)&&T(idx(x+1,y)).road)m|=2;
+  if(inMap(x,y+1)&&T(idx(x,y+1)).road)m|=4;
+  if(inMap(x-1,y)&&T(idx(x-1,y)).road)m|=8;
+  t.mask=m;
+}
+function recalcAllMasks(){
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcMask(x,y);
+}
+function roadCostAt(x,y){return T(idx(x,y)).t===0?COST.bridge:COST.road;}
+// 回傳 null＝可行，否則錯誤訊息
+function canPlace(toolId,x,y){
+  if(!inMap(x,y))return '超出地圖';
+  const t=T(idx(x,y));
+  switch(toolId){
+    case 'road':
+      if(t.road)return null; // 重複鋪＝略過（不收費）
+      if(t.bld)return '有建築擋住';
+      return null;
+    case 'zr':case 'zc':case 'zi':
+      if(t.t!==2&&t.t!==1)return '只能劃在陸地上';
+      if(t.road)return '道路上不能分區';
+      if(t.bld)return '已有建築';
+      return null;
+    case 'park':case 'plant':
+      if(t.t!==2&&t.t!==1)return '只能蓋在陸地上';
+      if(t.road)return '道路上不能建造';
+      if(t.bld)return '已有建築';
+      return null;
+    case 'doze':
+      if(!t.road&&!t.bld&&!t.zone&&!t.tree)return '這裡沒東西';
+      return null;
+  }
+  return '無法建造';
+}
+function placeCost(toolId,x,y){
+  const t=T(idx(x,y));
+  let c=0;
+  switch(toolId){
+    case 'road': if(t.road)return 0; c=roadCostAt(x,y); break;
+    case 'zr':case 'zc':case 'zi':
+      c=COST.zone; if(t.zone)c=0; break;
+    case 'park':c=COST.park;break;
+    case 'plant':c=COST.plant;break;
+    case 'doze':c=COST.doze;break;
+  }
+  if(toolId!=='doze'&&t.tree)c+=COST.doze; // 順手清樹
+  return c;
+}
+function doPlace(toolId,x,y,silent){
+  const err=canPlace(toolId,x,y);
+  if(err){if(!silent){toast(err,'bad');sErr();}return false;}
+  const cost=placeCost(toolId,x,y);
+  if(cost>money){if(!silent){toast('資金不足！','bad');sErr();}return false;}
+  const t=T(idx(x,y));
+  const zoneOf={zr:1,zc:2,zi:3};
+  switch(toolId){
+    case 'road':
+      if(t.road)return false;
+      t.road=1;t.bridge=t.t===0?1:0;t.tree=0;t.zone=0;
+      recalcMask(x,y);recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);
+      break;
+    case 'zr':case 'zc':case 'zi':
+      if(t.zone===zoneOf[toolId]&&!t.tree)return false;
+      t.zone=zoneOf[toolId];t.tree=0;
+      break;
+    case 'park':
+      t.bld={k:4,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;
+      break;
+    case 'plant':
+      t.bld={k:5,lv:1,v:0,age:0,pw:true,h:1};t.tree=0;t.zone=0;
+      break;
+    case 'doze':
+      if(t.bld)t.bld=null;
+      else if(t.road){t.road=0;t.bridge=0;t.mask=0;
+        recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);}
+      else if(t.zone)t.zone=0;
+      else if(t.tree)t.tree=0;
+      break;
+  }
+  money-=cost;
+  return true;
+}
+
+/* =====================================================================
+   5. 模擬
+===================================================================== */
+function hasRoadNear(x,y,r,needPow){
+  for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+    const nx=x+dx,ny=y+dy;
+    if(!inMap(nx,ny))continue;
+    const t=T(idx(nx,ny));
+    if(t.road&&(!needPow||t.rp))return true;
+  }
+  return false;
+}
+function computePower(){
+  let plants=0;
+  for(let i=0;i<N*N;i++){tiles[i].rp=false;if(tiles[i].bld&&tiles[i].bld.k===5)plants++;}
+  if(!plants)return 0;
+  const seen=new Uint8Array(N*N);
+  const q=[];
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=T(idx(x,y));
+    if(!(t.bld&&t.bld.k===5))continue;
+    for(const[dx,dy]of[[0,-1],[1,0],[0,1],[-1,0]]){
+      const nx=x+dx,ny=y+dy;
+      if(inMap(nx,ny)&&T(idx(nx,ny)).road&&!seen[idx(nx,ny)]){
+        seen[idx(nx,ny)]=1;q.push([nx,ny,0]);
+      }
+    }
+  }
+  let head=0;
+  while(head<q.length){
+    const[x,y,d]=q[head++];
+    T(idx(x,y)).rp=true;
+    if(d>=90)continue;
+    for(const[dx,dy]of[[0,-1],[1,0],[0,1],[-1,0]]){
+      const nx=x+dx,ny=y+dy;
+      if(!inMap(nx,ny))continue;
+      const j=idx(nx,ny);
+      if(T(j).road&&!seen[j]){seen[j]=1;q.push([nx,ny,d+1]);}
+    }
+  }
+  return plants*PLANT_CAP;
+}
+function countNear(x,y,r,pred){
+  let n=0;
+  for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+    const nx=x+dx,ny=y+dy;
+    if(!inMap(nx,ny))continue;
+    if(pred(T(idx(nx,ny))))n++;
+  }
+  return n;
+}
+function tick(){
+  day++;
+  const cap=computePower();
+  // 供電判定
+  let powered=0;
+  let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0;
+  const grown=[];
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=T(idx(x,y));
+    const b=t.bld;
+    if(!b||b.k>3)continue;
+    const near=hasRoadNear(x,y,2,true);
+    b.pw=near&&powered<cap;
+    if(b.pw)powered++;
+    if(b.k===1){
+      const parks=countNear(x,y,4,tt=>tt.bld&&tt.bld.k===4);
+      const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);
+      const pl   =countNear(x,y,4,tt=>tt.bld&&tt.bld.k===5);
+      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)-ind*.09-pl*.18-(b.pw?0:.3),.05,1);
+      happySum+=b.h;happyN++;
+      if(b.pw){popN+=POPS[b.lv];}
+    }else if(b.pw){
+      if(b.k===2)jobsC+=JOBSC[b.lv];else jobsI+=JOBSI[b.lv];
+    }
+  }
+  pop=popN;jobs=jobsC+jobsI;
+  cityHappy=happyN?happySum/happyN:.6;
+  // 需求
+  const workers=pop*.6;
+  dem[1]=clamp((jobs*1.2+25-workers)/70,-1,1);
+  dem[2]=clamp((workers*.45-jobsC)/50,-1,1);
+  dem[3]=clamp((workers*.55-jobsI)/55,-1,1);
+  // 生長：收集候選
+  const cands=[];
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=T(idx(x,y));
+    if(t.zone&&!t.bld&&hasRoadNear(x,y,2,true))cands.push([x,y,t.zone]);
+  }
+  // 洗牌取前幾個
+  for(let i=cands.length-1;i>0;i--){const j=ri(i+1);const tmp=cands[i];cands[i]=cands[j];cands[j]=tmp;}
+  let spawns=0;
+  for(const[x,y,z]of cands){
+    if(spawns>=3)break;
+    const p=.10+.5*Math.max(0,dem[z])*(z===1?clamp(cityHappy+.25,.3,1):1);
+    if(R()<p){
+      T(idx(x,y)).bld={k:z,lv:1,v:ri(3),age:0,pw:true,h:.6};
+      spawns++;sPop();
+    }
+  }
+  // 升級
+  for(let i=0;i<N*N;i++){
+    const b=tiles[i].bld;
+    if(!b||b.k>3)continue;
+    b.age++;
+    if(b.lv<3&&b.pw&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035){
+      b.lv++;b.age=0;b.v=ri(3);
+    }
+  }
+  // 經濟
+  let income=0,upkeep=0,roads=0,parks=0,plants=0;
+  for(let i=0;i<N*N;i++){
+    const t=tiles[i];
+    if(t.road)roads++;
+    const b=t.bld;
+    if(!b)continue;
+    if(b.k===4)parks++;
+    else if(b.k===5)plants++;
+    else if(b.pw){
+      if(b.k===1)income+=POPS[b.lv]*.12;
+      else if(b.k===2)income+=JOBSC[b.lv]*.18;
+      else income+=JOBSI[b.lv]*.15;
+    }
+  }
+  upkeep=roads*.02+parks*.5+plants*4;
+  money+=income-upkeep;
+  // 里程碑
+  if(msIdx<MILES.length&&pop>=MILES[msIdx][0]){
+    const bonus=MILES[msIdx][1];money+=bonus;
+    toast(`🎉 人口突破 ${MILES[msIdx][0]}！獎勵 $${bonus}`,'gold');
+    sFanfare();msIdx++;
+  }
+  // 紓困保底（避免卡死）
+  if(money<20&&income-upkeep<=0&&day-bailoutDay>60){
+    money+=250;bailoutDay=day;
+    toast('🏦 小鎮銀行送來 $250 紓困金','gold');
+  }
+  checkHints(plants,roads);
+}
+
+/* =====================================================================
+   6. 小車與煙
+===================================================================== */
+const cars=[],smokes=[];
+function roadDirs(x,y){
+  const t=T(idx(x,y));const out=[];
+  if(t.mask&1)out.push(0);if(t.mask&2)out.push(1);
+  if(t.mask&4)out.push(2);if(t.mask&8)out.push(3);
+  return out;
+}
+const DIRV=[[0,-1],[1,0],[0,1],[-1,0]];
+function updCars(dt){
+  const target=clamp(Math.floor(pop/45),0,32);
+  if(cars.length<target&&Math.random()<.1){
+    // 隨機找條路
+    for(let tries=0;tries<30;tries++){
+      const x=ri(N),y=ri(N);
+      const t=T(idx(x,y));
+      if(t.road&&t.mask){
+        const ds=roadDirs(x,y);
+        const d=ds[ri(ds.length)];
+        cars.push({x,y,d,p:Math.random(),ci:ri(SPR.car.length)});
+        break;
+      }
+    }
+  }
+  for(let i=cars.length-1;i>=0;i--){
+    const c=cars[i];
+    if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).road){cars.splice(i,1);continue;}
+    c.p+=dt*1.4;
+    if(c.p>=1){
+      c.p-=1;
+      c.x+=DIRV[c.d][0];c.y+=DIRV[c.d][1];
+      if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).road){cars.splice(i,1);continue;}
+      const ds=roadDirs(c.x,c.y);
+      if(!ds.length){cars.splice(i,1);continue;}
+      const rev=(c.d+2)%4;
+      const fwd=ds.filter(d=>d!==rev);
+      c.d=fwd.length?fwd[ri(fwd.length)]:rev;
+    }
+  }
+  if(cars.length>target+4)cars.length=target+4;
+}
+let smokeAcc=0;
+function updSmoke(dt){
+  smokeAcc+=dt;
+  const spawn=smokeAcc>.45;
+  if(spawn)smokeAcc=0;
+  if(spawn&&smokes.length<130){
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const t=T(idx(x,y)),b=t.bld;
+      if(!b)continue;
+      let offs=null,dark=false;
+      if(b.k===3&&b.lv>=2&&b.pw)offs=SPR.bld[b.k+'_'+b.lv+'_'+b.v].smoke;
+      if(b.k===5){offs=SPR.plant.smoke;dark=true;}
+      if(!offs||!offs.length)continue;
+      if(Math.random()<.5)continue;
+      const o=offs[ri(offs.length)];
+      const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;
+      smokes.push({wx,wy,age:0,life:2.2+Math.random(),dark,dep:x+y});
+    }
+  }
+  for(let i=smokes.length-1;i>=0;i--){
+    const s=smokes[i];
+    s.age+=dt;s.wy-=dt*14;s.wx+=dt*6;
+    if(s.age>s.life)smokes.splice(i,1);
+  }
+}
+
+/* =====================================================================
+   7. 繪製
+===================================================================== */
+const stars=[];
+for(let i=0;i<90;i++)stars.push([Math.random(),Math.random()*.8,Math.random()*6.28]);
+let waterF=0,waterT=0;
+const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];   // 各行進方向的螢幕向量（車頭燈用）
+
+function easeOutBack(t){
+  const c1=1.70158,c3=c1+1;
+  return t>=1?1:1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);
+}
+function daylight(){
+  const ph=(visT%CYCLE)/CYCLE;             // 0..1，0.25 日出 0.75 日落
+  const d=Math.max(0,Math.sin((ph-.25)*Math.PI*2));
+  const b=.34+.66*Math.pow(d,.7);
+  const dusk=(d>0&&d<.30)?(0.30-d)/.30:0;
+  return {b,dusk,ph};
+}
+function draw(dt){
+  const {b,dusk}=daylight();
+  // 天空
+  const sky=[Math.round(lerp(13,140,b)),Math.round(lerp(17,195,b)),Math.round(lerp(38,232,b))];
+  ctx.fillStyle=`rgb(${sky[0]},${sky[1]},${sky[2]})`;
+  ctx.fillRect(0,0,W,H);
+  if(b<.62){
+    ctx.fillStyle='#fff';
+    for(const s of stars){
+      const tw=.4+.6*Math.abs(Math.sin(visT*1.5+s[2]));
+      ctx.globalAlpha=(0.62-b)/.62*tw;
+      ctx.fillRect(Math.floor(s[0]*W),Math.floor(s[1]*H),2,2);
+    }
+    ctx.globalAlpha=1;
+  }
+  const z=cam.z;
+  const ox=Math.round(W/2-cam.x*z), oy=Math.round(H/2-cam.y*z);
+  const sxOf=(x,y)=>ox+((x-y)*32-32)*z;
+  const syOf=(x,y)=>oy+((x+y)*16)*z;
+  const pad=160*z;
+  const vis=(sx,sy)=>sx>-pad&&sx<W+pad&&sy>-pad&&sy<H+pad;
+  waterT+=dt;if(waterT>.5){waterT=0;waterF=(waterF+1)%3;}
+  // ---- 地面層 ----
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const sx=sxOf(x,y),sy=syOf(x,y);
+    if(!vis(sx,sy))continue;
+    const t=T(idx(x,y));
+    if(x===N-1||y===N-1)ctx.drawImage(SPR.cliff,sx,sy,64*z,56*z);
+    const base= t.t===0?SPR.water[waterF] : t.t===1?SPR.sand : SPR.grass[t.gv&3];
+    ctx.drawImage(base,sx,sy,64*z,32*z);
+    if(t.t===0&&t.wm)ctx.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
+    if(t.road){
+      if(t.bridge)ctx.drawImage(SPR.bridge[t.mask],sx,sy-4*z,64*z,44*z);
+      else ctx.drawImage(SPR.road[t.mask],sx,sy,64*z,32*z);
+    }else if(t.zone&&!t.bld){
+      ctx.globalAlpha=.5;ctx.drawImage(SPR.zone[t.zone],sx,sy,64*z,32*z);ctx.globalAlpha=1;
+    }
+  }
+  // ---- 物件層（依深度排序） ----
+  const objs=[];
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=T(idx(x,y));
+    if(!t.tree&&!t.bld)continue;
+    const sx=sxOf(x,y),sy=syOf(x,y);
+    if(!vis(sx,sy))continue;
+    objs.push({dep:x+y+y*.001,x,y,sx,sy,t});
+  }
+  for(const c of cars){
+    const fx=c.x+DIRV[c.d][0]*c.p, fy=c.y+DIRV[c.d][1]*c.p;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,car:c,wx,wy});
+  }
+  for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s});
+  objs.sort((a,b2)=>a.dep-b2.dep);
+  const nightSprites=[];
+  const bob=Math.sin(visT*5)*2;
+  for(const o of objs){
+    if(o.car){
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const spr=SPR.car[o.car.ci][(o.car.d===0||o.car.d===2)?'A':'B'];
+      ctx.drawImage(spr,sx-6*z,sy-5*z,12*z,8*z);
+      if(b<.55){
+        const v=DIRSCR[o.car.d];
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+      }
+      continue;
+    }
+    if(o.smoke){
+      const s=o.smoke;
+      const k=s.age/s.life;
+      const sz=Math.max(z,Math.round((2+k*4.5)*z));
+      ctx.globalAlpha=(1-k)*.5;
+      ctx.fillStyle=s.dark?'#9aa0a8':'#d7dce2';
+      ctx.fillRect(ox+s.wx*z,oy+s.wy*z,sz,sz);
+      ctx.globalAlpha=1;
+      continue;
+    }
+    const t=o.t;
+    if(t.tree){
+      const s=SPR.tree[(t.tree-1)&3];
+      ctx.drawImage(s.img,o.sx+(32-s.ax)*z,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
+      continue;
+    }
+    const bd=t.bld;
+    let s;
+    if(bd.k===4)s=SPR.park[bd.v];
+    else if(bd.k===5)s=SPR.plant;
+    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v];
+    const bx=o.sx+(32-s.ax)*z, by=o.sy+(32-s.ay)*z;
+    ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
+    if(s.night&&(bd.k===5||bd.pw))nightSprites.push({img:s.night,x:bx,y:by,w:s.w*z,h:s.h*z});
+    if(bd.k===5&&Math.sin(visT*4)>0){
+      ctx.fillStyle='#ff4040';
+      ctx.fillRect(o.sx+(32+s.lamp.dx)*z,o.sy+(32+s.lamp.dy)*z,2*z,2*z);
+    }
+    if(bd.k<=3&&!bd.pw){
+      ctx.drawImage(SPR.nopow,o.sx+24*z,o.sy+(-52+bob)*z,16*z,20*z);
+    }
+  }
+  // ---- 晝夜色調 ----
+  if(b<1){
+    ctx.globalCompositeOperation='multiply';
+    const nc=[110,125,190];
+    const col=[0,1,2].map(i=>Math.round(lerp(nc[i],255,b)));
+    ctx.fillStyle=`rgb(${col[0]},${col[1]},${col[2]})`;
+    ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='source-over';
+  }
+  if(dusk>0){
+    ctx.fillStyle=`rgba(255,145,60,${(dusk*.16).toFixed(3)})`;
+    ctx.fillRect(0,0,W,H);
+  }
+  // ---- 夜間燈光 ----
+  if(b<.72){
+    const a=clamp((0.72-b)/.5,0,1);
+    ctx.globalAlpha=a;
+    ctx.globalCompositeOperation='screen';
+    for(const nsp of nightSprites){
+      if(nsp.img)ctx.drawImage(nsp.img,nsp.x,nsp.y,nsp.w,nsp.h);
+      else if(nsp.rect){ctx.fillStyle='#ffe9a0';ctx.fillRect(...nsp.rect);}
+    }
+    ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=1;
+  }
+  // ---- 游標／框選預覽 ----
+  drawCursor(sxOf,syOf,z);
+}
+function drawCursor(sxOf,syOf,z){
+  if(tool==='pan')return;
+  if(rect.on){
+    const x0=Math.min(rect.x0,rect.x1),x1=Math.max(rect.x0,rect.x1);
+    const y0=Math.min(rect.y0,rect.y1),y1=Math.max(rect.y0,rect.y1);
+    let cost=0;
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+      if(!inMap(x,y))continue;
+      const ok=!canPlace(tool,x,y);
+      ctx.drawImage(ok?SPR.cursor:SPR.cursorBad,sxOf(x,y),syOf(x,y),64*z,32*z);
+      if(ok)cost+=placeCost(tool,x,y);
+    }
+    const dc=$('#dragcost');
+    dc.style.display='block';
+    dc.textContent='$'+Math.round(cost);
+    dc.style.left=(pt.cx+14)+'px';dc.style.top=(pt.cy-30)+'px';
+    dc.style.color=cost>money?'#ff9090':'#ffd977';
+    return;
+  }
+  $('#dragcost').style.display='none';
+  if(hover.x<0)return;
+  const ok=!canPlace(tool,hover.x,hover.y)&&placeCost(tool,hover.x,hover.y)<=money;
+  ctx.drawImage(ok?SPR.cursor:SPR.cursorBad,sxOf(hover.x,hover.y),syOf(hover.x,hover.y),64*z,32*z);
+}
+
+/* =====================================================================
+   8. 輸入（滑鼠＋觸控）
+===================================================================== */
+const hover={x:-1,y:-1};
+const pt={cx:0,cy:0};
+const rect={on:false,x0:0,y0:0,x1:0,y1:0};
+const pointers=new Map();
+let panBase=null,pinchBase=null,paintLast=null,downInfo=null;
+
+function toTile(cssX,cssY){
+  const mx=cssX*DPR,my=cssY*DPR;
+  const wx=(mx-(W/2-cam.x*cam.z))/cam.z;
+  const wy=(my-(H/2-cam.y*cam.z))/cam.z;
+  const fx=(wx/32+wy/16)/2, fy=(wy/16-wx/32)/2;
+  return [Math.floor(fx),Math.floor(fy)];
+}
+function isRectTool(id){return id==='zr'||id==='zc'||id==='zi'||id==='doze'||id==='park';}
+function paintTo(x,y){
+  if(!inMap(x,y))return;
+  if(paintLast&&paintLast[0]===x&&paintLast[1]===y)return;
+  if(paintLast){ // L 型補間，快速拖曳不斷路
+    let[px,py]=paintLast;
+    while(px!==x){px+=Math.sign(x-px);if(doPlace(tool,px,py,true))sTick();}
+    while(py!==y){py+=Math.sign(y-py);if(doPlace(tool,px,py,true))sTick();}
+  }else{
+    if(doPlace(tool,x,y,false))sTick();
+  }
+  paintLast=[x,y];
+}
+cvs.addEventListener('pointerdown',e=>{
+  try{cvs.setPointerCapture(e.pointerId);}catch(err){}
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  initAudio();
+  if(pointers.size===2){
+    // 進入雙指：取消畫線/框選，改為縮放平移
+    rect.on=false;paintLast=null;downInfo=null;
+    const ps=[...pointers.values()];
+    pinchBase={d:Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),
+      cx:(ps[0].x+ps[1].x)/2,cy:(ps[0].y+ps[1].y)/2,
+      camX:cam.x,camY:cam.y,acc:0};
+    panBase=null;
+    return;
+  }
+  const[x,y]=toTile(e.clientX,e.clientY);
+  downInfo={x:e.clientX,y:e.clientY,tx:x,ty:y,t:performance.now(),moved:false,btn:e.button};
+  if(e.button===1||e.button===2||tool==='pan'){
+    panBase={x:e.clientX,y:e.clientY,camX:cam.x,camY:cam.y};
+  }else if(isRectTool(tool)){
+    rect.on=true;rect.x0=rect.x1=x;rect.y0=rect.y1=y;
+  }else{
+    paintLast=null;paintTo(x,y);
+  }
+});
+cvs.addEventListener('pointermove',e=>{
+  pt.cx=e.clientX;pt.cy=e.clientY;
+  const p=pointers.get(e.pointerId);
+  if(p){p.x=e.clientX;p.y=e.clientY;}
+  const[x,y]=toTile(e.clientX,e.clientY);
+  hover.x=inMap(x,y)?x:-1;hover.y=inMap(x,y)?y:-1;
+  if(pointers.size===2&&pinchBase){
+    const ps=[...pointers.values()];
+    const d=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y);
+    const cx=(ps[0].x+ps[1].x)/2,cy=(ps[0].y+ps[1].y)/2;
+    cam.x=pinchBase.camX-(cx-pinchBase.cx)*DPR/cam.z;
+    cam.y=pinchBase.camY-(cy-pinchBase.cy)*DPR/cam.z;
+    pinchBase.acc+=Math.log(d/Math.max(1,pinchBase.d));
+    pinchBase.d=d;
+    if(pinchBase.acc>.28){zoomStep(1,cx,cy);pinchBase.acc=0;pinchBase.camX=cam.x;pinchBase.camY=cam.y;pinchBase.cx=cx;pinchBase.cy=cy;}
+    if(pinchBase.acc<-.28){zoomStep(-1,cx,cy);pinchBase.acc=0;pinchBase.camX=cam.x;pinchBase.camY=cam.y;pinchBase.cx=cx;pinchBase.cy=cy;}
+    return;
+  }
+  if(downInfo&&Math.hypot(e.clientX-downInfo.x,e.clientY-downInfo.y)>6)downInfo.moved=true;
+  if(panBase&&pointers.size===1){
+    cam.x=panBase.camX-(e.clientX-panBase.x)*DPR/cam.z;
+    cam.y=panBase.camY-(e.clientY-panBase.y)*DPR/cam.z;
+    clampCam();
+    return;
+  }
+  if(rect.on){rect.x1=clamp(x,0,N-1);rect.y1=clamp(y,0,N-1);return;}
+  if(paintLast&&pointers.size===1&&!panBase)paintTo(x,y);
+});
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size<2)pinchBase=null;
+  if(pointers.size===0){
+    if(rect.on){commitRect();rect.on=false;}
+    if(downInfo&&!downInfo.moved&&tool==='pan'&&performance.now()-downInfo.t<450){
+      inspect(downInfo.tx,downInfo.ty);
+    }
+    panBase=null;paintLast=null;downInfo=null;
+    $('#dragcost').style.display='none';
+  }
+}
+cvs.addEventListener('pointerup',endPointer);
+cvs.addEventListener('pointercancel',endPointer);
+cvs.addEventListener('contextmenu',e=>e.preventDefault());
+cvs.addEventListener('wheel',e=>{
+  e.preventDefault();
+  zoomStep(e.deltaY<0?1:-1,e.clientX,e.clientY);
+},{passive:false});
+function zoomStep(d,cssX,cssY){
+  const nz=clamp(cam.z+d,1,4);
+  if(nz===cam.z)return;
+  const mx=cssX*DPR,my=cssY*DPR;
+  const wx=(mx-(W/2-cam.x*cam.z))/cam.z;
+  const wy=(my-(H/2-cam.y*cam.z))/cam.z;
+  cam.z=nz;
+  cam.x=wx-(mx-W/2)/nz;
+  cam.y=wy-(my-H/2)/nz;
+  clampCam();
+}
+function clampCam(){
+  const m=N*32;
+  cam.x=clamp(cam.x,-m,m);
+  cam.y=clamp(cam.y,-16,N*32+16);
+}
+function commitRect(){
+  const x0=Math.min(rect.x0,rect.x1),x1=Math.max(rect.x0,rect.x1);
+  const y0=Math.min(rect.y0,rect.y1),y1=Math.max(rect.y0,rect.y1);
+  let done=0,cost=0;
+  // 先估總價，一次判斷
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    if(!inMap(x,y)||canPlace(tool,x,y))continue;
+    cost+=placeCost(tool,x,y);
+  }
+  if(cost>money){toast('資金不足！需要 $'+Math.round(cost),'bad');sErr();return;}
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    if(!inMap(x,y))continue;
+    if(doPlace(tool,x,y,true))done++;
+  }
+  if(done){sBuild();}
+}
+/* 檢視面板 */
+function inspect(x,y){
+  if(!inMap(x,y)){hideInfo();return;}
+  const t=T(idx(x,y));
+  let html='';
+  if(t.bld){
+    const b=t.bld;
+    if(b.k===4)html=`<h3>🌳 公園</h3><div class="row">為附近居民 +幸福</div><div class="row">維護費 $0.5/天</div>`;
+    else if(b.k===5)html=`<h3>⚡ 發電廠</h3><div class="row">供電 ${PLANT_CAP} 棟建築</div><div class="row">沿道路輸電，維護費 $4/天</div>`;
+    else{
+      const nm=LVNAME[b.k][b.lv-1];
+      html=`<h3>${['','🏠','🏪','🏭'][b.k]} ${nm}（Lv.${b.lv}）</h3>`;
+      if(b.k===1)html+=`<div class="row">居民 ${POPS[b.lv]} 人 ・ 幸福 ${Math.round((b.h||0)*100)}%</div>`;
+      else html+=`<div class="row">就業 ${b.k===2?JOBSC[b.lv]:JOBSI[b.lv]} 人</div>`;
+      html+=`<div class="row">${b.pw?'⚡ 供電正常':'⚠️ 沒有電力！'}</div>`;
+    }
+  }else if(t.road){
+    html=`<h3>🛣 ${t.bridge?'橋樑':'道路'}</h3><div class="row">${t.rp?'⚡ 電力沿此輸送中':'未通電'}</div>`;
+  }else if(t.zone){
+    html=`<h3>${['','🏠 住宅區','🏪 商業區','🏭 工業區'][t.zone]}</h3>
+      <div class="row">等待發展中…</div>
+      <div class="row">需要 2 格內有通電道路</div>`;
+  }else if(t.tree){
+    html=`<h3>🌲 樹林</h3><div class="row">可用 💥 拆除清理</div>`;
+  }else if(t.t===0){
+    html=`<h3>🌊 水域</h3><div class="row">鋪路可自動造橋（$${COST.bridge}）</div>`;
+  }else return hideInfo();
+  $('#infoBody').innerHTML=html;
+  $('#info').style.display='block';
+}
+function hideInfo(){$('#info').style.display='none';}
+$('#infoX').onclick=hideInfo;
+
+/* =====================================================================
+   9. 音效（WebAudio 程式化）
+===================================================================== */
+let AC=null;
+function initAudio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(AC&&AC.state==='suspended')AC.resume();}
+function tone(f,dur,type,vol,slide){
+  if(!AC||muted)return;
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type||'square';o.frequency.value=f;
+  if(slide)o.frequency.linearRampToValueAtTime(slide,AC.currentTime+dur);
+  g.gain.setValueAtTime(vol||.08,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
+  o.connect(g).connect(AC.destination);
+  o.start();o.stop(AC.currentTime+dur);
+}
+const sTick=()=>tone(520,.05,'square',.05);
+const sBuild=()=>{tone(300,.09,'square',.07,180);setTimeout(()=>tone(430,.07,'square',.05),60);};
+const sErr=()=>tone(110,.18,'sawtooth',.08);
+const sPop=()=>tone(760,.06,'triangle',.05,900);
+const sFanfare=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.14,'square',.07),i*90));};
+
+/* =====================================================================
+   10. UI
+===================================================================== */
+function buildToolbar(){
+  const bar=$('#tools');
+  for(const t of TOOLS){
+    const el=document.createElement('button');
+    el.className='tool'+(t.id===tool?' sel':'');
+    el.innerHTML=`<span class="ic">${t.ic}</span><span>${t.nm}</span><span class="pr">${t.pr}</span>`;
+    el.onclick=()=>{
+      tool=t.id;
+      document.querySelectorAll('.tool').forEach(b=>b.classList.remove('sel'));
+      el.classList.add('sel');
+      cvs.classList.toggle('build',tool!=='pan');
+      hideInfo();sTick();initAudio();
+    };
+    bar.appendChild(el);
+  }
+}
+function toast(msg,cls){
+  const el=document.createElement('div');
+  el.className='toast'+(cls?' '+cls:'');
+  el.textContent=msg;
+  $('#toasts').appendChild(el);
+  setTimeout(()=>{el.style.transition='opacity .5s';el.style.opacity='0';},2800);
+  setTimeout(()=>el.remove(),3400);
+}
+function updHud(){
+  $('#money b').textContent=Math.floor(money).toLocaleString();
+  $('#pop b').textContent=pop.toLocaleString();
+  $('#jobs b').textContent=jobs.toLocaleString();
+  const hEmoji=cityHappy>.7?'😊':cityHappy>.45?'😐':'☹️';
+  $('#happy').innerHTML=`${hEmoji} <b>${Math.round(cityHappy*100)}%</b>`;
+  const yr=Math.floor((day-1)/360)+1,dd=((day-1)%360)+1;
+  $('#date').textContent=`📅 第${yr}年 第${dd}天`;
+  $('#rci .r i').style.height=Math.round(Math.max(0,dem[1])*100)+'%';
+  $('#rci .c i').style.height=Math.round(Math.max(0,dem[2])*100)+'%';
+  $('#rci .i i').style.height=Math.round(Math.max(0,dem[3])*100)+'%';
+}
+$('#bSpeed').onclick=()=>{
+  speed=speed===0?1:speed===1?3:0;
+  $('#bSpeed').textContent=speed===0?'⏸ 暫停':speed===1?'▶ 1x':'⏩ 3x';
+  sTick();
+};
+$('#bSound').onclick=()=>{
+  muted=!muted;$('#bSound').textContent=muted?'🔇':'🔊';
+  localStorage.setItem(SAVEKEY+'.mute',muted?'1':'0');
+};
+$('#bSave').onclick=()=>{save();toast('💾 已儲存');sTick();};
+$('#bNew').onclick=()=>{
+  if(confirm('開一張新地圖？目前的小鎮會被覆蓋。')){
+    newWorld();save();toast('🌱 新的開始！');
+  }
+};
+$('#zin').onclick=()=>zoomStep(1,cvs.clientWidth/2,cvs.clientHeight/2);
+$('#zout').onclick=()=>zoomStep(-1,cvs.clientWidth/2,cvs.clientHeight/2);
+$('#hintX').onclick=()=>{$('#hint').style.display='none';hintsOff=true;};
+window.addEventListener('keydown',e=>{
+  const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'doze'};
+  if(map[e.key]){document.querySelectorAll('.tool')[TOOLS.findIndex(t=>t.id===map[e.key])].click();}
+  if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
+  if(e.key==='Escape'){document.querySelectorAll('.tool')[0].click();}
+});
+function showHint(key,msg){
+  if(hintsOff||hintShown[key])return;
+  hintShown[key]=1;
+  $('#hintTxt').textContent=msg;
+  $('#hint').style.display='flex';
+}
+function checkHints(plants,roads){
+  if(roads<3){showHint('h1','👉 先選「🛣 道路」，在草地上拖出幾條路');return;}
+  let zones=0;for(let i=0;i<N*N;i++)if(tiles[i].zone)zones++;
+  if(zones<4){showHint('h2','👉 選「🏠 住宅區」，在路邊拖出一塊區域');return;}
+  if(plants===0){showHint('h3','👉 蓋一座「⚡ 電廠」，電力會沿道路送到建築');return;}
+  if(pop>0&&hintShown['h3']&&!hintShown['h4']){
+    showHint('h4','🎉 居民入住了！接著劃「🏪 商業」「🏭 工業」提供工作');
+  }
+}
+
+/* =====================================================================
+   11. 存檔／讀檔
+===================================================================== */
+function save(){
+  try{
+    const bl=[];
+    let ter='',tre='',rd='',zn='';
+    for(let i=0;i<N*N;i++){
+      const t=tiles[i];
+      ter+=t.t;tre+=t.tree;zn+=t.zone;
+      rd+=t.road?(t.bridge?2:1):0;
+      if(t.bld)bl.push([i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age]);
+    }
+    const data={v:1,seed,money:Math.round(money),day,msIdx,
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,bl};
+    localStorage.setItem(SAVEKEY,JSON.stringify(data));
+  }catch(e){}
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(SAVEKEY);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(d.v!==1||d.ter.length!==N*N)return false;
+    seed=d.seed;R=mulberry32(seed^d.day);
+    tiles=new Array(N*N);
+    for(let i=0;i<N*N;i++){
+      const rv=+d.rd[i];
+      tiles[i]={t:+d.ter[i],tree:+d.tre[i],gv:i&3,road:rv?1:0,bridge:rv===2?1:0,
+        mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0};
+    }
+    for(const[i,k,lv,v,age]of d.bl)tiles[i].bld={k,lv,v,age,pw:true,h:.6};
+    money=d.money;day=d.day;msIdx=d.msIdx||0;
+    cam.x=d.cam.x;cam.y=d.cam.y;cam.z=clamp(d.cam.z||2,1,4);
+    recalcAllMasks();
+    computeFoam();
+    cars.length=0;smokes.length=0;
+    hintsOff=true;
+    return true;
+  }catch(e){return false;}
+}
+setInterval(save,25000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&tiles)save();});
+
+/* =====================================================================
+   12. 主迴圈
+===================================================================== */
+let lastT=performance.now(),hudT=0,running=false,lastDraw=0;
+// 推進遊戲邏輯（dtReal 不截斷，動畫另外截斷）
+function advance(dtReal){
+  visT+=Math.min(dtReal,2);
+  simAcc+=dtReal*speed;
+  let steps=0;
+  while(simAcc>=DAYLEN&&steps<8){simAcc-=DAYLEN;tick();steps++;}
+  if(steps>=8)simAcc=0; // 落後太多就放棄追趕
+  const dtA=Math.min(.05,dtReal);
+  updCars(dtA);
+  updSmoke(dtA);
+  updParticles(dtA);
+}
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(!running){lastT=ts;return;}
+  const dt=Math.max(0,Math.min(2,(ts-lastT)/1000));
+  lastT=ts;
+  advance(dt);
+  draw(Math.min(.05,dt));
+  lastDraw=performance.now();
+  hudT+=dt;
+  if(hudT>.25){hudT=0;updHud();}
+}
+requestAnimationFrame(frame);
+// rAF 被瀏覽器暫停（分頁隱藏／省電）時，用計時器低頻接手，遊戲不會凍結
+setInterval(()=>{
+  if(!running)return;
+  const now=performance.now();
+  if(now-lastDraw<400)return; // rAF 正常時不介入
+  const dt=Math.max(0,Math.min(2,(now-lastT)/1000));
+  lastT=now;
+  advance(dt);
+  draw(.05);
+  lastDraw=now;
+  updHud();
+},250);
+
+/* =====================================================================
+   13. 啟動
+===================================================================== */
+buildSprites();
+buildToolbar();
+resize();
+drawLogo();
+muted=localStorage.getItem(SAVEKEY+'.mute')==='1';
+$('#bSound').textContent=muted?'🔇':'🔊';
+const hasSave=!!localStorage.getItem(SAVEKEY);
+if(hasSave)$('#bContinue').style.display='block';
+function begin(fresh){
+  initAudio();
+  if(fresh||!load())newWorld();
+  $('#start').style.display='none';
+  running=true;
+  computePower();
+  updHud();
+  if(!hasSave||fresh)checkHints(0,0);
+}
+$('#bNewGame').onclick=()=>begin(true);
+$('#bContinue').onclick=()=>begin(false);
+
+/* 除錯／測試用 API（不影響一般遊玩） */
+window.GV={
+  place:(t,x,y)=>doPlace(t,x,y,true),
+  center:()=>toTile(cvs.clientWidth/2,cvs.clientHeight/2),
+  tile:(x,y)=>inMap(x,y)?JSON.parse(JSON.stringify(T(idx(x,y)))):null,
+  setSpeed:s=>{speed=s;},
+  stats:()=>{let b=0,r=0,z=0,pw=0;
+    for(let i=0;i<N*N;i++){const t=tiles[i];
+      if(t.bld){b++;if(t.bld.pw)pw++;}
+      if(t.road)r++;if(t.zone)z++;}
+    return{money:Math.round(money),pop,jobs,day,buildings:b,poweredBld:pw,
+      roads:r,zones:z,happy:+cityHappy.toFixed(2),dem:{...dem},cars:cars.length};}
+};
+})();
+</script>
+</body>
+</html>
+
