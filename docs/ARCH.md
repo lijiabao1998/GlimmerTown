@@ -19,10 +19,10 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
 | 5 | 模擬 | `hasRoadNear` `computePower`(道路BFS) `countNear` `tick()`(一天) |
 | 6 | 小車與煙 | `cars smokes roadDirs DIRV updCars updSmoke` |
 | 7 | 繪製 | `stars waterF DIRSCR daylight() draw(dt) drawCursor` |
-| 8 | 輸入 | `hover pt rect pointers toTile isRectTool paintTo` pointer 事件、`zoomStep clampCam commitRect inspect` |
-| 9 | 音效 | `AC initAudio tone sTick sBuild sErr sPop sFanfare`（WebAudio 程式化，無音檔） |
-| 10 | UI | `buildToolbar toast updHud` 各按鈕 onclick、`showHint checkHints` 鍵盤快捷鍵 |
-| 11 | 存檔 | `save() load()` 自動存檔 setInterval(25s) + visibilitychange |
+| 8 | 輸入 | `hover pt rect pointers toTile isRectTool paintTo undoPlace` pointer 事件、`zoomStep clampCam commitRect inspect`；全域 `firstPaint dozeArm longPressT undoStack undoGroup openUndo closeUndo`（v1.2） |
+| 9 | 音效 | `AC initAudio tone sTick sBuild sErr sPop sFanfare` ＋ `sndMode` 三段開關與環境音排程器（T05） |
+| 10 | UI | `buildToolbar toast updHud showHint checkHints` 鍵盤快捷鍵；`drawMini`（T06 小地圖）、`showStats`（T04）、`showHelp`（T09）、`showSlots/匯出入`（T07）、`undo()`（T10） |
+| 11 | 存檔 | `save() load()` 槽位化（T07）：鍵 `SAVEKEY+'.s1/.s2/.s3'`、目前槽 `'.slot'`、舊裸鍵自動遷移；自動存檔 25s + visibilitychange |
 | 12 | 主迴圈 | `advance(dt)` `frame(ts)`(rAF) + setInterval(250ms) 後備迴圈 |
 | 13 | 啟動 | `buildSprites buildToolbar resize drawLogo begin()`；`window.GV` 除錯 API |
 
@@ -38,13 +38,14 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
   road: 0|1, bridge: 0|1,   // bridge 隱含 road=1 且 t===0
   mask: 0..15,     // 道路連接位罩（見§4 位向約定）
   zone: 0|1|2|3,   // 分區 0無 1住宅 2商業 3工業
+  deco: 0..3,      // 裝飾 0無 1岩石 2蘆葦 3野花叢（T02；建造時自動清除）
   bld: null | { k, lv, v, age, pw, h },
   rp: false,       // 本格道路是否通電（computePower 每天重算）
   wm: 0..15        // 水岸泡沫位罩（computeFoam 算）
 }
 ```
 
-`bld.k`：1住宅 2商業 3工業 4公園 5發電廠。`lv` 1..3（公園/電廠恆1）。`v` 外觀變體 0..2。
+`bld.k`：1住宅 2商業 3工業 4公園 5發電廠（v1.3 起：6消防局 7學校）。`lv` 1..3（k≥4 恆1）。`v` 外觀變體：k≤3 為 0..3（T01），公園/電廠 0..2。
 `age` 天數（升級計時）。`pw` 是否供電（k=4/5 恆 true）。`h` 幸福度（僅住宅有意義）。
 
 人口/就業查表：`POPS=[0,8,22,54]`（住宅各級人口）`JOBSC=[0,5,14,38]` `JOBSI=[0,7,20,48]`。
@@ -115,11 +116,12 @@ helper（第 2 節開頭）：
 
 ## 9. 存檔（v1）
 
-`localStorage['glimmerville.v1']`，JSON：
-`{v:1, seed, money, day, msIdx, cam:{x,y,z}, ter, tre, rd, zn, bl}`
-其中 ter/tre/rd/zn 是長 N*N 的數字字串（rd：0無 1路 2橋）；`bl=[[i,k,lv,v,age],...]`。
+槽位鍵 `glimmerville.v1.s1/.s2/.s3`（目前槽記在 `.slot`；舊裸鍵啟動時自動遷入 s1），JSON：
+`{v:1, seed, money, day, msIdx, cam:{x,y,z}, ter, tre, rd, zn, dc, bl, ach, nm}`
+其中 ter/tre/rd/zn/dc 是長 N*N 的數字字串（rd：0無 1路 2橋；dc＝deco）；`bl=[[i,k,lv,v,age],...]`；
+`ach`＝已解鎖成就 id 陣列；`nm`＝鎮名。dc/ach/nm 均為可選欄位（舊檔容錯）。
 讀檔後重算 mask/foam；`pop/jobs/pw/h` 由下一次 tick 重算，不存。
-**變更規則見 RULES 第 9 條。** 靜音設定另存 `glimmerville.v1.mute`。
+**變更規則見 RULES 第 9 條。** 音效設定另存 `.snd`（0/1/2，舊 `.mute` 自動遷移）。
 
 ## 10. GV 除錯 API（驗收全靠它）
 
@@ -141,3 +143,6 @@ GV.stats()             // {money,pop,jobs,day,buildings,poweredBld,roads,zones,h
 6. 單檔、零依賴、繁中 UI；`window.GV` 永遠存在。
 7. 模擬邏輯只在 `tick()`；渲染不得改遊戲狀態（`waterF/waterT` 除外）。
 8. 主迴圈雙軌（rAF＋interval 後備）不可退化成單軌。
+9. 建造/拆除的**唯一**資料變更點是 `doPlace()`——撤銷系統的快照掛鉤在那裡，繞過它改 tile＝撤銷壞掉。
+10. 新增建築種類 k 時必須同步：KNAME、COST、TOOLS、keydown 快捷鍵表、canPlace/placeCost/doPlace、
+    SPR.bld['k_1_v']、inspect()、小地圖色表（drawMini 內陣列）、統計面板計數。
