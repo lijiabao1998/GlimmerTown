@@ -199,7 +199,7 @@ const JOBSC=[0,5,14,38];    // 商業各級就業
 const JOBSI=[0,7,20,48];    // 工業各級就業
 const PLANT_CAP=50;         // 每座電廠供電建築數
 const DUMP_CAP=40;          // 每座垃圾場處理容量（T19）
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400,school:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20};
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400,school:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80};
 
 const TOOLS=[
   {id:'pan',  ic:'🖐', nm:'檢視', pr:''},
@@ -215,6 +215,7 @@ const TOOLS=[
   {id:'dump', ic:'🗑️', nm:'垃圾場', pr:'$'+COST.dump},
   {id:'stad', ic:'🏟️', nm:'體育場', pr:'$'+COST.stad},
   {id:'rdec', ic:'🌲', nm:'路飾', pr:'$'+COST.rdec},
+  {id:'bus',  ic:'🚌', nm:'公車站', pr:'$'+COST.bus},
   {id:'tree', ic:'🌲', nm:'種樹', pr:'$'+COST.tree},
   {id:'fill', ic:'🟩', nm:'填草', pr:'$'+COST.fill},
   {id:'doze', ic:'💥', nm:'拆除', pr:'$'+COST.doze},
@@ -1099,6 +1100,37 @@ function buildSprites(){
     diaEdge(g,m,'#7d5c3a');                                               // 崖沿主色（深褐）
     diaEdge(g,m,'rgba(60,42,26,.55)',32,2,28);                            // 內側陰影線
     SPR.cliffEdge.push(c);}
+  /* ---------- 公車站牌（T26；路邊小候車亭＋藍底白字站牌；置於全部既有 sprite 之後→零擾動）---------- */
+  {const[c,g]=cv(64,40),[s,sg]=cv(64,40);
+   sg.fillStyle='#8a909a';sg.fillRect(23,23,18,2);        // 候車台
+   sg.fillStyle='#666c75';sg.fillRect(24,11,2,13);sg.fillRect(37,11,2,13); // 後兩柱
+   sg.fillStyle='#c6cbd3';sg.fillRect(22,8,19,3);         // 頂棚
+   sg.fillStyle='#9aa0aa';sg.fillRect(22,11,19,1);        // 棚下陰影
+   sg.fillStyle='#7c828c';sg.fillRect(26,19,10,3);        // 長椅
+   sg.fillStyle='#565c65';sg.fillRect(45,9,2,15);         // 站牌桿
+   sg.fillStyle='#2f6fc0';sg.fillRect(43,7,7,7);          // 藍底站牌
+   sg.fillStyle='#eef4ff';sg.fillRect(44,8,5,1);sg.fillRect(44,10,3,1);sg.fillRect(44,12,5,1); // 白字（橫線示意）
+   outlineSprite(s,32,36,42);
+   g.drawImage(s,0,0);
+   SPR.busStop={img:c,ax:32,ay:36,w:64,h:40};}
+  {const[c,g]=cv(64,40);                                  // 夜間層：牌面微光
+   g.fillStyle='#8fd0ff';g.fillRect(43,7,7,7);
+   SPR.busStopN=c;}
+  /* ---------- 公車（T26；12×9 兩朝向，黃車身＋車窗帶＋白頂；沿用小車 A/B 邏輯）---------- */
+  {const col='#f2c14e';
+   const[a,ag]=cv(12,9);
+   ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,7,9,1);        // 落影
+   ag.fillStyle=shade(col,-42);                              // 暗側（右下斜面）
+   ag.fillRect(1,6,4,1);ag.fillRect(4,5,4,1);ag.fillRect(7,4,4,1);
+   ag.fillStyle=col;                                         // 黃車身
+   ag.fillRect(1,3,4,3);ag.fillRect(4,2,4,3);ag.fillRect(7,1,4,3);
+   ag.fillStyle='#2b3550';                                   // 車窗帶（沿斜率）
+   ag.fillRect(1,4,4,1);ag.fillRect(4,3,4,1);ag.fillRect(7,2,4,1);
+   ag.fillStyle='#eef2f6';                                   // 白車頂
+   ag.fillRect(1,3,4,1);ag.fillRect(4,2,4,1);ag.fillRect(7,1,4,1);
+   const[b,bg]=cv(12,9);
+   bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);
+   SPR.bus={A:a,B:b};}
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1278,6 +1310,9 @@ function canPlace(toolId,x,y){
     case 'rdec':
       if(!t.road||t.bridge||t.rdec)return '只能加在道路上';
       return null;
+    case 'bus': // 公車站（T26）：依附道路、非橋、尚無站牌（可與路飾並存視作獨立附屬）
+      if(!t.road||t.bridge||t.bus)return '只能加在道路上';
+      return null;
     case 'tree':
       if(t.t!==2||t.tree||t.road||t.bld||t.zone||t.deco)return '只能種在空草地上';
       return null;
@@ -1305,6 +1340,7 @@ function placeCost(toolId,x,y){
     case 'dump':c=COST.dump;break;
     case 'stad':c=COST.stad;break;
     case 'rdec':c=COST.rdec;break;
+    case 'bus':c=COST.bus;break;
     case 'tree':c=COST.tree;break;
     case 'fill':c=COST.fill;break;
     case 'doze':c=COST.doze;break;
@@ -1365,6 +1401,9 @@ function doPlace(toolId,x,y,silent){
     case 'rdec':
       t.rdec=1;
       break;
+    case 'bus':                                        // 公車站（T26）：道路附屬旗標，不動 mask/電力
+      t.bus=1;
+      break;
     case 'tree':
       t.tree=1+ri(4);
       break;
@@ -1385,7 +1424,8 @@ function doPlace(toolId,x,y,silent){
         }else t.bld=null;
       }
       else if(t.rdec)t.rdec=0;                          // 路飾優先於路面清除（T20）
-      else if(t.road){t.road=0;t.hw=0;t.bridge=0;t.mask=0;t.rdec=0;
+      else if(t.bus)t.bus=0;                            // 公車站優先於路面清除（T26；先只清站牌保留路面）
+      else if(t.road){t.road=0;t.hw=0;t.bridge=0;t.mask=0;t.rdec=0;t.bus=0; // 清路連站牌一併清除（T26）
         recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);}
       else if(t.zone)t.zone=0;
       else if(t.tree)t.tree=0;
@@ -1490,7 +1530,7 @@ function tick(){
       const parks=countNear(x,y,4,tt=>tt.bld&&tt.bld.k===4);
       const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);
       const pl   =countNear(x,y,4,tt=>tt.bld&&tt.bld.k===5);
-      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)+0.03*(countNear(x,y,2,tt=>tt.rdec)>0?1:0)+(countNear(x,y,10,tt=>tt.bld&&tt.bld.k===9)>0?.08:0)-ind*.09-pl*.18-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
+      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)+0.03*(countNear(x,y,2,tt=>tt.rdec)>0?1:0)+0.04*(countNear(x,y,6,tt=>tt.bus)>0?1:0)+(countNear(x,y,10,tt=>tt.bld&&tt.bld.k===9)>0?.08:0)-ind*.09-pl*.18-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
       happySum+=b.h;happyN++;
       if(b.pw){popN+=POPS[b.lv];}
     }else if(b.pw){
@@ -1605,7 +1645,7 @@ function tick(){
     else if(b.k===9);                 // 體育場（root）維護另計、不參與稅收（T22，鑑於 T15 教訓）
     else if(b.pw&&!b.fire){
       if(b.k===1){const v2=POPS[b.lv]*.12;income+=v2;taxR+=v2;}
-      else if(b.k===2){const v2=JOBSC[b.lv]*.18;income+=v2;taxC+=v2;}
+      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const v2=JOBSC[b.lv]*.18*(countNear(bx,byy,6,tt=>tt.bus)>0?1.1:1);income+=v2;taxC+=v2;} // 站半徑6內商業稅+10%（T26）
       else{const v2=JOBSI[b.lv]*.15;income+=v2;taxI+=v2;}
     }
   }
@@ -1736,6 +1776,110 @@ function updSmoke(dt){
     if(s.age>s.life)smokes.splice(i,1);
   }
 }
+/* ---------- 公車系統（T26；獨立於 cars 隨機遊走，站點間 BFS 巡迴）---------- */
+const buses=[];
+let busList=[];                                    // 站點 tile idx 升序表（每次 updBuses 重建）
+function rebuildBusList(){
+  busList.length=0;
+  for(let i=0;i<N*N;i++)if(tiles[i].bus)busList.push(i);
+}
+function busNextStop(fromIdx){                      // 環狀輪詢：fromIdx 之後的下一站
+  if(!busList.length)return -1;
+  for(const s of busList)if(s>fromIdx)return s;
+  return busList[0];
+}
+function busDir(x0,y0,x1,y1){
+  const dx=x1-x0,dy=y1-y0;
+  for(let d=0;d<4;d++)if(DIRV[d][0]===dx&&DIRV[d][1]===dy)return d;
+  return 0;
+}
+// 沿道路 BFS 最短路（含高速）；回傳 [[x,y]...] 起→迄（含端點），無路回 null
+function busBFS(sx,sy,gx,gy){
+  if(!inMap(sx,sy)||!inMap(gx,gy))return null;
+  if(!T(idx(sx,sy)).road||!T(idx(gx,gy)).road)return null;
+  const start=idx(sx,sy),goal=idx(gx,gy);
+  if(start===goal)return[[sx,sy]];
+  const prev=new Int32Array(N*N).fill(-1);
+  const seen=new Uint8Array(N*N);
+  const q=[start];seen[start]=1;
+  let head=0,found=false;
+  while(head<q.length){
+    const cur=q[head++];
+    if(cur===goal){found=true;break;}
+    const cx=cur%N,cy=(cur/N)|0;
+    for(const[dx,dy]of DIRV){
+      const nx=cx+dx,ny=cy+dy;
+      if(!inMap(nx,ny))continue;
+      const j=idx(nx,ny);
+      if(seen[j]||!T(j).road)continue;
+      seen[j]=1;prev[j]=cur;q.push(j);
+    }
+  }
+  if(!found)return null;
+  const path=[];
+  for(let c=goal;c!==-1;c=prev[c])path.push([c%N,(c/N)|0]);
+  path.reverse();
+  return path;
+}
+function busPlanNext(bus){                          // 由目標站起連續嘗試，跳過不可達站；成功回 true
+  let g=busNextStop(bus.stop),tries=0;
+  while(g>=0&&tries<busList.length){
+    if(tiles[g]&&tiles[g].bus){
+      const path=busBFS(bus.x,bus.y,g%N,(g/N)|0);
+      if(path&&path.length>1){bus.path=path;bus.pi=0;bus.p=0;bus.stop=g;return true;}
+    }
+    g=busNextStop(g);tries++;
+  }
+  return false;
+}
+function busReplan(bus){                            // 目標不變、路斷重算；失敗回 false
+  if(!(tiles[bus.stop]&&tiles[bus.stop].bus))return false;
+  const path=busBFS(bus.x,bus.y,bus.stop%N,(bus.stop/N)|0);
+  if(path&&path.length>1){bus.path=path;bus.pi=0;bus.p=0;return true;}
+  return false;
+}
+function updBuses(dt){
+  rebuildBusList();
+  const nStop=busList.length;
+  const target=nStop>=2?Math.min(nStop-1,4):0;       // ≥2 站才發車，最多 4 輛
+  while(buses.length<target){
+    const s=busList[ri(busList.length)];
+    buses.push({x:s%N,y:(s/N)|0,stop:s,path:null,pi:0,p:0,d:0,wait:1});
+  }
+  if(buses.length>target)buses.length=target;
+  if(!target)return;
+  for(const bus of buses){
+    if(!inMap(bus.x,bus.y)||!T(idx(bus.x,bus.y)).road){ // 所在路被拆→重生於某站
+      const s=busList[ri(busList.length)];
+      bus.x=s%N;bus.y=(s/N)|0;bus.stop=s;bus.path=null;bus.pi=0;bus.p=0;bus.wait=1;bus.d=0;
+      continue;
+    }
+    if(bus.wait>0){bus.wait-=dt;continue;}            // 到站停 1s
+    if(bus.path&&!(tiles[bus.stop]&&tiles[bus.stop].bus)){bus.path=null;bus.p=0;} // 目標站被拆→改選
+    if(!bus.path){
+      if(!busPlanNext(bus))bus.wait=1;                // 全站不可達→稍後再試
+      continue;
+    }
+    const ct=T(idx(bus.x,bus.y));
+    bus.p+=dt*1.1*(ct&&ct.hw?1.6:1);                 // 1.1 格/s，高速×1.6
+    let guard=0;
+    while(bus.p>=1&&guard++<64){
+      const nxt=bus.path[bus.pi+1];
+      if(!nxt||!inMap(nxt[0],nxt[1])||!T(idx(nxt[0],nxt[1])).road){ // 下一格不可走→重算
+        bus.p=0;
+        if(!busReplan(bus))bus.path=null;
+        break;
+      }
+      bus.p-=1;
+      bus.d=busDir(bus.x,bus.y,nxt[0],nxt[1]);
+      bus.x=nxt[0];bus.y=nxt[1];bus.pi++;
+      if(bus.pi>=bus.path.length-1){                 // 抵達目標站→停靠
+        bus.path=null;bus.p=0;bus.wait=1;
+        break;
+      }
+    }
+  }
+}
 
 /* =====================================================================
    7. 繪製
@@ -1834,6 +1978,12 @@ function draw(dt){
         ctx.drawImage(rs.img,rx,ry,rs.w*z,rs.h*z);
         rdecGlow.push({img:SPR.rdecN,x:rx,y:ry,w:rs.w*z,h:rs.h*z});
       }
+      if(t.bus){                                           // 公車站牌（T26）：地面層繪製，夜間牌面微光併入 nightSprites
+        const bs2=SPR.busStop;
+        const bx2=sx+(32-bs2.ax)*z, by2=sy+(32-bs2.ay)*z;
+        ctx.drawImage(bs2.img,bx2,by2,bs2.w*z,bs2.h*z);
+        rdecGlow.push({img:SPR.busStopN,x:bx2,y:by2,w:bs2.w*z,h:bs2.h*z});
+      }
     }else if(t.zone&&!t.bld&&!t.ruin){
       ctx.globalAlpha=.5;ctx.drawImage(SPR.zone[t.zone],sx,sy,64*z,32*z);ctx.globalAlpha=1;
     }
@@ -1854,6 +2004,13 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,car:c,wx,wy});
   }
+  for(const bs of buses){                                  // 公車（T26）：與小車同深度規則插入 objs
+    let fx=bs.x,fy=bs.y;
+    const nx=bs.path&&bs.path[bs.pi+1];
+    if(nx){fx=bs.x+(nx[0]-bs.x)*bs.p;fy=bs.y+(nx[1]-bs.y)*bs.p;}
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,bus:bs,wx,wy,bd:bs.d});
+  }
   for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s});
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
@@ -1866,6 +2023,16 @@ function draw(dt){
       ctx.drawImage(spr,sx-6*z,sy-5*z,12*z,8*z);
       if(b<.55){
         const v=DIRSCR[o.car.d];
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+      }
+      continue;
+    }
+    if(o.bus){                                             // 公車（T26）：黃車身兩朝向，夜間頭燈同小車
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const spr=SPR.bus[(o.bd===0||o.bd===2)?'A':'B'];
+      ctx.drawImage(spr,sx-6*z,sy-6*z,12*z,9*z);
+      if(b<.55){
+        const v=DIRSCR[o.bd];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
       }
       continue;
@@ -2095,7 +2262,7 @@ cvs.addEventListener('pointermove',e=>{
     return;
   }
   if(rect.on){rect.x1=clamp(x,0,N-1);rect.y1=clamp(y,0,N-1);return;}
-  if(paintLast&&pointers.size===1&&!panBase&&tool!=='plant')paintTo(x,y); // 電廠不允許拖曳連放
+  if(paintLast&&pointers.size===1&&!panBase&&tool!=='plant'&&tool!=='bus')paintTo(x,y); // 電廠/公車站不允許拖曳連放（T26）
 });
 function endPointer(e){
   pointers.delete(e.pointerId);
@@ -2192,7 +2359,8 @@ function inspect(x,y){
       if(b.fire)html+=`<div class="row" style="color:#ff8a5f">🔥 燃燒中</div><button class="hbtn" id="fireBtn">🧯 滅火 $30</button>`;
     }
   }else if(t.road){
-    if(t.hw)html=`<h3>🛤️ 高速路${t.bridge?'橋':''}</h3><div class="row">車速×2 ・ 不吸引住宅</div><div class="row">${t.rp?'⚡ 電力沿此輸送中':'未通電'}</div>`;
+    if(t.bus)html=`<h3>🚌 公車站</h3><div class="row">半徑 6 幸福與商業加成</div><div class="row">${t.hw?'🛤️ 高速路':t.bridge?'🌉 橋樑':'🛣 道路'}上</div>`;
+    else if(t.hw)html=`<h3>🛤️ 高速路${t.bridge?'橋':''}</h3><div class="row">車速×2 ・ 不吸引住宅</div><div class="row">${t.rp?'⚡ 電力沿此輸送中':'未通電'}</div>`;
     else html=`<h3>🛣 ${t.bridge?'橋樑':'道路'}</h3><div class="row">${t.rp?'⚡ 電力沿此輸送中':'未通電'}</div>`;
   }else if(t.ruin){
     html=`<h3>🔥 焦土</h3><div class="row">建築已燒毀</div><div class="row">用 💥 拆除清理（$${COST.doze}）後可再建</div>`;
@@ -2465,7 +2633,7 @@ $('#zin').onclick=()=>zoomStep(1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#zout').onclick=()=>zoomStep(-1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#hintX').onclick=()=>{$('#hint').style.display='none';hintsOff=true;};
 window.addEventListener('keydown',e=>{
-  const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'fire','9':'school','0':'dump','-':'doze','=':'rdec'};
+  const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'fire','9':'school','0':'dump','-':'doze','=':'rdec','b':'bus'};
   if(map[e.key]){document.querySelectorAll('.tool')[TOOLS.findIndex(t=>t.id===map[e.key])].click();}
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
@@ -2509,10 +2677,10 @@ function slotInfo(n){
 function save(){
   try{
     const bl=[];
-    let ter='',tre='',rd='',zn='',dc='',rn='',rc='',el='';
+    let ter='',tre='',rd='',zn='',dc='',rn='',rc='',el='',bs='';
     for(let i=0;i<N*N;i++){
       const t=tiles[i];
-      ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;el+=t.el?1:0;
+      ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;el+=t.el?1:0;bs+=t.bus?1:0; // bs：公車站（T26）
       rd+=t.road?(t.hw?(t.bridge?4:3):(t.bridge?2:1)):0; // 0無 1路 2橋 3高速 4高速橋（T21）
       if(t.bld&&!t.bld.ref){                             // 多格建築只存 root（T22）
         const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];
@@ -2522,7 +2690,7 @@ function save(){
       }
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
-      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,el,bl,ach:Object.keys(ach),nm:townName,
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,el,bs,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar};
     localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
   }catch(e){}
@@ -2539,7 +2707,7 @@ function load(slot){
       const rv=+d.rd[i]; // 0無 1路 2橋 3高速 4高速橋（舊檔僅 0-2，hw=0 天然相容，T21）
       tiles[i]={t:+d.ter[i],tree:+d.tre[i],gv:i&3,road:rv?1:0,bridge:(rv===2||rv===4)?1:0,hw:rv>=3?1:0,
         mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0,deco:d.dc?+d.dc[i]:0,ruin:d.rn?+d.rn[i]:0,rdec:d.rc?+d.rc[i]:0,
-        el:d.el?+d.el[i]:0,em:0};
+        el:d.el?+d.el[i]:0,em:0,bus:d.bs?+d.bs[i]:0}; // bus：公車站（T26，舊檔缺 bs 容錯為 0）
     }
     for(const rec of d.bl){
       const i=rec[0],k=rec[1],lv=rec[2],v=rec[3],age=rec[4];
@@ -2557,7 +2725,7 @@ function load(slot){
     recalcAllMasks();
     computeFoam();
     computeElMask();
-    cars.length=0;smokes.length=0;
+    cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
     hintsOff=true;
     undoStack.length=0;undoGroup=null;
     return true;
@@ -2581,6 +2749,7 @@ function advance(dtReal){
   updCars(dtA);
   updSmoke(dtA);
   updRain(dtA);
+  updBuses(dtA);   // 公車巡迴（T26）：與 cars/smoke/rain 同為每幀動畫更新
 }
 function frame(ts){
   requestAnimationFrame(frame);
@@ -2647,13 +2816,15 @@ window.GV={
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
   weather:(w)=>{weather=clamp(w|0,0,2);wxT=99;return weather;}, // 強制設天氣（測試用，鎖住不換態）
   flash:()=>{flashT=.4;sThunder();return true;},               // 強制觸發閃電（測試用）
+  buses:()=>buses.map(b=>({x:b.x,y:b.y,stop:[b.stop%N,(b.stop/N)|0],p:+b.p.toFixed(2),wait:+b.wait.toFixed(2),moving:!!b.path})), // 公車運行快照（T26 測試用）
+  step:(n)=>{n=clamp(n|0,1,60);for(let i=0;i<n;i++)tick();return day;}, // 手動推進 n 個模擬日（測試用，同 setDay 屬 sim 鉤子）
   stats:()=>{let b=0,r=0,z=0,pw=0,f=0,ru=0;
     for(let i=0;i<N*N;i++){const t=tiles[i];
       if(t.bld){b++;if(t.bld.pw)pw++;if(t.bld.fire)f++;}
       if(t.ruin)ru++;
       if(t.road)r++;if(t.zone)z++;}
     return{money:Math.round(money),pop,jobs,day,buildings:b,poweredBld:pw,
-      roads:r,zones:z,happy:+cityHappy.toFixed(2),dem:{...dem},cars:cars.length,fires:f,ruins:ru,weather};}
+      roads:r,zones:z,happy:+cityHappy.toFixed(2),dem:{...dem},cars:cars.length,fires:f,ruins:ru,weather,buses:buses.length};}
 };
 })();
 </script>
