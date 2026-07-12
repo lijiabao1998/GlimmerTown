@@ -1333,7 +1333,7 @@ const hover={x:-1,y:-1};
 const pt={cx:0,cy:0};
 const rect={on:false,x0:0,y0:0,x1:0,y1:0};
 const pointers=new Map();
-let panBase=null,pinchBase=null,paintLast=null,downInfo=null,firstPaint=null;
+let panBase=null,pinchBase=null,paintLast=null,downInfo=null,firstPaint=null,dozeArm=null;
 
 function toTile(cssX,cssY){
   const mx=cssX*DPR,my=cssY*DPR;
@@ -1464,17 +1464,32 @@ function clampCam(){
 function commitRect(){
   const x0=Math.min(rect.x0,rect.x1),x1=Math.max(rect.x0,rect.x1);
   const y0=Math.min(rect.y0,rect.y1),y1=Math.max(rect.y0,rect.y1);
-  let done=0,cost=0;
+  const single=(x0===x1&&y0===y1);
+  const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;return !!(b&&b.k<=3&&b.lv>=2);};
+  let done=0,cost=0,skippedHi=0;
   // 先估總價，一次判斷
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
     if(!inMap(x,y)||canPlace(tool,x,y))continue;
+    if(tool==='doze'&&hiBld(x,y)){
+      if(single){
+        if(!(dozeArm&&dozeArm.x===x&&dozeArm.y===y&&performance.now()-dozeArm.t<3000)){
+          dozeArm={x,y,t:performance.now()};
+          const b=T(idx(x,y)).bld;
+          toast(`⚠️ 再點一次確認拆除 Lv${b.lv} ${KNAME[b.k]}`,'bad');sErr();
+          return;
+        }
+        dozeArm=null;
+      }else{skippedHi++;continue;}
+    }
     cost+=placeCost(tool,x,y);
   }
   if(cost>money){toast('資金不足！需要 $'+Math.round(cost),'bad');sErr();return;}
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
     if(!inMap(x,y))continue;
+    if(tool==='doze'&&hiBld(x,y)&&!single)continue;
     if(doPlace(tool,x,y,true))done++;
   }
+  if(skippedHi)toast(`已跳過 ${skippedHi} 棟 Lv2+ 建築（單獨點兩次可拆）`);
   if(done){sBuild();}
 }
 /* 檢視面板 */
