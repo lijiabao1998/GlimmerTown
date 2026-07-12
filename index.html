@@ -1346,6 +1346,7 @@ const pt={cx:0,cy:0};
 const rect={on:false,x0:0,y0:0,x1:0,y1:0};
 const pointers=new Map();
 let panBase=null,pinchBase=null,paintLast=null,downInfo=null,firstPaint=null,dozeArm=null;
+let longPressT=null;
 
 function toTile(cssX,cssY){
   const mx=cssX*DPR,my=cssY*DPR;
@@ -1390,6 +1391,13 @@ cvs.addEventListener('pointerdown',e=>{
     panBase={x:e.clientX,y:e.clientY,camX:cam.x,camY:cam.y};
   }else if(isRectTool(tool)){
     rect.on=true;rect.x0=rect.x1=x;rect.y0=rect.y1=y;
+    clearTimeout(longPressT);
+    longPressT=setTimeout(()=>{           // 長按＝取消框選、改為檢視
+      if(rect.on&&downInfo&&!downInfo.moved){
+        rect.on=false;paintLast=null;
+        inspect(x,y);sTick();
+      }
+    },550);
   }else{
     const m0=money;
     paintLast=null;paintTo(x,y);
@@ -1428,7 +1436,10 @@ cvs.addEventListener('pointermove',e=>{
     if(pinchBase.acc<-.28){zoomStep(-1,cx,cy);pinchBase.acc=0;pinchBase.camX=cam.x;pinchBase.camY=cam.y;pinchBase.cx=cx;pinchBase.cy=cy;}
     return;
   }
-  if(downInfo&&Math.hypot(e.clientX-downInfo.x,e.clientY-downInfo.y)>6)downInfo.moved=true;
+  if(downInfo&&Math.hypot(e.clientX-downInfo.x,e.clientY-downInfo.y)>6){
+    downInfo.moved=true;
+    clearTimeout(longPressT);
+  }
   if(panBase&&pointers.size===1){
     cam.x=panBase.camX-(e.clientX-panBase.x)*DPR/cam.z;
     cam.y=panBase.camY-(e.clientY-panBase.y)*DPR/cam.z;
@@ -1442,6 +1453,7 @@ function endPointer(e){
   pointers.delete(e.pointerId);
   if(pointers.size<2)pinchBase=null;
   if(pointers.size===0){
+    clearTimeout(longPressT);
     if(rect.on){commitRect();rect.on=false;}
     if(downInfo&&!downInfo.moved&&tool==='pan'&&performance.now()-downInfo.t<450){
       inspect(downInfo.tx,downInfo.ty);
