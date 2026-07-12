@@ -240,6 +240,8 @@ let muted=false,sndMode=1;
 let visT=CYCLE*.38; // 視覺時間（從早晨開始）
 let simAcc=0;
 let weather=0,wxT=5,flashT=0; // 天氣（T17）：0晴 1雨 2暴雨；wxT 剩餘天數、flashT 閃電計時（皆不進存檔）
+const inWinter=()=>((day-1)%360)>=300; // 冬季（T18）：每年第 300-360 天；由 day 導出，不進存檔
+let wSeason=-1; // 上次 tick 的季節旗標（-1 未定 / 0 非冬 / 1 冬）；入冬／開春 toast 防重複（T18，不進存檔）
 let hintsOff=false, hintShown={};
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
@@ -854,6 +856,91 @@ function buildSprites(){
    diaEdge(g,6,'#242320');
    diaEdge(g,9,'#47443f');
    SPR.ruin=c;}
+  /* ---------- 冬季雪皮 sprite（T18；一次性生成，置於全部夏季 sprite 之後→夏季畫面 0 變化） ---------- */
+  SPR.grassW=[];
+  for(let v=0;v<4;v++){const[c,g]=cv(64,32);
+    dia(g,32,0,32,'#e8eef2');
+    speck(g,32,0,32,['#d8e0e8','#f4f8fa','#c8d4dc'],80,rand);
+    diaEdge(g,9,'#f4f8fa');
+    diaEdge(g,6,'#cdd8de');
+    if(v===1){g.fillStyle='#cdd8de';                    // 雪堆
+      for(let i=0;i<5;i++){const x=16+ri(32),y=8+ri(16);g.fillRect(x,y,1,2);g.fillRect(x+2,y+1,1,2);}}
+    if(v===2){const fc=['#f4f8fa','#e8eef2','#dde6ec'];  // 雪點
+      for(let i=0;i<5;i++){g.fillStyle=fc[ri(3)];g.fillRect(18+ri(28),8+ri(15),2,1);}}
+    if(v===3){g.fillStyle='#9aa3a8';g.fillRect(24,14,3,2);g.fillRect(40,20,2,1);
+      g.fillStyle='#c8d4dc';g.fillRect(25,16,2,1);}      // 露頭碎石
+    SPR.grassW.push(c);}
+  /* ---------- 冬季沙（雪化） ---------- */
+  {const[c,g]=cv(64,32);dia(g,32,0,32,'#e4e2d8');
+   speck(g,32,0,32,['#d8d6cc','#eeece4','#dcdad0'],60,rand);
+   diaEdge(g,6,'#cdccc4');SPR.sandW=c;}
+  /* ---------- 冬季樹（雪簷；樹幹不變） ---------- */
+  SPR.treeW=[];
+  for(let v=0;v<4;v++){
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(90,110,140,.20)');             // 落影（雪地偏冷）
+    if(v===2){                                          // 松樹：每層頂 2 行雪白
+      sg.fillStyle='#6b4a2f';sg.fillRect(19,34,3,8);
+      sg.fillStyle='#57402a';sg.fillRect(21,34,1,8);
+      const tc=['#2f6b3f','#3a7d4b'];
+      for(let t=3;t>=0;t--){
+        const w=6+t*6,x=20-(w>>1),y=8+t*7;
+        sg.fillStyle=tc[t%2];sg.fillRect(x,y,w,7);
+        sg.fillStyle='#eef4f8';sg.fillRect(x,y,w,2);
+      }
+      sg.fillStyle='#eef4f8';sg.fillRect(18,4,5,3);sg.fillStyle='#2f6b3f';sg.fillRect(18,7,5,2);
+    }else if(v===3){                                    // 灌木叢：頂部積雪
+      sg.fillStyle='#3d7a3c';sg.fillRect(8,26,14,10);sg.fillRect(20,29,12,8);
+      sg.fillStyle='#4b8f45';sg.fillRect(9,24,11,7);sg.fillRect(21,27,9,6);
+      sg.fillStyle='#63ad55';sg.fillRect(11,25,6,4);sg.fillRect(23,28,5,3);
+      sg.fillStyle='#eef4f8';sg.fillRect(9,24,11,2);sg.fillRect(21,27,9,2);
+      sg.fillStyle='#ffffff';sg.fillRect(9,24,11,1);sg.fillRect(21,27,9,1);
+      sg.fillStyle='#2e5f2f';sg.fillRect(8,34,24,2);
+    }else{                                              // 闊葉樹：樹冠頂 40% 雪簷
+      const base=v?'#38713a':'#3d7a3c', mid=v?'#468747':'#4b8f45';
+      sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+      sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+      sg.fillStyle=base;sg.fillRect(10,8,20,16);sg.fillRect(8,12,24,10);
+      sg.fillStyle=mid;sg.fillRect(12,6,16,8);sg.fillRect(13,7,14,13);
+      sg.fillStyle='#63ad55';sg.fillRect(14,7,10,7);
+      sg.fillStyle='#eef4f8';sg.fillRect(10,8,20,5);sg.fillRect(12,6,16,3);sg.fillRect(8,12,24,2);
+      sg.fillStyle='#ffffff';sg.fillRect(10,13,20,1);sg.fillRect(8,14,24,1);
+      sg.fillStyle='#2e5f2f';sg.fillRect(10,22,20,2);sg.fillRect(12,24,16,1);
+    }
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.treeW.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  /* ---------- 冬季公園（雪地／雪樹／結冰池塘） ---------- */
+  SPR.parkW=[];
+  const mtW=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
+    g.fillStyle='#3d7a3c';g.fillRect(x-4,y-3,10,9);
+    g.fillStyle='#4b8f45';g.fillRect(x-3,y-4,8,7);
+    g.fillStyle='#eef4f8';g.fillRect(x-3,y-4,8,3);
+    g.fillStyle='#ffffff';g.fillRect(x-3,y-1,8,1);};
+  for(let v=0;v<3;v++){const[c,g]=cv(64,56);
+    const ay=53;
+    dia(g,32,ay-32,32,'#e8eef2');
+    speck(g,32,ay-32,32,['#d8e0e8','#f4f8fa','#c8d4dc'],60,rand);
+    diaEdge(g,9,'#f4f8fa',32,ay-32,32);
+    diaEdge(g,6,'#cdd8de',32,ay-32,32);
+    if(v===2){                                          // 結冰池塘
+      dia(g,32,ay-26,12,'#bcd8e8');
+      dia(g,32,ay-24,8,'#d2e8f2');
+      g.fillStyle='#ffffff';g.fillRect(28,ay-22,6,1);g.fillRect(31,ay-20,4,1);
+      diaEdge(g,15,'#e8eef2',32,ay-26,12);
+      mtW(g,14,ay-26);
+    }else{
+      g.fillStyle='#dfe6ea';                            // 雪徑
+      for(let i=0;i<5;i++)g.fillRect(12+i*8,ay-20+((i%2)*2),5,2);
+      mtW(g,14,ay-28);mtW(g,46,ay-24);
+      if(v===0){
+        g.fillStyle='#8a5f38';g.fillRect(38,ay-30,7,2);  // 長椅（覆雪）
+        g.fillStyle='#f4f8fa';g.fillRect(38,ay-31,7,1);
+        g.fillStyle='#8a5f38';g.fillRect(38,ay-28,1,2);g.fillRect(44,ay-28,1,2);
+      }
+    }
+    SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});}
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1102,6 +1189,12 @@ function countNear(x,y,r,pred){
 }
 function tick(){
   day++;
+  // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
+  {const w=inWinter()?1:0;
+   if(w!==wSeason){
+     if(wSeason!==-1)toast(w?'❄️ '+townName+'入冬了':'🌱 春天來了');
+     wSeason=w;
+   }}
   // 天氣狀態機（T17）：每天遞減，歸零擲骰換態；暴雨每天 25% 觸發閃電
   if(--wxT<=0){
     if(weather===0){if(R()<.12){weather=1;wxT=3+ri(6);}else wxT=3+ri(5);}
@@ -1114,7 +1207,7 @@ function tick(){
       else{weather=1;wxT=2+ri(4);}
     }
   }
-  if(weather===2&&R()<.25){flashT=.4;sThunder();}
+  if(weather===2&&!inWinter()&&R()<.25){flashT=.4;sThunder();} // 冬季不觸發閃電（T18）
   const cap=computePower();
   // 供電判定
   let powered=0;
@@ -1132,7 +1225,7 @@ function tick(){
       const parks=countNear(x,y,4,tt=>tt.bld&&tt.bld.k===4);
       const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);
       const pl   =countNear(x,y,4,tt=>tt.bld&&tt.bld.k===5);
-      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)-ind*.09-pl*.18-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0),.05,1);
+      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)-ind*.09-pl*.18-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
       happySum+=b.h;happyN++;
       if(b.pw){popN+=POPS[b.lv];}
     }else if(b.pw){
@@ -1339,9 +1432,10 @@ const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];   // 各行進方向的螢幕向量�
 const rain=[];
 function updRain(dt){
   if(!weather){if(rain.length)rain.length=0;return;}
+  const win=inWinter();                       // 冬季：雪花直落＋隨 visT 微擺；非冬季：斜雨（T18）
   const cap=weather===2?240:120;
   const f=dt*60;                              // 以 60fps 為基準的幀係數（後備迴圈 dt 大時等比加速）
-  const vx=-1.2*cam.z*f, vy=14*cam.z*f;       // 斜向下落
+  const vx=(win?Math.sin(visT*.8)*1.4:-1.2)*cam.z*f, vy=(win?6:14)*cam.z*f; // 斜向下落／雪花直落
   while(rain.length<cap)rain.push({x:Math.random()*(W+240)-40,y:Math.random()*H});
   if(rain.length>cap)rain.length=cap;         // 暴雨轉小雨→截斷
   for(const p of rain){
@@ -1350,6 +1444,12 @@ function updRain(dt){
   }
 }
 function drawRain(z){
+  if(inWinter()){                             // 冬季雪花：2×2 白點（T18）
+    const s=Math.max(2,Math.round(2*z));
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    for(const p of rain)ctx.fillRect(p.x,p.y,s,s);
+    return;
+  }
   const w=z,L=Math.max(2,Math.round(2*z));
   ctx.fillStyle='rgba(200,220,255,.5)';
   for(const p of rain){                       // 2 段偏轉 fillRect＝斜向雨絲（配合 vx<0,vy>0）
@@ -1391,13 +1491,14 @@ function draw(dt){
   const pad=160*z;
   const vis=(sx,sy)=>sx>-pad&&sx<W+pad&&sy>-pad&&sy<H+pad;
   waterT+=dt;if(waterT>.5){waterT=0;waterF=(waterF+1)%3;}
+  const win=inWinter();                             // 冬季雪皮切換（T18；一次計算，draw 內零新配置）
   // ---- 地面層 ----
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const sx=sxOf(x,y),sy=syOf(x,y);
     if(!vis(sx,sy))continue;
     const t=T(idx(x,y));
     if(x===N-1||y===N-1)ctx.drawImage(SPR.cliff,sx,sy,64*z,56*z);
-    const base= t.t===0?SPR.water[waterF] : t.t===1?SPR.sand : SPR.grass[t.gv&3];
+    const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:SPR.grass)[t.gv&3];
     ctx.drawImage(base,sx,sy,64*z,32*z);
     if(t.t===0&&t.wm)ctx.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
     if(t.ruin)ctx.drawImage(SPR.ruin,sx,sy,64*z,32*z);
@@ -1449,7 +1550,7 @@ function draw(dt){
     }
     const t=o.t;
     if(t.tree){
-      const s=SPR.tree[(t.tree-1)&3];
+      const s=(win?SPR.treeW:SPR.tree)[(t.tree-1)&3];
       ctx.drawImage(s.img,o.sx+(32-s.ax)*z,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
       continue;
     }
@@ -1460,7 +1561,7 @@ function draw(dt){
     }
     const bd=t.bld;
     let s;
-    if(bd.k===4)s=SPR.park[bd.v];
+    if(bd.k===4)s=(win?SPR.parkW:SPR.park)[bd.v];
     else if(bd.k===5)s=SPR.plant;
     else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v];
     const bx=o.sx+(32-s.ax)*z, by=o.sy+(32-s.ay)*z;
@@ -1482,7 +1583,7 @@ function draw(dt){
   }
   // ---- 天氣色調（雨天壓暗，晝夜 multiply 之前疊加；T17）----
   if(weather){
-    ctx.fillStyle=weather===2?'rgba(70,90,120,.3)':'rgba(70,90,120,.18)';
+    ctx.fillStyle=win?'rgba(200,210,230,.14)':weather===2?'rgba(70,90,120,.3)':'rgba(70,90,120,.18)'; // 冬季雪天色調（T18）
     ctx.fillRect(0,0,W,H);
   }
   // ---- 晝夜色調 ----
@@ -2182,6 +2283,7 @@ window.GV={
   center:()=>toTile(cvs.clientWidth/2,cvs.clientHeight/2),
   tile:(x,y)=>inMap(x,y)?JSON.parse(JSON.stringify(T(idx(x,y)))):null,
   setSpeed:s=>{speed=s;},
+  setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
   weather:(w)=>{weather=clamp(w|0,0,2);wxT=99;return weather;}, // 強制設天氣（測試用，鎖住不換態）
   flash:()=>{flashT=.4;sThunder();return true;},               // 強制觸發閃電（測試用）
