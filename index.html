@@ -1178,6 +1178,7 @@ function newWorld(){
    4. 建造邏輯
 ===================================================================== */
 function recalcMask(x,y){
+  if(!inMap(x,y))return; // 邊界防護：鄰格重算可能落在圖外
   const t=T(idx(x,y));if(!t.road)return;
   let m=0;
   if(inMap(x,y-1)&&T(idx(x,y-1)).road)m|=1;
