@@ -223,7 +223,7 @@ const ACHS=[
 let bailoutDay=-999;
 let fin={taxR:0,taxC:0,taxI:0,upR:0,upP:0,upE:0,net:0};
 let tool='pan';
-let muted=false;
+let muted=false,sndMode=1;
 let visT=CYCLE*.38; // 視覺時間（從早晨開始）
 let simAcc=0;
 let hintsOff=false, hintShown={};
@@ -1494,6 +1494,17 @@ const sBuild=()=>{tone(300,.09,'square',.07,180);setTimeout(()=>tone(430,.07,'sq
 const sErr=()=>tone(110,.18,'sawtooth',.08);
 const sPop=()=>tone(760,.06,'triangle',.05,900);
 const sFanfare=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.14,'square',.07),i*90));};
+// 環境音排程器：白天鳥鳴、夜晚蟲鳴（sndMode===2 才啟用）
+setInterval(()=>{
+  if(sndMode<2||!AC||AC.state!=='running'||!running)return;
+  const b=daylight().b;
+  if(b>.6&&Math.random()<.14){        // 白天鳥鳴：兩聲快速下滑音
+    tone(1750+Math.random()*300,.09,'triangle',.02,1350);
+    setTimeout(()=>tone(1500+Math.random()*250,.07,'triangle',.016,1200),120);
+  }else if(b<.45&&Math.random()<.5){  // 夜晚蟲鳴：四連脈衝
+    for(let i=0;i<4;i++)setTimeout(()=>tone(4200,.03,'square',.012),i*90);
+  }
+},700);
 
 /* =====================================================================
    10. UI
@@ -1540,8 +1551,11 @@ $('#bSpeed').onclick=()=>{
   sTick();
 };
 $('#bSound').onclick=()=>{
-  muted=!muted;$('#bSound').textContent=muted?'🔇':'🔊';
-  localStorage.setItem(SAVEKEY+'.mute',muted?'1':'0');
+  sndMode=(sndMode+1)%3;
+  muted=sndMode===0;
+  $('#bSound').textContent=['🔇','🔊','🎵'][sndMode];
+  localStorage.setItem(SAVEKEY+'.snd',sndMode);
+  if(sndMode)sTick();
 };
 $('#bSave').onclick=()=>{save();toast('💾 已儲存');sTick();};
 function showStats(){
@@ -1683,8 +1697,11 @@ buildSprites();
 buildToolbar();
 resize();
 drawLogo();
-muted=localStorage.getItem(SAVEKEY+'.mute')==='1';
-$('#bSound').textContent=muted?'🔇':'🔊';
+const oldMute=localStorage.getItem(SAVEKEY+'.mute');
+sndMode=+(localStorage.getItem(SAVEKEY+'.snd')??(oldMute==='1'?0:1));
+if(sndMode<0||sndMode>2||isNaN(sndMode))sndMode=1;
+muted=sndMode===0;
+$('#bSound').textContent=['🔇','🔊','🎵'][sndMode];
 const hasSave=!!localStorage.getItem(SAVEKEY);
 if(hasSave)$('#bContinue').style.display='block';
 function begin(fresh){
