@@ -48,7 +48,10 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
 `bld.k`：1住宅 2商業 3工業 4公園 5發電廠 6消防局 7學校 8垃圾場（9體育場=2×2 多格，T22）。`lv` 1..3（k≥4 恆1）。`v`：k≤3 為 0..3，其餘 0..2。
 v1.4 批次A 追加：`weather/wxT/flashT`（天氣，不存檔）、`inWinter()`（day 導出季節）、W 系列冬季 sprite、
 `garbage/garbCap/garbRatio`（垃圾，每天重算）、`t.rdec`（路飾，存檔欄位 rc）；GV 追加 weather(w)/flash()/setDay(d)。
-快捷鍵現狀：1-7 工具、8=消防局、9=學校、0=垃圾場、'-'=拆除、'='=路飾。
+快捷鍵現狀：1-7 工具、8=消防局、9=學校、0=垃圾場、'-'=拆除、'='=路飾（種樹/填草/高速/體育場無鍵位）。
+v1.4 批次B 追加：`t.hw` 高速路（rd 存檔值 0-4）、**多格建築架構**（k=9 體育場 2×2：root 含 sz、其餘格 `{k,ref:[rx,ry]}`，
+所有迴圈遇 ref 跳過、doze 全清、bl 只存 root 第 6 位存 sz）、`t.el/t.em` 高地與崖沿位罩（存檔欄位 el）、
+河流生成（下坡走訪挖真水）、地形工具 tree/fill、`hasRoadNear` 增 noHw 參數（生長只認普通路）。
 v1.3 追加：`bld.fire`（0 或已燃天數，≥5 燒毀）、`t.ruin`（焦土 0/1，doze 清除）；`loan` 全域（貸款 {remain,daily}）；
 存檔追加：bl 第 6 元素 fire（僅 >0 時）、`rn` 焦土字串、`ln` 貸款（皆可選欄位）；GV 追加 `ignite(x,y)` 與 stats.fires/ruins。
 服務建築模式（k=6/7 範本）：覆蓋半徑用 `countNear`、不參與電力配額/稅收/生長/火災、經濟段獨立計數與維護費。
