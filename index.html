@@ -119,6 +119,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   <span class="spacer"></span>
   <button class="hbtn" id="bStats">📊</button>
   <button class="hbtn" id="bHelp">❓</button>
+  <button class="hbtn" id="bUndo">↩️</button>
   <button class="hbtn" id="bSpeed">▶ 1x</button>
   <button class="hbtn" id="bSound">🔊</button>
   <button class="hbtn" id="bSave">💾</button>
@@ -842,6 +843,7 @@ function newWorld(){
   }
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
+  undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
   recalcAllMasks();
   computeFoam();
@@ -911,6 +913,10 @@ function doPlace(toolId,x,y,silent){
   const cost=placeCost(toolId,x,y);
   if(cost>money){if(!silent){toast('資金不足！','bad');sErr();}return false;}
   const t=T(idx(x,y));
+  if(undoGroup&&!undoGroup.seen[idx(x,y)]){
+    undoGroup.seen[idx(x,y)]=1;
+    undoGroup.snaps.push({i:idx(x,y),s:JSON.stringify(t)});
+  }
   const zoneOf={zr:1,zc:2,zi:3};
   switch(toolId){
     case 'road':
@@ -938,6 +944,7 @@ function doPlace(toolId,x,y,silent){
       break;
   }
   money-=cost;
+  if(undoGroup)undoGroup.spent+=cost;
   if(toolId==='plant'||toolId==='road'||toolId==='doze')computePower(); // 供電狀態即時反映
   return true;
 }
@@ -1347,6 +1354,9 @@ const rect={on:false,x0:0,y0:0,x1:0,y1:0};
 const pointers=new Map();
 let panBase=null,pinchBase=null,paintLast=null,downInfo=null,firstPaint=null,dozeArm=null;
 let longPressT=null;
+let undoStack=[],undoGroup=null;
+const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};
+const closeUndo=()=>{if(undoGroup&&undoGroup.snaps.length){undoStack.push(undoGroup);if(undoStack.length>40)undoStack.shift();}undoGroup=null;};
 
 function toTile(cssX,cssY){
   const mx=cssX*DPR,my=cssY*DPR;
@@ -1377,6 +1387,7 @@ cvs.addEventListener('pointerdown',e=>{
     rect.on=false;paintLast=null;downInfo=null;
     if(firstPaint&&performance.now()-firstPaint.t<400&&firstPaint.spent>0)undoPlace(firstPaint);
     firstPaint=null;
+    undoGroup=null;
     const ps=[...pointers.values()];
     pinchBase={d:Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),
       cx:(ps[0].x+ps[1].x)/2,cy:(ps[0].y+ps[1].y)/2,
@@ -1399,6 +1410,7 @@ cvs.addEventListener('pointerdown',e=>{
       }
     },550);
   }else{
+    openUndo();
     const m0=money;
     paintLast=null;paintTo(x,y);
     firstPaint={x,y,tool,spent:m0-money,t:performance.now()};
@@ -1455,6 +1467,7 @@ function endPointer(e){
   if(pointers.size===0){
     clearTimeout(longPressT);
     if(rect.on){commitRect();rect.on=false;}
+    closeUndo();
     if(downInfo&&!downInfo.moved&&tool==='pan'&&performance.now()-downInfo.t<450){
       inspect(downInfo.tx,downInfo.ty);
     }
@@ -1510,12 +1523,14 @@ function commitRect(){
     cost+=placeCost(tool,x,y);
   }
   if(cost>money){toast('資金不足！需要 $'+Math.round(cost),'bad');sErr();return;}
+  openUndo();
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
     if(!inMap(x,y))continue;
     if(tool==='doze'&&hiBld(x,y)&&!single)continue;
     if(doPlace(tool,x,y,true))done++;
   }
   if(skippedHi)toast(`已跳過 ${skippedHi} 棟 Lv2+ 建築（單獨點兩次可拆）`);
+  closeUndo();
   if(done){sBuild();}
 }
 /* 檢視面板 */
@@ -1747,7 +1762,21 @@ function showHelp(){
      <div class="row">快捷鍵：1-8 工具・空白鍵暫停・Esc 檢視</div>`;
   $('#info').style.display='block';
 }
+function undo(){
+  const g2=undoStack.pop();
+  if(!g2){toast('沒有可撤銷的操作');return;}
+  for(const sn of g2.snaps){
+    tiles[sn.i]=JSON.parse(sn.s);
+    const x=sn.i%N,y=(sn.i/N)|0;
+    recalcMask(x,y);recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);
+  }
+  money+=g2.spent;
+  computePower();
+  if(typeof drawMini==='function')drawMini();
+  toast('↩️ 已撤銷（退還 $'+Math.round(g2.spent)+'）');sTick();
+}
 $('#bHelp').onclick=()=>{showHelp();sTick();};
+$('#bUndo').onclick=()=>undo();
 $('#bNew').onclick=()=>{
   if(confirm('開一張新地圖？目前的小鎮會被覆蓋。')){
     newWorld();save();toast('🌱 新的開始！');
@@ -1760,6 +1789,7 @@ window.addEventListener('keydown',e=>{
   const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'doze'};
   if(map[e.key]){document.querySelectorAll('.tool')[TOOLS.findIndex(t=>t.id===map[e.key])].click();}
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
   if(e.key==='Escape'){document.querySelectorAll('.tool')[0].click();}
 });
 function showHint(key,msg){
@@ -1832,6 +1862,7 @@ function load(slot){
     computeFoam();
     cars.length=0;smokes.length=0;
     hintsOff=true;
+    undoStack.length=0;undoGroup=null;
     return true;
   }catch(e){return false;}
 }
