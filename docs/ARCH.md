@@ -103,6 +103,23 @@ helper（第 2 節開頭）：
 - 煙囪冒煙點存 `smoke:[{dx,dy}]`（相對錨點）；電廠閃燈 `lamp:{dx,dy}`。
 - 註冊：`SPR.bld['k_lv_v']`、`SPR.tree[]`、`SPR.park[]`、`SPR.plant`、`SPR.road[16]`、`SPR.bridge[16]`、`SPR.foam[16]`、`SPR.zone{}`、`SPR.car[]`（8色×A/B朝向）。
 
+### 5.1 建築的資料驅動：DRAFTS ＋ 部件引擎（T28）
+
+k=1~3 住宅／商業／工業的 `SPR.bld['k_lv_v']` 不再寫死 if 分支，改由第 2 節內三樣東西合成（k4 公園與 k5~9 服務建築仍各自獨立成塊，不走本表）：
+
+- **`PAL`**：牆／屋頂色盤。變體 `v`（0..3）只是 `PAL[k].walls[v]`／`PAL[k].roof[v]` 的索引。
+- **`PARTS`**：部件函數註冊表，每個部件簽名 `(g,ng,c)=>void`。`g`＝結構層（畫完 `outlineSprite` 描邊）、`ng`＝夜燈層、`c`＝ctx＝`{ax,ay,by,hw,h,rty,rty2,wl,rf,v,k,lv,rand,dg(日層 canvas),smoke,d(本行資料)}`。約定：地面裝飾畫在 `c.dg`（不描邊）；夜燈畫進 `ng`；煙點 `c.smoke.push({dx,dy})`；`setbackTop` 把內縮頂點寫回 `c.rty2` 供其後的 `antenna/signBoard` 取用。現有部件：
+  - 屋頂：`pyramidRoof` `flatParapet` `setbackTop` `sawtoothMonitor` `roofBillboard`
+  - 頂飾：`waterTank` `antenna` `aviationLamp` `chimneySmall` `chimneyBrick` `storageTank`
+  - 牆面：`windowsStd` `door` `glassFront` `awning` `signBoard` `rollupDoor` `hazardStripe` `corrugate` `panelLines` `balconyRows`
+  - 地面：`yardDeco` `cratesDeco`
+- **`DRAFTS`**：每行一種外觀 `{k,lv[,v],hw,h,parts:[...],win:{litP,...opts},door?,trim?,vn?}`。主迴圈把每行展開成建造任務（未指定 `v` 者展開 `v=0..vn-1`，`vn` 預設 4；指定 `v` 者只出該變體），**依 (k,lv,v) 升序建造**（＝與舊三層 for 迴圈同序，維持 `rand`／`ri`／`plate` 亂數流對齊，勿破壞），每棟：查表 → `plate` → `isoBox` 得 `rty` → 依 `parts` 順序呼叫部件 → `outlineSprite` → 註冊 `SPR.bld['k_lv_v']`。輸出介面（`{img,night,ax,ay,w,h,smoke}`）與呼叫方完全不變。
+
+**加一種建築外觀 = 三步**（弱模型可安全擴充；示範：表尾「花園商場」＝ k2 lv2 第 4 變體）：
+1. **挑部件**：從上面的 `PARTS` 選現有部件組合；真的缺才新增一個 `(g,ng,c)=>void`（座標從 `c` 取，亮元素記得也畫進 `ng`）。
+2. **加一行 `DRAFTS`**：填 `k,lv`（要固定變體再加 `v`）、`hw,h`、`parts:[...]`、視窗參數 `win`，以及部件會讀的自訂欄位（如 `door:{col,knob}`、`trim`）。牆／屋頂色自動由 `PAL[k]` 依 `v` 取；**若新行改變某 (k,lv,v) 的亂數消耗量，其後所有 sprite 的亂數流會位移**——沿用等量的 `windowsStd`／`roofBillboard` 即可保持對齊（花園商場即照此，故除它以外 47/48 鍵位元不變）。
+3. **若是全新 k**：本表只管外觀；種類的其餘接線照 §11 不變量清單（`KNAME`/`COST`/`TOOLS`/快捷鍵/`canPlace`/`doPlace`/`inspect`/小地圖/統計）另補。
+
 ## 6. 繪製順序（draw()，每幀）
 
 天空漸層 → 星星(夜) → **地面層**（全圖掃描＋可視裁切：懸崖→地形→泡沫→道路/橋→分區覆蓋）→ **物件層**（樹/建築/車/煙 依 `dep=x+y` 排序）→ 晝夜 multiply 色調 → 黃昏橙色 → 夜燈 screen 疊加 → 游標/框選。
