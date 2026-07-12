@@ -239,6 +239,7 @@ let tool='pan';
 let muted=false,sndMode=1;
 let visT=CYCLE*.38; // 視覺時間（從早晨開始）
 let simAcc=0;
+let weather=0,wxT=5,flashT=0; // 天氣（T17）：0晴 1雨 2暴雨；wxT 剩餘天數、flashT 閃電計時（皆不進存檔）
 let hintsOff=false, hintShown={};
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
@@ -1101,6 +1102,19 @@ function countNear(x,y,r,pred){
 }
 function tick(){
   day++;
+  // 天氣狀態機（T17）：每天遞減，歸零擲骰換態；暴雨每天 25% 觸發閃電
+  if(--wxT<=0){
+    if(weather===0){if(R()<.12){weather=1;wxT=3+ri(6);}else wxT=3+ri(5);}
+    else if(weather===1){
+      if(R()<.20){weather=2;wxT=1+ri(2);}
+      else if(R()<.35){weather=0;wxT=4+ri(6);}
+      else wxT=2+ri(3);
+    }else{
+      if(R()<.35){weather=0;wxT=4+ri(6);}
+      else{weather=1;wxT=2+ri(4);}
+    }
+  }
+  if(weather===2&&R()<.25){flashT=.4;sThunder();}
   const cap=computePower();
   // 供電判定
   let powered=0;
@@ -1118,7 +1132,7 @@ function tick(){
       const parks=countNear(x,y,4,tt=>tt.bld&&tt.bld.k===4);
       const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);
       const pl   =countNear(x,y,4,tt=>tt.bld&&tt.bld.k===5);
-      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)-ind*.09-pl*.18-(b.pw?0:.3),.05,1);
+      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)-ind*.09-pl*.18-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0),.05,1);
       happySum+=b.h;happyN++;
       if(b.pw){popN+=POPS[b.lv];}
     }else if(b.pw){
@@ -1304,7 +1318,7 @@ function updSmoke(dt){
       if(Math.random()<.5)continue;
       const o=offs[ri(offs.length)];
       const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;
-      smokes.push({wx,wy,age:0,life:2.2+Math.random(),dark,dep:x+y});
+      smokes.push({wx,wy,age:0,life:(2.2+Math.random())*(weather?.6:1),dark,dep:x+y});
     }
   }
   for(let i=smokes.length-1;i>=0;i--){
@@ -1321,6 +1335,28 @@ const stars=[];
 for(let i=0;i<90;i++)stars.push([Math.random(),Math.random()*.8,Math.random()*6.28]);
 let waterF=0,waterT=0;
 const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];   // 各行進方向的螢幕向量（車頭燈用）
+// 天氣雨粒子（螢幕空間池，重用，上限 240；暴雨密度×2；T17）
+const rain=[];
+function updRain(dt){
+  if(!weather){if(rain.length)rain.length=0;return;}
+  const cap=weather===2?240:120;
+  const f=dt*60;                              // 以 60fps 為基準的幀係數（後備迴圈 dt 大時等比加速）
+  const vx=-1.2*cam.z*f, vy=14*cam.z*f;       // 斜向下落
+  while(rain.length<cap)rain.push({x:Math.random()*(W+240)-40,y:Math.random()*H});
+  if(rain.length>cap)rain.length=cap;         // 暴雨轉小雨→截斷
+  for(const p of rain){
+    p.x+=vx;p.y+=vy;
+    if(p.y>H||p.x<-40){p.x=Math.random()*(W+240)-40;p.y=-Math.random()*40;} // 落出畫面回收到頂端
+  }
+}
+function drawRain(z){
+  const w=z,L=Math.max(2,Math.round(2*z));
+  ctx.fillStyle='rgba(200,220,255,.5)';
+  for(const p of rain){                       // 2 段偏轉 fillRect＝斜向雨絲（配合 vx<0,vy>0）
+    ctx.fillRect(p.x,p.y,w,L);
+    ctx.fillRect(p.x-w,p.y+L,w,L);
+  }
+}
 
 function easeOutBack(t){
   const c1=1.70158,c3=c1+1;
@@ -1444,6 +1480,11 @@ function draw(dt){
       ctx.drawImage(SPR.nopow,o.sx+24*z,o.sy+(-52+bob)*z,16*z,20*z);
     }
   }
+  // ---- 天氣色調（雨天壓暗，晝夜 multiply 之前疊加；T17）----
+  if(weather){
+    ctx.fillStyle=weather===2?'rgba(70,90,120,.3)':'rgba(70,90,120,.18)';
+    ctx.fillRect(0,0,W,H);
+  }
   // ---- 晝夜色調 ----
   if(b<1){
     ctx.globalCompositeOperation='multiply';
@@ -1468,6 +1509,13 @@ function draw(dt){
     }
     ctx.globalCompositeOperation='source-over';
     ctx.globalAlpha=1;
+  }
+  // ---- 天氣：雨絲＋閃電（螢幕空間，夜燈之後、游標之前；T17）----
+  if(weather)drawRain(z);
+  if(flashT>0){
+    ctx.fillStyle=`rgba(255,255,255,${Math.min(.85,flashT*2).toFixed(3)})`;
+    ctx.fillRect(0,0,W,H);
+    flashT=Math.max(0,flashT-dt);
   }
   // ---- 游標／框選預覽 ----
   drawCursor(sxOf,syOf,z);
@@ -1751,6 +1799,20 @@ const sBuild=()=>{tone(300,.09,'square',.07,180);setTimeout(()=>tone(430,.07,'sq
 const sErr=()=>tone(110,.18,'sawtooth',.08);
 const sPop=()=>tone(760,.06,'triangle',.05,900);
 const sFanfare=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.14,'square',.07),i*90));};
+// 雷聲（T17）：0.5s 白噪聲 → 低通 400Hz → 音量包絡衰減；遵守 sndMode（muted 時靜音）
+function sThunder(){
+  if(!AC||muted)return;
+  const dur=.5,len=(AC.sampleRate*dur)|0;
+  const buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const src=AC.createBufferSource();src.buffer=buf;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=400;
+  const g=AC.createGain();
+  g.gain.setValueAtTime(.4,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
+  src.connect(lp).connect(g).connect(AC.destination);
+  src.start();src.stop(AC.currentTime+dur);
+}
 // 環境音排程器：白天鳥鳴、夜晚蟲鳴（sndMode===2 才啟用）
 setInterval(()=>{
   if(sndMode<2||!AC||AC.state!=='running'||!running)return;
@@ -1827,7 +1889,7 @@ function updHud(){
   const hEmoji=cityHappy>.7?'😊':cityHappy>.45?'😐':'☹️';
   $('#happy').innerHTML=`${hEmoji} <b>${Math.round(cityHappy*100)}%</b>`;
   const yr=Math.floor((day-1)/360)+1,dd=((day-1)%360)+1;
-  $('#date').textContent=`📅 第${yr}年 第${dd}天`;
+  $('#date').textContent=`${['☀️','🌧️','⛈️'][weather]} 第${yr}年 第${dd}天`;
   $('#rci .r i').style.height=Math.round(Math.max(0,dem[1])*100)+'%';
   $('#rci .c i').style.height=Math.round(Math.max(0,dem[2])*100)+'%';
   $('#rci .i i').style.height=Math.round(Math.max(0,dem[3])*100)+'%';
@@ -2057,6 +2119,7 @@ function advance(dtReal){
   const dtA=Math.min(.05,dtReal);
   updCars(dtA);
   updSmoke(dtA);
+  updRain(dtA);
 }
 function frame(ts){
   requestAnimationFrame(frame);
@@ -2120,13 +2183,15 @@ window.GV={
   tile:(x,y)=>inMap(x,y)?JSON.parse(JSON.stringify(T(idx(x,y)))):null,
   setSpeed:s=>{speed=s;},
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
+  weather:(w)=>{weather=clamp(w|0,0,2);wxT=99;return weather;}, // 強制設天氣（測試用，鎖住不換態）
+  flash:()=>{flashT=.4;sThunder();return true;},               // 強制觸發閃電（測試用）
   stats:()=>{let b=0,r=0,z=0,pw=0,f=0,ru=0;
     for(let i=0;i<N*N;i++){const t=tiles[i];
       if(t.bld){b++;if(t.bld.pw)pw++;if(t.bld.fire)f++;}
       if(t.ruin)ru++;
       if(t.road)r++;if(t.zone)z++;}
     return{money:Math.round(money),pop,jobs,day,buildings:b,poweredBld:pw,
-      roads:r,zones:z,happy:+cityHappy.toFixed(2),dem:{...dem},cars:cars.length,fires:f,ruins:ru};}
+      roads:r,zones:z,happy:+cityHappy.toFixed(2),dem:{...dem},cars:cars.length,fires:f,ruins:ru,weather};}
 };
 })();
 </script>
