@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d1226">
 <meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
 <title>微光小鎮 Glimmerville</title>
 <style>
 /* ============================================================
@@ -2826,6 +2828,8 @@ window.GV={
     return{money:Math.round(money),pop,jobs,day,buildings:b,poweredBld:pw,
       roads:r,zones:z,happy:+cityHappy.toFixed(2),dem:{...dem},cars:cars.length,fires:f,ruins:ru,weather,buses:buses.length};}
 };
+
+if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
 </body>

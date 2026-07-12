@@ -1,0 +1,17 @@
+{
+  "name": "微光小鎮 Glimmerville",
+  "short_name": "微光小鎮",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0d1226",
+  "theme_color": "#0d1226",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
