@@ -90,6 +90,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #start .help{margin-top:10px;color:#96a4c9;font-size:12px;line-height:1.9;max-width:340px}
 #logo{image-rendering:pixelated;width:224px;height:128px}
 @media (max-height:520px){#logo{display:none}#start h1{font-size:26px}}
+/* 窄螢幕（360~420px 手機）壓縮工具列與 HUD，八顆工具鍵可完整捲動觸及 */
+@media (max-width:420px){
+  .tool{width:46px;min-width:46px;height:50px;font-size:9px}
+  .tool .ic{font-size:16px;line-height:18px}
+  #hud{font-size:11px;gap:4px;padding:4px 6px}
+  .chip{padding:2px 6px;line-height:18px}
+  .hbtn{padding:2px 7px;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -873,6 +881,7 @@ function doPlace(toolId,x,y,silent){
       break;
   }
   money-=cost;
+  if(toolId==='plant'||toolId==='road'||toolId==='doze')computePower(); // 供電狀態即時反映
   return true;
 }
 
@@ -1263,7 +1272,7 @@ const hover={x:-1,y:-1};
 const pt={cx:0,cy:0};
 const rect={on:false,x0:0,y0:0,x1:0,y1:0};
 const pointers=new Map();
-let panBase=null,pinchBase=null,paintLast=null,downInfo=null;
+let panBase=null,pinchBase=null,paintLast=null,downInfo=null,firstPaint=null;
 
 function toTile(cssX,cssY){
   const mx=cssX*DPR,my=cssY*DPR;
@@ -1290,8 +1299,10 @@ cvs.addEventListener('pointerdown',e=>{
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   initAudio();
   if(pointers.size===2){
-    // 進入雙指：取消畫線/框選，改為縮放平移
+    // 進入雙指：取消畫線/框選，改為縮放平移；單指剛誤放的一格退款撤銷
     rect.on=false;paintLast=null;downInfo=null;
+    if(firstPaint&&performance.now()-firstPaint.t<400&&firstPaint.spent>0)undoPlace(firstPaint);
+    firstPaint=null;
     const ps=[...pointers.values()];
     pinchBase={d:Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),
       cx:(ps[0].x+ps[1].x)/2,cy:(ps[0].y+ps[1].y)/2,
@@ -1299,6 +1310,7 @@ cvs.addEventListener('pointerdown',e=>{
     panBase=null;
     return;
   }
+  if(pointers.size>2)return;   // 第三指起不觸發任何操作
   const[x,y]=toTile(e.clientX,e.clientY);
   downInfo={x:e.clientX,y:e.clientY,tx:x,ty:y,t:performance.now(),moved:false,btn:e.button};
   if(e.button===1||e.button===2||tool==='pan'){
@@ -1306,9 +1318,24 @@ cvs.addEventListener('pointerdown',e=>{
   }else if(isRectTool(tool)){
     rect.on=true;rect.x0=rect.x1=x;rect.y0=rect.y1=y;
   }else{
+    const m0=money;
     paintLast=null;paintTo(x,y);
+    firstPaint={x,y,tool,spent:m0-money,t:performance.now()};
   }
 });
+// 撤銷「單指誤觸、隨即進入雙指縮放」放下的那一格
+function undoPlace(f){
+  if(!inMap(f.x,f.y))return;
+  const t=T(idx(f.x,f.y));
+  if(f.tool==='road'&&t.road){
+    t.road=0;t.bridge=0;t.mask=0;
+    recalcMask(f.x,f.y-1);recalcMask(f.x+1,f.y);recalcMask(f.x,f.y+1);recalcMask(f.x-1,f.y);
+  }else if(f.tool==='plant'&&t.bld&&t.bld.k===5){
+    t.bld=null;
+  }else return;
+  money+=f.spent;
+  computePower();
+}
 cvs.addEventListener('pointermove',e=>{
   pt.cx=e.clientX;pt.cy=e.clientY;
   const p=pointers.get(e.pointerId);
@@ -1321,6 +1348,7 @@ cvs.addEventListener('pointermove',e=>{
     const cx=(ps[0].x+ps[1].x)/2,cy=(ps[0].y+ps[1].y)/2;
     cam.x=pinchBase.camX-(cx-pinchBase.cx)*DPR/cam.z;
     cam.y=pinchBase.camY-(cy-pinchBase.cy)*DPR/cam.z;
+    clampCam();
     pinchBase.acc+=Math.log(d/Math.max(1,pinchBase.d));
     pinchBase.d=d;
     if(pinchBase.acc>.28){zoomStep(1,cx,cy);pinchBase.acc=0;pinchBase.camX=cam.x;pinchBase.camY=cam.y;pinchBase.cx=cx;pinchBase.cy=cy;}
@@ -1335,7 +1363,7 @@ cvs.addEventListener('pointermove',e=>{
     return;
   }
   if(rect.on){rect.x1=clamp(x,0,N-1);rect.y1=clamp(y,0,N-1);return;}
-  if(paintLast&&pointers.size===1&&!panBase)paintTo(x,y);
+  if(paintLast&&pointers.size===1&&!panBase&&tool!=='plant')paintTo(x,y); // 電廠不允許拖曳連放
 });
 function endPointer(e){
   pointers.delete(e.pointerId);
@@ -1345,7 +1373,7 @@ function endPointer(e){
     if(downInfo&&!downInfo.moved&&tool==='pan'&&performance.now()-downInfo.t<450){
       inspect(downInfo.tx,downInfo.ty);
     }
-    panBase=null;paintLast=null;downInfo=null;
+    panBase=null;paintLast=null;downInfo=null;firstPaint=null;
     $('#dragcost').style.display='none';
   }
 }
@@ -1400,8 +1428,8 @@ function inspect(x,y){
     else{
       const nm=LVNAME[b.k][b.lv-1];
       html=`<h3>${['','🏠','🏪','🏭'][b.k]} ${nm}（Lv.${b.lv}）</h3>`;
-      if(b.k===1)html+=`<div class="row">居民 ${POPS[b.lv]} 人 ・ 幸福 ${Math.round((b.h||0)*100)}%</div>`;
-      else html+=`<div class="row">就業 ${b.k===2?JOBSC[b.lv]:JOBSI[b.lv]} 人</div>`;
+      if(b.k===1)html+=`<div class="row">居民 ${b.pw?POPS[b.lv]:0} 人 ・ 幸福 ${Math.round((b.h||0)*100)}%</div>`;
+      else html+=`<div class="row">就業 ${b.pw?(b.k===2?JOBSC[b.lv]:JOBSI[b.lv]):0} 人</div>`;
       html+=`<div class="row">${b.pw?'⚡ 供電正常':'⚠️ 沒有電力！'}</div>`;
     }
   }else if(t.road){
@@ -1510,6 +1538,7 @@ function showHint(key,msg){
   if(hintsOff||hintShown[key])return;
   hintShown[key]=1;
   $('#hintTxt').textContent=msg;
+  $('#hint').style.top=($('#hud').offsetHeight+6)+'px'; // 動態排在 HUD 之下（小螢幕 HUD 會換行變高）
   $('#hint').style.display='flex';
 }
 function checkHints(plants,roads){
@@ -1517,7 +1546,7 @@ function checkHints(plants,roads){
   let zones=0;for(let i=0;i<N*N;i++)if(tiles[i].zone)zones++;
   if(zones<4){showHint('h2','👉 選「🏠 住宅區」，在路邊拖出一塊區域');return;}
   if(plants===0){showHint('h3','👉 蓋一座「⚡ 電廠」，電力會沿道路送到建築');return;}
-  if(pop>0&&hintShown['h3']&&!hintShown['h4']){
+  if(pop>0&&!hintShown['h4']){
     showHint('h4','🎉 居民入住了！接著劃「🏪 商業」「🏭 工業」提供工作');
   }
 }
