@@ -1664,7 +1664,60 @@ $('#bSound').onclick=()=>{
   localStorage.setItem(SAVEKEY+'.snd',sndMode);
   if(sndMode)sTick();
 };
-$('#bSave').onclick=()=>{save();toast('💾 已儲存');sTick();};
+$('#bSave').onclick=()=>{showSlots();sTick();};
+/* 存檔槽面板（重用 #infoBody / .row / .hbtn，事件一律 addEventListener 不用內聯 onclick） */
+function showSlots(){
+  const body=$('#infoBody');body.innerHTML='';
+  const h=document.createElement('h3');h.textContent='💾 存檔槽';body.appendChild(h);
+  const cur=curSlot();
+  for(let n=1;n<=3;n++){
+    const info=slotInfo(n);
+    const row=document.createElement('div');row.className='row';
+    const lab=document.createElement('span');
+    lab.textContent=(info?`槽${n}｜${info.nm}｜人口 ${info.pop}｜第 ${info.day} 天`:`槽${n}｜（空）`)+(n===cur?' ◀':'')+' ';
+    row.appendChild(lab);
+    const bStore=document.createElement('button');bStore.className='hbtn';bStore.textContent='存到此';
+    bStore.addEventListener('click',()=>{setSlot(n);save();toast(`💾 已存到槽${n}`);sTick();showSlots();});
+    row.appendChild(bStore);
+    if(info){
+      const bLoad=document.createElement('button');bLoad.className='hbtn';bLoad.textContent='讀取';
+      bLoad.addEventListener('click',()=>{setSlot(n);
+        if(load(n)){computePower();updHud();drawMini();toast(`📂 已讀取槽${n}`);hideInfo();}
+        else toast('讀取失敗','bad');
+        sTick();});
+      row.appendChild(bLoad);
+    }
+    body.appendChild(row);
+  }
+  const io=document.createElement('div');io.className='row';
+  const bExp=document.createElement('button');bExp.className='hbtn';bExp.textContent='匯出分享碼';
+  bExp.addEventListener('click',exportShare);
+  const bImp=document.createElement('button');bImp.className='hbtn';bImp.textContent='匯入分享碼';
+  bImp.addEventListener('click',importShare);
+  io.appendChild(bExp);io.appendChild(bImp);body.appendChild(io);
+  $('#info').style.display='block';
+}
+function exportShare(){
+  const raw=localStorage.getItem(slotKey(curSlot()));
+  if(!raw){toast('目前槽是空的','bad');return;}
+  let code;try{code=btoa(unescape(encodeURIComponent(raw)));}catch(e){toast('匯出失敗','bad');return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(code).then(()=>toast('📋 已複製'),()=>prompt('複製此分享碼',code));
+  else prompt('複製此分享碼',code);
+}
+function importShare(){
+  const code=prompt('貼上分享碼');
+  if(!code)return;
+  try{
+    const json=decodeURIComponent(escape(atob(code)));
+    const d=JSON.parse(json);
+    if(d.v===1&&d.ter&&d.ter.length===N*N){
+      localStorage.setItem(slotKey(curSlot()),json);
+      if(load()){computePower();updHud();drawMini();toast('📥 匯入成功');hideInfo();}
+      else toast('匯入失敗','bad');
+    }else toast('分享碼無效','bad');
+  }catch(e){toast('分享碼無效','bad');}
+}
 function showStats(){
   let nR=0,nC=0,nI=0,nP=0,nE=0;
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
@@ -1729,6 +1782,21 @@ function checkHints(plants,roads){
 /* =====================================================================
    11. 存檔／讀檔
 ===================================================================== */
+// 存檔槽：SAVEKEY.s1/.s2/.s3；目前槽記在 SAVEKEY.slot（預設1）
+function slotKey(n){return SAVEKEY+'.s'+n;}
+function curSlot(){const n=+localStorage.getItem(SAVEKEY+'.slot');return n>=1&&n<=3?n:1;}
+function setSlot(n){localStorage.setItem(SAVEKEY+'.slot',n);}
+// 讀某槽概要（給槽位面板用）：{nm,pop,day} 或 null
+function slotInfo(n){
+  try{
+    const raw=localStorage.getItem(slotKey(n));
+    if(!raw)return null;
+    const d=JSON.parse(raw);
+    if(d.v!==1)return null;
+    let p=0;for(const b of d.bl||[])if(b[1]===1)p+=POPS[b[2]]||0;
+    return{nm:d.nm||'微光小鎮',pop:p,day:d.day||1};
+  }catch(e){return null;}
+}
 function save(){
   try{
     const bl=[];
@@ -1741,12 +1809,12 @@ function save(){
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,bl,ach:Object.keys(ach),nm:townName};
-    localStorage.setItem(SAVEKEY,JSON.stringify(data));
+    localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
   }catch(e){}
 }
-function load(){
+function load(slot){
   try{
-    const raw=localStorage.getItem(SAVEKEY);
+    const raw=localStorage.getItem(slotKey(slot||curSlot()));
     if(!raw)return false;
     const d=JSON.parse(raw);
     if(d.v!==1||d.ter.length!==N*N)return false;
@@ -1822,7 +1890,10 @@ sndMode=+(localStorage.getItem(SAVEKEY+'.snd')??(oldMute==='1'?0:1));
 if(sndMode<0||sndMode>2||isNaN(sndMode))sndMode=1;
 muted=sndMode===0;
 $('#bSound').textContent=['🔇','🔊','🎵'][sndMode];
-const hasSave=!!localStorage.getItem(SAVEKEY);
+// 一次性遷移：舊單一鍵 SAVEKEY 若有值且槽1為空 → 搬到槽1並刪除舊鍵
+const oldSave=localStorage.getItem(SAVEKEY);
+if(oldSave&&!localStorage.getItem(slotKey(1))){localStorage.setItem(slotKey(1),oldSave);localStorage.removeItem(SAVEKEY);}
+const hasSave=!!(localStorage.getItem(slotKey(1))||localStorage.getItem(slotKey(2))||localStorage.getItem(slotKey(3)));
 if(hasSave)$('#bContinue').style.display='block';
 function begin(fresh){
   initAudio();
