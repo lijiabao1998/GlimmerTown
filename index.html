@@ -198,7 +198,7 @@ const JOBSC=[0,5,14,38];    // 商業各級就業
 const JOBSI=[0,7,20,48];    // 工業各級就業
 const PLANT_CAP=50;         // 每座電廠供電建築數
 const DUMP_CAP=40;          // 每座垃圾場處理容量（T19）
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400,school:350,dump:300};
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400,school:350,dump:300,rdec:25};
 
 const TOOLS=[
   {id:'pan',  ic:'🖐', nm:'檢視', pr:''},
@@ -211,6 +211,7 @@ const TOOLS=[
   {id:'fire', ic:'🚒', nm:'消防局', pr:'$'+COST.fire},
   {id:'school',ic:'🏫', nm:'學校', pr:'$'+COST.school},
   {id:'dump', ic:'🗑️', nm:'垃圾場', pr:'$'+COST.dump},
+  {id:'rdec', ic:'🌲', nm:'路飾', pr:'$'+COST.rdec},
   {id:'doze', ic:'💥', nm:'拆除', pr:'$'+COST.doze},
 ];
 
@@ -969,6 +970,20 @@ function buildSprites(){
       }
     }
     SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});}
+  /* ---------- 路飾：路樹＋路燈（T20；置於全部既有 sprite 之後→零擾動） ---------- */
+  {const[c,g]=cv(64,40),[s,sg]=cv(64,40);
+   sg.fillStyle='#6b4a2f';sg.fillRect(15,18,2,6);          // 樹幹
+   sg.fillStyle='#3d7a3c';sg.fillRect(12,6,8,12);          // 樹冠（左上角）
+   sg.fillStyle='#4b8f45';sg.fillRect(13,7,6,6);
+   sg.fillStyle='#63ad55';sg.fillRect(14,8,3,3);
+   sg.fillStyle='#5c5f66';sg.fillRect(48,8,1,10);          // 燈桿（右上角）
+   sg.fillStyle='#3e434c';sg.fillRect(47,6,3,2);           // 燈頭（日間熄燈）
+   outlineSprite(s,30,34,30);
+   g.drawImage(s,0,0);
+   SPR.rdec={img:c,ax:32,ay:36,w:64,h:40};}
+  {const[c,g]=cv(64,40);                                   // 夜間層：燈頭暖黃光暈
+   g.fillStyle='#ffe9a0';g.fillRect(46,5,4,3);
+   SPR.rdecN=c;}
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1093,6 +1108,9 @@ function canPlace(toolId,x,y){
       if(t.road)return '道路上不能建造';
       if(t.bld)return '已有建築';
       return null;
+    case 'rdec':
+      if(!t.road||t.bridge||t.rdec)return '只能加在道路上';
+      return null;
     case 'doze':
       if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin)return '這裡沒東西';
       return null;
@@ -1111,6 +1129,7 @@ function placeCost(toolId,x,y){
     case 'fire':c=COST.fire;break;
     case 'school':c=COST.school;break;
     case 'dump':c=COST.dump;break;
+    case 'rdec':c=COST.rdec;break;
     case 'doze':c=COST.doze;break;
   }
   if(toolId!=='doze'&&t.tree)c+=COST.doze; // 順手清樹
@@ -1152,10 +1171,14 @@ function doPlace(toolId,x,y,silent){
     case 'dump':
       t.bld={k:8,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
       break;
+    case 'rdec':
+      t.rdec=1;
+      break;
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}                    // 清理焦土：連同殘留分區一併復原
       else if(t.bld)t.bld=null;
-      else if(t.road){t.road=0;t.bridge=0;t.mask=0;
+      else if(t.rdec)t.rdec=0;                          // 路飾優先於路面清除（T20）
+      else if(t.road){t.road=0;t.bridge=0;t.mask=0;t.rdec=0;
         recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);}
       else if(t.zone)t.zone=0;
       else if(t.tree)t.tree=0;
@@ -1258,7 +1281,7 @@ function tick(){
       const parks=countNear(x,y,4,tt=>tt.bld&&tt.bld.k===4);
       const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);
       const pl   =countNear(x,y,4,tt=>tt.bld&&tt.bld.k===5);
-      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)-ind*.09-pl*.18-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
+      b.h=clamp(.62+(parks?.16:0)+(parks>1?.06:0)+0.03*(countNear(x,y,2,tt=>tt.rdec)>0?1:0)-ind*.09-pl*.18-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
       happySum+=b.h;happyN++;
       if(b.pw){popN+=POPS[b.lv];}
     }else if(b.pw){
@@ -1542,6 +1565,7 @@ function draw(dt){
   const vis=(sx,sy)=>sx>-pad&&sx<W+pad&&sy>-pad&&sy<H+pad;
   waterT+=dt;if(waterT>.5){waterT=0;waterF=(waterF+1)%3;}
   const win=inWinter();                             // 冬季雪皮切換（T18；一次計算，draw 內零新配置）
+  const rdecGlow=[];                                 // 路飾夜燈暫存，併入 nightSprites（T20）
   // ---- 地面層 ----
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const sx=sxOf(x,y),sy=syOf(x,y);
@@ -1555,6 +1579,12 @@ function draw(dt){
     if(t.road){
       if(t.bridge)ctx.drawImage(SPR.bridge[t.mask],sx,sy-4*z,64*z,44*z);
       else ctx.drawImage(SPR.road[t.mask],sx,sy,64*z,32*z);
+      if(t.rdec){
+        const rs=SPR.rdec;
+        const rx=sx+(32-rs.ax)*z, ry=sy+(32-rs.ay)*z;
+        ctx.drawImage(rs.img,rx,ry,rs.w*z,rs.h*z);
+        rdecGlow.push({img:SPR.rdecN,x:rx,y:ry,w:rs.w*z,h:rs.h*z});
+      }
     }else if(t.zone&&!t.bld&&!t.ruin){
       ctx.globalAlpha=.5;ctx.drawImage(SPR.zone[t.zone],sx,sy,64*z,32*z);ctx.globalAlpha=1;
     }
@@ -1576,6 +1606,7 @@ function draw(dt){
   for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s});
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
+  nightSprites.push(...rdecGlow);
   const bob=Math.sin(visT*5)*2;
   for(const o of objs){
     if(o.car){
@@ -2174,7 +2205,7 @@ $('#zin').onclick=()=>zoomStep(1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#zout').onclick=()=>zoomStep(-1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#hintX').onclick=()=>{$('#hint').style.display='none';hintsOff=true;};
 window.addEventListener('keydown',e=>{
-  const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'fire','9':'school','0':'dump','-':'doze'};
+  const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'fire','9':'school','0':'dump','-':'doze','=':'rdec'};
   if(map[e.key]){document.querySelectorAll('.tool')[TOOLS.findIndex(t=>t.id===map[e.key])].click();}
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
@@ -2218,15 +2249,15 @@ function slotInfo(n){
 function save(){
   try{
     const bl=[];
-    let ter='',tre='',rd='',zn='',dc='',rn='';
+    let ter='',tre='',rd='',zn='',dc='',rn='',rc='';
     for(let i=0;i<N*N;i++){
       const t=tiles[i];
-      ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;
+      ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;
       rd+=t.road?(t.bridge?2:1):0;
       if(t.bld){const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];if(t.bld.fire)e.push(t.bld.fire);bl.push(e);}
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
-      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,bl,ach:Object.keys(ach),nm:townName,
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null};
     localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
   }catch(e){}
@@ -2242,7 +2273,7 @@ function load(slot){
     for(let i=0;i<N*N;i++){
       const rv=+d.rd[i];
       tiles[i]={t:+d.ter[i],tree:+d.tre[i],gv:i&3,road:rv?1:0,bridge:rv===2?1:0,
-        mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0,deco:d.dc?+d.dc[i]:0,ruin:d.rn?+d.rn[i]:0};
+        mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0,deco:d.dc?+d.dc[i]:0,ruin:d.rn?+d.rn[i]:0,rdec:d.rc?+d.rc[i]:0};
     }
     for(const[i,k,lv,v,age,fire]of d.bl)tiles[i].bld={k,lv,v,age,pw:true,h:.6,fire:fire||0};
     money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
