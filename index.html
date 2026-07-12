@@ -198,7 +198,7 @@ const JOBSC=[0,5,14,38];    // 商業各級就業
 const JOBSI=[0,7,20,48];    // 工業各級就業
 const PLANT_CAP=50;         // 每座電廠供電建築數
 const DUMP_CAP=40;          // 每座垃圾場處理容量（T19）
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400,school:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200};
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400,school:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20};
 
 const TOOLS=[
   {id:'pan',  ic:'🖐', nm:'檢視', pr:''},
@@ -214,6 +214,8 @@ const TOOLS=[
   {id:'dump', ic:'🗑️', nm:'垃圾場', pr:'$'+COST.dump},
   {id:'stad', ic:'🏟️', nm:'體育場', pr:'$'+COST.stad},
   {id:'rdec', ic:'🌲', nm:'路飾', pr:'$'+COST.rdec},
+  {id:'tree', ic:'🌲', nm:'種樹', pr:'$'+COST.tree},
+  {id:'fill', ic:'🟩', nm:'填草', pr:'$'+COST.fill},
   {id:'doze', ic:'💥', nm:'拆除', pr:'$'+COST.doze},
 ];
 
@@ -1216,6 +1218,12 @@ function canPlace(toolId,x,y){
     case 'rdec':
       if(!t.road||t.bridge||t.rdec)return '只能加在道路上';
       return null;
+    case 'tree':
+      if(t.t!==2||t.tree||t.road||t.bld||t.zone||t.deco)return '只能種在空草地上';
+      return null;
+    case 'fill':
+      if(t.t!==1)return '只能填在沙地上';
+      return null;
     case 'doze':
       if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin)return '這裡沒東西';
       return null;
@@ -1237,6 +1245,8 @@ function placeCost(toolId,x,y){
     case 'dump':c=COST.dump;break;
     case 'stad':c=COST.stad;break;
     case 'rdec':c=COST.rdec;break;
+    case 'tree':c=COST.tree;break;
+    case 'fill':c=COST.fill;break;
     case 'doze':c=COST.doze;break;
   }
   if(toolId!=='doze'&&toolId!=='stad'&&t.tree)c+=COST.doze; // 順手清樹（體育場定價 $1200 一次，4 格自動清不另收）
@@ -1294,6 +1304,12 @@ function doPlace(toolId,x,y,silent){
       break;}
     case 'rdec':
       t.rdec=1;
+      break;
+    case 'tree':
+      t.tree=1+ri(4);
+      break;
+    case 'fill':
+      t.t=2;t.gv=ri(4);computeFoam();
       break;
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}                    // 清理焦土：連同殘留分區一併復原
@@ -1892,7 +1908,7 @@ function toTile(cssX,cssY){
   const fx=(wx/32+wy/16)/2, fy=(wy/16-wx/32)/2;
   return [Math.floor(fx),Math.floor(fy)];
 }
-function isRectTool(id){return id==='zr'||id==='zc'||id==='zi'||id==='doze'||id==='park';}
+function isRectTool(id){return id==='zr'||id==='zc'||id==='zi'||id==='doze'||id==='park'||id==='tree'||id==='fill';}
 function paintTo(x,y){
   if(!inMap(x,y))return;
   if(paintLast&&paintLast[0]===x&&paintLast[1]===y)return;
