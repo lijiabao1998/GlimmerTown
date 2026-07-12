@@ -207,7 +207,18 @@ let money=3000, day=1, speed=1, prevSpeed=1;
 let pop=0,jobs=0,cityHappy=.6;
 let dem={1:.5,2:0,3:0};
 let msIdx=0; // 里程碑進度
-const MILES=[[50,300],[150,600],[400,1000],[900,1600],[1600,2600],[2600,4000]];
+const MILES=[[50,300],[150,600],[400,1000],[900,1600],[1600,2600],[2600,4000],[4000,6000],[7000,10000]];
+let ach={};   // 已解鎖成就 id → 1
+const ACHS=[
+  {id:'bridge',  nm:'跨海工程師',   t:s=>s.bridges>=1},
+  {id:'park10',  nm:'綠意之城',     t:s=>s.parks>=10},
+  {id:'plant3',  nm:'電力大亨',     t:s=>s.plants>=3},
+  {id:'rich',    nm:'金庫滿盈',     t:()=>money>=50000},
+  {id:'pop5k',   nm:'大都會',       t:()=>pop>=5000},
+  {id:'year3',   nm:'三年之約',     t:()=>day>=1080},
+  {id:'ind20',   nm:'工業重鎮',     t:s=>s.nI>=20},
+  {id:'happy',   nm:'幸福之都',     t:()=>pop>=500&&cityHappy>=.75},
+];
 let bailoutDay=-999;
 let tool='pan';
 let muted=false;
@@ -787,7 +798,7 @@ function newWorld(){
     }
     if(sc>bestScore){bestScore=sc;best=[x,y];}
   }
-  money=3000;day=1;msIdx=0;pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
+  money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
   recalcAllMasks();
@@ -995,12 +1006,14 @@ function tick(){
     }
   }
   // 經濟
-  let income=0,upkeep=0,roads=0,parks=0,plants=0;
+  let income=0,upkeep=0,roads=0,parks=0,plants=0,bridges=0,nI=0;
   for(let i=0;i<N*N;i++){
     const t=tiles[i];
     if(t.road)roads++;
+    if(t.bridge)bridges++;
     const b=t.bld;
     if(!b)continue;
+    if(b.k===3)nI++;
     if(b.k===4)parks++;
     else if(b.k===5)plants++;
     else if(b.pw){
@@ -1016,6 +1029,14 @@ function tick(){
     const bonus=MILES[msIdx][1];money+=bonus;
     toast(`🎉 人口突破 ${MILES[msIdx][0]}！獎勵 $${bonus}`,'gold');
     sFanfare();msIdx++;
+  }
+  // 成就
+  for(const a of ACHS){
+    if(ach[a.id])continue;
+    if(a.t({bridges,parks,plants,nI})){
+      ach[a.id]=1;
+      toast(`🏆 成就解鎖：${a.nm}`,'gold');sFanfare();
+    }
   }
   // 紓困保底（避免卡死）
   if(money<20&&income-upkeep<=0&&day-bailoutDay>60){
@@ -1565,7 +1586,7 @@ function save(){
       if(t.bld)bl.push([i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age]);
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
-      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,bl};
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,bl,ach:Object.keys(ach)};
     localStorage.setItem(SAVEKEY,JSON.stringify(data));
   }catch(e){}
 }
@@ -1583,7 +1604,7 @@ function load(){
         mask:0,zone:+d.zn[i],bld:null,rp:false,wm:0};
     }
     for(const[i,k,lv,v,age]of d.bl)tiles[i].bld={k,lv,v,age,pw:true,h:.6};
-    money=d.money;day=d.day;msIdx=d.msIdx||0;
+    money=d.money;day=d.day;msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=clamp(d.cam.z||2,1,4);
     recalcAllMasks();
     computeFoam();
