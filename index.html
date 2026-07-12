@@ -112,6 +112,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   <span class="chip" id="pop">👥 <b>0</b></span>
   <span class="chip" id="jobs">💼 <b>0</b></span>
   <span class="chip" id="happy">😊 <b>--</b></span>
+  <span class="chip" id="star">⭐ <b>–</b></span>
   <span class="chip" id="date">📅 第1年 第1天</span>
   <span id="rci" title="需求：住宅/商業/工業">
     <span class="col r"><i></i></span><span class="col c"><i></i></span><span class="col i"><i></i></span>
@@ -251,6 +252,8 @@ let simAcc=0;
 let weather=0,wxT=5,flashT=0; // 天氣（T17）：0晴 1雨 2暴雨；wxT 剩餘天數、flashT 閃電計時（皆不進存檔）
 const inWinter=()=>((day-1)%360)>=300; // 冬季（T18）：每年第 300-360 天；由 day 導出，不進存檔
 let wSeason=-1; // 上次 tick 的季節旗標（-1 未定 / 0 非冬 / 1 冬）；入冬／開春 toast 防重複（T18，不進存檔）
+let score=-1,cityStar=-1,bestStar=0; // 城市評分（T25）：pop<50 時 score/cityStar=-1（不評分）；bestStar 只增不減（升星獎勵防重複），存檔可選欄位 star（cityStar 避開既有夜空 stars[] 命名）
+let scoreParts={happy:0,job:0,fire:0,garb:0,edu:0}; // 評分分項明細（T25，供統計面板顯示，不進存檔）
 let hintsOff=false, hintShown={};
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
@@ -1625,6 +1628,38 @@ function tick(){
       toast(`🏆 成就解鎖：${a.nm}`,'gold');sFanfare();
     }
   }
+  // 城市評分（T25）：幸福40＋就業率25＋消防覆蓋15＋垃圾10＋教育10 → 0~100 分、0~5 星；人口<50 不評分
+  if(pop<50){
+    score=-1;cityStar=-1;
+  }else{
+    let fireCoverN=0,fireTotalN=0,schoolCoverN=0,schoolTotalN=0;
+    for(let i=0;i<N*N;i++){
+      const b=tiles[i].bld;
+      if(!b||b.k>3||b.ref)continue;
+      const x=i%N,y=(i/N)|0;
+      fireTotalN++;
+      if(countNear(x,y,9,tt=>tt.bld&&tt.bld.k===6)>0)fireCoverN++;
+      if(b.k===1){
+        schoolTotalN++;
+        if(countNear(x,y,8,tt=>tt.bld&&tt.bld.k===7)>0)schoolCoverN++;
+      }
+    }
+    const happyScore=cityHappy*40;
+    const jobScore=Math.min(jobs/Math.max(1,pop*.6),1)*25;
+    const fireScore=fireTotalN>0?(fireCoverN/fireTotalN)*15:15;
+    const garbScore=typeof garbRatio!=='number'?10:(garbRatio<=1?10:Math.max(0,10-(garbRatio-1)*20));
+    const eduScore=schoolTotalN>0?(schoolCoverN/schoolTotalN)*10:10;
+    score=clamp(happyScore+jobScore+fireScore+garbScore+eduScore,0,100);
+    cityStar=clamp(Math.floor(score/18),0,5);
+    scoreParts={happy:happyScore,job:jobScore,fire:fireScore,garb:garbScore,edu:eduScore};
+    if(cityStar>bestStar){
+      const bonus=cityStar*500;
+      money+=bonus;
+      toast(`⭐ ${townName}升為 ${cityStar} 星城市！獎勵 $${bonus}`,'gold');
+      sFanfare();
+      bestStar=cityStar;
+    }
+  }
   // 紓困保底（避免卡死）
   if(money<20&&income-upkeep<=0&&day-bailoutDay>60){
     money+=250;bailoutDay=day;
@@ -2293,6 +2328,7 @@ function updHud(){
   $('#jobs b').textContent=jobs.toLocaleString();
   const hEmoji=cityHappy>.7?'😊':cityHappy>.45?'😐':'☹️';
   $('#happy').innerHTML=`${hEmoji} <b>${Math.round(cityHappy*100)}%</b>`;
+  $('#star').innerHTML=cityStar<0?'⭐ <b>–</b>':`⭐ <b>${cityStar}</b>`;
   const yr=Math.floor((day-1)/360)+1,dd=((day-1)%360)+1;
   $('#date').textContent=`${['☀️','🌧️','⛈️'][weather]} 第${yr}年 第${dd}天`;
   $('#rci .r i').style.height=Math.round(Math.max(0,dem[1])*100)+'%';
@@ -2300,8 +2336,8 @@ function updHud(){
   $('#rci .i i').style.height=Math.round(Math.max(0,dem[3])*100)+'%';
 }
 $('#bSpeed').onclick=()=>{
-  speed=speed===0?1:speed===1?3:0;
-  $('#bSpeed').textContent=speed===0?'⏸ 暫停':speed===1?'▶ 1x':'⏩ 3x';
+  speed=speed===0?1:speed===1?2:speed===2?3:speed===3?5:0;
+  $('#bSpeed').textContent=speed===0?'⏸ 暫停':speed===1?'▶ 1x':speed===2?'▶ 2x':speed===3?'⏩ 3x':'⏩ 5x';
   sTick();
 };
 $('#bSound').onclick=()=>{
@@ -2380,6 +2416,8 @@ function showStats(){
      <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS} 垃圾場${nD} 體育場${nT}</div>
      <div class="row">🗑️ 垃圾 ${garbage.toFixed(1)}/${garbCap}</div>
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
+     <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
+     ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
@@ -2485,7 +2523,7 @@ function save(){
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,el,bl,ach:Object.keys(ach),nm:townName,
-      ln:loan?[loan.remain,loan.daily]:null};
+      ln:loan?[loan.remain,loan.daily]:null,star:bestStar};
     localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
   }catch(e){}
 }
@@ -2514,6 +2552,7 @@ function load(slot){
     }
     money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
     loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
+    bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=clamp(d.cam.z||2,1,4);
     recalcAllMasks();
     computeFoam();
