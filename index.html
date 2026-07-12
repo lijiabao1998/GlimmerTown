@@ -114,6 +114,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   </span>
   <span class="spacer"></span>
   <button class="hbtn" id="bStats">📊</button>
+  <button class="hbtn" id="bHelp">❓</button>
   <button class="hbtn" id="bSpeed">▶ 1x</button>
   <button class="hbtn" id="bSound">🔊</button>
   <button class="hbtn" id="bSave">💾</button>
@@ -1626,6 +1627,20 @@ function showStats(){
   $('#info').style.display='block';
 }
 $('#bStats').onclick=()=>{showStats();sTick();};
+function showHelp(){
+  $('#infoBody').innerHTML=
+    `<h3>❓ 玩法指南</h3>
+     <div class="row">🖐 拖曳平移・滾輪/雙指縮放・點擊建築看詳情</div>
+     <div class="row">🛣 先鋪路 → 🏠🏪🏭 沿路劃區 → ⚡ 蓋電廠供電</div>
+     <div class="row">建築自動生長升級（最高 Lv3），每天繳稅給你</div>
+     <div class="row">需求條 R/C/I：綠＝想搬來・藍＝缺商店・黃＝缺工廠</div>
+     <div class="row">🌳 公園加幸福；住宅緊鄰工業/電廠會扣幸福</div>
+     <div class="row">⚡ 每座電廠供 50 棟建築，電力沿道路輸送</div>
+     <div class="row">💥 拆除 Lv2+ 建築需點兩次確認</div>
+     <div class="row">快捷鍵：1-8 工具・空白鍵暫停・Esc 檢視</div>`;
+  $('#info').style.display='block';
+}
+$('#bHelp').onclick=()=>{showHelp();sTick();};
 $('#bNew').onclick=()=>{
   if(confirm('開一張新地圖？目前的小鎮會被覆蓋。')){
     newWorld();save();toast('🌱 新的開始！');
