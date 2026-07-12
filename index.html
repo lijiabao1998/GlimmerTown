@@ -188,7 +188,7 @@ const DAYLEN=0.9;          // 一天（模擬）＝0.9 秒（1x）
 const CYCLE=110;           // 日夜循環（真實秒）
 
 // 建築種類：1住宅 2商業 3工業 4公園 5電廠
-const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局'};
+const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局',7:'學校'};
 const LVNAME={
   1:['小屋','公寓','住宅大樓'],
   2:['小舖','商場','商業大樓'],
@@ -197,7 +197,7 @@ const POPS =[0,8,22,54];    // 住宅各級人口
 const JOBSC=[0,5,14,38];    // 商業各級就業
 const JOBSI=[0,7,20,48];    // 工業各級就業
 const PLANT_CAP=50;         // 每座電廠供電建築數
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400};
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2,fire:400,school:350};
 
 const TOOLS=[
   {id:'pan',  ic:'🖐', nm:'檢視', pr:''},
@@ -208,6 +208,7 @@ const TOOLS=[
   {id:'park', ic:'🌳', nm:'公園', pr:'$'+COST.park},
   {id:'plant',ic:'⚡', nm:'電廠', pr:'$'+COST.plant},
   {id:'fire', ic:'🚒', nm:'消防局', pr:'$'+COST.fire},
+  {id:'school',ic:'🏫', nm:'學校', pr:'$'+COST.school},
   {id:'doze', ic:'💥', nm:'拆除', pr:'$'+COST.doze},
 ];
 
@@ -792,6 +793,22 @@ function buildSprites(){
      g.drawImage(sc,0,0);
      SPR.bld['6_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
    }}
+  /* ---------- 學校（T15）3 變體：黃牆＋旗杆紅旗＋大窗 ---------- */
+  {const SWALL=[['#f2c94c','#d1a62e'],['#f5d268','#d4af3c'],['#eec13e','#c99f28']];
+   const SROOF=['#8a6a3a','#7c5f34','#93713f'];
+   for(let v=0;v<3;v++){
+     const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+     const ax=36,ay=110,by=ay-2,hw=28,h=22;
+     const wl=SWALL[v],rf=SROOF[v];
+     plate(g,ax,ay,'#9a9484');
+     const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
+     windows(sg,ng,ax,by,hw,h,rand,.5,{w:5,ht:6,gx:9,gy:11,glass:'#2a3550',lit:'#ffd77a'});
+     sg.fillStyle='#8b95a5';sg.fillRect(ax,rty-9,1,9);      // 旗杆
+     sg.fillStyle='#e05252';sg.fillRect(ax+1,rty-9,2,3);    // 頂部小紅旗 2×3px
+     outlineSprite(sc,26,30,44);
+     g.drawImage(sc,0,0);
+     SPR.bld['7_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
+   }}
   /* ---------- 小車（8 色 × 2 朝向） ---------- */
   SPR.car=[];
   const CARC=['#e05252','#5aa0e8','#ffd45f','#7fe0c8','#e8e8ee','#b184d8','#f2a35f','#88c46a'];
@@ -954,7 +971,7 @@ function canPlace(toolId,x,y){
       if(t.road)return '道路上不能分區';
       if(t.bld)return '已有建築';
       return null;
-    case 'park':case 'plant':case 'fire':
+    case 'park':case 'plant':case 'fire':case 'school':
       if(t.t!==2&&t.t!==1)return '只能蓋在陸地上';
       if(t.road)return '道路上不能建造';
       if(t.bld)return '已有建築';
@@ -975,6 +992,7 @@ function placeCost(toolId,x,y){
     case 'park':c=COST.park;break;
     case 'plant':c=COST.plant;break;
     case 'fire':c=COST.fire;break;
+    case 'school':c=COST.school;break;
     case 'doze':c=COST.doze;break;
   }
   if(toolId!=='doze'&&t.tree)c+=COST.doze; // 順手清樹
@@ -1009,6 +1027,9 @@ function doPlace(toolId,x,y,silent){
       break;
     case 'fire':
       t.bld={k:6,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      break;
+    case 'school':
+      t.bld={k:7,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
       break;
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}                    // 清理焦土：連同殘留分區一併復原
@@ -1082,11 +1103,12 @@ function tick(){
   const cap=computePower();
   // 供電判定
   let powered=0;
-  let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0;
+  let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0,schools=0;
   const grown=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const t=T(idx(x,y));
     const b=t.bld;
+    if(b&&b.k===7)schools++;
     if(!b||b.k>3)continue;
     const near=hasRoadNear(x,y,2,true);
     b.pw=near&&powered<cap;
@@ -1102,7 +1124,7 @@ function tick(){
       if(b.k===2)jobsC+=JOBSC[b.lv];else jobsI+=JOBSI[b.lv];
     }
   }
-  pop=popN;jobs=jobsC+jobsI;
+  pop=popN;jobs=jobsC+jobsI+schools*8;
   cityHappy=happyN?happySum/happyN:.6;
   // 需求
   const workers=pop*.6;
@@ -1131,7 +1153,8 @@ function tick(){
     const b=tiles[i].bld;
     if(!b||b.k>3)continue;
     b.age++;
-    if(b.lv<3&&b.pw&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035){
+    const x=i%N,y=(i/N)|0;
+    if(b.lv<3&&b.pw&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*(b.k===1&&countNear(x,y,8,tt=>tt.bld&&tt.bld.k===7)>0?1.6:1)){
       b.lv++;b.age=0;b.v=ri(4);
     }
   }
@@ -1194,7 +1217,7 @@ function tick(){
       else{const v2=JOBSI[b.lv]*.15;income+=v2;taxI+=v2;}
     }
   }
-  upkeep=roads*.02+parks*.5+plants*4+fireStations*3;
+  upkeep=roads*.02+parks*.5+plants*4+fireStations*3+schools*2.5;
   fin={taxR,taxC,taxI,upR:roads*.02,upP:parks*.5,upE:plants*4,net:income-upkeep};
   money+=income-upkeep;
   // 里程碑
@@ -1669,6 +1692,7 @@ function inspect(x,y){
     if(b.k===4)html=`<h3>🌳 公園</h3><div class="row">為附近居民 +幸福</div><div class="row">維護費 $0.5/天</div>`;
     else if(b.k===5)html=`<h3>⚡ 發電廠</h3><div class="row">供電 ${PLANT_CAP} 棟建築</div><div class="row">沿道路輸電，維護費 $4/天</div>`;
     else if(b.k===6)html=`<h3>🚒 消防局</h3><div class="row">半徑 9 防火覆蓋</div><div class="row">維護費 $3/天</div>`;
+    else if(b.k===7)html=`<h3>🏫 學校</h3><div class="row">半徑 8 內住宅更快升級</div><div class="row">就業 8</div><div class="row">維護費 $2.5/天</div>`;
     else{
       const nm=LVNAME[b.k][b.lv-1];
       html=`<h3>${['','🏠','🏪','🏭'][b.k]} ${nm}（Lv.${b.lv}）</h3>`;
@@ -1766,7 +1790,7 @@ function drawMini(){
     if(t.tree)c='#3e7a3c';
     if(t.zone)c=['','#2e7a44','#2f5f9a','#9a7a2e'][t.zone];
     if(t.road)c='#565b64';
-    if(t.bld)c=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252'][t.bld.k];
+    if(t.bld)c=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f'][t.bld.k];
     if(t.bld&&t.bld.fire)c='#ff5030';
     miniG.fillStyle=c;miniG.fillRect(x*2,y*2,2,2);
   }
@@ -1872,17 +1896,17 @@ function importShare(){
   }catch(e){toast('分享碼無效','bad');}
 }
 function showStats(){
-  let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0;
+  let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0,nS=0;
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
     if(b.k===1)nR++;else if(b.k===2)nC++;else if(b.k===3)nI++;
-    else if(b.k===4)nP++;else if(b.k===5)nE++;else nF++;}
+    else if(b.k===4)nP++;else if(b.k===5)nE++;else if(b.k===6)nF++;else nS++;}
   const f=v=>(v>=0?'+':'')+v.toFixed(1);
   $('#infoBody').innerHTML=
     `<h3>📊 ${townName}</h3>
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
-     <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF}</div>
+     <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS}</div>
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>`;
   $('#info').style.display='block';
 }
@@ -1924,7 +1948,7 @@ $('#zin').onclick=()=>zoomStep(1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#zout').onclick=()=>zoomStep(-1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#hintX').onclick=()=>{$('#hint').style.display='none';hintsOff=true;};
 window.addEventListener('keydown',e=>{
-  const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'fire','9':'doze'};
+  const map={'1':'pan','2':'road','3':'zr','4':'zc','5':'zi','6':'park','7':'plant','8':'fire','9':'school','0':'doze'};
   if(map[e.key]){document.querySelectorAll('.tool')[TOOLS.findIndex(t=>t.id===map[e.key])].click();}
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
