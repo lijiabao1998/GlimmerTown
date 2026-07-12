@@ -113,6 +113,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
     <span class="col r"><i></i></span><span class="col c"><i></i></span><span class="col i"><i></i></span>
   </span>
   <span class="spacer"></span>
+  <button class="hbtn" id="bStats">📊</button>
   <button class="hbtn" id="bSpeed">▶ 1x</button>
   <button class="hbtn" id="bSound">🔊</button>
   <button class="hbtn" id="bSave">💾</button>
@@ -220,6 +221,7 @@ const ACHS=[
   {id:'happy',   nm:'幸福之都',     t:()=>pop>=500&&cityHappy>=.75},
 ];
 let bailoutDay=-999;
+let fin={taxR:0,taxC:0,taxI:0,upR:0,upP:0,upE:0,net:0};
 let tool='pan';
 let muted=false;
 let visT=CYCLE*.38; // 視覺時間（從早晨開始）
@@ -1006,7 +1008,7 @@ function tick(){
     }
   }
   // 經濟
-  let income=0,upkeep=0,roads=0,parks=0,plants=0,bridges=0,nI=0;
+  let income=0,upkeep=0,roads=0,parks=0,plants=0,bridges=0,nI=0,taxR=0,taxC=0,taxI=0;
   for(let i=0;i<N*N;i++){
     const t=tiles[i];
     if(t.road)roads++;
@@ -1017,12 +1019,13 @@ function tick(){
     if(b.k===4)parks++;
     else if(b.k===5)plants++;
     else if(b.pw){
-      if(b.k===1)income+=POPS[b.lv]*.12;
-      else if(b.k===2)income+=JOBSC[b.lv]*.18;
-      else income+=JOBSI[b.lv]*.15;
+      if(b.k===1){const v2=POPS[b.lv]*.12;income+=v2;taxR+=v2;}
+      else if(b.k===2){const v2=JOBSC[b.lv]*.18;income+=v2;taxC+=v2;}
+      else{const v2=JOBSI[b.lv]*.15;income+=v2;taxI+=v2;}
     }
   }
   upkeep=roads*.02+parks*.5+plants*4;
+  fin={taxR,taxC,taxI,upR:roads*.02,upP:parks*.5,upE:plants*4,net:income-upkeep};
   money+=income-upkeep;
   // 里程碑
   if(msIdx<MILES.length&&pop>=MILES[msIdx][0]){
@@ -1541,6 +1544,22 @@ $('#bSound').onclick=()=>{
   localStorage.setItem(SAVEKEY+'.mute',muted?'1':'0');
 };
 $('#bSave').onclick=()=>{save();toast('💾 已儲存');sTick();};
+function showStats(){
+  let nR=0,nC=0,nI=0,nP=0,nE=0;
+  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
+    if(b.k===1)nR++;else if(b.k===2)nC++;else if(b.k===3)nI++;
+    else if(b.k===4)nP++;else nE++;}
+  const f=v=>(v>=0?'+':'')+v.toFixed(1);
+  $('#infoBody').innerHTML=
+    `<h3>📊 小鎮統計</h3>
+     <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
+     <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}</div>
+     <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
+     <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE}</div>
+     <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>`;
+  $('#info').style.display='block';
+}
+$('#bStats').onclick=()=>{showStats();sTick();};
 $('#bNew').onclick=()=>{
   if(confirm('開一張新地圖？目前的小鎮會被覆蓋。')){
     newWorld();save();toast('🌱 新的開始！');
