@@ -20,7 +20,7 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
 | 6 | 小車與煙 | `cars smokes roadDirs DIRV updCars updSmoke` |
 | 7 | 繪製 | `stars waterF DIRSCR daylight() draw(dt) drawCursor` |
 | 8 | 輸入 | `hover pt rect pointers toTile isRectTool paintTo undoPlace` pointer 事件、`zoomStep clampCam commitRect inspect`；全域 `firstPaint dozeArm longPressT undoStack undoGroup openUndo closeUndo`（v1.2） |
-| 9 | 音效 | `AC initAudio tone sTick sBuild sErr sPop sFanfare` ＋ `sndMode` 三段開關與環境音排程器（T05） |
+| 9 | 音效 | `AC initAudio tone sTick sBuild sErr sPop sFanfare` ＋ `sndMode` 三段開關與環境音排程器（T05）；T37 新增 `AudioComposer` 程序化背景音樂（依晝夜/天氣/冬季選 mood，Web Audio 即時合成，crossfade 過渡）與 `NPUComposer` 預留接口 |
 | 10 | UI | `buildToolbar toast updHud showHint checkHints` 鍵盤快捷鍵；`drawMini`（T06 小地圖）、`showStats`（T04）、`showHelp`（T09）、`showSlots/匯出入`（T07）、`undo()`（T10） |
 | 11 | 存檔 | `save() load()` 槽位化（T07）：鍵 `SAVEKEY+'.s1/.s2/.s3'`、目前槽 `'.slot'`、舊裸鍵自動遷移；自動存檔 25s + visibilitychange |
 | 12 | 主迴圈 | `advance(dt)` `frame(ts)`(rAF) + setInterval(250ms) 後備迴圈 |
@@ -39,16 +39,17 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
   mask: 0..15,     // 道路連接位罩（見§4 位向約定）
   zone: 0|1|2|3,   // 分區 0無 1住宅 2商業 3工業
   deco: 0..3,      // 裝飾 0無 1岩石 2蘆葦 3野花叢（T02；建造時自動清除）
-  bld: null | { k, lv, v, age, pw, h },
+  bld: null | { k, lv, v, age, pw, h, sick?, sickDays?, death?, deathAge?, crime?, fire?, den? },
   rp: false,       // 本格道路是否通電（computePower 每天重算）
   wm: 0..15        // 水岸泡沫位罩（computeFoam 算）
 }
 ```
 
-`bld.k`：1住宅 2商業 3工業 4公園 5發電廠 6消防局 7學校 8垃圾場（9體育場=2×2 多格，T22）。`lv` 1..3（k≥4 恆1）。`v`：k≤3 為 0..3，其餘 0..2。
+`bld.k`：1住宅 2商業 3工業 4公園 5發電廠 6消防局 7學校 8垃圾場（9體育場=2×2 多格，T22）、10水塔 11警察局 12醫院 13診所 14圖書館 15郵局 16墓園。`lv` 1..3（k≥4 恆1）。`v`：k≤3 為 0..3，其餘 0..2。
 v1.4 批次A 追加：`weather/wxT/flashT`（天氣，不存檔）、`inWinter()`（day 導出季節）、W 系列冬季 sprite、
 `garbage/garbCap/garbRatio`（垃圾，每天重算）、`t.rdec`（路飾，存檔欄位 rc）；GV 追加 weather(w)/flash()/setDay(d)。
-快捷鍵現狀：1-7 工具、8=消防局、9=學校、0=垃圾場、'-'=拆除、'='=路飾（種樹/填草/高速/體育場無鍵位）。
+v1.5 追加：`bld.death`/`deathAge`/`sickDays`（死亡機制，存檔欄位 dt）、k=16 墓園、`AudioComposer`/`NPUComposer`（T37/T38）。
+快捷鍵現狀：1-7 工具、8=消防局、9=學校、0=垃圾場、'-'=拆除、'='=路飾、b=公車站、w=水塔、p=水管、P=警察局、h=醫院、c=診所、l=圖書館、o=郵局、m=墓園（種樹/填草/高速/體育場無鍵位）。
 v1.4 批次B 追加：`t.hw` 高速路（rd 存檔值 0-4）、**多格建築架構**（k=9 體育場 2×2：root 含 sz、其餘格 `{k,ref:[rx,ry]}`，
 所有迴圈遇 ref 跳過、doze 全清、bl 只存 root 第 6 位存 sz）、`t.el/t.em` 高地與崖沿位罩（存檔欄位 el）、
 河流生成（下坡走訪挖真水）、地形工具 tree/fill、`hasRoadNear` 增 noHw 參數（生長只認普通路）。
@@ -171,4 +172,5 @@ GV.stats()             // {money,pop,jobs,day,buildings,poweredBld,roads,zones,h
 8. 主迴圈雙軌（rAF＋interval 後備）不可退化成單軌。
 9. 建造/拆除的**唯一**資料變更點是 `doPlace()`——撤銷系統的快照掛鉤在那裡，繞過它改 tile＝撤銷壞掉。
 10. 新增建築種類 k 時必須同步：KNAME、COST、TOOLS、keydown 快捷鍵表、canPlace/placeCost/doPlace、
-    SPR.bld['k_1_v']、inspect()、小地圖色表（drawMini 內陣列）、統計面板計數。
+    SPR.bld['k_1_v']、inspect()、小地圖色表（drawMini 內陣列）、統計面板計數；若涉及模擬狀態標記（如 sick/death），
+    需同時補存檔欄位與 load 還原。
