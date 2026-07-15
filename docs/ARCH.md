@@ -49,6 +49,7 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
 v1.4 批次A 追加：`weather/wxT/flashT`（天氣，不存檔）、`inWinter()`（day 導出季節）、W 系列冬季 sprite、
 `garbage/garbCap/garbRatio`（垃圾，每天重算）、`t.rdec`（路飾，存檔欄位 rc）；GV 追加 weather(w)/flash()/setDay(d)。
 v1.5 追加：`bld.death`/`deathAge`/`sickDays`（死亡機制，存檔標記欄位 dt；FIX-A 追加可選欄位 skd=sickDays、dtd=deathAge 天數字串，上限 9，舊檔缺欄位容錯為 0）、k=16 墓園、`AudioComposer`/`NPUComposer`（T37/T38）。
+T61 追加：**服務覆蓋計數場 `COV`**（第 5 節 countNear 後）＝13 個 Uint8Array(N*N)：park/plant/fire/school/stadium/police/hospital/clinic/library/post/cemetery/bus/rdec，各為「該格被幾座對應設施覆蓋」的計數（半徑見 `COVR`）。**運行時重建、不入存檔**（COV 純由 tile 導出）。維護只在唯一資料變更點：`doPlace` 放置 `stampCov(+1)`／拆除 `stampCov(-1)`（單體查 `covFieldOfK`、體育場 4 格逐格、rdec/bus 各自分支）、`undoPlace` 誤放電廠撤印；`load`/`newWorld`/`undo` 後 `rebuildCov()` 全量重建。tick 內覆蓋判定改讀 `COV.xxx[idx]>0`（或計數），語義與原 `countNear` 完全一致。**工業(k=3)/犯罪(crime) 為 tick 內生長/火災/每日生滅之動態源，仍用 `countNear`**（未蓋印）。`countNear` 保留供其他用途。GV 追加 `cov(f,x,y)`/`rebuildCov()`。
 快捷鍵現狀（詳見 §8 全表）：1=檢視、2-6=五級道路（小巷/支路/次幹道/主幹道/快速路）、7=住宅 8=商業 9=工業 0=公園、'-'=拆除、'='=路飾、b=公車站、w=水塔、g=水管、j=警察局、h=醫院、c=診所、l=圖書館、o=郵局、m=墓園（電廠/消防局/學校/垃圾場/體育場/種樹/填草無鍵位；FIX-A：水管 p→g、警察局 P→j、取消大寫 P 綁定）。序列化命名地雷：存檔 `rc`=路飾（0/1）、`rcl`=道路等級（0-5），二者命名相近勿混淆。
 v1.4 批次B 追加：`t.hw` 高速路（rd 存檔值 0-4）、**多格建築架構**（k=9 體育場 2×2：root 含 sz、其餘格 `{k,ref:[rx,ry]}`，
 所有迴圈遇 ref 跳過、doze 全清、bl 只存 root 第 6 位存 sz）、`t.el/t.em` 高地與崖沿位罩（存檔欄位 el）、
@@ -177,3 +178,5 @@ GV.stats()             // {money,pop,jobs,day,buildings,poweredBld,roads,zones,h
 10. 新增建築種類 k 時必須同步：KNAME、COST、TOOLS、keydown 快捷鍵表、canPlace/placeCost/doPlace、
     SPR.bld['k_1_v']、inspect()、小地圖色表（drawMini 內陣列）、統計面板計數；若涉及模擬狀態標記（如 sick/death），
     需同時補存檔欄位與 load 還原。
+11. 覆蓋計數場 `COV`（T61）只在 `doPlace` 增減、`rebuildCov` 全量重建（load/newWorld/undo 後）；tick 讀不寫 COV，語義恆等 `countNear`。
+    若新增一種 doPlace 可放置/拆除的覆蓋源設施，須在 `COVR`/`covFieldOfK` 補欄位、doPlace 放置/doze 撤印各補 `stampCov`；tick 內動態生滅的覆蓋源（如工業/犯罪）維持 `countNear` 不蓋印。

@@ -1378,6 +1378,7 @@ function newWorld(seedOverride){
   recalcAllMasks();
   computeFoam();
   computeElMask();
+  rebuildCov(); // T61：新圖無建築，全量清零覆蓋場（清除前一局殘留）
   townName=NM1[ri(NM1.length)]+NM2[ri(NM2.length)];
   document.title=townName+' · 微光小鎮';
   toast(`🏙️ 歡迎來到「${townName}」！`,'gold');
@@ -1525,9 +1526,11 @@ function doPlace(toolId,x,y,silent){
       break;
     case 'park':
       t.bld={k:4,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('park',x,y,COVR.park,1);
       break;
     case 'plant':
       t.bld={k:5,lv:1,v:0,age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('plant',x,y,COVR.plant,1);
       break;
     case 'water':
       t.bld={k:10,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
@@ -1537,27 +1540,35 @@ function doPlace(toolId,x,y,silent){
       break;
     case 'fire':
       t.bld={k:6,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('fire',x,y,COVR.fire,1);
       break;
     case 'police':
       t.bld={k:11,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('police',x,y,COVR.police,1);
       break;
     case 'hospital':
       t.bld={k:12,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('hospital',x,y,COVR.hospital,1);
       break;
     case 'clinic':
       t.bld={k:13,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('clinic',x,y,COVR.clinic,1);
       break;
     case 'school':
       t.bld={k:7,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('school',x,y,COVR.school,1);
       break;
     case 'library':
       t.bld={k:14,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('library',x,y,COVR.library,1);
       break;
     case 'post':
       t.bld={k:15,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('post',x,y,COVR.post,1);
       break;
     case 'cemetery':
       t.bld={k:16,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('cemetery',x,y,COVR.cemetery,1);
       break;
     case 'dump':
       t.bld={k:8,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
@@ -1569,13 +1580,16 @@ function doPlace(toolId,x,y,silent){
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
         ct.bld=(sx===x&&sy===y)?{k:9,lv:1,v:rv,age:0,pw:true,h:1,sz:2}:{k:9,ref:[x,y]};
+        stampCov('stadium',sx,sy,COVR.stadium,1);      // 4 格皆蓋印（read 為 >0，與 countNear(k===9) 一致）
       }
       break;}
     case 'rdec':
       t.rdec=1;
+      stampCov('rdec',x,y,COVR.rdec,1);
       break;
     case 'bus':                                        // 公車站（T26）：道路附屬旗標，不動 mask/電力
       t.bus=1;
+      stampCov('bus',x,y,COVR.bus,1);
       break;
     case 'tree':
       t.tree=1+ri(4);
@@ -1593,11 +1607,12 @@ function doPlace(toolId,x,y,silent){
             const j=idx(sx,sy),ct=T(j);
             if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
             ct.bld=null;
+            stampCov('stadium',sx,sy,COVR.stadium,-1);   // 覆蓋回收：4 格皆撤印
           }
-        }else t.bld=null;
+        }else{const cf=covFieldOfK(t.bld.k);t.bld=null;if(cf)stampCov(cf,x,y,COVR[cf],-1);} // 覆蓋回收
       }
-      else if(t.rdec)t.rdec=0;                          // 路飾優先於路面清除（T20）
-      else if(t.bus)t.bus=0;                            // 公車站優先於路面清除（T26；先只清站牌保留路面）
+      else if(t.rdec){t.rdec=0;stampCov('rdec',x,y,COVR.rdec,-1);}                          // 路飾優先於路面清除（T20）
+      else if(t.bus){t.bus=0;stampCov('bus',x,y,COVR.bus,-1);}                            // 公車站優先於路面清除（T26；先只清站牌保留路面）
       else if(t.road){t.road=0;t.rc=0;t.hw=0;t.bridge=0;t.mask=0;t.rdec=0;t.bus=0; // 清路連站牌一併清除（T26）
         recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);}
       else if(t.wp)t.wp=0;                            // 水管獨立於道路拆除（T31）
@@ -1663,6 +1678,31 @@ function countNear(x,y,r,pred){
     if(pred(T(idx(nx,ny))))n++;
   }
   return n;
+}
+/* T61 服務覆蓋計數場：擺放時蓋印一次，tick 內 O(1) 讀取（取代逐棟 countNear 方框掃描）。
+   運行時重建、不入存檔（load/newWorld 後與 undo 後 rebuildCov 全量重建）。語義與原 countNear(...)>0／計數完全一致。*/
+const COVR={park:4,plant:4,fire:9,school:8,stadium:10,police:10,hospital:12,clinic:6,library:6,post:8,cemetery:10,bus:6,rdec:2};
+const COV={};for(const f in COVR)COV[f]=new Uint8Array(N*N);
+// 建築種類 k → 覆蓋場欄位（僅靜態設施；k≤3 動態源、k8 垃圾場、k10 水塔非覆蓋源，回 null）
+function covFieldOfK(k){return {4:'park',5:'plant',6:'fire',7:'school',9:'stadium',11:'police',12:'hospital',13:'clinic',14:'library',15:'post',16:'cemetery'}[k]||null;}
+// Chebyshev 半徑 r 方框逐格 ±delta（邊界裁剪），支持重疊計數
+function stampCov(field,x,y,r,delta){
+  const a=COV[field];
+  for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
+    for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;a[idx(nx,ny)]+=delta;}}
+}
+// 全量重建（load/newWorld 後、undo 後）：清零後掃全圖蓋印每個設施（含體育場 4 格皆為 k9 覆蓋源，與 countNear 一致）
+function rebuildCov(){
+  for(const f in COV)COV[f].fill(0);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=tiles[idx(x,y)],b=t.bld;
+    if(b){
+      if(b.ref){if(b.k===9)stampCov('stadium',x,y,COVR.stadium,1);}
+      else{const f=covFieldOfK(b.k);if(f)stampCov(f,x,y,COVR[f],1);}
+    }
+    if(t.rdec)stampCov('rdec',x,y,COVR.rdec,1);
+    if(t.bus)stampCov('bus',x,y,COVR.bus,1);
+  }
 }
 function computeWater(){
   let towers=0;
@@ -1738,7 +1778,7 @@ function tick(){
     b.deathAge=(b.deathAge||0)+1;
     if(b.deathAge>=10){b.death=0;b.deathAge=0;b.sick=0;continue;}
     const x=i%N,y=(i/N)|0;
-    const covered=countNear(x,y,10,tt=>tt.bld&&tt.bld.k===16)>0;
+    const covered=COV.cemetery[i]>0;                    // T61：墓園半徑10覆蓋（原 countNear k===16）
     if(covered&&soothed<cemCap){soothed++;continue;}
     // 未安撫：半徑 6 內其他住宅幸福 -0.1
     for(let dy=-6;dy<=6;dy++)for(let dx=-6;dx<=6;dx++){
@@ -1771,15 +1811,16 @@ function tick(){
     b.wa=b.pw&&hasWaterNear(x,y,2)&&watered<wCap; // 需供電且鄰近通水水管（T31）
     if(b.wa)watered++;
     if(b.k===1){
-      const parks=countNear(x,y,4,tt=>tt.bld&&tt.bld.k===4);
-      const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);
-      const pl   =countNear(x,y,4,tt=>tt.bld&&tt.bld.k===5);
-      const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime);
+      const ci=idx(x,y);                                 // T61：本格覆蓋場索引
+      const parks=COV.park[ci];                          // 公園半徑4計數（原 countNear k===4）
+      const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);   // 工業＝動態源（生長/火災，非 doPlace），保留 countNear（T61）
+      const pl   =COV.plant[ci];                         // 電廠半徑4計數（原 countNear k===5）
+      const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime); // 犯罪＝每日生滅動態源，保留 countNear（T61）
       const rc=getMaxRoadClass(x,y,1);
       const roadHappy=rc===5?-.12:rc===4?-.05:rc===3?0:rc===2?.02:rc===1?.05:0;
-      const library=countNear(x,y,6,tt=>tt.bld&&tt.bld.k===14)>0;
-      const post=countNear(x,y,8,tt=>tt.bld&&tt.bld.k===15)>0;
-      b.h=clamp(.62+roadHappy+(parks?.16:0)+(parks>1?.06:0)+0.03*(countNear(x,y,2,tt=>tt.rdec)>0?1:0)+0.04*(countNear(x,y,6,tt=>tt.bus)>0?1:0)+(countNear(x,y,10,tt=>tt.bld&&tt.bld.k===9)>0?.08:0)+(library?.04:0)+(post?.03:0)-ind*.09-pl*.18-crime*.05-(deathPenalty[idx(x,y)]?.1:0)-(b.sick?.35:0)-(b.death?.55:0)-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
+      const library=COV.library[ci]>0;                   // 圖書館半徑6覆蓋（原 countNear k===14）
+      const post=COV.post[ci]>0;                         // 郵局半徑8覆蓋（原 countNear k===15）
+      b.h=clamp(.62+roadHappy+(parks?.16:0)+(parks>1?.06:0)+0.03*(COV.rdec[ci]>0?1:0)+0.04*(COV.bus[ci]>0?1:0)+(COV.stadium[ci]>0?.08:0)+(library?.04:0)+(post?.03:0)-ind*.09-pl*.18-crime*.05-(deathPenalty[idx(x,y)]?.1:0)-(b.sick?.35:0)-(b.death?.55:0)-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
       happySum+=b.h;happyN++;
       if(b.pw&&!b.sick&&!b.death){popN+=Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1));}
     }else if(b.pw){
@@ -1833,8 +1874,8 @@ function tick(){
     if(!b||b.k>3)continue;
     b.age++;
     const x=i%N,y=(i/N)|0;
-    const schoolBoost=(b.k===1&&countNear(x,y,8,tt=>tt.bld&&tt.bld.k===7)>0)?1.6:1;
-    const libraryBoost=(b.k===1&&countNear(x,y,6,tt=>tt.bld&&tt.bld.k===14)>0)?1.25:1;
+    const schoolBoost=(b.k===1&&COV.school[i]>0)?1.6:1;   // T61：學校半徑8覆蓋（原 countNear k===7）
+    const libraryBoost=(b.k===1&&COV.library[i]>0)?1.25:1; // T61：圖書館半徑6覆蓋（原 countNear k===14）
     if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*schoolBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
       b.lv++;b.age=0;b.v=ri(4);if(b.den===undefined)b.den=3;
     }
@@ -1848,7 +1889,7 @@ function tick(){
     if(!b||b.k>3||b.fire)continue;
     let p=.0005*(b.k===3?3:1)*b.lv;
     const x=i%N,y=(i/N)|0;                               // 消防局半徑 9 覆蓋 → 起火率 -85%
-    if(countNear(x,y,9,tt=>tt.bld&&tt.bld.k===6)>0)p*=.15;
+    if(COV.fire[i]>0)p*=.15;                             // T61：消防局半徑9覆蓋（原 countNear k===6）
     if(R()<p){
       b.fire=1;
       if(!fireAlert){toast('🔥 '+townName+'發生火災！點擊燃燒的建築滅火','bad');sErr();fireAlert=true;}
@@ -1872,7 +1913,7 @@ function tick(){
     const t=tiles[i],b=t.bld;
     if(!b||!b.fire)continue;
     const x=i%N,y=(i/N)|0;
-    if(countNear(x,y,9,tt=>tt.bld&&tt.bld.k===6)>0){     // 消防局覆蓋 → 次日自動撲滅
+    if(COV.fire[i]>0){                                   // T61：消防局半徑9覆蓋 → 次日自動撲滅（原 countNear k===6）
       b.fire=0;
       if(!fireOut){toast('🚒 消防隊撲滅了火災','gold');fireOut=true;}
       continue;
@@ -1886,7 +1927,7 @@ function tick(){
     const b=tiles[i].bld;
     if(!b||b.k>3||b.crime)continue;
     const x=i%N,y=(i/N)|0;
-    if(countNear(x,y,10,tt=>tt.bld&&tt.bld.k===11)>0)continue; // 警察局半徑10覆蓋則受保護
+    if(COV.police[i]>0)continue; // T61：警察局半徑10覆蓋則受保護（原 countNear k===11）
     if(R()<.001*(b.k===2?2:1)*b.lv){
       b.crime=1;
       if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad');sErr();crimeAlert=true;}
@@ -1898,8 +1939,8 @@ function tick(){
     const b=tiles[i].bld;
     if(!b||b.k!==1)continue;
     const x=i%N,y=(i/N)|0;
-    const hospital=countNear(x,y,12,tt=>tt.bld&&tt.bld.k===12)>0;
-    const clinic=countNear(x,y,6,tt=>tt.bld&&tt.bld.k===13)>0;
+    const hospital=COV.hospital[i]>0; // T61：醫院半徑12覆蓋（原 countNear k===12）
+    const clinic=COV.clinic[i]>0;     // T61：診所半徑6覆蓋（原 countNear k===13）
     const covered=hospital||clinic;
     if(b.sick){
       if(hospital)b.sick=0; // 醫院覆蓋 → 次日必康復
@@ -1947,7 +1988,7 @@ function tick(){
     else if(b.k===9);                 // 體育場（root）維護另計、不參與稅收（T22，鑑於 T15 教訓）
     else if(b.pw&&!b.fire&&!b.sick&&!b.death){
       if(b.k===1){const v2=POPS[b.lv]*.12;income+=v2;taxR+=v2;}
-      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);const mult=(1+rc*.08)*(countNear(bx,byy,6,tt=>tt.bus)>0?1.1:1)*(countNear(bx,byy,8,tt=>tt.bld&&tt.bld.k===15)>0?1.15:1);const v2=JOBSC[b.lv]*.18*mult;income+=v2;taxC+=v2;} // 道路等級+商業稅（T29）；站半徑6內+10%（T26）；郵局半徑8內+15%（T36）
+      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);const mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1);const v2=JOBSC[b.lv]*.18*mult;income+=v2;taxC+=v2;} // 道路等級+商業稅（T29）；站半徑6內+10%（T26）；郵局半徑8內+15%（T36）；T61：站/郵局改讀 COV
       else{const v2=JOBSI[b.lv]*.15;income+=v2;taxI+=v2;}
     }
   }
@@ -1982,10 +2023,10 @@ function tick(){
       if(!b||b.k>3||b.ref)continue;
       const x=i%N,y=(i/N)|0;
       fireTotalN++;
-      if(countNear(x,y,9,tt=>tt.bld&&tt.bld.k===6)>0)fireCoverN++;
+      if(COV.fire[i]>0)fireCoverN++;                     // T61：消防局半徑9覆蓋（原 countNear k===6）
       if(b.k===1){
         schoolTotalN++;
-        if(countNear(x,y,8,tt=>tt.bld&&tt.bld.k===7)>0)schoolCoverN++;
+        if(COV.school[i]>0)schoolCoverN++;               // T61：學校半徑8覆蓋（原 countNear k===7）
       }
     }
     const happyScore=cityHappy*40;
@@ -2560,7 +2601,7 @@ function undoPlace(f){
     t.road=0;t.rc=0;t.hw=0;t.bridge=0;t.mask=0;
     recalcMask(f.x,f.y-1);recalcMask(f.x+1,f.y);recalcMask(f.x,f.y+1);recalcMask(f.x-1,f.y);
   }else if(f.tool==='plant'&&t.bld&&t.bld.k===5){
-    t.bld=null;
+    t.bld=null;stampCov('plant',f.x,f.y,COVR.plant,-1); // T61：誤放電廠即時撤銷 → 撤印覆蓋
   }else return;
   money+=f.spent;
   computePower();
@@ -3144,6 +3185,7 @@ function undo(){
   }
   money+=g2.spent;
   computePower();
+  rebuildCov(); // T61：撤銷還原 tile 快照後全量重建覆蓋場最穩（只在撤銷時付費）
   if(typeof drawMini==='function')drawMini();
   toast('↩️ 已撤銷（退還 $'+Math.round(g2.spent)+'）');sTick();
 }
@@ -3273,6 +3315,7 @@ function load(slot){
     computeFoam();
     computeElMask();
     computeWater(); // 重建供水網路（T31）
+    rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
     hintsOff=true;
     undoStack.length=0;undoGroup=null;
@@ -3365,6 +3408,8 @@ window.GV={
   place:(t,x,y)=>doPlace(t,x,y,true),
   center:()=>toTile(cvs.clientWidth/2,cvs.clientHeight/2),
   tile:(x,y)=>inMap(x,y)?JSON.parse(JSON.stringify(T(idx(x,y)))):null,
+  cov:(f,x,y)=>COV[f]?.[idx(x,y)], // T61：覆蓋場除錯鉤子（回傳該格某設施覆蓋計數）
+  rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   setSpeed:s=>{speed=s;},
   setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
