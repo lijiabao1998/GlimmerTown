@@ -517,7 +517,7 @@ function buildSprites(){
   const ROAD_EDGE=['#9a9ea6','#b9bdc5','#b9bdc5','#c5c9d0']; // 受光緣
   const ROAD_EDGE2=['#6e727a','#878e99','#878e99','#8a8f99']; // 陰影緣
   const ROAD_LINE=['','#e8c860','#e8c860','#e8c860'];        // 中心線顏色（小巷無線）
-  for(let rcI=0;rcI<4;rcI++){
+  const genRoadLvl=rcI=>{
     SPR.roadClass[rcI]=[];SPR.bridgeClass[rcI]=[];
     for(let m=0;m<16;m++){
       {const[c,g]=cv(64,32);
@@ -558,7 +558,8 @@ function buildSprites(){
        g.fillStyle='#463321';g.fillRect(12,41,4,2);g.fillRect(48,41,4,2);
        SPR.bridgeClass[rcI].push(c);}
     }
-  }
+  };
+  for(const rcI of[1])genRoadLvl(rcI); // T29 支路(rc=2)原位生成，保基線 rand 消耗（FIX-B）
   /* ---------- 分區覆蓋層 ---------- */
   SPR.zone={};
   const ZC={1:'#58c470',2:'#5aa0e8',3:'#e8b23e'};
@@ -644,7 +645,7 @@ function buildSprites(){
     else for(let v=0;v<(d.vn||4);v++)tasks.push({k:d.k,lv:d.lv,v,d});
   }
   tasks.sort((a,b)=>(a.k-b.k)||(a.lv-b.lv)||(a.v-b.v));
-  for(const t of tasks){
+  const mkBld=t=>{
     const k=t.k,lv=t.lv,v=t.v,d=t.d,hw=d.hw,h=d.h;
     const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
     const ax=36,ay=110,by=ay-2;
@@ -657,7 +658,8 @@ function buildSprites(){
     outlineSprite(sc,26,30,44);
     g.drawImage(sc,0,0);
     SPR.bld[k+'_'+lv+'_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke};
-  }
+  };
+  for(const t of tasks)if(!(t.k===1&&t.lv===3&&t.v===4))mkBld(t); // T30 淨增行(1,3,4)延後至尾端（FIX-B）
   /* ---------- 公園 3 變化 ---------- */
   SPR.park=[];
   const mt=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
@@ -781,45 +783,6 @@ function buildSprites(){
      outlineSprite(sc,26,30,44);
      g.drawImage(sc,0,0);
      SPR.bld['7_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
-   }}
-  /* ---------- 圖書館（T35；3 變體：紅磚牆＋大窗＋門前階梯＋屋頂小煙囪）---------- */
-  {const LWALL=[['#a66b4a','#7d4f35'],['#b87a56','#8f5d40'],['#9c6243','#75482f']];
-   const LROOF=['#6b4a36','#5e3f2d','#7a5540'];
-   for(let v=0;v<3;v++){
-     const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
-     const ax=36,ay=110,by=ay-2,hw=24,h=18;
-     const wl=LWALL[v],rf=LROOF[v];
-     plate(g,ax,ay,'#9a9484');
-     const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
-     windows(sg,ng,ax,by,hw,h,rand,.5,{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
-     // 門前階梯
-     sg.fillStyle='#8a8a8a';sg.fillRect(ax-5,by-2,10,2);
-     sg.fillStyle='#6a6a6a';sg.fillRect(ax-4,by,8,2);
-     // 屋頂小煙囪
-     sg.fillStyle='#7a7a7a';sg.fillRect(ax+6,rty-6,3,6);
-     outlineSprite(sc,26,30,40);
-     g.drawImage(sc,0,0);
-     SPR.bld['14_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
-   }}
-  /* ---------- 郵局（T36；3 變體：黃色主調＋郵政徽＋大窗＋門前郵筒）---------- */
-  {const PWALL=[['#e8c46a','#c9a34d'],['#f0d07a','#d1b25a'],['#dcb05a','#bd9345']];
-   const PROOF=['#8a6a3a','#7c5f34','#93713f'];
-   for(let v=0;v<3;v++){
-     const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
-     const ax=36,ay=110,by=ay-2,hw=24,h=18;
-     const wl=PWALL[v],rf=PROOF[v];
-     plate(g,ax,ay,'#9a9484');
-     const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
-     windows(sg,ng,ax,by,hw,h,rand,.5,{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
-     // 郵政徽（門上方小圓）
-     sg.fillStyle='#4a6eb8';sg.fillRect(ax-4,by-20,8,8);
-     sg.fillStyle='#ffffff';sg.fillRect(ax-2,by-18,4,4);
-     // 門前郵筒
-     sg.fillStyle='#3a5a9c';sg.fillRect(ax+10,by-6,3,6);
-     sg.fillStyle='#e05252';sg.fillRect(ax+10,by-7,3,1);
-     outlineSprite(sc,26,30,40);
-     g.drawImage(sc,0,0);
-     SPR.bld['15_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
    }}
   /* ---------- 垃圾場（T19）3 變體：低矮圍欄場地＋垃圾堆＋烏鴉 ---------- */
   {const FENCEC=['#8a6f5f','#7a6152','#93765f'];
@@ -1250,6 +1213,49 @@ function buildSprites(){
      outlineSprite(s,26,30,38);
      g.drawImage(s,0,0);
      SPR.bld['16_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
+   }}
+  /* ===== FIX-B 亂數流對齊：以下 T29/T30/T35/T36 新增內容一律置於全部既有 sprite 之後，
+     避免位移共用 rand 流（既有 SPR 鍵回歸基線一致；ARCH §5.1 紀律）===== */
+  for(const rcI of[0,2,3])genRoadLvl(rcI); // T29 小巷/次幹道/主幹道（rc=1/3/4）搬至尾端
+  for(const t of tasks)if(t.k===1&&t.lv===3&&t.v===4)mkBld(t); // T30 公寓大樓(1_3_4)搬至尾端
+  /* ---------- 圖書館（T35；3 變體：紅磚牆＋大窗＋門前階梯＋屋頂小煙囪；FIX-B 搬至尾端）---------- */
+  {const LWALL=[['#a66b4a','#7d4f35'],['#b87a56','#8f5d40'],['#9c6243','#75482f']];
+   const LROOF=['#6b4a36','#5e3f2d','#7a5540'];
+   for(let v=0;v<3;v++){
+     const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+     const ax=36,ay=110,by=ay-2,hw=24,h=18;
+     const wl=LWALL[v],rf=LROOF[v];
+     plate(g,ax,ay,'#9a9484');
+     const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
+     windows(sg,ng,ax,by,hw,h,rand,.5,{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
+     // 門前階梯
+     sg.fillStyle='#8a8a8a';sg.fillRect(ax-5,by-2,10,2);
+     sg.fillStyle='#6a6a6a';sg.fillRect(ax-4,by,8,2);
+     // 屋頂小煙囪
+     sg.fillStyle='#7a7a7a';sg.fillRect(ax+6,rty-6,3,6);
+     outlineSprite(sc,26,30,40);
+     g.drawImage(sc,0,0);
+     SPR.bld['14_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
+   }}
+  /* ---------- 郵局（T36；3 變體：黃色主調＋郵政徽＋大窗＋門前郵筒；FIX-B 搬至尾端）---------- */
+  {const PWALL=[['#e8c46a','#c9a34d'],['#f0d07a','#d1b25a'],['#dcb05a','#bd9345']];
+   const PROOF=['#8a6a3a','#7c5f34','#93713f'];
+   for(let v=0;v<3;v++){
+     const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+     const ax=36,ay=110,by=ay-2,hw=24,h=18;
+     const wl=PWALL[v],rf=PROOF[v];
+     plate(g,ax,ay,'#9a9484');
+     const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
+     windows(sg,ng,ax,by,hw,h,rand,.5,{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
+     // 郵政徽（門上方小圓）
+     sg.fillStyle='#4a6eb8';sg.fillRect(ax-4,by-20,8,8);
+     sg.fillStyle='#ffffff';sg.fillRect(ax-2,by-18,4,4);
+     // 門前郵筒
+     sg.fillStyle='#3a5a9c';sg.fillRect(ax+10,by-6,3,6);
+     sg.fillStyle='#e05252';sg.fillRect(ax+10,by-7,3,1);
+     outlineSprite(sc,26,30,40);
+     g.drawImage(sc,0,0);
+     SPR.bld['15_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
    }}
 }
 
