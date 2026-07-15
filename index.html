@@ -217,7 +217,7 @@ const TOOLS=[
   {id:'road',  ic:'🛣',  nm:'支路',   pr:'$'+ROAD_COST[1]},
   {id:'coll',  ic:'🛤',  nm:'次幹道', pr:'$'+ROAD_COST[2]},
   {id:'art',   ic:'🛣️', nm:'主幹道', pr:'$'+ROAD_COST[3]},
-  {id:'hwy',   ic:'🛤️', nm:'快速路', pr:'$'+COST.hwy},
+  {id:'hwy',   ic:'🛤️', nm:'快速路', pr:'$'+ROAD_COST[4]},
   {id:'wpipe', ic:'💧', nm:'水管',   pr:'$'+COST.wpipe},
   {id:'zr',   ic:'🏠', nm:'住宅區', pr:'$'+COST.zone},
   {id:'zc',   ic:'🏪', nm:'商業區', pr:'$'+COST.zone},
@@ -1142,8 +1142,8 @@ function buildSprites(){
    ng.fillStyle='#8fd0ff';ng.fillRect(ax+3,tankY-18,4,4);  // 頂部微光
    outlineSprite(s,26,30,44);
    g.drawImage(s,0,0);
-   SPR.waterTower={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // 勿用 SPR.water——那是地形水面幀陣列
-   SPR.waterTowerN=nc;}
+   SPR.waterTower={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // 勿用 SPR.water——那是地形水面幀陣列（FIX-A：夜燈走 .night，移除死碼 SPR.waterTowerN）
+   }
   /* ---------- 警察局（T32；72×112 藍白建築＋警徽＋警車＋夜間藍燈）---------- */
   {const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
    const ax=36,ay=110,by=ay-2;
@@ -1168,8 +1168,8 @@ function buildSprites(){
    ng.fillStyle='#8fd0ff';ng.fillRect(ax-8,by-48,2,2);
    outlineSprite(s,26,30,46);
    g.drawImage(s,0,0);
-   SPR.police={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};
-   SPR.policeN=nc;}
+   SPR.police={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // FIX-A：移除死碼 SPR.policeN（夜燈走 .night）
+   }
   /* ---------- 醫院（T33；72×112 白色建築＋紅十字＋救護車＋夜間窗燈）---------- */
   {const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
    const ax=36,ay=110,by=ay-2;
@@ -1191,8 +1191,8 @@ function buildSprites(){
    ng.fillStyle='#ffe9ad';ng.fillRect(ax+2,by-30,4,4);
    outlineSprite(s,26,30,48);
    g.drawImage(s,0,0);
-   SPR.hospital={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};
-   SPR.hospitalN=nc;}
+   SPR.hospital={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // FIX-A：移除死碼 SPR.hospitalN（夜燈走 .night）
+   }
   /* ---------- 診所（T34；72×112 小型白色診療所＋紅十字＋門廊＋夜間窗燈）---------- */
   {const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
    const ax=36,ay=110,by=ay-2;
@@ -1210,8 +1210,8 @@ function buildSprites(){
    ng.fillStyle='#ffe9ad';ng.fillRect(ax+1,by-22,3,3);
    outlineSprite(s,26,30,34);
    g.drawImage(s,0,0);
-   SPR.clinic={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};
-   SPR.clinicN=nc;}
+   SPR.clinic={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // FIX-A：移除死碼 SPR.clinicN（夜燈走 .night）
+   }
   /* ---------- 墓園（T38；72×112 小教堂＋墓碑群＋柏樹＋夜間微弱燭光；3 變體）---------- */
   {const WALLS=[['#6b7a6b','#566355'],['#758075','#5f6b5f'],['#657265','#505c50']];
    const ROOFS=['#4a5a4a','#556355','#5a6a5a'];
@@ -1829,7 +1829,7 @@ function tick(){
     const x=i%N,y=(i/N)|0;
     const schoolBoost=(b.k===1&&countNear(x,y,8,tt=>tt.bld&&tt.bld.k===7)>0)?1.6:1;
     const libraryBoost=(b.k===1&&countNear(x,y,6,tt=>tt.bld&&tt.bld.k===14)>0)?1.25:1;
-    if(b.lv<3&&b.pw&&b.wa&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*schoolBoost*libraryBoost){
+    if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*schoolBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
       b.lv++;b.age=0;b.v=ri(4);if(b.den===undefined)b.den=3;
     }
   }
@@ -1931,9 +1931,12 @@ function tick(){
     else if(b.k===6)fireStations++;
     else if(b.k===11)policeStations++; // 警察局計數（T32）
     else if(b.k===12)hospitals++;      // 醫院計數（T33）
-    else if(b.k===14)libraries++;      // 圖書館計數（T35）
-    else if(b.k===15)posts++;          // 郵局計數（T36）
+    else if(b.k===14);                // 圖書館已在首迴圈計數（T35，FIX-A：勿重計避免維護費×2）
+    else if(b.k===15);                // 郵局已在首迴圈計數（T36，FIX-A：勿重計避免維護費×2）
     else if(b.k===10);                // 水塔已在上方計數（T31）
+    else if(b.k===7);                 // 學校已在首迴圈計數（T15，FIX-A：排除幽靈工業稅）
+    else if(b.k===13);                // 診所已在首迴圈計數（T34，FIX-A：排除幽靈工業稅）
+    else if(b.k===16);                // 墓園已在首迴圈計數（T38，FIX-A：排除幽靈工業稅）
     else if(b.k===8);                 // 垃圾場已在上方計數 dumps，此處明確排除，不參與稅收（T19，鑑於 T15 教訓）
     else if(b.k===9);                 // 體育場（root）維護另計、不參與稅收（T22，鑑於 T15 教訓）
     else if(b.pw&&!b.fire&&!b.sick&&!b.death){
@@ -2586,7 +2589,7 @@ cvs.addEventListener('pointermove',e=>{
     return;
   }
   if(rect.on){rect.x1=clamp(x,0,N-1);rect.y1=clamp(y,0,N-1);return;}
-  if(paintLast&&pointers.size===1&&!panBase&&tool!=='plant'&&tool!=='bus')paintTo(x,y); // 電廠/公車站不允許拖曳連放（T26）
+  if(paintLast&&pointers.size===1&&!panBase&&!['plant','water','police','hospital','clinic','library','post','cemetery','stad','fire','school','dump','bus'].includes(tool))paintTo(x,y); // 單體建築一律點放，僅道路/水管/路飾可拖（FIX-A 擴充；公車站沿用 T26 點放）
 });
 function endPointer(e){
   pointers.delete(e.pointerId);
@@ -3122,7 +3125,7 @@ function showHelp(){
      <div class="row">📮 郵局半徑8內商業 +15% 稅收、住宅 +幸福，就業 5</div>
      <div class="row">💀 墓園半徑10安撫死亡事件；長期未治療的生病住宅可能發生憾事，影響鄰近幸福</div>
      <div class="row">💥 拆除 Lv2+ 建築需點兩次確認</div>
-     <div class="row">快捷鍵：1-0 工具・w=水塔・p=水管・P=警察局・h=醫院・c=診所・l=圖書館・o=郵局・m=墓園・空白鍵暫停・Esc 檢視</div>`;
+     <div class="row">快捷鍵：1-0 工具・w=水塔・g=水管・j=警察局・h=醫院・c=診所・l=圖書館・o=郵局・m=墓園・空白鍵暫停・Esc 檢視</div>`;
   $('#info').style.display='block';
 }
 function undo(){
@@ -3149,7 +3152,8 @@ $('#zin').onclick=()=>zoomStep(1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#zout').onclick=()=>zoomStep(-1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#hintX').onclick=()=>{$('#hint').style.display='none';hintsOff=true;};
 window.addEventListener('keydown',e=>{
-  const map={'1':'pan','2':'alley','3':'road','4':'coll','5':'art','6':'hwy','7':'zr','8':'zc','9':'zi','0':'park','-':'doze','=':'rdec','b':'bus','w':'water','p':'wpipe','P':'police','h':'hospital','c':'clinic','l':'library','o':'post','m':'cemetery'};
+  if(e.ctrlKey||e.metaKey||e.altKey){if(!((e.ctrlKey||e.metaKey)&&e.key==='z'))return;} // FIX-A：修飾鍵組合放行給瀏覽器，僅保留 Ctrl/Cmd+Z 撤銷
+  const map={'1':'pan','2':'alley','3':'road','4':'coll','5':'art','6':'hwy','7':'zr','8':'zc','9':'zi','0':'park','-':'doze','=':'rdec','b':'bus','w':'water','g':'wpipe','j':'police','h':'hospital','c':'clinic','l':'library','o':'post','m':'cemetery'}; // FIX-A：水管 p→g、警察局 P→j（取消大寫 P 綁定）
   if(map[e.key]){document.querySelectorAll('.tool')[TOOLS.findIndex(t=>t.id===map[e.key])].click();}
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
@@ -3193,7 +3197,7 @@ function slotInfo(n){
 function save(){
   try{
     const bl=[];
-    let ter='',tre='',rd='',zn='',dc='',rn='',rc='',rcl='',wp='',el='',bs='',cm='',sk='',dt='';
+    let ter='',tre='',rd='',zn='',dc='',rn='',rc='',rcl='',wp='',el='',bs='',cm='',sk='',dt='',skd='',dtd='';
     for(let i=0;i<N*N;i++){
       const t=tiles[i];
       ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;rcl+=String.fromCharCode(48+(t.rc||0));wp+=t.wp?1:0;el+=t.el?1:0;bs+=t.bus?1:0; // bs：公車站（T26）
@@ -3201,6 +3205,8 @@ function save(){
       cm+=t.bld&&t.bld.crime?1:0;                        // 犯罪標記（T32）
       sk+=t.bld&&t.bld.sick?1:0;                        // 生病標記（T33）
       dt+=t.bld&&t.bld.death?1:0;                       // 死亡標記（T38）
+      skd+=t.bld&&t.bld.sick?(''+Math.min(9,t.bld.sickDays||0)):'0';   // 生病天數（FIX-A，上限9；舊檔缺 skd 容錯）
+      dtd+=t.bld&&t.bld.death?(''+Math.min(9,t.bld.deathAge||0)):'0';  // 死亡天數（FIX-A，上限9；舊檔缺 dtd 容錯）
       if(t.bld&&!t.bld.ref){                             // 多格建築只存 root（T22）
         const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];
         if(t.bld.k===9)e.push(t.bld.sz||2);              // k=9：第 6 位存 sz（fire 永不發生在 k=9，無歧義，T22）
@@ -3213,7 +3219,7 @@ function save(){
       }
     }
     const data={v:1,seed,money:Math.round(money),day,msIdx,
-      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,bl,ach:Object.keys(ach),nm:townName,
+      cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,skd,dtd,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar};
     localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
   }catch(e){}
@@ -3251,6 +3257,8 @@ function load(slot){
     if(d.cm)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&+d.cm[i])b.crime=1;} // 犯罪標記（T32，舊檔無 cm 則無犯罪）
     if(d.sk)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&+d.sk[i])b.sick=1;} // 生病標記（T33，舊檔無 sk 則無生病）
     if(d.dt)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&+d.dt[i])b.death=1;} // 死亡標記（T38，舊檔無 dt 則無死亡）
+    if(d.skd)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&b.sick){const v=+d.skd[i];if(v)b.sickDays=v;}}   // 生病天數延續（FIX-A，舊檔缺 skd 則預設 0）
+    if(d.dtd)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&b.death){const v=+d.dtd[i];if(v)b.deathAge=v;}} // 死亡天數延續（FIX-A，舊檔缺 dtd 則預設 0）
     money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
     loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
