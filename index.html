@@ -1642,6 +1642,10 @@ function recalcRailMask(x,y){
   if(t.rail)t.railMask=m;
   if(t.tram)t.tramMask=m;
 }
+// 對齊道路做法（recalcMask）：軌道變更後自己＋四鄰一起重算（recalcRailMask 自帶 inMap 與無軌早退，鄰格可安全呼叫）
+function recalcRailMask4(x,y){
+  recalcRailMask(x,y);recalcRailMask(x,y-1);recalcRailMask(x+1,y);recalcRailMask(x,y+1);recalcRailMask(x-1,y);
+}
 function getMaxRoadClass(x,y,r=1){
   let mx=0;
   for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
@@ -1701,7 +1705,7 @@ function canPlace(toolId,x,y){
       if(t.t!==1)return '只能填在沙地上';
       return null;
     case 'doze':
-      if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood)return '這裡沒東西';
+      if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood&&!t.wp)return '這裡沒東西';
       return null;
     // T39-T60 新工具
     case 'rail':
@@ -1942,21 +1946,24 @@ function doPlace(toolId,x,y,silent){
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}
       else if(t.bld){
-        // 多格建築統一清理
-        const sz=t.bld.sz||1;
+        // 多格建築統一清理：先解析 root 再取 sz（ref 格只有 {k,ref} 無 sz，直接讀會落單格分支留孤兒）
+        const r=t.bld.ref||[x,y];
+        const rb=inMap(r[0],r[1])?T(idx(r[0],r[1])).bld:null;
+        const sz=(rb&&rb.sz)||1;
         if(sz>1){
-          const r=t.bld.ref||[x,y];
           for(let dy=0;dy<sz;dy++)for(let dx=0;dx<sz;dx++){
             const sx=r[0]+dx,sy=r[1]+dy;
             if(!inMap(sx,sy))continue;
             const j=idx(sx,sy),ct=T(j);
             if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
             ct.bld=null;
+            if(rb.k===9)stampCov('stadium',sx,sy,COVR.stadium,-1); // 對稱撤印：放置端 4 格皆蓋 stadium
           }
+          if(rb.k!==9){const cf=covFieldOfK(rb.k);if(cf)stampCov(cf,r[0],r[1],COVR[cf],-1);} // 對稱撤印：停車場/監獄/大學放置端於 root 蓋印一次
         }else{const cf=covFieldOfK(t.bld.k);t.bld=null;if(cf)stampCov(cf,x,y,COVR[cf],-1);}
       }
-      else if(t.rail){t.rail=0;t.railBridge=0;t.railMask=0;recalcRailMask(x,y);}
-      else if(t.tram){t.tram=0;t.tramBridge=0;recalcRailMask(x,y);}
+      else if(t.rail){t.rail=0;t.railBridge=0;t.railMask=0;recalcRailMask4(x,y);}
+      else if(t.tram){t.tram=0;t.tramBridge=0;t.tramMask=0;recalcRailMask4(x,y);}
       else if(t.dock){t.dock=0;}
       else if(t.rdec){t.rdec=0;stampCov('rdec',x,y,COVR.rdec,-1);}
       else if(t.bus){t.bus=0;stampCov('bus',x,y,COVR.bus,-1);}
@@ -1976,7 +1983,7 @@ function doPlace(toolId,x,y,silent){
     case 'rail':
       if(t.rail)return false;
       t.rail=1;t.railBridge=t.t===0?1:0;t.tree=0;t.zone=0;t.deco=0;
-      recalcRailMask(x,y);
+      recalcRailMask4(x,y);
       break;
     case 'station':
       t.bld={k:17,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
@@ -1988,18 +1995,17 @@ function doPlace(toolId,x,y,silent){
       t.dock=1;
       break;
     case 'airport':{
-      const rv=ri(3);
       for(let dy=0;dy<4;dy++)for(let dx=0;dx<4;dx++){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:19,lv:1,v:rv,age:0,pw:true,h:1,sz:4}:{k:19,ref:[x,y]};
+        ct.bld=(dx===0&&dy===0)?{k:19,lv:1,v:0,age:0,pw:true,h:1,sz:4}:{k:19,ref:[x,y]}; // SPR.bld 僅生成 19_1_0，固定 v:0
       }
       break;}
     case 'tram':
       if(t.tram)return false;
       t.tram=1;t.tramBridge=t.t===0?1:0;t.tree=0;t.zone=0;t.deco=0;
-      recalcRailMask(x,y);
+      recalcRailMask4(x,y);
       break;
     case 'tramStation':
       t.bld={k:21,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
@@ -2012,7 +2018,7 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:ri(3),age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]};
+        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // SPR.bld 僅生成 22_1_0，固定 v:0
       }
       break;}
     case 'ranch':{
@@ -2020,7 +2026,7 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:23,lv:1,v:ri(3),age:0,pw:true,h:1,sz:2}:{k:23,ref:[x,y]};
+        ct.bld=(dx===0&&dy===0)?{k:23,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:23,ref:[x,y]}; // SPR.bld 僅生成 23_1_0，固定 v:0
       }
       break;}
     case 'landmark':{
@@ -2037,7 +2043,7 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:25,lv:1,v:ri(2),age:0,pw:true,h:1,sz:2}:{k:25,ref:[x,y]};
+        ct.bld=(dx===0&&dy===0)?{k:25,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:25,ref:[x,y]}; // SPR.bld 僅生成 25_1_0，固定 v:0
       }
       break;}
     case 'wind':
@@ -2048,29 +2054,32 @@ function doPlace(toolId,x,y,silent){
       break;
     case 'ambulance':
       t.bld={k:28,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('ambulance',x,y,COVR.ambulance,1); // 對齊既有服務建築：放置即蓋印（doze 單格分支對稱撤印，缺這行會 Uint8 下溢）
       break;
     case 'recycling':
       t.bld={k:29,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
       break;
     case 'fireStation2':
       t.bld={k:30,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampCov('fire2',x,y,COVR.fire2,1); // 對齊既有服務建築：放置即蓋印（doze 單格分支對稱撤印，缺這行會 Uint8 下溢）
       break;
     case 'prison':{
       for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:31,lv:1,v:ri(3),age:0,pw:true,h:1,sz:2}:{k:31,ref:[x,y]};
+        ct.bld=(dx===0&&dy===0)?{k:31,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:31,ref:[x,y]}; // SPR.bld 僅生成 31_1_0，固定 v:0
       }
+      stampCov('prison',x,y,COVR.prison,1); // 對齊 rebuildCov：多格非體育場於 root 蓋印一次（doze 多格分支對稱撤印）
       break;}
     case 'university':{
-      const rv=ri(3);
       for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:32,lv:1,v:rv,age:0,pw:true,h:1,sz:3}:{k:32,ref:[x,y]};
+        ct.bld=(dx===0&&dy===0)?{k:32,lv:1,v:0,age:0,pw:true,h:1,sz:3}:{k:32,ref:[x,y]}; // SPR.bld 僅生成 32_1_0，固定 v:0
       }
+      stampCov('university',x,y,COVR.university,1); // 對齊 rebuildCov：多格非體育場於 root 蓋印一次（doze 多格分支對稱撤印）
       break;}
     case 'oneway':
       t.oneway=t.oneway?((t.oneway%4)+1):1; // T77：1..4 循環方向（N/E/S/W）
@@ -2083,8 +2092,9 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:20,lv:1,v:ri(3),age:0,pw:true,h:1,sz:2}:{k:20,ref:[x,y]};
+        ct.bld=(dx===0&&dy===0)?{k:20,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:20,ref:[x,y]}; // SPR.bld 僅生成 20_1_0，固定 v:0
       }
+      stampCov('parking',x,y,COVR.parking,1); // 對齊 rebuildCov：多格非體育場於 root 蓋印一次（doze 多格分支對稱撤印）
       break;}
     case 'busLane':
       t.busLane=1;
@@ -3090,7 +3100,7 @@ function draw(dt){
     else if(bd.k===12)s=SPR.hospital; // 醫院（T33）
     else if(bd.k===13)s=SPR.clinic; // 診所（T34）
     else if(bd.k===1&&bd.lv===3&&bd.den>=4)s=SPR.bld['1_3_4']; // 高密度 Lv3 住宅（T30）
-    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v];
+    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）
     let bx,by;
     if(bd.sz&&bd.sz>=2){ // T39-T60 多格建築通用定位：錨點對齊 (x+sz-1, y+sz-1) 底頂點
       const sz=bd.sz;
@@ -3406,22 +3416,22 @@ function inspect(x,y){
     else if(b.k===8)html=`<h3>🗑️ 垃圾場</h3><div class="row">處理容量 ${DUMP_CAP}</div><div class="row">維護費 $2/天</div><div class="row">全城垃圾 ${garbage.toFixed(1)}/${garbCap}</div>`;
     else if(b.k===9)html=`<h3>🏟️ 體育場</h3><div class="row">就業 20 人</div><div class="row">半徑 10 內住宅 +幸福</div><div class="row">維護費 $8/天</div>`;
     else if(b.k===10)html=`<h3>💧 水塔</h3><div class="row">供水 ${WATER_TOWER_CAP} 棟建築</div><div class="row">維護費 $3/天</div>`;
-    else if(b.k===17)html=`<h3>🚉 火車站</h3><div class="row">半徑 12 內住宅 +幸福、工業 +15% 稅收</div><div class="row">就業 12</div><div class="row">維護費 $6/天</div>`;
-    else if(b.k===18)html=`<h3>🚢 港口</h3><div class="row">半徑 10 內工業 +20% 稅收｜貨運收入/日</div><div class="row">就業 10</div><div class="row">維護費 $5/天（需鄰水≥2格）</div>`;
-    else if(b.k===19)html=`<h3>✈️ 機場</h3><div class="row">全局幸福 +3% 商業 +10%｜旅遊收入</div><div class="row">就業 40</div><div class="row">維護費 $25/天（需⭐≥3）</div>`;
-    else if(b.k===20)html=`<h3>🅿️ 停車場</h3><div class="row">半徑 8 內商業 +10% 稅收｜住宅幸福 -2%</div><div class="row">就業 1</div><div class="row">維護費 $1.5/天</div>`;
-    else if(b.k===21)html=`<h3>🚋 輕軌站</h3><div class="row">半徑 10 內住宅 +6% 幸福、商業 +10% 稅收</div><div class="row">就業 6</div><div class="row">維護費 $4/天</div>`;
+    else if(b.k===17)html=`<h3>🚉 火車站</h3><div class="row">吸引遊客｜遊客提升全城商業稅收（上限 +20%）</div><div class="row">就業 12</div><div class="row">維護費 $6/天</div>`;
+    else if(b.k===18)html=`<h3>🚢 港口</h3><div class="row">濱水貨運樞紐</div><div class="row">就業 10</div><div class="row">維護費 $5/天（需鄰水≥2格）</div>`;
+    else if(b.k===19)html=`<h3>✈️ 機場</h3><div class="row">大量吸引遊客｜遊客提升全城商業稅收（上限 +20%）</div><div class="row">就業 40</div><div class="row">維護費 $25/天（需 4×4 陸地）</div>`;
+    else if(b.k===20)html=`<h3>🅿️ 停車場</h3><div class="row">半徑 8 內商業 +10% 稅收</div><div class="row">就業 1</div><div class="row">維護費 $1.5/天</div>`;
+    else if(b.k===21)html=`<h3>🚋 輕軌站</h3><div class="row">大眾運輸節點</div><div class="row">就業 6</div><div class="row">維護費 $4/天</div>`;
     else if(b.k===22)html=`<h3>🌾 農場</h3><div class="row">日產 3 食物｜供全城住宅幸福</div><div class="row">就業 3</div><div class="row">維護費 $1/天（不耗電）</div>`;
     else if(b.k===23)html=`<h3>🐄 牧場</h3><div class="row">日產 2 食物｜供全城住宅幸福</div><div class="row">就業 2</div><div class="row">維護費 $1.5/天（不耗電）</div>`;
-    else if(b.k===24)html=`<h3>🗼 地標</h3><div class="row">遊客收入 + 評分 +5｜半徑 12 商業 +15%</div><div class="row">就業 8</div><div class="row">維護費 $8/天（上限3座）</div>`;
-    else if(b.k===25)html=`<h3>☀️ 太陽能</h3><div class="row">供電 30 棟｜無汙染</div><div class="row">維護費 $1/天（夜間產出減半）</div>`;
-    else if(b.k===26)html=`<h3>🌬️ 風力發電</h3><div class="row">供電 40 棟｜無汙染</div><div class="row">維護費 $1.5/天（冬季/雨天×1.3）</div>`;
-    else if(b.k===27)html=`<h3>🚿 污水廠</h3><div class="row">處理 80 棟廢水｜超載降全局幸福</div><div class="row">就業 4</div><div class="row">維護費 $3/天（需鄰水≥2格）</div>`;
-    else if(b.k===28)html=`<h3>🚑 救護站</h3><div class="row">半徑 8 降死亡轉化率｜加速埋葬</div><div class="row">就業 5</div><div class="row">維護費 $3/天</div>`;
-    else if(b.k===29)html=`<h3>♻️ 回收中心</h3><div class="row">半徑 8 垃圾超載懲罰減半｜回收收入</div><div class="row">就業 4</div><div class="row">維護費 $2/天</div>`;
+    else if(b.k===24)html=`<h3>🗼 地標</h3><div class="row">吸引遊客｜遊客提升全城商業稅收（上限 +20%）</div><div class="row">就業 8</div><div class="row">維護費 $8/天（需 2×2 陸地）</div>`;
+    else if(b.k===25)html=`<h3>☀️ 太陽能</h3><div class="row">供電 15 棟｜無汙染</div><div class="row">維護費 $1/天（需電廠併網啟動）</div>`;
+    else if(b.k===26)html=`<h3>🌬️ 風力發電</h3><div class="row">供電 20 棟｜無汙染</div><div class="row">維護費 $1.5/天（需電廠併網啟動）</div>`;
+    else if(b.k===27)html=`<h3>🚿 污水廠</h3><div class="row">全城：鄰工業的住宅 +幸福（每座工業 +2.5%）</div><div class="row">就業 4</div><div class="row">維護費 $3/天（需鄰水≥2格）</div>`;
+    else if(b.k===28)html=`<h3>🚑 救護站</h3><div class="row">半徑 10 健康覆蓋（效果同醫院）</div><div class="row">就業 5</div><div class="row">維護費 $3/天</div>`;
+    else if(b.k===29)html=`<h3>♻️ 回收中心</h3><div class="row">全城垃圾容量 +30</div><div class="row">就業 4</div><div class="row">維護費 $2/天</div>`;
     else if(b.k===30)html=`<h3>🚒 高級消防局</h3><div class="row">半徑 12 滅 Lv3+ 火災</div><div class="row">就業 8</div><div class="row">維護費 $6/天</div>`;
-    else if(b.k===31)html=`<h3>🏛️ 監獄</h3><div class="row">半徑 12 抑制犯罪｜容量 4</div><div class="row">就業 10</div><div class="row">維護費 $5/天</div>`;
-    else if(b.k===32)html=`<h3>🎓 大學</h3><div class="row">全局升級率 ×1.2 ｜半徑 15 幸福+5%</div><div class="row">就業 20</div><div class="row">維護費 $8/天</div>`;
+    else if(b.k===31)html=`<h3>🏛️ 監獄</h3><div class="row">半徑 8 防止犯罪發生</div><div class="row">就業 10</div><div class="row">維護費 $5/天</div>`;
+    else if(b.k===32)html=`<h3>🎓 大學</h3><div class="row">半徑 10 內住宅升級率 ×1.8</div><div class="row">就業 20</div><div class="row">維護費 $8/天</div>`;
     else{
       const nm=LVNAME[b.k][b.lv-1];
       html=`<h3>${['','🏠','🏪','🏭'][b.k]} ${nm}（Lv.${b.lv}）</h3>`;
@@ -3691,6 +3701,7 @@ function buildToolbar(){
     if(toolCat!=='base'&&(t.id==='pan'||t.id==='doze')&&t.cat==='base'&&toolCat!=='base'){/* pan/doze only in base */}
     const el=document.createElement('button');
     el.className='tool'+(t.id===tool?' sel':'');
+    el.dataset.tid=t.id; // FIX-E：快捷鍵由可見按鈕反查工具 id 用
     el.innerHTML=`<span class="ic">${t.ic}</span><span>${t.nm}</span><span class="pr">${t.pr}</span>`;
     el.onclick=()=>{
       tool=t.id;
@@ -3701,15 +3712,7 @@ function buildToolbar(){
     };
     bar.appendChild(el);
   }
-  // 每分類都顯示拆除快捷
-  if(toolCat!=='base'){
-    const t=TOOLS.find(x=>x.id==='doze');
-    const el=document.createElement('button');
-    el.className='tool'+(tool==='doze'?' sel':'');
-    el.innerHTML=`<span class="ic">${t.ic}</span><span>${t.nm}</span><span class="pr">${t.pr}</span>`;
-    el.onclick=()=>{tool='doze';document.querySelectorAll('.tool').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');cvs.classList.toggle('build',true);hideInfo();sTick();};
-    bar.appendChild(el);
-  }
+  // FIX-E：doze 已由上方篩選放行（t.id==='doze' 不 continue），每分類恰渲染一個拆除鈕；移除舊的重複 append
 }
 /* 小地圖 */
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
@@ -3825,12 +3828,16 @@ function importShare(){
     const json=decodeURIComponent(escape(atob(code)));
     const d=JSON.parse(json);
     if(d.v===1&&d.ter&&d.ter.length===N*N){
-      localStorage.setItem(slotKey(curSlot()),json);
+      const key=slotKey(curSlot()),prev=localStorage.getItem(key);
+      if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前先備份現有槽（與 save 同一 _bak 保險）
+      localStorage.setItem(key,json);
       if(load()){computePower();updHud();drawMini();toast('📥 匯入成功');hideInfo();}
-      else toast('匯入失敗','bad');
+      else{if(prev)localStorage.setItem(key,prev);else localStorage.removeItem(key);toast('匯入失敗','bad');} // 失敗還原：不覆蓋現有槽
     }else toast('分享碼無效','bad');
   }catch(e){toast('分享碼無效','bad');}
 }
+// FIX-E：鎮名可來自分享碼匯入（load 未消毒）→ 注入 innerHTML 前先逸出，防 self-XSS
+const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function showStats(){
   // T68 政策快捷（稅率倍率）
   if(pol==null)pol={taxR:1,taxC:1,taxI:1};
@@ -3848,7 +3855,7 @@ function showStats(){
     else if(b.k===16)nCe++;} // 墓園（T38）
   const f=v=>(v>=0?'+':'')+v.toFixed(1);
   $('#infoBody').innerHTML=
-    `<h3>📊 ${townName}</h3>
+    `<h3>📊 ${escHtml(townName)}</h3>
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
@@ -3898,6 +3905,7 @@ function undo(){
   money+=g2.spent;
   computePower();
   rebuildCov(); // T61：撤銷還原 tile 快照後全量重建覆蓋場最穩（只在撤銷時付費）
+  recalcAllRailMasks(); // 撤銷含鋪軌/拆軌時遮罩一併補算（快照格只重算道路版，軌道走全量最穩）
   if(typeof drawMini==='function')drawMini();
   toast('↩️ 已撤銷（退還 $'+Math.round(g2.spent)+'）');sTick();
 }
@@ -3914,7 +3922,7 @@ $('#hintX').onclick=()=>{$('#hint').style.display='none';hintsOff=true;};
 window.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey){if(!((e.ctrlKey||e.metaKey)&&e.key==='z'))return;} // FIX-A：修飾鍵組合放行給瀏覽器，僅保留 Ctrl/Cmd+Z 撤銷
   const map={'1':'pan','2':'alley','3':'road','4':'coll','5':'art','6':'hwy','7':'zr','8':'zc','9':'zi','0':'park','-':'doze','=':'rdec','b':'bus','w':'water','g':'wpipe','j':'police','h':'hospital','c':'clinic','l':'library','o':'post','m':'cemetery'}; // FIX-A：水管 p→g、警察局 P→j（取消大寫 P 綁定）
-  if(map[e.key]){document.querySelectorAll('.tool')[TOOLS.findIndex(t=>t.id===map[e.key])].click();}
+  if(map[e.key]){const btn=[...document.querySelectorAll('.tool')].find(b=>b.dataset.tid===map[e.key]);if(btn)btn.click();} // FIX-E：在篩選後的可見按鈕上反查，不再用 TOOLS 全表索引（避免錯位/越界）
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
   if(e.key==='Escape'){document.querySelectorAll('.tool')[0].click();}
@@ -3987,15 +3995,26 @@ function save(){
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,skd,dtd,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar,
       rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region}; // T39-T60 新欄位（可選）
-    localStorage.setItem(slotKey(curSlot()),JSON.stringify(data));
-  }catch(e){}
+    const key=slotKey(curSlot()),out=JSON.stringify(data);
+    const prev=localStorage.getItem(key);
+    if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
+    localStorage.setItem(key,out);
+  }catch(e){console.warn('存檔失敗',e);} // 不再靜默吞錯（localStorage setItem 單鍵原子，失敗不留半寫垃圾）
+}
+// 軌道版全量重算（對照 §4 道路版 recalcAllMasks）：讀檔還原 rl/tr 時 railMask/tramMask 歸零，需一次性補算
+function recalcAllRailMasks(){
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcRailMask(x,y);
 }
 function load(slot){
   try{
-    const raw=localStorage.getItem(slotKey(slot||curSlot()));
-    if(!raw)return false;
-    const d=JSON.parse(raw);
-    if(d.v!==1||d.ter.length!==N*N)return false;
+    const key=slotKey(slot||curSlot());
+    let d=null;
+    try{const raw=localStorage.getItem(key);if(raw)d=JSON.parse(raw);}catch(e){d=null;}
+    if(!d||d.v!==1||(d.ter||'').length!==N*N){ // 主鍵缺損 → 先嘗試 _bak 備份（save/import 覆寫前的保險）
+      console.warn('主存檔缺損，嘗試 _bak 備份鍵');
+      try{const braw=localStorage.getItem(key+'_bak');d=braw?JSON.parse(braw):null;}catch(e){d=null;}
+    }
+    if(!d||d.v!==1||(d.ter||'').length!==N*N)return false;
     seed=d.seed;R=mulberry32(seed^d.day);
     tiles=new Array(N*N);
     for(let i=0;i<N*N;i++){
@@ -4016,17 +4035,18 @@ function load(slot){
     for(let i=0;i<N*N;i++)if(tiles[i].road&&!tiles[i].rc)tiles[i].rc=tiles[i].hw?5:2; // 舊檔無 rc：支路=2、原高速=5（T29）
     for(const rec of d.bl){
       const i=rec[0],k=rec[1],lv=rec[2],v=rec[3],age=rec[4];
+      let vv=v;if(k!==4&&k!==5&&(k<10||k>13)&&!SPR.bld[k+'_'+lv+'_'+v])vv=0; // 變體鍵正規化：舊檔 v 無對應 SPR.bld 時歸 0（k4/5/10-13 不走 SPR.bld）
       if(k===9){                                         // 體育場：第 6 位是 sz，重建 root＋3 個 ref 格（T22）
         const rx=i%N,ry=(i/N)|0;
-        tiles[i].bld={k:9,lv:1,v,age,pw:true,h:1,sz:rec[5]||2};
+        tiles[i].bld={k:9,lv:1,v:vv,age,pw:true,h:1,sz:rec[5]||2};
         for(const[sx,sy]of[[rx+1,ry],[rx,ry+1],[rx+1,ry+1]])
           if(inMap(sx,sy))tiles[idx(sx,sy)].bld={k:9,ref:[rx,ry]};
       }else{
         if(k===1){
           const fireVal=rec.length>=7?rec[5]:(rec.length===6?rec[5]:0);
           const denVal=rec.length>=7?rec[6]:3;
-          tiles[i].bld={k,lv,v,age,pw:true,h:.6,fire:fireVal,den:denVal};
-        }else tiles[i].bld={k,lv,v,age,pw:true,h:.6,fire:rec[5]||0};
+          tiles[i].bld={k,lv,v:vv,age,pw:true,h:.6,fire:fireVal,den:denVal};
+        }else tiles[i].bld={k,lv,v:vv,age,pw:true,h:.6,fire:rec[5]||0};
       }
     }
     if(d.cm)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&+d.cm[i])b.crime=1;} // 犯罪標記（T32，舊檔無 cm 則無犯罪）
@@ -4039,6 +4059,7 @@ function load(slot){
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=clamp(d.cam.z||2,1,4);
     recalcAllMasks();
+    recalcAllRailMasks(); // 軌道遮罩全量重算：rl/tr 還原時 railMask/tramMask 歸零（對照道路版）
     computeFoam();
     computeElMask();
     computeWater(); // 重建供水網路（T31）

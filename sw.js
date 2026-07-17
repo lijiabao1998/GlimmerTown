@@ -1,7 +1,7 @@
 // 微光小鎮 Glimmerville — 離線快取 Service Worker（T27）
-// 版本升級策略：日後改版時，把下面 CACHE 常數的版號升一號（例如 'gv-v2'），
+// 版本升級策略：日後改版時，把下面 CACHE 常數的版號升一號（例如 'gv-v3'），
 // 舊快取會在 activate 階段自動被清除，不需要手動處理。
-const CACHE='gv-v1';
+const CACHE='gv-v2'; // FIX-E：自 T27 起從未升號，cache-first 會讓舊裝置永久吃舊版
 const FILES=['./index.html','./manifest.json','./icon.svg','./sw.js'];
 
 self.addEventListener('install',e=>{
