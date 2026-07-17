@@ -2,6 +2,20 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-17 | FIX-D | 單變體建築變體鍵三層修復：k19機場/k20停車場/k22農場/k23牧場/k25太陽能/k31監獄/k32大學 SPR.bld 僅生成 k_1_0 而放置端寫 v:ri(3) 取不到 sprite——放置端固定 v:0、渲染取鍵加 _0 兜底、load 無鍵則正規化 v=0 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-D | 多格建築拆除與體育場撤印：doze 改從 root 解析 sz（原讀點擊格 sz，ref 格無 sz 落單格分支留孤兒）；體育場拆除 4 格對稱撤 stadium 覆蓋印 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-D | canPlace 拆除白名單補 t.wp（水管原先永遠回「這裡沒東西」拆不掉） | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-D | 軌道遮罩四鄰與讀檔全量：rail/tram 放置與拆除改 recalcRailMask4（自己＋四鄰）；§11 新增 recalcAllRailMasks 並於 load 還原 rl/tr 後呼叫 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-D | 存檔 _bak 硬化：save 覆寫主鍵前備份 <key>_bak、setItem 失敗改 console.warn 不再靜默、load 主鍵毀損先救 _bak、importShare 覆寫前備份且失敗還原舊檔 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-D | 總指揮追加：k28救護站/k30高級消防放置端補 stampCov(+1)（修 doze 撤印 Uint8 下溢 0→255）；k20/31/32 放置端於 root 蓋印一次、doze 多格分支對稱撤印一次；undo() 補 recalcAllRailMasks()；doze tram 分支補 t.tramMask=0 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-E | 快捷鍵改由可見按鈕 dataset.tid 反查（T62 分類篩選後不再用 TOOLS 全表索引，修錯位/越界） | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-E | 移除非 base 分類重複的第二個 doze 拆除鈕 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-E | inspect 文案對齊真實機制：太陽能供電15棟/風力20棟/監獄半徑8防犯罪/救護站半徑10效果同醫院/大學半徑10升級×1.8/污水廠鄰工業住宅+幸福/火車站·地標·機場改述遊客提升全城商業稅（上限+20%） | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-E | inspect 同區塊再三則：停車場半徑8商業×1.1/輕軌站改中性描述/回收中心全城垃圾容量+30 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-E | sw.js CACHE 升 'gv-v2'（自 T27 起從未升號，cache-first 讓舊裝置永久吃舊版） | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | FIX-E | showStats 鎮名經新增的 escHtml 逸出（防 HTML 注入） | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-17 | T99 | ARCH 同步補做：自稱行數 1650→4235、bld.k 表補 k=17-32、COV 13→18 欄位、存檔補 gameVer 與 _bak 備份機制、§8 鍵位表補 data-tid 反查、recalcRailMask4/recalcAllRailMasks/escHtml 入冊、不變量補蓋印對稱與變體鍵存在兩條 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+
 2026-07-15 | T62-T100 | v3.0 收官批次施工：方案卡見 docs/tasks/T62-T100-總表.md 與 T62…T100 單卡。落地：工具列五分類篩選(T62)；鐵路/輕軌/貨船/救護車動畫(T63-T66)；COV 擴 ambulance/fire2/prison/university/parking(T67)；稅率 pol 倍率(T68)；地震/洪水可關(T69-T70/T92)；住房低幸福懲罰+辦公區生長(T72/T79)；食物/觀光/污水/回收/再生能源容量(T80-T84)；擁堵/單行/號誌(T74/T77/T78)；挑戰三關+效能檔(T88/T97)；存檔 gameVer(T93)；小地圖新色(T90)；GV 擴充(T98)；GAME_VER=3.0(T100)。中斷修復：index.html 曾四重複製 draw/UI→去重保留首個 IIFE；挑戰字串截斷已修。靜態：node --check 通過 | 驗收:靜態通過（實機冒煙待人）
 
 2026-07-15 | FIX-C | 施工修復 T39-T60 批次阻擋項：①canPlace 補 case 'airport'（原死碼 if 在別 case 內→機場永遠「無法建造」）②堤防條件 tt.river→鄰格 t===0 水域（genWorld 不寫 river 旗標）③太陽能 t.elev→t.el 高地旗標 ④farm/ranch/solar 補 2×2 canPlaceMulti＋整塊草地檢查（doPlace 本為 2×2、原先只驗單格）| 驗收:靜態通過（語法+case 對齊）；列車動畫等半成品未納本輪

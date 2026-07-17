@@ -1,6 +1,6 @@
 # 架構聖經（ARCH）— 《微光小鎮 Glimmerville》代碼地圖
 
-單檔遊戲：`index.html`（約 1650 行）。等距像素城市建造模擬，全部美術程式化生成。
+單檔遊戲：`index.html`（約 4235 行，v3.0）。等距像素城市建造模擬，全部美術程式化生成。
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
 ## 1. 檔案分節地圖
@@ -15,14 +15,14 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
 | 1 | 常數與狀態 | `TW=64 TH=32 N=72` `SAVEKEY` `DAYLEN=0.9` `CYCLE=110` `KNAME LVNAME POPS JOBSC JOBSI PLANT_CAP=50 COST TOOLS`；全域狀態 `money day speed pop jobs cityHappy dem msIdx tool muted visT simAcc cam`；`resize()` `T(i)` `idx(x,y)` `inMap` |
 | 2 | 程式化像素美術 | helper：`cv dia speck diaEdge isoBox windows outlineSprite shade plate`；`SPR` 註冊表；`buildSprites()`（全部 sprite）；`drawLogo()` |
 | 3 | 世界生成 | `genWorld(seed)` `computeFoam()` `newWorld()` |
-| 4 | 建造邏輯 | `recalcMask` `recalcAllMasks` `roadCostAt` `canPlace` `placeCost` `doPlace` |
+| 4 | 建造邏輯 | `recalcMask` `recalcAllMasks` `recalcRailMask` `recalcRailMask4`（軌道版，自己＋四鄰） `roadCostAt` `canPlace` `placeCost` `doPlace` |
 | 5 | 模擬 | `hasRoadNear` `computePower`(道路BFS) `countNear` `tick()`(一天) |
 | 6 | 小車與煙 | `cars smokes roadDirs DIRV updCars updSmoke` |
 | 7 | 繪製 | `stars waterF DIRSCR daylight() draw(dt) drawCursor` |
 | 8 | 輸入 | `hover pt rect pointers toTile isRectTool paintTo undoPlace` pointer 事件、`zoomStep clampCam commitRect inspect`；全域 `firstPaint dozeArm longPressT undoStack undoGroup openUndo closeUndo`（v1.2） |
 | 9 | 音效 | `AC initAudio tone sTick sBuild sErr sPop sFanfare` ＋ `sndMode` 三段開關與環境音排程器（T05）；T37 新增 `AudioComposer` 程序化背景音樂（依晝夜/天氣/冬季選 mood，Web Audio 即時合成，crossfade 過渡）與 `NPUComposer` 預留接口 |
-| 10 | UI | `buildToolbar toast updHud showHint checkHints` 鍵盤快捷鍵；`drawMini`（T06 小地圖）、`showStats`（T04）、`showHelp`（T09）、`showSlots/匯出入`（T07）、`undo()`（T10） |
-| 11 | 存檔 | `save() load()` 槽位化（T07）：鍵 `SAVEKEY+'.s1/.s2/.s3'`、目前槽 `'.slot'`、舊裸鍵自動遷移；自動存檔 25s + visibilitychange |
+| 10 | UI | `buildToolbar toast updHud showHint checkHints` 鍵盤快捷鍵；`drawMini`（T06 小地圖）、`showStats`（T04）、`showHelp`（T09）、`showSlots/匯出入`（T07）、`undo()`（T10）；`escHtml`（FIX-E 文案逸出） |
+| 11 | 存檔 | `save() load()` `recalcAllRailMasks()`（FIX-D：load 後軌道遮罩全量補算） 槽位化（T07）：鍵 `SAVEKEY+'.s1/.s2/.s3'`、目前槽 `'.slot'`、舊裸鍵自動遷移；覆寫前備份 `<key>_bak`（FIX-D）；自動存檔 25s + visibilitychange |
 | 12 | 主迴圈 | `advance(dt)` `frame(ts)`(rAF) + setInterval(250ms) 後備迴圈 |
 | 13 | 啟動 | `buildSprites buildToolbar resize drawLogo begin()`；`window.GV` 除錯 API |
 
@@ -45,11 +45,12 @@ Script 內以註解分節（搜尋 `=====` 可跳轉）：
 }
 ```
 
-`bld.k`：1住宅 2商業 3工業 4公園 5發電廠 6消防局 7學校 8垃圾場（9體育場=2×2 多格，T22）、10水塔 11警察局 12醫院 13診所 14圖書館 15郵局 16墓園。`lv` 1..3（k≥4 恆1）。`v`：k≤3 為 0..3，其餘 0..2。
+`bld.k`：1住宅 2商業 3工業 4公園 5發電廠 6消防局 7學校 8垃圾場（9體育場=2×2 多格，T22）、10水塔 11警察局 12醫院 13診所 14圖書館 15郵局 16墓園；v3.0（T39-T60）追加 17火車站 18港口 19機場(4×4) 20停車場(2×2) 21輕軌站 22農場(2×2) 23牧場(2×2) 24地標(2×2) 25太陽能(2×2) 26風力 27污水廠 28救護站 29回收中心 30高級消防 31監獄(2×2) 32大學(3×3)。`lv` 1..3（k≥4 恆1）。`v`：k≤3 為 0..3，其餘 0..2；**例外（FIX-D）：k19/20/22/23/25/31/32 為單變體建築，`SPR.bld` 僅生成 `k_1_0`，放置端固定 `v:0`**（渲染兜底 `_0`、load 正規化）。
 v1.4 批次A 追加：`weather/wxT/flashT`（天氣，不存檔）、`inWinter()`（day 導出季節）、W 系列冬季 sprite、
 `garbage/garbCap/garbRatio`（垃圾，每天重算）、`t.rdec`（路飾，存檔欄位 rc）；GV 追加 weather(w)/flash()/setDay(d)。
 v1.5 追加：`bld.death`/`deathAge`/`sickDays`（死亡機制，存檔標記欄位 dt；FIX-A 追加可選欄位 skd=sickDays、dtd=deathAge 天數字串，上限 9，舊檔缺欄位容錯為 0）、k=16 墓園、`AudioComposer`/`NPUComposer`（T37/T38）。
-T61 追加：**服務覆蓋計數場 `COV`**（第 5 節 countNear 後）＝13 個 Uint8Array(N*N)：park/plant/fire/school/stadium/police/hospital/clinic/library/post/cemetery/bus/rdec，各為「該格被幾座對應設施覆蓋」的計數（半徑見 `COVR`）。**運行時重建、不入存檔**（COV 純由 tile 導出）。維護只在唯一資料變更點：`doPlace` 放置 `stampCov(+1)`／拆除 `stampCov(-1)`（單體查 `covFieldOfK`、體育場 4 格逐格、rdec/bus 各自分支）、`undoPlace` 誤放電廠撤印；`load`/`newWorld`/`undo` 後 `rebuildCov()` 全量重建。tick 內覆蓋判定改讀 `COV.xxx[idx]>0`（或計數），語義與原 `countNear` 完全一致。**工業(k=3)/犯罪(crime) 為 tick 內生長/火災/每日生滅之動態源，仍用 `countNear`**（未蓋印）。`countNear` 保留供其他用途。GV 追加 `cov(f,x,y)`/`rebuildCov()`。
+T61 追加：**服務覆蓋計數場 `COV`**（第 5 節 countNear 後）＝18 個 Uint8Array(N*N)：park/plant/fire/school/stadium/police/hospital/clinic/library/post/cemetery/bus/rdec＋v3.0（T67）擴 ambulance(r10)/fire2(r12)/prison(r8)/university(r10)/parking(r8)，各為「該格被幾座對應設施覆蓋」的計數（半徑見 `COVR`）。**運行時重建、不入存檔**（COV 純由 tile 導出）。維護只在唯一資料變更點：`doPlace` 放置 `stampCov(+1)`／拆除 `stampCov(-1)`（單體查 `covFieldOfK`、體育場 4 格逐格、其餘多格 k20/31/32 於 root 一次、rdec/bus 各自分支；FIX-D：k28/30 放置端補蓋對齊 doze 單格撤印，缺蓋會 Uint8 下溢 0→255）、`undoPlace` 誤放電廠撤印；`load`/`newWorld`/`undo` 後 `rebuildCov()` 全量重建。tick 內覆蓋判定改讀 `COV.xxx[idx]>0`（或計數），語義與原 `countNear` 完全一致。**工業(k=3)/犯罪(crime) 為 tick 內生長/火災/每日生滅之動態源，仍用 `countNear`**（未蓋印）。`countNear` 保留供其他用途。GV 追加 `cov(f,x,y)`/`rebuildCov()`。
+v3.0（T39-T60／T62-T100）追加：tile 旗標 `rail/railBridge/railMask`（鐵路）、`tram/tramBridge/tramMask`（輕軌）、`dock`（碼頭）、`wp`（水管，T31）、`office`（辦公區）、`oneway/light`（單行道/號誌）、`busLane`（公車道）、`parkMeter`（停車計費）、`levee/flood`（堤防/洪水）、`abandoned`（廢棄）；`GAME_VER='3.0'`（T100），存檔記 `gameVer`（T93）；§4 新增軌道版遮罩 `recalcRailMask(x,y)`（單格）與 `recalcRailMask4(x,y)`（自己＋四鄰，FIX-D 起 rail/tram 放置與拆除統一改用），§11 新增 `recalcAllRailMasks()`（對照道路版 recalcAllMasks，load／undo 後全量補算）。
 快捷鍵現狀（詳見 §8 全表）：1=檢視、2-6=五級道路（小巷/支路/次幹道/主幹道/快速路）、7=住宅 8=商業 9=工業 0=公園、'-'=拆除、'='=路飾、b=公車站、w=水塔、g=水管、j=警察局、h=醫院、c=診所、l=圖書館、o=郵局、m=墓園（電廠/消防局/學校/垃圾場/體育場/種樹/填草無鍵位；FIX-A：水管 p→g、警察局 P→j、取消大寫 P 綁定）。序列化命名地雷：存檔 `rc`=路飾（0/1）、`rcl`=道路等級（0-5），二者命名相近勿混淆。
 v1.4 批次B 追加：`t.hw` 高速路（rd 存檔值 0-4）、**多格建築架構**（k=9 體育場 2×2：root 含 sz、其餘格 `{k,ref:[rx,ry]}`，
 所有迴圈遇 ref 跳過、doze 全清、bl 只存 root 第 6 位存 sz）、`t.el/t.em` 高地與崖沿位罩（存檔欄位 el）、
@@ -142,16 +143,17 @@ k=1~3 住宅／商業／工業的 `SPR.bld['k_lv_v']` 不再寫死 if 分支，�
   **paint 工具**（road 五級/wpipe 水管/rdec 路飾）：拖曳連續鋪設，`paintTo` 做 L 型補間防斷路；電廠與所有單體服務建築（水塔/警局/醫院/診所/圖書館/郵局/墓園/消防/學校/垃圾場/體育場/公車站）一律單點放置（FIX-A：pointermove 排除清單）。
 - pan 工具：單指/左鍵拖曳平移；點擊（未移動）＝ `inspect()` 檢視面板。
 - 任意工具：中/右鍵拖曳平移、滾輪縮放；**雙指**＝pinch 縮放＋平移（進入雙指即取消畫線/框選）。
-- 鍵盤（實際全表，FIX-A 同步）：`1`=檢視　`2`=小巷　`3`=支路　`4`=次幹道　`5`=主幹道　`6`=快速路　`7`=住宅　`8`=商業　`9`=工業　`0`=公園　`-`=拆除　`=`=路飾　`b`=公車站　`w`=水塔　`g`=水管　`j`=警察局　`h`=醫院　`c`=診所　`l`=圖書館　`o`=郵局　`m`=墓園；`空白鍵`=速度循環/暫停、`Esc`=回檢視、`Ctrl/Cmd+Z`=撤銷。
+- 鍵盤（實際全表，FIX-A 同步）：`1`=檢視　`2`=小巷　`3`=支路　`4`=次幹道　`5`=主幹道　`6`=快速路　`7`=住宅　`8`=商業　`9`=工業　`0`=公園　`-`=拆除　`=`=路飾　`b`=公車站　`w`=水塔　`g`=水管　`j`=警察局　`h`=醫院　`c`=診所　`l`=圖書館　`o`=郵局　`m`=墓園；`空白鍵`=速度循環/暫停、`Esc`=回檢視、`Ctrl/Cmd+Z`=撤銷。**命中機制（FIX-E）**：字母/數字鍵 map 到 tool id 後，由可見按鈕 `dataset.tid` 反查再 `click()`——T62 分類篩選會改變可見按鈕集，不再用 TOOLS 全表索引（避免錯位/越界）。
 - **修飾鍵防護（FIX-A）**：keydown 開頭 `if(e.ctrlKey||e.metaKey||e.altKey){if(!((e.ctrlKey||e.metaKey)&&e.key==='z'))return;}`——除 `Ctrl/Cmd+Z` 撤銷外，一切修飾鍵組合一律 return 放行給瀏覽器（Ctrl+P 列印、Ctrl+L 網址列等不再誤觸工具）。無獨立鍵位：電廠/消防局/學校/垃圾場/體育場/種樹/填草。
 
 ## 9. 存檔（v1）
 
 槽位鍵 `glimmerville.v1.s1/.s2/.s3`（目前槽記在 `.slot`；舊裸鍵啟動時自動遷入 s1），JSON：
-`{v:1, seed, money, day, msIdx, cam:{x,y,z}, ter, tre, rd, zn, dc, bl, ach, nm}`
-其中 ter/tre/rd/zn/dc 是長 N*N 的數字字串（rd：0無 1路 2橋；dc＝deco）；`bl=[[i,k,lv,v,age],...]`；
-`ach`＝已解鎖成就 id 陣列；`nm`＝鎮名。dc/ach/nm 均為可選欄位（舊檔容錯）。
-讀檔後重算 mask/foam；`pop/jobs/pw/h` 由下一次 tick 重算，不存。
+`{v:1, gameVer, seed, money, day, msIdx, cam:{x,y,z}, ter, tre, rd, zn, dc, rn, rc, rcl, wp, el, bs, cm, sk, dt, skd, dtd, bl, ach, nm, ln, star, rl, rb, dk, ow, tl, pm, bln, tr, of, fl, le, ab, pol, region}`
+其中 `gameVer`＝`GAME_VER`（T93，現 '3.0'；僅記錄用，讀檔仍以 `v===1` 為準）；ter/tre/rd/zn/dc 等是長 N*N 的數字字串（rd：0無 1路 2橋 3高速 4高速橋；dc＝deco；rn焦土 rc路飾 rcl道路等級 wp水管 el高地 bs公車站 cm犯罪 sk生病 dt死亡 skd/dtd病亡天數；rl/rb鐵路/鐵路橋 dk碼頭 ow單行 tl號誌 pm停車計費 bln公車道 tr輕軌 of辦公 fl洪水 le堤防 ab廢棄，皆對應 §2 同名 tile 旗標）；`bl=[[i,k,lv,v,age(,sz|fire)(,den)],...]`（多格建築只存 root，k=9 第 6 位存 sz）；
+`ach`＝已解鎖成就 id 陣列；`nm`＝鎮名；`ln`＝貸款 `[remain,daily]`；`star`＝最佳星等；`pol`＝稅率政策物件（T55/T68）、`region`＝區域聯動摘要（T60/T73）。dc 之後所有欄位均為可選欄位（舊檔容錯）。
+讀檔後重算 mask/foam＋`recalcAllRailMasks()`（FIX-D：rl/tr 還原時 railMask/tramMask 歸零需全量補算）＋rebuildCov；`pop/jobs/pw/h` 由下一次 tick 重算，不存。
+**覆寫保險（FIX-D）**：save／importShare 覆寫主鍵前先把舊值備份到 `<key>_bak`；setItem 失敗 `console.warn` 不再靜默；load 主鍵毀損先嘗試救 `_bak`，importShare 失敗還原舊檔。
 **變更規則見 RULES 第 9 條。** 音效設定另存 `.snd`（0/1/2，舊 `.mute` 自動遷移）。
 
 ## 10. GV 除錯 API（驗收全靠它）
@@ -167,7 +169,7 @@ GV.stats()             // {money,pop,jobs,day,buildings,poweredBld,roads,zones,h
 ## 11. 不變量清單（改壞任何一條＝驗收失敗）
 
 1. `dia/diaEdge` 的 hw 恆為偶數；sprite 不得畫出畫布邊界。
-2. 動 road 後 recalcMask 自己＋四鄰；動地形後 computeFoam。
+2. 動 road 後 recalcMask 自己＋四鄰；動 rail/tram 後 recalcRailMask4 自己＋四鄰（FIX-D）；動地形後 computeFoam。
 3. `bld.k===4|5` 的 `pw` 恆 true；只有 k≤3 參與電力配額與稅收。
 4. 夜燈只畫在 night canvas；日間主圖不含發光元素。
 5. 讀檔絕不拋錯：任何異常 → 回傳 false → 自動開新圖。
@@ -180,3 +182,5 @@ GV.stats()             // {money,pop,jobs,day,buildings,poweredBld,roads,zones,h
     需同時補存檔欄位與 load 還原。
 11. 覆蓋計數場 `COV`（T61）只在 `doPlace` 增減、`rebuildCov` 全量重建（load/newWorld/undo 後）；tick 讀不寫 COV，語義恆等 `countNear`。
     若新增一種 doPlace 可放置/拆除的覆蓋源設施，須在 `COVR`/`covFieldOfK` 補欄位、doPlace 放置/doze 撤印各補 `stampCov`；tick 內動態生滅的覆蓋源（如工業/犯罪）維持 `countNear` 不蓋印。
+12. **放置/拆除覆蓋蓋印必須對稱（FIX-D）**：doPlace 放置 `stampCov(+1)` 與 doze `stampCov(-1)` 必成對；多格建築體育場(k9) 4 格皆蓋/皆撤，其餘多格（k20/31/32）於 root 蓋/撤一次。缺一邊 → Uint8 下溢 0→255 或與 rebuildCov 語義分歧（教訓：k28/30 放置端漏蓋）。
+13. **新增依賴 `SPR.bld` 變體的 k 須確認變體鍵存在（FIX-D）**：生成端只出 `k_1_0` 的單變體建築，放置端必須固定 `v:0`（渲染有 `_0` 兜底、load 有正規化，但放置端寫錯 v 仍會存進存檔）。
