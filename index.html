@@ -319,6 +319,7 @@ const inWinter=()=>((day-1)%360)>=300; // 冬季（T18）：每年第 300-360 �
 let wSeason=-1; // 上次 tick 的季節旗標（-1 未定 / 0 非冬 / 1 冬）；入冬／開春 toast 防重複（T18，不進存檔）
 let score=-1,cityStar=-1,bestStar=0; // 城市評分（T25）：pop<50 時 score/cityStar=-1（不評分）；bestStar 只增不減（升星獎勵防重複），存檔可選欄位 star（cityStar 避開既有夜空 stars[] 命名）
 let scoreParts={happy:0,job:0,fire:0,garb:0,edu:0}; // 評分分項明細（T25，供統計面板顯示，不進存檔）
+let happyAgg=[]; // T111：幸福構成（各加減項城市平均值 [{name,val}]），供 showStats「幸福構成」面板讀取；每天重算，不進存檔
 let hintsOff=false, hintShown={};
 // T39-T60 新系統狀態
 const trains=[], cargoShips=[], tramCars=[], ambulances=[], recycleTrucks=[], ladderTrucks=[], policeCars=[], schoolBuses=[];
@@ -2686,6 +2687,7 @@ function tick(){
   let powered=0,watered=0;
   let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0,schools=0,dumps=0,stadiums=0,waterTowers=0,clinics=0,libraries=0,posts=0,cemeteries=0;
   let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0;
+  let happyAggSum=null; // T111：幸福構成累加器（沿用既有 happySum/happyN 迴圈，逐建築累加各項後於迴圈尾除以 happyN）
   const grown=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const t=T(idx(x,y));
@@ -2731,7 +2733,30 @@ function tick(){
       const roadHappy=rc===5?-.12:rc===4?-.05:rc===3?0:rc===2?.02:rc===1?.05:0;
       const library=COV.library[ci]>0;                   // 圖書館半徑6覆蓋（原 countNear k===14）
       const post=COV.post[ci]>0;                         // 郵局半徑8覆蓋（原 countNear k===15）
-      b.h=clamp(.62+roadHappy+(parks?.16:0)+(parks>1?.06:0)+0.03*(COV.rdec[ci]>0?1:0)+0.04*(COV.bus[ci]>0?1:0)+(COV.stadium[ci]>0?.08:0)+(library?.04:0)+(post?.03:0)-ind*.09-pl*.18-POL[ci]*.006-crime*.05-(deathPenalty[idx(x,y)]?.1:0)-(b.sick?.35:0)-(b.death?.55:0)-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1); // T110：−POL[i] 空間污染係數
+      const happyParts=[ // T111：各加減項先收進陣列再 reduce 求和——與原公式逐項同序、每項獨立算式原樣搬移，位元一致
+        {name:'基礎',val:.62},
+        {name:'道路等級',val:roadHappy},
+        {name:'公園',val:parks?.16:0},
+        {name:'多座公園',val:parks>1?.06:0},
+        {name:'路旁裝飾',val:0.03*(COV.rdec[ci]>0?1:0)},
+        {name:'公車站',val:0.04*(COV.bus[ci]>0?1:0)},
+        {name:'體育場',val:COV.stadium[ci]>0?.08:0},
+        {name:'圖書館',val:library?.04:0},
+        {name:'郵局',val:post?.03:0},
+        {name:'工業汙染鄰近',val:-ind*.09},
+        {name:'電廠鄰近',val:-pl*.18},
+        {name:'空氣污染',val:-POL[ci]*.006}, // T110：空間污染係數
+        {name:'犯罪',val:-crime*.05},
+        {name:'喪事未安撫',val:-(deathPenalty[idx(x,y)]?.1:0)},
+        {name:'生病',val:-(b.sick?.35:0)},
+        {name:'死亡',val:-(b.death?.55:0)},
+        {name:'無電',val:-(b.pw?0:.3)},
+        {name:'天氣',val:-(weather===1?.02:weather===2?.05:0)},
+        {name:'冬季',val:-(inWinter()?.02:0)}
+      ];
+      b.h=clamp(happyParts.reduce((s,p)=>s+p.val,0),.05,1);
+      if(!happyAggSum)happyAggSum=happyParts.map(p=>({name:p.name,val:0}));
+      for(let hi=0;hi<happyParts.length;hi++)happyAggSum[hi].val+=happyParts[hi].val;
       happySum+=b.h;happyN++;
       if(b.pw&&!b.sick&&!b.death){popN+=Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1));}
     }else if(b.pw){
@@ -2740,6 +2765,7 @@ function tick(){
   }
   pop=popN;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+st*12+po*10+ai*40+pa*1+tr*6+fa*3+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20;   // T39-T54 就業
   cityHappy=happyN?happySum/happyN:.6;
+  happyAgg=happyN&&happyAggSum?happyAggSum.map(p=>({name:p.name,val:p.val/happyN})):[]; // T111：城市平均幸福構成，供 showStats 讀取
   // 垃圾（T19）：產量/容量/超載係數；套用到全城住宅幸福尾端，並節流提示
   garbage=pop*.05+jobsI*.08;
   garbCap=dumps*DUMP_CAP+rc*(DUMP_CAP*.75); // T84
@@ -4542,6 +4568,29 @@ function showStats(){
   // T89：v3.0 建築維護費彙總（係數與 tick() 經濟段 T39-T54 維護費公式一致，UI 端獨立彙總顯示供玩家速覽、不改動 tick 本身）
   const v3Up=nSt*6+nPt*5+nAi*25+nPk*1.5+nTs*4+nFa*1+nRa*1.5+nLd*8+nSo*1+nWi*1.5+nSe*3+nAm*3+nRc*2+nF2*6+nPr*5+nUn*8;
   const f=v=>(v>=0?'+':'')+v.toFixed(1);
+  // T111：幸福歸因面板——happyAgg 為 tick() 累加之城市平均值，按 val 由高到低排序，最負一項標紅＋建議（文案風格對齊 showHint）
+  const fp=v=>(v>=0?'+':'')+(v*100).toFixed(1)+'%';
+  const happySorted=happyAgg.slice().sort((a,b)=>b.val-a.val);
+  const happyWorst=happySorted.length?happySorted[happySorted.length-1]:null;
+  const HAPPY_TIP={
+    '道路等級':'🚦 幹道/快速路吵雜拉低幸福→改用支路等級道路',
+    '工業汙染鄰近':'🏭 工業鄰近拉低幸福→拉開住宅與工業的距離',
+    '電廠鄰近':'⚡ 電廠鄰近拉低幸福→拉開住宅與電廠的距離',
+    '空氣污染':'🏭 空氣污染拉低幸福→遠離污染源或多種樹',
+    '犯罪':'🚓 犯罪拉低幸福→加蓋警察局',
+    '喪事未安撫':'💀 喪事未安撫拉低幸福→加蓋墓園',
+    '生病':'🏥 居民生病拉低幸福→加蓋醫院或診所',
+    '死亡':'💀 已發生憾事拉低幸福→加蓋墓園安撫',
+    '無電':'⚡ 部分住宅無電拉低幸福→擴建電廠或修路通電',
+    '天氣':'🌧️ 壞天氣暫時拉低幸福→天氣好轉後會恢復',
+    '冬季':'❄️ 冬季拉低幸福→開春後會恢復'
+  };
+  const happyRows=happySorted.map(p=>{
+    const bad=!!happyWorst&&p===happyWorst&&p.val<0;
+    return `<div class="row"${bad?' style="color:#e05252"':''}>${escHtml(p.name)}　${fp(p.val)}${bad&&HAPPY_TIP[p.name]?'　'+HAPPY_TIP[p.name]:''}</div>`;
+  }).join('');
+  const happyTotal=happySorted.reduce((s,p)=>s+p.val,0);
+  const happyHtml=happySorted.length?`<div class="row"><b>😊 幸福構成</b>（城市平均）</div>${happyRows}<div class="row" style="opacity:.8">合計 ${fp(happyTotal)}</div>`:'';
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
@@ -4553,6 +4602,7 @@ function showStats(){
      <div class="row" style="font-size:11px;opacity:.75">v3.0：🚉${nSt} ⚓${nPt} ✈️${nAi} 🅿️${nPk} 🚋${nTs} 🌾${nFa} 🐄${nRa} 🗿${nLd} ☀️${nSo} 💨${nWi} 🚰${nSe} 🚑${nAm} ♻️${nRc} 🚒${nF2} 🚔${nPr} 🎓${nUn}　🔧維護-${v3Up.toFixed(1)}</div>
      <div class="row">🗑️ 垃圾 ${garbage.toFixed(1)}/${garbCap}</div>
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
+     ${happyHtml}
      <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
      ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
@@ -5021,7 +5071,8 @@ window.GV={
   log:()=>log.map(l=>({...l})),                                 // T114 測試用：通知中心日誌快照
   unread:()=>unread,                                             // T114 測試用：目前未讀數
   diff:()=>diff,                                                  // T115 測試用：目前難度 0-3
-  setDiff:(d)=>{diff=clamp(d|0,0,3);return diff;}                 // T115 測試用：直接設難度（不經開始畫面）
+  setDiff:(d)=>{diff=clamp(d|0,0,3);return diff;},                // T115 測試用：直接設難度（不經開始畫面）
+  happyBreakdown:()=>happyAgg.map(p=>({...p}))                    // T111 測試用：幸福構成城市平均值快照 [{name,val}]
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
