@@ -225,7 +225,7 @@ const ROAD_NAME=['小巷','支路','次幹道','主幹道','快速路'];
 const ROAD_COST=[8,15,28,55,120];
 const ROAD_UPKEEP=[0.01,0.02,0.05,0.12,0.35];
 const ROAD_SPEED=[0.5,1.0,1.4,2.0,3.5];
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）
 
 const GAME_VER='3.2'; // T115
 const TOOLS=[
@@ -249,6 +249,9 @@ const TOOLS=[
   {id:'office',cat:'zone',ic:'🏢',nm:'辦公區',pr:'$'+COST.officeZone},
   {id:'tree',cat:'zone',ic:'🌲',nm:'種樹',pr:'$'+COST.tree},
   {id:'fill',cat:'zone',ic:'🟩',nm:'填草',pr:'$'+COST.fill},
+  {id:'tdig',cat:'terra',ic:'💧',nm:'挖水',pr:'$'+COST.tdig},
+  {id:'tland',cat:'terra',ic:'🟫',nm:'填土',pr:'$'+COST.tland},
+  {id:'traise',cat:'terra',ic:'⛰️',nm:'抬升削平',pr:'$'+COST.traise},
   {id:'doze',cat:'base',ic:'💥',nm:'拆除',pr:'$'+COST.doze},
   {id:'park',cat:'svc',ic:'🌳',nm:'公園',pr:'$'+COST.park},
   {id:'plant',cat:'svc',ic:'⚡',nm:'電廠',pr:'$'+COST.plant},
@@ -282,8 +285,9 @@ const TOOLS=[
   {id:'parking',cat:'mega',ic:'🅿️',nm:'停車場',pr:'$'+COST.parking},
   {id:'levee',cat:'mega',ic:'🧱',nm:'堤防',pr:'$'+COST.levee},
 ];
-const TOOL_CATS=[{id:'base',nm:'基本'},{id:'road',nm:'道路'},{id:'zone',nm:'分區'},{id:'svc',nm:'服務'},{id:'mega',nm:'大型'}];
+const TOOL_CATS=[{id:'base',nm:'基本'},{id:'road',nm:'道路'},{id:'zone',nm:'分區'},{id:'svc',nm:'服務'},{id:'mega',nm:'大型'},{id:'terra',nm:'地形'}];
 let toolCat='base';
+let terraBrush=1; // T121：地形筆刷尺寸（1 或 3），不進存檔——僅工具列 UI 狀態
 
 let seed=0, tiles=null;
 let money=3000, day=1, speed=1, prevSpeed=1;
@@ -1919,30 +1923,44 @@ function genWorld(sd){
   return water/(N*N);
 }
 // 水岸泡沫遮罩（哪幾條邊鄰接陸地）
+// T121：單格版抽出（逐行搬運不改邏輯，continue→return），供地形筆刷鄰域重算複用；computeFoam 逐格呼叫，全圖結果不變
+function recalcFoamAt(x,y){
+  if(!inMap(x,y))return;
+  const t=T(idx(x,y));t.wm=0;
+  if(t.t!==0)return;
+  let m=0;
+  if(inMap(x,y-1)&&T(idx(x,y-1)).t!==0)m|=1;
+  if(inMap(x+1,y)&&T(idx(x+1,y)).t!==0)m|=2;
+  if(inMap(x,y+1)&&T(idx(x,y+1)).t!==0)m|=4;
+  if(inMap(x-1,y)&&T(idx(x-1,y)).t!==0)m|=8;
+  t.wm=m;
+}
 function computeFoam(){
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const t=T(idx(x,y));t.wm=0;
-    if(t.t!==0)continue;
-    let m=0;
-    if(inMap(x,y-1)&&T(idx(x,y-1)).t!==0)m|=1;
-    if(inMap(x+1,y)&&T(idx(x+1,y)).t!==0)m|=2;
-    if(inMap(x,y+1)&&T(idx(x,y+1)).t!==0)m|=4;
-    if(inMap(x-1,y)&&T(idx(x-1,y)).t!==0)m|=8;
-    t.wm=m;
-  }
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcFoamAt(x,y);
+}
+// T121：地形筆刷用——僅重算操作格自己＋四鄰（對齊 recalcMask/recalcMask4 既有寫法），不做全圖校驗
+function recalcFoamNear(x,y){
+  recalcFoamAt(x,y);recalcFoamAt(x,y-1);recalcFoamAt(x+1,y);recalcFoamAt(x,y+1);recalcFoamAt(x-1,y);
 }
 // 高地內陸崖沿位罩（哪幾條邊鄰接低地；el 生成後算一次，沿用 foam 位向約定，T24）
+// T121：單格版抽出（逐行搬運不改邏輯，continue→return），供地形筆刷鄰域重算複用；computeElMask 逐格呼叫，全圖結果不變
+function recalcElMaskAt(x,y){
+  if(!inMap(x,y))return;
+  const t=T(idx(x,y));t.em=0;
+  if(t.el!==1)return;
+  let m=0;
+  if(inMap(x,y-1)&&T(idx(x,y-1)).el===0)m|=1;
+  if(inMap(x+1,y)&&T(idx(x+1,y)).el===0)m|=2;
+  if(inMap(x,y+1)&&T(idx(x,y+1)).el===0)m|=4;
+  if(inMap(x-1,y)&&T(idx(x-1,y)).el===0)m|=8;
+  t.em=m;
+}
 function computeElMask(){
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const t=T(idx(x,y));t.em=0;
-    if(t.el!==1)continue;
-    let m=0;
-    if(inMap(x,y-1)&&T(idx(x,y-1)).el===0)m|=1;
-    if(inMap(x+1,y)&&T(idx(x+1,y)).el===0)m|=2;
-    if(inMap(x,y+1)&&T(idx(x,y+1)).el===0)m|=4;
-    if(inMap(x-1,y)&&T(idx(x-1,y)).el===0)m|=8;
-    t.em=m;
-  }
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcElMaskAt(x,y);
+}
+// T121：地形筆刷用——僅重算操作格自己＋四鄰
+function recalcElMaskNear(x,y){
+  recalcElMaskAt(x,y);recalcElMaskAt(x,y-1);recalcElMaskAt(x+1,y);recalcElMaskAt(x,y+1);recalcElMaskAt(x-1,y);
 }
 function newWorld(seedOverride){
   hist=[];log=[];unread=0;if(typeof updBell==='function')updBell(); // FIX-N：跨局殘留成對重置（鐵律7）——begin() 之外的開新圖路徑（工具列🆕/GV.newWorld）也必須清歷史曲線與通知日誌
@@ -2026,6 +2044,16 @@ function getMaxRoadClass(x,y,r=1){
   return mx;
 }
 function roadCostAt(x,y,rc){return T(idx(x,y)).t===0?ROAD_COST[rc-1]+COST.bridge:ROAD_COST[rc-1];}
+// T121：地形筆刷涵蓋格清單（依全域 terraBrush：1→僅中心格，3→3×3，皆裁切地圖邊界）
+function terraCells(x,y){
+  if(terraBrush!==3)return [[x,y]];
+  const arr=[];
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    const nx=x+dx,ny=y+dy;
+    if(inMap(nx,ny))arr.push([nx,ny]);
+  }
+  return arr;
+}
 // 回傳 null＝可行，否則錯誤訊息
 function canPlace(toolId,x,y){
   if(!inMap(x,y))return '超出地圖';
@@ -2072,6 +2100,17 @@ function canPlace(toolId,x,y){
       return null;
     case 'fill':
       if(t.t!==1)return '只能填在沙地上';
+      return null;
+    case 'tdig': // T121：挖水（草→水），該格有建築/道路則拒絕
+      if(t.t!==2)return '只能在草地上挖水';
+      if(t.bld)return '有建築擋住';
+      if(t.road)return '有道路擋住';
+      return null;
+    case 'tland': // T121：填土（水→草，反向）；橋樑跨水被填土時橋保留成旱橋，不額外阻擋
+      if(t.t!==0)return '只能在水域上填土';
+      return null;
+    case 'traise': // T121：抬升／削平（切換 t.el 高地旗標）；el 僅對草地有意義（genWorld/渲染皆僅認 t.t===2）
+      if(t.t!==2)return '只能在草地上抬升削平';
       return null;
     case 'doze':
       if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood&&!t.wp)return '這裡沒東西';
@@ -2186,6 +2225,11 @@ function placeCost(toolId,x,y){
     case 'bus':c=COST.bus;break;
     case 'tree':c=COST.tree;break;
     case 'fill':c=COST.fill;break;
+    case 'tdig':case 'tland':case 'traise':{ // T121：地形筆刷——依全域 terraBrush 逐格計價，僅合法格計費（flat 定價，不疊加清樹費）
+      const unit=toolId==='tdig'?COST.tdig:toolId==='tland'?COST.tland:COST.traise;
+      let tot=0;
+      for(const[nx,ny]of terraCells(x,y)){if(!canPlace(toolId,nx,ny))tot+=unit;}
+      c=tot;break;}
     case 'doze':c=COST.doze;break;
     // T39-T60
     case 'rail':if(t.rail)return 0;c=t.t===0?COST.railBridge:COST.rail;break;
@@ -2213,7 +2257,7 @@ function placeCost(toolId,x,y){
     case 'busLane':c=COST.busLane;break;
     case 'levee':c=COST.levee;break;
   }
-  if(toolId!=='doze'&&toolId!=='stad'&&t.tree)c+=COST.doze; // 順手清樹（體育場定價 $1200 一次，4 格自動清不另收）
+  if(toolId!=='doze'&&toolId!=='stad'&&toolId!=='tdig'&&toolId!=='tland'&&toolId!=='traise'&&t.tree)c+=COST.doze; // 順手清樹（體育場定價 $1200 一次，4 格自動清不另收；T121 地形筆刷已在上方分支自行 flat 計價，不疊加此費）
   return c;
 }
 function doPlace(toolId,x,y,silent){
@@ -2316,6 +2360,36 @@ function doPlace(toolId,x,y,silent){
     case 'fill':
       t.t=2;t.gv=ri(4);computeFoam();
       break;
+    case 'tdig':case 'tland':case 'traise':{ // T121：地形筆刷——中心格已於函式頂端驗證/存快照；3×3 時鄰格各自驗證＋各自存快照
+      const cells=terraBrush===3?terraCells(x,y):[[x,y]];
+      const touched=[];
+      const apply=(nx,ny,isCenter)=>{
+        const nt=T(idx(nx,ny));
+        if(toolId==='tdig'){
+          const hadT=nt.tree>0;
+          nt.t=0;nt.tree=0;nt.deco=0;nt.el=0;nt.zone=0; // 挖成水域：清樹/裝飾/高地旗標/分區（比照 genWorld carve()，另補清 zone 防止生長候選誤判水面，T121）
+          if(!isCenter&&hadT)stampPolTree(nx,ny,-1); // T110 對稱撤印：中心格由函式尾端既有邏輯處理，鄰格需在此自行處理
+        }else if(toolId==='tland'){
+          nt.t=2;nt.gv=ri(4); // 填土：橋樑/軌道旗標刻意不清（硬性不變量：橋樑跨的水被填土時橋保留成旱橋）
+        }else{
+          nt.el=nt.el?0:1; // 抬升／削平：純切換旗標，不動 tree/zone/bld
+        }
+        touched.push([nx,ny]);
+      };
+      apply(x,y,true);
+      for(const[nx,ny]of cells){
+        if(nx===x&&ny===y)continue;
+        if(canPlace(toolId,nx,ny))continue; // 該格不合法（建築/道路/地形不符）則跳過，不影響其餘格
+        const nj=idx(nx,ny);
+        if(undoGroup&&!undoGroup.seen[nj]){undoGroup.seen[nj]=1;undoGroup.snaps.push({i:nj,s:JSON.stringify(T(nj))});}
+        apply(nx,ny,false);
+      }
+      for(const[nx,ny]of touched){ // 硬性不變量：位罩重算只影響操作格鄰域，不做全圖校驗
+        if(toolId==='tland')recalcFoamNear(nx,ny);
+        else if(toolId==='traise')recalcElMaskNear(nx,ny);
+        else{recalcFoamNear(nx,ny);recalcElMaskNear(nx,ny);} // tdig：挖出新水面且可能清除高地旗標，foam/em 皆須鄰域重算
+      }
+      break;}
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}
       else if(t.bld){
@@ -4338,6 +4412,13 @@ function buildToolbar(){
     b.textContent=c.nm;b.className=c.id===toolCat?'on':'';
     b.onclick=()=>{toolCat=c.id;buildToolbar();sTick();};
     cats.appendChild(b);
+  }
+  if(toolCat==='terra'){ // T121：地形筆刷尺寸切換（1×1／3×3），僅「地形」分類顯示，重用 #toolcats button 既有樣式
+    const tb=document.createElement('button');
+    tb.textContent='筆刷 '+terraBrush+'×'+terraBrush;
+    tb.className='on';
+    tb.onclick=()=>{terraBrush=terraBrush===1?3:1;buildToolbar();sTick();};
+    cats.appendChild(tb);
   }
   const bar=$('#tools');bar.innerHTML='';
   for(const t of TOOLS){
