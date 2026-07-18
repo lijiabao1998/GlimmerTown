@@ -2324,7 +2324,7 @@ function tick(){
       happySum+=b.h;happyN++;
       if(b.pw&&!b.sick&&!b.death){popN+=Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1));}
     }else if(b.pw){
-      if(b.k===2)jobsC+=JOBSC[b.lv];else jobsI+=JOBSI[b.lv];
+      if(b.k===2)jobsC+=JOBSC[b.lv]*(t.office?1.5:1);else jobsI+=JOBSI[b.lv]; // T79：辦公區商業高就業 ×1.5
     }
   }
   pop=popN;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+st*12+po*10+ai*40+pa*1+tr*6+fa*3+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20;   // T39-T54 就業
@@ -3485,7 +3485,7 @@ function inspect(x,y){
         html+=`<div class="row">居民 ${b.pw?Math.round(POPS[b.lv]*DEN_POP[den-1]):0} 人 ・ 幸福 ${Math.round((b.h||0)*100)}%</div>`;
         html+=`<div class="row">${DEN_NAME[den-1]}住宅</div>`;
       }
-      else html+=`<div class="row">就業 ${b.pw?(b.k===2?JOBSC[b.lv]:JOBSI[b.lv]):0} 人</div>`;
+      else html+=`<div class="row">就業 ${b.pw?(b.k===2?Math.round(JOBSC[b.lv]*(t.office?1.5:1)):JOBSI[b.lv]):0} 人${(b.k===2&&t.office)?'（辦公區 ×1.5）':''}</div>`;
       html+=`<div class="row">${b.pw?'⚡ 供電正常':'⚠️ 沒有電力！'}</div>`;
       html+=`<div class="row">${b.wa?'💧 供水正常':'⚠️ 沒有供水！'}</div>`;
       if(b.crime)html+=`<div class="row" style="color:#ffd45f">🚓 發生犯罪！幸福 -5%（鄰近）</div><button class="hbtn" id="crimeBtn">✅ 處理犯罪</button>`;
