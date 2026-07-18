@@ -2884,11 +2884,15 @@ function updTrains(dt){
   const target=sts.length>=2?Math.min(3,sts.length-1):0;
   while(trains.length<target){
     const si=sts[ri(sts.length)],x=si%N,y=(si/N)|0;
-    const ds=railDirs(x,y);if(!ds.length)break;
-    const d0=ds[ri(ds.length)];
-    trains.push({x:x+DIRV[d0][0],y:y+DIRV[d0][1],d:d0,p:0}); // T63 修正：站牌本身無 rail 旗標（canPlace 禁止蓋在軌道上），生在站牌格會被下方 rail 檢查即時剔除，改生在相鄰軌道格
-    if(trains.length>=target)break;
+    const ds=[];                                             // T63 FIX-F：站牌本身無 rail 旗標，不可用 railDirs(x,y)（其首行要求自身即為 rail 才回傳鄰邊，站牌恆回空陣列致列車永不生成）；改為直接掃描站牌四鄰的 rail 格
+    if(inMap(x,y-1)&&T(idx(x,y-1)).rail)ds.push(0);
+    if(inMap(x+1,y)&&T(idx(x+1,y)).rail)ds.push(1);
+    if(inMap(x,y+1)&&T(idx(x,y+1)).rail)ds.push(2);
+    if(inMap(x-1,y)&&T(idx(x-1,y)).rail)ds.push(3);
     if(!ds.length)break;
+    const d0=ds[ri(ds.length)];
+    trains.push({x:x+DIRV[d0][0],y:y+DIRV[d0][1],d:d0,p:0}); // 生在鄰接的軌道格（站牌格本身不可行走）
+    if(trains.length>=target)break;
   }
   for(let i=trains.length-1;i>=0;i--){
     const c=trains[i];
