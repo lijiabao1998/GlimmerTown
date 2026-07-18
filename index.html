@@ -2472,8 +2472,7 @@ function tick(){
     if(!b||b.k>3||b.crime)continue;
     const x=i%N,y=(i/N)|0;
     if(COV.police[i]>0)continue; // T61：警察局半徑10覆蓋則受保護（原 countNear k===11）
-    const prisonNear=countNear(i%N,(i/N)|0,8,tt=>tt.bld&&!tt.bld.ref&&tt.bld.k===31);
-    if(!prisonNear&&R()<.001*(b.k===2?2:1)*b.lv){
+    if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）
       b.crime=1;
       if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad');sErr();crimeAlert=true;}
     }
