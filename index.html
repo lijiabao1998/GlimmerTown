@@ -4078,6 +4078,10 @@ function checkHints(plants,roads){
   if(plants===0){showHint('h3','👉 蓋一座「⚡ 電廠」，電力會沿道路送到建築');return;}
   if(pop>0&&!hintShown['h4']){
     showHint('h4','🎉 居民入住了！接著劃「🏪 商業」「🏭 工業」提供工作');
+  }else if(pop>=150&&!(region&&region.stations)&&!hintShown['h5']){ // T94：鐵路提示，城市達一定規模且尚無車站時解鎖
+    showHint('h5','🚉 城市漸具規模！工具列「大型」分類可鋪「鐵軌＋火車站」，兩站以上會有列車自動巡迴、還能吸引遊客');
+  }else if(pop>=400&&!(region&&region.airports)&&!hintShown['h6']){ // T94：機場提示，城市達更大規模且尚無機場時解鎖
+    showHint('h6','✈️ 小鎮已頗具規模！蓋一座「大型」分類的機場，能大量吸引遊客、提升全城商業稅收');
   }
 }
 
