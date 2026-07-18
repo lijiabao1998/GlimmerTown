@@ -3940,6 +3940,7 @@ function showStats(){
   // T68 政策快捷（稅率倍率）
   if(pol==null)pol={taxR:1,taxC:1,taxI:1};
   let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0,nS=0,nD=0,nT=0,nW=0,nPol=0,nH=0,nCl=0,nL=0,nPo=0,nCe=0;
+  let nSt=0,nPt=0,nAi=0,nPk=0,nTs=0,nFa=0,nRa=0,nLd=0,nSo=0,nWi=0,nSe=0,nAm=0,nRc=0,nF2=0,nPr=0,nUn=0; // T89：v3.0（T39-T54）新建築計數
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
     if(b.k===1)nR++;else if(b.k===2)nC++;else if(b.k===3)nI++;
     else if(b.k===4)nP++;else if(b.k===5)nE++;else if(b.k===6)nF++;
@@ -3950,7 +3951,25 @@ function showStats(){
     else if(b.k===13)nCl++; // 診所（T34）
     else if(b.k===14)nL++; // 圖書館（T35）
     else if(b.k===15)nPo++; // 郵局（T36）
-    else if(b.k===16)nCe++;} // 墓園（T38）
+    else if(b.k===16)nCe++; // 墓園（T38）
+    else if(b.k===17)nSt++; // 火車站（T39）
+    else if(b.k===18)nPt++; // 港口（T40）
+    else if(b.k===19&&!b.ref)nAi++; // 機場（T41，4×4 只計 root）
+    else if(b.k===20&&!b.ref)nPk++; // 停車場（T43，2×2 只計 root）
+    else if(b.k===21)nTs++; // 輕軌站（T44）
+    else if(b.k===22&&!b.ref)nFa++; // 農場（T46，2×2 只計 root）
+    else if(b.k===23&&!b.ref)nRa++; // 牧場（T46，2×2 只計 root）
+    else if(b.k===24&&!b.ref)nLd++; // 地標（T47，2×2 只計 root）
+    else if(b.k===25&&!b.ref)nSo++; // 太陽能（T48，2×2 只計 root）
+    else if(b.k===26)nWi++; // 風力（T48）
+    else if(b.k===27)nSe++; // 污水廠（T49）
+    else if(b.k===28)nAm++; // 救護站（T50）
+    else if(b.k===29)nRc++; // 回收中心（T51）
+    else if(b.k===30)nF2++; // 高級消防（T52）
+    else if(b.k===31&&!b.ref)nPr++; // 監獄（T53，2×2 只計 root）
+    else if(b.k===32&&!b.ref)nUn++;} // 大學（T54，3×3 只計 root）
+  // T89：v3.0 建築維護費彙總（係數與 tick() 經濟段 T39-T54 維護費公式一致，UI 端獨立彙總顯示供玩家速覽、不改動 tick 本身）
+  const v3Up=nSt*6+nPt*5+nAi*25+nPk*1.5+nTs*4+nFa*1+nRa*1.5+nLd*8+nSo*1+nWi*1.5+nSe*3+nAm*3+nRc*2+nF2*6+nPr*5+nUn*8;
   const f=v=>(v>=0?'+':'')+v.toFixed(1);
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
@@ -3959,6 +3978,7 @@ function showStats(){
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
      <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS} 垃圾場${nD} 體育場${nT} 水塔${nW} 警察局${nPol} 醫院${nH} 診所${nCl} 圖書館${nL} 郵局${nPo} 墓園${nCe}</div>
+     <div class="row" style="font-size:11px;opacity:.75">v3.0：🚉${nSt} ⚓${nPt} ✈️${nAi} 🅿️${nPk} 🚋${nTs} 🌾${nFa} 🐄${nRa} 🗿${nLd} ☀️${nSo} 💨${nWi} 🚰${nSe} 🚑${nAm} ♻️${nRc} 🚒${nF2} 🚔${nPr} 🎓${nUn}　🔧維護-${v3Up.toFixed(1)}</div>
      <div class="row">🗑️ 垃圾 ${garbage.toFixed(1)}/${garbCap}</div>
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
      <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
