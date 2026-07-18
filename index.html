@@ -1739,6 +1739,86 @@ function buildSprites(){
     g.fillStyle='#e8b23e';g.fillRect(46,ay-22,3,2);g.fillRect(52,ay-22,3,2);
     SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});
   }
+  /* ===== T105 裝飾圖鑑擴充：SPR.deco 3→8（石燈籠 v4／小雕像 v5／噴泉座 v6-動畫2幀／花壇 v7／告示牌 v8）
+     置於 buildSprites 絕對尾端（接在 T104 尾端新增之後），不位移任何既有 rand 消耗序；
+     石燈籠夜光另建 night 層（draw() 依 t.deco===4 併入 nightSprites）；噴泉座另建 SPR.decoFtn[0..1] 供 draw() 依 visT 切換 ===== */
+  { // 裝飾 v4 石燈籠（日式石燈籠，燈室夜間發光）
+    const[c,g]=cv(24,36),[s,sg]=cv(24,36),[nc,ng]=cv(24,36);
+    sg.fillStyle='#8d959c';sg.fillRect(8,30,8,4);                     // 底座
+    sg.fillStyle='#767e85';sg.fillRect(9,34,6,1);
+    sg.fillStyle='#9aa2a8';sg.fillRect(10,22,4,8);                    // 燈柱
+    sg.fillStyle='#6d757c';sg.fillRect(10,22,1,8);
+    sg.fillStyle='#8d959c';sg.fillRect(6,14,12,8);                    // 燈室
+    sg.fillStyle='#5a6167';sg.fillRect(6,14,12,2);
+    sg.fillStyle='#ffd77a';sg.fillRect(9,17,6,4);                     // 燈窗（日間亦微亮）
+    sg.fillStyle='#a8b0b8';sg.fillRect(4,10,16,4);                    // 燈笠
+    sg.fillStyle='#767e85';sg.fillRect(6,7,12,4);sg.fillRect(9,3,6,5); // 屋頂＋寶珠
+    outlineSprite(s,44,48,56);
+    g.drawImage(s,0,0);
+    ng.fillStyle='rgba(255,220,150,.35)';ng.fillRect(4,10,16,10);
+    ng.fillStyle='#ffe9a0';ng.fillRect(8,16,8,6);
+    SPR.deco.push({img:c,night:nc,ax:12,ay:34,w:24,h:36});
+  }
+  { // 裝飾 v5 小雕像（石鶴像，公園常見小品）
+    const[c,g]=cv(22,34),[s,sg]=cv(22,34);
+    sg.fillStyle='#8d959c';sg.fillRect(6,28,10,4);                    // 底座
+    sg.fillStyle='#767e85';sg.fillRect(7,32,8,1);
+    sg.fillStyle='#a8b0b8';sg.fillRect(9,22,4,7);                     // 立足／軀幹底
+    sg.fillStyle='#c3cbd1';sg.fillRect(7,12,8,11);                    // 身體
+    sg.fillStyle='#a8b0b8';sg.fillRect(8,13,3,9);
+    sg.fillStyle='#c3cbd1';sg.fillRect(12,5,3,10);                    // 頸
+    sg.fillStyle='#d4dade';sg.fillRect(13,3,4,4);                     // 頭
+    sg.fillStyle='#767e85';sg.fillRect(16,4,3,1);                     // 喙
+    outlineSprite(s,44,48,56);
+    g.drawImage(s,0,0);
+    SPR.deco.push({img:c,ax:11,ay:32,w:22,h:34});
+  }
+  SPR.decoFtn=[];                                                     // 裝飾 v6 噴泉座（2 幀水花動畫，draw() 依 visT 切換）
+  for(let f=0;f<2;f++){
+    const[c,g]=cv(28,22),[s,sg]=cv(28,22);
+    sg.fillStyle='#a9a08c';sg.fillRect(4,16,20,4);                    // 基座
+    sg.fillStyle='#8f8a80';sg.fillRect(4,19,20,1);
+    sg.fillStyle='#c9c2b0';sg.fillRect(6,12,16,5);                    // 水盆邊
+    sg.fillStyle='#4f93cf';sg.fillRect(8,13,12,3);                    // 水面
+    sg.fillStyle='#8f8a80';sg.fillRect(12,9,4,4);                     // 中心柱
+    if(f===0){
+      sg.fillStyle='#bfe4f5';sg.fillRect(13,4,2,6);
+      sg.fillStyle='#eaf6fb';sg.fillRect(11,6,6,2);sg.fillRect(12,3,4,2);
+      sg.fillStyle='#ffffff';sg.fillRect(13,2,2,2);
+    }else{
+      sg.fillStyle='#bfe4f5';sg.fillRect(13,3,2,7);
+      sg.fillStyle='#eaf6fb';sg.fillRect(10,7,8,2);sg.fillRect(12,2,4,2);
+      sg.fillStyle='#ffffff';sg.fillRect(13,1,2,2);sg.fillRect(10,6,1,1);sg.fillRect(17,6,1,1);
+    }
+    outlineSprite(s,60,64,68);
+    g.drawImage(s,0,0);
+    SPR.decoFtn.push({img:c,ax:14,ay:20,w:28,h:22});
+  }
+  SPR.deco.push(SPR.decoFtn[0]);                                      // v6 索引兜底幀（非動畫路徑用；動畫由 draw() 另行讀 SPR.decoFtn）
+  { // 裝飾 v7 花壇（木框培土＋密植花朵，密度高於野花叢 v3 以區隔）
+    const[c,g]=cv(32,22),[s,sg]=cv(32,22);
+    sg.fillStyle='#a8845f';sg.fillRect(4,14,24,6);                    // 木框
+    sg.fillStyle='#8a6a48';sg.fillRect(4,14,24,2);
+    sg.fillStyle='#5a4530';sg.fillRect(6,16,20,3);                    // 培土
+    sg.fillStyle='#4b8f45';sg.fillRect(6,10,20,4);                    // 葉底
+    const fc=['#e0537a','#f2789a','#f2f2f2','#e8c85a','#8f6fd8'];
+    for(let i=0;i<12;i++){sg.fillStyle=fc[i%5];sg.fillRect(6+(i*2)%20,8+((i*3)%6),2,2);}
+    outlineSprite(s,42,58,38);
+    g.drawImage(s,0,0);
+    SPR.deco.push({img:c,ax:16,ay:20,w:32,h:22});
+  }
+  { // 裝飾 v8 木告示牌
+    const[c,g]=cv(20,34),[s,sg]=cv(20,34);
+    sg.fillStyle='#6b4a2f';sg.fillRect(9,20,3,13);                    // 木柱
+    sg.fillStyle='#57402a';sg.fillRect(11,20,1,13);
+    sg.fillStyle='#a8845f';sg.fillRect(2,8,16,11);                    // 牌面
+    sg.fillStyle='#8a6a48';sg.fillRect(2,8,16,2);sg.fillRect(2,17,16,2);
+    sg.fillStyle='#5a4530';sg.fillRect(5,11,10,2);sg.fillRect(6,14,8,2); // 文字線條示意
+    sg.fillStyle='#6b4a2f';sg.fillRect(1,7,2,4);sg.fillRect(17,7,2,4);   // 側支撐
+    outlineSprite(s,42,32,22);
+    g.drawImage(s,0,0);
+    SPR.deco.push({img:c,ax:10,ay:32,w:20,h:34});
+  }
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1806,6 +1886,13 @@ function genWorld(sd){
       for(const[dx,dy]of[[0,-1],[1,0],[0,1],[-1,0]])
         if(inMap(x+dx,y+dy)&&tiles[idx(x+dx,y+dy)].t===0){tl.deco=2;break;} // 蘆葦
     }else if(tl.t===2&&!tl.tree&&!tl.deco&&R()<.01)tl.deco=3;               // 野花叢
+  }
+  // ---- T105 新裝飾散布：石燈籠/小雕像/噴泉座/花壇/告示牌（v4-8）----
+  // 獨立亂數流（自 sd 派生，同 noi/noi2/noi3 手法），不消耗全域 R，不干擾既有地形/樹/deco(1-3) 的既有判定與後續序列
+  const decoR=mulberry32(sd^0x5b1e);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const tl=tiles[idx(x,y)];
+    if(tl.t===2&&!tl.tree&&!tl.deco&&decoR()<.018)tl.deco=4+Math.floor(decoR()*5);
   }
   return water/(N*N);
 }
@@ -3457,8 +3544,10 @@ function draw(dt){
       continue;
     }
     if(!t.bld&&t.deco){
-      const s=SPR.deco[t.deco-1];
-      ctx.drawImage(s.img,o.sx+(32-s.ax)*z,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
+      const s=t.deco===6?SPR.decoFtn[(visT*4)&1]:SPR.deco[t.deco-1]; // T105：噴泉座 v6 依 visT 切換 2 幀動畫
+      const ddx=o.sx+(32-s.ax)*z, ddy=o.sy+(32-s.ay)*z;
+      ctx.drawImage(s.img,ddx,ddy,s.w*z,s.h*z);
+      if(t.deco===4&&s.night)nightSprites.push({img:s.night,x:ddx,y:ddy,w:s.w*z,h:s.h*z}); // T105：石燈籠夜光
       continue;
     }
     const bd=t.bld;
