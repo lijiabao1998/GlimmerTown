@@ -51,6 +51,8 @@ v1.4 批次A 追加：`weather/wxT/flashT`（天氣，不存檔）、`inWinter()
 v1.5 追加：`bld.death`/`deathAge`/`sickDays`（死亡機制，存檔標記欄位 dt；FIX-A 追加可選欄位 skd=sickDays、dtd=deathAge 天數字串，上限 9，舊檔缺欄位容錯為 0）、k=16 墓園、`AudioComposer`/`NPUComposer`（T37/T38）。
 T61 追加：**服務覆蓋計數場 `COV`**（第 5 節 countNear 後）＝18 個 Uint8Array(N*N)：park/plant/fire/school/stadium/police/hospital/clinic/library/post/cemetery/bus/rdec＋v3.0（T67）擴 ambulance(r10)/fire2(r12)/prison(r8)/university(r10)/parking(r8)，各為「該格被幾座對應設施覆蓋」的計數（半徑見 `COVR`）。**運行時重建、不入存檔**（COV 純由 tile 導出）。維護只在唯一資料變更點：`doPlace` 放置 `stampCov(+1)`／拆除 `stampCov(-1)`（單體查 `covFieldOfK`、體育場 4 格逐格、其餘多格 k20/31/32 於 root 一次、rdec/bus 各自分支；FIX-D：k28/30 放置端補蓋對齊 doze 單格撤印，缺蓋會 Uint8 下溢 0→255）、`undoPlace` 誤放電廠撤印；`load`/`newWorld`/`undo` 後 `rebuildCov()` 全量重建。tick 內覆蓋判定改讀 `COV.xxx[idx]>0`（或計數），語義與原 `countNear` 完全一致。**工業(k=3)/犯罪(crime) 為 tick 內生長/火災/每日生滅之動態源，仍用 `countNear`**（未蓋印）。`countNear` 保留供其他用途。GV 追加 `cov(f,x,y)`/`rebuildCov()`。
 v3.0（T39-T60／T62-T100）追加：tile 旗標 `rail/railBridge/railMask`（鐵路）、`tram/tramBridge/tramMask`（輕軌）、`dock`（碼頭）、`wp`（水管，T31）、`office`（辦公區）、`oneway/light`（單行道/號誌）、`busLane`（公車道）、`parkMeter`（停車計費）、`levee/flood`（堤防/洪水）、`abandoned`（廢棄）；`GAME_VER='3.0'`（T100），存檔記 `gameVer`（T93）；§4 新增軌道版遮罩 `recalcRailMask(x,y)`（單格）與 `recalcRailMask4(x,y)`（自己＋四鄰，FIX-D 起 rail/tram 放置與拆除統一改用），§11 新增 `recalcAllRailMasks()`（對照道路版 recalcAllMasks，load／undo 後全量補算）。
+v3.2（T106-T115）追加：**污染擴散場 `POL` 家族**（T110，仿 §2 T61 `COV` 家族同款設計）＝`POL/POLBASE/POLTREE` 三個 Uint8Array(N*N)：`POLBASE`＝污染源原始衰減和、`POLTREE`＝樹木減免累計，對外曝光的 `POL` 由 `recomputePol(i)` 衍生（`POLBASE[i]-POLTREE[i]` 夾 0，避免 Uint8 無號下溢）；污染源表 `POL_SRC={3:{r:5,p:30},5:{r:6,p:40},8:{r:5,p:26},19:{r:6,p:34}}`（工業/電廠/垃圾場/機場，半徑內 Chebyshev 距離衰減）；`stampPolSrc`/`stampPolTree` 於 `doPlace`/`doze`/`undoPlace` 成對呼叫（唯二繞過 doPlace 的合法異動點：工業(k=3) tick 內生長新生成/燒毀焦土），`rebuildCov()` 同一次全圖掃描內順帶重建 POL（load/newWorld/undo 自動覆蓋）；住宅幸福公式接入 `-POL[ci]*.006`。GV 追加 `polAt(x,y)`（避開與稅率政策全域 `pol` 撞名）。
+其餘 v3.2 運行時全域（皆「每天重算或事件觸發、不入存檔本體」類，比照既有 `garbage`/`foodPoints` 慣例）：`happyParts`/`happyAgg`（T111，幸福構成明細，`tick()` 每日重算，GV 追加 `happyBreakdown()`）；`hist`（T112，`{d,money,net,pop,happy}` 環形緩衝上限 365 筆，`tick()` 尾端 push，GV 追加 `hist()`）；`log`/`unread`（T114，`toast()` 選填 x/y 座標同步 push `{d,m,c,x?,y?}` 進 log 上限 100 筆，HUD 🔔 按鈕讀 unread，GV 追加 `log()`/`unread()`）；`diff`（T115，難度 0-3＝簡單/標準/困難/沙盒，`DIFF_MONEY`/`DIFF_HAZ` 查表，沙盒經 `placeCost()`/`tick()` 短路免建造費與稅收維護費結算，GV 追加 `diff()`/`setDiff()`）。`hist`/`log`/`unread`/`diff` 四者 `newWorld()` 皆歸零（FIX-N 補齊 hist/log/unread；鐵律7：新全域須同步 newWorld 重置）。
 快捷鍵現狀（詳見 §8 全表）：1=檢視、2-6=五級道路（小巷/支路/次幹道/主幹道/快速路）、7=住宅 8=商業 9=工業 0=公園、'-'=拆除、'='=路飾、b=公車站、w=水塔、g=水管、j=警察局、h=醫院、c=診所、l=圖書館、o=郵局、m=墓園（電廠/消防局/學校/垃圾場/體育場/種樹/填草無鍵位；FIX-A：水管 p→g、警察局 P→j、取消大寫 P 綁定）。序列化命名地雷：存檔 `rc`=路飾（0/1）、`rcl`=道路等級（0-5），二者命名相近勿混淆。
 v1.4 批次B 追加：`t.hw` 高速路（rd 存檔值 0-4）、**多格建築架構**（k=9 體育場 2×2：root 含 sz、其餘格 `{k,ref:[rx,ry]}`，
 所有迴圈遇 ref 跳過、doze 全清、bl 只存 root 第 6 位存 sz）、`t.el/t.em` 高地與崖沿位罩（存檔欄位 el）、
@@ -76,6 +78,7 @@ v1.3 追加：`bld.fire`（0 或已燃天數，≥5 燒毀）、`t.ruin`（焦�
 - 幸福：基礎 .62 ＋公園(4格內) −工業(3格內)*.09 −電廠(4格內)*.18 −無電.3，夾在 .05~1。
 - 電力：`computePower()` 從每座電廠四鄰道路做 BFS（上限 90 步）標記 `rp`；建築需「2 格內有 rp 道路」且全城供電數 ≤ 電廠數*50。
 - 里程碑 `MILES`：人口 [50,150,400,900,1600,2600] → 獎金。破產保底：資金<20 且入不敷出且距上次>60天 → 送 250。
+- **v3.2（T109）需求模型更新**：上面「需求」三式為 v3.0 基線，T109 起 `tick()` 內改為：住宅 `dem[1]=clamp(jobSurplus*.7+happyAdj*.3,-1,1)`（`jobSurplus` 沿用原 `(jobs*1.2+25-workers)/70` 算式、`happyAdj=(cityHappy-.6)*1.2`）；商業 `dem[2]=clamp((pop/max(1,czone)-3)/6,-1,1)`（`czone`＝全圖商業分區格數，含未建成，`tick()` 內每日重新計數）；工業 `dem[3]=clamp((jobsC*.8-jobsI)/40,-1,1)`（商業貨源缺口）。生長機率式同步改為 `p=.10*(1+dem[z]*.6*hf)`（`hf`＝既有住宅幸福係數，`dem[z]<-.5` 時該類 `p=0` 停長），取代舊 `p=.10+.5*max(0,dem)`；升級式另疊加 T113 多因子門檻：`lv1→2` 需 `COV.police[i]>0`、`lv2→3` 需 `COV.school[i]>0 && POL[i]<POL_LV3_MAX`（`POL_LV3_MAX=15`），純 AND 疊加於原 `dem>.15` 等既有條件，不改動 roll 機率算式本身。`dem` 本身在 v3.0/v3.2 皆不入存檔，`tick()` 每日重算。
 
 ## 4. 座標系統（動渲染必讀）
 
@@ -84,6 +87,7 @@ v1.3 追加：`bld.fire`（0 或已燃天數，≥5 燒毀）、`t.ruin`（焦�
 - **螢幕變換**：`z=cam.z`（裝置像素整數倍率 1..4），`ox=round(W/2-cam.x*z)`；
   tile 左上角螢幕座標 `sx=ox+((x-y)*32-32)*z`，`sy=oy+((x+y)*16)*z`。
 - **反變換**（滑鼠→格子）`toTile()`：`fx=(wx/32+wy/16)/2`，`fy=(wy/16-wx/32)/2`。
+- **v3.2（T106）縮放階梯更新**：上一條「裝置像素整數倍率 1..4」為 v3.0 基線；T106 起 `cam.z` 改為乘法檔位階梯 `ZOOMS=[0.25,0.35,0.5,0.7,1,1.4,2,2.8,4]`（√2 步進，`zoomIdx(z)` 回傳最近索引），`zoomStep(d,...)` 索引階梯移動（滾輪/±鈕/捏合三處呼叫介面不變）；`z<1`（含 `z<0.5` 更遠檔位）觸發 T107 遠景 LOD（`draw()` 內 `lodFar`/`lodMini` 旗標，只裁「畫」不裁「算」：地面實色菱形取代貼圖、車/煙個體與路面裝飾不畫、`z<0.5` 建築退化為色塊）；`clampCam()` 在 `z<1` 時按 `1/z` 比例放寬邊界，`z≥1` 邊界公式與 v3.0 完全一致。T108 新增換檔緩動全域 `zoomAnim`（`{from,to,t,dur,mx,my,wx,wy}`，null＝未在動畫；`updateZoomAnim(dtReal)` 於 `advance()` 起手呼叫，只認真實時間，動畫期間 `draw()` 地面層改以 `groundCache` 原圖按比例縮放重貼、落檔瞬間精確等於硬切結果）；捏合改連續比例縮放（`pinchBase.d0/z0` 基準）＋單擊/雙指雙擊快捷縮放。`newWorld()`/`load()` 需連帶清空 `zoomAnim`（FIX-M，避免換檔動畫進行中開新圖/讀檔被舊動畫覆寫相機值）。
 - **錨點約定**：每個物件 sprite 記錄 `{ax,ay,w,h}`，(ax,ay) 對應**該格底頂點**。
   繪製：`drawImage(img, sx+(32-ax)*z, sy+(32-ay)*z, w*z, h*z)`。
 - **位向約定**（road mask / diaEdge edges / foam wm 共用）：
@@ -152,6 +156,7 @@ k=1~3 住宅／商業／工業的 `SPR.bld['k_lv_v']` 不再寫死 if 分支，�
 `{v:1, gameVer, seed, money, day, msIdx, cam:{x,y,z}, ter, tre, rd, zn, dc, rn, rc, rcl, wp, el, bs, cm, sk, dt, skd, dtd, bl, ach, nm, ln, star, rl, rb, dk, ow, tl, pm, bln, tr, of, fl, le, ab, pol, region}`
 其中 `gameVer`＝`GAME_VER`（T93，現 '3.0'；僅記錄用，讀檔仍以 `v===1` 為準）；ter/tre/rd/zn/dc 等是長 N*N 的數字字串（rd：0無 1路 2橋 3高速 4高速橋；dc＝deco；rn焦土 rc路飾 rcl道路等級 wp水管 el高地 bs公車站 cm犯罪 sk生病 dt死亡 skd/dtd病亡天數；rl/rb鐵路/鐵路橋 dk碼頭 ow單行 tl號誌 pm停車計費 bln公車道 tr輕軌 of辦公 fl洪水 le堤防 ab廢棄，皆對應 §2 同名 tile 旗標）；`bl=[[i,k,lv,v,age(,sz|fire)(,den)],...]`（多格建築只存 root，k=9 第 6 位存 sz；其餘多格 k=19/20/22-25/31/32 **不存 sz**——fire 只發生於 k≤3、第 6 位對這些 k 恆缺，load 依 `MSZ` 表由 k 反查補回 root 的 sz 再重建 ref 格，舊檔天然相容，FIX-J）；
 `ach`＝已解鎖成就 id 陣列；`nm`＝鎮名；`ln`＝貸款 `[remain,daily]`；`star`＝最佳星等；`pol`＝稅率政策物件（T55/T68）、`region`＝區域聯動摘要（T60/T73）。dc 之後所有欄位均為可選欄位（舊檔容錯）。
+v3.2 追加三個可選欄位（皆 §2/§8 所述運行時全域的存檔鏡射，舊檔缺欄位容錯為空/預設值，讀寫對稱於 `save()`/`load()`）：`hi`＝歷史曲線（T112，拆成 `{d0,m,n,p,h}` 並列數字陣列壓縮體積而非逐筆存物件，`d0`＝起始日，`m/n/p/h`＝money/net/pop/happy 四條等長陣列，`load()` 依 `d0` 重建回 `hist` 逐筆物件陣列）；`nl`＝通知日誌（T114，`log` 陣列原樣存入，上限 100 筆，`load()` 還原後 `unread` 歸零＝讀檔視為已讀）；`df`＝難度（T115，0-3＝簡單/標準/困難/沙盒，`load()` 缺欄位或越界視為 1 標準）。
 讀檔後重算 mask/foam＋`recalcAllRailMasks()`（FIX-D：rl/tr 還原時 railMask/tramMask 歸零需全量補算）＋rebuildCov；`pop/jobs/pw/h` 由下一次 tick 重算，不存。
 **覆寫保險（FIX-D）**：save／importShare 覆寫主鍵前先把舊值備份到 `<key>_bak`；setItem 失敗 `console.warn` 不再靜默；load 主鍵毀損先嘗試救 `_bak`，importShare 失敗還原舊檔。
 **變更規則見 RULES 第 9 條。** 音效設定另存 `.snd`（0/1/2，舊 `.mute` 自動遷移）。
