@@ -345,6 +345,8 @@ let diff=1;                  // T115：難度 0簡單/1標準/2困難/3沙盒（
 const DIFF_NM=['😊 簡單','⚖️ 標準','🔥 困難','🧪 沙盒'];
 const DIFF_MONEY=[5000,3000,1500,3000]; // 各難度起始資金（沙盒僅供顯示基準，建造實際免費不扣款）
 const DIFF_HAZ=[.5,1,1.5,1];            // 各難度天氣災害機率倍率（沙盒同標準倍率，另開放手動觸發）
+let tornado=null;          // T116：龍捲風實體（null 或 {x,y,dx,dy,life}）；不進存檔，讀檔／新圖即消散
+let riot=null;              // T118：暴亂狀態（null 或 {cells:[i,...],days:N}）；受影響住宅同步標記 bld.riot=1；存檔可選欄位 riot
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
 const cam={x:0,y:0,z:3};
@@ -1841,6 +1843,42 @@ function buildSprites(){
     g.drawImage(s,0,0);
     SPR.deco.push({img:c,ax:10,ay:32,w:20,h:34});
   }
+  /* ===== T116 龍捲風漏斗雲：灰色錐形 3 幀旋轉動畫（不描邊，半透明雲霧質感），置於 buildSprites 絕對尾端，
+     不位移任何既有 rand 消耗序；draw() 依 tornado 狀態與 visT 挑幀疊代顯示 ===== */
+  SPR.tornado=[];
+  for(let f=0;f<3;f++){
+    const[c,g]=cv(40,80);
+    const cx=20;
+    g.fillStyle='rgba(118,120,128,.82)';
+    for(let y=4;y<78;y++){
+      const tt=(y-4)/74;                                    // 0 頂(細)→1 底(寬)
+      const wobble=Math.round(Math.sin(y*.5+f*2.1)*2);
+      const w=Math.max(1,Math.round(2+tt*16)+wobble);
+      g.fillRect(cx-w+wobble,y,w*2,1);
+    }
+    g.fillStyle='rgba(205,206,210,.45)';
+    for(let y=6;y<72;y+=6){
+      const tt=(y-4)/74,w=Math.round(2+tt*16);
+      g.fillRect(cx-w+2+((y+f*3)%5),y,3,1);
+    }
+    g.fillStyle='rgba(70,72,78,.5)';
+    g.fillRect(cx-18,76,36,3);                              // 觸地塵土
+    SPR.tornado.push({img:c,ax:cx,ay:79,w:40,h:80});
+  }
+  /* ===== T117 隕石坑：焦黑環（覆蓋於地形之上，同 SPR.ruin 尺寸 64×32 扁平菱形）＋餘燼夜光層，
+     置於 buildSprites 絕對尾端（接在 T116 尾端新增之後），不位移任何既有 rand 消耗序 ===== */
+  {
+    const[c,g]=cv(64,32),[nc,ng]=cv(64,32);
+    dia(g,32,0,32,'#2a2624');
+    speck(g,32,0,32,['#1c1918','#3a332e','#241f1c'],70,rand);
+    diaEdge(g,6,'#161311');
+    diaEdge(g,9,'#3d3630');
+    dia(g,32,8,16,'#100e0d');                                // 坑底更深色
+    speck(g,32,8,16,['#241f1c','#0c0a09'],40,rand);
+    ng.fillStyle='rgba(255,120,40,.5)';ng.fillRect(24,10,16,8); // 餘燼夜光
+    ng.fillStyle='rgba(255,180,80,.6)';ng.fillRect(28,12,8,4);
+    SPR.crater={img:c,night:nc};
+  }
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1966,7 +2004,7 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）
-  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰
+  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動
@@ -2031,6 +2069,7 @@ function canPlace(toolId,x,y){
   if(!inMap(x,y))return '超出地圖';
   const t=T(idx(x,y));
   if(t.ruin&&toolId!=='doze')return '焦土需先清理';
+  if(t.crater&&toolId!=='doze')return '隕石坑需先剷除';                        // T117：拆除隕石坑走 doze 鏈最小分支
   switch(toolId){
     case 'alley':case 'road':case 'coll':case 'art':case 'hwy':{
       const rcTarget=roadToolToRc(toolId);
@@ -2074,7 +2113,7 @@ function canPlace(toolId,x,y){
       if(t.t!==1)return '只能填在沙地上';
       return null;
     case 'doze':
-      if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood&&!t.wp)return '這裡沒東西';
+      if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood&&!t.wp&&!t.crater)return '這裡沒東西'; // T117：隕石坑加入可拆除判定
       return null;
     // T39-T60 新工具
     case 'rail':
@@ -2186,7 +2225,7 @@ function placeCost(toolId,x,y){
     case 'bus':c=COST.bus;break;
     case 'tree':c=COST.tree;break;
     case 'fill':c=COST.fill;break;
-    case 'doze':c=COST.doze;break;
+    case 'doze':c=t.crater?120:COST.doze;break; // T117：隕石坑剷除定價 $120（一般拆除仍為 COST.doze）
     // T39-T60
     case 'rail':if(t.rail)return 0;c=t.t===0?COST.railBridge:COST.rail;break;
     case 'station':c=COST.station;break;
@@ -2318,6 +2357,7 @@ function doPlace(toolId,x,y,silent){
       break;
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}
+      else if(t.crater){t.crater=0;} // T117：剷除隕石坑（$120，見 placeCost）；優先於 zone/tree 等判定，比照 ruin 慣例最高優先——避免落點若曾被劃分區時，因 zone 分支先命中而永遠剷不掉坑（剷後 tick() 不再對此格擲火）
       else if(t.bld){
         // 多格建築統一清理：先解析 root 再取 sz（ref 格只有 {k,ref} 無 sz，直接讀會落單格分支留孤兒）
         const r=t.bld.ref||[x,y];
@@ -2637,6 +2677,23 @@ function hasWaterNear(x,y,r=2){
   }
   return false;
 }
+// T117：隕石落點共用邏輯（tick() 自動觸發／GV.meteor(x,y) 手動鉤子共用，避免兩處邏輯分岔）
+// 半徑2（Chebyshev）內建築→既有廢墟鏈、樹木清空；中心格改設隕石坑地物 crater（與 ruin 互斥，坑不再另計焦土）；
+// 複用地震 shakeT 震屏＋既有 flashT 全屏閃光；toast 帶座標供 T114 通知中心跳轉。
+function meteorStrike(cx,cy){
+  if(!inMap(cx,cy))return false;
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+    const nx=cx+dx,ny=cy+dy;
+    if(!inMap(nx,ny))continue;
+    const nt=T(idx(nx,ny)),nb=nt.bld;
+    if(nb&&!nb.ref&&nb.k<=3){if(nb.k===3)stampPolSrc(nx,ny,3,-1);nt.bld=null;if(!(dx===0&&dy===0))nt.ruin=1;}
+    if(nt.tree)nt.tree=0;
+  }
+  const ct=T(idx(cx,cy));ct.ruin=0;ct.crater=1;
+  shakeT=.45;flashT=.4;
+  toast('☄️ 隕石墜落！留下隕石坑並持續起火，需付費剷除','bad',cx,cy);sErr();
+  return true;
+}
 function tick(){
   day++;
   // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
@@ -2816,6 +2873,68 @@ function tick(){
         if(b&&!b.ref&&b.k<=3&&!b.fire){b.fire=1;hit++;if(qi<0)qi=i;} // T114：記第一棟座標供通知中心跳鏡頭
       }
       if(hit){toast('🌋 地震！部分建築起火','bad',qi%N,(qi/N)|0);sErr();}
+    }
+    // T116：龍捲風——低機率生成一條隨機直線路徑的移動災害，每天沿路徑推進 1 格，所到之格建築轉廢墟／樹木吹倒
+    if(!tornado&&R()<.0006*DIFF_HAZ[diff]){
+      const tx0=ri(N),ty0=ri(N);
+      let tdx=ri(3)-1,tdy=ri(3)-1;if(!tdx&&!tdy)tdx=1; // 排除靜止方向
+      tornado={x:tx0,y:ty0,dx:tdx,dy:tdy,life:18+ri(18)};
+      toast('🌪️ 龍捲風來襲！沿途建築恐成廢墟','bad',tx0,ty0);sErr();
+    }
+    if(tornado){
+      tornado.x+=tornado.dx;tornado.y+=tornado.dy;tornado.life--;
+      if(inMap(tornado.x,tornado.y)){
+        const tti=idx(tornado.x,tornado.y),ttl=tiles[tti],ttb=ttl.bld;
+        if(ttb&&!ttb.ref&&ttb.k<=3){if(ttb.k===3)stampPolSrc(tornado.x,tornado.y,3,-1);ttl.bld=null;ttl.ruin=1;}
+        if(ttl.tree)ttl.tree=0;
+      }else tornado.life=0;
+      if(tornado.life<=0||!inMap(tornado.x,tornado.y))tornado=null;
+    }
+    // T117：隕石——低機率隨機落點，半徑2摧毀並留下隕石坑；坑存在期間每日對鄰域擲火（複用 ignite 同款蔓延判定）
+    // 擲火範圍取半徑3（Chebyshev）：略大於摧毀半徑2，讓落點外緣倖存或事後重建的建築仍面臨持續起火風險
+    if(R()<.0004*DIFF_HAZ[diff])meteorStrike(ri(N),ri(N));
+    for(let i=0;i<N*N;i++){
+      if(!tiles[i].crater||R()>=.12)continue;
+      const cx=i%N,cy=(i/N)|0,copts=[];
+      for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+        if(!dx&&!dy)continue;
+        const nx=cx+dx,ny=cy+dy;if(!inMap(nx,ny))continue;
+        const cb=T(idx(nx,ny)).bld;
+        if(cb&&!cb.ref&&cb.k<=3&&!cb.fire)copts.push(cb);
+      }
+      if(copts.length)copts[ri(copts.length)].fire=1;
+    }
+    // T118：暴亂——幸福過低且存在高犯罪住宅簇時低機率觸發，封鎖鄰接道路直到警局自然平息或付費鎮壓（複用既有犯罪場 countNear 判定手法，同 T111 幸福構成 crime 局部密度算式）
+    if(!riot&&cityHappy<.3){
+      const hot=[];
+      for(let i=0;i<N*N;i++){
+        const b=tiles[i].bld;
+        if(!b||b.k!==1||b.ref)continue;
+        const hx=i%N,hy=(i/N)|0;
+        if(countNear(hx,hy,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime)>=2)hot.push(i);
+      }
+      if(hot.length&&R()<.05*DIFF_HAZ[diff]){
+        const cells=hot.slice(0,10);
+        for(const ci of cells){const cb=tiles[ci].bld;if(cb)cb.riot=1;}
+        riot={cells,days:10+ri(10)};
+        toast('🔥 暴亂爆發！封鎖道路，警局可自然平息或付費鎮壓','bad',cells[0]%N,(cells[0]/N)|0);sErr();
+      }
+    }
+    if(riot){
+      const kept=[];
+      for(const ci of riot.cells){
+        const rb=tiles[ci].bld;
+        if(!rb||rb.k!==1)continue;                        // 建築已消失（拆除／其他災害摧毀）：自動移出名單
+        if(COV.police[ci]>0&&R()<.5){rb.riot=0;continue;}  // 警局覆蓋 → 高機率自然平息（逐格獨立判定）
+        kept.push(ci);
+      }
+      riot.days--;
+      if(!kept.length||riot.days<=0){
+        for(const ci of kept){const rb=tiles[ci].bld;if(rb)rb.riot=0;}
+        riot=null;
+      }else{
+        riot.cells=kept;
+      }
     }
   }
   if(shakeT>0)shakeT=Math.max(0,shakeT-0.05);
@@ -3007,7 +3126,7 @@ function tick(){
     else if(b.k===30);                // 高級消防（T52）
     else if(b.k===31);                // 監獄（T53）
     else if(b.k===32);                // 大學（T54）
-    else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned){
+    else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot){ // T118：暴亂中住宅停稅收
       const pm=pol||{taxR:1,taxC:1,taxI:1};
       if(b.k===1){const v2=POPS[b.lv]*.12*(pm.taxR||1);income+=v2;taxR+=v2;}
       else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1);income+=v2;taxC+=v2;}
@@ -3094,6 +3213,17 @@ function roadDirs(x,y){
   return out;
 }
 const DIRV=[[0,-1],[1,0],[0,1],[-1,0]];
+// T118：暴亂封路——道路 8 鄰（含自身）內若有正在暴亂的住宅（bld.riot=1）即視為封鎖；riot 為 null 時快速回傳 false
+function riotBlockedRoad(x,y){
+  if(!riot)return false;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    const nx=x+dx,ny=y+dy;
+    if(!inMap(nx,ny))continue;
+    const rb=T(idx(nx,ny)).bld;
+    if(rb&&rb.k===1&&rb.riot)return true;
+  }
+  return false;
+}
 function updCars(dt){
   const target=clamp(Math.floor(pop/45),0,32);
   if(cars.length<target&&Math.random()<.1){
@@ -3101,7 +3231,7 @@ function updCars(dt){
     for(let tries=0;tries<30;tries++){
       const x=ri(N),y=ri(N);
       const t=T(idx(x,y));
-      if(t.road&&t.mask){
+      if(t.road&&t.mask&&!riotBlockedRoad(x,y)){ // T118：暴亂封鎖路段不生成新車
         let ds=roadDirs(x,y);
         if(t.oneway>=1&&t.oneway<=4){const od=t.oneway-1;if(ds.includes(od))ds=[od];} // T77：出生於單行道須順向
         const d=ds[ri(ds.length)];
@@ -3119,6 +3249,7 @@ function updCars(dt){
     if(nearC>=2)speed*=.55;
     if(tcar.light)speed*=.5; // T78：號誌路口增速減半
     if(tcar.busLane)speed*=1.05;
+    if(riotBlockedRoad(c.x,c.y))speed=0; // T118：暴亂封鎖路段車速歸零
     c.p+=dt*1.4*speed;
     if(c.p>=1){
       c.p-=1;
@@ -3131,7 +3262,12 @@ function updCars(dt){
       if(tc.oneway>=1&&tc.oneway<=4){const od=tc.oneway-1;if(ds.includes(od))ds=[od];}
       const rev=(c.d+2)%4;
       const fwd=ds.filter(d=>d!==rev);
-      c.d=fwd.length?fwd[ri(fwd.length)]:rev;
+      let fwdOk=fwd;
+      if(riot){ // T118：暴亂封鎖路段車輛繞行——優先挑不通往封鎖鄰格的方向，全被封鎖時才維持原候選（避免卡死）
+        const clear=fwd.filter(d=>!riotBlockedRoad(c.x+DIRV[d][0],c.y+DIRV[d][1]));
+        if(clear.length)fwdOk=clear;
+      }
+      c.d=fwdOk.length?fwdOk[ri(fwdOk.length)]:rev;
     }
   }
   const capC=Math.floor((target+4)*(quality===0?.5:quality===2?1.4:1));
@@ -3150,6 +3286,7 @@ function updSmoke(dt){
       let offs=null,dark=false;
       if(b.k===3&&b.lv>=2&&b.pw)offs=SPR.bld[b.k+'_'+b.lv+'_'+b.v].smoke;
       if(b.k===5){offs=SPR.plant.smoke;dark=true;}
+      if(b.k===1&&b.riot){offs=[{dx:0,dy:-42}];dark=true;} // T118：暴亂住宅複用既有煙粒繪製火把/騷亂煙霧（不新建 sprite，屋頂上方固定一點冒煙）
       if(!offs||!offs.length)continue;
       if(Math.random()<.5)continue;
       const o=offs[ri(offs.length)];
@@ -3476,6 +3613,10 @@ function draw(dt){
       if(t.t===0&&t.wm)gc.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
       if(t.em)gc.drawImage(SPR.cliffEdge[t.em],sx,sy,64*z,32*z);           // 內陸崖沿（T24）
       if(t.ruin)gc.drawImage(SPR.ruin,sx,sy,64*z,32*z);
+      if(t.crater){                                                          // 隕石坑（T117）：焦黑環＋餘燼夜光（仿路飾/公車站 rdecGlow 慣例）
+        gc.drawImage(SPR.crater.img,sx,sy,64*z,32*z);
+        rdecGlow.push({img:SPR.crater.night,x:sx,y:sy,w:64*z,h:32*z});
+      }
       if(t.wp){                                                              // 地下水管（T31）：地面層繪製小藍標記
         gc.fillStyle=t.wr?'#4a9fd4':'#3a7fa8';
         gc.fillRect(sx+30*z,sy+14*z,4*z,2*z);
@@ -3571,6 +3712,11 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,tram:tc,wx,wy,trd:tc.d});
   }
+  if(tornado){                                             // T116：龍捲風漏斗雲，位置隨 tick() 逐日推進（非每幀內插，同深度規則插入 objs）
+    const fx=tornado.x, fy=tornado.y;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.015,torn:true,wx,wy});
+  }
   if(!lodFar)for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s}); // T107：z<1 不畫煙粒個體（updSmoke 模擬照跑）
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
@@ -3639,6 +3785,12 @@ function draw(dt){
         const v=DIRSCR[o.trd];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
       }
+      continue;
+    }
+    if(o.torn){                                            // 龍捲風漏斗雲（T116）：3 幀依 visT 旋轉，半透明疊加不參與夜燈層
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const fr=SPR.tornado[Math.floor(visT*4)%SPR.tornado.length];
+      ctx.drawImage(fr.img,sx+(32-fr.ax)*z,sy+(32-fr.ay)*z,fr.w*z,fr.h*z);
       continue;
     }
     if(o.smoke){
@@ -4608,7 +4760,8 @@ function showStats(){
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
      <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
      <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
-     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button></div>':''}
+     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button>　🌪 <button class="hbtn" id="sbTornado">觸發龍捲風</button>　☄️ <button class="hbtn" id="sbMeteor">觸發隕石</button>　⚔️ <button class="hbtn" id="sbRiot">觸發暴亂</button></div>':''}
+     ${riot?`<div class="row" style="color:#ff8a5c">🔥 暴亂中（${riot.cells.length} 戶封路）<button class="hbtn" id="riotBtn">🚔 鎮壓 $200</button></div>`:''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
   // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
@@ -4629,7 +4782,27 @@ function showStats(){
       if(cand.length){const ci=cand[(Math.random()*cand.length)|0];ok=GV.ignite(ci%N,(ci/N)|0);} // Math.random()：手動 UI 動作不消耗共用種子流 R()
       toast(ok?'🔥 沙盒：手動觸發火災':'找不到可燃燒的建築','bad');
     });
+    const bTo=$('#sbTornado');if(bTo)bTo.addEventListener('click',()=>{ // T116：沙盒手動觸發龍捲風
+      if(GV.tornado())toast('🌪 沙盒：手動觸發龍捲風');else toast('龍捲風已被設定關閉','bad');
+    });
+    const bMe=$('#sbMeteor');if(bMe)bMe.addEventListener('click',()=>{ // T117：沙盒手動觸發隕石（隨機落點，Math.random() 不消耗共用種子流 R()，同 sbFire 慣例）
+      const mx=(Math.random()*N)|0,my=(Math.random()*N)|0;
+      if(GV.meteor(mx,my))toast('☄️ 沙盒：手動觸發隕石');else toast('隕石已被設定關閉','bad');
+    });
+    const bRi=$('#sbRiot');if(bRi)bRi.addEventListener('click',()=>{ // T118：沙盒手動觸發暴亂（需城市確有低幸福＋高犯罪住宅簇，否則提示原因）
+      const ok=GV.riot();
+      toast(ok?'⚔️ 沙盒：手動觸發暴亂':(disastersOn?'需城市幸福<30%且有高犯罪住宅簇才能觸發':'暴亂已被設定關閉'),'bad');
+    });
   }
+  const riotBtn=$('#riotBtn');                              // T118：鎮壓暴亂鈕（不限沙盒，riot 存在時即顯示；一次性鎮壓費 $200 固定扣款，事件綁定同 bLoan 慣例）
+  if(riotBtn)riotBtn.addEventListener('click',()=>{
+    if(!riot)return;
+    if(money<200){toast('資金不足，無法鎮壓','bad');return;}
+    money-=200;
+    for(const ci of riot.cells){const rb=tiles[ci].bld;if(rb)rb.riot=0;}
+    riot=null;
+    toast('🚔 鎮壓成功，暴亂已全數解除','gold');sTick();showStats();
+  });
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
   if(lb)lb.addEventListener('click',()=>{
     money+=2000;loan={remain:20,daily:120};
@@ -4782,6 +4955,7 @@ function save(){
     const bl=[];
 	    let ter='',tre='',rd='',zn='',dc='',rn='',rc='',rcl='',wp='',el='',bs='',cm='',sk='',dt='',skd='',dtd='';
 	    let rl='',rb='',dk='',ow='',tl='',pm='',bln='',tr='',of='',fl='',le='',ab=''; // T39-T60
+	    let ctr=''; // T117：隕石坑（可選欄位）
     for(let i=0;i<N*N;i++){
       const t=tiles[i];
       ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;rcl+=String.fromCharCode(48+(t.rc||0));wp+=t.wp?1:0;el+=t.el?1:0;bs+=t.bus?1:0; // bs：公車站（T26）
@@ -4795,6 +4969,7 @@ function save(){
 	      ow+=t.oneway||0;tl+=t.light?1:0;pm+=t.parkMeter?1:0; // T42-T43
 	      bln+=t.busLane?1:0;tr+=t.tram?1:0;of+=t.office?1:0; // T44-T45
 	      fl+=t.flood?1:0;le+=t.levee?1:0;ab+=t.abandoned?1:0; // T56-T58
+	      ctr+=t.crater?1:0; // T117：隕石坑
       if(t.bld&&!t.bld.ref){                             // 多格建築只存 root（T22）
         const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];
         if(t.bld.k===9)e.push(t.bld.sz||2);              // k=9：第 6 位存 sz（fire 永不發生在 k=9，無歧義，T22）
@@ -4810,9 +4985,11 @@ function save(){
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,skd,dtd,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar,
       rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region, // T39-T60 新欄位（可選）
+      ctr, // T117：隕石坑（可選欄位，仿 flood/ruin 先例）
       df:diff, // T115：難度／沙盒（可選欄位，舊檔載入預設 1 標準）
       hi:hist.length?{d0:hist[0].d,m:hist.map(h=>h.money),n:hist.map(h=>h.net),p:hist.map(h=>h.pop),h:hist.map(h=>h.happy)}:null, // T112：歷史曲線（拆成並列數字陣列壓縮體積，可選欄位）
-      nl:log}; // T114：通知中心日誌（可選欄位，最多 100 筆）
+      nl:log, // T114：通知中心日誌（可選欄位，最多 100 筆）
+      riot:riot?{cells:riot.cells,days:riot.days}:null}; // T118：暴亂狀態（可選欄位，仿 loan 慣例存最小結構）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
     if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
@@ -4848,7 +5025,8 @@ function load(slot){
         tram:d.tr?+d.tr[i]:0,tramBridge:0,tramMask:0, // T44
         office:d.of?+d.of[i]:0, // T45
         flood:d.fl?+d.fl[i]:0,levee:d.le?+d.le[i]:0, // T56-T57
-        abandoned:d.ab?+d.ab[i]:0 // T58
+        abandoned:d.ab?+d.ab[i]:0, // T58
+        crater:d.ctr?+d.ctr[i]:0 // T117：隕石坑（可選欄位，舊檔缺 ctr 容錯為 0）
       };
     }
     for(let i=0;i<N*N;i++)if(tiles[i].road&&!tiles[i].rc)tiles[i].rc=tiles[i].hw?5:2; // 舊檔無 rc：支路=2、原高速=5（T29）
@@ -4877,7 +5055,7 @@ function load(slot){
     money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
     loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
-    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0; // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化
+    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null; // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
     recalcAllRailMasks(); // 軌道遮罩全量重算：rl/tr 還原時 railMask/tramMask 歸零（對照道路版）
@@ -4886,9 +5064,14 @@ function load(slot){
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
-    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;pol=null;region={}; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）
+    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
+    if(d.riot&&Array.isArray(d.riot.cells)){ // T118：暴亂狀態還原（可選欄位）；此時 tiles/bld 已重建完畢，逐格核對建築仍存在才收錄並同步標記 bld.riot
+      const cells=[];
+      for(const ci of d.riot.cells){const b=tiles[ci]&&tiles[ci].bld;if(b&&b.k===1){b.riot=1;cells.push(ci);}}
+      if(cells.length)riot={cells,days:Math.max(1,d.riot.days|0)};
+    }
     diff=(d.df>=0&&d.df<=3)?+d.df:1; // T115：難度／沙盒（可選欄位，舊檔缺 df 視為 1 標準）
     hist=(d.hi&&d.hi.m&&d.hi.m.length)?d.hi.m.map((mv,ix)=>({d:d.hi.d0+ix,money:mv,net:d.hi.n[ix],pop:d.hi.p[ix],happy:d.hi.h[ix]})):[]; // T112：歷史曲線（可選欄位，舊檔缺 hi 視為空緩衝）
     log=Array.isArray(d.nl)?d.nl.slice(-100):[];unread=0;updBell(); // T114：通知日誌（可選欄位，舊檔缺 nl 視為空日誌；讀檔視為已讀，未讀歸零）
@@ -5059,6 +5242,31 @@ window.GV={
   ver:()=>GAME_VER,
   pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1};return pol;},
   quake:()=>{if(!disastersOn)return false;shakeT=.55;quakeRecover=20;return true;},
+  tornado:()=>{ // T116：手動觸發龍捲風（受災害總開關管轄，仿 quake() 慣例）
+    if(!disastersOn)return false;
+    const tx0=ri(N),ty0=ri(N);
+    let tdx=ri(3)-1,tdy=ri(3)-1;if(!tdx&&!tdy)tdx=1;
+    tornado={x:tx0,y:ty0,dx:tdx,dy:tdy,life:18+ri(18)};
+    toast('🌪️ 龍捲風來襲！沿途建築恐成廢墟','bad',tx0,ty0);sErr();
+    return true;
+  },
+  meteor:(x,y)=>{if(!disastersOn)return false;return meteorStrike(x,y);}, // T117：手動觸發隕石（指定落點，仿 ignite(x,y) 慣例＋受災害總開關管轄）
+  riot:()=>{ // T118：手動觸發暴亂（需實際低幸福＋高犯罪住宅簇存在才成功，仿 tick() 內同款判定但跳過每日機率骰）
+    if(!disastersOn||cityHappy>=.3)return false;
+    const hot=[];
+    for(let i=0;i<N*N;i++){
+      const b=tiles[i].bld;
+      if(!b||b.k!==1||b.ref)continue;
+      const hx=i%N,hy=(i/N)|0;
+      if(countNear(hx,hy,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime)>=2)hot.push(i);
+    }
+    if(!hot.length)return false;
+    const cells=hot.slice(0,10);
+    for(const ci of cells){const cb=tiles[ci].bld;if(cb)cb.riot=1;}
+    riot={cells,days:10+ri(10)};
+    toast('🔥 暴亂爆發！封鎖道路，警局可自然平息或付費鎮壓','bad',cells[0]%N,(cells[0]/N)|0);sErr();
+    return true;
+  },
   flood:()=>{let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效
   trains:()=>trains.length,
   trams:()=>tramCars.length,
