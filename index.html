@@ -323,6 +323,8 @@ let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
 let quality=1;            // T97 0低1中2高
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
+let hist=[];               // T112：歷史曲線環形緩衝 {d,money,net,pop,happy}（365 筆上限，simDay 絕對尾端 push）
+let histRange=30;          // T112：統計面板目前選擇的曲線範圍 30/90/365（不進存檔）
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
 const cam={x:0,y:0,z:3};
@@ -2979,6 +2981,7 @@ function tick(){
     toast('🏦 小鎮銀行送來 $250 紓困金（也可到 📊 面板貸款）','gold');
   }
   checkHints(plants,roads);
+  hist.push({d:day,money:Math.round(money),net:+(income-upkeep).toFixed(1),pop,happy:+cityHappy.toFixed(2)});if(hist.length>365)hist.shift(); // T112：歷史曲線環形緩衝，絕對尾端 push（365 筆封頂）
 }
 
 /* =====================================================================
@@ -4374,6 +4377,30 @@ function importShare(){
 }
 // FIX-E：鎮名可來自分享碼匯入（load 未消毒）→ 注入 innerHTML 前先逸出，防 self-XSS
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// T112：歷史曲線——260×80 canvas，四序列各自獨立縱軸自動縮放（量級差異大，共用軸會壓平幸福/人口）
+// 僅由 showStats() 與範圍切換鈕呼叫，面板關閉時不會被呼叫、不渲染
+function drawHistChart(){
+  const cv=$('#histCv');if(!cv)return;
+  const g=cv.getContext('2d');
+  g.clearRect(0,0,260,80);
+  if(!hist.length)return;
+  const data=hist.slice(-histRange);
+  const n=data.length;
+  if(n<2)return;
+  const series=[['money','#ffd977'],['net','#5ec8ff'],['pop','#7be08a'],['happy','#ff8fd0']];
+  for(const[k,col]of series){
+    let lo=Infinity,hi=-Infinity;
+    for(const d of data){const v=d[k];if(v<lo)lo=v;if(v>hi)hi=v;}
+    if(hi===lo)hi=lo+1;
+    g.strokeStyle=col;g.lineWidth=1.2;g.beginPath();
+    for(let i=0;i<n;i++){
+      const px=1+(n>1?(i/(n-1))*258:0);
+      const py=78-((data[i][k]-lo)/(hi-lo))*76;
+      i?g.lineTo(px,py):g.moveTo(px,py);
+    }
+    g.stroke();
+  }
+}
 function showStats(){
   // T68 政策快捷（稅率倍率）
   if(pol==null)pol={taxR:1,taxC:1,taxI:1};
@@ -4421,8 +4448,15 @@ function showStats(){
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
      <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
      ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
+     <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
+     <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
+     <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
+  // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
+  drawHistChart();
+  const histBtn=(id,r)=>{const el=$(id);if(el)el.addEventListener('click',()=>{histRange=r;drawHistChart();});};
+  histBtn('#histR30',30);histBtn('#histR90',90);histBtn('#histR365',365);
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
   if(lb)lb.addEventListener('click',()=>{
     money+=2000;loan={remain:20,daily:120};
@@ -4572,7 +4606,8 @@ function save(){
     const data={v:1,gameVer:GAME_VER,seed,money:Math.round(money),day,msIdx,
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,skd,dtd,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar,
-      rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region}; // T39-T60 新欄位（可選）
+      rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region, // T39-T60 新欄位（可選）
+      hi:hist.length?{d0:hist[0].d,m:hist.map(h=>h.money),n:hist.map(h=>h.net),p:hist.map(h=>h.pop),h:hist.map(h=>h.happy)}:null}; // T112：歷史曲線（拆成並列數字陣列壓縮體積，可選欄位）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
     if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
@@ -4649,6 +4684,7 @@ function load(slot){
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;pol=null;region={}; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
+    hist=(d.hi&&d.hi.m&&d.hi.m.length)?d.hi.m.map((mv,ix)=>({d:d.hi.d0+ix,money:mv,net:d.hi.n[ix],pop:d.hi.p[ix],happy:d.hi.h[ix]})):[]; // T112：歷史曲線（可選欄位，舊檔缺 hi 視為空緩衝）
     // T39-T60 多格建築重建
     for(let i=0;i<N*N;i++){
       const b=tiles[i].bld;
@@ -4733,7 +4769,7 @@ if(hasSave)$('#bContinue').style.display='block';
 function begin(fresh){
   try{document.title=(typeof townName==='string'?townName:'微光小鎮')+' · v'+GAME_VER;}catch(e){}
   initAudio();
-  if(fresh||!load())newWorld();
+  if(fresh||!load()){newWorld();hist=[];} // T112：全新地圖（含讀檔失敗回退）清空歷史曲線，避免殘留跨局
   $('#start').style.display='none';
   running=true;
   $('#mini').style.display='block';drawMini();
@@ -4807,7 +4843,8 @@ window.GV={
   setChallenge:(id,bonus=1000)=>{challenge={id,bonus,label:id};return challenge;},
   region:()=>({...region}),
   food:()=>foodPoints,
-  tourists:()=>tourists
+  tourists:()=>tourists,
+  hist:()=>hist.map(h=>({...h}))                              // T112 測試用：歷史曲線緩衝快照
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
