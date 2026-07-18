@@ -2477,6 +2477,18 @@ function tick(){
       if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad');sErr();crimeAlert=true;}
     }
   }
+  // 廢棄（T71）：犯罪持續未被玩家處理（crimeBtn/GV.clearCrime）滿 15 天後每天 5% 機率轉為廢棄；
+  // 廢棄建築的停稅由既有經濟段 `!b.abandoned` 判定（原已預留，本卡補上唯一賦值來源）
+  let abandonAlert=false;
+  for(let i=0;i<N*N;i++){
+    const b=tiles[i].bld;
+    if(!b||b.k>3||!b.crime||b.abandoned)continue;
+    b.crimeDays=(b.crimeDays||0)+1;
+    if(b.crimeDays>=15&&R()<.05){
+      b.abandoned=1;
+      if(!abandonAlert){toast('🏚️ '+townName+'有建築因長期犯罪而廢棄，已停止繳稅','bad');sErr();abandonAlert=true;}
+    }
+  }
   // 生病（T33/T34）：未受健康設施覆蓋的住宅每天小機率生病；醫院覆蓋內次日康復，診所覆蓋內每天50%機率康復
   let sickAlert=false;
   for(let i=0;i<N*N;i++){
