@@ -3318,6 +3318,7 @@ function updAmbulances(dt){
 // 等地面層資料可能變更之處置 true，逼迫下一幀強制重繪；day 亦入快取鍵，tick() 內的地震/洪水/焦土/
 // 分區生長等直接改 tile 的路徑因必伴隨 day 遞增而自動命中重繪，無需逐一補標記。
 let groundDirty=true,groundCache=null,groundCacheCtx=null,groundCacheKey='',groundCacheGlow=[];
+let groundCacheZ=1; // T108：記錄目前快取實際烘焙時的 cam.z，供縮放動畫期間「快取縮放重貼」換算比例（不參與 gKey，快取鍵結構不變）
 function draw(dt){
   const {b,dusk}=daylight();
   // 天空
@@ -3350,7 +3351,11 @@ function draw(dt){
   let rdecGlow=[];                                   // 路飾夜燈暫存，併入 nightSprites（T20）；T96 快取命中時改自快取複製
   // ---- 地面層 ----（T96：離屏快取；相機/水面幀/季節/日期/畫布尺寸皆未變時直接重貼快取畫布，省去整張地圖逐格重繪）
   const gKey=ox+'_'+oy+'_'+z+'_'+waterF+'_'+(win?1:0)+'_'+day+'_'+W+'_'+H;
-  if(groundDirty||gKey!==groundCacheKey||!groundCache||groundCache.width!==W||groundCache.height!==H){
+  if(zoomAnim&&groundCache&&groundCache.width===W&&groundCache.height===H){ // T108：縮放動畫中「快取縮放重貼」——沿用既有快取原圖按比例縮放貼回，允許暫時模糊；落檔（zoomAnim 清空）後才走下方正常路徑重建，恢復銳利
+    const s=z/groundCacheZ,amx=zoomAnim.mx,amy=zoomAnim.my;
+    ctx.drawImage(groundCache,0,0,W,H,amx-amx*s,amy-amy*s,W*s,H*s);
+    rdecGlow=groundCacheGlow;
+  }else if(groundDirty||gKey!==groundCacheKey||!groundCache||groundCache.width!==W||groundCache.height!==H){
     if(!groundCache||groundCache.width!==W||groundCache.height!==H){const gp=cv(W,H);groundCache=gp[0];groundCacheCtx=gp[1];}
     else groundCacheCtx.clearRect(0,0,W,H);
     const gc=groundCacheCtx;
@@ -3421,11 +3426,11 @@ function draw(dt){
         gc.globalAlpha=1;
       }
     }
-    groundCacheKey=gKey;groundCacheGlow=rdecGlow;groundDirty=false;
+    groundCacheKey=gKey;groundCacheGlow=rdecGlow;groundDirty=false;groundCacheZ=z; // T108：記錄本次烘焙的 cam.z，供之後縮放動畫換算貼圖比例
   }else{
     rdecGlow=groundCacheGlow;
   }
-  ctx.drawImage(groundCache,0,0);
+  if(!zoomAnim)ctx.drawImage(groundCache,0,0); // T108：動畫中的縮放重貼已在上方分支自行繪製，此處只負責一般（非動畫）路徑
   // ---- 物件層（依深度排序） ----
   const objs=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -3692,6 +3697,9 @@ const rect={on:false,x0:0,y0:0,x1:0,y1:0};
 const pointers=new Map();
 let panBase=null,pinchBase=null,paintLast=null,downInfo=null,firstPaint=null,dozeArm=null;
 let longPressT=null;
+let zoomAnim=null; // T108：換檔緩動狀態 {from,to,t,dur,mx,my,wx,wy}；mx/my＝錨點裝置像素座標，wx/wy＝該點對應世界座標（沿用既有 zoomStep 反推公式，全程鎖定）
+let lastTapT=0,lastTapX=0,lastTapY=0; // T108：單擊雙擊（含觸控）＝放大一檔，偵測用時間戳/座標（不影響既有單擊建造/檢視的即時回應）
+let twoTapT=0,twoTapX=0,twoTapY=0;    // T108：雙指雙擊＝縮小一檔，偵測用時間戳/座標
 let undoStack=[],undoGroup=null;
 const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};
 const closeUndo=()=>{if(undoGroup&&undoGroup.snaps.length){undoStack.push(undoGroup);if(undoStack.length>40)undoStack.shift();}undoGroup=null;};
@@ -3727,9 +3735,9 @@ cvs.addEventListener('pointerdown',e=>{
     firstPaint=null;
     undoGroup=null;
     const ps=[...pointers.values()];
-    pinchBase={d:Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),
-      cx:(ps[0].x+ps[1].x)/2,cy:(ps[0].y+ps[1].y)/2,
-      camX:cam.x,camY:cam.y,acc:0};
+    const pd0=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),pcx0=(ps[0].x+ps[1].x)/2,pcy0=(ps[0].y+ps[1].y)/2;
+    pinchBase={d0:pd0,cx0:pcx0,cy0:pcy0,z0:cam.z,cx:pcx0,cy:pcy0,downT:performance.now(),moved:false}; // T108：捏合改連續累積（z0/d0 為起點基準，隨手勢比例連續換算 cam.z，取代舊版門檻跳檔）；cx/cy 追蹤最新中心供放開時就近落檔／雙指雙擊判定
+    zoomAnim=null; // T108：進入新手勢前若仍有換檔緩動在跑，交由手勢本身接管，避免兩者搶寫 cam.z
     panBase=null;
     return;
   }
@@ -3777,13 +3785,18 @@ cvs.addEventListener('pointermove',e=>{
     const ps=[...pointers.values()];
     const d=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y);
     const cx=(ps[0].x+ps[1].x)/2,cy=(ps[0].y+ps[1].y)/2;
-    cam.x=pinchBase.camX-(cx-pinchBase.cx)*DPR/cam.z;
-    cam.y=pinchBase.camY-(cy-pinchBase.cy)*DPR/cam.z;
-    clampCam();
-    pinchBase.acc+=Math.log(d/Math.max(1,pinchBase.d));
-    pinchBase.d=d;
-    if(pinchBase.acc>.28){zoomStep(1,cx,cy);pinchBase.acc=0;pinchBase.camX=cam.x;pinchBase.camY=cam.y;pinchBase.cx=cx;pinchBase.cy=cy;}
-    if(pinchBase.acc<-.28){zoomStep(-1,cx,cy);pinchBase.acc=0;pinchBase.camX=cam.x;pinchBase.camY=cam.y;pinchBase.cx=cx;pinchBase.cy=cy;}
+    if(Math.abs(d-pinchBase.d0)>10||Math.hypot(cx-pinchBase.cx0,cy-pinchBase.cy0)>8)pinchBase.moved=true; // T108：超過閾值才算實際 pinch/平移手勢（供放開時判斷就近落檔或雙指雙擊）
+    if(pinchBase.moved){ // T108：捏合改連續累積——比例直接換算連續 cam.z（非門檻跳檔），錨點鎖定沿用 zoomStep 同款反推公式，逐幀即時跟手
+      const nz=clamp(pinchBase.z0*(d/Math.max(1,pinchBase.d0)),ZOOMS[0],ZOOMS[ZOOMS.length-1]);
+      const mx=cx*DPR,my=cy*DPR;
+      const wx=(mx-(W/2-cam.x*cam.z))/cam.z;
+      const wy=(my-(H/2-cam.y*cam.z))/cam.z;
+      cam.z=nz;
+      cam.x=wx-(mx-W/2)/nz;
+      cam.y=wy-(my-H/2)/nz;
+      clampCam();
+    }
+    pinchBase.cx=cx;pinchBase.cy=cy;
     return;
   }
   if(downInfo&&Math.hypot(e.clientX-downInfo.x,e.clientY-downInfo.y)>6){
@@ -3800,7 +3813,24 @@ cvs.addEventListener('pointermove',e=>{
   if(paintLast&&pointers.size===1&&!panBase&&!['plant','water','police','hospital','clinic','library','post','cemetery','stad','fire','school','dump','bus'].includes(tool))paintTo(x,y); // 單體建築一律點放，僅道路/水管/路飾可拖（FIX-A 擴充；公車站沿用 T26 點放）
 });
 function endPointer(e){
+  const hadTwo=pointers.size===2; // T108：雙指手勢放開判定（就近落檔／雙指雙擊）需在刪除前記錄手指數
   pointers.delete(e.pointerId);
+  if(hadTwo&&pointers.size===1&&pinchBase){
+    if(pinchBase.moved){ // T108：捏合放開＝就近落檔——沿用同一套換檔緩動，把連續累積後的當前 z 吸附到最近階梯值
+      const nz=ZOOMS[zoomIdx(cam.z)];
+      if(nz!==cam.z){
+        const mx=pinchBase.cx*DPR,my=pinchBase.cy*DPR;
+        const wx=(mx-(W/2-cam.x*cam.z))/cam.z;
+        const wy=(my-(H/2-cam.y*cam.z))/cam.z;
+        zoomAnim={from:cam.z,to:nz,t:0,dur:.15,mx,my,wx,wy};
+      }
+    }else if(performance.now()-pinchBase.downT<300){ // T108：兩指幾乎靜止即放開＝雙指雙擊，縮小一檔
+      const nowT2=performance.now();
+      if(nowT2-twoTapT<350&&Math.hypot(pinchBase.cx-twoTapX,pinchBase.cy-twoTapY)<40){
+        zoomStep(-1,pinchBase.cx,pinchBase.cy);twoTapT=0;
+      }else{twoTapT=nowT2;twoTapX=pinchBase.cx;twoTapY=pinchBase.cy;}
+    }
+  }
   if(pointers.size<2)pinchBase=null;
   if(pointers.size===0){
     clearTimeout(longPressT);
@@ -3808,6 +3838,12 @@ function endPointer(e){
     closeUndo();
     if(downInfo&&!downInfo.moved&&tool==='pan'&&performance.now()-downInfo.t<450){
       inspect(downInfo.tx,downInfo.ty);
+    }
+    if(downInfo&&!downInfo.moved&&performance.now()-downInfo.t<450&&(tool==='pan'||!inMap(downInfo.tx,downInfo.ty)||!T(idx(downInfo.tx,downInfo.ty)).bld)){ // T108：單擊雙擊（含觸控）＝放大一檔，僅檢視工具或空地生效；不延遲上面既有單擊建造/檢視的回應
+      const nowT=performance.now();
+      if(nowT-lastTapT<350&&Math.hypot(downInfo.x-lastTapX,downInfo.y-lastTapY)<30){
+        zoomStep(1,downInfo.x,downInfo.y);lastTapT=0;
+      }else{lastTapT=nowT;lastTapX=downInfo.x;lastTapY=downInfo.y;}
     }
     panBase=null;paintLast=null;downInfo=null;firstPaint=null;
     $('#dragcost').style.display='none';
@@ -3829,16 +3865,25 @@ function zoomIdx(z){ // z 在 ZOOMS 中最接近的索引（相容舊存檔/舊 
   return bi;
 }
 function zoomStep(d,cssX,cssY){
-  const nz=ZOOMS[clamp(zoomIdx(cam.z)+d,0,ZOOMS.length-1)];
-  if(nz===cam.z)return;
+  const baseZ=zoomAnim?zoomAnim.to:cam.z; // T108：若換檔緩動仍在跑，以其目標檔為基準疊加下一檔，連續滾動快速跨檔才不會抖動/卡在中途值
+  const nz=ZOOMS[clamp(zoomIdx(baseZ)+d,0,ZOOMS.length-1)];
+  if(nz===baseZ)return;
   const mx=cssX*DPR,my=cssY*DPR;
-  const wx=(mx-(W/2-cam.x*cam.z))/cam.z;
+  const wx=(mx-(W/2-cam.x*cam.z))/cam.z; // 錨點以目前實際（可能仍在動畫中）相機狀態反推，全程鎖定
   const wy=(my-(H/2-cam.y*cam.z))/cam.z;
-  cam.z=nz;
-  cam.x=wx-(mx-W/2)/nz;
-  cam.y=wy-(my-H/2)/nz;
+  zoomAnim={from:cam.z,to:nz,t:0,dur:.15,mx,my,wx,wy}; // T108：硬切改 ~150ms easeOutQuad 緩動，見 updateZoomAnim（主迴圈 advance() 呼叫）
+}
+function updateZoomAnim(dtReal){ // T108：換檔緩動插值入口，由主迴圈 advance() 每幀呼叫；與 speed 無關，緩動節奏只認真實時間
+  if(!zoomAnim)return;
+  zoomAnim.t+=dtReal;
+  const frac=clamp(zoomAnim.t/zoomAnim.dur,0,1);
+  const ease=1-(1-frac)*(1-frac); // easeOutQuad
+  const z=zoomAnim.from+(zoomAnim.to-zoomAnim.from)*ease;
+  cam.z=z;
+  cam.x=zoomAnim.wx-(zoomAnim.mx-W/2)/z;
+  cam.y=zoomAnim.wy-(zoomAnim.my-H/2)/z;
   clampCam();
-  drawMini();
+  if(frac>=1){zoomAnim=null;drawMini();} // 落檔：z 精確等於目標值，與硬切結果一致；drawMini 補上最終視窗框
 }
 function clampCam(){
   const m=N*32;
@@ -4630,6 +4675,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&tiles)save
 let lastT=performance.now(),hudT=0,running=false,lastDraw=0;
 // 推進遊戲邏輯（dtReal 不截斷，動畫另外截斷）
 function advance(dtReal){
+  updateZoomAnim(dtReal); // T108：縮放緩動插值入口，與模擬節奏（speed/tick）分離，真實時間驅動
   visT+=Math.min(dtReal,2);
   simAcc+=dtReal*speed;
   let steps=0;
