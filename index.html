@@ -1601,6 +1601,8 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）
+  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰
+  bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
   recalcAllMasks();
