@@ -1534,6 +1534,211 @@ function buildSprites(){
   /* ===== T103 工業圖鑑擴充：k=3 全新變體（lv1/lv2/lv3 v4-7）
      置於 buildSprites 絕對尾端（接在 T102 尾端新增之後），不位移任何既有 rand 消耗序 ===== */
   for(const t of tasks)if(t.k===3&&t.v>=4)mkBld(t);
+  /* ===== T104 公園與樹木圖鑑擴充：SPR.tree 4→7（銀杏黃 v4／楓紅 v5／垂柳 v6）、SPR.park 3→6（噴泉廣場 v3／玫瑰園 v4／遊樂場 v5）
+     置於 buildSprites 絕對尾端（接在 T103 尾端新增之後），不位移任何既有 rand 消耗序；SPR.treeW/SPR.parkW 同步尾端追加、長度與日版一致（冬季鐵律） ===== */
+  { // 樹 v4 銀杏（黃葉，沿用闊葉樹輪廓改色）
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(25,50,25,.22)');
+    sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+    sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+    sg.fillStyle='#c9a227';sg.fillRect(10,8,20,16);sg.fillRect(8,12,24,10);
+    sg.fillStyle='#e0bb3c';sg.fillRect(12,6,16,8);sg.fillRect(13,7,14,13);
+    sg.fillStyle='#f2d75e';sg.fillRect(14,7,10,7);
+    sg.fillStyle='#fbe98a';sg.fillRect(15,8,5,4);sg.fillRect(23,12,4,3);
+    sg.fillStyle='#a9860f';sg.fillRect(10,22,20,2);sg.fillRect(12,24,16,1);
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.tree.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  { // 樹 v5 楓紅（紅葉，沿用闊葉樹輪廓改色）
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(25,50,25,.22)');
+    sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+    sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+    sg.fillStyle='#8a2e1f';sg.fillRect(10,8,20,16);sg.fillRect(8,12,24,10);
+    sg.fillStyle='#b3402a';sg.fillRect(12,6,16,8);sg.fillRect(13,7,14,13);
+    sg.fillStyle='#d65b3c';sg.fillRect(14,7,10,7);
+    sg.fillStyle='#f2905e';sg.fillRect(15,8,5,4);sg.fillRect(23,12,4,3);
+    sg.fillStyle='#5e2015';sg.fillRect(10,22,20,2);sg.fillRect(12,24,16,1);
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.tree.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  { // 樹 v6 垂柳（細幹＋下垂枝條）
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(25,50,25,.22)');
+    sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+    sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+    sg.fillStyle='#5c8a3e';sg.fillRect(11,7,18,13);sg.fillRect(9,11,22,8);
+    sg.fillStyle='#78a854';sg.fillRect(13,6,14,7);
+    sg.fillStyle='#94c46c';sg.fillRect(15,7,6,4);
+    for(let i=0;i<7;i++){const fx=9+i*3;sg.fillRect(fx,16,1,10+((i%3)*4));}
+    sg.fillStyle='#4a7530';sg.fillRect(10,16,20,1);
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.tree.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  /* ---------- 公園新變體 3 種（噴泉廣場／玫瑰園／遊樂場） ---------- */
+  { // 公園 v3 噴泉廣場
+    const[c,g]=cv(64,56);const ay=53;
+    dia(g,32,ay-32,32,'#82c163');
+    speck(g,32,ay-32,32,['#6fae52','#95d276','#78b95c'],60,rand);
+    diaEdge(g,9,'#90cc72',32,ay-32,32);
+    diaEdge(g,6,'#74ad57',32,ay-32,32);
+    dia(g,32,ay-20,20,'#c9c2b0');
+    speck(g,32,ay-20,20,['#b8b09c','#d4cdb9'],30,rand);
+    diaEdge(g,15,'#a9a08c',32,ay-20,20);
+    dia(g,32,ay-24,12,'#8f8a80');
+    dia(g,32,ay-25,10,'#4f93cf');
+    dia(g,32,ay-26,6,'#bfe4f5');
+    g.fillStyle='#eaf6fb';g.fillRect(30,ay-34,3,10);
+    g.fillStyle='#ffffff';g.fillRect(31,ay-36,1,3);
+    for(let i=0;i<6;i++){g.fillStyle='#dff3fa';g.fillRect(26+ri(12),ay-30+ri(8),1,1);}
+    mt(g,14,ay-26);mt(g,50,ay-24);
+    SPR.park.push({img:c,ax:32,ay:ay,w:64,h:56});
+  }
+  { // 公園 v4 玫瑰園
+    const[c,g]=cv(64,56);const ay=53;
+    dia(g,32,ay-32,32,'#82c163');
+    speck(g,32,ay-32,32,['#6fae52','#95d276','#78b95c'],60,rand);
+    diaEdge(g,9,'#90cc72',32,ay-32,32);
+    diaEdge(g,6,'#74ad57',32,ay-32,32);
+    g.fillStyle='#cbb98e';
+    for(let i=0;i<3;i++)g.fillRect(29,ay-30+i*8,6,2);
+    g.fillStyle='#3d7a3c';
+    g.fillRect(14,ay-28,10,6);g.fillRect(40,ay-28,10,6);
+    g.fillRect(16,ay-18,10,6);g.fillRect(38,ay-18,10,6);
+    g.fillStyle='#4b8f45';
+    g.fillRect(15,ay-29,8,2);g.fillRect(41,ay-29,8,2);
+    g.fillRect(17,ay-19,8,2);g.fillRect(39,ay-19,8,2);
+    const pc=['#e0537a','#f2789a','#f2f2f2','#e8c85a'];
+    for(let i=0;i<14;i++){g.fillStyle=pc[ri(4)];g.fillRect(14+ri(38),ay-30+ri(20),2,1);}
+    SPR.park.push({img:c,ax:32,ay:ay,w:64,h:56});
+  }
+  { // 公園 v5 遊樂場（滑梯＋鞦韆）
+    const[c,g]=cv(64,56);const ay=53;
+    dia(g,32,ay-32,32,'#82c163');
+    speck(g,32,ay-32,32,['#6fae52','#95d276','#78b95c'],60,rand);
+    diaEdge(g,9,'#90cc72',32,ay-32,32);
+    diaEdge(g,6,'#74ad57',32,ay-32,32);
+    dia(g,32,ay-20,16,'#e8d9a0');
+    speck(g,32,ay-20,16,['#dcc98a','#f0e4b0'],20,rand);
+    diaEdge(g,15,'#cdb87a',32,ay-20,16);
+    g.fillStyle='#e8b23e';g.fillRect(16,ay-40,3,18);
+    g.fillStyle='#d4a24c';g.fillRect(28,ay-40,3,10);
+    g.fillStyle='#5aa0e8';g.fillRect(17,ay-40,12,4);
+    g.fillStyle='#7fc0f2';for(let i=0;i<8;i++)g.fillRect(18+i,ay-36+Math.floor(i*.9),3,2);
+    g.fillStyle='#e05252';g.fillRect(16,ay-22,4,3);g.fillRect(28,ay-14,4,3);
+    g.fillStyle='#9a8a7a';g.fillRect(44,ay-38,2,20);g.fillRect(56,ay-38,2,20);
+    g.fillStyle='#7a6a5a';g.fillRect(44,ay-38,14,2);
+    g.fillStyle='#5a4a3a';g.fillRect(47,ay-36,1,14);g.fillRect(53,ay-36,1,14);
+    g.fillStyle='#e8b23e';g.fillRect(46,ay-22,3,2);g.fillRect(52,ay-22,3,2);
+    SPR.park.push({img:c,ax:32,ay:ay,w:64,h:56});
+  }
+  /* ---------- 冬季樹新變體 3 種（雪簷；樹幹不變） ---------- */
+  { // 冬季樹 v4 銀杏
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(90,110,140,.20)');
+    sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+    sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+    sg.fillStyle='#c9a227';sg.fillRect(10,8,20,16);sg.fillRect(8,12,24,10);
+    sg.fillStyle='#e0bb3c';sg.fillRect(12,6,16,8);sg.fillRect(13,7,14,13);
+    sg.fillStyle='#f2d75e';sg.fillRect(14,7,10,7);
+    sg.fillStyle='#eef4f8';sg.fillRect(10,8,20,5);sg.fillRect(12,6,16,3);sg.fillRect(8,12,24,2);
+    sg.fillStyle='#ffffff';sg.fillRect(10,13,20,1);sg.fillRect(8,14,24,1);
+    sg.fillStyle='#a9860f';sg.fillRect(10,22,20,2);sg.fillRect(12,24,16,1);
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.treeW.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  { // 冬季樹 v5 楓紅
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(90,110,140,.20)');
+    sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+    sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+    sg.fillStyle='#8a2e1f';sg.fillRect(10,8,20,16);sg.fillRect(8,12,24,10);
+    sg.fillStyle='#b3402a';sg.fillRect(12,6,16,8);sg.fillRect(13,7,14,13);
+    sg.fillStyle='#d65b3c';sg.fillRect(14,7,10,7);
+    sg.fillStyle='#eef4f8';sg.fillRect(10,8,20,5);sg.fillRect(12,6,16,3);sg.fillRect(8,12,24,2);
+    sg.fillStyle='#ffffff';sg.fillRect(10,13,20,1);sg.fillRect(8,14,24,1);
+    sg.fillStyle='#5e2015';sg.fillRect(10,22,20,2);sg.fillRect(12,24,16,1);
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.treeW.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  { // 冬季樹 v6 垂柳
+    const[c,g]=cv(40,48),[s,sg]=cv(40,48);
+    dia(g,20,36,10,'rgba(90,110,140,.20)');
+    sg.fillStyle='#6b4a2f';sg.fillRect(18,30,4,11);
+    sg.fillStyle='#57402a';sg.fillRect(20,30,2,11);
+    sg.fillStyle='#5c8a3e';sg.fillRect(11,7,18,13);sg.fillRect(9,11,22,8);
+    sg.fillStyle='#78a854';sg.fillRect(13,6,14,7);
+    sg.fillStyle='#eef4f8';sg.fillRect(11,7,18,4);sg.fillRect(13,6,14,2);sg.fillRect(9,11,22,2);
+    sg.fillStyle='#ffffff';sg.fillRect(13,10,14,1);
+    for(let i=0;i<7;i++){const fx=9+i*3;sg.fillRect(fx,16,1,10+((i%3)*4));}
+    sg.fillStyle='#4a7530';sg.fillRect(10,16,20,1);
+    outlineSprite(s,24,40,28);
+    g.drawImage(s,0,0);
+    SPR.treeW.push({img:c,ax:20,ay:45,w:40,h:48});
+  }
+  /* ---------- 冬季公園新變體 3 種 ---------- */
+  { // 冬季公園 v3 結冰噴泉
+    const[c,g]=cv(64,56);const ay=53;
+    dia(g,32,ay-32,32,'#e8eef2');
+    speck(g,32,ay-32,32,['#d8e0e8','#f4f8fa','#c8d4dc'],60,rand);
+    diaEdge(g,9,'#f4f8fa',32,ay-32,32);
+    diaEdge(g,6,'#cdd8de',32,ay-32,32);
+    dia(g,32,ay-20,20,'#eef2f4');
+    speck(g,32,ay-20,20,['#dfe6ea','#f8fbfc'],30,rand);
+    diaEdge(g,15,'#cdd8de',32,ay-20,20);
+    dia(g,32,ay-24,12,'#8f8a80');
+    dia(g,32,ay-25,10,'#bcd8e8');
+    dia(g,32,ay-26,6,'#e8f4fa');
+    g.fillStyle='#cfe0ea';g.fillRect(30,ay-34,3,8);
+    g.fillStyle='#ffffff';g.fillRect(30,ay-35,3,2);g.fillRect(31,ay-37,1,3);
+    mtW(g,14,ay-26);mtW(g,50,ay-24);
+    SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});
+  }
+  { // 冬季公園 v4 雪覆玫瑰園
+    const[c,g]=cv(64,56);const ay=53;
+    dia(g,32,ay-32,32,'#e8eef2');
+    speck(g,32,ay-32,32,['#d8e0e8','#f4f8fa','#c8d4dc'],60,rand);
+    diaEdge(g,9,'#f4f8fa',32,ay-32,32);
+    diaEdge(g,6,'#cdd8de',32,ay-32,32);
+    g.fillStyle='#dfe6ea';
+    for(let i=0;i<3;i++)g.fillRect(29,ay-30+i*8,6,2);
+    g.fillStyle='#3d7a3c';
+    g.fillRect(14,ay-28,10,6);g.fillRect(40,ay-28,10,6);
+    g.fillRect(16,ay-18,10,6);g.fillRect(38,ay-18,10,6);
+    g.fillStyle='#eef4f8';
+    g.fillRect(14,ay-28,10,2);g.fillRect(40,ay-28,10,2);
+    g.fillRect(16,ay-18,10,2);g.fillRect(38,ay-18,10,2);
+    g.fillStyle='#ffffff';
+    g.fillRect(15,ay-28,8,1);g.fillRect(41,ay-28,8,1);
+    SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});
+  }
+  { // 冬季公園 v5 雪地遊樂場
+    const[c,g]=cv(64,56);const ay=53;
+    dia(g,32,ay-32,32,'#e8eef2');
+    speck(g,32,ay-32,32,['#d8e0e8','#f4f8fa','#c8d4dc'],60,rand);
+    diaEdge(g,9,'#f4f8fa',32,ay-32,32);
+    diaEdge(g,6,'#cdd8de',32,ay-32,32);
+    dia(g,32,ay-20,16,'#eef2f4');
+    speck(g,32,ay-20,16,['#dfe6ea','#f8fbfc'],20,rand);
+    diaEdge(g,15,'#cdd8de',32,ay-20,16);
+    g.fillStyle='#e8b23e';g.fillRect(16,ay-40,3,18);
+    g.fillStyle='#d4a24c';g.fillRect(28,ay-40,3,10);
+    g.fillStyle='#5aa0e8';g.fillRect(17,ay-40,12,4);
+    g.fillStyle='#eef4f8';g.fillRect(17,ay-40,12,1);
+    g.fillStyle='#7fc0f2';for(let i=0;i<8;i++)g.fillRect(18+i,ay-36+Math.floor(i*.9),3,2);
+    g.fillStyle='#e05252';g.fillRect(16,ay-22,4,3);g.fillRect(28,ay-14,4,3);
+    g.fillStyle='#9a8a7a';g.fillRect(44,ay-38,2,20);g.fillRect(56,ay-38,2,20);
+    g.fillStyle='#7a6a5a';g.fillRect(44,ay-38,14,2);
+    g.fillStyle='#eef4f8';g.fillRect(44,ay-38,14,1);
+    g.fillStyle='#5a4a3a';g.fillRect(47,ay-36,1,14);g.fillRect(53,ay-36,1,14);
+    g.fillStyle='#e8b23e';g.fillRect(46,ay-22,3,2);g.fillRect(52,ay-22,3,2);
+    SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});
+  }
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1569,7 +1774,7 @@ function genWorld(sd){
     if(t===0)water++;
     const el=(t===2&&noi3(x*.06,y*.06)>.62)?1:0;                           // 高地：僅草地（T24）
     const tile={t,tree:0,gv:ri(4),road:0,bridge:0,hw:0,rc:0,mask:0,zone:0,bld:null,rp:false,wp:0,wr:0,wm:0,deco:0,el,em:0};
-    if(t===2&&noi2(x*.13,y*.13)>.62&&R()<.8)tile.tree=1+ri(4);
+    if(t===2&&noi2(x*.13,y*.13)>.62&&R()<.8)tile.tree=1+ri(7); // T104：樹種 4→7
     else if(t===2&&R()<.015)tile.deco=1;
     tiles[idx(x,y)]=tile;
   }
@@ -1925,7 +2130,7 @@ function doPlace(toolId,x,y,silent){
       t.zone=zoneOf[toolId];t.tree=0;t.deco=0;
       break;
     case 'park':
-      t.bld={k:4,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:4,lv:1,v:ri(6),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T104：公園 3→6 變體
       stampCov('park',x,y,COVR.park,1);
       break;
     case 'plant':
@@ -1992,7 +2197,7 @@ function doPlace(toolId,x,y,silent){
       stampCov('bus',x,y,COVR.bus,1);
       break;
     case 'tree':
-      t.tree=1+ri(4);
+      t.tree=1+ri(7); // T104：種樹工具同步樹種 4→7
       break;
     case 'fill':
       t.t=2;t.gv=ri(4);computeFoam();
@@ -3247,7 +3452,7 @@ function draw(dt){
     }
     const t=o.t;
     if(t.tree){
-      const s=(win?SPR.treeW:SPR.tree)[(t.tree-1)&3];
+      const s=(win?SPR.treeW:SPR.tree)[(t.tree-1)%7]; // T104：樹種 4→7，&3 遮罩已不敷索引改 %7
       ctx.drawImage(s.img,o.sx+(32-s.ax)*z,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
       continue;
     }
