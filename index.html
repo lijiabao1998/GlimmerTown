@@ -1607,6 +1607,7 @@ function newWorld(seedOverride){
   computeFoam();
   computeElMask();
   rebuildCov(); // T61：新圖無建築，全量清零覆蓋場（清除前一局殘留）
+  groundDirty=true; // T96：整張地圖重生成，強制下一幀重繪地面層快取
   townName=NM1[ri(NM1.length)]+NM2[ri(NM2.length)];
   document.title=townName+' · 微光小鎮';
   toast(`🏙️ 歡迎來到「${townName}」！`,'gold');
@@ -2108,6 +2109,7 @@ function doPlace(toolId,x,y,silent){
   if(undoGroup)undoGroup.spent+=cost;
   if(toolId==='plant'||toolId==='solar'||toolId==='wind'||roadToolToRc(toolId)||toolId==='doze')computePower();
   if(toolId==='water'||toolId==='wpipe'||toolId==='doze')computeWater();
+  groundDirty=true; // T96：doPlace 是建造/拆除唯一資料變更點，統一於此標記地面層快取失效
   return true;
 }
 
@@ -2965,6 +2967,12 @@ function updAmbulances(dt){
 }
 
 
+// T96：地面層離屏快取。地面層（地形/水/道路/分區覆蓋等）逐格重繪成本最高，但其外觀只取決於
+// 相機位置/縮放、水面動畫幀、季節、模擬天數與畫布尺寸——這些不變的幀直接重貼上一次畫好的離屏畫布即可。
+// groundDirty 為髒標記：doPlace()（建造/拆除唯一資料變更點）／undo()／newWorld()／load()／GV.flood()
+// 等地面層資料可能變更之處置 true，逼迫下一幀強制重繪；day 亦入快取鍵，tick() 內的地震/洪水/焦土/
+// 分區生長等直接改 tile 的路徑因必伴隨 day 遞增而自動命中重繪，無需逐一補標記。
+let groundDirty=true,groundCache=null,groundCacheCtx=null,groundCacheKey='',groundCacheGlow=[];
 function draw(dt){
   const {b,dusk}=daylight();
   // 天空
@@ -2992,70 +3000,80 @@ function draw(dt){
   const vis=(sx,sy)=>sx>-pad&&sx<W+pad&&sy>-pad&&sy<H+pad;
   waterT+=dt;if(waterT>.5){waterT=0;waterF=(waterF+1)%3;}
   const win=inWinter();                             // 冬季雪皮切換（T18；一次計算，draw 內零新配置）
-  const rdecGlow=[];                                 // 路飾夜燈暫存，併入 nightSprites（T20）
-  // ---- 地面層 ----
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const sx=sxOf(x,y),sy=syOf(x,y);
-    if(!vis(sx,sy))continue;
-    const t=T(idx(x,y));
-    if(x===N-1||y===N-1)ctx.drawImage(SPR.cliff,sx,sy,64*z,56*z);
-    const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:(t.el?SPR.grassH:SPR.grass))[t.gv&3];
-    ctx.drawImage(base,sx,sy,64*z,32*z);
-    if(t.t===0&&t.wm)ctx.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
-    if(t.em)ctx.drawImage(SPR.cliffEdge[t.em],sx,sy,64*z,32*z);           // 內陸崖沿（T24）
-    if(t.ruin)ctx.drawImage(SPR.ruin,sx,sy,64*z,32*z);
-    if(t.wp){                                                              // 地下水管（T31）：地面層繪製小藍標記
-      ctx.fillStyle=t.wr?'#4a9fd4':'#3a7fa8';
-      ctx.fillRect(sx+30*z,sy+14*z,4*z,2*z);
-      ctx.fillRect(sx+31*z,sy+13*z,2*z,4*z);
-    }
-    if(t.road){
-      if(t.hw){ // 快速路（rc=5，T29；原高速路 T21）：深路面雙白線；橋版混凝土
-        if(t.bridge)ctx.drawImage(SPR.hwyBridge[t.mask],sx,sy-4*z,64*z,44*z);
-        else ctx.drawImage(SPR.hwy[t.mask],sx,sy,64*z,32*z);
-      }else{
-        const rcIdx=(t.rc||2)-1;
-        if(t.bridge)ctx.drawImage(SPR.bridgeClass[rcIdx][t.mask],sx,sy-4*z,64*z,44*z);
-        else ctx.drawImage(SPR.roadClass[rcIdx][t.mask],sx,sy,64*z,32*z);
+  let rdecGlow=[];                                   // 路飾夜燈暫存，併入 nightSprites（T20）；T96 快取命中時改自快取複製
+  // ---- 地面層 ----（T96：離屏快取；相機/水面幀/季節/日期/畫布尺寸皆未變時直接重貼快取畫布，省去整張地圖逐格重繪）
+  const gKey=ox+'_'+oy+'_'+z+'_'+waterF+'_'+(win?1:0)+'_'+day+'_'+W+'_'+H;
+  if(groundDirty||gKey!==groundCacheKey||!groundCache||groundCache.width!==W||groundCache.height!==H){
+    if(!groundCache||groundCache.width!==W||groundCache.height!==H){const gp=cv(W,H);groundCache=gp[0];groundCacheCtx=gp[1];}
+    else groundCacheCtx.clearRect(0,0,W,H);
+    const gc=groundCacheCtx;
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const sx=sxOf(x,y),sy=syOf(x,y);
+      if(!vis(sx,sy))continue;
+      const t=T(idx(x,y));
+      if(x===N-1||y===N-1)gc.drawImage(SPR.cliff,sx,sy,64*z,56*z);
+      const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:(t.el?SPR.grassH:SPR.grass))[t.gv&3];
+      gc.drawImage(base,sx,sy,64*z,32*z);
+      if(t.t===0&&t.wm)gc.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
+      if(t.em)gc.drawImage(SPR.cliffEdge[t.em],sx,sy,64*z,32*z);           // 內陸崖沿（T24）
+      if(t.ruin)gc.drawImage(SPR.ruin,sx,sy,64*z,32*z);
+      if(t.wp){                                                              // 地下水管（T31）：地面層繪製小藍標記
+        gc.fillStyle=t.wr?'#4a9fd4':'#3a7fa8';
+        gc.fillRect(sx+30*z,sy+14*z,4*z,2*z);
+        gc.fillRect(sx+31*z,sy+13*z,2*z,4*z);
       }
-      if(t.rdec){
-        const rs=SPR.rdec;
-        const rx=sx+(32-rs.ax)*z, ry=sy+(32-rs.ay)*z;
-        ctx.drawImage(rs.img,rx,ry,rs.w*z,rs.h*z);
-        rdecGlow.push({img:SPR.rdecN,x:rx,y:ry,w:rs.w*z,h:rs.h*z});
+      if(t.road){
+        if(t.hw){ // 快速路（rc=5，T29；原高速路 T21）：深路面雙白線；橋版混凝土
+          if(t.bridge)gc.drawImage(SPR.hwyBridge[t.mask],sx,sy-4*z,64*z,44*z);
+          else gc.drawImage(SPR.hwy[t.mask],sx,sy,64*z,32*z);
+        }else{
+          const rcIdx=(t.rc||2)-1;
+          if(t.bridge)gc.drawImage(SPR.bridgeClass[rcIdx][t.mask],sx,sy-4*z,64*z,44*z);
+          else gc.drawImage(SPR.roadClass[rcIdx][t.mask],sx,sy,64*z,32*z);
+        }
+        if(t.rdec){
+          const rs=SPR.rdec;
+          const rx=sx+(32-rs.ax)*z, ry=sy+(32-rs.ay)*z;
+          gc.drawImage(rs.img,rx,ry,rs.w*z,rs.h*z);
+          rdecGlow.push({img:SPR.rdecN,x:rx,y:ry,w:rs.w*z,h:rs.h*z});
+        }
+        if(t.bus){                                           // 公車站牌（T26）：地面層繪製，夜間牌面微光併入 nightSprites
+          const bs2=SPR.busStop;
+          const bx2=sx+(32-bs2.ax)*z, by2=sy+(32-bs2.ay)*z;
+          gc.drawImage(bs2.img,bx2,by2,bs2.w*z,bs2.h*z);
+          rdecGlow.push({img:SPR.busStopN,x:bx2,y:by2,w:bs2.w*z,h:bs2.h*z});
+        }
+      }else if(t.zone&&!t.bld&&!t.ruin){
+        gc.globalAlpha=.5;gc.drawImage(SPR.zone[t.zone],sx,sy,64*z,32*z);gc.globalAlpha=1;
       }
-      if(t.bus){                                           // 公車站牌（T26）：地面層繪製，夜間牌面微光併入 nightSprites
-        const bs2=SPR.busStop;
-        const bx2=sx+(32-bs2.ax)*z, by2=sy+(32-bs2.ay)*z;
-        ctx.drawImage(bs2.img,bx2,by2,bs2.w*z,bs2.h*z);
-        rdecGlow.push({img:SPR.busStopN,x:bx2,y:by2,w:bs2.w*z,h:bs2.h*z});
+      // T39/T44 鐵路/輕軌
+      if(t.rail){
+        if(t.railBridge)gc.drawImage(SPR.railBridge[t.railMask],sx,sy-4*z,64*z,44*z);
+        else gc.drawImage(SPR.rail[t.railMask],sx,sy,64*z,32*z);
       }
-    }else if(t.zone&&!t.bld&&!t.ruin){
-      ctx.globalAlpha=.5;ctx.drawImage(SPR.zone[t.zone],sx,sy,64*z,32*z);ctx.globalAlpha=1;
+      if(t.tram){
+        if(t.tramBridge)gc.drawImage(SPR.railBridge[t.tramMask],sx,sy-4*z,64*z,44*z);
+        else gc.drawImage(SPR.rail[t.tramMask],sx,sy,64*z,32*z);
+      }
+      // T40 碼頭
+      if(t.dock)gc.drawImage(SPR.dock,sx,sy,64*z,32*z);
+      // T42 單行道箭頭
+      if(t.oneway&&t.road)gc.drawImage(SPR.oneway[t.oneway-1]||SPR.oneway[0],sx,sy,64*z,32*z);
+      // T57 洪水疊加
+      if(t.flood){gc.globalAlpha=.35;gc.fillStyle='#4a8ab8';gc.fillRect(sx,sy,64*z,32*z);gc.globalAlpha=1;}
+      // T70 堤防：內縮菱形描邊示意加高河堤（土黃色，先前僅小地圖上色、地面無標記）
+      if(t.levee){
+        const lx=sx+32*z,ly=sy+16*z;
+        gc.strokeStyle='#8a6d3b';gc.lineWidth=Math.max(1,2*z);gc.globalAlpha=.85;
+        gc.beginPath();gc.moveTo(lx,sy+3*z);gc.lineTo(sx+59*z,ly);gc.lineTo(lx,sy+29*z);gc.lineTo(sx+5*z,ly);gc.closePath();gc.stroke();
+        gc.globalAlpha=1;
+      }
     }
-    // T39/T44 鐵路/輕軌
-    if(t.rail){
-      if(t.railBridge)ctx.drawImage(SPR.railBridge[t.railMask],sx,sy-4*z,64*z,44*z);
-      else ctx.drawImage(SPR.rail[t.railMask],sx,sy,64*z,32*z);
-    }
-    if(t.tram){
-      if(t.tramBridge)ctx.drawImage(SPR.railBridge[t.tramMask],sx,sy-4*z,64*z,44*z);
-      else ctx.drawImage(SPR.rail[t.tramMask],sx,sy,64*z,32*z);
-    }
-    // T40 碼頭
-    if(t.dock)ctx.drawImage(SPR.dock,sx,sy,64*z,32*z);
-    // T42 單行道箭頭
-    if(t.oneway&&t.road)ctx.drawImage(SPR.oneway[t.oneway-1]||SPR.oneway[0],sx,sy,64*z,32*z);
-    // T57 洪水疊加
-    if(t.flood){ctx.globalAlpha=.35;ctx.fillStyle='#4a8ab8';ctx.fillRect(sx,sy,64*z,32*z);ctx.globalAlpha=1;}
-    // T70 堤防：內縮菱形描邊示意加高河堤（土黃色，先前僅小地圖上色、地面無標記）
-    if(t.levee){
-      const lx=sx+32*z,ly=sy+16*z;
-      ctx.strokeStyle='#8a6d3b';ctx.lineWidth=Math.max(1,2*z);ctx.globalAlpha=.85;
-      ctx.beginPath();ctx.moveTo(lx,sy+3*z);ctx.lineTo(sx+59*z,ly);ctx.lineTo(lx,sy+29*z);ctx.lineTo(sx+5*z,ly);ctx.closePath();ctx.stroke();
-      ctx.globalAlpha=1;
-    }
+    groundCacheKey=gKey;groundCacheGlow=rdecGlow;groundDirty=false;
+  }else{
+    rdecGlow=groundCacheGlow;
   }
+  ctx.drawImage(groundCache,0,0);
   // ---- 物件層（依深度排序） ----
   const objs=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -4043,6 +4061,7 @@ function undo(){
   computePower();
   rebuildCov(); // T61：撤銷還原 tile 快照後全量重建覆蓋場最穩（只在撤銷時付費）
   recalcAllRailMasks(); // 撤銷含鋪軌/拆軌時遮罩一併補算（快照格只重算道路版，軌道走全量最穩）
+  groundDirty=true; // T96：撤銷直接覆寫 tiles、繞過 doPlace，需另外標記地面層快取失效
   if(typeof drawMini==='function')drawMini();
   toast('↩️ 已撤銷（退還 $'+Math.round(g2.spent)+'）');sTick();
 }
@@ -4224,6 +4243,7 @@ function load(slot){
     }
     hintsOff=true;
     undoStack.length=0;undoGroup=null;
+    groundDirty=true; // T96：讀檔整批覆寫 tiles，強制下一幀重繪地面層快取
     return true;
   }catch(e){return false;}
 }
@@ -4360,7 +4380,7 @@ window.GV={
   ver:()=>GAME_VER,
   pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1};return pol;},
   quake:()=>{if(!disastersOn)return false;shakeT=.55;quakeRecover=20;return true;},
-  flood:()=>{let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}return n;},
+  flood:()=>{let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效
   trains:()=>trains.length,
   trams:()=>tramCars.length,
   ships:()=>cargoShips.length,
