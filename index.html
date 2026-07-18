@@ -314,6 +314,7 @@ let loan=null; // {remain:天數, daily:120}（T16）
 let fin={taxR:0,taxC:0,taxI:0,upR:0,upP:0,upE:0,net:0};
 let garbage=0,garbCap=0,garbRatio=0; // 垃圾（T19）：每日重算，不進存檔，供 inspect/統計面板讀取
 let lastGarbT=-999;                  // 垃圾超載 toast 節流（T19，不進存檔）
+let garbLocal=new Float32Array(N*N); // T119：住宅局部垃圾係數（沿路距垃圾場>18 再疊加），每日 computeGarbLocal() 重算，不進存檔
 let tool='pan';
 let muted=false,sndMode=1;
 let visT=CYCLE*.38; // 視覺時間（從早晨開始）
@@ -1883,6 +1884,25 @@ function buildSprites(){
     ng.fillStyle='rgba(255,180,80,.6)';ng.fillRect(28,12,8,4);
     SPR.crater={img:c,night:nc};
   }
+  /* ===== T119 服務車輛（消防車/垃圾車）：複製小車生成邏輯換色（紅/深綠），置於 buildSprites 絕對尾端，
+     不與既有 SPR.car（環境小車隨機色池）共用鍵，不位移任何既有 rand 消耗序（本段落無 rand() 呼叫） ===== */
+  {
+    const SVCC=[['ladderTruck','#d43a3a'],['recycleTruck','#2f5c3a']]; // 紅=消防車、深綠=垃圾車
+    for(const[key,col]of SVCC){
+      const[a,ag]=cv(12,8);
+      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,6,9,1);
+      ag.fillStyle=shade(col,-40);
+      ag.fillRect(1,5,4,1);ag.fillRect(4,4,4,1);ag.fillRect(7,3,4,1);
+      ag.fillStyle=col;
+      ag.fillRect(1,3,4,2);ag.fillRect(4,2,4,2);ag.fillRect(7,1,4,2);
+      ag.fillStyle=shade(col,35);
+      ag.fillRect(1,3,4,1);ag.fillRect(4,2,4,1);ag.fillRect(7,1,4,1);
+      ag.fillStyle='#222c3d';ag.fillRect(5,2,3,2);
+      const[b,bg]=cv(12,8);
+      bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);
+      SPR[key]={A:a,B:b};
+    }
+  }
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -2021,7 +2041,7 @@ function newWorld(seedOverride){
   }
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
-  trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）
+  trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   undoStack.length=0;undoGroup=null;
@@ -2914,6 +2934,11 @@ function tick(){
     cityHappy=happyN?happySum/happyN:cityHappy;
     if(day-lastGarbT>=30){toast('🗑️ 垃圾堆積！蓋垃圾場','bad');lastGarbT=day;}
   }
+  // T119：垃圾車覆蓋不到（沿路距垃圾場>18）的住宅局部垃圾係數再疊加，供 GV 驗證讀取
+  computeGarbLocal();
+  happySum=0;happyN=0;
+  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
+  if(happyN)cityHappy=happySum/happyN;
   // T81 食物 / T80 觀光
   foodPoints=fa*3+ra*2;
   tourists=la*25+ai*40+st*5;
@@ -3094,16 +3119,10 @@ function tick(){
       if(opts.length)opts[ri(opts.length)].fire=1;
     }
   }
-  let fireOut=false;
-  for(const i of burning){                               // 推進燃燒天數；消防局覆蓋→撲滅；fire>=5 燒毀成焦土
+  for(const i of burning){                               // 推進燃燒天數；fire>=5 燒毀成焦土（T119：覆蓋內撲滅改由消防車抵達執行，見 updFireTrucks，不再次日瞬滅）
     const t=tiles[i],b=t.bld;
     if(!b||!b.fire)continue;
     const x=i%N,y=(i/N)|0;
-    if((COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0))){                                   // T61：消防局半徑9覆蓋 → 次日自動撲滅（原 countNear k===6）
-      b.fire=0;
-      if(!fireOut){toast('🚒 消防隊撲滅了火災','gold');fireOut=true;}
-      continue;
-    }
     b.fire++;
     if(b.fire>=5){if(b.k===3)stampPolSrc(x,y,3,-1);t.bld=null;t.ruin=1;} // zone 保留；T110：工業燒毀→撤銷污染源
   }
@@ -3611,18 +3630,87 @@ function updShips(dt){
   }
   if(cargoShips.length>target)cargoShips.length=target;
 }
+/* ---------- T119：服務車輛出勤框架——from（可出車站 sts）/target（候選格 cand）/onArrive（抵達效果）
+   三段抽象；救護車邏輯原樣搬入，行為位元不變（同一組 ri() 呼叫順序/次數、同一套移動公式、同一個抵達效果）：
+   onArrive 回傳 [tx,ty] 則車輛換下一個目標繼續出勤（垃圾車巡迴用）；回傳假值則車輛消失（救護車/消防車原行為）---------- */
+function updDispatch(arr,dt,speed,cap,sts,cand,onArrive){
+  const target=sts.length&&cand.length?Math.min(cap,sts.length):0;
+  while(arr.length<target&&cand.length){
+    const si=sts[ri(sts.length)],ti=cand[ri(cand.length)];
+    arr.push({x:si%N,y:(si/N)|0,p:0,tx:ti%N,ty:(ti/N)|0});
+  }
+  for(let i=arr.length-1;i>=0;i--){
+    const c=arr[i];c.p+=dt*speed;if(c.p<1)continue;c.p-=1;
+    if(c.x!==c.tx)c.x+=Math.sign(c.tx-c.x);else if(c.y!==c.ty)c.y+=Math.sign(c.ty-c.y);
+    if(c.x===c.tx&&c.y===c.ty){
+      const nt=onArrive(c);
+      if(nt){c.tx=nt[0];c.ty=nt[1];}else arr.splice(i,1);
+    }
+  }
+}
 function updAmbulances(dt){
   const sts=listBldK(28);const sick=[];
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&b.sick)sick.push(i);}
-  const target=sts.length&&sick.length?Math.min(2,sts.length):0;
-  while(ambulances.length<target&&sick.length){
-    const si=sts[ri(sts.length)],ti=sick[ri(sick.length)];
-    ambulances.push({x:si%N,y:(si/N)|0,p:0,tx:ti%N,ty:(ti/N)|0});
+  updDispatch(ambulances,dt,2.2,2,sts,sick,c=>{
+    const b=T(idx(c.x,c.y)).bld;if(b&&b.k===1){b.sick=0;b.sickDays=0;}
+  });
+}
+// T119：消防車——起火格在消防局(k6)/高級消防(k30)覆蓋內時不再次日瞬滅，改由消防車趕到才撲滅（延遲＝出勤路距，覆蓋外不出車）
+function updFireTrucks(dt){
+  const sts=listBldK(6).concat(listBldK(30));
+  const fires=[];
+  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&b.fire&&(COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)))fires.push(i);}
+  let out=false;
+  updDispatch(ladderTrucks,dt,2.6,3,sts,fires,c=>{
+    const b=T(idx(c.x,c.y)).bld;
+    if(b&&b.k<=3&&b.fire){b.fire=0;if(!out){toast('🚒 消防隊撲滅了火災','gold');out=true;}}
+  });
+}
+// T119：垃圾車——從垃圾場(k8)沿路巡迴（抵達即挑下一個路面點繼續走，持續出勤不消失）
+function updGarbageTrucks(dt){
+  const sts=listBldK(8);
+  const roads=[];
+  for(let i=0;i<N*N;i++)if(tiles[i].road)roads.push(i);
+  updDispatch(recycleTrucks,dt,1.6,3,sts,roads,()=>{
+    if(!roads.length)return null;
+    const ni=roads[ri(roads.length)];
+    return[ni%N,(ni/N)|0];
+  });
+}
+// T119：住宅沿路距垃圾場(k8)>18 的局部垃圾係數上升——BFS 比照 busBFS 走道路網，每天（tick）重算一次
+function computeGarbLocal(){
+  const dsrc=[];
+  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k===8)dsrc.push(i);}
+  const dist=new Uint16Array(N*N).fill(9999);
+  const q=[];
+  for(const di of dsrc){
+    const dx0=di%N,dy0=(di/N)|0;
+    for(const[dx,dy]of DIRV){
+      const nx=dx0+dx,ny=dy0+dy;
+      if(inMap(nx,ny)){const j=idx(nx,ny);if(T(j).road&&dist[j]>0){dist[j]=0;q.push(j);}}
+    }
   }
-  for(let i=ambulances.length-1;i>=0;i--){
-    const c=ambulances[i];c.p+=dt*2.2;if(c.p<1)continue;c.p-=1;
-    if(c.x!==c.tx)c.x+=Math.sign(c.tx-c.x);else if(c.y!==c.ty)c.y+=Math.sign(c.ty-c.y);
-    if(c.x===c.tx&&c.y===c.ty){const b=T(idx(c.x,c.y)).bld;if(b&&b.k===1){b.sick=0;b.sickDays=0;}ambulances.splice(i,1);}
+  let head=0;
+  while(head<q.length){
+    const cur=q[head++],d=dist[cur],cx=cur%N,cy=(cur/N)|0;
+    for(const[dx,dy]of DIRV){
+      const nx=cx+dx,ny=cy+dy;
+      if(!inMap(nx,ny))continue;
+      const j=idx(nx,ny);
+      if(T(j).road&&dist[j]>d+1){dist[j]=d+1;q.push(j);}
+    }
+  }
+  for(let i=0;i<N*N;i++){
+    const b=tiles[i].bld;
+    if(!b||b.k!==1){garbLocal[i]=0;continue;}
+    const x=i%N,y=(i/N)|0;let bd=9999;
+    for(const[dx,dy]of DIRV){const nx=x+dx,ny=y+dy;if(inMap(nx,ny)){const j=idx(nx,ny);if(T(j).road)bd=Math.min(bd,dist[j]);}}
+    if(bd>18){
+      garbLocal[i]=clamp(garbRatio+.3,0,2);
+      b.h=clamp(b.h-.045,.05,1);
+    }else{
+      garbLocal[i]=garbRatio;
+    }
   }
 }
 
@@ -3788,6 +3876,18 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,tram:tc,wx,wy,trd:tc.d});
   }
+  for(const c of ladderTrucks){                           // 消防車（T119）：出勤中，位置公式同小車/火車內插（朝 tx/ty 單軸推進）
+    const svcD=c.x!==c.tx?(c.tx>c.x?1:3):(c.y!==c.ty?(c.ty>c.y?2:0):0);
+    const fx=c.x+DIRV[svcD][0]*c.p, fy=c.y+DIRV[svcD][1]*c.p;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,svc:'ladderTruck',svcD,wx,wy});
+  }
+  for(const c of recycleTrucks){                          // 垃圾車（T119）：沿路巡迴，位置公式同上
+    const svcD=c.x!==c.tx?(c.tx>c.x?1:3):(c.y!==c.ty?(c.ty>c.y?2:0):0);
+    const fx=c.x+DIRV[svcD][0]*c.p, fy=c.y+DIRV[svcD][1]*c.p;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,svc:'recycleTruck',svcD,wx,wy});
+  }
   if(tornado){                                             // T116：龍捲風漏斗雲，位置隨 tick() 逐日推進（非每幀內插，同深度規則插入 objs）
     const fx=tornado.x, fy=tornado.y;
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
@@ -3805,6 +3905,16 @@ function draw(dt){
       ctx.drawImage(spr,sx-6*z,sy-5*z,12*z,8*z);
       if(b<.55){
         const v=DIRSCR[o.car.d];
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+      }
+      continue;
+    }
+    if(o.svc){                                             // 消防車/垃圾車（T119）：複用小車繪製公式，換色 sprite 鍵
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const spr=SPR[o.svc][(o.svcD===0||o.svcD===2)?'A':'B'];
+      ctx.drawImage(spr,sx-6*z,sy-5*z,12*z,8*z);
+      if(b<.55){
+        const v=DIRSCR[o.svcD];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
       }
       continue;
@@ -5155,7 +5265,7 @@ function load(slot){
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
-    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原
+    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
     if(d.riot&&Array.isArray(d.riot.cells)){ // T118：暴亂狀態還原（可選欄位）；此時 tiles/bld 已重建完畢，逐格核對建築仍存在才收錄並同步標記 bld.riot
@@ -5200,7 +5310,7 @@ function advance(dtReal){
   if(steps>=8)simAcc=0; // 落後太多就放棄追趕
   const dtA=Math.min(.05,dtReal);
   updCars(dtA);
-  updTrains(dtA);updTrams(dtA);updShips(dtA);updAmbulances(dtA);
+  updTrains(dtA);updTrams(dtA);updShips(dtA);updAmbulances(dtA);updFireTrucks(dtA);updGarbageTrucks(dtA); // T119：消防車/垃圾車與救護車同為每幀出勤更新
   updSmoke(dtA);
   updRain(dtA);
   updBuses(dtA);   // 公車巡迴（T26）：與 cars/smoke/rain 同為每幀動畫更新
@@ -5321,6 +5431,7 @@ window.GV={
   canPlaceTool:(t,x,y)=>canPlace(t,x,y),                       // 測試用建造可行性
   buses:()=>buses.map(b=>({x:b.x,y:b.y,stop:[b.stop%N,(b.stop/N)|0],p:+b.p.toFixed(2),wait:+b.wait.toFixed(2),moving:!!b.path})), // 公車運行快照（T26 測試用）
   step:(n)=>{n=clamp(n|0,1,60);for(let i=0;i<n;i++)tick();return day;}, // 手動推進 n 個模擬日（測試用，同 setDay 屬 sim 鉤子）
+  advanceN:(dt,n)=>{dt=+dt||0.05;n=clamp(n|0,1,6000);for(let i=0;i<n;i++)advance(dt);return day;}, // T119 測試用：以固定 dt 推進 n 幀（車輛出勤等每幀動畫系統於 headless 環境亦可決定性重放，同 step() 屬 sim 鉤子）
   stats:()=>{let b=0,r=0,z=0,pw=0,f=0,ru=0;
     for(let i=0;i<N*N;i++){const t=tiles[i];
       if(t.bld){b++;if(t.bld.pw)pw++;if(t.bld.fire)f++;}
@@ -5362,6 +5473,11 @@ window.GV={
   trains:()=>trains.length,
   trams:()=>tramCars.length,
   ships:()=>cargoShips.length,
+  ambulances:()=>ambulances.length,                              // T119 測試用：出勤中救護車數
+  ladderTrucks:()=>ladderTrucks.length,                           // T119 測試用：出勤中消防車數
+  garbageTrucks:()=>recycleTrucks.length,                         // T119 測試用：巡邏中垃圾車數
+  svcTrucks:()=>({ladder:ladderTrucks.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty,p:+c.p.toFixed(2)})),recycle:recycleTrucks.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty,p:+c.p.toFixed(2)}))}), // T119 測試用：位置快照（仿 GV.buses() 慣例）
+  garbLocalAt:(x,y)=>inMap(x,y)?garbLocal[idx(x,y)]:null,         // T119 測試用：該格住宅局部垃圾係數
   setChallenge:(id,bonus=1000)=>{challenge={id,bonus,label:id};return challenge;},
   region:()=>({...region}),
   food:()=>foodPoints,
