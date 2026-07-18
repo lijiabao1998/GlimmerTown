@@ -3825,6 +3825,8 @@ function drawMini(){
     if(t.road)c=t.hw?'#3a3d44':'#565b64';
     if(t.rail)c='#8b7355';if(t.tram)c='#6a8fbf';if(t.dock)c='#3d6a8a';if(t.flood)c='#1a4a7a';if(t.levee)c='#9a8a6a';
     if(t.wp)c='#2f6fc0';
+    // T90：小地圖色表（pal）索引 0..32 對齊 KNAME 1..32，鐵路站(17)/港口(18)/機場(19)/停車場(20)/輕軌站(21)等 v3.0
+    // 建築（T39-T54）色碼已全數涵蓋（見下陣列），多格建築 ref 副格同步 t.bld.k 一併正確上色，核對現狀達標、無新增
     if(t.bld){const pal=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090'];c=pal[t.bld.k]||'#aaa';}
     if(t.bld&&t.bld.fire)c='#ff5030';
     miniG.fillStyle=c;miniG.fillRect(x*2,y*2,2,2);
