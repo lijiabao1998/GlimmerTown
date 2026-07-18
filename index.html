@@ -1944,6 +1944,7 @@ function computeElMask(){
   }
 }
 function newWorld(seedOverride){
+  hist=[];log=[];unread=0;if(typeof updBell==='function')updBell(); // FIX-N：跨局殘留成對重置（鐵律7）——begin() 之外的開新圖路徑（工具列🆕/GV.newWorld）也必須清歷史曲線與通知日誌
   let sd=seedOverride!==undefined?seedOverride:(Math.random()*1e9)|0;
   for(let tries=0;tries<40;tries++){
     const w=genWorld(sd);
