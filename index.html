@@ -4113,6 +4113,7 @@ function save(){
 function recalcAllRailMasks(){
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcRailMask(x,y);
 }
+const MSZ={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3}; // FIX-J：多格建築 k→sz 對照（與各 doPlace 分支硬編碼一致；k9 體育場沿用存檔第 6 位 sz，不入表）
 function load(slot){
   try{
     const key=slotKey(slot||curSlot());
@@ -4155,6 +4156,7 @@ function load(slot){
           const denVal=rec.length>=7?rec[6]:3;
           tiles[i].bld={k,lv,v:vv,age,pw:true,h:.6,fire:fireVal,den:denVal};
         }else tiles[i].bld={k,lv,v:vv,age,pw:true,h:.6,fire:rec[5]||0};
+        if(MSZ[k]){tiles[i].bld.sz=MSZ[k];tiles[i].bld.h=1;} // FIX-J：多格建築 root 由 k 反查補 sz（存檔不存，缺 sz 時下方 T39-T60 重建塊會跳過致 ref 格全失）、h 對齊放置端
       }
     }
     if(d.cm)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&+d.cm[i])b.crime=1;} // 犯罪標記（T32，舊檔無 cm 則無犯罪）

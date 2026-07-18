@@ -150,7 +150,7 @@ k=1~3 住宅／商業／工業的 `SPR.bld['k_lv_v']` 不再寫死 if 分支，�
 
 槽位鍵 `glimmerville.v1.s1/.s2/.s3`（目前槽記在 `.slot`；舊裸鍵啟動時自動遷入 s1），JSON：
 `{v:1, gameVer, seed, money, day, msIdx, cam:{x,y,z}, ter, tre, rd, zn, dc, rn, rc, rcl, wp, el, bs, cm, sk, dt, skd, dtd, bl, ach, nm, ln, star, rl, rb, dk, ow, tl, pm, bln, tr, of, fl, le, ab, pol, region}`
-其中 `gameVer`＝`GAME_VER`（T93，現 '3.0'；僅記錄用，讀檔仍以 `v===1` 為準）；ter/tre/rd/zn/dc 等是長 N*N 的數字字串（rd：0無 1路 2橋 3高速 4高速橋；dc＝deco；rn焦土 rc路飾 rcl道路等級 wp水管 el高地 bs公車站 cm犯罪 sk生病 dt死亡 skd/dtd病亡天數；rl/rb鐵路/鐵路橋 dk碼頭 ow單行 tl號誌 pm停車計費 bln公車道 tr輕軌 of辦公 fl洪水 le堤防 ab廢棄，皆對應 §2 同名 tile 旗標）；`bl=[[i,k,lv,v,age(,sz|fire)(,den)],...]`（多格建築只存 root，k=9 第 6 位存 sz）；
+其中 `gameVer`＝`GAME_VER`（T93，現 '3.0'；僅記錄用，讀檔仍以 `v===1` 為準）；ter/tre/rd/zn/dc 等是長 N*N 的數字字串（rd：0無 1路 2橋 3高速 4高速橋；dc＝deco；rn焦土 rc路飾 rcl道路等級 wp水管 el高地 bs公車站 cm犯罪 sk生病 dt死亡 skd/dtd病亡天數；rl/rb鐵路/鐵路橋 dk碼頭 ow單行 tl號誌 pm停車計費 bln公車道 tr輕軌 of辦公 fl洪水 le堤防 ab廢棄，皆對應 §2 同名 tile 旗標）；`bl=[[i,k,lv,v,age(,sz|fire)(,den)],...]`（多格建築只存 root，k=9 第 6 位存 sz；其餘多格 k=19/20/22-25/31/32 **不存 sz**——fire 只發生於 k≤3、第 6 位對這些 k 恆缺，load 依 `MSZ` 表由 k 反查補回 root 的 sz 再重建 ref 格，舊檔天然相容，FIX-J）；
 `ach`＝已解鎖成就 id 陣列；`nm`＝鎮名；`ln`＝貸款 `[remain,daily]`；`star`＝最佳星等；`pol`＝稅率政策物件（T55/T68）、`region`＝區域聯動摘要（T60/T73）。dc 之後所有欄位均為可選欄位（舊檔容錯）。
 讀檔後重算 mask/foam＋`recalcAllRailMasks()`（FIX-D：rl/tr 還原時 railMask/tramMask 歸零需全量補算）＋rebuildCov；`pop/jobs/pw/h` 由下一次 tick 重算，不存。
 **覆寫保險（FIX-D）**：save／importShare 覆寫主鍵前先把舊值備份到 `<key>_bak`；setItem 失敗 `console.warn` 不再靜默；load 主鍵毀損先嘗試救 `_bak`，importShare 失敗還原舊檔。
@@ -179,7 +179,7 @@ GV.stats()             // {money,pop,jobs,day,buildings,poweredBld,roads,zones,h
 9. 建造/拆除的**唯一**資料變更點是 `doPlace()`——撤銷系統的快照掛鉤在那裡，繞過它改 tile＝撤銷壞掉。
 10. 新增建築種類 k 時必須同步：KNAME、COST、TOOLS、keydown 快捷鍵表、canPlace/placeCost/doPlace、
     SPR.bld['k_1_v']、inspect()、小地圖色表（drawMini 內陣列）、統計面板計數；若涉及模擬狀態標記（如 sick/death），
-    需同時補存檔欄位與 load 還原。
+    需同時補存檔欄位與 load 還原；多格建築（sz≥2）需同步 `MSZ` 表（FIX-J：load 由 k 反查補 sz，缺表項＝讀檔後 ref 格全失）。
 11. 覆蓋計數場 `COV`（T61）只在 `doPlace` 增減、`rebuildCov` 全量重建（load/newWorld/undo 後）；tick 讀不寫 COV，語義恆等 `countNear`。
     若新增一種 doPlace 可放置/拆除的覆蓋源設施，須在 `COVR`/`covFieldOfK` 補欄位、doPlace 放置/doze 撤印各補 `stampCov`；tick 內動態生滅的覆蓋源（如工業/犯罪）維持 `countNear` 不蓋印。
 12. **放置/拆除覆蓋蓋印必須對稱（FIX-D）**：doPlace 放置 `stampCov(+1)` 與 doze `stampCov(-1)` 必成對；多格建築體育場(k9) 4 格皆蓋/皆撤，其餘多格（k20/31/32）於 root 蓋/撤一次。缺一邊 → Uint8 下溢 0→255 或與 rebuildCov 語義分歧（教訓：k28/30 放置端漏蓋）。

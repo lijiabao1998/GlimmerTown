@@ -253,6 +253,19 @@ for (const r of svRoots) {
   const b = tile(r.x, r.y).bld;
   assert(b && b.v === 0, 'k=' + r.k + ' 竄改 v=2 後 load 應正規化回 v=0');
 }
+// FIX-J 迴歸：save→load 往返後多格 root 應保留 sz、ref 格應全數重建（舊版 load 未補 sz→ref 格全失、可被覆蓋建造）
+const SZOF = {}; for (const [, k, sz] of SV) SZOF[k] = sz;
+for (const r of svRoots) {
+  const b = tile(r.x, r.y).bld;
+  assert(b && b.sz === SZOF[r.k], 'k=' + r.k + ' load 後 root 應保留 sz=' + SZOF[r.k]);
+  let refs = 0;
+  for (let dy = 0; dy < SZOF[r.k]; dy++) for (let dx = 0; dx < SZOF[r.k]; dx++) {
+    if (!dx && !dy) continue;
+    const rb = tile(r.x + dx, r.y + dy).bld;
+    if (rb && rb.k === r.k && rb.ref && rb.ref[0] === r.x && rb.ref[1] === r.y) refs++;
+  }
+  assert(refs === SZOF[r.k] * SZOF[r.k] - 1, 'k=' + r.k + ' load 後 ref 格應全數重建（' + refs + '/' + (SZOF[r.k] * SZOF[r.k] - 1) + '）');
+}
 
 // ================= (2) 多格建築從 ref 格 doze + 體育場對稱撤印 =================
 console.log('\n-- (2) ref 格 doze / 體育場 COV --');
