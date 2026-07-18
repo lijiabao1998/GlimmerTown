@@ -33,12 +33,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   padding:2px 9px;font-size:13px;line-height:22px;cursor:pointer}
 .hbtn:active{background:#31407a}
 .hbtn.on{background:#3a5a2f;border-color:#5f8f4a}
-/* RCI 需求柱 */
-#rci{display:flex;align-items:flex-end;gap:3px;height:26px;padding:2px 6px;
+/* RCI 需求柱（T109：4×24px 豎條，綠正紅負，顏色由 JS 依正負動態設定） */
+#rci{display:flex;align-items:flex-end;gap:3px;height:28px;padding:2px 6px;
   background:#181f36;border:1px solid #303a5c;border-radius:6px}
-#rci .col{width:9px;height:22px;background:#0c1020;border-radius:2px;position:relative;overflow:hidden}
-#rci .col i{position:absolute;bottom:0;left:0;right:0;height:0%}
-#rci .r i{background:#58c470}#rci .c i{background:#5aa0e8}#rci .i i{background:#e8b23e}
+#rci .col{width:4px;height:24px;background:#0c1020;border-radius:2px;position:relative;overflow:hidden}
+#rci .col i{position:absolute;bottom:0;left:0;right:0;height:0%;background:#58c470}
 /* ---------- 工具列 ---------- */
 #toolcats{position:absolute;left:50%;bottom:68px;transform:translateX(-50%);z-index:21;display:none;gap:4px;flex-wrap:wrap;justify-content:center;max-width:96vw}
 #toolcats button{padding:4px 8px;border-radius:8px;border:1px solid #3a456e;background:rgba(16,22,42,.92);color:#c9d2ea;font-size:11px;cursor:pointer}
@@ -98,6 +97,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
   image-rendering:pixelated;cursor:pointer;display:none}
 @media (max-width:420px){#mini{width:96px;height:96px;top:64px}}
+/* T110：小地圖視圖切換鈕（普通/污染熱度） */
+#miniToggle{position:absolute;top:48px;right:160px;width:28px;height:28px;z-index:19;
+  border-radius:8px;border:2px solid #303a5c;background:#181f36;color:#dfe6f5;
+  font-size:14px;line-height:24px;cursor:pointer;padding:0;display:none}
+@media (max-width:420px){#miniToggle{top:64px;right:112px;width:24px;height:24px;font-size:11px;line-height:20px}}
 @media (max-height:520px){#logo{display:none}#start h1{font-size:26px}}
 /* 窄螢幕（360~420px 手機）壓縮工具列與 HUD，八顆工具鍵可完整捲動觸及 */
 @media (max-width:420px){
@@ -139,6 +143,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 <div id="toasts"></div>
 <div id="dragcost"></div>
 <canvas id="mini" width="144" height="144"></canvas>
+<button id="miniToggle" title="切換小地圖視圖：普通／污染熱度">🏭</button>
 <div id="zoomer">
   <button id="zin">＋</button>
   <button id="zout">－</button>
@@ -322,6 +327,7 @@ let region={};            // 區域聯動摘要（T60）
 let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
 let quality=1;            // T97 0低1中2高
+let miniView=0;           // T110 小地圖視圖：0一般 1污染熱度（不進存檔）
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
@@ -2198,6 +2204,7 @@ function doPlace(toolId,x,y,silent){
   const cost=placeCost(toolId,x,y);
   if(cost>money){if(!silent){toast('資金不足！','bad');sErr();}return false;}
   const t=T(idx(x,y));
+  const hadTree=t.tree>0; // T110：建造前後樹格差異，統一於函式尾端偵測種樹/砍樹（含被其他建造覆蓋清除）
   if(undoGroup&&!undoGroup.seen[idx(x,y)]){
     undoGroup.seen[idx(x,y)]=1;
     undoGroup.snaps.push({i:idx(x,y),s:JSON.stringify(t)});
@@ -2223,6 +2230,7 @@ function doPlace(toolId,x,y,silent){
     case 'plant':
       t.bld={k:5,lv:1,v:0,age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
       stampCov('plant',x,y,COVR.plant,1);
+      stampPolSrc(x,y,5,1); // T110：電廠污染源
       break;
     case 'water':
       t.bld={k:10,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
@@ -2264,6 +2272,7 @@ function doPlace(toolId,x,y,silent){
       break;
     case 'dump':
       t.bld={k:8,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      stampPolSrc(x,y,8,1); // T110：垃圾場污染源
       break;
     case 'stad':{                                       // 體育場 2×2：root 存完整資料、其餘 3 格存 ref（T22）
       const rv=ri(3);                                   // 變體（root 共用，繪製只讀 root）
@@ -2306,7 +2315,8 @@ function doPlace(toolId,x,y,silent){
             if(rb.k===9)stampCov('stadium',sx,sy,COVR.stadium,-1); // 對稱撤印：放置端 4 格皆蓋 stadium
           }
           if(rb.k!==9){const cf=covFieldOfK(rb.k);if(cf)stampCov(cf,r[0],r[1],COVR[cf],-1);} // 對稱撤印：停車場/監獄/大學放置端於 root 蓋印一次
-        }else{const cf=covFieldOfK(t.bld.k);t.bld=null;if(cf)stampCov(cf,x,y,COVR[cf],-1);}
+          if(POL_SRC[rb.k])stampPolSrc(r[0],r[1],rb.k,-1); // T110：多格污染源（機場）root 撤印
+        }else{const bk=t.bld.k;const cf=covFieldOfK(bk);t.bld=null;if(cf)stampCov(cf,x,y,COVR[cf],-1);if(POL_SRC[bk])stampPolSrc(x,y,bk,-1);} // T110：工業/電廠/垃圾場單格污染源撤印
       }
       else if(t.rail){t.rail=0;t.railBridge=0;t.railMask=0;recalcRailMask4(x,y);}
       else if(t.tram){t.tram=0;t.tramBridge=0;t.tramMask=0;recalcRailMask4(x,y);}
@@ -2347,6 +2357,7 @@ function doPlace(toolId,x,y,silent){
         ct.tree=0;ct.zone=0;ct.deco=0;
         ct.bld=(dx===0&&dy===0)?{k:19,lv:1,v:0,age:0,pw:true,h:1,sz:4}:{k:19,ref:[x,y]}; // SPR.bld 僅生成 19_1_0，固定 v:0
       }
+      stampPolSrc(x,y,19,1); // T110：機場污染源（root 蓋印一次）
       break;}
     case 'tram':
       if(t.tram)return false;
@@ -2449,6 +2460,8 @@ function doPlace(toolId,x,y,silent){
       t.levee=1;
       break;
   }
+  if(hadTree&&!t.tree)stampPolTree(x,y,-1); // T110：樹被清除（種樹工具本身或被其他建造覆蓋皆可能觸發）→ 撤銷鄰域減免
+  else if(!hadTree&&t.tree)stampPolTree(x,y,1); // T110：新種樹 → 鄰域污染減免
   money-=cost;
   if(undoGroup)undoGroup.spent+=cost;
   if(toolId==='plant'||toolId==='solar'||toolId==='wind'||roadToolToRc(toolId)||toolId==='doze')computePower();
@@ -2521,17 +2534,51 @@ function stampCov(field,x,y,r,delta){
   for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
     for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;a[idx(nx,ny)]+=delta;}}
 }
+/* T110 污染擴散場：中心強、半徑 4-6 遞減；樹格對鄰域 −2 減免。POL 為對外曝光之最終值
+   （供住宅幸福 −POL[i] 係數／小地圖熱度視圖／inspect 讀取）；POLBASE=污染源原始衰減和、
+   POLTREE=樹木減免累計（皆 Uint8 內部量），POL 由兩者相減衍生重算——避免 Uint8Array 無號下溢
+   （教訓見 §11-12：COV 缺蓋印會 0→255，此處改用雙陣列衍生法從根本避開，種樹/砍樹可安全對稱 ±）。
+   命名地雷：勿與稅率政策全域 pol（T55，小寫）混淆。運行時重建、不入存檔（隨 rebuildCov 一併重建）。*/
+const POL=new Uint8Array(N*N),POLBASE=new Uint8Array(N*N),POLTREE=new Uint8Array(N*N);
+const POL_SRC={3:{r:5,p:30},5:{r:6,p:40},8:{r:5,p:26},19:{r:6,p:34}}; // 工業/電廠/垃圾場/機場：半徑4-6、中心峰值
+const POL_LV3_MAX=15; // T113：lv2→3 升級要求 POL 低於此值（低污染門檻）
+function recomputePol(i){const v=POLBASE[i]-POLTREE[i];POL[i]=v>0?(v<255?v:255):0;}
+// 中心強、半徑遞減至0（Chebyshev，與COVR家族一致）；sign=+1放置/-1拆除，doPlace/doze成對呼叫維持±對稱
+function stampPolSrc(x,y,k,sign){
+  const cfg=POL_SRC[k];if(!cfg)return;const r=cfg.r,p=cfg.p;
+  for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
+    for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;
+      const d=Math.max(Math.abs(dx),Math.abs(dy));
+      const v=Math.round(p*(1-d/(r+1)));if(v<=0)continue;
+      const i=idx(nx,ny);
+      POLBASE[i]=clamp(POLBASE[i]+sign*v,0,255);recomputePol(i);
+    }}
+}
+// 樹格對鄰域（半徑2）固定 −2 減免；sign=+1種樹/-1砍樹，doPlace 通用 hadTree 差異偵測成對呼叫
+function stampPolTree(x,y,sign){
+  const r=2;
+  for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
+    for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;
+      const i=idx(nx,ny);
+      POLTREE[i]=clamp(POLTREE[i]+sign*2,0,255);recomputePol(i);
+    }}
+}
 // 全量重建（load/newWorld 後、undo 後）：清零後掃全圖蓋印每個設施（含體育場 4 格皆為 k9 覆蓋源，與 countNear 一致）
 function rebuildCov(){
   for(const f in COV)COV[f].fill(0);
+  POLBASE.fill(0);POLTREE.fill(0);POL.fill(0); // T110：污染場隨 COV 同步全量重建
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const t=tiles[idx(x,y)],b=t.bld;
     if(b){
       if(b.ref){if(b.k===9)stampCov('stadium',x,y,COVR.stadium,1);}
-      else{const f=covFieldOfK(b.k);if(f)stampCov(f,x,y,COVR[f],1);}
+      else{
+        const f=covFieldOfK(b.k);if(f)stampCov(f,x,y,COVR[f],1);
+        if(POL_SRC[b.k])stampPolSrc(x,y,b.k,1); // T110：污染源（工業/電廠/垃圾場/機場）
+      }
     }
     if(t.rdec)stampCov('rdec',x,y,COVR.rdec,1);
     if(t.bus)stampCov('bus',x,y,COVR.bus,1);
+    if(t.tree)stampPolTree(x,y,1); // T110：樹格鄰域污染減免
   }
 }
 function computeWater(){
@@ -2667,7 +2714,7 @@ function tick(){
       const roadHappy=rc===5?-.12:rc===4?-.05:rc===3?0:rc===2?.02:rc===1?.05:0;
       const library=COV.library[ci]>0;                   // 圖書館半徑6覆蓋（原 countNear k===14）
       const post=COV.post[ci]>0;                         // 郵局半徑8覆蓋（原 countNear k===15）
-      b.h=clamp(.62+roadHappy+(parks?.16:0)+(parks>1?.06:0)+0.03*(COV.rdec[ci]>0?1:0)+0.04*(COV.bus[ci]>0?1:0)+(COV.stadium[ci]>0?.08:0)+(library?.04:0)+(post?.03:0)-ind*.09-pl*.18-crime*.05-(deathPenalty[idx(x,y)]?.1:0)-(b.sick?.35:0)-(b.death?.55:0)-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1);
+      b.h=clamp(.62+roadHappy+(parks?.16:0)+(parks>1?.06:0)+0.03*(COV.rdec[ci]>0?1:0)+0.04*(COV.bus[ci]>0?1:0)+(COV.stadium[ci]>0?.08:0)+(library?.04:0)+(post?.03:0)-ind*.09-pl*.18-POL[ci]*.006-crime*.05-(deathPenalty[idx(x,y)]?.1:0)-(b.sick?.35:0)-(b.death?.55:0)-(b.pw?0:.3)-(weather===1?.02:weather===2?.05:0)-(inWinter()?.02:0),.05,1); // T110：−POL[i] 空間污染係數
       happySum+=b.h;happyN++;
       if(b.pw&&!b.sick&&!b.death){popN+=Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1));}
     }else if(b.pw){
@@ -2729,11 +2776,14 @@ function tick(){
     }
   }
   if(shakeT>0)shakeT=Math.max(0,shakeT-0.05);
-  // 需求
+  // 需求（T109 RCI 需求模型：住宅＝就業盈餘與幸福加權；商業＝人口/商業格數比；工業＝商業貨源缺口；三值歸一化 -1~+1）
   const workers=pop*.6;
-  dem[1]=clamp((jobs*1.2+25-workers)/70,-1,1);
-  dem[2]=clamp((workers*.45-jobsC)/50,-1,1);
-  dem[3]=clamp((workers*.55-jobsI)/55,-1,1);
+  const jobSurplus=clamp((jobs*1.2+25-workers)/70,-1,1); // 就業盈餘（沿用既有基準算式）
+  const happyAdj=clamp((cityHappy-.6)*1.2,-1,1);         // 幸福加權：偏離基準幸福 .6 的正負訊號
+  dem[1]=clamp(jobSurplus*.7+happyAdj*.3,-1,1);
+  let czone=0;for(let i=0;i<N*N;i++)if(tiles[i].zone===2)czone++; // 商業格數（含未建成，對應「格數」字面）
+  dem[2]=clamp((pop/Math.max(1,czone)-3)/6,-1,1);
+  dem[3]=clamp((jobsC*.8-jobsI)/40,-1,1);
   // 生長：收集候選
   const cands=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -2745,7 +2795,11 @@ function tick(){
   let spawns=0;
   for(const[x,y,z]of cands){
     if(spawns>=3)break;
-    let p=.10+.5*Math.max(0,dem[z])*(z===1?clamp(cityHappy+.25,.3,1):1);
+    // T109：生長機率乘 (1+demand×0.6)；demand<-0.5 該類停長；住宅幸福加成沿用既有係數但只作用於需求項本身
+    // （dem[z]===0 時 hf 對乘積無影響，機率精確回落 .10 基準，與改動前 dem=0 時的行為一致，回歸不變量成立）
+    const hf=z===1?clamp(cityHappy+.25,.3,1):1;
+    let p=.10*(1+dem[z]*.6*hf);
+    if(dem[z]<-.5)p=0;
     const cell=T(idx(x,y));
     if(z===1&&cityHappy<.4)p*=.5; // T72
     if(cell.office)p*=1.35; // T79
@@ -2753,6 +2807,7 @@ function tick(){
       const den=z===1?clamp(getMaxRoadClass(x,y,3),1,5):undefined;
       const kk=cell.office?2:z;
       cell.bld={k:kk,lv:1,v:(kk===1||kk===2||kk===3)?ri(8):ri(4),age:0,pw:true,h:.6,den}; // T101：住宅(k=1) v 擴至 ri(8)；T102：商業(k=2) v 擴至 ri(8)；T103：工業(k=3) v 擴至 ri(8)
+      if(kk===3)stampPolSrc(x,y,3,1); // T110：工業新生長為污染源
       spawns++;sPop();
     }
   }
@@ -2767,7 +2822,10 @@ function tick(){
     // T87：大學覆蓋升級加成 1.8（僅住宅；有大學時覆蓋學校 1.6）
     const uniBoost=(b.k===1&&COV.university&&COV.university[i]>0)?1.8:1;
     const eduBoost=uniBoost>1?uniBoost:schoolBoost;
-    if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
+    // T113：升級多因子門檻——只擋「新升級」的 roll，已達該級的舊建築不受影響；條件全滿足時機率不變
+    const lv2Gate=b.lv!==1||COV.police[i]>0; // lv1→2 需警局覆蓋（通電既有 b.pw 已要求）
+    const lv3Gate=b.lv!==2||(COV.school[i]>0&&POL[i]<POL_LV3_MAX); // lv2→3 需學校覆蓋＋低污染（供水既有 b.wa 已要求）
+    if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&lv2Gate&&lv3Gate&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
       b.lv++;b.age=0;b.v=(b.k===1||b.k===2||b.k===3)?ri(8):ri(4);if(b.den===undefined)b.den=3; // T101：住宅v擴至ri(8)；T102：商業v擴至ri(8)；T103：工業v擴至ri(8)
     }
   }
@@ -2810,7 +2868,7 @@ function tick(){
       continue;
     }
     b.fire++;
-    if(b.fire>=5){t.bld=null;t.ruin=1;}                  // zone 保留
+    if(b.fire>=5){if(b.k===3)stampPolSrc(x,y,3,-1);t.bld=null;t.ruin=1;} // zone 保留；T110：工業燒毀→撤銷污染源
   }
   // 犯罪（T32）：未受警察局半徑10覆蓋的 k≤3 建築每天小機率發生犯罪
   let crimeAlert=false;
@@ -3771,6 +3829,7 @@ function undoPlace(f){
     recalcMask(f.x,f.y-1);recalcMask(f.x+1,f.y);recalcMask(f.x,f.y+1);recalcMask(f.x-1,f.y);
   }else if(f.tool==='plant'&&t.bld&&t.bld.k===5){
     t.bld=null;stampCov('plant',f.x,f.y,COVR.plant,-1); // T61：誤放電廠即時撤銷 → 撤印覆蓋
+    stampPolSrc(f.x,f.y,5,-1); // T110：同步撤印污染源
   }else return;
   money+=f.spent;
   computePower();
@@ -3972,6 +4031,15 @@ function inspect(x,y){
       else html+=`<div class="row">就業 ${b.pw?(b.k===2?Math.round(JOBSC[b.lv]*(t.office?1.5:1)):JOBSI[b.lv]):0} 人${(b.k===2&&t.office)?'（辦公區 ×1.5）':''}</div>`;
       html+=`<div class="row">${b.pw?'⚡ 供電正常':'⚠️ 沒有電力！'}</div>`;
       html+=`<div class="row">${b.wa?'💧 供水正常':'⚠️ 沒有供水！'}</div>`;
+      if(b.lv<3){ // T113：未達下一級的升級多因子門檻缺失清單（複用 COV/POL O(1) 查詢）
+        const need=[];
+        if(b.lv===1&&!(COV.police[idx(x,y)]>0))need.push('警局覆蓋');
+        if(b.lv===2){
+          if(!(COV.school[idx(x,y)]>0))need.push('學校覆蓋');
+          if(!(POL[idx(x,y)]<POL_LV3_MAX))need.push('降低污染');
+        }
+        if(need.length)html+=`<div class="row" style="color:#ffb15f">🔒 升 Lv.${b.lv+1} 還缺：${need.join('、')}</div>`;
+      }
       if(b.crime)html+=`<div class="row" style="color:#ffd45f">🚓 發生犯罪！幸福 -5%（鄰近）</div><button class="hbtn" id="crimeBtn">✅ 處理犯罪</button>`;
       if(b.death)html+=`<div class="row" style="color:#5a5a5a">💀 發生憾事，人口與稅收暫停</div>`;
       else if(b.sick)html+=`<div class="row" style="color:#e05252">🏥 生病中！人口與稅收暫停、幸福大降</div><button class="hbtn" id="sickBtn">💊 治療 $50</button>`;
@@ -4255,16 +4323,22 @@ function drawMini(){
   miniG.fillStyle='#0d1226';miniG.fillRect(0,0,144,144);
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const t=T(idx(x,y));
-    let c=t.t===0?'#3671b6':t.t===1?'#d9c689':'#74b258';
-    if(t.tree)c='#3e7a3c';
-    if(t.zone)c=['','#2e7a44','#2f5f9a','#9a7a2e'][t.zone];
-    if(t.road)c=t.hw?'#3a3d44':'#565b64';
-    if(t.rail)c='#8b7355';if(t.tram)c='#6a8fbf';if(t.dock)c='#3d6a8a';if(t.flood)c='#1a4a7a';if(t.levee)c='#9a8a6a';
-    if(t.wp)c='#2f6fc0';
-    // T90：小地圖色表（pal）索引 0..32 對齊 KNAME 1..32，鐵路站(17)/港口(18)/機場(19)/停車場(20)/輕軌站(21)等 v3.0
-    // 建築（T39-T54）色碼已全數涵蓋（見下陣列），多格建築 ref 副格同步 t.bld.k 一併正確上色，核對現狀達標、無新增
-    if(t.bld)c=MINI_BLD_PAL[t.bld.k]||'#aaa'; // T107：改讀共用 MINI_BLD_PAL（陣列內容與原本行內字面量逐字相同）
-    if(t.bld&&t.bld.fire)c='#ff5030';
+    let c;
+    if(miniView===1){ // T110：污染熱度視圖，紅色深淺對應 POL[i] 強度
+      const v=POL[idx(x,y)];
+      c=v>0?'rgb('+Math.min(255,40+v*5)+',26,26)':'#141a30';
+    }else{
+      c=t.t===0?'#3671b6':t.t===1?'#d9c689':'#74b258';
+      if(t.tree)c='#3e7a3c';
+      if(t.zone)c=['','#2e7a44','#2f5f9a','#9a7a2e'][t.zone];
+      if(t.road)c=t.hw?'#3a3d44':'#565b64';
+      if(t.rail)c='#8b7355';if(t.tram)c='#6a8fbf';if(t.dock)c='#3d6a8a';if(t.flood)c='#1a4a7a';if(t.levee)c='#9a8a6a';
+      if(t.wp)c='#2f6fc0';
+      // T90：小地圖色表（pal）索引 0..32 對齊 KNAME 1..32，鐵路站(17)/港口(18)/機場(19)/停車場(20)/輕軌站(21)等 v3.0
+      // 建築（T39-T54）色碼已全數涵蓋（見下陣列），多格建築 ref 副格同步 t.bld.k 一併正確上色，核對現狀達標、無新增
+      if(t.bld)c=MINI_BLD_PAL[t.bld.k]||'#aaa'; // T107：改讀共用 MINI_BLD_PAL（陣列內容與原本行內字面量逐字相同）
+      if(t.bld&&t.bld.fire)c='#ff5030';
+    }
     miniG.fillStyle=c;miniG.fillRect(x*2,y*2,2,2);
   }
   // 視野框：四個螢幕角反推格座標連線
@@ -4281,6 +4355,13 @@ miniCv.addEventListener('pointerdown',e=>{
   const r=miniCv.getBoundingClientRect();
   const tx=(e.clientX-r.left)/r.width*N, ty=(e.clientY-r.top)/r.height*N;
   cam.x=(tx-ty)*32;cam.y=(tx+ty)*16;clampCam();drawMini();
+});
+// T110：小地圖視圖切換鈕（普通 🏭↔污染熱度 🗺️）
+$('#miniToggle').addEventListener('click',e=>{
+  e.stopPropagation();
+  miniView=miniView?0:1;
+  $('#miniToggle').textContent=miniView?'🗺️':'🏭';
+  drawMini();
 });
 function toast(msg,cls){
   const el=document.createElement('div');
@@ -4299,9 +4380,15 @@ function updHud(){
   $('#star').innerHTML=cityStar<0?'⭐ <b>–</b>':`⭐ <b>${cityStar}</b>`;
   const yr=Math.floor((day-1)/360)+1,dd=((day-1)%360)+1;
   $('#date').textContent=`${['☀️','🌧️','⛈️'][weather]} 第${yr}年 第${dd}天`;
-  $('#rci .r i').style.height=Math.round(Math.max(0,dem[1])*100)+'%';
-  $('#rci .c i').style.height=Math.round(Math.max(0,dem[2])*100)+'%';
-  $('#rci .i i').style.height=Math.round(Math.max(0,dem[3])*100)+'%';
+  // T109：需求條綠正紅負，高度＝|需求|、tooltip 顯示實際數值（-1~+1）
+  const rciBar=(cls,nm,v)=>{
+    $('#rci .'+cls+' i').style.height=Math.round(Math.min(1,Math.abs(v))*100)+'%';
+    $('#rci .'+cls+' i').style.background=v>=0?'#58c470':'#e2585c';
+    $('#rci .'+cls).title=nm+'需求：'+(v>=0?'+':'')+v.toFixed(2);
+  };
+  rciBar('r','住宅',dem[1]);
+  rciBar('c','商業',dem[2]);
+  rciBar('i','工業',dem[3]);
 }
 $('#bSpeed').onclick=()=>{
   speed=speed===0?1:speed===1?2:speed===2?3:speed===3?5:0;
@@ -4736,7 +4823,7 @@ function begin(fresh){
   if(fresh||!load())newWorld();
   $('#start').style.display='none';
   running=true;
-  $('#mini').style.display='block';drawMini();
+  $('#mini').style.display='block';$('#miniToggle').style.display='block';drawMini(); // T110：小地圖切換鈕隨小地圖一併顯示
   computePower();
   updHud();
   if(sndMode===2)composer.start();
@@ -4773,6 +4860,7 @@ window.GV={
   tile:(x,y)=>inMap(x,y)?JSON.parse(JSON.stringify(T(idx(x,y)))):null,
   cov:(f,x,y)=>COV[f]?.[idx(x,y)], // T61：覆蓋場除錯鉤子（回傳該格某設施覆蓋計數）
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
+  polAt:(x,y)=>inMap(x,y)?POL[idx(x,y)]:null, // T110：污染場除錯鉤子（命名避開稅率政策 GV.pol）
   setSpeed:s=>{speed=s;},
   setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
