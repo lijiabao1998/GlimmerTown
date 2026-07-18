@@ -33,6 +33,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   padding:2px 9px;font-size:13px;line-height:22px;cursor:pointer}
 .hbtn:active{background:#31407a}
 .hbtn.on{background:#3a5a2f;border-color:#5f8f4a}
+#bBell{position:relative}
+.dot{position:absolute;top:-4px;right:-4px;background:#e05252;color:#fff;font-size:9px;
+  line-height:14px;min-width:14px;height:14px;border-radius:7px;text-align:center;padding:0 2px;font-weight:700}
 /* RCI 需求柱（T109：4×24px 豎條，綠正紅負，顏色由 JS 依正負動態設定） */
 #rci{display:flex;align-items:flex-end;gap:3px;height:28px;padding:2px 6px;
   background:#181f36;border:1px solid #303a5c;border-radius:6px}
@@ -92,6 +95,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #start button.alt{border-color:#46538a;background:#1d2745;color:#c9d2ea}
 #start button:active{transform:scale(.97)}
 #start .help{margin-top:10px;color:#96a4c9;font-size:12px;line-height:1.9;max-width:340px}
+#start .diffrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:340px}
+#start .diffbtn{min-width:auto;padding:6px 12px;font-size:12px;border-radius:9px}
+#start .diffbtn.sel{border-color:#ffd977;background:#33395e;color:#fff}
 #logo{image-rendering:pixelated;width:224px;height:128px}
 #mini{position:absolute;top:48px;right:10px;width:144px;height:144px;z-index:18;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
@@ -134,6 +140,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   <button class="hbtn" id="bSound">🔊</button>
   <button class="hbtn" id="bSave">💾</button>
   <button class="hbtn" id="bNew">🆕</button>
+  <button class="hbtn" id="bBell">🔔<span id="bellDot" class="dot" style="display:none">0</span></button>
 </div>
 
 <div id="hint"><span id="hintTxt"></span><button id="hintX">✕</button></div>
@@ -329,6 +336,14 @@ let challenge=null;       // T88 挑戰
 let quality=1;            // T97 0低1中2高
 let miniView=0;           // T110 小地圖視圖：0一般 1污染熱度（不進存檔）
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
+let hist=[];               // T112：歷史曲線環形緩衝 {d,money,net,pop,happy}（365 筆上限，simDay 絕對尾端 push）
+let histRange=30;          // T112：統計面板目前選擇的曲線範圍 30/90/365（不進存檔）
+let log=[];                // T114：通知中心事件日誌 {d,m,c,x?,y?}（100 筆上限，toast() 同步 push）
+let unread=0;               // T114：HUD 鈴鐺未讀計數（開通知面板歸零，不進存檔）
+let diff=1;                  // T115：難度 0簡單/1標準/2困難/3沙盒（存檔可選欄位 df，舊檔預設 1 標準）
+const DIFF_NM=['😊 簡單','⚖️ 標準','🔥 困難','🧪 沙盒'];
+const DIFF_MONEY=[5000,3000,1500,3000]; // 各難度起始資金（沙盒僅供顯示基準，建造實際免費不扣款）
+const DIFF_HAZ=[.5,1,1.5,1];            // 各難度天氣災害機率倍率（沙盒同標準倍率，另開放手動觸發）
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
 const cam={x:0,y:0,z:3};
@@ -2140,6 +2155,7 @@ function canPlaceMulti(x,y,sz,msg){
   return null;
 }
 function placeCost(toolId,x,y){
+  if(diff===3)return 0; // T115：沙盒短路——建造／拆除一律免費
   const t=T(idx(x,y));
   let c=0;
   switch(toolId){
@@ -2755,24 +2771,24 @@ function tick(){
   // T69/T70 災害（可關）
   if(disastersOn){
     if(weather===1||weather===2)rainDays++;else rainDays=Math.max(0,rainDays-1);
-    if(rainDays>=6&&R()<.12){
-      let n=0;
+    if(rainDays>=6&&R()<.12*DIFF_HAZ[diff]){ // T115：災害機率乘難度倍率（標準×1，行為不變）
+      let n=0,ffi=-1;
       for(let i=0;i<N*N&&n<8;i++){
         const t=tiles[i];if(t.t!==2||t.levee||t.flood)continue;
         if(countNear(i%N,(i/N)|0,1,tt=>tt.t===0)<1)continue;
-        t.flood=1;n++;
+        t.flood=1;n++;if(ffi<0)ffi=i; // T114：記第一格座標供通知中心跳鏡頭
       }
-      if(n)toast('🌊 洪水來襲！河岸低地被淹（堤防可防護）','bad');
+      if(n)toast('🌊 洪水來襲！河岸低地被淹（堤防可防護）','bad',ffi%N,(ffi/N)|0);
     }
     for(let i=0;i<N*N;i++)if(tiles[i].flood&&R()<.15)tiles[i].flood=0;
     if(quakeRecover>0)quakeRecover--;
-    else if(R()<.0015){
-      shakeT=.55;quakeRecover=40;let hit=0;
+    else if(R()<.0015*DIFF_HAZ[diff]){ // T115：災害機率乘難度倍率（標準×1，行為不變）
+      shakeT=.55;quakeRecover=40;let hit=0,qi=-1;
       for(let tries=0;tries<40&&hit<5;tries++){
         const i=ri(N*N),b=tiles[i].bld;
-        if(b&&!b.ref&&b.k<=3&&!b.fire){b.fire=1;hit++;}
+        if(b&&!b.ref&&b.k<=3&&!b.fire){b.fire=1;hit++;if(qi<0)qi=i;} // T114：記第一棟座標供通知中心跳鏡頭
       }
-      if(hit){toast('🌋 地震！部分建築起火','bad');sErr();}
+      if(hit){toast('🌋 地震！部分建築起火','bad',qi%N,(qi/N)|0);sErr();}
     }
   }
   if(shakeT>0)shakeT=Math.max(0,shakeT-0.05);
@@ -2841,7 +2857,7 @@ function tick(){
     if((COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)))p*=.15;                             // T61：消防局半徑9覆蓋（原 countNear k===6）
     if(R()<p){
       b.fire=1;
-      if(!fireAlert){toast('🔥 '+townName+'發生火災！點擊燃燒的建築滅火','bad');sErr();fireAlert=true;}
+      if(!fireAlert){toast('🔥 '+townName+'發生火災！點擊燃燒的建築滅火','bad',x,y);sErr();fireAlert=true;}
     }
   }
   for(const i of burning){                               // 蔓延：20% 點燃 Chebyshev 1 內未燃建築
@@ -2879,7 +2895,7 @@ function tick(){
     if(COV.police[i]>0)continue; // T61：警察局半徑10覆蓋則受保護（原 countNear k===11）
     if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）
       b.crime=1;
-      if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad');sErr();crimeAlert=true;}
+      if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad',x,y);sErr();crimeAlert=true;}
     }
   }
   // 廢棄（T71）：犯罪持續未被玩家處理（crimeBtn/GV.clearCrime）滿 15 天後每天 5% 機率轉為廢棄；
@@ -2891,7 +2907,7 @@ function tick(){
     b.crimeDays=(b.crimeDays||0)+1;
     if(b.crimeDays>=15&&R()<.05){
       b.abandoned=1;
-      if(!abandonAlert){toast('🏚️ '+townName+'有建築因長期犯罪而廢棄，已停止繳稅','bad');sErr();abandonAlert=true;}
+      if(!abandonAlert){toast('🏚️ '+townName+'有建築因長期犯罪而廢棄，已停止繳稅','bad',i%N,(i/N)|0);sErr();abandonAlert=true;}
     }
   }
   // 生病（T33/T34）：未受健康設施覆蓋的住宅每天小機率生病；醫院覆蓋內次日康復，診所覆蓋內每天50%機率康復
@@ -2910,7 +2926,7 @@ function tick(){
     }
     if(!covered&&R()<.001*b.lv){
       b.sick=1;
-      if(!sickAlert){toast('🏥 '+townName+'爆發疾病！點擊生病住宅處理','bad');sErr();sickAlert=true;}
+      if(!sickAlert){toast('🏥 '+townName+'爆發疾病！點擊生病住宅處理','bad',x,y);sErr();sickAlert=true;}
     }
   }
   // 生病→死亡轉化（T38）：sick≥3 天未康復每天 10% 轉死亡
@@ -2921,7 +2937,7 @@ function tick(){
     b.sickDays=(b.sickDays||0)+1;
     if(b.sickDays>=3&&R()<.10){
       b.death=1;b.deathAge=0;b.sick=0;b.sickDays=0;
-      if(!deathAlert){toast('💀 發生憾事！請增設健康設施或墓園','bad');sErr();deathAlert=true;}
+      if(!deathAlert){toast('💀 發生憾事！請增設健康設施或墓園','bad',i%N,(i/N)|0);sErr();deathAlert=true;}
     }
   }
   // 經濟
@@ -2975,7 +2991,7 @@ function tick(){
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
   upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）
   fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,net:income-upkeep};
-  money+=income-upkeep;
+  if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   // T88 挑戰檢查
   if(challenge){
@@ -3037,6 +3053,7 @@ function tick(){
     toast('🏦 小鎮銀行送來 $250 紓困金（也可到 📊 面板貸款）','gold');
   }
   checkHints(plants,roads);
+  hist.push({d:day,money:Math.round(money),net:+(income-upkeep).toFixed(1),pop,happy:+cityHappy.toFixed(2)});if(hist.length>365)hist.shift(); // T112：歷史曲線環形緩衝，絕對尾端 push（365 筆封頂）
 }
 
 /* =====================================================================
@@ -4363,13 +4380,17 @@ $('#miniToggle').addEventListener('click',e=>{
   $('#miniToggle').textContent=miniView?'🗺️':'🏭';
   drawMini();
 });
-function toast(msg,cls){
+function toast(msg,cls,x,y){
   const el=document.createElement('div');
   el.className='toast'+(cls?' '+cls:'');
   el.textContent=msg;
   $('#toasts').appendChild(el);
   setTimeout(()=>{el.style.transition='opacity .5s';el.style.opacity='0';},2800);
   setTimeout(()=>el.remove(),3400);
+  // T114：同步寫入通知中心日誌（100 筆封頂丟最舊）；x/y 為選填座標（災害/事件類呼叫點補傳）
+  const le={d:day,m:msg,c:cls};if(x!==undefined&&y!==undefined){le.x=x;le.y=y;}
+  log.push(le);if(log.length>100)log.shift();
+  unread++;updBell();
 }
 function updHud(){
   $('#money b').textContent=Math.floor(money).toLocaleString();
@@ -4461,6 +4482,30 @@ function importShare(){
 }
 // FIX-E：鎮名可來自分享碼匯入（load 未消毒）→ 注入 innerHTML 前先逸出，防 self-XSS
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// T112：歷史曲線——260×80 canvas，四序列各自獨立縱軸自動縮放（量級差異大，共用軸會壓平幸福/人口）
+// 僅由 showStats() 與範圍切換鈕呼叫，面板關閉時不會被呼叫、不渲染
+function drawHistChart(){
+  const cv=$('#histCv');if(!cv)return;
+  const g=cv.getContext('2d');
+  g.clearRect(0,0,260,80);
+  if(!hist.length)return;
+  const data=hist.slice(-histRange);
+  const n=data.length;
+  if(n<2)return;
+  const series=[['money','#ffd977'],['net','#5ec8ff'],['pop','#7be08a'],['happy','#ff8fd0']];
+  for(const[k,col]of series){
+    let lo=Infinity,hi=-Infinity;
+    for(const d of data){const v=d[k];if(v<lo)lo=v;if(v>hi)hi=v;}
+    if(hi===lo)hi=lo+1;
+    g.strokeStyle=col;g.lineWidth=1.2;g.beginPath();
+    for(let i=0;i<n;i++){
+      const px=1+(n>1?(i/(n-1))*258:0);
+      const py=78-((data[i][k]-lo)/(hi-lo))*76;
+      i?g.lineTo(px,py):g.moveTo(px,py);
+    }
+    g.stroke();
+  }
+}
 function showStats(){
   // T68 政策快捷（稅率倍率）
   if(pol==null)pol={taxR:1,taxC:1,taxI:1};
@@ -4498,6 +4543,7 @@ function showStats(){
   const f=v=>(v>=0?'+':'')+v.toFixed(1);
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
+     ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}</div>
@@ -4508,8 +4554,31 @@ function showStats(){
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
      <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
      ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
+     <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
+     <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
+     <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
+     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button></div>':''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
+  // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
+  drawHistChart();
+  const histBtn=(id,r)=>{const el=$(id);if(el)el.addEventListener('click',()=>{histRange=r;drawHistChart();});};
+  histBtn('#histR30',30);histBtn('#histR90',90);histBtn('#histR365',365);
+  // T115：沙盒手動災害鈕（呼叫既有 GV.quake/flood/ignite 鉤子路徑，不改動其內部邏輯）
+  if(diff===3){
+    const bQ=$('#sbQuake');if(bQ)bQ.addEventListener('click',()=>{
+      if(GV.quake())toast('🌋 沙盒：手動觸發地震');else toast('地震已被設定關閉','bad');
+    });
+    const bF=$('#sbFlood');if(bF)bF.addEventListener('click',()=>{
+      const n=GV.flood();toast(n?'🌊 沙盒：手動觸發洪水（'+n+'格）':'找不到適合淹水的河岸格','bad');
+    });
+    const bFi=$('#sbFire');if(bFi)bFi.addEventListener('click',()=>{
+      const cand=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k<=3&&!b.fire)cand.push(i);}
+      let ok=false;
+      if(cand.length){const ci=cand[(Math.random()*cand.length)|0];ok=GV.ignite(ci%N,(ci/N)|0);} // Math.random()：手動 UI 動作不消耗共用種子流 R()
+      toast(ok?'🔥 沙盒：手動觸發火災':'找不到可燃燒的建築','bad');
+    });
+  }
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
   if(lb)lb.addEventListener('click',()=>{
     money+=2000;loan={remain:20,daily:120};
@@ -4527,6 +4596,36 @@ function showStats(){
   pb('#polIm','taxI',-1,'工業');pb('#polIp','taxI',1,'工業');
 }
 $('#bStats').onclick=()=>{showStats();sTick();};
+// T114：通知中心——HUD 鈴鐺按鈕、未讀紅點、事件日誌面板（複用 #infoBody/.row 樣式）
+function updBell(){
+  const d=$('#bellDot');if(!d)return;
+  if(unread>0){d.style.display='block';d.textContent=unread>99?'99+':unread;}
+  else d.style.display='none';
+}
+function showLog(){
+  const body=$('#infoBody');body.innerHTML='<h3>🔔 通知中心</h3>';
+  const list=document.createElement('div');
+  list.style.maxHeight='260px';list.style.overflowY='auto'; // 倒序、可捲動
+  if(!log.length){
+    const empty=document.createElement('div');empty.className='row';empty.textContent='目前沒有通知';list.appendChild(empty);
+  }else{
+    for(let i=log.length-1;i>=0;i--){
+      const it=log[i],hasXY=it.x!==undefined&&it.y!==undefined;
+      const row=document.createElement('div');row.className='row';
+      row.style.cursor=hasXY?'pointer':'default';
+      row.textContent=(hasXY?'📍 ':'　 ')+'第'+it.d+'天　'+it.m;
+      if(hasXY){
+        row.title='點擊跳到事件地點';
+        // 沿用小地圖點擊跳轉鏡頭的座標換算公式（T06 先例），不改動 drawMini 本體
+        row.addEventListener('click',()=>{cam.x=(it.x-it.y)*32;cam.y=(it.x+it.y)*16;clampCam();drawMini();hideInfo();});
+      }
+      list.appendChild(row);
+    }
+  }
+  body.appendChild(list);
+  $('#info').style.display='block';
+}
+$('#bBell').onclick=()=>{unread=0;updBell();showLog();sTick();};
 function showHelp(){
   $('#infoBody').innerHTML=
     `<h3>❓ 玩法指南</h3>
@@ -4659,7 +4758,10 @@ function save(){
     const data={v:1,gameVer:GAME_VER,seed,money:Math.round(money),day,msIdx,
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,skd,dtd,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar,
-      rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region}; // T39-T60 新欄位（可選）
+      rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region, // T39-T60 新欄位（可選）
+      df:diff, // T115：難度／沙盒（可選欄位，舊檔載入預設 1 標準）
+      hi:hist.length?{d0:hist[0].d,m:hist.map(h=>h.money),n:hist.map(h=>h.net),p:hist.map(h=>h.pop),h:hist.map(h=>h.happy)}:null, // T112：歷史曲線（拆成並列數字陣列壓縮體積，可選欄位）
+      nl:log}; // T114：通知中心日誌（可選欄位，最多 100 筆）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
     if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
@@ -4736,6 +4838,9 @@ function load(slot){
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;pol=null;region={}; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
+    diff=(d.df>=0&&d.df<=3)?+d.df:1; // T115：難度／沙盒（可選欄位，舊檔缺 df 視為 1 標準）
+    hist=(d.hi&&d.hi.m&&d.hi.m.length)?d.hi.m.map((mv,ix)=>({d:d.hi.d0+ix,money:mv,net:d.hi.n[ix],pop:d.hi.p[ix],happy:d.hi.h[ix]})):[]; // T112：歷史曲線（可選欄位，舊檔缺 hi 視為空緩衝）
+    log=Array.isArray(d.nl)?d.nl.slice(-100):[];unread=0;updBell(); // T114：通知日誌（可選欄位，舊檔缺 nl 視為空日誌；讀檔視為已讀，未讀歸零）
     // T39-T60 多格建築重建
     for(let i=0;i<N*N;i++){
       const b=tiles[i].bld;
@@ -4820,7 +4925,8 @@ if(hasSave)$('#bContinue').style.display='block';
 function begin(fresh){
   try{document.title=(typeof townName==='string'?townName:'微光小鎮')+' · v'+GAME_VER;}catch(e){}
   initAudio();
-  if(fresh||!load())newWorld();
+  if(fresh||!load()){newWorld();hist=[];log=[];unread=0;updBell();} // T112/T114：全新地圖（含讀檔失敗回退）清空歷史曲線與通知日誌，避免殘留跨局
+  if(fresh){diff=challenge?1:diff;money=DIFF_MONEY[diff];} // T115：起始資金依難度套用；挑戰模式與難度互斥時以挑戰為準（強制標準）
   $('#start').style.display='none';
   running=true;
   $('#mini').style.display='block';$('#miniToggle').style.display='block';drawMini(); // T110：小地圖切換鈕隨小地圖一併顯示
@@ -4831,8 +4937,22 @@ function begin(fresh){
 }
 $('#bNewGame').onclick=()=>{challenge=null;begin(true);};
 $('#bContinue').onclick=()=>begin(false);
-// T88 挑戰
 const startEl=$('#start');
+// T115：難度／沙盒選擇列（#start 按鈕區，仿下方 T88 挑戰按鈕先例以 JS 注入；四鈕，選中高亮，預設標準）
+if(startEl&&!$('#bDiff0')){
+  const drow=document.createElement('div');drow.className='diffrow';
+  for(let i=0;i<4;i++){
+    const db=document.createElement('button');
+    db.className='alt diffbtn'+(i===diff?' sel':'');db.id='bDiff'+i;db.textContent=DIFF_NM[i];
+    db.addEventListener('click',()=>{
+      diff=i;
+      drow.querySelectorAll('.diffbtn').forEach((el,j)=>el.classList.toggle('sel',j===i));
+    });
+    drow.appendChild(db);
+  }
+  startEl.appendChild(drow);
+}
+// T88 挑戰
 if(startEl&&!$('#bCh1')){
   const mk=(id,label,bonus,goal)=>{const b=document.createElement('button');b.className='alt';b.id=id;b.textContent=label;b.onclick=()=>{challenge={id:goal,bonus,label};begin(true);toast('挑戰：'+label,'gold');};return b;};
   startEl.appendChild(mk('bCh1','🏁 挑戰：人口1000',1500,'pop1k'));
@@ -4895,7 +5015,12 @@ window.GV={
   setChallenge:(id,bonus=1000)=>{challenge={id,bonus,label:id};return challenge;},
   region:()=>({...region}),
   food:()=>foodPoints,
-  tourists:()=>tourists
+  tourists:()=>tourists,
+  hist:()=>hist.map(h=>({...h})),                              // T112 測試用：歷史曲線緩衝快照
+  log:()=>log.map(l=>({...l})),                                 // T114 測試用：通知中心日誌快照
+  unread:()=>unread,                                             // T114 測試用：目前未讀數
+  diff:()=>diff,                                                  // T115 測試用：目前難度 0-3
+  setDiff:(d)=>{diff=clamp(d|0,0,3);return diff;}                 // T115 測試用：直接設難度（不經開始畫面）
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
