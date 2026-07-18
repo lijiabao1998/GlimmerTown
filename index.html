@@ -1864,6 +1864,20 @@ function buildSprites(){
     g.fillRect(cx-18,76,36,3);                              // 觸地塵土
     SPR.tornado.push({img:c,ax:cx,ay:79,w:40,h:80});
   }
+  /* ===== T117 隕石坑：焦黑環（覆蓋於地形之上，同 SPR.ruin 尺寸 64×32 扁平菱形）＋餘燼夜光層，
+     置於 buildSprites 絕對尾端（接在 T116 尾端新增之後），不位移任何既有 rand 消耗序 ===== */
+  {
+    const[c,g]=cv(64,32),[nc,ng]=cv(64,32);
+    dia(g,32,0,32,'#2a2624');
+    speck(g,32,0,32,['#1c1918','#3a332e','#241f1c'],70,rand);
+    diaEdge(g,6,'#161311');
+    diaEdge(g,9,'#3d3630');
+    dia(g,32,8,16,'#100e0d');                                // 坑底更深色
+    speck(g,32,8,16,['#241f1c','#0c0a09'],40,rand);
+    ng.fillStyle='rgba(255,120,40,.5)';ng.fillRect(24,10,16,8); // 餘燼夜光
+    ng.fillStyle='rgba(255,180,80,.6)';ng.fillRect(28,12,8,4);
+    SPR.crater={img:c,night:nc};
+  }
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -2054,6 +2068,7 @@ function canPlace(toolId,x,y){
   if(!inMap(x,y))return '超出地圖';
   const t=T(idx(x,y));
   if(t.ruin&&toolId!=='doze')return '焦土需先清理';
+  if(t.crater&&toolId!=='doze')return '隕石坑需先剷除';                        // T117：拆除隕石坑走 doze 鏈最小分支
   switch(toolId){
     case 'alley':case 'road':case 'coll':case 'art':case 'hwy':{
       const rcTarget=roadToolToRc(toolId);
@@ -2097,7 +2112,7 @@ function canPlace(toolId,x,y){
       if(t.t!==1)return '只能填在沙地上';
       return null;
     case 'doze':
-      if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood&&!t.wp)return '這裡沒東西';
+      if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood&&!t.wp&&!t.crater)return '這裡沒東西'; // T117：隕石坑加入可拆除判定
       return null;
     // T39-T60 新工具
     case 'rail':
@@ -2209,7 +2224,7 @@ function placeCost(toolId,x,y){
     case 'bus':c=COST.bus;break;
     case 'tree':c=COST.tree;break;
     case 'fill':c=COST.fill;break;
-    case 'doze':c=COST.doze;break;
+    case 'doze':c=t.crater?120:COST.doze;break; // T117：隕石坑剷除定價 $120（一般拆除仍為 COST.doze）
     // T39-T60
     case 'rail':if(t.rail)return 0;c=t.t===0?COST.railBridge:COST.rail;break;
     case 'station':c=COST.station;break;
@@ -2341,6 +2356,7 @@ function doPlace(toolId,x,y,silent){
       break;
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}
+      else if(t.crater){t.crater=0;} // T117：剷除隕石坑（$120，見 placeCost）；優先於 zone/tree 等判定，比照 ruin 慣例最高優先——避免落點若曾被劃分區時，因 zone 分支先命中而永遠剷不掉坑（剷後 tick() 不再對此格擲火）
       else if(t.bld){
         // 多格建築統一清理：先解析 root 再取 sz（ref 格只有 {k,ref} 無 sz，直接讀會落單格分支留孤兒）
         const r=t.bld.ref||[x,y];
@@ -2660,6 +2676,23 @@ function hasWaterNear(x,y,r=2){
   }
   return false;
 }
+// T117：隕石落點共用邏輯（tick() 自動觸發／GV.meteor(x,y) 手動鉤子共用，避免兩處邏輯分岔）
+// 半徑2（Chebyshev）內建築→既有廢墟鏈、樹木清空；中心格改設隕石坑地物 crater（與 ruin 互斥，坑不再另計焦土）；
+// 複用地震 shakeT 震屏＋既有 flashT 全屏閃光；toast 帶座標供 T114 通知中心跳轉。
+function meteorStrike(cx,cy){
+  if(!inMap(cx,cy))return false;
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+    const nx=cx+dx,ny=cy+dy;
+    if(!inMap(nx,ny))continue;
+    const nt=T(idx(nx,ny)),nb=nt.bld;
+    if(nb&&!nb.ref&&nb.k<=3){if(nb.k===3)stampPolSrc(nx,ny,3,-1);nt.bld=null;if(!(dx===0&&dy===0))nt.ruin=1;}
+    if(nt.tree)nt.tree=0;
+  }
+  const ct=T(idx(cx,cy));ct.ruin=0;ct.crater=1;
+  shakeT=.45;flashT=.4;
+  toast('☄️ 隕石墜落！留下隕石坑並持續起火，需付費剷除','bad',cx,cy);sErr();
+  return true;
+}
 function tick(){
   day++;
   // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
@@ -2855,6 +2888,20 @@ function tick(){
         if(ttl.tree)ttl.tree=0;
       }else tornado.life=0;
       if(tornado.life<=0||!inMap(tornado.x,tornado.y))tornado=null;
+    }
+    // T117：隕石——低機率隨機落點，半徑2摧毀並留下隕石坑；坑存在期間每日對鄰域擲火（複用 ignite 同款蔓延判定）
+    // 擲火範圍取半徑3（Chebyshev）：略大於摧毀半徑2，讓落點外緣倖存或事後重建的建築仍面臨持續起火風險
+    if(R()<.0004*DIFF_HAZ[diff])meteorStrike(ri(N),ri(N));
+    for(let i=0;i<N*N;i++){
+      if(!tiles[i].crater||R()>=.12)continue;
+      const cx=i%N,cy=(i/N)|0,copts=[];
+      for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+        if(!dx&&!dy)continue;
+        const nx=cx+dx,ny=cy+dy;if(!inMap(nx,ny))continue;
+        const cb=T(idx(nx,ny)).bld;
+        if(cb&&!cb.ref&&cb.k<=3&&!cb.fire)copts.push(cb);
+      }
+      if(copts.length)copts[ri(copts.length)].fire=1;
     }
   }
   if(shakeT>0)shakeT=Math.max(0,shakeT-0.05);
@@ -3515,6 +3562,10 @@ function draw(dt){
       if(t.t===0&&t.wm)gc.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
       if(t.em)gc.drawImage(SPR.cliffEdge[t.em],sx,sy,64*z,32*z);           // 內陸崖沿（T24）
       if(t.ruin)gc.drawImage(SPR.ruin,sx,sy,64*z,32*z);
+      if(t.crater){                                                          // 隕石坑（T117）：焦黑環＋餘燼夜光（仿路飾/公車站 rdecGlow 慣例）
+        gc.drawImage(SPR.crater.img,sx,sy,64*z,32*z);
+        rdecGlow.push({img:SPR.crater.night,x:sx,y:sy,w:64*z,h:32*z});
+      }
       if(t.wp){                                                              // 地下水管（T31）：地面層繪製小藍標記
         gc.fillStyle=t.wr?'#4a9fd4':'#3a7fa8';
         gc.fillRect(sx+30*z,sy+14*z,4*z,2*z);
@@ -4658,7 +4709,7 @@ function showStats(){
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
      <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
      <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
-     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button>　🌪 <button class="hbtn" id="sbTornado">觸發龍捲風</button></div>':''}
+     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button>　🌪 <button class="hbtn" id="sbTornado">觸發龍捲風</button>　☄️ <button class="hbtn" id="sbMeteor">觸發隕石</button></div>':''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
   // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
@@ -4681,6 +4732,10 @@ function showStats(){
     });
     const bTo=$('#sbTornado');if(bTo)bTo.addEventListener('click',()=>{ // T116：沙盒手動觸發龍捲風
       if(GV.tornado())toast('🌪 沙盒：手動觸發龍捲風');else toast('龍捲風已被設定關閉','bad');
+    });
+    const bMe=$('#sbMeteor');if(bMe)bMe.addEventListener('click',()=>{ // T117：沙盒手動觸發隕石（隨機落點，Math.random() 不消耗共用種子流 R()，同 sbFire 慣例）
+      const mx=(Math.random()*N)|0,my=(Math.random()*N)|0;
+      if(GV.meteor(mx,my))toast('☄️ 沙盒：手動觸發隕石');else toast('隕石已被設定關閉','bad');
     });
   }
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
@@ -4835,6 +4890,7 @@ function save(){
     const bl=[];
 	    let ter='',tre='',rd='',zn='',dc='',rn='',rc='',rcl='',wp='',el='',bs='',cm='',sk='',dt='',skd='',dtd='';
 	    let rl='',rb='',dk='',ow='',tl='',pm='',bln='',tr='',of='',fl='',le='',ab=''; // T39-T60
+	    let ctr=''; // T117：隕石坑（可選欄位）
     for(let i=0;i<N*N;i++){
       const t=tiles[i];
       ter+=t.t;tre+=t.tree;zn+=t.zone;dc+=t.deco;rn+=t.ruin?1:0;rc+=t.rdec?1:0;rcl+=String.fromCharCode(48+(t.rc||0));wp+=t.wp?1:0;el+=t.el?1:0;bs+=t.bus?1:0; // bs：公車站（T26）
@@ -4848,6 +4904,7 @@ function save(){
 	      ow+=t.oneway||0;tl+=t.light?1:0;pm+=t.parkMeter?1:0; // T42-T43
 	      bln+=t.busLane?1:0;tr+=t.tram?1:0;of+=t.office?1:0; // T44-T45
 	      fl+=t.flood?1:0;le+=t.levee?1:0;ab+=t.abandoned?1:0; // T56-T58
+	      ctr+=t.crater?1:0; // T117：隕石坑
       if(t.bld&&!t.bld.ref){                             // 多格建築只存 root（T22）
         const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];
         if(t.bld.k===9)e.push(t.bld.sz||2);              // k=9：第 6 位存 sz（fire 永不發生在 k=9，無歧義，T22）
@@ -4863,6 +4920,7 @@ function save(){
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,skd,dtd,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar,
       rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region, // T39-T60 新欄位（可選）
+      ctr, // T117：隕石坑（可選欄位，仿 flood/ruin 先例）
       df:diff, // T115：難度／沙盒（可選欄位，舊檔載入預設 1 標準）
       hi:hist.length?{d0:hist[0].d,m:hist.map(h=>h.money),n:hist.map(h=>h.net),p:hist.map(h=>h.pop),h:hist.map(h=>h.happy)}:null, // T112：歷史曲線（拆成並列數字陣列壓縮體積，可選欄位）
       nl:log}; // T114：通知中心日誌（可選欄位，最多 100 筆）
@@ -4901,7 +4959,8 @@ function load(slot){
         tram:d.tr?+d.tr[i]:0,tramBridge:0,tramMask:0, // T44
         office:d.of?+d.of[i]:0, // T45
         flood:d.fl?+d.fl[i]:0,levee:d.le?+d.le[i]:0, // T56-T57
-        abandoned:d.ab?+d.ab[i]:0 // T58
+        abandoned:d.ab?+d.ab[i]:0, // T58
+        crater:d.ctr?+d.ctr[i]:0 // T117：隕石坑（可選欄位，舊檔缺 ctr 容錯為 0）
       };
     }
     for(let i=0;i<N*N;i++)if(tiles[i].road&&!tiles[i].rc)tiles[i].rc=tiles[i].hw?5:2; // 舊檔無 rc：支路=2、原高速=5（T29）
@@ -5120,6 +5179,7 @@ window.GV={
     toast('🌪️ 龍捲風來襲！沿途建築恐成廢墟','bad',tx0,ty0);sErr();
     return true;
   },
+  meteor:(x,y)=>{if(!disastersOn)return false;return meteorStrike(x,y);}, // T117：手動觸發隕石（指定落點，仿 ignite(x,y) 慣例＋受災害總開關管轄）
   flood:()=>{let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效
   trains:()=>trains.length,
   trams:()=>tramCars.length,
