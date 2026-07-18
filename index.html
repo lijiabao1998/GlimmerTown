@@ -2925,12 +2925,12 @@ function updTrams(dt){
   if(tramCars.length>target)tramCars.length=target;
 }
 function updShips(dt){
-  let ports=0,docks=0;
-  for(let i=0;i<N*N;i++){if(tiles[i].dock)docks++;const b=tiles[i].bld;if(b&&!b.ref&&b.k===18)ports++;}
-  const target=(ports>0&&docks>0)?Math.min(3,ports+1):0;
-  let guard=0;
-  while(cargoShips.length<target&&guard++<20){
-    const x=ri(N),y=ri(N);if(T(idx(x,y)).t===0)cargoShips.push({x,y,d:ri(4),p:Math.random()});
+  let ports=0;const dks=[];
+  for(let i=0;i<N*N;i++){if(tiles[i].dock)dks.push(i);const b=tiles[i].bld;if(b&&!b.ref&&b.k===18)ports++;}
+  const target=(ports>0&&dks.length>0)?Math.min(3,ports+1):0;
+  while(cargoShips.length<target&&dks.length){ // T64：出生點改在碼頭格（dock 恆為水面，見 canPlace 'dock' 判定），符合「鄰近 dock/port」
+    const di=dks[ri(dks.length)];
+    cargoShips.push({x:di%N,y:(di/N)|0,d:ri(4),p:Math.random()});
   }
   for(let i=cargoShips.length-1;i>=0;i--){
     const c=cargoShips[i];
@@ -3076,6 +3076,11 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,train:tr,wx,wy,td:tr.d});
   }
+  for(const sh of cargoShips){                            // 貨船（T64）：同小車/火車位置內插公式，沿水面 t===0 緩動
+    const fx=sh.x+DIRV[sh.d][0]*sh.p, fy=sh.y+DIRV[sh.d][1]*sh.p;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,ship:sh,wx,wy,sd:sh.d});
+  }
   for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s});
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
@@ -3113,6 +3118,21 @@ function draw(dt){
       ctx.fillStyle='#e8dcc0';pr(1,3,6,1);pr(7,2,6,1);pr(13,1,6,1);           // 車頂
       if(b<.55){
         const v=DIRSCR[o.td];
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+      }
+      continue;
+    }
+    if(o.ship){                                            // 貨船（T64）：仿火車配方 fillRect 組裝（船身+甲板貨櫃），不建 SPR、維持任務卡範圍只動 updShips/draw
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const mir=(o.sd===1||o.sd===3)?-1:1;
+      const pr=(lx,ly,w,h)=>{const mx=mir<0?(20-lx-w):lx;ctx.fillRect(sx-10*z+mx*z,sy-6*z+ly*z,w*z,h*z);};
+      ctx.fillStyle='rgba(0,0,0,.25)';pr(1,8,18,1);                            // 落影/船艏波紋
+      ctx.fillStyle=shade('#3a5a72',-38);pr(1,6,8,2);pr(9,6,10,2);              // 船體暗側（吃水線下）
+      ctx.fillStyle='#3a5a72';pr(0,4,20,2);                                    // 船體主色（甲板下緣）
+      ctx.fillStyle='#c8631f';pr(3,2,5,2);pr(11,2,5,2);                        // 甲板貨櫃（橙）
+      ctx.fillStyle='#8a95a0';pr(3,1,5,1);pr(11,1,5,1);                        // 貨櫃頂
+      if(b<.55){
+        const v=DIRSCR[o.sd];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
       }
       continue;
