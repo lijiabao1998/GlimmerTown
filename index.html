@@ -3024,6 +3024,13 @@ function draw(dt){
     if(t.oneway&&t.road)ctx.drawImage(SPR.oneway[t.oneway-1]||SPR.oneway[0],sx,sy,64*z,32*z);
     // T57 洪水疊加
     if(t.flood){ctx.globalAlpha=.35;ctx.fillStyle='#4a8ab8';ctx.fillRect(sx,sy,64*z,32*z);ctx.globalAlpha=1;}
+    // T70 堤防：內縮菱形描邊示意加高河堤（土黃色，先前僅小地圖上色、地面無標記）
+    if(t.levee){
+      const lx=sx+32*z,ly=sy+16*z;
+      ctx.strokeStyle='#8a6d3b';ctx.lineWidth=Math.max(1,2*z);ctx.globalAlpha=.85;
+      ctx.beginPath();ctx.moveTo(lx,sy+3*z);ctx.lineTo(sx+59*z,ly);ctx.lineTo(lx,sy+29*z);ctx.lineTo(sx+5*z,ly);ctx.closePath();ctx.stroke();
+      ctx.globalAlpha=1;
+    }
   }
   // ---- 物件層（依深度排序） ----
   const objs=[];
@@ -3489,6 +3496,9 @@ function inspect(x,y){
     html=`<h3>🌲 樹林</h3><div class="row">可用 💥 拆除清理</div>`;
   }else if(t.t===0){
     html=`<h3>🌊 水域</h3><div class="row">鋪路可自動造橋（$${COST.bridge}）</div>`;
+  }else if(t.levee||t.flood){ // T70：河岸空地僅有堤防/洪水旗標時的顯示分支
+    html=`<h3>${t.levee?'🧱 堤防':'🌊 淹水中'}</h3>`+
+      (t.levee?'<div class="row">鄰近河岸免疫洪水</div>':'<div class="row">連雨積水，會自然消退（可用 💥 拆除）</div>');
   }else return hideInfo();
   $('#infoBody').innerHTML=html;
   const cb=$('#crimeBtn');                               // 處理犯罪按鈕（T32）
