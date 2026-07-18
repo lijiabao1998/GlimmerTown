@@ -213,7 +213,7 @@ const ROAD_NAME=['小巷','支路','次幹道','主幹道','快速路'];
 const ROAD_COST=[8,15,28,55,120];
 const ROAD_UPKEEP=[0.01,0.02,0.05,0.12,0.35];
 const ROAD_SPEED=[0.5,1.0,1.4,2.0,3.5];
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:400,recycling:350,fireStation2:800,prison:900,university:1200,levee:60};
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）
 
 const GAME_VER='3.0'; // T100
 const TOOLS=[
@@ -2569,7 +2569,7 @@ function tick(){
   }
   let roadUpkeep=0;
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
-  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*3+rc*2+fs2*6+pr*5+un*8; // T39-T54 維護費
+  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）
   fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,net:income-upkeep};
   money+=income-upkeep;
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
@@ -3522,7 +3522,7 @@ function inspect(x,y){
     else if(b.k===25)html=`<h3>☀️ 太陽能</h3><div class="row">供電 15 棟｜無汙染</div><div class="row">維護費 $1/天（需電廠併網啟動）</div>`;
     else if(b.k===26)html=`<h3>🌬️ 風力發電</h3><div class="row">供電 20 棟｜無汙染</div><div class="row">維護費 $1.5/天（需電廠併網啟動）</div>`;
     else if(b.k===27)html=`<h3>🚿 污水廠</h3><div class="row">全城：鄰工業的住宅 +幸福（每座工業 +2.5%）</div><div class="row">就業 4</div><div class="row">維護費 $3/天（需鄰水≥2格）</div>`;
-    else if(b.k===28)html=`<h3>🚑 救護站</h3><div class="row">半徑 10 健康覆蓋（效果同醫院）</div><div class="row">就業 5</div><div class="row">維護費 $3/天</div>`;
+    else if(b.k===28)html=`<h3>🚑 救護站</h3><div class="row">半徑 10 健康覆蓋（效果同醫院）</div><div class="row">就業 5</div><div class="row">維護費 $4/天</div>`;
     else if(b.k===29)html=`<h3>♻️ 回收中心</h3><div class="row">全城垃圾容量 +30</div><div class="row">就業 4</div><div class="row">維護費 $2/天</div>`;
     else if(b.k===30)html=`<h3>🚒 高級消防局</h3><div class="row">半徑 12 滅 Lv3+ 火災</div><div class="row">就業 8</div><div class="row">維護費 $6/天</div>`;
     else if(b.k===31)html=`<h3>🏛️ 監獄</h3><div class="row">半徑 8 防止犯罪發生</div><div class="row">就業 10</div><div class="row">維護費 $5/天</div>`;
