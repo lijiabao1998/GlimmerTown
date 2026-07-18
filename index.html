@@ -225,7 +225,7 @@ const ROAD_NAME=['小巷','支路','次幹道','主幹道','快速路'];
 const ROAD_COST=[8,15,28,55,120];
 const ROAD_UPKEEP=[0.01,0.02,0.05,0.12,0.35];
 const ROAD_SPEED=[0.5,1.0,1.4,2.0,3.5];
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）
 
 const GAME_VER='3.2'; // T115
 const TOOLS=[
@@ -249,6 +249,9 @@ const TOOLS=[
   {id:'office',cat:'zone',ic:'🏢',nm:'辦公區',pr:'$'+COST.officeZone},
   {id:'tree',cat:'zone',ic:'🌲',nm:'種樹',pr:'$'+COST.tree},
   {id:'fill',cat:'zone',ic:'🟩',nm:'填草',pr:'$'+COST.fill},
+  {id:'tdig',cat:'terra',ic:'💧',nm:'挖水',pr:'$'+COST.tdig},
+  {id:'tland',cat:'terra',ic:'🟫',nm:'填土',pr:'$'+COST.tland},
+  {id:'traise',cat:'terra',ic:'⛰️',nm:'抬升削平',pr:'$'+COST.traise},
   {id:'doze',cat:'base',ic:'💥',nm:'拆除',pr:'$'+COST.doze},
   {id:'park',cat:'svc',ic:'🌳',nm:'公園',pr:'$'+COST.park},
   {id:'plant',cat:'svc',ic:'⚡',nm:'電廠',pr:'$'+COST.plant},
@@ -282,8 +285,9 @@ const TOOLS=[
   {id:'parking',cat:'mega',ic:'🅿️',nm:'停車場',pr:'$'+COST.parking},
   {id:'levee',cat:'mega',ic:'🧱',nm:'堤防',pr:'$'+COST.levee},
 ];
-const TOOL_CATS=[{id:'base',nm:'基本'},{id:'road',nm:'道路'},{id:'zone',nm:'分區'},{id:'svc',nm:'服務'},{id:'mega',nm:'大型'}];
+const TOOL_CATS=[{id:'base',nm:'基本'},{id:'road',nm:'道路'},{id:'zone',nm:'分區'},{id:'svc',nm:'服務'},{id:'mega',nm:'大型'},{id:'terra',nm:'地形'}];
 let toolCat='base';
+let terraBrush=1; // T121：地形筆刷尺寸（1 或 3），不進存檔——僅工具列 UI 狀態
 
 let seed=0, tiles=null;
 let money=3000, day=1, speed=1, prevSpeed=1;
@@ -328,7 +332,7 @@ let rainDays=0;          // 連續雨天計數（T57 洪水）
 let floodTiles=[];       // 淹水格子 [{x,y,remain}]（T57）
 let shakeT=0;            // 地震震動計時器（T56）
 let quakeRecover=0;      // 地震後恢復天數（T56）
-let pol=null;            // 稅率政策 {taxR,taxC,taxI, heightLimit, envReg, transitSubsidy}（T55）
+let pol=null;            // 稅率政策 {taxR,taxC,taxI, heightLimit, envReg, transitSubsidy}（T55）；T122 擴四布林 curfew/recycle/tourPromo/ecoReg（城市法規開關，皆非稅收槓桿）
 let foodPoints=0;        // 食物點數（T46，每天重算）
 let tourists=0;          // 遊客數（T47，每天重算）
 let region={};            // 區域聯動摘要（T60）
@@ -1957,30 +1961,44 @@ function genWorld(sd){
   return water/(N*N);
 }
 // 水岸泡沫遮罩（哪幾條邊鄰接陸地）
+// T121：單格版抽出（逐行搬運不改邏輯，continue→return），供地形筆刷鄰域重算複用；computeFoam 逐格呼叫，全圖結果不變
+function recalcFoamAt(x,y){
+  if(!inMap(x,y))return;
+  const t=T(idx(x,y));t.wm=0;
+  if(t.t!==0)return;
+  let m=0;
+  if(inMap(x,y-1)&&T(idx(x,y-1)).t!==0)m|=1;
+  if(inMap(x+1,y)&&T(idx(x+1,y)).t!==0)m|=2;
+  if(inMap(x,y+1)&&T(idx(x,y+1)).t!==0)m|=4;
+  if(inMap(x-1,y)&&T(idx(x-1,y)).t!==0)m|=8;
+  t.wm=m;
+}
 function computeFoam(){
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const t=T(idx(x,y));t.wm=0;
-    if(t.t!==0)continue;
-    let m=0;
-    if(inMap(x,y-1)&&T(idx(x,y-1)).t!==0)m|=1;
-    if(inMap(x+1,y)&&T(idx(x+1,y)).t!==0)m|=2;
-    if(inMap(x,y+1)&&T(idx(x,y+1)).t!==0)m|=4;
-    if(inMap(x-1,y)&&T(idx(x-1,y)).t!==0)m|=8;
-    t.wm=m;
-  }
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcFoamAt(x,y);
+}
+// T121：地形筆刷用——僅重算操作格自己＋四鄰（對齊 recalcMask/recalcMask4 既有寫法），不做全圖校驗
+function recalcFoamNear(x,y){
+  recalcFoamAt(x,y);recalcFoamAt(x,y-1);recalcFoamAt(x+1,y);recalcFoamAt(x,y+1);recalcFoamAt(x-1,y);
 }
 // 高地內陸崖沿位罩（哪幾條邊鄰接低地；el 生成後算一次，沿用 foam 位向約定，T24）
+// T121：單格版抽出（逐行搬運不改邏輯，continue→return），供地形筆刷鄰域重算複用；computeElMask 逐格呼叫，全圖結果不變
+function recalcElMaskAt(x,y){
+  if(!inMap(x,y))return;
+  const t=T(idx(x,y));t.em=0;
+  if(t.el!==1)return;
+  let m=0;
+  if(inMap(x,y-1)&&T(idx(x,y-1)).el===0)m|=1;
+  if(inMap(x+1,y)&&T(idx(x+1,y)).el===0)m|=2;
+  if(inMap(x,y+1)&&T(idx(x,y+1)).el===0)m|=4;
+  if(inMap(x-1,y)&&T(idx(x-1,y)).el===0)m|=8;
+  t.em=m;
+}
 function computeElMask(){
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const t=T(idx(x,y));t.em=0;
-    if(t.el!==1)continue;
-    let m=0;
-    if(inMap(x,y-1)&&T(idx(x,y-1)).el===0)m|=1;
-    if(inMap(x+1,y)&&T(idx(x+1,y)).el===0)m|=2;
-    if(inMap(x,y+1)&&T(idx(x,y+1)).el===0)m|=4;
-    if(inMap(x-1,y)&&T(idx(x-1,y)).el===0)m|=8;
-    t.em=m;
-  }
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcElMaskAt(x,y);
+}
+// T121：地形筆刷用——僅重算操作格自己＋四鄰
+function recalcElMaskNear(x,y){
+  recalcElMaskAt(x,y);recalcElMaskAt(x,y-1);recalcElMaskAt(x+1,y);recalcElMaskAt(x,y+1);recalcElMaskAt(x-1,y);
 }
 function newWorld(seedOverride){
   hist=[];log=[];unread=0;if(typeof updBell==='function')updBell(); // FIX-N：跨局殘留成對重置（鐵律7）——begin() 之外的開新圖路徑（工具列🆕/GV.newWorld）也必須清歷史曲線與通知日誌
@@ -2064,6 +2082,16 @@ function getMaxRoadClass(x,y,r=1){
   return mx;
 }
 function roadCostAt(x,y,rc){return T(idx(x,y)).t===0?ROAD_COST[rc-1]+COST.bridge:ROAD_COST[rc-1];}
+// T121：地形筆刷涵蓋格清單（依全域 terraBrush：1→僅中心格，3→3×3，皆裁切地圖邊界）
+function terraCells(x,y){
+  if(terraBrush!==3)return [[x,y]];
+  const arr=[];
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    const nx=x+dx,ny=y+dy;
+    if(inMap(nx,ny))arr.push([nx,ny]);
+  }
+  return arr;
+}
 // 回傳 null＝可行，否則錯誤訊息
 function canPlace(toolId,x,y){
   if(!inMap(x,y))return '超出地圖';
@@ -2111,6 +2139,17 @@ function canPlace(toolId,x,y){
       return null;
     case 'fill':
       if(t.t!==1)return '只能填在沙地上';
+      return null;
+    case 'tdig': // T121：挖水（草→水），該格有建築/道路則拒絕
+      if(t.t!==2)return '只能在草地上挖水';
+      if(t.bld)return '有建築擋住';
+      if(t.road)return '有道路擋住';
+      return null;
+    case 'tland': // T121：填土（水→草，反向）；橋樑跨水被填土時橋保留成旱橋，不額外阻擋
+      if(t.t!==0)return '只能在水域上填土';
+      return null;
+    case 'traise': // T121：抬升／削平（切換 t.el 高地旗標）；el 僅對草地有意義（genWorld/渲染皆僅認 t.t===2）
+      if(t.t!==2)return '只能在草地上抬升削平';
       return null;
     case 'doze':
       if(!t.road&&!t.bld&&!t.zone&&!t.tree&&!t.deco&&!t.ruin&&!t.rail&&!t.tram&&!t.dock&&!t.oneway&&!t.light&&!t.busLane&&!t.levee&&!t.flood&&!t.wp&&!t.crater)return '這裡沒東西'; // T117：隕石坑加入可拆除判定
@@ -2225,6 +2264,11 @@ function placeCost(toolId,x,y){
     case 'bus':c=COST.bus;break;
     case 'tree':c=COST.tree;break;
     case 'fill':c=COST.fill;break;
+    case 'tdig':case 'tland':case 'traise':{ // T121：地形筆刷——依全域 terraBrush 逐格計價，僅合法格計費（flat 定價，不疊加清樹費）
+      const unit=toolId==='tdig'?COST.tdig:toolId==='tland'?COST.tland:COST.traise;
+      let tot=0;
+      for(const[nx,ny]of terraCells(x,y)){if(!canPlace(toolId,nx,ny))tot+=unit;}
+      c=tot;break;}
     case 'doze':c=t.crater?120:COST.doze;break; // T117：隕石坑剷除定價 $120（一般拆除仍為 COST.doze）
     // T39-T60
     case 'rail':if(t.rail)return 0;c=t.t===0?COST.railBridge:COST.rail;break;
@@ -2252,7 +2296,7 @@ function placeCost(toolId,x,y){
     case 'busLane':c=COST.busLane;break;
     case 'levee':c=COST.levee;break;
   }
-  if(toolId!=='doze'&&toolId!=='stad'&&t.tree)c+=COST.doze; // 順手清樹（體育場定價 $1200 一次，4 格自動清不另收）
+  if(toolId!=='doze'&&toolId!=='stad'&&toolId!=='tdig'&&toolId!=='tland'&&toolId!=='traise'&&t.tree)c+=COST.doze; // 順手清樹（體育場定價 $1200 一次，4 格自動清不另收；T121 地形筆刷已在上方分支自行 flat 計價，不疊加此費）
   return c;
 }
 function doPlace(toolId,x,y,silent){
@@ -2355,6 +2399,36 @@ function doPlace(toolId,x,y,silent){
     case 'fill':
       t.t=2;t.gv=ri(4);computeFoam();
       break;
+    case 'tdig':case 'tland':case 'traise':{ // T121：地形筆刷——中心格已於函式頂端驗證/存快照；3×3 時鄰格各自驗證＋各自存快照
+      const cells=terraBrush===3?terraCells(x,y):[[x,y]];
+      const touched=[];
+      const apply=(nx,ny,isCenter)=>{
+        const nt=T(idx(nx,ny));
+        if(toolId==='tdig'){
+          const hadT=nt.tree>0;
+          nt.t=0;nt.tree=0;nt.deco=0;nt.el=0;nt.zone=0; // 挖成水域：清樹/裝飾/高地旗標/分區（比照 genWorld carve()，另補清 zone 防止生長候選誤判水面，T121）
+          if(!isCenter&&hadT)stampPolTree(nx,ny,-1); // T110 對稱撤印：中心格由函式尾端既有邏輯處理，鄰格需在此自行處理
+        }else if(toolId==='tland'){
+          nt.t=2;nt.gv=ri(4); // 填土：橋樑/軌道旗標刻意不清（硬性不變量：橋樑跨的水被填土時橋保留成旱橋）
+        }else{
+          nt.el=nt.el?0:1; // 抬升／削平：純切換旗標，不動 tree/zone/bld
+        }
+        touched.push([nx,ny]);
+      };
+      apply(x,y,true);
+      for(const[nx,ny]of cells){
+        if(nx===x&&ny===y)continue;
+        if(canPlace(toolId,nx,ny))continue; // 該格不合法（建築/道路/地形不符）則跳過，不影響其餘格
+        const nj=idx(nx,ny);
+        if(undoGroup&&!undoGroup.seen[nj]){undoGroup.seen[nj]=1;undoGroup.snaps.push({i:nj,s:JSON.stringify(T(nj))});}
+        apply(nx,ny,false);
+      }
+      for(const[nx,ny]of touched){ // 硬性不變量：位罩重算只影響操作格鄰域，不做全圖校驗
+        if(toolId==='tland')recalcFoamNear(nx,ny);
+        else if(toolId==='traise')recalcElMaskNear(nx,ny);
+        else{recalcFoamNear(nx,ny);recalcElMaskNear(nx,ny);} // tdig：挖出新水面且可能清除高地旗標，foam/em 皆須鄰域重算
+      }
+      break;}
     case 'doze':
       if(t.ruin){t.ruin=0;t.zone=0;}
       else if(t.crater){t.crater=0;} // T117：剷除隕石坑（$120，見 placeCost）；優先於 zone/tree 等判定，比照 ruin 慣例最高優先——避免落點若曾被劃分區時，因 zone 分支先命中而永遠剷不掉坑（剷後 tick() 不再對此格擲火）
@@ -2569,7 +2643,7 @@ function computePower(){
       if(T(j).road&&!seen[j]){seen[j]=1;q.push([nx,ny,d+1]);}
     }
   }
-  return plants*PLANT_CAP+so*15+wi*20; // T82 太陽能/風力額外容量
+  return plants*(PLANT_CAP+(pol&&pol.ecoReg?5:0))+so*15+wi*20; // T82 太陽能/風力額外容量；T122 節能條例：每電廠供電棟數+5
 }
 function countNear(x,y,r,pred){
   let n=0;
@@ -2804,6 +2878,7 @@ function tick(){
         {name:'電廠鄰近',val:-pl*.18},
         {name:'空氣污染',val:-POL[ci]*.006}, // T110：空間污染係數
         {name:'犯罪',val:-crime*.05},
+        {name:'宵禁',val:pol&&pol.curfew?-.02:0}, // T122：宵禁開啟時全城住宅幸福固定 -2%
         {name:'喪事未安撫',val:-(deathPenalty[idx(x,y)]?.1:0)},
         {name:'生病',val:-(b.sick?.35:0)},
         {name:'死亡',val:-(b.death?.55:0)},
@@ -2824,7 +2899,7 @@ function tick(){
   cityHappy=happyN?happySum/happyN:.6;
   happyAgg=happyN&&happyAggSum?happyAggSum.map(p=>({name:p.name,val:p.val/happyN})):[]; // T111：城市平均幸福構成，供 showStats 讀取
   // 垃圾（T19）：產量/容量/超載係數；套用到全城住宅幸福尾端，並節流提示
-  garbage=pop*.05+jobsI*.08;
+  garbage=(pop*.05+jobsI*.08)*(pol&&pol.recycle?.85:1); // T122 回收宣導：垃圾產量×0.85
   garbCap=dumps*DUMP_CAP+rc*(DUMP_CAP*.75); // T84
   garbRatio=garbCap>0?clamp(garbage/garbCap,0,2):2;
   if(garbRatio>1){
@@ -3039,7 +3114,7 @@ function tick(){
     if(!b||b.k>3||b.crime)continue;
     const x=i%N,y=(i/N)|0;
     if(COV.police[i]>0)continue; // T61：警察局半徑10覆蓋則受保護（原 countNear k===11）
-    if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）
+    if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv*(pol&&pol.curfew?.6:1)){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）；T122 宵禁：犯罪率×0.6
       b.crime=1;
       if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad',x,y);sErr();crimeAlert=true;}
     }
@@ -3129,14 +3204,15 @@ function tick(){
     else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot){ // T118：暴亂中住宅停稅收
       const pm=pol||{taxR:1,taxC:1,taxI:1};
       if(b.k===1){const v2=POPS[b.lv]*.12*(pm.taxR||1);income+=v2;taxR+=v2;}
-      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1);income+=v2;taxC+=v2;}
+      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1);income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95
       else{const v2=JOBSI[b.lv]*.15*(pm.taxI||1);income+=v2;taxI+=v2;}
     }
   }
   let roadUpkeep=0;
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
-  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）
-  fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,net:income-upkeep};
+  const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0); // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
+  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+upReg; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出
+  fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep};
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   // T88 挑戰檢查
@@ -4491,6 +4567,13 @@ function buildToolbar(){
     b.onclick=()=>{toolCat=c.id;buildToolbar();sTick();};
     cats.appendChild(b);
   }
+  if(toolCat==='terra'){ // T121：地形筆刷尺寸切換（1×1／3×3），僅「地形」分類顯示，重用 #toolcats button 既有樣式
+    const tb=document.createElement('button');
+    tb.textContent='筆刷 '+terraBrush+'×'+terraBrush;
+    tb.className='on';
+    tb.onclick=()=>{terraBrush=terraBrush===1?3:1;buildToolbar();sTick();};
+    cats.appendChild(tb);
+  }
   const bar=$('#tools');bar.innerHTML='';
   for(const t of TOOLS){
     if(t.cat!==toolCat&&t.id!=='pan'&&t.id!=='doze')continue;
@@ -4687,7 +4770,7 @@ function drawHistChart(){
 }
 function showStats(){
   // T68 政策快捷（稅率倍率）
-  if(pol==null)pol={taxR:1,taxC:1,taxI:1};
+  if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false};
   let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0,nS=0,nD=0,nT=0,nW=0,nPol=0,nH=0,nCl=0,nL=0,nPo=0,nCe=0;
   let nSt=0,nPt=0,nAi=0,nPk=0,nTs=0,nFa=0,nRa=0,nLd=0,nSo=0,nWi=0,nSe=0,nAm=0,nRc=0,nF2=0,nPr=0,nUn=0; // T89：v3.0（T39-T54）新建築計數
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
@@ -4730,6 +4813,7 @@ function showStats(){
     '電廠鄰近':'⚡ 電廠鄰近拉低幸福→拉開住宅與電廠的距離',
     '空氣污染':'🏭 空氣污染拉低幸福→遠離污染源或多種樹',
     '犯罪':'🚓 犯罪拉低幸福→加蓋警察局',
+    '宵禁':'🚨 宵禁法規拉低幸福→關閉法規面板內的宵禁開關',
     '喪事未安撫':'💀 喪事未安撫拉低幸福→加蓋墓園',
     '生病':'🏥 居民生病拉低幸福→加蓋醫院或診所',
     '死亡':'💀 已發生憾事拉低幸福→加蓋墓園安撫',
@@ -4748,7 +4832,8 @@ function showStats(){
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
-     <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}</div>
+     <div class="row">🚨 法規　<label><input type="checkbox" id="polCurfew"${pol.curfew?' checked':''}> 宵禁</label>　<label><input type="checkbox" id="polRecycle"${pol.recycle?' checked':''}> 回收宣導</label>　<label><input type="checkbox" id="polTour"${pol.tourPromo?' checked':''}> 觀光推廣</label>　<label><input type="checkbox" id="polEco"${pol.ecoReg?' checked':''}> 節能條例</label></div>
+     <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}　📜 法規 -${fin.upReg.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
      <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS} 垃圾場${nD} 體育場${nT} 水塔${nW} 警察局${nPol} 醫院${nH} 診所${nCl} 圖書館${nL} 郵局${nPo} 墓園${nCe}</div>
      <div class="row" style="font-size:11px;opacity:.75">v3.0：🚉${nSt} ⚓${nPt} ✈️${nAi} 🅿️${nPk} 🚋${nTs} 🌾${nFa} 🐄${nRa} 🗿${nLd} ☀️${nSo} 💨${nWi} 🚰${nSe} 🚑${nAm} ♻️${nRc} 🚒${nF2} 🚔${nPr} 🎓${nUn}　🔧維護-${v3Up.toFixed(1)}</div>
@@ -4818,6 +4903,12 @@ function showStats(){
   pb('#polRm','taxR',-1,'住宅');pb('#polRp','taxR',1,'住宅');
   pb('#polCm','taxC',-1,'商業');pb('#polCp','taxC',1,'商業');
   pb('#polIm','taxI',-1,'工業');pb('#polIp','taxI',1,'工業');
+  // T122：法規開關（勾選即時生效，次日 tick 套用對應係數）
+  const polToggle=(id,k,nm)=>{const el=$(id);if(el)el.addEventListener('change',()=>{pol[k]=!!el.checked;toast('🚨 '+nm+(pol[k]?' 已開啟':' 已關閉'));sTick();});};
+  polToggle('#polCurfew','curfew','宵禁');
+  polToggle('#polRecycle','recycle','回收宣導');
+  polToggle('#polTour','tourPromo','觀光推廣');
+  polToggle('#polEco','ecoReg','節能條例');
 }
 $('#bStats').onclick=()=>{showStats();sTick();};
 // T114：通知中心——HUD 鈴鐺按鈕、未讀紅點、事件日誌面板（複用 #infoBody/.row 樣式）
@@ -5240,7 +5331,7 @@ window.GV={
   composer:composer,
   npu:npuComposer,
   ver:()=>GAME_VER,
-  pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1};return pol;},
+  pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1,curfew:!!p.curfew,recycle:!!p.recycle,tourPromo:!!p.tourPromo,ecoReg:!!p.ecoReg};return pol;}, // T122：擴四布林（法規開關，測試用整組覆寫，taxR/taxC/taxI 既有覆寫語義不變）
   quake:()=>{if(!disastersOn)return false;shakeT=.55;quakeRecover=20;return true;},
   tornado:()=>{ // T116：手動觸發龍捲風（受災害總開關管轄，仿 quake() 慣例）
     if(!disastersOn)return false;
