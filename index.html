@@ -2653,7 +2653,8 @@ function updCars(dt){
       const x=ri(N),y=ri(N);
       const t=T(idx(x,y));
       if(t.road&&t.mask){
-        const ds=roadDirs(x,y);
+        let ds=roadDirs(x,y);
+        if(t.oneway>=1&&t.oneway<=4){const od=t.oneway-1;if(ds.includes(od))ds=[od];} // T77：出生於單行道須順向
         const d=ds[ri(ds.length)];
         cars.push({x,y,d,p:Math.random(),ci:ri(SPR.car.length)});
         break;
