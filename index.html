@@ -322,7 +322,7 @@ let region={};            // 區域聯動摘要（T60）
 let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
 let quality=1;            // T97 0低1中2高
-try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _q=+localStorage.getItem(SAVEKEY+'.q');if(_q===0||_q===2)quality=_q;}catch(e){}
+try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
 const cam={x:0,y:0,z:3};
@@ -2696,7 +2696,8 @@ function updSmoke(dt){
   smokeAcc+=dt;
   const spawn=smokeAcc>.45;
   if(spawn)smokeAcc=0;
-  if(spawn&&smokes.length<130){
+  const smokeCap=Math.floor(130*(quality===0?.5:quality===2?1.4:1)); // T97：煙粒子上限依效能檔縮放
+  if(spawn&&smokes.length<smokeCap){
     for(let y=0;y<N;y++)for(let x=0;x<N;x++){
       const t=T(idx(x,y)),b=t.bld;
       if(!b)continue;
@@ -2833,7 +2834,7 @@ const rain=[];
 function updRain(dt){
   if(!weather){if(rain.length)rain.length=0;return;}
   const win=inWinter();                       // 冬季：雪花直落＋隨 visT 微擺；非冬季：斜雨（T18）
-  const cap=weather===2?240:120;
+  const cap=Math.floor((weather===2?240:120)*(quality===0?.5:quality===2?1.4:1)); // T97：雨/雪粒子上限依效能檔縮放
   const f=dt*60;                              // 以 60fps 為基準的幀係數（後備迴圈 dt 大時等比加速）
   const vx=(win?Math.sin(visT*.8)*1.4:-1.2)*cam.z*f, vy=(win?6:14)*cam.z*f; // 斜向下落／雪花直落
   while(rain.length<cap)rain.push({x:Math.random()*(W+240)-40,y:Math.random()*H});
