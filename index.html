@@ -96,6 +96,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #start button.alt{border-color:#46538a;background:#1d2745;color:#c9d2ea}
 #start button:active{transform:scale(.97)}
 #start .help{margin-top:10px;color:#96a4c9;font-size:12px;line-height:1.9;max-width:340px}
+#start .diffrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:340px}
+#start .diffbtn{min-width:auto;padding:6px 12px;font-size:12px;border-radius:9px}
+#start .diffbtn.sel{border-color:#ffd977;background:#33395e;color:#fff}
 #logo{image-rendering:pixelated;width:224px;height:128px}
 #mini{position:absolute;top:48px;right:10px;width:144px;height:144px;z-index:18;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
@@ -331,6 +334,10 @@ let hist=[];               // T112：歷史曲線環形緩衝 {d,money,net,pop,h
 let histRange=30;          // T112：統計面板目前選擇的曲線範圍 30/90/365（不進存檔）
 let log=[];                // T114：通知中心事件日誌 {d,m,c,x?,y?}（100 筆上限，toast() 同步 push）
 let unread=0;               // T114：HUD 鈴鐺未讀計數（開通知面板歸零，不進存檔）
+let diff=1;                  // T115：難度 0簡單/1標準/2困難/3沙盒（存檔可選欄位 df，舊檔預設 1 標準）
+const DIFF_NM=['😊 簡單','⚖️ 標準','🔥 困難','🧪 沙盒'];
+const DIFF_MONEY=[5000,3000,1500,3000]; // 各難度起始資金（沙盒僅供顯示基準，建造實際免費不扣款）
+const DIFF_HAZ=[.5,1,1.5,1];            // 各難度天氣災害機率倍率（沙盒同標準倍率，另開放手動觸發）
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
 const cam={x:0,y:0,z:3};
@@ -2142,6 +2149,7 @@ function canPlaceMulti(x,y,sz,msg){
   return null;
 }
 function placeCost(toolId,x,y){
+  if(diff===3)return 0; // T115：沙盒短路——建造／拆除一律免費
   const t=T(idx(x,y));
   let c=0;
   switch(toolId){
@@ -2716,7 +2724,7 @@ function tick(){
   // T69/T70 災害（可關）
   if(disastersOn){
     if(weather===1||weather===2)rainDays++;else rainDays=Math.max(0,rainDays-1);
-    if(rainDays>=6&&R()<.12){
+    if(rainDays>=6&&R()<.12*DIFF_HAZ[diff]){ // T115：災害機率乘難度倍率（標準×1，行為不變）
       let n=0,ffi=-1;
       for(let i=0;i<N*N&&n<8;i++){
         const t=tiles[i];if(t.t!==2||t.levee||t.flood)continue;
@@ -2727,7 +2735,7 @@ function tick(){
     }
     for(let i=0;i<N*N;i++)if(tiles[i].flood&&R()<.15)tiles[i].flood=0;
     if(quakeRecover>0)quakeRecover--;
-    else if(R()<.0015){
+    else if(R()<.0015*DIFF_HAZ[diff]){ // T115：災害機率乘難度倍率（標準×1，行為不變）
       shakeT=.55;quakeRecover=40;let hit=0,qi=-1;
       for(let tries=0;tries<40&&hit<5;tries++){
         const i=ri(N*N),b=tiles[i].bld;
@@ -2925,7 +2933,7 @@ function tick(){
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
   upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）
   fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,net:income-upkeep};
-  money+=income-upkeep;
+  if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   // T88 挑戰檢查
   if(challenge){
@@ -4448,6 +4456,7 @@ function showStats(){
   const f=v=>(v>=0?'+':'')+v.toFixed(1);
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
+     ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}</div>
@@ -4461,12 +4470,28 @@ function showStats(){
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
      <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
      <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
+     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button></div>':''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
   // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
   drawHistChart();
   const histBtn=(id,r)=>{const el=$(id);if(el)el.addEventListener('click',()=>{histRange=r;drawHistChart();});};
   histBtn('#histR30',30);histBtn('#histR90',90);histBtn('#histR365',365);
+  // T115：沙盒手動災害鈕（呼叫既有 GV.quake/flood/ignite 鉤子路徑，不改動其內部邏輯）
+  if(diff===3){
+    const bQ=$('#sbQuake');if(bQ)bQ.addEventListener('click',()=>{
+      if(GV.quake())toast('🌋 沙盒：手動觸發地震');else toast('地震已被設定關閉','bad');
+    });
+    const bF=$('#sbFlood');if(bF)bF.addEventListener('click',()=>{
+      const n=GV.flood();toast(n?'🌊 沙盒：手動觸發洪水（'+n+'格）':'找不到適合淹水的河岸格','bad');
+    });
+    const bFi=$('#sbFire');if(bFi)bFi.addEventListener('click',()=>{
+      const cand=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k<=3&&!b.fire)cand.push(i);}
+      let ok=false;
+      if(cand.length){const ci=cand[(Math.random()*cand.length)|0];ok=GV.ignite(ci%N,(ci/N)|0);} // Math.random()：手動 UI 動作不消耗共用種子流 R()
+      toast(ok?'🔥 沙盒：手動觸發火災':'找不到可燃燒的建築','bad');
+    });
+  }
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
   if(lb)lb.addEventListener('click',()=>{
     money+=2000;loan={remain:20,daily:120};
@@ -4647,6 +4672,7 @@ function save(){
       cam:{x:Math.round(cam.x),y:Math.round(cam.y),z:cam.z},ter,tre,rd,zn,dc,rn,rc,rcl,wp,el,bs,cm,sk,dt,skd,dtd,bl,ach:Object.keys(ach),nm:townName,
       ln:loan?[loan.remain,loan.daily]:null,star:bestStar,
       rl,rb,dk,ow,tl,pm,bln,tr,of,fl,le,ab,pol,region, // T39-T60 新欄位（可選）
+      df:diff, // T115：難度／沙盒（可選欄位，舊檔載入預設 1 標準）
       hi:hist.length?{d0:hist[0].d,m:hist.map(h=>h.money),n:hist.map(h=>h.net),p:hist.map(h=>h.pop),h:hist.map(h=>h.happy)}:null, // T112：歷史曲線（拆成並列數字陣列壓縮體積，可選欄位）
       nl:log}; // T114：通知中心日誌（可選欄位，最多 100 筆）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
@@ -4725,6 +4751,7 @@ function load(slot){
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;pol=null;region={}; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
+    diff=(d.df>=0&&d.df<=3)?+d.df:1; // T115：難度／沙盒（可選欄位，舊檔缺 df 視為 1 標準）
     hist=(d.hi&&d.hi.m&&d.hi.m.length)?d.hi.m.map((mv,ix)=>({d:d.hi.d0+ix,money:mv,net:d.hi.n[ix],pop:d.hi.p[ix],happy:d.hi.h[ix]})):[]; // T112：歷史曲線（可選欄位，舊檔缺 hi 視為空緩衝）
     log=Array.isArray(d.nl)?d.nl.slice(-100):[];unread=0;updBell(); // T114：通知日誌（可選欄位，舊檔缺 nl 視為空日誌；讀檔視為已讀，未讀歸零）
     // T39-T60 多格建築重建
@@ -4812,6 +4839,7 @@ function begin(fresh){
   try{document.title=(typeof townName==='string'?townName:'微光小鎮')+' · v'+GAME_VER;}catch(e){}
   initAudio();
   if(fresh||!load()){newWorld();hist=[];log=[];unread=0;updBell();} // T112/T114：全新地圖（含讀檔失敗回退）清空歷史曲線與通知日誌，避免殘留跨局
+  if(fresh){diff=challenge?1:diff;money=DIFF_MONEY[diff];} // T115：起始資金依難度套用；挑戰模式與難度互斥時以挑戰為準（強制標準）
   $('#start').style.display='none';
   running=true;
   $('#mini').style.display='block';drawMini();
@@ -4822,8 +4850,22 @@ function begin(fresh){
 }
 $('#bNewGame').onclick=()=>{challenge=null;begin(true);};
 $('#bContinue').onclick=()=>begin(false);
-// T88 挑戰
 const startEl=$('#start');
+// T115：難度／沙盒選擇列（#start 按鈕區，仿下方 T88 挑戰按鈕先例以 JS 注入；四鈕，選中高亮，預設標準）
+if(startEl&&!$('#bDiff0')){
+  const drow=document.createElement('div');drow.className='diffrow';
+  for(let i=0;i<4;i++){
+    const db=document.createElement('button');
+    db.className='alt diffbtn'+(i===diff?' sel':'');db.id='bDiff'+i;db.textContent=DIFF_NM[i];
+    db.addEventListener('click',()=>{
+      diff=i;
+      drow.querySelectorAll('.diffbtn').forEach((el,j)=>el.classList.toggle('sel',j===i));
+    });
+    drow.appendChild(db);
+  }
+  startEl.appendChild(drow);
+}
+// T88 挑戰
 if(startEl&&!$('#bCh1')){
   const mk=(id,label,bonus,goal)=>{const b=document.createElement('button');b.className='alt';b.id=id;b.textContent=label;b.onclick=()=>{challenge={id:goal,bonus,label};begin(true);toast('挑戰：'+label,'gold');};return b;};
   startEl.appendChild(mk('bCh1','🏁 挑戰：人口1000',1500,'pop1k'));
@@ -4888,7 +4930,9 @@ window.GV={
   tourists:()=>tourists,
   hist:()=>hist.map(h=>({...h})),                              // T112 測試用：歷史曲線緩衝快照
   log:()=>log.map(l=>({...l})),                                 // T114 測試用：通知中心日誌快照
-  unread:()=>unread                                              // T114 測試用：目前未讀數
+  unread:()=>unread,                                             // T114 測試用：目前未讀數
+  diff:()=>diff,                                                  // T115 測試用：目前難度 0-3
+  setDiff:(d)=>{diff=clamp(d|0,0,3);return diff;}                 // T115 測試用：直接設難度（不經開始畫面）
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
