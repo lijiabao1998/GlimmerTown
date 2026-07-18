@@ -33,12 +33,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   padding:2px 9px;font-size:13px;line-height:22px;cursor:pointer}
 .hbtn:active{background:#31407a}
 .hbtn.on{background:#3a5a2f;border-color:#5f8f4a}
-/* RCI 需求柱 */
-#rci{display:flex;align-items:flex-end;gap:3px;height:26px;padding:2px 6px;
+/* RCI 需求柱（T109：4×24px 豎條，綠正紅負，顏色由 JS 依正負動態設定） */
+#rci{display:flex;align-items:flex-end;gap:3px;height:28px;padding:2px 6px;
   background:#181f36;border:1px solid #303a5c;border-radius:6px}
-#rci .col{width:9px;height:22px;background:#0c1020;border-radius:2px;position:relative;overflow:hidden}
-#rci .col i{position:absolute;bottom:0;left:0;right:0;height:0%}
-#rci .r i{background:#58c470}#rci .c i{background:#5aa0e8}#rci .i i{background:#e8b23e}
+#rci .col{width:4px;height:24px;background:#0c1020;border-radius:2px;position:relative;overflow:hidden}
+#rci .col i{position:absolute;bottom:0;left:0;right:0;height:0%;background:#58c470}
 /* ---------- 工具列 ---------- */
 #toolcats{position:absolute;left:50%;bottom:68px;transform:translateX(-50%);z-index:21;display:none;gap:4px;flex-wrap:wrap;justify-content:center;max-width:96vw}
 #toolcats button{padding:4px 8px;border-radius:8px;border:1px solid #3a456e;background:rgba(16,22,42,.92);color:#c9d2ea;font-size:11px;cursor:pointer}
@@ -2777,11 +2776,14 @@ function tick(){
     }
   }
   if(shakeT>0)shakeT=Math.max(0,shakeT-0.05);
-  // 需求
+  // 需求（T109 RCI 需求模型：住宅＝就業盈餘與幸福加權；商業＝人口/商業格數比；工業＝商業貨源缺口；三值歸一化 -1~+1）
   const workers=pop*.6;
-  dem[1]=clamp((jobs*1.2+25-workers)/70,-1,1);
-  dem[2]=clamp((workers*.45-jobsC)/50,-1,1);
-  dem[3]=clamp((workers*.55-jobsI)/55,-1,1);
+  const jobSurplus=clamp((jobs*1.2+25-workers)/70,-1,1); // 就業盈餘（沿用既有基準算式）
+  const happyAdj=clamp((cityHappy-.6)*1.2,-1,1);         // 幸福加權：偏離基準幸福 .6 的正負訊號
+  dem[1]=clamp(jobSurplus*.7+happyAdj*.3,-1,1);
+  let czone=0;for(let i=0;i<N*N;i++)if(tiles[i].zone===2)czone++; // 商業格數（含未建成，對應「格數」字面）
+  dem[2]=clamp((pop/Math.max(1,czone)-3)/6,-1,1);
+  dem[3]=clamp((jobsC*.8-jobsI)/40,-1,1);
   // 生長：收集候選
   const cands=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -2793,7 +2795,11 @@ function tick(){
   let spawns=0;
   for(const[x,y,z]of cands){
     if(spawns>=3)break;
-    let p=.10+.5*Math.max(0,dem[z])*(z===1?clamp(cityHappy+.25,.3,1):1);
+    // T109：生長機率乘 (1+demand×0.6)；demand<-0.5 該類停長；住宅幸福加成沿用既有係數但只作用於需求項本身
+    // （dem[z]===0 時 hf 對乘積無影響，機率精確回落 .10 基準，與改動前 dem=0 時的行為一致，回歸不變量成立）
+    const hf=z===1?clamp(cityHappy+.25,.3,1):1;
+    let p=.10*(1+dem[z]*.6*hf);
+    if(dem[z]<-.5)p=0;
     const cell=T(idx(x,y));
     if(z===1&&cityHappy<.4)p*=.5; // T72
     if(cell.office)p*=1.35; // T79
@@ -4374,9 +4380,15 @@ function updHud(){
   $('#star').innerHTML=cityStar<0?'⭐ <b>–</b>':`⭐ <b>${cityStar}</b>`;
   const yr=Math.floor((day-1)/360)+1,dd=((day-1)%360)+1;
   $('#date').textContent=`${['☀️','🌧️','⛈️'][weather]} 第${yr}年 第${dd}天`;
-  $('#rci .r i').style.height=Math.round(Math.max(0,dem[1])*100)+'%';
-  $('#rci .c i').style.height=Math.round(Math.max(0,dem[2])*100)+'%';
-  $('#rci .i i').style.height=Math.round(Math.max(0,dem[3])*100)+'%';
+  // T109：需求條綠正紅負，高度＝|需求|、tooltip 顯示實際數值（-1~+1）
+  const rciBar=(cls,nm,v)=>{
+    $('#rci .'+cls+' i').style.height=Math.round(Math.min(1,Math.abs(v))*100)+'%';
+    $('#rci .'+cls+' i').style.background=v>=0?'#58c470':'#e2585c';
+    $('#rci .'+cls).title=nm+'需求：'+(v>=0?'+':'')+v.toFixed(2);
+  };
+  rciBar('r','住宅',dem[1]);
+  rciBar('c','商業',dem[2]);
+  rciBar('i','工業',dem[3]);
 }
 $('#bSpeed').onclick=()=>{
   speed=speed===0?1:speed===1?2:speed===2?3:speed===3?5:0;
