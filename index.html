@@ -634,8 +634,9 @@ function buildSprites(){
   SPR.bld={};
   // 牆／屋頂色盤：變體 v 由此取色（保留原表）
   const PAL={
-    1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb'],['#bcd4ae','#9cb48e'],['#d8d0c0','#b8b0a0']],
-       roof:['#b0563c','#54677a','#617e4b','#8f6f4f','#7a5a4a']},
+    1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb'],['#bcd4ae','#9cb48e'],['#d8d0c0','#b8b0a0'],
+              ['#9db8cf','#7f9bb3'],['#9cb686','#7d9968'],['#c17048','#9a5535']], // T101 新增 v5-7：灰藍/苔綠/赭紅系
+       roof:['#b0563c','#54677a','#617e4b','#8f6f4f','#7a5a4a','#4a5c72','#4f6b3f','#6b3a26']},
     2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae'],['#f2c4cf','#d0a2ad']],
        roof:['#6b7280','#8a6f4f','#4f7d78','#9f5f6f']},
     3:{walls:[['#b9bec6','#979da8'],['#c9c2b2','#a89f8d'],['#9aa4b2','#7d8795'],['#adb8a4','#8d9884']],
@@ -682,7 +683,19 @@ function buildSprites(){
     // 示範擴充（T28）：資料驅動加一行＝新外觀。k2 lv2 第 4 變體「花園商場」＝既有部件＋陽台＋綠 trim
     {k:2,lv:2,v:3,hw:24,h:32,parts:['windowsStd','glassFront','roofBillboard','awning','balconyRows'],win:{litP:.75,w:4,ht:5,gx:6,gy:8},trim:'#5aa563'},
     // 示範擴充（T30）：高密度 Lv3 住宅「公寓大樓」＝既有部件＋陽台＋淺 trim
-    {k:1,lv:3,v:4,hw:28,h:56,parts:['windowsStd','flatParapet','waterTank','antenna','aviationLamp','balconyRows'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#c9d4e0'}
+    {k:1,lv:3,v:4,hw:28,h:56,parts:['windowsStd','flatParapet','waterTank','antenna','aviationLamp','balconyRows'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#c9d4e0'},
+    // T101 住宅圖鑑擴充（4→8 變體）：k=1 各 lv 新增 v4-7（lv3 因 v4 已被公寓大樓佔用，從 v5 補；建造置於 buildSprites 尾端，見下方尾端生成區塊）
+    {k:1,lv:1,v:4,hw:20,h:16,parts:['windowsStd','flatParapet','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30',knob:1}},
+    {k:1,lv:1,v:5,hw:20,h:14,parts:['windowsStd','pyramidRoof','chimneySmall','panelLines','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28',knob:1}},
+    {k:1,lv:1,v:6,hw:20,h:17,parts:['windowsStd','flatParapet','balconyRows','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568',knob:1},trim:'#7d9968'},
+    {k:1,lv:1,v:7,hw:22,h:15,parts:['windowsStd','pyramidRoof','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}},
+    {k:1,lv:2,v:4,hw:24,h:28,parts:['windowsStd','flatParapet','waterTank','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a'},trim:'#7f9bb3'},
+    {k:1,lv:2,v:5,hw:24,h:24,parts:['windowsStd','setbackTop','antenna','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568'}},
+    {k:1,lv:2,v:6,hw:24,h:26,parts:['windowsStd','flatParapet','chimneyBrick','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28'}},
+    {k:1,lv:2,v:7,hw:24,h:22,parts:['windowsStd','pyramidRoof','chimneySmall','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30'},trim:'#9a5535'},
+    {k:1,lv:3,v:5,hw:26,h:42,parts:['windowsStd','setbackTop','waterTank','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
+    {k:1,lv:3,v:6,hw:26,h:48,parts:['windowsStd','flatParapet','chimneyBrick','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
+    {k:1,lv:3,v:7,hw:26,h:50,parts:['windowsStd','setbackTop','balconyRows','waterTank','antenna','aviationLamp'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#6f88a3'}
   ];
   // 展開成建造任務，並依 (k,lv,v) 升序建造＝與重構前逐棟順序一致（保住共用亂數流對齊）
   const tasks=[];
@@ -705,7 +718,7 @@ function buildSprites(){
     g.drawImage(sc,0,0);
     SPR.bld[k+'_'+lv+'_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke};
   };
-  for(const t of tasks)if(!(t.k===1&&t.lv===3&&t.v===4))mkBld(t); // T30 淨增行(1,3,4)延後至尾端（FIX-B）
+  for(const t of tasks)if(!(t.k===1&&t.v>=4))mkBld(t); // T30 淨增行(1,3,4)延後至尾端（FIX-B）；T101 住宅新變體(k=1,v>=4)同併入尾端
   /* ---------- 公園 3 變化 ---------- */
   SPR.park=[];
   const mt=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
@@ -1484,6 +1497,9 @@ function buildSprites(){
    else if(d===2)g.fillRect(cx-1,cy+1,2,4);
    else g.fillRect(cx+1,cy-1,4,2);
    SPR.oneway.push(c);}
+  /* ===== T101 住宅圖鑑擴充：k=1 全新變體（lv1/lv2 v4-7、lv3 v5-7；lv3 v4 公寓大樓沿用既有尾端建造，不重建）
+     置於 buildSprites 絕對尾端（既有全部 sprite 生成之後），不位移任何既有 rand 消耗序 ===== */
+  for(const t of tasks)if(t.k===1&&t.v>=4&&!(t.lv===3&&t.v===4))mkBld(t);
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -2410,7 +2426,7 @@ function tick(){
     if(R()<p){
       const den=z===1?clamp(getMaxRoadClass(x,y,3),1,5):undefined;
       const kk=cell.office?2:z;
-      cell.bld={k:kk,lv:1,v:ri(4),age:0,pw:true,h:.6,den};
+      cell.bld={k:kk,lv:1,v:kk===1?ri(8):ri(4),age:0,pw:true,h:.6,den}; // T101：僅住宅(k=1) v 擴至 ri(8)，商業/工業維持 ri(4)
       spawns++;sPop();
     }
   }
@@ -2426,7 +2442,7 @@ function tick(){
     const uniBoost=(b.k===1&&COV.university&&COV.university[i]>0)?1.8:1;
     const eduBoost=uniBoost>1?uniBoost:schoolBoost;
     if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
-      b.lv++;b.age=0;b.v=ri(4);if(b.den===undefined)b.den=3;
+      b.lv++;b.age=0;b.v=b.k===1?ri(8):ri(4);if(b.den===undefined)b.den=3; // T101：僅住宅(k=1) v 擴至 ri(8)
     }
   }
   // 火災（升級段之後）：起火→蔓延→推進燃燒/燒毀成焦土
