@@ -2816,7 +2816,10 @@ function tick(){
     // T87：大學覆蓋升級加成 1.8（僅住宅；有大學時覆蓋學校 1.6）
     const uniBoost=(b.k===1&&COV.university&&COV.university[i]>0)?1.8:1;
     const eduBoost=uniBoost>1?uniBoost:schoolBoost;
-    if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
+    // T113：升級多因子門檻——只擋「新升級」的 roll，已達該級的舊建築不受影響；條件全滿足時機率不變
+    const lv2Gate=b.lv!==1||COV.police[i]>0; // lv1→2 需警局覆蓋（通電既有 b.pw 已要求）
+    const lv3Gate=b.lv!==2||(COV.school[i]>0&&POL[i]<POL_LV3_MAX); // lv2→3 需學校覆蓋＋低污染（供水既有 b.wa 已要求）
+    if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&lv2Gate&&lv3Gate&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
       b.lv++;b.age=0;b.v=(b.k===1||b.k===2||b.k===3)?ri(8):ri(4);if(b.den===undefined)b.den=3; // T101：住宅v擴至ri(8)；T102：商業v擴至ri(8)；T103：工業v擴至ri(8)
     }
   }
@@ -4022,6 +4025,15 @@ function inspect(x,y){
       else html+=`<div class="row">就業 ${b.pw?(b.k===2?Math.round(JOBSC[b.lv]*(t.office?1.5:1)):JOBSI[b.lv]):0} 人${(b.k===2&&t.office)?'（辦公區 ×1.5）':''}</div>`;
       html+=`<div class="row">${b.pw?'⚡ 供電正常':'⚠️ 沒有電力！'}</div>`;
       html+=`<div class="row">${b.wa?'💧 供水正常':'⚠️ 沒有供水！'}</div>`;
+      if(b.lv<3){ // T113：未達下一級的升級多因子門檻缺失清單（複用 COV/POL O(1) 查詢）
+        const need=[];
+        if(b.lv===1&&!(COV.police[idx(x,y)]>0))need.push('警局覆蓋');
+        if(b.lv===2){
+          if(!(COV.school[idx(x,y)]>0))need.push('學校覆蓋');
+          if(!(POL[idx(x,y)]<POL_LV3_MAX))need.push('降低污染');
+        }
+        if(need.length)html+=`<div class="row" style="color:#ffb15f">🔒 升 Lv.${b.lv+1} 還缺：${need.join('、')}</div>`;
+      }
       if(b.crime)html+=`<div class="row" style="color:#ffd45f">🚓 發生犯罪！幸福 -5%（鄰近）</div><button class="hbtn" id="crimeBtn">✅ 處理犯罪</button>`;
       if(b.death)html+=`<div class="row" style="color:#5a5a5a">💀 發生憾事，人口與稅收暫停</div>`;
       else if(b.sick)html+=`<div class="row" style="color:#e05252">🏥 生病中！人口與稅收暫停、幸福大降</div><button class="hbtn" id="sickBtn">💊 治療 $50</button>`;
