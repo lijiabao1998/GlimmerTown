@@ -1600,6 +1600,7 @@ function newWorld(seedOverride){
   }
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
+  trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
   recalcAllMasks();
@@ -2910,8 +2911,15 @@ function updTrams(dt){
   const target=sts.length>=2?Math.min(4,sts.length):0;
   while(tramCars.length<target){
     const si=sts[ri(sts.length)],x=si%N,y=(si/N)|0;
-    const ds=railDirs(x,y);if(!ds.length)break;
-    tramCars.push({x,y,d:ds[ri(ds.length)],p:0});
+    const ds=[];                                             // T65：仿 T63 FIX-F，站牌本身無 tram 旗標，不可用 railDirs(x,y)（其首行要求自身即帶 tram 才回傳鄰邊，站牌恆回空陣列致電車永不生成）；改為直接掃描站牌四鄰的 tram 格
+    if(inMap(x,y-1)&&T(idx(x,y-1)).tram)ds.push(0);
+    if(inMap(x+1,y)&&T(idx(x+1,y)).tram)ds.push(1);
+    if(inMap(x,y+1)&&T(idx(x,y+1)).tram)ds.push(2);
+    if(inMap(x-1,y)&&T(idx(x-1,y)).tram)ds.push(3);
+    if(!ds.length)break;
+    const d0=ds[ri(ds.length)];
+    tramCars.push({x:x+DIRV[d0][0],y:y+DIRV[d0][1],d:d0,p:0}); // 生在鄰接的軌道格（站牌格本身不可行走）
+    if(tramCars.length>=target)break;
   }
   for(let i=tramCars.length-1;i>=0;i--){
     const c=tramCars[i];
@@ -3080,6 +3088,11 @@ function draw(dt){
     const fx=sh.x+DIRV[sh.d][0]*sh.p, fy=sh.y+DIRV[sh.d][1]*sh.p;
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,ship:sh,wx,wy,sd:sh.d});
+  }
+  for(const tc of tramCars){                              // 輕軌（T65）：同小車/火車位置內插公式，沿 tram 軌緩動
+    const fx=tc.x+DIRV[tc.d][0]*tc.p, fy=tc.y+DIRV[tc.d][1]*tc.p;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,tram:tc,wx,wy,trd:tc.d});
   }
   for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s});
   objs.sort((a,b2)=>a.dep-b2.dep);
@@ -4146,7 +4159,7 @@ function load(slot){
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
-    trains.length=0;cargoShips.length=0;tramCars.length=0;pol=null;region={}; // T39-T60 運行時重建
+    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;pol=null;region={}; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
     // T39-T60 多格建築重建
@@ -4165,7 +4178,7 @@ function load(slot){
     return true;
   }catch(e){return false;}
 }
-setInterval(save,25000);
+setInterval(()=>{if(tiles)save();},25000); // 世界尚未建立（啟動畫面）時跳過自動存檔
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&tiles)save();});
 
 /* =====================================================================
