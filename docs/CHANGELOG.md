@@ -15,6 +15,7 @@
 2026-07-17 | FIX-E | sw.js CACHE 升 'gv-v2'（自 T27 起從未升號，cache-first 讓舊裝置永久吃舊版） | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
 2026-07-17 | FIX-E | showStats 鎮名經新增的 escHtml 逸出（防 HTML 注入） | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
 2026-07-17 | T99 | ARCH 同步補做：自稱行數 1650→4235、bld.k 表補 k=17-32、COV 13→18 欄位、存檔補 gameVer 與 _bak 備份機制、§8 鍵位表補 data-tid 反查、recalcRailMask4/recalcAllRailMasks/escHtml 入冊、不變量補蓋印對稱與變體鍵存在兩條 | 驗收:node 回歸通過（t31/t33-t38＋test_fixde）；瀏覽器與實機冒煙待人
+2026-07-18 | T66 | 救護車出動：核對後確認 ambulances[]／updAmbulances(dt) 已於 T62-T100 主幹批次落地（listBldK(28) 找救護站、掃 k===1&&sick 住宅、min(2,站數) 上限派車、逐格趨近 tx/ty、抵達即清 b.sick/b.sickDays，advance() 內與 updTrains/updTrams/updShips 同幀鉤 updAmbulances(dtA)），本卡未新增程式碼（允許觸碰範圍 ambulances[] 現狀已符合卡片目標「救護站→生病住宅短途」）。瀏覽器實測主路徑（測試槽3，槽1未動）：newWorld→鋪路+zr 分區+電廠+救護站→GV.step(30) 長出住宅→GV.igniteSick 標記生病→等待 250ms 後備迴圈驅動 updAmbulances 數次→約 8s 後目標宅 sick 1→0（派遣並治癒成功）；save()/load() 往返 money/day/pop 等全量一致；全程零 Console 錯誤 | 驗收:通過（node --check 語法通過；test_fixde.js 366/366 斷言 PASS；瀏覽器主路徑實測通過）
 
 2026-07-15 | T62-T100 | v3.0 收官批次施工：方案卡見 docs/tasks/T62-T100-總表.md 與 T62…T100 單卡。落地：工具列五分類篩選(T62)；鐵路/輕軌/貨船/救護車動畫(T63-T66)；COV 擴 ambulance/fire2/prison/university/parking(T67)；稅率 pol 倍率(T68)；地震/洪水可關(T69-T70/T92)；住房低幸福懲罰+辦公區生長(T72/T79)；食物/觀光/污水/回收/再生能源容量(T80-T84)；擁堵/單行/號誌(T74/T77/T78)；挑戰三關+效能檔(T88/T97)；存檔 gameVer(T93)；小地圖新色(T90)；GV 擴充(T98)；GAME_VER=3.0(T100)。中斷修復：index.html 曾四重複製 draw/UI→去重保留首個 IIFE；挑戰字串截斷已修。靜態：node --check 通過 | 驗收:靜態通過（實機冒煙待人）
 
