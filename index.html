@@ -1946,7 +1946,7 @@ function newWorld(seedOverride){
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   undoStack.length=0;undoGroup=null;
-  cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=Math.max(1,Math.min(3,Math.round(DPR)));
+  cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))]; // T106：目標值不變，就近取階梯值
   recalcAllMasks();
   computeFoam();
   computeElMask();
@@ -3334,6 +3334,7 @@ function draw(dt){
     ctx.globalAlpha=1;
   }
   const z=cam.z;
+  if(z<1)ctx.imageSmoothingEnabled=true; // T106：遠檔縮小抗鋸齒閃爍，僅主畫布層級切換，繪製結束復原
   // T69 地震震動：純渲染偏移（不寫回 cam.x/y，toTile 等輸入換算不受影響）
   const shakeAmp=shakeT>0?shakeT*14*z:0;
   const shakeX=shakeAmp?Math.sin(visT*47)*shakeAmp:0;
@@ -3641,6 +3642,7 @@ function draw(dt){
   }
   // ---- 游標／框選預覽 ----
   drawCursor(sxOf,syOf,z);
+  if(z<1)ctx.imageSmoothingEnabled=false; // T106：復原，z≥1 各檔渲染路徑不受影響
 }
 function drawCursor(sxOf,syOf,z){
   if(tool==='pan')return;
@@ -3805,8 +3807,15 @@ cvs.addEventListener('wheel',e=>{
   e.preventDefault();
   zoomStep(e.deltaY<0?1:-1,e.clientX,e.clientY);
 },{passive:false});
+// T106：縮放檔位階梯（√2 步進，遠景全覽～近景像素特寫），取代舊 1..4 整數檔
+const ZOOMS=[0.25,0.35,0.5,0.7,1,1.4,2,2.8,4];
+function zoomIdx(z){ // z 在 ZOOMS 中最接近的索引（相容舊存檔/舊 DPR 推算殘留的非階梯值）
+  let bi=0,bd=Infinity;
+  for(let i=0;i<ZOOMS.length;i++){const dd=Math.abs(ZOOMS[i]-z);if(dd<bd){bd=dd;bi=i;}}
+  return bi;
+}
 function zoomStep(d,cssX,cssY){
-  const nz=clamp(cam.z+d,1,4);
+  const nz=ZOOMS[clamp(zoomIdx(cam.z)+d,0,ZOOMS.length-1)];
   if(nz===cam.z)return;
   const mx=cssX*DPR,my=cssY*DPR;
   const wx=(mx-(W/2-cam.x*cam.z))/cam.z;
@@ -3819,8 +3828,9 @@ function zoomStep(d,cssX,cssY){
 }
 function clampCam(){
   const m=N*32;
-  cam.x=clamp(cam.x,-m,m);
-  cam.y=clamp(cam.y,-16,N*32+16);
+  const ext=cam.z<1?m*(1/cam.z-1):0; // T106：遠檔（z<1）按 1/z 比例放寬邊界，縮小時全圖仍可置中不卡邊；z≥1 邊界與改動前完全一致
+  cam.x=clamp(cam.x,-m-ext,m+ext);
+  cam.y=clamp(cam.y,-16-ext,N*32+16+ext);
 }
 function commitRect(){
   const x0=Math.min(rect.x0,rect.x1),x1=Math.max(rect.x0,rect.x1);
