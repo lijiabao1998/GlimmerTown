@@ -3335,6 +3335,7 @@ function draw(dt){
   }
   const z=cam.z;
   if(z<1)ctx.imageSmoothingEnabled=true; // T106：遠檔縮小抗鋸齒閃爍，僅主畫布層級切換，繪製結束復原
+  const lodFar=z<1, lodMini=z<.5; // T107：遠景 LOD 分級旗標（只裁「畫」不裁「算」，tick/updCars/updSmoke 等模擬照跑）
   // T69 地震震動：純渲染偏移（不寫回 cam.x/y，toTile 等輸入換算不受影響）
   const shakeAmp=shakeT>0?shakeT*14*z:0;
   const shakeX=shakeAmp?Math.sin(visT*47)*shakeAmp:0;
@@ -3358,8 +3359,13 @@ function draw(dt){
       if(!vis(sx,sy))continue;
       const t=T(idx(x,y));
       if(x===N-1||y===N-1)gc.drawImage(SPR.cliff,sx,sy,64*z,56*z);
-      const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:(t.el?SPR.grassH:SPR.grass))[t.gv&3];
-      gc.drawImage(base,sx,sy,64*z,32*z);
+      if(lodFar){ // T107：z<1 地面退化為實色菱形（略去 speck 細沙紋理），沿用同一菱形頂點密拼、不留縫
+        gc.fillStyle= t.t===0?'#3671b6' : t.t===1?(win?'#e4e2d8':'#d9c689') : (win?'#e8eef2':(t.el?'#8aba58':'#74b258'));
+        gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
+      }else{
+        const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:(t.el?SPR.grassH:SPR.grass))[t.gv&3];
+        gc.drawImage(base,sx,sy,64*z,32*z);
+      }
       if(t.t===0&&t.wm)gc.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
       if(t.em)gc.drawImage(SPR.cliffEdge[t.em],sx,sy,64*z,32*z);           // 內陸崖沿（T24）
       if(t.ruin)gc.drawImage(SPR.ruin,sx,sy,64*z,32*z);
@@ -3377,13 +3383,13 @@ function draw(dt){
           if(t.bridge)gc.drawImage(SPR.bridgeClass[rcIdx][t.mask],sx,sy-4*z,64*z,44*z);
           else gc.drawImage(SPR.roadClass[rcIdx][t.mask],sx,sy,64*z,32*z);
         }
-        if(t.rdec){
+        if(!lodFar&&t.rdec){ // T107：z<1 不畫路面裝飾（路樹路燈）
           const rs=SPR.rdec;
           const rx=sx+(32-rs.ax)*z, ry=sy+(32-rs.ay)*z;
           gc.drawImage(rs.img,rx,ry,rs.w*z,rs.h*z);
           rdecGlow.push({img:SPR.rdecN,x:rx,y:ry,w:rs.w*z,h:rs.h*z});
         }
-        if(t.bus){                                           // 公車站牌（T26）：地面層繪製，夜間牌面微光併入 nightSprites
+        if(!lodFar&&t.bus){                                  // 公車站牌（T26）：地面層繪製，夜間牌面微光併入 nightSprites；T107：z<1 不畫
           const bs2=SPR.busStop;
           const bx2=sx+(32-bs2.ax)*z, by2=sy+(32-bs2.ay)*z;
           gc.drawImage(bs2.img,bx2,by2,bs2.w*z,bs2.h*z);
@@ -3431,7 +3437,7 @@ function draw(dt){
     const dep=(t.bld&&(t.bld.k===9||t.bld.sz>=2))?((t.bld.ref?x:(t.bld.sz?x+t.bld.sz-1:x+1))+(t.bld.ref?y:(t.bld.sz?y+t.bld.sz-1:y+1))+y*.001):x+y+y*.001; // T39-T60 多格建築深度以 SE 角計
     objs.push({dep,x,y,sx,sy,t});
   }
-  for(const c of cars){
+  if(!lodMini)for(const c of cars){ // T107：z<0.5 小車不畫個體（updCars 模擬照跑，僅略去繪製）
     const fx=c.x+DIRV[c.d][0]*c.p, fy=c.y+DIRV[c.d][1]*c.p;
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,car:c,wx,wy});
@@ -3458,7 +3464,7 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,tram:tc,wx,wy,trd:tc.d});
   }
-  for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s});
+  if(!lodFar)for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s}); // T107：z<1 不畫煙粒個體（updSmoke 模擬照跑）
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
   nightSprites.push(...rdecGlow);
@@ -3552,6 +3558,14 @@ function draw(dt){
       continue;
     }
     const bd=t.bld;
+    if(lodMini){ // T107：z<0.5 建築本體退化 2~4px 色塊＋夜窗簡化單色亮塊，直接複用 drawMini 建築色表（MINI_BLD_PAL）保證視覺語言一致
+      const blkSz=(bd.sz>=2||bd.k===9)?4:(2+((bd.lv||1)-1));
+      const blkX=o.sx+32*z-blkSz/2, blkY=o.sy+16*z-blkSz/2;
+      ctx.fillStyle=MINI_BLD_PAL[bd.k]||'#aaa';
+      ctx.fillRect(blkX,blkY,blkSz,blkSz);
+      if(bd.k===5||bd.pw)nightSprites.push({rect:[blkX,blkY,blkSz,blkSz]});
+      continue;
+    }
     let s;
     if(bd.k===4)s=(win?SPR.parkW:SPR.park)[bd.v];
     else if(bd.k===5)s=SPR.plant;
@@ -3634,7 +3648,7 @@ function draw(dt){
     ctx.globalAlpha=1;
   }
   // ---- 天氣：雨絲＋閃電（螢幕空間，夜燈之後、游標之前；T17）----
-  if(weather)drawRain(z);
+  if(weather&&!lodFar)drawRain(z); // T107：z<1 不畫雨雪個體，全屏色調已由前段天氣色調段落涵蓋
   if(flashT>0){
     ctx.fillStyle=`rgba(255,255,255,${Math.min(.85,flashT*2).toFixed(3)})`;
     ctx.fillRect(0,0,W,H);
@@ -4189,6 +4203,8 @@ function buildToolbar(){
 }
 /* 小地圖 */
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
+// T90 小地圖建築色表；T107 遠景 LOD 建築色塊直接複用同一陣列（保證遠景與小地圖視覺語言一致），索引 0..32 對齊 KNAME 1..32
+const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090'];
 function drawMini(){
   if(!tiles)return;
   miniG.fillStyle='#0d1226';miniG.fillRect(0,0,144,144);
@@ -4202,7 +4218,7 @@ function drawMini(){
     if(t.wp)c='#2f6fc0';
     // T90：小地圖色表（pal）索引 0..32 對齊 KNAME 1..32，鐵路站(17)/港口(18)/機場(19)/停車場(20)/輕軌站(21)等 v3.0
     // 建築（T39-T54）色碼已全數涵蓋（見下陣列），多格建築 ref 副格同步 t.bld.k 一併正確上色，核對現狀達標、無新增
-    if(t.bld){const pal=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090'];c=pal[t.bld.k]||'#aaa';}
+    if(t.bld)c=MINI_BLD_PAL[t.bld.k]||'#aaa'; // T107：改讀共用 MINI_BLD_PAL（陣列內容與原本行內字面量逐字相同）
     if(t.bld&&t.bld.fire)c='#ff5030';
     miniG.fillStyle=c;miniG.fillRect(x*2,y*2,2,2);
   }
