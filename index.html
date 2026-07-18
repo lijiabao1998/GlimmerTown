@@ -3856,6 +3856,7 @@ function showStats(){
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
+     <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
      <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS} 垃圾場${nD} 體育場${nT} 水塔${nW} 警察局${nPol} 醫院${nH} 診所${nCl} 圖書館${nL} 郵局${nPo} 墓園${nCe}</div>
@@ -3871,6 +3872,15 @@ function showStats(){
     toast('🏦 貸款到帳 $2000！','gold');sBuild();
     showStats();
   });
+  // T68 政策面板：稅率倍率 +/- 按鈕（範圍 0.5~2.0，步進 0.1；影響次日 tick 稅段）
+  const polStep=(k,d,nm)=>{
+    pol[k]=Math.max(.5,Math.min(2,Math.round((pol[k]+d*.1)*100)/100));
+    toast('📜 '+nm+'稅率×'+pol[k].toFixed(2));sTick();showStats();
+  };
+  const pb=(id,k,d,nm)=>{const el=$(id);if(el)el.addEventListener('click',()=>polStep(k,d,nm));};
+  pb('#polRm','taxR',-1,'住宅');pb('#polRp','taxR',1,'住宅');
+  pb('#polCm','taxC',-1,'商業');pb('#polCp','taxC',1,'商業');
+  pb('#polIm','taxI',-1,'工業');pb('#polIp','taxI',1,'工業');
 }
 $('#bStats').onclick=()=>{showStats();sTick();};
 function showHelp(){
