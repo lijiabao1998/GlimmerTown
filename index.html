@@ -2668,7 +2668,7 @@ function updCars(dt){
     // T74 擁堵：鄰近車多則降速
     let nearC=0;for(const o of cars)if(o!==c&&Math.abs(o.x-c.x)+Math.abs(o.y-c.y)<=1)nearC++;
     if(nearC>=2)speed*=.55;
-    if(tcar.light)speed*=.65; // T78
+    if(tcar.light)speed*=.5; // T78：號誌路口增速減半
     if(tcar.busLane)speed*=1.05;
     c.p+=dt*1.4*speed;
     if(c.p>=1){
