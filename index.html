@@ -2882,7 +2882,6 @@ function listBldK(k){
 function updTrains(dt){
   const sts=listBldK(17);
   const target=sts.length>=2?Math.min(3,sts.length-1):0;
-  if(window.__trdbg)console.log('TRDBG',JSON.stringify({sts,target,trainsLen:trains.length}));
   while(trains.length<target){
     const si=sts[ri(sts.length)],x=si%N,y=(si/N)|0;
     const ds=railDirs(x,y);if(!ds.length)break;
