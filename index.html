@@ -345,6 +345,7 @@ let diff=1;                  // T115：難度 0簡單/1標準/2困難/3沙盒（
 const DIFF_NM=['😊 簡單','⚖️ 標準','🔥 困難','🧪 沙盒'];
 const DIFF_MONEY=[5000,3000,1500,3000]; // 各難度起始資金（沙盒僅供顯示基準，建造實際免費不扣款）
 const DIFF_HAZ=[.5,1,1.5,1];            // 各難度天氣災害機率倍率（沙盒同標準倍率，另開放手動觸發）
+let tornado=null;          // T116：龍捲風實體（null 或 {x,y,dx,dy,life}）；不進存檔，讀檔／新圖即消散
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
 const cam={x:0,y:0,z:3};
@@ -1841,6 +1842,28 @@ function buildSprites(){
     g.drawImage(s,0,0);
     SPR.deco.push({img:c,ax:10,ay:32,w:20,h:34});
   }
+  /* ===== T116 龍捲風漏斗雲：灰色錐形 3 幀旋轉動畫（不描邊，半透明雲霧質感），置於 buildSprites 絕對尾端，
+     不位移任何既有 rand 消耗序；draw() 依 tornado 狀態與 visT 挑幀疊代顯示 ===== */
+  SPR.tornado=[];
+  for(let f=0;f<3;f++){
+    const[c,g]=cv(40,80);
+    const cx=20;
+    g.fillStyle='rgba(118,120,128,.82)';
+    for(let y=4;y<78;y++){
+      const tt=(y-4)/74;                                    // 0 頂(細)→1 底(寬)
+      const wobble=Math.round(Math.sin(y*.5+f*2.1)*2);
+      const w=Math.max(1,Math.round(2+tt*16)+wobble);
+      g.fillRect(cx-w+wobble,y,w*2,1);
+    }
+    g.fillStyle='rgba(205,206,210,.45)';
+    for(let y=6;y<72;y+=6){
+      const tt=(y-4)/74,w=Math.round(2+tt*16);
+      g.fillRect(cx-w+2+((y+f*3)%5),y,3,1);
+    }
+    g.fillStyle='rgba(70,72,78,.5)';
+    g.fillRect(cx-18,76,36,3);                              // 觸地塵土
+    SPR.tornado.push({img:c,ax:cx,ay:79,w:40,h:80});
+  }
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -1966,7 +1989,7 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）
-  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰
+  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動
@@ -2817,6 +2840,22 @@ function tick(){
       }
       if(hit){toast('🌋 地震！部分建築起火','bad',qi%N,(qi/N)|0);sErr();}
     }
+    // T116：龍捲風——低機率生成一條隨機直線路徑的移動災害，每天沿路徑推進 1 格，所到之格建築轉廢墟／樹木吹倒
+    if(!tornado&&R()<.0006*DIFF_HAZ[diff]){
+      const tx0=ri(N),ty0=ri(N);
+      let tdx=ri(3)-1,tdy=ri(3)-1;if(!tdx&&!tdy)tdx=1; // 排除靜止方向
+      tornado={x:tx0,y:ty0,dx:tdx,dy:tdy,life:18+ri(18)};
+      toast('🌪️ 龍捲風來襲！沿途建築恐成廢墟','bad',tx0,ty0);sErr();
+    }
+    if(tornado){
+      tornado.x+=tornado.dx;tornado.y+=tornado.dy;tornado.life--;
+      if(inMap(tornado.x,tornado.y)){
+        const tti=idx(tornado.x,tornado.y),ttl=tiles[tti],ttb=ttl.bld;
+        if(ttb&&!ttb.ref&&ttb.k<=3){if(ttb.k===3)stampPolSrc(tornado.x,tornado.y,3,-1);ttl.bld=null;ttl.ruin=1;}
+        if(ttl.tree)ttl.tree=0;
+      }else tornado.life=0;
+      if(tornado.life<=0||!inMap(tornado.x,tornado.y))tornado=null;
+    }
   }
   if(shakeT>0)shakeT=Math.max(0,shakeT-0.05);
   // 需求（T109 RCI 需求模型：住宅＝就業盈餘與幸福加權；商業＝人口/商業格數比；工業＝商業貨源缺口；三值歸一化 -1~+1）
@@ -3571,6 +3610,11 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,tram:tc,wx,wy,trd:tc.d});
   }
+  if(tornado){                                             // T116：龍捲風漏斗雲，位置隨 tick() 逐日推進（非每幀內插，同深度規則插入 objs）
+    const fx=tornado.x, fy=tornado.y;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.015,torn:true,wx,wy});
+  }
   if(!lodFar)for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s}); // T107：z<1 不畫煙粒個體（updSmoke 模擬照跑）
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
@@ -3639,6 +3683,12 @@ function draw(dt){
         const v=DIRSCR[o.trd];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
       }
+      continue;
+    }
+    if(o.torn){                                            // 龍捲風漏斗雲（T116）：3 幀依 visT 旋轉，半透明疊加不參與夜燈層
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const fr=SPR.tornado[Math.floor(visT*4)%SPR.tornado.length];
+      ctx.drawImage(fr.img,sx+(32-fr.ax)*z,sy+(32-fr.ay)*z,fr.w*z,fr.h*z);
       continue;
     }
     if(o.smoke){
@@ -4608,7 +4658,7 @@ function showStats(){
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
      <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
      <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
-     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button></div>':''}
+     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button>　🌪 <button class="hbtn" id="sbTornado">觸發龍捲風</button></div>':''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
   // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
@@ -4628,6 +4678,9 @@ function showStats(){
       let ok=false;
       if(cand.length){const ci=cand[(Math.random()*cand.length)|0];ok=GV.ignite(ci%N,(ci/N)|0);} // Math.random()：手動 UI 動作不消耗共用種子流 R()
       toast(ok?'🔥 沙盒：手動觸發火災':'找不到可燃燒的建築','bad');
+    });
+    const bTo=$('#sbTornado');if(bTo)bTo.addEventListener('click',()=>{ // T116：沙盒手動觸發龍捲風
+      if(GV.tornado())toast('🌪 沙盒：手動觸發龍捲風');else toast('龍捲風已被設定關閉','bad');
     });
   }
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
@@ -4877,7 +4930,7 @@ function load(slot){
     money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
     loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
-    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0; // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化
+    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null; // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
     recalcAllRailMasks(); // 軌道遮罩全量重算：rl/tr 還原時 railMask/tramMask 歸零（對照道路版）
@@ -5059,6 +5112,14 @@ window.GV={
   ver:()=>GAME_VER,
   pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1};return pol;},
   quake:()=>{if(!disastersOn)return false;shakeT=.55;quakeRecover=20;return true;},
+  tornado:()=>{ // T116：手動觸發龍捲風（受災害總開關管轄，仿 quake() 慣例）
+    if(!disastersOn)return false;
+    const tx0=ri(N),ty0=ri(N);
+    let tdx=ri(3)-1,tdy=ri(3)-1;if(!tdx&&!tdy)tdx=1;
+    tornado={x:tx0,y:ty0,dx:tdx,dy:tdy,life:18+ri(18)};
+    toast('🌪️ 龍捲風來襲！沿途建築恐成廢墟','bad',tx0,ty0);sErr();
+    return true;
+  },
   flood:()=>{let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效
   trains:()=>trains.length,
   trams:()=>tramCars.length,
