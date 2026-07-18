@@ -637,11 +637,12 @@ function buildSprites(){
     1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb'],['#bcd4ae','#9cb48e'],['#d8d0c0','#b8b0a0'],
               ['#9db8cf','#7f9bb3'],['#9cb686','#7d9968'],['#c17048','#9a5535']], // T101 新增 v5-7：灰藍/苔綠/赭紅系
        roof:['#b0563c','#54677a','#617e4b','#8f6f4f','#7a5a4a','#4a5c72','#4f6b3f','#6b3a26']},
-    2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae'],['#f2c4cf','#d0a2ad']],
-       roof:['#6b7280','#8a6f4f','#4f7d78','#9f5f6f']},
+    2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae'],['#f2c4cf','#d0a2ad'],
+              ['#cfe8d6','#a8c7af'],['#e8c9a0','#c49b6e'],['#ddd0ea','#b7a3cc'],['#f2e4a0','#d4bb70']], // T102 新增 v4-7：薄荷/赤陶/薰衣草/暖黃系
+       roof:['#6b7280','#8a6f4f','#4f7d78','#9f5f6f','#4f7a5a','#8a4f30','#5a4a78','#a3792f']},
     3:{walls:[['#b9bec6','#979da8'],['#c9c2b2','#a89f8d'],['#9aa4b2','#7d8795'],['#adb8a4','#8d9884']],
        roof:['#7d838d','#8d857a','#6b7480','#79806f']}};
-  const SIGNC=['#ff8a5f','#ffd45f','#7fe0c8','#ff9fd0'];
+  const SIGNC=['#ff8a5f','#ffd45f','#7fe0c8','#ff9fd0','#7fa8ff','#c58fff','#9dff7f','#ff6f6f']; // T102：招牌夜光色由 4 擴至 8
   // 部件註冊表：每個部件 (g,ng,c)=>void。g＝結構層 sg、ng＝夜間層、c＝ctx
   // ctx＝{ax,ay,by,hw,h,rty,rty2,wl,rf,v,k,lv,rand,dg(日層),smoke,d(本行資料)}
   const PARTS={
@@ -695,7 +696,20 @@ function buildSprites(){
     {k:1,lv:2,v:7,hw:24,h:22,parts:['windowsStd','pyramidRoof','chimneySmall','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30'},trim:'#9a5535'},
     {k:1,lv:3,v:5,hw:26,h:42,parts:['windowsStd','setbackTop','waterTank','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
     {k:1,lv:3,v:6,hw:26,h:48,parts:['windowsStd','flatParapet','chimneyBrick','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
-    {k:1,lv:3,v:7,hw:26,h:50,parts:['windowsStd','setbackTop','balconyRows','waterTank','antenna','aviationLamp'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#6f88a3'}
+    {k:1,lv:3,v:7,hw:26,h:50,parts:['windowsStd','setbackTop','balconyRows','waterTank','antenna','aviationLamp'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#6f88a3'},
+    // T102 商業圖鑑擴充（4→8 變體）：k=2 各 lv 新增 v4-7（部件重組，皆用現有 PARTS；建造置於 buildSprites 尾端，見下方尾端生成區塊；花園商場 2_2_3 既有行不動）
+    {k:2,lv:1,v:4,hw:22,h:16,parts:['windowsStd','glassFront','awning','yardDeco'],win:{litP:.6,gx:7,gy:9},trim:'#8a5f38'}, // 全落地窗咖啡店
+    {k:2,lv:1,v:5,hw:24,h:18,parts:['windowsStd','glassFront','awning','signBoard'],win:{litP:.65,gx:6,gy:8},trim:'#3f7dc9'}, // awning 條紋變色精品店
+    {k:2,lv:1,v:6,hw:22,h:16,parts:['windowsStd','rollupDoor','signBoard','yardDeco'],win:{litP:.5,gx:7,gy:9}}, // 捲門雜貨店
+    {k:2,lv:1,v:7,hw:20,h:15,parts:['windowsStd','pyramidRoof','door','signBoard'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}}, // 尖頂小店
+    {k:2,lv:2,v:4,hw:24,h:32,parts:['windowsStd','glassFront','roofBillboard','signBoard'],win:{litP:.75,w:4,ht:5,gx:6,gy:8}}, // 大型看板商場
+    {k:2,lv:2,v:5,hw:24,h:30,parts:['windowsStd','signBoard','awning','panelLines'],win:{litP:.6,w:3,ht:5,gx:6,gy:8},trim:'#c9782e'}, // 百貨商店
+    {k:2,lv:2,v:6,hw:26,h:26,parts:['windowsStd','sawtoothMonitor','signBoard','corrugate'],win:{litP:.45,gx:8,gy:9}}, // 大賣場
+    {k:2,lv:2,v:7,hw:24,h:34,parts:['windowsStd','setbackTop','balconyRows','signBoard'],win:{litP:.6,w:3,ht:5,gx:6,gy:8},trim:'#8fb0c9'}, // 退台露台商辦
+    {k:2,lv:3,v:4,hw:26,h:54,parts:['windowsStd','setbackTop','roofBillboard','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 頂樓看板高樓
+    {k:2,lv:3,v:5,hw:26,h:56,parts:['windowsStd','setbackTop','antenna','waterTank','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 天線陣列高樓
+    {k:2,lv:3,v:6,hw:26,h:52,parts:['windowsStd','setbackTop','storageTank','antenna','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 機電水塔高樓
+    {k:2,lv:3,v:7,hw:28,h:50,parts:['windowsStd','flatParapet','balconyRows','antenna','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'},trim:'#c9d4e0'} // 平頂陽台高樓
   ];
   // 展開成建造任務，並依 (k,lv,v) 升序建造＝與重構前逐棟順序一致（保住共用亂數流對齊）
   const tasks=[];
@@ -718,7 +732,7 @@ function buildSprites(){
     g.drawImage(sc,0,0);
     SPR.bld[k+'_'+lv+'_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke};
   };
-  for(const t of tasks)if(!(t.k===1&&t.v>=4))mkBld(t); // T30 淨增行(1,3,4)延後至尾端（FIX-B）；T101 住宅新變體(k=1,v>=4)同併入尾端
+  for(const t of tasks)if(!((t.k===1&&t.v>=4)||(t.k===2&&t.v>=4)))mkBld(t); // T30 淨增行(1,3,4)延後至尾端（FIX-B）；T101 住宅新變體(k=1,v>=4)、T102 商業新變體(k=2,v>=4)同併入尾端
   /* ---------- 公園 3 變化 ---------- */
   SPR.park=[];
   const mt=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
@@ -1500,6 +1514,9 @@ function buildSprites(){
   /* ===== T101 住宅圖鑑擴充：k=1 全新變體（lv1/lv2 v4-7、lv3 v5-7；lv3 v4 公寓大樓沿用既有尾端建造，不重建）
      置於 buildSprites 絕對尾端（既有全部 sprite 生成之後），不位移任何既有 rand 消耗序 ===== */
   for(const t of tasks)if(t.k===1&&t.v>=4&&!(t.lv===3&&t.v===4))mkBld(t);
+  /* ===== T102 商業圖鑑擴充：k=2 全新變體（lv1/lv2/lv3 v4-7）
+     置於 buildSprites 絕對尾端（接在 T101 尾端新增之後），不位移任何既有 rand 消耗序 ===== */
+  for(const t of tasks)if(t.k===2&&t.v>=4)mkBld(t);
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -2426,7 +2443,7 @@ function tick(){
     if(R()<p){
       const den=z===1?clamp(getMaxRoadClass(x,y,3),1,5):undefined;
       const kk=cell.office?2:z;
-      cell.bld={k:kk,lv:1,v:kk===1?ri(8):ri(4),age:0,pw:true,h:.6,den}; // T101：僅住宅(k=1) v 擴至 ri(8)，商業/工業維持 ri(4)
+      cell.bld={k:kk,lv:1,v:(kk===1||kk===2)?ri(8):ri(4),age:0,pw:true,h:.6,den}; // T101：住宅(k=1) v 擴至 ri(8)；T102：商業(k=2) v 擴至 ri(8)，工業維持 ri(4)
       spawns++;sPop();
     }
   }
@@ -2442,7 +2459,7 @@ function tick(){
     const uniBoost=(b.k===1&&COV.university&&COV.university[i]>0)?1.8:1;
     const eduBoost=uniBoost>1?uniBoost:schoolBoost;
     if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
-      b.lv++;b.age=0;b.v=b.k===1?ri(8):ri(4);if(b.den===undefined)b.den=3; // T101：僅住宅(k=1) v 擴至 ri(8)
+      b.lv++;b.age=0;b.v=(b.k===1||b.k===2)?ri(8):ri(4);if(b.den===undefined)b.den=3; // T101：住宅v擴至ri(8)；T102：商業v擴至ri(8)
     }
   }
   // 火災（升級段之後）：起火→蔓延→推進燃燒/燒毀成焦土
