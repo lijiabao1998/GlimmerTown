@@ -2869,10 +2869,12 @@ function listBldK(k){
 function updTrains(dt){
   const sts=listBldK(17);
   const target=sts.length>=2?Math.min(3,sts.length-1):0;
+  if(window.__trdbg)console.log('TRDBG',JSON.stringify({sts,target,trainsLen:trains.length}));
   while(trains.length<target){
     const si=sts[ri(sts.length)],x=si%N,y=(si/N)|0;
     const ds=railDirs(x,y);if(!ds.length)break;
-    trains.push({x,y,d:ds[ri(ds.length)],p:0});
+    const d0=ds[ri(ds.length)];
+    trains.push({x:x+DIRV[d0][0],y:y+DIRV[d0][1],d:d0,p:0}); // T63 修正：站牌本身無 rail 旗標（canPlace 禁止蓋在軌道上），生在站牌格會被下方 rail 檢查即時剔除，改生在相鄰軌道格
     if(trains.length>=target)break;
     if(!ds.length)break;
   }
@@ -2955,7 +2957,11 @@ function draw(dt){
     ctx.globalAlpha=1;
   }
   const z=cam.z;
-  const ox=Math.round(W/2-cam.x*z), oy=Math.round(H/2-cam.y*z);
+  // T69 地震震動：純渲染偏移（不寫回 cam.x/y，toTile 等輸入換算不受影響）
+  const shakeAmp=shakeT>0?shakeT*14*z:0;
+  const shakeX=shakeAmp?Math.sin(visT*47)*shakeAmp:0;
+  const shakeY=shakeAmp?Math.sin(visT*61+1.3)*shakeAmp*.6:0;
+  const ox=Math.round(W/2-cam.x*z+shakeX), oy=Math.round(H/2-cam.y*z+shakeY);
   const sxOf=(x,y)=>ox+((x-y)*32-32)*z;
   const syOf=(x,y)=>oy+((x+y)*16)*z;
   const pad=160*z;
@@ -3042,6 +3048,11 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,bus:bs,wx,wy,bd:bs.d});
   }
+  for(const tr of trains){                                // 火車（T63）：無 BFS 路徑，直接依 d/p 內插，同小車位置公式
+    const fx=tr.x+DIRV[tr.d][0]*tr.p, fy=tr.y+DIRV[tr.d][1]*tr.p;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,train:tr,wx,wy,td:tr.d});
+  }
   for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s});
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
@@ -3064,6 +3075,21 @@ function draw(dt){
       ctx.drawImage(spr,sx-6*z,sy-6*z,12*z,9*z);
       if(b<.55){
         const v=DIRSCR[o.bd];
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+      }
+      continue;
+    }
+    if(o.train){                                           // 火車（T63）：仿公車配方直接 fillRect 組裝（拉長＋換色），不建 SPR、維持任務卡範圍只動 draw
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const mir=(o.td===1||o.td===3)?-1:1;
+      const pr=(lx,ly,w,h)=>{const mx=mir<0?(20-lx-w):lx;ctx.fillRect(sx-10*z+mx*z,sy-6*z+ly*z,w*z,h*z);};
+      ctx.fillStyle='rgba(0,0,0,.3)';pr(2,7,16,1);                           // 落影
+      ctx.fillStyle=shade('#8a3a3a',-42);pr(1,6,6,1);pr(7,5,6,1);pr(13,4,6,1); // 暗側（右下斜面）
+      ctx.fillStyle='#8a3a3a';pr(1,3,6,3);pr(7,2,6,3);pr(13,1,6,3);           // 車身主色
+      ctx.fillStyle='#2b3550';pr(1,4,6,1);pr(7,3,6,1);pr(13,2,6,1);           // 車窗帶
+      ctx.fillStyle='#e8dcc0';pr(1,3,6,1);pr(7,2,6,1);pr(13,1,6,1);           // 車頂
+      if(b<.55){
+        const v=DIRSCR[o.td];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
       }
       continue;
