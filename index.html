@@ -332,7 +332,7 @@ let rainDays=0;          // 連續雨天計數（T57 洪水）
 let floodTiles=[];       // 淹水格子 [{x,y,remain}]（T57）
 let shakeT=0;            // 地震震動計時器（T56）
 let quakeRecover=0;      // 地震後恢復天數（T56）
-let pol=null;            // 稅率政策 {taxR,taxC,taxI, heightLimit, envReg, transitSubsidy}（T55）
+let pol=null;            // 稅率政策 {taxR,taxC,taxI, heightLimit, envReg, transitSubsidy}（T55）；T122 擴四布林 curfew/recycle/tourPromo/ecoReg（城市法規開關，皆非稅收槓桿）
 let foodPoints=0;        // 食物點數（T46，每天重算）
 let tourists=0;          // 遊客數（T47，每天重算）
 let region={};            // 區域聯動摘要（T60）
@@ -2603,7 +2603,7 @@ function computePower(){
       if(T(j).road&&!seen[j]){seen[j]=1;q.push([nx,ny,d+1]);}
     }
   }
-  return plants*PLANT_CAP+so*15+wi*20; // T82 太陽能/風力額外容量
+  return plants*(PLANT_CAP+(pol&&pol.ecoReg?5:0))+so*15+wi*20; // T82 太陽能/風力額外容量；T122 節能條例：每電廠供電棟數+5
 }
 function countNear(x,y,r,pred){
   let n=0;
@@ -2821,6 +2821,7 @@ function tick(){
         {name:'電廠鄰近',val:-pl*.18},
         {name:'空氣污染',val:-POL[ci]*.006}, // T110：空間污染係數
         {name:'犯罪',val:-crime*.05},
+        {name:'宵禁',val:pol&&pol.curfew?-.02:0}, // T122：宵禁開啟時全城住宅幸福固定 -2%
         {name:'喪事未安撫',val:-(deathPenalty[idx(x,y)]?.1:0)},
         {name:'生病',val:-(b.sick?.35:0)},
         {name:'死亡',val:-(b.death?.55:0)},
@@ -2841,7 +2842,7 @@ function tick(){
   cityHappy=happyN?happySum/happyN:.6;
   happyAgg=happyN&&happyAggSum?happyAggSum.map(p=>({name:p.name,val:p.val/happyN})):[]; // T111：城市平均幸福構成，供 showStats 讀取
   // 垃圾（T19）：產量/容量/超載係數；套用到全城住宅幸福尾端，並節流提示
-  garbage=pop*.05+jobsI*.08;
+  garbage=(pop*.05+jobsI*.08)*(pol&&pol.recycle?.85:1); // T122 回收宣導：垃圾產量×0.85
   garbCap=dumps*DUMP_CAP+rc*(DUMP_CAP*.75); // T84
   garbRatio=garbCap>0?clamp(garbage/garbCap,0,2):2;
   if(garbRatio>1){
@@ -2994,7 +2995,7 @@ function tick(){
     if(!b||b.k>3||b.crime)continue;
     const x=i%N,y=(i/N)|0;
     if(COV.police[i]>0)continue; // T61：警察局半徑10覆蓋則受保護（原 countNear k===11）
-    if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）
+    if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv*(pol&&pol.curfew?.6:1)){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）；T122 宵禁：犯罪率×0.6
       b.crime=1;
       if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad',x,y);sErr();crimeAlert=true;}
     }
@@ -3084,14 +3085,15 @@ function tick(){
     else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned){
       const pm=pol||{taxR:1,taxC:1,taxI:1};
       if(b.k===1){const v2=POPS[b.lv]*.12*(pm.taxR||1);income+=v2;taxR+=v2;}
-      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1);income+=v2;taxC+=v2;}
+      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1);income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95
       else{const v2=JOBSI[b.lv]*.15*(pm.taxI||1);income+=v2;taxI+=v2;}
     }
   }
   let roadUpkeep=0;
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
-  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）
-  fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,net:income-upkeep};
+  const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0); // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
+  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+upReg; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出
+  fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep};
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   // T88 挑戰檢查
@@ -4616,7 +4618,7 @@ function drawHistChart(){
 }
 function showStats(){
   // T68 政策快捷（稅率倍率）
-  if(pol==null)pol={taxR:1,taxC:1,taxI:1};
+  if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false};
   let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0,nS=0,nD=0,nT=0,nW=0,nPol=0,nH=0,nCl=0,nL=0,nPo=0,nCe=0;
   let nSt=0,nPt=0,nAi=0,nPk=0,nTs=0,nFa=0,nRa=0,nLd=0,nSo=0,nWi=0,nSe=0,nAm=0,nRc=0,nF2=0,nPr=0,nUn=0; // T89：v3.0（T39-T54）新建築計數
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
@@ -4659,6 +4661,7 @@ function showStats(){
     '電廠鄰近':'⚡ 電廠鄰近拉低幸福→拉開住宅與電廠的距離',
     '空氣污染':'🏭 空氣污染拉低幸福→遠離污染源或多種樹',
     '犯罪':'🚓 犯罪拉低幸福→加蓋警察局',
+    '宵禁':'🚨 宵禁法規拉低幸福→關閉法規面板內的宵禁開關',
     '喪事未安撫':'💀 喪事未安撫拉低幸福→加蓋墓園',
     '生病':'🏥 居民生病拉低幸福→加蓋醫院或診所',
     '死亡':'💀 已發生憾事拉低幸福→加蓋墓園安撫',
@@ -4677,7 +4680,8 @@ function showStats(){
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
-     <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}</div>
+     <div class="row">🚨 法規　<label><input type="checkbox" id="polCurfew"${pol.curfew?' checked':''}> 宵禁</label>　<label><input type="checkbox" id="polRecycle"${pol.recycle?' checked':''}> 回收宣導</label>　<label><input type="checkbox" id="polTour"${pol.tourPromo?' checked':''}> 觀光推廣</label>　<label><input type="checkbox" id="polEco"${pol.ecoReg?' checked':''}> 節能條例</label></div>
+     <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}　📜 法規 -${fin.upReg.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
      <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS} 垃圾場${nD} 體育場${nT} 水塔${nW} 警察局${nPol} 醫院${nH} 診所${nCl} 圖書館${nL} 郵局${nPo} 墓園${nCe}</div>
      <div class="row" style="font-size:11px;opacity:.75">v3.0：🚉${nSt} ⚓${nPt} ✈️${nAi} 🅿️${nPk} 🚋${nTs} 🌾${nFa} 🐄${nRa} 🗿${nLd} ☀️${nSo} 💨${nWi} 🚰${nSe} 🚑${nAm} ♻️${nRc} 🚒${nF2} 🚔${nPr} 🎓${nUn}　🔧維護-${v3Up.toFixed(1)}</div>
@@ -4726,6 +4730,12 @@ function showStats(){
   pb('#polRm','taxR',-1,'住宅');pb('#polRp','taxR',1,'住宅');
   pb('#polCm','taxC',-1,'商業');pb('#polCp','taxC',1,'商業');
   pb('#polIm','taxI',-1,'工業');pb('#polIp','taxI',1,'工業');
+  // T122：法規開關（勾選即時生效，次日 tick 套用對應係數）
+  const polToggle=(id,k,nm)=>{const el=$(id);if(el)el.addEventListener('change',()=>{pol[k]=!!el.checked;toast('🚨 '+nm+(pol[k]?' 已開啟':' 已關閉'));sTick();});};
+  polToggle('#polCurfew','curfew','宵禁');
+  polToggle('#polRecycle','recycle','回收宣導');
+  polToggle('#polTour','tourPromo','觀光推廣');
+  polToggle('#polEco','ecoReg','節能條例');
 }
 $('#bStats').onclick=()=>{showStats();sTick();};
 // T114：通知中心——HUD 鈴鐺按鈕、未讀紅點、事件日誌面板（複用 #infoBody/.row 樣式）
@@ -5138,7 +5148,7 @@ window.GV={
   composer:composer,
   npu:npuComposer,
   ver:()=>GAME_VER,
-  pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1};return pol;},
+  pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1,curfew:!!p.curfew,recycle:!!p.recycle,tourPromo:!!p.tourPromo,ecoReg:!!p.ecoReg};return pol;}, // T122：擴四布林（法規開關，測試用整組覆寫，taxR/taxC/taxI 既有覆寫語義不變）
   quake:()=>{if(!disastersOn)return false;shakeT=.55;quakeRecover=20;return true;},
   flood:()=>{let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效
   trains:()=>trains.length,
