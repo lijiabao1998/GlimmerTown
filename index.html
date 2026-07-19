@@ -232,6 +232,10 @@ const ROAD_NAME=['小巷','支路','次幹道','主幹道','快速路'];
 const ROAD_COST=[8,15,28,55,120];
 const ROAD_UPKEEP=[0.01,0.02,0.05,0.12,0.35];
 const ROAD_SPEED=[0.5,1.0,1.4,2.0,3.5];
+const ROAD_CAP=[1,2,4,8,16];     // T129：道路壅堵容量（依 rc 1-5 索引，同 ROAD_SPEED 慣例；小巷最低、快速路最高。
+                                  // 校準依據：本作單日車流量本就小（citywide 車輛上限 32、道路速度慢，daily pass 常態為個位數），
+                                  // 容量取小整數才能在合理城市規模下被實際車流觸發過載，數值本身無強制規格、屬本卡設計裁量）
+const ROAD_JAM_K=1;              // T129：過載降速斜率係數，套用於 clamp(1-max(0,load-cap)/cap*k,.3,1)
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）
 
 const GAME_VER='3.5'; // v3.5 收官
@@ -2267,6 +2271,7 @@ function newWorld(seedOverride){
   }
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
+  roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
@@ -2901,6 +2906,18 @@ function countNear(x,y,r,pred){
   }
   return n;
 }
+// T129：鄰近道路壅堵程度（Chebyshev 半徑 r）——countNear 的 pred 只拿得到鄰格 tile 物件、查不到其 idx，
+// 故仿 stampCov／stampPolSrc 手法自行逐格算 idx 查 roadLoad/ROAD_CAP；回傳半徑內「目前過載」的道路格數。
+// load 全圖為 0（空車城）時任一鄰格 roadLoad[j]>ROAD_CAP 恆假、回傳 0，供 happyParts「交通壅堵」項不變量成立。
+function congestNear(x,y,r){
+  let n=0;
+  for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
+    for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;
+      const j=idx(nx,ny),tt=tiles[j];
+      if(tt.road&&roadLoad[j]>ROAD_CAP[(tt.rc||2)-1])n++;
+    }}
+  return n;
+}
 /* T61 服務覆蓋計數場：擺放時蓋印一次，tick 內 O(1) 讀取（取代逐棟 countNear 方框掃描）。
    運行時重建、不入存檔（load/newWorld 後與 undo 後 rebuildCov 全量重建）。語義與原 countNear(...)>0／計數完全一致。*/
 const COVR={park:4,plant:4,fire:9,school:8,stadium:10,police:10,hospital:12,clinic:6,library:6,post:8,cemetery:10,bus:6,rdec:2,ambulance:10,fire2:12,prison:8,university:10,parking:8};
@@ -3048,6 +3065,9 @@ function tick(){
   }
   if(weather===2&&!inWinter()&&R()<.25){flashT=.4;sThunder();} // 冬季不觸發閃電（T18）
   composer.update(); // 天氣／季節變化時背景音樂可能換情緒（T37）
+  // T129：道路壅堵場——用當日累計 roadPass 做衰減式移動平均，套公式後歸零累加器供下一天統計
+  // （純陣列運算，不消耗 R()；空車城 roadPass 恆 0 時 load 恆 0，speed/happyParts 與改動前逐位元一致）
+  for(let i=0;i<N*N;i++){roadLoad[i]=roadLoad[i]*.85+roadPass[i]*.15;roadPass[i]=0;}
   const cap=computePower();
   const wCap=computeWater();
   // 死亡與墓園前置處理（T38）：既有死亡事件的懲罰標記與自動消退
@@ -3125,6 +3145,7 @@ function tick(){
       const library=COV.library[ci]>0;                   // 圖書館半徑6覆蓋（原 countNear k===14）
       const post=COV.post[ci]>0;                         // 郵局半徑8覆蓋（原 countNear k===15）
       const we=b.we!==undefined?b.we:1;                  // T124：財富級（缺省中，供污染/犯罪懲罰係數用）
+      const jam=congestNear(x,y,2);                       // T129：半徑2內過載道路格數（load 全 0 空車城恆為 0）
       const happyParts=[ // T111：各加減項先收進陣列再 reduce 求和——與原公式逐項同序、每項獨立算式原樣搬移，位元一致
         {name:'基礎',val:.62},
         {name:'道路等級',val:roadHappy},
@@ -3139,6 +3160,7 @@ function tick(){
         {name:'電廠鄰近',val:-pl*.18},
         {name:'空氣污染',val:-POL[ci]*.006*WEALTH_PEN[we]}, // T110：空間污染係數；T124：財富分級懲罰係數（貧.5/中1/富2）
         {name:'犯罪',val:-crime*.05*WEALTH_PEN[we]}, // T124：財富分級懲罰係數（貧.5/中1/富2）
+        {name:'交通壅堵',val:-Math.min(.15,jam*.03)}, // T129：鄰近過載道路每格 -0.03、上限 -0.15；load 全 0（空車城）時 jam 恆 0，此項恆為 0
         {name:'宵禁',val:pol&&pol.curfew?-.02:0}, // T122：宵禁開啟時全城住宅幸福固定 -2%
         {name:'喪事未安撫',val:-(deathPenalty[idx(x,y)]?.1:0)},
         {name:'生病',val:-(b.sick?.35:0)},
@@ -3592,6 +3614,12 @@ function tick(){
    6. 小車與煙
 ===================================================================== */
 const cars=[],smokes=[];
+/* T129：道路壅堵運行時場——roadLoad[i] 為衰減式移動平均車流（tick() 每日依 roadPass 累計套公式
+   load=load*.85+pass*.15 更新後歸零 roadPass 供下一天統計）；roadPass[i] 為當日累計「經過」該格車輛數，
+   updCars 內車輛切格瞬間遞增（純累加，不消耗 R()，不改車輛生成/移動的亂數流）。
+   皆為運行時全域、不入存檔，newWorld()/load() 尾端隨其餘車輛狀態一併歸零（鐵律7）。
+   T131（未做，僅留錨點）：壅堵未來可考慮接入地價，本卡不實作。 */
+const roadLoad=new Float32Array(N*N), roadPass=new Uint16Array(N*N);
 function roadDirs(x,y){
   const t=T(idx(x,y));const out=[];
   if(t.mask&1)out.push(0);if(t.mask&2)out.push(1);
@@ -3635,12 +3663,17 @@ function updCars(dt){
     if(nearC>=2)speed*=.55;
     if(tcar.light)speed*=.5; // T78：號誌路口增速減半
     if(tcar.busLane)speed*=1.05;
+    if(tcar.road){ // T129：道路過載降速——load≤cap 時 clamp 內為 1（乘 1 不改變 speed，逐位元一致）
+      const capT=ROAD_CAP[(tcar.rc||2)-1];
+      speed*=clamp(1-Math.max(0,roadLoad[idx(c.x,c.y)]-capT)/capT*ROAD_JAM_K,.3,1);
+    }
     if(riotBlockedRoad(c.x,c.y))speed=0; // T118：暴亂封鎖路段車速歸零
     c.p+=dt*1.4*speed;
     if(c.p>=1){
       c.p-=1;
       c.x+=DIRV[c.d][0];c.y+=DIRV[c.d][1];
       if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).road){cars.splice(i,1);continue;}
+      roadPass[idx(c.x,c.y)]++; // T129：車輛切入新格計一次「經過」，供 tick() 日終彙整壅堵場（純累加，不消耗 R()）
       const tc=T(idx(c.x,c.y));
       let ds=roadDirs(c.x,c.y);
       if(!ds.length){cars.splice(i,1);continue;}
@@ -4159,6 +4192,16 @@ function draw(dt){
           const rcIdx=(t.rc||2)-1;
           if(t.bridge)gc.drawImage(SPR.bridgeClass[rcIdx][t.mask],sx,sy-4*z,64*z,44*z);
           else gc.drawImage(SPR.roadClass[rcIdx][t.mask],sx,sy,64*z,32*z);
+        }
+        if(!lodFar){ // T129：過載道路疊暖色（黃→紅），比照 rdec/bus 既有 LOD 慣例只在 z≥1 繪製；load≤cap 不畫任何額外像素（零改動）；不改道路 sprite 本體
+          const jamCap=ROAD_CAP[(t.rc||2)-1], jamLd=roadLoad[idx(x,y)];
+          if(jamLd>jamCap){
+            const jamR=clamp((jamLd-jamCap)/jamCap,0,1);
+            gc.globalAlpha=.16+jamR*.34;
+            gc.fillStyle=`rgb(255,${Math.round(210-jamR*170)},${Math.round(40-jamR*40)})`;
+            gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
+            gc.globalAlpha=1;
+          }
         }
         if(!lodFar&&t.rdec){ // T107：z<1 不畫路面裝飾（路樹路燈）
           const rs=SPR.rdec;
@@ -5755,6 +5798,7 @@ function load(slot){
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
+    roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車
     rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：路線公車運行時重建不存；路線設定下方視存檔內容還原
     if(d.pol)pol=d.pol;
@@ -5913,6 +5957,9 @@ window.GV={
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   polAt:(x,y)=>inMap(x,y)?POL[idx(x,y)]:null, // T110：污染場除錯鉤子（命名避開稅率政策 GV.pol）
   wealthAt:(x,y)=>{if(!inMap(x,y))return null;const b=T(idx(x,y)).bld;return(b&&b.k===1)?(b.we!==undefined?b.we:1):null;}, // T123：住宅財富級除錯鉤子（0貧/1中/2富，非住宅回 null）
+  loadAt:(x,y)=>inMap(x,y)?+roadLoad[idx(x,y)].toFixed(4):null, // T129：道路壅堵場除錯鉤子
+  roadCapAt:(x,y)=>{if(!inMap(x,y))return null;const t=T(idx(x,y));return t.road?ROAD_CAP[(t.rc||2)-1]:null;}, // T129：查詢該格道路容量
+  setLoadAt:(x,y,v)=>{if(!inMap(x,y))return false;roadLoad[idx(x,y)]=+v||0;return true;}, // T129：測試用強制設定 load（跳過自然車流累積，供驗收快速觸發過載情境）
   setSpeed:s=>{speed=s;},
   setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
