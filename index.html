@@ -103,7 +103,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
   image-rendering:pixelated;cursor:pointer;display:none}
 @media (max-width:420px){#mini{width:96px;height:96px;top:64px}}
-/* T110：小地圖視圖切換鈕（普通/污染熱度/地價，T130 擴） */
+/* T110：小地圖視圖切換鈕（普通/污染熱度/地價，T130 擴；T131 擴為六段：普通/地價/污染/壅堵/犯罪/服務覆蓋） */
 #miniToggle{position:absolute;top:48px;right:160px;width:28px;height:28px;z-index:19;
   border-radius:8px;border:2px solid #303a5c;background:#181f36;color:#dfe6f5;
   font-size:14px;line-height:24px;cursor:pointer;padding:0;display:none}
@@ -150,7 +150,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 <div id="toasts"></div>
 <div id="dragcost"></div>
 <canvas id="mini" width="144" height="144"></canvas>
-<button id="miniToggle" title="切換小地圖視圖：普通／污染熱度／地價">🏭</button>
+<button id="miniToggle" title="切換小地圖視圖：普通／地價／污染／壅堵／犯罪／服務覆蓋">🏭</button>
 <div id="zoomer">
   <button id="zin">＋</button>
   <button id="zout">－</button>
@@ -352,7 +352,7 @@ let region={};            // 區域聯動摘要（T60）
 let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
 let quality=1;            // T97 0低1中2高
-let miniView=0;           // T110 小地圖視圖：0一般 1污染熱度 2地價（T130，不進存檔）
+let miniView=0;           // T110 小地圖視圖：0一般 1地價 2污染熱度 3壅堵 4犯罪 5服務覆蓋（T131 擴六段循環，不進存檔）
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
 let hist=[];               // T112：歷史曲線環形緩衝 {d,money,net,pop,happy}（365 筆上限，simDay 絕對尾端 push）
 let histRange=30;          // T112：統計面板目前選擇的曲線範圍 30/90/365（不進存檔）
@@ -5259,18 +5259,35 @@ function showBusRt(){
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
 // T90 小地圖建築色表；T107 遠景 LOD 建築色塊直接複用同一陣列（保證遠景與小地圖視覺語言一致），索引 0..32 對齊 KNAME 1..32
 const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090','#d4907a','#4a78b0']; // T127：索引33住宅塔/34商業塔（陣列長度 33→35）
+const MINI_VIEW_NAME=['一般','地價','污染熱度','壅堵','犯罪熱點','服務覆蓋']; // T131：小地圖視圖標籤，索引對齊 miniView
+const MINI_VIEW_ICON=['🏭','💰','🗺️','🚗','🚨','🛡️']; // T131：小地圖切換鈕圖示，索引對齊 miniView
 function drawMini(){
   if(!tiles)return;
   miniG.fillStyle='#0d1226';miniG.fillRect(0,0,144,144);
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const t=T(idx(x,y));
     let c;
-    if(miniView===1){ // T110：污染熱度視圖，紅色深淺對應 POL[i] 強度
-      const v=POL[idx(x,y)];
-      c=v>0?'rgb('+Math.min(255,40+v*5)+',26,26)':'#141a30';
-    }else if(miniView===2){ // T130：地價視圖，冷（藍）→暖（紅）對應 LAND 0→255，128中性落中間色
+    if(miniView===1){ // T130→T131：地價視圖，冷（藍）→暖（紅）對應 LAND 0→255，128中性落中間色
       const lt=LAND[idx(x,y)]/255;
       c='rgb('+Math.round(lerp(42,216,lt))+','+Math.round(lerp(74,68,lt))+','+Math.round(lerp(138,42,lt))+')';
+    }else if(miniView===2){ // T110→T131：污染熱度視圖，紅色深淺對應 POL[i] 強度
+      const v=POL[idx(x,y)];
+      c=v>0?'rgb('+Math.min(255,40+v*5)+',26,26)':'#141a30';
+    }else if(miniView===3){ // T131：壅堵視圖，道路依 roadLoad/容量比例綠→紅（比例達2倍容量封頂全紅），非道路格用底色
+      if(t.road){
+        const cap=ROAD_CAP[(t.rc||2)-1];
+        const r=cap>0?clamp(roadLoad[idx(x,y)]/cap/2,0,1):0;
+        c='rgb('+Math.round(lerp(58,224,r))+','+Math.round(lerp(150,60,r))+','+Math.round(lerp(90,40,r))+')';
+      }else c='#141a30';
+    }else if(miniView===4){ // T131：犯罪熱點視圖，半徑4內犯罪建築計數→紅色深淺（比照 landStaticAt 犯罪項同款 countNear 手法）
+      const cr=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime);
+      c=cr>0?'rgb('+Math.min(255,60+cr*35)+',24,24)':'#141a30';
+    }else if(miniView===5){ // T131：服務覆蓋視圖，五大服務（警/消/校/醫/公園）COV 覆蓋家數→紅(0)到綠(5)
+      const ci=idx(x,y);
+      const sc=(COV.police[ci]>0?1:0)+((COV.fire[ci]>0||COV.fire2[ci]>0)?1:0)+(COV.school[ci]>0?1:0)
+        +((COV.hospital[ci]>0||COV.clinic[ci]>0)?1:0)+(COV.park[ci]>0?1:0);
+      const r=sc/5;
+      c='rgb('+Math.round(lerp(200,60,r))+','+Math.round(lerp(60,190,r))+',60)';
     }else{
       c=t.t===0?'#3671b6':t.t===1?'#d9c689':'#74b258';
       if(t.tree)c='#3e7a3c';
@@ -5301,11 +5318,12 @@ miniCv.addEventListener('pointerdown',e=>{
   const tx=(e.clientX-r.left)/r.width*N, ty=(e.clientY-r.top)/r.height*N;
   cam.x=(tx-ty)*32;cam.y=(tx+ty)*16;clampCam();drawMini();
 });
-// T110：小地圖視圖切換鈕（普通 🏭→污染熱度 🗺️→地價 💰，T130 擴為三段循環）
+// T110：小地圖視圖切換鈕（普通 🏭→地價 💰→污染熱度 🗺️→壅堵 🚗→犯罪 🚨→服務覆蓋 🛡️，T131 擴為六段循環）
 $('#miniToggle').addEventListener('click',e=>{
   e.stopPropagation();
-  miniView=(miniView+1)%3; // T130：一般/污染熱度/地價 三段循環
-  $('#miniToggle').textContent=miniView===1?'🗺️':miniView===2?'💰':'🏭';
+  miniView=(miniView+1)%6; // T131：一般/地價/污染熱度/壅堵/犯罪/服務覆蓋 六段循環
+  $('#miniToggle').textContent=MINI_VIEW_ICON[miniView];
+  $('#miniToggle').title='小地圖視圖：'+MINI_VIEW_NAME[miniView];
   drawMini();
 });
 function toast(msg,cls,x,y){
@@ -5434,6 +5452,49 @@ function drawHistChart(){
     g.stroke();
   }
 }
+// T131：城市顧問——單次全圖掃描彙總服務缺口/污染犯罪壅堵熱點/RCI 缺口/財政趨勢，純讀取既有場數據
+// （COV/POL/LAND/roadLoad/dem/fin），不新增模擬、只在 showStats() 開啟時呼叫（不加每幀成本）。
+function cityAdvisor(){
+  let zoned=0;
+  const miss={police:0,fire:0,hospital:0,school:0,park:0};
+  let polMax=-1,polX=0,polY=0,crimeMax=-1,crimeX=0,crimeY=0,jamMax=-1,jamX=0,jamY=0;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const i=idx(x,y),t=tiles[i],b=t.bld;
+    if(b&&b.k<=3){
+      zoned++;
+      if(!(COV.police[i]>0))miss.police++;
+      if(!(COV.fire[i]>0||COV.fire2[i]>0))miss.fire++;
+      if(!(COV.hospital[i]>0||COV.clinic[i]>0))miss.hospital++;
+      if(!(COV.school[i]>0))miss.school++;
+      if(!(COV.park[i]>0))miss.park++;
+      if(POL[i]>polMax){polMax=POL[i];polX=x;polY=y;}
+      const cr=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime);
+      if(cr>crimeMax){crimeMax=cr;crimeX=x;crimeY=y;}
+    }
+    if(t.road){
+      const cap=ROAD_CAP[(t.rc||2)-1],ld=cap>0?roadLoad[i]/cap:0;
+      if(ld>jamMax){jamMax=ld;jamX=x;jamY=y;}
+    }
+  }
+  const tips=[];
+  const SVC_NM={police:['🚓 治安覆蓋不足','警察局'],fire:['🚒 消防覆蓋不足','消防局'],hospital:['🏥 醫療覆蓋不足','醫院或診所'],school:['🏫 教育覆蓋不足','學校'],park:['🌳 綠地覆蓋不足','公園']};
+  if(zoned>0){
+    for(const f in miss){
+      const ratio=miss[f]/zoned;
+      if(ratio>.2)tips.push({sev:ratio,text:SVC_NM[f][0]+'：'+Math.round(ratio*100)+'% 建築未受覆蓋 → 加蓋'+SVC_NM[f][1]});
+    }
+  }
+  if(polMax>15)tips.push({sev:Math.min(1,polMax/60),text:'🏭 污染熱點：該處污染值達 '+polMax+' → 遠離污染源、多種樹或建污水廠',x:polX,y:polY});
+  if(crimeMax>=2)tips.push({sev:Math.min(1,crimeMax/6),text:'🚨 犯罪熱點：鄰近聚集 '+crimeMax+' 處治安隱患 → 加蓋警察局',x:crimeX,y:crimeY});
+  if(jamMax>1)tips.push({sev:Math.min(1,jamMax/2),text:'🚗 道路壅堵：負載達容量 '+Math.round(jamMax*100)+'% → 升級路級或增闢替代道路',x:jamX,y:jamY});
+  const RCI_NM={1:'📈 住宅需求殷切 → 多劃住宅區',2:'📈 商業需求殷切 → 多劃商業區',3:'📈 工業需求殷切 → 多劃工業區'};
+  let rciZ=0,rciV=.3;
+  for(const z of[1,2,3])if(dem[z]>rciV){rciV=dem[z];rciZ=z;}
+  if(rciZ)tips.push({sev:rciV,text:RCI_NM[rciZ]+'（需求 '+Math.round(rciV*100)+'%）'});
+  if(fin.net<0)tips.push({sev:Math.min(1,-fin.net/40),text:'💰 財政吃緊：每日淨收入 '+fin.net.toFixed(1)+' → 調高稅率或減少維護支出'});
+  tips.sort((a,b)=>b.sev-a.sev);
+  return tips.slice(0,5);
+}
 function showStats(){
   // T68 政策快捷（稅率倍率）
   if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false};
@@ -5496,6 +5557,15 @@ function showStats(){
   const happyTotal=happySorted.reduce((s,p)=>s+p.val,0);
   const happyHtml=happySorted.length?`<div class="row"><b>😊 幸福構成</b>（城市平均）</div>${happyRows}<div class="row" style="opacity:.8">合計 ${fp(happyTotal)}</div>`:'';
   const popT=popP+popM+popR; // T124：貧/中/富人口占比分母
+  const advTips=cityAdvisor(); // T131：城市顧問——服務缺口/污染犯罪壅堵熱點/RCI/財政彙總（單次全圖掃描，只在面板開啟時執行）
+  const advRows=advTips.map((tp,i)=>{
+    const styles=[];
+    if(i===0)styles.push('color:#e05252'); // 最嚴重項標紅（比照 happyRows bad 樣式）
+    if(tp.x!==undefined)styles.push('cursor:pointer');
+    const idAttr=tp.x!==undefined?' id="adv'+i+'"':'';
+    return `<div class="row"${idAttr}${styles.length?' style="'+styles.join(';')+'"':''}>${tp.text}</div>`;
+  }).join('');
+  const advHtml=`<div class="row"><b>🧭 城市顧問</b></div>${advTips.length?advRows:'<div class="row">✅ 目前沒有待辦建議</div>'}`;
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
@@ -5510,6 +5580,7 @@ function showStats(){
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
      <div class="row">🏚️ 貧 ${popT?Math.round(popP/popT*100):0}%　🏠 中 ${popT?Math.round(popM/popT*100):0}%　🏡 富 ${popT?Math.round(popR/popT*100):0}%</div>
      ${happyHtml}
+     ${advHtml}
      <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
      ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
@@ -5519,6 +5590,11 @@ function showStats(){
      ${riot?`<div class="row" style="color:#ff8a5c">🔥 暴亂中（${riot.cells.length} 戶封路）<button class="hbtn" id="riotBtn">🚔 鎮壓 $200</button></div>`:''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
+  advTips.forEach((tp,i)=>{ // T131：顧問建議帶座標者可點擊跳鏡頭（複用小地圖跳轉座標公式，比照 showLog／T06 先例）
+    if(tp.x===undefined)return;
+    const el=$('#adv'+i);
+    if(el)el.addEventListener('click',()=>{cam.x=(tp.x-tp.y)*32;cam.y=(tp.x+tp.y)*16;clampCam();drawMini();hideInfo();});
+  });
   // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
   drawHistChart();
   const histBtn=(id,r)=>{const el=$(id);if(el)el.addEventListener('click',()=>{histRange=r;drawHistChart();});};
