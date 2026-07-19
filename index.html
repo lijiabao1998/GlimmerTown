@@ -207,7 +207,7 @@ const DAYLEN=0.9;          // 一天（模擬）＝0.9 秒（1x）
 const CYCLE=110;           // 日夜循環（真實秒）
 
 // 建築種類：1住宅 2商業 3工業 4公園 5電廠
-const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局',7:'學校',8:'垃圾場',9:'體育場',10:'水塔',11:'警察局',12:'醫院',13:'診所',14:'圖書館',15:'郵局',16:'墓園',17:'火車站',18:'港口',19:'機場',20:'停車場',21:'輕軌站',22:'農場',23:'牧場',24:'地標',25:'太陽能',26:'風力',27:'污水廠',28:'救護站',29:'回收中心',30:'高級消防',31:'監獄',32:'大學'};
+const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局',7:'學校',8:'垃圾場',9:'體育場',10:'水塔',11:'警察局',12:'醫院',13:'診所',14:'圖書館',15:'郵局',16:'墓園',17:'火車站',18:'港口',19:'機場',20:'停車場',21:'輕軌站',22:'農場',23:'牧場',24:'地標',25:'太陽能',26:'風力',27:'污水廠',28:'救護站',29:'回收中心',30:'高級消防',31:'監獄',32:'大學',33:'住宅摩天樓',34:'商業摩天樓'}; // T127：k33/34 摩天樓（2×2 合併建築）
 const LVNAME={
   1:['小屋','公寓','住宅大樓'],
   2:['小舖','商場','商業大樓'],
@@ -221,6 +221,9 @@ const WEALTH_NAME=['貧','中','富'];       // T123：住宅財富分級 0貧/1
 const WEALTH_ICON=['🏚️','🏠','🏡'];       // T123：inspect 徽記
 const WEALTH_TAX=[0.6,1,1.5];             // T124：住宅財富分級稅收係數 0貧/1中/2富
 const WEALTH_PEN=[0.5,1,2];               // T124：住宅財富分級污染/犯罪幸福懲罰係數 0貧/1中/2富
+const TOWER_MULT=1.15;                    // T127：摩天樓合併「四格 lv3 總和」獎勵倍率
+const TOWER_POP=Math.round(POPS[3]*4*TOWER_MULT);   // T127：住宅塔（k33）人口＝四格 lv3 住宅總和×1.15＝248
+const TOWER_JOBS=Math.round(JOBSC[3]*4*TOWER_MULT); // T127：商業塔（k34）就業＝四格 lv3 商業總和×1.15＝175
 const PLANT_CAP=50;         // 每座電廠供電建築數
 const DUMP_CAP=40;          // 每座垃圾場處理容量（T19）
 const WATER_TOWER_CAP=80;   // 每座水塔供水建築數（T31）
@@ -1956,6 +1959,40 @@ function buildSprites(){
     };
     for(const t of tasks)if(t.k===1){mkWealthBld(t,0);mkWealthBld(t,2);} // 24 組 (lv,v) × 2 級 = 48 鍵
   }
+  /* ===== T127 摩天樓（住宅塔 k=33／商業塔 k=34，2×2，各 2 變體）：2×2 全 lv3 同類分區建築在高需求高幸福下由 tick()
+     機率合併而成（沿用多格建築先例 root+ref+sz，非 DRAFTS/mkBld 單格管線——比照機場4×4/大學3×3等既有 2×2/3×3/4×4
+     建築皆為 buildSprites 內獨立區塊、不走 DRAFTS，本卡同一手法），置於 buildSprites 絕對尾端（接在 T125 尾端新增之
+     後），不位移任何既有 rand 消耗序；夜窗滿版（gx4/gy5、litP.82）＋樓頂天線（含夜間警示燈）＋水塔／直升機坪細節 ===== */
+  {
+    const TWX=136,TWY=230,tax=68,tay=228,tby=tay-2,thw=28; // 2×2 足印同既有 136 寬，畫布加高至 230 容納 140-170px 摩天樓牆高
+    const TWDEF=[ // k, 變體 v：牆左/牆右/屋頂/玻璃色＋牆高（140-170px 區間）＋屋頂細節（水塔／直升機坪，皆再疊天線警示燈）
+      {k:33,v:0,wl:'#8291a3',wr:'#6c7c90',rf:'#5a6a7c',glass:'#2c3a52',h:150,roofType:'tank'}, // 住宅塔 v0：藍灰玻璃帷幕＋水塔
+      {k:33,v:1,wl:'#a9836c',wr:'#8f6853',rf:'#6b4c40',glass:'#3a2c26',h:168,roofType:'pad'},  // 住宅塔 v1：磚紅色系＋直升機坪
+      {k:34,v:0,wl:'#5f89b0',wr:'#4a6f92',rf:'#3a5875',glass:'#233246',h:150,roofType:'tank'}, // 商業塔 v0：藍玻璃帷幕＋水塔
+      {k:34,v:1,wl:'#5aa08f',wr:'#457d70',rf:'#355f55',glass:'#1f3a34',h:168,roofType:'pad'}   // 商業塔 v1：綠玻璃帷幕＋直升機坪
+    ];
+    for(const d of TWDEF){
+      const[c,g]=cv(TWX,TWY),[nc,ng]=cv(TWX,TWY),[sc,sg]=cv(TWX,TWY);
+      plate(g,tax,tay,'#8f8a7c');
+      const rty=isoBox(sg,tax,tby,thw,d.h,d.wl,d.wr,d.rf);
+      windows(sg,ng,tax,tby,thw,d.h,rand,.82,{w:3,ht:4,gx:4,gy:5,glass:d.glass,lit:'#ffe9a0'}); // 夜窗滿版：窄格距＋高亮燈比例
+      if(d.roofType==='tank'){ // 樓頂水塔
+        sg.fillStyle='#9aa2ac';sg.fillRect(tax-8,rty+6,9,9);
+        sg.fillStyle='#b7bec7';sg.fillRect(tax-8,rty+5,9,2);
+        sg.fillStyle='#6d7684';sg.fillRect(tax-8,rty+14,2,3);sg.fillRect(tax,rty+14,2,3);
+      }else{ // 樓頂直升機坪（黃邊扁平平台＋H標記）
+        sg.fillStyle='#ffd420';sg.fillRect(tax-13,rty+2,26,13);
+        sg.fillStyle='#3a3f46';sg.fillRect(tax-11,rty+3,22,11);
+        sg.fillStyle='#e8e8e8';sg.fillRect(tax-1,rty+5,2,7);sg.fillRect(tax-4,rty+7,3,2);sg.fillRect(tax+2,rty+7,3,2);
+      }
+      sg.fillStyle='#8b95a5';sg.fillRect(tax+5,rty-16,2,18);        // 樓頂天線
+      sg.fillStyle='#e05252';sg.fillRect(tax+4,rty-18,4,3);         // 警示燈（日間暗紅）
+      ng.fillStyle='#ff6060';ng.fillRect(tax+4,rty-18,4,3);         // 警示燈（夜間發光）
+      outlineSprite(sc,26,30,44);
+      g.drawImage(sc,0,0);
+      SPR.bld[d.k+'_1_'+d.v]={img:c,night:nc,ax:tax,ay:tay,w:TWX,h:TWY,smoke:[]};
+    }
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -2908,7 +2945,7 @@ function tick(){
   // 供電／供水判定
   let powered=0,watered=0;
   let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0,schools=0,dumps=0,stadiums=0,waterTowers=0,clinics=0,libraries=0,posts=0,cemeteries=0;
-  let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0;
+  let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0,trR=0,trC=0; // T127：trR/trC＝住宅塔/商業塔（root）計數
   let happyAggSum=null; // T111：幸福構成累加器（沿用既有 happySum/happyN 迴圈，逐建築累加各項後於迴圈尾除以 happyN）
   const grown=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -2939,6 +2976,8 @@ function tick(){
     if(b&&b.k===30)fs2++;              // 高級消防（T52）
     if(b&&b.k===31)pr++;               // 監獄（T53）
     if(b&&b.k===32)un++;               // 大學（T54）
+    if(b&&b.k===33)trR++;              // T127：住宅塔（root，人口併入 pop 尾端計算）
+    if(b&&b.k===34)trC++;              // T127：商業塔（root，就業併入 jobs 尾端計算）
     if(!b||b.k>3)continue;
     const near=hasRoadNear(x,y,2,true);
     b.pw=near&&powered<cap;
@@ -2987,7 +3026,7 @@ function tick(){
       if(b.k===2)jobsC+=JOBSC[b.lv]*(t.office?1.5:1);else jobsI+=JOBSI[b.lv]; // T79：辦公區商業高就業 ×1.5
     }
   }
-  pop=popN;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+st*12+po*10+ai*40+pa*1+tr*6+fa*3+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20;   // T39-T54 就業
+  pop=popN+trR*TOWER_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+st*12+po*10+ai*40+pa*1+tr*6+fa*3+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS;   // T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15
   cityHappy=happyN?happySum/happyN:.6;
   happyAgg=happyN&&happyAggSum?happyAggSum.map(p=>({name:p.name,val:p.val/happyN})):[]; // T111：城市平均幸福構成，供 showStats 讀取
   // 垃圾（T19）：產量/容量/超載係數；套用到全城住宅幸福尾端，並節流提示
@@ -3179,6 +3218,38 @@ function tick(){
       else if(tgt<cur)b.we=cur-1;
     }
   }
+  // T127：摩天樓合併（升級段後）——2×2 全 lv3 同類分區建築、四格皆通電供水、城市幸福>0.55、對應需求>0.3，機率合併
+  // 為住宅塔(k33)/商業塔(k34)（root+ref+sz=2，沿用 v3.0 多格建築架構）；條件不滿足（不快樂城/無合格 2×2 簇）時
+  // 外層 if 短路，整段迴圈連掃描都不跑、R() 零消耗，位元回歸不變量成立
+  if(cityHappy>.55){
+    const mgDone=new Uint8Array(N*N); // 本輪已合併/佔用格，避免相鄰候選重疊消耗同一格
+    for(let y=0;y<N-1;y++)for(let x=0;x<N-1;x++){
+      const i0=idx(x,y);
+      if(mgDone[i0])continue;
+      const b0=tiles[i0].bld;
+      if(!b0||b0.ref||(b0.k!==1&&b0.k!==2)||b0.lv!==3)continue;
+      const kk=b0.k;
+      if(dem[kk]<=.3)continue;
+      const quad=[[x,y],[x+1,y],[x,y+1],[x+1,y+1]];
+      let ok=true;
+      for(const[qx,qy]of quad){
+        const qi=idx(qx,qy);
+        if(mgDone[qi]){ok=false;break;}
+        const qb=tiles[qi].bld;
+        if(!qb||qb.ref||qb.k!==kk||qb.lv!==3||!qb.pw||!qb.wa||qb.fire){ok=false;break;}
+      }
+      if(!ok)continue;
+      if(R()<.02){ // T127：每合格 2×2 簇每天 2% 機率合併
+        for(const[qx,qy]of quad)mgDone[idx(qx,qy)]=1;
+        const tk=kk===1?33:34;
+        for(const[qx,qy]of quad){
+          const qt=T(idx(qx,qy));
+          qt.bld=(qx===x&&qy===y)?{k:tk,lv:1,v:ri(2),age:0,pw:true,wa:true,h:1,sz:2}:{k:tk,ref:[x,y]};
+        }
+        toast((kk===1?'🏙️ 住宅摩天樓落成！':'🏙️ 商業摩天樓落成！'),'gold',x,y);sFanfare();
+      }
+    }
+  }
   // 火災（升級段之後）：起火→蔓延→推進燃燒/燒毀成焦土
   const burning=[];
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&b.fire)burning.push(i);}
@@ -3308,6 +3379,8 @@ function tick(){
     else if(b.k===30);                // 高級消防（T52）
     else if(b.k===31);                // 監獄（T53）
     else if(b.k===32);                // 大學（T54）
+    else if(b.k===33){const pm=pol||{taxR:1,taxC:1,taxI:1};const v2=TOWER_POP*.12*(pm.taxR||1);income+=v2;taxR+=v2;} // T127：住宅塔稅收＝四格lv3總和×1.15（既有 k 分支先例，防幽靈稅）
+    else if(b.k===34){const pm=pol||{taxR:1,taxC:1,taxI:1};const v2=TOWER_JOBS*.18*(pm.taxC||1);income+=v2;taxC+=v2;} // T127：商業塔稅收＝四格lv3總和×1.15
     else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot){ // T118：暴亂中住宅停稅收
       const pm=pol||{taxR:1,taxC:1,taxI:1};
       if(b.k===1){const we=b.we!==undefined?b.we:1;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we];income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）
@@ -4621,6 +4694,8 @@ function inspect(x,y){
     else if(b.k===30)html=`<h3>🚒 高級消防局</h3><div class="row">半徑 12 降低起火率，消防車趕到才撲滅（覆蓋外不出車）</div><div class="row">就業 8</div><div class="row">維護費 $6/天</div>`;
     else if(b.k===31)html=`<h3>🏛️ 監獄</h3><div class="row">半徑 8 防止犯罪發生</div><div class="row">就業 10</div><div class="row">維護費 $5/天</div>`;
     else if(b.k===32)html=`<h3>🎓 大學</h3><div class="row">半徑 10 內住宅升級率 ×1.8</div><div class="row">就業 20</div><div class="row">維護費 $8/天</div>`;
+    else if(b.k===33)html=`<h3>🏙️ 住宅摩天樓</h3><div class="row">2×2 由 4 棟 Lv3 住宅合併而成</div><div class="row">居民 ${TOWER_POP} 人（四格 Lv3 總和 ×1.15）</div>`; // T127
+    else if(b.k===34)html=`<h3>🏙️ 商業摩天樓</h3><div class="row">2×2 由 4 棟 Lv3 商業合併而成</div><div class="row">就業 ${TOWER_JOBS} 人（四格 Lv3 總和 ×1.15）</div>`; // T127
     else{
       const nm=LVNAME[b.k][b.lv-1];
       html=`<h3>${['','🏠','🏪','🏭'][b.k]} ${nm}（Lv.${b.lv}）</h3>`;
@@ -4978,7 +5053,7 @@ function showBusRt(){
 /* 小地圖 */
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
 // T90 小地圖建築色表；T107 遠景 LOD 建築色塊直接複用同一陣列（保證遠景與小地圖視覺語言一致），索引 0..32 對齊 KNAME 1..32
-const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090'];
+const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090','#d4907a','#4a78b0']; // T127：索引33住宅塔/34商業塔（陣列長度 33→35）
 function drawMini(){
   if(!tiles)return;
   miniG.fillStyle='#0d1226';miniG.fillRect(0,0,144,144);
@@ -5485,7 +5560,7 @@ function save(){
 function recalcAllRailMasks(){
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcRailMask(x,y);
 }
-const MSZ={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3}; // FIX-J：多格建築 k→sz 對照（與各 doPlace 分支硬編碼一致；k9 體育場沿用存檔第 6 位 sz，不入表）
+const MSZ={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2}; // FIX-J：多格建築 k→sz 對照（與各 doPlace 分支硬編碼一致；k9 體育場沿用存檔第 6 位 sz，不入表）；T127：k33/34 摩天樓（tick() 合併生成、無 doPlace 分支，sz 對照仍需入表供 load() 反查重建 ref 格）
 function load(slot){
   try{
     const key=slotKey(slot||curSlot());
