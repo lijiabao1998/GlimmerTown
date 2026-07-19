@@ -217,6 +217,8 @@ const JOBSC=[0,5,14,38];    // 商業各級就業
 const JOBSI=[0,7,20,48];    // 工業各級就業
 const DEN_POP=[0.70,0.85,1.00,1.25,1.60];
 const DEN_NAME=['低密度','中低密度','中密度','中高密度','高密度'];
+const WEALTH_NAME=['貧','中','富'];       // T123：住宅財富分級 0貧/1中/2富
+const WEALTH_ICON=['🏚️','🏠','🏡'];       // T123：inspect 徽記
 const PLANT_CAP=50;         // 每座電廠供電建築數
 const DUMP_CAP=40;          // 每座垃圾場處理容量（T19）
 const WATER_TOWER_CAP=80;   // 每座水塔供水建築數（T31）
@@ -2738,6 +2740,17 @@ function rebuildCov(){
     if(t.tree)stampPolTree(x,y,1); // T110：樹格鄰域污染減免
   }
 }
+// T123：住宅財富分級判定——服務覆蓋數（警/校/醫/公園）－POL污染－犯罪 加權得分 → 0貧/1中/2富
+// 純資料層：只在住宅新建／升級時呼叫寫入 bld.we，不參與稅收/幸福/需求任何公式（wealth 只寫不讀）
+function judgeWealth(x,y){
+  const i=idx(x,y);
+  const cov=(COV.police[i]>0?1:0)+(COV.school[i]>0?1:0)+(COV.hospital[i]>0?1:0)+(COV.park[i]>0?1:0);
+  const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime); // 犯罪為動態源，比照 §11-11 用 countNear（未蓋印）
+  const score=cov-(POL[i]||0)*.05-crime*.4;
+  if(score>=2)return 2; // 富
+  if(score>0)return 1;  // 中
+  return 0;              // 貧
+}
 function computeWater(){
   let towers=0;
   for(let i=0;i<N*N;i++){tiles[i].wr=false;if(tiles[i].bld&&tiles[i].bld.k===10)towers++;}
@@ -3074,7 +3087,8 @@ function tick(){
     if(R()<p){
       const den=z===1?clamp(getMaxRoadClass(x,y,3),1,5):undefined;
       const kk=cell.office?2:z;
-      cell.bld={k:kk,lv:1,v:(kk===1||kk===2||kk===3)?ri(8):ri(4),age:0,pw:true,h:.6,den}; // T101：住宅(k=1) v 擴至 ri(8)；T102：商業(k=2) v 擴至 ri(8)；T103：工業(k=3) v 擴至 ri(8)
+      const we=kk===1?judgeWealth(x,y):undefined; // T123：住宅新建時判定財富級（純資料，不讀不影響經濟）
+      cell.bld={k:kk,lv:1,v:(kk===1||kk===2||kk===3)?ri(8):ri(4),age:0,pw:true,h:.6,den,we}; // T101：住宅(k=1) v 擴至 ri(8)；T102：商業(k=2) v 擴至 ri(8)；T103：工業(k=3) v 擴至 ri(8)
       if(kk===3)stampPolSrc(x,y,3,1); // T110：工業新生長為污染源
       spawns++;sPop();
     }
@@ -3095,6 +3109,7 @@ function tick(){
     const lv3Gate=b.lv!==2||(COV.school[i]>0&&POL[i]<POL_LV3_MAX); // lv2→3 需學校覆蓋＋低污染（供水既有 b.wa 已要求）
     if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&lv2Gate&&lv3Gate&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
       b.lv++;b.age=0;b.v=(b.k===1||b.k===2||b.k===3)?ri(8):ri(4);if(b.den===undefined)b.den=3; // T101：住宅v擴至ri(8)；T102：商業v擴至ri(8)；T103：工業v擴至ri(8)
+      if(b.k===1)b.we=judgeWealth(x,y); // T123：住宅升級時重判財富級（環境可能已改變）
     }
   }
   // 火災（升級段之後）：起火→蔓延→推進燃燒/燒毀成焦土
@@ -4530,6 +4545,8 @@ function inspect(x,y){
         const den=b.den||3;
         html+=`<div class="row">居民 ${b.pw?Math.round(POPS[b.lv]*DEN_POP[den-1]):0} 人 ・ 幸福 ${Math.round((b.h||0)*100)}%</div>`;
         html+=`<div class="row">${DEN_NAME[den-1]}住宅</div>`;
+        const we=b.we!==undefined?b.we:1; // T123：財富級徽記（舊檔/未判定缺省 1 中）
+        html+=`<div class="row">${WEALTH_ICON[we]} ${WEALTH_NAME[we]}宅</div>`;
       }
       else html+=`<div class="row">就業 ${b.pw?(b.k===2?Math.round(JOBSC[b.lv]*(t.office?1.5:1)):JOBSI[b.lv]):0} 人${(b.k===2&&t.office)?'（辦公區 ×1.5）':''}</div>`;
       html+=`<div class="row">${b.pw?'⚡ 供電正常':'⚠️ 沒有電力！'}</div>`;
@@ -5351,6 +5368,11 @@ function save(){
           if(!t.bld.fire)e.push(0);                      // 無火災時補 0 占位，避免 den 誤判為 fire
           e.push(t.bld.den);
         }
+        if(t.bld.k===1&&t.bld.we!==undefined&&t.bld.we!==1){ // T123：第 8 位存財富 we（沿用 sz/den 尾端可選位先例，僅非預設中產才落盤）
+          if(e.length<6)e.push(0);                       // 補齊 fire 佔位（第 6 位）
+          if(e.length<7)e.push(t.bld.den||3);             // 補齊 den 佔位（第 7 位）
+          e.push(t.bld.we);
+        }
         bl.push(e);
       }
     }
@@ -5416,7 +5438,8 @@ function load(slot){
         if(k===1){
           const fireVal=rec.length>=7?rec[5]:(rec.length===6?rec[5]:0);
           const denVal=rec.length>=7?rec[6]:3;
-          tiles[i].bld={k,lv,v:vv,age,pw:true,h:.6,fire:fireVal,den:denVal};
+          const weVal=rec.length>=8?rec[7]:1; // T123：財富 we（第 8 位，舊檔缺欄位缺省 1 中，避免舊檔全城變貧）
+          tiles[i].bld={k,lv,v:vv,age,pw:true,h:.6,fire:fireVal,den:denVal,we:weVal};
         }else tiles[i].bld={k,lv,v:vv,age,pw:true,h:.6,fire:rec[5]||0};
         if(MSZ[k]){tiles[i].bld.sz=MSZ[k];tiles[i].bld.h=1;} // FIX-J：多格建築 root 由 k 反查補 sz（存檔不存，缺 sz 時下方 T39-T60 重建塊會跳過致 ref 格全失）、h 對齊放置端
       }
@@ -5595,6 +5618,7 @@ window.GV={
   cov:(f,x,y)=>COV[f]?.[idx(x,y)], // T61：覆蓋場除錯鉤子（回傳該格某設施覆蓋計數）
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   polAt:(x,y)=>inMap(x,y)?POL[idx(x,y)]:null, // T110：污染場除錯鉤子（命名避開稅率政策 GV.pol）
+  wealthAt:(x,y)=>{if(!inMap(x,y))return null;const b=T(idx(x,y)).bld;return(b&&b.k===1)?(b.we!==undefined?b.we:1):null;}, // T123：住宅財富級除錯鉤子（0貧/1中/2富，非住宅回 null）
   setSpeed:s=>{speed=s;},
   setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
