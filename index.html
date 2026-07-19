@@ -85,7 +85,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #zoomer button:active{background:#31407a}
 /* ---------- 開始畫面 ---------- */
 #start{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:14px;text-align:center;
+  justify-content:center;gap:14px;text-align:center;overflow-y:auto;padding:16px 0; /* T132：新增戰役選單後按鈕列變長，矮視窗需可捲動才不致下方按鈕被裁掉 */
   background:linear-gradient(180deg,#0d1226 0%,#1b2547 55%,#33406e 100%)}
 #start h1{color:#ffe9ad;font-size:34px;letter-spacing:10px;text-shadow:0 3px 0 #7a5b1e,0 6px 14px #000}
 #start .en{color:#8fa0c8;letter-spacing:6px;font-size:13px;margin-top:-8px}
@@ -98,6 +98,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #start .diffrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:340px}
 #start .diffbtn{min-width:auto;padding:6px 12px;font-size:12px;border-radius:9px}
 #start .diffbtn.sel{border-color:#ffd977;background:#33395e;color:#fff}
+/* T132：場景戰役選單（比照 .diffrow/.diffbtn 樣式先例） */
+#start .scmenu{display:none;flex-direction:column;gap:5px;max-width:340px;margin-top:6px;max-height:220px;overflow-y:auto}
+#start .scmenu.show{display:flex}
+#start .scbtn{min-width:auto;width:100%;padding:8px 12px;font-size:12px;border-radius:9px;text-align:left}
+#start .scbtn.done{border-color:#58c470;color:#9be6ac}
+#start .scbtn.locked{opacity:.45;cursor:not-allowed}
 #logo{image-rendering:pixelated;width:224px;height:128px}
 #mini{position:absolute;top:48px;right:10px;width:144px;height:144px;z-index:18;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
@@ -321,6 +327,50 @@ const ACHS=[
   {id:'ind20',   nm:'工業重鎮',     t:s=>s.nI>=20},
   {id:'happy',   nm:'幸福之都',     t:()=>pop>=500&&cityHappy>=.75},
 ];
+// T132：場景／任務戰役模式——結構化關卡表（≥8 條）。選關時 begin() 套用 seed+cash 並設定 scenario={id,startDay}。
+// goal.type 複用既有挑戰評估邏輯擴充：pop人口／cash資金／star星級／happy幸福維持（需連續 hold 天）／debt零負債／disaster災後重建／coverage服務覆蓋率
+const SCENARIOS=[
+  {id:'sc_founding',  icon:'🌱', name:'拓荒立鎮', seed:20260701, cash:3000,
+    goal:{type:'pop',target:600,byDay:150}, fail:{type:'day',byDay:170}, bonus:1200,
+    intro:'一片荒野，你要在150天內讓人口突破600人。',
+    win:'荒野變市鎮，人口突破600！新的家園就此誕生。',
+    lose:'時間耗盡，小鎮仍未成型……欲速則不達，再試一次吧。'},
+  {id:'sc_treasury',  icon:'💰', name:'黃金寶庫', seed:20260702, cash:2000,
+    goal:{type:'cash',target:15000,byDay:220}, fail:{type:'day',byDay:240}, bonus:1500,
+    intro:'資金有限，220天內攢出15,000的金庫。',
+    win:'金庫滿盈！你的理財手腕堪稱一流。',
+    lose:'錢袋見底，寶庫計畫宣告失敗。'},
+  {id:'sc_starlight', icon:'⭐', name:'星耀之城', seed:20260703, cash:3500,
+    goal:{type:'star',target:4,byDay:300}, fail:{type:'day',byDay:320}, bonus:2000,
+    intro:'把這座城市打造到4星水準，300天為限。',
+    win:'萬家燈火，城市評鑑摘下4顆星！',
+    lose:'評鑑未達標，城市還需精雕細琢。'},
+  {id:'sc_harmony',   icon:'😊', name:'幸福家園', seed:20260704, cash:3200,
+    goal:{type:'happy',target:.78,hold:20,byDay:260}, fail:{type:'day',byDay:260}, bonus:1600,
+    intro:'讓市民連續20天保持78%以上的幸福感。',
+    win:'笑容常駐，幸福家園名副其實！',
+    lose:'幸福感起伏不定，居民的笑容還不夠持久。'},
+  {id:'sc_frugal',    icon:'🧾', name:'量入為出', seed:20260705, cash:1200,
+    goal:{type:'debt',byDay:150}, fail:{type:'day',byDay:151}, bonus:1400,
+    intro:'啟動資金只有1200，150天內絕不能破產欠債。',
+    win:'精打細算撐過150天，帳本上從未見紅！',
+    lose:'資金見底，城市財政破產。'},
+  {id:'sc_rebuild',   icon:'🏚️', name:'廢墟重生', seed:20260706, cash:1800,
+    goal:{type:'disaster',target:500,byDay:180}, fail:{type:'day',byDay:200}, bonus:1800,
+    intro:'前一座小鎮已在災難中化為廢墟，帶著微薄資金，在180天內重建到500人口。',
+    win:'廢墟之上再度炊煙升起，人口重回500！',
+    lose:'重建計畫夭折，廢墟依舊是廢墟。'},
+  {id:'sc_safeharbor',icon:'🚓', name:'安全社區', seed:20260707, cash:3000,
+    goal:{type:'coverage',field:'police',target:.6,byDay:200}, fail:{type:'day',byDay:220}, bonus:1500,
+    intro:'讓60%的住宅區都在警力巡邏範圍內，200天為限。',
+    win:'警燈常亮，城市治安覆蓋率達標！',
+    lose:'治安死角太多，覆蓋率未能達標。'},
+  {id:'sc_wellcare',  icon:'🏥', name:'醫療健全', seed:20260708, cash:3000,
+    goal:{type:'coverage',field:'hospital',target:.5,byDay:220}, fail:{type:'day',byDay:240}, bonus:1500,
+    intro:'讓50%的住宅區都被醫院覆蓋，220天為限。',
+    win:'醫療網絡健全，市民健康有保障！',
+    lose:'醫療資源分布不均，覆蓋率未能達標。'}
+];
 let bailoutDay=-999;
 let loan=null; // {remain:天數, daily:120}（T16）
 let fin={taxR:0,taxC:0,taxI:0,upR:0,upP:0,upE:0,net:0};
@@ -351,6 +401,9 @@ let tourists=0;          // 遊客數（T47，每天重算）
 let region={};            // 區域聯動摘要（T60）
 let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
+let scenario=null;        // T132：目前進行中的場景戰役 {id,startDay,hold}（null＝一般/沙盒/挑戰模式，零評估開銷）；存檔可選欄位 sc
+let pendingScenario=null; // T132：開始畫面選關後、begin(true) 執行前暫存的 SCENARIOS 條目（供套用 seed/cash）；不進存檔
+let scDone={};             // T132：已通關場景 id 集合（跨局持久，落 localStorage 獨立鍵 SAVEKEY+'.scDone'，不隨 newWorld/load 重置）
 let quality=1;            // T97 0低1中2高
 let miniView=0;           // T110 小地圖視圖：0一般 1地價 2污染熱度 3壅堵 4犯罪 5服務覆蓋（T131 擴六段循環，不進存檔）
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
@@ -2276,6 +2329,7 @@ function newWorld(seedOverride){
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
+  scenario=null; // T132：場景戰役進度成對重置（鐵律7）——開新圖預設回一般模式，begin() 若有 pendingScenario 會在其後另行設回
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動
   recalcAllMasks();
@@ -3073,6 +3127,31 @@ function meteorStrike(cx,cy){
   toast('☄️ 隕石墜落！留下隕石坑並持續起火，需付費剷除','bad',cx,cy);sErr();
   return true;
 }
+// T132：場景戰役目標評估（僅 scenario 非 null 時由 tick() 呼叫，複用既有挑戰管線與模擬狀態，不新增模擬公式、不消耗 R()）
+function scenarioCoverage(field){ // 服務覆蓋率：住宅分區格中被該設施覆蓋的比例（COV 家族既有語義，T61）
+  let zoned=0,covered=0;
+  for(let i=0;i<N*N;i++){
+    if(tiles[i].zone===1){zoned++;if(COV[field]&&COV[field][i]>0)covered++;}
+  }
+  return zoned?covered/zoned:0;
+}
+function scenarioGoalMet(sc){
+  const g=sc.goal,elapsed=day-scenario.startDay;
+  switch(g.type){
+    case 'pop':return pop>=g.target;
+    case 'cash':return money>=g.target;
+    case 'star':return bestStar>=g.target;
+    case 'happy':return (scenario.hold||0)>=g.hold;
+    case 'debt':return elapsed>=g.byDay&&money>=0&&!loan;
+    case 'disaster':return pop>=g.target;
+    case 'coverage':return scenarioCoverage(g.field)>=g.target;
+    default:return false;
+  }
+}
+function scenarioFailMet(sc){
+  if(sc.goal.type==='debt'&&money<0)return true; // 零負債：破產立即失敗，不待期限
+  return sc.fail&&sc.fail.type==='day'&&(day-scenario.startDay)>=sc.fail.byDay;
+}
 function tick(){
   day++;
   // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
@@ -3584,6 +3663,22 @@ function tick(){
     if(challenge.id==='pop1k'&&pop>=1000){toast('🏁 挑戰完成：人口1000！+$'+challenge.bonus,'gold');money+=challenge.bonus;challenge=null;sFanfare();}
     else if(challenge.id==='day200'&&day>=200&&money>=5000){toast('🏁 挑戰完成：200天金庫！+$'+challenge.bonus,'gold');money+=challenge.bonus;challenge=null;sFanfare();}
     else if(challenge.id==='star3'&&bestStar>=3){toast('🏁 挑戰完成：三星城市！+$'+challenge.bonus,'gold');money+=challenge.bonus;challenge=null;sFanfare();}
+  }
+  // T132 場景戰役檢查（scenario 為 null 時整段零開銷、零 R() 影響——即非場景模式硬性不變量）
+  if(scenario){
+    const sc=SCENARIOS.find(s=>s.id===scenario.id);
+    if(sc){
+      if(sc.goal.type==='happy')scenario.hold=(cityHappy>=sc.goal.target)?(scenario.hold||0)+1:0; // 幸福維持：連續達標天數計數
+      if(scenarioGoalMet(sc)){
+        toast('🏆 '+sc.name+'：'+sc.win,'gold');
+        money+=sc.bonus||0;
+        if(!scDone[sc.id]){scDone[sc.id]=1;try{localStorage.setItem(SAVEKEY+'.scDone',JSON.stringify(Object.keys(scDone)));}catch(e){}}
+        scenario=null;sFanfare();
+      }else if(scenarioFailMet(sc)){
+        toast('💤 '+sc.name+'：'+sc.lose,'bad');
+        scenario=null;
+      }
+    }else scenario=null; // 找不到對應場景（資料表被改動）：防呆清空，避免每天空轉判斷
   }
   // 貸款還款（T16）
   if(loan){money-=loan.daily;if(--loan.remain<=0){loan=null;toast('🏦 貸款已還清！','gold');}}
@@ -5833,7 +5928,8 @@ function save(){
       hi:hist.length?{d0:hist[0].d,m:hist.map(h=>h.money),n:hist.map(h=>h.net),p:hist.map(h=>h.pop),h:hist.map(h=>h.happy)}:null, // T112：歷史曲線（拆成並列數字陣列壓縮體積，可選欄位）
       nl:log, // T114：通知中心日誌（可選欄位，最多 100 筆）
       bus_rt:busRoutes.some(r=>r.stops.length)?busRoutes.map(r=>r.stops.slice()):null, // T120：公車路線（可選欄位，站點 idx 陣列×3 條）
-      riot:riot?{cells:riot.cells,days:riot.days}:null}; // T118：暴亂狀態（可選欄位，仿 loan 慣例存最小結構）
+      riot:riot?{cells:riot.cells,days:riot.days}:null, // T118：暴亂狀態（可選欄位，仿 loan 慣例存最小結構）
+      sc:scenario?{id:scenario.id,startDay:scenario.startDay,hold:scenario.hold||0}:null}; // T132：進行中場景戰役（可選欄位，仿 loan/riot 慣例存最小進度結構；scDone 通關集合另落 localStorage 獨立鍵，不入本存檔）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
     if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
@@ -5900,6 +5996,7 @@ function load(slot){
     money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
     loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
+    scenario=(d.sc&&d.sc.id)?{id:d.sc.id,startDay:d.sc.startDay||d.day,hold:d.sc.hold||0}:null; // T132：場景戰役進度（可選欄位，舊檔缺 sc 則回一般模式，鐵律7成對重置）
     weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null; // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
@@ -6009,11 +6106,19 @@ const oldSave=localStorage.getItem(SAVEKEY);
 if(oldSave&&!localStorage.getItem(slotKey(1))){localStorage.setItem(slotKey(1),oldSave);localStorage.removeItem(SAVEKEY);}
 const hasSave=!!(localStorage.getItem(slotKey(1))||localStorage.getItem(slotKey(2))||localStorage.getItem(slotKey(3)));
 if(hasSave)$('#bContinue').style.display='block';
+// T132：已通關場景戰役集合（獨立 localStorage 鍵，跨局／跨存檔持久，不隨 newWorld/load 重置）
+try{const _scd=JSON.parse(localStorage.getItem(SAVEKEY+'.scDone')||'[]');if(Array.isArray(_scd))for(const id of _scd)scDone[id]=1;}catch(e){}
 function begin(fresh){
   try{document.title=(typeof townName==='string'?townName:'微光小鎮')+' · v'+GAME_VER;}catch(e){}
   initAudio();
-  if(fresh||!load()){newWorld();hist=[];log=[];unread=0;updBell();} // T112/T114：全新地圖（含讀檔失敗回退）清空歷史曲線與通知日誌，避免殘留跨局
-  if(fresh){diff=challenge?1:diff;money=DIFF_MONEY[diff];} // T115：起始資金依難度套用；挑戰模式與難度互斥時以挑戰為準（強制標準）
+  if(fresh||!load()){newWorld(pendingScenario?pendingScenario.seed:undefined);hist=[];log=[];unread=0;updBell();} // T112/T114：全新地圖（含讀檔失敗回退）清空歷史曲線與通知日誌，避免殘留跨局；T132：選關時套用該關卡種子
+  if(fresh){
+    if(pendingScenario){ // T132：場景戰役——套用關卡起始資金並標記 scenario，種子已於上方 newWorld() 套用
+      diff=1;money=pendingScenario.cash;scenario={id:pendingScenario.id,startDay:day,hold:0};
+      toast('🎯 '+pendingScenario.name+'：'+pendingScenario.intro,'gold');
+      pendingScenario=null;
+    }else{diff=challenge?1:diff;money=DIFF_MONEY[diff];} // T115：起始資金依難度套用；挑戰模式與難度互斥時以挑戰為準（強制標準）
+  }
   $('#start').style.display='none';
   running=true;
   $('#mini').style.display='block';$('#miniToggle').style.display='block';drawMini(); // T110：小地圖切換鈕隨小地圖一併顯示
@@ -6022,7 +6127,7 @@ function begin(fresh){
   if(sndMode===2)composer.start();
   if(!hasSave||fresh)checkHints(0,0);
 }
-$('#bNewGame').onclick=()=>{challenge=null;begin(true);};
+$('#bNewGame').onclick=()=>{challenge=null;pendingScenario=null;begin(true);}; // T132：一般開新圖需清掉殘留選關暫存
 $('#bContinue').onclick=()=>begin(false);
 const startEl=$('#start');
 // T115：難度／沙盒選擇列（#start 按鈕區，仿下方 T88 挑戰按鈕先例以 JS 注入；四鈕，選中高亮，預設標準）
@@ -6041,7 +6146,7 @@ if(startEl&&!$('#bDiff0')){
 }
 // T88 挑戰
 if(startEl&&!$('#bCh1')){
-  const mk=(id,label,bonus,goal)=>{const b=document.createElement('button');b.className='alt';b.id=id;b.textContent=label;b.onclick=()=>{challenge={id:goal,bonus,label};begin(true);toast('挑戰：'+label,'gold');};return b;};
+  const mk=(id,label,bonus,goal)=>{const b=document.createElement('button');b.className='alt';b.id=id;b.textContent=label;b.onclick=()=>{challenge={id:goal,bonus,label};pendingScenario=null;begin(true);toast('挑戰：'+label,'gold');};return b;}; // T132：挑戰模式需清掉殘留選關暫存
   startEl.appendChild(mk('bCh1','🏁 挑戰：人口1000',1500,'pop1k'));
   startEl.appendChild(mk('bCh2','🏁 挑戰：200天$5k',2000,'day200'));
   startEl.appendChild(mk('bCh3','🏁 挑戰：三星城市',2500,'star3'));
@@ -6051,6 +6156,23 @@ if(startEl&&!$('#bCh1')){
   const q=document.createElement('button');q.className='alt';q.textContent=['效能：低','效能：中','效能：高'][quality];
   q.onclick=()=>{quality=(quality+1)%3;localStorage.setItem(SAVEKEY+'.q',quality);q.textContent=['效能：低','效能：中','效能：高'][quality];sTick();};
   row.appendChild(ds);row.appendChild(document.createTextNode(' '));row.appendChild(q);startEl.appendChild(row);
+}
+// T132：場景戰役入口（開始畫面新增「🎯 戰役」按鈕，點擊展開/收合 8 關選單；比照 T88 挑戰按鈕先例以 JS 注入）
+if(startEl&&!$('#bCampaign')){
+  const bCamp=document.createElement('button');bCamp.className='alt';bCamp.id='bCampaign';bCamp.textContent='🎯 戰役';
+  const scMenu=document.createElement('div');scMenu.className='scmenu';scMenu.id='scMenu';
+  SCENARIOS.forEach((s,i)=>{
+    const done=!!scDone[s.id];
+    const locked=!done&&i>0&&!scDone[SCENARIOS[i-1].id];
+    const btn=document.createElement('button');
+    btn.className='alt scbtn'+(done?' done':'')+(locked?' locked':'');
+    btn.textContent=(locked?'🔒':done?'✅':s.icon)+' '+s.name;
+    btn.title=s.intro;
+    if(!locked)btn.onclick=()=>{challenge=null;pendingScenario=s;begin(true);};
+    scMenu.appendChild(btn);
+  });
+  bCamp.onclick=()=>scMenu.classList.toggle('show');
+  startEl.appendChild(bCamp);startEl.appendChild(scMenu);
 }
 // title version
 try{document.title=(townName||'微光小鎮')+' v'+GAME_VER;}catch(e){}
@@ -6153,7 +6275,12 @@ window.GV={
   unread:()=>unread,                                             // T114 測試用：目前未讀數
   diff:()=>diff,                                                  // T115 測試用：目前難度 0-3
   setDiff:(d)=>{diff=clamp(d|0,0,3);return diff;},                // T115 測試用：直接設難度（不經開始畫面）
-  happyBreakdown:()=>happyAgg.map(p=>({...p}))                    // T111 測試用：幸福構成城市平均值快照 [{name,val}]
+  happyBreakdown:()=>happyAgg.map(p=>({...p})),                   // T111 測試用：幸福構成城市平均值快照 [{name,val}]
+  scenarios:()=>SCENARIOS.map(s=>({id:s.id,name:s.name,goal:{...s.goal},done:!!scDone[s.id]})), // T132 測試用：8 關清單快照＋通關狀態
+  scenario:()=>scenario?{...scenario}:null,                       // T132 測試用：目前進行中場景（null＝一般/沙盒/挑戰模式）
+  scDone:()=>({...scDone}),                                       // T132 測試用：已通關場景 id 集合快照
+  startScenario:(id)=>{const s=SCENARIOS.find(x=>x.id===id);if(!s)return false;challenge=null;pendingScenario=s;begin(true);return true;}, // T132 測試用：繞過選單直接開始指定關卡（等同真點擊該場景按鈕）
+  clearScDone:()=>{scDone={};try{localStorage.removeItem(SAVEKEY+'.scDone');}catch(e){}return true;}      // T132 測試用：清空通關記錄（回歸測試用）
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
