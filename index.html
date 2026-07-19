@@ -147,6 +147,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   <button class="hbtn" id="bSave">💾</button>
   <button class="hbtn" id="bNew">🆕</button>
   <button class="hbtn" id="bBell">🔔<span id="bellDot" class="dot" style="display:none">0</span></button>
+  <button class="hbtn" id="bAch">🏆</button>
 </div>
 
 <div id="hint"><span id="hintTxt"></span><button id="hintX">✕</button></div>
@@ -314,9 +315,11 @@ let dem={1:.5,2:0,3:0};
 let msIdx=0; // 里程碑進度
 const MILES=[[50,300],[150,600],[400,1000],[900,1600],[1600,2600],[2600,4000],[4000,6000],[7000,10000]];
 let ach={};   // 已解鎖成就 id → 1
+let achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0}; // T134：成就檢查用指標快照，tick() 每日重算並快取（比照 fin/region 慣例），供成就檢查與面板進度條共用讀取，不入存檔、不消耗 R()
 let townName='微光小鎮';
 const NM1=['微光','晨曦','雲杉','風鈴','石楠','銀月','翠嶺','暖泉','星港','霧谷','楓橋','鹿鳴','燕泊','柳蔭','螢澤','嵐坡','鯨落','棠梨'];
 const NM2=['小鎮','村','城','港','丘','灣','岸','屯','里','洲'];
+const achP=(cur,tgt)=>[Math.round(clamp(cur,0,tgt)),tgt]; // T134：成就進度條 helper——回傳 [目前值(夾在 0~目標、四捨五入避免 money 等浮點顯示長尾),目標值]，供 ACHS/ACH_META 的 prog 與 showAch() 面板共用
 const ACHS=[
   {id:'bridge',  nm:'跨海工程師',   t:s=>s.bridges>=1},
   {id:'park10',  nm:'綠意之城',     t:s=>s.parks>=10},
@@ -326,7 +329,48 @@ const ACHS=[
   {id:'year3',   nm:'三年之約',     t:()=>day>=1080},
   {id:'ind20',   nm:'工業重鎮',     t:s=>s.nI>=20},
   {id:'happy',   nm:'幸福之都',     t:()=>pop>=500&&cityHappy>=.75},
+  // T134：成就擴充階層鏈——以下 26 條新增成就（原 8 條原封不動，id/nm/t 逐字未改，僅靠下方 ACH_META 補顯示中繼資料）。
+  // 三組銅／銀／金三階鏈（chain 同族、tier 依序遞增門檻，天然依人口/等級/服務數量單調遞增逐階解鎖）＋17 條單一成就（含 6 條 hidden 隱藏成就，面板未解鎖前顯示「？」）。
+  {id:'metro1',tier:'bronze',chain:'metro',cat:'pop',ic:'👥',nm:'聚落雛形',desc:'人口達到 1,000 人',t:()=>pop>=1000,prog:()=>achP(pop,1000)},
+  {id:'metro2',tier:'silver',chain:'metro',cat:'pop',ic:'🏘️',nm:'城鎮崛起',desc:'人口達到 10,000 人',t:()=>pop>=10000,prog:()=>achP(pop,10000)},
+  {id:'metro3',tier:'gold',  chain:'metro',cat:'pop',ic:'🌆',nm:'超級都會',desc:'人口達到 100,000 人',t:()=>pop>=100000,prog:()=>achP(pop,100000)},
+  {id:'civic1',tier:'bronze',chain:'civic',cat:'growth',ic:'🏗️',nm:'嶄露頭角',desc:'城市等級達 Lv.6 磚瓦小鎮',t:()=>rankIdx>=5,prog:()=>achP(rankIdx,5)},
+  {id:'civic2',tier:'silver',chain:'civic',cat:'growth',ic:'🏛️',nm:'區域樞紐',desc:'城市等級達 Lv.13 學府之城',t:()=>rankIdx>=12,prog:()=>achP(rankIdx,12)},
+  {id:'civic3',tier:'gold',  chain:'civic',cat:'growth',ic:'👑',nm:'城市巔峰',desc:'城市等級達 Lv.26 微光之巔（最高等級）',t:()=>rankIdx>=25,prog:()=>achP(rankIdx,25)},
+  {id:'svc1',tier:'bronze',chain:'svc',cat:'service',ic:'🧰',nm:'基礎建設',desc:'同時擁有 6 種以上公共服務設施',t:s=>s.svcTypes>=6,prog:s=>achP(s.svcTypes,6)},
+  {id:'svc2',tier:'silver',chain:'svc',cat:'service',ic:'🏥',nm:'全方位服務',desc:'同時擁有 11 種以上公共服務設施',t:s=>s.svcTypes>=11,prog:s=>achP(s.svcTypes,11)},
+  {id:'svc3',tier:'gold',  chain:'svc',cat:'service',ic:'🌟',nm:'服務典範',desc:'集齊全部 16 種公共服務設施',t:s=>s.svcTypes>=16,prog:s=>achP(s.svcTypes,16)},
+  {id:'megabridge',cat:'infra',ic:'🌁',nm:'跨海大橋',desc:'同時擁有 15 座橋樑',t:s=>s.bridges>=15,prog:s=>achP(s.bridges,15)},
+  {id:'parkland',cat:'infra',ic:'🏞️',nm:'公園之城',desc:'同時擁有 30 座公園',t:s=>s.parks>=30,prog:s=>achP(s.parks,30)},
+  {id:'roadnet',cat:'infra',ic:'🛣️',nm:'四通八達',desc:'道路總長達 400 格',t:s=>s.roads>=400,prog:s=>achP(s.roads,400)},
+  {id:'megabucks',cat:'econ',ic:'🏦',nm:'傳說金庫',hidden:true,desc:'資金累積達 $1,000,000',t:()=>money>=1000000,prog:()=>achP(money,1000000)},
+  {id:'decade',cat:'growth',ic:'⏳',nm:'十年之約',hidden:true,desc:'城市經營滿 10 年（3650 天）',t:()=>day>=3650,prog:()=>achP(day,3650)},
+  {id:'ecocity',cat:'special',ic:'🌱',nm:'無煙之城',hidden:true,desc:'人口≥1,000 且城內完全沒有工業建築',t:s=>pop>=1000&&s.nI===0,prog:s=>achP(s.nI===0?pop:0,1000)},
+  {id:'starmax',cat:'growth',ic:'🌠',nm:'五星傳奇',hidden:true,desc:'城市評鑑達到最高 5 星',t:()=>bestStar>=5,prog:()=>achP(bestStar,5)},
+  {id:'saga1',cat:'saga',ic:'🗺️',nm:'拓荒先鋒',desc:'完成任一場景戰役',t:()=>Object.keys(scDone).length>=1,prog:()=>achP(Object.keys(scDone).length,1)},
+  {id:'saga_all',cat:'saga',ic:'🏆',nm:'傳奇市長',hidden:true,desc:'完成全部場景戰役',t:()=>Object.keys(scDone).length>=SCENARIOS.length,prog:()=>achP(Object.keys(scDone).length,SCENARIOS.length)},
+  {id:'towertown',cat:'infra',ic:'🏙️',nm:'摩天天際線',desc:'摩天樓（住宅／商業塔）合計達 5 棟',t:s=>s.towers>=5,prog:s=>achP(s.towers,5)},
+  {id:'greenenergy',cat:'infra',ic:'🍃',nm:'綠能先驅',desc:'太陽能與風力發電站各達 3 座',t:s=>s.so>=3&&s.wi>=3,prog:s=>achP(Math.min(s.so,3)+Math.min(s.wi,3),6)},
+  {id:'transithub',cat:'infra',ic:'🚄',nm:'交通樞紐',hidden:true,desc:'同時擁有火車站／港口／機場／輕軌站',t:s=>s.st>=1&&s.po>=1&&s.ai>=1&&s.tr>=1,prog:s=>achP([s.st,s.po,s.ai,s.tr].filter(n=>n>=1).length,4)},
+  {id:'university_city',cat:'service',ic:'🎓',nm:'學術重鎮',desc:'同時擁有 2 座以上大學',t:s=>s.un>=2,prog:s=>achP(s.un,2)},
+  {id:'resilient',cat:'special',ic:'🛡️',nm:'劫後不倒',hidden:true,desc:'開啟災害的情況下經營超過 200 天並曾達 3 星評等',t:()=>disastersOn&&day>=200&&bestStar>=3,prog:()=>achP((disastersOn&&bestStar>=3)?day:0,200)},
+  {id:'growthspurt',cat:'pop',ic:'🚀',nm:'飛速崛起',desc:'開局 60 天內人口突破 200',t:()=>pop>=200&&day<=60,prog:()=>achP(pop,200)},
+  {id:'frugal',cat:'econ',ic:'🪙',nm:'精打細算',desc:'開局 30 天內資金達到 $5,000',t:()=>money>=5000&&day<=30,prog:()=>achP(money,5000)},
+  {id:'jobsheaven',cat:'econ',ic:'💼',nm:'就業天堂',desc:'同時提供 3,000 個工作機會',t:()=>jobs>=3000,prog:()=>achP(jobs,3000)},
 ];
+// T134：舊 8 條成就的顯示中繼資料（不動 ACHS 內原始物件，避免任何一行原文被改寫）；showAch() 面板讀取時對缺 ic 欄位者從此表補齊。
+const ACH_META={
+  bridge:{ic:'🌉',desc:'完成第一座跨海橋樑',cat:'infra',prog:s=>achP(s.bridges,1)},
+  park10:{ic:'🌳',desc:'同時擁有 10 座公園',cat:'infra',prog:s=>achP(s.parks,10)},
+  plant3:{ic:'⚡',desc:'同時擁有 3 座發電廠',cat:'infra',prog:s=>achP(s.plants,3)},
+  rich:{ic:'💰',desc:'資金累積達 $50,000',cat:'econ',prog:()=>achP(money,50000)},
+  pop5k:{ic:'🏙️',desc:'人口突破 5,000 人',cat:'pop',prog:()=>achP(pop,5000)},
+  year3:{ic:'📅',desc:'城市經營滿 3 年（1080 天）',cat:'growth',prog:()=>achP(day,1080)},
+  ind20:{ic:'🏭',desc:'同時擁有 20 座工業建築',cat:'infra',prog:s=>achP(s.nI,20)},
+  happy:{ic:'😊',desc:'人口≥500 且幸福度≥75%',cat:'special',prog:()=>achP(pop>=500?Math.round(cityHappy*100):0,75)},
+};
+const ACH_CAT_NAME={pop:'👥 人口成長',infra:'🏗️ 城市建設',service:'🏥 公共服務',econ:'💰 財政',growth:'📈 城市成長',saga:'🗺️ 場景戰役',special:'✨ 特殊成就'};
+const ACH_CAT_ORDER=['pop','infra','service','econ','growth','saga','special'];
 // T132：場景／任務戰役模式——結構化關卡表（≥8 條）。選關時 begin() 套用 seed+cash 並設定 scenario={id,startDay}。
 // goal.type 複用既有挑戰評估邏輯擴充：pop人口／cash資金／star星級／happy幸福維持（需連續 hold 天）／debt零負債／disaster災後重建／coverage服務覆蓋率
 const SCENARIOS=[
@@ -2354,7 +2398,7 @@ function newWorld(seedOverride){
     }
     if(sc>bestScore){bestScore=sc;best=[x,y];}
   }
-  money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
+  money=3000;day=1;msIdx=0;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T134：成就快照成對重置（鐵律7）
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
@@ -3746,10 +3790,12 @@ function tick(){
     toast(`🎉 人口突破 ${MILES[msIdx][0]}！獎勵 $${bonus}`,'gold');
     sFanfare();msIdx++;
   }
-  // 成就
+  // 成就（T134：擴充讀取指標——svcTypes/towers 為衍生計數，直接由本函式已算出的既有變數組合，不消耗 R()、不改模擬）
+  const svcTypes=[fireStations,policeStations,hospitals,schools,waterTowers,clinics,libraries,posts,cemeteries,stadiums,dumps,am,rc,fs2,pr,un].filter(n=>n>0).length;
+  achStats={bridges,parks,plants,nI,roads,svcTypes,towers:trR+trC,so,wi,st,po,ai,tr,un}; // 快取供 showAch() 面板進度條讀取（比照 fin 慣例）
   for(const a of ACHS){
     if(ach[a.id])continue;
-    if(a.t({bridges,parks,plants,nI})){
+    if(a.t(achStats)){
       ach[a.id]=1;
       toast(`🏆 成就解鎖：${a.nm}`,'gold');sFanfare();
     }
@@ -5857,6 +5903,36 @@ function showLog(){
   $('#info').style.display='block';
 }
 $('#bBell').onclick=()=>{unread=0;updBell();showLog();sTick();};
+// T134：成就面板（複用 #infoBody/.row 樣式，比照 showStats()/showLog() 先例）——分類顯示、進度條、隱藏成就未解鎖顯示「？」
+function achRow(a){
+  const meta=Object.assign({},ACH_META[a.id],a); // 舊 8 條靠 ACH_META 補 ic/desc/cat/prog；新條目自身已含全部欄位、Object.assign 後半段原樣覆蓋
+  const done=!!ach[a.id];
+  const lockedHidden=!!meta.hidden&&!done;
+  const [cur,tgt]=meta.prog?meta.prog(achStats):[0,1];
+  const pct=lockedHidden?0:clamp(Math.round(cur/Math.max(1,tgt)*100),0,100);
+  const tierBadge=meta.tier?({bronze:'🥉',silver:'🥈',gold:'🥇'}[meta.tier]+' '):'';
+  const nmTxt=lockedHidden?'？？？':tierBadge+meta.nm;
+  const descTxt=lockedHidden?'尚未解鎖的隱藏成就':(meta.desc||'');
+  const icTxt=lockedHidden?'❔':(meta.ic||'🏅');
+  const barColor=done?'linear-gradient(90deg,#ffd977,#ffb347)':'linear-gradient(90deg,#5ec8ff,#7be08a)';
+  const barHtml=lockedHidden?'':`<div class="row" style="background:#1c2340;border-radius:4px;height:6px;overflow:hidden;margin:2px 0"><div style="width:${pct}%;height:100%;background:${barColor}"></div></div>`;
+  const progTxt=lockedHidden?'':`<span style="opacity:.7;font-size:11px">${cur}/${tgt}</span>`;
+  return `<div class="row"${done?' style="color:#ffd977"':''}>${done?'✅':'⬜'} ${icTxt} <b>${nmTxt}</b>　${progTxt}</div>
+    <div class="row" style="font-size:11px;opacity:.75">${descTxt}</div>
+    ${barHtml}`;
+}
+function showAch(){
+  const total=ACHS.length,doneN=ACHS.filter(a=>ach[a.id]).length;
+  let body=`<h3>🏆 成就　${doneN}/${total}</h3>`;
+  for(const cat of ACH_CAT_ORDER){
+    const list=ACHS.filter(a=>Object.assign({},ACH_META[a.id],a).cat===cat);
+    if(!list.length)continue;
+    body+=`<div class="row" style="margin-top:8px"><b>${ACH_CAT_NAME[cat]}</b></div>`+list.map(achRow).join('');
+  }
+  $('#infoBody').innerHTML=body;
+  $('#info').style.display='block';
+}
+$('#bAch').onclick=()=>{showAch();sTick();};
 function showHelp(){
   $('#infoBody').innerHTML=
     `<h3>❓ 玩法指南</h3>
@@ -6069,7 +6145,7 @@ function load(slot){
     if(d.dt)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&+d.dt[i])b.death=1;} // 死亡標記（T38，舊檔無 dt 則無死亡）
     if(d.skd)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&b.sick){const v=+d.skd[i];if(v)b.sickDays=v;}}   // 生病天數延續（FIX-A，舊檔缺 skd 則預設 0）
     if(d.dtd)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&b.death){const v=+d.dtd[i];if(v)b.deathAge=v;}} // 死亡天數延續（FIX-A，舊檔缺 dtd 則預設 0）
-    money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;
+    money=d.money;day=d.day;townName=d.nm||'微光小鎮';document.title=townName+' · 微光小鎮';msIdx=d.msIdx||0;ach={};for(const id of d.ach||[])ach[id]=1;achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0}; // T134：成就快照成對重置（鐵律7，下一次 tick() 即重算，不影響存讀檔本體）
     loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     scenario=(d.sc&&d.sc.id)?{id:d.sc.id,startDay:d.sc.startDay||d.day,hold:d.sc.hold||0}:null; // T132：場景戰役進度（可選欄位，舊檔缺 sc 則回一般模式，鐵律7成對重置）
@@ -6363,7 +6439,11 @@ window.GV={
   startScenario:(id)=>{const s=SCENARIOS.find(x=>x.id===id);if(!s)return false;challenge=null;pendingScenario=s;begin(true);return true;}, // T132 測試用：繞過選單直接開始指定關卡（等同真點擊該場景按鈕）
   clearScDone:()=>{scDone={};try{localStorage.removeItem(SAVEKEY+'.scDone');}catch(e){}return true;},      // T132 測試用：清空通關記錄（回歸測試用）
   rank:()=>({idx:rankIdx,lv:rankIdx+1,name:RANKS[rankIdx].name,unlock:RANKS[rankIdx].unlock||null,points:cityPoints,next:RANKS[rankIdx+1]?{...RANKS[rankIdx+1]}:null}), // T133 測試用：目前城市等級快照
-  cityPoints:()=>cityPoints // T133 測試用：目前城市點數（tick() 每日重算）
+  cityPoints:()=>cityPoints, // T133 測試用：目前城市點數（tick() 每日重算）
+  achs:()=>ACHS.map(a=>{const m=Object.assign({},ACH_META[a.id],a);return{id:a.id,nm:m.nm,cat:m.cat,tier:m.tier||null,chain:m.chain||null,hidden:!!m.hidden,done:!!ach[a.id]};}), // T134 測試用：全部成就定義快照（不洩漏隱藏成就達成條件本身，僅回傳中繼資料）
+  achDone:()=>Object.keys(ach), // T134 測試用：已解鎖成就 id 陣列（與存檔 ach 欄位同格式）
+  achStats:()=>({...achStats}), // T134 測試用：成就檢查用指標快照（tick() 每日重算）
+  forceAch:(id)=>{if(!ACHS.some(a=>a.id===id))return false;if(!ach[id]){ach[id]=1;}return true;} // T134 測試用：強制標記成就已解鎖（跳過每日 t() 判定與 toast，僅供面板/存讀檔回歸測試，不影響任何模擬狀態）
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
