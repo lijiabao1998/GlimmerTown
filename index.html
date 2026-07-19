@@ -4067,6 +4067,14 @@ function draw(dt){
   const nightSprites=[];
   nightSprites.push(...rdecGlow);
   const bob=Math.sin(visT*5)*2;
+  // T126：前方建築遮擋游標/選中物半透明——僅工具啟用＋有效 hover，或已選中建築時才有目標（空陣列時下方迴圈零額外開銷、渲染與改動前逐像素一致）
+  const occTargets=[];
+  if(tool!=='pan'&&tool!=='busrt'&&hover.x>=0){
+    occTargets.push({ax:sxOf(hover.x,hover.y)+32*z,ay:syOf(hover.x,hover.y)+32*z,dep:hover.x+hover.y+hover.y*.001});
+  }
+  if(selTile&&inMap(selTile.x,selTile.y)&&T(idx(selTile.x,selTile.y)).bld&&!T(idx(selTile.x,selTile.y)).bld.ref){
+    occTargets.push({ax:sxOf(selTile.x,selTile.y)+32*z,ay:syOf(selTile.x,selTile.y)+32*z,dep:selTile.x+selTile.y+selTile.y*.001});
+  }
   for(const o of objs){
     if(o.car){
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
@@ -4199,7 +4207,11 @@ function draw(dt){
     }
     else if(bd.k===9){bx=sxOf(o.x+1,o.y+1)+(32-s.ax)*z;by=syOf(o.x+1,o.y+1)+(32-s.ay)*z;}
     else{bx=o.sx+(32-s.ax)*z;by=o.sy+(32-s.ay)*z;}
+    let occA=1; // T126：目標列表為空時 for..of 零迭代，occA 恆 1，行為與改動前完全一致
+    if(occTargets.length)for(const ot of occTargets){if(o.dep>ot.dep&&ot.ax>=bx&&ot.ax<bx+s.w*z&&ot.ay>=by&&ot.ay<by+s.h*z){occA=.35;break;}}
+    if(occA<1)ctx.globalAlpha=occA;
     ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
+    if(occA<1)ctx.globalAlpha=1;
     if(s.night&&(bd.k===5||bd.pw))nightSprites.push({img:s.night,x:bx,y:by,w:s.w*z,h:s.h*z});
     if(bd.k<=3&&bd.fire){                                // 火焰疊加在建築之後，並發光
       const fr=SPR.fire[visT*6&1];
@@ -4570,13 +4582,16 @@ function commitRect(){
   if(done){sBuild();}
 }
 /* 檢視面板 */
+let selTile=null; // T126：inspect 選中建築格（{x,y}或null），供 draw() 前方遮擋物半透明判定；純 UI 狀態，比照 hover/rect 慣例不進 newWorld/load 重置
 function inspect(x,y){
   if(!inMap(x,y)){hideInfo();return;}
   const t=T(idx(x,y));
   let html='';
+  selTile=null; // T126：預設清空，僅下方建築分支覆寫（非建築格/找不到內容一律視為無選中）
   if(t.bld){
     const b=t.bld;
     if(b.ref)return inspect(b.ref[0],b.ref[1]);             // ref 格轉到 root 顯示（T22）
+    selTile={x,y}; // T126：記錄選中建築格供前方物件遮擋半透明判定
     if(b.k===4)html=`<h3>🌳 公園</h3><div class="row">為附近居民 +幸福</div><div class="row">維護費 $0.5/天</div>`;
     else if(b.k===5)html=`<h3>⚡ 發電廠</h3><div class="row">供電 ${PLANT_CAP} 棟建築</div><div class="row">沿道路輸電，維護費 $4/天</div>`;
     else if(b.k===6)html=`<h3>🚒 消防局</h3><div class="row">半徑 9 防火覆蓋</div><div class="row">維護費 $3/天</div>`;
@@ -4676,7 +4691,7 @@ function inspect(x,y){
   });
   $('#info').style.display='block';
 }
-function hideInfo(){$('#info').style.display='none';}
+function hideInfo(){$('#info').style.display='none';selTile=null;}
 $('#infoX').onclick=hideInfo;
 
 /* =====================================================================
