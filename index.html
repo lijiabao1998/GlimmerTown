@@ -4603,7 +4603,7 @@ function inspect(x,y){
     else if(b.k===27)html=`<h3>🚿 污水廠</h3><div class="row">全城：鄰工業的住宅 +幸福（每座工業 +2.5%）</div><div class="row">就業 4</div><div class="row">維護費 $3/天（需鄰水≥2格）</div>`;
     else if(b.k===28)html=`<h3>🚑 救護站</h3><div class="row">半徑 10 健康覆蓋（效果同醫院）</div><div class="row">就業 5</div><div class="row">維護費 $4/天</div>`;
     else if(b.k===29)html=`<h3>♻️ 回收中心</h3><div class="row">全城垃圾容量 +30</div><div class="row">就業 4</div><div class="row">維護費 $2/天</div>`;
-    else if(b.k===30)html=`<h3>🚒 高級消防局</h3><div class="row">半徑 12 滅 Lv3+ 火災</div><div class="row">就業 8</div><div class="row">維護費 $6/天</div>`;
+    else if(b.k===30)html=`<h3>🚒 高級消防局</h3><div class="row">半徑 12 降低起火率，消防車趕到才撲滅（覆蓋外不出車）</div><div class="row">就業 8</div><div class="row">維護費 $6/天</div>`;
     else if(b.k===31)html=`<h3>🏛️ 監獄</h3><div class="row">半徑 8 防止犯罪發生</div><div class="row">就業 10</div><div class="row">維護費 $5/天</div>`;
     else if(b.k===32)html=`<h3>🎓 大學</h3><div class="row">半徑 10 內住宅升級率 ×1.8</div><div class="row">就業 20</div><div class="row">維護費 $8/天</div>`;
     else{
@@ -5347,6 +5347,7 @@ function undo(){
     tiles[sn.i]=JSON.parse(sn.s);
     const x=sn.i%N,y=(sn.i/N)|0;
     recalcMask(x,y);recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);
+    recalcFoamNear(x,y);recalcElMaskNear(x,y); // FIX-O：T121 遺留——快照還原後鄰域水岸泡沫/崖沿位罩需跟隨重算
   }
   money+=g2.spent;
   computePower();
@@ -5754,7 +5755,7 @@ window.GV={
     toast('🔥 暴亂爆發！封鎖道路，警局可自然平息或付費鎮壓','bad',cells[0]%N,(cells[0]/N)|0);sErr();
     return true;
   },
-  flood:()=>{let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效
+  flood:()=>{if(!disastersOn)return false;let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效；FIX-O：對齊 quake/tornado/meteor/riot，disastersOn=false 時不執行
   trains:()=>trains.length,
   trams:()=>tramCars.length,
   ships:()=>cargoShips.length,
