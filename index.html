@@ -509,6 +509,12 @@ const DIFF_MONEY=[5000,3000,1500,3000]; // 各難度起始資金（沙盒僅供�
 const DIFF_HAZ=[.5,1,1.5,1];            // 各難度天氣災害機率倍率（沙盒同標準倍率，另開放手動觸發）
 let tornado=null;          // T116：龍捲風實體（null 或 {x,y,dx,dy,life}）；不進存檔，讀檔／新圖即消散
 let riot=null;              // T118：暴亂狀態（null 或 {cells:[i,...],days:N}）；受影響住宅同步標記 bld.riot=1；存檔可選欄位 riot
+let plague=null;            // T137：瘟疫狀態（null 或 {cells:[i,...],days:N}，仿 riot 慣例）；感染住宅同步標記 bld.plague=1；存檔可選欄位 plague
+let drought=false;          // T137：乾旱（布林，夏季低機率觸發、季末〔season 轉離夏〕自動解除）；不進存檔，讀檔／新圖即消散
+let blizzard=null;          // T137：暴風雪/沙暴（null 或 {days,type:'snow'|'sand'}，冬季飄雪／夏季飛沙）；不進存檔，讀檔／新圖即消散
+const PLAGUE_DENSITY=6;                 // T137：瘟疫觸發密度門檻（半徑3內住宅數，複用 T118 riot 熱點簇掃描手法）
+const DROUGHT_WATER_MULT=.6,DROUGHT_FIRE_MULT=2.5; // T137：乾旱效果係數——供水上限×0.6／起火機率×2.5
+const BLIZZARD_SPEED_MULT=.15;          // T137：暴風雪/沙暴期間道路車速折減至 15%（複用 T118 暴亂封路車速歸零手法之弱化版）
 let busRoutes=[{stops:[]},{stops:[]},{stops:[]}]; // T120：公車路線，固定 3 條、每條最多 8 站（存 tile idx，依序）；存檔可選欄位 bus_rt
 let busRtEdit=0;            // T120：路線工具目前編輯中的路線索引 0-2（UI 狀態，不進存檔）
 let busRtCovPop=0;          // T120：路線覆蓋（半徑3內、多路線不疊加）住宅人口，tick() 每日重算，供 updCars 小車生成率折抵，不進存檔
@@ -2438,7 +2444,7 @@ function newWorld(seedOverride){
   roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
-  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
+  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null;plague=null;drought=false;blizzard=null;leakDays.fill(0); // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零；T137：瘟疫/乾旱/暴風雪/工業洩漏皆運行時狀態，開新圖強制歸零消散
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   scenario=null; // T132：場景戰役進度成對重置（鐵律7）——開新圖預設回一般模式，begin() 若有 pendingScenario 會在其後另行設回
   editMode=false;customScenario=null; // T135：編輯器模式與自製場景定義成對重置（鐵律7）——開新圖預設離開編輯器；bEditorMode 按鈕會在 begin() 之後另行設回 editMode=true
@@ -3126,6 +3132,16 @@ function stampPolTree(x,y,sign){
       POLTREE[i]=clamp(POLTREE[i]+sign*2,0,255);recomputePol(i);
     }}
 }
+// T137：工業洩漏——工業建築起火期間機率觸發，該格 POL 疊加尖峰並持續數日（比照 stampPolSrc 加法對稱手法＋隕石坑「持續危害」樣板，改為顯式天數倒數）
+const LEAK_POL_SPIKE=60,LEAK_DURATION=6; // 洩漏 POL 疊加尖峰值與持續天數
+const leakDays=new Uint8Array(N*N); // 洩漏持續天數倒數（0=無洩漏），運行時場，不入存檔；隨 rebuildCov 全量重建時尖峰同步失效，需與此陣列成對歸零（newWorld/load，鐵律7）
+function startLeak(x,y){ // 供 tick() 因果觸發與 GV.leak() 手動鉤子共用，避免兩處邏輯分岔（仿 meteorStrike 慣例）
+  const i=idx(x,y);
+  if(leakDays[i]>0)return; // 已在洩漏中，不重複疊加尖峰
+  leakDays[i]=LEAK_DURATION;
+  POLBASE[i]=clamp(POLBASE[i]+LEAK_POL_SPIKE,0,255);recomputePol(i);
+  toast('☣️ 工業洩漏！污染物外洩擴散','bad',x,y);sErr();
+}
 /* T130：地價場——服務覆蓋＋景觀（公園）－污染－犯罪 的靜態基準分，疊加（−）壅堵動態扣分，128為中性基準（0-255）。
    比照 §COV/POL 家族設計：LANDBASE=靜態基準（服務/景觀/污染/犯罪，rebuildCov 內同步全量重建，load/newWorld/undo
    自動覆蓋）；LAND=對外曝光值（LANDBASE 疊加壅堵動態扣分衍生，仿 T110 POL=POLBASE-POLTREE 手法，先夾 0 避免
@@ -3293,6 +3309,7 @@ function computeCityPoints(){
 function tick(){
   day++;
   const sea=season(); // T136：本日四季索引（0春1夏2秋3冬），供農場/電力/觀光季節係數共用，純由 day 導出不消耗 R()
+  if(drought&&sea!==1)drought=false; // T137：乾旱季末（不再是夏）自動解除，純布林比較不消耗 R()
   // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
   {const w=inWinter()?1:0;
    if(w!==wSeason){
@@ -3318,7 +3335,7 @@ function tick(){
   for(let i=0;i<N*N;i++){roadLoad[i]=roadLoad[i]*.85+roadPass[i]*.15;roadPass[i]=0;}
   recomputeLandDynamic(); // T130：地價動態部分——每日依最新 roadLoad 疊加壅堵扣分（靜態基準 LANDBASE 不動，純陣列衍生不消耗 R()）
   const cap=Math.floor(computePower()*POWER_SEASON_MULT[sea]); // T136：夏季冷氣／冬季暖氣抬高電力需求壓力＝有效供電容量打折；春秋 ×1 精確恆等（Math.floor 對已為整數之值原樣返回）
-  const wCap=computeWater();
+  const wCap=Math.floor(computeWater()*(drought?DROUGHT_WATER_MULT:1)); // T137：乾旱期間供水上限打折（非乾旱精確恆等 ×1，Math.floor 對已為整數之值原樣返回）
   // 死亡與墓園前置處理（T38）：既有死亡事件的懲罰標記與自動消退
   const deathPenalty=new Uint8Array(N*N);
   let cemCount=0;
@@ -3549,6 +3566,58 @@ function tick(){
         riot.cells=kept;
       }
     }
+    // T137：瘟疫——高密度＋低診所/醫院覆蓋住宅簇間蔓延（複用上方 T118 暴亂熱點簇掃描手法：countNear 密度門檻→候選清單→機率觸發→cells/days 狀態機）
+    if(!plague){
+      const hot=[];
+      for(let i=0;i<N*N;i++){
+        const b=tiles[i].bld;
+        if(!b||b.k!==1||b.ref||b.plague)continue;
+        if(COV.clinic[i]>0||COV.hospital[i]>0)continue; // 已受健康設施覆蓋不列入熱點
+        const hx=i%N,hy=(i/N)|0;
+        if(countNear(hx,hy,3,tt=>tt.bld&&tt.bld.k===1)>=PLAGUE_DENSITY)hot.push(i);
+      }
+      if(hot.length&&R()<.02*DIFF_HAZ[diff]){
+        const cells=hot.slice(0,10);
+        for(const ci of cells){const cb=tiles[ci].bld;if(cb)cb.plague=1;}
+        plague={cells,days:12+ri(10)};
+        toast('🦠 瘟疫爆發！人口密集區疫情蔓延，醫院覆蓋或隔離可平息','bad',cells[0]%N,(cells[0]/N)|0);sErr();
+      }
+    }
+    if(plague){
+      const kept=[];
+      for(const ci of plague.cells){
+        const pb=tiles[ci].bld;
+        if(!pb||pb.k!==1)continue;                          // 建築已消失（拆除／其他災害摧毀）：自動移出名單
+        const covered=COV.clinic[ci]>0||COV.hospital[ci]>0;
+        if(covered&&R()<.5){pb.plague=0;continue;}          // 健康設施覆蓋 → 高機率自然平息（比照警局平息暴亂）
+        pb.h=clamp(pb.h-.02,.05,1);                         // 感染格持續降幸福（產能停擺另見經濟段 &&!b.plague）
+        kept.push(ci);
+      }
+      plague.days--;
+      if(!kept.length||plague.days<=0){
+        for(const ci of kept){const pb=tiles[ci].bld;if(pb)pb.plague=0;}
+        plague=null;
+      }else{
+        plague.cells=kept;
+      }
+    }
+    // T137：乾旱——夏季低機率觸發，壓低供水上限（見上方 wCap）＋抬升火險（見下方起火機率），入秋（season 轉離夏）於本函式起手自動解除
+    if(!drought&&sea===1&&R()<.003*DIFF_HAZ[diff]){
+      drought=true;
+      toast('☀️ 乾旱來襲！供水吃緊、火險升高，入秋自動解除','bad',N>>1,N>>1);
+    }
+    // T137：暴風雪/沙暴——冬季飄雪、夏季飛沙，全屏色調疊加（見 draw()）＋道路車速幾近癱瘓（見 updCars()）
+    if(!blizzard&&sea===3&&R()<.004*DIFF_HAZ[diff]){
+      blizzard={days:4+ri(4),type:'snow'};
+      toast('🌨️ 暴風雪來襲！道路能見度驟降、車行幾近癱瘓','bad',N>>1,N>>1);
+    }else if(!blizzard&&sea===1&&R()<.0015*DIFF_HAZ[diff]){
+      blizzard={days:3+ri(3),type:'sand'};
+      toast('🏜️ 沙暴來襲！道路能見度驟降、車行幾近癱瘓','bad',N>>1,N>>1);
+    }
+    if(blizzard){
+      blizzard.days--;
+      if(blizzard.days<=0)blizzard=null;
+    }
   }
   if(shakeT>0)shakeT=Math.max(0,shakeT-0.05);
   // 需求（T109 RCI 需求模型：住宅＝就業盈餘與幸福加權；商業＝人口/商業格數比；工業＝商業貨源缺口；三值歸一化 -1~+1）
@@ -3660,6 +3729,7 @@ function tick(){
     const b=tiles[i].bld;
     if(!b||b.k>3||b.fire)continue;
     let p=.0005*(b.k===3?3:1)*b.lv;
+    if(drought)p*=DROUGHT_FIRE_MULT;                     // T137：乾旱期間起火機率×2.5（非乾旱精確恆等 ×1）
     const x=i%N,y=(i/N)|0;                               // 消防局半徑 9 覆蓋 → 起火率 -85%
     if((COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)))p*=.15;                             // T61：消防局半徑9覆蓋（原 countNear k===6）
     if(R()<p){
@@ -3686,6 +3756,18 @@ function tick(){
     const x=i%N,y=(i/N)|0;
     b.fire++;
     if(b.fire>=5){if(b.k===3)stampPolSrc(x,y,3,-1);t.bld=null;t.ruin=1;} // zone 保留；T110：工業燒毀→撤銷污染源
+  }
+  if(disastersOn){ // T137：工業洩漏——工業建築正在燃燒且該格尚無洩漏時機率觸發（因果緊扣起火，非獨立隨機事件；置於火災段之後才能捕捉本日新起火與既有延燒/災害引燃）
+    for(let i=0;i<N*N;i++){
+      const b=tiles[i].bld;
+      if(b&&b.k===3&&b.fire&&!leakDays[i]&&R()<.5*DIFF_HAZ[diff])startLeak(i%N,(i/N)|0);
+    }
+    for(let i=0;i<N*N;i++){ // 尖峰持續天數倒數，期滿撤回（複製 stampPolSrc 加法對稱手法）
+      if(leakDays[i]>0){
+        leakDays[i]--;
+        if(!leakDays[i]){POLBASE[i]=clamp(POLBASE[i]-LEAK_POL_SPIKE,0,255);recomputePol(i);}
+      }
+    }
   }
   // 犯罪（T32）：未受警察局半徑10覆蓋的 k≤3 建築每天小機率發生犯罪
   let crimeAlert=false;
@@ -3783,7 +3865,7 @@ function tick(){
     else if(b.k===32);                // 大學（T54）
     else if(b.k===33){const pm=pol||{taxR:1,taxC:1,taxI:1};const v2=TOWER_POP*.12*(pm.taxR||1);income+=v2;taxR+=v2;} // T127：住宅塔稅收＝四格lv3總和×1.15（既有 k 分支先例，防幽靈稅）
     else if(b.k===34){const pm=pol||{taxR:1,taxC:1,taxI:1};const v2=TOWER_JOBS*.18*(pm.taxC||1);income+=v2;taxC+=v2;} // T127：商業塔稅收＝四格lv3總和×1.15
-    else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot){ // T118：暴亂中住宅停稅收
+    else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot&&!b.plague){ // T118：暴亂中住宅停稅收；T137：瘟疫中住宅暫停繳稅（產能停擺）
       const pm=pol||{taxR:1,taxC:1,taxI:1};
       if(b.k===1){const we=b.we!==undefined?b.we:1;const landTaxMul=1+(LAND[i]-128)/128*.15;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]*landTaxMul;income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）；T130：輕度地價稅收槓桿，中性地價(128)精確恆等 ×1
       else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1);income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95
@@ -3945,6 +4027,7 @@ function updCars(dt){
       speed*=clamp(1-Math.max(0,roadLoad[idx(c.x,c.y)]-capT)/capT*ROAD_JAM_K,.3,1);
     }
     if(riotBlockedRoad(c.x,c.y))speed=0; // T118：暴亂封鎖路段車速歸零
+    if(blizzard)speed*=BLIZZARD_SPEED_MULT; // T137：暴風雪/沙暴期間道路車速幾近癱瘓
     c.p+=dt*1.4*speed;
     if(c.p>=1){
       c.p-=1;
@@ -4771,6 +4854,10 @@ function draw(dt){
   // ---- 天氣色調（雨天壓暗，晝夜 multiply 之前疊加；T17）----
   if(weather){
     ctx.fillStyle=win?'rgba(200,210,230,.14)':weather===2?'rgba(70,90,120,.3)':'rgba(70,90,120,.18)'; // 冬季雪天色調（T18）
+    ctx.fillRect(0,0,W,H);
+  }
+  if(blizzard){ // T137：暴風雪/沙暴全屏色調（獨立於既有天氣系統，冬雪白藍／夏沙土黃）
+    ctx.fillStyle=blizzard.type==='snow'?'rgba(230,238,250,.35)':'rgba(196,164,110,.35)';
     ctx.fillRect(0,0,W,H);
   }
   // ---- 晝夜色調 ----
@@ -5956,8 +6043,9 @@ function showStats(){
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
      <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
      <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
-     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button>　🌪 <button class="hbtn" id="sbTornado">觸發龍捲風</button>　☄️ <button class="hbtn" id="sbMeteor">觸發隕石</button>　⚔️ <button class="hbtn" id="sbRiot">觸發暴亂</button></div>':''}
+     ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button>　🌪 <button class="hbtn" id="sbTornado">觸發龍捲風</button>　☄️ <button class="hbtn" id="sbMeteor">觸發隕石</button>　⚔️ <button class="hbtn" id="sbRiot">觸發暴亂</button></div><div class="row">🦠 <button class="hbtn" id="sbPlague">觸發瘟疫</button>　☀️ <button class="hbtn" id="sbDrought">觸發乾旱</button>　🌨️ <button class="hbtn" id="sbBlizzard">觸發暴風雪</button>　☣️ <button class="hbtn" id="sbLeak">觸發工業洩漏</button></div>':''}
      ${riot?`<div class="row" style="color:#ff8a5c">🔥 暴亂中（${riot.cells.length} 戶封路）<button class="hbtn" id="riotBtn">🚔 鎮壓 $200</button></div>`:''}
+     ${plague?`<div class="row" style="color:#ffb84d">🦠 疫情蔓延中（${plague.cells.length} 戶感染）<button class="hbtn" id="plagueBtn">💉 隔離 $150</button></div>`:''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
   advTips.forEach((tp,i)=>{ // T131：顧問建議帶座標者可點擊跳鏡頭（複用小地圖跳轉座標公式，比照 showLog／T06 先例）
@@ -5994,6 +6082,23 @@ function showStats(){
       const ok=GV.riot();
       toast(ok?'⚔️ 沙盒：手動觸發暴亂':(disastersOn?'需城市幸福<30%且有高犯罪住宅簇才能觸發':'暴亂已被設定關閉'),'bad');
     });
+    const bPl=$('#sbPlague');if(bPl)bPl.addEventListener('click',()=>{ // T137：沙盒手動觸發瘟疫（需城市確有高密度＋無醫療覆蓋住宅簇，否則提示原因）
+      const ok=GV.plague();
+      toast(ok?'🦠 沙盒：手動觸發瘟疫':(disastersOn?'找不到高密度＋無醫療覆蓋的住宅簇':'瘟疫已被設定關閉'),'bad');
+    });
+    const bDr=$('#sbDrought');if(bDr)bDr.addEventListener('click',()=>{ // T137：沙盒手動觸發乾旱（需當下為夏季，否則提示原因）
+      const ok=GV.drought();
+      toast(ok?'☀️ 沙盒：手動觸發乾旱':(disastersOn?'需夏季才能觸發乾旱':'乾旱已被設定關閉'),'bad');
+    });
+    const bBz=$('#sbBlizzard');if(bBz)bBz.addEventListener('click',()=>{ // T137：沙盒手動觸發暴風雪/沙暴（依當下季節挑選類型）
+      if(GV.blizzard())toast('🌨️ 沙盒：手動觸發暴風雪/沙暴');else toast('暴風雪已被設定關閉','bad');
+    });
+    const bLk=$('#sbLeak');if(bLk)bLk.addEventListener('click',()=>{ // T137：沙盒手動觸發工業洩漏（隨機挑一棟未洩漏中的工業建築並點燃）
+      const cand=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===3&&!leakDays[i])cand.push(i);}
+      let ok=false;
+      if(cand.length){const ci=cand[(Math.random()*cand.length)|0];ok=GV.leak(ci%N,(ci/N)|0);}
+      toast(ok?'☣️ 沙盒：手動觸發工業洩漏':(disastersOn?'找不到可洩漏的工業建築':'工業洩漏已被設定關閉'),'bad');
+    });
   }
   const riotBtn=$('#riotBtn');                              // T118：鎮壓暴亂鈕（不限沙盒，riot 存在時即顯示；一次性鎮壓費 $200 固定扣款，事件綁定同 bLoan 慣例）
   if(riotBtn)riotBtn.addEventListener('click',()=>{
@@ -6003,6 +6108,15 @@ function showStats(){
     for(const ci of riot.cells){const rb=tiles[ci].bld;if(rb)rb.riot=0;}
     riot=null;
     toast('🚔 鎮壓成功，暴亂已全數解除','gold');sTick();showStats();
+  });
+  const plagueBtn=$('#plagueBtn');                          // T137：隔離鈕（riot 慣例：不限沙盒，plague 存在時即顯示；一次性隔離費 $150 固定扣款）
+  if(plagueBtn)plagueBtn.addEventListener('click',()=>{
+    if(!plague)return;
+    if(money<150){toast('資金不足，無法隔離','bad');return;}
+    money-=150;
+    for(const ci of plague.cells){const pb=tiles[ci].bld;if(pb)pb.plague=0;}
+    plague=null;
+    toast('💉 隔離完成，疫情已全數平息','gold');sTick();showStats();
   });
   const lb=$('#bLoan');                                    // 貸款按鈕（事件綁定，不用內聯 onclick，T16）
   if(lb)lb.addEventListener('click',()=>{
@@ -6234,6 +6348,7 @@ function save(){
       nl:log, // T114：通知中心日誌（可選欄位，最多 100 筆）
       bus_rt:busRoutes.some(r=>r.stops.length)?busRoutes.map(r=>r.stops.slice()):null, // T120：公車路線（可選欄位，站點 idx 陣列×3 條）
       riot:riot?{cells:riot.cells,days:riot.days}:null, // T118：暴亂狀態（可選欄位，仿 loan 慣例存最小結構）
+      plague:plague?{cells:plague.cells,days:plague.days}:null, // T137：瘟疫狀態（可選欄位，仿 riot 慣例存最小結構）
       sc:scenario?{id:scenario.id,startDay:scenario.startDay,hold:scenario.hold||0}:null, // T132：進行中場景戰役（可選欄位，仿 loan/riot 慣例存最小進度結構；scDone 通關集合另落 localStorage 獨立鍵，不入本存檔）
       rk:rankIdx}; // T133：城市等級（可選欄位，rankIdx 0-based；load 缺欄位時由當前城市狀態即時算出，不因缺欄位降級）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
@@ -6304,7 +6419,7 @@ function load(slot){
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     scenario=(d.sc&&d.sc.id)?{id:d.sc.id,startDay:d.sc.startDay||d.day,hold:d.sc.hold||0}:null; // T132：場景戰役進度（可選欄位，舊檔缺 sc 則回一般模式，鐵律7成對重置）
     editMode=false;customScenario=null; // T135：讀取常規存檔視為離開編輯器、清空自製場景定義（鐵律7；編輯器產物本就不入常規存檔，故無對應欄位可還原）
-    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null; // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散
+    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;drought=false;blizzard=null;leakDays.fill(0); // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散；T137：乾旱/暴風雪/工業洩漏皆運行時狀態，讀檔強制歸零消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
     recalcAllRailMasks(); // 軌道遮罩全量重算：rl/tr 還原時 railMask/tramMask 歸零（對照道路版）
@@ -6320,7 +6435,7 @@ function load(slot){
     cityPoints=computeCityPoints();
     if(d.rk!==undefined)rankIdx=clamp(d.rk|0,0,RANKS.length-1);
     else{rankIdx=0;while(rankIdx<RANKS.length-1&&cityPoints>=RANKS[rankIdx+1].threshold)rankIdx++;}
-    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車
+    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null;plague=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車；T137：瘟疫狀態預設清空，下方視存檔內容還原
     rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：路線公車運行時重建不存；路線設定下方視存檔內容還原
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
@@ -6328,6 +6443,11 @@ function load(slot){
       const cells=[];
       for(const ci of d.riot.cells){const b=tiles[ci]&&tiles[ci].bld;if(b&&b.k===1){b.riot=1;cells.push(ci);}}
       if(cells.length)riot={cells,days:Math.max(1,d.riot.days|0)};
+    }
+    if(d.plague&&Array.isArray(d.plague.cells)){ // T137：瘟疫狀態還原（可選欄位），仿 T118 riot 慣例——tiles/bld 已重建完畢後逐格核對建築仍存在才收錄並同步標記 bld.plague
+      const pcells=[];
+      for(const ci of d.plague.cells){const b=tiles[ci]&&tiles[ci].bld;if(b&&b.k===1){b.plague=1;pcells.push(ci);}}
+      if(pcells.length)plague={cells:pcells,days:Math.max(1,d.plague.days|0)};
     }
     diff=(d.df>=0&&d.df<=3)?+d.df:1; // T115：難度／沙盒（可選欄位，舊檔缺 df 視為 1 標準）
     hist=(d.hi&&d.hi.m&&d.hi.m.length)?d.hi.m.map((mv,ix)=>({d:d.hi.d0+ix,money:mv,net:d.hi.n[ix],pop:d.hi.p[ix],happy:d.hi.h[ix]})):[]; // T112：歷史曲線（可選欄位，舊檔缺 hi 視為空緩衝）
@@ -6571,6 +6691,43 @@ window.GV={
     toast('🔥 暴亂爆發！封鎖道路，警局可自然平息或付費鎮壓','bad',cells[0]%N,(cells[0]/N)|0);sErr();
     return true;
   },
+  plague:()=>{ // T137：手動觸發瘟疫（需實際存在高密度＋無醫療覆蓋住宅簇才能成功，仿 GV.riot() 慣例跳過每日機率骰）
+    if(!disastersOn)return false;
+    const hot=[];
+    for(let i=0;i<N*N;i++){
+      const b=tiles[i].bld;
+      if(!b||b.k!==1||b.ref||b.plague)continue;
+      if(COV.clinic[i]>0||COV.hospital[i]>0)continue;
+      const hx=i%N,hy=(i/N)|0;
+      if(countNear(hx,hy,3,tt=>tt.bld&&tt.bld.k===1)>=PLAGUE_DENSITY)hot.push(i);
+    }
+    if(!hot.length)return false;
+    const cells=hot.slice(0,10);
+    for(const ci of cells){const cb=tiles[ci].bld;if(cb)cb.plague=1;}
+    plague={cells,days:12+ri(10)};
+    toast('🦠 瘟疫爆發！人口密集區疫情蔓延，醫院覆蓋或隔離可平息','bad',cells[0]%N,(cells[0]/N)|0);sErr();
+    return true;
+  },
+  drought:()=>{ // T137：手動觸發乾旱（需當下為夏季，仿 quake() 慣例受災害總開關管轄）
+    if(!disastersOn||season()!==1)return false;
+    drought=true;
+    toast('☀️ 乾旱來襲！供水吃緊、火險升高，入秋自動解除','bad',N>>1,N>>1);
+    return true;
+  },
+  blizzard:()=>{ // T137：手動觸發暴風雪/沙暴（依當下季節挑選視覺類型，仿 quake() 慣例）
+    if(!disastersOn)return false;
+    const sea2=season();
+    blizzard={days:4+ri(4),type:sea2===3?'snow':'sand'};
+    toast(sea2===3?'🌨️ 暴風雪來襲！道路能見度驟降、車行幾近癱瘓':'🏜️ 沙暴來襲！道路能見度驟降、車行幾近癱瘓','bad',N>>1,N>>1);
+    return true;
+  },
+  leak:(x,y)=>{ // T137：手動觸發工業洩漏（指定工業建築座標，仿 ignite(x,y) 慣例＋受災害總開關管轄）
+    if(!disastersOn||!inMap(x,y))return false;
+    const b=T(idx(x,y)).bld;
+    if(!b||b.k!==3)return false;
+    b.fire=1;startLeak(x,y);
+    return true;
+  },
   flood:()=>{if(!disastersOn)return false;let n=0;for(let i=0;i<N*N&&n<12;i++){const t=tiles[i];if(t.t===2&&!t.levee&&countNear(i%N,(i/N)|0,1,tt=>tt.t===0)){t.flood=1;n++;}}if(n)groundDirty=true;return n;}, // T96：直接改 tile 繞過 doPlace/tick，需另外標記快取失效；FIX-O：對齊 quake/tornado/meteor/riot，disastersOn=false 時不執行
   trains:()=>trains.length,
   trams:()=>tramCars.length,
@@ -6608,7 +6765,12 @@ window.GV={
   editorSetGoal:(g)=>{Object.assign(editorGoal,g||{});return {...editorGoal};}, // T135 測試用：直接設定目標草稿（繞過 prompt() UI）
   editorExportCode:()=>{const d=buildEditorShareData();if(!d)return null;try{return encodeShare(d);}catch(e){return null;}}, // T135 測試用：不經剪貼簿/prompt，直接回傳擴充版分享碼字串
   importCode:(code)=>importShareCode(code),                       // T135 測試用：不經 prompt() 直接匯入指定分享碼（舊版/擴充版皆可），回傳是否成功
-  customScenario:()=>customScenario?{...customScenario}:null      // T135 測試用：目前由分享碼匯入的自製場景定義（null＝無）
+  customScenario:()=>customScenario?{...customScenario}:null,     // T135 測試用：目前由分享碼匯入的自製場景定義（null＝無）
+  disasters:()=>({types:['flood','quake','fire','tornado','meteor','riot','plague','drought','blizzard','leak'],count:10,on:disastersOn}), // T137 測試用：災害總數枚舉（既有6種＋本卡新增4種＝10）
+  plagueDays:()=>plague?plague.days:0,             // T137 測試用：瘟疫剩餘天數（0＝無瘟疫）
+  droughtOn:()=>drought,                            // T137 測試用：目前是否處於乾旱
+  blizzardAt:()=>blizzard?{...blizzard}:null,       // T137 測試用：目前暴風雪/沙暴狀態快照
+  leakDaysAt:(x,y)=>inMap(x,y)?leakDays[idx(x,y)]:null // T137 測試用：該格工業洩漏剩餘天數
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
