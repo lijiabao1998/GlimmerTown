@@ -238,6 +238,7 @@ const TOOLS=[
   {id:'wpipe',cat:'road',ic:'💧',nm:'水管',pr:'$'+COST.wpipe},
   {id:'rdec',cat:'road',ic:'🌲',nm:'路飾',pr:'$'+COST.rdec},
   {id:'bus',cat:'road',ic:'🚌',nm:'公車站',pr:'$'+COST.bus},
+  {id:'busrt',cat:'road',ic:'🚏',nm:'路線',pr:''}, // T120：路線工具——點選既有公車站依序串線，免費（不走 canPlace/doPlace）
   {id:'oneway',cat:'road',ic:'➡️',nm:'單行道',pr:'$20'},
   {id:'light',cat:'road',ic:'🚦',nm:'號誌',pr:'$60'},
   {id:'busLane',cat:'road',ic:'🚌',nm:'公車道',pr:'$'+COST.busLane},
@@ -352,6 +353,9 @@ const DIFF_MONEY=[5000,3000,1500,3000]; // 各難度起始資金（沙盒僅供�
 const DIFF_HAZ=[.5,1,1.5,1];            // 各難度天氣災害機率倍率（沙盒同標準倍率，另開放手動觸發）
 let tornado=null;          // T116：龍捲風實體（null 或 {x,y,dx,dy,life}）；不進存檔，讀檔／新圖即消散
 let riot=null;              // T118：暴亂狀態（null 或 {cells:[i,...],days:N}）；受影響住宅同步標記 bld.riot=1；存檔可選欄位 riot
+let busRoutes=[{stops:[]},{stops:[]},{stops:[]}]; // T120：公車路線，固定 3 條、每條最多 8 站（存 tile idx，依序）；存檔可選欄位 bus_rt
+let busRtEdit=0;            // T120：路線工具目前編輯中的路線索引 0-2（UI 狀態，不進存檔）
+let busRtCovPop=0;          // T120：路線覆蓋（半徑3內、多路線不疊加）住宅人口，tick() 每日重算，供 updCars 小車生成率折抵，不進存檔
 
 // 相機（世界像素座標，z＝裝置像素縮放倍率）
 const cam={x:0,y:0,z:3};
@@ -2042,6 +2046,7 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;ach={};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
+  rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   undoStack.length=0;undoGroup=null;
@@ -2474,7 +2479,7 @@ function doPlace(toolId,x,y,silent){
       else if(t.tram){t.tram=0;t.tramBridge=0;t.tramMask=0;recalcRailMask4(x,y);}
       else if(t.dock){t.dock=0;}
       else if(t.rdec){t.rdec=0;stampCov('rdec',x,y,COVR.rdec,-1);}
-      else if(t.bus){t.bus=0;stampCov('bus',x,y,COVR.bus,-1);}
+      else if(t.bus){t.bus=0;stampCov('bus',x,y,COVR.bus,-1);removeBusStopFromRoutes(idx(x,y));} // T120：拆站自動從所有路線剔除
       else if(t.road){t.road=0;t.rc=0;t.hw=0;t.bridge=0;t.mask=0;t.rdec=0;t.bus=0;t.busLane=0;t.oneway=0;t.light=0;
         recalcMask(x,y-1);recalcMask(x+1,y);recalcMask(x,y+1);recalcMask(x-1,y);}
       else if(t.wp)t.wp=0;
@@ -2936,6 +2941,7 @@ function tick(){
   }
   // T119：垃圾車覆蓋不到（沿路距垃圾場>18）的住宅局部垃圾係數再疊加，供 GV 驗證讀取
   computeGarbLocal();
+  computeBusRtCovPop(); // T120：路線覆蓋住宅人口重算，供 updCars 小車生成率折抵
   happySum=0;happyN=0;
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
   if(happyN)cityHappy=happySum/happyN;
@@ -3320,7 +3326,7 @@ function riotBlockedRoad(x,y){
   return false;
 }
 function updCars(dt){
-  const target=clamp(Math.floor(pop/45),0,32);
+  const target=clamp(Math.floor((pop-busRtCovPop*.3)/45),0,32); // T120：路線覆蓋住宅小車生成率×0.7（30%折抵人口貢獻）；無路線時 busRtCovPop=0，與改動前一致
   if(cars.length<target&&Math.random()<.1){
     // 隨機找條路
     for(let tries=0;tries<30;tries++){
@@ -3397,6 +3403,7 @@ function updSmoke(dt){
 }
 /* ---------- 公車系統（T26；獨立於 cars 隨機遊走，站點間 BFS 巡迴）---------- */
 const buses=[];
+const rbuses=[]; // T120：路線公車（依 busRoutes 各配 1 輛，沿路線站序 BFS 往返）；不進存檔，讀檔重新派車
 let busList=[];                                    // 站點 tile idx 升序表（每次 updBuses 重建）
 function rebuildBusList(){
   busList.length=0;
@@ -3494,6 +3501,61 @@ function updBuses(dt){
       bus.x=nxt[0];bus.y=nxt[1];bus.pi++;
       if(bus.pi>=bus.path.length-1){                 // 抵達目標站→停靠
         bus.path=null;bus.p=0;bus.wait=1;
+        break;
+      }
+    }
+  }
+}
+/* ---------- T120：公車路線——玩家自訂站序（busRoutes），公車沿路線站序 BFS 往返（ping-pong）
+   複用 busBFS/busDir；斷路（中途道路被拆／規劃失敗）就地折返（反轉方向）不崩潰；
+   路線不足 2 個可用站時該路線不派車（拆站已由 removeBusStopFromRoutes 自動剔除失效站）---------- */
+function removeBusStopFromRoutes(i){ // 拆站時自動從所有路線剔除該站
+  for(const rt of busRoutes){const p=rt.stops.indexOf(i);if(p>=0)rt.stops.splice(p,1);}
+}
+function updRouteBuses(dt){
+  for(let r=0;r<3;r++){ // 依需要為每條可行路線補派 1 輛車
+    const rt=busRoutes[r];
+    const validStops=rt.stops.filter(si=>tiles[si]&&tiles[si].bus);
+    let bus=rbuses.find(b=>b.r===r);
+    if(validStops.length<2){if(bus)rbuses.splice(rbuses.indexOf(bus),1);continue;}
+    if(!bus){
+      const s0=validStops[0];
+      rbuses.push({r,x:s0%N,y:(s0/N)|0,si:0,dir:1,path:null,pi:0,p:0,d:0,wait:.5});
+    }
+  }
+  for(let i=rbuses.length-1;i>=0;i--){
+    const bus=rbuses[i];
+    const rt=busRoutes[bus.r];
+    const validStops=rt?rt.stops.filter(si=>tiles[si]&&tiles[si].bus):[];
+    if(!rt||validStops.length<2){rbuses.splice(i,1);continue;} // 路線被清空/剩不足 2 站→撤車
+    if(bus.si>=validStops.length)bus.si=0;                     // 拆站導致索引越界→安全歸零
+    if(!inMap(bus.x,bus.y)||!T(idx(bus.x,bus.y)).road){        // 所在路被拆→重生於路線起點
+      const s0=validStops[0];bus.x=s0%N;bus.y=(s0/N)|0;bus.si=0;bus.dir=1;bus.path=null;bus.pi=0;bus.p=0;bus.wait=.5;
+      continue;
+    }
+    if(bus.wait>0){bus.wait-=dt;continue;}                     // 到站停 .5s
+    if(!bus.path){
+      let nsi=bus.si+bus.dir;
+      if(nsi<0||nsi>=validStops.length){bus.dir*=-1;nsi=bus.si+bus.dir;} // 到端點→折返
+      const gi=validStops[nsi];
+      const path=busBFS(bus.x,bus.y,gi%N,(gi/N)|0);
+      if(path&&path.length>1){bus.path=path;bus.pi=0;bus.p=0;bus.nsi=nsi;}
+      else{bus.dir*=-1;bus.wait=.5;}                            // 斷路無法規劃→就地折返，不崩潰
+      continue;
+    }
+    const ct=T(idx(bus.x,bus.y));
+    bus.p+=dt*1.1*(ct&&ct.hw?1.6:1)*(ct&&ct.busLane?1.3:1);
+    let guard=0;
+    while(bus.p>=1&&guard++<64){
+      const nxt=bus.path[bus.pi+1];
+      if(!nxt||!inMap(nxt[0],nxt[1])||!T(idx(nxt[0],nxt[1])).road){ // 中途斷路→就地折返，不崩潰
+        bus.p=0;bus.path=null;bus.dir*=-1;bus.wait=.5;break;
+      }
+      bus.p-=1;
+      bus.d=busDir(bus.x,bus.y,nxt[0],nxt[1]);
+      bus.x=nxt[0];bus.y=nxt[1];bus.pi++;
+      if(bus.pi>=bus.path.length-1){                 // 抵達目標站→停靠
+        bus.si=bus.nsi;bus.path=null;bus.p=0;bus.wait=.5;
         break;
       }
     }
@@ -3713,6 +3775,24 @@ function computeGarbLocal(){
     }
   }
 }
+// T120：路線覆蓋（半徑3內、多路線不疊加，二值化覆蓋後加總人口）住宅人口——供 updCars 小車生成率折抵；每天（tick）重算一次，不進存檔
+function computeBusRtCovPop(){
+  if(!busRoutes.some(rt=>rt.stops.length)){busRtCovPop=0;return;}
+  const cov=new Uint8Array(N*N);
+  for(const rt of busRoutes)for(const si of rt.stops){
+    if(!(tiles[si]&&tiles[si].bus))continue;
+    const sx=si%N,sy=(si/N)|0;
+    for(let dy=-3;dy<=3;dy++){const ny=sy+dy;if(ny<0||ny>=N)continue;
+      for(let dx=-3;dx<=3;dx++){const nx=sx+dx;if(nx<0||nx>=N)continue;cov[idx(nx,ny)]=1;}}
+  }
+  let p=0;
+  for(let i=0;i<N*N;i++){
+    if(!cov[i])continue;
+    const b=tiles[i].bld;
+    if(b&&!b.ref&&b.k===1&&b.pw&&!b.sick&&!b.death)p+=Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1));
+  }
+  busRtCovPop=p;
+}
 
 
 // T96：地面層離屏快取。地面層（地形/水/道路/分區覆蓋等）逐格重繪成本最高，但其外觀只取決於
@@ -3855,6 +3935,13 @@ function draw(dt){
     objs.push({dep:fx+fy+.01,car:c,wx,wy});
   }
   for(const bs of buses){                                  // 公車（T26）：與小車同深度規則插入 objs
+    let fx=bs.x,fy=bs.y;
+    const nx=bs.path&&bs.path[bs.pi+1];
+    if(nx){fx=bs.x+(nx[0]-bs.x)*bs.p;fy=bs.y+(nx[1]-bs.y)*bs.p;}
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,bus:bs,wx,wy,bd:bs.d});
+  }
+  for(const bs of rbuses){                                 // 路線公車（T120）：與一般公車同深度規則插入 objs，複用同一 SPR.bus 繪製分支
     let fx=bs.x,fy=bs.y;
     const nx=bs.path&&bs.path[bs.pi+1];
     if(nx){fx=bs.x+(nx[0]-bs.x)*bs.p;fy=bs.y+(nx[1]-bs.y)*bs.p;}
@@ -4105,6 +4192,7 @@ function draw(dt){
 }
 function drawCursor(sxOf,syOf,z){
   if(tool==='pan')return;
+  if(tool==='busrt'){drawBusRoutes(sxOf,syOf,z);return;} // T120：路線工具不走一般建造游標，改繪路線彩色折線＋站點標記
   if(rect.on){
     const x0=Math.min(rect.x0,rect.x1),x1=Math.max(rect.x0,rect.x1);
     const y0=Math.min(rect.y0,rect.y1),y1=Math.max(rect.y0,rect.y1);
@@ -4126,6 +4214,34 @@ function drawCursor(sxOf,syOf,z){
   if(hover.x<0)return;
   const ok=!canPlace(tool,hover.x,hover.y)&&placeCost(tool,hover.x,hover.y)<=money;
   ctx.drawImage(ok?SPR.cursor:SPR.cursorBad,sxOf(hover.x,hover.y),syOf(hover.x,hover.y),64*z,32*z);
+}
+// T120：路線工具啟用時的疊圖——各路線用不同色彩折線連站點（依序）＋序號圓點；未入線站點畫白點提示可點擊
+function drawBusRoutes(sxOf,syOf,z){
+  const cols=['#ffd977','#5ec8ff','#7be08a'];
+  for(let r=0;r<3;r++){
+    const rt=busRoutes[r];
+    if(!rt.stops.length)continue;
+    const cx=(si)=>sxOf(si%N,(si/N)|0)+32*z, cy=(si)=>syOf(si%N,(si/N)|0)+16*z;
+    if(rt.stops.length>=2){
+      ctx.strokeStyle=cols[r];ctx.lineWidth=Math.max(1,2*z);ctx.globalAlpha=r===busRtEdit?.95:.5;
+      ctx.beginPath();
+      rt.stops.forEach((si,i)=>{i?ctx.lineTo(cx(si),cy(si)):ctx.moveTo(cx(si),cy(si));});
+      ctx.stroke();ctx.globalAlpha=1;
+    }
+    rt.stops.forEach((si,i)=>{
+      ctx.fillStyle=cols[r];
+      ctx.beginPath();ctx.arc(cx(si),cy(si),5*z,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#0c1120';ctx.font=Math.max(7,8*z)+'px sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(i+1,cx(si),cy(si));
+    });
+  }
+  ctx.fillStyle='rgba(255,255,255,.6)';
+  for(const si of busList){
+    if(busRoutes.some(rt=>rt.stops.includes(si)))continue;
+    const cx=sxOf(si%N,(si/N)|0)+32*z, cy=syOf(si%N,(si/N)|0)+16*z;
+    ctx.beginPath();ctx.arc(cx,cy,4*z,0,Math.PI*2);ctx.fill();
+  }
 }
 
 /* =====================================================================
@@ -4195,6 +4311,8 @@ cvs.addEventListener('pointerdown',e=>{
         inspect(x,y);sTick();
       }
     },550);
+  }else if(tool==='busrt'){
+    // T120：路線工具點選改由 pointerup 統一處理（見 endPointer busRtClick），此處不建造/不記錄 undo
   }else{
     openUndo();
     const m0=money;
@@ -4279,6 +4397,9 @@ function endPointer(e){
     closeUndo();
     if(downInfo&&!downInfo.moved&&tool==='pan'&&performance.now()-downInfo.t<450){
       inspect(downInfo.tx,downInfo.ty);
+    }
+    if(downInfo&&!downInfo.moved&&tool==='busrt'&&performance.now()-downInfo.t<450){ // T120：路線工具單擊＝加入/移出站點
+      busRtClick(downInfo.tx,downInfo.ty);
     }
     if(downInfo&&!downInfo.moved&&performance.now()-downInfo.t<450&&(tool==='pan'||!inMap(downInfo.tx,downInfo.ty)||!T(idx(downInfo.tx,downInfo.ty)).bld)){ // T108：單擊雙擊（含觸控）＝放大一檔，僅檢視工具或空地生效；不延遲上面既有單擊建造/檢視的回應
       const nowT=performance.now();
@@ -4697,11 +4818,62 @@ function buildToolbar(){
       document.querySelectorAll('.tool').forEach(b=>b.classList.remove('sel'));
       el.classList.add('sel');
       cvs.classList.toggle('build',tool!=='pan');
-      hideInfo();sTick();initAudio();
+      if(tool==='busrt')showBusRt();else hideInfo(); // T120：選中路線工具時顯示路線編輯面板
+      sTick();initAudio();
     };
     bar.appendChild(el);
   }
   // FIX-E：doze 已由上方篩選放行（t.id==='doze' 不 continue），每分類恰渲染一個拆除鈕；移除舊的重複 append
+}
+// T120：路線工具點選公車站——依序加入目前編輯中的路線（再點一次＝移出），純 UI 狀態，不走 doPlace
+function busRtClick(x,y){
+  if(!inMap(x,y))return;
+  const i=idx(x,y);
+  if(!T(i).bus){toast('請點選公車站','bad');return;}
+  const rt=busRoutes[busRtEdit];
+  const p=rt.stops.indexOf(i);
+  if(p>=0)rt.stops.splice(p,1);
+  else{
+    if(rt.stops.length>=8){toast('單條路線最多 8 站','bad');return;}
+    rt.stops.push(i);
+  }
+  showBusRt();
+}
+// T120：路線編輯面板（重用 #info/#infoBody，仿 showSlots/showLog 樣式）
+function showBusRt(){
+  const body=$('#infoBody');body.innerHTML='';
+  const h=document.createElement('h3');h.textContent='🚏 公車路線';body.appendChild(h);
+  const tip=document.createElement('div');tip.className='row';
+  tip.textContent='點地圖上的公車站依序加站（再點一次移出），每條最多 8 站；路線半徑3內住宅小車生成率×0.7';
+  body.appendChild(tip);
+  const sel=document.createElement('div');sel.className='row';
+  for(let r=0;r<3;r++){
+    const b=document.createElement('button');b.className='hbtn';
+    b.textContent='路線'+(r+1)+'（'+busRoutes[r].stops.length+'站）'+(r===busRtEdit?' ◀':'');
+    b.addEventListener('click',()=>{busRtEdit=r;showBusRt();});
+    sel.appendChild(b);
+  }
+  body.appendChild(sel);
+  const rt=busRoutes[busRtEdit];
+  const list=document.createElement('div');
+  if(!rt.stops.length){
+    const e=document.createElement('div');e.className='row';e.textContent='（尚未加入站點）';list.appendChild(e);
+  }else{
+    rt.stops.forEach((si,i)=>{
+      const row=document.createElement('div');row.className='row';
+      const lab=document.createElement('span');lab.textContent=(i+1)+'. 站點 ('+si%N+','+((si/N)|0)+')　';
+      row.appendChild(lab);
+      const rm=document.createElement('button');rm.className='hbtn';rm.textContent='移除';
+      rm.addEventListener('click',()=>{rt.stops.splice(i,1);showBusRt();});
+      row.appendChild(rm);
+      list.appendChild(row);
+    });
+  }
+  body.appendChild(list);
+  const clr=document.createElement('button');clr.className='hbtn';clr.textContent='清空此路線';
+  clr.addEventListener('click',()=>{rt.stops.length=0;showBusRt();});
+  body.appendChild(clr);
+  $('#info').style.display='block';
 }
 /* 小地圖 */
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
@@ -5190,6 +5362,7 @@ function save(){
       df:diff, // T115：難度／沙盒（可選欄位，舊檔載入預設 1 標準）
       hi:hist.length?{d0:hist[0].d,m:hist.map(h=>h.money),n:hist.map(h=>h.net),p:hist.map(h=>h.pop),h:hist.map(h=>h.happy)}:null, // T112：歷史曲線（拆成並列數字陣列壓縮體積，可選欄位）
       nl:log, // T114：通知中心日誌（可選欄位，最多 100 筆）
+      bus_rt:busRoutes.some(r=>r.stops.length)?busRoutes.map(r=>r.stops.slice()):null, // T120：公車路線（可選欄位，站點 idx 陣列×3 條）
       riot:riot?{cells:riot.cells,days:riot.days}:null}; // T118：暴亂狀態（可選欄位，仿 loan 慣例存最小結構）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
@@ -5266,6 +5439,7 @@ function load(slot){
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車
+    rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：路線公車運行時重建不存；路線設定下方視存檔內容還原
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
     if(d.riot&&Array.isArray(d.riot.cells)){ // T118：暴亂狀態還原（可選欄位）；此時 tiles/bld 已重建完畢，逐格核對建築仍存在才收錄並同步標記 bld.riot
@@ -5276,6 +5450,10 @@ function load(slot){
     diff=(d.df>=0&&d.df<=3)?+d.df:1; // T115：難度／沙盒（可選欄位，舊檔缺 df 視為 1 標準）
     hist=(d.hi&&d.hi.m&&d.hi.m.length)?d.hi.m.map((mv,ix)=>({d:d.hi.d0+ix,money:mv,net:d.hi.n[ix],pop:d.hi.p[ix],happy:d.hi.h[ix]})):[]; // T112：歷史曲線（可選欄位，舊檔缺 hi 視為空緩衝）
     log=Array.isArray(d.nl)?d.nl.slice(-100):[];unread=0;updBell(); // T114：通知日誌（可選欄位，舊檔缺 nl 視為空日誌；讀檔視為已讀，未讀歸零）
+    if(Array.isArray(d.bus_rt))for(let r=0;r<3;r++){ // T120：公車路線（可選欄位，舊檔缺 bus_rt 維持上方預設空路線）；逐站核對 tiles 仍為公車站才收錄
+      const arr=d.bus_rt[r];
+      if(Array.isArray(arr))busRoutes[r].stops=arr.filter(i=>Number.isInteger(i)&&i>=0&&i<N*N&&tiles[i]&&tiles[i].bus).slice(0,8);
+    }
     // T39-T60 多格建築重建
     for(let i=0;i<N*N;i++){
       const b=tiles[i].bld;
@@ -5314,6 +5492,7 @@ function advance(dtReal){
   updSmoke(dtA);
   updRain(dtA);
   updBuses(dtA);   // 公車巡迴（T26）：與 cars/smoke/rain 同為每幀動畫更新
+  updRouteBuses(dtA); // T120：路線公車，與一般公車同幀更新
 }
 function frame(ts){
   requestAnimationFrame(frame);
@@ -5430,6 +5609,15 @@ window.GV={
   addMoney:v=>{money+=v;return Math.round(money);},            // 測試用資金調整
   canPlaceTool:(t,x,y)=>canPlace(t,x,y),                       // 測試用建造可行性
   buses:()=>buses.map(b=>({x:b.x,y:b.y,stop:[b.stop%N,(b.stop/N)|0],p:+b.p.toFixed(2),wait:+b.wait.toFixed(2),moving:!!b.path})), // 公車運行快照（T26 測試用）
+  busRoutes:()=>busRoutes.map(rt=>({stops:rt.stops.map(i=>[i%N,(i/N)|0])})),         // T120 測試用：目前 3 條路線快照（座標陣列）
+  setBusRoute:(r,pts)=>{ // T120 測試用：直接設定路線（pts＝[[x,y],...] 或站點 idx 陣列），繞過 UI 點選
+    r=clamp(r|0,0,2);
+    const stops=(pts||[]).map(p=>Array.isArray(p)?idx(p[0],p[1]):p).filter(i=>i>=0&&i<N*N&&tiles[i]&&tiles[i].bus).slice(0,8);
+    busRoutes[r].stops=stops;
+    return busRoutes[r].stops.map(i=>[i%N,(i/N)|0]);
+  },
+  routeBuses:()=>rbuses.map(b=>({r:b.r,x:b.x,y:b.y,si:b.si,dir:b.dir,p:+b.p.toFixed(2),wait:+b.wait.toFixed(2),moving:!!b.path})), // T120 測試用：路線公車位置快照
+  busRtCovPop:()=>busRtCovPop, // T120 測試用：路線覆蓋住宅人口折抵基準
   step:(n)=>{n=clamp(n|0,1,60);for(let i=0;i<n;i++)tick();return day;}, // 手動推進 n 個模擬日（測試用，同 setDay 屬 sim 鉤子）
   advanceN:(dt,n)=>{dt=+dt||0.05;n=clamp(n|0,1,6000);for(let i=0;i<n;i++)advance(dt);return day;}, // T119 測試用：以固定 dt 推進 n 幀（車輛出勤等每幀動畫系統於 headless 環境亦可決定性重放，同 step() 屬 sim 鉤子）
   stats:()=>{let b=0,r=0,z=0,pw=0,f=0,ru=0;
