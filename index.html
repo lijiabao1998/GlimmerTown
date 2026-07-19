@@ -1993,6 +1993,136 @@ function buildSprites(){
       SPR.bld[d.k+'_1_'+d.v]={img:c,night:nc,ax:tax,ay:tay,w:TWX,h:TWY,smoke:[]};
     }
   }
+  /* ===== T128 建築細節密度提升：屋頂雜物（空調外機/通風管/曬衣繩/儲物箱/太陽能小板）＋立面件（陽台欄杆/
+     窗台花箱/店招燈箱），置於 buildSprites 絕對尾端（接在 T127 尾端新增之後）。detailPass() 遍歷 k=1/2/3
+     DRAFTS 建築（含 T125 財富色變 w0/w2 鍵）與 k=33/34 摩天樓，直接讀 DRAFTS/塔樓幾何（hw/h，與 mkBld/塔樓
+     生成時 isoBox 呼叫同一組 ax/by 座標系）推算屋頂菱形（roofHalfW 公式與 dia() 內部展開式一致）與牆面矩形
+     （wallCol 的 yF 公式與 isoBox 逐列填色公式一致）安全範圍，只在此範圍內補畫，保證不越出建築剪影；細節色
+     一律由該建築 PAL 牆/屋頂色 shade() 深淺派生，不引入新色；密度依 lv 遞增（lv1 少、lv3 密，塔樓比照最密）；
+     夜光件（店招燈箱/機電指示燈）同步補進 night 圖層；純尾端疊加、不在既有序列中間消耗 rand（本段仍用同一
+     buildSprites 局部 rand 做細節取色/位置的小幅變化，但因處於絕對尾端，不位移其後任何生成——已無其後生成）；
+     window.__noDetail=true 時整段跳過 detailPass() 呼叫＝零位移（改動前位元一致，供除錯/回歸比對用） ===== */
+  {
+    // 屋頂菱形在列偏移 ry（0..hw-1，0＝頂點所在列）處的半寬，公式與 dia() 內部展開式完全一致
+    const roofHalfW=(hw,ry)=>{ry=clamp(ry,0,hw-1);const hh=hw>>1;const i=ry<hh?ry:hw-1-ry;return(i+1)*2;};
+    // 牆面在偏移 dx 處的列 x 座標與該列頂端 y（沿用 isoBox 逐列 yF 公式，保證落在已填實牆面矩形內）
+    const wallCol=(cx,by,dx,side)=>side==='R'?{x:cx+dx,yF:by-((dx+1)>>1)}:{x:cx-dx,yF:by-(dx>>1)};
+    // ---- 細節件（僅 detailPass 內部使用，不進 PARTS 註冊表）----
+    const acUnit=(g,ng,x,y,tone)=>{ // 空調外機：箱體＋受光頂＋底陰影＋機電指示燈（夜光）
+      g.fillStyle=shade(tone,-22);g.fillRect(x,y,4,3);
+      g.fillStyle=shade(tone,14);g.fillRect(x,y,4,1);
+      g.fillStyle=shade(tone,-40);g.fillRect(x,y+3,4,1);
+      g.fillStyle='#7ec97a';g.fillRect(x+3,y+1,1,1);
+      ng.fillStyle='#a6ffa0';ng.fillRect(x+3,y+1,1,1);
+    };
+    const ventPipe=(g,x,y,h2,tone)=>{ // 通風管：直立管＋管蓋
+      g.fillStyle=shade(tone,-14);g.fillRect(x,y,2,h2);
+      g.fillStyle=shade(tone,18);g.fillRect(x,y,1,h2);
+      g.fillStyle=shade(tone,-36);g.fillRect(x-1,y,4,1);
+    };
+    const storageBox=(g,x,y,tone)=>{ // 儲物箱
+      g.fillStyle=tone;g.fillRect(x,y,4,3);
+      g.fillStyle=shade(tone,18);g.fillRect(x,y,4,1);
+      g.fillStyle=shade(tone,-30);g.fillRect(x,y+2,4,1);
+    };
+    const solarPanel=(g,x,y,w,tone)=>{ // 太陽能小板：深藍格紋＋支架陰影
+      g.fillStyle='#2a3f5c';g.fillRect(x,y,w,3);
+      g.fillStyle='#3f5a80';for(let i=0;i<w;i+=2)g.fillRect(x+i,y,1,3);
+      g.fillStyle=shade(tone,-24);g.fillRect(x,y+3,w,1);
+    };
+    const clothesline=(g,x,y,w,cols)=>{ // 曬衣繩
+      g.fillStyle='rgba(0,0,0,.32)';g.fillRect(x,y,w,1);
+      const step=Math.max(2,(w-2)/3|0);
+      for(let i=0;i<3;i++){g.fillStyle=cols[i%cols.length];g.fillRect(x+1+i*step,y+1,2,2);}
+    };
+    const balconyRail=(g,x,y,w,tone)=>{ // 陽台欄杆：橫桿＋直柱
+      g.fillStyle=tone;g.fillRect(x,y,w,1);
+      for(let i=0;i<w;i+=2)g.fillRect(x+i,y+1,1,2);
+    };
+    const flowerBox=(g,x,y,tone)=>{ // 窗台花箱
+      g.fillStyle=tone;g.fillRect(x,y,4,2);
+      const fc=['#e8907e','#e8e070','#d9a8e8'];
+      g.fillStyle=fc[(x+y)%3];g.fillRect(x+1,y-1,1,1);g.fillRect(x+3,y-1,1,1);
+    };
+    const signLightbox=(g,ng,x,y,w,col)=>{ // 店招燈箱（夜光）
+      g.fillStyle='#20242c';g.fillRect(x,y,w,3);
+      g.fillStyle=col;g.fillRect(x+1,y+1,w-2,1);
+      ng.fillStyle=col;ng.fillRect(x+1,y+1,w-2,1);
+    };
+    const acLamp=(g,ng,x,y)=>{ // 機電指示燈（夜光小紅點）
+      g.fillStyle='#c94848';g.fillRect(x,y,1,1);
+      ng.fillStyle='#ff7a6a';ng.fillRect(x,y,1,1);
+    };
+    // 對單一 sprite 鍵疊加細節：cL/cR/rf 為該棟牆/屋頂色（與 isoBox 呼叫同一組色），ax/ay/by/hw/h 為幾何
+    const applyDetail=(key,k,cL,cR,rf,ax,ay,by,hw,h,density)=>{
+      const spr=SPR.bld[key];
+      if(!spr)return;
+      const g=spr.img.getContext('2d'),ng=spr.night.getContext('2d');
+      const rty=by-h-hw; // 屋頂菱形頂點，與 isoBox 回傳值同一公式
+      const roofTone=shade(rf,-16);
+      const faTone=shade(cR,-18),faHi=shade(cL,16);
+      const kind=(k===2||k===34)?'C':(k===3?'I':'R'); // C商業 I工業 R住宅（含住宅塔）
+      // ---- 屋頂雜物：沿寬邊列挑點，x 偏移取該列安全半寬扣邊界後的一半、左右交錯，並疊加小幅 rand 位移 ----
+      const roofRows=[.42,.58,.30,.68];
+      for(let i=0;i<density.roof;i++){
+        const ry=clamp(Math.round(hw*roofRows[i%4])+Math.floor(rand()*3)-1,2,hw-4);
+        const avail=Math.max(2,Math.min(roofHalfW(hw,ry),roofHalfW(hw,clamp(ry+3,0,hw-1)))-5);
+        const side=i%2===0?1:-1;
+        const off=Math.min(avail,2+Math.floor(avail*.4));
+        const x=ax+side*off,y=rty+ry;
+        if(kind==='I'){
+          if(i%2===0)ventPipe(g,x,y-3,7,roofTone);else storageBox(g,x-2,y,roofTone);
+        }else if(kind==='C'){
+          if(i%2===0)acUnit(g,ng,x-2,y,roofTone);else ventPipe(g,x,y-4,6,roofTone);
+        }else{
+          const m=i%3;
+          if(m===0)solarPanel(g,x-3,y,7,roofTone);
+          else if(m===1)acUnit(g,ng,x-2,y,roofTone);
+          else storageBox(g,x-2,y,roofTone);
+        }
+      }
+      // ---- 立面件：沿左右牆挑 dx 段落，y 落在該 dx 列牆面安全範圍內（yF-h+pad ~ yF-pad） ----
+      const facadeSpots=[.30,.55,.15,.70];
+      for(let i=0;i<density.facade;i++){
+        if(h<10)break; // 牆太矮（<10px）不硬塞立面件，避免擠壓
+        const side=i%2===0?'R':'L';
+        const dx=clamp(Math.round(hw*facadeSpots[i%4]),1,hw-4);
+        const{x:colX,yF}=wallCol(ax,by,dx,side);
+        const yBase=clamp(yF-4-Math.round(h*(.22+.14*i)),yF-h+4,yF-5);
+        if(kind==='C'){
+          if(i%2===0)signLightbox(g,ng,colX-3,yBase,7,SIGNC[i%SIGNC.length]);
+          else flowerBox(g,colX-2,yBase,faTone);
+        }else if(kind==='I'){
+          ventPipe(g,colX-1,yBase,4,faTone);
+          if(i===0)acLamp(g,ng,colX,yBase-1);
+        }else{
+          if(i%2===0)balconyRail(g,colX-3,yBase,6,faHi);
+          else if(i===1&&h>=20)clothesline(g,colX-4,yBase,8,['#e8e070','#e8907e','#d9a8e8','#f2f2f2']);
+          else flowerBox(g,colX-2,yBase,faTone);
+        }
+      }
+    };
+    const DENS=[null,{roof:1,facade:1},{roof:2,facade:2},{roof:3,facade:2}]; // 索引=lv：1少 2中 3密
+    const detailPass=()=>{
+      for(const t of tasks){ // k=1/2/3 DRAFTS 建築（依 tasks 既有升序，僅讀值不影響其序）
+        const wl=PAL[t.k].walls[t.v],rf=PAL[t.k].roof[t.v];
+        const key=t.k+'_'+t.lv+'_'+t.v;
+        applyDetail(key,t.k,wl[1],wl[0],rf,36,110,108,t.d.hw,t.d.h,DENS[t.lv]);
+        if(t.k===1){ // T125 財富色變鍵沿用同一幾何，細節色改由對應色變後的牆/屋頂色派生
+          applyDetail(key+'_w0',t.k,shade(wl[1],-20),shade(wl[0],-20),shade(rf,-20),36,110,108,t.d.hw,t.d.h,DENS[t.lv]);
+          applyDetail(key+'_w2',t.k,shade(wl[1],20),shade(wl[0],20),shade(rf,14),36,110,108,t.d.hw,t.d.h,DENS[t.lv]);
+        }
+      }
+      const TOWER_GEOM=[ // 對照 T127 TWDEF 幾何色值（各自獨立作用域無法共用，於此重列必要欄位；k=33/34 摩天樓吃最密 pass）
+        {k:33,v:0,wl:'#8291a3',wr:'#6c7c90',rf:'#5a6a7c',h:150},
+        {k:33,v:1,wl:'#a9836c',wr:'#8f6853',rf:'#6b4c40',h:168},
+        {k:34,v:0,wl:'#5f89b0',wr:'#4a6f92',rf:'#3a5875',h:150},
+        {k:34,v:1,wl:'#5aa08f',wr:'#457d70',rf:'#355f55',h:168}
+      ];
+      for(const d of TOWER_GEOM)applyDetail(d.k+'_1_'+d.v,d.k,d.wl,d.wr,d.rf,68,228,226,28,d.h,{roof:4,facade:4});
+    };
+    if(!window.__noDetail)detailPass();
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
