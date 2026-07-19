@@ -219,6 +219,8 @@ const DEN_POP=[0.70,0.85,1.00,1.25,1.60];
 const DEN_NAME=['低密度','中低密度','中密度','中高密度','高密度'];
 const WEALTH_NAME=['貧','中','富'];       // T123：住宅財富分級 0貧/1中/2富
 const WEALTH_ICON=['🏚️','🏠','🏡'];       // T123：inspect 徽記
+const WEALTH_TAX=[0.6,1,1.5];             // T124：住宅財富分級稅收係數 0貧/1中/2富
+const WEALTH_PEN=[0.5,1,2];               // T124：住宅財富分級污染/犯罪幸福懲罰係數 0貧/1中/2富
 const PLANT_CAP=50;         // 每座電廠供電建築數
 const DUMP_CAP=40;          // 每座垃圾場處理容量（T19）
 const WATER_TOWER_CAP=80;   // 每座水塔供水建築數（T31）
@@ -2902,6 +2904,7 @@ function tick(){
       const roadHappy=rc===5?-.12:rc===4?-.05:rc===3?0:rc===2?.02:rc===1?.05:0;
       const library=COV.library[ci]>0;                   // 圖書館半徑6覆蓋（原 countNear k===14）
       const post=COV.post[ci]>0;                         // 郵局半徑8覆蓋（原 countNear k===15）
+      const we=b.we!==undefined?b.we:1;                  // T124：財富級（缺省中，供污染/犯罪懲罰係數用）
       const happyParts=[ // T111：各加減項先收進陣列再 reduce 求和——與原公式逐項同序、每項獨立算式原樣搬移，位元一致
         {name:'基礎',val:.62},
         {name:'道路等級',val:roadHappy},
@@ -2914,8 +2917,8 @@ function tick(){
         {name:'郵局',val:post?.03:0},
         {name:'工業汙染鄰近',val:-ind*.09},
         {name:'電廠鄰近',val:-pl*.18},
-        {name:'空氣污染',val:-POL[ci]*.006}, // T110：空間污染係數
-        {name:'犯罪',val:-crime*.05},
+        {name:'空氣污染',val:-POL[ci]*.006*WEALTH_PEN[we]}, // T110：空間污染係數；T124：財富分級懲罰係數（貧.5/中1/富2）
+        {name:'犯罪',val:-crime*.05*WEALTH_PEN[we]}, // T124：財富分級懲罰係數（貧.5/中1/富2）
         {name:'宵禁',val:pol&&pol.curfew?-.02:0}, // T122：宵禁開啟時全城住宅幸福固定 -2%
         {name:'喪事未安撫',val:-(deathPenalty[idx(x,y)]?.1:0)},
         {name:'生病',val:-(b.sick?.35:0)},
@@ -3112,6 +3115,19 @@ function tick(){
       if(b.k===1)b.we=judgeWealth(x,y); // T123：住宅升級時重判財富級（環境可能已改變）
     }
   }
+  // T124：每 30 天重判存量住宅財富級——環境緩慢變化（新污染源/新設施覆蓋）致升降級，漸變：一次最多變一級，不驟升驟降；
+  // 走 day（存讀檔本已保留，節奏自然連續不重置）、不消耗 R()，不影響既有隨機流位置與其他系統的種子化重播
+  if(day%30===0){
+    for(let i=0;i<N*N;i++){
+      const b=tiles[i].bld;
+      if(!b||b.k!==1)continue;
+      const x=i%N,y=(i/N)|0;
+      const cur=b.we!==undefined?b.we:1;
+      const tgt=judgeWealth(x,y);
+      if(tgt>cur)b.we=cur+1;
+      else if(tgt<cur)b.we=cur-1;
+    }
+  }
   // 火災（升級段之後）：起火→蔓延→推進燃燒/燒毀成焦土
   const burning=[];
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&b.fire)burning.push(i);}
@@ -3243,7 +3259,7 @@ function tick(){
     else if(b.k===32);                // 大學（T54）
     else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot){ // T118：暴亂中住宅停稅收
       const pm=pol||{taxR:1,taxC:1,taxI:1};
-      if(b.k===1){const v2=POPS[b.lv]*.12*(pm.taxR||1);income+=v2;taxR+=v2;}
+      if(b.k===1){const we=b.we!==undefined?b.we:1;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we];income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）
       else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1);income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95
       else{const v2=JOBSI[b.lv]*.15*(pm.taxI||1);income+=v2;taxI+=v2;}
     }
@@ -5072,8 +5088,10 @@ function showStats(){
   if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false};
   let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0,nS=0,nD=0,nT=0,nW=0,nPol=0,nH=0,nCl=0,nL=0,nPo=0,nCe=0;
   let nSt=0,nPt=0,nAi=0,nPk=0,nTs=0,nFa=0,nRa=0,nLd=0,nSo=0,nWi=0,nSe=0,nAm=0,nRc=0,nF2=0,nPr=0,nUn=0; // T89：v3.0（T39-T54）新建築計數
+  let popP=0,popM=0,popR=0; // T124：貧/中/富人口占比累加（沿用既有 pop 計算口徑，逐格掃描）
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
-    if(b.k===1)nR++;else if(b.k===2)nC++;else if(b.k===3)nI++;
+    if(b.k===1){nR++;const we=b.we!==undefined?b.we:1;const pc=(b.pw&&!b.sick&&!b.death)?Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1)):0;if(we===0)popP+=pc;else if(we===2)popR+=pc;else popM+=pc;}
+    else if(b.k===2)nC++;else if(b.k===3)nI++;
     else if(b.k===4)nP++;else if(b.k===5)nE++;else if(b.k===6)nF++;
     else if(b.k===7)nS++;else if(b.k===8)nD++;else if(b.k===9&&!b.ref)nT++; // 體育場只計 root（T22）
     else if(b.k===10)nW++; // 水塔（T31）
@@ -5126,6 +5144,7 @@ function showStats(){
   }).join('');
   const happyTotal=happySorted.reduce((s,p)=>s+p.val,0);
   const happyHtml=happySorted.length?`<div class="row"><b>😊 幸福構成</b>（城市平均）</div>${happyRows}<div class="row" style="opacity:.8">合計 ${fp(happyTotal)}</div>`:'';
+  const popT=popP+popM+popR; // T124：貧/中/富人口占比分母
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
@@ -5138,6 +5157,7 @@ function showStats(){
      <div class="row" style="font-size:11px;opacity:.75">v3.0：🚉${nSt} ⚓${nPt} ✈️${nAi} 🅿️${nPk} 🚋${nTs} 🌾${nFa} 🐄${nRa} 🗿${nLd} ☀️${nSo} 💨${nWi} 🚰${nSe} 🚑${nAm} ♻️${nRc} 🚒${nF2} 🚔${nPr} 🎓${nUn}　🔧維護-${v3Up.toFixed(1)}</div>
      <div class="row">🗑️ 垃圾 ${garbage.toFixed(1)}/${garbCap}</div>
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
+     <div class="row">🏚️ 貧 ${popT?Math.round(popP/popT*100):0}%　🏠 中 ${popT?Math.round(popM/popT*100):0}%　🏡 富 ${popT?Math.round(popR/popT*100):0}%</div>
      ${happyHtml}
      <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
      ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
