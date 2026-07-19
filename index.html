@@ -231,7 +231,7 @@ const ROAD_UPKEEP=[0.01,0.02,0.05,0.12,0.35];
 const ROAD_SPEED=[0.5,1.0,1.4,2.0,3.5];
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）
 
-const GAME_VER='3.3'; // v3.3 收官
+const GAME_VER='3.4'; // v3.4 收官
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},

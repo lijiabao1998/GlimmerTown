@@ -59,6 +59,10 @@ v3.3（T119）追加**服務車輛派遣抽象** `updDispatch(arr,dt,speed,cap,s
 v3.3（T120）追加 `busRoutes`（固定 3 條、每條最多 8 站，存 tile idx 陣列，存檔可選欄位 `bus_rt`）：路線工具 `busrt` 免費點選公車站建路線，`rbuses`＋`updRouteBuses(dt)` 依站序 ping-pong 往返（複用 `busBFS`），拆站自動剔除（`removeBusStopFromRoutes`），路線覆蓋住宅（半徑3 Chebyshev）折抵 `updCars` 小車生成率。GV 追加 `busRoutes()`/`setBusRoute(r,pts)`/`routeBuses()`/`busRtCovPop()`。
 v3.3（T121）追加地形編輯筆刷 `tdig`/`tland`/`traise`（挖水/填土/抬升削平，`$/格`，TOOLS 新分類 `terra`，1×1/3×3 筆刷）：`computeFoam()`/`computeElMask()` 全圖迴圈內部逐格演算抽成單格函式 `recalcFoamAt(x,y)`/`recalcElMaskAt(x,y)`（結構性重構、僅 `continue`→`return` 語法適配，判斷式與位元運算完全原樣，抽函式前後同種子全圖位罩逐位元組相等已驗證），另提供鄰域版 `recalcFoamNear`/`recalcElMaskNear`（自己＋四鄰，比照既有 `recalcMask`/`recalcMask4` 手法）供筆刷呼叫；`terraCells(x,y)` 共用 helper 列出筆刷涵蓋格供 `canPlace`/`placeCost`/`doPlace` 共用。存檔格式零變更（`t`/`el` 皆既有可選欄位）。
 v3.3（T122）追加**城市法規開關**（非稅收槓桿）：`pol` 政策物件擴四布林 `curfew`（宵禁，犯罪率×0.6、住宅幸福-0.02）/`recycle`（回收宣導，垃圾產量×0.85、每日$8支出）/`tourPromo`（觀光推廣，商業稅觀光子項×1.1、每日$10支出）/`ecoReg`（節能條例，商業稅×0.95、`computePower()` 每電廠供電容量+5）；沿 `pol` 既有整包序列化路徑存檔，`load()` 對 `d.pol` 整包覆寫、舊檔缺四布林時該欄位天然 `undefined`＝falsy＝預設全關，未新增存檔格式判斷分支。四計算點皆 `pol&&pol.xxx` 短路判斷，關閉時係數精確退化為 `×1`/`+0`，全關回歸基準（30 日序列逐值比對）零漂移。
+
+v3.4（T123）追加**住宅財富分級軸**：`bld` 新增欄位 `we`（0貧/1中/2富，僅 k===1 有意義，缺省視為 1 中）；新函式 `judgeWealth(x,y)`（置於 §COV/POL 家族 `rebuildCov()` 之後、`computeWater()` 之前）＝服務覆蓋數（police/school/hospital/park 各 `COV.xxx>0` 記 1 分）－`POL[i]*.05`－`countNear(4,crime)*.4` 加權評分，`score>=2`→2富／`score>0`→1中／其餘→0貧；住宅新建（`cell.bld` 字面量）與升級（`b.lv++` 成功後）皆呼叫 `judgeWealth` 寫入/重判 `b.we`。`WEALTH_NAME=['貧','中','富']`/`WEALTH_ICON=['🏚️','🏠','🏡']`（緊接既有 `DEN_NAME` 之後），`inspect()` 住宅分支新增財富徽記行。GV 新增 `wealthAt(x,y)`（比照 `polAt` 命名慣例，非住宅／越界回 `null`）。
+v3.4（T124）追加**財富分級經濟接入**：新常數 `WEALTH_TAX=[0.6,1,1.5]`/`WEALTH_PEN=[0.5,1,2]`（緊接 `WEALTH_ICON` 之後，貧/中/富）；住宅稅收（tick 經濟段）尾端乘 `WEALTH_TAX[we]`；`happyParts` 空氣污染／犯罪兩項乘 `WEALTH_PEN[we]`（`we` 缺省容錯 1，乘 1 不變）；新增**每 30 天重判存量住宅**區塊（升級迴圈之後、火災段之前）：全城 `b.k===1` 逐格呼叫 `judgeWealth` 與現值比較，`tgt>cur`/`tgt<cur` 各只 `±1`（漸變一次最多一級，非驟升驟降），不消耗 `R()`、走既有 `day` 計時；`showStats` 統計面板新增 `popP/popM/popR` 三累加器（沿用 `pop` 計算口徑）與「🏚️ 貧X%　🏠 中X%　🏡 富X%」占比行。硬性不變量：全城中產（`we` 缺省或顯式 1）時稅收/幸福公式與改動前逐位元一致。
+v3.4（T125）追加**財富分級外觀呈現**（純外觀層，沿用既有 PARTS 部件引擎換色換件，不畫全新建築）：`buildSprites` 絕對尾端（接在 T119 服務車輛區塊之後，遵守 FIX-B 亂數流尾端約定）為 `tasks` 中全部 24 組 k=1 `(lv,v)` 組合各生成貧/富兩套色變，鍵名 `1_lv_v_w0`/`1_lv_v_w2`（共 48 鍵）：富＝牆/屋頂色 `shade(+22/+14)` 提亮＋屋頂加天線（`PARTS.antenna`）與小花圃綠化色塊；貧＝新增 `desat()`（降飽和＋略壓暗）處理牆/屋頂色＋牆面補丁色塊（4 色票）；中產（we===1 或未生成鍵）完全不重繪，沿用既有 `SPR.bld['k_lv_v']` 鍵。新函式 `wealthSpr(baseKey,we)`（緊接 `buildSprites` 之後）：we===0/2 且對應鍵存在才回傳色變版，其餘（含 we===1/undefined/壞值/鍵缺失）一律回退 `SPR.bld[baseKey]`，不拋錯。`draw()` 住宅選鍵分支改呼叫 `wealthSpr`（外層仍保留原 FIX-D `_0` 變體鍵兜底）；`drawMini()` 於既有 `MINI_BLD_PAL` 賦值後對 `we!==undefined&&we!==1` 的住宅用 `shade(c,we===2?18:-18)` 微調小地圖明度。
 快捷鍵現狀（詳見 §8 全表）：1=檢視、2-6=五級道路（小巷/支路/次幹道/主幹道/快速路）、7=住宅 8=商業 9=工業 0=公園、'-'=拆除、'='=路飾、b=公車站、w=水塔、g=水管、j=警察局、h=醫院、c=診所、l=圖書館、o=郵局、m=墓園（電廠/消防局/學校/垃圾場/體育場/種樹/填草無鍵位；FIX-A：水管 p→g、警察局 P→j、取消大寫 P 綁定）。序列化命名地雷：存檔 `rc`=路飾（0/1）、`rcl`=道路等級（0-5），二者命名相近勿混淆。
 v1.4 批次B 追加：`t.hw` 高速路（rd 存檔值 0-4）、**多格建築架構**（k=9 體育場 2×2：root 含 sz、其餘格 `{k,ref:[rx,ry]}`，
 所有迴圈遇 ref 跳過、doze 全清、bl 只存 root 第 6 位存 sz）、`t.el/t.em` 高地與崖沿位罩（存檔欄位 el）、
@@ -86,6 +90,7 @@ v1.3 追加：`bld.fire`（0 或已燃天數，≥5 燒毀）、`t.ruin`（焦�
 - 里程碑 `MILES`：人口 [50,150,400,900,1600,2600] → 獎金。破產保底：資金<20 且入不敷出且距上次>60天 → 送 250。
 - **v3.2（T109）需求模型更新**：上面「需求」三式為 v3.0 基線，T109 起 `tick()` 內改為：住宅 `dem[1]=clamp(jobSurplus*.7+happyAdj*.3,-1,1)`（`jobSurplus` 沿用原 `(jobs*1.2+25-workers)/70` 算式、`happyAdj=(cityHappy-.6)*1.2`）；商業 `dem[2]=clamp((pop/max(1,czone)-3)/6,-1,1)`（`czone`＝全圖商業分區格數，含未建成，`tick()` 內每日重新計數）；工業 `dem[3]=clamp((jobsC*.8-jobsI)/40,-1,1)`（商業貨源缺口）。生長機率式同步改為 `p=.10*(1+dem[z]*.6*hf)`（`hf`＝既有住宅幸福係數，`dem[z]<-.5` 時該類 `p=0` 停長），取代舊 `p=.10+.5*max(0,dem)`；升級式另疊加 T113 多因子門檻：`lv1→2` 需 `COV.police[i]>0`、`lv2→3` 需 `COV.school[i]>0 && POL[i]<POL_LV3_MAX`（`POL_LV3_MAX=15`），純 AND 疊加於原 `dem>.15` 等既有條件，不改動 roll 機率算式本身。`dem` 本身在 v3.0/v3.2 皆不入存檔，`tick()` 每日重算。
 - **v3.3（T122）法規係數表**：`pol.curfew`＝犯罪 roll 乘 `.6`＋住宅幸福 `happyParts` 追加「宵禁」項 `-.02`；`pol.recycle`＝垃圾產量 `(pop*.05+jobsI*.08)*.85`（否則 `*1`）、每日固定支出 `$8`；`pol.tourPromo`＝商業稅觀光子項乘 `1.1`、每日固定支出 `$10`；`pol.ecoReg`＝商業稅額尾端乘 `.95`、`computePower()` 每電廠供電容量 `+5`。四者皆 `pol&&pol.xxx` 短路判斷，關閉時精確退化為原公式（`×1`/`+0`），全關回歸基準零漂移。
+- **v3.4（T124）財富分級係數表**：`we=b.we!==undefined?b.we:1`（住宅財富級，缺省中）；稅收＝`POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]`（`WEALTH_TAX=[0.6,1,1.5]` 貧/中/富）；幸福構成「空氣污染」`-POL[ci]*.006*WEALTH_PEN[we]`、「犯罪」`-crime*.05*WEALTH_PEN[we]`（`WEALTH_PEN=[0.5,1,2]` 貧/中/富，貧民抗污染但稅少、富人多繳稅但敏感）；`WEALTH_TAX[1]===1`、`WEALTH_PEN[1]===1` 精確為浮點 1.0，全城中產時公式與改動前逐位元一致。每 30 天（`day%30===0`）全城住宅重判：`tgt=judgeWealth(x,y)` 與 `cur=we` 比較，`tgt>cur→cur+1`／`tgt<cur→cur-1`（一次最多漸變一級）。
 
 ## 4. 座標系統（動渲染必讀）
 
@@ -117,6 +122,7 @@ helper（第 2 節開頭）：
 - 煙囪冒煙點存 `smoke:[{dx,dy}]`（相對錨點）；電廠閃燈 `lamp:{dx,dy}`。
 - 註冊：`SPR.bld['k_lv_v']`、`SPR.tree[]`、`SPR.park[]`、`SPR.plant`、`SPR.road[16]`、`SPR.bridge[16]`、`SPR.foam[16]`、`SPR.zone{}`、`SPR.car[]`（8色×A/B朝向）。
 - v3.3 新增（皆置於 `buildSprites` 絕對尾端，遵守 FIX-B 亂數流尾端約定）：`SPR.tornado[0..2]`（T116，龍捲風三幀漏斗雲）、`SPR.crater`（T117，隕石坑扁平菱形焦黑環＋night 餘燼發光層）、`SPR.ladderTruck`/`SPR.recycleTruck`（T119，複製 `SPR.car` 生成邏輯換色，獨立鍵不與環境小車色池共用）。
+- v3.4（T125）新增（同樣置於 `buildSprites` 絕對尾端，接在 T119 服務車輛區塊之後）：`SPR.bld['k_lv_v_w0']`/`['k_lv_v_w2']`（住宅財富貧/富色變，24 組 `(lv,v)` × 2 級＝48 鍵，沿用 `mkBld` 同款 `plate→isoBox→PARTS 迴圈→outlineSprite` 流程只換色盤與收尾裝飾），取用鍵一律經 `wealthSpr(baseKey,we)`（缺鍵/中產/壞值回退 `SPR.bld[baseKey]`）。
 
 ### 5.1 建築的資料驅動：DRAFTS ＋ 部件引擎（T28）
 
@@ -166,6 +172,7 @@ k=1~3 住宅／商業／工業的 `SPR.bld['k_lv_v']` 不再寫死 if 分支，�
 `ach`＝已解鎖成就 id 陣列；`nm`＝鎮名；`ln`＝貸款 `[remain,daily]`；`star`＝最佳星等；`pol`＝稅率政策物件（T55/T68）、`region`＝區域聯動摘要（T60/T73）。dc 之後所有欄位均為可選欄位（舊檔容錯）。
 v3.2 追加三個可選欄位（皆 §2/§8 所述運行時全域的存檔鏡射，舊檔缺欄位容錯為空/預設值，讀寫對稱於 `save()`/`load()`）：`hi`＝歷史曲線（T112，拆成 `{d0,m,n,p,h}` 並列數字陣列壓縮體積而非逐筆存物件，`d0`＝起始日，`m/n/p/h`＝money/net/pop/happy 四條等長陣列，`load()` 依 `d0` 重建回 `hist` 逐筆物件陣列）；`nl`＝通知日誌（T114，`log` 陣列原樣存入，上限 100 筆，`load()` 還原後 `unread` 歸零＝讀檔視為已讀）；`df`＝難度（T115，0-3＝簡單/標準/困難/沙盒，`load()` 缺欄位或越界視為 1 標準）。
 v3.3 追加三個可選欄位（同樣舊檔缺欄位容錯為空/預設值）：`ctr`＝隕石坑（T117，per-tile 字元串，仿 `rn`/`fl`/`le` 先例，`load()` 缺欄位容錯全 0）；`riot`＝暴亂狀態（T118，`{cells,days}` 最小結構，仿 `loan` 慣例，`load()` 於 tiles/bld 重建完畢後逐格核對建築仍存在才收錄同步 `bld.riot`，缺欄位視為無暴亂）；`bus_rt`＝公車路線（T120，`busRoutes` 陣列原樣存入，`load()` 逐站核對 tiles 仍為公車站才收錄，缺欄位視為三條空路線）。`pol` 既有整包欄位（T122）擴四布林 `curfew`/`recycle`/`tourPromo`/`ecoReg`，走原有 `pol` 整包序列化路徑、未新增判斷分支，舊檔缺四鍵時天然 falsy＝預設全關。
+v3.4（T123）`bl` 元組追加尾端可選第 8 位＝住宅財富 `we`（沿用 sz/fire/den 尾端可選位先例，`e=[i,k,lv,v,age(,sz|fire)(,den)(,we)]`，僅 k===1 且 `we!==undefined&&we!==1`（非預設中產）才落盤，落盤前補齊 fire/den 佔位）；`load()` 對稱 `rec.length>=8?rec[7]:1`（**舊檔缺欄位缺省 1 中，非 0 貧**，避免舊 3.3 存檔全城變貧）。
 讀檔後重算 mask/foam＋`recalcAllRailMasks()`（FIX-D：rl/tr 還原時 railMask/tramMask 歸零需全量補算）＋rebuildCov；`pop/jobs/pw/h` 由下一次 tick 重算，不存。
 **覆寫保險（FIX-D）**：save／importShare 覆寫主鍵前先把舊值備份到 `<key>_bak`；setItem 失敗 `console.warn` 不再靜默；load 主鍵毀損先嘗試救 `_bak`，importShare 失敗還原舊檔。
 **變更規則見 RULES 第 9 條。** 音效設定另存 `.snd`（0/1/2，舊 `.mute` 自動遷移）。
