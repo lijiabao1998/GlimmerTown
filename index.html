@@ -148,6 +148,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   <button class="hbtn" id="bNew">🆕</button>
   <button class="hbtn" id="bBell">🔔<span id="bellDot" class="dot" style="display:none">0</span></button>
   <button class="hbtn" id="bAch">🏆</button>
+  <button class="hbtn" id="bEditor" style="display:none">🛠 目標</button>
 </div>
 
 <div id="hint"><span id="hintTxt"></span><button id="hintX">✕</button></div>
@@ -172,6 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   <div class="sub">從一片荒野，點亮一座小鎮。</div>
   <button id="bContinue" style="display:none">▶ 繼續上次的小鎮</button>
   <button id="bNewGame">🌱 開拓新地圖</button>
+  <button class="alt" id="bEditorMode">🛠 編輯器</button>
   <div class="help">
     🖐 拖曳平移 ・ 滾輪／雙指縮放<br>
     🛣 先鋪路 → 🏠 劃分區域 → ⚡ 蓋電廠供電<br>
@@ -448,6 +450,10 @@ let challenge=null;       // T88 挑戰
 let scenario=null;        // T132：目前進行中的場景戰役 {id,startDay,hold}（null＝一般/沙盒/挑戰模式，零評估開銷）；存檔可選欄位 sc
 let pendingScenario=null; // T132：開始畫面選關後、begin(true) 執行前暫存的 SCENARIOS 條目（供套用 seed/cash）；不進存檔
 let scDone={};             // T132：已通關場景 id 集合（跨局持久，落 localStorage 獨立鍵 SAVEKEY+'.scDone'，不隨 newWorld/load 重置）
+// T135：地圖/場景編輯器——複用沙盒 diff=3 短路達成「免費放置＋不跑經濟」，本身只額外掛編輯工具列顯示與目標打包
+let editMode=false;       // 編輯器模式旗標（true 時顯示編輯工具列；newWorld/load 成對重置，鐵律7）
+let editorGoal={type:'pop',target:600,byDay:150,hold:20,field:'police',cash:3000}; // 編輯器目標草稿：純 UI 狀態（比照 terraBrush/miniView 慣例），不進存檔，僅匯出時打包進擴充版分享碼
+let customScenario=null;  // 由擴充版分享碼匯入的自製場景定義（複用 T132 goal/fail 結構）；僅存於記憶體，不進常規存檔（硬性不變量：編輯器產物走分享碼字串）；newWorld/load 成對重置
 // T133：城市等級階梯——累積城市點數（人口＋幸福＋服務覆蓋）晉升的長線進度階梯，比照既有 MILES 里程碑陣列慣例＋COV/POL/LAND 純唯讀衍生場設計（26 級，對標 TheoTown 65 級 rank 進度感的壓縮版）。
 // unlock 為預留掛點：本卡不新增任何被鎖建築，僅少數里程碑級距標註未來 MU 波大型建築/設施的預告文案（純展示，不影響任何既有 34 種建築的可放置性）。
 const RANKS=[
@@ -2406,6 +2412,7 @@ function newWorld(seedOverride){
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   scenario=null; // T132：場景戰役進度成對重置（鐵律7）——開新圖預設回一般模式，begin() 若有 pendingScenario 會在其後另行設回
+  editMode=false;customScenario=null; // T135：編輯器模式與自製場景定義成對重置（鐵律7）——開新圖預設離開編輯器；bEditorMode 按鈕會在 begin() 之後另行設回 editMode=true
   rankIdx=0;cityPoints=0; // T133：城市等級成對重置（鐵律7）——新城市回到 Lv.1，下次 tick 起即時重算
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動
@@ -3768,19 +3775,19 @@ function tick(){
   }
   // T132 場景戰役檢查（scenario 為 null 時整段零開銷、零 R() 影響——即非場景模式硬性不變量）
   if(scenario){
-    const sc=SCENARIOS.find(s=>s.id===scenario.id);
+    const sc=scenario.custom?customScenario:SCENARIOS.find(s=>s.id===scenario.id); // T135：自製場景（編輯器匯出/匯入）複用同一評估管線，sc 改由記憶體中的 customScenario 供應；內建場景 scenario.custom 恆 undefined，行為與改動前逐位元一致
     if(sc){
       if(sc.goal.type==='happy')scenario.hold=(cityHappy>=sc.goal.target)?(scenario.hold||0)+1:0; // 幸福維持：連續達標天數計數
       if(scenarioGoalMet(sc)){
         toast('🏆 '+sc.name+'：'+sc.win,'gold');
         money+=sc.bonus||0;
-        if(!scDone[sc.id]){scDone[sc.id]=1;try{localStorage.setItem(SAVEKEY+'.scDone',JSON.stringify(Object.keys(scDone)));}catch(e){}}
-        scenario=null;sFanfare();
+        if(!scenario.custom&&!scDone[sc.id]){scDone[sc.id]=1;try{localStorage.setItem(SAVEKEY+'.scDone',JSON.stringify(Object.keys(scDone)));}catch(e){}} // T135：自製場景不計入官方 8 關通關集合
+        scenario=null;customScenario=null;sFanfare();
       }else if(scenarioFailMet(sc)){
         toast('💤 '+sc.name+'：'+sc.lose,'bad');
-        scenario=null;
+        scenario=null;customScenario=null;
       }
-    }else scenario=null; // 找不到對應場景（資料表被改動）：防呆清空，避免每天空轉判斷
+    }else scenario=null; // 找不到對應場景（資料表被改動，或自製場景 customScenario 因讀檔被清空）：防呆清空，避免每天空轉判斷
   }
   // 貸款還款（T16）
   if(loan){money-=loan.daily;if(--loan.remain<=0){loan=null;toast('🏦 貸款已還清！','gold');}}
@@ -5620,21 +5627,131 @@ function exportShare(){
     navigator.clipboard.writeText(code).then(()=>toast('📋 已複製'),()=>prompt('複製此分享碼',code));
   else prompt('複製此分享碼',code);
 }
-function importShare(){
+const SHARE_VER='GVX1:'; // T135：擴充版分享碼版本前綴——沿用既有 base64 路徑，僅在最前面加此標記；舊碼無此前綴，importShareCode 仍走原本解碼路徑（向後相容）
+function importShareCode(code){ // T135：匯入核心邏輯（不依賴 prompt 取碼），供 importShare()（UI）與 GV 測試鉤子共用；舊格式碼與擴充版碼（含 egoal 目標包）皆由此處理
+  if(!code)return false;
+  if(code.length>2000000){toast('分享碼過長','bad');return false;} // 超長碼優雅拒絕（避免 atob/JSON.parse 卡死主執行緒），不崩潰
+  try{
+    const body=code.startsWith(SHARE_VER)?code.slice(SHARE_VER.length):code; // 版本前綴可選：有則剝除，無則視為舊版碼，一律沿用同一 base64 解碼路徑
+    const json=decodeURIComponent(escape(atob(body)));
+    const d=JSON.parse(json);
+    if(!(d.v===1&&d.ter&&d.ter.length===N*N)){toast('分享碼無效','bad');return false;}
+    const egoal=d.egoal||null; // T135：擴充版分享碼才有的編輯器目標包；舊碼天然無此欄位
+    if(egoal)delete d.egoal;   // 硬性不變量：編輯器產物不落入常規存檔，寫回 localStorage 前先剔除
+    const outJson=egoal?JSON.stringify(d):json;
+    const key=slotKey(curSlot()),prev=localStorage.getItem(key);
+    if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前先備份現有槽（與 save 同一 _bak 保險）
+    localStorage.setItem(key,outJson);
+    if(load()){
+      computePower();updHud();drawMini();
+      if(egoal&&egoal.goal&&egoal.goal.type){ // 畸形 egoal（缺 goal/type）優雅忽略，地圖仍正常載入為一般模式
+        diff=1;money=(typeof egoal.cash==='number')?egoal.cash:money; // 比照 begin() pendingScenario 套用起始資金慣例
+        scenario={id:'custom',startDay:day,hold:0,custom:true};
+        customScenario={name:egoal.name||'自製場景',icon:egoal.icon||'🛠',goal:egoal.goal,
+          fail:(egoal.fail&&egoal.fail.type)?egoal.fail:{type:'day',byDay:9999},bonus:+egoal.bonus||0,
+          intro:egoal.intro||'',win:egoal.win||'目標達成！',lose:egoal.lose||'挑戰失敗。'};
+        toast('🎯 '+customScenario.name+'：'+customScenario.intro,'gold');
+      }
+      toast('📥 匯入成功');hideInfo();
+      return true;
+    }else{if(prev)localStorage.setItem(key,prev);else localStorage.removeItem(key);toast('匯入失敗','bad');return false;} // 失敗還原：不覆蓋現有槽
+  }catch(e){toast('分享碼無效','bad');return false;}
+}
+function importShare(){ // UI 版：prompt 取碼後交給核心邏輯處理
   const code=prompt('貼上分享碼');
   if(!code)return;
-  try{
-    const json=decodeURIComponent(escape(atob(code)));
-    const d=JSON.parse(json);
-    if(d.v===1&&d.ter&&d.ter.length===N*N){
-      const key=slotKey(curSlot()),prev=localStorage.getItem(key);
-      if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前先備份現有槽（與 save 同一 _bak 保險）
-      localStorage.setItem(key,json);
-      if(load()){computePower();updHud();drawMini();toast('📥 匯入成功');hideInfo();}
-      else{if(prev)localStorage.setItem(key,prev);else localStorage.removeItem(key);toast('匯入失敗','bad');} // 失敗還原：不覆蓋現有槽
-    }else toast('分享碼無效','bad');
-  }catch(e){toast('分享碼無效','bad');}
+  importShareCode(code);
 }
+// T135：地圖/場景編輯器——目標設定 UI＋擴充版分享碼匯出（複用 #infoBody/.row/.hbtn 樣式，仿 showSlots() 先例）
+const EDIT_GOAL_TYPES=[ // 複用 T132 goal.type 詞彙（見 scenarioGoalMet），供編輯器 UI 逐一選擇
+  {type:'pop',ic:'👥',nm:'人口'},{type:'cash',ic:'💰',nm:'資金'},{type:'star',ic:'⭐',nm:'星級'},
+  {type:'happy',ic:'😊',nm:'幸福維持'},{type:'debt',ic:'🧾',nm:'零負債'},{type:'coverage',ic:'🚓',nm:'服務覆蓋率'}
+];
+const EDIT_COV_FIELDS=['police','fire','hospital','school','park']; // 對應 COV 家族欄位（T61），coverage 型別可選
+function editGoalSummary(){
+  const g=editorGoal,t=EDIT_GOAL_TYPES.find(x=>x.type===g.type)||EDIT_GOAL_TYPES[0];
+  let s=t.ic+' '+t.nm;
+  if(g.type==='pop')s+='：目標人口 '+g.target;
+  else if(g.type==='cash')s+='：目標資金 $'+g.target;
+  else if(g.type==='star')s+='：目標 '+g.target+' 星';
+  else if(g.type==='happy')s+='：連續 '+g.hold+' 天幸福度 ≥ '+Math.round(g.target*100)+'%';
+  else if(g.type==='coverage')s+='：'+g.field+' 覆蓋率 ≥ '+Math.round(g.target*100)+'%';
+  s+=g.type==='debt'?('　期限 '+g.byDay+' 天內不破產'):('　期限 '+g.byDay+' 天');
+  s+='　起始資金 $'+g.cash;
+  return s;
+}
+function pickEditGoalType(type){
+  editorGoal.type=type;
+  if(type==='pop'){const v=parseInt(prompt('目標人口',editorGoal.target||600),10);if(!isNaN(v)&&v>0)editorGoal.target=v;}
+  else if(type==='cash'){const v=parseInt(prompt('目標資金',editorGoal.target||15000),10);if(!isNaN(v)&&v>0)editorGoal.target=v;}
+  else if(type==='star'){const v=parseInt(prompt('目標星等（1-5）',editorGoal.target||4),10);if(!isNaN(v))editorGoal.target=clamp(v,1,5);}
+  else if(type==='happy'){
+    const v=parseFloat(prompt('目標幸福度（0-1，例如 0.78）',editorGoal.target||.78));if(!isNaN(v))editorGoal.target=clamp(v,0,1);
+    const h=parseInt(prompt('連續維持天數',editorGoal.hold||20),10);if(!isNaN(h)&&h>0)editorGoal.hold=h;
+  }else if(type==='coverage'){
+    const f=(prompt('設施類型（police/fire/hospital/school/park）',editorGoal.field||'police')||'').trim();
+    editorGoal.field=EDIT_COV_FIELDS.includes(f)?f:'police';
+    const v=parseFloat(prompt('目標覆蓋率（0-1，例如 0.6）',editorGoal.target||.6));if(!isNaN(v))editorGoal.target=clamp(v,0,1);
+  } // debt：無 target，僅期限
+}
+function showEditor(){
+  const body=$('#infoBody');body.innerHTML='';
+  const h=document.createElement('h3');h.textContent='🛠 地圖/場景編輯器';body.appendChild(h);
+  const help=document.createElement('div');help.className='row';help.textContent='地形筆刷／放置全開・免費建造・不跑經濟（沙盒短路）';body.appendChild(help);
+  const sum=document.createElement('div');sum.className='row';sum.textContent='🎯 目前目標：'+editGoalSummary();body.appendChild(sum);
+  const typeRow=document.createElement('div');typeRow.className='row';
+  EDIT_GOAL_TYPES.forEach(t=>{
+    const b=document.createElement('button');b.className='hbtn'+(editorGoal.type===t.type?' on':'');b.textContent=t.ic+t.nm;
+    b.addEventListener('click',()=>{pickEditGoalType(t.type);showEditor();});
+    typeRow.appendChild(b);
+  });
+  body.appendChild(typeRow);
+  const paramRow=document.createElement('div');paramRow.className='row';
+  const bCash=document.createElement('button');bCash.className='hbtn';bCash.textContent='💰 起始資金';
+  bCash.addEventListener('click',()=>{const v=parseInt(prompt('起始資金（玩家開始此場景時的資金）',editorGoal.cash),10);if(!isNaN(v)&&v>=0)editorGoal.cash=v;showEditor();});
+  paramRow.appendChild(bCash);
+  const bDay=document.createElement('button');bDay.className='hbtn';bDay.textContent='📅 期限天數';
+  bDay.addEventListener('click',()=>{const v=parseInt(prompt('期限天數',editorGoal.byDay),10);if(!isNaN(v)&&v>0)editorGoal.byDay=v;showEditor();});
+  paramRow.appendChild(bDay);
+  body.appendChild(paramRow);
+  const io=document.createElement('div');io.className='row';
+  const bExp=document.createElement('button');bExp.className='hbtn';bExp.textContent='📤 匯出場景分享碼';
+  bExp.addEventListener('click',exportEditorShare);
+  io.appendChild(bExp);
+  const bExit=document.createElement('button');bExit.className='hbtn';bExit.textContent='🚪 離開編輯器';
+  bExit.addEventListener('click',()=>{editMode=false;diff=1;$('#bEditor').style.display='none';hideInfo();toast('已離開編輯器，回到一般模式');});
+  io.appendChild(bExit);
+  body.appendChild(io);
+  $('#info').style.display='block';
+}
+function buildEditorShareData(){ // 組出待編碼的存檔＋目標物件（純記憶體操作，不落地 localStorage），供匯出按鈕與 GV 測試鉤子共用
+  const raw=localStorage.getItem(slotKey(curSlot()));
+  if(!raw)return null;
+  let d;try{d=JSON.parse(raw);}catch(e){return null;}
+  const g=editorGoal;
+  d.egoal={name:townName||'自製場景',icon:'🛠',
+    goal:{type:g.type,target:g.target,byDay:g.byDay,hold:g.hold,field:g.field},
+    fail:{type:'day',byDay:g.byDay},cash:g.cash,bonus:0,
+    intro:'自製場景：'+editGoalSummary(),win:'恭喜達成自製場景目標！',lose:'未在期限內達成目標。'};
+  return d;
+}
+function encodeShare(d){return SHARE_VER+btoa(unescape(encodeURIComponent(JSON.stringify(d))));}
+function exportEditorShare(){
+  const d=buildEditorShareData();
+  if(!d){toast('目前槽是空的','bad');return;}
+  let code;try{code=encodeShare(d);}catch(e){toast('匯出失敗','bad');return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(code).then(()=>toast('📋 已複製（含場景目標）'),()=>prompt('複製此分享碼',code));
+  else prompt('複製此分享碼',code);
+}
+$('#bEditorMode').onclick=()=>{ // 開始畫面「🛠 編輯器」入口：開新圖並套用沙盒短路，供自由編輯
+  challenge=null;pendingScenario=null;diff=3;
+  begin(true);
+  editMode=true; // newWorld() 已將 editMode 重置為 false（鐵律7成對重置），begin() 完成後於此設回編輯器模式
+  $('#bEditor').style.display='block';
+  toast('🛠 已進入編輯器：地形筆刷／放置全開・免費建造・不跑經濟','gold');
+};
+$('#bEditor').addEventListener('click',()=>{showEditor();sTick();});
 // FIX-E：鎮名可來自分享碼匯入（load 未消毒）→ 注入 innerHTML 前先逸出，防 self-XSS
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 // T112：歷史曲線——260×80 canvas，四序列各自獨立縱軸自動縮放（量級差異大，共用軸會壓平幸福/人口）
@@ -6149,6 +6266,7 @@ function load(slot){
     loan=d.ln?{remain:d.ln[0],daily:d.ln[1]}:null;
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     scenario=(d.sc&&d.sc.id)?{id:d.sc.id,startDay:d.sc.startDay||d.day,hold:d.sc.hold||0}:null; // T132：場景戰役進度（可選欄位，舊檔缺 sc 則回一般模式，鐵律7成對重置）
+    editMode=false;customScenario=null; // T135：讀取常規存檔視為離開編輯器、清空自製場景定義（鐵律7；編輯器產物本就不入常規存檔，故無對應欄位可還原）
     weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null; // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
@@ -6443,7 +6561,15 @@ window.GV={
   achs:()=>ACHS.map(a=>{const m=Object.assign({},ACH_META[a.id],a);return{id:a.id,nm:m.nm,cat:m.cat,tier:m.tier||null,chain:m.chain||null,hidden:!!m.hidden,done:!!ach[a.id]};}), // T134 測試用：全部成就定義快照（不洩漏隱藏成就達成條件本身，僅回傳中繼資料）
   achDone:()=>Object.keys(ach), // T134 測試用：已解鎖成就 id 陣列（與存檔 ach 欄位同格式）
   achStats:()=>({...achStats}), // T134 測試用：成就檢查用指標快照（tick() 每日重算）
-  forceAch:(id)=>{if(!ACHS.some(a=>a.id===id))return false;if(!ach[id]){ach[id]=1;}return true;} // T134 測試用：強制標記成就已解鎖（跳過每日 t() 判定與 toast，僅供面板/存讀檔回歸測試，不影響任何模擬狀態）
+  forceAch:(id)=>{if(!ACHS.some(a=>a.id===id))return false;if(!ach[id]){ach[id]=1;}return true;}, // T134 測試用：強制標記成就已解鎖（跳過每日 t() 判定與 toast，僅供面板/存讀檔回歸測試，不影響任何模擬狀態）
+  editorOn:()=>editMode,                                          // T135 測試用：目前是否處於編輯器模式
+  editorEnter:()=>{challenge=null;pendingScenario=null;diff=3;begin(true);editMode=true;const b=$('#bEditor');if(b)b.style.display='block';return editMode;}, // T135 測試用：繞過開始畫面按鈕，等同點擊「🛠 編輯器」
+  editorExit:()=>{editMode=false;diff=1;const b=$('#bEditor');if(b)b.style.display='none';return true;}, // T135 測試用：等同面板內「🚪 離開編輯器」
+  editorGoal:()=>({...editorGoal}),                               // T135 測試用：目前編輯器目標草稿快照
+  editorSetGoal:(g)=>{Object.assign(editorGoal,g||{});return {...editorGoal};}, // T135 測試用：直接設定目標草稿（繞過 prompt() UI）
+  editorExportCode:()=>{const d=buildEditorShareData();if(!d)return null;try{return encodeShare(d);}catch(e){return null;}}, // T135 測試用：不經剪貼簿/prompt，直接回傳擴充版分享碼字串
+  importCode:(code)=>importShareCode(code),                       // T135 測試用：不經 prompt() 直接匯入指定分享碼（舊版/擴充版皆可），回傳是否成功
+  customScenario:()=>customScenario?{...customScenario}:null      // T135 測試用：目前由分享碼匯入的自製場景定義（null＝無）
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
