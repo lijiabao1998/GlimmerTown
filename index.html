@@ -216,7 +216,7 @@ const DAYLEN=0.9;          // 一天（模擬）＝0.9 秒（1x）
 const CYCLE=110;           // 日夜循環（真實秒）
 
 // 建築種類：1住宅 2商業 3工業 4公園 5電廠
-const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局',7:'學校',8:'垃圾場',9:'體育場',10:'水塔',11:'警察局',12:'醫院',13:'診所',14:'圖書館',15:'郵局',16:'墓園',17:'火車站',18:'港口',19:'機場',20:'停車場',21:'輕軌站',22:'農場',23:'牧場',24:'地標',25:'太陽能',26:'風力',27:'污水廠',28:'救護站',29:'回收中心',30:'高級消防',31:'監獄',32:'大學',33:'住宅摩天樓',34:'商業摩天樓',35:'博物館',36:'劇院',37:'水族館',38:'動物園',39:'遊樂園',40:'電影院',41:'圖書總館'}; // T127：k33/34 摩天樓（2×2 合併建築）；T138：k35-41 文化娛樂建築（建築型別達 41）
+const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局',7:'學校',8:'垃圾場',9:'體育場',10:'水塔',11:'警察局',12:'醫院',13:'診所',14:'圖書館',15:'郵局',16:'墓園',17:'火車站',18:'港口',19:'機場',20:'停車場',21:'輕軌站',22:'農場',23:'牧場',24:'地標',25:'太陽能',26:'風力',27:'污水廠',28:'救護站',29:'回收中心',30:'高級消防',31:'監獄',32:'大學',33:'住宅摩天樓',34:'商業摩天樓',35:'博物館',36:'劇院',37:'水族館',38:'動物園',39:'遊樂園',40:'電影院',41:'圖書總館',42:'市政廳',43:'法院',44:'會展中心',45:'研究院',46:'氣象站',47:'植物園',48:'綜合醫院'}; // T127：k33/34 摩天樓（2×2 合併建築）；T138：k35-41 文化娛樂建築；T139：k42-48 民生科研建築（建築型別達 48）
 const LVNAME={
   1:['小屋','公寓','住宅大樓'],
   2:['小舖','商場','商業大樓'],
@@ -245,7 +245,7 @@ const ROAD_CAP=[1,2,4,8,16];     // T129：道路壅堵容量（依 rc 1-5 索�
                                   // 校準依據：本作單日車流量本就小（citywide 車輛上限 32、道路速度慢，daily pass 常態為個位數），
                                   // 容量取小整數才能在合理城市規模下被實際車流觸發過載，數值本身無強制規格、屬本卡設計裁量）
 const ROAD_JAM_K=1;              // T129：過載降速斜率係數，套用於 clamp(1-max(0,load-cap)/cap*k,.3,1)
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）
 
 const GAME_VER='3.7'; // v3.7 收官
 const TOOLS=[
@@ -312,8 +312,15 @@ const TOOLS=[
   {id:'amuse',cat:'culture',ic:'🎡',nm:'遊樂園',pr:'$'+COST.amuse},
   {id:'cinema',cat:'culture',ic:'🎬',nm:'電影院',pr:'$'+COST.cinema},
   {id:'grandlib',cat:'culture',ic:'📖',nm:'圖書總館',pr:'$'+COST.grandlib},
-]; // T138：k=35-41 文化娛樂建築（新增 culture 分類）
-const TOOL_CATS=[{id:'base',nm:'基本'},{id:'road',nm:'道路'},{id:'zone',nm:'分區'},{id:'svc',nm:'服務'},{id:'mega',nm:'大型'},{id:'culture',nm:'文化'},{id:'terra',nm:'地形'}]; // T138：新增「文化」分類
+  {id:'civichall',cat:'civic',ic:'🏛️',nm:'市政廳',pr:'$'+COST.civicHall},
+  {id:'court',cat:'civic',ic:'⚖️',nm:'法院',pr:'$'+COST.court},
+  {id:'convention',cat:'civic',ic:'🎪',nm:'會展中心',pr:'$'+COST.convention},
+  {id:'institute',cat:'civic',ic:'🔬',nm:'研究院',pr:'$'+COST.institute,unlockRank:12}, // T139：對應 RANKS[11]（商旅之城 Lv.12）預留的「研究設施」解鎖文案（T133 掛點）
+  {id:'wstation',cat:'civic',ic:'🌦️',nm:'氣象站',pr:'$'+COST.wstation},
+  {id:'botanical',cat:'civic',ic:'🌺',nm:'植物園',pr:'$'+COST.botanical},
+  {id:'megahosp',cat:'civic',ic:'🏥',nm:'綜合醫院',pr:'$'+COST.megahosp},
+]; // T138：k=35-41 文化娛樂建築（新增 culture 分類）；T139：k=42-48 民生科研建築（新增 civic 分類）
+const TOOL_CATS=[{id:'base',nm:'基本'},{id:'road',nm:'道路'},{id:'zone',nm:'分區'},{id:'svc',nm:'服務'},{id:'mega',nm:'大型'},{id:'culture',nm:'文化'},{id:'civic',nm:'民生'},{id:'terra',nm:'地形'}]; // T138：新增「文化」分類；T139：新增「民生」分類
 let toolCat='base';
 let terraBrush=1; // T121：地形筆刷尺寸（1 或 3），不進存檔——僅工具列 UI 狀態
 
@@ -522,6 +529,8 @@ let blizzard=null;          // T137：暴風雪/沙暴（null 或 {days,type:'sn
 const PLAGUE_DENSITY=6;                 // T137：瘟疫觸發密度門檻（半徑3內住宅數，複用 T118 riot 熱點簇掃描手法）
 const DROUGHT_WATER_MULT=.6,DROUGHT_FIRE_MULT=2.5; // T137：乾旱效果係數——供水上限×0.6／起火機率×2.5
 const BLIZZARD_SPEED_MULT=.15;          // T137：暴風雪/沙暴期間道路車速折減至 15%（複用 T118 暴亂封路車速歸零手法之弱化版）
+const CONVENTION_PULSE_DAYS=20;         // T139：會展中心觀光脈衝週期（天）
+const WSTATION_LEAD=3;                  // T139：氣象站季節性災害預警提前天數
 let busRoutes=[{stops:[]},{stops:[]},{stops:[]}]; // T120：公車路線，固定 3 條、每條最多 8 站（存 tile idx，依序）；存檔可選欄位 bus_rt
 let busRtEdit=0;            // T120：路線工具目前編輯中的路線索引 0-2（UI 狀態，不進存檔）
 let busRtCovPop=0;          // T120：路線覆蓋（半徑3內、多路線不疊加）住宅人口，tick() 每日重算，供 updCars 小車生成率折抵，不進存檔
@@ -2399,6 +2408,112 @@ function buildSprites(){
    windows(sg,ng,ax,by,hw,h,rand,.5,{w:4,ht:6,gx:8,gy:10,glass:'#3a4a5a',lit:'#ffe9c0'});
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['41_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
+  /* ===== T139 民生科研建築：k=42-48 各 1 種外觀（單變體 v:0，比照 parking/prison/museum 慣例），置於
+     buildSprites 絕對尾端（接在 T138 文化娛樂建築之後），遵守 FIX-B 亂數流尾端約定：僅用本函式局部
+     rand（mulberry32(20260712)），不呼叫全域 R()/ri()，與遊戲模擬完全隔離；2×2/3×3 沿用 university/museum
+     的 plate→isoBox→windows→outlineSprite 流程與畫布/錨點慣例（2×2＝136×150／ax68 ay148，3×3＝208×220／
+     ax104 ay218），氣象站 1×1 沿用 station/cinema 慣例（72×112／ax36 ay110）===== */
+  // 市政廳 (k=42, 2×2)：金石列柱＋旗桿＋鐘面
+  {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
+   const ax=68,ay=148,by=ay-2,hw=30,h=26;
+   plate(g,ax,ay,'#9a9484');
+   const rty=isoBox(sg,ax,by,hw,h,'#e0c888','#c4a868','#a08850');
+   sg.fillStyle='#d0b060';sg.fillRect(ax-16,rty-3,32,4); // 楣飾
+   sg.fillStyle='#b89850';for(let i=0;i<5;i++)sg.fillRect(ax-12+i*6,rty+2,3,10); // 列柱
+   sg.fillStyle='#8a6a2a';sg.fillRect(ax-1,rty-20,2,17); // 旗桿
+   sg.fillStyle='#c83c3c';sg.fillRect(ax,rty-20,8,5); // 旗幟
+   ng.fillStyle='#ff8080';ng.fillRect(ax,rty-20,8,5);
+   sg.fillStyle='#f0deb0';sg.fillRect(ax-4,rty-8,8,8); // 鐘面
+   sg.fillStyle='#5a4a2a';sg.fillRect(ax-1,rty-6,1,4);sg.fillRect(ax,rty-5,3,1); // 時分針
+   ng.fillStyle='#ffe9a0';ng.fillRect(ax-4,rty-8,8,8);
+   windows(sg,ng,ax,by,hw,h,rand,.35,{w:3,ht:5,gx:8,gy:9,glass:'#3a4a5a',lit:'#ffe9c0'});
+   g.fillStyle='#8a7a5a';g.fillRect(ax-18,by-3,36,4); // 台階
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['42_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
+  // 法院 (k=43, 2×2)：藍灰石牆列柱＋天平標誌
+  {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
+   const ax=68,ay=148,by=ay-2,hw=30,h=26;
+   plate(g,ax,ay,'#8a8a92');
+   const rty=isoBox(sg,ax,by,hw,h,'#8898b0','#6a7a94','#4e5e78');
+   sg.fillStyle='#a0aec0';sg.fillRect(ax-16,rty-3,32,4); // 楣飾
+   sg.fillStyle='#788aa0';for(let i=0;i<5;i++)sg.fillRect(ax-12+i*6,rty+2,3,10); // 列柱
+   sg.fillStyle='#e8c848';sg.fillRect(ax-1,rty-14,2,10); // 天平柱
+   sg.fillStyle='#e8c848';sg.fillRect(ax-7,rty-14,14,2); // 天平橫桿
+   sg.fillStyle='#d0b030';sg.fillRect(ax-7,rty-13,4,3);sg.fillRect(ax+3,rty-13,4,3); // 天平秤盤
+   ng.fillStyle='#ffe98a';ng.fillRect(ax-7,rty-14,14,2);
+   windows(sg,ng,ax,by,hw,h,rand,.35,{w:3,ht:5,gx:8,gy:9,glass:'#2a3a48',lit:'#c8d8ff'});
+   g.fillStyle='#7a7a82';g.fillRect(ax-18,by-3,36,4); // 台階
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['43_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
+  // 會展中心 (k=44, 3×3)：大片玻璃帷幕＋入口遮篷＋展覽布條
+  {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
+   const ax=104,ay=218,by=ay-2,hw=46,h=34;
+   plate(g,ax,ay,'#8a8f96');
+   const rty=isoBox(sg,ax,by,hw,h,'#c8d0d8','#a8b4bc','#8894a0');
+   sg.fillStyle='#5ab8b0';sg.fillRect(ax-30,rty-2,60,20); // 大片玻璃帷幕
+   sg.fillStyle='rgba(255,255,255,.3)';sg.fillRect(ax-30,rty-2,60,3);
+   sg.fillStyle='#3a8a84';for(let i=0;i<9;i++)sg.fillRect(ax-30+i*7,rty-2,1,20); // 玻璃分割線
+   ng.fillStyle='#a0e8e0';ng.fillRect(ax-30,rty-2,60,20);
+   sg.fillStyle='#2a2e34';sg.fillRect(ax-24,by-24,48,10); // 入口遮篷
+   sg.fillStyle='#e05a5a';sg.fillRect(ax-20,by-24,40,3); // 展覽布條
+   ng.fillStyle='#ff8a8a';ng.fillRect(ax-20,by-24,40,3);
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['44_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
+  // 研究院 (k=45, 2×2)：藍灰科研牆＋碟形天線
+  {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
+   const ax=68,ay=148,by=ay-2,hw=28,h=30;
+   plate(g,ax,ay,'#8a9294');
+   const rty=isoBox(sg,ax,by,hw,h,'#a8c0c8','#88a4ac','#6c8890');
+   windows(sg,ng,ax,by,hw,h,rand,.5,{w:3,ht:5,gx:7,gy:8,glass:'#2a5a68',lit:'#7ce0f0'});
+   sg.fillStyle='#c0c8cc';sg.fillRect(ax-3,rty-14,6,12); // 天線基座
+   sg.fillStyle='#a8b0b4';sg.fillRect(ax-8,rty-18,16,6); // 碟形天線
+   sg.fillStyle='#e0e6e8';sg.fillRect(ax-6,rty-17,12,3);
+   ng.fillStyle='#8ce0ff';ng.fillRect(ax-1,rty-20,2,4); // 天線頂端警示燈
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['45_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
+  // 氣象站 (k=46, 1×1)：小塔樓＋風向計＋風速計
+  {const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+   const ax=36,ay=110,by=ay-2,hw=16,h=30;
+   plate(g,ax,ay,'#9a9c9e');
+   const rty=isoBox(sg,ax,by,hw,h,'#c8d4e0','#a8b8c8','#8898a8');
+   sg.fillStyle='#7a828a';sg.fillRect(ax-1,rty-20,2,20); // 桅桿
+   sg.fillStyle='#c8ccd0';sg.fillRect(ax-8,rty-22,4,3);sg.fillRect(ax+4,rty-20,4,3); // 風向計兩翼
+   sg.fillStyle='#a0a8ac';sg.fillRect(ax-6,rty-14,12,3); // 風速計橫桿
+   sg.fillStyle='#c0e8f0';sg.fillRect(ax-2,rty-14,2,2);sg.fillRect(ax+3,rty-14,2,2); // 風杯
+   ng.fillStyle='#ff6a6a';ng.fillRect(ax-1,rty-22,2,2); // 桅桿頂警示燈
+   windows(sg,ng,ax,by,hw,h,rand,.3,{w:3,ht:4,gx:7,gy:9,glass:'#3a4a5a',lit:'#ffe9c0'});
+   outlineSprite(sc,26,30,40);g.drawImage(sc,0,0);
+   SPR.bld['46_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
+  // 植物園 (k=47, 3×3)：玻璃溫室穹頂＋花圃草坪
+  {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
+   const ax=104,ay=218,by=ay-2;
+   plate(g,ax,ay,'#7a9a5a');
+   g.fillStyle='#6f9a48';g.fillRect(ax-56,ay-24,40,16);g.fillRect(ax+18,ay-26,40,16); // 草坪花圃
+   g.fillStyle='#c85a7a';for(let i=0;i<4;i++)g.fillRect(ax-52+i*9,ay-26,3,3); // 花叢
+   g.fillStyle='#e8d040';for(let i=0;i<4;i++)g.fillRect(ax+20+i*9,ay-28,3,3);
+   sg.fillStyle='#5a8a6a';sg.fillRect(ax-8,by-46,16,40); // 溫室主體牆
+   const domeY=by-46;
+   sg.fillStyle='#a0d8e0';sg.fillRect(ax-8,domeY-14,16,14); // 玻璃穹頂
+   sg.fillStyle='rgba(255,255,255,.35)';sg.fillRect(ax-8,domeY-14,16,3);
+   sg.fillStyle='#78b0bc';sg.fillRect(ax-1,domeY-14,2,14); // 穹頂骨架縱線
+   sg.fillStyle='#6f9a48';sg.fillRect(ax-6,by-16,4,10);sg.fillRect(ax+2,by-14,4,8); // 溫室內植株剪影
+   ng.fillStyle='#c0f0f8';ng.fillRect(ax-8,domeY-14,16,14);
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['47_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
+  // 綜合醫院 (k=48, 3×3)：白牆大樓＋大型紅十字＋屋頂直升機停機坪
+  {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
+   const ax=104,ay=218,by=ay-2,hw=44,h=40;
+   plate(g,ax,ay,'#9aa0a4');
+   const rty=isoBox(sg,ax,by,hw,h,'#eef0f2','#d0d6da','#b0b8bc');
+   windows(sg,ng,ax,by,hw,h,rand,.4,{w:4,ht:6,gx:8,gy:9,glass:'#3a4a5a',lit:'#ffe9c0'});
+   sg.fillStyle='#e05252';sg.fillRect(ax-3,rty-16,6,16);sg.fillRect(ax-9,rty-11,18,6); // 紅十字
+   ng.fillStyle='#ff8080';ng.fillRect(ax-3,rty-16,6,16);ng.fillRect(ax-9,rty-11,18,6);
+   sg.fillStyle='#f0f0f0';sg.fillRect(ax-18,rty-24,36,6); // 屋頂機電棚
+   sg.fillStyle='#4a90d8';sg.fillRect(ax-2,rty-30,4,8);sg.fillRect(ax-6,rty-30,12,2); // 停機坪 H 標
+   sg.fillStyle='#fff';sg.fillRect(ax-2,rty-29,1,6);sg.fillRect(ax+1,rty-29,1,6);sg.fillRect(ax-2,rty-26,4,1);
+   ng.fillStyle='#ff5050';ng.fillRect(ax-6,rty-31,1,1);ng.fillRect(ax+5,rty-31,1,1); // 停機坪警示燈
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['48_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -2689,6 +2804,7 @@ function canPlace(toolId,x,y){
     // airport 必須在 case 列表內（漏列會落到「無法建造」）；farm/ranch/solar/landmark/prison 為 2×2
     case 'station':case 'port':case 'tramStation':case 'farm':case 'ranch':case 'landmark':case 'solar':case 'sewage':case 'ambulance':case 'recycling':case 'fireStation2':case 'prison':case 'university':case 'airport':
     case 'museum':case 'theater':case 'aquarium':case 'zoo':case 'amuse':case 'cinema':case 'grandlib': // T138：k=35-41 文化娛樂建築
+    case 'civichall':case 'court':case 'convention':case 'institute':case 'wstation':case 'botanical':case 'megahosp': // T139：k=42-48 民生科研建築
       if(t.t!==2&&t.t!==1)return '只能蓋在陸地上';
       if(t.road||t.rail||t.tram)return '交通線上不能建造';
       if(t.bld)return '已有建築';
@@ -2697,8 +2813,8 @@ function canPlace(toolId,x,y){
       // 高地旗標是 t.el（0/1），不是 t.elev
       if(toolId==='solar'&&t.el)return '高海拔不適合';
       if(toolId==='airport')return canPlaceMulti(x,y,4,'需 4×4 陸地');
-      if(toolId==='zoo'||toolId==='amuse')return canPlaceMulti(x,y,3,'需 3×3 陸地'); // T138：動物園/遊樂園 3×3
-      if(toolId==='landmark'||toolId==='prison'||toolId==='farm'||toolId==='ranch'||toolId==='solar'||toolId==='museum'||toolId==='theater'||toolId==='aquarium'||toolId==='grandlib'){ // T138：博物館/劇院/水族館/圖書總館 2×2
+      if(toolId==='zoo'||toolId==='amuse'||toolId==='convention'||toolId==='botanical'||toolId==='megahosp')return canPlaceMulti(x,y,3,'需 3×3 陸地'); // T138：動物園/遊樂園 3×3；T139：會展中心/植物園/綜合醫院 3×3
+      if(toolId==='landmark'||toolId==='prison'||toolId==='farm'||toolId==='ranch'||toolId==='solar'||toolId==='museum'||toolId==='theater'||toolId==='aquarium'||toolId==='grandlib'||toolId==='civichall'||toolId==='court'||toolId==='institute'){ // T138：博物館/劇院/水族館/圖書總館 2×2；T139：市政廳/法院/研究院 2×2
         const m2=canPlaceMulti(x,y,2,'需 2×2 陸地');if(m2)return m2;
         // 農牧/光電需整塊草地（canPlaceMulti 只驗陸地）
         if(toolId==='farm'||toolId==='ranch'||toolId==='solar'){
@@ -2707,7 +2823,7 @@ function canPlace(toolId,x,y){
         return null;
       }
       if(toolId==='university')return canPlaceMulti(x,y,3,'需 3×3 陸地');
-      return null; // cinema：1×1，僅需上方通用陸地/無路/無建築判定即可（比照 station/port/sewage 慣例）
+      return null; // cinema/wstation：1×1，僅需上方通用陸地/無路/無建築判定即可（比照 station/port/sewage 慣例）
     case 'dock':
       if(t.t!==0)return '只能放在水上';
       if(t.dock)return '已有碼頭';
@@ -2826,6 +2942,13 @@ function placeCost(toolId,x,y){
     case 'amuse':c=COST.amuse;break;
     case 'cinema':c=COST.cinema;break;
     case 'grandlib':c=COST.grandlib;break;
+    case 'civichall':c=COST.civicHall;break;
+    case 'court':c=COST.court;break;
+    case 'convention':c=COST.convention;break;
+    case 'institute':c=COST.institute;break;
+    case 'wstation':c=COST.wstation;break;
+    case 'botanical':c=COST.botanical;break;
+    case 'megahosp':c=COST.megahosp;break;
     case 'oneway':c=20;break;
     case 'light':c=60;break;
     case 'parking':c=COST.parking;break;
@@ -3162,6 +3285,62 @@ function doPlace(toolId,x,y,silent){
       }
       stampCov('grandlib',x,y,COVR.grandlib,1);
       break;}
+    // T139：k=42-48 民生科研建築——市政廳/法院/研究院 2×2，會展中心/植物園/綜合醫院 3×3，氣象站 1×1（比照上方 museum/prison/station 慣例）
+    case 'civichall':{
+      for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
+        const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
+        if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
+        ct.tree=0;ct.zone=0;ct.deco=0;
+        ct.bld=(dx===0&&dy===0)?{k:42,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:42,ref:[x,y]}; // SPR.bld 僅生成 42_1_0，固定 v:0（市政廳無 COV 欄，全城稅收微增效果見 tick() civicMul）
+      }
+      break;}
+    case 'court':{
+      for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
+        const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
+        if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
+        ct.tree=0;ct.zone=0;ct.deco=0;
+        ct.bld=(dx===0&&dy===0)?{k:43,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:43,ref:[x,y]}; // SPR.bld 僅生成 43_1_0，固定 v:0
+      }
+      stampCov('court',x,y,COVR.court,1);
+      break;}
+    case 'convention':{
+      for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){
+        const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
+        if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
+        ct.tree=0;ct.zone=0;ct.deco=0;
+        ct.bld=(dx===0&&dy===0)?{k:44,lv:1,v:0,age:0,pw:true,h:1,sz:3}:{k:44,ref:[x,y]}; // SPR.bld 僅生成 44_1_0，固定 v:0（會展中心無 COV 欄，週期性觀光脈衝效果見 tick()）
+      }
+      break;}
+    case 'institute':{
+      for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
+        const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
+        if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
+        ct.tree=0;ct.zone=0;ct.deco=0;
+        ct.bld=(dx===0&&dy===0)?{k:45,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:45,ref:[x,y]}; // SPR.bld 僅生成 45_1_0，固定 v:0
+      }
+      stampCov('institute',x,y,COVR.institute,1);
+      break;}
+    case 'wstation':
+      t.bld={k:46,lv:1,v:0,age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // 1×1，比照 cinema 單點放置（氣象站無 COV 欄，全城季節性災害預警效果見 tick()）
+      break;
+    case 'botanical':{
+      for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){
+        const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
+        if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
+        ct.tree=0;ct.zone=0;ct.deco=0;
+        ct.bld=(dx===0&&dy===0)?{k:47,lv:1,v:0,age:0,pw:true,h:1,sz:3}:{k:47,ref:[x,y]}; // SPR.bld 僅生成 47_1_0，固定 v:0
+      }
+      stampCov('botanical',x,y,COVR.botanical,1);
+      break;}
+    case 'megahosp':{
+      for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){
+        const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
+        if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
+        ct.tree=0;ct.zone=0;ct.deco=0;
+        ct.bld=(dx===0&&dy===0)?{k:48,lv:1,v:0,age:0,pw:true,h:1,sz:3}:{k:48,ref:[x,y]}; // SPR.bld 僅生成 48_1_0，固定 v:0
+      }
+      stampCov('megahosp',x,y,COVR.megahosp,1);
+      break;}
     case 'oneway':
       t.oneway=t.oneway?((t.oneway%4)+1):1; // T77：1..4 循環方向（N/E/S/W）
       break;
@@ -3260,10 +3439,10 @@ function congestNear(x,y,r){
 }
 /* T61 服務覆蓋計數場：擺放時蓋印一次，tick 內 O(1) 讀取（取代逐棟 countNear 方框掃描）。
    運行時重建、不入存檔（load/newWorld 後與 undo 後 rebuildCov 全量重建）。語義與原 countNear(...)>0／計數完全一致。*/
-const COVR={park:4,plant:4,fire:9,school:8,stadium:10,police:10,hospital:12,clinic:6,library:6,post:8,cemetery:10,bus:6,rdec:2,ambulance:10,fire2:12,prison:8,university:10,parking:8,museum:8,theater:7,cinema:6,grandlib:12}; // T138：博物館/劇院/電影院＝觀光＋幸福半徑；圖書總館＝大範圍教育（水族館/動物園/遊樂園純觀光係數，無 COV 欄）
+const COVR={park:4,plant:4,fire:9,school:8,stadium:10,police:10,hospital:12,clinic:6,library:6,post:8,cemetery:10,bus:6,rdec:2,ambulance:10,fire2:12,prison:8,university:10,parking:8,museum:8,theater:7,cinema:6,grandlib:12,court:10,institute:8,botanical:10,megahosp:18}; // T138：博物館/劇院/電影院＝觀光＋幸福半徑；圖書總館＝大範圍教育（水族館/動物園/遊樂園純觀光係數，無 COV 欄）；T139：法院＝降犯罪半徑（配合警局）；研究院＝科技升級加成半徑；植物園＝大範圍幸福半徑；綜合醫院＝超大半徑醫療（市政廳/會展中心/氣象站為全城效果，無 COV 欄）
 const COV={};for(const f in COVR)COV[f]=new Uint8Array(N*N);
 // T67：新服務 k 接入覆蓋場；高級消防用 fire2 更大半徑
-function covFieldOfK(k){return {4:'park',5:'plant',6:'fire',7:'school',9:'stadium',11:'police',12:'hospital',13:'clinic',14:'library',15:'post',16:'cemetery',28:'ambulance',30:'fire2',31:'prison',32:'university',20:'parking',35:'museum',36:'theater',40:'cinema',41:'grandlib'}[k]||null;} // T138：k35/36/40/41 接入覆蓋場
+function covFieldOfK(k){return {4:'park',5:'plant',6:'fire',7:'school',9:'stadium',11:'police',12:'hospital',13:'clinic',14:'library',15:'post',16:'cemetery',28:'ambulance',30:'fire2',31:'prison',32:'university',20:'parking',35:'museum',36:'theater',40:'cinema',41:'grandlib',43:'court',45:'institute',47:'botanical',48:'megahosp'}[k]||null;} // T138：k35/36/40/41 接入覆蓋場；T139：k43/45/47/48 接入覆蓋場（k42/44/46 市政廳/會展中心/氣象站為全城效果，無 COV 欄）
 // Chebyshev 半徑 r 方框逐格 ±delta（邊界裁剪），支持重疊計數
 function stampCov(field,x,y,r,delta){
   const a=COV[field];
@@ -3530,6 +3709,7 @@ function tick(){
   let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0,schools=0,dumps=0,stadiums=0,waterTowers=0,clinics=0,libraries=0,posts=0,cemeteries=0;
   let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0,trR=0,trC=0;
   let mu=0,th=0,aq=0,zo=0,ap=0,ci=0,gl=0; // T138：mu博物館/th劇院/aq水族館/zo動物園/ap遊樂園/ci電影院/gl圖書總館（root）計數
+  let chN=0,crtN=0,cvN=0,inN=0,wsN=0,bgN=0,mhN=0; // T139：chN市政廳/crtN法院/cvN會展中心/inN研究院/wsN氣象站/bgN植物園/mhN綜合醫院（root）計數
   let happyAggSum=null; // T111：幸福構成累加器（沿用既有 happySum/happyN 迴圈，逐建築累加各項後於迴圈尾除以 happyN）
   const grown=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -3569,6 +3749,13 @@ function tick(){
     if(b&&b.k===39)ap++;               // 遊樂園（T138）
     if(b&&b.k===40)ci++;               // 電影院（T138）
     if(b&&b.k===41)gl++;               // 圖書總館（T138）
+    if(b&&b.k===42)chN++;              // 市政廳（T139）
+    if(b&&b.k===43)crtN++;             // 法院（T139）
+    if(b&&b.k===44)cvN++;              // 會展中心（T139）
+    if(b&&b.k===45)inN++;              // 研究院（T139）
+    if(b&&b.k===46)wsN++;              // 氣象站（T139）
+    if(b&&b.k===47)bgN++;              // 植物園（T139）
+    if(b&&b.k===48)mhN++;              // 綜合醫院（T139）
     if(!b||b.k>3)continue;
     const near=hasRoadNear(x,y,2,true);
     b.pw=near&&powered<cap;
@@ -3592,6 +3779,7 @@ function tick(){
         {name:'道路等級',val:roadHappy},
         {name:'公園',val:parks?.16:0},
         {name:'多座公園',val:parks>1?.06:0},
+        {name:'植物園',val:COV.botanical[ci]>0?.10:0}, // T139：植物園大範圍幸福加成（COV 家族，未放置時恆為 0）
         {name:'路旁裝飾',val:0.03*(COV.rdec[ci]>0?1:0)},
         {name:'公車站',val:0.04*(COV.bus[ci]>0?1:0)},
         {name:'體育場',val:COV.stadium[ci]>0?.08:0},
@@ -3622,7 +3810,7 @@ function tick(){
       if(b.k===2)jobsC+=JOBSC[b.lv]*(t.office?1.5:1);else jobsI+=JOBSI[b.lv]; // T79：辦公區商業高就業 ×1.5
     }
   }
-  pop=popN+trR*TOWER_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+st*12+po*10+ai*40+pa*1+tr*6+fa*3+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS+mu*12+th*10+aq*14+zo*20+ap*24+ci*6+gl*16;   // T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15；T138：博物館12/劇院10/水族館14/動物園20/遊樂園24/電影院6/圖書總館16 就業
+  pop=popN+trR*TOWER_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+st*12+po*10+ai*40+pa*1+tr*6+fa*3+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS+mu*12+th*10+aq*14+zo*20+ap*24+ci*6+gl*16+chN*20+crtN*14+cvN*35+inN*22+wsN*8+bgN*18+mhN*28;   // T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15；T138：博物館12/劇院10/水族館14/動物園20/遊樂園24/電影院6/圖書總館16 就業；T139：市政廳20/法院14/會展中心35/研究院22/氣象站8/植物園18/綜合醫院28 就業
   cityHappy=happyN?happySum/happyN:.6;
   happyAgg=happyN&&happyAggSum?happyAggSum.map(p=>({name:p.name,val:p.val/happyN})):[]; // T111：城市平均幸福構成，供 showStats 讀取
   // 垃圾（T19）：產量/容量/超載係數；套用到全城住宅幸福尾端，並節流提示
@@ -3649,7 +3837,12 @@ function tick(){
   if(happyN)cityHappy=happySum/happyN;
   // T81 食物 / T80 觀光
   foodPoints=Math.round(fa*3*FARM_SEASON_MULT[sea])+ra*2; // T136：農場產量季節曲線（春播基準1／夏長1.15／秋收峰1.4／冬歇0.4），牧場（ra）不隨季節變動
-  tourists=Math.round((la*25+ai*40+st*5+mu*15+th*12+ci*8+aq*35+zo*45+ap*55)*TOUR_SEASON_MULT[sea]); // T136：觀光夏秋雙高峰（春基準1／夏1.3／秋1.2／冬清淡0.85）；T138：博物館/劇院/電影院中度觀光係數＋水族館/動物園/遊樂園強觀光吸引（圖書總館 gl 純教育，不貢獻觀光）
+  tourists=Math.round((la*25+ai*40+st*5+mu*15+th*12+ci*8+aq*35+zo*45+ap*55+bgN*20)*TOUR_SEASON_MULT[sea]); // T136：觀光夏秋雙高峰（春基準1／夏1.3／秋1.2／冬清淡0.85）；T138：博物館/劇院/電影院中度觀光係數＋水族館/動物園/遊樂園強觀光吸引（圖書總館 gl 純教育，不貢獻觀光）；T139：植物園持續觀光貢獻（市政廳/法院/研究院/氣象站/綜合醫院不貢獻觀光）
+  if(cvN>0&&day%CONVENTION_PULSE_DAYS===0){ // T139：會展中心——非連續型「觀光脈衝」機制，區別於上方持續型觀光貢獻，每 20 天一次性大額遊客湧入（純由 day 導出，不消耗 R()，cvN=0 時整段不執行、零回歸影響）
+    const burst=Math.round(500*cvN*TOUR_SEASON_MULT[sea]);
+    tourists+=burst;
+    toast('🎪 '+townName+'會展中心舉辦大型展覽，遊客湧入 +'+burst,'gold');
+  }
   if(foodPoints>0||se>0){
     happySum=0;happyN=0;
     for(let i=0;i<N*N;i++){
@@ -3779,6 +3972,12 @@ function tick(){
         plague.cells=kept;
       }
     }
+    // T139：氣象站——季節轉換前 WSTATION_LEAD 天預警即將到來的季節性災害風險（純由 day/season 導出，不消耗 R()，wsN=0 時本段不執行、零回歸影響，比照下方乾旱/暴風雪季節門檻慣例）
+    if(wsN>0){
+      const doy=(day-1)%360;
+      if(doy===100-WSTATION_LEAD)toast('🌦️ 氣象站預報：'+WSTATION_LEAD+'天後入夏，乾旱／沙暴風險升高','gold',N>>1,N>>1);
+      else if(doy===300-WSTATION_LEAD)toast('🌦️ 氣象站預報：'+WSTATION_LEAD+'天後入冬，暴風雪風險升高','gold',N>>1,N>>1);
+    }
     // T137：乾旱——夏季低機率觸發，壓低供水上限（見上方 wCap）＋抬升火險（見下方起火機率），入秋（season 轉離夏）於本函式起手自動解除
     if(!drought&&sea===1&&R()<.003*DIFF_HAZ[diff]){
       drought=true;
@@ -3848,10 +4047,12 @@ function tick(){
     // T138：圖書總館大範圍教育加成 1.5（次於大學 1.8，優於學校 1.6 之下的一般狀況；未放置時 glBoost 恆為 1，eduBoost 精確回退舊行為）
     const glBoost=(b.k===1&&COV.grandlib&&COV.grandlib[i]>0)?1.5:1;
     const eduBoost=uniBoost>1?uniBoost:(glBoost>1?glBoost:schoolBoost);
+    // T139：研究院科技加成——覆蓋半徑內「全建築類型」（不限住宅，含商業/工業）升級機率×1.4，區別於上方僅限住宅的教育加成，未放置時恆為 1
+    const instituteBoost=(COV.institute&&COV.institute[i]>0)?1.4:1;
     // T113：升級多因子門檻——只擋「新升級」的 roll，已達該級的舊建築不受影響；條件全滿足時機率不變
     const lv2Gate=b.lv!==1||COV.police[i]>0; // lv1→2 需警局覆蓋（通電既有 b.pw 已要求）
     const lv3Gate=b.lv!==2||(COV.school[i]>0&&POL[i]<POL_LV3_MAX); // lv2→3 需學校覆蓋＋低污染（供水既有 b.wa 已要求）
-    if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&lv2Gate&&lv3Gate&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）
+    if(b.lv<3&&b.pw&&(b.lv!==2||b.wa)&&lv2Gate&&lv3Gate&&!b.fire&&b.age>14&&dem[b.k]>.15&&(b.k!==1||b.h>.45)&&R()<.035*eduBoost*libraryBoost*instituteBoost){ // 供水閘門僅升 Lv3 需水（FIX-A/T31）；T139：研究院科技加成疊乘
       b.lv++;b.age=0;b.v=(b.k===1||b.k===2||b.k===3)?ri(8):ri(4);if(b.den===undefined)b.den=3; // T101：住宅v擴至ri(8)；T102：商業v擴至ri(8)；T103：工業v擴至ri(8)
       if(b.k===1)b.we=judgeWealth(x,y); // T123：住宅升級時重判財富級（環境可能已改變）
     }
@@ -3956,7 +4157,7 @@ function tick(){
     if(!b||b.k>3||b.crime)continue;
     const x=i%N,y=(i/N)|0;
     if(COV.police[i]>0)continue; // T61：警察局半徑10覆蓋則受保護（原 countNear k===11）
-    if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv*(pol&&pol.curfew?.6:1)){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）；T122 宵禁：犯罪率×0.6
+    if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv*(pol&&pol.curfew?.6:1)*((COV.court&&COV.court[i]>0)?.5:1)){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）；T122 宵禁：犯罪率×0.6；T139：法院半徑10覆蓋配合警局再降犯罪率×0.5（未放置時恆×1）
       b.crime=1;
       if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad',x,y);sErr();crimeAlert=true;}
     }
@@ -3979,7 +4180,7 @@ function tick(){
     const b=tiles[i].bld;
     if(!b||b.k!==1)continue;
     const x=i%N,y=(i/N)|0;
-    const hospital=COV.hospital[i]>0||(COV.ambulance&&COV.ambulance[i]>0);
+    const hospital=COV.hospital[i]>0||(COV.ambulance&&COV.ambulance[i]>0)||(COV.megahosp&&COV.megahosp[i]>0); // T139：綜合醫院比照醫院/救護站，覆蓋內次日必康復
     const clinic=COV.clinic[i]>0;
     const covered=hospital||clinic;
     if(b.sick){
@@ -4006,6 +4207,7 @@ function tick(){
   // 經濟
   let income=0,upkeep=0,roads=0,parks=0,plants=0,bridges=0,nI=0,taxR=0,taxC=0,taxI=0,fireStations=0,policeStations=0,hospitals=0;
   let stations=0,ports=0,airports=0,parkingLots=0,tramStations=0,farms=0,ranches=0,landmarks=0,solars=0,winds=0,sewages=0,ambulances2=0,recyclings=0,fireStation2s=0,prisons=0,universities=0;
+  const civicMul=chN>0?1.03:1; // T139：市政廳全城行政加成——住宅/商業/工業稅收皆微增 3%（不隨市政廳數量疊加，避免碾壓），未放置時精確恆等 ×1
   for(let i=0;i<N*N;i++){
     const t=tiles[i];
     if(t.road)roads++;
@@ -4052,17 +4254,24 @@ function tick(){
     else if(b.k===39);                // 遊樂園（T138）
     else if(b.k===40);                // 電影院（T138）
     else if(b.k===41);                // 圖書總館（T138）
+    else if(b.k===42);                // 市政廳（T139，效果見上方 civicMul，本身不繳稅）
+    else if(b.k===43);                // 法院（T139）
+    else if(b.k===44);                // 會展中心（T139）
+    else if(b.k===45);                // 研究院（T139）
+    else if(b.k===46);                // 氣象站（T139）
+    else if(b.k===47);                // 植物園（T139）
+    else if(b.k===48);                // 綜合醫院（T139）
     else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot&&!b.plague){ // T118：暴亂中住宅停稅收；T137：瘟疫中住宅暫停繳稅（產能停擺）
       const pm=pol||{taxR:1,taxC:1,taxI:1};
-      if(b.k===1){const we=b.we!==undefined?b.we:1;const landTaxMul=1+(LAND[i]-128)/128*.15;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]*landTaxMul;income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）；T130：輕度地價稅收槓桿，中性地價(128)精確恆等 ×1
-      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1);income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95
-      else{const v2=JOBSI[b.lv]*.15*(pm.taxI||1);income+=v2;taxI+=v2;}
+      if(b.k===1){const we=b.we!==undefined?b.we:1;const landTaxMul=1+(LAND[i]-128)/128*.15;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]*landTaxMul*civicMul;income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）；T130：輕度地價稅收槓桿，中性地價(128)精確恆等 ×1；T139：市政廳全城稅收微增
+      else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1)*civicMul;income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95；T139：市政廳全城稅收微增
+      else{const v2=JOBSI[b.lv]*.15*(pm.taxI||1)*civicMul;income+=v2;taxI+=v2;} // T139：市政廳全城稅收微增
     }
   }
   let roadUpkeep=0;
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
   const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0); // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
-  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+upReg; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費
+  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+dumps*2+stadiums*8+waterTowers*3+st*6+po*5+ai*25+pa*1.5+tr*4+fa*1+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+chN*10+crtN*6+cvN*20+inN*10+wsN*4+bgN*14+mhN*16+upReg; // T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費；T139：市政廳10/法院6/會展中心20/研究院10/氣象站4/植物園14/綜合醫院16 維護費（綜合醫院比照 T95 教訓，維護費遠高於醫院的5，避免超大半徑碾壓既有醫療建築）
   fin={taxR,taxC,taxI,upR:roadUpkeep,upP:parks*.5,upE:plants*4,upPol:policeStations*4,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep};
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
@@ -5428,6 +5637,13 @@ function inspect(x,y){
     else if(b.k===39)html=`<h3>🎡 遊樂園</h3><div class="row">最強吸引遊客｜遊客提升全城商業稅收（上限 +20%）</div><div class="row">就業 24</div><div class="row">維護費 $12/天（需 3×3 陸地）</div>`; // T138
     else if(b.k===40)html=`<h3>🎬 電影院</h3><div class="row">半徑 6 內住宅 +幸福｜吸引遊客</div><div class="row">就業 6</div><div class="row">維護費 $3/天</div>`; // T138
     else if(b.k===41)html=`<h3>📖 圖書總館</h3><div class="row">半徑 12 內住宅升級率 ×1.5（大範圍教育加成）</div><div class="row">就業 16</div><div class="row">維護費 $8/天（需 2×2 陸地）</div>`; // T138
+    else if(b.k===42)html=`<h3>🏛️ 市政廳</h3><div class="row">全城行政加成｜住宅/商業/工業稅收 +3%</div><div class="row">就業 20</div><div class="row">維護費 $10/天（需 2×2 陸地）</div>`; // T139
+    else if(b.k===43)html=`<h3>⚖️ 法院</h3><div class="row">半徑 10 內犯罪率再降 ×0.5（配合警局）</div><div class="row">就業 14</div><div class="row">維護費 $6/天（需 2×2 陸地）</div>`; // T139
+    else if(b.k===44)html=`<h3>🎪 會展中心</h3><div class="row">每 ${CONVENTION_PULSE_DAYS} 天舉辦展覽，一次性大額觀光脈衝</div><div class="row">就業 35</div><div class="row">維護費 $20/天（需 3×3 陸地）</div>`; // T139
+    else if(b.k===45)html=`<h3>🔬 研究院</h3><div class="row">半徑 8 內全建築（含商業/工業）升級率 ×1.4（配合教育）</div><div class="row">就業 22</div><div class="row">維護費 $10/天（需 2×2 陸地）</div>`; // T139
+    else if(b.k===46)html=`<h3>🌦️ 氣象站</h3><div class="row">全城季節轉換前 ${WSTATION_LEAD} 天預警災害風險</div><div class="row">就業 8</div><div class="row">維護費 $4/天</div>`; // T139
+    else if(b.k===47)html=`<h3>🌺 植物園</h3><div class="row">半徑 10 內住宅 +幸福｜持續吸引遊客</div><div class="row">就業 18</div><div class="row">維護費 $14/天（需 3×3 陸地）</div>`; // T139
+    else if(b.k===48)html=`<h3>🏥 綜合醫院</h3><div class="row">半徑 18 超大範圍醫療覆蓋（次日必康復）</div><div class="row">就業 28</div><div class="row">維護費 $16/天（需 3×3 陸地）</div>`; // T139
     else{
       const nm=LVNAME[b.k][b.lv-1];
       html=`<h3>${['','🏠','🏪','🏭'][b.k]} ${nm}（Lv.${b.lv}）</h3>`;
@@ -5791,7 +6007,7 @@ function showBusRt(){
 /* 小地圖 */
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
 // T90 小地圖建築色表；T107 遠景 LOD 建築色塊直接複用同一陣列（保證遠景與小地圖視覺語言一致），索引 0..32 對齊 KNAME 1..32
-const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090','#d4907a','#4a78b0','#d8cca8','#a8506a','#3a7a9a','#6f9a48','#e8905a','#3a3050','#c8b898']; // T127：索引33住宅塔/34商業塔（陣列長度 33→35）；T138：索引35博物館-41圖書總館（陣列長度 35→42）
+const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090','#d4907a','#4a78b0','#d8cca8','#a8506a','#3a7a9a','#6f9a48','#e8905a','#3a3050','#c8b898','#c8a860','#6a7a9a','#4ab0a0','#50a0c0','#90a8c0','#6ab050','#d05a5a']; // T127：索引33住宅塔/34商業塔（陣列長度 33→35）；T138：索引35博物館-41圖書總館（陣列長度 35→42）；T139：索引42市政廳-48綜合醫院（陣列長度 42→49）
 const MINI_VIEW_NAME=['一般','地價','污染熱度','壅堵','犯罪熱點','服務覆蓋']; // T131：小地圖視圖標籤，索引對齊 miniView
 const MINI_VIEW_ICON=['🏭','💰','🗺️','🚗','🚨','🛡️']; // T131：小地圖切換鈕圖示，索引對齊 miniView
 function drawMini(){
@@ -6555,7 +6771,7 @@ function save(){
 function recalcAllRailMasks(){
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcRailMask(x,y);
 }
-const MSZ={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2}; // FIX-J：多格建築 k→sz 對照（與各 doPlace 分支硬編碼一致；k9 體育場沿用存檔第 6 位 sz，不入表）；T127：k33/34 摩天樓（tick() 合併生成、無 doPlace 分支，sz 對照仍需入表供 load() 反查重建 ref 格）；T138：k35博物館/36劇院/37水族館 2×2、k38動物園/39遊樂園 3×3、k41圖書總館 2×2（k40電影院 1×1 不入表）
+const MSZ={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3}; // FIX-J：多格建築 k→sz 對照（與各 doPlace 分支硬編碼一致；k9 體育場沿用存檔第 6 位 sz，不入表）；T127：k33/34 摩天樓（tick() 合併生成、無 doPlace 分支，sz 對照仍需入表供 load() 反查重建 ref 格）；T138：k35博物館/36劇院/37水族館 2×2、k38動物園/39遊樂園 3×3、k41圖書總館 2×2（k40電影院 1×1 不入表）；T139：k42市政廳/43法院/45研究院 2×2、k44會展中心/47植物園/48綜合醫院 3×3（k46氣象站 1×1 不入表）
 function load(slot){
   try{
     const key=slotKey(slot||curSlot());
