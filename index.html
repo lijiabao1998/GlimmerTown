@@ -430,6 +430,16 @@ let simAcc=0;
 let weather=0,wxT=5,flashT=0; // 天氣（T17）：0晴 1雨 2暴雨；wxT 剩餘天數、flashT 閃電計時（皆不進存檔）
 const inWinter=()=>((day-1)%360)>=300; // 冬季（T18）：每年第 300-360 天；由 day 導出，不進存檔
 let wSeason=-1; // 上次 tick 的季節旗標（-1 未定 / 0 非冬 / 1 冬）；入冬／開春 toast 防重複（T18，不進存檔）
+// T136：真四季循環——由 day 年內位置導出四季 0春/1夏/2秋/3冬；season()===3 與既有 inWinter() 精確同義（皆取 (day-1)%360>=300），
+// inWinter() 本身原樣保留、零改動，既有天氣/composer/happyParts「冬季」路徑繼續沿用；season() 純由 day 導出、不進存檔
+const SEASON_NAME=['春','夏','秋','冬'];
+const SEASON_ICON=['🌱','☀️','🍂','❄️'];
+const season=()=>{const doy=(day-1)%360;return doy>=300?3:doy>=200?2:doy>=100?1:0;};
+// T136 系統效果乘數（基準季＝春，恆為 1，退化為既有無季節效果基準，確保同種子回歸於春季區間不變）：
+// 農場產量春播夏長秋收冬歇；電力夏季冷氣／冬季暖氣抬高需求壓力（有效供電容量打折）；觀光夏秋雙高峰
+const FARM_SEASON_MULT=[1,1.15,1.4,0.4];
+const POWER_SEASON_MULT=[1,0.9,1,0.85];
+const TOUR_SEASON_MULT=[1,1.3,1.2,0.85];
 let score=-1,cityStar=-1,bestStar=0; // 城市評分（T25）：pop<50 時 score/cityStar=-1（不評分）；bestStar 只增不減（升星獎勵防重複），存檔可選欄位 star（cityStar 避開既有夜空 stars[] 命名）
 let scoreParts={happy:0,job:0,fire:0,garb:0,edu:0}; // 評分分項明細（T25，供統計面板顯示，不進存檔）
 let happyAgg=[]; // T111：幸福構成（各加減項城市平均值 [{name,val}]），供 showStats「幸福構成」面板讀取；每天重算，不進存檔
@@ -2262,6 +2272,25 @@ function buildSprites(){
     };
     if(!window.__noDetail)detailPass();
   }
+  /* ===== T136 真四季循環：夏／秋地面色與樹色調，置於 buildSprites 絕對尾端（接在 T128 detailPass 之後）。
+     春（season()===0）沿用既有 SPR.grass/SPR.tree、冬沿用既有 SPR.grassW/SPR.treeW，兩者原有生成與亂數消耗序完全不動；
+     本區塊純由既有已完工的 SPR.grass（4 變體）/SPR.tree（含 T104 擴充後 7 款）逐張以 tintCanvas 疊加半透明色調衍生
+     SPR.grassS/grassA（長度 4）與 SPR.treeS/treeA（長度 7），陣列長度與日/冬版一致（冬季鐵律：季節切換陣列長度一致、不越界）；
+     tintCanvas 用 source-atop 只在既有不透明像素上疊色，不影響剪影／輪廓，且不呼叫 rand()，故對其後（已無其後）任何生成序零位移 ===== */
+  {
+    const tintCanvas=(src,w,h,col,a)=>{
+      const[c,g]=cv(w,h);
+      g.drawImage(src,0,0);
+      g.globalCompositeOperation='source-atop';
+      g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,w,h);
+      g.globalAlpha=1;g.globalCompositeOperation='source-over';
+      return c;
+    };
+    SPR.grassS=SPR.grass.map(c=>tintCanvas(c,64,32,'#a8e070',.25));  // 夏：疊加嫩黃綠，草地更飽和茂盛
+    SPR.grassA=SPR.grass.map(c=>tintCanvas(c,64,32,'#b8863a',.42));  // 秋：疊加土黃橙，草地轉枯黃
+    SPR.treeS=SPR.tree.map(t=>({img:tintCanvas(t.img,40,48,'#a8e070',.18),ax:t.ax,ay:t.ay,w:t.w,h:t.h})); // 夏：樹冠偏濃綠
+    SPR.treeA=SPR.tree.map(t=>({img:tintCanvas(t.img,40,48,'#c96a2c',.38),ax:t.ax,ay:t.ay,w:t.w,h:t.h})); // 秋：樹冠偏暖橙
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -3263,6 +3292,7 @@ function computeCityPoints(){
 }
 function tick(){
   day++;
+  const sea=season(); // T136：本日四季索引（0春1夏2秋3冬），供農場/電力/觀光季節係數共用，純由 day 導出不消耗 R()
   // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
   {const w=inWinter()?1:0;
    if(w!==wSeason){
@@ -3287,7 +3317,7 @@ function tick(){
   // （純陣列運算，不消耗 R()；空車城 roadPass 恆 0 時 load 恆 0，speed/happyParts 與改動前逐位元一致）
   for(let i=0;i<N*N;i++){roadLoad[i]=roadLoad[i]*.85+roadPass[i]*.15;roadPass[i]=0;}
   recomputeLandDynamic(); // T130：地價動態部分——每日依最新 roadLoad 疊加壅堵扣分（靜態基準 LANDBASE 不動，純陣列衍生不消耗 R()）
-  const cap=computePower();
+  const cap=Math.floor(computePower()*POWER_SEASON_MULT[sea]); // T136：夏季冷氣／冬季暖氣抬高電力需求壓力＝有效供電容量打折；春秋 ×1 精確恆等（Math.floor 對已為整數之值原樣返回）
   const wCap=computeWater();
   // 死亡與墓園前置處理（T38）：既有死亡事件的懲罰標記與自動消退
   const deathPenalty=new Uint8Array(N*N);
@@ -3423,8 +3453,8 @@ function tick(){
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
   if(happyN)cityHappy=happySum/happyN;
   // T81 食物 / T80 觀光
-  foodPoints=fa*3+ra*2;
-  tourists=la*25+ai*40+st*5;
+  foodPoints=Math.round(fa*3*FARM_SEASON_MULT[sea])+ra*2; // T136：農場產量季節曲線（春播基準1／夏長1.15／秋收峰1.4／冬歇0.4），牧場（ra）不隨季節變動
+  tourists=Math.round((la*25+ai*40+st*5)*TOUR_SEASON_MULT[sea]); // T136：觀光夏秋雙高峰（春基準1／夏1.3／秋1.2／冬清淡0.85）
   if(foodPoints>0||se>0){
     happySum=0;happyN=0;
     for(let i=0;i<N*N;i++){
@@ -4396,6 +4426,7 @@ function draw(dt){
   const vis=(sx,sy)=>sx>-pad&&sx<W+pad&&sy>-pad&&sy<H+pad;
   waterT+=dt;if(waterT>.5){waterT=0;waterF=(waterF+1)%3;}
   const win=inWinter();                             // 冬季雪皮切換（T18；一次計算，draw 內零新配置）
+  const sea=season();                                // T136：本幀四季索引（0春1夏2秋3冬；一次計算，draw 內零新配置），春季 sea===0 時下方各選鍵分支與改動前完全相同分支
   let rdecGlow=[];                                   // 路飾夜燈暫存，併入 nightSprites（T20）；T96 快取命中時改自快取複製
   // ---- 地面層 ----（T96：離屏快取；相機/水面幀/季節/日期/畫布尺寸皆未變時直接重貼快取畫布，省去整張地圖逐格重繪）
   const gKey=ox+'_'+oy+'_'+z+'_'+waterF+'_'+(win?1:0)+'_'+day+'_'+W+'_'+H;
@@ -4413,10 +4444,10 @@ function draw(dt){
       const t=T(idx(x,y));
       if(x===N-1||y===N-1)gc.drawImage(SPR.cliff,sx,sy,64*z,56*z);
       if(lodFar){ // T107：z<1 地面退化為實色菱形（略去 speck 細沙紋理），沿用同一菱形頂點密拼、不留縫
-        gc.fillStyle= t.t===0?'#3671b6' : t.t===1?(win?'#e4e2d8':'#d9c689') : (win?'#e8eef2':(t.el?'#8aba58':'#74b258'));
+        gc.fillStyle= t.t===0?'#3671b6' : t.t===1?(win?'#e4e2d8':'#d9c689') : (win?'#e8eef2':sea===1?'#8fce5e':sea===2?'#b8935a':(t.el?'#8aba58':'#74b258')); // T136：LOD 遠景實色地面依季，春季（sea===0）與改動前同一分支表達式
         gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
       }else{
-        const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:(t.el?SPR.grassH:SPR.grass))[t.gv&3];
+        const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:sea===1?SPR.grassS:sea===2?SPR.grassA:(t.el?SPR.grassH:SPR.grass))[t.gv&3]; // T136：夏/秋地面色（SPR.grassS/grassA，長度 4 與日版一致），春季（sea===0）與改動前同一分支表達式
         gc.drawImage(base,sx,sy,64*z,32*z);
       }
       if(t.t===0&&t.wm)gc.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
@@ -4661,7 +4692,7 @@ function draw(dt){
     }
     const t=o.t;
     if(t.tree){
-      const s=(win?SPR.treeW:SPR.tree)[(t.tree-1)%7]; // T104：樹種 4→7，&3 遮罩已不敷索引改 %7
+      const s=(win?SPR.treeW:sea===1?SPR.treeS:sea===2?SPR.treeA:SPR.tree)[(t.tree-1)%7]; // T104：樹種 4→7，&3 遮罩已不敷索引改 %7；T136：夏/秋樹色調（SPR.treeS/treeA，長度 7 與日版一致），春季（sea===0）與改動前同一分支表達式
       ctx.drawImage(s.img,o.sx+(32-s.ax)*z,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
       continue;
     }
@@ -5241,7 +5272,9 @@ const MOODS={
   rain:  {scale:'Am',     chords:[[0,2,4],[3,5,0],[0,2,4],[4,6,1]], type:'sine',     vol:.022, tempo:.42, hold:.70, arp:true},
   storm: {scale:'DmPent', chords:[[0,2,4],[2,4,6],[1,3,5],[0,2,4]], type:'sawtooth', vol:.015, tempo:.55, hold:1.0, arp:false, lp:250},
   night: {scale:'CM',     chords:[[0,2,4],[4,6,1],[0,2,4],[3,5,0]], type:'sine',     vol:.020, tempo:.60, hold:1.2, arp:false},
-  winter:{scale:'Pent',   chords:[[0,2,4],[3,5,7],[1,3,5],[0,2,4]], type:'square',   vol:.016, tempo:.25, hold:.35, arp:true, bell:true}
+  winter:{scale:'Pent',   chords:[[0,2,4],[3,5,7],[1,3,5],[0,2,4]], type:'square',   vol:.016, tempo:.25, hold:.35, arp:true, bell:true},
+  summer:{scale:'CM',     chords:[[0,2,4],[2,4,6],[4,6,1],[0,2,4]], type:'triangle', vol:.020, tempo:.24, hold:.50, arp:true}, // T136：夏日晴朗白晝情緒，較 day 明亮輕快
+  autumn:{scale:'Am',     chords:[[0,2,4],[3,5,0],[2,4,6],[0,2,4]], type:'sine',     vol:.017, tempo:.34, hold:.65, arp:false} // T136：秋日沉穩情緒，較 day 略慢略暖
 };
 class AudioComposer{
   constructor(){
@@ -5257,6 +5290,9 @@ class AudioComposer{
     const b=daylight().b;
     if(inWinter()&&b>=.5)return 'winter';
     if(b<.5)return 'night';
+    const sea=season(); // T136：非雨/雪/夜的晴日白晝情緒依季細分——原本恆回 'day' 的區間拆為夏/秋/day(春)，其餘既有分支零改動
+    if(sea===1)return 'summer';
+    if(sea===2)return 'autumn';
     return 'day';
   }
   start(){
@@ -5562,7 +5598,7 @@ function updHud(){
   $('#happy').innerHTML=`${hEmoji} <b>${Math.round(cityHappy*100)}%</b>`;
   $('#star').innerHTML=cityStar<0?'⭐ <b>–</b>':`⭐ <b>${cityStar}</b>`;
   const yr=Math.floor((day-1)/360)+1,dd=((day-1)%360)+1;
-  $('#date').textContent=`${['☀️','🌧️','⛈️'][weather]} 第${yr}年 第${dd}天`;
+  $('#date').textContent=`${SEASON_ICON[season()]} ${['☀️','🌧️','⛈️'][weather]} 第${yr}年 第${dd}天`;
   // T109：需求條綠正紅負，高度＝|需求|、tooltip 顯示實際數值（-1~+1）
   const rciBar=(cls,nm,v)=>{
     $('#rci .'+cls+' i').style.height=Math.round(Math.min(1,Math.abs(v))*100)+'%';
@@ -5911,6 +5947,7 @@ function showStats(){
      <div class="row">🗑️ 垃圾 ${garbage.toFixed(1)}/${garbCap}</div>
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
      <div class="row">🏚️ 貧 ${popT?Math.round(popP/popT*100):0}%　🏠 中 ${popT?Math.round(popM/popT*100):0}%　🏡 富 ${popT?Math.round(popR/popT*100):0}%</div>
+     <div class="row" style="font-size:11px;opacity:.75">${SEASON_ICON[season()]} ${SEASON_NAME[season()]}季　🌾 農產×${FARM_SEASON_MULT[season()].toFixed(2)}　⚡ 供電×${POWER_SEASON_MULT[season()].toFixed(2)}　🧳 觀光×${TOUR_SEASON_MULT[season()].toFixed(2)}</div>
      ${happyHtml}
      ${advHtml}
      ${rankHtml}
@@ -6472,6 +6509,8 @@ window.GV={
   setLoadAt:(x,y,v)=>{if(!inMap(x,y))return false;roadLoad[idx(x,y)]=+v||0;return true;}, // T129：測試用強制設定 load（跳過自然車流累積，供驗收快速觸發過載情境）
   setSpeed:s=>{speed=s;},
   setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
+  season:()=>({idx:season(),name:SEASON_NAME[season()],icon:SEASON_ICON[season()],farmMult:FARM_SEASON_MULT[season()],powerMult:POWER_SEASON_MULT[season()],tourMult:TOUR_SEASON_MULT[season()]}), // T136 測試用：目前季節快照（0春/1夏/2秋/3冬）
+  setSeason:(s)=>{s=clamp(s|0,0,3);day=[1,101,201,301][s];return{idx:season(),name:SEASON_NAME[season()],icon:SEASON_ICON[season()],farmMult:FARM_SEASON_MULT[season()],powerMult:POWER_SEASON_MULT[season()],tourMult:TOUR_SEASON_MULT[season()]};}, // T136 測試用：直接跳到指定季節第一天（同 setDay 屬 sim 鉤子，季節純由 day 導出不需額外欄位），回傳形狀與 GV.season() 一致
   ignite:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.fire=1;return true;}return false;},
   igniteCrime:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.crime=1;return true;}return false;},
   clearCrime:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k<=3){b.crime=0;return true;}return false;},
