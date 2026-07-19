@@ -5231,7 +5231,7 @@ function showStats(){
       if(GV.quake())toast('🌋 沙盒：手動觸發地震');else toast('地震已被設定關閉','bad');
     });
     const bF=$('#sbFlood');if(bF)bF.addEventListener('click',()=>{
-      const n=GV.flood();toast(n?'🌊 沙盒：手動觸發洪水（'+n+'格）':'找不到適合淹水的河岸格','bad');
+      const n=GV.flood();toast(n?'🌊 沙盒：手動觸發洪水（'+n+'格）':(disastersOn?'找不到適合淹水的河岸格':'洪水已被設定關閉'),'bad');
     });
     const bFi=$('#sbFire');if(bFi)bFi.addEventListener('click',()=>{
       const cand=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k<=3&&!b.fire)cand.push(i);}
@@ -5333,7 +5333,7 @@ function showHelp(){
      <div class="row">🚉🚢✈️🚋 火車站・港口・機場・輕軌站在「大型」分類，相鄰兩座以上會有列車/貨船/電車自動巡迴</div>
      <div class="row">🌾 農場・🐄 牧場產食物、全城提升住宅幸福；🗼 地標・✈️ 機場・🚉 火車站吸引遊客、提升商業稅收（上限 +20%）</div>
      <div class="row">☀️ 太陽能・🌬️ 風力可疊加電廠供電容量；🚿 污水廠減輕工業對鄰近住宅的幸福懲罰；♻️ 回收中心 +30 垃圾容量</div>
-     <div class="row">🚑 救護站半徑10健康覆蓋（同醫院）・🏛️ 監獄半徑8防犯罪・🎓 大學半徑10內升級率 ×1.8・🚒 高級消防局半徑12滅大型火災</div>
+     <div class="row">🚑 救護站半徑10健康覆蓋（同醫院）・🏛️ 監獄半徑8防犯罪・🎓 大學半徑10內升級率 ×1.8・🚒 高級消防局半徑12降低起火率（撲滅靠消防車出勤）</div>
      <div class="row">🅿️ 停車場半徑8內商業 +10% 稅收；📊 統計面板內「稅率政策」可調整住/商/工稅率</div>
      <div class="row">⚠️ 地震／連雨洪水會偶發（設定可關閉）；🧱 堤防鄰格可免疫洪水</div>
      <div class="row">💥 拆除 Lv2+ 建築需點兩次確認</div>
