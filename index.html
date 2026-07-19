@@ -404,6 +404,38 @@ let challenge=null;       // T88 挑戰
 let scenario=null;        // T132：目前進行中的場景戰役 {id,startDay,hold}（null＝一般/沙盒/挑戰模式，零評估開銷）；存檔可選欄位 sc
 let pendingScenario=null; // T132：開始畫面選關後、begin(true) 執行前暫存的 SCENARIOS 條目（供套用 seed/cash）；不進存檔
 let scDone={};             // T132：已通關場景 id 集合（跨局持久，落 localStorage 獨立鍵 SAVEKEY+'.scDone'，不隨 newWorld/load 重置）
+// T133：城市等級階梯——累積城市點數（人口＋幸福＋服務覆蓋）晉升的長線進度階梯，比照既有 MILES 里程碑陣列慣例＋COV/POL/LAND 純唯讀衍生場設計（26 級，對標 TheoTown 65 級 rank 進度感的壓縮版）。
+// unlock 為預留掛點：本卡不新增任何被鎖建築，僅少數里程碑級距標註未來 MU 波大型建築/設施的預告文案（純展示，不影響任何既有 34 種建築的可放置性）。
+const RANKS=[
+  {name:'拓荒營地',threshold:0},
+  {name:'邊陲聚落',threshold:30},
+  {name:'溪畔村落',threshold:80},
+  {name:'阡陌村莊',threshold:160},
+  {name:'磚瓦小鎮',threshold:280},
+  {name:'集市小鎮',threshold:450,unlock:'文化建築（未來版本開放）'},
+  {name:'石橋鎮',threshold:680},
+  {name:'通衢鎮',threshold:980},
+  {name:'燈火小城',threshold:1360},
+  {name:'繁景小城',threshold:1830},
+  {name:'匠坊之城',threshold:2400},
+  {name:'商旅之城',threshold:3080,unlock:'研究設施（未來版本開放）'},
+  {name:'學府之城',threshold:3880},
+  {name:'港灣之城',threshold:4810},
+  {name:'花園之城',threshold:5880},
+  {name:'星軌之城',threshold:7100},
+  {name:'雲塔之城',threshold:8480,unlock:'紀念工程（未來版本開放）'},
+  {name:'千帆之都',threshold:10030},
+  {name:'萬家之都',threshold:11760},
+  {name:'燈海都會',threshold:13680},
+  {name:'環帶都會',threshold:15800},
+  {name:'穹頂都會',threshold:18130,unlock:'超級工程（未來版本開放）'},
+  {name:'星穹大都會',threshold:20680},
+  {name:'永晝大都會',threshold:23460},
+  {name:'織夢都會',threshold:26480},
+  {name:'微光之巔',threshold:29750,unlock:'城市巔峰紀念建築（未來版本開放）'}
+];
+let rankIdx=0;    // T133：目前城市等級（RANKS 索引，0-based）；只升不降的晉升進度（仿 msIdx/bestStar 慣例），存檔可選欄位 rk
+let cityPoints=0; // T133：目前城市點數（tick() 每日重算，不進存檔）
 let quality=1;            // T97 0低1中2高
 let miniView=0;           // T110 小地圖視圖：0一般 1地價 2污染熱度 3壅堵 4犯罪 5服務覆蓋（T131 擴六段循環，不進存檔）
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
@@ -2330,6 +2362,7 @@ function newWorld(seedOverride){
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null; // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   scenario=null; // T132：場景戰役進度成對重置（鐵律7）——開新圖預設回一般模式，begin() 若有 pendingScenario 會在其後另行設回
+  rankIdx=0;cityPoints=0; // T133：城市等級成對重置（鐵律7）——新城市回到 Lv.1，下次 tick 起即時重算
   undoStack.length=0;undoGroup=null;
   cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動
   recalcAllMasks();
@@ -3152,6 +3185,31 @@ function scenarioFailMet(sc){
   if(sc.goal.type==='debt'&&money<0)return true; // 零負債：破產立即失敗，不待期限
   return sc.fail&&sc.fail.type==='day'&&(day-scenario.startDay)>=sc.fail.byDay;
 }
+// T133：城市等級點數＝人口＋幸福＋服務覆蓋率的加權和。直接讀 tiles/COV/cityHappy 現狀求值（不依賴 pop 全域是否已於本次 tick 重算），
+// 故 tick()／load()／newWorld() 皆可安全呼叫；純唯讀掃描，不消耗 R()、不寫入任何模擬狀態（僅回傳數字）。
+// 幸福項採「相對基準 .6」的差值（而非直接乘 cityHappy），確保零人口新城市（cityHappy 恆為預設 .6）幸福項精確為 0，不會無中生有點數。
+function computeCityPoints(){
+  let popN=0,zoned=0,covSum=0;
+  for(let i=0;i<N*N;i++){
+    const t=tiles[i],b=t.bld;
+    if(t.zone===1){
+      zoned++;
+      let c=0;
+      if(COV.police[i]>0)c++;
+      if(COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0))c++;
+      if(COV.school[i]>0)c++;
+      if(COV.hospital[i]>0||(COV.clinic&&COV.clinic[i]>0))c++;
+      if(COV.park[i]>0)c++;
+      covSum+=c/5;
+    }
+    if(b&&!b.ref){
+      if(b.k===1&&b.pw!==false&&!b.sick&&!b.death)popN+=Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1));
+      else if(b.k===33)popN+=TOWER_POP; // T127：住宅摩天樓（root，人口併入城市點數的人口項）
+    }
+  }
+  const svcCov=zoned?covSum/zoned:0;
+  return Math.max(0,Math.round(popN+(cityHappy-.6)*400+svcCov*800));
+}
 function tick(){
   day++;
   // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
@@ -3727,6 +3785,15 @@ function tick(){
       sFanfare();
       bestStar=cityStar;
     }
+  }
+  // T133：城市等級階梯——累積城市點數每日重算，門檻達標即晉升（只升不降，仿 msIdx/bestStar 慣例）；
+  // 純衍生展示值，不發獎金（避免與既有里程碑/升星獎金重疊影響經濟序列位元回歸），toast 帶新解鎖說明（若該級有 unlock 掛點文案）
+  cityPoints=computeCityPoints();
+  while(rankIdx<RANKS.length-1&&cityPoints>=RANKS[rankIdx+1].threshold){
+    rankIdx++;
+    const rk=RANKS[rankIdx];
+    toast(`🏙️ ${townName}升至 Lv.${rankIdx+1} ${rk.name}！`+(rk.unlock?`　解鎖：${rk.unlock}`:''),'gold');
+    sFanfare();
   }
   // 紓困保底（避免卡死）
   if(money<20&&income-upkeep<=0&&day-bailoutDay>60){
@@ -5283,6 +5350,7 @@ function buildToolbar(){
   const bar=$('#tools');bar.innerHTML='';
   for(const t of TOOLS){
     if(t.cat!==toolCat&&t.id!=='pan'&&t.id!=='doze')continue;
+    if(t.unlockRank&&rankIdx+1<t.unlockRank)continue; // T133：等級解鎖掛點——目前全部 TOOLS 皆未設 unlockRank，此判斷恆為 false（既有 34 種建築在任何等級都可放，不 re-lock）；供未來 MU 波新建築設定門檻
     if(toolCat!=='base'&&(t.id==='pan'||t.id==='doze')&&t.cat==='base'&&toolCat!=='base'){/* pan/doze only in base */}
     const el=document.createElement('button');
     el.className='tool'+(t.id===tool?' sel':'');
@@ -5661,6 +5729,12 @@ function showStats(){
     return `<div class="row"${idAttr}${styles.length?' style="'+styles.join(';')+'"':''}>${tp.text}</div>`;
   }).join('');
   const advHtml=`<div class="row"><b>🧭 城市顧問</b></div>${advTips.length?advRows:'<div class="row">✅ 目前沒有待辦建議</div>'}`;
+  // T133：城市等級面板——複用里程碑/評分列的 .row 樣式，進度條為簡易 inline-style 雙層 div（無下一級時填滿並顯示已達最高等級）
+  const rkCur=RANKS[rankIdx],rkNext=RANKS[rankIdx+1]||null;
+  const rkPct=rkNext?clamp((cityPoints-rkCur.threshold)/(rkNext.threshold-rkCur.threshold)*100,0,100):100;
+  const rankHtml=`<div class="row"><b>🏙️ 城市等級</b>　Lv.${rankIdx+1} ${rkCur.name}${rkCur.unlock?'（'+rkCur.unlock+'）':''}</div>
+     <div class="row" style="background:#1c2340;border-radius:4px;height:8px;overflow:hidden"><div style="width:${rkPct}%;height:100%;background:linear-gradient(90deg,#5ec8ff,#7be08a)"></div></div>
+     <div class="row" style="font-size:11px;opacity:.75">${rkNext?`${cityPoints}/${rkNext.threshold} 點　邁向 Lv.${rankIdx+2} ${rkNext.name}`:`👑 已達最高等級（${cityPoints} 點）`}</div>`;
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
@@ -5676,6 +5750,7 @@ function showStats(){
      <div class="row">🏚️ 貧 ${popT?Math.round(popP/popT*100):0}%　🏠 中 ${popT?Math.round(popM/popT*100):0}%　🏡 富 ${popT?Math.round(popR/popT*100):0}%</div>
      ${happyHtml}
      ${advHtml}
+     ${rankHtml}
      <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
      ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
@@ -5929,7 +6004,8 @@ function save(){
       nl:log, // T114：通知中心日誌（可選欄位，最多 100 筆）
       bus_rt:busRoutes.some(r=>r.stops.length)?busRoutes.map(r=>r.stops.slice()):null, // T120：公車路線（可選欄位，站點 idx 陣列×3 條）
       riot:riot?{cells:riot.cells,days:riot.days}:null, // T118：暴亂狀態（可選欄位，仿 loan 慣例存最小結構）
-      sc:scenario?{id:scenario.id,startDay:scenario.startDay,hold:scenario.hold||0}:null}; // T132：進行中場景戰役（可選欄位，仿 loan/riot 慣例存最小進度結構；scDone 通關集合另落 localStorage 獨立鍵，不入本存檔）
+      sc:scenario?{id:scenario.id,startDay:scenario.startDay,hold:scenario.hold||0}:null, // T132：進行中場景戰役（可選欄位，仿 loan/riot 慣例存最小進度結構；scDone 通關集合另落 localStorage 獨立鍵，不入本存檔）
+      rk:rankIdx}; // T133：城市等級（可選欄位，rankIdx 0-based；load 缺欄位時由當前城市狀態即時算出，不因缺欄位降級）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
     if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
@@ -6008,6 +6084,11 @@ function load(slot){
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
     roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
     recomputeLandDynamic(); // T130：load() 內 rebuildCov 先於本行執行，roadLoad 歸零後補算一次，確保 LAND 壅堵項與歸零後狀態同步（鐵律7）
+    // T133：城市等級——存檔含 rk 則直接還原（保留「只升不降」的晉升歷史，即使當前城市點數暫時因災害/人口下滑而低於門檻也不降級）；
+    // 缺欄位（舊檔）則由當前城市狀態（tiles/COV 此刻皆已重建完畢）即時算出合理等級，不因缺欄位降級為 Lv.1
+    cityPoints=computeCityPoints();
+    if(d.rk!==undefined)rankIdx=clamp(d.rk|0,0,RANKS.length-1);
+    else{rankIdx=0;while(rankIdx<RANKS.length-1&&cityPoints>=RANKS[rankIdx+1].threshold)rankIdx++;}
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車
     rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：路線公車運行時重建不存；路線設定下方視存檔內容還原
     if(d.pol)pol=d.pol;
@@ -6280,7 +6361,9 @@ window.GV={
   scenario:()=>scenario?{...scenario}:null,                       // T132 測試用：目前進行中場景（null＝一般/沙盒/挑戰模式）
   scDone:()=>({...scDone}),                                       // T132 測試用：已通關場景 id 集合快照
   startScenario:(id)=>{const s=SCENARIOS.find(x=>x.id===id);if(!s)return false;challenge=null;pendingScenario=s;begin(true);return true;}, // T132 測試用：繞過選單直接開始指定關卡（等同真點擊該場景按鈕）
-  clearScDone:()=>{scDone={};try{localStorage.removeItem(SAVEKEY+'.scDone');}catch(e){}return true;}      // T132 測試用：清空通關記錄（回歸測試用）
+  clearScDone:()=>{scDone={};try{localStorage.removeItem(SAVEKEY+'.scDone');}catch(e){}return true;},      // T132 測試用：清空通關記錄（回歸測試用）
+  rank:()=>({idx:rankIdx,lv:rankIdx+1,name:RANKS[rankIdx].name,unlock:RANKS[rankIdx].unlock||null,points:cityPoints,next:RANKS[rankIdx+1]?{...RANKS[rankIdx+1]}:null}), // T133 測試用：目前城市等級快照
+  cityPoints:()=>cityPoints // T133 測試用：目前城市點數（tick() 每日重算）
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
