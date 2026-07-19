@@ -103,7 +103,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
   image-rendering:pixelated;cursor:pointer;display:none}
 @media (max-width:420px){#mini{width:96px;height:96px;top:64px}}
-/* T110：小地圖視圖切換鈕（普通/污染熱度） */
+/* T110：小地圖視圖切換鈕（普通/污染熱度/地價，T130 擴） */
 #miniToggle{position:absolute;top:48px;right:160px;width:28px;height:28px;z-index:19;
   border-radius:8px;border:2px solid #303a5c;background:#181f36;color:#dfe6f5;
   font-size:14px;line-height:24px;cursor:pointer;padding:0;display:none}
@@ -150,7 +150,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 <div id="toasts"></div>
 <div id="dragcost"></div>
 <canvas id="mini" width="144" height="144"></canvas>
-<button id="miniToggle" title="切換小地圖視圖：普通／污染熱度">🏭</button>
+<button id="miniToggle" title="切換小地圖視圖：普通／污染熱度／地價">🏭</button>
 <div id="zoomer">
   <button id="zin">＋</button>
   <button id="zout">－</button>
@@ -352,7 +352,7 @@ let region={};            // 區域聯動摘要（T60）
 let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
 let quality=1;            // T97 0低1中2高
-let miniView=0;           // T110 小地圖視圖：0一般 1污染熱度（不進存檔）
+let miniView=0;           // T110 小地圖視圖：0一般 1污染熱度 2地價（T130，不進存檔）
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
 let hist=[];               // T112：歷史曲線環形緩衝 {d,money,net,pop,happy}（365 筆上限，simDay 絕對尾端 push）
 let histRange=30;          // T112：統計面板目前選擇的曲線範圍 30/90/365（不進存檔）
@@ -2959,6 +2959,33 @@ function stampPolTree(x,y,sign){
       POLTREE[i]=clamp(POLTREE[i]+sign*2,0,255);recomputePol(i);
     }}
 }
+/* T130：地價場——服務覆蓋＋景觀（公園）－污染－犯罪 的靜態基準分，疊加（−）壅堵動態扣分，128為中性基準（0-255）。
+   比照 §COV/POL 家族設計：LANDBASE=靜態基準（服務/景觀/污染/犯罪，rebuildCov 內同步全量重建，load/newWorld/undo
+   自動覆蓋）；LAND=對外曝光值（LANDBASE 疊加壅堵動態扣分衍生，仿 T110 POL=POLBASE-POLTREE 手法，先夾 0 避免
+   Uint8 無號下溢）。景觀項僅取玩家可控的 COV.park（不含天然樹木/水岸——newWorld 的 genWorld 恆保留 6%-42%
+   水域且常伴生樹木，若計入天然地形將無法滿足「空曠新圖 LAND 恆 128」硬性不變量，故卡面「景觀（公園/樹/水岸）」
+   用詞中僅落地與空曠新圖歸零相容的公園覆蓋，如實記錄此設計取捨）。不入存檔（rebuild 可重建）。*/
+const LAND=new Uint8Array(N*N), LANDBASE=new Uint8Array(N*N);
+// 靜態基準單格公式：服務覆蓋（警/消/校/醫/圖/郵各 COV.xxx>0 記1分，0~6）＋景觀（COV.park 封頂2分）
+// －污染 POL[i]*1.2－犯罪 countNear*10；全零時 clamp(128+0,0,255) 精確回傳 128（空曠新圖不變量之根本）
+function landStaticAt(x,y){
+  const i=idx(x,y);
+  const svc=(COV.police[i]>0?1:0)+((COV.fire[i]>0||COV.fire2[i]>0)?1:0)+(COV.school[i]>0?1:0)
+    +((COV.hospital[i]>0||COV.clinic[i]>0)?1:0)+(COV.library[i]>0?1:0)+(COV.post[i]>0?1:0);
+  const land=Math.min(2,COV.park[i]);
+  const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime); // 犯罪為動態源，比照 judgeWealth 用 countNear（未蓋印）
+  return clamp(128+svc*8+land*8-(POL[i]||0)*1.2-crime*10,0,255);
+}
+// 動態壅堵懲罰（單格，供 rebuildCov 初值與 tick 每日刷新共用）：半徑2內過載道路格數 * 12，封頂50；空車城恆為0
+function landCongestAt(x,y){return Math.min(50,congestNear(x,y,2)*12);}
+// 由 LANDBASE 衍生 LAND（扣壅堵懲罰後先夾0再寫回 Uint8Array，避免無號下溢）；rebuildCov 尾端與 tick() 每日皆呼叫
+function recomputeLandDynamic(){
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const i=idx(x,y);
+    const v=LANDBASE[i]-landCongestAt(x,y);
+    LAND[i]=v>0?(v<255?v:255):0;
+  }
+}
 // 全量重建（load/newWorld 後、undo 後）：清零後掃全圖蓋印每個設施（含體育場 4 格皆為 k9 覆蓋源，與 countNear 一致）
 function rebuildCov(){
   for(const f in COV)COV[f].fill(0);
@@ -2976,6 +3003,8 @@ function rebuildCov(){
     if(t.bus)stampCov('bus',x,y,COVR.bus,1);
     if(t.tree)stampPolTree(x,y,1); // T110：樹格鄰域污染減免
   }
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)LANDBASE[idx(x,y)]=landStaticAt(x,y); // T130：地價靜態基準隨 COV/POL 同步全量重建
+  recomputeLandDynamic(); // T130：以當下 roadLoad 疊一次壅堵初值（undo 未重置 roadLoad，newWorld/load 已於呼叫前歸零）
 }
 // T123：住宅財富分級判定——服務覆蓋數（警/校/醫/公園）－POL污染－犯罪 加權得分 → 0貧/1中/2富
 // 純資料層：只在住宅新建／升級時呼叫寫入 bld.we，不參與稅收/幸福/需求任何公式（wealth 只寫不讀）
@@ -2983,7 +3012,8 @@ function judgeWealth(x,y){
   const i=idx(x,y);
   const cov=(COV.police[i]>0?1:0)+(COV.school[i]>0?1:0)+(COV.hospital[i]>0?1:0)+(COV.park[i]>0?1:0);
   const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime); // 犯罪為動態源，比照 §11-11 用 countNear（未蓋印）
-  const score=cov-(POL[i]||0)*.05-crime*.4;
+  const landTerm=(LAND[i]-128)/128; // T130：地價附加項（-1~+1），附加不取代既有服務/污染/犯罪項；中性地價(128)精確貢獻0
+  const score=cov-(POL[i]||0)*.05-crime*.4+landTerm*.5;
   if(score>=2)return 2; // 富
   if(score>0)return 1;  // 中
   return 0;              // 貧
@@ -3068,6 +3098,7 @@ function tick(){
   // T129：道路壅堵場——用當日累計 roadPass 做衰減式移動平均，套公式後歸零累加器供下一天統計
   // （純陣列運算，不消耗 R()；空車城 roadPass 恆 0 時 load 恆 0，speed/happyParts 與改動前逐位元一致）
   for(let i=0;i<N*N;i++){roadLoad[i]=roadLoad[i]*.85+roadPass[i]*.15;roadPass[i]=0;}
+  recomputeLandDynamic(); // T130：地價動態部分——每日依最新 roadLoad 疊加壅堵扣分（靜態基準 LANDBASE 不動，純陣列衍生不消耗 R()）
   const cap=computePower();
   const wCap=computeWater();
   // 死亡與墓園前置處理（T38）：既有死亡事件的懲罰標記與自動消退
@@ -3324,7 +3355,8 @@ function tick(){
     // T109：生長機率乘 (1+demand×0.6)；demand<-0.5 該類停長；住宅幸福加成沿用既有係數但只作用於需求項本身
     // （dem[z]===0 時 hf 對乘積無影響，機率精確回落 .10 基準，與改動前 dem=0 時的行為一致，回歸不變量成立）
     const hf=z===1?clamp(cityHappy+.25,.3,1):1;
-    let p=.10*(1+dem[z]*.6*hf);
+    const landMul=1+(LAND[idx(x,y)]-128)/128*.4; // T130：地價驅動生長傾向，中性地價(128)精確恆等 ×1
+    let p=.10*(1+dem[z]*.6*hf)*landMul;
     if(dem[z]<-.5)p=0;
     const cell=T(idx(x,y));
     if(z===1&&cityHappy<.4)p*=.5; // T72
@@ -3535,7 +3567,7 @@ function tick(){
     else if(b.k===34){const pm=pol||{taxR:1,taxC:1,taxI:1};const v2=TOWER_JOBS*.18*(pm.taxC||1);income+=v2;taxC+=v2;} // T127：商業塔稅收＝四格lv3總和×1.15
     else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot){ // T118：暴亂中住宅停稅收
       const pm=pol||{taxR:1,taxC:1,taxI:1};
-      if(b.k===1){const we=b.we!==undefined?b.we:1;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we];income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）
+      if(b.k===1){const we=b.we!==undefined?b.we:1;const landTaxMul=1+(LAND[i]-128)/128*.15;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]*landTaxMul;income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）；T130：輕度地價稅收槓桿，中性地價(128)精確恆等 ×1
       else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1);income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95
       else{const v2=JOBSI[b.lv]*.15*(pm.taxI||1);income+=v2;taxI+=v2;}
     }
@@ -5236,6 +5268,9 @@ function drawMini(){
     if(miniView===1){ // T110：污染熱度視圖，紅色深淺對應 POL[i] 強度
       const v=POL[idx(x,y)];
       c=v>0?'rgb('+Math.min(255,40+v*5)+',26,26)':'#141a30';
+    }else if(miniView===2){ // T130：地價視圖，冷（藍）→暖（紅）對應 LAND 0→255，128中性落中間色
+      const lt=LAND[idx(x,y)]/255;
+      c='rgb('+Math.round(lerp(42,216,lt))+','+Math.round(lerp(74,68,lt))+','+Math.round(lerp(138,42,lt))+')';
     }else{
       c=t.t===0?'#3671b6':t.t===1?'#d9c689':'#74b258';
       if(t.tree)c='#3e7a3c';
@@ -5266,11 +5301,11 @@ miniCv.addEventListener('pointerdown',e=>{
   const tx=(e.clientX-r.left)/r.width*N, ty=(e.clientY-r.top)/r.height*N;
   cam.x=(tx-ty)*32;cam.y=(tx+ty)*16;clampCam();drawMini();
 });
-// T110：小地圖視圖切換鈕（普通 🏭↔污染熱度 🗺️）
+// T110：小地圖視圖切換鈕（普通 🏭→污染熱度 🗺️→地價 💰，T130 擴為三段循環）
 $('#miniToggle').addEventListener('click',e=>{
   e.stopPropagation();
-  miniView=miniView?0:1;
-  $('#miniToggle').textContent=miniView?'🗺️':'🏭';
+  miniView=(miniView+1)%3; // T130：一般/污染熱度/地價 三段循環
+  $('#miniToggle').textContent=miniView===1?'🗺️':miniView===2?'💰':'🏭';
   drawMini();
 });
 function toast(msg,cls,x,y){
@@ -5799,6 +5834,7 @@ function load(slot){
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
     roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
+    recomputeLandDynamic(); // T130：load() 內 rebuildCov 先於本行執行，roadLoad 歸零後補算一次，確保 LAND 壅堵項與歸零後狀態同步（鐵律7）
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車
     rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：路線公車運行時重建不存；路線設定下方視存檔內容還原
     if(d.pol)pol=d.pol;
@@ -5957,6 +5993,7 @@ window.GV={
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   polAt:(x,y)=>inMap(x,y)?POL[idx(x,y)]:null, // T110：污染場除錯鉤子（命名避開稅率政策 GV.pol）
   wealthAt:(x,y)=>{if(!inMap(x,y))return null;const b=T(idx(x,y)).bld;return(b&&b.k===1)?(b.we!==undefined?b.we:1):null;}, // T123：住宅財富級除錯鉤子（0貧/1中/2富，非住宅回 null）
+  landAt:(x,y)=>inMap(x,y)?LAND[idx(x,y)]:null, // T130：地價場除錯鉤子
   loadAt:(x,y)=>inMap(x,y)?+roadLoad[idx(x,y)].toFixed(4):null, // T129：道路壅堵場除錯鉤子
   roadCapAt:(x,y)=>{if(!inMap(x,y))return null;const t=T(idx(x,y));return t.road?ROAD_CAP[(t.rc||2)-1]:null;}, // T129：查詢該格道路容量
   setLoadAt:(x,y,v)=>{if(!inMap(x,y))return false;roadLoad[idx(x,y)]=+v||0;return true;}, // T129：測試用強制設定 load（跳過自然車流累積，供驗收快速觸發過載情境）
