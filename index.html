@@ -245,6 +245,13 @@ const ROAD_CAP=[1,2,4,8,16];     // T129：道路壅堵容量（依 rc 1-5 索�
                                   // 校準依據：本作單日車流量本就小（citywide 車輛上限 32、道路速度慢，daily pass 常態為個位數），
                                   // 容量取小整數才能在合理城市規模下被實際車流觸發過載，數值本身無強制規格、屬本卡設計裁量）
 const ROAD_JAM_K=1;              // T129：過載降速斜率係數，套用於 clamp(1-max(0,load-cap)/cap*k,.3,1)
+const COMMUTE_PERIOD=4;          // T141：通勤叢集快取重算週期（天）——每 N 天重跑一次多源 BFS，其餘天數複用快取路徑，避免每 tick 全城 BFS
+const COMMUTE_CELL=6;            // T141：叢集分塊大小（格）——塊內首個住宅格為代表，僅代表格路徑納入 commutePass 累加，控制大城逐路徑成本
+const COMMUTE_FAR=20;            // T141：路距門檻（格），超過視為「過長通勤」，懲罰隨超額距離線性疊加
+const COMMUTE_PEN_STEP=.012;     // T141：每超額 1 格疊加的通勤懲罰係數
+const COMMUTE_PEN_MAX=.18;       // T141：「過長」通勤懲罰上限（未達不可達門檻前）
+const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到任何就業區）固定懲罰，明顯重於「過長」封頂值（滿足「不可達最重」驗收）
+const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500}; // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
 const GAME_VER='3.8'; // v3.8 收官
@@ -2719,6 +2726,7 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T134：成就快照成對重置（鐵律7）
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
+  commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，開新圖成對歸零（鐵律7）
   RDEP.fill(0);supplies=0; // T140：資源耗損場與供應品存量成對歸零（RESOURCE 本身已由上方 genWorld→genResource 依新種子重建，鐵律7）
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
@@ -3624,7 +3632,8 @@ function judgeWealth(x,y){
   const cov=(COV.police[i]>0?1:0)+(COV.school[i]>0?1:0)+(COV.hospital[i]>0?1:0)+(COV.park[i]>0?1:0);
   const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime); // 犯罪為動態源，比照 §11-11 用 countNear（未蓋印）
   const landTerm=(LAND[i]-128)/128; // T130：地價附加項（-1~+1），附加不取代既有服務/污染/犯罪項；中性地價(128)精確貢獻0
-  const score=cov-(POL[i]||0)*.05-crime*.4+landTerm*.5;
+  const commuteTerm=-(commutePenalty[i]||0)*3; // T141：通勤附加項（不可達/路徑過長拉低財富評分，叢集快取讀取），無就業區/未觸發時精確為0
+  const score=cov-(POL[i]||0)*.05-crime*.4+landTerm*.5+commuteTerm;
   if(score>=2)return 2; // 富
   if(score>0)return 1;  // 中
   return 0;              // 貧
@@ -3778,10 +3787,18 @@ function tick(){
   }
   if(weather===2&&!inWinter()&&R()<.25){flashT=.4;sThunder();} // 冬季不觸發閃電（T18）
   composer.update(); // 天氣／季節變化時背景音樂可能換情緒（T37）
+  // T141：通勤/就業 agent——叢集級近似（比照 T119 computeGarbLocal／busBFS 尋路慣例）：每 COMMUTE_PERIOD 天
+  // （避免每 tick 全城 BFS，控制大城效能）重算一次「住宅叢集代表→最近就業區」路徑快取；其餘天數複用快取，
+  // 僅逐叢集代表沿快取路徑累加 commutePass／roadPass（純陣列走訪，不消耗 R()，與 T129 壅堵場耦合）。
+  if(day%COMMUTE_PERIOD===0)computeCommute();
+  for(const cl of commuteClusters)for(const j of cl.path){roadPass[j]+=COMMUTE_TRIP_W;commutePass[j]+=COMMUTE_TRIP_W;}
   // T129：道路壅堵場——用當日累計 roadPass 做衰減式移動平均，套公式後歸零累加器供下一天統計
   // （純陣列運算，不消耗 R()；空車城 roadPass 恆 0 時 load 恆 0，speed/happyParts 與改動前逐位元一致）
   for(let i=0;i<N*N;i++){roadLoad[i]=roadLoad[i]*.85+roadPass[i]*.15;roadPass[i]=0;}
   recomputeLandDynamic(); // T130：地價動態部分——每日依最新 roadLoad 疊加壅堵扣分（靜態基準 LANDBASE 不動，純陣列衍生不消耗 R()）
+  // T141：通勤場獨立衰減式移動平均（純觀察用途，供 GV.commuteLoad/commuteAt 讀取，不回饋 roadLoad 避免雙重疊加；
+  // 無通勤 trip 時 commutePass 恆 0，此項恆為 0，與改動前逐位元一致）
+  for(let i=0;i<N*N;i++){commuteLoad[i]=commuteLoad[i]*.85+commutePass[i]*.15;commutePass[i]=0;}
   const cap=Math.floor(computePower()*POWER_SEASON_MULT[sea]); // T136：夏季冷氣／冬季暖氣抬高電力需求壓力＝有效供電容量打折；春秋 ×1 精確恆等（Math.floor 對已為整數之值原樣返回）
   const wCap=Math.floor(computeWater()*(drought?DROUGHT_WATER_MULT:1)); // T137：乾旱期間供水上限打折（非乾旱精確恆等 ×1，Math.floor 對已為整數之值原樣返回）
   // 死亡與墓園前置處理（T38）：既有死亡事件的懲罰標記與自動消退
@@ -3914,6 +3931,7 @@ function tick(){
         {name:'空氣污染',val:-POL[ci]*.006*WEALTH_PEN[we]}, // T110：空間污染係數；T124：財富分級懲罰係數（貧.5/中1/富2）
         {name:'犯罪',val:-crime*.05*WEALTH_PEN[we]}, // T124：財富分級懲罰係數（貧.5/中1/富2）
         {name:'交通壅堵',val:-Math.min(.15,jam*.03)}, // T129：鄰近過載道路每格 -0.03、上限 -0.15；load 全 0（空車城）時 jam 恆 0，此項恆為 0
+        {name:'通勤',val:-(commutePenalty[ci]||0)}, // T141：住宅沿路網距最近就業區過長或不可達的通勤懲罰（叢集快取讀取，無就業區/無路網時恆為 0）
         {name:'宵禁',val:pol&&pol.curfew?-.02:0}, // T122：宵禁開啟時全城住宅幸福固定 -2%
         {name:'喪事未安撫',val:-(deathPenalty[idx(x,y)]?.1:0)},
         {name:'生病',val:-(b.sick?.35:0)},
@@ -4513,6 +4531,15 @@ const cars=[],smokes=[];
    皆為運行時全域、不入存檔，newWorld()/load() 尾端隨其餘車輛狀態一併歸零（鐵律7）。
    T131（未做，僅留錨點）：壅堵未來可考慮接入地價，本卡不實作。 */
 const roadLoad=new Float32Array(N*N), roadPass=new Uint16Array(N*N);
+/* T141：通勤/就業 agent 運行時場——commuteLoad[i] 為通勤 trip 專屬的衰減式移動平均（獨立於 roadLoad 自身統計，
+   純觀察用途，供 GV.commuteLoad/commuteAt 讀取，不回饋 roadLoad 避免雙重疊加）；commutePass[i] 為當日累計通勤
+   trip「經過」該格次數（tick() 內逐叢集快取路徑走訪遞增，純累加不消耗 R()）。commutePenalty[i]／commuteUnreach[i]
+   為「叢集快取重算」寫入的每格住宅通勤懲罰/不可達旗標（供 happyParts「通勤」項與 judgeWealth 讀取，非重算天數
+   沿用舊值＝快取）；commuteClusters 為叢集代表→最近就業區的路徑快取陣列（供 tick() 每日複用貢獻 roadPass/commutePass，
+   避免每 tick 全城 BFS）。皆為運行時全域、不入存檔，newWorld()/load() 尾端隨 roadLoad/roadPass 一併歸零（鐵律7）。*/
+const commuteLoad=new Float32Array(N*N), commutePass=new Uint16Array(N*N);
+const commutePenalty=new Float32Array(N*N), commuteUnreach=new Uint8Array(N*N);
+let commuteClusters=[];
 function roadDirs(x,y){
   const t=T(idx(x,y));const out=[];
   if(t.mask&1)out.push(0);if(t.mask&2)out.push(1);
@@ -4985,6 +5012,67 @@ function computeGarbLocal(){
     }else{
       garbLocal[i]=garbRatio;
     }
+  }
+}
+/* T141：通勤/就業 agent——叢集級近似（比照上方 computeGarbLocal／busBFS 尋路慣例）。tick() 於 day%COMMUTE_PERIOD===0
+   時呼叫本函式（其餘天數複用上次快取，避免每 tick 全城 BFS）：
+   ①多源 BFS——源＝已完工商業/工業分區建築（k===2 含辦公區/k===3），沿道路網算每一道路格到最近就業區的最短路距
+     dist（含 prev 回溯指標），純陣列/佇列運算不消耗 R()；
+   ②住宅依 COMMUTE_CELL×COMMUTE_CELL 網格分「叢集」，每叢集僅取首個住宅格為代表，沿 prev 回溯出代表→最近就業區
+     的路徑並快取進 commuteClusters（供 tick() 每日複用貢獻 roadPass/commutePass，避免逐棟尋路控制大城效能）；
+   ③每格住宅（非僅代表格）依同一 dist 場查最近路口距離，寫入 commutePenalty／commuteUnreach 供 happyParts「通勤」項
+     與 judgeWealth 全日讀取（叢集內住宅共用同一批距離場，僅路徑追蹤動作只做一次，非「逐人尋路」）。
+   無就業區（dsrc 為空）時提前 return，commutePenalty/commuteUnreach/commuteClusters 皆維持全零／空陣列，
+   通勤零效果（硬性不變量：無道路/無就業區時通勤恆零，同種子 30 天位元回歸與基準一致）。*/
+function computeCommute(){
+  commutePenalty.fill(0);
+  commuteUnreach.fill(0);
+  commuteClusters.length=0;
+  const dsrc=[];
+  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&(b.k===2||b.k===3))dsrc.push(i);}
+  if(!dsrc.length)return; // 無就業區：全部維持零（不變量）
+  const dist=new Uint16Array(N*N).fill(9999);
+  const prev=new Int32Array(N*N).fill(-1);
+  const q=[];
+  for(const si of dsrc){
+    const sx0=si%N,sy0=(si/N)|0;
+    for(const[dx,dy]of DIRV){
+      const nx=sx0+dx,ny=sy0+dy;
+      if(inMap(nx,ny)){const j=idx(nx,ny);if(T(j).road&&dist[j]>0){dist[j]=0;q.push(j);}}
+    }
+  }
+  let head=0;
+  while(head<q.length){
+    const cur=q[head++],d=dist[cur],cx=cur%N,cy=(cur/N)|0;
+    for(const[dx,dy]of DIRV){
+      const nx=cx+dx,ny=cy+dy;
+      if(!inMap(nx,ny))continue;
+      const j=idx(nx,ny);
+      if(T(j).road&&dist[j]>d+1){dist[j]=d+1;prev[j]=cur;q.push(j);}
+    }
+  }
+  const blkPerRow=Math.ceil(N/COMMUTE_CELL);
+  const blkSeen=new Uint8Array(blkPerRow*blkPerRow);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const i=idx(x,y),b=tiles[i].bld;
+    if(!b||b.k!==1)continue;
+    let bd=9999,broad=-1;
+    for(const[dx,dy]of DIRV){
+      const nx=x+dx,ny=y+dy;
+      if(!inMap(nx,ny))continue;
+      const j=idx(nx,ny);
+      if(T(j).road&&dist[j]<bd){bd=dist[j];broad=j;}
+    }
+    if(broad<0||bd>=9999){commuteUnreach[i]=1;commutePenalty[i]=COMMUTE_PEN_UNREACH;}
+    else if(bd>COMMUTE_FAR){commutePenalty[i]=Math.min(COMMUTE_PEN_MAX,(bd-COMMUTE_FAR)*COMMUTE_PEN_STEP);}
+    const blk=((x/COMMUTE_CELL)|0)*blkPerRow+((y/COMMUTE_CELL)|0); // 叢集鍵：粗網格分塊，塊內首個住宅格為代表
+    if(blkSeen[blk])continue;
+    blkSeen[blk]=1;
+    if(broad<0||bd>=9999)continue; // 代表格本身不可達，該叢集無路徑可貢獻 load（不進 commuteClusters）
+    const path=[];
+    let c=broad,steps=0;
+    while(c!==-1&&steps<600){path.push(c);c=prev[c];steps++;}
+    commuteClusters.push({path});
   }
 }
 // T120：路線覆蓋（半徑3內、多路線不疊加，二值化覆蓋後加總人口）住宅人口——供 updCars 小車生成率折抵；每天（tick）重算一次，不進存檔
@@ -6988,6 +7076,7 @@ function load(slot){
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
     roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
+    commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，讀檔成對歸零（鐵律7）
     recomputeLandDynamic(); // T130：load() 內 rebuildCov 先於本行執行，roadLoad 歸零後補算一次，確保 LAND 壅堵項與歸零後狀態同步（鐵律7）
     RDEP.fill(0); // T140：資源耗損先歸零，再視存檔內容還原（鐵律7）
     if(Array.isArray(d.rdep))for(const pair of d.rdep){ // T140：稀疏可選欄位還原，舊檔缺 rdep 視為全數未耗損
@@ -7197,6 +7286,11 @@ window.GV={
   loadAt:(x,y)=>inMap(x,y)?+roadLoad[idx(x,y)].toFixed(4):null, // T129：道路壅堵場除錯鉤子
   roadCapAt:(x,y)=>{if(!inMap(x,y))return null;const t=T(idx(x,y));return t.road?ROAD_CAP[(t.rc||2)-1]:null;}, // T129：查詢該格道路容量
   setLoadAt:(x,y,v)=>{if(!inMap(x,y))return false;roadLoad[idx(x,y)]=+v||0;return true;}, // T129：測試用強制設定 load（跳過自然車流累積，供驗收快速觸發過載情境）
+  commuteLoad:()=>{let unreachable=0;for(let i=0;i<N*N;i++)if(commuteUnreach[i])unreachable++;return{clusters:commuteClusters.length,unreachable};}, // T141：通勤場彙總鉤子（叢集快取數／全城不可達住宅數）
+  commuteAt:(x,y)=>inMap(x,y)?+commuteLoad[idx(x,y)].toFixed(4):null, // T141：通勤場除錯鉤子（該格由通勤 trip 貢獻的衰減式移動平均 load，供驗證「沿路上升」）
+  commutePenaltyAt:(x,y)=>inMap(x,y)?+commutePenalty[idx(x,y)].toFixed(4):null, // T141：測試用——該格住宅通勤懲罰快取值（happyParts「通勤」項/judgeWealth 附加項讀取的同一份數值）
+  commuteUnreachAt:(x,y)=>inMap(x,y)?!!commuteUnreach[idx(x,y)]:null, // T141：測試用——該格住宅是否被判定通勤不可達（孤島）
+  recomputeCommute:()=>{computeCommute();return true;}, // T141：測試用——手動觸發叢集快取重算（跳過 COMMUTE_PERIOD 天數門檻）
   setSpeed:s=>{speed=s;},
   setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
   season:()=>({idx:season(),name:SEASON_NAME[season()],icon:SEASON_ICON[season()],farmMult:FARM_SEASON_MULT[season()],powerMult:POWER_SEASON_MULT[season()],tourMult:TOUR_SEASON_MULT[season()]}), // T136 測試用：目前季節快照（0春/1夏/2秋/3冬）
