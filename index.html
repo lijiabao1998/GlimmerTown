@@ -2581,6 +2581,86 @@ function buildSprites(){
    ng.fillStyle='#ff6a3a';ng.fillRect(rx-4,ry-9,8,3); // 尾焰警示燈
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['51_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
+  /* ===== T146 街道級細節層：SPR.roadDeco 家族，置於 buildSprites 絕對尾端（接在 T140 資源供應鏈建築之
+     後），遵守 FIX-B 亂數流尾端約定（僅本函式局部 rand，且已無其後任何生成，零位移疑慮）。人行道邊石／
+     斑馬線／車道標線皆 16 mask 變體（比照既有道路 SPR.roadClass 手法，貼合 road mask 的 (~m)&15 非連接
+     邊）；街道設施小件與夜光候車亭沿用 SPR.rdec 同款 64×40／ax32 ay36 錨點慣例；路邊停放車直接複用既有
+     SPR.car（draw() 內縮小＋既有 8 色池挑色，不新增 sprite，不新增 R()/rand 消耗）；行人為 draw() 內直
+     接 fillRect 的 2px 點狀（比照既有 t.wp 水管標記手法，不需獨立 SPR 鍵）。draw() 一律以座標決定性雜湊
+     streetHash() 挑選，不消耗全域 R()/ri()。window.__noStreet=true 時本區塊整段跳過（＋draw() 對應繪製
+     亦短路，見該處）＝零位移（供除錯/回歸比對用，證明既有 SPR 鍵 checksum 不受本卡影響） ===== */
+  if(!window.__noStreet){
+    SPR.roadDeco={};
+    // ---- 人行道邊石／鋪面：16 mask 變體，沿非連接邊 (~m)&15 疊寬鋪面帶＋碎紋，比照既有道路緣石雙色手法 ----
+    SPR.roadDeco.curb=[];
+    for(let m=0;m<16;m++){
+      const[c,g]=cv(64,32);
+      const closed=(~m)&15;
+      diaEdge(g,closed,'#aca890',32,1,30);
+      diaEdge(g,closed,'#8f8b76',32,3,26);
+      speck(g,32,2,28,['#b8b49c','#96927c'],8,rand);
+      SPR.roadDeco.curb.push(c);
+    }
+    // ---- 斑馬線：16 mask 變體，於每個「有路」方向邊界點畫白色短槓；draw() 僅在路口(popcount>=3)／端點
+    //      (popcount<=1) 才挑用，直行/轉彎段(popcount===2)一律不畫，避免與街道小件同格過密 ----
+    const ZEBRA_PT={
+      1:[[42,5],[48,8],[54,11]],   2:[[54,21],[48,24],[42,27]],
+      4:[[22,27],[16,24],[10,21]], 8:[[10,11],[16,8],[22,5]]
+    };
+    SPR.roadDeco.zebra=[];
+    for(let m=0;m<16;m++){
+      const[c,g]=cv(64,32);
+      for(const bit of[1,2,4,8]){
+        if(!(m&bit))continue;
+        for(const[px,py]of ZEBRA_PT[bit]){
+          g.fillStyle='rgba(238,238,232,.88)';g.fillRect(px-1,py-1,3,2);
+          g.fillStyle='rgba(30,30,26,.22)';g.fillRect(px-1,py+1,3,1);
+        }
+      }
+      SPR.roadDeco.zebra.push(c);
+    }
+    // ---- 中線兩側車道標線（draw() 僅 rc>=3 才挑用）：沿既有中線同一組座標公式（見 T29 dashSeg 呼叫式）
+    //      平移 ±7px 畫兩條輔助虛線，兩條行進軸（1|4／2|8）各一張，代表多車道分隔 ----
+    {const[c,g]=cv(64,32);g.fillStyle='rgba(240,240,232,.5)';
+     for(let k=-3;k<=3;k++){g.fillRect(32+8*k-2,16-4*k-7,2,1);g.fillRect(32+8*k-2,16-4*k+7,2,1);}
+     SPR.roadDeco.lane14=c;}
+    {const[c,g]=cv(64,32);g.fillStyle='rgba(240,240,232,.5)';
+     for(let k=-3;k<=3;k++){g.fillRect(32+8*k-2,16+4*k-1-7,2,1);g.fillRect(32+8*k-2,16+4*k-1+7,2,1);}
+     SPR.roadDeco.lane28=c;}
+    // ---- 街道設施小件（沿用 SPR.rdec/SPR.busStop 同款 64×40／ax32 ay36 錨點慣例，內容置於 x10-27 一帶）----
+    const mkDecoSimple=drawFn=>{const[c,g]=cv(64,40);drawFn(g);return{img:c,night:null,ax:32,ay:36,w:64,h:40};};
+    SPR.roadDeco.hydrant=mkDecoSimple(g=>{ // 消防栓：紅色矮柱＋頂蓋
+      g.fillStyle='#c94040';g.fillRect(16,26,4,7);
+      g.fillStyle='#e26a6a';g.fillRect(16,26,1,7);
+      g.fillStyle='#8f2c2c';g.fillRect(19,26,1,7);
+      g.fillStyle='#c94040';g.fillRect(15,24,6,2);
+      g.fillStyle='#8f2c2c';g.fillRect(15,33,6,1);
+    });
+    SPR.roadDeco.mailbox=mkDecoSimple(g=>{ // 郵筒：藍色箱體＋投遞口
+      g.fillStyle='#3a5a9a';g.fillRect(16,25,5,6);
+      g.fillStyle='#5c7cc2';g.fillRect(16,25,5,1);
+      g.fillStyle='#233a66';g.fillRect(17,31,3,3);
+    });
+    SPR.roadDeco.bench=mkDecoSimple(g=>{ // 長椅：橫向木條＋兩腳
+      g.fillStyle='#8a5f38';g.fillRect(13,28,10,2);
+      g.fillStyle='#6b4a2a';g.fillRect(13,30,1,3);g.fillRect(21,30,1,3);
+      g.fillStyle='#a3754a';g.fillRect(13,27,10,1);
+    });
+    SPR.roadDeco.trash=mkDecoSimple(g=>{ // 垃圾桶：深灰矮桶
+      g.fillStyle='#4a4e56';g.fillRect(16,27,4,6);
+      g.fillStyle='#666a72';g.fillRect(16,27,1,6);
+      g.fillStyle='#33363c';g.fillRect(15,26,6,1);
+    });
+    { // 候車亭（含夜光燈條）：小屋頂＋兩柱＋長椅
+      const[c,g]=cv(64,40),[nc,ng]=cv(64,40);
+      g.fillStyle='#7a828c';g.fillRect(10,16,16,2);
+      g.fillStyle='#9aa2ac';g.fillRect(10,16,16,1);
+      g.fillStyle='#565c64';g.fillRect(10,18,1,10);g.fillRect(25,18,1,10);
+      g.fillStyle='#8a5f38';g.fillRect(11,26,14,2);
+      ng.fillStyle='#ffe3a0';ng.fillRect(13,18,10,1);
+      SPR.roadDeco.shelter={img:c,night:nc,ax:32,ay:36,w:64,h:40};
+    }
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -5122,6 +5202,16 @@ function computeBusRtCovPop(){
 }
 
 
+// T146：座標決定性雜湊（純函式，不讀寫任何全域狀態、不消耗共用 rand()/R()/ri()，同一 (x,y,salt) 恆回傳同值）——
+// 供街道級細節層（人行道邊石/斑馬線/標線/街道小件/停放車/行人）挑選用，避免逐幀重骰造成畫面抖動，也避免污染模擬用的全域亂數流。
+function streetHash(x,y,salt){
+  let h=(x*374761393+y*668265263+salt*2246822519)|0;
+  h=Math.imul(h^(h>>>15),2246822519);
+  h=Math.imul(h^(h>>>13),3266489917);
+  h^=h>>>16;
+  return(h>>>0)/4294967296;
+}
+const STREET_POPCOUNT=[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4]; // T146：road mask（0-15）位元數查表，供判斷路口(>=3)/端點(<=1)/直行段(===2)
 // T96：地面層離屏快取。地面層（地形/水/道路/分區覆蓋等）逐格重繪成本最高，但其外觀只取決於
 // 相機位置/縮放、水面動畫幀、季節、模擬天數與畫布尺寸——這些不變的幀直接重貼上一次畫好的離屏畫布即可。
 // groundDirty 為髒標記：doPlace()（建造/拆除唯一資料變更點）／undo()／newWorld()／load()／GV.flood()
@@ -5224,6 +5314,54 @@ function draw(dt){
           const bx2=sx+(32-bs2.ax)*z, by2=sy+(32-bs2.ay)*z;
           gc.drawImage(bs2.img,bx2,by2,bs2.w*z,bs2.h*z);
           rdecGlow.push({img:SPR.busStopN,x:bx2,y:by2,w:bs2.w*z,h:bs2.h*z});
+        }
+        /* ===== T146 街道級細節層：座標決定性雜湊挑選（streetHash，不消耗 R()/ri()），併入 groundCache 重
+           繪路徑（本段純新增，未變動 gKey 結構、未新增快取鍵成分）；高速路(t.hw)／橋(t.bridge)不畫（無人
+           行道概念，且橋面 sy 偏移不同，疊上去會錯位）；window.__noStreet=true 或生成端已整段跳過時本段
+           整段短路（SPR.roadDeco 不存在）＝零位移 ===== */
+        if(!window.__noStreet&&SPR.roadDeco&&!t.hw&&!t.bridge){
+          const rc2=t.rc||2, pc=STREET_POPCOUNT[t.mask];
+          gc.drawImage(SPR.roadDeco.curb[t.mask],sx,sy,64*z,32*z); // 人行道邊石：任意縮放層級皆畫（比照道路本體 sprite，非「小件」）
+          if(!lodMini){ // T107 LOD：z<0.5 連標線（斑馬線／車道標線）一併跳過
+            if(pc<=1||pc>=3)gc.drawImage(SPR.roadDeco.zebra[t.mask],sx,sy,64*z,32*z); // 斑馬線：路口／端點
+            if(rc2>=3){ // 車道標線：僅 rc>=3（次幹道以上）
+              if(t.mask===(1|4))gc.drawImage(SPR.roadDeco.lane14,sx,sy,64*z,32*z);
+              else if(t.mask===(2|8))gc.drawImage(SPR.roadDeco.lane28,sx,sy,64*z,32*z);
+            }
+          }
+          if(!lodFar&&pc===2){ // T107 LOD：z<1 跳過街道小件／停放車／行人；直行/轉彎段(popcount===2)才擺（路口/端點已有斑馬線）
+            let nearLv=0;
+            const nb4=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
+            for(const nb of nb4){const nx=nb[0],ny=nb[1];if(!inMap(nx,ny))continue;const nt=T(idx(nx,ny));if(nt.bld&&!nt.bld.ref&&nt.bld.lv>nearLv)nearLv=nt.bld.lv;}
+            const dens=clamp(.15+(rc2-1)*.025+nearLv*.05,0,.42); // 密度依道路等級與鄰近建築等級遞增
+            if(streetHash(x,y,701)<dens){
+              const pick=streetHash(x,y,702);
+              if(pick<.17){const d=SPR.roadDeco.hydrant;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+              else if(pick<.34){const d=SPR.roadDeco.mailbox;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+              else if(pick<.51){const d=SPR.roadDeco.bench;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+              else if(pick<.68){const d=SPR.roadDeco.trash;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+              else if(pick<.80){
+                const d=SPR.roadDeco.shelter;
+                const dx2=sx+(32-d.ax)*z,dy2=sy+(32-d.ay)*z;
+                gc.drawImage(d.img,dx2,dy2,d.w*z,d.h*z);
+                rdecGlow.push({img:d.night,x:dx2,y:dy2,w:d.w*z,h:d.h*z}); // 夜光候車亭
+              }else{ // 路邊停放車：複用既有 SPR.car（8 色池依雜湊挑色＋左右側挑向）縮小 78% 貼近路緣
+                const ci=Math.floor(streetHash(x,y,703)*SPR.car.length)%SPR.car.length;
+                const carSide=streetHash(x,y,704)<.5;
+                const carImg=carSide?SPR.car[ci].A:SPR.car[ci].B;
+                gc.drawImage(carImg,sx+(carSide?16:40)*z,sy+22*z,12*.78*z,8*.78*z);
+              }
+            }
+            // 行人（2-3px 點狀，visT 兩幀微動：僅於 groundCache 本次重繪時取樣一幀，重繪之間畫面沿用同一快取畫布，
+            // 「連續兩幀」不觸發重繪＝checksum 不變，符合硬性不變量；跨重繪之間會緩慢切幀，呼應卡面「可微動」）
+            if(streetHash(x,y,705)<.05+nearLv*.015){
+              const pedFrame=Math.floor(visT*1.1)%2;
+              const pedX=streetHash(x,y,706)<.5?20:44;
+              const pedY=24+pedFrame;
+              gc.fillStyle='#3a342e';gc.fillRect(sx+pedX*z,sy+(pedY-2)*z,2*z,2*z);
+              gc.fillStyle='#dcb890';gc.fillRect(sx+pedX*z,sy+(pedY-3)*z,2*z,1*z);
+            }
+          }
         }
       }else if(t.zone&&!t.bld&&!t.ruin){
         gc.globalAlpha=.5;gc.drawImage(SPR.zone[t.zone],sx,sy,64*z,32*z);gc.globalAlpha=1;
