@@ -5529,6 +5529,21 @@ function draw(dt){
     ctx.fillRect(0,0,W,H);
     flashT=Math.max(0,flashT-dt);
   }
+  // ---- T143：因果追溯疊圖（inspect 面板點擊負向因子後高亮貢獻來源格；traceOverlay 為 null 或空陣列時零迭代，逐像素與改動前一致）----
+  if(traceOverlay&&traceOverlay.tiles.length){
+    const trR=.55+.25*Math.sin(visT*4);
+    ctx.globalAlpha=trR;
+    ctx.fillStyle='#ff4d6d';
+    ctx.strokeStyle='#fff3c4';
+    ctx.lineWidth=Math.max(1,2*z);
+    for(const tp of traceOverlay.tiles){
+      const tsx=sxOf(tp.x,tp.y),tsy=syOf(tp.x,tp.y);
+      if(!vis(tsx,tsy))continue;
+      ctx.beginPath();ctx.moveTo(tsx+32*z,tsy);ctx.lineTo(tsx+64*z,tsy+16*z);ctx.lineTo(tsx+32*z,tsy+32*z);ctx.lineTo(tsx,tsy+16*z);ctx.closePath();
+      ctx.fill();ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }
   // ---- 游標／框選預覽 ----
   drawCursor(sxOf,syOf,z);
   if(z<1)ctx.imageSmoothingEnabled=false; // T106：復原，z≥1 各檔渲染路徑不受影響
@@ -5831,6 +5846,7 @@ function commitRect(){
 }
 /* 檢視面板 */
 let selTile=null; // T126：inspect 選中建築格（{x,y}或null），供 draw() 前方遮擋物半透明判定；純 UI 狀態，比照 hover/rect 慣例不進 newWorld/load 重置
+let traceOverlay=null; // T143：因果追溯疊圖狀態 {factor,tiles:[{x,y}...]} 或 null；純 UI 狀態，比照 selTile 慣例不進 newWorld/load 重置，關面板或再點同一因子清空
 function inspect(x,y){
   if(!inMap(x,y)){hideInfo();return;}
   const t=T(idx(x,y));
@@ -5958,7 +5974,7 @@ function inspect(x,y){
   });
   $('#info').style.display='block';
 }
-function hideInfo(){$('#info').style.display='none';selTile=null;}
+function hideInfo(){$('#info').style.display='none';selTile=null;traceOverlay=null;} // T143：關閉面板清除因子追溯疊圖
 $('#infoX').onclick=hideInfo;
 
 /* =====================================================================
@@ -6601,6 +6617,23 @@ function cityAdvisor(){
   tips.sort((a,b)=>b.sev-a.sev);
   return tips.slice(0,5);
 }
+// T143：因果追溯——負向幸福/財富因子→貢獻來源格（純讀取既有 POL/COV/roadLoad/crime 場，不新增模擬、不改任何公式）
+function svcGapTiles(f){ // 缺服務：住宅分區中未被該服務欄位覆蓋的格（COV.xxx===0）
+  const r=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&!(COV[f][i]>0))r.push({x:i%N,y:(i/N)|0});}return r;
+}
+const FACTOR_TRACE={ // 鍵名對齊 happyRows（T111）/cityAdvisor（T131）顯示文字，供面板點擊與 GV.trace 共用
+  '空氣污染':()=>{const r=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&POL_SRC[b.k])r.push({x:i%N,y:(i/N)|0});}return r;},
+  '電廠鄰近':()=>{const r=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k===5)r.push({x:i%N,y:(i/N)|0});}return r;},
+  '工業汙染鄰近':()=>{const r=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k===3)r.push({x:i%N,y:(i/N)|0});}return r;},
+  '犯罪':()=>{const r=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&b.crime)r.push({x:i%N,y:(i/N)|0});}return r;},
+  '交通壅堵':()=>{const r=[];for(let i=0;i<N*N;i++){const t=tiles[i];if(!t.road)continue;const cap=ROAD_CAP[(t.rc||2)-1];if(cap>0&&roadLoad[i]>cap)r.push({x:i%N,y:(i/N)|0});}return r;},
+  '治安覆蓋不足':()=>svcGapTiles('police'),
+  '消防覆蓋不足':()=>svcGapTiles('fire'),
+  '醫療覆蓋不足':()=>svcGapTiles('hospital'),
+  '教育覆蓋不足':()=>svcGapTiles('school'),
+  '綠地覆蓋不足':()=>svcGapTiles('park')
+};
+function traceFactor(factor){const fn=FACTOR_TRACE[factor];return fn?fn():null;}
 function showStats(){
   // T68 政策快捷（稅率倍率）
   if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false};
@@ -6657,19 +6690,24 @@ function showStats(){
     '天氣':'🌧️ 壞天氣暫時拉低幸福→天氣好轉後會恢復',
     '冬季':'❄️ 冬季拉低幸福→開春後會恢復'
   };
-  const happyRows=happySorted.map(p=>{
+  const happyRows=happySorted.map((p,pi)=>{
     const bad=!!happyWorst&&p===happyWorst&&p.val<0;
-    return `<div class="row"${bad?' style="color:#e05252"':''}>${escHtml(p.name)}　${fp(p.val)}${bad&&HAPPY_TIP[p.name]?'　'+HAPPY_TIP[p.name]:''}</div>`;
+    const traceable=p.val<0&&FACTOR_TRACE[p.name]; // T143：僅負值且有對應來源格計算的因子可點擊追溯
+    const styles=[];if(bad)styles.push('color:#e05252');if(traceable)styles.push('cursor:pointer');
+    const idAttr=traceable?` id="hpTr${pi}"`:'';
+    return `<div class="row"${idAttr}${styles.length?' style="'+styles.join(';')+'"':''}>${escHtml(p.name)}　${fp(p.val)}${bad&&HAPPY_TIP[p.name]?'　'+HAPPY_TIP[p.name]:''}</div>`;
   }).join('');
   const happyTotal=happySorted.reduce((s,p)=>s+p.val,0);
   const happyHtml=happySorted.length?`<div class="row"><b>😊 幸福構成</b>（城市平均）</div>${happyRows}<div class="row" style="opacity:.8">合計 ${fp(happyTotal)}</div>`:'';
   const popT=popP+popM+popR; // T124：貧/中/富人口占比分母
   const advTips=cityAdvisor(); // T131：城市顧問——服務缺口/污染犯罪壅堵熱點/RCI/財政彙總（單次全圖掃描，只在面板開啟時執行）
+  const SVC_GAP_KEYS=['治安覆蓋不足','消防覆蓋不足','醫療覆蓋不足','教育覆蓋不足','綠地覆蓋不足']; // T143：與 cityAdvisor() SVC_NM 文案對齊，不改動 cityAdvisor 本體，僅比對文字取得可追溯因子鍵
   const advRows=advTips.map((tp,i)=>{
     const styles=[];
     if(i===0)styles.push('color:#e05252'); // 最嚴重項標紅（比照 happyRows bad 樣式）
-    if(tp.x!==undefined)styles.push('cursor:pointer');
-    const idAttr=tp.x!==undefined?' id="adv'+i+'"':'';
+    const svcKey=SVC_GAP_KEYS.find(k=>tp.text.includes(k)); // T143：服務覆蓋缺口類建議可點擊因果追溯（無需座標）
+    if(tp.x!==undefined||svcKey)styles.push('cursor:pointer');
+    const idAttr=(tp.x!==undefined||svcKey)?' id="adv'+i+'"':'';
     return `<div class="row"${idAttr}${styles.length?' style="'+styles.join(';')+'"':''}>${tp.text}</div>`;
   }).join('');
   const advHtml=`<div class="row"><b>🧭 城市顧問</b></div>${advTips.length?advRows:'<div class="row">✅ 目前沒有待辦建議</div>'}`;
@@ -6707,10 +6745,24 @@ function showStats(){
      ${plague?`<div class="row" style="color:#ffb84d">🦠 疫情蔓延中（${plague.cells.length} 戶感染）<button class="hbtn" id="plagueBtn">💉 隔離 $150</button></div>`:''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   $('#info').style.display='block';
-  advTips.forEach((tp,i)=>{ // T131：顧問建議帶座標者可點擊跳鏡頭（複用小地圖跳轉座標公式，比照 showLog／T06 先例）
-    if(tp.x===undefined)return;
+  happySorted.forEach((p,pi)=>{ // T143：幸福構成負向因子點擊→因果追溯疊圖（設 traceOverlay，draw() 對應繪製；再點同一因子清空）
+    if(!(p.val<0&&FACTOR_TRACE[p.name]))return;
+    const el=$('#hpTr'+pi);
+    if(el)el.addEventListener('click',()=>{
+      if(traceOverlay&&traceOverlay.factor===p.name)traceOverlay=null;
+      else{const tl=traceFactor(p.name);traceOverlay=(tl&&tl.length)?{factor:p.name,tiles:tl}:null;}
+    });
+  });
+  advTips.forEach((tp,i)=>{ // T131：顧問建議帶座標者可點擊跳鏡頭（複用小地圖跳轉座標公式，比照 showLog／T06 先例）；T143：服務覆蓋缺口類建議可點擊因果追溯
+    const svcKey=SVC_GAP_KEYS.find(k=>tp.text.includes(k));
+    if(tp.x===undefined&&!svcKey)return;
     const el=$('#adv'+i);
-    if(el)el.addEventListener('click',()=>{cam.x=(tp.x-tp.y)*32;cam.y=(tp.x+tp.y)*16;clampCam();drawMini();hideInfo();});
+    if(!el)return;
+    if(tp.x!==undefined)el.addEventListener('click',()=>{cam.x=(tp.x-tp.y)*32;cam.y=(tp.x+tp.y)*16;clampCam();drawMini();hideInfo();});
+    else el.addEventListener('click',()=>{
+      if(traceOverlay&&traceOverlay.factor===svcKey)traceOverlay=null;
+      else{const tl=traceFactor(svcKey);traceOverlay=(tl&&tl.length)?{factor:svcKey,tiles:tl}:null;}
+    });
   });
   // T112：歷史曲線畫圖與範圍切換鈕（面板關閉時不會呼叫本函式，故不會渲染）
   drawHistChart();
@@ -7452,7 +7504,15 @@ window.GV={
   plagueDays:()=>plague?plague.days:0,             // T137 測試用：瘟疫剩餘天數（0＝無瘟疫）
   droughtOn:()=>drought,                            // T137 測試用：目前是否處於乾旱
   blizzardAt:()=>blizzard?{...blizzard}:null,       // T137 測試用：目前暴風雪/沙暴狀態快照
-  leakDaysAt:(x,y)=>inMap(x,y)?leakDays[idx(x,y)]:null // T137 測試用：該格工業洩漏剩餘天數
+  leakDaysAt:(x,y)=>inMap(x,y)?leakDays[idx(x,y)]:null, // T137 測試用：該格工業洩漏剩餘天數
+  trace:(factor)=>{ // T143 測試用：依因子鍵掃出貢獻來源格並設 traceOverlay（等同面板點擊），回傳 tiles 陣列快照；未知/無來源格回傳 null 且不改動 traceOverlay
+    const tl=traceFactor(factor);
+    if(!tl||!tl.length)return null;
+    traceOverlay={factor,tiles:tl};
+    return tl.map(t=>({...t}));
+  },
+  traceOverlay:()=>traceOverlay?{factor:traceOverlay.factor,tiles:traceOverlay.tiles.map(t=>({...t}))}:null, // T143 測試用：目前因果追溯疊圖狀態快照（null＝未啟用）
+  clearTrace:()=>{traceOverlay=null;return true;} // T143 測試用：手動清除因果追溯疊圖（等同關面板/再點同因子）
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
