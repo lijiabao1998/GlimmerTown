@@ -3802,6 +3802,7 @@ function tick(){
   }
   if(weather===2&&!inWinter()&&R()<.25){flashT=.4;sThunder();} // 冬季不觸發閃電（T18）
   composer.update(); // 天氣／季節變化時背景音樂可能換情緒（T37）
+  ambientBus.update(); // T144：環境音分層混音——複用同一晝夜/天氣/季節切換觸發點，依交通/人口/工業/公園指標平滑重算四層增益
   // T141：通勤/就業 agent——叢集級近似（比照 T119 computeGarbLocal／busBFS 尋路慣例）：每 COMMUTE_PERIOD 天
   // （避免每 tick 全城 BFS，控制大城效能）重算一次「住宅叢集代表→最近就業區」路徑快取；其餘天數複用快取，
   // 僅逐叢集代表沿快取路徑累加 commutePass／roadPass（純陣列走訪，不消耗 R()，與 T129 壅堵場耦合）。
@@ -6176,6 +6177,119 @@ setInterval(()=>{
 },700);
 
 /* =====================================================================
+   9c. 環境音動態分層混音（T144，氛圍勝點）——交通/人口/工業/公園四層
+   程序化噪聲／振盪源，增益依即時指標平滑跟隨，疊加於既有 BGM 之上（不取代）；
+   season/weather 切換時複用與 composer 情緒交叉淡出同量級的線性斜坡（1.3s）。
+===================================================================== */
+const AMBIENT_LAYERS=['traffic','voice','industry','nature']; // 街噪/人聲/機械/鳥鳴
+const AMBIENT_VOL={traffic:.05,voice:.035,industry:.045,nature:.028}; // 各層滿載輸出音量上限（遠低於 composer 主旋律，確保疊加不喧賓奪主）
+const AMBIENT_RAMP=1.3; // 增益平滑跟隨時間（秒），與 composer._fade 的 1.2~1.5s 同量級（複用同款線性斜坡淡出手法）
+class AmbientBus{
+  constructor(){
+    this.on=false;
+    this.layers={};    // key -> {src,filter?,gain,lfo?,lfoGain?}
+    this._lastCalc=-1; // 指標重算節流基準：以 AC.currentTime（真實時間）為準，跟遊戲倍速無關
+  }
+  start(){
+    if(this.on)return;
+    initAudio();
+    if(!AC)return;
+    this.on=true;
+    this.layers.traffic=this._mkNoise(700,'lowpass',1,false);  // 街噪＝低通濾波噪聲（悶悶的車流底噪）
+    this.layers.voice=this._mkNoise(1400,'bandpass',1.4,true); // 人聲＝帶通噪聲＋慢速 LFO（群集氣泡起伏）
+    this.layers.industry=this._mkOsc(58,'sawtooth',true);      // 機械＝低頻鋸齒＋LFO 脈衝
+    this.layers.nature=this._mkNoise(4200,'bandpass',3,true);  // 鳥鳴＝高頻帶通噪聲＋LFO 點綴閃爍
+    this._lastCalc=-1; // 強制下一次 update() 立即重算，開啟當下即反映城市現況
+    this.update();
+  }
+  stop(){
+    if(!this.on)return;
+    this.on=false;
+    for(const k of AMBIENT_LAYERS){
+      const L=this.layers[k];
+      if(!L)continue;
+      this._rampGain(L.gain,0,.4);
+      setTimeout(()=>{
+        for(const n of [L.src,L.filter,L.lfo,L.lfoGain])if(n){try{n.stop&&n.stop();}catch(e){}try{n.disconnect();}catch(e){}}
+        try{L.gain.disconnect();}catch(e){}
+      },450);
+    }
+    this.layers={};
+  }
+  _rampGain(g,to,dur){
+    if(!AC)return;
+    const t0=AC.currentTime;
+    g.gain.cancelScheduledValues(t0);
+    g.gain.setValueAtTime(g.gain.value,t0);
+    g.gain.linearRampToValueAtTime(to,t0+dur);
+  }
+  _mkNoise(freq,type,q,useLfo){
+    const len=(AC.sampleRate*2)|0,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+    const src=AC.createBufferSource();src.buffer=buf;src.loop=true;
+    const filter=AC.createBiquadFilter();filter.type=type;filter.frequency.value=freq;filter.Q.value=q;
+    const gain=AC.createGain();gain.gain.value=0;
+    src.connect(filter).connect(gain).connect(AC.destination);
+    src.start();
+    let lfo=null,lfoGain=null;
+    if(useLfo){
+      lfo=AC.createOscillator();lfo.type='sine';lfo.frequency.value=.12+Math.random()*.1;
+      lfoGain=AC.createGain();lfoGain.gain.value=0; // 隨 update() 依當前層音量比例設定，指標為 0 時不殘留任何調變
+      lfo.connect(lfoGain).connect(gain.gain);
+      lfo.start();
+    }
+    return {src,filter,gain,lfo,lfoGain};
+  }
+  _mkOsc(freq,type,useLfo){
+    const o=AC.createOscillator();o.type=type;o.frequency.value=freq;
+    const gain=AC.createGain();gain.gain.value=0;
+    o.connect(gain).connect(AC.destination);
+    o.start();
+    let lfo=null,lfoGain=null;
+    if(useLfo){
+      lfo=AC.createOscillator();lfo.type='sine';lfo.frequency.value=.4;
+      lfoGain=AC.createGain();lfoGain.gain.value=0;
+      lfo.connect(lfoGain).connect(gain.gain);
+      lfo.start();
+    }
+    return {src:o,gain,lfo,lfoGain};
+  }
+  update(){
+    if(!this.on||!AC)return;
+    const now=AC.currentTime;
+    if(now-this._lastCalc<.5)return; // 節流：真實時間至少 0.5s 才重算一次指標，避免高倍速下浪費運算
+    this._lastCalc=now;
+    // 交通密度：全圖道路格 roadLoad/容量 之平均比例（T129 既有場，純讀取不消耗 R()）
+    let loadSum=0,loadN=0;
+    for(let i=0;i<N*N;i++){
+      const t=tiles[i];
+      if(t.road){const cap=ROAD_CAP[(t.rc||2)-1];if(cap>0){loadSum+=Math.min(1.4,roadLoad[i]/cap);loadN++;}}
+    }
+    const trafficT=loadN?clamp(loadSum/loadN,0,1):0;
+    // 人口：全域 pop，2600 視為滿層基準（大城喧鬧感）
+    const voiceT=clamp(pop/2600,0,1);
+    // 工業計數：achStats.nI（tick() 每日重算快取，比照既有 achStats 慣例，純讀取不新增計數迴圈）
+    const industryT=clamp((achStats.nI||0)/18,0,1);
+    // 公園覆蓋：COV.park 覆蓋格數佔全圖比例（6% 視為滿層）
+    let parkN=0;for(let i=0;i<N*N;i++)if(COV.park[i]>0)parkN++;
+    const natureBase=clamp(parkN/(N*N*.06),0,1);
+    const b=daylight().b; // 晝夜：夜晚鳥鳴自然壓低（複用既有 composer.pickMood() 同款 daylight() 判斷）
+    const natureT=natureBase*clamp((b-.2)/.5,0,1)*(weather===2?.2:1)*(inWinter()?.35:1); // 暴風雨/冬季壓低——複用 composer 情緒切換所讀的同一批 weather/inWinter 訊號
+    this._setTarget('traffic',trafficT);
+    this._setTarget('voice',voiceT);
+    this._setTarget('industry',industryT);
+    this._setTarget('nature',natureT);
+  }
+  _setTarget(k,v){
+    const L=this.layers[k];if(!L)return;
+    const vol=v*(AMBIENT_VOL[k]||0);
+    this._rampGain(L.gain,vol,AMBIENT_RAMP);
+    if(L.lfoGain)this._rampGain(L.lfoGain,vol*.5,AMBIENT_RAMP); // LFO 調變深度隨層音量同步淡出，指標為 0 時不殘留任何調變
+  }
+}
+const ambientBus=new AmbientBus();
+
+/* =====================================================================
    10. UI
 ===================================================================== */
 function buildToolbar(){
@@ -6379,7 +6493,7 @@ $('#bSound').onclick=()=>{
   muted=sndMode===0;
   $('#bSound').textContent=['🔇','🔊','🎵'][sndMode];
   localStorage.setItem(SAVEKEY+'.snd',sndMode);
-  if(sndMode===2)composer.start(); else composer.stop();
+  if(sndMode===2){composer.start();ambientBus.start();}else{composer.stop();ambientBus.stop();} // T144：環境音匯流排沿用既有音效總開關，跟 composer 同進退
   if(sndMode)sTick();
 };
 $('#bSave').onclick=()=>{showSlots();sTick();};
@@ -7280,7 +7394,7 @@ function begin(fresh){
   $('#mini').style.display='block';$('#miniToggle').style.display='block';drawMini(); // T110：小地圖切換鈕隨小地圖一併顯示
   computePower();
   updHud();
-  if(sndMode===2)composer.start();
+  if(sndMode===2){composer.start();ambientBus.start();} // T144：頁面載入沿用既有 sndMode 持久化設定時，環境音匯流排一併啟動
   if(!hasSave||fresh)checkHints(0,0);
 }
 $('#bNewGame').onclick=()=>{challenge=null;pendingScenario=null;begin(true);}; // T132：一般開新圖需清掉殘留選關暫存
@@ -7512,7 +7626,12 @@ window.GV={
     return tl.map(t=>({...t}));
   },
   traceOverlay:()=>traceOverlay?{factor:traceOverlay.factor,tiles:traceOverlay.tiles.map(t=>({...t}))}:null, // T143 測試用：目前因果追溯疊圖狀態快照（null＝未啟用）
-  clearTrace:()=>{traceOverlay=null;return true;} // T143 測試用：手動清除因果追溯疊圖（等同關面板/再點同因子）
+  clearTrace:()=>{traceOverlay=null;return true;}, // T143 測試用：手動清除因果追溯疊圖（等同關面板/再點同因子）
+  ambientLevels:()=>{ // T144 測試用：環境音四層目前增益（0-1，即時讀 GainNode.gain.value 正規化，非快取值）；音效關閉/未啟動時全 0
+    const r={on:ambientBus.on};
+    for(const k of AMBIENT_LAYERS)r[k]=ambientBus.layers[k]?+(ambientBus.layers[k].gain.gain.value/(AMBIENT_VOL[k]||1)).toFixed(4):0;
+    return r;
+  }
 };
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
