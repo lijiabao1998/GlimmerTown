@@ -5140,7 +5140,7 @@ function daylight(){
   const d=Math.max(0,Math.sin((ph-.25)*Math.PI*2));
   const b=.34+.66*Math.pow(d,.7);
   const dusk=(d>0&&d<.30)?(0.30-d)/.30:0;
-  return {b,dusk,ph};
+  return {b,dusk,ph,d}; // T149：新增 d（太陽高度代理值 0..1，供光影/晨昏方向判斷共用；既有 b/dusk/ph 回傳值與既有呼叫端解構 {b,dusk}/{b} 完全不受影響，純新增鍵）
 }
 /* ---------- T63-T66 列車/貨船/輕軌/救護車 ---------- */
 function railDirs(x,y){
@@ -5415,7 +5415,7 @@ const STREET_POPCOUNT=[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4]; // T146：road mask（0
 let groundDirty=true,groundCache=null,groundCacheCtx=null,groundCacheKey='',groundCacheGlow=[];
 let groundCacheZ=1; // T108：記錄目前快取實際烘焙時的 cam.z，供縮放動畫期間「快取縮放重貼」換算比例（不參與 gKey，快取鍵結構不變）
 function draw(dt){
-  const {b,dusk}=daylight();
+  const {b,dusk,ph,d}=daylight(); // T149：新增解構 ph/d（既有 b/dusk 用途不變）
   // 天空
   const sky=[Math.round(lerp(13,140,b)),Math.round(lerp(17,195,b)),Math.round(lerp(38,232,b))];
   ctx.fillStyle=`rgb(${sky[0]},${sky[1]},${sky[2]})`;
@@ -5432,6 +5432,18 @@ function draw(dt){
   const z=cam.z;
   if(z<1)ctx.imageSmoothingEnabled=true; // T106：遠檔縮小抗鋸齒閃爍，僅主畫布層級切換，繪製結束復原
   const lodFar=z<1, lodMini=z<.5; // T107：遠景 LOD 分級旗標（只裁「畫」不裁「算」，tick/updCars/updSmoke 等模擬照跑）
+  /* ===== T149 光影與氛圍：地面光暈＋方向性陰影統一開關與強度係數（動態層，每幀算，不烘進 groundCache）=====
+     fxOn：z<0.5（沿用 T107 lodMini）或效能檔=低（T97 quality===0）時整段關閉，兩處新增繪製皆受其門檻。
+     nightDepth：0(日間，b>=.72，含正午 b===1)→1(深夜，b===.34)，沿用既有 nightSprites 'screen' 疊加同款 b<.72
+     日夜門檻，故日間（含硬性不變量要求的正午基準）恆為 0；光暈直接以 nightDepth 驅動強度（夜深越亮）。
+     shadowA：陰影不透明度，同一 nightDepth 門檻下取「昏邊強、深夜弱」鐘形（越靠近 b=.72 門檻越強、越深夜衰減
+     但不歸零），日間（nightDepth===0）恆精確為 0，滿足「正午/日間無天氣時逐像素一致」硬性不變量。
+     window.__noLight（預設 undefined＝關）：真時 fxOn 強制 false 且晨昏色調分流還原單一橙色，等同完全回退
+     T149 前渲染，供像素回歸 A/B 比對與 60 幀效能量測開關。 ===== */
+  const fxOn=!window.__noLight&&quality!==0&&!lodMini;
+  const nightDepth=fxOn&&b<.72?clamp((.72-b)/.38,0,1):0;
+  const shadowA=nightDepth>0?.30*(.3+.7*(1-nightDepth)):0;
+  const SHOX=16,SHOY=8; // 陰影固定偏移（西北光源→畫面右下，沿用 §4 bit2(x+1,y) 螢幕位移方向 (+32,+16) 半縮）
   // T69 地震震動：純渲染偏移（不寫回 cam.x/y，toTile 等輸入換算不受影響）
   const shakeAmp=shakeT>0?shakeT*14*z:0;
   const shakeX=shakeAmp?Math.sin(visT*47)*shakeAmp:0;
@@ -5589,6 +5601,22 @@ function draw(dt){
     rdecGlow=groundCacheGlow;
   }
   if(!zoomAnim)ctx.drawImage(groundCache,0,0); // T108：動畫中的縮放重貼已在上方分支自行繪製，此處只負責一般（非動畫）路徑
+  /* ===== T149 路燈／裝飾光源地面光暈：rdecGlow 既有點光源清單（路燈/公車亭/隕石坑餘燼等，位置已是螢幕座標），
+     於此處（地面快取貼上之後、物件層繪製之前）疊一圈徑向暖色光斑，之後建築/樹木依深度序繪製自然蓋在其上；
+     nightDepth===0（日間，含正午）時 fxOn 短路本段零繪製，逐像素與改動前一致；'lighter' 加成疊加不影響下方地面顏色語意 ===== */
+  if(nightDepth>0&&rdecGlow.length){
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    for(const rg2 of rdecGlow){
+      const gx=rg2.x+(rg2.w||0)/2, gy=rg2.y+(rg2.h||0)/2, gr=30*z;
+      const grad=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);
+      grad.addColorStop(0,`rgba(255,214,150,${(0.26*nightDepth).toFixed(3)})`);
+      grad.addColorStop(1,'rgba(255,214,150,0)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();ctx.arc(gx,gy,gr,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
   // ---- 物件層（依深度排序） ----
   const objs=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -5796,6 +5824,28 @@ function draw(dt){
     }
     else if(bd.k===9){bx=sxOf(o.x+1,o.y+1)+(32-s.ax)*z;by=syOf(o.x+1,o.y+1)+(32-s.ay)*z;}
     else{bx=o.sx+(32-s.ax)*z;by=o.sy+(32-s.ay)*z;}
+    /* ===== T149 建築方向性陰影＋窗燈地面光暈：畫在該建築自己的 drawImage 之前（地面之上、建築之前），
+       陰影/光暈皆為動態層、每幀畫、不烘進 groundCache；shadowA/nightDepth 已在 draw() 起手依 fxOn／b<.72
+       算好且日間（含正午）恆為 0，此處零額外判斷即可保證硬性不變量 ===== */
+    if(shadowA>0){ // 陰影：取既有 sprite 本體 alpha 剪影，垂直壓扁＋固定偏移模擬躺地投影，不新增 sprite、不消耗 R()
+      const shH=Math.max(2,s.h*z*.32);
+      ctx.save();
+      ctx.filter='brightness(0)';
+      ctx.globalAlpha=shadowA;
+      ctx.drawImage(s.img,bx+SHOX*z,by+s.h*z-shH+SHOY*z,s.w*z,shH);
+      ctx.restore();
+    }
+    if(nightDepth>0&&s.night&&(bd.k===5||bd.pw)){ // 窗燈/發電廠地面光暈：與既有 nightSprites 判定同一鍵（s.night 存在且已供電或為電廠），強度隨夜深度
+      const gx=bx+s.ax*z, gy=by+s.ay*z, gr=44*z;
+      const rg=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);
+      rg.addColorStop(0,`rgba(255,206,130,${(0.30*nightDepth).toFixed(3)})`);
+      rg.addColorStop(1,'rgba(255,206,130,0)');
+      ctx.save();
+      ctx.globalCompositeOperation='lighter';
+      ctx.fillStyle=rg;
+      ctx.beginPath();ctx.arc(gx,gy,gr,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
     let occA=1; // T126：目標列表為空時 for..of 零迭代，occA 恆 1，行為與改動前完全一致
     if(occTargets.length)for(const ot of occTargets){if(o.dep>ot.dep&&ot.ax>=bx&&ot.ax<bx+s.w*z&&ot.ay>=by&&ot.ay<by+s.h*z){occA=.35;break;}}
     if(occA<1)ctx.globalAlpha=occA;
@@ -5852,7 +5902,10 @@ function draw(dt){
     ctx.globalCompositeOperation='source-over';
   }
   if(dusk>0){
-    ctx.fillStyle=`rgba(255,145,60,${(dusk*.16).toFixed(3)})`;
+    // T149：晨昏兩檔——ph<.5（日出前半段）冷藍、ph>=.5（日落後半段）沿用既有暖橙；dusk 強度公式完全不變，
+    // 僅色相依方向分流，ph===.5（正午）時 dusk 恆為 0 不會進入本區塊，__noLight 時強制退回單一橙色（改動前行為）
+    const morn=!window.__noLight&&ph<.5;
+    ctx.fillStyle=morn?`rgba(80,140,255,${(dusk*.14).toFixed(3)})`:`rgba(255,145,60,${(dusk*.16).toFixed(3)})`;
     ctx.fillRect(0,0,W,H);
   }
   // ---- 夜間燈光 ----
@@ -7833,6 +7886,10 @@ window.GV={
   clearDeath:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k===1){b.death=0;b.deathAge=0;return true;}return false;},
   weather:(w)=>{weather=clamp(w|0,0,2);wxT=99;return weather;}, // 強制設天氣（測試用，鎖住不換態）
   flash:()=>{flashT=.4;sThunder();return true;},               // 強制觸發閃電（測試用）
+  daylightDbg:()=>daylight(),                                  // T149 測試用：直接曝光既有 daylight() 回傳值（b/dusk/ph/d），純讀取、零新邏輯，供光影驗收精確判斷日夜相位
+  setVisT:(v)=>{visT=+v||0;return visT;},                       // T149 測試用：直接設定 visT（僅影響渲染晝夜相位，不寫入存檔、不影響 tick()/day 模擬節奏），供光影驗收鎖定精確相位
+  forceDraw:()=>{draw(.016);return true;},                      // T149 測試用：同步立即觸發一次 draw()（§11 不變量 7：渲染不改遊戲狀態，重複呼叫安全），供像素回歸在同一輪事件迴圈內連續比對，避開背景模擬（day/車輛/水面幀）跨呼叫真實時間漂移雜訊
+  setZoom:(z)=>{cam.z=+z||1;zoomAnim=null;return cam.z;},        // T149 測試用：直接設定 cam.z（沿用既有 zoomStep 寫入同一變數），供驗證 T107 z<0.5 LOD 門檻正確跳過光影
   addMoney:v=>{money+=v;return Math.round(money);},            // 測試用資金調整
   canPlaceTool:(t,x,y)=>canPlace(t,x,y),                       // 測試用建造可行性
   buses:()=>buses.map(b=>({x:b.x,y:b.y,stop:[b.stop%N,(b.stop/N)|0],p:+b.p.toFixed(2),wait:+b.wait.toFixed(2),moving:!!b.path})), // 公車運行快照（T26 測試用）
