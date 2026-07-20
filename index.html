@@ -452,6 +452,10 @@ let muted=false,sndMode=1;
 let visT=CYCLE*.38; // 視覺時間（從早晨開始）
 let simAcc=0;
 let weather=0,wxT=5,flashT=0; // 天氣（T17）：0晴 1雨 2暴雨；wxT 剩餘天數、flashT 閃電計時（皆不進存檔）
+let fog=null; // T154：霧（null 或 {days:N}）——獨立於既有 weather 天氣狀態機的新增視覺天氣，tick() 內以決定性雜湊 streetHash(day,0,920) 低機率觸發（不消耗 R()/ri()，不改既有天氣觸發機率），純視覺不進存檔，newWorld()/load() 尾端隨其餘天氣殘留成對歸零（鐵律7）
+const FOG_PROB=.006;                    // T154：每日觸發霧的機率（決定性雜湊判定，非 R()）
+const RAIN_ACC_DAYS=5,SNOW_ACC_DAYS=6;  // T154：地面濕地反光／積雪疊加強度換算天數，直接讀既有 rainDays（T57「連續雨天計數」，tick() 既有遞增/遞減邏輯完全不變）純衍生不新增計數邏輯，雨/雪停止後隨 rainDays 遞減同步緩降
+const SNOW_MAX_A=.22;                   // T154：積雪白色疊加不透明度上限（0→此值，隨連續雪天數漸進堆積；不改既有冬季 sprite）
 const inWinter=()=>((day-1)%360)>=300; // 冬季（T18）：每年第 300-360 天；由 day 導出，不進存檔
 let wSeason=-1; // 上次 tick 的季節旗標（-1 未定 / 0 非冬 / 1 冬）；入冬／開春 toast 防重複（T18，不進存檔）
 // T136：真四季循環——由 day 年內位置導出四季 0春/1夏/2秋/3冬；season()===3 與既有 inWinter() 精確同義（皆取 (day-1)%360>=300），
@@ -3719,7 +3723,7 @@ function newWorld(seedOverride){
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
   svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本開新圖歸零（鐵律7）
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
-  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null;plague=null;drought=false;blizzard=null;leakDays.fill(0); // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零；T137：瘟疫/乾旱/暴風雪/工業洩漏皆運行時狀態，開新圖強制歸零消散
+  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null;plague=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零；T137：瘟疫/乾旱/暴風雪/工業洩漏皆運行時狀態，開新圖強制歸零消散
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   scenario=null; // T132：場景戰役進度成對重置（鐵律7）——開新圖預設回一般模式，begin() 若有 pendingScenario 會在其後另行設回
   editMode=false;customScenario=null; // T135：編輯器模式與自製場景定義成對重置（鐵律7）——開新圖預設離開編輯器；bEditorMode 按鈕會在 begin() 之後另行設回 editMode=true
@@ -4790,6 +4794,16 @@ function tick(){
     }
   }
   if(weather===2&&!inWinter()&&R()<.25){flashT=.4;sThunder();} // 冬季不觸發閃電（T18）
+  /* ===== T154 霧：獨立於既有天氣狀態機（weather/wxT 上方兩段完全未改動）的新增視覺天氣，僅晴天
+     （weather===0）且無暴風雪時低機率觸發，倒數天數後自動消散；觸發判定改用決定性雜湊
+     streetHash(day,0,salt)（純函式，不讀寫全域、不消耗 R()/ri()，不影響既有天氣觸發機率與其 R() 消耗
+     次序），純視覺、不進存檔，newWorld()/load() 尾端隨其餘天氣殘留成對歸零（鐵律7）===== */
+  if(fog){
+    fog.days--;
+    if(fog.days<=0)fog=null;
+  }else if(weather===0&&!blizzard&&streetHash(day,0,920)<FOG_PROB){
+    fog={days:1+Math.floor(streetHash(day,0,921)*3)};
+  }
   composer.update(); // 天氣／季節變化時背景音樂可能換情緒（T37）
   ambientBus.update(); // T144：環境音分層混音——複用同一晝夜/天氣/季節切換觸發點，依交通/人口/工業/公園指標平滑重算四層增益
   // T141：通勤/就業 agent——叢集級近似（比照 T119 computeGarbLocal／busBFS 尋路慣例）：每 COMMUTE_PERIOD 天
@@ -6156,6 +6170,11 @@ function draw(dt){
   const nightDepth=fxOn&&b<.72?clamp((.72-b)/.38,0,1):0;
   const shadowA=nightDepth>0?.30*(.3+.7*(1-nightDepth)):0;
   const animOn=!window.__noAnim&&quality!==0&&!lodMini&&!!SPR.flag; // T152：動畫細節層總開關（z<0.5／低效能檔 quality===0／__noAnim=true 時全跳過，沿用 T149 fxOn 同款節流慣例）；末項 !!SPR.flag 防禦性檢查（沿用 T146 SPR.roadDeco 同款慣例）：若啟動時以 __noAnim=true 跳過了 buildSprites 尾端生成，之後即使動態改回 false，本幀動畫 SPR 鍵仍不存在，此檢查避免讀取 undefined 陣列拋錯
+  /* ===== T154 天氣視覺升級總開關：z<0.5（lodMini）或效能檔=低（quality===0）時整段關閉，退回既有簡單天氣
+     渲染——本卡新增的四類（地面水花／濕地反光／積雪漸進疊加／霧／暴風雪橫向線條）皆受其節流；本開關關閉時，
+     既有全屏天氣色調／暴風雪色調／螢幕空間雨雪粒子等原生代碼路徑完全不受影響，原樣繼續運作（＝既有簡單版本）。
+     window.__noWx（預設 undefined＝關）：真時強制關閉，等同完全回退 T154 前渲染，供像素回歸 A/B 比對。===== */
+  const wxUp=!window.__noWx&&quality!==0&&!lodMini;
   const SHOX=16,SHOY=8; // 陰影固定偏移（西北光源→畫面右下，沿用 §4 bit2(x+1,y) 螢幕位移方向 (+32,+16) 半縮）
   // T69 地震震動：純渲染偏移（不寫回 cam.x/y，toTile 等輸入換算不受影響）
   const shakeAmp=shakeT>0?shakeT*14*z:0;
@@ -6370,6 +6389,40 @@ function draw(dt){
     }
     ctx.globalAlpha=1;
     ctx.restore();
+  }
+  /* ===== T154 雨天地面水花＋濕地反光：地面快取貼上、T149 光暈、T152 水面波光之後，物件層之前疊加（不烘進
+     groundCache，每幀重算，快取鍵 gKey 未新增任何組成分量）；水花挑選＋2 幀相位皆由 streetHash(x,y,salt)＋
+     visT 決定性驅動，不消耗 R()/ri()；wxUp 為假（z<0.5／quality===0／__noWx=true）時整段跳過＝退回既有簡單
+     版本（下方既有「天氣色調」區塊完全不受本開關節流，原樣繼續運作）。
+     wetLvl／snowLvl：直接衍生既有 rainDays（T57「連續雨天計數」，tick() 既有遞增/遞減邏輯完全不變，此處純
+     讀取不新增全域狀態、不消耗 R()），依當下季節分流為雨天濕地反光強度／雪天積雪強度，兩者天然隨 rainDays
+     於雨/雪停止後遞減同步緩降；晴天基準（newWorld/load 後 rainDays 恆 0）時兩者精確為 0 ===== */
+  const wetLvl=win?0:clamp(rainDays/RAIN_ACC_DAYS,0,1);
+  const snowLvl=win?clamp(rainDays/SNOW_ACC_DAYS,0,1):0;
+  if(wxUp&&wetLvl>0){ // 濕地反光：配合 T149 光暈疊一層淡藍灰 'lighter' 加成，形成濕潤地面感，不改地面顏色語意
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle=`rgba(150,178,206,${(wetLvl*.09).toFixed(3)})`;
+    ctx.fillRect(0,0,W,H);
+    ctx.restore();
+  }
+  if(wxUp&&weather&&!win&&!lodFar){ // 落點水花：僅非冬季雨天（冬季由既有雪花粒子代表降水，不疊加水花圈）；z<1 略去個體（同既有 drawRain 之 !lodFar 慣例）
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const t=T(idx(x,y));
+      if(t.t===0)continue; // 水面不畫地面水花
+      const sx=sxOf(x,y),sy=syOf(x,y);
+      if(!vis(sx,sy))continue;
+      const ph2=streetHash(x,y,930);
+      if(ph2>.10)continue; // 稀疏度：約 10% 地面格具備水花資格
+      const cyc=(visT*1.6+ph2*23)%1; // 0..1 決定性循環相位（同 visT 下重繪恆等，符合像素回歸「同一事件迴圈內比對」慣例）
+      const frame=cyc<.5?0:1; // 2 幀：小環（濃）→大環（淡），模擬水花擴散消退
+      const rr=(frame===0?3:7)*z, ra=frame===0?.5:.2;
+      ctx.strokeStyle=`rgba(215,228,245,${ra})`;
+      ctx.lineWidth=Math.max(1,z);
+      ctx.beginPath();
+      ctx.arc(sx+(16+ph2*32)*z,sy+(10+((ph2*53)%1)*14)*z,rr,0,Math.PI*2);
+      ctx.stroke();
+    }
   }
   // ---- 物件層（依深度排序） ----
   const objs=[];
@@ -6675,6 +6728,34 @@ function draw(dt){
     ctx.fillStyle=blizzard.type==='snow'?'rgba(230,238,250,.35)':'rgba(196,164,110,.35)';
     ctx.fillRect(0,0,W,H);
   }
+  /* ===== T154 積雪漸進疊加＋霧＋暴風雪橫向雪流線條：與上方既有天氣/暴風雪色調同一時機（晝夜 multiply 之
+     前）疊加，皆為每幀動態層、不烘進 groundCache；wxUp 為假時整段跳過＝退回既有簡單版本（上方既有天氣/暴風
+     雪色調完全不受影響，原樣繼續運作）。晴天基準（weather=0、無雪無霧）時 snowLvl 恆 0、fog 恆 null、
+     blizzard 恆 null，三段皆不進入，逐像素與改動前一致 ===== */
+  if(wxUp&&snowLvl>0){ // 積雪：0→SNOW_MAX_A 隨連續雪天數（snowLvl，見上方衍生）推進，停雪後隨 rainDays 遞減同步緩降；不改任何冬季 sprite，純疊色
+    ctx.fillStyle=`rgba(255,255,255,${(snowLvl*SNOW_MAX_A).toFixed(3)})`;
+    ctx.fillRect(0,0,W,H);
+  }
+  if(wxUp&&fog){ // 霧：全屏低對比白霧＋遠處（螢幕上方 y=0）更濃的線性漸層，模擬近實遠虛的縱深感（fog 觸發見 tick()）
+    const fg=ctx.createLinearGradient(0,0,0,H);
+    fg.addColorStop(0,'rgba(230,234,238,.32)');
+    fg.addColorStop(1,'rgba(230,234,238,.09)');
+    ctx.fillStyle=fg;
+    ctx.fillRect(0,0,W,H);
+  }
+  if(wxUp&&blizzard){ // 暴風雪：既有全屏疊色之上加橫向雪流線條，純 screen 空間＋visT 位移公式決定性驅動，不消耗 R()/ri()
+    ctx.save();
+    ctx.globalAlpha=.22;
+    ctx.strokeStyle=blizzard.type==='snow'?'rgba(255,255,255,.6)':'rgba(120,92,52,.6)';
+    ctx.lineWidth=Math.max(1,1.4*z);
+    for(let i=0;i<14;i++){
+      const yy=((i*(H/14)+visT*150)%(H+40))-20;
+      const xx=(((i*97-visT*230)%(W+200))+(W+200))%(W+200)-100; // JS % 對負被除數保留負號，須加一輪 +m 再取模才能正確落在 [0,W+200) 區間
+      const len=44+(i%5)*9;
+      ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(xx+len,yy+len*.22);ctx.stroke();
+    }
+    ctx.restore();
+  }
   // ---- 晝夜色調 ----
   if(b<1){
     ctx.globalCompositeOperation='multiply';
@@ -6724,8 +6805,16 @@ function draw(dt){
   // ---- 天氣：雨絲＋閃電（螢幕空間，夜燈之後、游標之前；T17）----
   if(weather&&!lodFar)drawRain(z); // T107：z<1 不畫雨雪個體，全屏色調已由前段天氣色調段落涵蓋
   if(flashT>0){
-    ctx.fillStyle=`rgba(255,255,255,${Math.min(.85,flashT*2).toFixed(3)})`;
+    const flashA=Math.min(.85,flashT*2);
+    ctx.fillStyle=`rgba(255,255,255,${flashA.toFixed(3)})`;
     ctx.fillRect(0,0,W,H);
+    if(fxOn&&wxUp){ // T154：沿用 T149 光影層 'lighter' 疊加手法，閃電瞬間額外疊一層暖白全域補光（一幀高亮，隨 flashT 同步衰減）；fxOn／wxUp 任一為假（z<0.5／quality===0／__noLight／__noWx）時維持改動前純白閃光，退回既有簡單版本
+      ctx.save();
+      ctx.globalCompositeOperation='lighter';
+      ctx.fillStyle=`rgba(255,250,225,${(flashA*.45).toFixed(3)})`;
+      ctx.fillRect(0,0,W,H);
+      ctx.restore();
+    }
     flashT=Math.max(0,flashT-dt);
   }
   // ---- T143：因果追溯疊圖（inspect 面板點擊負向因子後高亮貢獻來源格；traceOverlay 為 null 或空陣列時零迭代，逐像素與改動前一致）----
@@ -8447,7 +8536,7 @@ function load(slot){
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     scenario=(d.sc&&d.sc.id)?{id:d.sc.id,startDay:d.sc.startDay||d.day,hold:d.sc.hold||0}:null; // T132：場景戰役進度（可選欄位，舊檔缺 sc 則回一般模式，鐵律7成對重置）
     editMode=false;customScenario=null; // T135：讀取常規存檔視為離開編輯器、清空自製場景定義（鐵律7；編輯器產物本就不入常規存檔，故無對應欄位可還原）
-    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;drought=false;blizzard=null;leakDays.fill(0); // FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散；T137：乾旱/暴風雪/工業洩漏皆運行時狀態，讀檔強制歸零消散
+    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散；T137：乾旱/暴風雪/工業洩漏皆運行時狀態，讀檔強制歸零消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
     recalcAllRailMasks(); // 軌道遮罩全量重算：rl/tr 還原時 railMask/tramMask 歸零（對照道路版）
@@ -8687,6 +8776,8 @@ window.GV={
   clearDeath:(x,y)=>{if(!inMap(x,y))return false;const b=T(idx(x,y)).bld;if(b&&b.k===1){b.death=0;b.deathAge=0;return true;}return false;},
   weather:(w)=>{weather=clamp(w|0,0,2);wxT=99;return weather;}, // 強制設天氣（測試用，鎖住不換態）
   flash:()=>{flashT=.4;sThunder();return true;},               // 強制觸發閃電（測試用）
+  fog:(days)=>{if(days!==undefined)fog={days:clamp(days|0,1,30)};return fog?{...fog}:null;}, // T154 測試用：強制觸發（或查詢）霧，不受 disastersOn 管轄（純視覺天氣，非災害）；無參數呼叫僅回傳現況、不改動狀態
+  rainDays:()=>rainDays,                                       // T154 測試用：曝光既有 rainDays（T57「連續雨天計數」），驗證濕地反光／積雪疊加強度換算
   daylightDbg:()=>daylight(),                                  // T149 測試用：直接曝光既有 daylight() 回傳值（b/dusk/ph/d），純讀取、零新邏輯，供光影驗收精確判斷日夜相位
   setVisT:(v)=>{visT=+v||0;return visT;},                       // T149 測試用：直接設定 visT（僅影響渲染晝夜相位，不寫入存檔、不影響 tick()/day 模擬節奏），供光影驗收鎖定精確相位
   forceDraw:()=>{draw(.016);return true;},                      // T149 測試用：同步立即觸發一次 draw()（§11 不變量 7：渲染不改遊戲狀態，重複呼叫安全），供像素回歸在同一輪事件迴圈內連續比對，避開背景模擬（day/車輛/水面幀）跨呼叫真實時間漂移雜訊
