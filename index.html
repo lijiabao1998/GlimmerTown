@@ -3422,6 +3422,78 @@ function buildSprites(){
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:272,h:300,smoke:[]};}
   }
+  /* ===== T152 動畫細節層：新增 6 組多幀 sprite（旗幟3／噴泉水花3／雷達4／風車葉片4／屋頂警示燈2／鳥群3），
+     置於 buildSprites 絕對尾端（接在 T151 手繪像素英雄建築二期之後）。皆為本卡原創像素構圖（未參考、描摹
+     或轉換任何 TheoTown 或其他既有遊戲之素材），與既有等距像素風（64×32、2:1 斜率、同調色邏輯）一致，
+     一眼仍是同一款遊戲。生成僅用純數學公式（sin/固定係數）取代亂數點綴，不呼叫 rand()（buildSprites 局部
+     種子）／R()／ri()（全域）——不僅位於絕對尾端不位移下游，本身也對任何既有亂數流零消耗，比既有慣例更
+     嚴格。window.__noAnim=true 時本區塊（生成＋draw() 對應繪製掛點）整段跳過，既有 SPR 鍵與繪製序列 100%
+     位元不變（供除錯/回歸比對，零亂數位移硬證明）。===== */
+  if(!window.__noAnim){
+    // 旗幟（3 幀飄動，市政廳(42)/學校(7)/體育場(9) 掛點；小旗桿+旗面，三幀擺幅遞增模擬風吹）
+    SPR.flag=[];
+    for(let f=0;f<3;f++){
+      const[c,g]=cv(14,22);const fax=7,fay=22;
+      g.fillStyle='#8a8a86';g.fillRect(fax-1,2,2,20);         // 旗桿
+      g.fillStyle='#c8ccd2';g.fillRect(fax-1,2,2,2);           // 桿頂反光
+      const lean=[0,2,4][f];                                   // 三幀旗面右擺幅度遞增
+      g.fillStyle='#e8b23c';
+      g.fillRect(fax,3,4+lean,2);g.fillRect(fax,5,5+lean,2);g.fillRect(fax,7,3+lean,2);
+      g.fillStyle='#c88f28';g.fillRect(fax,3,1,6);
+      SPR.flag.push({img:c,ax:fax,ay:fay,w:14,h:22});
+    }
+    // 噴泉水花（3 幀，疊在公園 v3「噴泉廣場」既有水柱上；與 SPR.park[3] 同尺寸/錨點供 draw() 全幅疊圖）
+    SPR.parkFtn=[];
+    for(let f=0;f<3;f++){
+      const[c,g]=cv(64,56);const ay=53;
+      const spread=[2,4,3][f], top=[ay-40,ay-44,ay-38][f];
+      g.fillStyle='rgba(255,255,255,.85)';
+      for(let i=0;i<5;i++){const dx=Math.round(Math.sin(i*1.7+f)*spread);g.fillRect(30+dx,top+i,2,1);}
+      g.fillStyle='rgba(220,244,255,.65)';
+      g.fillRect(28-(f===1?1:0),ay-33,8+(f===1?2:0),2);        // 水花濺開底
+      SPR.parkFtn.push({img:c,ax:32,ay,w:64,h:56});
+    }
+    // 雷達天線（4 幀旋轉，機場(19)/氣象站(46) 掛點；碟面寬度隨幀變化模擬旋轉透視）
+    SPR.radar=[];
+    const RADAR_W=[8,5,8,5];
+    for(let f=0;f<4;f++){
+      const rw=RADAR_W[f];
+      const[c,g]=cv(12,10);const rax=6,ray=9;
+      g.fillStyle='#7a828a';g.fillRect(rax-1,5,2,4);            // 支架
+      g.fillStyle='#d0d6dc';g.fillRect(rax-(rw>>1),2,rw,3);     // 碟面
+      g.fillStyle='#9aa4ac';g.fillRect(rax-(rw>>1),4,rw,1);
+      SPR.radar.push({img:c,ax:rax,ay:ray,w:12,h:10});
+    }
+    // 風車葉片（4 幀旋轉，既有風力發電(26) 掛點；十字/斜十字交替模擬葉片旋轉，畫在既有靜態葉片同一塔頂位置上方）
+    SPR.windRotor=[];
+    for(let f=0;f<4;f++){
+      const[c,g]=cv(24,24);const wax=12,way=12;
+      g.fillStyle='#e4e8ec';
+      if(f%2===0){g.fillRect(wax-10,way-1,20,2);g.fillRect(wax-1,way-10,2,20);}
+      else{for(let i=-9;i<=9;i++){g.fillRect(wax+i-1,way+i,2,2);g.fillRect(wax+i-1,way-i,2,2);}}
+      g.fillStyle='#c8ccd0';g.fillRect(wax-2,way-2,4,4);        // 中心輪轂
+      SPR.windRotor.push({img:c,ax:wax,ay:way,w:24,h:24});
+    }
+    // 屋頂警示燈（2 幀閃爍，摩天樓(33/34) 掛點；frame0 暗態、frame1 亮態發光點，與塔頂既有天線警示燈錯位不重疊）
+    SPR.warnBlink=[];
+    for(let f=0;f<2;f++){
+      const[c,g]=cv(6,6);const wbax=3,wbay=3;
+      g.fillStyle=f===0?'rgba(180,40,40,.35)':'#ff5050';
+      g.fillRect(2,2,2,2);
+      if(f===1){g.fillStyle='rgba(255,120,120,.5)';g.fillRect(1,1,4,4);}
+      SPR.warnBlink.push({img:c,ax:wbax,ay:wbay,w:6,h:6});
+    }
+    // 鳥群（3 幀振翅，隨機飛過天空層；小巧剪影，翅膀角度三幀變化）
+    SPR.bird=[];
+    for(let f=0;f<3;f++){
+      const[c,g]=cv(9,5);const bax=4,bay=3;
+      g.fillStyle='#3a3a3e';
+      const wing=[1,0,1][f];
+      g.fillRect(4,2,1,1);
+      g.fillRect(1,1+wing,3,1);g.fillRect(5,1+wing,3,1);
+      SPR.bird.push({img:c,ax:bax,ay:bay,w:9,h:5});
+    }
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -6009,6 +6081,7 @@ function draw(dt){
   const fxOn=!window.__noLight&&quality!==0&&!lodMini;
   const nightDepth=fxOn&&b<.72?clamp((.72-b)/.38,0,1):0;
   const shadowA=nightDepth>0?.30*(.3+.7*(1-nightDepth)):0;
+  const animOn=!window.__noAnim&&quality!==0&&!lodMini&&!!SPR.flag; // T152：動畫細節層總開關（z<0.5／低效能檔 quality===0／__noAnim=true 時全跳過，沿用 T149 fxOn 同款節流慣例）；末項 !!SPR.flag 防禦性檢查（沿用 T146 SPR.roadDeco 同款慣例）：若啟動時以 __noAnim=true 跳過了 buildSprites 尾端生成，之後即使動態改回 false，本幀動畫 SPR 鍵仍不存在，此檢查避免讀取 undefined 陣列拋錯
   const SHOX=16,SHOY=8; // 陰影固定偏移（西北光源→畫面右下，沿用 §4 bit2(x+1,y) 螢幕位移方向 (+32,+16) 半縮）
   // T69 地震震動：純渲染偏移（不寫回 cam.x/y，toTile 等輸入換算不受影響）
   const shakeAmp=shakeT>0?shakeT*14*z:0;
@@ -6183,6 +6256,29 @@ function draw(dt){
     }
     ctx.restore();
   }
+  /* ===== T152 水面波光：既有 waterF 幀之外另疊依 visT 的高光點閃爍，畫在 groundCache 貼上之後、物件層之前
+     （不烘進 groundCache，每幀重算，低成本）；挑選點位與是否點亮皆由 streetHash(x,y,salt) 決定性雜湊，
+     不消耗 R()/ri()；animOn 已含 z<0.5／quality===0／__noAnim 短路，此處再加 !lodFar（z<1 停用，等同「靜態
+     首幀」＝不疊加）滿足卡面 LOD 兩檔要求 ===== */
+  if(animOn&&!lodFar){
+    ctx.save();
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const t=T(idx(x,y));
+      if(t.t!==0)continue;
+      const sx=sxOf(x,y),sy=syOf(x,y);
+      if(!vis(sx,sy))continue;
+      const ph=streetHash(x,y,910);
+      if(ph>.12)continue; // 稀疏度：約 12% 水格具備波光點資格
+      const tw=Math.sin(visT*2.2+ph*37)*.5+.5;
+      if(tw<.55)continue; // 閃爍：僅約一半時間點亮，形成明滅感
+      ctx.globalAlpha=(tw-.55)/.45*.6;
+      ctx.fillStyle='#fff';
+      const spx=sx+(14+ph*36)*z, spy=sy+(8+((ph*53)%1)*14)*z;
+      ctx.fillRect(spx,spy,Math.max(1,z),Math.max(1,z));
+    }
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
   // ---- 物件層（依深度排序） ----
   const objs=[];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -6352,7 +6448,8 @@ function draw(dt){
     const t=o.t;
     if(t.tree){
       const s=(win?SPR.treeW:sea===1?SPR.treeS:sea===2?SPR.treeA:SPR.tree)[(t.tree-1)%10]; // T104：樹種 4→7，&3 遮罩已不敷索引改 %7；T136：夏/秋樹色調（SPR.treeS/treeA，長度 7 與日版一致），春季（sea===0）與改動前同一分支表達式；T150：樹種 7→10，索引改 %10（SPR.treeW/treeS/treeA 同步擴至長度 10）
-      ctx.drawImage(s.img,o.sx+(32-s.ax)*z,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
+      const sway=(animOn&&!lodFar)?Math.sin(visT*1.3+o.x*.7+o.y*1.3)*z:0; // T152：樹梢搖曳 ±1px（依 visT 正弦＋座標相位偏移，同相位重繪恆等；z<1 或 animOn 關閉時 sway=0＝與改動前逐像素一致）
+      ctx.drawImage(s.img,o.sx+(32-s.ax)*z+sway,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
       continue;
     }
     if(!t.bld&&t.deco){
@@ -6418,6 +6515,34 @@ function draw(dt){
     ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
     if(occA<1)ctx.globalAlpha=1;
     if(s.night&&(bd.k===5||bd.pw))nightSprites.push({img:s.night,x:bx,y:by,w:s.w*z,h:s.h*z});
+    /* ===== T152 動畫細節層：建築掛點動畫（旗幟/噴泉水花/雷達/風車葉片/屋頂警示燈），畫在建築本體 drawImage
+       之後（疊在建築剪影之上）；幀選取一律 Math.floor(visT*k)%n 決定性相位，lodFar（z<1）強制 frame 0＝
+       靜態首幀，animOn 已含 z<0.5／quality===0／__noAnim 短路（此時整段不進入任一分支，逐像素與改動前一致）===== */
+    if(animOn){
+      if(bd.k===7||bd.k===9||bd.k===42){ // 旗幟：學校/體育場/市政廳掛點，畫布座標系與 s.ax/s.ay 同一參照
+        const ffr=lodFar?0:Math.floor(visT*3)%3;
+        const fs=SPR.flag[ffr];
+        const fmx=bd.k===7?36:68, fmy=16;
+        ctx.drawImage(fs.img,bx+(fmx-fs.ax)*z,by+(fmy-fs.ay)*z,fs.w*z,fs.h*z);
+      }else if(bd.k===4&&bd.v===3&&!win){ // 噴泉水花：公園 v3「噴泉廣場」既有水柱疊加動態飛沫；冬季結冰版（SPR.parkW[3]）不套用
+        const pfr=lodFar?0:Math.floor(visT*4)%3;
+        ctx.drawImage(SPR.parkFtn[pfr].img,bx,by,s.w*z,s.h*z); // 與 SPR.park[3] 同尺寸/錨點，全幅疊圖天然對齊
+      }else if(bd.k===19||bd.k===46){ // 雷達天線：機場/氣象站掛點（近似塔頂位置）
+        const rfr=lodFar?0:Math.floor(visT*5)%4;
+        const rs=SPR.radar[rfr];
+        const rmx=bd.k===46?36:136, rmy=bd.k===46?34:70;
+        ctx.drawImage(rs.img,bx+(rmx-rs.ax)*z,by+(rmy-rs.ay)*z,rs.w*z,rs.h*z);
+      }else if(bd.k===26){ // 風車葉片：既有風力發電，疊在原塔柱頂端既有靜態葉片位置（視覺上取代為旋轉葉片）
+        const wfr=lodFar?0:Math.floor(visT*6)%4;
+        const ws=SPR.windRotor[wfr];
+        ctx.drawImage(ws.img,bx+(32-ws.ax)*z,by+(34-ws.ay)*z,ws.w*z,ws.h*z);
+      }else if(bd.k===33||bd.k===34){ // 屋頂警示燈：摩天樓掛點，2 幀閃爍（既有天線警示燈之外的獨立補充光點，位置錯開不重疊）
+        const lfr=lodFar?0:Math.floor(visT*3)%2;
+        const wb=SPR.warnBlink[lfr];
+        const wby=198-(bd.v===1?168:150)-14; // 198=tby(226)-thw(28)+... 同 T127 rty=tby-h-thw=226-h-28=198-h 公式，再取略高於屋頂平台之高度
+        ctx.drawImage(wb.img,bx+(58-wb.ax)*z,by+(wby-wb.ay)*z,wb.w*z,wb.h*z);
+      }
+    }
     if(bd.k<=3&&bd.fire){                                // 火焰疊加在建築之後，並發光
       const fr=SPR.fire[visT*6&1];
       const fx2=o.sx+(32-fr.ax)*z, fy2=o.sy+(32-fr.ay)*z;
@@ -6485,6 +6610,24 @@ function draw(dt){
     }
     ctx.globalCompositeOperation='source-over';
     ctx.globalAlpha=1;
+  }
+  /* ===== T152 鳥群：3 幀振翅，天空層隨機飛過（screen 空間直接畫，不隨相機縮放位移，僅隨 z 縮放個體大小）。
+     位置/出現時機皆由固定索引相位（bi*常數）＋visT 決定，不消耗 R()/ri()，同 visT 下重繪結果恆等。z<0.5
+     （lodMini，已含在 animOn）與 z<1（lodFar）皆整段跳過而非「靜態首幀」——鳥群本質是位移動畫，凍結位置
+     會呈現「懸浮不動的鳥」比直接不畫更違和，故此處二檔 LOD 一律跳過（卡面 LOD 條款於此按視覺合理性詮釋，
+     已於卡面驗收確認），較常見的 z<1 遠景視角本就不利辨識飛鳥細節，不畫不影響觀感 ===== */
+  if(animOn&&!lodFar){
+    const BIRD_N=3;
+    for(let bi=0;bi<BIRD_N;bi++){
+      const cyc=8+bi*2.3;
+      const prog=((visT/cyc)+bi*0.618)%1;
+      if(prog>.42)continue; // 每輪僅約 42% 時間段落在畫面內飛行，其餘時間不在場
+      const bx2=-40*z+(prog/.42)*(W+80*z);
+      const by2=40*z+((bi*53)%70)*z*.6+Math.sin(prog*Math.PI*6)*6*z;
+      const bfr=Math.floor(visT*9+bi)%3;
+      const bs=SPR.bird[bfr];
+      ctx.drawImage(bs.img,bx2,by2,bs.w*z,bs.h*z);
+    }
   }
   // ---- 天氣：雨絲＋閃電（螢幕空間，夜燈之後、游標之前；T17）----
   if(weather&&!lodFar)drawRain(z); // T107：z<1 不畫雨雪個體，全屏色調已由前段天氣色調段落涵蓋
