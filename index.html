@@ -3605,6 +3605,19 @@ function recomputeLandDynamic(){
     LAND[i]=v>0?(v<255?v:255):0;
   }
 }
+/* T142：教育場——依 school/university/library 覆蓋累積住宅可用之受教勞動力水準，比照 §COV/POL/LAND 家族設計
+   （LAND/POL rebuildCov 先例，見上方 T130 段落）。EDU=Uint8Array(N*N)，取 0 為基準（無教育建築覆蓋時全城恆為 0，
+   即「中性教育」之根本——EDU 純累加不含扣分項，異於 LAND/POL 的 128 中性基準，取 0 基準更直觀）。單格分數＝
+   COV.school/COV.university/COV.library 三家族各自 >0 門檻各疊加固定權重（大學>學校>圖書館，呼應既有升級加成
+   排序 uniBoost1.8>schoolBoost1.6>libraryBoost1.25），clamp 0-255。於 rebuildCov 尾端隨 COV 同步全量重建
+   （load/newWorld/undo 自動覆蓋）。不入存檔（rebuild 可重建）。*/
+const EDU=new Uint8Array(N*N);
+const EDU_W_SCHOOL=50,EDU_W_UNI=90,EDU_W_LIB=35; // 學校/大學/圖書館覆蓋各自加分權重
+function eduStaticAt(x,y){
+  const i=idx(x,y);
+  const v=(COV.school[i]>0?EDU_W_SCHOOL:0)+(COV.university[i]>0?EDU_W_UNI:0)+(COV.library[i]>0?EDU_W_LIB:0);
+  return v<255?v:255;
+}
 // 全量重建（load/newWorld 後、undo 後）：清零後掃全圖蓋印每個設施（含體育場 4 格皆為 k9 覆蓋源，與 countNear 一致）
 function rebuildCov(){
   for(const f in COV)COV[f].fill(0);
@@ -3624,6 +3637,7 @@ function rebuildCov(){
   }
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)LANDBASE[idx(x,y)]=landStaticAt(x,y); // T130：地價靜態基準隨 COV/POL 同步全量重建
   recomputeLandDynamic(); // T130：以當下 roadLoad 疊一次壅堵初值（undo 未重置 roadLoad，newWorld/load 已於呼叫前歸零）
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)EDU[idx(x,y)]=eduStaticAt(x,y); // T142：教育場隨 COV 同步全量重建
 }
 // T123：住宅財富分級判定——服務覆蓋數（警/校/醫/公園）－POL污染－犯罪 加權得分 → 0貧/1中/2富
 // 純資料層：只在住宅新建／升級時呼叫寫入 bld.we，不參與稅收/幸福/需求任何公式（wealth 只寫不讀）
@@ -3633,7 +3647,8 @@ function judgeWealth(x,y){
   const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime); // 犯罪為動態源，比照 §11-11 用 countNear（未蓋印）
   const landTerm=(LAND[i]-128)/128; // T130：地價附加項（-1~+1），附加不取代既有服務/污染/犯罪項；中性地價(128)精確貢獻0
   const commuteTerm=-(commutePenalty[i]||0)*3; // T141：通勤附加項（不可達/路徑過長拉低財富評分，叢集快取讀取），無就業區/未觸發時精確為0
-  const score=cov-(POL[i]||0)*.05-crime*.4+landTerm*.5+commuteTerm;
+  const eduTerm=(EDU[i]/255)*.6; // T142：教育附加項（受教勞動力足→易判富），附加不取代既有各項；EDU=0（無教育建築覆蓋，中性教育）時精確恆為0
+  const score=cov-(POL[i]||0)*.05-crime*.4+landTerm*.5+commuteTerm+eduTerm;
   if(score>=2)return 2; // 富
   if(score>0)return 1;  // 中
   return 0;              // 貧
@@ -4421,7 +4436,7 @@ function tick(){
       const pm=pol||{taxR:1,taxC:1,taxI:1};
       if(b.k===1){const we=b.we!==undefined?b.we:1;const landTaxMul=1+(LAND[i]-128)/128*.15;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]*landTaxMul*civicMul;income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）；T130：輕度地價稅收槓桿，中性地價(128)精確恆等 ×1；T139：市政廳全城稅收微增
       else if(b.k===2){const bx=i%N,byy=(i/N)|0;const rc=getMaxRoadClass(bx,byy,1);let mult=(1+rc*.08)*(COV.bus[i]>0?1.1:1)*(COV.post[i]>0?1.15:1)*((COV.parking&&COV.parking[i]>0)?1.1:1);if(tourists>0)mult*=1+Math.min(.2,tourists/500)*(pm.tourPromo?1.1:1);const v2=JOBSC[b.lv]*.18*mult*(pm.taxC||1)*(pm.ecoReg?.95:1)*civicMul;income+=v2;taxC+=v2;} // T122：觀光推廣＝觀光收益子項×1.1；節能條例＝商業稅×0.95；T139：市政廳全城稅收微增
-      else{const v2=JOBSI[b.lv]*.15*(pm.taxI||1)*civicMul*indSupplyMul;income+=v2;taxI+=v2;} // T139：市政廳全城稅收微增；T140：工業原料消耗鏈加成（未消耗供應品時 indSupplyMul 精確恆等 ×1）
+      else{const eduIndMul=b.lv===3?1+(EDU[i]/255)*.4:1;const v2=JOBSI[b.lv]*.15*(pm.taxI||1)*civicMul*indSupplyMul*eduIndMul;income+=v2;taxI+=v2;} // T139：市政廳全城稅收微增；T140：工業原料消耗鏈加成（未消耗供應品時 indSupplyMul 精確恆等 ×1）；T142：高階工業（lv3，「高科技工業」變體）產出品質受教育場加成，未達lv3或EDU=0（無教育建築覆蓋）時精確恆等 ×1
     }
   }
   let roadUpkeep=0;
@@ -6592,8 +6607,9 @@ function showStats(){
   let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0,nS=0,nD=0,nT=0,nW=0,nPol=0,nH=0,nCl=0,nL=0,nPo=0,nCe=0;
   let nSt=0,nPt=0,nAi=0,nPk=0,nTs=0,nFa=0,nRa=0,nLd=0,nSo=0,nWi=0,nSe=0,nAm=0,nRc=0,nF2=0,nPr=0,nUn=0; // T89：v3.0（T39-T54）新建築計數
   let popP=0,popM=0,popR=0; // T124：貧/中/富人口占比累加（沿用既有 pop 計算口徑，逐格掃描）
+  let eduSum=0,rEdu=0; // T142：住宅格教育場平均值累加（沿用同一逐格掃描，純顯示不影響任何模擬公式）
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
-    if(b.k===1){nR++;const we=b.we!==undefined?b.we:1;const pc=(b.pw&&!b.sick&&!b.death)?Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1)):0;if(we===0)popP+=pc;else if(we===2)popR+=pc;else popM+=pc;}
+    if(b.k===1){nR++;const we=b.we!==undefined?b.we:1;const pc=(b.pw&&!b.sick&&!b.death)?Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1)):0;if(we===0)popP+=pc;else if(we===2)popR+=pc;else popM+=pc;eduSum+=EDU[i];rEdu++;}
     else if(b.k===2)nC++;else if(b.k===3)nI++;
     else if(b.k===4)nP++;else if(b.k===5)nE++;else if(b.k===6)nF++;
     else if(b.k===7)nS++;else if(b.k===8)nD++;else if(b.k===9&&!b.ref)nT++; // 體育場只計 root（T22）
@@ -6676,6 +6692,7 @@ function showStats(){
      <div class="row">🗑️ 垃圾 ${garbage.toFixed(1)}/${garbCap}</div>
      <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
      <div class="row">🏚️ 貧 ${popT?Math.round(popP/popT*100):0}%　🏠 中 ${popT?Math.round(popM/popT*100):0}%　🏡 富 ${popT?Math.round(popR/popT*100):0}%</div>
+     <div class="row">🎓 平均教育水平 ${rEdu?Math.round(eduSum/rEdu):0}</div>
      <div class="row" style="font-size:11px;opacity:.75">${SEASON_ICON[season()]} ${SEASON_NAME[season()]}季　🌾 農產×${FARM_SEASON_MULT[season()].toFixed(2)}　⚡ 供電×${POWER_SEASON_MULT[season()].toFixed(2)}　🧳 觀光×${TOUR_SEASON_MULT[season()].toFixed(2)}</div>
      ${happyHtml}
      ${advHtml}
@@ -7279,6 +7296,7 @@ window.GV={
   polAt:(x,y)=>inMap(x,y)?POL[idx(x,y)]:null, // T110：污染場除錯鉤子（命名避開稅率政策 GV.pol）
   wealthAt:(x,y)=>{if(!inMap(x,y))return null;const b=T(idx(x,y)).bld;return(b&&b.k===1)?(b.we!==undefined?b.we:1):null;}, // T123：住宅財富級除錯鉤子（0貧/1中/2富，非住宅回 null）
   landAt:(x,y)=>inMap(x,y)?LAND[idx(x,y)]:null, // T130：地價場除錯鉤子
+  eduAt:(x,y)=>inMap(x,y)?EDU[idx(x,y)]:null, // T142：教育場除錯鉤子
   resourceAt:(x,y)=>inMap(x,y)?RESOURCE[idx(x,y)]:null, // T140：資源層除錯鉤子（0無/1油/2礦，由種子決定不受耗損影響）
   supplies:()=>supplies, // T140：資源供應品全域存量
   rdepAt:(x,y)=>inMap(x,y)?RDEP[idx(x,y)]:null, // T140：該格累計已開採量除錯鉤子（供存讀檔耗損往返驗收）
