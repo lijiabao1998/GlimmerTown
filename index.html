@@ -3494,6 +3494,80 @@ function buildSprites(){
       SPR.bird.push({img:c,ax:bax,ay:bay,w:9,h:5});
     }
   }
+  /* ===== T153 地形與自然美術：草地紋理疊加（4 變體×四季=16 張）＋岸邊漸變帶＋河床石礫（依既有 wm 位罩）
+     ＋懸崖岩層線（既有 SPR.cliffEdge 16 mask 原地補畫）＋自然散佈物（野花/雜草/小石/倒木，四季色），置於
+     buildSprites 絕對尾端（接在 T152 動畫細節層之後），遵守 FIX-B 亂數流尾端約定（僅本函式局部 rand，其後
+     無其他生成，零位移疑慮）。全部像素原創構圖（未參考、描摹或轉換任何 TheoTown 或其他既有遊戲之素材），
+     與既有等距像素風（64×32、2:1 斜率、同調色邏輯）一致。draw() 端挑選一律用座標決定性雜湊 streetHash(x,y,
+     salt)（不消耗全域 R()/ri()），不佔任何 tile 欄位、不影響 canPlace／存檔格式。window.__noNature=true 時：
+     ①本區塊生成整段跳過（新 SPR 鍵不存在，SPR.cliffEdge 維持 T24 原樣未被原地補畫）；②draw() 對應繪製亦
+     短路（見該處，皆有 SPR.xxx&&/!window.__noNature 防禦）＝零位移（供除錯/回歸比對，證明既有 SPR 鍵
+     checksum 不受本卡影響）。===== */
+  if(!window.__noNature){
+    // ---- 草地紋理疊加：透明底斑駁色斑（沿用既有 speck() 手法），4 變體×四季=16 張，長度一致（四季鐵律）----
+    const NATTEX_SEA=[
+      {k:'natGrassTex', cols:['rgba(98,163,76,.30)','rgba(140,196,110,.22)','rgba(76,130,58,.20)']},   // 春：嫩綠斑
+      {k:'natGrassTexS',cols:['rgba(70,140,50,.34)','rgba(120,180,70,.26)','rgba(50,105,38,.24)']},    // 夏：濃綠斑
+      {k:'natGrassTexA',cols:['rgba(184,140,58,.32)','rgba(214,176,84,.26)','rgba(140,96,40,.24)']},   // 秋：枯黃斑
+      {k:'natGrassTexW',cols:['rgba(224,232,238,.30)','rgba(190,204,214,.24)','rgba(150,166,178,.22)']} // 冬：霜白斑
+    ];
+    for(const seaDef of NATTEX_SEA){
+      SPR[seaDef.k]=[];
+      for(let v=0;v<4;v++){const[c,g]=cv(64,32);
+        speck(g,32,0,32,seaDef.cols,24+v*5,rand);
+        SPR[seaDef.k].push(c);}
+    }
+    // ---- 自然散佈物：野花（四季色，冬枯無花）／雜草叢／小石／倒木，小型 decal（img/ax/ay/w/h，比照既有
+    //      SPR.roadDeco 小件慣例），draw() 依 streetHash 稀疏挑選散佈於空草地 ----
+    const mkNat=(w,h,drawFn)=>{const[c,g]=cv(w,h);drawFn(g);return{img:c,ax:w>>1,ay:h,w,h};};
+    SPR.natFlower=[]; // 索引 0春1夏2秋3冬（冬＝枯枝無花色）
+    const FLOWER_COL=[['#f2a8c8','#f2e070','#c8a0e8'],['#e0507a','#e8a020','#9a3ad0'],['#e0a030','#c87820','#d0c040'],null];
+    for(let sIdx=0;sIdx<4;sIdx++){const cols=FLOWER_COL[sIdx];
+      SPR.natFlower.push(mkNat(12,12,g=>{
+        g.fillStyle='#4a7a3a';g.fillRect(5,6,1,5);g.fillRect(7,7,1,4);
+        if(cols){g.fillStyle=cols[0];g.fillRect(3,3,2,2);g.fillStyle=cols[1];g.fillRect(6,2,2,2);g.fillStyle=cols[2];g.fillRect(8,5,2,2);}
+        else{g.fillStyle='#7a6a4a';g.fillRect(3,4,1,2);g.fillRect(9,5,1,2);}
+      }));}
+    SPR.natWeed=[]; // 索引 0春1夏2秋3冬
+    const WEED_COL=[['#5a9a48','#4a8a3a'],['#3f7a30','#2f6023'],['#a08838','#8a7028'],['#8a8272','#7a7264']];
+    for(let sIdx=0;sIdx<4;sIdx++){const[c0,c1]=WEED_COL[sIdx];
+      SPR.natWeed.push(mkNat(12,10,g=>{
+        g.fillStyle=c0;for(let i=0;i<4;i++){const px=2+i*2;g.fillRect(px,3,1,6);}
+        g.fillStyle=c1;for(let i=0;i<3;i++){const px=3+i*3;g.fillRect(px,5,1,4);}
+      }));}
+    SPR.natRock=mkNat(12,8,g=>{
+      g.fillStyle='#8a8f96';g.fillRect(2,4,7,3);g.fillRect(4,2,5,3);
+      g.fillStyle='#a6abb2';g.fillRect(4,2,3,1);g.fillRect(2,4,3,1);
+      g.fillStyle='#6d727a';g.fillRect(6,5,3,2);g.fillRect(2,6,7,1);});
+    SPR.natLog=mkNat(20,10,g=>{
+      g.fillStyle='#6b4a2f';g.fillRect(3,4,15,4);
+      g.fillStyle='#8a6440';g.fillRect(3,4,15,1);g.fillRect(3,5,1,2);g.fillRect(8,5,1,2);g.fillRect(13,5,1,2);
+      g.fillStyle='#4a3220';g.fillRect(3,7,15,1);
+      g.fillStyle='#c9a878';g.fillRect(2,4,2,4);g.fillRect(17,4,2,4);});
+    // ---- 岸邊漸變帶：草/沙→水過渡暖沙色漸層，沿用既有 t.wm 16 mask（仿 SPR.foam 手法）----
+    SPR.shoreBlend=[];
+    for(let m=0;m<16;m++){const[c,g]=cv(64,32);
+      diaEdge(g,m,'rgba(216,196,148,.34)',32,4,28);
+      diaEdge(g,m,'rgba(216,196,148,.20)',32,8,22);
+      diaEdge(g,m,'rgba(216,196,148,.10)',32,12,16);
+      SPR.shoreBlend.push(c);}
+    // ---- 河床石礫（淺水區）：m=0（無岸鄰接）維持空白，其餘依 wm mask 各撒 6 顆小圓礫 ----
+    SPR.natPebble=[];
+    for(let m=0;m<16;m++){const[c,g]=cv(64,32);
+      if(m){for(let i=0;i<6;i++){
+        const yy=4+Math.floor(rand()*22),hr=Math.max(2,(yy<16?(yy+1):(32-yy))*2-6);
+        const xx=32-hr+Math.floor(rand()*hr*2);
+        g.fillStyle=i%2?'#8a8f96':'#a6abb2';g.fillRect(clamp(xx,4,58),yy,2,1);}}
+      SPR.natPebble.push(c);}
+    // ---- 懸崖岩層紋理：既有 SPR.cliffEdge（T24 內陸崖沿 16 mask）原地補畫水平岩層線，不消耗 rand（diaEdge
+    //      本身不呼叫 rand），純固定色帶；本段包在 __noNature 內，關閉時 SPR.cliffEdge 維持 T24 原樣 ----
+    for(let m=0;m<16;m++){
+      const g2=SPR.cliffEdge[m].getContext('2d');g2.imageSmoothingEnabled=false;
+      diaEdge(g2,m,'#9a7a52',32,4,28);
+      diaEdge(g2,m,'#5c4028',32,6,24);
+      diaEdge(g2,m,'#8a6a44',32,8,20);
+    }
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -6117,8 +6191,26 @@ function draw(dt){
       }else{
         const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:sea===1?SPR.grassS:sea===2?SPR.grassA:(t.el?SPR.grassH:SPR.grass))[t.gv&3]; // T136：夏/秋地面色（SPR.grassS/grassA，長度 4 與日版一致），春季（sea===0）與改動前同一分支表達式
         gc.drawImage(base,sx,sy,64*z,32*z);
+        /* ===== T153 草地紋理疊加＋自然散佈物：純繪製層併入 groundCache（不佔 tile 欄位、不影響 canPlace／
+           存檔），座標決定性雜湊 streetHash(x,y,salt) 挑選（不消耗全域 R()/ri()）；z<1（lodFar）已由外層
+           else 分支排除＝LOD 用單一底色（卡面要求）。window.__noNature=true 或未生成時整段跳過 ===== */
+        if(!window.__noNature&&SPR.natGrassTex&&t.t===2&&!t.road&&!t.rail&&!t.tram&&!t.dock){
+          const texArr= win?SPR.natGrassTexW:sea===1?SPR.natGrassTexS:sea===2?SPR.natGrassTexA:SPR.natGrassTex;
+          gc.drawImage(texArr[Math.floor(streetHash(x,y,811)*4)],sx,sy,64*z,32*z);
+          if(!t.tree&&!t.bld&&!t.zone&&!t.deco&&streetHash(x,y,812)<.14){
+            const yy=4+Math.floor(streetHash(x,y,814)*24), hr=Math.max(2,(yy<16?(yy+1):(32-yy))*2-4);
+            const xx=32-hr+Math.floor(streetHash(x,y,815)*hr*2);
+            const kindP=streetHash(x,y,813);
+            const d= kindP<.42?SPR.natFlower[win?3:sea] : kindP<.72?SPR.natWeed[win?3:sea] : kindP<.88?SPR.natRock : SPR.natLog;
+            gc.drawImage(d.img,sx+(xx-d.w/2)*z,sy+(yy-d.h)*z,d.w*z,d.h*z);
+          }
+        }
       }
       if(t.t===0&&t.wm)gc.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
+      if(!window.__noNature&&!lodFar&&SPR.shoreBlend&&t.t===0&&t.wm){        // T153：岸邊漸變＋河床石礫（淺水區，依既有 wm 位罩）
+        gc.drawImage(SPR.shoreBlend[t.wm],sx,sy,64*z,32*z);
+        if(streetHash(x,y,816)<.5)gc.drawImage(SPR.natPebble[t.wm],sx,sy,64*z,32*z);
+      }
       if(t.em)gc.drawImage(SPR.cliffEdge[t.em],sx,sy,64*z,32*z);           // 內陸崖沿（T24）
       if(t.ruin)gc.drawImage(SPR.ruin,sx,sy,64*z,32*z);
       if(t.crater){                                                          // 隕石坑（T117）：焦黑環＋餘燼夜光（仿路飾/公車站 rdecGlow 慣例）
