@@ -470,6 +470,7 @@ let happyAgg=[]; // T111：幸福構成（各加減項城市平均值 [{name,val
 let hintsOff=false, hintShown={};
 // T39-T60 新系統狀態
 const trains=[], cargoShips=[], tramCars=[], ambulances=[], recycleTrucks=[], ladderTrucks=[], policeCars=[], schoolBuses=[];
+let svcSamples={amb:[],fire:[]}; // T145：救護車/消防車到場 tick 數樣本（最近至多20筆，運行時觀測用、不入存檔，供 GV.svcResponseSample 驗證壅堵前後到場延遲差異，newWorld/load 隨其他派遣陣列一併歸零，鐵律7）
 let railCon=null;        // 鐵路連通性：{stations:[],edges:Map}（每次 recalcRailMask 重建）
 let rainDays=0;          // 連續雨天計數（T57 洪水）
 let floodTiles=[];       // 淹水格子 [{x,y,remain}]（T57）
@@ -2729,6 +2730,7 @@ function newWorld(seedOverride){
   commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，開新圖成對歸零（鐵律7）
   RDEP.fill(0);supplies=0; // T140：資源耗損場與供應品存量成對歸零（RESOURCE 本身已由上方 genWorld→genResource 依新種子重建，鐵律7）
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
+  svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本開新圖歸零（鐵律7）
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null;plague=null;drought=false;blizzard=null;leakDays.fill(0); // FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零；T137：瘟疫/乾旱/暴風雪/工業洩漏皆運行時狀態，開新圖強制歸零消散
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
@@ -4954,10 +4956,17 @@ function updDispatch(arr,dt,speed,cap,sts,cand,onArrive){
   const target=sts.length&&cand.length?Math.min(cap,sts.length):0;
   while(arr.length<target&&cand.length){
     const si=sts[ri(sts.length)],ti=cand[ri(cand.length)];
-    arr.push({x:si%N,y:(si/N)|0,p:0,tx:ti%N,ty:(ti/N)|0});
+    arr.push({x:si%N,y:(si/N)|0,p:0,tx:ti%N,ty:(ti/N)|0,ticks:0}); // T145：ticks 純觀測計數（到場所需更新次數），未動 si/ti 選擇邏輯本身，RNG 消耗序列不變
   }
   for(let i=arr.length-1;i>=0;i--){
-    const c=arr[i];c.p+=dt*speed;if(c.p<1)continue;c.p-=1;
+    const c=arr[i];c.ticks++; // T145：每次派遣更新累計 tick 數，供 GV.svcResponseSample 觀測到場延遲差異（純觀測，不消耗 R()）
+    let sp=speed;
+    const st=T(idx(c.x,c.y));
+    if(st&&st.road){ // T145：服務車輛所在格若為道路，比照 T129 過載降速公式同樣折減（load≤cap 時 clamp 內恆為 1，無壅堵逐位元不變）；非道路格（多數行程）不受影響
+      const capT=ROAD_CAP[(st.rc||2)-1];
+      if(capT>0)sp*=clamp(1-Math.max(0,roadLoad[idx(c.x,c.y)]-capT)/capT*ROAD_JAM_K,.3,1);
+    }
+    c.p+=dt*sp;if(c.p<1)continue;c.p-=1;
     if(c.x!==c.tx)c.x+=Math.sign(c.tx-c.x);else if(c.y!==c.ty)c.y+=Math.sign(c.ty-c.y);
     if(c.x===c.tx&&c.y===c.ty){
       const nt=onArrive(c);
@@ -4970,6 +4979,7 @@ function updAmbulances(dt){
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===1&&b.sick)sick.push(i);}
   updDispatch(ambulances,dt,2.2,2,sts,sick,c=>{
     const b=T(idx(c.x,c.y)).bld;if(b&&b.k===1){b.sick=0;b.sickDays=0;}
+    svcSamples.amb.push(c.ticks);if(svcSamples.amb.length>20)svcSamples.amb.shift(); // T145：記錄本次派遣到場 tick 數（純觀測，不消耗 R()），供 GV.svcResponseSample 驗證壅堵前後差異
   });
 }
 // T119：消防車——起火格在消防局(k6)/高級消防(k30)覆蓋內時不再次日瞬滅，改由消防車趕到才撲滅（延遲＝出勤路距，覆蓋外不出車）
@@ -4981,6 +4991,7 @@ function updFireTrucks(dt){
   updDispatch(ladderTrucks,dt,2.6,3,sts,fires,c=>{
     const b=T(idx(c.x,c.y)).bld;
     if(b&&b.k<=3&&b.fire){b.fire=0;if(!out){toast('🚒 消防隊撲滅了火災','gold');out=true;}}
+    svcSamples.fire.push(c.ticks);if(svcSamples.fire.length>20)svcSamples.fire.shift(); // T145：同上，消防車到場 tick 數樣本
   });
 }
 // T119：垃圾車——從垃圾場(k8)沿路巡迴（抵達即挑下一個路面點繼續走，持續出勤不消失）
@@ -7274,6 +7285,7 @@ function load(slot){
     if(d.rk!==undefined)rankIdx=clamp(d.rk|0,0,RANKS.length-1);
     else{rankIdx=0;while(rankIdx<RANKS.length-1&&cityPoints>=RANKS[rankIdx+1].threshold)rankIdx++;}
     trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={};riot=null;plague=null; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車；T137：瘟疫狀態預設清空，下方視存檔內容還原
+    svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本讀檔歸零（鐵律7）
     rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：路線公車運行時重建不存；路線設定下方視存檔內容還原
     if(d.pol)pol=d.pol;
     if(d.region)region=d.region;
@@ -7585,6 +7597,8 @@ window.GV={
   garbageTrucks:()=>recycleTrucks.length,                         // T119 測試用：巡邏中垃圾車數
   svcTrucks:()=>({ladder:ladderTrucks.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty,p:+c.p.toFixed(2)})),recycle:recycleTrucks.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty,p:+c.p.toFixed(2)}))}), // T119 測試用：位置快照（仿 GV.buses() 慣例）
   garbLocalAt:(x,y)=>inMap(x,y)?garbLocal[idx(x,y)]:null,         // T119 測試用：該格住宅局部垃圾係數
+  svcResponseSample:()=>({amb:svcSamples.amb.slice(),fire:svcSamples.fire.slice()}), // T145：救護車/消防車到場 tick 數樣本快照（最近至多20筆，供驗證壅堵前後到場延遲差異，判準17可觀測）
+  svcResponseReset:()=>{svcSamples={amb:[],fire:[]};return true;}, // T145：測試用——清空樣本，供驗收前後對照乾淨起算
   setChallenge:(id,bonus=1000)=>{challenge={id,bonus,label:id};return challenge;},
   region:()=>({...region}),
   food:()=>foodPoints,
