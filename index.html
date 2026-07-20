@@ -3572,6 +3572,94 @@ function buildSprites(){
       diaEdge(g2,m,'#8a6a44',32,8,20);
     }
   }
+  /* ===== T155 載具與人物變體（OMICRON 美術波末卡，v4.2）：置於 buildSprites 絕對尾端（接在 T153 地形與自然
+     美術之後），全部像素原創構圖（未參考、描摹或轉換任何 TheoTown 或其他既有遊戲之素材），與既有等距像素風
+     （64×32、2:1 斜率、同調色邏輯）一致；本區塊全程未呼叫 rand()/R()/ri()（純固定色票 fillRect），故與
+     window.__noVeh 開關無關的既有生成序列零位移疑慮。內容：①廂型車/卡車/機車 3 新型（轎車沿用既有 SPR.car
+     不重繪，換色手法比照既有小車：陰影/暗側/主色/亮邊/車窗五層 fillRect 疊色，A 朝向原生繪製、B 朝向由
+     translate+scale(-1,1) 鏡像，與既有 SPR.car 完全同款技法）；②救護車（白/紅十字，既有消防紅 #d43a3a／
+     垃圾深綠 #2f5c3a 兩鍵完全未觸碰）；③行人 3 形態×2 走路幀（成人/孩童/推車，3×5px 上下微調)。
+     window.__noVeh=true 時本區塊整段跳過，SPR.vehTypes/SPR.ambulance/SPR.ped 皆不存在，draw()/updCars/
+     updShips/updTrains 各處對應防禦性判斷（SPR.xxx&&／window.__noVeh 短路）全數回退改動前路徑＝零位移
+     （供除錯/回歸比對，證明既有 SPR 鍵 checksum 不受本卡影響）。===== */
+  if(!window.__noVeh){
+    // ---- 廂型車（5 色）：短低前艙＋長高箱型車廂（uniform box），區別轎車的三階梯形 ----
+    const VANC=['#e8e8ee','#5a9a6a','#3a5a8a','#d4a24a','#8a7a9a'];
+    const vanArr=[];
+    for(const col of VANC){
+      const[a,ag]=cv(13,9);
+      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,7,10,1);                 // 落影
+      ag.fillStyle=shade(col,-40);ag.fillRect(1,6,3,1);ag.fillRect(4,5,8,1); // 暗側：前艙短階＋車廂長階
+      ag.fillStyle=col;ag.fillRect(1,4,3,2);ag.fillRect(4,1,8,4);            // 主色：前艙（矮）＋車廂（高，佔大半）
+      ag.fillStyle=shade(col,35);ag.fillRect(1,4,3,1);ag.fillRect(4,1,8,1);  // 亮邊
+      ag.fillStyle='#222c3d';ag.fillRect(5,2,3,2);                          // 前擋風窗
+      const[b,bg]=cv(13,9);bg.translate(13,0);bg.scale(-1,1);bg.drawImage(a,0,0);
+      vanArr.push({A:a,B:b});
+    }
+    // ---- 卡車（5 色）：前艙換色＋固定灰貨斗（不隨車身色變化，代表統一貨櫃色） ----
+    const TRUCKC=['#c85a3a','#4a7a9a','#7a8a3a','#9a4a4a','#3a3a3a'];
+    const truckArr=[];
+    for(const col of TRUCKC){
+      const[a,ag]=cv(15,9);
+      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,7,12,1);                 // 落影
+      ag.fillStyle=shade(col,-40);ag.fillRect(1,5,4,1);ag.fillRect(5,3,3,1); // 前艙暗側（矮階＋駕駛室階）
+      ag.fillStyle=col;ag.fillRect(1,3,4,2);ag.fillRect(5,1,3,3);           // 前艙主色
+      ag.fillStyle=shade(col,35);ag.fillRect(1,3,4,1);ag.fillRect(5,1,3,1); // 前艙亮邊
+      ag.fillStyle='#222c3d';ag.fillRect(5,2,3,1);                          // 擋風窗
+      ag.fillStyle='#40454c';ag.fillRect(8,5,6,1);                          // 貨斗底部暗影
+      ag.fillStyle='#5a6068';ag.fillRect(9,3,5,3);                          // 貨斗主體（固定灰）
+      ag.fillStyle='#787f88';ag.fillRect(9,3,5,1);                          // 貨斗頂亮邊
+      const[b,bg]=cv(15,9);bg.translate(15,0);bg.scale(-1,1);bg.drawImage(a,0,0);
+      truckArr.push({A:a,B:b});
+    }
+    // ---- 機車（5 色）：雙輪＋騎士色塊，尺寸遠小於四輪載具 ----
+    const MOTOC=['#e05252','#2a2a2a','#5aa0e8','#e8c840','#88c46a'];
+    const motoArr=[];
+    for(const col of MOTOC){
+      const[a,ag]=cv(8,6);
+      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(1,5,6,1);                  // 落影
+      ag.fillStyle='#20242c';ag.fillRect(1,4,2,1);ag.fillRect(5,4,2,1);    // 雙輪
+      ag.fillStyle=shade(col,-30);ag.fillRect(2,3,4,1);                    // 車身暗側
+      ag.fillStyle=col;ag.fillRect(3,1,3,2);                               // 騎士夾克色塊
+      ag.fillStyle='#e8c8a0';ag.fillRect(4,0,2,1);                         // 安全帽下露出膚色
+      const[b,bg]=cv(8,6);bg.translate(8,0);bg.scale(-1,1);bg.drawImage(a,0,0);
+      motoArr.push({A:a,B:b});
+    }
+    // vt 索引 0..3 對應：0 轎車（沿用既有 SPR.car，不重繪）／1 廂型車／2 卡車／3 機車
+    SPR.vehTypes={arr:[SPR.car,vanArr,truckArr,motoArr],dim:[{w:12,h:8,ox:6,oy:5},{w:13,h:9,ox:6,oy:6},{w:15,h:9,ox:7,oy:6},{w:8,h:6,ox:4,oy:5}]};
+    // ---- 救護車：白車身＋紅十字識別色（消防紅/垃圾深綠兩鍵完全未觸碰），複製既有小車生成手法換色 ----
+    {
+      const col='#e8e8ee';
+      const[a,ag]=cv(12,8);
+      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,6,9,1);
+      ag.fillStyle=shade(col,-40);
+      ag.fillRect(1,5,4,1);ag.fillRect(4,4,4,1);ag.fillRect(7,3,4,1);
+      ag.fillStyle=col;
+      ag.fillRect(1,3,4,2);ag.fillRect(4,2,4,2);ag.fillRect(7,1,4,2);
+      ag.fillStyle=shade(col,35);
+      ag.fillRect(1,3,4,1);ag.fillRect(4,2,4,1);ag.fillRect(7,1,4,1);
+      ag.fillStyle='#222c3d';ag.fillRect(5,2,3,2);
+      ag.fillStyle='#d43a3a';ag.fillRect(2,3,1,2);ag.fillRect(1,4,3,1);    // 紅十字識別標記
+      const[b,bg]=cv(12,8);bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);
+      SPR.ambulance={A:a,B:b};
+    }
+    // ---- 行人 3 形態×2 走路幀（成人/孩童/推車），皆以「頭/身/腳(左右交替)」構圖，尺寸依形態略調（同一「小人」尺度家族，比照既有 natFlower/natRock/natLog 小型 decal 尺寸各異慣例）----
+    const mkPed=(w,h,drawFn)=>{const[c,g]=cv(w,h);drawFn(g);return{img:c,ax:Math.round(w/2),ay:h,w,h};};
+    SPR.ped={
+      adult:[
+        mkPed(3,5,g=>{g.fillStyle='#dcb890';g.fillRect(1,0,1,1);g.fillStyle='#3a5a8a';g.fillRect(0,1,3,2);g.fillStyle='#242a34';g.fillRect(0,3,1,2);}),
+        mkPed(3,5,g=>{g.fillStyle='#dcb890';g.fillRect(1,0,1,1);g.fillStyle='#3a5a8a';g.fillRect(0,1,3,2);g.fillStyle='#242a34';g.fillRect(2,3,1,2);})
+      ],
+      child:[
+        mkPed(3,4,g=>{g.fillStyle='#e8c8a0';g.fillRect(1,0,1,1);g.fillStyle='#d47a3a';g.fillRect(0,1,3,1);g.fillStyle='#242a34';g.fillRect(0,2,1,2);}),
+        mkPed(3,4,g=>{g.fillStyle='#e8c8a0';g.fillRect(1,0,1,1);g.fillStyle='#d47a3a';g.fillRect(0,1,3,1);g.fillStyle='#242a34';g.fillRect(2,2,1,2);})
+      ],
+      stroller:[
+        mkPed(4,5,g=>{g.fillStyle='#dcb890';g.fillRect(0,0,1,1);g.fillStyle='#6a4a78';g.fillRect(0,1,1,2);g.fillStyle='#242a34';g.fillRect(0,3,1,1);g.fillStyle='#e0a8c0';g.fillRect(2,2,2,2);g.fillStyle='#3a3a3a';g.fillRect(2,4,1,1);g.fillRect(3,4,1,1);}),
+        mkPed(4,5,g=>{g.fillStyle='#dcb890';g.fillRect(0,0,1,1);g.fillStyle='#6a4a78';g.fillRect(0,1,1,2);g.fillStyle='#242a34';g.fillRect(1,3,1,1);g.fillStyle='#e0a8c0';g.fillRect(2,2,2,2);g.fillStyle='#3a3a3a';g.fillRect(2,4,1,1);g.fillRect(3,4,1,1);})
+      ]
+    };
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -5588,7 +5676,12 @@ function updCars(dt){
         let ds=roadDirs(x,y);
         if(t.oneway>=1&&t.oneway<=4){const od=t.oneway-1;if(ds.includes(od))ds=[od];} // T77：出生於單行道須順向
         const d=ds[ri(ds.length)];
-        cars.push({x,y,d,p:Math.random(),ci:ri(SPR.car.length)});
+        // T155：車型/顏色依生成格座標+方向 streetHash 決定性挑選（不消耗 R()/ri()），寫入車輛物件後終生固定——
+        // 車輛移動只改 c.x/c.y，vt/vc 不重算＝同一輛車連續幀車型不變（無閃爍）；SPR.vehTypes 缺失（__noVeh）時
+        // vt/vc 恆 0，draw() 端回退既有 SPR.car[ci] 路徑，零位移
+        let vt=0,vc=0;
+        if(SPR.vehTypes){vt=Math.floor(streetHash(x,y,910+d)*4);vc=Math.floor(streetHash(x,y,920+d)*SPR.vehTypes.arr[vt].length);}
+        cars.push({x,y,d,p:Math.random(),ci:ri(SPR.car.length),vt,vc});
         break;
       }
     }
@@ -5893,7 +5986,9 @@ function updTrains(dt){
     if(inMap(x-1,y)&&T(idx(x-1,y)).rail)ds.push(3);
     if(!ds.length)break;
     const d0=ds[ri(ds.length)];
-    trains.push({x:x+DIRV[d0][0],y:y+DIRV[d0][1],d:d0,p:0}); // 生在鄰接的軌道格（站牌格本身不可行走）
+    const tx0=x+DIRV[d0][0],ty0=y+DIRV[d0][1];
+    const pt=window.__noVeh?0:(streetHash(tx0,ty0,940)<.5?0:1); // T155：車廂塗裝（0既有暗紅/1新塗裝）依生成格座標決定性挑選，不消耗R()，終生固定；__noVeh 時恆 0＝零位移
+    trains.push({x:tx0,y:ty0,d:d0,p:0,pt}); // 生在鄰接的軌道格（站牌格本身不可行走）
     if(trains.length>=target)break;
   }
   for(let i=trains.length-1;i>=0;i--){
@@ -5939,7 +6034,9 @@ function updShips(dt){
   const target=(ports>0&&dks.length>0)?Math.min(3,ports+1):0;
   while(cargoShips.length<target&&dks.length){ // T64：出生點改在碼頭格（dock 恆為水面，見 canPlace 'dock' 判定），符合「鄰近 dock/port」
     const di=dks[ri(dks.length)];
-    cargoShips.push({x:di%N,y:(di/N)|0,d:ri(4),p:Math.random()});
+    const sx0=di%N,sy0=(di/N)|0;
+    const bt=window.__noVeh?0:(streetHash(sx0,sy0,930)<.5?0:1); // T155：船型（0貨船/1漁船）依出生碼頭格座標決定性挑選，不消耗R()，終生固定；__noVeh 時恆 0＝零位移
+    cargoShips.push({x:sx0,y:sy0,d:ri(4),p:Math.random(),bt});
   }
   for(let i=cargoShips.length-1;i>=0;i--){
     const c=cargoShips[i];
@@ -6286,37 +6383,51 @@ function draw(dt){
               else if(t.mask===(2|8))gc.drawImage(SPR.roadDeco.lane28,sx,sy,64*z,32*z);
             }
           }
-          if(!lodFar&&pc===2){ // T107 LOD：z<1 跳過街道小件／停放車／行人；直行/轉彎段(popcount===2)才擺（路口/端點已有斑馬線）
+          if(pc===2){ // T107 LOD：z<1 跳過街道小件／停放車；行人另計（T155：z<1 退回點狀而非整段跳過，見下方）；直行/轉彎段(popcount===2)才擺（路口/端點已有斑馬線）
             let nearLv=0;
             const nb4=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
             for(const nb of nb4){const nx=nb[0],ny=nb[1];if(!inMap(nx,ny))continue;const nt=T(idx(nx,ny));if(nt.bld&&!nt.bld.ref&&nt.bld.lv>nearLv)nearLv=nt.bld.lv;}
-            const dens=clamp(.15+(rc2-1)*.025+nearLv*.05,0,.42); // 密度依道路等級與鄰近建築等級遞增
-            if(streetHash(x,y,701)<dens){
-              const pick=streetHash(x,y,702);
-              if(pick<.17){const d=SPR.roadDeco.hydrant;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-              else if(pick<.34){const d=SPR.roadDeco.mailbox;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-              else if(pick<.51){const d=SPR.roadDeco.bench;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-              else if(pick<.68){const d=SPR.roadDeco.trash;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-              else if(pick<.80){
-                const d=SPR.roadDeco.shelter;
-                const dx2=sx+(32-d.ax)*z,dy2=sy+(32-d.ay)*z;
-                gc.drawImage(d.img,dx2,dy2,d.w*z,d.h*z);
-                rdecGlow.push({img:d.night,x:dx2,y:dy2,w:d.w*z,h:d.h*z}); // 夜光候車亭
-              }else{ // 路邊停放車：複用既有 SPR.car（8 色池依雜湊挑色＋左右側挑向）縮小 78% 貼近路緣
-                const ci=Math.floor(streetHash(x,y,703)*SPR.car.length)%SPR.car.length;
-                const carSide=streetHash(x,y,704)<.5;
-                const carImg=carSide?SPR.car[ci].A:SPR.car[ci].B;
-                gc.drawImage(carImg,sx+(carSide?16:40)*z,sy+22*z,12*.78*z,8*.78*z);
+            if(!lodFar){
+              const dens=clamp(.15+(rc2-1)*.025+nearLv*.05,0,.42); // 密度依道路等級與鄰近建築等級遞增
+              if(streetHash(x,y,701)<dens){
+                const pick=streetHash(x,y,702);
+                if(pick<.17){const d=SPR.roadDeco.hydrant;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+                else if(pick<.34){const d=SPR.roadDeco.mailbox;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+                else if(pick<.51){const d=SPR.roadDeco.bench;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+                else if(pick<.68){const d=SPR.roadDeco.trash;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
+                else if(pick<.80){
+                  const d=SPR.roadDeco.shelter;
+                  const dx2=sx+(32-d.ax)*z,dy2=sy+(32-d.ay)*z;
+                  gc.drawImage(d.img,dx2,dy2,d.w*z,d.h*z);
+                  rdecGlow.push({img:d.night,x:dx2,y:dy2,w:d.w*z,h:d.h*z}); // 夜光候車亭
+                }else{ // 路邊停放車：複用既有 SPR.car（8 色池依雜湊挑色＋左右側挑向）縮小 78% 貼近路緣
+                  const ci=Math.floor(streetHash(x,y,703)*SPR.car.length)%SPR.car.length;
+                  const carSide=streetHash(x,y,704)<.5;
+                  const carImg=carSide?SPR.car[ci].A:SPR.car[ci].B;
+                  gc.drawImage(carImg,sx+(carSide?16:40)*z,sy+22*z,12*.78*z,8*.78*z);
+                }
               }
             }
-            // 行人（2-3px 點狀，visT 兩幀微動：僅於 groundCache 本次重繪時取樣一幀，重繪之間畫面沿用同一快取畫布，
-            // 「連續兩幀」不觸發重繪＝checksum 不變，符合硬性不變量；跨重繪之間會緩慢切幀，呼應卡面「可微動」）
+            /* 行人：T146 原始 2px 點，T155 升級為 3 種 3×5px 小人（成人/孩童/推車）＋走路兩幀，依座標決定性雜湊
+               挑形態、visT 決定性選幀；僅於 groundCache 本次重繪時取樣一幀，重繪之間畫面沿用同一快取畫布，「連
+               續兩幀」不觸發重繪＝checksum 不變，符合硬性不變量；跨重繪之間會緩慢切幀，呼應卡面「可微動」。
+               LOD（T155）：z<1（lodFar）原版整段不畫，本卡改為退回點狀而非整段消失；window.__noVeh=true 或
+               SPR.ped 缺失（active=false）時，z>=1／z<1 兩種情形皆退回改動前原始點狀（含「z<1 完全不畫」）＝
+               零位移 ===== */
             if(streetHash(x,y,705)<.05+nearLv*.015){
+              const active=!window.__noVeh&&SPR.ped;
               const pedFrame=Math.floor(visT*1.1)%2;
               const pedX=streetHash(x,y,706)<.5?20:44;
-              const pedY=24+pedFrame;
-              gc.fillStyle='#3a342e';gc.fillRect(sx+pedX*z,sy+(pedY-2)*z,2*z,2*z);
-              gc.fillStyle='#dcb890';gc.fillRect(sx+pedX*z,sy+(pedY-3)*z,2*z,1*z);
+              if(!lodFar&&active){
+                const pk=streetHash(x,y,707);
+                const ptype=pk<.6?'adult':pk<.85?'child':'stroller';
+                const ps=SPR.ped[ptype][pedFrame];
+                gc.drawImage(ps.img,sx+(pedX-ps.ax)*z,sy+(24-ps.ay)*z,ps.w*z,ps.h*z);
+              }else if(!lodFar||active){ // (!lodFar&&!active)＝原版 z>=1 點狀；(lodFar&&active)＝T155 新增 z<1 退回點狀；(lodFar&&!active) 兩者皆假，落空＝原版 z<1 不畫
+                const pedY=24+pedFrame;
+                gc.fillStyle='#3a342e';gc.fillRect(sx+pedX*z,sy+(pedY-2)*z,2*z,2*z);
+                gc.fillStyle='#dcb890';gc.fillRect(sx+pedX*z,sy+(pedY-3)*z,2*z,1*z);
+              }
             }
           }
         }
@@ -6481,6 +6592,12 @@ function draw(dt){
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
     objs.push({dep:fx+fy+.01,svc:'recycleTruck',svcD,wx,wy});
   }
+  if(SPR.ambulance)for(const c of ambulances){            // T155：救護車補齊繪製（T119 原僅出勤模擬未繪製），複用同一 o.svc 通用繪製分支；SPR.ambulance 缺失（__noVeh）時整段不 push＝零位移（與改動前救護車不可見狀態一致）
+    const svcD=c.x!==c.tx?(c.tx>c.x?1:3):(c.y!==c.ty?(c.ty>c.y?2:0):0);
+    const fx=c.x+DIRV[svcD][0]*c.p, fy=c.y+DIRV[svcD][1]*c.p;
+    const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
+    objs.push({dep:fx+fy+.01,svc:'ambulance',svcD,wx,wy});
+  }
   if(tornado){                                             // T116：龍捲風漏斗雲，位置隨 tick() 逐日推進（非每幀內插，同深度規則插入 objs）
     const fx=tornado.x, fy=tornado.y;
     const wx=(fx-fy)*32, wy=(fx+fy)*16+16;
@@ -6502,8 +6619,15 @@ function draw(dt){
   for(const o of objs){
     if(o.car){
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
-      const spr=SPR.car[o.car.ci][(o.car.d===0||o.car.d===2)?'A':'B'];
-      ctx.drawImage(spr,sx-6*z,sy-5*z,12*z,8*z);
+      let spr,vw=12,vh=8,vox=6,voy=5;
+      if(SPR.vehTypes&&o.car.vt){ // T155：車型>0（廂型車/卡車/機車）查表；vt===0（轎車）或 SPR.vehTypes 缺失（__noVeh）沿用既有 SPR.car[ci] 路徑，零位移
+        const vd=SPR.vehTypes.dim[o.car.vt],va=SPR.vehTypes.arr[o.car.vt];
+        spr=va[o.car.vc%va.length][(o.car.d===0||o.car.d===2)?'A':'B'];
+        vw=vd.w;vh=vd.h;vox=vd.ox;voy=vd.oy;
+      }else{
+        spr=SPR.car[o.car.ci][(o.car.d===0||o.car.d===2)?'A':'B'];
+      }
+      ctx.drawImage(spr,sx-vox*z,sy-voy*z,vw*z,vh*z);
       if(b<.55){
         const v=DIRSCR[o.car.d];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
@@ -6530,13 +6654,14 @@ function draw(dt){
       }
       continue;
     }
-    if(o.train){                                           // 火車（T63）：仿公車配方直接 fillRect 組裝（拉長＋換色），不建 SPR、維持任務卡範圍只動 draw
+    if(o.train){                                           // 火車（T63）：仿公車配方直接 fillRect 組裝（拉長＋換色），不建 SPR；T155 新增車廂第2種塗裝（o.train.pt===1，僅換車身色不改幾何，未改動既有塗裝0色值）
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
       const mir=(o.td===1||o.td===3)?-1:1;
       const pr=(lx,ly,w,h)=>{const mx=mir<0?(20-lx-w):lx;ctx.fillRect(sx-10*z+mx*z,sy-6*z+ly*z,w*z,h*z);};
+      const bodyC=o.train.pt===1?'#3a5a8a':'#8a3a3a';                         // T155：塗裝1＝深藍，塗裝0（既有，未改色值）＝暗紅
       ctx.fillStyle='rgba(0,0,0,.3)';pr(2,7,16,1);                           // 落影
-      ctx.fillStyle=shade('#8a3a3a',-42);pr(1,6,6,1);pr(7,5,6,1);pr(13,4,6,1); // 暗側（右下斜面）
-      ctx.fillStyle='#8a3a3a';pr(1,3,6,3);pr(7,2,6,3);pr(13,1,6,3);           // 車身主色
+      ctx.fillStyle=shade(bodyC,-42);pr(1,6,6,1);pr(7,5,6,1);pr(13,4,6,1); // 暗側（右下斜面）
+      ctx.fillStyle=bodyC;pr(1,3,6,3);pr(7,2,6,3);pr(13,1,6,3);           // 車身主色
       ctx.fillStyle='#2b3550';pr(1,4,6,1);pr(7,3,6,1);pr(13,2,6,1);           // 車窗帶
       ctx.fillStyle='#e8dcc0';pr(1,3,6,1);pr(7,2,6,1);pr(13,1,6,1);           // 車頂
       if(b<.55){
@@ -6545,15 +6670,23 @@ function draw(dt){
       }
       continue;
     }
-    if(o.ship){                                            // 貨船（T64）：仿火車配方 fillRect 組裝（船身+甲板貨櫃），不建 SPR、維持任務卡範圍只動 updShips/draw
+    if(o.ship){                                            // 貨船（T64）／漁船（T155，o.ship.bt===1）：仿火車配方 fillRect 組裝，不建 SPR
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
       const mir=(o.sd===1||o.sd===3)?-1:1;
       const pr=(lx,ly,w,h)=>{const mx=mir<0?(20-lx-w):lx;ctx.fillRect(sx-10*z+mx*z,sy-6*z+ly*z,w*z,h*z);};
-      ctx.fillStyle='rgba(0,0,0,.25)';pr(1,8,18,1);                            // 落影/船艏波紋
-      ctx.fillStyle=shade('#3a5a72',-38);pr(1,6,8,2);pr(9,6,10,2);              // 船體暗側（吃水線下）
-      ctx.fillStyle='#3a5a72';pr(0,4,20,2);                                    // 船體主色（甲板下緣）
-      ctx.fillStyle='#c8631f';pr(3,2,5,2);pr(11,2,5,2);                        // 甲板貨櫃（橙）
-      ctx.fillStyle='#8a95a0';pr(3,1,5,1);pr(11,1,5,1);                        // 貨櫃頂
+      if(o.ship.bt===1){ // T155：漁船——較小船身＋白色小艙房，無甲板貨櫃
+        ctx.fillStyle='rgba(0,0,0,.22)';pr(3,8,14,1);
+        ctx.fillStyle=shade('#6b7a82',-34);pr(3,6,6,2);pr(11,6,6,2);
+        ctx.fillStyle='#6b7a82';pr(2,4,16,2);
+        ctx.fillStyle='#e8e4d8';pr(6,1,6,3);                                  // 小艙房（白）
+        ctx.fillStyle='#3a5a72';pr(7,2,4,1);                                  // 艙房窗
+      }else{ // 貨船（既有 T64，未改動像素）
+        ctx.fillStyle='rgba(0,0,0,.25)';pr(1,8,18,1);                            // 落影/船艏波紋
+        ctx.fillStyle=shade('#3a5a72',-38);pr(1,6,8,2);pr(9,6,10,2);              // 船體暗側（吃水線下）
+        ctx.fillStyle='#3a5a72';pr(0,4,20,2);                                    // 船體主色（甲板下緣）
+        ctx.fillStyle='#c8631f';pr(3,2,5,2);pr(11,2,5,2);                        // 甲板貨櫃（橙）
+        ctx.fillStyle='#8a95a0';pr(3,1,5,1);pr(11,1,5,1);                        // 貨櫃頂
+      }
       if(b<.55){
         const v=DIRSCR[o.sd];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
