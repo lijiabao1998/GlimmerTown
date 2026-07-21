@@ -1096,7 +1096,7 @@ function buildSprites(){
   const PARTS={
     windowsStd(g,ng,c){windows(g,ng,c.ax,c.by,c.hw,c.h,c.rand,c.d.win.litP,c.d.win);},
     pyramidRoof(g,ng,c){for(let i=1;i<=4;i++){const hwi=c.hw-4*i;if(hwi<4)break;dia(g,c.ax,c.by-c.h-hwi-2*i,hwi,i%2?c.rf:shade(c.rf,-14));}},
-    chimneySmall(g,ng,c){g.fillStyle='#5a4638';g.fillRect(c.ax+6,c.by-c.h-17,3,9);g.fillStyle='#494037';g.fillRect(c.ax+5,c.by-c.h-18,5,2);},
+    chimneySmall(g,ng,c){g.fillStyle='#5a4638';g.fillRect(c.ax+6,c.by-c.h-17,3,9);g.fillStyle='#494037';g.fillRect(c.ax+5,c.by-c.h-18,5,2);c.smoke.push({dx:7,dy:c.by-c.h-18-c.ay});}, // T185：補炊煙點（純推座標，不畫像素、不消耗 R()）供冬季民居炊煙對齊煙囪頂
     door(g,ng,c){const o=c.d.door;for(let dx=3;dx<=7;dx++){const yF=c.by-((dx+1)>>1);g.fillStyle=o.col;g.fillRect(c.ax+dx,yF-9,1,8);}if(o.knob){g.fillStyle='#e8c860';g.fillRect(c.ax+6,c.by-((7)>>1)-5,1,1);}},
     yardDeco(g,ng,c){const G=c.dg;G.fillStyle='#4b8f45';G.fillRect(c.ax-17,c.ay-10,4,3);G.fillStyle='#63ad55';G.fillRect(c.ax-14,c.ay-11,3,2);G.fillStyle='#cbb98e';G.fillRect(c.ax+5,c.ay-8,4,2);G.fillRect(c.ax+9,c.ay-6,4,2);},
     flatParapet(g,ng,c){diaEdge(g,15,shade(c.rf,-20),c.ax,c.rty,c.hw);},
@@ -6404,6 +6404,7 @@ function updSmoke(dt){
       if(b.k===3&&b.lv>=2&&b.pw){offs=SPR.bld[b.k+'_'+b.lv+'_'+b.v].smoke;col=b.lv>=3?'#5b5551':'#c7ccd1';} // T159：工業煙羽依等級深淺分層（煙羽多樣化）
       if(b.k===5){offs=SPR.plant.smoke;col='#e7edf2';big=true;} // T159：電廠蒸汽改為偏白且膨脹較大，區別一般工業煙
       if(b.k===1&&b.riot){offs=[{dx:0,dy:-42}];col='#3a3530';} // T118：暴亂住宅複用既有煙粒繪製火把/騷亂煙霧（不新建 sprite，屋頂上方固定一點冒煙）
+      if(sea===3&&b.k===1&&b.pw&&!b.riot&&!window.__noChimney){const sm=SPR.bld[b.k+'_'+b.lv+'_'+b.v];if(sm&&sm.smoke.length){offs=sm.smoke;col='#d8d2c6';}} // T185：冬季民居炊煙（Opus 親手）——入冬(sea===3)供電住宅(k=1,pw)非暴亂時自煙囪點冒暖灰輕煙（沿用既有 smoke 管線/上限，煙點含 chimneySmall(T185補)/chimneyBrick(lv2-3)）；非冬/未供電/暴亂/__noChimney 不繪＝該狀態零改動；讀既有 sea/建築態，spawn 用 Math.random 與模擬 R() 獨立（同 T159 粒子慣例）
       if(!offs||!offs.length)continue;
       if(Math.random()<.5)continue;
       const o=offs[ri(offs.length)];
@@ -10028,6 +10029,7 @@ window.GV={
   rainDays:()=>rainDays,                                       // T154 測試用：曝光既有 rainDays（T57「連續雨天計數」），驗證濕地反光／積雪疊加強度換算
   daylightDbg:()=>daylight(),                                  // T149 測試用：直接曝光既有 daylight() 回傳值（b/dusk/ph/d），純讀取、零新邏輯，供光影驗收精確判斷日夜相位
   snowCapDbg:(s)=>snowCap(s),                                   // T183 測試用：曝光屋頂積雪雪帽生成器（純既有像素 canvas 操作、不消耗 R()），供單元驗證頂部加白＋剪影遮罩正確，接受 {img,w,h} 合成 sprite
+  smokeCount:()=>smokes.length,                                 // T185 測試用：曝光目前煙粒數（比照 fxCount），供冬季民居炊煙驗證
   setVisT:(v)=>{visT=+v||0;return visT;},                       // T149 測試用：直接設定 visT（僅影響渲染晝夜相位，不寫入存檔、不影響 tick()/day 模擬節奏），供光影驗收鎖定精確相位
   forceDraw:()=>{draw(.016);return true;},                      // T149 測試用：同步立即觸發一次 draw()（§11 不變量 7：渲染不改遊戲狀態，重複呼叫安全），供像素回歸在同一輪事件迴圈內連續比對，避開背景模擬（day/車輛/水面幀）跨呼叫真實時間漂移雜訊
   setZoom:(z)=>{cam.z=+z||1;zoomAnim=null;return cam.z;},        // T149 測試用：直接設定 cam.z（沿用既有 zoomStep 寫入同一變數），供驗證 T107 z<0.5 LOD 門檻正確跳過光影
