@@ -7085,6 +7085,15 @@ function draw(dt){
       }else{
         const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:sea===1?SPR.grassS:sea===2?SPR.grassA:(t.el?SPR.grassH:SPR.grass))[t.gv&3]; // T136：夏/秋地面色（SPR.grassS/grassA，長度 4 與日版一致），春季（sea===0）與改動前同一分支表達式
         gc.drawImage(base,sx,sy,64*z,32*z);
+        if(win&&t.t===0&&!window.__noIce){ // T186 冬季水面結冰（Opus 親手）——入冬水格於藍波之上疊淡藍白冰面（62% 覆蓋，底下波紋微透＝結冰質感）＋決定性裂紋（streetHash 選約半數格畫一道細白裂線）；併入 groundCache（季節為既有快取鍵，冬季冰面零每幀成本）；非冬/非水/__noIce 不繪＝該狀態零改動；純座標決定性 streetHash 不消耗 R()。修正「萬物覆雪、水面仍藍波蕩漾」之違和
+          gc.fillStyle='rgba(216,230,241,0.62)';
+          gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
+          if(streetHash(x,y,940)<.5){
+            const cxp=sx+32*z, cyp=sy+16*z, a=streetHash(x,y,941)*6.283, r=6+streetHash(x,y,942)*7;
+            gc.strokeStyle='rgba(255,255,255,0.30)';gc.lineWidth=Math.max(1,z*.55);
+            gc.beginPath();gc.moveTo(cxp+Math.cos(a)*r*z,cyp+Math.sin(a)*r*.5*z);gc.lineTo(cxp-Math.cos(a)*r*z,cyp-Math.sin(a)*r*.5*z);gc.stroke();
+          }
+        }
         /* ===== T153 草地紋理疊加＋自然散佈物：純繪製層併入 groundCache（不佔 tile 欄位、不影響 canPlace／
            存檔），座標決定性雜湊 streetHash(x,y,salt) 挑選（不消耗全域 R()/ri()）；z<1（lodFar）已由外層
            else 分支排除＝LOD 用單一底色（卡面要求）。window.__noNature=true 或未生成時整段跳過 ===== */
@@ -7103,7 +7112,7 @@ function draw(dt){
            streetHash 挑選，不消耗 R()/ri()，不佔 tile 欄位、不影響 canPlace）。本區塊已在 else（!lodFar）
            分支內＝z<1 結構性排除，z<0.5（lodMini，為 lodFar 子集）因此自動退回單一水色，滿足卡面 LOD 要求。
            window.__noOcean=true 時整段跳過（供除錯/回歸比對） ===== */
-        if(!window.__noOcean&&t.t===0){
+        if(!window.__noOcean&&t.t===0&&!win){ // T186：冬季水面改由冰面表現，跳過 T163 深淺水色/礁石/浮標（冰封時不顯露水深與礁石）
           const dtier=waterDepthTierAt(x,y);
           if(dtier){
             gc.fillStyle=dtier===1?'rgba(8,26,55,.14)':'rgba(4,14,36,.26)';
