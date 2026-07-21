@@ -658,6 +658,17 @@ function snowCap(s){
   sg.putImageData(out,0,0);
   s.snow=sc;return sc;
 }
+// T184 雨天濕膜（Opus 親手）：以 sprite 剪影為遮罩（source-atop 只落不透明像素，故覆蓋全剪影亦不塗到透明天空、不涉屋頂線陷阱）疊冷暗垂直漸層（頂微暗、底較暗＝雨水沿牆流/牆腳積水）。一次性生成快取於 s.wet，純既有像素 canvas 操作、不消耗 R()、不改 s.img；wetLvl>0（非冬下雨）才被呼叫。
+function wetSkin(s){
+  if(s.wet!==undefined)return s.wet;
+  const[c,g]=cv(s.w|0,s.h|0);
+  g.drawImage(s.img,0,0);
+  const grad=g.createLinearGradient(0,0,0,s.h);
+  grad.addColorStop(0,'rgba(40,54,76,0.16)');grad.addColorStop(1,'rgba(24,36,56,0.5)');
+  g.globalCompositeOperation='source-atop';
+  g.fillStyle=grad;g.fillRect(0,0,s.w,s.h);
+  s.wet=c;return c;
+}
 
 // 菱形：中心 cx、頂點 y=ty、半寬 hw（偶數），高度=hw，斜率固定 2:1
 function dia(g,cx,ty,hw,col){
@@ -7776,6 +7787,11 @@ function draw(dt){
     if(win&&snowLvl>0&&!lodFar&&bd.k!==4&&!window.__noRoofSnow){ // T183 冬季屋頂積雪（Opus 親手）——RCI/服務建築本體無冬季雪化變體（見 T161 註記「本卡未新增建築本體冬季雪化」），入冬且積雪(snowLvl>0，沿用 T154 rainDays/SNOW_ACC_DAYS，與地面積雪同步累積/緩降)時於建築本體之上疊「雪帽」：snowCap(s) 以 sprite 剪影為遮罩僅在頂部加白；乘 drawA 使被遮擋/施工中建築的雪同步淡化；非冬/無積雪(snowLvl=0)/公園(k4)/遠景(lodFar) 不繪＝該狀態逐像素零改動，__noRoofSnow 開關供回歸比對；純讀既有 win/snowLvl/drawA 不消耗 R()
       ctx.globalAlpha=Math.min(1,snowLvl*1.08)*drawA;
       ctx.drawImage(snowCap(s),bx,by,s.w*z,s.h*z);
+      ctx.globalAlpha=1;
+    }
+    if(wetLvl>0&&!lodFar&&bd.k!==4&&!window.__noWetBld){ // T184 雨天濕潤建築（Opus 親手）——與 T154 地面濕反光對稱：非冬下雨(wetLvl>0，沿用 rainDays/RAIN_ACC_DAYS)時建築本體疊冷暗濕膜 wetSkin(s)（頂微暗底較暗＝雨水沿牆流/牆腳積水），修正「地濕牆乾」違和；覆蓋全剪影故不涉屋頂線陷阱；乘 drawA 同步淡化；冬季(wetLvl=0，改由 T183 屋頂積雪表現)/晴天/公園(k4)/遠景 不繪＝該狀態逐像素零改動，__noWetBld 開關供回歸；純讀既有 wetLvl/drawA 不消耗 R()
+      ctx.globalAlpha=wetLvl*drawA;
+      ctx.drawImage(wetSkin(s),bx,by,s.w*z,s.h*z);
       ctx.globalAlpha=1;
     }
     if(!window.__noScaffold&&bd.age<5&&bd.k!==4&&!lodFar){ // T168 施工鷹架（Opus 親手）——建築 age<5 天（新建/剛升級，b.age 每 tick++／升級時歸零）覆蓋鷹架，alpha 隨 age 遞減＝施工逐漸完成拆架；age>=5／公園(k4)／遠景(lodFar) 不繪＝該狀態零改動；純讀 age 決定性不消耗 R()
