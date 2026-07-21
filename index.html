@@ -115,15 +115,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #start{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:14px;text-align:center;overflow-y:auto;padding:16px 0; /* T132：新增戰役選單後按鈕列變長，矮視窗需可捲動才不致下方按鈕被裁掉 */
   background:linear-gradient(180deg,#0d1226 0%,#1b2547 55%,#33406e 100%)}
-#start h1{color:#ffe9ad;font-size:34px;letter-spacing:10px;text-shadow:0 3px 0 #7a5b1e,0 6px 14px #000}
-#start .en{color:#8fa0c8;letter-spacing:6px;font-size:13px;margin-top:-8px}
-#start .sub{color:#c9d2ea;font-size:14px;margin:6px 0 10px}
+#start h1{color:#ffe9ad;font-size:34px;letter-spacing:10px;
+  /* T158：像素風描邊（四向硬邊偏移）＋暖光暈，取代單純投影，與新增標題背景呼應 */
+  text-shadow:2px 2px 0 #7a5b1e,-2px 2px 0 #7a5b1e,2px -2px 0 #7a5b1e,-2px -2px 0 #7a5b1e,
+    0 4px 0 #4a3510,0 0 16px rgba(255,217,119,.6),0 0 32px rgba(255,217,119,.3),0 8px 18px rgba(0,0,0,.5)}
+#start .en{color:#8fa0c8;letter-spacing:6px;font-size:13px;margin-top:-8px;text-shadow:0 1px 3px rgba(0,0,0,.65)} /* T158：新增背景晝間偏亮，補陰影維持文字對比 */
+#start .sub{color:#c9d2ea;font-size:14px;margin:6px 0 10px;text-shadow:0 1px 3px rgba(0,0,0,.65)}
 #start button{min-width:210px;padding:12px 22px;font-size:16px;border-radius:var(--radius-xl);cursor:pointer;
   border:2px solid var(--accent-green);background:#2e4a26;color:#dff5cf;transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease),background-color var(--ease);box-shadow:var(--shadow-btn)}
 #start button.alt{border-color:var(--panel-border-strong);background:#1d2745;color:#c9d2ea}
 #start button:active{transform:scale(.97)}
 @media (hover:hover) and (pointer:fine){#start button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.4)}}
-#start .help{margin-top:10px;color:#96a4c9;font-size:12px;line-height:1.9;max-width:340px}
+#start .help{margin-top:10px;color:#96a4c9;font-size:12px;line-height:1.9;max-width:340px;text-shadow:0 1px 3px rgba(0,0,0,.65)}
 #start .diffrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:340px}
 #start .diffbtn{min-width:auto;padding:6px 12px;font-size:12px;border-radius:9px}
 #start .diffbtn.sel{border-color:var(--accent);background:#33395e;color:#fff}
@@ -133,7 +136,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #start .scbtn{min-width:auto;width:100%;padding:8px 12px;font-size:12px;border-radius:9px;text-align:left}
 #start .scbtn.done{border-color:#58c470;color:#9be6ac}
 #start .scbtn.locked{opacity:.45;cursor:not-allowed}
-#logo{image-rendering:pixelated;width:224px;height:128px}
+/* T158：標題畫面背景（等距小鎮剪影＋星空＋窗燈微光，requestAnimationFrame 繪製，僅開始畫面用，
+   進遊戲即 cancelAnimationFrame 停止）；z-index:-1 使其落在 #start 靜態排版內容之下（CSS 疊層規則：
+   負 z-index 定位子元素繪製於同層內非定位版面內容之前），不需改動其餘既有子元素的定位/z-index */
+#titleBg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;display:block}
+/* T158：開始畫面按鈕分組排版與視覺層級——主按鈕（繼續/開拓）突出；難度/挑戰/戰役等次級選項收攏進
+   .startMore（細分隔線＋縮小字級/留白），與 T157 主題變數（--panel-border-soft/--accent/--shadow-btn/
+   --ease 等）統一，不改動任一既有按鈕 id/事件綁定 */
+#start .startPrimary{display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px}
+#start .startPrimary button{width:100%;font-size:17px;padding:14px 22px;
+  animation:startGlow 2.6s ease-in-out infinite}
+@keyframes startGlow{0%,100%{box-shadow:0 4px 18px rgba(255,217,119,.18),var(--shadow-btn)}
+  50%{box-shadow:0 4px 26px rgba(255,217,119,.42),var(--shadow-btn)}}
+@media (prefers-reduced-motion:reduce){#start .startPrimary button{animation:none}}
+#start .startMore{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px;
+  margin-top:4px;padding-top:12px;border-top:1px solid var(--panel-border-soft)}
+#start .startMore button{min-width:auto;padding:8px 16px;font-size:13px}
+.startMoreLabel{font-size:10px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-top:4px;text-shadow:0 1px 3px rgba(0,0,0,.65)}
+#logo{image-rendering:pixelated;width:224px;height:128px;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.45)) drop-shadow(0 0 18px rgba(255,217,119,.25))}
 #mini{position:absolute;top:48px;right:10px;width:144px;height:144px;z-index:18;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
   image-rendering:pixelated;cursor:pointer;display:none}
@@ -196,17 +217,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 <div id="info"><span class="x" id="infoX">✕</span><div id="infoBody"></div></div>
 
 <div id="start">
+  <canvas id="titleBg"></canvas>
   <canvas id="logo" width="224" height="128"></canvas>
   <h1>微光小鎮</h1>
   <div class="en">G L I M M E R V I L L E</div>
   <div class="sub">從一片荒野，點亮一座小鎮。</div>
-  <button id="bContinue" style="display:none">▶ 繼續上次的小鎮</button>
-  <button id="bNewGame">🌱 開拓新地圖</button>
-  <button class="alt" id="bEditorMode">🛠 編輯器</button>
+  <div class="startPrimary">
+    <button id="bContinue" style="display:none">▶ 繼續上次的小鎮</button>
+    <button id="bNewGame">🌱 開拓新地圖</button>
+  </div>
   <div class="help">
     🖐 拖曳平移 ・ 滾輪／雙指縮放<br>
     🛣 先鋪路 → 🏠 劃分區域 → ⚡ 蓋電廠供電<br>
     建築會沿著有電的道路自己生長、繳稅給你
+  </div>
+  <div class="startMore" id="startMore">
+    <button class="alt" id="bEditorMode">🛠 編輯器</button>
   </div>
 </div>
 
@@ -3756,6 +3782,99 @@ function drawLogo(){
   put(SPR.bld['1_1_0'],0,1);
   put(SPR.bld['2_1_1'],2,1);
 }
+
+/* ===== T158 標題畫面美術：等距小鎮剪影背景＋星空＋窗燈微光（v4.3，僅開始畫面用）。獨立計時（titlePhase 由
+   rAF timestamp 換算，不讀寫 visT/cam/tiles 等任何模擬全域狀態），沿用既有 isoBox()/dia()（本節開頭）與
+   streetHash()（第 7 節）同款手法縮小繪製窗燈決定性排列；天空/星空色彩曲線公式沿用 daylight()/stars 同款
+   邏輯（獨立 titleStars 陣列與獨立相位，不共用/不消耗遊戲原有 stars 或 R()/ri()）。版面（TITLE_BLDGS 各
+   建築 rx/hw/h）與剪影構圖皆本卡原創設計，未參考、描摹或轉換任何 TheoTown 或其他既有遊戲之素材。
+   requestAnimationFrame 迴圈僅於 #start 顯示時運行，begin() 進遊戲時 cancelAnimationFrame 停止（見該處），
+   不洩漏、不影響遊戲主迴圈（第 12 節 frame()）效能。===== */
+const titleCvs=$('#titleBg'),titleCtx=titleCvs&&titleCvs.getContext('2d');
+let titleRAF=null;
+const TITLE_CYCLE=42000; // 標題晝夜循環週期（毫秒，獨立於遊戲 CYCLE/visT）
+const titleStars=[];
+for(let i=0;i<70;i++)titleStars.push([Math.random(),Math.random()*.6,Math.random()*6.28]);
+// 剪影小鎮固定版面：rx＝畫面寬度比例、hw＝半寬（偶數，供 isoBox/dia 使用，符合鐵律6）、h＝牆高
+const TITLE_BLDGS=[
+  {rx:.06,hw:18,h:34},{rx:.16,hw:22,h:54},{rx:.27,hw:16,h:30},{rx:.36,hw:26,h:70},
+  {rx:.47,hw:18,h:42},{rx:.58,hw:24,h:60},{rx:.68,hw:16,h:32},{rx:.79,hw:22,h:50},
+  {rx:.90,hw:18,h:38}
+];
+function ensureTitleBgSize(){
+  if(!titleCvs)return;
+  const cw=titleCvs.clientWidth||window.innerWidth||800,ch=titleCvs.clientHeight||window.innerHeight||600;
+  if(titleCvs.width!==cw||titleCvs.height!==ch){titleCvs.width=cw;titleCvs.height=ch;}
+}
+// 窗燈微光：streetHash 決定性挑選是否為亮窗（越夜比例越高），微光閃爍純數學 sine，不消耗 R()/ri()
+function titleWinDot(x,y,seed,litBase,t){
+  if(streetHash(x,y,seed)>=.26+litBase*.44)return;
+  const tw=.5+.5*Math.abs(Math.sin(t*1.8+x*.11+y*.09));
+  titleCtx.globalAlpha=.3+litBase*.7*tw;
+  titleCtx.fillStyle='#ffd977';
+  titleCtx.fillRect(x,y,2,2);
+}
+// 窗格排列沿用既有 windows() 同款逐列座標公式（右牆 yF=by-((dx+1)>>1)、左牆 yF=by-(dx>>1)），簡化為單層點光
+function titleWindows(cx,by,hw,h,seed,litBase,t){
+  for(let dx=2;dx<hw-2;dx+=6){
+    const yF=by-((dx+1)>>1);
+    for(let y=yF-h+4;y<yF-4;y+=8)titleWinDot(cx+dx,y,seed,litBase,t);
+  }
+  for(let dx=4;dx<hw-1;dx+=6){
+    const yF=by-(dx>>1);
+    for(let y=yF-h+4;y<yF-4;y+=8)titleWinDot(cx-dx,y,seed,litBase,t);
+  }
+}
+function drawTitleBg(ts){
+  if(!titleCtx)return;
+  const W2=titleCvs.width,H2=titleCvs.height;
+  if(!W2||!H2)return;
+  const t=(ts||0)/1000;
+  const ph=((ts||0)%TITLE_CYCLE)/TITLE_CYCLE;
+  const dd=Math.max(0,Math.sin((ph-.25)*Math.PI*2));
+  const b=.30+.66*Math.pow(dd,.7); // 沿用 daylight() 同款曲線公式（色調邏輯與遊戲一致，計時完全獨立）
+  const topC=[Math.round(lerp(8,70,b)),Math.round(lerp(10,110,b)),Math.round(lerp(28,168,b))];
+  const botC=[Math.round(lerp(20,196,b)),Math.round(lerp(26,206,b)),Math.round(lerp(56,224,b))];
+  const grad=titleCtx.createLinearGradient(0,0,0,H2);
+  grad.addColorStop(0,`rgb(${topC[0]},${topC[1]},${topC[2]})`);
+  grad.addColorStop(1,`rgb(${botC[0]},${botC[1]},${botC[2]})`);
+  titleCtx.fillStyle=grad;titleCtx.fillRect(0,0,W2,H2);
+  if(b<.6){ // 星空：沿用遊戲 stars 陣列同款 twinkle 公式（獨立 titleStars，不共用/不消耗遊戲 stars）
+    titleCtx.fillStyle='#fff';
+    const starA=(0.6-b)/.6;
+    for(const s of titleStars){
+      const tw=.35+.65*Math.abs(Math.sin(t*1.4+s[2]));
+      titleCtx.globalAlpha=starA*tw;
+      titleCtx.fillRect(Math.floor(s[0]*W2),Math.floor(s[1]*H2*.7),2,2);
+    }
+    titleCtx.globalAlpha=1;
+  }
+  titleCtx.fillStyle=`rgba(${botC[0]},${botC[1]},${botC[2]},.28)`; // 遠雲：緩慢飄動（純位移，越界 wrap 循環）；三塊不同寬高疊 rect 堆出蓬鬆剪影，不用曲線（沿用遊戲全 fillRect 手法）
+  for(let i=0;i<3;i++){
+    const cw=Math.max(120,W2*.34),cy=H2*(.16+i*.07);
+    const cx0=((t*10+i*(W2/3+90))%(W2+cw))-cw;
+    titleCtx.fillRect(cx0,cy,cw,H2*.02);
+    titleCtx.fillRect(cx0+cw*.15,cy-H2*.012,cw*.5,H2*.03);
+    titleCtx.fillRect(cx0+cw*.55,cy-H2*.006,cw*.32,H2*.026);
+  }
+  const baseY=H2*.86,silL='#0e1730',silR='#0a1226',roofC='#141d3c';
+  titleCtx.fillStyle=silR;titleCtx.fillRect(0,baseY-2,W2,H2-baseY+2); // 地平線基座，接住各建築收斂的底角
+  const litBase=clamp((.72-b)/.5,0,1); // 越夜窗燈比例越高（同既有 nightSprites b<.72 門檻邏輯）
+  for(let bi=0;bi<TITLE_BLDGS.length;bi++){
+    const bd=TITLE_BLDGS[bi],cx=Math.round(bd.rx*W2);
+    isoBox(titleCtx,cx,baseY,bd.hw,bd.h,silL,silR,roofC); // 沿用既有等距建築繪製手法（縮小、剪影單色）
+    if(litBase>0)titleWindows(cx,baseY,bd.hw,bd.h,700+bi,litBase,t);
+  }
+  titleCtx.globalAlpha=1;
+}
+function titleFrame(ts){
+  if(!titleCtx||$('#start').style.display==='none'){titleRAF=null;return;} // 防禦：#start 已隱藏則不重排，杜絕殘留 rAF
+  ensureTitleBgSize();
+  drawTitleBg(ts);
+  titleRAF=requestAnimationFrame(titleFrame);
+}
+function startTitleAnim(){if(!titleRAF&&titleCtx)titleRAF=requestAnimationFrame(titleFrame);}
+function stopTitleAnim(){if(titleRAF){cancelAnimationFrame(titleRAF);titleRAF=null;}}
 
 /* =====================================================================
    3. 世界生成
@@ -8860,6 +8979,7 @@ buildSprites();
 buildToolbar();
 resize();
 drawLogo();
+startTitleAnim(); // T158：開始畫面標題背景動畫啟動（begin() 進遊戲時 cancelAnimationFrame 停止，見該處）
 const oldMute=localStorage.getItem(SAVEKEY+'.mute');
 sndMode=+(localStorage.getItem(SAVEKEY+'.snd')??(oldMute==='1'?0:1));
 if(sndMode<0||sndMode>2||isNaN(sndMode))sndMode=1;
@@ -8884,6 +9004,7 @@ function begin(fresh){
     }else{diff=challenge?1:diff;money=DIFF_MONEY[diff];} // T115：起始資金依難度套用；挑戰模式與難度互斥時以挑戰為準（強制標準）
   }
   $('#start').style.display='none';
+  stopTitleAnim(); // T158：進遊戲即停止標題背景動畫（cancelAnimationFrame，不洩漏、不影響遊戲主迴圈效能）
   running=true;
   $('#mini').style.display='block';$('#miniToggle').style.display='block';drawMini(); // T110：小地圖切換鈕隨小地圖一併顯示
   computePower();
@@ -8894,8 +9015,11 @@ function begin(fresh){
 $('#bNewGame').onclick=()=>{challenge=null;pendingScenario=null;begin(true);}; // T132：一般開新圖需清掉殘留選關暫存
 $('#bContinue').onclick=()=>begin(false);
 const startEl=$('#start');
+const moreEl=$('#startMore')||startEl; // T158：次級選項分組容器（難度/挑戰/戰役收攏於此，視覺降階），缺容器時退回 startEl 保底
 // T115：難度／沙盒選擇列（#start 按鈕區，仿下方 T88 挑戰按鈕先例以 JS 注入；四鈕，選中高亮，預設標準）
 if(startEl&&!$('#bDiff0')){
+  const dlabel=document.createElement('div');dlabel.className='startMoreLabel';dlabel.textContent='難度'; // T158：分組標籤
+  moreEl.appendChild(dlabel);
   const drow=document.createElement('div');drow.className='diffrow';
   for(let i=0;i<4;i++){
     const db=document.createElement('button');
@@ -8906,20 +9030,22 @@ if(startEl&&!$('#bDiff0')){
     });
     drow.appendChild(db);
   }
-  startEl.appendChild(drow);
+  moreEl.appendChild(drow);
 }
 // T88 挑戰
 if(startEl&&!$('#bCh1')){
   const mk=(id,label,bonus,goal)=>{const b=document.createElement('button');b.className='alt';b.id=id;b.textContent=label;b.onclick=()=>{challenge={id:goal,bonus,label};pendingScenario=null;begin(true);toast('挑戰：'+label,'gold');};return b;}; // T132：挑戰模式需清掉殘留選關暫存
-  startEl.appendChild(mk('bCh1','🏁 挑戰：人口1000',1500,'pop1k'));
-  startEl.appendChild(mk('bCh2','🏁 挑戰：200天$5k',2000,'day200'));
-  startEl.appendChild(mk('bCh3','🏁 挑戰：三星城市',2500,'star3'));
+  const clabel=document.createElement('div');clabel.className='startMoreLabel';clabel.textContent='挑戰'; // T158：分組標籤
+  moreEl.appendChild(clabel);
+  moreEl.appendChild(mk('bCh1','🏁 挑戰：人口1000',1500,'pop1k'));
+  moreEl.appendChild(mk('bCh2','🏁 挑戰：200天$5k',2000,'day200'));
+  moreEl.appendChild(mk('bCh3','🏁 挑戰：三星城市',2500,'star3'));
   const row=document.createElement('div');row.className='help';row.style.marginTop='8px';
   const ds=document.createElement('button');ds.className='alt';ds.textContent=disastersOn?'🌪 災害：開':'🌪 災害：關';
   ds.onclick=()=>{disastersOn=!disastersOn;localStorage.setItem(SAVEKEY+'.ds',disastersOn?'1':'0');ds.textContent=disastersOn?'🌪 災害：開':'🌪 災害：關';sTick();};
   const q=document.createElement('button');q.className='alt';q.textContent=['效能：低','效能：中','效能：高'][quality];
   q.onclick=()=>{quality=(quality+1)%3;localStorage.setItem(SAVEKEY+'.q',quality);q.textContent=['效能：低','效能：中','效能：高'][quality];sTick();};
-  row.appendChild(ds);row.appendChild(document.createTextNode(' '));row.appendChild(q);startEl.appendChild(row);
+  row.appendChild(ds);row.appendChild(document.createTextNode(' '));row.appendChild(q);moreEl.appendChild(row);
 }
 // T132：場景戰役入口（開始畫面新增「🎯 戰役」按鈕，點擊展開/收合 8 關選單；比照 T88 挑戰按鈕先例以 JS 注入）
 if(startEl&&!$('#bCampaign')){
@@ -8936,7 +9062,7 @@ if(startEl&&!$('#bCampaign')){
     scMenu.appendChild(btn);
   });
   bCamp.onclick=()=>scMenu.classList.toggle('show');
-  startEl.appendChild(bCamp);startEl.appendChild(scMenu);
+  moreEl.appendChild(bCamp);moreEl.appendChild(scMenu);
 }
 // title version
 try{document.title=(townName||'微光小鎮')+' v'+GAME_VER;}catch(e){}
@@ -8988,6 +9114,8 @@ window.GV={
   setVisT:(v)=>{visT=+v||0;return visT;},                       // T149 測試用：直接設定 visT（僅影響渲染晝夜相位，不寫入存檔、不影響 tick()/day 模擬節奏），供光影驗收鎖定精確相位
   forceDraw:()=>{draw(.016);return true;},                      // T149 測試用：同步立即觸發一次 draw()（§11 不變量 7：渲染不改遊戲狀態，重複呼叫安全），供像素回歸在同一輪事件迴圈內連續比對，避開背景模擬（day/車輛/水面幀）跨呼叫真實時間漂移雜訊
   setZoom:(z)=>{cam.z=+z||1;zoomAnim=null;return cam.z;},        // T149 測試用：直接設定 cam.z（沿用既有 zoomStep 寫入同一變數），供驗證 T107 z<0.5 LOD 門檻正確跳過光影
+  titleForceDraw:(ts)=>{ensureTitleBgSize();drawTitleBg(ts!==undefined?+ts:performance.now());return true;}, // T158 測試用：同步立即觸發一次標題背景重繪（比照 forceDraw 同款用途），供背景分頁 rAF 停擺時的像素回歸／動態取樣繞開真實時間等待
+  titleAnimOn:()=>!!titleRAF,                                   // T158 測試用：曝光標題動畫 rAF 是否在跑，驗證進遊戲後 stopTitleAnim() 已 cancelAnimationFrame（無殘留）
   addMoney:v=>{money+=v;return Math.round(money);},            // 測試用資金調整
   canPlaceTool:(t,x,y)=>canPlace(t,x,y),                       // 測試用建造可行性
   buses:()=>buses.map(b=>({x:b.x,y:b.y,stop:[b.stop%N,(b.stop/N)|0],p:+b.p.toFixed(2),wait:+b.wait.toFixed(2),moving:!!b.path})), // 公車運行快照（T26 測試用）
