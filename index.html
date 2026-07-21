@@ -7522,6 +7522,19 @@ function draw(dt){
       const s=(win?SPR.treeW:sea===1?SPR.treeS:sea===2?SPR.treeA:SPR.tree)[(t.tree-1)%10]; // T104：樹種 4→7，&3 遮罩已不敷索引改 %7；T136：夏/秋樹色調（SPR.treeS/treeA，長度 7 與日版一致），春季（sea===0）與改動前同一分支表達式；T150：樹種 7→10，索引改 %10（SPR.treeW/treeS/treeA 同步擴至長度 10）
       const sway=(animOn&&!lodFar)?Math.sin(visT*1.3+o.x*.7+o.y*1.3)*z:0; // T152：樹梢搖曳 ±1px（依 visT 正弦＋座標相位偏移，同相位重繪恆等；z<1 或 animOn 關閉時 sway=0＝與改動前逐像素一致）
       ctx.drawImage(s.img,o.sx+(32-s.ax)*z+sway,o.sy+(32-s.ay)*z,s.w*z,s.h*z);
+      if(!window.__noFly&&b<.6&&!lodFar&&!win){ // T170 螢火蟲（Opus 親手）——非冬季夜間樹旁 2 隻黃綠光點，visT＋座標雜湊決定性閃爍＋漂浮（不消耗 R()，同 visT 重繪恆等）；日間(b>=.6)／遠景(lodFar)／冬季(win) 不繪＝該狀態零改動
+        const fa=clamp((.6-b)/.26,0,1);
+        ctx.save();ctx.globalCompositeOperation='lighter';
+        for(let f=0;f<2;f++){
+          const ph=streetHash(o.x,o.y,700+f);
+          const blink=.35+.65*Math.abs(Math.sin(visT*1.6+ph*6.283));
+          const fx=o.sx+(14+ph*34)*z+Math.sin(visT*.8+ph*10)*6*z;
+          const fy=o.sy+(4+((ph*90)%22))*z+Math.cos(visT*1.05+ph*7)*5*z;
+          ctx.globalAlpha=fa*blink*.8;ctx.fillStyle='#d6ff86';
+          ctx.beginPath();ctx.arc(fx,fy,1.5*z,0,6.283);ctx.fill();
+        }
+        ctx.restore();ctx.globalAlpha=1;
+      }
       continue;
     }
     if(!t.bld&&t.deco){
