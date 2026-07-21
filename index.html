@@ -3992,12 +3992,97 @@ function buildSprites(){
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:72,h:112,smoke:[]};}
   }
+  /* ===== T163 水岸與海洋美術（v4.4，接在 T162 手繪交通與工業設施之後，buildSprites 絕對尾端）：新增水岸/
+     海洋裝飾——礁石 SPR.reef／淺灘 SPR.shoal（開闊水域稀疏散佈，decal 手法同 T153 natRock，img/ax/ay/w/h）、
+     浮標 SPR.buoy／燈塔 SPR.lighthouse（皆含 night 發光畫布，供既有 rdecGlow／nightSprites 'screen' 疊加
+     管線取用，比照 T146 候車亭 rdecGlow 手法）、動態浪花 SPR.foamWave[0..2]（依既有 t.wm 16-mask，diaEdge
+     純幾何不消耗 rand，draw() 端另由 streetHash+visT 決定性挑幀播放、不烘進 groundCache）。全部像素原創
+     構圖，未參考、描摹或轉換任何 TheoTown 或其他既有遊戲之素材，畫風（64×32、2:1 斜率、同調色邏輯）與
+     既有等距像素風一致。draw() 端新增：①深淺水色（waterDepthTierAt 近似離岸距離分 3 階，純疊色併入
+     groundCache）；②礁石/淺灘/浮標稀疏散佈＋燈塔沿岸點綴（皆併入 groundCache，座標決定性 streetHash 挑選，
+     不佔 tile 欄位、不影響 canPlace）；③動態浪花＋岸邊倒影（岸邊格對相鄰陸上建築取既有 sprite 以
+     brightness(0) 濾鏡壓黑、垂直翻轉+壓扁疊在水面，低成本近似，複雜多格/特殊建築 reflectSprite() 回退 null
+     不繪）；④水鳥（複用 T152 鳥群技法，另開一批不同飛行帶次的個體，直接沿用既有 SPR.bird 三幀圖，未新增
+     鳥類 SPR 鍵）——浪花/倒影/水鳥三者皆動態層、每幀重算、不烘進 groundCache。LOD：z<1（lodFar）結構性
+     跳過（深淺水色/散佈物落於既有 else 分支內；浪花/倒影/水鳥各自 if(oceanOn&&!lodFar) 短路），z<0.5
+     （lodMini，為 lodFar 子集）因此自動退回單一水色/整段不繪，滿足卡面兩檔 LOD 要求。window.__noOcean=true
+     時：buildSprites 本區塊整段跳過（新 SPR 鍵不存在）；draw() 對應繪製亦短路（見各處 !window.__noOcean
+     防禦），既有 SPR 鍵與既有繪製序列 100% 位元不變（供除錯/回歸比對）。存檔格式零變更（純繪製疊加層，
+     未新增 tile/bld 欄位，未消耗全域 R()/ri()）。===== */
+  if(!window.__noOcean){
+    const mkOceanDecal=(w,h,drawFn,nightFn)=>{
+      const[c,g]=cv(w,h);drawFn(g);
+      let nc=null;
+      if(nightFn){const p=cv(w,h);nc=p[0];nightFn(p[1]);}
+      return{img:c,night:nc,ax:w>>1,ay:h,w,h};
+    };
+    // ---- 礁石：開闊水域小型岩礁，白沫暈邊（img/ax/ay/w/h decal，比照 T153 natRock 手法）----
+    SPR.reef=mkOceanDecal(14,10,g=>{
+      g.fillStyle='rgba(255,255,255,.45)';g.fillRect(2,6,10,3);
+      g.fillStyle='#4a4f56';g.fillRect(5,3,5,4);
+      g.fillStyle='#6a6f76';g.fillRect(6,2,3,2);
+      g.fillStyle='#8a8f96';g.fillRect(6,2,2,1);
+    });
+    // ---- 淺灘：水下沙洲半透明暖沙色斑（不擋視線） ----
+    SPR.shoal=mkOceanDecal(22,10,g=>{
+      g.fillStyle='rgba(224,206,150,.28)';g.fillRect(2,3,18,5);
+      g.fillStyle='rgba(224,206,150,.14)';g.fillRect(0,2,22,7);
+    });
+    // ---- 浮標：紅白航道浮標，頂端夜間閃光（沿用既有 rdecGlow 管線） ----
+    SPR.buoy=mkOceanDecal(10,16,g=>{
+      g.fillStyle='#3a3a3e';g.fillRect(4,1,2,4);
+      g.fillStyle='#d94a3a';g.fillRect(3,4,4,7);
+      g.fillStyle='#e8e4d8';g.fillRect(3,6,4,2);
+      g.fillStyle='rgba(120,150,190,.4)';g.fillRect(2,12,6,2);
+    },ng=>{
+      ng.fillStyle='#ffdf7a';ng.fillRect(4,1,2,2);
+    });
+    // ---- 燈塔：稀疏放置於空曠岸邊陸地，紅白條紋塔身＋夜間燈室常亮 ----
+    SPR.lighthouse=mkOceanDecal(16,36,g=>{
+      g.fillStyle='#8a8f96';g.fillRect(3,33,10,2);
+      g.fillStyle='#e8e4d8';g.fillRect(5,10,6,24);
+      g.fillStyle='#c23a3a';g.fillRect(5,16,6,3);g.fillRect(5,24,6,3);
+      g.fillStyle='#4a4640';g.fillRect(4,6,8,4);
+      g.fillStyle='#ffe28a';g.fillRect(6,7,4,2);
+    },ng=>{
+      ng.fillStyle='#fff6c8';ng.fillRect(5,6,6,3);
+    });
+    // ---- 動態浪花：3 幀白沫（依既有 wm 16-mask，diaEdge 純幾何不消耗 rand），draw() 端每幀挑幀播放，
+    //      不烘進 groundCache；hw 皆偶數（鐵律6） ----
+    SPR.foamWave=[];
+    for(let f=0;f<3;f++){
+      const arr=[];
+      for(let m=0;m<16;m++){
+        const[c,g]=cv(64,32);
+        if(m){
+          diaEdge(g,m,'rgba(255,255,255,.5)',32,2,30-f*2);
+          diaEdge(g,m,'rgba(255,255,255,.82)',32,3,26-f*2);
+        }
+        arr.push(c);
+      }
+      SPR.foamWave.push(arr);
+    }
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
   if(we===0)return SPR.bld[baseKey+'_w0']||SPR.bld[baseKey];
   if(we===2)return SPR.bld[baseKey+'_w2']||SPR.bld[baseKey];
   return SPR.bld[baseKey];
+}
+// T163：岸邊倒影用簡化建築 sprite 查找（僅涵蓋常見單格建築；多格/摩天樓/體育場等複雜案例回退 null 不繪，
+// 低成本簡化設計已於卡面驗收確認，不影響其餘既有渲染路徑，不消耗 R()/ri()）
+function reflectSprite(bd){
+  if(!bd||bd.ref||(bd.sz&&bd.sz>=2))return null;
+  if(bd.k===4)return(inWinter()?SPR.parkW:SPR.park)[bd.v];
+  if(bd.k===5)return SPR.plant;
+  if(bd.k===10)return SPR.waterTower;
+  if(bd.k===11)return SPR.police;
+  if(bd.k===12)return SPR.hospital;
+  if(bd.k===13)return SPR.clinic;
+  if(bd.k===1)return wealthSpr(bd.k+'_'+bd.lv+'_'+(bd.v||0),bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0'];
+  if(bd.k===2||bd.k===3)return SPR.bld[bd.k+'_'+bd.lv+'_'+(bd.v||0)]||SPR.bld[bd.k+'_'+bd.lv+'_0'];
+  return null;
 }
 
 /* 標題 LOGO（開始畫面的小島） */
@@ -6746,6 +6831,21 @@ function streetHash(x,y,salt){
   return(h>>>0)/4294967296;
 }
 const STREET_POPCOUNT=[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4]; // T146：road mask（0-15）位元數查表，供判斷路口(>=3)/端點(<=1)/直行段(===2)
+// T163：離岸距離近似分級（0近岸／已鄰接陸地 1中距 2深海），供深淺水色挑選使用；純讀 tiles 不寫、不消耗
+// R()/ri()，僅於 groundCache 重繪（地形變更後）才被逐水格呼叫一次，成本可忽略
+function waterDepthTierAt(x,y){
+  if(T(idx(x,y)).wm)return 0;
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+    const xx=x+dx,yy=y+dy;
+    if(inMap(xx,yy)&&T(idx(xx,yy)).t!==0)return 1;
+  }
+  return 2;
+}
+// T163：陸地格四鄰是否有水面（供燈塔沿岸點綴挑選；與既有 hasWaterNear〔T31 水管覆蓋判定，語意不同〕區隔
+// 命名避免混淆）
+function coastLandAt(x,y){
+  return(inMap(x,y-1)&&T(idx(x,y-1)).t===0)||(inMap(x+1,y)&&T(idx(x+1,y)).t===0)||(inMap(x,y+1)&&T(idx(x,y+1)).t===0)||(inMap(x-1,y)&&T(idx(x-1,y)).t===0);
+}
 // T96：地面層離屏快取。地面層（地形/水/道路/分區覆蓋等）逐格重繪成本最高，但其外觀只取決於
 // 相機位置/縮放、水面動畫幀、季節、模擬天數與畫布尺寸——這些不變的幀直接重貼上一次畫好的離屏畫布即可。
 // groundDirty 為髒標記：doPlace()（建造/拆除唯一資料變更點）／undo()／newWorld()／load()／GV.flood()
@@ -6788,6 +6888,12 @@ function draw(dt){
      既有全屏天氣色調／暴風雪色調／螢幕空間雨雪粒子等原生代碼路徑完全不受影響，原樣繼續運作（＝既有簡單版本）。
      window.__noWx（預設 undefined＝關）：真時強制關閉，等同完全回退 T154 前渲染，供像素回歸 A/B 比對。===== */
   const wxUp=!window.__noWx&&quality!==0&&!lodMini;
+  /* ===== T163 水岸與海洋美術總開關：z<0.5（lodMini）或效能檔=低（quality===0）時關閉本卡新增之動態層
+     （浪花動畫／岸邊倒影／水鳥），沿用 T149 fxOn／T152 animOn 同款節流慣例；本卡靜態疊色（深淺水色／礁石
+     淺灘散佈／燈塔浮標）併入 groundCache 不受此節流，僅受既有 z<1（lodFar）結構性排除（比照 T153 慣例）。
+     window.__noOcean（預設 undefined＝關）：真時 oceanOn 強制 false 且 buildSprites 對應區塊整段跳過，
+     供像素回歸 A/B 比對。===== */
+  const oceanOn=!window.__noOcean&&quality!==0&&!lodMini;
   const SHOX=16,SHOY=8; // 陰影固定偏移（西北光源→畫面右下，沿用 §4 bit2(x+1,y) 螢幕位移方向 (+32,+16) 半縮）
   // T69 地震震動：純渲染偏移（不寫回 cam.x/y，toTile 等輸入換算不受影響）
   const shakeAmp=shakeT>0?shakeT*14*z:0;
@@ -6836,6 +6942,32 @@ function draw(dt){
             const d= kindP<.42?SPR.natFlower[win?3:sea] : kindP<.72?SPR.natWeed[win?3:sea] : kindP<.88?SPR.natRock : SPR.natLog;
             gc.drawImage(d.img,sx+(xx-d.w/2)*z,sy+(yy-d.h)*z,d.w*z,d.h*z);
           }
+        }
+        /* ===== T163 深淺水色＋礁石淺灘散佈＋燈塔沿岸點綴：純靜態疊色/decal，併入 groundCache（座標決定性
+           streetHash 挑選，不消耗 R()/ri()，不佔 tile 欄位、不影響 canPlace）。本區塊已在 else（!lodFar）
+           分支內＝z<1 結構性排除，z<0.5（lodMini，為 lodFar 子集）因此自動退回單一水色，滿足卡面 LOD 要求。
+           window.__noOcean=true 時整段跳過（供除錯/回歸比對） ===== */
+        if(!window.__noOcean&&t.t===0){
+          const dtier=waterDepthTierAt(x,y);
+          if(dtier){
+            gc.fillStyle=dtier===1?'rgba(8,26,55,.14)':'rgba(4,14,36,.26)';
+            gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
+          }
+          if(SPR.reef&&!t.wm&&!t.dock&&!t.bridge){
+            const pk=streetHash(x,y,921);
+            let dc=null;
+            if(pk<.035)dc=SPR.reef;else if(pk<.06)dc=SPR.shoal;else if(pk<.075)dc=SPR.buoy;
+            if(dc){
+              const jx=(streetHash(x,y,924)-.5)*20,jy=(streetHash(x,y,925)-.5)*8;
+              const dcx=sx+(32+jx-dc.w/2)*z,dcy=sy+(16+jy-dc.h/2)*z;
+              gc.drawImage(dc.img,dcx,dcy,dc.w*z,dc.h*z);
+              if(dc===SPR.buoy&&dc.night)rdecGlow.push({img:dc.night,x:dcx,y:dcy,w:dc.w*z,h:dc.h*z});
+            }
+          }
+        }else if(!window.__noOcean&&SPR.lighthouse&&t.t===2&&!t.tree&&!t.bld&&!t.zone&&!t.deco&&!t.road&&!t.rail&&!t.tram&&!t.dock&&streetHash(x,y,923)<.012&&coastLandAt(x,y)){
+          const lx=sx+(32-SPR.lighthouse.w/2)*z,ly=sy+(28-SPR.lighthouse.h)*z;
+          gc.drawImage(SPR.lighthouse.img,lx,ly,SPR.lighthouse.w*z,SPR.lighthouse.h*z);
+          if(SPR.lighthouse.night)rdecGlow.push({img:SPR.lighthouse.night,x:lx,y:ly,w:SPR.lighthouse.w*z,h:SPR.lighthouse.h*z});
         }
       }
       if(t.t===0&&t.wm)gc.drawImage(SPR.foam[t.wm],sx,sy,64*z,32*z);
@@ -7015,6 +7147,44 @@ function draw(dt){
       ctx.fillRect(spx,spy,Math.max(1,z),Math.max(1,z));
     }
     ctx.globalAlpha=1;
+    ctx.restore();
+  }
+  /* ===== T163 動態浪花＋岸邊倒影：畫在地面快取貼上、T149 光暈、T152 水面波光之後，物件層之前（不烘進
+     groundCache，每幀重算，快取鍵 gKey 未新增任何組成分量）；浪花挑幀＋倒影目標挑選皆由 streetHash(x,y,
+     salt) 決定性雜湊，不消耗 R()/ri()；oceanOn 已含 z<0.5／quality===0／__noOcean 短路，此處再加 !lodFar
+     （z<1 停用，同 T152 慣例）滿足卡面 LOD「z<1 跳過浪花/倒影」要求。倒影複用既有 T149 陰影同款
+     brightness(0) 濾鏡剪影技法，reflectSprite() 僅涵蓋常見單格建築，複雜/多格建築回退 null 不繪（低成本
+     簡化，已於卡面驗收確認） ===== */
+  if(oceanOn&&!lodFar){
+    ctx.save();
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const t=T(idx(x,y));
+      if(t.t!==0||!t.wm)continue;
+      const sx=sxOf(x,y),sy=syOf(x,y);
+      if(!vis(sx,sy))continue;
+      if(SPR.foamWave){ // 浪花：3 幀依 streetHash 相位＋visT 決定性播放
+        const fh=streetHash(x,y,919);
+        const frame=Math.floor(visT*1.4+fh*7)%3;
+        ctx.globalAlpha=.35+.35*(Math.sin(visT*2+fh*31)*.5+.5);
+        ctx.drawImage(SPR.foamWave[frame][t.wm],sx,sy,64*z,32*z);
+        ctx.globalAlpha=1;
+      }
+      let rb=null; // 倒影：依 wm 位向優先序找第一個有建築的鄰接陸地格
+      if(t.wm&1)rb=T(idx(x,y-1)).bld;
+      if(!rb&&t.wm&2)rb=T(idx(x+1,y)).bld;
+      if(!rb&&t.wm&4)rb=T(idx(x,y+1)).bld;
+      if(!rb&&t.wm&8)rb=T(idx(x-1,y)).bld;
+      const rs=rb&&reflectSprite(rb);
+      if(rs){
+        const ax2=sx+32*z,ay2=sy+32*z;
+        ctx.save();
+        ctx.translate(ax2,ay2);ctx.scale(1,-.35);
+        ctx.filter='brightness(0)';
+        ctx.globalAlpha=.22;
+        ctx.drawImage(rs.img,-rs.ax*z,-rs.ay*z,rs.w*z,rs.h*z);
+        ctx.restore();
+      }
+    }
     ctx.restore();
   }
   /* ===== T154 雨天地面水花＋濕地反光：地面快取貼上、T149 光暈、T152 水面波光之後，物件層之前疊加（不烘進
@@ -7562,6 +7732,23 @@ function draw(dt){
       const bfr=Math.floor(visT*9+bi)%3;
       const bs=SPR.bird[bfr];
       ctx.drawImage(bs.img,bx2,by2,bs.w*z,bs.h*z);
+    }
+  }
+  /* ===== T163 水鳥：複用 T152 鳥群技法（screen 空間、固定索引相位＋visT 驅動、不消耗 R()/ri()），另開一批
+     飛行帶次較低、反方向飛行的個體代表水岸水鳥，直接沿用既有 SPR.bird 三幀圖（未新增鳥類 SPR 鍵）。oceanOn
+     已含 z<0.5／quality===0／__noOcean 短路，同 T152 慣例額外要求 !lodFar（凍結位置比不畫更違和，同 T152
+     卡面驗收確認的詮釋，此處比照辦理） ===== */
+  if(oceanOn&&!lodFar&&SPR.bird){
+    const WBIRD_N=2;
+    for(let bi=0;bi<WBIRD_N;bi++){
+      const cyc=11+bi*3.1;
+      const prog=((visT/cyc)+bi*0.382+.25)%1;
+      if(prog>.5)continue;
+      const bx2=W+40*z-(prog/.5)*(W+80*z);
+      const by2=H*.62+((bi*37)%40)*z*.5+Math.sin(prog*Math.PI*5)*4*z;
+      const bfr=Math.floor(visT*7+bi)%3;
+      const bs2=SPR.bird[bfr];
+      ctx.drawImage(bs2.img,bx2,by2,bs2.w*z*1.15,bs2.h*z*1.15);
     }
   }
   // ---- 天氣：雨絲＋閃電（螢幕空間，夜燈之後、游標之前；T17）----
