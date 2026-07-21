@@ -2269,6 +2269,18 @@ function buildSprites(){
     g.drawImage(s,0,0);
     SPR.deco.push({img:c,ax:10,ay:32,w:20,h:34});
   }
+  { // T176 裝飾 v9 小池塘（Opus 親手）：草地上天然小水池＋睡蓮＋岸石，純 fillRect/ellipse 無亂數＝不位移既有生成序；draw() 沿用 SPR.deco[t.deco-1] 通用渲染，存檔 dc 單字元 9 在格式內
+    const[c,g]=cv(40,28);
+    g.fillStyle='#2f5f92';g.beginPath();g.ellipse(20,16,16,8,0,0,6.283);g.fill();      // 池水外圈（深）
+    g.fillStyle='#3f78b0';g.beginPath();g.ellipse(20,15,14,6.6,0,0,6.283);g.fill();     // 池水
+    g.fillStyle='#5a98cc';g.fillRect(9,13,6,1);g.fillRect(24,16,5,1);g.fillRect(15,18,4,1); // 波光
+    g.fillStyle='#3a7a3f';g.beginPath();g.ellipse(14,16,3,1.6,0,0,6.283);g.fill();      // 睡蓮葉
+    g.fillStyle='#4a8f4a';g.beginPath();g.ellipse(26,14,2.6,1.4,0,0,6.283);g.fill();
+    g.fillStyle='#eaa6c4';g.fillRect(25,13,2,2);                                         // 蓮花
+    g.fillStyle='#8a8578';g.fillRect(4,17,3,2);g.fillRect(33,18,3,2);                    // 岸邊石
+    g.fillStyle='#6f6a5e';g.fillRect(4,17,3,1);g.fillRect(33,18,3,1);
+    SPR.deco.push({img:c,ax:20,ay:16,w:40,h:28});
+  }
   /* ===== T116 龍捲風漏斗雲：灰色錐形 3 幀旋轉動畫（不描邊，半透明雲霧質感），置於 buildSprites 絕對尾端，
      不位移任何既有 rand 消耗序；draw() 依 tornado 狀態與 visT 挑幀疊代顯示 ===== */
   SPR.tornado=[];
@@ -4306,7 +4318,7 @@ function genWorld(sd){
   const decoR=mulberry32(sd^0x5b1e);
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const tl=tiles[idx(x,y)];
-    if(tl.t===2&&!tl.tree&&!tl.deco&&decoR()<.018)tl.deco=4+Math.floor(decoR()*5);
+    if(tl.t===2&&!tl.tree&&!tl.deco&&decoR()<.018)tl.deco=4+Math.floor(decoR()*6); // T176：值域 4-8→4-9 納入小池塘 v9（decoR 呼叫數不變＝不位移串流；decoR 為裝飾專用流不影響模擬）
   }
   genResource(sd); // T140：資源層（獨立種子噪聲，不消耗全域 R()，見 genResource 定義處說明）
   return water/(N*N);
