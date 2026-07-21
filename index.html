@@ -7779,6 +7779,17 @@ function draw(dt){
     }
     ctx.restore();
   }
+  if(weather===0&&rainDays>0&&b>.62&&!lodMini&&!window.__noRainbow){ // T172 雨後彩虹（Opus 親手）——晴天(weather0)但近期下過雨(rainDays>0)且日間(b>.62)非遠景時，畫面上方半透明七彩弧；強度隨 rainDays 遞減（雨停越久越淡），rainDays=0 自動消失；夜間/遠景/未下雨/雨中 不繪；純讀既有 weather/rainDays/b，無新狀態、無 tick hook、不消耗 R()（screen 疊加不改下方顏色語意）
+    const rbA=clamp(rainDays/RAIN_ACC_DAYS,0,1)*.15;
+    const rcx=W*.5, rcy=H*1.28, rrad=H*1.02, lw=Math.max(2,H*.013);
+    const RB=[[255,90,90],[255,165,70],[255,232,90],[95,205,115],[80,165,255],[135,110,225]];
+    ctx.save();ctx.globalCompositeOperation='screen';ctx.lineWidth=lw;
+    for(let i=0;i<RB.length;i++){
+      ctx.strokeStyle=`rgba(${RB[i][0]},${RB[i][1]},${RB[i][2]},${rbA.toFixed(3)})`;
+      ctx.beginPath();ctx.arc(rcx,rcy,rrad-i*lw,Math.PI*1.17,Math.PI*1.83);ctx.stroke();
+    }
+    ctx.restore();
+  }
   if(blizzard){ // T137：暴風雪/沙暴全屏色調（獨立於既有天氣系統，冬雪白藍／夏沙土黃）
     ctx.fillStyle=blizzard.type==='snow'?'rgba(230,238,250,.35)':'rgba(196,164,110,.35)';
     ctx.fillRect(0,0,W,H);
