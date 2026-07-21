@@ -7868,6 +7868,23 @@ function draw(dt){
       ctx.drawImage(bs.img,bx2,by2,bs.w*z,bs.h*z);
     }
   }
+  if(b<.45&&!lodMini&&!window.__noShootStar){ // T173 夜間流星（Opus 親手）——深夜偶爾一顆流星劃過畫面上方帶漸淡尾跡＋亮頭；週期 cyc、每輪僅前 10% 時段可見（短暫），位置由 phase 雜湊決定；日間/黃昏(b>=.45)/遠景(lodMini)不繪；純 visT 決定性、不消耗 R()、同 visT 重繪恆等
+    const cyc=13, prog=(visT/cyc)%1, phase=Math.floor(visT/cyc);
+    if(prog<.1){
+      const sp=streetHash(phase,7,321), sp2=streetHash(phase,9,322);
+      const sx0=(.12+sp*.58)*W, sy0=(.04+sp2*.16)*H, t2=prog/.1;
+      const dlen=150*z, dx=dlen*.88, dy=dlen*.48, hx=sx0+dx*t2, hy=sy0+dy*t2;
+      const nf=clamp((.45-b)/.11,0,1)*(1-t2*.4);
+      ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+      const g=ctx.createLinearGradient(hx,hy,hx-dx*.55,hy-dy*.55);
+      g.addColorStop(0,`rgba(255,255,238,${(.95*nf).toFixed(3)})`);g.addColorStop(1,'rgba(255,255,238,0)');
+      ctx.strokeStyle=g;ctx.lineWidth=Math.max(1,1.7*z);
+      ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(hx-dx*.55,hy-dy*.55);ctx.stroke();
+      ctx.fillStyle=`rgba(255,255,245,${(.95*nf).toFixed(3)})`;
+      ctx.beginPath();ctx.arc(hx,hy,1.8*z,0,6.283);ctx.fill();
+      ctx.restore();
+    }
+  }
   /* ===== T163 水鳥：複用 T152 鳥群技法（screen 空間、固定索引相位＋visT 驅動、不消耗 R()/ri()），另開一批
      飛行帶次較低、反方向飛行的個體代表水岸水鳥，直接沿用既有 SPR.bird 三幀圖（未新增鳥類 SPR 鍵）。oceanOn
      已含 z<0.5／quality===0／__noOcean 短路，同 T152 慣例額外要求 !lodFar（凍結位置比不畫更違和，同 T152
