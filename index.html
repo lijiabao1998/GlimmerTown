@@ -7093,6 +7093,9 @@ function draw(dt){
             gc.strokeStyle='rgba(255,255,255,0.30)';gc.lineWidth=Math.max(1,z*.55);
             gc.beginPath();gc.moveTo(cxp+Math.cos(a)*r*z,cyp+Math.sin(a)*r*.5*z);gc.lineTo(cxp-Math.cos(a)*r*z,cyp-Math.sin(a)*r*.5*z);gc.stroke();
           }
+        }else if(t.t===0&&(sea===1||sea===2)&&!window.__noSeaCol){ // T187 夏/秋水色（Opus 親手）——補齊季節調色一致性：草地(grassS/A)、樹木(treeS/A)皆有四季色，唯水面除冬季冰面外全年同藍。非冬水格依季疊薄色：夏(sea1)偏暖綠松、秋(sea2)偏冷灰（春為基準不疊）；併入 groundCache（季節為既有快取鍵，零每幀成本）；純疊色不消耗 R()，__noSeaCol 開關供回歸
+          gc.fillStyle= sea===1?'rgba(46,178,168,0.11)':'rgba(96,110,124,0.13)';
+          gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
         }
         /* ===== T153 草地紋理疊加＋自然散佈物：純繪製層併入 groundCache（不佔 tile 欄位、不影響 canPlace／
            存檔），座標決定性雜湊 streetHash(x,y,salt) 挑選（不消耗全域 R()/ri()）；z<1（lodFar）已由外層
