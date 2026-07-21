@@ -7368,7 +7368,8 @@ function draw(dt){
       ctx.drawImage(spr,sx-vox*z,sy-voy*z,vw*z,vh*z);
       if(b<.55){
         const v=DIRSCR[o.car.d];
-        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]}); // T165：頭燈（暖白）
+        nightSprites.push({rect:[sx-v[0]*z-z,sy-v[1]*z-z,2*z,2*z],col:'#ff4636'}); // T165：尾燈（紅），車尾＝頭燈反向
       }
       continue;
     }
@@ -7378,7 +7379,8 @@ function draw(dt){
       ctx.drawImage(spr,sx-6*z,sy-5*z,12*z,8*z);
       if(b<.55){
         const v=DIRSCR[o.svcD];
-        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]}); // T165：頭燈
+        nightSprites.push({rect:[sx-v[0]*z-z,sy-v[1]*z-z,2*z,2*z],col:'#ff4636'}); // T165：尾燈
       }
       continue;
     }
@@ -7388,7 +7390,8 @@ function draw(dt){
       ctx.drawImage(spr,sx-6*z,sy-6*z,12*z,9*z);
       if(b<.55){
         const v=DIRSCR[o.bd];
-        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+        nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]}); // T165：頭燈
+        nightSprites.push({rect:[sx-v[0]*z-z,sy-v[1]*z-z,2*z,2*z],col:'#ff4636'}); // T165：尾燈
       }
       continue;
     }
@@ -7637,6 +7640,17 @@ function draw(dt){
       ctx.beginPath();ctx.arc(gx,gy,gr,0,Math.PI*2);ctx.fill();
       ctx.restore();
     }
+    if(nightDepth>0&&bd.sz>=2&&!(bd.k<=3||bd.k===33||bd.k===34)){ // T165：地標泛光——大型公共建築（sz≥2 非 RCI/摩天樓）夜間底部向上冷白泛光照亮建築本體，強度隨夜深度；nightDepth===0（日間）零繪製故日間逐像素一致
+      const fx=bx+s.w*z*.5, fbot=by+s.h*z, ftop=by+s.h*z*.15;
+      const fg=ctx.createLinearGradient(fx,fbot,fx,ftop);
+      fg.addColorStop(0,`rgba(180,205,255,${(0.22*nightDepth).toFixed(3)})`);
+      fg.addColorStop(1,'rgba(180,205,255,0)');
+      ctx.save();
+      ctx.globalCompositeOperation='lighter';
+      ctx.fillStyle=fg;
+      ctx.fillRect(bx+s.w*z*.15,ftop,s.w*z*.7,s.h*z*.85);
+      ctx.restore();
+    }
     let occA=1; // T126：目標列表為空時 for..of 零迭代，occA 恆 1，行為與改動前完全一致
     if(occTargets.length)for(const ot of occTargets){if(o.dep>ot.dep&&ot.ax>=bx&&ot.ax<bx+s.w*z&&ot.ay>=by&&ot.ay<by+s.h*z){occA=.35;break;}}
     if(occA<1)ctx.globalAlpha=occA;
@@ -7762,7 +7776,7 @@ function draw(dt){
     ctx.globalCompositeOperation='screen';
     for(const nsp of nightSprites){
       if(nsp.img)ctx.drawImage(nsp.img,nsp.x,nsp.y,nsp.w,nsp.h);
-      else if(nsp.rect){ctx.fillStyle='#ffe9a0';ctx.fillRect(...nsp.rect);}
+      else if(nsp.rect){ctx.fillStyle=nsp.col||'#ffe9a0';ctx.fillRect(...nsp.rect);} // T165：nsp.col 可選（車尾燈紅等），缺省沿用既有暖白＝零位移
     }
     ctx.globalCompositeOperation='source-over';
     ctx.globalAlpha=1;
