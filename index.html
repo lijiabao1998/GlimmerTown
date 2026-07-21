@@ -7866,6 +7866,22 @@ function draw(dt){
     }
     ctx.restore();
   }
+  if(!lodMini&&!window.__noFog){ // T182 晨霧（Opus 親手）——黎明(ph≈0.25 日出)時分畫面下半低伏白霧帶：3 條垂直漸層霧帶＋波動頂緣＋visT 決定性橫向漂移，強度隨 |ph-0.25| 峰態衰減（日出最濃、正午與深夜為 0）；遠景(lodMini)不繪；純讀既有 ph/visT、無新狀態、不消耗 R()、同 visT 重繪恆等
+    const fog=clamp(1-Math.abs(ph-.25)/.11,0,1);
+    if(fog>.01){
+      ctx.save();
+      for(let band=0;band<3;band++){
+        const cy=H*(.54+band*.14), ga=fog*(.14-band*.03), drift=visT*5+band*130;
+        const grad=ctx.createLinearGradient(0,cy-38,0,cy+58);
+        grad.addColorStop(0,'rgba(226,232,239,0)');grad.addColorStop(.5,`rgba(226,232,239,${ga.toFixed(3)})`);grad.addColorStop(1,'rgba(226,232,239,0)');
+        ctx.fillStyle=grad;
+        ctx.beginPath();ctx.moveTo(0,cy-38);
+        for(let px=0;px<=W;px+=20){const wy=cy-38+Math.sin(px*.008+drift*.02+band*1.7)*13+Math.sin(px*.02+drift*.033)*6;ctx.lineTo(px,wy);}
+        ctx.lineTo(W,cy+58);ctx.lineTo(0,cy+58);ctx.closePath();ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
   if(blizzard){ // T137：暴風雪/沙暴全屏色調（獨立於既有天氣系統，冬雪白藍／夏沙土黃）
     ctx.fillStyle=blizzard.type==='snow'?'rgba(230,238,250,.35)':'rgba(196,164,110,.35)';
     ctx.fillRect(0,0,W,H);
