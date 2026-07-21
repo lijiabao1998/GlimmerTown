@@ -7790,6 +7790,22 @@ function draw(dt){
     }
     ctx.restore();
   }
+  if(win&&b<.45&&!lodMini&&!window.__noAurora){ // T174 冬季極光（Opus 親手）——僅冬季(win)深夜(b<.45)非遠景時，畫面上方 3 條綠青紫波動極光帶（screen 疊加、垂直漸層淡出），visT 決定性漂移；非冬/日間/黃昏/遠景 不繪＝該場景零改動；不消耗 R()、同 visT 重繪恆等
+    const af=clamp((.45-b)/.11,0,1);
+    const AH=['90,222,150','80,196,214','150,120,224'];
+    ctx.save();ctx.globalCompositeOperation='screen';
+    for(let band=0;band<3;band++){
+      const cy=H*(.05+band*.055), hue=AH[band];
+      ctx.beginPath();ctx.moveTo(0,cy-30);
+      for(let px=0;px<=W;px+=16){const wy=cy+Math.sin(px*.006+visT*.5+band*2.1)*20+Math.sin(px*.015+visT*.85)*9;ctx.lineTo(px,wy);}
+      for(let px=W;px>=0;px-=16){const wy=cy+36+Math.sin(px*.006+visT*.5+band*2.1)*20+Math.sin(px*.015+visT*.85)*9;ctx.lineTo(px,wy);}
+      ctx.closePath();
+      const grad=ctx.createLinearGradient(0,cy-30,0,cy+66);
+      grad.addColorStop(0,`rgba(${hue},0)`);grad.addColorStop(.5,`rgba(${hue},${(af*.11).toFixed(3)})`);grad.addColorStop(1,`rgba(${hue},0)`);
+      ctx.fillStyle=grad;ctx.fill();
+    }
+    ctx.restore();
+  }
   if(blizzard){ // T137：暴風雪/沙暴全屏色調（獨立於既有天氣系統，冬雪白藍／夏沙土黃）
     ctx.fillStyle=blizzard.type==='snow'?'rgba(230,238,250,.35)':'rgba(196,164,110,.35)';
     ctx.fillRect(0,0,W,H);
