@@ -7731,6 +7731,22 @@ function draw(dt){
     ctx.fillStyle=win?'rgba(200,210,230,.14)':weather===2?'rgba(70,90,120,.3)':'rgba(70,90,120,.18)'; // 冬季雪天色調（T18）
     ctx.fillRect(0,0,W,H);
   }
+  if(b>.5&&weather===0&&!lodMini&&!window.__noCloud){ // T167：白天飄動雲影（Opus 親手）——晴天日間大範圍柔和暗斑緩慢橫掃，模擬雲層掠過遮光；visT 決定性驅動不消耗 R()（同 blizzard 負模取正手法）；夜間(b<=.5)/雨雪(weather>0)/遠景(lodMini)不繪＝相應場景零改動
+    const cloudA=clamp((b-.5)/.3,0,1)*.085; // 越近正午越明顯，低透明上限避免搶戲
+    ctx.save();
+    ctx.globalCompositeOperation='multiply';
+    for(let i=0;i<4;i++){
+      const span=W+560, cx2=(((i*W*0.42-visT*24)%span)+span)%span-280;
+      const cy2=(i*H*0.27+((i*61)%90))%(H+160)-40;
+      const rx=(180+i*44)*Math.max(z,.7), ry=rx*.5;
+      const cg=ctx.createRadialGradient(cx2,cy2,0,cx2,cy2,rx);
+      cg.addColorStop(0,`rgba(118,126,140,${cloudA.toFixed(3)})`);
+      cg.addColorStop(1,'rgba(118,126,140,0)');
+      ctx.fillStyle=cg;
+      ctx.save();ctx.translate(cx2,cy2);ctx.scale(1,ry/rx);ctx.beginPath();ctx.arc(0,0,rx,0,6.284);ctx.fill();ctx.restore();
+    }
+    ctx.restore();
+  }
   if(blizzard){ // T137：暴風雪/沙暴全屏色調（獨立於既有天氣系統，冬雪白藍／夏沙土黃）
     ctx.fillStyle=blizzard.type==='snow'?'rgba(230,238,250,.35)':'rgba(196,164,110,.35)';
     ctx.fillRect(0,0,W,H);
