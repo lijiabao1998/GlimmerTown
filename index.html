@@ -6309,6 +6309,7 @@ function updSmoke(dt){
     for(let y=0;y<N;y++)for(let x=0;x<N;x++){
       const t=T(idx(x,y));
       if(sea===2&&t.tree&&Math.random()<.012)spawnLeaf(x,y); // T159：秋季樹格稀疏飄落，獨立於下方煙粒判定與上限
+      else if(sea===0&&t.tree&&Math.random()<.010)spawnPetal(x,y); // T171：春季樹格飄落粉色櫻花瓣（與秋季落葉互斥，季節唯一值）
       const b=t.bld;
       if(!b)continue;
       if(b.k<=3&&b.fire&&Math.random()<.6)spawnEmber(x,y);  // T159：火花餘燼——燃燒中建築每次抽樣噴橘紅火花
@@ -6562,6 +6563,11 @@ function spawnLeaf(x,y){                          // 落葉：秋季（season()=
   const wx=(x-y)*32, wy=(x+y)*16-6, dep=x+y+.012;
   const LC=['#c96f2e','#d9a441','#a8471f'];
   spawnFxAt({ty:'leaf',wx,wy,vx:0,vy:9+Math.random()*6,ph:Math.random()*6.283,lc:LC[Math.floor(Math.random()*LC.length)],age:0,life:2+Math.random(),dep});
+}
+function spawnPetal(x,y){                         // T171 櫻花瓣（Opus 親手）：春季（season()===0）樹格稀疏飄落粉色花瓣，較落葉更慢更輕、飄得更久（沿用 leaf 渲染與左右擺動，僅換色/物理；用 Math.random 與模擬 R() 獨立，同 T159 慣例）
+  const wx=(x-y)*32, wy=(x+y)*16-6, dep=x+y+.012;
+  const PC=['#ffd3e2','#ffc0d4','#ffe6f0'];
+  spawnFxAt({ty:'leaf',wx,wy,vx:0,vy:5+Math.random()*4,ph:Math.random()*6.283,lc:PC[Math.floor(Math.random()*PC.length)],age:0,life:3+Math.random()*1.6,dep});
 }
 function spawnExhaust(x,y,d){                      // 尾氣：卡車/重車（vt===2）尾部緩緩上飄擴散的灰色小煙
   const back=[[0,1],[-1,0],[0,-1],[1,0]][d]||[0,0]; // 車頭方向 d 之反向＝尾部
