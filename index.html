@@ -3997,6 +3997,7 @@ function newWorld(seedOverride){
   }
   money=3000;day=1;msIdx=0;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T134：成就快照成對重置（鐵律7）
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
+  fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，開新圖歸零（鐵律7）
   roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
   commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，開新圖成對歸零（鐵律7）
   RDEP.fill(0);supplies=0; // T140：資源耗損場與供應品存量成對歸零（RESOURCE 本身已由上方 genWorld→genResource 依新種子重建，鐵律7）
@@ -4733,6 +4734,7 @@ function doPlace(toolId,x,y,silent){
   if(toolId==='plant'||toolId==='solar'||toolId==='wind'||roadToolToRc(toolId)||toolId==='doze')computePower();
   if(toolId==='water'||toolId==='wpipe'||toolId==='doze')computeWater();
   groundDirty=true; // T96：doPlace 是建造/拆除唯一資料變更點，統一於此標記地面層快取失效
+  if(toolId==='doze')spawnDebris(x,y);else spawnDust(x,y); // T159：拆除碎屑／建造塵土，doPlace 觸發一次性運行時粒子（不影響存檔與模擬）
   return true;
 }
 
@@ -5759,6 +5761,7 @@ function tick(){
     const bonus=MILES[msIdx][1];money+=bonus;
     toast(`🎉 人口突破 ${MILES[msIdx][0]}！獎勵 $${bonus}`,'gold');
     sFanfare();msIdx++;
+    spawnConfetti(); // T159：里程碑達成彩帶，畫面頂部灑落
   }
   // 成就（T134：擴充讀取指標——svcTypes/towers 為衍生計數，直接由本函式已算出的既有變數組合，不消耗 R()、不改模擬）
   const svcTypes=[fireStations,policeStations,hospitals,schools,waterTowers,clinics,libraries,posts,cemeteries,stadiums,dumps,am,rc,fs2,pr,un].filter(n=>n>0).length;
@@ -5800,6 +5803,7 @@ function tick(){
       toast(`⭐ ${townName}升為 ${cityStar} 星城市！獎勵 $${bonus}`,'gold');
       sFanfare();
       bestStar=cityStar;
+      spawnConfetti(); // T159：升星彩帶，畫面頂部灑落
     }
   }
   // T133：城市等級階梯——累積城市點數每日重算，門檻達標即晉升（只升不降，仿 msIdx/bestStar 慣例）；
@@ -5881,6 +5885,7 @@ function updCars(dt){
   for(let i=cars.length-1;i>=0;i--){
     const c=cars[i];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).road){cars.splice(i,1);continue;}
+    if(c.vt===2&&Math.random()<dt*1.8)spawnExhaust(c.x,c.y,c.d); // T159：卡車/重車尾氣，稀疏機率避免過量（純視覺，不影響車速/模擬）
     const tcar=T(idx(c.x,c.y));let speed=tcar.road?ROAD_SPEED[(tcar.rc||2)-1]:1.0;
     // T74 擁堵：鄰近車多則降速
     let nearC=0;for(const o of cars)if(o!==c&&Math.abs(o.x-c.x)+Math.abs(o.y-c.y)<=1)nearC++;
@@ -5923,19 +5928,24 @@ function updSmoke(dt){
   const spawn=smokeAcc>.45;
   if(spawn)smokeAcc=0;
   const smokeCap=Math.floor(130*(quality===0?.5:quality===2?1.4:1)); // T97：煙粒子上限依效能檔縮放
-  if(spawn&&smokes.length<smokeCap){
+  if(spawn){
+    const sea=season(); // T159：秋季落葉判定用（純讀取季節，不消耗任何亂數）
     for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-      const t=T(idx(x,y)),b=t.bld;
+      const t=T(idx(x,y));
+      if(sea===2&&t.tree&&Math.random()<.012)spawnLeaf(x,y); // T159：秋季樹格稀疏飄落，獨立於下方煙粒判定與上限
+      const b=t.bld;
       if(!b)continue;
-      let offs=null,dark=false;
-      if(b.k===3&&b.lv>=2&&b.pw)offs=SPR.bld[b.k+'_'+b.lv+'_'+b.v].smoke;
-      if(b.k===5){offs=SPR.plant.smoke;dark=true;}
-      if(b.k===1&&b.riot){offs=[{dx:0,dy:-42}];dark=true;} // T118：暴亂住宅複用既有煙粒繪製火把/騷亂煙霧（不新建 sprite，屋頂上方固定一點冒煙）
+      if(b.k<=3&&b.fire&&Math.random()<.6)spawnEmber(x,y);  // T159：火花餘燼——燃燒中建築每次抽樣噴橘紅火花
+      if(smokes.length>=smokeCap)continue;
+      let offs=null,col=null,big=false;
+      if(b.k===3&&b.lv>=2&&b.pw){offs=SPR.bld[b.k+'_'+b.lv+'_'+b.v].smoke;col=b.lv>=3?'#5b5551':'#c7ccd1';} // T159：工業煙羽依等級深淺分層（煙羽多樣化）
+      if(b.k===5){offs=SPR.plant.smoke;col='#e7edf2';big=true;} // T159：電廠蒸汽改為偏白且膨脹較大，區別一般工業煙
+      if(b.k===1&&b.riot){offs=[{dx:0,dy:-42}];col='#3a3530';} // T118：暴亂住宅複用既有煙粒繪製火把/騷亂煙霧（不新建 sprite，屋頂上方固定一點冒煙）
       if(!offs||!offs.length)continue;
       if(Math.random()<.5)continue;
       const o=offs[ri(offs.length)];
       const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;
-      smokes.push({wx,wy,age:0,life:(2.2+Math.random())*(weather?.6:1),dark,dep:x+y});
+      smokes.push({wx,wy,age:0,life:(2.2+Math.random())*(weather?.6:1),col,big,dep:x+y});
     }
   }
   for(let i=smokes.length-1;i>=0;i--){
@@ -6139,6 +6149,87 @@ function drawRain(z){
   for(const p of rain){                       // 2 段偏轉 fillRect＝斜向雨絲（配合 vx<0,vy>0）
     ctx.fillRect(p.x,p.y,w,L);
     ctx.fillRect(p.x-w,p.y+L,w,L);
+  }
+}
+/* ---------- T159 粒子特效豐富化：塵土/碎屑/彩帶/火花餘燼/秋葉/尾氣（運行時狀態，不入存檔，newWorld/load 清空，鐵律7）
+   統一世界空間小粒子池 fxParts（建造塵土/拆除碎屑/火花餘燼/秋季落葉/車輛尾氣，深度排序併入 objs 隨物件層繪製）；
+   彩帶 confetti 為獨立畫面空間陣列（頂部灑落，不受相機縮放/平移影響，比照既有 rain 螢幕空間手法）。
+   全部取樣一律用 Math.random()（與模擬用全域種子化 R()/ri() 完全獨立的另一亂數源），不觸碰、不位移任何既有
+   R()/ri() 消耗序列（存讀檔重播、經濟/生長模擬、buildSprites 生成序列皆不受影響）。---------- */
+const fxParts=[];
+function fxCap(){return Math.floor(90*(quality===0?.5:quality===2?1.4:1));} // T97：沿用既有 smokeCap/雨雪 cap 同款效能檔縮放係數
+function spawnFxAt(o){if(fxParts.length<fxCap())fxParts.push(o);}
+function spawnDust(x,y){                          // 建造塵土：doPlace 觸發一次性，落點灑一圈土黃塵點快速擴散上浮消散
+  const wx=(x-y)*32, wy=(x+y)*16+16, dep=x+y+.015;
+  const n=4+Math.floor(Math.random()*3);
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.283,sp=8+Math.random()*14;
+    spawnFxAt({ty:'dust',wx,wy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*.4-6,age:0,life:.45+Math.random()*.25,dep});
+  }
+}
+function spawnDebris(x,y){                        // 拆除碎屑：doze 觸發一次性，深灰碎塊噴濺後重力落地消失
+  const wx=(x-y)*32, wy=(x+y)*16+12, dep=x+y+.015;
+  const n=5+Math.floor(Math.random()*4);
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.283,sp=14+Math.random()*20;
+    spawnFxAt({ty:'debris',wx,wy,vx:Math.cos(a)*sp,vy:-Math.abs(Math.sin(a))*sp*.8-10,age:0,life:.5+Math.random()*.35,dep});
+  }
+}
+function spawnEmber(x,y){                         // 火花餘燼：燃燒中建築（fire 格）每次抽樣噴 1-2 點橘紅火花上飄
+  const wx=(x-y)*32, wy=(x+y)*16+8, dep=x+y+.018;
+  const n=1+Math.floor(Math.random()*2);
+  for(let i=0;i<n;i++){
+    spawnFxAt({ty:'ember',wx:wx+(Math.random()*16-8),wy,vx:Math.random()*10-5,vy:-14-Math.random()*10,age:0,life:.5+Math.random()*.4,dep});
+  }
+}
+function spawnLeaf(x,y){                          // 落葉：秋季（season()===2）樹格稀疏飄落，左右擺動緩緩落下後消失
+  const wx=(x-y)*32, wy=(x+y)*16-6, dep=x+y+.012;
+  const LC=['#c96f2e','#d9a441','#a8471f'];
+  spawnFxAt({ty:'leaf',wx,wy,vx:0,vy:9+Math.random()*6,ph:Math.random()*6.283,lc:LC[Math.floor(Math.random()*LC.length)],age:0,life:2+Math.random(),dep});
+}
+function spawnExhaust(x,y,d){                      // 尾氣：卡車/重車（vt===2）尾部緩緩上飄擴散的灰色小煙
+  const back=[[0,1],[-1,0],[0,-1],[1,0]][d]||[0,0]; // 車頭方向 d 之反向＝尾部
+  const wx=(x-y)*32+back[0]*14, wy=(x+y)*16+16+back[1]*14, dep=x+y+.019;
+  spawnFxAt({ty:'exhaust',wx,wy,vx:back[0]*4+(Math.random()*4-2),vy:-4-Math.random()*4,age:0,life:.6+Math.random()*.3,dep});
+}
+function updFxParts(dt){
+  for(let i=fxParts.length-1;i>=0;i--){
+    const p=fxParts[i];
+    p.age+=dt;
+    p.wx+=p.vx*dt;p.wy+=p.vy*dt;
+    if(p.ty==='debris')p.vy+=dt*90;                 // 碎屑：重力下墜
+    else if(p.ty==='dust')p.vy-=dt*4;               // 塵土：緩慢上浮擴散
+    else if(p.ty==='ember')p.vy-=dt*14;              // 火花：快速上飄
+    else if(p.ty==='leaf')p.vx=Math.sin((p.age+p.ph)*2.4)*10; // 落葉：左右擺動飄落（垂直沿用初始 vy）
+    else if(p.ty==='exhaust')p.vy-=dt*3;             // 尾氣：緩緩上飄擴散
+    if(p.age>p.life)fxParts.splice(i,1);
+  }
+}
+const confetti=[];                                   // 彩帶：畫面空間（不隨相機縮放/平移），里程碑/升星觸發
+function confettiCap(){return Math.floor(160*(quality===0?.4:quality===2?1.3:1));} // T97：低效能檔大幅減量
+function spawnConfetti(){                            // 達成彩帶：里程碑/升星，畫面頂部灑落
+  const COLS=['#ff6b6b','#ffd166','#4ecdc4','#7c5cff','#5fd068','#ff9f43'];
+  const n=Math.min(46,Math.max(0,confettiCap()-confetti.length));
+  for(let i=0;i<n;i++){
+    confetti.push({sx:Math.random()*W,sy:-10-Math.random()*80,vx:(Math.random()*2-1)*30,vy:20+Math.random()*30,rot:Math.random()*6.283,rv:(Math.random()*2-1)*6,col:COLS[Math.floor(Math.random()*COLS.length)],age:0,life:2.2+Math.random()*1.2});
+  }
+}
+function updConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){
+    const p=confetti[i];
+    p.age+=dt;p.vy+=dt*50;p.sx+=p.vx*dt;p.sy+=p.vy*dt;p.rot+=p.rv*dt;
+    if(p.age>p.life||p.sy>H+20)confetti.splice(i,1);
+  }
+}
+function drawConfetti(){
+  for(const p of confetti){
+    ctx.save();
+    ctx.globalAlpha=Math.min(1,(p.life-p.age)*2);
+    ctx.translate(p.sx,p.sy);
+    ctx.rotate(p.rot);
+    ctx.fillStyle=p.col;
+    ctx.fillRect(-3,-1.5,6,3);
+    ctx.restore();
   }
 }
 
@@ -6796,6 +6887,7 @@ function draw(dt){
     objs.push({dep:fx+fy+.015,torn:true,wx,wy});
   }
   if(!lodFar)for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s}); // T107：z<1 不畫煙粒個體（updSmoke 模擬照跑）
+  if(!lodFar)for(const p of fxParts)objs.push({dep:p.dep,fx:p}); // T159：z<1 不畫塵土/碎屑/火花/落葉/尾氣個體（updFxParts 模擬照跑），比照煙粒同款 LOD 門檻
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
   nightSprites.push(...rdecGlow);
@@ -6908,10 +7000,52 @@ function draw(dt){
     if(o.smoke){
       const s=o.smoke;
       const k=s.age/s.life;
-      const sz=Math.max(z,Math.round((2+k*4.5)*z));
+      const sz=Math.max(z,Math.round((2+k*(s.big?7:4.5))*z)); // T159：電廠蒸汽（big）膨脹較快較大，其餘沿用既有倍率
       ctx.globalAlpha=(1-k)*.5;
-      ctx.fillStyle=s.dark?'#9aa0a8':'#d7dce2';
+      ctx.fillStyle=s.col||'#d7dce2';
       ctx.fillRect(ox+s.wx*z,oy+s.wy*z,sz,sz);
+      ctx.globalAlpha=1;
+      continue;
+    }
+    if(o.fx){ // T159：塵土/碎屑/火花餘燼/落葉/尾氣，統一世界空間粒子渲染（深度已隨 objs 排序）
+      const p=o.fx,k=Math.min(1,p.age/p.life);
+      const sx2=ox+p.wx*z, sy2=oy+p.wy*z;
+      if(p.ty==='dust'){
+        ctx.globalAlpha=(1-k)*.55;
+        ctx.fillStyle='#c9a869';
+        const sz=Math.max(z,Math.round((2+k*3)*z));
+        ctx.fillRect(sx2,sy2,sz,sz);
+      }else if(p.ty==='debris'){
+        ctx.globalAlpha=1-k*.3;
+        ctx.fillStyle='#4a4640';
+        const sz=Math.max(1,Math.round(2*z));
+        ctx.fillRect(sx2,sy2,sz,sz);
+      }else if(p.ty==='ember'){
+        ctx.globalAlpha=1-k;
+        ctx.fillStyle=k<.6?'#ffb454':'#ff5a3c';
+        const sz=Math.max(1,Math.round(2*z));
+        ctx.fillRect(sx2,sy2,sz,sz);
+        if(fxOn&&nightDepth>0){ // T149：火花夜間額外疊發光暈（沿用既有 'lighter' 徑向漸層手法）
+          ctx.save();
+          ctx.globalCompositeOperation='lighter';
+          const gr=ctx.createRadialGradient(sx2,sy2,0,sx2,sy2,10*z);
+          gr.addColorStop(0,`rgba(255,150,60,${(.5*(1-k)*nightDepth).toFixed(3)})`);
+          gr.addColorStop(1,'rgba(255,150,60,0)');
+          ctx.fillStyle=gr;
+          ctx.beginPath();ctx.arc(sx2,sy2,10*z,0,6.284);ctx.fill();
+          ctx.restore();
+        }
+      }else if(p.ty==='leaf'){
+        ctx.globalAlpha=1-k*.4;
+        ctx.fillStyle=p.lc;
+        const sz=Math.max(1,Math.round(2*z));
+        ctx.fillRect(sx2,sy2,sz,sz);
+      }else if(p.ty==='exhaust'){
+        ctx.globalAlpha=(1-k)*.4;
+        ctx.fillStyle='#9a9a9a';
+        const sz=Math.max(z,Math.round((1.5+k*3)*z));
+        ctx.fillRect(sx2,sy2,sz,sz);
+      }
       ctx.globalAlpha=1;
       continue;
     }
@@ -7129,6 +7263,7 @@ function draw(dt){
   }
   // ---- 天氣：雨絲＋閃電（螢幕空間，夜燈之後、游標之前；T17）----
   if(weather&&!lodFar)drawRain(z); // T107：z<1 不畫雨雪個體，全屏色調已由前段天氣色調段落涵蓋
+  if(confetti.length&&!lodMini)drawConfetti(); // T159：達成彩帶，畫面空間疊加，z<0.5（lodMini）時跳過（沿用 T107 LOD 慣例）
   if(flashT>0){
     const flashA=Math.min(.85,flashT*2);
     ctx.fillStyle=`rgba(255,255,255,${flashA.toFixed(3)})`;
@@ -8870,6 +9005,7 @@ function load(slot){
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
     cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
+    fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，讀檔歸零（鐵律7）
     roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
     commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，讀檔成對歸零（鐵律7）
     recomputeLandDynamic(); // T130：load() 內 rebuildCov 先於本行執行，roadLoad 歸零後補算一次，確保 LAND 壅堵項與歸零後狀態同步（鐵律7）
@@ -8944,6 +9080,7 @@ function advance(dtReal){
   updTrains(dtA);updTrams(dtA);updShips(dtA);updAmbulances(dtA);updFireTrucks(dtA);updGarbageTrucks(dtA); // T119：消防車/垃圾車與救護車同為每幀出勤更新
   updSmoke(dtA);
   updRain(dtA);
+  updFxParts(dtA);updConfetti(dtA); // T159：粒子特效（塵土/碎屑/火花餘燼/落葉/尾氣/彩帶），與煙/雨同為每幀動畫更新
   updBuses(dtA);   // 公車巡迴（T26）：與 cars/smoke/rain 同為每幀動畫更新
   updRouteBuses(dtA); // T120：路線公車，與一般公車同幀更新
 }
@@ -9261,6 +9398,22 @@ window.GV={
     const r={on:ambientBus.on};
     for(const k of AMBIENT_LAYERS)r[k]=ambientBus.layers[k]?+(ambientBus.layers[k].gain.gain.value/(AMBIENT_VOL[k]||1)).toFixed(4):0;
     return r;
+  },
+  fxCount:()=>fxParts.length,                                    // T159 測試用：目前世界空間粒子總數（塵土/碎屑/火花/落葉/尾氣）
+  fxCountByType:()=>{const m={};for(const p of fxParts)m[p.ty]=(m[p.ty]||0)+1;return m;}, // T159 測試用：依類型分組計數
+  fxCap:()=>fxCap(),                                              // T159 測試用：目前效能檔下的世界空間粒子上限
+  confettiCount:()=>confetti.length,                              // T159 測試用：目前彩帶粒子數
+  confettiCap:()=>confettiCap(),                                  // T159 測試用：目前效能檔下的彩帶上限
+  fxTest:(ty,x,y,d)=>{ // T159 測試用：直接觸發指定粒子類型（繞過真實觸發條件如 doPlace/fire/milestone，供驗收快速抽樣個別效果，不改動任何模擬狀態）
+    if(!inMap(x,y))return false;
+    if(ty==='dust')spawnDust(x,y);
+    else if(ty==='debris')spawnDebris(x,y);
+    else if(ty==='ember')spawnEmber(x,y);
+    else if(ty==='leaf')spawnLeaf(x,y);
+    else if(ty==='exhaust')spawnExhaust(x,y,d|0);
+    else if(ty==='confetti')spawnConfetti();
+    else return false;
+    return true;
   }
 };
 
