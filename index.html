@@ -5866,8 +5866,9 @@ function tick(){
   // 升級
   for(let i=0;i<N*N;i++){
     const b=tiles[i].bld;
-    if(!b||b.k>3)continue;
-    b.age++;
+    if(!b||b.ref)continue;                  // T168：ref 格（多格建築非 root）無 age 欄位，跳過避免 NaN
+    b.age++;                                 // T168：所有建築（含服務/大型，原僅 k<=3）皆遞增 age——使施工鷹架能正常拆除；age++ 不消耗 R()，下方升級邏輯仍以 b.k>3 continue 僅作用 RCI，故亂數流與升級行為完全不變
+    if(b.k>3)continue;
     const x=i%N,y=(i/N)|0;
     const schoolBoost=(b.k===1&&COV.school[i]>0)?1.6:1;   // T61：學校半徑8覆蓋（原 countNear k===7）
     const libraryBoost=(b.k===1&&COV.library[i]>0)?1.25:1; // T61：圖書館半徑6覆蓋（原 countNear k===14）
@@ -7666,7 +7667,17 @@ function draw(dt){
     if(occA<1)ctx.globalAlpha=occA;
     ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
     if(occA<1)ctx.globalAlpha=1;
-    if(s.night&&(bd.k===5||bd.pw))nightSprites.push({img:s.night,x:bx,y:by,w:s.w*z,h:s.h*z});
+    if(!window.__noScaffold&&bd.age<5&&bd.k!==4&&!lodFar){ // T168 施工鷹架（Opus 親手）——建築 age<5 天（新建/剛升級，b.age 每 tick++／升級時歸零）覆蓋鷹架，alpha 隨 age 遞減＝施工逐漸完成拆架；age>=5／公園(k4)／遠景(lodFar) 不繪＝該狀態零改動；純讀 age 決定性不消耗 R()
+      const sca=(5-bd.age)/5, bw=s.w*z, bh=s.h*z, pole=Math.max(1,1.2*z);
+      ctx.save();
+      ctx.globalAlpha=sca*.68;
+      ctx.fillStyle='#a8895c'; // 立桿（左中右）
+      for(const px of[bx+bw*.17,bx+bw*.5,bx+bw*.83])ctx.fillRect(px-pole/2,by+bh*.26,pole,bh*.7);
+      ctx.fillStyle='#caa96b'; // 橫板（3 層）
+      for(const ph of[.42,.62,.82])ctx.fillRect(bx+bw*.15,by+bh*ph,bw*.7,Math.max(1,1.4*z));
+      ctx.globalAlpha=sca*.15;ctx.fillStyle='#6a7a5a';ctx.fillRect(bx+bw*.14,by+bh*.3,bw*.72,bh*.54); // 安全網
+      ctx.restore();
+    }
     /* ===== T152 動畫細節層：建築掛點動畫（旗幟/噴泉水花/雷達/風車葉片/屋頂警示燈），畫在建築本體 drawImage
        之後（疊在建築剪影之上）；幀選取一律 Math.floor(visT*k)%n 決定性相位，lodFar（z<1）強制 frame 0＝
        靜態首幀，animOn 已含 z<0.5／quality===0／__noAnim 短路（此時整段不進入任一分支，逐像素與改動前一致）===== */
