@@ -3687,6 +3687,12 @@ function buildSprites(){
       g.fillStyle='#8a6440';g.fillRect(3,4,15,1);g.fillRect(3,5,1,2);g.fillRect(8,5,1,2);g.fillRect(13,5,1,2);
       g.fillStyle='#4a3220';g.fillRect(3,7,15,1);
       g.fillStyle='#c9a878';g.fillRect(2,4,2,4);g.fillRect(17,4,2,4);});
+    SPR.natMushroom=mkNat(12,9,g=>{ // T177 蘑菇叢（Opus 親手）：紅傘白點＋褐傘小菇，純 fillRect 無亂數
+      g.fillStyle='#b8402f';g.fillRect(3,3,4,2);g.fillRect(4,2,2,1);          // 紅傘
+      g.fillStyle='#efe6d8';g.fillRect(4,5,2,3);                              // 白柄
+      g.fillStyle='#f2ecdf';g.fillRect(3,3,1,1);g.fillRect(6,3,1,1);         // 傘上白點
+      g.fillStyle='#9a7048';g.fillRect(8,5,2,1);g.fillRect(8,6,2,2);         // 褐傘小菇
+      g.fillStyle='#d8cbb4';g.fillRect(8,7,2,1);});
     // ---- 岸邊漸變帶：草/沙→水過渡暖沙色漸層，沿用既有 t.wm 16 mask（仿 SPR.foam 手法）----
     SPR.shoreBlend=[];
     for(let m=0;m<16;m++){const[c,g]=cv(64,32);
@@ -7021,7 +7027,7 @@ function draw(dt){
             const yy=4+Math.floor(streetHash(x,y,814)*24), hr=Math.max(2,(yy<16?(yy+1):(32-yy))*2-4);
             const xx=32-hr+Math.floor(streetHash(x,y,815)*hr*2);
             const kindP=streetHash(x,y,813);
-            const d= kindP<.42?SPR.natFlower[win?3:sea] : kindP<.72?SPR.natWeed[win?3:sea] : kindP<.88?SPR.natRock : SPR.natLog;
+            const d= kindP<.42?SPR.natFlower[win?3:sea] : kindP<.72?SPR.natWeed[win?3:sea] : kindP<.88?SPR.natRock : kindP<.94?SPR.natLog : (SPR.natMushroom||SPR.natLog); // T177：拆 log 尾段 .94-1.0 給蘑菇叢（~6%），kindP 決定性不消耗 R()；SPR.natMushroom 缺失防禦回退 natLog
             gc.drawImage(d.img,sx+(xx-d.w/2)*z,sy+(yy-d.h)*z,d.w*z,d.h*z);
           }
         }

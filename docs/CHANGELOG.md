@@ -2,6 +2,7 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-21 | T177 自然散布·蘑菇叢（Opus 親手，v4.7） | 擴 T153 自然散布物（野花/雜草/小石/倒木）新增 SPR.natMushroom（紅傘白點＋褐傘小菇，純 fillRect 無亂數）；渲染散布池拆 log 尾段 kindP .94-1.0 給蘑菇（~6%，kindP=streetHash 決定性不消耗 R()，缺失防禦回退 natLog）；純繪製層併入 groundCache、不佔 tile 欄位、不影響 canPlace/存檔。驗收：380/380＋瀏覽器（slot3、未觸碰s1/s2、夏季草地 z=2.8）——掃多相機位找到 58 蘑菇傘紅褐特徵像素＋__noNature 開關 30456 像素（自然層含蘑菇）＋零 console。 | 驗收:通過
 2026-07-21 | T176 第9種地圖裝飾·小池塘（Opus 親手，v4.7） | SPR.deco 8→9（達存檔單字元格式上限）：新增 v9 小池塘（睡蓮葉＋蓮花＋波光＋岸石，純 fillRect/ellipse 無亂數＝接在 T105 v8 後不位移生成序）；worldgen 散布值域 4-8→4-9（decoR 呼叫數不變不位移串流、decoR 為裝飾專用流不影響模擬）；draw() 沿用 SPR.deco[t.deco-1] 通用渲染。前一嘗試 T176 夜間水面倒影因 hits=1 卻 0 可見像素、測試框架難乾淨驗證而 revert，改此能乾淨落地的具體內容。驗收：380/380＋瀏覽器（slot3、未觸碰s1/s2）——seed4242 deco 分佈含 9:4（4池塘）、seed777 有7個、存讀檔 deco=9 保持、渲染零 console 錯誤。 | 驗收:通過
 2026-07-21 | T175 街道蒸汽孔（Opus 親手，v4.7） | 複用 T159 fxParts 粒子系統新增 steam 型別：稀疏道路格（streetHash(x,y,930)<.045 決定性選址人孔蓋 ~4.5%）於 updSmoke 偶爾冒白蒸汽（Math.random<.13、與模擬 R() 獨立），緩緩上飄擴散＋輕擺、隨壽命淡出變大。__noSteam 開關。都市地面細節。驗收：380/380＋瀏覽器（slot3、未觸碰s1/s2、160路格）——advanceN 後 steam 3 顆／關掉衰減到 0／重開 7 顆／不入存檔（saveHasSteam=false）＋零 console。診斷記錄：初版 streetHash<.02×Math.random<.05×spawn節流＝機率近零 0 顆，非 streetHash 作用域問題（無 console 錯誤排除）而是機率過保守，調高閾值後正常。 | 驗收:通過
 2026-07-21 | T174 冬季極光（Opus 親手，v4.7） | draw() 大氣層（彩虹之後）新增：僅冬季(win)深夜(b<.45)非遠景時，畫面上方 3 條綠/青/紫波動極光帶（螢幕空間、螢幕疊加、垂直漸層淡出、雙 Math.sin 波形），visT 決定性漂移；非冬/日間/黃昏/遠景 不繪。__noAurora 開關。獎勵冬夜遊玩、與星星/流星視覺區隔。驗收：380/380＋瀏覽器（slot3、未觸碰s1/s2）——冬夜 100909 像素（三帶）＋漂移＋夏夜 0（非冬gate）＋冬日 0（日gate）＋零 console。determ=8/3.6M 為 forceDraw 微推 visT 致波緣位移（純 Math.sin(visT) 無亂數，非不確定性）。 | 驗收:通過
