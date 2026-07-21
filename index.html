@@ -7650,6 +7650,16 @@ function draw(dt){
         }
         ctx.restore();ctx.globalAlpha=1;
       }
+      if(!window.__noBfly&&b>.62&&!lodFar&&(sea===0||sea===1)&&!win&&streetHash(o.x,o.y,758)<.55){ // T188 蝴蝶（Opus 親手）——螢火蟲的日間暖季對偶：春夏(sea0/1)日間(b>.62)部分樹(streetHash 選 55%)旁 1 隻彩翅蝴蝶翩飛（多頻 visT 疊加＝erratic 飛行路徑＋拍翅開合），visT＋座標雜湊決定性（不消耗 R()、同 visT 重繪恆等）；夜間(b<=.62)／秋冬／遠景(lodFar)／未選中樹 不繪＝該狀態零改動
+        const BC=['#f4d03f','#ff9f43','#ffd0e0','#ffffff','#a0d8ef'], ph=streetHash(o.x,o.y,760), col=BC[Math.floor(ph*997)%BC.length];
+        const bx=o.sx+(10+ph*40)*z+Math.sin(visT*1.3+ph*10)*10*z+Math.sin(visT*2.7+ph*4)*4*z;
+        const by=o.sy+(2+((ph*77)%20))*z+Math.cos(visT*1.7+ph*8)*8*z+Math.sin(visT*3.1+ph*6)*3*z;
+        const flap=Math.abs(Math.sin(visT*7+ph*6.283)), ww=(.7+flap*1.15)*z;
+        ctx.fillStyle=col;
+        ctx.beginPath();ctx.ellipse(bx-ww,by,ww,1.4*z,0,0,6.283);ctx.fill();
+        ctx.beginPath();ctx.ellipse(bx+ww,by,ww,1.4*z,0,0,6.283);ctx.fill();
+        ctx.fillStyle='#3a2a22';ctx.fillRect(bx-.5*z,by-z,Math.max(1,z),2*z);
+      }
       continue;
     }
     if(!t.bld&&t.deco){
