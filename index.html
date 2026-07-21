@@ -6310,6 +6310,7 @@ function updSmoke(dt){
       const t=T(idx(x,y));
       if(sea===2&&t.tree&&Math.random()<.012)spawnLeaf(x,y); // T159：秋季樹格稀疏飄落，獨立於下方煙粒判定與上限
       else if(sea===0&&t.tree&&Math.random()<.010)spawnPetal(x,y); // T171：春季樹格飄落粉色櫻花瓣（與秋季落葉互斥，季節唯一值）
+      if(!window.__noSteam&&t.road&&!t.bridge&&streetHash(x,y,930)<.045&&Math.random()<.13)spawnSteam(x,y); // T175：街道蒸汽孔——稀疏道路格（人孔蓋，streetHash 決定性選址 ~4.5%）偶爾冒白蒸汽
       const b=t.bld;
       if(!b)continue;
       if(b.k<=3&&b.fire&&Math.random()<.6)spawnEmber(x,y);  // T159：火花餘燼——燃燒中建築每次抽樣噴橘紅火花
@@ -6569,6 +6570,10 @@ function spawnPetal(x,y){                         // T171 櫻花瓣（Opus 親�
   const PC=['#ffd3e2','#ffc0d4','#ffe6f0'];
   spawnFxAt({ty:'leaf',wx,wy,vx:0,vy:5+Math.random()*4,ph:Math.random()*6.283,lc:PC[Math.floor(Math.random()*PC.length)],age:0,life:3+Math.random()*1.6,dep});
 }
+function spawnSteam(x,y){                         // T175 街道蒸汽（Opus 親手）：人孔蓋白色蒸汽緩緩上飄擴散淡出；世界空間，用 Math.random 與模擬 R() 獨立（同 T159 粒子慣例）
+  const wx=(x-y)*32, wy=(x+y)*16, dep=x+y+.008;
+  spawnFxAt({ty:'steam',wx,wy,vx:Math.random()*2-1,vy:-7-Math.random()*4,age:0,life:1.3+Math.random()*.6,dep});
+}
 function spawnExhaust(x,y,d){                      // 尾氣：卡車/重車（vt===2）尾部緩緩上飄擴散的灰色小煙
   const back=[[0,1],[-1,0],[0,-1],[1,0]][d]||[0,0]; // 車頭方向 d 之反向＝尾部
   const wx=(x-y)*32+back[0]*14, wy=(x+y)*16+16+back[1]*14, dep=x+y+.019;
@@ -6584,6 +6589,7 @@ function updFxParts(dt){
     else if(p.ty==='ember')p.vy-=dt*14;              // 火花：快速上飄
     else if(p.ty==='leaf')p.vx=Math.sin((p.age+p.ph)*2.4)*10; // 落葉：左右擺動飄落（垂直沿用初始 vy）
     else if(p.ty==='exhaust')p.vy-=dt*3;             // 尾氣：緩緩上飄擴散
+    else if(p.ty==='steam'){p.vy-=dt*2.5;p.vx+=Math.sin((p.age+p.wx)*1.6)*dt*3;} // T175：蒸汽緩緩上飄＋輕微飄擺
     if(p.age>p.life)fxParts.splice(i,1);
   }
 }
@@ -7518,6 +7524,11 @@ function draw(dt){
         ctx.globalAlpha=(1-k)*.4;
         ctx.fillStyle='#9a9a9a';
         const sz=Math.max(z,Math.round((1.5+k*3)*z));
+        ctx.fillRect(sx2,sy2,sz,sz);
+      }else if(p.ty==='steam'){ // T175 街道蒸汽（Opus 親手）：白色蒸汽緩緩上飄擴散、隨壽命淡出＋變大
+        ctx.globalAlpha=(1-k)*.34;
+        ctx.fillStyle='#e6ebf0';
+        const sz=Math.max(z,Math.round((2+k*6)*z));
         ctx.fillRect(sx2,sy2,sz,sz);
       }
       ctx.globalAlpha=1;
