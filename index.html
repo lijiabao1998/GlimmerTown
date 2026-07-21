@@ -3759,6 +3759,52 @@ function buildSprites(){
       SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:72,h:112,smoke:[]};
     }
   }
+  /* ===== T160 建築地面銜接與廣場：SPR.plaza 家族，置於 buildSprites 絕對尾端（接在 T156 手繪 RCI 招牌建築
+     之後，遵守 FIX-B 亂數流尾端約定；僅本函式局部 rand，其後已無任何生成，零位移疑慮）。內容：①佔格鋪磚
+     （pub 公共石板／rci RCI 水泥邊，各 2 色階變體，draw() 依 streetHash 決定性挑選）；②入口通道踏步
+     path[0..3]（依 §4 mask 位向 bit1北/bit2東/bit4南/bit8西順序生成，diaEdge 沿該側加亮踏步紋＋兩點踏面，
+     draw() 依 footprint 實際 road 鄰接方向決定挑用哪一張，純讀 tile 資料決定性，不消耗 R()/ri()）；③圍欄
+     （fence，RCI 用）／綠籬（hedge，公共用）邊界小件，沿用 SPR.roadDeco 同款 64×40／ax32 ay36 錨點慣例。
+     window.__noPlaza=true 時本區塊整段跳過（＋draw() 對應繪製亦短路，見該處）＝零位移（供除錯/回歸比對，
+     證明既有 SPR 鍵 checksum 不受本卡影響）。全部像素原創構圖，未參考、描摹或轉換 TheoTown 或任何既有
+     遊戲之素材，畫風（64×32、2:1 斜率、同調色邏輯）與既有等距像素風一致。===== */
+  if(!window.__noPlaza){
+    SPR.plaza={};
+    // ---- 佔格鋪磚：公共石板（暖灰＋接縫斑駁）／RCI 水泥邊（冷灰＋粗紋），各 2 色階供 streetHash 挑選避免死板 ----
+    const mkPlaza=(col0,col1,edgeCol)=>{
+      const[c,g]=cv(64,32);
+      dia(g,32,0,32,col0);
+      speck(g,32,0,32,[col1,shade(col0,-10)],16,rand);
+      diaEdge(g,15,edgeCol,32,0,32);
+      return c;
+    };
+    SPR.plaza.pub=[mkPlaza('#c7c0ac','#b3ab92','#978f76'),mkPlaza('#cec7b2','#b9b198','#a29a80')];
+    SPR.plaza.rci=[mkPlaza('#a8aab0','#95979d','#7d7f85'),mkPlaza('#aeb0a8','#9a9c94','#83857c')];
+    // ---- 入口通道踏步：4 方向各一張（順序＝bit1北/bit2東/bit4南/bit8西，與 DIRV 索引 0..3 對齊），
+    //      diaEdge 沿該側加亮兩道＋踏面亮點（位置比照既有 T146 ZEBRA_PT 同款各邊中點座標） ----
+    SPR.plaza.path=[];
+    const PLAZA_STEP={1:[48,8],2:[48,24],4:[16,24],8:[16,8]};
+    for(const bit of[1,2,4,8]){
+      const[c,g]=cv(64,32);
+      diaEdge(g,bit,'#d8cfa8',32,2,28);
+      diaEdge(g,bit,'#c2b686',32,4,24);
+      const[px,py]=PLAZA_STEP[bit];
+      g.fillStyle='#e8dfb8';g.fillRect(px-2,py-1,4,2);
+      SPR.plaza.path.push(c);
+    }
+    // ---- 圍欄（RCI）／綠籬（公共）邊界小件：沿用 SPR.roadDeco 同款 64×40／ax32 ay36 錨點慣例 ----
+    const mkPlazaProp=drawFn=>{const[c,g]=cv(64,40);drawFn(g);return{img:c,ax:32,ay:36,w:64,h:40};};
+    SPR.plaza.fence=mkPlazaProp(g=>{ // 白色矮欄杆：兩柱＋橫桿
+      g.fillStyle='#c8c2b0';g.fillRect(14,28,2,6);g.fillRect(24,28,2,6);
+      g.fillStyle='#e0dbc8';g.fillRect(13,29,12,2);
+      g.fillStyle='#9a9484';g.fillRect(14,28,2,1);g.fillRect(24,28,2,1);
+    });
+    SPR.plaza.hedge=mkPlazaProp(g=>{ // 修剪綠籬：矮叢塊狀
+      g.fillStyle='#4a7a3a';g.fillRect(12,29,16,5);
+      g.fillStyle='#5c9048';g.fillRect(12,29,16,2);
+      g.fillStyle='#3a6030';g.fillRect(12,32,16,2);
+    });
+  }
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -7064,6 +7110,76 @@ function draw(dt){
       continue;
     }
     const bd=t.bld;
+    /* ===== T160 建築地面銜接與廣場：畫在地面層之後、建築 drawImage 之前（本函式在此，尚未進入下方 lodMini
+       早退 continue／let s 選鍵繪製），故任意縮放皆先執行本段。LOD：z<0.5（lodMini）僅畫落地陰影底座、
+       跳過鋪磚/廣場/入口通道/圍欄細節（下方 !lodMini 區塊）；z<1（lodFar）另跳過圍欄/綠籬小件（!lodFar
+       區塊）。地坪材質/圍欄挑選一律 streetHash(x,y,salt) 決定性（不消耗 R()/ri()）；入口通道方向純讀取
+       實際 tile.road 鄰接判定（同樣不消耗 R()/ri()，且比雜湊更決定性——直接反映地圖真實道路連接）。
+       window.__noPlaza=true 或 SPR.plaza 缺失（未生成）時本段整段跳過＝與改動前逐像素一致（供除錯/回歸
+       比對）。不改任何存檔欄位、不新增 groundCache 鍵成分（本段為物件層動態繪製，每幀重算）===== */
+    if(!window.__noPlaza&&SPR.plaza){
+      const pSz=bd.sz>=2?bd.sz:1;
+      const pRci=bd.k===1||bd.k===2||bd.k===3||bd.k===33||bd.k===34; // RCI（含摩天樓）：水泥邊／圍欄；其餘皆視為公共：石板／綠籬
+      const pBig=!pRci&&pSz>=2; // 大型公共建築：footprint＋外擴一圈前庭廣場（僅此類擴環，硬性不變量「廣場外擴≤1圈」）
+      // ---- 落地底座陰影：任意縮放皆畫，貼合 footprint（sz×sz 整體菱形四角換算），柔和暗邊低透明填色 ----
+      const pN=[sxOf(o.x,o.y)+32*z,syOf(o.x,o.y)];
+      const pE=[sxOf(o.x+pSz-1,o.y)+64*z,syOf(o.x+pSz-1,o.y)+16*z];
+      const pS=[sxOf(o.x+pSz-1,o.y+pSz-1)+32*z,syOf(o.x+pSz-1,o.y+pSz-1)+32*z];
+      const pW=[sxOf(o.x,o.y+pSz-1),syOf(o.x,o.y+pSz-1)+16*z];
+      ctx.save();
+      ctx.fillStyle='rgba(20,16,10,.28)';
+      ctx.beginPath();ctx.moveTo(pN[0],pN[1]);ctx.lineTo(pE[0],pE[1]);ctx.lineTo(pS[0],pS[1]);ctx.lineTo(pW[0],pW[1]);ctx.closePath();ctx.fill();
+      ctx.restore();
+      if(!lodMini){
+        // ---- 佔格鋪磚（＋大型公共建築外擴一圈前庭廣場）：外擴環逐格核實不蓋水面/鄰築/路軌，貼合「合理範圍」不變量 ----
+        const pMat=pRci?SPR.plaza.rci:SPR.plaza.pub;
+        const pRing=pBig?1:0;
+        for(let dy=-pRing;dy<pSz+pRing;dy++)for(let dx=-pRing;dx<pSz+pRing;dx++){
+          const tx=o.x+dx,ty=o.y+dy;
+          if(!inMap(tx,ty))continue;
+          const pFoot=dx>=0&&dx<pSz&&dy>=0&&dy<pSz;
+          if(!pFoot){
+            const nt=T(idx(tx,ty));
+            if(nt.t===0||nt.bld||nt.road||nt.rail||nt.tram||nt.dock)continue; // 不蓋水面/鄰築/道路/軌道/碼頭
+          }
+          const ptx=sxOf(tx,ty),pty=syOf(tx,ty);
+          if(!vis(ptx,pty))continue;
+          const pv=Math.floor(streetHash(tx,ty,1601)*pMat.length)%pMat.length;
+          ctx.drawImage(pMat[pv],ptx,pty,64*z,32*z);
+        }
+        // ---- 入口通道踏步：由 footprint 四邊（北/東/南/西，對齊 DIRV 索引與 mask 位向優先序）掃描最近道路，
+        //      命中方向的那一格 footprint 邊界瓷磚疊加踏步紋；未命中（無鄰接道路，極少數情形）不畫，安全跳過 ----
+        for(let pd=0;pd<4;pd++){
+          const ddx=DIRV[pd][0],ddy=DIRV[pd][1];
+          let hit=null;
+          if(ddy===-1){for(let cx=o.x;cx<o.x+pSz&&!hit;cx++){if(inMap(cx,o.y-1)&&T(idx(cx,o.y-1)).road)hit=[cx,o.y];}}
+          else if(ddx===1){for(let cy=o.y;cy<o.y+pSz&&!hit;cy++){if(inMap(o.x+pSz,cy)&&T(idx(o.x+pSz,cy)).road)hit=[o.x+pSz-1,cy];}}
+          else if(ddy===1){for(let cx=o.x;cx<o.x+pSz&&!hit;cx++){if(inMap(cx,o.y+pSz)&&T(idx(cx,o.y+pSz)).road)hit=[cx,o.y+pSz-1];}}
+          else{for(let cy=o.y;cy<o.y+pSz&&!hit;cy++){if(inMap(o.x-1,cy)&&T(idx(o.x-1,cy)).road)hit=[o.x,cy];}}
+          if(hit){
+            const psx=sxOf(hit[0],hit[1]),psy=syOf(hit[0],hit[1]);
+            if(vis(psx,psy))ctx.drawImage(SPR.plaza.path[pd],psx,psy,64*z,32*z);
+            break;
+          }
+        }
+        // ---- 圍欄（RCI）／綠籬（公共）邊界小件：footprint 外擴一圈周界疏落擺放，z<1（lodFar）跳過 ----
+        if(!lodFar){
+          const pFence=pRci?SPR.plaza.fence:SPR.plaza.hedge;
+          for(let dy=-1;dy<pSz+1;dy++)for(let dx=-1;dx<pSz+1;dx++){
+            if(!(dx===-1||dx===pSz||dy===-1||dy===pSz))continue;
+            const tx=o.x+dx,ty=o.y+dy;
+            if(!inMap(tx,ty))continue;
+            const nt=T(idx(tx,ty));
+            if(nt.t===0||nt.bld||nt.road||nt.rail||nt.tram||nt.dock)continue;
+            if(streetHash(tx,ty,1602)<.4){
+              const ptx=sxOf(tx,ty),pty=syOf(tx,ty);
+              if(!vis(ptx,pty))continue;
+              ctx.drawImage(pFence.img,ptx+(32-pFence.ax)*z,pty+(32-pFence.ay)*z,pFence.w*z,pFence.h*z);
+            }
+          }
+        }
+      }
+    }
     if(lodMini){ // T107：z<0.5 建築本體退化 2~4px 色塊＋夜窗簡化單色亮塊，直接複用 drawMini 建築色表（MINI_BLD_PAL）保證視覺語言一致
       const blkSz=(bd.sz>=2||bd.k===9)?4:(2+((bd.lv||1)-1));
       const blkX=o.sx+32*z-blkSz/2, blkY=o.sy+16*z-blkSz/2;
