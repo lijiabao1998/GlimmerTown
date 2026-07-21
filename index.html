@@ -634,6 +634,31 @@ const inMap=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
 function cv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;
   const g=c.getContext('2d');g.imageSmoothingEnabled=false;return[c,g];}
 
+// T183 屋頂積雪雪帽（Opus 親手）：逐列掃出該欄最高不透明像素（屋頂線），自屋頂線往下塗數列白雪（頂濃底淡），雪帽因此貼合建築剪影輪廓而非畫布頂端——修正「建築 sprite 頂部多為透明天空、canvas 頂端加白會落在透明區不可見」之關鍵陷阱。一次性生成快取於 s.snow，純既有像素 canvas 操作（getImageData/putImageData）、不呼叫 rand()/R()/ri() 零亂數依賴，不改 s.img。win 冬季且 snowLvl>0 才被呼叫，故非冬場景永不生成＝零位移。
+function snowCap(s){
+  if(s.snow!==undefined)return s.snow;
+  const w=s.w|0,h=s.h|0;
+  const[mc,mg]=cv(w,h);mg.drawImage(s.img,0,0);
+  const sd=mg.getImageData(0,0,w,h).data;
+  const[sc,sg]=cv(w,h);
+  const out=sg.createImageData(w,h),nd=out.data;
+  const cap=Math.max(3,Math.round(h*.11)); // 雪帽厚度（隨 sprite 高度）
+  for(let x=0;x<w;x++){
+    let top=-1;
+    for(let y=0;y<h;y++){if(sd[(y*w+x)*4+3]>40){top=y;break;}} // 該欄最高不透明像素＝屋頂線
+    if(top<0)continue;
+    for(let dy=0;dy<cap;dy++){
+      const y=top+dy;if(y>=h)break;
+      const idx=(y*w+x)*4;
+      if(sd[idx+3]<40)continue; // 僅落在建築剪影上（跳過內部鏤空/透明）
+      const a=(1-dy/cap)*.9; // 頂濃底淡＝屋頂積雪自然堆疊
+      nd[idx]=245;nd[idx+1]=250;nd[idx+2]=255;nd[idx+3]=Math.round(a*255);
+    }
+  }
+  sg.putImageData(out,0,0);
+  s.snow=sc;return sc;
+}
+
 // 菱形：中心 cx、頂點 y=ty、半寬 hw（偶數），高度=hw，斜率固定 2:1
 function dia(g,cx,ty,hw,col){
   g.fillStyle=col;
@@ -7748,6 +7773,11 @@ function draw(dt){
     if(drawA<1)ctx.globalAlpha=drawA;
     ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
     if(drawA<1)ctx.globalAlpha=1;
+    if(win&&snowLvl>0&&!lodFar&&bd.k!==4&&!window.__noRoofSnow){ // T183 冬季屋頂積雪（Opus 親手）——RCI/服務建築本體無冬季雪化變體（見 T161 註記「本卡未新增建築本體冬季雪化」），入冬且積雪(snowLvl>0，沿用 T154 rainDays/SNOW_ACC_DAYS，與地面積雪同步累積/緩降)時於建築本體之上疊「雪帽」：snowCap(s) 以 sprite 剪影為遮罩僅在頂部加白；乘 drawA 使被遮擋/施工中建築的雪同步淡化；非冬/無積雪(snowLvl=0)/公園(k4)/遠景(lodFar) 不繪＝該狀態逐像素零改動，__noRoofSnow 開關供回歸比對；純讀既有 win/snowLvl/drawA 不消耗 R()
+      ctx.globalAlpha=Math.min(1,snowLvl*1.08)*drawA;
+      ctx.drawImage(snowCap(s),bx,by,s.w*z,s.h*z);
+      ctx.globalAlpha=1;
+    }
     if(!window.__noScaffold&&bd.age<5&&bd.k!==4&&!lodFar){ // T168 施工鷹架（Opus 親手）——建築 age<5 天（新建/剛升級，b.age 每 tick++／升級時歸零）覆蓋鷹架，alpha 隨 age 遞減＝施工逐漸完成拆架；age>=5／公園(k4)／遠景(lodFar) 不繪＝該狀態零改動；純讀 age 決定性不消耗 R()
       const sca=(5-bd.age)/5, bw=s.w*z, bh=s.h*z, pole=Math.max(1,1.2*z);
       ctx.save();
@@ -9981,9 +10011,11 @@ window.GV={
   fog:(days)=>{if(days!==undefined)fog={days:clamp(days|0,1,30)};return fog?{...fog}:null;}, // T154 測試用：強制觸發（或查詢）霧，不受 disastersOn 管轄（純視覺天氣，非災害）；無參數呼叫僅回傳現況、不改動狀態
   rainDays:()=>rainDays,                                       // T154 測試用：曝光既有 rainDays（T57「連續雨天計數」），驗證濕地反光／積雪疊加強度換算
   daylightDbg:()=>daylight(),                                  // T149 測試用：直接曝光既有 daylight() 回傳值（b/dusk/ph/d），純讀取、零新邏輯，供光影驗收精確判斷日夜相位
+  snowCapDbg:(s)=>snowCap(s),                                   // T183 測試用：曝光屋頂積雪雪帽生成器（純既有像素 canvas 操作、不消耗 R()），供單元驗證頂部加白＋剪影遮罩正確，接受 {img,w,h} 合成 sprite
   setVisT:(v)=>{visT=+v||0;return visT;},                       // T149 測試用：直接設定 visT（僅影響渲染晝夜相位，不寫入存檔、不影響 tick()/day 模擬節奏），供光影驗收鎖定精確相位
   forceDraw:()=>{draw(.016);return true;},                      // T149 測試用：同步立即觸發一次 draw()（§11 不變量 7：渲染不改遊戲狀態，重複呼叫安全），供像素回歸在同一輪事件迴圈內連續比對，避開背景模擬（day/車輛/水面幀）跨呼叫真實時間漂移雜訊
   setZoom:(z)=>{cam.z=+z||1;zoomAnim=null;return cam.z;},        // T149 測試用：直接設定 cam.z（沿用既有 zoomStep 寫入同一變數），供驗證 T107 z<0.5 LOD 門檻正確跳過光影
+  lookAt:(x,y)=>{cam.x=(x-y)*32;cam.y=(x+y)*16;zoomAnim=null;return[cam.x,cam.y];}, // T183 測試用：把相機中心對準 tile(x,y)（沿用 newWorld 初始置中同款公式 (x-y)*32/(x+y)*16 寫入既有 cam.x/y），純渲染鏡頭定位不改模擬/存檔，解決既有 GV.center() 只回座標不移鏡頭之驗證痛點
   titleForceDraw:(ts)=>{ensureTitleBgSize();drawTitleBg(ts!==undefined?+ts:performance.now());return true;}, // T158 測試用：同步立即觸發一次標題背景重繪（比照 forceDraw 同款用途），供背景分頁 rAF 停擺時的像素回歸／動態取樣繞開真實時間等待
   titleAnimOn:()=>!!titleRAF,                                   // T158 測試用：曝光標題動畫 rAF 是否在跑，驗證進遊戲後 stopTitleAnim() 已 cancelAnimationFrame（無殘留）
   addMoney:v=>{money+=v;return Math.round(money);},            // 測試用資金調整
