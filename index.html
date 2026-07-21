@@ -7664,9 +7664,11 @@ function draw(dt){
     }
     let occA=1; // T126：目標列表為空時 for..of 零迭代，occA 恆 1，行為與改動前完全一致
     if(occTargets.length)for(const ot of occTargets){if(o.dep>ot.dep&&ot.ax>=bx&&ot.ax<bx+s.w*z&&ot.ay>=by&&ot.ay<by+s.h*z){occA=.35;break;}}
-    if(occA<1)ctx.globalAlpha=occA;
+    const constrA=(!window.__noConstrFade&&bd.age<5&&bd.k!==4)?clamp(.62+bd.age*.095,.62,1):1; // T169：施工期建築淡入（materialize，與 T168 鷹架同 age<5 窗口）——age 0(.62)→age4(~1) opacity 漸增，subtle 讀起來像新樓在鷹架後逐漸成形（下限 .62 避免過透露地面顯糊）；age>=5/公園(k4)/__noConstrFade 恆 1＝該狀態零改動；純讀 age 不消耗 R()
+    const drawA=occA*constrA;
+    if(drawA<1)ctx.globalAlpha=drawA;
     ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
-    if(occA<1)ctx.globalAlpha=1;
+    if(drawA<1)ctx.globalAlpha=1;
     if(!window.__noScaffold&&bd.age<5&&bd.k!==4&&!lodFar){ // T168 施工鷹架（Opus 親手）——建築 age<5 天（新建/剛升級，b.age 每 tick++／升級時歸零）覆蓋鷹架，alpha 隨 age 遞減＝施工逐漸完成拆架；age>=5／公園(k4)／遠景(lodFar) 不繪＝該狀態零改動；純讀 age 決定性不消耗 R()
       const sca=(5-bd.age)/5, bw=s.w*z, bh=s.h*z, pole=Math.max(1,1.2*z);
       ctx.save();
