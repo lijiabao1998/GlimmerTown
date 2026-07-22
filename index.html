@@ -1091,6 +1091,7 @@ function buildSprites(){
        }
        g.fillStyle=bridgeDark;g.fillRect(12,34,4,9);g.fillRect(48,34,4,9);
        g.fillStyle='#463321';g.fillRect(12,41,4,2);g.fillRect(48,41,4,2);
+       {const railM=((~m)&15)&(2|4);if(railM){diaEdge(g,railM,'#c2c6ce',32,0,32);diaEdge(g,railM,'#8e929a',32,2,32);}} // T203 橋面側護欄（Opus 親手，審計缺口）：沿甲板前緣側邊(非道路連接邊)畫淺灰雙軌欄杆(抬高於甲板)，純幾何不消耗 rand
        SPR.bridgeClass[rcI].push(c);}
     }
   };
