@@ -7039,6 +7039,27 @@ function draw(dt){
     }
     ctx.globalAlpha=1;
   }
+  if(!window.__noSky){ // T190 日月天體（Opus 親手，審計 workflow 缺口）——天空原僅平塗+星點，全無日/月圓盤。依 daylight() 的 ph/d 決定性算天體沿弧線位置：日間(d>0)畫暖色光暈+黃白日盤，夜間畫冷色光暈+泛藍月盤(含月坑暗斑)；螢幕空間(不隨相機位移，仿 stars)、不消耗 R()、同 visT 重繪恆等；近焦地形覆蓋天空時自然被蓋(繪於世界之前)。__noSky 關閉還原純平塗天空供 A/B
+    const czz=clamp(cam.z,.85,1.5);
+    if(d>.012){ // 太陽（ph 0.25 日出→0.75 日落，沿弧線）
+      const sunX=W*(ph-.25)/.5, sunY=H*.46-d*H*.34, rad=16*czz;
+      const hg=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,rad*3.4);
+      hg.addColorStop(0,'rgba(255,240,186,0.55)');hg.addColorStop(.4,'rgba(255,222,132,0.22)');hg.addColorStop(1,'rgba(255,222,132,0)');
+      ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=hg;ctx.beginPath();ctx.arc(sunX,sunY,rad*3.4,0,6.283);ctx.fill();ctx.restore();
+      ctx.fillStyle='#fff4cf';ctx.beginPath();ctx.arc(sunX,sunY,rad,0,6.283);ctx.fill();
+      ctx.fillStyle='#ffe79a';ctx.beginPath();ctx.arc(sunX,sunY,rad*.72,0,6.283);ctx.fill();
+    }else{ // 月亮（夜間，沿反向弧線）
+      const nT=ph>.75?(ph-.75)/.5:(ph+.25)/.5, moonX=W*nT, moonY=H*.44-Math.sin(nT*Math.PI)*H*.30, rad=13*czz;
+      const hg=ctx.createRadialGradient(moonX,moonY,0,moonX,moonY,rad*2.8);
+      hg.addColorStop(0,'rgba(212,226,246,0.40)');hg.addColorStop(1,'rgba(212,226,246,0)');
+      ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=hg;ctx.beginPath();ctx.arc(moonX,moonY,rad*2.8,0,6.283);ctx.fill();ctx.restore();
+      ctx.fillStyle='#eef2fb';ctx.beginPath();ctx.arc(moonX,moonY,rad,0,6.283);ctx.fill();
+      ctx.fillStyle='rgba(178,193,220,0.55)'; // 月坑暗斑
+      ctx.beginPath();ctx.arc(moonX-rad*.3,moonY-rad*.2,rad*.22,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.arc(moonX+rad*.26,moonY+rad*.3,rad*.16,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.arc(moonX+rad*.12,moonY-rad*.34,rad*.12,0,6.283);ctx.fill();
+    }
+  }
   const z=cam.z;
   if(z<1)ctx.imageSmoothingEnabled=true; // T106：遠檔縮小抗鋸齒閃爍，僅主畫布層級切換，繪製結束復原
   const lodFar=z<1, lodMini=z<.5; // T107：遠景 LOD 分級旗標（只裁「畫」不裁「算」，tick/updCars/updSmoke 等模擬照跑）
