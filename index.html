@@ -7195,6 +7195,13 @@ function draw(dt){
           if(inMap(x-1,y)&&T(idx(x-1,y)).t===1)sm|=8;
           if(sm)gc.drawImage(SPR.shoreBlend[sm],sx,sy,64*z,32*z);
         }
+        if(t.t===2&&!window.__noPatch){ // T200 低頻大尺度地面色斑（Opus 親手，審計缺口）——草地放大到多格連片原為均勻色。用粗量化座標雜湊 streetHash(x>>3,y>>3)＝8×8 格同值低頻遮罩，依季疊薄暖/冷 tint：春夏乾黃斑/濕綠窪、秋枯黃/深綠、冬不均雪堆亮暗；純疊色決定性不消耗 R()、烘進 groundCache(季節既有快取鍵零每幀成本)，__noPatch 開關
+          const lf=streetHash(x>>3,y>>3,870);let col=null;
+          if(win){if(lf>.62)col='rgba(255,255,255,'+((lf-.62)*.34).toFixed(3)+')';else if(lf<.36)col='rgba(120,132,150,'+((.36-lf)*.3).toFixed(3)+')';}
+          else if(sea===2){if(lf>.6)col='rgba(158,126,58,'+((lf-.6)*.32).toFixed(3)+')';else if(lf<.36)col='rgba(74,112,70,'+((.36-lf)*.22).toFixed(3)+')';}
+          else{if(lf>.64)col='rgba(172,162,82,'+((lf-.64)*.3).toFixed(3)+')';else if(lf<.34)col='rgba(58,120,80,'+((.34-lf)*.22).toFixed(3)+')';}
+          if(col){gc.fillStyle=col;gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();}
+        }
         if(win&&t.t===0&&!window.__noIce){ // T186 冬季水面結冰（Opus 親手）——入冬水格於藍波之上疊淡藍白冰面（62% 覆蓋，底下波紋微透＝結冰質感）＋決定性裂紋（streetHash 選約半數格畫一道細白裂線）；併入 groundCache（季節為既有快取鍵，冬季冰面零每幀成本）；非冬/非水/__noIce 不繪＝該狀態零改動；純座標決定性 streetHash 不消耗 R()。修正「萬物覆雪、水面仍藍波蕩漾」之違和
           gc.fillStyle='rgba(216,230,241,0.62)';
           gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
