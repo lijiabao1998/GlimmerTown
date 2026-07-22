@@ -1659,12 +1659,22 @@ function buildSprites(){
      SPR.hwyBridge.push(c);}
   }
   /* ---------- 體育場（T22；首個 2×2 多格建築；136×150、錨點 68/148＝2×2 菱形底頂點；置於全部既有 sprite 之後→零擾動） ---------- */
-  {const VBAND=[['#d24334','#8a281d'],['#3579c0','#204d80'],['#37a659','#216f37']]; // 屋頂色帶：紅/藍/綠（亮/暗）
+  {const SPORTS=[ // T237：體育場 3→9 依球類細分（v0 綜合體育場 HERO_PIX 覆蓋，內場沿用足球綠；v1-8 標準場地）
+     {band:['#37a659','#216f37'],fld:'soccer'},     // v0 綜合/足球
+     {band:['#e0872f','#a85e18'],fld:'basketball'},  // v1 籃球（木地板）
+     {band:['#3579c0','#204d80'],fld:'baseball'},    // v2 棒球（棕內野菱）
+     {band:['#4a9e6a','#2e6f44'],fld:'tennis'},      // v3 網球
+     {band:['#d24334','#8a281d'],fld:'athletics'},   // v4 田徑（紅跑道）
+     {band:['#2f8fd0','#1d5f90'],fld:'swimming'},    // v5 游泳（藍池泳道）
+     {band:['#7a9a3a','#4e6a1e'],fld:'football'},    // v6 美式足球（碼線端區）
+     {band:['#6a8aac','#42607e'],fld:'hockey'},      // v7 冰球（白冰藍線）
+     {band:['#d0803a','#9a5a20'],fld:'volleyball'},  // v8 排球
+   ];
    const CROWD=['#e0b088','#d97f6a','#e8d8c0','#8fb0d8','#e8c84f','#d86f8f','#88c46a','#c0c4cc','#8a5f9a','#e88f4f']; // 觀眾衣著/膚色點
-   for(let v=0;v<3;v++){
+   for(let v=0;v<SPORTS.length;v++){
      const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
      const cx=68,by=148;                                     // 錨點：2×2 菱形底頂點
-     const rd=mulberry32(22000+v),band=VBAND[v];
+     const rd=mulberry32(22000+v),band=SPORTS[v].band;
      // 混凝土廣場地基（畫在主 g，不描邊；比外殼寬 4px 露出一圈）
      dia(g,cx,84,64,'#8d8f82');
      speck(g,cx,84,64,['#82847a','#98998c'],90,rd);
@@ -1689,13 +1699,20 @@ function buildSprites(){
        diaEdge(sg,9,shade(base,16),cx,ty,hw);
        ti++;
      }
-     // 內場：綠茵＋白線（邊線＋中線＋中圈）
-     const fhw=18,fty=rty+28;
-     dia(sg,cx,fty,fhw,'#3f9d4b');
-     speck(sg,cx,fty,fhw,['#379043','#49a955'],36,rd);
-     diaEdge(sg,15,'#eef4ee',cx,fty,fhw);
-     sg.fillStyle='#eef4ee';sg.fillRect(cx-15,fty+(fhw>>1),30,1);
-     diaEdge(sg,15,'#eef4ee',cx,fty+(fhw>>1)-2,4);
+     // 內場：依球類繪製標準場地（T237）
+     const fhw=18,fty=rty+28,cl='#eef4ee';
+     const cline=()=>{sg.fillStyle=cl;sg.fillRect(cx-15,fty+9,30,1);};       // 中線
+     const ccirc=()=>diaEdge(sg,15,cl,cx,fty+7,4);                            // 中圈
+     const sp=SPORTS[v].fld;
+     if(sp==='soccer'){dia(sg,cx,fty,fhw,'#3f9d4b');speck(sg,cx,fty,fhw,['#379043','#49a955'],36,rd);diaEdge(sg,15,cl,cx,fty,fhw);cline();ccirc();}
+     else if(sp==='basketball'){dia(sg,cx,fty,fhw,'#c89a5a');speck(sg,cx,fty,fhw,['#bb8c4c','#d6a868'],20,rd);diaEdge(sg,15,cl,cx,fty,fhw);cline();ccirc();sg.fillStyle='#a85e18';sg.fillRect(cx-5,fty+2,10,3);sg.fillRect(cx-5,fty+13,10,3);} // 木地板＋兩端油漆區
+     else if(sp==='baseball'){dia(sg,cx,fty,fhw,'#3f9d4b');speck(sg,cx,fty,fhw,['#379043','#49a955'],20,rd);dia(sg,cx,fty+4,10,'#b07a4a');diaEdge(sg,15,'#e8ddc8',cx,fty+4,10);sg.fillStyle='#8a5f34';sg.fillRect(cx-2,fty+8,4,4);sg.fillStyle=cl;sg.fillRect(cx-1,fty+13,2,2);} // 綠外野＋棕內野菱＋壘包
+     else if(sp==='tennis'){dia(sg,cx,fty,fhw,'#3d8a6a');diaEdge(sg,15,cl,cx,fty,fhw);cline();sg.fillStyle=cl;sg.fillRect(cx-9,fty+5,18,1);sg.fillRect(cx-9,fty+12,18,1);} // 球場＋網＋發球線
+     else if(sp==='athletics'){dia(sg,cx,fty,fhw,'#c0503a');diaEdge(sg,15,cl,cx,fty,fhw);dia(sg,cx,fty+3,12,'#3f9d4b');speck(sg,cx,fty+3,12,['#379043','#49a955'],16,rd);sg.fillStyle=cl;sg.fillRect(cx-16,fty+6,4,1);sg.fillRect(cx+12,fty+11,4,1);} // 紅跑道＋綠草坪內場＋分道線
+     else if(sp==='swimming'){dia(sg,cx,fty,fhw,'#2f7fc0');for(let l=3;l<fhw-1;l+=3){sg.fillStyle='#bfe0f0';sg.fillRect(cx-13,fty+l,26,1);}diaEdge(sg,15,'#dfe8ee',cx,fty,fhw);} // 藍池＋泳道浮線
+     else if(sp==='football'){dia(sg,cx,fty,fhw,'#3f9d4b');speck(sg,cx,fty,fhw,['#379043','#49a955'],20,rd);for(let yl=3;yl<fhw;yl+=3){sg.fillStyle=cl;sg.fillRect(cx-13,fty+yl,26,1);}sg.fillStyle='#c85030';sg.fillRect(cx-9,fty+1,18,2);sg.fillStyle='#3050c0';sg.fillRect(cx-9,fty+fhw-3,18,2);} // 碼線＋雙色端區
+     else if(sp==='hockey'){dia(sg,cx,fty,fhw,'#dce8f0');sg.fillStyle='#c83030';sg.fillRect(cx-15,fty+9,30,1);sg.fillStyle='#3050c0';sg.fillRect(cx-13,fty+6,26,1);sg.fillRect(cx-13,fty+12,26,1);sg.fillStyle='#c83030';sg.fillRect(cx-7,fty+5,2,2);sg.fillRect(cx+5,fty+13,2,2);diaEdge(sg,15,'#a8c0d0',cx,fty,fhw);} // 白冰＋紅中線＋藍線＋爭球點
+     else{dia(sg,cx,fty,fhw,'#d0803a');diaEdge(sg,15,cl,cx,fty,fhw);cline();sg.fillStyle=cl;sg.fillRect(cx-13,fty+6,26,1);sg.fillRect(cx-13,fty+12,26,1);} // 排球場＋網＋攻擊線
      // 四角泛光燈塔（外殼四頂點；夜間 4 點強光進 night 層）
      const tower=(tx,ty2)=>{
        sg.fillStyle='#4a4e56';sg.fillRect(tx,ty2-16,1,16);
@@ -5652,7 +5669,7 @@ function doPlace(toolId,x,y,silent){
       stampPolSrc(x,y,8,1); // T110：垃圾場污染源
       break;
     case 'stad':{                                       // 體育場 2×2：root 存完整資料、其餘 3 格存 ref（T22）
-      const rv=ri(3);                                   // 變體（root 共用，繪製只讀 root）
+      const rv=ri(9);                                   // T237：變體 3→9（球類細分；root 共用，繪製只讀 root）
       for(const[sx,sy]of[[x,y],[x+1,y],[x,y+1],[x+1,y+1]]){
         const j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
@@ -9468,7 +9485,7 @@ function inspect(x,y){
     else if(b.k===15)html=`<h3>📮 郵局</h3><div class="row">半徑 8 內商業 +15% 稅收、住宅 +幸福</div><div class="row">就業 5</div><div class="row">維護費 $3/天</div>`;
     else if(b.k===16)html=`<h3>💀 墓園</h3><div class="row">半徑 10 安撫死亡事件｜容量 ${cemeteries*3}</div><div class="row">就業 2</div><div class="row">維護費 $2/天</div>`;
     else if(b.k===8)html=`<h3>🗑️ 垃圾場</h3><div class="row">處理容量 ${DUMP_CAP}</div><div class="row">維護費 $2/天</div><div class="row">全城垃圾 ${garbage.toFixed(1)}/${garbCap}</div>`;
-    else if(b.k===9)html=`<h3>🏟️ 體育場</h3><div class="row">就業 20 人</div><div class="row">半徑 10 內住宅 +幸福</div><div class="row">維護費 $8/天</div>`;
+    else if(b.k===9){const SPN=['綜合體育場','籃球館','棒球場','網球中心','田徑場','游泳館','美式足球場','冰球館','排球館'];html=`<h3>🏟️ ${SPN[b.v]||'體育場'}</h3><div class="row">就業 20 人</div><div class="row">半徑 10 內住宅 +幸福</div><div class="row">維護費 $8/天</div>`;} // T237：球類細分名稱
     else if(b.k===10)html=`<h3>💧 水塔</h3><div class="row">供水 ${WATER_TOWER_CAP} 棟建築</div><div class="row">維護費 $3/天</div>`;
     else if(b.k===17)html=`<h3>🚉 火車站</h3><div class="row">吸引遊客｜遊客提升全城商業稅收（上限 +20%）</div><div class="row">就業 12</div><div class="row">維護費 $6/天</div>`;
     else if(b.k===18)html=`<h3>🚢 港口</h3><div class="row">濱水貨運樞紐</div><div class="row">就業 10</div><div class="row">維護費 $5/天（需鄰水≥2格）</div>`;
