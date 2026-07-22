@@ -3712,6 +3712,48 @@ function buildSprites(){
       g.fillStyle='#666a72';g.fillRect(16,27,1,6);
       g.fillStyle='#33363c';g.fillRect(15,26,6,1);
     });
+    SPR.roadDeco.streetTree=mkDecoSimple(g=>{ // T238 行道樹：方樹池＋小樹冠
+      g.fillStyle='#7a6a52';g.fillRect(15,31,7,3);g.fillStyle='#5a4a38';g.fillRect(15,31,7,1);
+      g.fillStyle='#6b4a2f';g.fillRect(18,26,1,5);
+      g.fillStyle='#3d7a3c';g.fillRect(15,22,7,6);g.fillStyle='#4f9448';g.fillRect(15,22,7,2);g.fillStyle='#5aa854';g.fillRect(17,23,3,1);
+    });
+    SPR.roadDeco.planter=mkDecoSimple(g=>{ // T238 花壇：木箱＋彩花
+      g.fillStyle='#8a6a45';g.fillRect(13,29,12,4);g.fillStyle='#6b4f30';g.fillRect(13,29,12,1);g.fillRect(13,32,12,1);
+      g.fillStyle='#3d7a3c';g.fillRect(14,27,10,2);
+      const FL=['#e05a7a','#e8c84f','#c86ae0','#e88f4f','#ffffff','#5aa0e8'];for(let i=0;i<6;i++){g.fillStyle=FL[i];g.fillRect(14+i*2,26,1,1);}
+    });
+    SPR.roadDeco.bollard=mkDecoSimple(g=>{ // T238 護柱：三短柱＋鏈
+      for(const bx of[13,18,23]){g.fillStyle='#3a3e46';g.fillRect(bx,28,2,5);g.fillStyle='#e8c84f';g.fillRect(bx,28,2,1);}
+      g.fillStyle='#6a6e76';g.fillRect(14,30,10,1);
+    });
+    SPR.roadDeco.foodCart=mkDecoSimple(g=>{ // T238 餐車：紅白遮陽傘＋攤車
+      g.fillStyle='#c0c4cc';g.fillRect(14,28,10,5);g.fillStyle='#8a8e96';g.fillRect(14,32,2,2);g.fillRect(22,32,2,2);
+      g.fillStyle='#d24334';g.fillRect(12,22,14,2);g.fillStyle='#eef2f6';g.fillRect(12,22,14,1);
+      for(let i=0;i<3;i++){g.fillStyle='#d24334';g.fillRect(14+i*4,23,2,1);}
+      g.fillStyle='#8a8e96';g.fillRect(18,24,1,4);
+    });
+    SPR.roadDeco.bikeRack=mkDecoSimple(g=>{ // T238 單車架：兩台單車
+      g.fillStyle='#3a3e46';g.fillRect(13,32,11,1);
+      for(const[ox,col] of[[14,'#3a7ac0'],[19,'#c04040']]){
+        g.fillStyle='#555a62';g.fillRect(ox-1,30,3,3);g.fillRect(ox+2,30,3,3);
+        g.fillStyle=col;g.fillRect(ox,29,4,1);g.fillRect(ox,29,1,3);g.fillRect(ox+3,28,1,3);
+      }
+    });
+    { // T238 電話亭：紅亭＋玻璃（夜光）
+      const[c,g]=cv(64,40),[nc,ng]=cv(64,40);
+      g.fillStyle='#c23030';g.fillRect(15,22,7,12);g.fillStyle='#e05a5a';g.fillRect(15,22,1,12);g.fillStyle='#8a2020';g.fillRect(21,22,1,12);
+      g.fillStyle='#bfe0f0';g.fillRect(16,24,5,7);g.fillStyle='#e8ecf2';g.fillRect(15,21,7,1);
+      ng.fillStyle='#fff0c0';ng.fillRect(16,24,5,7);
+      SPR.roadDeco.phoneBooth={img:c,night:nc,ax:32,ay:36,w:64,h:40};
+    }
+    { // T238 書報攤：條紋遮陽棚＋報架（夜光）
+      const[c,g]=cv(64,40),[nc,ng]=cv(64,40);
+      g.fillStyle='#6a5a44';g.fillRect(13,26,12,8);g.fillStyle='#8a7a5a';g.fillRect(13,26,12,1);
+      g.fillStyle='#2a6a4a';g.fillRect(12,22,14,3);for(let i=0;i<7;i++){g.fillStyle='#eef2f6';g.fillRect(13+i*2,22,1,3);}
+      g.fillStyle='#d8c8a0';g.fillRect(14,28,4,4);g.fillStyle='#c0a878';g.fillRect(19,28,4,4);
+      ng.fillStyle='#ffe3a0';ng.fillRect(14,27,10,1);
+      SPR.roadDeco.newsStand={img:c,night:nc,ax:32,ay:36,w:64,h:40};
+    }
     { // 候車亭（含夜光燈條）：小屋頂＋兩柱＋長椅
       const[c,g]=cv(64,40),[nc,ng]=cv(64,40);
       g.fillStyle='#7a828c';g.fillRect(10,16,16,2);
@@ -8134,16 +8176,23 @@ function draw(dt){
               const dens=clamp(.15+(rc2-1)*.025+nearLv*.05,0,.42); // 密度依道路等級與鄰近建築等級遞增
               if(streetHash(x,y,701)<dens){
                 const pick=streetHash(x,y,702);
-                if(pick<.17){const d=SPR.roadDeco.hydrant;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-                else if(pick<.34){const d=SPR.roadDeco.mailbox;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-                else if(pick<.51){const d=SPR.roadDeco.bench;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-                else if(pick<.68){const d=SPR.roadDeco.trash;gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);}
-                else if(pick<.80){
-                  const d=SPR.roadDeco.shelter;
-                  const dx2=sx+(32-d.ax)*z,dy2=sy+(32-d.ay)*z;
-                  gc.drawImage(d.img,dx2,dy2,d.w*z,d.h*z);
-                  rdecGlow.push({img:d.night,x:dx2,y:dy2,w:d.w*z,h:d.h*z}); // 夜光候車亭
-                }else{ // 路邊停放車：複用既有 SPR.car（8 色池依雜湊挑色＋左右側挑向）縮小 78% 貼近路緣
+                const RD=SPR.roadDeco;
+                const dput=d=>gc.drawImage(d.img,sx+(32-d.ax)*z,sy+(32-d.ay)*z,d.w*z,d.h*z);
+                const dputG=d=>{const dx2=sx+(32-d.ax)*z,dy2=sy+(32-d.ay)*z;gc.drawImage(d.img,dx2,dy2,d.w*z,d.h*z);rdecGlow.push({img:d.night,x:dx2,y:dy2,w:d.w*z,h:d.h*z});};
+                // T238 街景多樣化：6→13 種街道小件（行道樹/花壇最常見；電話亭/書報攤/候車亭夜光）
+                if(pick<.15)dput(RD.streetTree);
+                else if(pick<.26)dput(RD.planter);
+                else if(pick<.35)dput(RD.bench);
+                else if(pick<.42)dput(RD.hydrant);
+                else if(pick<.49)dput(RD.trash);
+                else if(pick<.55)dput(RD.mailbox);
+                else if(pick<.61)dput(RD.bollard);
+                else if(pick<.67)dput(RD.bikeRack);
+                else if(pick<.72)dput(RD.foodCart);
+                else if(pick<.77)dputG(RD.phoneBooth);
+                else if(pick<.82)dputG(RD.newsStand);
+                else if(pick<.88)dputG(RD.shelter);
+                else{ // 路邊停放車：複用既有 SPR.car（8 色池依雜湊挑色＋左右側挑向）縮小 78% 貼近路緣
                   const ci=Math.floor(streetHash(x,y,703)*SPR.car.length)%SPR.car.length;
                   const carSide=streetHash(x,y,704)<.5;
                   const carImg=carSide?SPR.car[ci].A:SPR.car[ci].B;
