@@ -7959,6 +7959,13 @@ function draw(dt){
       ctx.fillRect(bx+s.w*z*.15,ftop,s.w*z*.7,s.h*z*.85);
       ctx.restore();
     }
+    if(bd.k===4&&nightDepth>0&&!window.__noParkLight){ // T209 公園夜間照明（Opus 親手，審計缺口）——公園 sz 未定義不吃 T165 泛光，夜間偏暗。加園燈暖光：園中央柔和暖黃徑向光暈，強度隨夜深度；nightDepth===0（日間）零繪＝日間逐像素一致，__noParkLight 開關、不消耗 R()
+      const gx=bx+s.w*z*.5, gy=by+s.h*z*.62, gr=30*z;
+      const rg=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);
+      rg.addColorStop(0,`rgba(255,212,138,${(0.28*nightDepth).toFixed(3)})`);rg.addColorStop(1,'rgba(255,212,138,0)');
+      ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=rg;
+      ctx.beginPath();ctx.arc(gx,gy,gr,0,6.283);ctx.fill();ctx.restore();
+    }
     let occA=1; // T126：目標列表為空時 for..of 零迭代，occA 恆 1，行為與改動前完全一致
     if(occTargets.length)for(const ot of occTargets){if(o.dep>ot.dep&&ot.ax>=bx&&ot.ax<bx+s.w*z&&ot.ay>=by&&ot.ay<by+s.h*z){occA=.35;break;}}
     const constrA=(!window.__noConstrFade&&bd.age<5&&bd.k!==4)?clamp(.62+bd.age*.095,.62,1):1; // T169：施工期建築淡入（materialize，與 T168 鷹架同 age<5 窗口）——age 0(.62)→age4(~1) opacity 漸增，subtle 讀起來像新樓在鷹架後逐漸成形（下限 .62 避免過透露地面顯糊）；age>=5/公園(k4)/__noConstrFade 恆 1＝該狀態零改動；純讀 age 不消耗 R()
