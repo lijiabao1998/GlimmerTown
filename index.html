@@ -6481,7 +6481,7 @@ function tick(){
   // 供電／供水判定
   let powered=0,watered=0;
   let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0,schools=0,dumps=0,stadiums=0,waterTowers=0,clinics=0,libraries=0,posts=0,cemeteries=0;
-  let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0,trR=0,trC=0,bigFa=0,bigCemN=0,gstN=0; // T228：大農場計數；T233：大墓園計數；T234：中央車站計數
+  let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0,trR=0,trC=0,bigFa=0,bigCemN=0,gstN=0,upJob=0; // T228：大農場計數；T233：大墓園計數；T234：中央車站計數；T239：升級就業加成
   let mu=0,th=0,aq=0,zo=0,ap=0,ci=0,gl=0; // T138：mu博物館/th劇院/aq水族館/zo動物園/ap遊樂園/ci電影院/gl圖書總館（root）計數
   let chN=0,crtN=0,cvN=0,inN=0,wsN=0,bgN=0,mhN=0; // T139：chN市政廳/crtN法院/cvN會展中心/inN研究院/wsN氣象站/bgN植物園/mhN綜合醫院（root）計數
   let owN=0,mnN=0,mgN=0,indBldN=0,suppliesGain=0; // T140：owN油井/mnN礦場/mgN太空研究中心（root）計數；indBldN=工業建築計數（供資源消耗鏈用，獨立於既有 nI/jobsI，不限電力）；suppliesGain=本日開採彙總
@@ -6491,6 +6491,7 @@ function tick(){
     const t=T(idx(x,y));
     const b=t.bld;
     if(b&&b.ref)continue;              // 多格建築 ref 格不參與任何模擬（T22）
+    if(b&&UP_MAX[b.k]&&b.lv>1)upJob+=(b.lv-1)*(UP_JOB[b.k]||6); // T239：升級服務每級加成就業
     if(b&&b.k===7)schools++;
     if(b&&b.k===8)dumps++;
     if(b&&b.k===9)stadiums++;          // 體育場（root）計數，供 jobs/維護（T22）
@@ -6607,7 +6608,7 @@ function tick(){
       if(b.k===2)jobsC+=JOBSC[b.lv]*(t.office?1.5:1);else jobsI+=JOBSI[b.lv]; // T79：辦公區商業高就業 ×1.5
     }
   }
-  pop=popN+trR*TOWER_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+bigCemN*8+st*12+gstN*30+po*10+ai*40+pa*1+tr*6+fa*3+bigFa*18+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS+mu*12+th*10+aq*14+zo*20+ap*24+ci*6+gl*16+chN*20+crtN*14+cvN*35+inN*22+wsN*8+bgN*18+mhN*28+owN*6+mnN*8+mgN*40;   // T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15；T138：博物館12/劇院10/水族館14/動物園20/遊樂園24/電影院6/圖書總館16 就業；T139：市政廳20/法院14/會展中心35/研究院22/氣象站8/植物園18/綜合醫院28 就業；T140：油井6/礦場8/太空研究中心40 就業
+  pop=popN+trR*TOWER_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+bigCemN*8+st*12+gstN*30+po*10+ai*40+pa*1+tr*6+fa*3+bigFa*18+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS+mu*12+th*10+aq*14+zo*20+ap*24+ci*6+gl*16+chN*20+crtN*14+cvN*35+inN*22+wsN*8+bgN*18+mhN*28+owN*6+mnN*8+mgN*40+upJob;   // T239：升級服務就業加成；T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15；T138：博物館12/劇院10/水族館14/動物園20/遊樂園24/電影院6/圖書總館16 就業；T139：市政廳20/法院14/會展中心35/研究院22/氣象站8/植物園18/綜合醫院28 就業；T140：油井6/礦場8/太空研究中心40 就業
   cityHappy=happyN?happySum/happyN:.6;
   happyAgg=happyN&&happyAggSum?happyAggSum.map(p=>({name:p.name,val:p.val/happyN})):[]; // T111：城市平均幸福構成，供 showStats 讀取
   // 垃圾（T19）：產量/容量/超載係數；套用到全城住宅幸福尾端，並節流提示
@@ -8766,7 +8767,7 @@ function draw(dt){
     else if((bd.k===22||bd.k===53)&&sea!==0&&SPR.farmSea&&SPR.farmSea[sea]&&SPR.farmSea[sea][bd.k+'_1_'+bd.v])s=SPR.farmSea[sea][bd.k+'_1_'+bd.v]; // T229：農牧四季作物相（夏茂/秋收金/冬雪蓋田；春＝generic base 零改動）
     else if(bd.k===1&&bd.lv===3&&bd.den>=4)s=wealthSpr('1_3_4',bd.we); // 高密度 Lv3 住宅（T30）；T125：財富色變，缺鍵回退中產
     else if(bd.k===1)s=wealthSpr(bd.k+'_'+bd.lv+'_'+bd.v,bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0']; // T125：住宅財富色變；變體鍵兜底同 FIX-D
-    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）
+    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）；T239：服務升級 lv>1 無對應圖時退回 lv1（升級不改外觀、僅疊等級星）
     let bx,by;
     if(bd.sz&&bd.sz>=2){ // T39-T60 多格建築通用定位：錨點對齊 (x+sz-1, y+sz-1) 底頂點
       const sz=bd.sz;
@@ -8911,6 +8912,12 @@ function draw(dt){
     }
     if(bd.k<=3&&!bd.pw){
       ctx.drawImage(SPR.nopow,o.sx+24*z,o.sy+(-52+bob)*z,16*z,20*z);
+    }
+    if(UP_MAX[bd.k]&&(bd.lv||1)>1&&!lodFar&&!window.__noTier){ // T239：功能建築升級等級星（金色 pip 條，數量=lv-1）
+      const n=Math.min((bd.lv||1)-1,15),pw=2,gap=1,tot=n*(pw+gap)-gap;
+      const bx0=o.sx+32*z-(tot*z)/2,by0=o.sy+(bd.sz>=2?-82:-58)*z;
+      ctx.fillStyle='rgba(18,14,6,.55)';ctx.fillRect(bx0-1*z,by0-1*z,(tot+2)*z,(pw+2)*z);
+      for(let i=0;i<n;i++){ctx.fillStyle=i>=10?'#fff0b0':'#ffd045';ctx.fillRect(bx0+i*(pw+gap)*z,by0,pw*z,pw*z);}
     }
     if(bd.k<=3&&bd.crime){                                // 犯罪標記：黃底黑驚嘆號（T32）
       ctx.fillStyle='#ffd45f';
@@ -9511,6 +9518,22 @@ function commitRect(){
   closeUndo();
   if(done){sBuild();}
 }
+/* T239 功能建築升級系統：復用 bld.lv（已進存檔第3位）當服務升級等級，零存檔格式改動；升級提升等級→更多就業＋等級星＋加成，成本隨等級遞增。UP_MAX 各建築上限（體育場15，其餘10）。純提升 lv，不動 COV/存檔序列化 */
+const UP_MAX={9:15,6:10,7:10,11:10,12:10,13:10,14:10,15:10,10:10,5:10,16:10,28:10,29:10,30:10,17:10,18:10,21:10,54:10,55:10,53:8};
+const UP_JOB={9:15,54:8,55:12,53:8,17:8,18:8}; // 每級加成就業（大型建築較高，其餘預設6）
+function upCost(k,lv){return Math.round((k===9?450:k>=53?600:280)*lv*Math.pow(1.18,lv-1));} // 升級費隨等級指數遞增
+function upgradeBld(x,y){
+  if(!inMap(x,y))return;let t=T(idx(x,y)),b=t.bld;
+  if(b&&b.ref)return upgradeBld(b.ref[0],b.ref[1]);
+  if(!b||!UP_MAX[b.k])return;
+  const max=UP_MAX[b.k],lv=b.lv||1;
+  if(lv>=max){toast('已達最高等級','bad');sErr();return;}
+  const cost=upCost(b.k,lv);
+  if(diff!==3&&money<cost){toast('💰 資金不足','bad');sErr();return;}
+  if(diff!==3)money-=cost;
+  b.lv=lv+1;if(b.age<5)b.age=5; // 升級不觸發施工動畫
+  toast('⬆️ 升級成功！等級 '+b.lv,'gold');sBuild();updHud();inspect(x,y); // 重繪面板顯示新等級
+}
 /* 檢視面板 */
 let selTile=null; // T126：inspect 選中建築格（{x,y}或null），供 draw() 前方遮擋物半透明判定；純 UI 狀態，比照 hover/rect 慣例不進 newWorld/load 重置
 let traceOverlay=null; // T143：因果追溯疊圖狀態 {factor,tiles:[{x,y}...]} 或 null；純 UI 狀態，比照 selTile 慣例不進 newWorld/load 重置，關面板或再點同一因子清空
@@ -9601,6 +9624,10 @@ function inspect(x,y){
       else if(b.sick)html+=`<div class="row" style="color:#e05252">🏥 生病中！人口與稅收暫停、幸福大降</div><button class="hbtn" id="sickBtn">💊 治療 $50</button>`;
       if(b.fire)html+=`<div class="row" style="color:#ff8a5f">🔥 燃燒中</div><button class="hbtn" id="fireBtn">🧯 滅火 $30</button>`;
     }
+    if(UP_MAX[b.k]){const ulv=b.lv||1,umax=UP_MAX[b.k]; // T239：功能建築升級 UI
+      html+=`<div class="row" style="color:#ffd45f">⭐ 等級 ${ulv}/${umax}${ulv>1?'　就業 +'+((ulv-1)*(UP_JOB[b.k]||6)):''}</div>`;
+      html+=ulv<umax?`<button class="hbtn" id="upBtn">⬆️ 升級 $${upCost(b.k,ulv)}</button>`:`<div class="row" style="color:#88c46a">✦ 已達最高等級</div>`;
+    }
   }else if(t.road){
     const rcName=rcToName(t.rc||2);
     const pipeInfo=t.wp?`<div class="row">💧 地下水管${t.wr?'（已通水）':'（未連接水塔）'}</div>`:'';
@@ -9622,6 +9649,8 @@ function inspect(x,y){
       (t.levee?'<div class="row">鄰近河岸免疫洪水</div>':'<div class="row">連雨積水，會自然消退（可用 💥 拆除）</div>');
   }else return hideInfo();
   $('#infoBody').innerHTML=html;
+  const ub=$('#upBtn');                                  // T239：功能建築升級按鈕
+  if(ub)ub.addEventListener('click',()=>upgradeBld(x,y));
   const cb=$('#crimeBtn');                               // 處理犯罪按鈕（T32）
   if(cb)cb.addEventListener('click',()=>{
     const bb=inMap(x,y)?T(idx(x,y)).bld:null;
@@ -10892,10 +10921,10 @@ function load(slot){
     for(let i=0;i<N*N;i++)if(tiles[i].road&&!tiles[i].rc)tiles[i].rc=tiles[i].hw?5:2; // 舊檔無 rc：支路=2、原高速=5（T29）
     for(const rec of d.bl){
       const i=rec[0],k=rec[1],lv=rec[2],v=rec[3],age=rec[4];
-      let vv=v;if(k!==4&&k!==5&&(k<10||k>13)&&!SPR.bld[k+'_'+lv+'_'+v])vv=0; // 變體鍵正規化：舊檔 v 無對應 SPR.bld 時歸 0（k4/5/10-13 不走 SPR.bld）
+      let vv=v;if(k!==4&&k!==5&&(k<10||k>13)&&!SPR.bld[k+'_'+lv+'_'+v]&&!SPR.bld[k+'_1_'+v])vv=0; // 變體鍵正規化：舊檔 v 無對應 SPR.bld 時歸 0（k4/5/10-13 不走 SPR.bld）；T239：升級服務 lv>1 無 lv 專屬圖時亦查 lv1 圖，避免升級後變體被誤歸 0
       if(k===9){                                         // 體育場：第 6 位是 sz，重建 root＋3 個 ref 格（T22）
         const rx=i%N,ry=(i/N)|0;
-        tiles[i].bld={k:9,lv:1,v:vv,age,pw:true,h:1,sz:rec[5]||2};
+        tiles[i].bld={k:9,lv:(lv||1),v:vv,age,pw:true,h:1,sz:rec[5]||2}; // T239：保留體育場升級等級（原硬編碼 lv:1 丟棄升級級數）
         for(const[sx,sy]of[[rx+1,ry],[rx,ry+1],[rx+1,ry+1]])
           if(inMap(sx,sy))tiles[idx(sx,sy)].bld={k:9,ref:[rx,ry]};
       }else{
@@ -11176,6 +11205,8 @@ window.GV={
   forceDraw:()=>{draw(.016);return true;},                      // T149 測試用：同步立即觸發一次 draw()（§11 不變量 7：渲染不改遊戲狀態，重複呼叫安全），供像素回歸在同一輪事件迴圈內連續比對，避開背景模擬（day/車輛/水面幀）跨呼叫真實時間漂移雜訊
   setZoom:(z)=>{cam.z=+z||1;zoomAnim=null;return cam.z;},        // T149 測試用：直接設定 cam.z（沿用既有 zoomStep 寫入同一變數），供驗證 T107 z<0.5 LOD 門檻正確跳過光影
   lookAt:(x,y)=>{cam.x=(x-y)*32;cam.y=(x+y)*16;zoomAnim=null;return[cam.x,cam.y];}, // T183 測試用：把相機中心對準 tile(x,y)（沿用 newWorld 初始置中同款公式 (x-y)*32/(x+y)*16 寫入既有 cam.x/y），純渲染鏡頭定位不改模擬/存檔，解決既有 GV.center() 只回座標不移鏡頭之驗證痛點
+  upgrade:(x,y)=>{upgradeBld(x,y);const b=inMap(x,y)?T(idx(x,y)).bld:null;return b?(b.ref?T(idx(b.ref[0],b.ref[1])).bld.lv:b.lv):null;}, // T239 測試/腳本用：呼叫真實升級路徑（inspect 面板按鈕同一函式），回傳升級後 root 等級；與 GV.place 同屬玩家操作型鉤子
+  inspectAt:(x,y)=>{inspect(x,y);return $('#infoBody')?$('#infoBody').innerHTML:'';}, // T239 測試用：觸發 inspect 面板並回傳 HTML（驗證升級鈕/等級行）
   titleForceDraw:(ts)=>{ensureTitleBgSize();drawTitleBg(ts!==undefined?+ts:performance.now());return true;}, // T158 測試用：同步立即觸發一次標題背景重繪（比照 forceDraw 同款用途），供背景分頁 rAF 停擺時的像素回歸／動態取樣繞開真實時間等待
   titleAnimOn:()=>!!titleRAF,                                   // T158 測試用：曝光標題動畫 rAF 是否在跑，驗證進遊戲後 stopTitleAnim() 已 cancelAnimationFrame（無殘留）
   addMoney:v=>{money+=v;return Math.round(money);},            // 測試用資金調整
