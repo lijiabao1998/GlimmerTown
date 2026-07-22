@@ -2355,12 +2355,31 @@ function buildSprites(){
      SPR.farmSea[1][fk]={img:remap(b0.img,b0.w,b0.h,SUM),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};
      SPR.farmSea[2][fk]={img:remap(b0.img,b0.w,b0.h,AUT),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};
      SPR.farmSea[3][fk]={img:remap(b0.img,b0.w,b0.h,WIN),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}
-  // T46 牧場 (k=23, 2×2)
+  // T46 牧場 (k=23, 2×2)；T230 擴 1→3：v1 羊牧場、v2 馬場（零 rand）
   {const[c,g]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#7a9a4a');g.fillStyle='#b09870';g.fillRect(ax-20,ay-20,12,8); // 牛棚
    g.fillStyle='#8a6040';g.fillRect(ax-18,ay-22,8,2);
    for(let i=0;i<4;i++){g.fillStyle='#4a3020';g.fillRect(ax-14+i*6,ay-24,3,2);} // 牛
    SPR.bld['23_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T230 牧場 v1 羊牧場：白羊群+木柵欄+淺色羊舍
+   const[c,g]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#7a9a4a');
+   g.fillStyle='#c9b896';g.fillRect(ax-24,ay-22,14,9);g.fillStyle='#9a7a50';g.fillRect(ax-22,ay-24,10,2); // 羊舍
+   g.fillStyle='#8a6a40';for(let i=0;i<6;i++){g.fillRect(ax-16+i*8,ay-42,1,4);}g.fillRect(ax-16,ay-40,41,1); // 木柵欄
+   const SH=[[-10,-36],[-2,-33],[6,-37],[12,-32],[2,-28],[-6,-27],[16,-38]];
+   for(const[sx2,sy2] of SH){g.fillStyle='#f0eee6';g.fillRect(ax+sx2,ay+sy2,4,3);g.fillStyle='#dcd8cc';g.fillRect(ax+sx2,ay+sy2+2,4,1);g.fillStyle='#3a3530';g.fillRect(ax+sx2+3,ay+sy2,1,1);} // 白羊+頭
+   SPR.bld['23_1_1']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T230 牧場 v2 馬場：橢圓訓練圈欄+馬+馬廄
+   const[c,g]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#7a9a4a');
+   g.fillStyle='#8a6a40'; // 橢圓訓練圈（點狀欄杆）
+   for(let a2=0;a2<16;a2++){const ang=a2/16*6.283;g.fillRect(ax+Math.round(Math.cos(ang)*22),ay-32+Math.round(Math.sin(ang)*11),2,3);}
+   g.fillStyle='#7a5a34';g.fillRect(ax-6,ay-33,12,1); // 圈內橫杆
+   const HS=[[-6,-34,'#6b4a2f'],[4,-30,'#3a3028']];
+   for(const[hx2,hy2,hc] of HS){g.fillStyle=hc;g.fillRect(ax+hx2,ay+hy2,6,3);g.fillRect(ax+hx2+5,ay+hy2-2,2,3);g.fillStyle='#2a2420';g.fillRect(ax+hx2,ay+hy2+3,1,2);g.fillRect(ax+hx2+4,ay+hy2+3,1,2);} // 馬身+頭頸+腿
+   g.fillStyle='#a8794a';g.fillRect(ax-26,ay-20,14,9);g.fillStyle='#6b4a2f';g.fillRect(ax-24,ay-22,10,2); // 馬廄
+   g.fillStyle='#5a3d28';g.fillRect(ax-22,ay-17,4,6); // 廄門
+   SPR.bld['23_1_2']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   // T47 地標 (k=24, 2×2, 3 variants)
   for(let v=0;v<3;v++){const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2;
@@ -5483,7 +5502,7 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:23,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:23,ref:[x,y]}; // SPR.bld 僅生成 23_1_0，固定 v:0
+        ct.bld=(dx===0&&dy===0)?{k:23,lv:1,v:(x*7+y*5)%3,age:0,pw:true,h:1,sz:2}:{k:23,ref:[x,y]}; // T230：牧場 3 變體（牛/羊/馬場），座標決定性選型（零 R）
       }
       break;}
     case 'landmark':{

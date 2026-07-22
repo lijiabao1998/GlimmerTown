@@ -225,8 +225,8 @@ window.GV.addMoney(100000);
 
 // ================= (1) 七種單變體建築 v=0 與存檔正規化 =================
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
-const SV = [ // [tool, k, sz]；T226：farm 擴 3 變體移出單變體清單（改於下方獨立驗座標決定性選型與 load 保留）；T228：新增 bigFarm 5×5
-  ['airport', 19, 4], ['parking', 20, 2], ['ranch', 23, 2],
+const SV = [ // [tool, k, sz]；T226/T230：farm/ranch 擴變體移出單變體清單（改於下方獨立驗座標決定性選型與 load 保留）；T228：新增 bigFarm 5×5
+  ['airport', 19, 4], ['parking', 20, 2],
   ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5]
 ];
 const svRoots = [];
@@ -252,12 +252,23 @@ for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.b
   assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_5']"), 'SPR.bld 應生成 22_1_1..22_1_5（T226/227 農場 6 變體）');
   svRoots.push({ k: 22, x: sp.x, y: sp.y, keepV: expV });
 }
+// T230：牧場座標決定性選型＋SPR 鍵存在＋load 保留變體
+{
+  const sp = findSpot('ranch');
+  assert(sp, 'ranch 應找到可建位置');
+  assert(place('ranch', sp.x, sp.y), 'ranch 應成功建造');
+  const rb2 = tile(sp.x, sp.y).bld;
+  const expV = (sp.x * 7 + sp.y * 5) % 3;
+  assert(rb2 && rb2.k === 23 && rb2.v === expV && rb2.sz === 2, 'ranch root v 應為座標決定性 (x*7+y*5)%3=' + expV + '、sz=2');
+  assert(html.includes("SPR.bld['23_1_1']") && html.includes("SPR.bld['23_1_2']"), 'SPR.bld 應生成 23_1_1 / 23_1_2（T230 牧場變體）');
+  svRoots.push({ k: 23, x: sp.x, y: sp.y, keepV: expV });
+}
 window.GV.save();
 const d1 = JSON.parse(store[SKEY]);
-const SVK = new Set([19, 20, 23, 25, 31, 32, 53]); // T228：bigFarm 亦屬單變體
+const SVK = new Set([19, 20, 25, 31, 32, 53]); // T228：bigFarm 亦屬單變體；T230：ranch 移出
 let tampered = 0;
 for (const rec of d1.bl) if (SVK.has(rec[1])) { rec[3] = 2; tampered++; }
-assert(tampered === 7, '存檔 bl 應含 7 棟單變體建築（實得 ' + tampered + '）');
+assert(tampered === 6, '存檔 bl 應含 6 棟單變體建築（實得 ' + tampered + '）');
 store[SKEY] = JSON.stringify(d1);
 assert(window.GV.load() === true, '竄改後 load 應成功');
 for (const r of svRoots) {
@@ -266,7 +277,7 @@ for (const r of svRoots) {
   assert(b && b.v === expV, 'k=' + r.k + ' load 後 v 應為 ' + expV + '（單變體正規化/農場保留）');
 }
 // FIX-J 迴歸：save→load 往返後多格 root 應保留 sz、ref 格應全數重建（舊版 load 未補 sz→ref 格全失、可被覆蓋建造）
-const SZOF = {}; for (const [, k, sz] of SV) SZOF[k] = sz; SZOF[22] = 2; // T226：農場已移出 SV，sz 表補回
+const SZOF = {}; for (const [, k, sz] of SV) SZOF[k] = sz; SZOF[22] = 2; SZOF[23] = 2; // T226/T230：農場/牧場已移出 SV，sz 表補回
 for (const r of svRoots) {
   const b = tile(r.x, r.y).bld;
   assert(b && b.sz === SZOF[r.k], 'k=' + r.k + ' load 後 root 應保留 sz=' + SZOF[r.k]);
