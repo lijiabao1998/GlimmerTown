@@ -227,7 +227,7 @@ window.GV.addMoney(100000);
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
 const SV = [ // [tool, k, sz]；T226/T230/T232：farm/ranch/parking 擴變體移出單變體清單；T228：新增 bigFarm 5×5
   ['airport', 19, 4],
-  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5]
+  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3]
 ];
 const svRoots = [];
 for (const [tool, k, sz] of SV) {
@@ -276,10 +276,10 @@ for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.b
 }
 window.GV.save();
 const d1 = JSON.parse(store[SKEY]);
-const SVK = new Set([19, 25, 31, 32, 53]); // T228：bigFarm 亦屬單變體；T230/T232：ranch/parking 移出
+const SVK = new Set([19, 25, 31, 32, 53, 54]); // T228/T233：bigFarm/bigCemetery 亦屬單變體；T230/T232：ranch/parking 移出
 let tampered = 0;
 for (const rec of d1.bl) if (SVK.has(rec[1])) { rec[3] = 2; tampered++; }
-assert(tampered === 5, '存檔 bl 應含 5 棟單變體建築（實得 ' + tampered + '）');
+assert(tampered === 6, '存檔 bl 應含 6 棟單變體建築（實得 ' + tampered + '）');
 store[SKEY] = JSON.stringify(d1);
 assert(window.GV.load() === true, '竄改後 load 應成功');
 for (const r of svRoots) {
