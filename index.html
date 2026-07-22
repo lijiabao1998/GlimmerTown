@@ -2339,6 +2339,32 @@ function buildSprites(){
    for(let i=0;i<6;i++){const cx=ax-24+i*10;g.fillStyle=['#e05252','#5aa0e8','#ffd455'][i%3];g.fillRect(cx,ay-38,6,10);}
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['20_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T232 停車場 v1 立體停車樓（雙層混凝土+坡道+頂層車+P 標）
+   const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148,by=ay-2;
+   plate(g,ax,ay,'#7a7a6a');
+   isoBox(sg,ax,by-4,26,12,'#8a8a82','#787870','#9a9a92'); // 下層
+   const rty=isoBox(sg,ax,by-20,24,10,'#94948c','#82827a','#a6a69e'); // 上層
+   sg.fillStyle='#6a6a62';for(let dx2=-20;dx2<20;dx2+=6){const yF=by-4-((Math.abs(dx2)+1)>>1);sg.fillRect(ax+dx2,yF-7,4,2);} // 下層開口
+   sg.fillStyle='#7a7a72';sg.fillRect(ax+20,by-14,10,12); // 坡道
+   sg.fillStyle='#e8e0d0';for(let i2=0;i2<4;i2++)sg.fillRect(ax-16+i2*9,rty+3,2,7); // 頂層車位線
+   const CAR3=['#e05252','#5aa0e8','#ffd455'];
+   for(let i2=0;i2<3;i2++){sg.fillStyle=CAR3[i2];sg.fillRect(ax-14+i2*9,rty+4,6,5);} // 頂層車
+   sg.fillStyle='#2f6fc0';sg.fillRect(ax-26,by-30,8,8);sg.fillStyle='#ffffff';sg.fillRect(ax-24,by-28,4,4); // P 標
+   ng.fillStyle='#8fd0ff';ng.fillRect(ax-26,by-30,8,8); // P 標夜光
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['20_1_1']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
+  { // T232 停車場 v2 綠蔭太陽能停車場（樹島+光電棚+車）
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#7a7a6a');
+   g.fillStyle='#5a5a4a';g.fillRect(ax-30,ay-42,56,30); // 場地
+   g.fillStyle='#e8e0d0';for(let i2=0;i2<6;i2++)g.fillRect(ax-28+i2*10,ay-42,2,28); // 車位線
+   sg.fillStyle='#3a4a6a';sg.fillRect(ax-28,ay-52,26,6);sg.fillStyle='#5a7aaa';for(let i2=0;i2<4;i2++)sg.fillRect(ax-26+i2*6,ay-51,4,4); // 太陽能棚
+   sg.fillStyle='#8a8a82';sg.fillRect(ax-26,ay-46,2,6);sg.fillRect(ax-6,ay-46,2,6); // 棚柱
+   const CAR4=['#e05252','#5aa0e8','#ffd455','#3f9a58'];
+   for(let i2=0;i2<4;i2++){g.fillStyle=CAR4[i2];g.fillRect(ax-24+i2*10,ay-38,6,9);} // 車
+   for(const[tx2,ty2] of[[ax+18,ay-34],[ax+8,ay-18]]){sg.fillStyle='#6b4a2f';sg.fillRect(tx2+2,ty2+6,2,4);sg.fillStyle='#3d7a3c';sg.fillRect(tx2,ty2,7,7);sg.fillStyle='#4f9448';sg.fillRect(tx2,ty2,7,2);} // 樹島
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['20_1_2']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   // T46 農場 (k=22, 2×2)；T226 擴 1→3：v1 金色麥田+紅穀倉、v2 菜畦農場+溫室（零 rand）
   {const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a');g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉
@@ -5777,7 +5803,7 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:20,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:20,ref:[x,y]}; // SPR.bld 僅生成 20_1_0，固定 v:0
+        ct.bld=(dx===0&&dy===0)?{k:20,lv:1,v:(x*11+y*3)%3,age:0,pw:true,h:1,sz:2}:{k:20,ref:[x,y]}; // T232：停車場 3 變體（平面/立體樓/綠蔭光電），座標決定性選型（零 R）
       }
       stampCov('parking',x,y,COVR.parking,1); // 對齊 rebuildCov：多格非體育場於 root 蓋印一次（doze 多格分支對稱撤印）
       break;}
