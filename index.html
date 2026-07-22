@@ -3586,6 +3586,10 @@ function buildSprites(){
       SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});
     }
   }
+  // T204 公園四季重著色（Opus 親手，審計缺口）：完成「萬物四季」——草/樹/水皆四季色，公園原非冬全綠。比照 grassS/A、treeS/A 疊季節色生成夏/秋公園（園內結構物較多，用較淡 alpha 避免過染），冬用既有 SPR.parkW；純衍生自 SPR.park、不消耗 rand。tintCanvas 為 block-scoped 此處不可見，就地定義同款 tintPk
+  {const tintPk=(src,w,h,col,a)=>{const[c,g]=cv(w,h);g.drawImage(src,0,0);g.globalCompositeOperation='source-atop';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,w,h);g.globalAlpha=1;g.globalCompositeOperation='source-over';return c;};
+   SPR.parkS=SPR.park.map(p=>({img:tintPk(p.img,p.w,p.h,'#a8e070',.13),ax:p.ax,ay:p.ay,w:p.w,h:p.h}));
+   SPR.parkA=SPR.park.map(p=>({img:tintPk(p.img,p.w,p.h,'#b8863a',.26),ax:p.ax,ay:p.ay,w:p.w,h:p.h}));}
   /* ===== T151 手繪像素英雄建築二期（服務建築手繪化，接在 T150 變體大擴充之後、buildSprites 絕對尾端）：
      比照 T148 手法，drawHeroPix 純讀 HERO_PIX 靜態表 fillRect，不呼叫 rand()/R()/ri()，對其前既有全部
      生成序列零位移；置於尾端純粹是為了「覆蓋同鍵」的後寫後贏語意（JS 物件字面量/imperative 賦值皆屬
@@ -4284,7 +4288,7 @@ function wealthSpr(baseKey,we){
 // 低成本簡化設計已於卡面驗收確認，不影響其餘既有渲染路徑，不消耗 R()/ri()）
 function reflectSprite(bd){
   if(!bd||bd.ref||(bd.sz&&bd.sz>=2))return null;
-  if(bd.k===4)return(inWinter()?SPR.parkW:SPR.park)[bd.v];
+  if(bd.k===4){const sea2=season();return(inWinter()?SPR.parkW:sea2===1?(SPR.parkS||SPR.park):sea2===2?(SPR.parkA||SPR.park):SPR.park)[bd.v];} // T204：倒影用公園也套季節色
   if(bd.k===5)return SPR.plant;
   if(bd.k===10)return SPR.waterTower;
   if(bd.k===11)return SPR.police;
@@ -7888,7 +7892,7 @@ function draw(dt){
       continue;
     }
     let s;
-    if(bd.k===4)s=(win?SPR.parkW:SPR.park)[bd.v];
+    if(bd.k===4)s=(win?SPR.parkW:sea===1?(SPR.parkS||SPR.park):sea===2?(SPR.parkA||SPR.park):SPR.park)[bd.v]; // T204：夏/秋公園季節色（春季/缺失回退 base）
     else if(bd.k===5)s=SPR.plant;
     else if(bd.k===9)s=SPR.bld['9_1_'+bd.v];
     else if(bd.k===10)s=SPR.waterTower; // 水塔（T31）

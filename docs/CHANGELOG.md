@@ -2,6 +2,8 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-22 | T204 公園四季重著色（Opus 親手，v4.7，審計缺口） | 草/樹/水皆四季色，唯公園非冬全用綠 base(draw 只 win?parkW:park)。生成 SPR.parkS(夏#a8e070.13)/parkA(秋#b8863a.26)＝比照 grassS/A、treeS/A 疊季節色(園內結構物多用較淡 alpha)；draw 與 reflectSprite 兩處選擇加 sea1/sea2 分支(缺失回退 base)。純衍生自 SPR.park 不消耗 rand。驗收：380/380＋端到端(seed7 slot3 放6公園 z3.5)——春[129,169,115]/夏[136,176,117]/秋[146,158,106]暖化+26/冬[208,217,222]雪白，四季色明顯＋零 console。至此草/樹/水/公園全四季變色。
+2026-07-22 | T204-fix tintCanvas 作用域（Opus 抓修） | parkS 初版直呼 tintCanvas 但它是 block-scoped const(定義於 2647/3488 兩區塊)，parkS 位於兩者之間都不可見→ReferenceError 測試 0。就地定義同款 tintPk 修復。教訓：復用他處 helper 前先確認非 block-scoped。 | 驗收:通過
 2026-07-22 | T203 橋面側護欄（Opus 親手，v4.7，審計缺口） | 橋樑甲板原僅路面+橋墩無護欄。SPR.bridgeClass 生成尾端沿甲板前緣側邊(railMask=((~m)&15)&(2|4)＝非道路連接的下向側邊)加淺灰雙軌欄杆(#c2c6ce頂/#8e929a身，抬高於甲板)，純幾何 diaEdge 不消耗 rand。驗收：380/380＋端到端(seed7 slot3 鋪路過窄水帶建2格橋 z4)——欄杆灰(~194,198,206)3829 像素(過濾排除棕甲板/白路標)＋零 console。 | 驗收:通過
 2026-07-22 | T202 樹木大小/樹齡抖動（Opus 親手，v4.7，審計缺口） | 原所有樹同尺寸。draw 端加 per-tree 決定性縮放 tsc=0.74+streetHash(x,y,780)*0.5(幼苗0.74↔成樹1.24)，底部錨定(bpx/bpy 基準點不動、往上長，不浮空)；streetHash 不消耗 R()，__noTreeJit=true 時 tsc=1＝改動前逐像素一致。驗收：380/380＋端到端(seed7 slot3 密林區 z2.5)——jitter 開關 diff 160840 像素(樹木明顯改尺寸)＋樣本縮放 0.74-0.99 有變化(全圖範圍 0.74-1.24)＋零 console。 | 驗收:通過
 2026-07-22 | T200 低頻大尺度地面色斑（Opus 親手，v4.7，審計缺口） | 草地放大到多格連片原為均勻色，缺 TheoTown 式大尺度地形色帶。用粗量化座標雜湊 streetHash(x>>3,y>>3,870)＝8×8 格同值低頻遮罩，依季疊薄暖/冷 tint(春夏乾黃斑#aca252/濕綠窪、秋枯黃#9e7e3a/深綠、冬不均雪堆亮白/暗灰)；純疊色決定性不消耗 R()、烘進 groundCache(季節既有快取鍵零每幀成本)、低 alpha(~0.1)柔化塊邊，__noPatch 開關。驗收：380/380＋端到端(seed7 slot3 大草地區 z1.5，place+doze 髒化快取)——四季 diff 春350K/夏336K/秋426K/冬333K 像素(大範圍連片非逐格)＋零 console。 | 驗收:通過
