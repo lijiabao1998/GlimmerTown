@@ -1397,16 +1397,19 @@ function buildSprites(){
      g.drawImage(sc,0,0);
      SPR.bld['6_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
    }}
-  /* ---------- 學校（T15）3 變體：黃牆＋旗杆紅旗＋大窗 ---------- */
-  {const SWALL=[['#f2c94c','#d1a62e'],['#f5d268','#d4af3c'],['#eec13e','#c99f28']];
-   const SROOF=['#8a6a3a','#7c5f34','#93713f'];
-   for(let v=0;v<3;v++){
+  /* ---------- 學校（T15／T223 擴 3→5）：v0-2 黃牆（逐位元不變），v3 現代白牆+體育館翼，v4 紅磚兩層+鐘塔；v3/v4 windows 餵局部決定性 PRNG＝零全域 rand 消耗、亂數流零位移 ---------- */
+  {const SWALL=[['#f2c94c','#d1a62e'],['#f5d268','#d4af3c'],['#eec13e','#c99f28'],['#eef2f4','#cfd8dc'],['#b06a4a','#8a4f36']];
+   const SROOF=['#8a6a3a','#7c5f34','#93713f','#4a7a8c','#5a4536'];
+   for(let v=0;v<5;v++){
      const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
-     const ax=36,ay=110,by=ay-2,hw=28,h=22;
+     const ax=36,ay=110,by=ay-2,hw=v===3?26:28,h=v===3?16:v===4?30:22;
      const wl=SWALL[v],rf=SROOF[v];
+     const wrand=v>=3?(()=>{let ws=911+v*37;return()=>{ws=(ws*9301+49297)%233280;return ws/233280;};})():rand; // T223：v3/v4 決定性窗燈
      plate(g,ax,ay,'#9a9484');
      const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
-     windows(sg,ng,ax,by,hw,h,rand,.5,{w:5,ht:6,gx:9,gy:11,glass:'#2a3550',lit:'#ffd77a'});
+     if(v===3){const gRty=isoBox(sg,ax+16,by-2,9,11,'#c2ccd2','#aab4bc','#5a8a9c');diaEdge(sg,15,'#e8eef2',ax+16,gRty,9);sg.fillStyle='#bfe8f4';sg.fillRect(ax+11,gRty+3,10,2);} // v3 體育館翼+天窗帶
+     windows(sg,ng,ax,by,hw,h,wrand,.5,v===4?{w:4,ht:5,gx:7,gy:9,glass:'#2a3550',lit:'#ffd77a'}:{w:5,ht:6,gx:9,gy:11,glass:'#2a3550',lit:'#ffd77a'});
+     if(v===4){const tRty=isoBox(sg,ax-8,rty+10,6,10,shade(wl[1],-10),shade(wl[0],-10),'#dcd6c7');sg.fillStyle='#f2ecdf';sg.fillRect(ax-10,tRty+3,5,5);sg.fillStyle='#3a3530';sg.fillRect(ax-8,tRty+5,1,2);sg.fillRect(ax-9,tRty+5,3,1);} // v4 鐘塔+鐘面
      sg.fillStyle='#8b95a5';sg.fillRect(ax,rty-9,1,9);      // 旗杆
      sg.fillStyle='#e05252';sg.fillRect(ax+1,rty-9,2,3);    // 頂部小紅旗 2×3px
      outlineSprite(sc,26,30,44);
@@ -1992,38 +1995,44 @@ function buildSprites(){
      避免位移共用 rand 流（既有 SPR 鍵回歸基線一致；ARCH §5.1 紀律）===== */
   for(const rcI of[0,2,3])genRoadLvl(rcI); // T29 小巷/次幹道/主幹道（rc=1/3/4）搬至尾端
   for(const t of tasks)if(t.k===1&&t.lv===3&&t.v===4)mkBld(t); // T30 公寓大樓(1_3_4)搬至尾端
-  /* ---------- 圖書館（T35；3 變體：紅磚牆＋大窗＋門前階梯＋屋頂小煙囪；FIX-B 搬至尾端）---------- */
-  {const LWALL=[['#a66b4a','#7d4f35'],['#b87a56','#8f5d40'],['#9c6243','#75482f']];
-   const LROOF=['#6b4a36','#5e3f2d','#7a5540'];
-   for(let v=0;v<3;v++){
+  /* ---------- 圖書館（T35／T223 擴 3→5）：v0-2 紅磚（逐位元不變），v3 石造列柱古典館，v4 現代玻璃館；v3/v4 決定性窗燈零 rand ---------- */
+  {const LWALL=[['#a66b4a','#7d4f35'],['#b87a56','#8f5d40'],['#9c6243','#75482f'],['#b8b4aa','#98948a'],['#e8ecf0','#c8d0d8']];
+   const LROOF=['#6b4a36','#5e3f2d','#7a5540','#7a766a','#4a6a80'];
+   for(let v=0;v<5;v++){
      const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
-     const ax=36,ay=110,by=ay-2,hw=24,h=18;
+     const ax=36,ay=110,by=ay-2,hw=24,h=v===3?20:18;
      const wl=LWALL[v],rf=LROOF[v];
+     const wrand=v>=3?(()=>{let ws=1411+v*53;return()=>{ws=(ws*9301+49297)%233280;return ws/233280;};})():rand;
      plate(g,ax,ay,'#9a9484');
      const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
-     windows(sg,ng,ax,by,hw,h,rand,.5,{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
-     // 門前階梯
-     sg.fillStyle='#8a8a8a';sg.fillRect(ax-5,by-2,10,2);
+     windows(sg,ng,ax,by,hw,h,wrand,.5,v===4?{w:5,ht:8,gx:7,gy:10,glass:'#7ab4d4',lit:'#cfe6ff'}:{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
+     if(v===3){for(const cx2 of[-8,-3,2,7]){const yF=by-((cx2+3+1)>>1);sg.fillStyle='#d4d0c4';sg.fillRect(ax+cx2,yF-h+4,2,h-6);} // v3 前廊列柱
+       sg.fillStyle='#c8c4b8';sg.fillRect(ax-6,rty+2,12,4);sg.fillStyle='#a8a498';sg.fillRect(ax-4,rty,8,3);} // 圓頂座
+     if(v===4){sg.fillStyle='#4a6a80';sg.fillRect(ax-10,rty+3,20,2);sg.fillStyle='#bfe0f0';sg.fillRect(ax-9,rty+5,18,1);} // v4 屋面天窗帶
+     sg.fillStyle='#8a8a8a';sg.fillRect(ax-5,by-2,10,2); // 門前階梯
      sg.fillStyle='#6a6a6a';sg.fillRect(ax-4,by,8,2);
-     // 屋頂小煙囪
-     sg.fillStyle='#7a7a7a';sg.fillRect(ax+6,rty-6,3,6);
+     if(v<3){sg.fillStyle='#7a7a7a';sg.fillRect(ax+6,rty-6,3,6);} // 屋頂小煙囪（僅紅磚版）
      outlineSprite(sc,26,30,40);
      g.drawImage(sc,0,0);
      SPR.bld['14_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
    }}
-  /* ---------- 郵局（T36；3 變體：黃色主調＋郵政徽＋大窗＋門前郵筒；FIX-B 搬至尾端）---------- */
-  {const PWALL=[['#e8c46a','#c9a34d'],['#f0d07a','#d1b25a'],['#dcb05a','#bd9345']];
-   const PROOF=['#8a6a3a','#7c5f34','#93713f'];
-   for(let v=0;v<3;v++){
+  /* ---------- 郵局（T36／T223 擴 3→5）：v0-2 黃牆（逐位元不變），v3 紅色郵政站，v4 現代物流站+卸貨月台；v3/v4 決定性窗燈零 rand ---------- */
+  {const PWALL=[['#e8c46a','#c9a34d'],['#f0d07a','#d1b25a'],['#dcb05a','#bd9345'],['#d05a48','#a84438'],['#9aa4b0','#7a8490']];
+   const PROOF=['#8a6a3a','#7c5f34','#93713f','#8a3a30','#4a5460'];
+   for(let v=0;v<5;v++){
      const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
-     const ax=36,ay=110,by=ay-2,hw=24,h=18;
+     const ax=36,ay=110,by=ay-2,hw=v===4?26:24,h=v===3?14:18;
      const wl=PWALL[v],rf=PROOF[v];
+     const wrand=v>=3?(()=>{let ws=1511+v*61;return()=>{ws=(ws*9301+49297)%233280;return ws/233280;};})():rand;
      plate(g,ax,ay,'#9a9484');
      const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
-     windows(sg,ng,ax,by,hw,h,rand,.5,{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
+     windows(sg,ng,ax,by,hw,h,wrand,.5,{w:4,ht:7,gx:7,gy:10,glass:'#2a3550',lit:'#ffd77a'});
+     if(v===3){diaEdge(sg,15,'#f2e8d8',ax,rty,hw);sg.fillStyle='#f2e8d8';sg.fillRect(ax-8,by-24,16,3);} // v3 白簷+白飾帶（紅底對比）
+     if(v===4){sg.fillStyle='#6a7480';sg.fillRect(ax+4,by-8,14,6);sg.fillStyle='#4a5460';sg.fillRect(ax+4,by-3,14,2); // v4 卸貨月台
+       sg.fillStyle='#c9974e';sg.fillRect(ax+6,by-12,4,4);sg.fillStyle='#a8763a';sg.fillRect(ax+11,by-11,4,3);} // 包裹箱
      // 郵政徽（門上方小圓）
-     sg.fillStyle='#4a6eb8';sg.fillRect(ax-4,by-20,8,8);
-     sg.fillStyle='#ffffff';sg.fillRect(ax-2,by-18,4,4);
+     sg.fillStyle=v===3?'#ffffff':'#4a6eb8';sg.fillRect(ax-4,by-20,8,8);
+     sg.fillStyle=v===3?'#d05a48':'#ffffff';sg.fillRect(ax-2,by-18,4,4);
      // 門前郵筒
      sg.fillStyle='#3a5a9c';sg.fillRect(ax+10,by-6,3,6);
      sg.fillStyle='#e05252';sg.fillRect(ax+10,by-7,3,1);
@@ -5064,15 +5073,15 @@ function doPlace(toolId,x,y,silent){
       stampCov('clinic',x,y,COVR.clinic,1);
       break;
     case 'school':
-      t.bld={k:7,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:7,lv:1,v:ri(5),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T223：學校 3→5 變體
       stampCov('school',x,y,COVR.school,1);
       break;
     case 'library':
-      t.bld={k:14,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:14,lv:1,v:ri(5),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T223：圖書館 3→5 變體
       stampCov('library',x,y,COVR.library,1);
       break;
     case 'post':
-      t.bld={k:15,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:15,lv:1,v:ri(5),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T223：郵局 3→5 變體
       stampCov('post',x,y,COVR.post,1);
       break;
     case 'cemetery':
