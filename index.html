@@ -2342,6 +2342,19 @@ function buildSprites(){
    for(const hx of[-10,4,18]){sg.fillStyle='#c9974e';sg.fillRect(ax+hx,ay-64,8,5);sg.fillStyle='#a8763a';sg.fillRect(ax+hx,ay-60,8,1);} // 乾草捆
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['53_1_0']={img:c,ax,ay,w:328,h:244,smoke:[]};}
+  /* ---------- T229 農場四季（Opus 親手，玩家指令「根據一年四季」）：精確色重映射——只換作物像素色（建築/地基不動），為 22_1_0..5 與 53_1_0 生成夏(茂)/秋(收割金)/冬(雪蓋田) 版；draw 依 season 選（春=既有 base 鍵零改動）。純 getImageData 逐像素查表、零 rand ---------- */
+  {const remap=(src,w,h,map)=>{const[c2,g2]=cv(w,h);g2.drawImage(src,0,0);const im=g2.getImageData(0,0,w,h),d=im.data;
+     for(let i=0;i<d.length;i+=4){if(d[i+3]<10)continue;const key=(d[i]<<16)|(d[i+1]<<8)|d[i+2];const m=map[key];if(m!==undefined){d[i]=(m>>16)&255;d[i+1]=(m>>8)&255;d[i+2]=m&255;}}
+     g2.putImageData(im,0,0);return c2;};
+   const SUM={0x8ab848:0x6fb838,0xd8b83a:0xc8c23a,0xb89a28:0xa8a428,0xf0d060:0xe0d858,0x3f7a34:0x35802c,0x2f5f28:0x27621e,0x4a8a3a:0x3f9434,0x66b04a:0x58c04a,0x5a7a3c:0x4f8434,0x476330:0x3f6b28,0x3d7a3c:0x35803a,0x4f9448:0x46a844}; // 夏：更茂綠
+   const AUT={0x8ab848:0xb8a040,0xd8b83a:0xe0a828,0xb89a28:0xb8861e,0xf0d060:0xf0c048,0x3f7a34:0xa89038,0x2f5f28:0x8a7428,0xe8cc48:0xd8a83a,0x4a8a3a:0x8a6a30,0x66b04a:0xa8842e,0x5a7a3c:0x8a7a34,0x476330:0x6b5f28,0x3d7a3c:0xc96a2c,0x4f9448:0xd98a34}; // 秋：收割金/枯
+   const WIN={0x8ab848:0xe8eef2,0xd8b83a:0xe8eef2,0xb89a28:0xd4dce6,0xf0d060:0xf2f6fa,0x3f7a34:0xe8eef2,0x2f5f28:0xd4dce6,0xe8cc48:0xf2f6fa,0x6b4a30:0xdee6ee,0x4a8a3a:0xe8eef2,0x66b04a:0xf2f6fa,0x5a7a3c:0xe8eef2,0x476330:0xd4dce6,0xe08028:0xe8eef2,0xf0a048:0xf2f6fa,0x3f5f2c:0xd4dce6,0x3d7a3c:0xe8eef2,0x4f9448:0xf2f6fa,0xd04838:0xe8eef2,0xe86858:0xf2f6fa}; // 冬：雪蓋田（南瓜/果實沒入雪）
+   SPR.farmSea={1:{},2:{},3:{}};
+   const FKEYS=['22_1_0','22_1_1','22_1_2','22_1_3','22_1_4','22_1_5','53_1_0'];
+   for(const fk of FKEYS){const b0=SPR.bld[fk];if(!b0)continue;
+     SPR.farmSea[1][fk]={img:remap(b0.img,b0.w,b0.h,SUM),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};
+     SPR.farmSea[2][fk]={img:remap(b0.img,b0.w,b0.h,AUT),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};
+     SPR.farmSea[3][fk]={img:remap(b0.img,b0.w,b0.h,WIN),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}
   // T46 牧場 (k=23, 2×2)
   {const[c,g]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#7a9a4a');g.fillStyle='#b09870';g.fillRect(ax-20,ay-20,12,8); // 牛棚
@@ -8349,6 +8362,7 @@ function draw(dt){
     else if(bd.k===52)s=SPR.policeBox; // 派出所（T222）
     else if(bd.k===12)s=(bd.v&&SPR.hospitalVar&&SPR.hospitalVar[bd.v])||SPR.hospital; // 醫院（T33）；T217：依 bd.v 選變體（v0 hero／v1 現代高塔／v2 庭院雙翼）
     else if(bd.k===13)s=(bd.v&&SPR.clinicVar&&SPR.clinicVar[bd.v])||SPR.clinic; // 診所（T34）；T217：依 bd.v 選變體（v0 hero／v1 綠十字藥局風／v2 兩層家庭診所）
+    else if((bd.k===22||bd.k===53)&&sea!==0&&SPR.farmSea&&SPR.farmSea[sea]&&SPR.farmSea[sea][bd.k+'_1_'+bd.v])s=SPR.farmSea[sea][bd.k+'_1_'+bd.v]; // T229：農牧四季作物相（夏茂/秋收金/冬雪蓋田；春＝generic base 零改動）
     else if(bd.k===1&&bd.lv===3&&bd.den>=4)s=wealthSpr('1_3_4',bd.we); // 高密度 Lv3 住宅（T30）；T125：財富色變，缺鍵回退中產
     else if(bd.k===1)s=wealthSpr(bd.k+'_'+bd.lv+'_'+bd.v,bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0']; // T125：住宅財富色變；變體鍵兜底同 FIX-D
     else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）
