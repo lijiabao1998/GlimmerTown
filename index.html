@@ -3705,6 +3705,17 @@ function buildSprites(){
       g.fillRect(1,1+wing,3,1);g.fillRect(5,1+wing,3,1);
       SPR.bird.push({img:c,ax:bax,ay:bay,w:9,h:5});
     }
+    // T196 水面浮禽（Opus 親手，審計缺口）：白天鵝+綠頭鴨小剪影，純幾何不消耗 rand
+    SPR.waterfowl=[];
+    {const[c,g]=cv(11,7); // 白天鵝（弧頸）
+     g.fillStyle='#eef1f4';g.fillRect(2,4,6,2);g.fillRect(3,3,4,1);
+     g.fillStyle='#e6e9ec';g.fillRect(7,2,1,2);g.fillRect(8,1,1,2); // 弧頸
+     g.fillStyle='#f4f6f8';g.fillRect(8,1,2,1);g.fillStyle='#e0902c';g.fillRect(9,1,1,1); // 頭+喙
+     SPR.waterfowl.push({img:c,ax:5,ay:5,w:11,h:7});}
+    {const[c,g]=cv(9,5); // 綠頭鴨
+     g.fillStyle='#6b5138';g.fillRect(1,2,6,2);g.fillRect(2,1,4,1);
+     g.fillStyle='#33604a';g.fillRect(6,1,2,1);g.fillStyle='#e0902c';g.fillRect(8,1,1,1); // 綠頭+喙
+     SPR.waterfowl.push({img:c,ax:4,ay:4,w:9,h:5});}
   }
   /* ===== T153 地形與自然美術：草地紋理疊加（4 變體×四季=16 張）＋岸邊漸變帶＋河床石礫（依既有 wm 位罩）
      ＋懸崖岩層線（既有 SPR.cliffEdge 16 mask 原地補畫）＋自然散佈物（野花/雜草/小石/倒木，四季色），置於
@@ -7387,6 +7398,24 @@ function draw(dt){
       ctx.fillRect(spx,spy,Math.max(1,z),Math.max(1,z));
     }
     ctx.globalAlpha=1;
+    ctx.restore();
+  }
+  if(animOn&&!lodFar&&!win&&SPR.waterfowl&&!window.__noFowl){ // T196 水面浮禽（Opus 親手，審計缺口）——水面原只有天上飛過的鳥，無浮於水上生物。稀疏(~2%)平靜水格浮一隻天鵝/鴨，visT 決定性緩慢漂移＋身後 V 形淡白尾跡；非冬(!win 避 T186 冰面)、遠景不繪、每幀動態不烘 groundCache、純 streetHash/visT 不消耗 R()，__noFowl 開關
+    ctx.save();
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const t=T(idx(x,y));
+      if(t.t!==0||t.dock||t.bridge||t.wm)continue; // 開闊平靜水（避岸邊）
+      const ph=streetHash(x,y,950);
+      if(ph>.02)continue;
+      const sx=sxOf(x,y),sy=syOf(x,y);
+      if(!vis(sx,sy))continue;
+      const fw=SPR.waterfowl[ph<.011?1:0];
+      const phase=visT*.32+ph*40, drift=Math.sin(phase)*11*z, wdir=Math.cos(phase)>=0?1:-1;
+      const fx=sx+20*z+drift, fy=sy+16*z+Math.sin(visT*.5+ph*20)*2*z;
+      ctx.strokeStyle='rgba(255,255,255,.26)';ctx.lineWidth=Math.max(1,.7*z);
+      ctx.beginPath();ctx.moveTo(fx,fy+fw.h*.5*z);ctx.lineTo(fx-wdir*10*z,fy-z);ctx.moveTo(fx,fy+fw.h*.5*z);ctx.lineTo(fx-wdir*10*z,fy+5*z);ctx.stroke();
+      ctx.drawImage(fw.img,fx-fw.ax*z,fy-fw.ay*z,fw.w*z,fw.h*z);
+    }
     ctx.restore();
   }
   /* ===== T163 動態浪花＋岸邊倒影：畫在地面快取貼上、T149 光暈、T152 水面波光之後，物件層之前（不烘進
