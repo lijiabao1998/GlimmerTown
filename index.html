@@ -7187,6 +7187,14 @@ function draw(dt){
       }else{
         const base= t.t===0?SPR.water[waterF] : t.t===1?(win?SPR.sandW:SPR.sand) : (win?SPR.grassW:sea===1?SPR.grassS:sea===2?SPR.grassA:(t.el?SPR.grassH:SPR.grass))[t.gv&3]; // T136：夏/秋地面色（SPR.grassS/grassA，長度 4 與日版一致），春季（sea===0）與改動前同一分支表達式
         gc.drawImage(base,sx,sy,64*z,32*z);
+        if(t.t===2&&!window.__noSandSeam&&SPR.shoreBlend){ // T199 草↔沙陸地接縫羽化（Opus 親手，審計缺口）——草地與沙地相鄰處原為硬鑽石邊。draw 端就地算「沙鄰接 mask」(同 recalcFoamAt wm 位元約定：1上/2右/4下/8左)，重用既有 SPR.shoreBlend(沙色 diaEdge 三層羽化)貼於草地沙向邊＝軟化草沙硬邊；免新增 tile 欄位/sprite，烘進 groundCache，不消耗 R()，__noSandSeam 開關
+          let sm=0;
+          if(inMap(x,y-1)&&T(idx(x,y-1)).t===1)sm|=1;
+          if(inMap(x+1,y)&&T(idx(x+1,y)).t===1)sm|=2;
+          if(inMap(x,y+1)&&T(idx(x,y+1)).t===1)sm|=4;
+          if(inMap(x-1,y)&&T(idx(x-1,y)).t===1)sm|=8;
+          if(sm)gc.drawImage(SPR.shoreBlend[sm],sx,sy,64*z,32*z);
+        }
         if(win&&t.t===0&&!window.__noIce){ // T186 冬季水面結冰（Opus 親手）——入冬水格於藍波之上疊淡藍白冰面（62% 覆蓋，底下波紋微透＝結冰質感）＋決定性裂紋（streetHash 選約半數格畫一道細白裂線）；併入 groundCache（季節為既有快取鍵，冬季冰面零每幀成本）；非冬/非水/__noIce 不繪＝該狀態零改動；純座標決定性 streetHash 不消耗 R()。修正「萬物覆雪、水面仍藍波蕩漾」之違和
           gc.fillStyle='rgba(216,230,241,0.62)';
           gc.beginPath();gc.moveTo(sx+32*z,sy);gc.lineTo(sx+64*z,sy+16*z);gc.lineTo(sx+32*z,sy+32*z);gc.lineTo(sx,sy+16*z);gc.closePath();gc.fill();
