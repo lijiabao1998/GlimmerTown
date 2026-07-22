@@ -2140,6 +2140,33 @@ function buildSprites(){
      g.drawImage(s,0,0);
      SPR.bld['16_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
    }}
+  { // T231 墓園 v3 白石陵墓（列柱+穹頂座，少墓碑）
+   const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+   const ax=36,ay=110,by=ay-2;
+   plate(g,ax,ay,'#9a9484');
+   const rty=isoBox(sg,ax,by-14,15,15,'#d8dcd4','#bcc2ba','#eef0ea'); // 白石陵墓
+   diaEdge(sg,15,'#a8aea6',ax,rty,15);
+   for(const cx2 of[-9,-3,3,9]){const yF=by-14-((Math.abs(cx2)+1)>>1);sg.fillStyle='#c2c8c0';sg.fillRect(ax+cx2,yF-11,2,11);} // 列柱
+   sg.fillStyle='#b0b6ae';sg.fillRect(ax-5,rty-3,10,4);sg.fillStyle='#c9cfc7';sg.fillRect(ax-3,rty-6,6,4); // 穹頂座
+   sg.fillStyle='#8a8a8a';sg.fillRect(ax-1,rty-8,2,3); // 頂十字
+   for(const[gx,gy] of[[ax-18,by-4],[ax+17,by-6]]){sg.fillStyle='#9aa59a';sg.fillRect(gx-2,gy-7,4,7);} // 少量墓碑
+   ng.fillStyle='#ffe9a0';ng.fillRect(ax-2,by-10,4,3); // 門內燭光
+   outlineSprite(s,26,30,38);g.drawImage(s,0,0);
+   SPR.bld['16_1_3']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
+  { // T231 墓園 v4 林間墓園（無教堂：柏樹林+墓碑陣+石徑）
+   const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+   const ax=36,ay=110,by=ay-2;
+   plate(g,ax,ay,'#9a9484');
+   sg.fillStyle='#b3ada1';sg.fillRect(ax-2,by-28,4,26); // 石徑
+   const cyp=[[ax-24,by-6],[ax-10,by-22],[ax+8,by-24],[ax+22,by-6]];
+   for(const[cx2,cy2] of cyp){sg.fillStyle='#2f4a2f';sg.beginPath();sg.moveTo(cx2,cy2-24);sg.lineTo(cx2+5,cy2);sg.lineTo(cx2-5,cy2);sg.closePath();sg.fill();
+     sg.fillStyle='#3f5f3c';sg.fillRect(cx2-1,cy2-20,2,3);} // 柏樹+亮紋
+   const gr=[[-16,-6],[-9,-10],[9,-9],[16,-4],[-13,-16],[13,-15],[6,-4],[-5,-5]];
+   for(const[dx2,dy2] of gr){sg.fillStyle='#9aa59a';sg.fillRect(ax+dx2-2,by+dy2-7,4,7);sg.fillStyle='#7a857a';sg.fillRect(ax+dx2-2,by+dy2-1,4,1);} // 墓碑陣
+   sg.fillStyle='#8a6a40';sg.fillRect(ax-4,by-30,8,2);sg.fillRect(ax-4,by-34,2,4);sg.fillRect(ax+2,by-34,2,4); // 木門拱
+   ng.globalAlpha=.4;ng.fillStyle='#ffcc70';ng.fillRect(ax-8,by-14,6,6);ng.fillRect(ax+4,by-12,6,6);ng.globalAlpha=1; // 燭光點
+   outlineSprite(s,26,30,38);g.drawImage(s,0,0);
+   SPR.bld['16_1_4']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   /* ===== FIX-B 亂數流對齊：以下 T29/T30/T35/T36 新增內容一律置於全部既有 sprite 之後，
      避免位移共用 rand 流（既有 SPR 鍵回歸基線一致；ARCH §5.1 紀律）===== */
   for(const rcI of[0,2,3])genRoadLvl(rcI); // T29 小巷/次幹道/主幹道（rc=1/3/4）搬至尾端
@@ -2210,6 +2237,32 @@ function buildSprites(){
    ng.fillStyle='#ffe9a0';ng.fillRect(ax-1,rty-5,2,2);
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['17_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
+  { // T231 火車站 v3 紅磚老站（拱門+大鐘面）
+   const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+   const ax=36,ay=110,by=ay-2,hw=26,h=24;
+   const wr=(()=>{let ws=1711;return()=>{ws=(ws*9301+49297)%233280;return ws/233280;};})(); // 決定性窗燈
+   plate(g,ax,ay,'#9a9484');
+   const rty=isoBox(sg,ax,by,hw,h,'#8f5d40','#a66b4a','#5e3f2d');
+   diaEdge(sg,15,'#e8dcc8',ax,rty,hw);
+   windows(sg,ng,ax,by,hw,h,wr,.6,{w:3,ht:5,gx:5,gy:7,glass:'#2a3550',lit:'#ffd77a'});
+   sg.fillStyle='#e8dcc8';sg.fillRect(ax-4,by-10,8,2); // 拱門楣
+   sg.fillStyle='#3a2f24';sg.fillRect(ax-3,by-8,6,8); // 拱門
+   sg.fillStyle='#f2ecdf';sg.fillRect(ax-4,rty+3,9,9);sg.fillStyle='#3a3530';sg.fillRect(ax-1,rty+7,1,3);sg.fillRect(ax-2,rty+6,3,1); // 大鐘面+指針
+   ng.fillStyle='#ffe9a0';ng.fillRect(ax-4,rty+3,9,9); // 鐘面夜光
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['17_1_3']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
+  { // T231 火車站 v4 現代玻璃站（弧形玻璃月台棚）
+   const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+   const ax=36,ay=110,by=ay-2,hw=26,h=14;
+   const wr=(()=>{let ws=1811;return()=>{ws=(ws*9301+49297)%233280;return ws/233280;};})();
+   plate(g,ax,ay,'#9a9484');
+   const rty=isoBox(sg,ax,by,hw,h,'#5a7a94','#48607a','#7094b0');
+   windows(sg,ng,ax,by,hw,h,wr,.7,{w:4,ht:6,gx:6,gy:8,glass:'#9cc8e0',lit:'#cfe6ff'});
+   sg.fillStyle='#c8d8e4';for(let dx2=-16;dx2<=16;dx2++){const arc=Math.round(Math.sqrt(Math.max(0,256-dx2*dx2))*.35);sg.fillRect(ax+dx2,rty-2-arc,1,2);} // 弧形棚
+   sg.fillStyle='#8fb4cc';sg.fillRect(ax-16,rty-1,33,1); // 棚沿
+   sg.fillStyle='#e05252';sg.fillRect(ax-2,rty-12,4,3);ng.fillStyle='#ff6060';ng.fillRect(ax-2,rty-12,4,3); // 站標
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['17_1_4']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // T40 港口 (k=18)
   for(let v=0;v<3;v++){const[c,g]=cv(88,120),[nc,ng]=cv(88,120),[sc,sg]=cv(88,120);
    const ax=44,ay=118,by=ay-2;
@@ -2222,6 +2275,35 @@ function buildSprites(){
    windows(sg,ng,ax,by,28,22,rand,.5,{gx:8,gy:9});
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['18_1_'+v]={img:c,night:nc,ax,ay,w:88,h:120,smoke:[]};}
+  { // T231 港口 v3 貨櫃碼頭（彩色貨櫃堆+高龍門吊）
+   const[c,g]=cv(88,120),[nc,ng]=cv(88,120),[sc,sg]=cv(88,120);
+   const ax=44,ay=118,by=ay-2;
+   plate(g,ax,ay,'#8f8a7c');
+   isoBox(sg,ax+8,by-4,16,10,'#6a7a8a','#5a6a7a','#4a5a6a'); // 低倉庫
+   const CC=['#c85048','#3a7ac0','#3f9a58','#e0a828','#8a5ac0'];
+   for(let r2=0;r2<3;r2++)for(let i2=0;i2<3-((r2)%2);i2++){ // 貨櫃堆（交錯三層）
+     sg.fillStyle=CC[(r2*3+i2)%CC.length];sg.fillRect(ax-30+i2*11+(r2%2)*5,by-10-r2*6,10,5);
+     sg.fillStyle='rgba(0,0,0,.2)';sg.fillRect(ax-30+i2*11+(r2%2)*5,by-6-r2*6,10,1);}
+   sg.fillStyle='#b8c0c8';sg.fillRect(ax-32,by-46,3,36);sg.fillRect(ax+2,by-46,3,36); // 龍門吊雙柱
+   sg.fillStyle='#98a0a8';sg.fillRect(ax-32,by-46,37,4); // 吊樑
+   sg.fillStyle='#555a62';sg.fillRect(ax-14,by-42,2,10);sg.fillStyle='#e0b83a';sg.fillRect(ax-16,by-32,6,4); // 吊索+吊具
+   ng.fillStyle='#ff6060';ng.fillRect(ax-33,by-48,4,3);ng.fillRect(ax+2,by-48,4,3); // 吊頂夜燈
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['18_1_3']={img:c,night:nc,ax,ay,w:88,h:120,smoke:[]};}
+  { // T231 港口 v4 漁港（小漁船+曬網+市棚）
+   const[c,g]=cv(88,120),[nc,ng]=cv(88,120),[sc,sg]=cv(88,120);
+   const ax=44,ay=118,by=ay-2;
+   plate(g,ax,ay,'#8f8a7c');
+   sg.fillStyle='#a09070';sg.fillRect(ax-30,by-8,60,6); // 木棧板
+   sg.fillStyle='#8a7a5a';for(let i2=0;i2<10;i2++)sg.fillRect(ax-28+i2*6,by-8,1,6);
+   sg.fillStyle='#3a6a9c';sg.fillRect(ax-24,by-16,16,6);sg.fillStyle='#2c527a';sg.fillRect(ax-22,by-10,12,2); // 漁船船身
+   sg.fillStyle='#e8e2d4';sg.fillRect(ax-19,by-22,6,6);sg.fillStyle='#8a4a2c';sg.fillRect(ax-12,by-24,2,10); // 船艙+桅
+   sg.fillStyle='#c9b896';sg.fillRect(ax+4,by-20,18,10);sg.fillStyle='#8a6a40';sg.fillRect(ax+2,by-22,22,3); // 市棚
+   sg.fillStyle='#5a6a5a';for(let i2=0;i2<5;i2++)sg.fillRect(ax+8+i2*3,by-30,1,8);sg.fillRect(ax+7,by-27,14,1); // 曬網
+   sg.fillStyle='#e05252';sg.fillRect(ax+26,by-14,3,6);sg.fillStyle='#ffffff';sg.fillRect(ax+26,by-12,3,2); // 浮標桶
+   ng.fillStyle='#ffe9a0';ng.fillRect(ax+8,by-18,4,4); // 棚內夜燈
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['18_1_4']={img:c,night:nc,ax,ay,w:88,h:120,smoke:[]};}
   // T40 碼頭
   {const[c,g]=cv(64,32);dia(g,32,0,32,'#a09070');diaEdge(g,15,'#c0b090');SPR.dock=c;}
   // T41 機場 (k=19, 4×4, 272×300)
@@ -5347,7 +5429,7 @@ function doPlace(toolId,x,y,silent){
       stampCov('post',x,y,COVR.post,1);
       break;
     case 'cemetery':
-      t.bld={k:16,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:16,lv:1,v:ri(5),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T231：墓園 3→5
       stampCov('cemetery',x,y,COVR.cemetery,1);
       break;
     case 'dump':
@@ -5453,10 +5535,10 @@ function doPlace(toolId,x,y,silent){
       recalcRailMask4(x,y);
       break;
     case 'station':
-      t.bld={k:17,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:17,lv:1,v:ri(5),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T231：火車站 3→5
       break;
     case 'port':
-      t.bld={k:18,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:18,lv:1,v:ri(5),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T231：港口 3→5
       break;
     case 'dock':
       t.dock=1;
