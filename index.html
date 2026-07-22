@@ -1735,6 +1735,38 @@ function buildSprites(){
    g.drawImage(s,0,0);
    SPR.waterTower={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // 勿用 SPR.water——那是地形水面幀陣列（FIX-A：夜燈走 .night，移除死碼 SPR.waterTowerN）
    }
+  /* ---------- T218 水塔變體 v1/v2（Opus 親手，玩家反饋 Phase1）：v1 鋼銀高腳塔(紅白格頂環)/v2 現代球形塔(單柱)。純 fillRect/isoBox 零 rand＝亂數流零位移 ---------- */
+  {SPR.waterTowerVar=[];
+   { // v1 鋼銀高腳塔
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    sg.fillStyle='#7a828c';for(const lx of[-11,-4,4,11]){sg.fillRect(ax+lx,by-34,2,32);} // 四高腳
+    sg.fillStyle='#5a626c';sg.fillRect(ax-12,by-16,26,2);sg.fillRect(ax-12,by-26,26,2); // 橫撐
+    const tankY=by-36;
+    isoBox(sg,ax,tankY,15,20,'#a8b2bc','#909aa4','#c2ccd6'); // 銀灰罐體
+    sg.fillStyle='#c85048';for(let i=-12;i<12;i+=6)sg.fillRect(ax+i,tankY-20,3,4); // 紅白格頂環
+    sg.fillStyle='#eef2f6';for(let i=-9;i<12;i+=6)sg.fillRect(ax+i,tankY-20,3,4);
+    sg.fillStyle='#6a7480';sg.fillRect(ax-1,tankY-26,2,6); // 頂桿
+    ng.fillStyle='#ff6060';ng.fillRect(ax-2,tankY-28,4,3); // 夜航燈
+    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
+    SPR.waterTowerVar[1]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+   { // v2 現代球形塔
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    sg.fillStyle='#8a94a0';sg.fillRect(ax-2,by-40,5,38); // 單柱
+    sg.fillStyle='#6a747e';sg.fillRect(ax-6,by-4,13,3); // 柱腳
+    const cxs=ax,cys=by-50; // 球心
+    for(let dy=-12;dy<=12;dy++){const w2=Math.floor(Math.sqrt(Math.max(0,144-dy*dy))); // 球形罐（逐列圓）
+      sg.fillStyle=dy<-4?'#dfeaf4':dy<4?'#b8d4e8':'#8fb4cc';sg.fillRect(cxs-w2,cys+dy,w2*2,1);}
+    sg.fillStyle='#5a96b8';sg.fillRect(cxs-12,cys-1,24,3); // 藍腰帶
+    sg.fillStyle='#ffffff';sg.fillRect(cxs-5,cys-9,6,3); // 高光
+    ng.fillStyle='#8fd0ff';ng.fillRect(cxs-2,cys-14,4,3); // 頂微光
+    ng.fillStyle='#ff6060';ng.fillRect(cxs+8,cys+6,3,3); // 夜航燈
+    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
+    SPR.waterTowerVar[2]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+  }
   /* ---------- 警察局（T32；72×112 藍白建築＋警徽＋警車＋夜間藍燈）---------- */
   {const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
    const ax=36,ay=110,by=ay-2;
@@ -8024,7 +8056,7 @@ function draw(dt){
     if(bd.k===4)s=(win?SPR.parkW:sea===1?(SPR.parkS||SPR.park):sea===2?(SPR.parkA||SPR.park):SPR.park)[bd.v]; // T204：夏/秋公園季節色（春季/缺失回退 base）
     else if(bd.k===5)s=SPR.plant;
     else if(bd.k===9)s=SPR.bld['9_1_'+bd.v];
-    else if(bd.k===10)s=SPR.waterTower; // 水塔（T31）
+    else if(bd.k===10)s=(bd.v&&SPR.waterTowerVar&&SPR.waterTowerVar[bd.v])||SPR.waterTower; // 水塔（T31）；T218：依 bd.v 選變體（v0 圓柱／v1 鋼銀高腳／v2 球形）
     else if(bd.k===11)s=(bd.v&&SPR.policeVar&&SPR.policeVar[bd.v])||SPR.police; // 警察局（T32）；T216：依 bd.v 選變體（v0 hero／v1 現代寬樓／v2 高塔式，缺鍵回退 hero）
     else if(bd.k===12)s=(bd.v&&SPR.hospitalVar&&SPR.hospitalVar[bd.v])||SPR.hospital; // 醫院（T33）；T217：依 bd.v 選變體（v0 hero／v1 現代高塔／v2 庭院雙翼）
     else if(bd.k===13)s=(bd.v&&SPR.clinicVar&&SPR.clinicVar[bd.v])||SPR.clinic; // 診所（T34）；T217：依 bd.v 選變體（v0 hero／v1 綠十字藥局風／v2 兩層家庭診所）
