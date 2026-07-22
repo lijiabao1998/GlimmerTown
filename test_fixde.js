@@ -247,9 +247,9 @@ for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.b
   assert(sp, 'farm 應找到可建位置');
   assert(place('farm', sp.x, sp.y), 'farm 應成功建造');
   const fb = tile(sp.x, sp.y).bld;
-  const expV = (sp.x * 5 + sp.y * 11) % 6; // T227：6 變體
-  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%6=' + expV + '、sz=2');
-  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_5']"), 'SPR.bld 應生成 22_1_1..22_1_5（T226/227 農場 6 變體）');
+  const expV = (sp.x * 5 + sp.y * 11) % 12; // T235：12 作物
+  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%12=' + expV + '、sz=2');
+  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_11']"), 'SPR.bld 應生成 22_1_1..22_1_11（T226/227/235 農場 12 作物）');
   svRoots.push({ k: 22, x: sp.x, y: sp.y, keepV: expV });
 }
 // T232：停車場座標決定性選型＋SPR 鍵存在＋load 保留變體

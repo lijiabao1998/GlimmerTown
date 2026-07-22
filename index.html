@@ -2479,6 +2479,66 @@ function buildSprites(){
    g.fillStyle='#c9974e';g.fillRect(ax+18,ay-22,6,4);g.fillStyle='#a8763a';g.fillRect(ax+18,ay-18,6,3); // 果箱
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_5']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T235 農場 v6 番茄園（支架+紅果）
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   g.fillStyle='#3f7a34';g.fillRect(ax-20,ay-46,26,17);g.fillRect(ax+8,ay-40,14,12); // 綠叢田
+   g.fillStyle='#8a6a3a';for(let i=0;i<6;i++)g.fillRect(ax-18+i*5,ay-46,1,15); // 支架
+   const TM=[[-17,-42],[-12,-38],[-7,-44],[-2,-36],[-15,-33],[-5,-31],[10,-38],[15,-33],[18,-39],[12,-30]];
+   for(const[px,py] of TM){g.fillStyle='#e04838';g.fillRect(ax+px,ay+py,2,2);} // 紅番茄
+   g.fillStyle='#6a7a3a';g.fillRect(ax-26,ay-26,12,14);g.fillStyle='#9a8a4a';g.fillRect(ax-24,ay-28,8,2); // 小屋
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_6']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T235 農場 v7 草莓田（低壟+紅莓+白花）
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   g.fillStyle='#4a8a3a';for(let r2=0;r2<4;r2++){g.fillRect(ax-20,ay-46+r2*4,26,2);}g.fillRect(ax+8,ay-40,14,2);g.fillRect(ax+8,ay-35,14,2);g.fillRect(ax+8,ay-30,14,2); // 低壟
+   const SB=[[-17,-45],[-9,-41],[-3,-45],[-14,-37],[-6,-33],[2,-37],[10,-39],[16,-35],[13,-30]];
+   for(const[px,py] of SB){g.fillStyle='#e03848';g.fillRect(ax+px,ay+py,2,2);} // 紅莓
+   g.fillStyle='#ffffff';g.fillRect(ax-11,ay-44,1,1);g.fillRect(ax-1,ay-40,1,1);g.fillRect(ax+14,ay-38,1,1); // 白花
+   g.fillStyle='#6a7a3a';g.fillRect(ax-26,ay-26,12,14);g.fillStyle='#9a8a4a';g.fillRect(ax-24,ay-28,8,2);
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_7']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T235 農場 v8 葡萄園（棚架列+紫串）
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   for(let r2=0;r2<3;r2++){const ry2=ay-44+r2*7;
+     g.fillStyle='#6b4a2f';g.fillRect(ax-20,ry2,1,6);g.fillRect(ax+2,ry2,1,6);g.fillRect(ax+22,ry2,1,6); // 棚柱
+     g.fillStyle='#4a7a3c';g.fillRect(ax-20,ry2,43,2); // 藤葉帶
+     g.fillStyle='#7a4a9c';for(let i=0;i<6;i++)g.fillRect(ax-17+i*7,ry2+2,2,2);} // 紫葡萄串
+   g.fillStyle='#6a7a3a';g.fillRect(ax-26,ay-24,12,13);g.fillStyle='#9a8a4a';g.fillRect(ax-24,ay-26,8,2);
+   g.fillStyle='#8a5a2c';g.fillRect(ax+16,ay-20,6,5);g.fillStyle='#a8703a';g.fillRect(ax+16,ay-20,6,1); // 酒桶
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_8']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T235 農場 v9 向日葵田（高稈+大黃頭）
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   g.fillStyle='#3f6f30';g.fillRect(ax-20,ay-44,26,15);g.fillRect(ax+8,ay-40,14,12); // 稈田底
+   const SF=[[-17,-45],[-10,-42],[-3,-46],[-14,-35],[-6,-32],[3,-38],[10,-41],[16,-36],[13,-30],[19,-42]];
+   for(const[px,py] of SF){g.fillStyle='#f0c030';g.fillRect(ax+px-1,ay+py-1,4,4);g.fillStyle='#6b4a20';g.fillRect(ax+px,ay+py,2,2);} // 黃瓣+褐心
+   g.fillStyle='#6a7a3a';g.fillRect(ax-26,ay-26,12,14);g.fillStyle='#9a8a4a';g.fillRect(ax-24,ay-28,8,2);
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_9']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T235 農場 v10 稻田（水田+秧苗列+田埂）
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   g.fillStyle='#5a8aa0';g.fillRect(ax-20,ay-46,26,17);g.fillRect(ax+8,ay-40,14,12); // 水面
+   g.fillStyle='#8a7a50';g.fillRect(ax-21,ay-47,28,1);g.fillRect(ax-21,ay-29,28,1);g.fillRect(ax-21,ay-47,1,19);g.fillRect(ax+6,ay-47,1,19); // 田埂
+   g.fillStyle='#58a848';for(let r2=0;r2<5;r2++)for(let i=0;i<8;i++)g.fillRect(ax-18+i*3,ay-44+r2*3,1,2); // 秧苗點列
+   for(let i=0;i<4;i++)g.fillRect(ax+10+i*3,ay-38,1,2);for(let i=0;i<4;i++)g.fillRect(ax+10+i*3,ay-34,1,2);
+   g.fillStyle='#6a7a3a';g.fillRect(ax-26,ay-26,12,14);g.fillStyle='#9a8a4a';g.fillRect(ax-24,ay-28,8,2);
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_10']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T235 農場 v11 高麗菜田（藍綠大球列）
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   g.fillStyle='#6b4a30';g.fillRect(ax-20,ay-46,26,17);g.fillRect(ax+8,ay-40,14,12); // 土田
+   for(let r2=0;r2<3;r2++)for(let i=0;i<5;i++){const bx2=ax-17+i*5,by2=ay-43+r2*5;
+     g.fillStyle='#7ab88a';g.fillRect(bx2,by2,3,3);g.fillStyle='#98d0a4';g.fillRect(bx2,by2,2,1);} // 高麗菜球
+   for(let i=0;i<3;i++){const bx2=ax+10+i*4,by2=ay-37;g.fillStyle='#7ab88a';g.fillRect(bx2,by2,3,3);g.fillStyle='#98d0a4';g.fillRect(bx2,by2,2,1);}
+   g.fillStyle='#6a7a3a';g.fillRect(ax-26,ay-26,12,14);g.fillStyle='#9a8a4a';g.fillRect(ax-24,ay-28,8,2);
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_11']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T228 大農場 53_1_0（5×5=25 格，玩家指令「更大的地塊」）：四作物 patch＋大紅穀倉＋雙筒倉＋農舍＋拖拉機＋乾草捆
    const[c,g]=cv(328,244),[sc,sg]=cv(328,244);const ax=164,ay=242;
    dia(g,ax,ay-160,160,'#8a9a5a'); // 5×5 草底大菱形
@@ -2509,11 +2569,11 @@ function buildSprites(){
   {const remap=(src,w,h,map)=>{const[c2,g2]=cv(w,h);g2.drawImage(src,0,0);const im=g2.getImageData(0,0,w,h),d=im.data;
      for(let i=0;i<d.length;i+=4){if(d[i+3]<10)continue;const key=(d[i]<<16)|(d[i+1]<<8)|d[i+2];const m=map[key];if(m!==undefined){d[i]=(m>>16)&255;d[i+1]=(m>>8)&255;d[i+2]=m&255;}}
      g2.putImageData(im,0,0);return c2;};
-   const SUM={0x8ab848:0x6fb838,0xd8b83a:0xc8c23a,0xb89a28:0xa8a428,0xf0d060:0xe0d858,0x3f7a34:0x35802c,0x2f5f28:0x27621e,0x4a8a3a:0x3f9434,0x66b04a:0x58c04a,0x5a7a3c:0x4f8434,0x476330:0x3f6b28,0x3d7a3c:0x35803a,0x4f9448:0x46a844}; // 夏：更茂綠
-   const AUT={0x8ab848:0xb8a040,0xd8b83a:0xe0a828,0xb89a28:0xb8861e,0xf0d060:0xf0c048,0x3f7a34:0xa89038,0x2f5f28:0x8a7428,0xe8cc48:0xd8a83a,0x4a8a3a:0x8a6a30,0x66b04a:0xa8842e,0x5a7a3c:0x8a7a34,0x476330:0x6b5f28,0x3d7a3c:0xc96a2c,0x4f9448:0xd98a34}; // 秋：收割金/枯
-   const WIN={0x8ab848:0xe8eef2,0xd8b83a:0xe8eef2,0xb89a28:0xd4dce6,0xf0d060:0xf2f6fa,0x3f7a34:0xe8eef2,0x2f5f28:0xd4dce6,0xe8cc48:0xf2f6fa,0x6b4a30:0xdee6ee,0x4a8a3a:0xe8eef2,0x66b04a:0xf2f6fa,0x5a7a3c:0xe8eef2,0x476330:0xd4dce6,0xe08028:0xe8eef2,0xf0a048:0xf2f6fa,0x3f5f2c:0xd4dce6,0x3d7a3c:0xe8eef2,0x4f9448:0xf2f6fa,0xd04838:0xe8eef2,0xe86858:0xf2f6fa}; // 冬：雪蓋田（南瓜/果實沒入雪）
+   const SUM={0x8ab848:0x6fb838,0xd8b83a:0xc8c23a,0xb89a28:0xa8a428,0xf0d060:0xe0d858,0x3f7a34:0x35802c,0x2f5f28:0x27621e,0x4a8a3a:0x3f9434,0x66b04a:0x58c04a,0x5a7a3c:0x4f8434,0x476330:0x3f6b28,0x3d7a3c:0x35803a,0x4f9448:0x46a844,0x4a7a3c:0x3f8434,0x58a848:0x4ab848,0x3f6f30:0x356828,0x7ab88a:0x6ac084}; // 夏：更茂綠（T235 新作物入表）
+   const AUT={0x8ab848:0xb8a040,0xd8b83a:0xe0a828,0xb89a28:0xb8861e,0xf0d060:0xf0c048,0x3f7a34:0xa89038,0x2f5f28:0x8a7428,0xe8cc48:0xd8a83a,0x4a8a3a:0x8a6a30,0x66b04a:0xa8842e,0x5a7a3c:0x8a7a34,0x476330:0x6b5f28,0x3d7a3c:0xc96a2c,0x4f9448:0xd98a34,0x4a7a3c:0xc96a2c,0x58a848:0xd8b02a,0x5a8aa0:0xb8a058,0x3f6f30:0x9a8430,0xf0c030:0xd8a028}; // 秋：收割金/枯（稻穗金/葡萄葉橙/向日葵垂頭）
+   const WIN={0x8ab848:0xe8eef2,0xd8b83a:0xe8eef2,0xb89a28:0xd4dce6,0xf0d060:0xf2f6fa,0x3f7a34:0xe8eef2,0x2f5f28:0xd4dce6,0xe8cc48:0xf2f6fa,0x6b4a30:0xdee6ee,0x4a8a3a:0xe8eef2,0x66b04a:0xf2f6fa,0x5a7a3c:0xe8eef2,0x476330:0xd4dce6,0xe08028:0xe8eef2,0xf0a048:0xf2f6fa,0x3f5f2c:0xd4dce6,0x3d7a3c:0xe8eef2,0x4f9448:0xf2f6fa,0xd04838:0xe8eef2,0xe86858:0xf2f6fa,0x4a7a3c:0xe8eef2,0x7a4a9c:0xe8eef2,0x58a848:0xe8eef2,0x5a8aa0:0xdce8f0,0x8a7a50:0xdee6ee,0x3f6f30:0xe8eef2,0xf0c030:0xf2f6fa,0x6b4a20:0xd4dce6,0x7ab88a:0xe8eef2,0x98d0a4:0xf2f6fa,0xe04838:0xe8eef2,0xe03848:0xe8eef2}; // 冬：雪蓋田（果實沒雪、稻水結冰）
    SPR.farmSea={1:{},2:{},3:{}};
-   const FKEYS=['22_1_0','22_1_1','22_1_2','22_1_3','22_1_4','22_1_5','53_1_0'];
+   const FKEYS=['22_1_0','22_1_1','22_1_2','22_1_3','22_1_4','22_1_5','22_1_6','22_1_7','22_1_8','22_1_9','22_1_10','22_1_11','53_1_0']; // T235：新六作物入四季管線
    for(const fk of FKEYS){const b0=SPR.bld[fk];if(!b0)continue;
      SPR.farmSea[1][fk]={img:remap(b0.img,b0.w,b0.h,SUM),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};
      SPR.farmSea[2][fk]={img:remap(b0.img,b0.w,b0.h,AUT),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};
@@ -5652,7 +5712,7 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%6,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T226/T227：農場 6 變體（綠田/麥/菜畦/玉米/南瓜/果園），座標決定性選型（零 R）
+        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%12,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T226/T227/T235：農場 12 作物（綠田/麥/菜畦/玉米/南瓜/果園/番茄/草莓/葡萄/向日葵/稻田/高麗菜），座標決定性選型（零 R）
       }
       break;}
     case 'bigFarm':{ // T228：大農場 5×5（玩家指令「更大的地塊」）
