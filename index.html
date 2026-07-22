@@ -535,6 +535,7 @@ let rainDays=0;          // 連續雨天計數（T57 洪水）
 let floodTiles=[];       // 淹水格子 [{x,y,remain}]（T57）
 let shakeT=0;            // 地震震動計時器（T56）
 let quakeRecover=0;      // 地震後恢復天數（T56）
+let meteorTrail=null;    // T207：隕石入場火球拖尾視覺計時（{x,y,t}，純渲染不進存檔，比照 flashT/shakeT；於 newWorld 重置）
 let pol=null;            // 稅率政策 {taxR,taxC,taxI, heightLimit, envReg, transitSubsidy}（T55）；T122 擴四布林 curfew/recycle/tourPromo/ecoReg（城市法規開關，皆非稅收槓桿）
 let foodPoints=0;        // 食物點數（T46，每天重算）
 let tourists=0;          // 遊客數（T47，每天重算）
@@ -4535,6 +4536,7 @@ function newWorld(seedOverride){
   RDEP.fill(0);supplies=0; // T140：資源耗損場與供應品存量成對歸零（RESOURCE 本身已由上方 genWorld→genResource 依新種子重建，鐵律7）
   trains.length=0;cargoShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車
   svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本開新圖歸零（鐵律7）
+  meteorTrail=null;shakeT=0;flashT=0; // T207：開新圖清視覺計時器（鐵律7，防前一局隕石拖尾/震屏/閃電殘留）
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
   weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null;plague=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零；T137：瘟疫/乾旱/暴風雪/工業洩漏皆運行時狀態，開新圖強制歸零消散
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
@@ -5532,6 +5534,7 @@ function meteorStrike(cx,cy){
   }
   const ct=T(idx(cx,cy));ct.ruin=0;ct.crater=1;
   shakeT=.45;flashT=.4;
+  if(!window.__noMeteorTrail)meteorTrail={x:cx,y:cy,t:.7}; // T207：入場火球拖尾（純渲染計時，比照 flashT）
   if(!window.__noDebris){spawnDebris(cx,cy);spawnDust(cx,cy);for(const p of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1]]){const nx=cx+p[0],ny=cy+p[1];if(inMap(nx,ny)){spawnDebris(nx,ny);spawnDust(nx,ny);}}} // T198：隕石落點碎屑塵爆（既有函式，Math.random 不消耗 R()、不入存檔，放災害分支不位移亂數流）
   toast('☄️ 隕石墜落！留下隕石坑並持續起火，需付費剷除','bad',cx,cy);sErr();
   return true;
@@ -8263,6 +8266,21 @@ function draw(dt){
       ctx.restore();
     }
     flashT=Math.max(0,flashT-dt);
+  }
+  if(meteorTrail&&!lodMini){ // T207 隕石入場火球拖尾（Opus 親手，審計缺口）——隕石落點(sxOf/syOf)自上空劃下的橙色火球拖尾＋亮頭，隨 t 淡出；純渲染計時(不進存檔、newWorld 重置)、不消耗 R()；遠景(lodMini)不繪
+    const mtx=sxOf(meteorTrail.x,meteorTrail.y)+32*z, mty=syOf(meteorTrail.x,meteorTrail.y)+16*z;
+    const a=clamp(meteorTrail.t/.7,0,1), tlen=H*.85;
+    const ex=mtx-tlen*.42, ey=mty-tlen; // 尾端：落點往上偏左延伸入天空（入場軌跡）
+    ctx.save();ctx.lineCap='round'; // source-over：隕石同幀白閃已飽和，實色橙才可見（同 T195 電光教訓）
+    const g=ctx.createLinearGradient(mtx,mty,ex,ey);
+    g.addColorStop(0,`rgba(255,190,90,${(a*.8).toFixed(3)})`);g.addColorStop(1,'rgba(255,120,40,0)');
+    ctx.strokeStyle=g;ctx.lineWidth=Math.max(2,4*z);
+    ctx.beginPath();ctx.moveTo(mtx,mty);ctx.lineTo(ex,ey);ctx.stroke(); // 拖尾
+    const hg=ctx.createRadialGradient(mtx,mty,0,mtx,mty,8*z);
+    hg.addColorStop(0,`rgba(255,246,214,${a.toFixed(3)})`);hg.addColorStop(.5,`rgba(255,170,60,${(a*.75).toFixed(3)})`);hg.addColorStop(1,'rgba(255,140,40,0)');
+    ctx.fillStyle=hg;ctx.beginPath();ctx.arc(mtx,mty,8*z,0,6.283);ctx.fill(); // 落點火球頭
+    ctx.restore();
+    meteorTrail.t-=dt;if(meteorTrail.t<=0)meteorTrail=null;
   }
   // ---- T143：因果追溯疊圖（inspect 面板點擊負向因子後高亮貢獻來源格；traceOverlay 為 null 或空陣列時零迭代，逐像素與改動前一致）----
   if(traceOverlay&&traceOverlay.tiles.length){
