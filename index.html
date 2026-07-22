@@ -658,6 +658,29 @@ function snowCap(s){
   sg.putImageData(out,0,0);
   s.snow=sc;return sc;
 }
+// T197 冬季屋簷冰柱（Opus 親手，審計缺口）：自屋頂雪線(top+cap)往下、每 6 欄一根漸細藍白冰柱，只落建築剪影上(遇透明即止＝自然收在簷邊，不懸空)。一次性快取於 s.icicle，純既有像素 canvas 操作不消耗 R()、不改 s.img；win 冬季且 snowLvl>0 才被呼叫
+function icicleCap(s){
+  if(s.icicle!==undefined)return s.icicle;
+  const w=s.w|0,h=s.h|0;
+  const[mc,mg]=cv(w,h);mg.drawImage(s.img,0,0);
+  const sd=mg.getImageData(0,0,w,h).data;
+  const[ic,ig]=cv(w,h);const out=ig.createImageData(w,h),nd=out.data;
+  const cap=Math.max(3,Math.round(h*.11));
+  for(let x=2;x<w-2;x++){
+    if((x%6)!==3)continue;
+    let top=-1;for(let y=0;y<h;y++){if(sd[(y*w+x)*4+3]>40){top=y;break;}}
+    if(top<0)continue;
+    const startY=top+cap-1, len=3+((x*13)%4);
+    for(let dy=0;dy<len;dy++){
+      const y=startY+dy;if(y>=h)break;
+      if(sd[(y*w+x)*4+3]<40)break; // 只在剪影上，遇透明即止
+      const a=(1-dy/len)*.6+.35, idx=(y*w+x)*4;
+      nd[idx]=200;nd[idx+1]=222;nd[idx+2]=242;nd[idx+3]=Math.round(a*255);
+    }
+  }
+  ig.putImageData(out,0,0);
+  s.icicle=ic;return ic;
+}
 // T184 雨天濕膜（Opus 親手）：以 sprite 剪影為遮罩（source-atop 只落不透明像素，故覆蓋全剪影亦不塗到透明天空、不涉屋頂線陷阱）疊冷暗垂直漸層（頂微暗、底較暗＝雨水沿牆流/牆腳積水）。一次性生成快取於 s.wet，純既有像素 canvas 操作、不消耗 R()、不改 s.img；wetLvl>0（非冬下雨）才被呼叫。
 function wetSkin(s){
   if(s.wet!==undefined)return s.wet;
@@ -7907,6 +7930,7 @@ function draw(dt){
     if(win&&snowLvl>0&&!lodFar&&bd.k!==4&&!window.__noRoofSnow){ // T183 冬季屋頂積雪（Opus 親手）——RCI/服務建築本體無冬季雪化變體（見 T161 註記「本卡未新增建築本體冬季雪化」），入冬且積雪(snowLvl>0，沿用 T154 rainDays/SNOW_ACC_DAYS，與地面積雪同步累積/緩降)時於建築本體之上疊「雪帽」：snowCap(s) 以 sprite 剪影為遮罩僅在頂部加白；乘 drawA 使被遮擋/施工中建築的雪同步淡化；非冬/無積雪(snowLvl=0)/公園(k4)/遠景(lodFar) 不繪＝該狀態逐像素零改動，__noRoofSnow 開關供回歸比對；純讀既有 win/snowLvl/drawA 不消耗 R()
       ctx.globalAlpha=Math.min(1,snowLvl*1.08)*drawA;
       ctx.drawImage(snowCap(s),bx,by,s.w*z,s.h*z);
+      if(!window.__noIcicle)ctx.drawImage(icicleCap(s),bx,by,s.w*z,s.h*z); // T197：雪帽之下疊屋簷冰柱
       ctx.globalAlpha=1;
     }
     if(wetLvl>0&&!lodFar&&bd.k!==4&&!window.__noWetBld){ // T184 雨天濕潤建築（Opus 親手）——與 T154 地面濕反光對稱：非冬下雨(wetLvl>0，沿用 rainDays/RAIN_ACC_DAYS)時建築本體疊冷暗濕膜 wetSkin(s)（頂微暗底較暗＝雨水沿牆流/牆腳積水），修正「地濕牆乾」違和；覆蓋全剪影故不涉屋頂線陷阱；乘 drawA 同步淡化；冬季(wetLvl=0，改由 T183 屋頂積雪表現)/晴天/公園(k4)/遠景 不繪＝該狀態逐像素零改動，__noWetBld 開關供回歸；純讀既有 wetLvl/drawA 不消耗 R()
