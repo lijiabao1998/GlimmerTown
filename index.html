@@ -2256,13 +2256,35 @@ function buildSprites(){
    for(let i=0;i<6;i++){const cx=ax-24+i*10;g.fillStyle=['#e05252','#5aa0e8','#ffd455'][i%3];g.fillRect(cx,ay-38,6,10);}
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['20_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  // T46 農場 (k=22, 2×2)
+  // T46 農場 (k=22, 2×2)；T226 擴 1→3：v1 金色麥田+紅穀倉、v2 菜畦農場+溫室（零 rand）
   {const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a');g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉
    g.fillStyle='#9a8a4a';g.fillRect(ax-22,ay-32,12,2);
    g.fillStyle='#8ab848';g.fillRect(ax-20,ay-44,20,14);g.fillRect(ax+4,ay-40,10,12); // 田地
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T226 農場 v1 金色麥田
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   g.fillStyle='#a83a2c';g.fillRect(ax-26,ay-30,16,20);g.fillStyle='#7a2a20';g.fillRect(ax-24,ay-32,12,2); // 紅穀倉
+   g.fillStyle='#e8e2d4';g.fillRect(ax-20,ay-24,4,6); // 穀倉門
+   g.fillStyle='#d8b83a';g.fillRect(ax-18,ay-46,24,15);g.fillRect(ax+8,ay-42,14,13); // 金麥田
+   g.fillStyle='#b89a28';for(let i=0;i<5;i++){g.fillRect(ax-17+i*5,ay-45,1,13);}for(let i=0;i<3;i++){g.fillRect(ax+9+i*5,ay-41,1,11);} // 麥壟線
+   g.fillStyle='#f0d060';g.fillRect(ax-18,ay-46,24,2);g.fillRect(ax+8,ay-42,14,2); // 麥浪亮頂
+   g.fillStyle='#8a6a3a';g.fillRect(ax+18,ay-24,3,8);g.fillStyle='#c9974e';g.fillRect(ax+15,ay-27,9,4); // 乾草捆
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_1']={img:c,ax,ay,w:136,h:150,smoke:[]};}
+  { // T226 農場 v2 菜畦農場+溫室
+   const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
+   plate(g,ax,ay,'#8a9a5a');
+   g.fillStyle='#6b4a30';g.fillRect(ax-20,ay-44,22,16); // 深土田
+   for(let i=0;i<5;i++){g.fillStyle='#4a8a3a';g.fillRect(ax-19+i*4,ay-43,2,14);g.fillStyle='#66b04a';for(let j=0;j<4;j++)g.fillRect(ax-19+i*4,ay-41+j*3,2,1);} // 菜壟+菜點
+   g.fillStyle='#c8dce8';g.fillRect(ax+4,ay-38,18,10);g.fillStyle='#e8f2f8';g.fillRect(ax+4,ay-38,18,2); // 溫室玻璃
+   g.fillStyle='#8a94a0';g.fillRect(ax+4,ay-28,18,1);g.fillRect(ax+12,ay-38,1,10); // 溫室框
+   g.fillStyle='#6a7a3a';g.fillRect(ax-26,ay-26,12,14);g.fillStyle='#9a8a4a';g.fillRect(ax-24,ay-28,8,2); // 小屋
+   g.fillStyle='#5a8a9c';g.fillRect(ax+14,ay-20,6,6);g.fillStyle='#3a6a7c';g.fillRect(ax+15,ay-19,4,4); // 水桶
+   outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+   SPR.bld['22_1_2']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   // T46 牧場 (k=23, 2×2)
   {const[c,g]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#7a9a4a');g.fillStyle='#b09870';g.fillRect(ax-20,ay-20,12,8); // 牛棚
@@ -5372,7 +5394,7 @@ function doPlace(toolId,x,y,silent){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:0,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // SPR.bld 僅生成 22_1_0，固定 v:0
+        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%3,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T226：農場 1→3 變體，座標決定性選型（零 R）
       }
       break;}
     case 'ranch':{
