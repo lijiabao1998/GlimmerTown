@@ -741,7 +741,14 @@ function windows(g,ng,cx,by,hw,h,rand,litP,opts){
     g.fillStyle=o.glass;g.fillRect(x,y,o.w,o.ht);
     g.fillStyle='rgba(255,255,255,.28)';g.fillRect(x,y,o.w,1);
     g.fillStyle='rgba(255,255,255,.30)';g.fillRect(x,y+o.ht,o.w,1);
-    if(ng&&rand()<litP){ng.fillStyle=o.lit;ng.fillRect(x,y,o.w,o.ht);}
+    g.fillStyle='rgba(15,21,35,.5)';                      // T191 窗櫺：垂直中挺（+高窗橫檔）細分玻璃為窗格；純 fillRect 於 rand() 前，不改亂數消耗次數
+    if(o.w>=3)g.fillRect(x+(o.w>>1),y,1,o.ht);
+    if(o.ht>=5)g.fillRect(x,y+(o.ht>>1),o.w,1);
+    if(ng&&rand()<litP){ng.fillStyle=o.lit;ng.fillRect(x,y,o.w,o.ht);
+      ng.fillStyle='rgba(96,64,22,.55)';                  // 夜間窗格暗櫺（點亮玻璃上仍見窗框十字）
+      if(o.w>=3)ng.fillRect(x+(o.w>>1),y,1,o.ht);
+      if(o.ht>=5)ng.fillRect(x,y+(o.ht>>1),o.w,1);
+    }
   };
   for(let dx=2;dx<hw-o.w-1;dx+=o.gx){                  // 右牆
     const yF=by-((dx+1)>>1);
