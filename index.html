@@ -703,6 +703,21 @@ function diaEdge(g,edges,col,cx=32,ty=0,hw=32){
     if(edges&4)g.fillRect(cx-b,  ty+hh+i,2,1);
   }
 }
+// T189 鐵軌鋼軌+枕木（Opus 親手）：沿連接方向（遮罩 m，位元 1上右/2下右/4下左/8上左）自菱形中心(32,cy)向邊中點畫暗棕枕木短槓＋雙銀灰鋼軌；純幾何 fillRect、不消耗 rand（可安插於既有 speck 之後不位移亂數流）。len＝半瓦等距步數（路基 8／較窄橋面 6）
+function railTrack(g,m,cy,len){
+  const AX={1:[2,-1],2:[2,1],4:[-2,1],8:[-2,-1]}, cx=32;
+  for(const bit of [1,2,4,8]){
+    if(!(m&bit))continue;
+    const a=AX[bit], ax=a[0], ay=a[1], pl=Math.hypot(ax,ay), px=-ay/pl, py=ax/pl; // px,py＝垂直單位向量
+    g.fillStyle='#4a3a2a'; // 枕木（暗棕短槓，橫跨軌距）
+    for(let u=1.5;u<=len-.5;u+=2){const bx=cx+ax*u, by=cy+ay*u;for(let k=-3;k<=3;k++)g.fillRect(Math.round(bx+px*k),Math.round(by+py*k),1,1);}
+    for(let u=0;u<=len;u+=.5){ // 雙鋼軌（銀灰＋1px 軌側陰影）
+      const bx=cx+ax*u, by=cy+ay*u;
+      g.fillStyle='#b8bcc4';g.fillRect(Math.round(bx+px*2.3),Math.round(by+py*2.3),1,1);g.fillRect(Math.round(bx-px*2.3),Math.round(by-py*2.3),1,1);
+      g.fillStyle='#8a8e96';g.fillRect(Math.round(bx+px*2.3),Math.round(by+py*2.3)+1,1,1);g.fillRect(Math.round(bx-px*2.3),Math.round(by-py*2.3)+1,1,1);
+    }
+  }
+}
 // 等距方塊：底頂點 (cx,by)、半寬 hw（偶數）、牆高 h；回傳屋頂菱形頂點 y
 function isoBox(g,cx,by,hw,h,cL,cR,cTop){
   g.fillStyle=cL;
@@ -1836,9 +1851,9 @@ function buildSprites(){
   SPR.rail=[];SPR.railBridge=[];
   for(let m=0;m<16;m++){
     {const[c,g]=cv(64,32);dia(g,32,0,32,'#6b5e4a');speck(g,32,0,32,['#7a6d58','#5d5040'],30,rand);
-     diaEdge(g,(~m)&15,'#9a8a6a');SPR.rail.push(c);}
+     diaEdge(g,(~m)&15,'#9a8a6a');railTrack(g,m,16,8);SPR.rail.push(c);} // T189：疊鋼軌+枕木
     {const[c,g]=cv(64,44);dia(g,32,4,32,'#5a4a3a');dia(g,32,8,24,'#6b5e4a');
-     diaEdge(g,(~m)&15,'#8a7a5a',32,4,32);SPR.railBridge.push(c);}
+     diaEdge(g,(~m)&15,'#8a7a5a',32,4,32);railTrack(g,m,20,6);SPR.railBridge.push(c);} // T189：橋面鐵軌
   }
   // T39 火車站 (k=17)
   for(let v=0;v<3;v++){const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
