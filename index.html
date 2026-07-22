@@ -1761,6 +1761,43 @@ function buildSprites(){
    g.drawImage(s,0,0);
    SPR.police={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // FIX-A：移除死碼 SPR.policeN（夜燈走 .night）
    }
+  /* ---------- T216 警察局變體 v1/v2（Opus 親手，玩家反饋 Phase1）：draw 原無視 bd.v＝警察局全城同一張臉。v1 現代寬樓（青藍玻璃帶）／v2 高塔式（深藍塔+側翼），輪廓明顯不同；純 fillRect/isoBox 零 rand＝亂數流零位移；draw 端依 bd.v 選（v0 沿用 hero） ---------- */
+  {SPR.policeVar=[];
+   { // v1 現代寬樓
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    const rty=isoBox(sg,ax,by,26,14,'#3a5878','#2c4560','#4d7094'); // 寬扁主樓
+    diaEdge(sg,15,'#dfe6f0',ax,rty,26); // 白簷帶
+    for(let dx=4;dx<22;dx+=5){const yF=by-((dx+1)>>1); // 右牆玻璃帶（決定性夜燈）
+      sg.fillStyle='#9cc4e8';sg.fillRect(ax+dx,yF-10,3,6);
+      if((dx*7)%11<6){ng.fillStyle='#cfe6ff';ng.fillRect(ax+dx,yF-10,3,6);}}
+    for(let dx=5;dx<23;dx+=6){const yF=by-(dx>>1); // 左牆窗
+      sg.fillStyle='#2a3a5a';sg.fillRect(ax-dx-3,yF-11,3,5);
+      if((dx*5)%9<5){ng.fillStyle='#ffd77a';ng.fillRect(ax-dx-3,yF-11,3,5);}}
+    sg.fillStyle='#ffd45f';sg.fillRect(ax-3,rty+3,7,6);sg.fillStyle='#e8b23e';sg.fillRect(ax-1,rty+5,3,3); // 屋面金盾警徽
+    sg.fillStyle='#8b95a5';sg.fillRect(ax+9,rty+1,1,-0+5);sg.fillRect(ax+9,rty-4,1,5); // 天線
+    sg.fillStyle='#e05252';sg.fillRect(ax+8,rty-6,3,2);ng.fillStyle='#5ab0ff';ng.fillRect(ax+8,rty-6,3,2); // 藍紅頂燈
+    outlineSprite(s,26,30,46);g.drawImage(s,0,0);
+    SPR.policeVar[1]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+   { // v2 高塔式
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    isoBox(sg,ax+8,by-8,14,12,'#dfe6f0','#c2cddc','#f2f6fa'); // 右側白翼
+    const tRty=isoBox(sg,ax-6,by-6,14,34,'#2c3f6a','#223252','#3d5488'); // 深藍高塔
+    diaEdge(sg,15,'#9cb4d8',ax-6,tRty,14);
+    for(let yy=tRty+16;yy<by-14;yy+=7){ // 塔身窗列（決定性夜燈）
+      sg.fillStyle='#1d2a44';sg.fillRect(ax-14,yy,3,4);sg.fillRect(ax-9,yy,3,4);
+      if((yy*3)%8<5){ng.fillStyle='#ffd77a';ng.fillRect(ax-14,yy,3,4);}
+      if((yy*5)%9<5){ng.fillStyle='#ffd77a';ng.fillRect(ax-9,yy,3,4);}}
+    sg.fillStyle='#ffd45f';sg.fillRect(ax-9,tRty+7,7,8);sg.fillStyle='#e8b23e';sg.fillRect(ax-7,tRty+9,3,4); // 塔面金盾
+    sg.fillStyle='#2a3a5a';sg.fillRect(ax+10,by-14,5,6);ng.fillStyle='#cfe6ff';ng.fillRect(ax+10,by-14,5,6); // 翼樓窗
+    sg.fillStyle='#8b95a5';sg.fillRect(ax-7,tRty-5,1,5); // 塔頂桿
+    sg.fillStyle='#e05252';sg.fillRect(ax-8,tRty-7,3,2);ng.fillStyle='#5ab0ff';ng.fillRect(ax-8,tRty-7,3,2); // 警燈
+    outlineSprite(s,26,30,46);g.drawImage(s,0,0);
+    SPR.policeVar[2]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+  }
   /* ---------- 醫院（T33；72×112 白色建築＋紅十字＋救護車＋夜間窗燈）---------- */
   {const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
    const ax=36,ay=110,by=ay-2;
@@ -7926,7 +7963,7 @@ function draw(dt){
     else if(bd.k===5)s=SPR.plant;
     else if(bd.k===9)s=SPR.bld['9_1_'+bd.v];
     else if(bd.k===10)s=SPR.waterTower; // 水塔（T31）
-    else if(bd.k===11)s=SPR.police; // 警察局（T32）
+    else if(bd.k===11)s=(bd.v&&SPR.policeVar&&SPR.policeVar[bd.v])||SPR.police; // 警察局（T32）；T216：依 bd.v 選變體（v0 hero／v1 現代寬樓／v2 高塔式，缺鍵回退 hero）
     else if(bd.k===12)s=SPR.hospital; // 醫院（T33）
     else if(bd.k===13)s=SPR.clinic; // 診所（T34）
     else if(bd.k===1&&bd.lv===3&&bd.den>=4)s=wealthSpr('1_3_4',bd.we); // 高密度 Lv3 住宅（T30）；T125：財富色變，缺鍵回退中產
