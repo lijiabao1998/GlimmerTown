@@ -2,6 +2,7 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-22 | T205 多節火車車廂（Opus 親手，v4.7，審計缺口） | 火車原僅單節車頭(fillRect 組裝)。抽出 drawCar helper(幾何與 T63/T155 車頭逐像素一致)，車頭後方(反行進方向)沿軌接 2 節客車廂：位置以 DIRV 反向 screen 偏移(sp=0.5≈耦合)決定性內插不消耗 R()；最遠先畫、車頭最後畫在上；客車廂色#a85a4a/#5a7aa8(較車頭淺)，__noTrainCars 開關。驗收：380/380＋端到端(seed7 slot3 鋪16格鐵路+2車站 step 生成火車 z3.5)——__noTrainCars 開關 diff 2466 像素其中78%偏紅(車廂色)＝2節車廂可見＋零 console。 | 驗收:通過
 2026-07-22 | T204 公園四季重著色（Opus 親手，v4.7，審計缺口） | 草/樹/水皆四季色，唯公園非冬全用綠 base(draw 只 win?parkW:park)。生成 SPR.parkS(夏#a8e070.13)/parkA(秋#b8863a.26)＝比照 grassS/A、treeS/A 疊季節色(園內結構物多用較淡 alpha)；draw 與 reflectSprite 兩處選擇加 sea1/sea2 分支(缺失回退 base)。純衍生自 SPR.park 不消耗 rand。驗收：380/380＋端到端(seed7 slot3 放6公園 z3.5)——春[129,169,115]/夏[136,176,117]/秋[146,158,106]暖化+26/冬[208,217,222]雪白，四季色明顯＋零 console。至此草/樹/水/公園全四季變色。
 2026-07-22 | T204-fix tintCanvas 作用域（Opus 抓修） | parkS 初版直呼 tintCanvas 但它是 block-scoped const(定義於 2647/3488 兩區塊)，parkS 位於兩者之間都不可見→ReferenceError 測試 0。就地定義同款 tintPk 修復。教訓：復用他處 helper 前先確認非 block-scoped。 | 驗收:通過
 2026-07-22 | T203 橋面側護欄（Opus 親手，v4.7，審計缺口） | 橋樑甲板原僅路面+橋墩無護欄。SPR.bridgeClass 生成尾端沿甲板前緣側邊(railMask=((~m)&15)&(2|4)＝非道路連接的下向側邊)加淺灰雙軌欄杆(#c2c6ce頂/#8e929a身，抬高於甲板)，純幾何 diaEdge 不消耗 rand。驗收：380/380＋端到端(seed7 slot3 鋪路過窄水帶建2格橋 z4)——欄杆灰(~194,198,206)3829 像素(過濾排除棕甲板/白路標)＋零 console。 | 驗收:通過

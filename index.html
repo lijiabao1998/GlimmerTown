@@ -7660,13 +7660,22 @@ function draw(dt){
     if(o.train){                                           // 火車（T63）：仿公車配方直接 fillRect 組裝（拉長＋換色），不建 SPR；T155 新增車廂第2種塗裝（o.train.pt===1，僅換車身色不改幾何，未改動既有塗裝0色值）
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
       const mir=(o.td===1||o.td===3)?-1:1;
-      const pr=(lx,ly,w,h)=>{const mx=mir<0?(20-lx-w):lx;ctx.fillRect(sx-10*z+mx*z,sy-6*z+ly*z,w*z,h*z);};
       const bodyC=o.train.pt===1?'#3a5a8a':'#8a3a3a';                         // T155：塗裝1＝深藍，塗裝0（既有，未改色值）＝暗紅
-      ctx.fillStyle='rgba(0,0,0,.3)';pr(2,7,16,1);                           // 落影
-      ctx.fillStyle=shade(bodyC,-42);pr(1,6,6,1);pr(7,5,6,1);pr(13,4,6,1); // 暗側（右下斜面）
-      ctx.fillStyle=bodyC;pr(1,3,6,3);pr(7,2,6,3);pr(13,1,6,3);           // 車身主色
-      ctx.fillStyle='#2b3550';pr(1,4,6,1);pr(7,3,6,1);pr(13,2,6,1);           // 車窗帶
-      ctx.fillStyle='#e8dcc0';pr(1,3,6,1);pr(7,2,6,1);pr(13,1,6,1);           // 車頂
+      const drawCar=(bsx,bsy,col,top)=>{ // T205：抽出單節組裝供車頭＋拖掛車廂共用（幾何與 T63/T155 車頭逐像素一致）
+        const pr=(lx,ly,w,h)=>{const mx=mir<0?(20-lx-w):lx;ctx.fillRect(bsx-10*z+mx*z,bsy-6*z+ly*z,w*z,h*z);};
+        ctx.fillStyle='rgba(0,0,0,.3)';pr(2,7,16,1);                          // 落影
+        ctx.fillStyle=shade(col,-42);pr(1,6,6,1);pr(7,5,6,1);pr(13,4,6,1);    // 暗側（右下斜面）
+        ctx.fillStyle=col;pr(1,3,6,3);pr(7,2,6,3);pr(13,1,6,3);               // 車身主色
+        ctx.fillStyle='#2b3550';pr(1,4,6,1);pr(7,3,6,1);pr(13,2,6,1);         // 車窗帶
+        ctx.fillStyle=top;pr(1,3,6,1);pr(7,2,6,1);pr(13,1,6,1);               // 車頂
+      };
+      if(!window.__noTrainCars){ // T205 多節車廂（Opus 親手，審計缺口）：車頭後方(反行進方向)沿軌接 2 節客車廂，位置以 DIRV 反向 screen 偏移(sp≈0.5＝耦合)決定性內插不消耗 R()；最遠先畫、車頭最後畫在上
+        const DV=DIRV[o.td], sp=.5, dwx=-(DV[0]-DV[1])*32*sp, dwy=-(DV[0]+DV[1])*16*sp;
+        const carC=o.train.pt===1?'#5a7aa8':'#a85a4a';
+        drawCar(sx+dwx*2*z,sy+dwy*2*z,carC,'#d6cab0');
+        drawCar(sx+dwx*z,sy+dwy*z,carC,'#d6cab0');
+      }
+      drawCar(sx,sy,bodyC,'#e8dcc0');                                          // 車頭（最後畫在上）
       if(b<.55){
         const v=DIRSCR[o.td];
         nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
