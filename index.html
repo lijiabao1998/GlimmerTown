@@ -7091,6 +7091,12 @@ function draw(dt){
   const sky=[Math.round(lerp(13,140,b)),Math.round(lerp(17,195,b)),Math.round(lerp(38,232,b))];
   ctx.fillStyle=`rgb(${sky[0]},${sky[1]},${sky[2]})`;
   ctx.fillRect(0,0,W,H);
+  if(dusk>0&&!window.__noSkyGrad){ // T211 地平線輝光帶（Opus 親手，審計缺口 score16）——天空原為單色平塗，晨昏於下緣(地平線)疊暖橙/冷藍垂直漸層輝光：日落(ph>=.5)暖橙、日出(ph<.5)冷藍，強度隨既有 dusk 由天頂(透明)向地平線遞增；嚴格 gate dusk>0＝正午 dusk 恆0 時零繪＝正午/日間逐像素一致(硬不變量)，__noSkyGrad 開關、純數學不消耗 R()
+    const col=ph<.5?'92,142,236':'255,146,66';
+    const hg=ctx.createLinearGradient(0,0,0,H*.62);
+    hg.addColorStop(0,`rgba(${col},0)`);hg.addColorStop(.6,`rgba(${col},${(dusk*.09).toFixed(3)})`);hg.addColorStop(1,`rgba(${col},${(dusk*.26).toFixed(3)})`);
+    ctx.fillStyle=hg;ctx.fillRect(0,0,W,H*.62);
+  }
   if(b<.62){
     ctx.fillStyle='#fff';
     for(const s of stars){
