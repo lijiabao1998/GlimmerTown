@@ -1840,6 +1840,68 @@ function buildSprites(){
    g.drawImage(s,0,0);
    SPR.clinic={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]}; // FIX-A：移除死碼 SPR.clinicN（夜燈走 .night）
    }
+  /* ---------- T217 醫療建築變體（Opus 親手，玩家反饋 Phase1）：醫院/診所原單鍵無視 bd.v＝全城同臉。醫院 v1 現代高塔醫療大樓/v2 庭院式雙翼；診所 v1 綠十字藥局風/v2 兩層家庭診所。純 fillRect/isoBox 零 rand＝亂數流零位移，決定性夜燈 ---------- */
+  {SPR.hospitalVar=[];SPR.clinicVar=[];
+   { // 醫院 v1 現代高塔醫療大樓
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    isoBox(sg,ax+10,by-8,12,10,'#e8edf2','#c9d2da','#f8fbff'); // 右低翼
+    const tRty=isoBox(sg,ax-6,by-6,16,36,'#e2eaf2','#c4d0dc','#f4f8fc'); // 白高塔
+    diaEdge(sg,15,'#9cc4d8',ax-6,tRty,16);
+    for(let yy=tRty+18;yy<by-16;yy+=7){ // 塔身玻璃帶（決定性夜燈）
+      sg.fillStyle='#8db4d4';sg.fillRect(ax-16,yy,4,4);sg.fillRect(ax-10,yy,4,4);sg.fillRect(ax-4,yy,4,4);
+      if((yy*3)%7<4){ng.fillStyle='#ffe9ad';ng.fillRect(ax-16,yy,4,4);}
+      if((yy*5)%8<5){ng.fillStyle='#ffe9ad';ng.fillRect(ax-10,yy,4,4);}
+      if((yy*7)%9<5){ng.fillStyle='#ffe9ad';ng.fillRect(ax-4,yy,4,4);}}
+    sg.fillStyle='#e05252';sg.fillRect(ax-9,tRty+5,6,12);sg.fillRect(ax-12,tRty+8,12,6); // 塔面大紅十字
+    ng.fillStyle='#ff8a8a';ng.fillRect(ax-9,tRty+5,6,12);ng.fillRect(ax-12,tRty+8,12,6); // 十字夜光
+    sg.fillStyle='#7a8a9a';sg.fillRect(ax+12,by-12,6,6); // 翼樓門
+    outlineSprite(s,26,30,48);g.drawImage(s,0,0);
+    SPR.hospitalVar[1]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+   { // 醫院 v2 庭院式雙翼
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    isoBox(sg,ax-12,by-10,12,14,'#eef2f6','#d2dae4','#fafcfe'); // 左翼
+    isoBox(sg,ax+12,by-10,12,14,'#eef2f6','#d2dae4','#fafcfe'); // 右翼
+    const cRty=isoBox(sg,ax,by-4,12,20,'#e2eaf0','#c6d2dc','#f2f7fb'); // 中央樓
+    sg.fillStyle='#e05252';sg.fillRect(ax-3,cRty+4,6,12);sg.fillRect(ax-6,cRty+7,12,6); // 中央紅十字
+    ng.fillStyle='#ff8a8a';ng.fillRect(ax-3,cRty+4,6,12);ng.fillRect(ax-6,cRty+7,12,6);
+    sg.fillStyle='#a8b4c2';sg.fillRect(ax-8,by-6,16,2); // 入口雨篷
+    sg.fillStyle='#7a8a9a';sg.fillRect(ax-3,by-4,6,4); // 門
+    for(const wx of[-18,-14,14,18]){sg.fillStyle='#5a7a9a';sg.fillRect(ax+wx,by-16,3,4); // 翼樓窗（決定性夜燈）
+      if(((wx+20)*3)%5<3){ng.fillStyle='#ffe9ad';ng.fillRect(ax+wx,by-16,3,4);}}
+    outlineSprite(s,26,30,48);g.drawImage(s,0,0);
+    SPR.hospitalVar[2]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+   { // 診所 v1 綠十字藥局風
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    const rty=isoBox(sg,ax,by-14,15,14,'#e8f2ea','#cfe0d4','#f4faf6'); // 淡薄荷白
+    diaEdge(sg,15,'#8fbf9a',ax,rty,15);
+    sg.fillStyle='#3fa860';sg.fillRect(ax-3,rty+4,6,12);sg.fillRect(ax-6,rty+7,12,6); // 綠十字（藥局識別）
+    ng.fillStyle='#7fe89a';ng.fillRect(ax-3,rty+4,6,12);ng.fillRect(ax-6,rty+7,12,6); // 綠十字夜光
+    sg.fillStyle='#7a8a9a';sg.fillRect(ax-2,by-8,6,6); // 門
+    sg.fillStyle='#8db4a4';sg.fillRect(ax+7,by-16,4,4);sg.fillRect(ax-12,by-14,4,4); // 窗
+    ng.fillStyle='#ffe9ad';ng.fillRect(ax+7,by-16,4,4);
+    outlineSprite(s,26,30,34);g.drawImage(s,0,0);
+    SPR.clinicVar[1]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+   { // 診所 v2 兩層家庭診所
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    plate(g,ax,ay,'#9a9484');
+    const rty=isoBox(sg,ax,by-10,13,22,'#f2ede2','#dcd4c2','#faf6ec'); // 米白兩層
+    diaEdge(sg,15,'#c2a87a',ax,rty,13);
+    sg.fillStyle='#e05252';sg.fillRect(ax-2,rty+3,4,8);sg.fillRect(ax-4,rty+5,8,4); // 小紅十字
+    for(const[wx,wy] of[[-10,-26],[6,-26],[-10,-16],[6,-16]]){ // 兩層窗（決定性夜燈）
+      sg.fillStyle='#5a6a8a';sg.fillRect(ax+wx,by+wy,4,5);
+      if(((wx+wy*3)%2+2)%2===0){ng.fillStyle='#ffe9ad';ng.fillRect(ax+wx,by+wy,4,5);}}
+    sg.fillStyle='#a8845a';sg.fillRect(ax-3,by-7,6,7); // 木門
+    sg.fillStyle='#c25a4a';sg.fillRect(ax-6,by-9,12,2); // 門簷
+    outlineSprite(s,26,30,34);g.drawImage(s,0,0);
+    SPR.clinicVar[2]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+  }
   /* ---------- 墓園（T38；72×112 小教堂＋墓碑群＋柏樹＋夜間微弱燭光；3 變體）---------- */
   {const WALLS=[['#6b7a6b','#566355'],['#758075','#5f6b5f'],['#657265','#505c50']];
    const ROOFS=['#4a5a4a','#556355','#5a6a5a'];
@@ -7964,8 +8026,8 @@ function draw(dt){
     else if(bd.k===9)s=SPR.bld['9_1_'+bd.v];
     else if(bd.k===10)s=SPR.waterTower; // 水塔（T31）
     else if(bd.k===11)s=(bd.v&&SPR.policeVar&&SPR.policeVar[bd.v])||SPR.police; // 警察局（T32）；T216：依 bd.v 選變體（v0 hero／v1 現代寬樓／v2 高塔式，缺鍵回退 hero）
-    else if(bd.k===12)s=SPR.hospital; // 醫院（T33）
-    else if(bd.k===13)s=SPR.clinic; // 診所（T34）
+    else if(bd.k===12)s=(bd.v&&SPR.hospitalVar&&SPR.hospitalVar[bd.v])||SPR.hospital; // 醫院（T33）；T217：依 bd.v 選變體（v0 hero／v1 現代高塔／v2 庭院雙翼）
+    else if(bd.k===13)s=(bd.v&&SPR.clinicVar&&SPR.clinicVar[bd.v])||SPR.clinic; // 診所（T34）；T217：依 bd.v 選變體（v0 hero／v1 綠十字藥局風／v2 兩層家庭診所）
     else if(bd.k===1&&bd.lv===3&&bd.den>=4)s=wealthSpr('1_3_4',bd.we); // 高密度 Lv3 住宅（T30）；T125：財富色變，缺鍵回退中產
     else if(bd.k===1)s=wealthSpr(bd.k+'_'+bd.lv+'_'+bd.v,bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0']; // T125：住宅財富色變；變體鍵兜底同 FIX-D
     else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）
