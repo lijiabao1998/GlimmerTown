@@ -225,9 +225,9 @@ window.GV.addMoney(100000);
 
 // ================= (1) 七種單變體建築 v=0 與存檔正規化 =================
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
-const SV = [ // [tool, k, sz]；T226：farm 擴 3 變體移出單變體清單（改於下方獨立驗座標決定性選型與 load 保留）
+const SV = [ // [tool, k, sz]；T226：farm 擴 3 變體移出單變體清單（改於下方獨立驗座標決定性選型與 load 保留）；T228：新增 bigFarm 5×5
   ['airport', 19, 4], ['parking', 20, 2], ['ranch', 23, 2],
-  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3]
+  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5]
 ];
 const svRoots = [];
 for (const [tool, k, sz] of SV) {
@@ -247,17 +247,17 @@ for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.b
   assert(sp, 'farm 應找到可建位置');
   assert(place('farm', sp.x, sp.y), 'farm 應成功建造');
   const fb = tile(sp.x, sp.y).bld;
-  const expV = (sp.x * 5 + sp.y * 11) % 3;
-  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%3=' + expV + '、sz=2');
-  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_2']"), 'SPR.bld 應生成 22_1_1 / 22_1_2（T226 農場變體）');
+  const expV = (sp.x * 5 + sp.y * 11) % 6; // T227：6 變體
+  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%6=' + expV + '、sz=2');
+  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_5']"), 'SPR.bld 應生成 22_1_1..22_1_5（T226/227 農場 6 變體）');
   svRoots.push({ k: 22, x: sp.x, y: sp.y, keepV: expV });
 }
 window.GV.save();
 const d1 = JSON.parse(store[SKEY]);
-const SVK = new Set([19, 20, 23, 25, 31, 32]);
+const SVK = new Set([19, 20, 23, 25, 31, 32, 53]); // T228：bigFarm 亦屬單變體
 let tampered = 0;
 for (const rec of d1.bl) if (SVK.has(rec[1])) { rec[3] = 2; tampered++; }
-assert(tampered === 6, '存檔 bl 應含 6 棟單變體建築（實得 ' + tampered + '）');
+assert(tampered === 7, '存檔 bl 應含 7 棟單變體建築（實得 ' + tampered + '）');
 store[SKEY] = JSON.stringify(d1);
 assert(window.GV.load() === true, '竄改後 load 應成功');
 for (const r of svRoots) {
