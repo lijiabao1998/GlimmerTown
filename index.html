@@ -1346,22 +1346,24 @@ function buildSprites(){
    SPR.plant={img:c,night:nc,ax,ay,w:88,h:120,
      smoke:[{dx:-16,dy:rty-19-ay},{dx:8,dy:rty-11-ay}],
      lamp:{dx:-16,dy:rty-21-ay}};}
-  /* ---------- 消防局（T14）3 變體：紅白外觀＋右牆車庫門＋瞭望塔警鈴＋夜窗 ---------- */
-  {const FWALL=[['#c53a2b','#a52d20'],['#b2434e','#8f303a'],['#d75636','#b23f24']];
-   const FROOF=['#4a4038','#413730','#524339'];
-   for(let v=0;v<3;v++){
+  /* ---------- 消防局（T14／T215 擴 3→5 變體）：v0-2 紅白（雙車庫＋中央瞭望塔），v3 青綠（單車庫＋左偏塔），v4 藍（單車庫＋無塔平頂）；v0-2 逐位元與改動前一致（仍用 rand 窗燈），v3/v4 用決定性窗燈不消耗 rand＝總 rand 消耗不變、亂數流零位移（鐵律2變通：非尾端擴變體但新迭代不耗 rand） ---------- */
+  {const FWALL=[['#c53a2b','#a52d20'],['#b2434e','#8f303a'],['#d75636','#b23f24'],['#3a8a7a','#2c6a5e'],['#4a6a9a','#38527a']];
+   const FROOF=['#4a4038','#413730','#524339','#354a44','#3a4656'];
+   for(let v=0;v<5;v++){
      const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
      const ax=36,ay=110,by=ay-2,hw=28,h=22;
      const wl=FWALL[v],rf=FROOF[v];
+     const singleBay=v>=3, hasTower=v!==4, tox=v===3?-8:0; // T215：v3 單車庫左偏塔／v4 單車庫平頂無塔
      plate(g,ax,ay,'#9a9484');
      const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
-     diaEdge(sg,15,'#ece7da',ax,rty,hw);                 // 白色女兒牆飾帶（紅白對比）
+     diaEdge(sg,15,'#ece7da',ax,rty,hw);                 // 白色女兒牆飾帶
      for(let dx=5;dx<hw-2;dx+=7){                         // 左牆窗（含夜燈）
        const yF=by-(dx>>1);
        for(let y=yF-h+4;y<yF-6;y+=8){
          sg.fillStyle='#eee9db';sg.fillRect(ax-dx-4,y-1,5,6);
          sg.fillStyle='#2a3550';sg.fillRect(ax-dx-3,y,3,4);
-         if(rand()<.65){ng.fillStyle='#ffd77a';ng.fillRect(ax-dx-3,y,3,4);}
+         const lit=v>=3?((dx*5+y*3)%7<4):(rand()<.65); // v3/v4 決定性窗燈（不消耗 rand）；v0-2 沿用 rand
+         if(lit){ng.fillStyle='#ffd77a';ng.fillRect(ax-dx-3,y,3,4);}
        }
      }
      const dL=3,dR=hw-5;                                  // 右牆大車庫門
@@ -1374,18 +1376,22 @@ function buildSprites(){
      for(let ry=h-6;ry>=5;ry-=4)for(let dx=dL;dx<=dR;dx++){
        const yF=by-((dx+1)>>1);sg.fillRect(ax+dx,yF-ry,1,1);
      }
-     const dM=(dL+dR)>>1;                                 // 中央分隔（雙車庫）
-     for(const dx of[dM,dM+1]){const yF=by-((dx+1)>>1);sg.fillStyle=wl[1];sg.fillRect(ax+dx,yF-h+5,1,h-7);}
-     const tRty=isoBox(sg,ax,rty+14,8,14,shade(wl[1],-8),shade(wl[0],-8),'#dcd6c7'); // 瞭望塔
-     diaEdge(sg,15,'#ece7da',ax,tRty,8);
-     sg.fillStyle='#2a3550';sg.fillRect(ax-6,tRty+12,3,5); // 塔窗（左牆，含夜燈）
-     ng.fillStyle='#ffd77a';ng.fillRect(ax-6,tRty+12,3,5);
-     sg.fillStyle='#3a2f22';sg.fillRect(ax+2,tRty+3,4,1);  // 警鈴（銅）
-     sg.fillStyle='#e0b83a';sg.fillRect(ax+3,tRty+3,2,3);sg.fillRect(ax+2,tRty+5,4,1);
-     sg.fillStyle='#fff0b0';sg.fillRect(ax+3,tRty+3,1,2);
-     sg.fillStyle='#8b95a5';sg.fillRect(ax,tRty-5,1,4);    // 燈桿
-     sg.fillStyle='#e05252';sg.fillRect(ax-1,tRty-7,3,2);  // 紅色警示燈
-     ng.fillStyle='#ff5a5a';ng.fillRect(ax-1,tRty-7,3,2);
+     if(!singleBay){const dM=(dL+dR)>>1;for(const dx of[dM,dM+1]){const yF=by-((dx+1)>>1);sg.fillStyle=wl[1];sg.fillRect(ax+dx,yF-h+5,1,h-7);}} // 中央分隔（雙車庫，v<3）
+     if(hasTower){
+       const tRty=isoBox(sg,ax+tox,rty+14,8,14,shade(wl[1],-8),shade(wl[0],-8),'#dcd6c7'); // 瞭望塔（v3 左偏 tox）
+       diaEdge(sg,15,'#ece7da',ax+tox,tRty,8);
+       sg.fillStyle='#2a3550';sg.fillRect(ax+tox-6,tRty+12,3,5); // 塔窗
+       ng.fillStyle='#ffd77a';ng.fillRect(ax+tox-6,tRty+12,3,5);
+       sg.fillStyle='#3a2f22';sg.fillRect(ax+tox+2,tRty+3,4,1);  // 警鈴（銅）
+       sg.fillStyle='#e0b83a';sg.fillRect(ax+tox+3,tRty+3,2,3);sg.fillRect(ax+tox+2,tRty+5,4,1);
+       sg.fillStyle='#fff0b0';sg.fillRect(ax+tox+3,tRty+3,1,2);
+       sg.fillStyle='#8b95a5';sg.fillRect(ax+tox,tRty-5,1,4);    // 燈桿
+       sg.fillStyle='#e05252';sg.fillRect(ax+tox-1,tRty-7,3,2);  // 紅色警示燈
+       ng.fillStyle='#ff5a5a';ng.fillRect(ax+tox-1,tRty-7,3,2);
+     }else{ // v4：平頂無塔，屋頂中央警示燈桿
+       sg.fillStyle='#8b95a5';sg.fillRect(ax,rty-6,1,6);
+       sg.fillStyle='#e05252';sg.fillRect(ax-1,rty-8,3,2);ng.fillStyle='#ff5a5a';ng.fillRect(ax-1,rty-8,3,2);
+     }
      outlineSprite(sc,26,30,44);
      g.drawImage(sc,0,0);
      SPR.bld['6_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
@@ -4884,7 +4890,7 @@ function doPlace(toolId,x,y,silent){
       t.wp=1;
       break;
     case 'fire':
-      t.bld={k:6,lv:1,v:ri(3),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:6,lv:1,v:ri(5),age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T215：消防局 3→5 變體
       stampCov('fire',x,y,COVR.fire,1);
       break;
     case 'police':
