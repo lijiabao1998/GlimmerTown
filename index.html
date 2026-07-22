@@ -1500,6 +1500,32 @@ function buildSprites(){
     bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);
     SPR.car.push({A:a,B:b});
   }
+  { // T245 車型多樣化（Opus 親手，交通多樣化）：計程車/貨車/廂型車/跑車，混入車流與路邊停車
+    const mkVeh=drawA=>{const[a,ag]=cv(12,8);drawA(ag);const[b,bg]=cv(12,8);bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);SPR.car.push({A:a,B:b});};
+    mkVeh(g=>{ // 計程車（黃+頂燈+方格）
+      g.fillStyle='rgba(0,0,0,.3)';g.fillRect(2,6,9,1);
+      g.fillStyle=shade('#f2c14e',-40);g.fillRect(1,5,4,1);g.fillRect(4,4,4,1);g.fillRect(7,3,4,1);
+      g.fillStyle='#f2c14e';g.fillRect(1,3,4,2);g.fillRect(4,2,4,2);g.fillRect(7,1,4,2);
+      g.fillStyle=shade('#f2c14e',35);g.fillRect(1,3,4,1);g.fillRect(4,2,4,1);g.fillRect(7,1,4,1);
+      g.fillStyle='#222c3d';g.fillRect(5,2,3,2);g.fillStyle='#1a1a1a';g.fillRect(1,4,1,1);g.fillRect(5,3,1,1);g.fillRect(7,3,1,1); // 車窗+方格
+      g.fillStyle='#eef2f6';g.fillRect(5,1,2,1);}); // 頂燈牌
+    mkVeh(g=>{ // 貨車（藍駕駛室+白貨箱）
+      g.fillStyle='rgba(0,0,0,.3)';g.fillRect(1,6,10,1);
+      g.fillStyle='#e6eaf0';g.fillRect(1,1,6,4);g.fillStyle=shade('#e6eaf0',20);g.fillRect(1,1,6,1);g.fillStyle=shade('#e6eaf0',-28);g.fillRect(1,4,6,1); // 白貨箱
+      g.fillStyle='#3a6ac0';g.fillRect(7,2,4,3);g.fillStyle=shade('#3a6ac0',35);g.fillRect(7,2,4,1); // 藍駕駛室
+      g.fillStyle='#222c3d';g.fillRect(8,3,2,1);g.fillStyle='#1a1a1a';g.fillRect(2,5,1,1);g.fillRect(9,5,1,1);});
+    mkVeh(g=>{ // 廂型車（高白箱）
+      g.fillStyle='rgba(0,0,0,.3)';g.fillRect(2,6,9,1);
+      g.fillStyle='#eef0f4';g.fillRect(1,1,9,4);g.fillStyle=shade('#eef0f4',18);g.fillRect(1,1,9,1);g.fillStyle='#d2d6de';g.fillRect(1,4,9,1);
+      g.fillStyle='#222c3d';g.fillRect(7,2,3,1);g.fillStyle='#5aa0e8';g.fillRect(3,2,3,1); // 擋風+側標
+      g.fillStyle='#1a1a1a';g.fillRect(2,5,1,1);g.fillRect(8,5,1,1);});
+    mkVeh(g=>{ // 跑車（低紅流線）
+      g.fillStyle='rgba(0,0,0,.3)';g.fillRect(2,6,9,1);
+      g.fillStyle=shade('#d82828',-40);g.fillRect(1,5,10,1);
+      g.fillStyle='#d82828';g.fillRect(1,4,4,1);g.fillRect(3,3,7,1);g.fillRect(1,5,10,1);
+      g.fillStyle=shade('#d82828',45);g.fillRect(3,3,7,1);g.fillStyle='#222c3d';g.fillRect(5,3,3,1);
+      g.fillStyle='#1a1a1a';g.fillRect(2,5,1,1);g.fillRect(9,5,1,1);});
+  }
   /* ---------- 火焰 2 幀（燃燒動畫，錨底中；發光走夜間層） ---------- */
   SPR.fire=[];
   for(let f=0;f<2;f++){
@@ -11296,6 +11322,7 @@ window.GV={
   lookAt:(x,y)=>{cam.x=(x-y)*32;cam.y=(x+y)*16;zoomAnim=null;return[cam.x,cam.y];}, // T183 測試用：把相機中心對準 tile(x,y)（沿用 newWorld 初始置中同款公式 (x-y)*32/(x+y)*16 寫入既有 cam.x/y），純渲染鏡頭定位不改模擬/存檔，解決既有 GV.center() 只回座標不移鏡頭之驗證痛點
   upgrade:(x,y)=>{upgradeBld(x,y);const b=inMap(x,y)?T(idx(x,y)).bld:null;return b?(b.ref?T(idx(b.ref[0],b.ref[1])).bld.lv:b.lv):null;}, // T239 測試/腳本用：呼叫真實升級路徑（inspect 面板按鈕同一函式），回傳升級後 root 等級；與 GV.place 同屬玩家操作型鉤子
   inspectAt:(x,y)=>{inspect(x,y);return $('#infoBody')?$('#infoBody').innerHTML:'';}, // T239 測試用：觸發 inspect 面板並回傳 HTML（驗證升級鈕/等級行）
+  carInfo:()=>SPR.car.map(c=>{const g=c.A.getContext('2d');const d=g.getImageData(0,0,12,8).data;let filled=0,yellow=0,blueCab=0,red=0,white=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<8)continue;filled++;const r=d[i],gr=d[i+1],b=d[i+2];if(r>235&&gr>185&&gr<205&&b<95)yellow++;if(r>48&&r<74&&gr>98&&gr<124&&b>182&&b<208)blueCab++;if(r>206&&r<226&&gr>30&&gr<52&&b>30&&b<52)red++;if(r>230&&gr>232&&b>238)white++;}return{filled,yellow,blueCab,red,white};}), // T245 測試用：逐車 sprite 填充像素與型別色統計（交通稀疏無法取樣車流，直接驗 sprite 本體）
   titleForceDraw:(ts)=>{ensureTitleBgSize();drawTitleBg(ts!==undefined?+ts:performance.now());return true;}, // T158 測試用：同步立即觸發一次標題背景重繪（比照 forceDraw 同款用途），供背景分頁 rAF 停擺時的像素回歸／動態取樣繞開真實時間等待
   titleAnimOn:()=>!!titleRAF,                                   // T158 測試用：曝光標題動畫 rAF 是否在跑，驗證進遊戲後 stopTitleAnim() 已 cancelAnimationFrame（無殘留）
   addMoney:v=>{money+=v;return Math.round(money);},            // 測試用資金調整
