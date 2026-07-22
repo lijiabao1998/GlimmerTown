@@ -8159,6 +8159,20 @@ function draw(dt){
       ctx.fillRect(0,0,W,H);
       ctx.restore();
     }
+    if(flashT>.15&&!lodMini&&!window.__noBolt){ // T195 分岔閃電線形（Opus 親手，審計缺口）——原僅全屏白閃無電光形狀。flashT 高時畫螢幕空間鋸齒主幹+1 分岔電光，路徑由 streetHash(day) 決定性(同日同一形狀、隨 flashT 淡出)；'lighter' 藍白疊加+粗淡光暈；純幾何不消耗 R()、不改模擬。__noBolt 開關、遠景不繪
+      const sd=day, boltA=Math.min(1,(flashT-.15)*3.2);
+      let cx2=(.24+streetHash(sd,1,880)*.52)*W, cy2=0; const pts=[[cx2,cy2]];
+      for(let s=1;s<=7;s++){cx2+=(streetHash(sd,s,881)-.5)*W*.14;cy2=(s/7)*H*.74;pts.push([cx2,cy2]);}
+      const bi=3+Math.floor(streetHash(sd,0,882)*2); let fx=pts[bi][0],fy=pts[bi][1]; const fpts=[[fx,fy]];
+      for(let s=1;s<=3;s++){fx+=(streetHash(sd,s,883)-.32)*W*.11;fy+=H*.11;fpts.push([fx,fy]);}
+      const stroke=(ps,lw,col)=>{ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(ps[0][0],ps[0][1]);for(let k=1;k<ps.length;k++)ctx.lineTo(ps[k][0],ps[k][1]);ctx.stroke();};
+      ctx.save();ctx.lineCap='round';ctx.lineJoin='round'; // source-over：白閃已飽和至 255，電光以實色藍白覆蓋才可見（藍白色亦符合真實閃電通道）
+      stroke(pts,Math.max(5,8*z),`rgba(120,165,240,${(boltA*.5).toFixed(3)})`);  // 主幹光暈（偏藍）
+      stroke(fpts,Math.max(3,5*z),`rgba(120,165,240,${(boltA*.42).toFixed(3)})`); // 分岔光暈
+      stroke(pts,Math.max(1.6,2.4*z),`rgba(170,205,255,${boltA.toFixed(3)})`);    // 主幹芯（藍白）
+      stroke(fpts,Math.max(1.2,1.8*z),`rgba(170,205,255,${(boltA*.9).toFixed(3)})`); // 分岔芯
+      ctx.restore();
+    }
     flashT=Math.max(0,flashT-dt);
   }
   // ---- T143：因果追溯疊圖（inspect 面板點擊負向因子後高亮貢獻來源格；traceOverlay 為 null 或空陣列時零迭代，逐像素與改動前一致）----
