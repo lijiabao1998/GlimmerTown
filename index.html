@@ -8102,6 +8102,31 @@ function draw(dt){
     }
     ctx.restore();
   }
+  if(b<.5&&!lodMini&&!window.__noFirework){ // T210 煙火綻放（Opus 親手，審計缺口）——夜間天空週期性彩色煙火：上升亮跡→徑向火花爆炸＋重力下墜＋淡出；週期 cyc、每輪 phase 雜湊決定是否施放/位置/色/型；2 束錯開，純 visT/streetHash 決定性不消耗 R()、同 visT 重繪恆等；日間/黃昏(b>=.5)/遠景不繪＝零改動
+    const FW=['255,90,90','255,210,90','120,210,255','210,130,255','130,255,150','255,150,70'], cyc=7, na=clamp((.5-b)/.16,0,1);
+    for(let fw=0;fw<2;fw++){
+      const tv=visT/cyc+fw*.5, prog=tv%1, phase=Math.floor(tv);
+      if(streetHash(phase,fw,600)>.62)continue; // ~62% 輪次有煙火
+      const fx=(.18+streetHash(phase,fw,601)*.64)*W, fyTop=(.12+streetHash(phase,fw,602)*.22)*H;
+      const col=FW[Math.floor(streetHash(phase,fw,603)*FW.length)%FW.length];
+      ctx.save();ctx.globalCompositeOperation='lighter';
+      if(prog<.26){ // 上升亮跡
+        const ry=H*.72-(H*.72-fyTop)*(prog/.26);
+        ctx.fillStyle=`rgba(255,240,205,${(na*(1-prog/.26)*.85).toFixed(3)})`;
+        ctx.fillRect(fx-Math.max(1,z*.6),ry-2*z,Math.max(1,1.2*z),4*z);
+      }else{ // 爆炸火花
+        const ep=(prog-.26)/.74, rad=ep*82*z, a=na*(1-ep)*(1-ep);
+        for(let s=0;s<18;s++){
+          const ang=s/18*6.283, sr=rad*(.72+streetHash(phase*23+s,fw,604)*.32);
+          const sxp=fx+Math.cos(ang)*sr, syp=fyTop+Math.sin(ang)*sr+ep*ep*34*z; // 重力下墜
+          ctx.fillStyle=`rgba(${col},${a.toFixed(3)})`;
+          ctx.fillRect(sxp-z,syp-z,Math.max(1,1.8*z),Math.max(1,1.8*z));
+        }
+        const fa=na*(1-ep*3.2); if(fa>0){ctx.fillStyle=`rgba(255,255,240,${fa.toFixed(3)})`;ctx.beginPath();ctx.arc(fx,fyTop,3*z,0,6.283);ctx.fill();} // 爆心閃光
+      }
+      ctx.restore();
+    }
+  }
   if(!lodMini&&!window.__noFog){ // T182 晨霧（Opus 親手）——黎明(ph≈0.25 日出)時分畫面下半低伏白霧帶：3 條垂直漸層霧帶＋波動頂緣＋visT 決定性橫向漂移，強度隨 |ph-0.25| 峰態衰減（日出最濃、正午與深夜為 0）；遠景(lodMini)不繪；純讀既有 ph/visT、無新狀態、不消耗 R()、同 visT 重繪恆等
     const fog=clamp(1-Math.abs(ph-.25)/.11,0,1);
     if(fog>.01){
