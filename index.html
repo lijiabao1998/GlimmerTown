@@ -63,7 +63,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #rci .col{width:4px;height:24px;background:#0c1020;border-radius:2px;position:relative;overflow:hidden}
 #rci .col i{position:absolute;bottom:0;left:0;right:0;height:0%;background:#58c470}
 /* ---------- 工具列 ---------- */
-#toolcats{position:absolute;left:50%;bottom:68px;transform:translateX(-50%);z-index:21;display:none;gap:4px;flex-wrap:wrap;justify-content:center;max-width:96vw}
+#toolcats{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:21;display:none;gap:4px;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;max-width:96vw;scrollbar-width:none}
+#toolcats::-webkit-scrollbar{display:none}
+#toolcats button{flex:0 0 auto}
 #toolcats button{padding:4px 8px;border-radius:var(--radius-sm);border:1px solid #3a456e;background:rgba(16,22,42,.92);color:#c9d2ea;font-size:11px;cursor:pointer;transition:background-color var(--ease),border-color var(--ease),box-shadow var(--ease)}
 #toolcats button.on{border-color:var(--accent-soft);color:#ffe9ad;background:#2a3358;box-shadow:0 0 0 1px rgba(201,162,76,.35)}
 @media (hover:hover) and (pointer:fine){#toolcats button:hover{border-color:var(--panel-border-strong);background:#232c4a}}
