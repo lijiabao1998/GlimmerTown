@@ -2033,6 +2033,17 @@ function buildSprites(){
    else if(d===2)g.fillRect(cx-1,cy+1,2,4);
    else g.fillRect(cx+1,cy-1,4,2);
    SPR.oneway.push(c);}
+  // T192 號誌燈實體（Opus 親手，審計缺口）：號誌可放置卻一直隱形。桿+三格紅黃綠燈箱，純幾何不消耗 rand
+  {const[c,g]=cv(64,40);
+   g.fillStyle='#33373d';g.fillRect(45,13,2,23);          // 立桿
+   g.fillStyle='#2a2d32';g.fillRect(43,35,6,2);           // 底座
+   g.fillStyle='#20232a';g.fillRect(40,15,6,3);           // 橫臂
+   g.fillStyle='#26292e';g.fillRect(40,3,7,14);g.fillStyle='#0b0c0e';g.fillRect(41,4,5,12); // 燈箱
+   g.fillStyle='#ff4d4d';g.fillRect(42,5,3,2);            // 紅
+   g.fillStyle='#ffd23d';g.fillRect(42,8,3,2);            // 黃
+   g.fillStyle='#54ff70';g.fillRect(42,11,3,2);           // 綠
+   g.fillStyle='rgba(84,255,112,.5)';g.fillRect(41,10,5,4); // 綠燈微暈（提示通行）
+   SPR.light=c;}
   /* ===== T101 住宅圖鑑擴充：k=1 全新變體（lv1/lv2 v4-7、lv3 v5-7；lv3 v4 公寓大樓沿用既有尾端建造，不重建）
      置於 buildSprites 絕對尾端（既有全部 sprite 生成之後），不位移任何既有 rand 消耗序 ===== */
   for(const t of tasks)if(t.k===1&&t.v>=4&&t.v<8&&!(t.lv===3&&t.v===4))mkBld(t); // T150：加 t.v<8 上界，v8-11 新變體改由尾端 T150 區塊生成，避免提早消耗 rand 位移下游
@@ -7310,6 +7321,7 @@ function draw(dt){
       if(t.dock)gc.drawImage(SPR.dock,sx,sy,64*z,32*z);
       // T42 單行道箭頭
       if(t.oneway&&t.road)gc.drawImage(SPR.oneway[t.oneway-1]||SPR.oneway[0],sx,sy,64*z,32*z);
+      if(t.light&&t.road&&SPR.light&&!window.__noSignal)gc.drawImage(SPR.light,sx,sy-8*z,64*z,40*z); // T192：號誌燈實體（桿+紅黃綠燈箱，抬高 8px 讓燈頭立於路口）
       // T57 洪水疊加
       if(t.flood){gc.globalAlpha=.35;gc.fillStyle='#4a8ab8';gc.fillRect(sx,sy,64*z,32*z);gc.globalAlpha=1;}
       // T70 堤防：內縮菱形描邊示意加高河堤（土黃色，先前僅小地圖上色、地面無標記）
