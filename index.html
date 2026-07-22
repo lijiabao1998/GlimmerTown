@@ -8990,6 +8990,15 @@ function draw(dt){
        之後（疊在建築剪影之上）；幀選取一律 Math.floor(visT*k)%n 決定性相位，lodFar（z<1）強制 frame 0＝
        靜態首幀，animOn 已含 z<0.5／quality===0／__noAnim 短路（此時整段不進入任一分支，逐像素與改動前一致）===== */
     if(animOn){
+      if(bd.k===4&&!win&&!lodFar&&SPR.ped&&!window.__noParkPed){ // T246 公園遊人（Opus 親手，公園生活多樣化）——非冬公園上 1-2 個動態行人(成人/孩童/推車)於園內來回漫步：visT 決定性選幀+來回位移，streetHash 決定性挑類型/數量/縱位，不消耗 R()、遠景/冬季不繪、__noParkPed 開關
+        const KP=[SPR.ped.adult,SPR.ped.child,SPR.ped.stroller], nv=streetHash(o.x,o.y,1950)<.45?2:1;
+        for(let vi=0;vi<nv;vi++){
+          const ph=streetHash(o.x,o.y,1951+vi*7), kind=KP[Math.floor(streetHash(o.x,o.y,1954+vi*3)*3)%3], fr=kind[Math.floor(visT*2.4+ph*6)%2];
+          const t2=(visT*.15+ph)%1, tt=t2<.5?t2*2:2-t2*2;
+          const px=bx+s.w*z*(.24+tt*.5), py=by+s.h*z*(.56+streetHash(o.x,o.y,1957+vi)*.12);
+          ctx.drawImage(fr.img,px-fr.ax*z,py-fr.ay*z,fr.w*z,fr.h*z);
+        }
+      }
       if(bd.k===7||bd.k===9||bd.k===42){ // 旗幟：學校/體育場/市政廳掛點，畫布座標系與 s.ax/s.ay 同一參照
         const ffr=lodFar?0:Math.floor(visT*3)%3;
         const fs=SPR.flag[ffr];
