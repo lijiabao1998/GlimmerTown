@@ -5527,6 +5527,7 @@ function meteorStrike(cx,cy){
   }
   const ct=T(idx(cx,cy));ct.ruin=0;ct.crater=1;
   shakeT=.45;flashT=.4;
+  if(!window.__noDebris){spawnDebris(cx,cy);spawnDust(cx,cy);for(const p of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1]]){const nx=cx+p[0],ny=cy+p[1];if(inMap(nx,ny)){spawnDebris(nx,ny);spawnDust(nx,ny);}}} // T198：隕石落點碎屑塵爆（既有函式，Math.random 不消耗 R()、不入存檔，放災害分支不位移亂數流）
   toast('☄️ 隕石墜落！留下隕石坑並持續起火，需付費剷除','bad',cx,cy);sErr();
   return true;
 }
@@ -5852,7 +5853,7 @@ function tick(){
       shakeT=.55;quakeRecover=40;let hit=0,qi=-1;
       for(let tries=0;tries<40&&hit<5;tries++){
         const i=ri(N*N),b=tiles[i].bld;
-        if(b&&!b.ref&&b.k<=3&&!b.fire){b.fire=1;hit++;if(qi<0)qi=i;} // T114：記第一棟座標供通知中心跳鏡頭
+        if(b&&!b.ref&&b.k<=3&&!b.fire){b.fire=1;hit++;if(qi<0)qi=i;if(!window.__noDebris)spawnDust(i%N,(i/N)|0);} // T114：記第一棟座標供通知中心跳鏡頭；T198：地震搖晃落塵（Math.random 不消耗 R()）
       }
       if(hit){toast('🌋 地震！部分建築起火','bad',qi%N,(qi/N)|0);sErr();}
     }
@@ -5867,7 +5868,7 @@ function tick(){
       tornado.x+=tornado.dx;tornado.y+=tornado.dy;tornado.life--;
       if(inMap(tornado.x,tornado.y)){
         const tti=idx(tornado.x,tornado.y),ttl=tiles[tti],ttb=ttl.bld;
-        if(ttb&&!ttb.ref&&ttb.k<=3){if(ttb.k===3)stampPolSrc(tornado.x,tornado.y,3,-1);ttl.bld=null;ttl.ruin=1;}
+        if(ttb&&!ttb.ref&&ttb.k<=3){if(ttb.k===3)stampPolSrc(tornado.x,tornado.y,3,-1);ttl.bld=null;ttl.ruin=1;if(!window.__noDebris){spawnDebris(tornado.x,tornado.y);spawnDust(tornado.x,tornado.y);}} // T198：龍捲摧毀碎屑塵爆
         if(ttl.tree)ttl.tree=0;
       }else tornado.life=0;
       if(tornado.life<=0||!inMap(tornado.x,tornado.y))tornado=null;

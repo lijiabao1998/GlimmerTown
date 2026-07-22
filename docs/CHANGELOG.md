@@ -2,6 +2,7 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-22 | T198 災害摧毀爆裂碎屑（Opus 親手，v4.7，審計缺口） | 龍捲/隕石/地震摧毀時僅 tile→ruin/crater+震屏，落點零粒子=建築像憑空消失。三處災害分支加既有 spawnDebris/spawnDust(T159 粒子，Math.random 不消耗 R()、不入存檔，放災害分支不位移亂數流)：隕石落點中心+6鄰碎屑塵爆、龍捲摧毀格碎屑+塵、地震搖晃起火落塵；__noDebris 開關。驗收：380/380＋端到端(seed7 slot3)——GV.meteor 觸發 fxCount 0→81 粒子／__noDebris=true 時 0(開關)＋走既有 fxParts 渲染(T159已證)＋零 console。 | 驗收:通過
 2026-07-22 | T197 冬季屋簷冰柱（Opus 親手，v4.7，審計缺口） | T183 只在剪影頂加雪帽，簷下無冰凌。新增 icicleCap(s)(比照 snowCap 純 getImageData 逐欄掃)：自屋頂雪線(top+cap)往下、每6欄一根 3-6px 漸細藍白冰柱，只落建築剪影上(遇透明即止=自然收簷邊不懸空)，一次性快取 s.icicle 不消耗 R()；渲染疊在 T183 之後同 win&&snowLvl>0 閘、__noIcicle 開關。驗收：380/380＋端到端(seed7 slot3 12棟 z4 冬季積雪)——冰柱 diff 4708 像素其中94%藍白／夏季 diff=0(snowLvl0 gate)＋零 console。至此冬季建築＝屋頂雪+煙囪炊煙+屋簷冰柱。 | 驗收:通過
 2026-07-22 | T196 水面浮禽（Opus 親手，v4.7，審計缺口） | 水面原只有天上飛過的鳥(T163複用SPR.bird)，無浮於水上生物。新增 SPR.waterfowl(白天鵝弧頸/綠頭鴨純幾何不消耗rand)；draw 端 T152 波光迴圈後另開 loop：稀疏(~2%)開闊平靜水格(t.t0,!t.wm 避岸)浮一隻，visT 決定性緩慢漂移+身後 V 形淡白尾跡；非冬(!win 避 T186 冰面)、遠景不繪、每幀動態不烘 groundCache、純 streetHash/visT 不消耗 R()，__noFowl 開關。至此野生動物層完整(蝴蝶陸/螢火蟲夜/雁陣空/浮禽水/鳥全年)。驗收：380/380＋端到端(seed7 slot3 開闊水域z2.5)——夏季 diff 334 像素99%偏白／冬季 diff=0(避冰)＋零 console。 | 驗收:通過
 2026-07-22 | T195 分岔閃電線形（Opus 親手，v4.7，審計缺口） | 閃電原僅全屏白閃無電光形狀。flashT>.15 時畫螢幕空間鋸齒主幹(7段)+1 分岔電光，路徑由 streetHash(day) 決定性(同日同形、隨 flashT 淡出)+粗淡藍光暈；純幾何不消耗 R()、不改模擬，__noBolt 開關、遠景不繪。驗收：380/380＋端到端(seed7 slot3)——flash+bolt vs flash+nobolt diff 8025 像素 100%偏藍、maxPixelDelta 147、集中 320px 鋸齒範圍(非散點)＋零 console。
