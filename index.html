@@ -8279,6 +8279,11 @@ function draw(dt){
     const hg=ctx.createRadialGradient(mtx,mty,0,mtx,mty,8*z);
     hg.addColorStop(0,`rgba(255,246,214,${a.toFixed(3)})`);hg.addColorStop(.5,`rgba(255,170,60,${(a*.75).toFixed(3)})`);hg.addColorStop(1,'rgba(255,140,40,0)');
     ctx.fillStyle=hg;ctx.beginPath();ctx.arc(mtx,mty,8*z,0,6.283);ctx.fill(); // 落點火球頭
+    if(!window.__noShockwave){ // T208 落點衝擊波環（Opus 親手，審計缺口）：自落點擴張的地面 iso 橢圓環，隨 prog 擴大、隨 a 淡出（源用同一 meteorTrail 計時，零額外狀態）
+      const prog=1-a, rr=prog*72*z, ringA=a*.5;
+      ctx.strokeStyle=`rgba(255,222,182,${ringA.toFixed(3)})`;ctx.lineWidth=Math.max(1.5,3.5*z*(1-prog));
+      ctx.translate(mtx,mty);ctx.scale(1,.5);ctx.beginPath();ctx.arc(0,0,rr,0,6.283);ctx.stroke();
+    }
     ctx.restore();
     meteorTrail.t-=dt;if(meteorTrail.t<=0)meteorTrail=null;
   }

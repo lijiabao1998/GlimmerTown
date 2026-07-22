@@ -2,6 +2,7 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-22 | T208 隕石落點衝擊波環（Opus 親手，v4.7，審計缺口） | 隕石視覺鏈補最後一環：落點自 meteorTrail 計時衍生的地面 iso 橢圓衝擊波環(ctx.scale(1,.5))，隨 prog 擴張(rr→72z)、隨 a 淡出、線寬隨擴張變細；source-over 暖白(255,222,182)、共用 meteorTrail 狀態零額外全域、__noShockwave 開關、不消耗 R()。驗收：380/380＋端到端(seed7 slot3 轟空地 z2.2)——推進至白閃全消(28 forceDraw)後 __noShockwave 開關 diff 5976 像素其中77.5%暖色(環)＋零 console。至此隕石＝火球拖尾(T207)→白閃→衝擊波環→碎屑(T198)完整視覺鏈。 | 驗收:通過
 2026-07-22 | T207 隕石入場火球拖尾（Opus 親手，v4.7，審計缺口） | 隕石原僅瞬間坑+閃光+碎屑(T198)，無入場拖尾。新增 meteorTrail 視覺計時({x,y,t:.7}，比照 flashT/shakeT 不進存檔、newWorld 成對重置鐵律7)；meteorStrike 設定，draw 於落點(sxOf/syOf)畫自上空往下的橙色火球拖尾+落點火球頭，隨 t 淡出；source-over 實色橙(同 T195 教訓：同幀白閃已飽和 lighter 無效)、__noMeteorTrail 開關、遠景不繪、不消耗 R()。驗收：380/380＋端到端(seed7 slot3 GV.meteor)——__noMeteorTrail 開關 diff 3404 像素其中99.9%橙暖色＋零 console。 | 驗收:通過
 2026-07-22 | T206 輕軌鉸接車廂（Opus 親手，v4.7，審計缺口） | 承 T205，輕軌原亦單節。抽出 drawTram helper(幾何與 T65 逐像素一致)，車頭後方沿軌鉸接第2節(sp=0.32≈耦合，DIRV 反向 screen 偏移決定性不消耗 R())，共用 __noTrainCars 開關。驗收：380/380＋端到端(seed7 slot3 鋪16格輕軌+2輕軌站 step 生成電車 z3.5)——__noTrainCars 開關 diff 757 像素其中72%偏綠(輕軌色#2f8f6f)＝第2節可見＋零 console。火車(T205)＋輕軌皆多節。 | 驗收:通過
 2026-07-22 | T205 多節火車車廂（Opus 親手，v4.7，審計缺口） | 火車原僅單節車頭(fillRect 組裝)。抽出 drawCar helper(幾何與 T63/T155 車頭逐像素一致)，車頭後方(反行進方向)沿軌接 2 節客車廂：位置以 DIRV 反向 screen 偏移(sp=0.5≈耦合)決定性內插不消耗 R()；最遠先畫、車頭最後畫在上；客車廂色#a85a4a/#5a7aa8(較車頭淺)，__noTrainCars 開關。驗收：380/380＋端到端(seed7 slot3 鋪16格鐵路+2車站 step 生成火車 z3.5)——__noTrainCars 開關 diff 2466 像素其中78%偏紅(車廂色)＝2節車廂可見＋零 console。 | 驗收:通過
