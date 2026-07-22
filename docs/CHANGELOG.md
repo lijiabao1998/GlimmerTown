@@ -2,6 +2,7 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-22 | T202 樹木大小/樹齡抖動（Opus 親手，v4.7，審計缺口） | 原所有樹同尺寸。draw 端加 per-tree 決定性縮放 tsc=0.74+streetHash(x,y,780)*0.5(幼苗0.74↔成樹1.24)，底部錨定(bpx/bpy 基準點不動、往上長，不浮空)；streetHash 不消耗 R()，__noTreeJit=true 時 tsc=1＝改動前逐像素一致。驗收：380/380＋端到端(seed7 slot3 密林區 z2.5)——jitter 開關 diff 160840 像素(樹木明顯改尺寸)＋樣本縮放 0.74-0.99 有變化(全圖範圍 0.74-1.24)＋零 console。 | 驗收:通過
 2026-07-22 | T200 低頻大尺度地面色斑（Opus 親手，v4.7，審計缺口） | 草地放大到多格連片原為均勻色，缺 TheoTown 式大尺度地形色帶。用粗量化座標雜湊 streetHash(x>>3,y>>3,870)＝8×8 格同值低頻遮罩，依季疊薄暖/冷 tint(春夏乾黃斑#aca252/濕綠窪、秋枯黃#9e7e3a/深綠、冬不均雪堆亮白/暗灰)；純疊色決定性不消耗 R()、烘進 groundCache(季節既有快取鍵零每幀成本)、低 alpha(~0.1)柔化塊邊，__noPatch 開關。驗收：380/380＋端到端(seed7 slot3 大草地區 z1.5，place+doze 髒化快取)——四季 diff 春350K/夏336K/秋426K/冬333K 像素(大範圍連片非逐格)＋零 console。 | 驗收:通過
 2026-07-22 | T199 草↔沙陸地接縫羽化（Opus 親手，v4.7，審計缺口） | 水↔陸有 foam/shoreBlend、高地↔低地有 cliffEdge，唯草(t.t2)↔沙(t.t1)相鄰處為硬鑽石邊。draw 端就地算「沙鄰接 mask」(同 recalcFoamAt wm 位元約定 1上/2右/4下/8左)，聰明重用既有 SPR.shoreBlend(沙色 diaEdge 三層羽化)貼於草地沙向邊＝軟化硬邊；免新增 tile 欄位/sprite，烘進 groundCache，不消耗 R()，__noSandSeam 開關。驗收：380/380＋端到端(seed7 slot3 草沙邊界密集區 z3，place+doze 髒化快取)——羽化 diff 11205 像素其中99.6%沙色＋零 console。此缺口普遍(各種子 385-438 格草沙邊界)。 | 驗收:通過
 2026-07-22 | T198 災害摧毀爆裂碎屑（Opus 親手，v4.7，審計缺口） | 龍捲/隕石/地震摧毀時僅 tile→ruin/crater+震屏，落點零粒子=建築像憑空消失。三處災害分支加既有 spawnDebris/spawnDust(T159 粒子，Math.random 不消耗 R()、不入存檔，放災害分支不位移亂數流)：隕石落點中心+6鄰碎屑塵爆、龍捲摧毀格碎屑+塵、地震搖晃起火落塵；__noDebris 開關。驗收：380/380＋端到端(seed7 slot3)——GV.meteor 觸發 fxCount 0→81 粒子／__noDebris=true 時 0(開關)＋走既有 fxParts 渲染(T159已證)＋零 console。 | 驗收:通過
