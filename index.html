@@ -7078,6 +7078,19 @@ function draw(dt){
       ctx.beginPath();ctx.arc(moonX+rad*.12,moonY-rad*.34,rad*.12,0,6.283);ctx.fill();
     }
   }
+  if(b>.5&&weather===0&&!window.__noCloudBody){ // T194 白雲體（Opus 親手，審計缺口）——T167 僅有 multiply 暗斑雲「影」，天空無白色雲「體」。晴天日間於天空上方畫數團柔白 puff（多重疊圓＝蓬鬆輪廓），與 T167 同速(visT*24)橫掃＝雲體+其地面投影因果對齊(強化非冗餘)；螢幕空間繪於世界之前(近焦地形覆蓋)、__noCloudBody 開關、純 visT 決定性不消耗 R()；夜間(b<=.5)/雨雪/遠景 不繪
+    const ca=clamp((b-.5)/.3,0,1)*.42, czc=Math.max(cam.z,.7), span=W+460;
+    const PUFF=[[0,0,32],[27,7,23],[-25,6,21],[11,-9,19],[-9,-7,17]];
+    for(let i=0;i<4;i++){
+      const cxc=(((i*W*0.42-visT*24)%span)+span)%span-230, cyc=H*.045+((i*71)%90)/90*H*.17;
+      for(const p of PUFF){
+        const px=cxc+p[0]*czc, py=cyc+p[1]*czc, pr=p[2]*czc;
+        const cg=ctx.createRadialGradient(px,py,0,px,py,pr);
+        cg.addColorStop(0,`rgba(255,255,255,${ca.toFixed(3)})`);cg.addColorStop(.62,`rgba(250,252,255,${(ca*.45).toFixed(3)})`);cg.addColorStop(1,'rgba(250,252,255,0)');
+        ctx.fillStyle=cg;ctx.beginPath();ctx.arc(px,py,pr,0,6.283);ctx.fill();
+      }
+    }
+  }
   const z=cam.z;
   if(z<1)ctx.imageSmoothingEnabled=true; // T106：遠檔縮小抗鋸齒閃爍，僅主畫布層級切換，繪製結束復原
   const lodFar=z<1, lodMini=z<.5; // T107：遠景 LOD 分級旗標（只裁「畫」不裁「算」，tick/updCars/updSmoke 等模擬照跑）
