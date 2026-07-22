@@ -1347,6 +1347,45 @@ function buildSprites(){
    SPR.plant={img:c,night:nc,ax,ay,w:88,h:120,
      smoke:[{dx:-16,dy:rty-19-ay},{dx:8,dy:rty-11-ay}],
      lamp:{dx:-16,dy:rty-21-ay}};}
+  /* ---------- T225 發電廠變體 v1/v2（Opus 親手，玩家指令「更多變體」）：每城必有卻只 1 臉。v1 冷卻塔廠(雙曲面混凝土塔+青綠廳)/v2 現代燃氣廠(青玻璃廳+三細銀囪+黃管)。零 rand+決定性夜燈=流零位移；各帶自身 smoke 掛點 ---------- */
+  {SPR.plantVar=[];
+   { // v1 冷卻塔廠
+    const[c,g]=cv(88,120),[nc,ng]=cv(88,120),[sc,sg]=cv(88,120);
+    const ax=44,ay=118,by=ay-2;
+    plate(g,ax,ay,'#8f8a7c');
+    const rty=isoBox(sg,ax+6,by-4,20,14,'#3a7a6e','#2c6055','#4a9484'); // 青綠低廳
+    for(let dx=3;dx<17;dx+=4){const yF=by-4-((dx+1)>>1);sg.fillStyle='#bfe8dc';sg.fillRect(ax+6+dx,yF-9,2,4);
+      if((dx*3)%7<4){ng.fillStyle='#9fe8ff';ng.fillRect(ax+6+dx,yF-9,2,4);}} // 廳窗（決定性夜燈）
+    const tower=(cx2,topY,hgt)=>{ // 雙曲面冷卻塔（腰縮輪廓）
+      for(let r=0;r<hgt;r++){const t2=r/hgt;const w2=Math.round(7+5*Math.abs(t2-.42)*2.2);
+        sg.fillStyle=t2<.08?'#d8dce2':shade('#b2b8c0',Math.round(-18*Math.abs(t2-.42)*2));
+        sg.fillRect(cx2-w2,topY+r,w2*2,1);}
+      sg.fillStyle='#8a9098';sg.fillRect(cx2-8,topY+hgt-2,16,2);
+      sg.fillStyle='#e05252';sg.fillRect(cx2-1,topY-2,3,2);ng.fillStyle='#ff6060';ng.fillRect(cx2-1,topY-2,3,2);}; // 塔頂警示燈
+    tower(ax-22,rty-30,44);tower(ax-2,rty-22,36);
+    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+    SPR.plantVar[1]={img:c,night:nc,ax,ay,w:88,h:120,
+      smoke:[{dx:-22,dy:(rty-30)-2-ay},{dx:-2,dy:(rty-22)-2-ay}], // 蒸汽自塔頂
+      lamp:{dx:-22,dy:(rty-32)-ay}};}
+   { // v2 現代燃氣廠
+    const[c,g]=cv(88,120),[nc,ng]=cv(88,120),[sc,sg]=cv(88,120);
+    const ax=44,ay=118,by=ay-2;
+    plate(g,ax,ay,'#8f8a7c');
+    const rty=isoBox(sg,ax-4,by,26,20,'#4a6a80','#3a5468','#5c8098'); // 藍灰廳
+    diaEdge(sg,15,'#cfe0ec',ax-4,rty,26);
+    for(let dx=2;dx<22;dx+=3){const yF=by-((dx+1)>>1);sg.fillStyle='#9cc8e0';sg.fillRect(ax-4+dx,yF-13,2,8);
+      if((dx*5)%8<5){ng.fillStyle='#9fe8ff';ng.fillRect(ax-4+dx,yF-13,2,8);}} // 玻璃簾（決定性夜燈）
+    for(const[sx2,sh] of[[-24,34],[-17,30],[-10,26]]){ // 三細銀囪
+      sg.fillStyle='#c2c6ce';sg.fillRect(ax+sx2,rty-sh,4,sh+6);
+      sg.fillStyle='#8e929a';sg.fillRect(ax+sx2+3,rty-sh,1,sh+6);
+      sg.fillStyle='#e05252';sg.fillRect(ax+sx2,rty-sh-2,4,2);}
+    sg.fillStyle='#e0b83a';sg.fillRect(ax-24,by-8,26,2);sg.fillRect(ax-24,by-14,2,8); // 黃色輸氣管
+    sg.fillStyle='#6d7684';sg.fillRect(ax+16,by-12,7,6);sg.fillRect(ax+24,by-9,6,5); // 變電箱
+    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
+    SPR.plantVar[2]={img:c,night:nc,ax,ay,w:88,h:120,
+      smoke:[{dx:-22,dy:(rty-36)-ay},{dx:-15,dy:(rty-32)-ay},{dx:-8,dy:(rty-28)-ay}],
+      lamp:{dx:-22,dy:(rty-38)-ay}};}
+  }
   /* ---------- 消防局（T14／T215 擴 3→5 變體）：v0-2 紅白（雙車庫＋中央瞭望塔），v3 青綠（單車庫＋左偏塔），v4 藍（單車庫＋無塔平頂）；v0-2 逐位元與改動前一致（仍用 rand 窗燈），v3/v4 用決定性窗燈不消耗 rand＝總 rand 消耗不變、亂數流零位移（鐵律2變通：非尾端擴變體但新迭代不耗 rand） ---------- */
   {const FWALL=[['#c53a2b','#a52d20'],['#b2434e','#8f303a'],['#d75636','#b23f24'],['#3a8a7a','#2c6a5e'],['#4a6a9a','#38527a']];
    const FROOF=['#4a4038','#413730','#524339','#354a44','#3a4656'];
@@ -5151,7 +5190,7 @@ function doPlace(toolId,x,y,silent){
       stampCov('park',x,y,COVR.park,1);
       break;
     case 'plant':
-      t.bld={k:5,lv:1,v:0,age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0;
+      t.bld={k:5,lv:1,v:(x*7+y*13)%3,age:0,pw:true,h:1};t.tree=0;t.zone=0;t.deco=0; // T225：座標決定性選變體（零 R 消耗＝亂數流零位移，同座標重放同變體）
       stampCov('plant',x,y,COVR.plant,1);
       stampPolSrc(x,y,5,1); // T110：電廠污染源
       break;
@@ -6763,7 +6802,7 @@ function updSmoke(dt){
       if(smokes.length>=smokeCap)continue;
       let offs=null,col=null,big=false;
       if(b.k===3&&b.lv>=2&&b.pw){offs=SPR.bld[b.k+'_'+b.lv+'_'+b.v].smoke;col=b.lv>=3?'#5b5551':'#c7ccd1';} // T159：工業煙羽依等級深淺分層（煙羽多樣化）
-      if(b.k===5){offs=SPR.plant.smoke;col='#e7edf2';big=true;} // T159：電廠蒸汽改為偏白且膨脹較大，區別一般工業煙
+      if(b.k===5){const ps=(b.v&&SPR.plantVar&&SPR.plantVar[b.v])||SPR.plant;offs=ps.smoke;col='#e7edf2';big=true;} // T159：電廠蒸汽改為偏白且膨脹較大；T225：變體各自 smoke 掛點（冷卻塔頂/細囪頂）
       if(b.k===1&&b.riot){offs=[{dx:0,dy:-42}];col='#3a3530';} // T118：暴亂住宅複用既有煙粒繪製火把/騷亂煙霧（不新建 sprite，屋頂上方固定一點冒煙）
       if(sea===3&&b.k===1&&b.pw&&!b.riot&&!window.__noChimney){const sm=SPR.bld[b.k+'_'+b.lv+'_'+b.v];if(sm&&sm.smoke.length){offs=sm.smoke;col='#d8d2c6';}} // T185：冬季民居炊煙（Opus 親手）——入冬(sea===3)供電住宅(k=1,pw)非暴亂時自煙囪點冒暖灰輕煙（沿用既有 smoke 管線/上限，煙點含 chimneySmall(T185補)/chimneyBrick(lv2-3)）；非冬/未供電/暴亂/__noChimney 不繪＝該狀態零改動；讀既有 sea/建築態，spawn 用 Math.random 與模擬 R() 獨立（同 T159 粒子慣例）
       if(!offs||!offs.length)continue;
@@ -8212,7 +8251,7 @@ function draw(dt){
     }
     let s;
     if(bd.k===4)s=(win?SPR.parkW:sea===1?(SPR.parkS||SPR.park):sea===2?(SPR.parkA||SPR.park):SPR.park)[bd.v]; // T204：夏/秋公園季節色（春季/缺失回退 base）
-    else if(bd.k===5)s=SPR.plant;
+    else if(bd.k===5)s=(bd.v&&SPR.plantVar&&SPR.plantVar[bd.v])||SPR.plant; // T225：發電廠變體（v0 燃煤/v1 冷卻塔/v2 燃氣）
     else if(bd.k===9)s=SPR.bld['9_1_'+bd.v];
     else if(bd.k===10)s=(bd.v&&SPR.waterTowerVar&&SPR.waterTowerVar[bd.v])||SPR.waterTower; // 水塔（T31）；T218：依 bd.v 選變體（v0 圓柱／v1 鋼銀高腳／v2 球形）
     else if(bd.k===11)s=(bd.v&&SPR.policeVar&&SPR.policeVar[bd.v])||SPR.police; // 警察局（T32）；T216：依 bd.v 選變體（v0 hero／v1 現代寬樓／v2 高塔式，缺鍵回退 hero）
