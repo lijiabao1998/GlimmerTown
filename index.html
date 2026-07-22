@@ -4663,6 +4663,13 @@ function buildSprites(){
       g.fillStyle='#8a5a2c';g.fillRect(5,3,3,4);                                            // 蒲棒
       g.fillStyle='#a8703a';g.fillRect(5,3,3,1);g.fillRect(5,3,1,4);                        // 蒲棒亮面
       g.fillStyle='#6b4520';g.fillRect(7,5,1,2);});                                         // 蒲棒陰影
+    SPR.natParasol=mkNat(16,16,g=>{ // T243 夏日沙灘遮陽傘（Opus 親手，海岸線多樣化）：紅白條紋傘+桿+沙灘巾+球，純 fillRect 無亂數
+      g.fillStyle='#8a7a5a';g.fillRect(8,6,1,9);                                            // 傘桿
+      g.fillStyle='#d24334';g.fillRect(2,3,13,4);                                           // 傘頂紅
+      g.fillStyle='#eef2f6';g.fillRect(4,3,2,4);g.fillRect(8,3,2,4);g.fillRect(12,3,2,4);   // 白條紋
+      g.fillStyle='#c03828';g.fillRect(2,6,13,1);g.fillStyle='#f2a89a';g.fillRect(3,3,11,1);// 傘沿陰影+頂高光
+      g.fillStyle='#e8c860';g.fillRect(1,13,5,2);g.fillStyle='#f0dc88';g.fillRect(1,13,5,1);// 沙灘巾（黃）
+      g.fillStyle='#e05252';g.fillRect(12,13,2,2);g.fillStyle='#5aa0e8';g.fillRect(13,13,1,2);g.fillStyle='#fff';g.fillRect(12,13,1,1);}); // 沙灘球
     // ---- 岸邊漸變帶：草/沙→水過渡暖沙色漸層，沿用既有 t.wm 16 mask（仿 SPR.foam 手法）----
     SPR.shoreBlend=[];
     for(let m=0;m<16;m++){const[c,g]=cv(64,32);
@@ -8133,6 +8140,13 @@ function draw(dt){
             if(wN||wE||wS||wW){
               const rd=SPR.natReed, rx2=wE?46:wW?8:26+Math.floor(streetHash(x,y,873)*12), ry2=wS?26:wN?12:16+Math.floor(streetHash(x,y,874)*10);
               gc.drawImage(rd.img,sx+(rx2-rd.w/2)*z,sy+(ry2-rd.h)*z,rd.w*z,rd.h*z);
+            }
+          }
+          if(!window.__noBiome&&SPR.natParasol&&!t.tree&&!t.bld&&!t.zone&&!t.deco&&sea===1&&streetHash(x,y,875)<.13){ // T243 夏日沙灘遮陽傘：草地格 4 鄰有水，夏季 13% 決定性長沙灘傘（朝水側偏移）
+            const wN2=inMap(x,y-1)&&T(idx(x,y-1)).t===0, wE2=inMap(x+1,y)&&T(idx(x+1,y)).t===0, wS2=inMap(x,y+1)&&T(idx(x,y+1)).t===0, wW2=inMap(x-1,y)&&T(idx(x-1,y)).t===0;
+            if(wN2||wE2||wS2||wW2){
+              const ps=SPR.natParasol, px2=wE2?42:wW2?12:20+Math.floor(streetHash(x,y,876)*20), py2=wS2?28:wN2?14:18+Math.floor(streetHash(x,y,877)*10);
+              gc.drawImage(ps.img,sx+(px2-ps.w/2)*z,sy+(py2-ps.h)*z,ps.w*z,ps.h*z);
             }
           }
         }
