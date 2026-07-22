@@ -7979,6 +7979,7 @@ function draw(dt){
     if(drawA<1)ctx.globalAlpha=drawA;
     ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
     if(drawA<1)ctx.globalAlpha=1;
+    if(s.night&&!lodFar&&(bd.pw||bd.k>=5)&&!window.__noWinLit)nightSprites.push({img:s.night,x:bx,y:by,w:s.w*z,h:s.h*z}); // T212 建築夜間窗燈（Opus 親手，審計缺口）：每棟建築早有 night:nc(windows() 生成的亮窗畫布，透明底)卻從未 push 進 nightSprites＝夜間不亮窗。此處為供電住宅(pw)/服務建築(k>=5)無條件 push，交由下方夜燈層依 b<.72 或暴雨(stormLit)以 'screen' 疊加＝亮窗僅在夜間/暗天氣顯現；日間晴天下方閘不繪＝零改動，__noWinLit 開關
     if(win&&snowLvl>0&&!lodFar&&bd.k!==4&&!window.__noRoofSnow){ // T183 冬季屋頂積雪（Opus 親手）——RCI/服務建築本體無冬季雪化變體（見 T161 註記「本卡未新增建築本體冬季雪化」），入冬且積雪(snowLvl>0，沿用 T154 rainDays/SNOW_ACC_DAYS，與地面積雪同步累積/緩降)時於建築本體之上疊「雪帽」：snowCap(s) 以 sprite 剪影為遮罩僅在頂部加白；乘 drawA 使被遮擋/施工中建築的雪同步淡化；非冬/無積雪(snowLvl=0)/公園(k4)/遠景(lodFar) 不繪＝該狀態逐像素零改動，__noRoofSnow 開關供回歸比對；純讀既有 win/snowLvl/drawA 不消耗 R()
       ctx.globalAlpha=Math.min(1,snowLvl*1.08)*drawA;
       ctx.drawImage(snowCap(s),bx,by,s.w*z,s.h*z);
@@ -8197,9 +8198,10 @@ function draw(dt){
     ctx.fillStyle=morn?`rgba(80,140,255,${(dusk*.14).toFixed(3)})`:`rgba(255,145,60,${(dusk*.16).toFixed(3)})`;
     ctx.fillRect(0,0,W,H);
   }
-  // ---- 夜間燈光 ----
-  if(b<.72){
-    const a=clamp((0.72-b)/.5,0,1);
+  // ---- 夜間燈光（T212：暴雨陰霾日間亦亮 stormLit）----
+  const stormA=(weather===2&&!window.__noStormLit)?clamp((b-.4)/.4,0,1)*.5:0; // 暴雨白天亮窗因子（越亮的白天暴雨對比越明顯，夜間已由 b<.72 涵蓋）
+  if(b<.72||stormA>0){
+    const a=Math.max(clamp((0.72-b)/.5,0,1),stormA);
     ctx.globalAlpha=a;
     ctx.globalCompositeOperation='screen';
     for(const nsp of nightSprites){
