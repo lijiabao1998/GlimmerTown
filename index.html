@@ -8084,6 +8084,20 @@ function draw(dt){
       ctx.drawImage(bs.img,bx2,by2,bs.w*z,bs.h*z);
     }
   }
+  if(sea===2&&animOn&&!lodFar&&!window.__noGeese&&SPR.bird){ // T193 秋季V字雁陣（Opus 親手，審計缺口）——秋季天空偶發一列 5-9 隻雁排成 V 字斜掠，週期 cyc＋phase 雜湊決定出現/方向/高度/隻數（仿 T173 流星「每輪僅部分時段可見」）；複用既有 SPR.bird 不新增鍵，純 visT/streetHash 決定性不消耗 R()；非秋/遠景/__noGeese 不繪
+    const cyc=20, prog=(visT/cyc)%1, phase=Math.floor(visT/cyc);
+    if(streetHash(phase,3,760)<.5&&prog<.9){
+      const dir=streetHash(phase,5,761)<.5?1:-1;
+      const gy0=(.05+streetHash(phase,7,762)*.14)*H;
+      const gx0=dir>0?(-70*z+(prog/.9)*(W+140*z)):(W+70*z-(prog/.9)*(W+140*z));
+      const N=5+Math.floor(streetHash(phase,9,763)*5), bfr=Math.floor(visT*7)%3, bs=SPR.bird[bfr];
+      for(let gi=0;gi<N;gi++){
+        const rank=Math.ceil(gi/2), wing=gi===0?0:(gi%2===1?-1:1);
+        const gx=gx0-dir*rank*10*z, gy=gy0+wing*rank*6*z;
+        ctx.drawImage(bs.img,gx,gy,bs.w*z,bs.h*z);
+      }
+    }
+  }
   if(b<.45&&!lodMini&&!window.__noShootStar){ // T173 夜間流星（Opus 親手）——深夜偶爾一顆流星劃過畫面上方帶漸淡尾跡＋亮頭；週期 cyc、每輪僅前 10% 時段可見（短暫），位置由 phase 雜湊決定；日間/黃昏(b>=.45)/遠景(lodMini)不繪；純 visT 決定性、不消耗 R()、同 visT 重繪恆等
     const cyc=13, prog=(visT/cyc)%1, phase=Math.floor(visT/cyc);
     if(prog<.1){
