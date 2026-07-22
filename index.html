@@ -8905,6 +8905,13 @@ function draw(dt){
     if(occTargets.length)for(const ot of occTargets){if(o.dep>ot.dep&&ot.ax>=bx&&ot.ax<bx+s.w*z&&ot.ay>=by&&ot.ay<by+s.h*z){occA=.35;break;}}
     const constrA=(!window.__noConstrFade&&bd.age<5&&bd.k!==4)?((!window.__noConstr2&&!lodFar)?clamp(.55+(bd.age-2)*.17,.55,.9):clamp(.62+bd.age*.095,.62,1)):1; // T169：施工期建築淡入；T220：新分階段模式下 age2-4 用較陡 .55/.72/.89（age0-1 已在上方地基/框架分支 continue，不會到此）；__noConstr2/lodFar 退回舊公式（materialize，與 T168 鷹架同 age<5 窗口）——age 0(.62)→age4(~1) opacity 漸增，subtle 讀起來像新樓在鷹架後逐漸成形（下限 .62 避免過透露地面顯糊）；age>=5/公園(k4)/__noConstrFade 恆 1＝該狀態零改動；純讀 age 不消耗 R()
     const drawA=occA*constrA;
+    if(UP_MAX[bd.k]&&(bd.lv||1)>=5&&!lodFar&&!window.__noPrestige){ // T242 高級建築金色殿堂光暈（Opus 親手）——升級 lv>=5 起，建築後方金色徑向光暈，強度隨等級遞增（lv5→15 對映 α .10→.34），繪於本體 drawImage 之前＝暈在建築後；純讀 lv 不消耗 R()、__noPrestige 開關
+      const pl=clamp(((bd.lv||1)-5)/10,0,1), pa=.10+pl*.24, pr=(bd.sz>=2?58:38)*z;
+      const gx=bx+s.w*z*.5, gy=by+s.h*z*.62;
+      const pg=ctx.createRadialGradient(gx,gy,0,gx,gy,pr);
+      pg.addColorStop(0,`rgba(255,214,110,${pa.toFixed(3)})`);pg.addColorStop(.6,`rgba(255,196,80,${(pa*.5).toFixed(3)})`);pg.addColorStop(1,'rgba(255,190,70,0)');
+      ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=pg;ctx.beginPath();ctx.arc(gx,gy,pr,0,6.283);ctx.fill();ctx.restore();
+    }
     if(drawA<1)ctx.globalAlpha=drawA;
     ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
     if(drawA<1)ctx.globalAlpha=1;
