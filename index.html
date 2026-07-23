@@ -8801,6 +8801,14 @@ function draw(dt){
           ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(lx,ly,lw,1.6*z,spin,0,6.283);ctx.fill();
         }
       }
+      if(!window.__noPetal&&sea===0&&!lodFar&&!win&&streetHash(o.x,o.y,790)<.5){ // T250 春季櫻花花瓣（Opus 親手，春季氛圍；秋葉的對稱件）——春季(sea0)部分樹(50%)旁 3 片粉白花瓣輕柔飄落（較秋葉更慢更飄），visT+座標雜湊決定性不消耗 R()、冬夏秋/遠景不繪、__noPetal 開關
+        const PC=['#ff8ac0','#ff6aa8','#ffb0d4','#f04a90'];
+        for(let pf=0;pf<3;pf++){
+          const ph=streetHash(o.x,o.y,791+pf), col=PC[Math.floor(ph*331)%PC.length], t2=(visT*.22+ph*3)%1;
+          const px=o.sx+(10+ph*40)*z+Math.sin(visT*1.3+ph*10+t2*8)*9*z, py=o.sy+(-2+t2*40)*z, spin=visT*2.2+ph*6.283, pw=(1.3+Math.abs(Math.sin(spin))*.8)*z;
+          ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(px,py,pw,1.3*z,spin,0,6.283);ctx.fill();
+        }
+      }
       continue;
     }
     if(!t.bld&&t.deco){
