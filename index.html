@@ -8793,6 +8793,14 @@ function draw(dt){
         ctx.beginPath();ctx.ellipse(bx+ww,by,ww,1.4*z,0,0,6.283);ctx.fill();
         ctx.fillStyle='#3a2a22';ctx.fillRect(bx-.5*z,by-z,Math.max(1,z),2*z);
       }
+      if(!window.__noLeafFall&&sea===2&&!lodFar&&!win&&streetHash(o.x,o.y,780)<.6){ // T249 秋季飄落葉（Opus 親手，秋季氛圍）——蝴蝶的秋季對偶：秋季(sea2)部分樹(60%)旁 3 片彩葉自樹冠翻轉搖擺墜落（visT 決定落下進度+橫擺+旋轉），visT+座標雜湊決定性不消耗 R()、冬季/遠景不繪、__noLeafFall 開關
+        const LC=['#d8722c','#c0402a','#e0a030','#b06020','#d89040'];
+        for(let lf=0;lf<3;lf++){
+          const ph=streetHash(o.x,o.y,781+lf), col=LC[Math.floor(ph*331)%LC.length], t2=(visT*.35+ph*3)%1;
+          const lx=o.sx+(10+ph*40)*z+Math.sin(visT*1.6+ph*10+t2*6)*7*z, ly=o.sy+(-4+t2*42)*z, spin=visT*3+ph*6.283, lw=(1.2+Math.abs(Math.sin(spin))*.9)*z;
+          ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(lx,ly,lw,1.6*z,spin,0,6.283);ctx.fill();
+        }
+      }
       continue;
     }
     if(!t.bld&&t.deco){
