@@ -514,6 +514,7 @@ let muted=false,sndMode=1;
 let visT=CYCLE*.38; // 視覺時間（從早晨開始）
 let simAcc=0;
 let weather=0,wxT=5,flashT=0; // 天氣（T17）：0晴 1雨 2暴雨；wxT 剩餘天數、flashT 閃電計時（皆不進存檔）
+let rainbowT=0; // T248：雨後彩虹視覺計時（雨/暴雨轉晴且非冬時設，比照 flashT 純渲染不進存檔、newWorld/load 成對重置鐵律7）
 let fog=null; // T154：霧（null 或 {days:N}）——獨立於既有 weather 天氣狀態機的新增視覺天氣，tick() 內以決定性雜湊 streetHash(day,0,920) 低機率觸發（不消耗 R()/ri()，不改既有天氣觸發機率），純視覺不進存檔，newWorld()/load() 尾端隨其餘天氣殘留成對歸零（鐵律7）
 const FOG_PROB=.006;                    // T154：每日觸發霧的機率（決定性雜湊判定，非 R()）
 const RAIN_ACC_DAYS=5,SNOW_ACC_DAYS=6;  // T154：地面濕地反光／積雪疊加強度換算天數，直接讀既有 rainDays（T57「連續雨天計數」，tick() 既有遞增/遞減邏輯完全不變）純衍生不新增計數邏輯，雨/雪停止後隨 rainDays 遞減同步緩降
@@ -5401,7 +5402,7 @@ function newWorld(seedOverride){
   svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本開新圖歸零（鐵律7）
   meteorTrail=null;shakeT=0;flashT=0; // T207：開新圖清視覺計時器（鐵律7，防前一局隕石拖尾/震屏/閃電殘留）
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
-  weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null;plague=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零；T137：瘟疫/乾旱/暴風雪/工業洩漏皆運行時狀態，開新圖強制歸零消散
+  weather=0;wxT=3+ri(5);flashT=0;rainbowT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;riot=null;plague=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-K：天氣/災害殘留狀態種子化重置——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同種子跨分頁不可重現；wxT 用種子化 ri 對齊晴天續期擲骰；T116：龍捲風不進存檔，開新圖亦強制消散（不吃 R() 流，安全附加於此）；T118：暴亂狀態亦隨開新圖歸零；T137：瘟疫/乾旱/暴風雪/工業洩漏皆運行時狀態，開新圖強制歸零消散
   bestStar=0;score=-1;cityStar=-1; // FIX-K：升星獎勵殘留歸零——bestStar 不重置則第二局起不發升星獎金，同種子跨分頁 money 分岔；score/cityStar 對齊 load() 留待下次 tick 重算
   scenario=null; // T132：場景戰役進度成對重置（鐵律7）——開新圖預設回一般模式，begin() 若有 pendingScenario 會在其後另行設回
   editMode=false;customScenario=null; // T135：編輯器模式與自製場景定義成對重置（鐵律7）——開新圖預設離開編輯器；bEditorMode 按鈕會在 begin() 之後另行設回 editMode=true
@@ -6513,10 +6514,10 @@ function tick(){
     if(weather===0){if(R()<.12){weather=1;wxT=3+ri(6);}else wxT=3+ri(5);}
     else if(weather===1){
       if(R()<.20){weather=2;wxT=1+ri(2);}
-      else if(R()<.35){weather=0;wxT=4+ri(6);}
+      else if(R()<.35){weather=0;wxT=4+ri(6);if(!inWinter())rainbowT=9;} // T248：雨→晴且非冬＝彩虹
       else wxT=2+ri(3);
     }else{
-      if(R()<.35){weather=0;wxT=4+ri(6);}
+      if(R()<.35){weather=0;wxT=4+ri(6);if(!inWinter())rainbowT=9;} // T248：暴雨→晴且非冬＝彩虹
       else{weather=1;wxT=2+ri(4);}
     }
   }
@@ -8070,6 +8071,16 @@ function draw(dt){
       ctx.fillStyle='#6b4a2f';ctx.fillRect(bx2-sc*.32,by2+sc*1.72,sc*.64,sc*.42);
       ctx.restore();
     }
+  }
+  if(rainbowT>0){ // T248 雨後彩虹（Opus 親手，天氣多樣化）——雨/暴雨轉晴且非冬時，天空出現七色彩虹弧，隨 rainbowT 淡出；圓心置螢幕下方＝弧橫跨上方天空(下緣被地形覆蓋＝從地平線起拱)，'lighter' 疊加於淺藍天；純渲染計時 dt 遞減(不進存檔、newWorld/load 重置)、weather!==0(再下雨)/遠景不繪、__noRainbow 開關
+    if(weather===0&&cam.z>=.5&&!window.__noRainbow){
+      const ra=clamp(rainbowT/9,0,1)*.46, RB=['#e0504a','#e8934a','#e8d24a','#54b858','#4a90d8','#5a5ac8','#9a54c8'];
+      const rcx=W*.5, rcy=H*1.08, rout=H*.92, lw=Math.max(2,H*.011);
+      ctx.save();ctx.globalAlpha=ra;ctx.lineWidth=lw; // source-over：半透明色帶顯真色（'lighter' 會把暖帶疊在藍天上洗白，同 T195/T207 飽和教訓）
+      for(let i=0;i<7;i++){ctx.strokeStyle=RB[i];ctx.beginPath();ctx.arc(rcx,rcy,rout-i*lw,Math.PI*1.16,Math.PI*1.84);ctx.stroke();}
+      ctx.restore();
+    }
+    rainbowT=Math.max(0,rainbowT-dt);
   }
   const z=cam.z;
   if(z<1)ctx.imageSmoothingEnabled=true; // T106：遠檔縮小抗鋸齒閃爍，僅主畫布層級切換，繪製結束復原
@@ -11087,7 +11098,7 @@ function load(slot){
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     scenario=(d.sc&&d.sc.id)?{id:d.sc.id,startDay:d.sc.startDay||d.day,hold:d.sc.hold||0}:null; // T132：場景戰役進度（可選欄位，舊檔缺 sc 則回一般模式，鐵律7成對重置）
     editMode=false;customScenario=null; // T135：讀取常規存檔視為離開編輯器、清空自製場景定義（鐵律7；編輯器產物本就不入常規存檔，故無對應欄位可還原）
-    weather=0;wxT=3+ri(5);flashT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散；T137：乾旱/暴風雪/工業洩漏皆運行時狀態，讀檔強制歸零消散
+    weather=0;wxT=3+ri(5);flashT=0;rainbowT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散；T137：乾旱/暴風雪/工業洩漏皆運行時狀態，讀檔強制歸零消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
     recalcAllRailMasks(); // 軌道遮罩全量重算：rl/tr 還原時 railMask/tramMask 歸零（對照道路版）
@@ -11347,6 +11358,7 @@ window.GV={
   lookAt:(x,y)=>{cam.x=(x-y)*32;cam.y=(x+y)*16;zoomAnim=null;return[cam.x,cam.y];}, // T183 測試用：把相機中心對準 tile(x,y)（沿用 newWorld 初始置中同款公式 (x-y)*32/(x+y)*16 寫入既有 cam.x/y），純渲染鏡頭定位不改模擬/存檔，解決既有 GV.center() 只回座標不移鏡頭之驗證痛點
   upgrade:(x,y)=>{upgradeBld(x,y);const b=inMap(x,y)?T(idx(x,y)).bld:null;return b?(b.ref?T(idx(b.ref[0],b.ref[1])).bld.lv:b.lv):null;}, // T239 測試/腳本用：呼叫真實升級路徑（inspect 面板按鈕同一函式），回傳升級後 root 等級；與 GV.place 同屬玩家操作型鉤子
   inspectAt:(x,y)=>{inspect(x,y);return $('#infoBody')?$('#infoBody').innerHTML:'';}, // T239 測試用：觸發 inspect 面板並回傳 HTML（驗證升級鈕/等級行）
+  rainbowTest:(v)=>{weather=0;rainbowT=(v===undefined?9:v);return rainbowT;}, // T248 測試用：設彩虹計時（狀態機轉換 R() 驅動難確定性觸發，直接驗渲染）
   carInfo:()=>SPR.car.map(c=>{const g=c.A.getContext('2d');const d=g.getImageData(0,0,12,8).data;let filled=0,yellow=0,blueCab=0,red=0,white=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<8)continue;filled++;const r=d[i],gr=d[i+1],b=d[i+2];if(r>235&&gr>185&&gr<205&&b<95)yellow++;if(r>48&&r<74&&gr>98&&gr<124&&b>182&&b<208)blueCab++;if(r>206&&r<226&&gr>30&&gr<52&&b>30&&b<52)red++;if(r>230&&gr>232&&b>238)white++;}return{filled,yellow,blueCab,red,white};}), // T245 測試用：逐車 sprite 填充像素與型別色統計（交通稀疏無法取樣車流，直接驗 sprite 本體）
   titleForceDraw:(ts)=>{ensureTitleBgSize();drawTitleBg(ts!==undefined?+ts:performance.now());return true;}, // T158 測試用：同步立即觸發一次標題背景重繪（比照 forceDraw 同款用途），供背景分頁 rAF 停擺時的像素回歸／動態取樣繞開真實時間等待
   titleAnimOn:()=>!!titleRAF,                                   // T158 測試用：曝光標題動畫 rAF 是否在跑，驗證進遊戲後 stopTitleAnim() 已 cancelAnimationFrame（無殘留）
