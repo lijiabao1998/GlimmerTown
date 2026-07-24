@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='6.3'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='6.4'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -6310,7 +6310,7 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
   goods=0;gWhCap284=0;svcBudget={police:1,fire:1,health:1,edu:1};cityEvent=null; // T284/T294/T299：成對重置（鐵律7）——服務預算回預設 1.0×、城市事件清空
   aiMode=false;aiR=6;try{const bA=$('#bAI');if(bA){bA.style.background='';bA.style.borderColor='';}}catch(e){} // T260：新圖 AI 市長成對重置（鐵律7）
-  bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;trafClock=0;hintShown={};hintsOff=false;
+  bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;trafClock=0;hintShown={};hintsOff=false;
   fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，開新圖歸零（鐵律7）
   roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
   commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，開新圖成對歸零（鐵律7）
@@ -7727,7 +7727,9 @@ function aiStep(){
   //      門檻：pop>100（成熟城才需精神生活）＋cityHappy<.66（幸福已高就不急）＋每 ~70 建築上限 1 座（避免狂建）＋淨收支為正（血淚：無視維護費）＋非窮困。
   if(!poor&&pop>100&&cityHappy<.66&&faithN<Math.max(1,Math.ceil(cbn/70))&&money>COST.faithCenter+RESERVE&&fin&&fin.net>2){
     outer5f:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(hasRoadNear(x,y,2,false)&&tryP('faithCenter',x,y))break outer5f;}
-  } // 公園 $60＝窮困期最便宜的幸福藥，窮也蓋；T264：上限＝建築數 25%（血淚：幸福卡低時每天狂種到 120 園＝邊際效應歸零＋維護費白燒）
+  }
+  // T300：AI 地鐵規劃——城市成熟後自動規劃地鐵網（連接高客流區，pop 越大線越多，上限 8 或 pop/450）
+  if(!poor&&pop>300&&day%25===0&&metroLines.length<Math.min(8,Math.floor(pop/450))&&money>1500&&fin&&fin.net>3){planMetroLine();} // 公園 $60＝窮困期最便宜的幸福藥，窮也蓋；T264：上限＝建築數 25%（血淚：幸福卡低時每天狂種到 120 園＝邊際效應歸零＋維護費白燒）
   if(!poor&&day%3===0){ // T264：中庭公園——5×5 街區中心十字距路 3 格（分區長不了），種公園＝街區綠心（半徑4幸福覆蓋整個環帶）
     let cpB=2;
     for(let y=y0;y<=y1&&cpB>0;y++)for(let x=x0;x<=x1&&cpB>0;x++){
@@ -8600,6 +8602,54 @@ function tick(){
    6. 小車與煙
 ===================================================================== */
 const cars=[],smokes=[];
+/* ===== T300 AI 地鐵規劃（玩家「AI 市長自動地鐵線路，能規劃的那種，越接近真實越好，重點算法」）：
+   演算法＝①網格塊客流權重（住宅人口+商業就業×1.5+樞紐×200+摩天樓×150+地標×70）②選端點（起點高權重、
+   終點夠遠、方向多樣避免重疊）③起終走廊內串聯沿線高客流塊作中間站④L形連線成路徑⑤沿線每6格補站。
+   城市越大 AI 規劃越多線，線路交叉處自然成換乘站。運行時陣列（不入存檔，AI 重規劃）。 ===== */
+const metroLines=[]; // T300：AI 規劃的地鐵線 [{id,color,nodes,path,stations}]
+const METRO_COLORS=['#e0453a','#3a7ad0','#3aa84a','#e0a83a','#9a5ad0','#20b0b0','#e05a9a','#88a83a'];
+function metroBlocks(){ // 網格塊客流權重（10×10 格一塊）
+  const B=10,nb=Math.ceil(N/B),out=[];
+  for(let gy=0;gy<nb;gy++)for(let gx=0;gx<nb;gx++){
+    let w=0,sx=0,sy=0,n=0;const x0=gx*B,y0=gy*B,x1=Math.min(N,x0+B),y1=Math.min(N,y0+B);
+    for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const b=T(idx(x,y)).bld;if(!b||b.ref)continue;let cw=0;
+      if(b.k===1)cw=POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1);
+      else if(b.k===2)cw=JOBSC[b.lv]*1.5;
+      else if(b.k===17||b.k===19||b.k===55)cw=200; // 火車站/機場/中央車站＝樞紐
+      else if(b.k===33||b.k===34)cw=150;           // 摩天樓
+      else if(b.k===24||b.k===65||b.k===56)cw=70;  // 地標/商場/體育園區
+      if(cw>0){w+=cw;sx+=x;sy+=y;n++;}}
+    if(n&&w>=40)out.push({cx:Math.round(sx/n),cy:Math.round(sy/n),w});}
+  return out;
+}
+function planMetroLine(){ // 規劃一條連接高客流區的地鐵線
+  const blocks=metroBlocks();if(blocks.length<3)return false;
+  blocks.sort((a,b)=>b.w-a.w);
+  const distToNet=(x,y)=>{let dm=1e9;for(const L of metroLines)for(const st of L.stations){const d=Math.abs(st[0]-x)+Math.abs(st[1]-y);if(d<dm)dm=d;}return dm;};
+  let start=null;
+  if(!metroLines.length)start=blocks[0]; // 首條＝最高客流塊
+  else{let best=-1;for(const b of blocks.slice(0,15)){const sc=b.w*Math.min(1.5,distToNet(b.cx,b.cy)/12);if(sc>best){best=sc;start=b;}}} // 後續＝高客流且離現網遠
+  if(!start)return false;
+  let end=null,bestE=-1;const minSpan=N*0.28;
+  for(const b of blocks){const d=Math.abs(b.cx-start.cx)+Math.abs(b.cy-start.cy);if(d<minSpan)continue;const sc=b.w*d;if(sc>bestE){bestE=sc;end=b;}} // 終點＝夠遠且高客流
+  if(!end)return false;
+  const dx=end.cx-start.cx,dy=end.cy-start.cy,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
+  const corridor=[];
+  for(const b of blocks){const rx=b.cx-start.cx,ry=b.cy-start.cy,proj=rx*ux+ry*uy,perp=Math.abs(rx*uy-ry*ux);
+    if(proj>2&&proj<len-2&&perp<12)corridor.push({b,proj});} // 走廊內（投影在起終間、垂距<12）
+  corridor.sort((a,b)=>a.proj-b.proj);
+  const nodes=[[start.cx,start.cy]];let lastP=0;
+  for(const c of corridor){if(c.proj-lastP>=8){nodes.push([c.b.cx,c.b.cy]);lastP=c.proj;}} // 沿走廊每≥8投影距串一站
+  nodes.push([end.cx,end.cy]);
+  const path=[];
+  for(let i=0;i<nodes.length-1;i++){const ax=nodes[i][0],ay=nodes[i][1],bx=nodes[i+1][0],by=nodes[i+1][1];let cx=ax,cy=ay;if(i===0)path.push([cx,cy]);
+    while(cx!==bx){cx+=Math.sign(bx-cx);path.push([cx,cy]);}
+    while(cy!==by){cy+=Math.sign(by-cy);path.push([cx,cy]);}} // L 形連線（先水平後垂直）
+  const stations=nodes.map(n=>[n[0],n[1]]);
+  for(let i=0;i<path.length;i+=6){const px=path[i][0],py=path[i][1];if(!stations.some(st=>Math.abs(st[0]-px)+Math.abs(st[1]-py)<3))stations.push([px,py]);} // 沿線每6格補站
+  metroLines.push({id:metroLines.length+1,color:METRO_COLORS[metroLines.length%METRO_COLORS.length],nodes,path,stations});
+  return true;
+}
 let trafClock=0; // T289：交通動畫時鐘（draw() 每幀累加 dt），驅動紅綠燈相位循環；純視覺運行時值，不入存檔
 let signalList=[]; // T289：號誌 tile 座標清單（快取重烘時收集：手動號誌＋4 叉路口自動號誌），live 層每幀依 trafClock 動畫繪製（存 tile 座標＝相機縮放平移每幀重算螢幕位，不受快取凍結）；不入存檔
 function sigPhase(seed){const tt=(trafClock+seed*0.7)%5.7;return tt<2.6?1:tt<3.1?2:0;} // 綠2.6s→黃0.5s→紅2.6s；回傳 0紅/1綠/2黃
@@ -10835,6 +10885,25 @@ function draw(dt){
     ctx.fillStyle=morn?`rgba(80,140,255,${(dusk*.14).toFixed(3)})`:`rgba(255,145,60,${(dusk*.16).toFixed(3)})`;
     ctx.fillRect(0,0,W,H);
   }
+  // ---- T300b 地鐵網 overlay（畫於建築之後、夜燈之前，世界座標隨相機；半透明彩線＋白底彩框站點，像地鐵圖疊城市）----
+  if(metroLines.length&&!lodMini&&!window.__noMetro){
+    ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+    const tsx=(x,y)=>ox+((x-y)*32)*z, tsy=(x,y)=>oy+((x+y)*16+16)*z;
+    for(const L of metroLines){ // 線
+      if(!L.path||L.path.length<2)continue;
+      ctx.globalAlpha=.68;ctx.strokeStyle=L.color;ctx.lineWidth=Math.max(2,3*z);
+      ctx.beginPath();ctx.moveTo(tsx(L.path[0][0],L.path[0][1]),tsy(L.path[0][0],L.path[0][1]));
+      for(let i=1;i<L.path.length;i++)ctx.lineTo(tsx(L.path[i][0],L.path[i][1]),tsy(L.path[i][0],L.path[i][1]));
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    for(const L of metroLines)for(const st of L.stations){ // 站點：白底彩框方點
+      const sx2=tsx(st[0],st[1]),sy2=tsy(st[0],st[1]),r=Math.max(2,2.4*z);
+      ctx.fillStyle='#fff';ctx.fillRect(sx2-r,sy2-r,r*2,r*2);
+      ctx.fillStyle=L.color;ctx.fillRect(sx2-r+1,sy2-r+1,r*2-2,r*2-2);
+    }
+    ctx.restore();
+  }
   // ---- 夜間燈光（T212：暴雨陰霾日間亦亮 stormLit）----
   const stormA=(weather===2&&!window.__noStormLit)?clamp((b-.4)/.4,0,1)*.5:0; // 暴雨白天亮窗因子（越亮的白天暴雨對比越明顯，夜間已由 b<.72 涵蓋）
   if(b<.72||stormA>0){
@@ -12789,7 +12858,7 @@ function load(slot){
     computeElMask();
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
-    cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;buses.length=0; // 公車運行時重建不存（T26）；T289：號誌清單運行時重建
+    cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;buses.length=0; // 公車運行時重建不存（T26）；T289：號誌清單運行時重建
     fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，讀檔歸零（鐵律7）
     roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
     commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，讀檔成對歸零（鐵律7）
@@ -13040,6 +13109,9 @@ window.GV={
   citizenCount:()=>citizens.length,
   cityEvent:()=>cityEvent?{id:CITY_EVENTS[cityEvent.i].id,name:CITY_EVENTS[cityEvent.i].name,daysLeft:cityEvent.daysLeft,tax:CITY_EVENTS[cityEvent.i].tax,food:CITY_EVENTS[cityEvent.i].food}:null, // T299 測試用：當前城市事件快照
   setCityEvent:(id)=>{const i=CITY_EVENTS.findIndex(e=>e.id===id);cityEvent=i>=0?{i,daysLeft:CITY_EVENTS[i].days}:null;return cityEvent?CITY_EVENTS[cityEvent.i].id:null;}, // T299 測試用：直接觸發指定事件
+  metro:()=>metroLines.map(L=>({id:L.id,color:L.color,stations:L.stations.length,nodes:L.nodes.length,pathLen:L.path.length,ends:[L.nodes[0],L.nodes[L.nodes.length-1]]})), // T300 測試用：地鐵線路快照
+  metroPlan:()=>planMetroLine(), // T300 測試用：手動規劃一條地鐵線
+  metroClear:()=>{metroLines.length=0;return 0;}, // T300 測試用：清空地鐵
   eduAt:(x,y)=>inMap(x,y)?EDU[idx(x,y)]:null, // T142：教育場除錯鉤子
   resourceAt:(x,y)=>inMap(x,y)?RESOURCE[idx(x,y)]:null, // T140：資源層除錯鉤子（0無/1油/2礦，由種子決定不受耗損影響）
   supplies:()=>supplies, // T140：資源供應品全域存量
