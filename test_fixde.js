@@ -898,6 +898,13 @@ console.log('\n-- T295 抽樣市民 agent --');
   window.GV.advanceN(0.04, 8); // T295b：市民步行更新（空城）不崩
   assert(isFinite(window.GV.stats().money), 'T295b advanceN（市民步行更新）後 money 不得 NaN');
 }
+// ================= T305 AI 擋路自主拆遷 =================
+console.log('\n-- T305 AI 擋路拆遷 --');
+{
+  window.GV.newWorldSeeded(1);
+  window.GV.ai(true); window.GV.step(3); window.GV.ai(false);
+  assert(isFinite(window.GV.stats().money), 'T305 AI 拆遷邏輯 money 不得 NaN');
+}
 // ================= T304 服務車隊 =================
 console.log('\n-- T304 服務車隊 --');
 {

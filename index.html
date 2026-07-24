@@ -7578,12 +7578,49 @@ function aiStep(){
     if(doPlace(tool,x,y,true)){acts++;return true;}
     return false;
   };
+  /* T305 AI 擋路自主拆遷（玩家「擋路了會自己規劃該拆哪些內容」）：clearable 給每格擋路物定拆除代價
+     （樹/裝飾/廢墟/棄樓=0 免費拆、分區=1、公園=3 有損失、其他建築/道路/水管/水面=-1 不可拆），
+     tryPClear 對 footprint 逐格評分：全部可拆且總代價≤門檻→逐格 doze 清障→建造。窮困期不拆遷（拆也要錢）。 */
+  const clearable=(cx3,cy3,allowPark)=>{
+    if(!inMap(cx3,cy3))return -1;
+    const t=T(idx(cx3,cy3));
+    if(t.t===0)return -1;                       // 水面不可拆
+    if(t.road||t.wp)return -1;                  // 自家路網/水管不拆
+    if(t.ruin)return 0;                          // 廢墟免費拆（本就該清）
+    if(t.bld){const b=t.bld;
+      if(b.ref)return -1;                        // 多格建築不拆
+      if(b.abandoned)return 0;                   // 棄樓免費拆（無產出）
+      if(b.k===4)return allowPark?3:-1;          // 公園：必需建設時可犧牲（代價3）
+      return -1;                                 // 其他建築不拆（有產出/服務）
+    }
+    let c=0;if(t.zone)c+=1;                      // 分區重劃代價 1（樹/裝飾 0）
+    return c;
+  };
+  const tryPClear=(tool,x,y,sz3,allowPark)=>{
+    if(poor||acts>=MAXA-1||!inMap(x,y)||!inMap(x+sz3-1,y+sz3-1))return false;
+    if(canPlace(tool,x,y)===null)return tryP(tool,x,y); // 本就能建＝不用拆
+    let score=0,need=false;
+    for(let dy3=0;dy3<sz3;dy3++)for(let dx3=0;dx3<sz3;dx3++){
+      const t=T(idx(x+dx3,y+dy3));
+      const blocked=t.tree||t.deco||t.zone||t.ruin||t.bld;
+      if(blocked){need=true;const c=clearable(x+dx3,y+dy3,allowPark);if(c<0)return false;score+=c;}
+      else if(t.t===0)return false;
+    }
+    if(!need||score>6)return false;              // 無障礙（canPlace 失敗另有原因）或代價過高→放棄
+    if(money<placeCost(tool,x,y)+sz3*sz3*2+RESERVE+150)return false; // 建造費+拆遷費+保留金
+    for(let dy3=0;dy3<sz3;dy3++)for(let dx3=0;dx3<sz3;dx3++){
+      const t=T(idx(x+dx3,y+dy3));
+      if(t.tree||t.deco||t.zone||t.ruin||t.bld)doPlace('doze',x+dx3,y+dy3,true);
+    }
+    return tryP(tool,x,y);                        // 清障後正式建造
+  };
   // ── 單趟全圖掃描（T262 效能：原 6 趟 O(N²)（質心/路數/啟動源/建築數/水塔/升級候選）合併為一趟——216² 地圖 aiStep 45ms→約 1/4） ──
   let roadsN=0,startersN=0,bldN=0,towersN=0,fpN2=0,parksN2=0,mallN=0,faithN=0,csx=0,csy=0,cbn=0,upBest=null,upX2=-1,upY2=-1; // T290：aiStep 自掃 mallN（購物中心上限用，獨立於 tick() 的同名累加器）
   const fireList=[],ruinList=[]; // T263：燃燒建築/廢墟清單（災後維護用，各取前幾筆）
   for(let i=0;i<N*N;i++){
     const t=tiles[i];if(t.road)roadsN++;
     if(t.ruin&&ruinList.length<6)ruinList.push(i);
+    if(t.bld&&!t.bld.ref&&t.bld.abandoned&&ruinList.length<6)ruinList.push(i); // T305：棄樓與廢墟同列清拆（無產出佔地）
     const b=t.bld;if(!b||b.ref)continue;
     csx+=i%N;csy+=(i/N)|0;cbn++;
     if(b.fire&&fireList.length<4)fireList.push(i);
@@ -7610,6 +7647,14 @@ function aiStep(){
       for(let dy3=0;dy3<psz&&!touch;dy3++)for(let dx3=0;dx3<psz&&!touch;dx3++)if(adj4(x+dx3,y+dy3))touch=true;
       if(!touch)continue;
       if(tryP(tool,x,y))break outer1;
+    }
+    if(powCap<bldN+6&&!poor){ // T305：全半徑掃完仍沒建成（被樹林/分區擋）→清障建（電源＝命脈，允許犧牲公園）
+      outer1c:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+        let touch=false;
+        for(let dy3=0;dy3<psz&&!touch;dy3++)for(let dx3=0;dx3<psz&&!touch;dx3++)if(adj4(x+dx3,y+dy3))touch=true;
+        if(!touch)continue;
+        if(tryPClear(tool,x,y,psz,true))break outer1c;
+      }
     }
   }
   // ── 1.5 災後維護（T263，玩家反饋「燒毀不會自動拆除」；優先於擴張、窮也做）：
@@ -7712,6 +7757,15 @@ function aiStep(){
         if(score>bestScore||(score===bestScore&&dist<bestDist)){bestScore=score;bestX=px;bestY=py;bestDist=dist;}
       }
       if(bestX>=0)tryP(tool,bestX,bestY); // 挑到最佳覆蓋點才建（找不到＝本日不硬塞，等擴半徑）
+      else{ // T305：密城無直接可建點（被樹/分區/廢墟擋）→質心近處清障建（服務 1×1，不犧牲公園）
+        outer4c:for(let r2=1;r2<=6;r2++)for(let dy3=-r2;dy3<=r2;dy3++)for(let dx3=-r2;dx3<=r2;dx3++){
+          if(Math.max(Math.abs(dx3),Math.abs(dy3))!==r2)continue;
+          const px=mcx+dx3,py=mcy+dy3;
+          if(!inMap(px,py)||!hasRoadNear(px,py,2,false))continue;
+          if(tool==='water'&&!((px%6===3&&(py%6===1||py%6===5))||(py%6===3&&(px%6===1||px%6===5))))continue;
+          if(tryPClear(tool,px,py,1,false))break outer4c;
+        }
+      }
     }
   }
   // ── 5. 民生：垃圾超載→依絕對缺口與財務選焚化廠／垃圾場；缺糧→農場；幸福低→公園 ──
@@ -7727,7 +7781,12 @@ function aiStep(){
     }
     if(!garbBuilt&&garbCanAct){
       outer5a:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
-        if(roadTouchFoot(x,y)&&tryP('dump',x,y,true))break outer5a; // 找不到合法 2×2 時同日退回 1×1，不讓危機空轉
+        if(roadTouchFoot(x,y)&&tryP('dump',x,y,true)){garbBuilt=true;break outer5a;} // 找不到合法 2×2 時同日退回 1×1，不讓危機空轉
+      }
+    }
+    if(!garbBuilt&&garbCanAct&&!poor){ // T305：垃圾危機仍無處落地（被擋）→清障建垃圾場（民生危機允許犧牲公園）
+      outer5ac:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+        if(roadTouchFoot(x,y)&&tryPClear('dump',x,y,1,true))break outer5ac;
       }
     }
     garbActionReserve=false;garbCashReserve=0; // 決策完成（含確實無合法位置）後釋放，後段民生才可使用剩餘額度
