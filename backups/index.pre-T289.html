@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200}; // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='5.3'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='5.2'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -3954,13 +3954,8 @@ function buildSprites(){
     for(let m=0;m<16;m++){
       const[c,g]=cv(64,32);
       const closed=(~m)&15;
-      // T289 加寬人行道（玩家「更寬闊的人行道」）：外緣淺色路緣石 + 3 層漸暗鋪面帶（原 2 帶→4 帶，向內拓寬約 1 倍），
-      // 帶間淺色縫線＝鋪磚接縫感。diaEdge 純幾何不消耗 rand；speck 仍為唯一 rand 呼叫（次數、參數不變）＝零亂數位移。
-      diaEdge(g,closed,'#c2beaa',32,0,32);   // 最外緣淺色路緣石（新增，起點外推）
-      diaEdge(g,closed,'#aca890',32,1,30);   // 外鋪面帶（原）
-      diaEdge(g,closed,'#a29e8a',32,3,27);   // 中鋪面帶（新增，接縫感）
-      diaEdge(g,closed,'#8f8b76',32,4,24);   // 內鋪面帶（原色，向內加寬）
-      diaEdge(g,closed,'#7e7a68',32,6,20);   // 最內深色鑲邊（新增，貼向車道）
+      diaEdge(g,closed,'#aca890',32,1,30);
+      diaEdge(g,closed,'#8f8b76',32,3,26);
       speck(g,32,2,28,['#b8b49c','#96927c'],8,rand);
       SPR.roadDeco.curb.push(c);
     }
@@ -5001,70 +4996,8 @@ function buildSprites(){
       const[b,bg]=cv(8,6);bg.translate(8,0);bg.scale(-1,1);bg.drawImage(a,0,0);
       motoArr.push({A:a,B:b});
     }
-    // ---- T289 SUV（5 色）：高車頂+方正尾廂+黑色車頂行李架，介於轎車與廂型之間 ----
-    const SUVC=['#2c3440','#7a2f2a','#3a5a4a','#dad4c8','#4a4a52'];
-    const suvArr=[];
-    for(const col of SUVC){
-      const[a,ag]=cv(13,9);
-      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,7,10,1);                 // 落影
-      ag.fillStyle=shade(col,-40);ag.fillRect(1,5,3,1);ag.fillRect(4,4,8,1); // 暗側：引擎蓋+高車廂
-      ag.fillStyle=col;ag.fillRect(1,3,3,2);ag.fillRect(4,1,8,3);            // 主色：短前艙+高方廂
-      ag.fillStyle=shade(col,35);ag.fillRect(1,3,3,1);ag.fillRect(4,1,8,1);  // 亮邊
-      ag.fillStyle='#2a3444';ag.fillRect(5,2,6,1);                          // 側窗帶
-      ag.fillStyle='#1a1c20';ag.fillRect(5,0,6,1);                          // 車頂行李架
-      ag.fillStyle='#20242c';ag.fillRect(2,7,3,1);ag.fillRect(8,7,3,1);      // 輪
-      const[b,bg]=cv(13,9);bg.translate(13,0);bg.scale(-1,1);bg.drawImage(a,0,0);
-      suvArr.push({A:a,B:b});
-    }
-    // ---- T289 皮卡（5 色）：駕駛艙換色+開放式後貨斗（低欄+可見貨物）----
-    const PICKC=['#b84a2a','#3a5a7a','#5a6a3a','#8a3a3a','#d8c8a8'];
-    const pickArr=[];
-    for(const col of PICKC){
-      const[a,ag]=cv(14,8);
-      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,6,11,1);                 // 落影
-      ag.fillStyle=shade(col,-40);ag.fillRect(1,4,5,1);                    // 前艙暗側
-      ag.fillStyle=col;ag.fillRect(1,2,5,2);                              // 駕駛艙主色
-      ag.fillStyle=shade(col,35);ag.fillRect(1,2,5,1);                    // 亮邊
-      ag.fillStyle='#222c3d';ag.fillRect(2,1,3,1);                        // 擋風窗
-      ag.fillStyle='#6a5a44';ag.fillRect(6,3,7,2);                        // 開放貨斗（低）
-      ag.fillStyle=shade('#6a5a44',30);ag.fillRect(6,3,7,1);
-      ag.fillStyle='#8a7a5a';ag.fillRect(8,2,2,1);ag.fillRect(11,2,1,1);   // 貨物堆
-      ag.fillStyle='#20242c';ag.fillRect(2,6,3,1);ag.fillRect(9,6,3,1);    // 輪
-      const[b,bg]=cv(14,8);bg.translate(14,0);bg.scale(-1,1);bg.drawImage(a,0,0);
-      pickArr.push({A:a,B:b});
-    }
-    // ---- T289 跑車（5 色）：超低扁流線車身+大傾角擋風+雙尾翼，鮮明配色 ----
-    const SPORTC=['#e02828','#f0c020','#1a1a1a','#2a7ae0','#e85aa0'];
-    const sportArr=[];
-    for(const col of SPORTC){
-      const[a,ag]=cv(12,6);
-      ag.fillStyle='rgba(0,0,0,.32)';ag.fillRect(2,5,8,1);                // 落影
-      ag.fillStyle=shade(col,-42);ag.fillRect(1,4,10,1);                  // 車身暗底
-      ag.fillStyle=col;ag.fillRect(1,3,10,1);ag.fillRect(3,2,6,1);        // 低扁主色+隆起車頂
-      ag.fillStyle=shade(col,45);ag.fillRect(1,3,10,1);                   // 高光線（跑車金屬感）
-      ag.fillStyle='#3a4a5a';ag.fillRect(4,2,4,1);                        // 傾角擋風
-      ag.fillStyle=shade(col,-20);ag.fillRect(10,2,1,2);                  // 尾翼
-      ag.fillStyle='#18181a';ag.fillRect(2,5,2,1);ag.fillRect(8,5,2,1);    // 低扁輪
-      const[b,bg]=cv(12,6);bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);
-      sportArr.push({A:a,B:b});
-    }
-    // ---- T289 計程車：招牌黃車身+車頂 TAXI 燈+車門棋格條（單一塗裝，比照救護車手法）----
-    const taxiArr=[];
-    {
-      const col='#f2c420';
-      const[a,ag]=cv(12,8);
-      ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,6,9,1);
-      ag.fillStyle=shade(col,-40);ag.fillRect(1,5,4,1);ag.fillRect(4,4,4,1);ag.fillRect(7,3,4,1);
-      ag.fillStyle=col;ag.fillRect(1,3,4,2);ag.fillRect(4,2,4,2);ag.fillRect(7,1,4,2);
-      ag.fillStyle=shade(col,35);ag.fillRect(1,3,4,1);ag.fillRect(4,2,4,1);ag.fillRect(7,1,4,1);
-      ag.fillStyle='#222c3d';ag.fillRect(5,2,3,2);                        // 擋風窗
-      ag.fillStyle='#20242c';ag.fillRect(3,4,1,1);ag.fillRect(5,4,1,1);ag.fillRect(7,4,1,1); // 車門棋格
-      ag.fillStyle='#f2f2f2';ag.fillRect(6,0,2,1);                        // 車頂 TAXI 燈
-      const[b,bg]=cv(12,8);bg.translate(12,0);bg.scale(-1,1);bg.drawImage(a,0,0);
-      taxiArr.push({A:a,B:b});
-    }
-    // vt 索引 0..7：0 轎車（沿用既有 SPR.car）／1 廂型車／2 卡車／3 機車／4 SUV／5 皮卡／6 跑車／7 計程車（T289 車種倍增）
-    SPR.vehTypes={arr:[SPR.car,vanArr,truckArr,motoArr,suvArr,pickArr,sportArr,taxiArr],dim:[{w:12,h:8,ox:6,oy:5},{w:13,h:9,ox:6,oy:6},{w:15,h:9,ox:7,oy:6},{w:8,h:6,ox:4,oy:5},{w:13,h:9,ox:6,oy:6},{w:14,h:8,ox:7,oy:5},{w:12,h:6,ox:6,oy:4},{w:12,h:8,ox:6,oy:5}]};
+    // vt 索引 0..3 對應：0 轎車（沿用既有 SPR.car，不重繪）／1 廂型車／2 卡車／3 機車
+    SPR.vehTypes={arr:[SPR.car,vanArr,truckArr,motoArr],dim:[{w:12,h:8,ox:6,oy:5},{w:13,h:9,ox:6,oy:6},{w:15,h:9,ox:7,oy:6},{w:8,h:6,ox:4,oy:5}]};
     // ---- 救護車：白車身＋紅十字識別色（消防紅/垃圾深綠兩鍵完全未觸碰），複製既有小車生成手法換色 ----
     {
       const col='#e8e8ee';
@@ -5431,38 +5364,6 @@ function buildSprites(){
   { const[lc,lg]=cv(48,48); const lrg=lg.createRadialGradient(24,24,0,24,24,24);
     lrg.addColorStop(0,'rgba(255,205,120,.85)'); lrg.addColorStop(.5,'rgba(255,190,100,.32)'); lrg.addColorStop(1,'rgba(255,190,100,0)');
     lg.fillStyle=lrg; lg.fillRect(0,0,48,48); SPR.lampGlow={img:lc,w:48,h:48}; }
-  /* ===== T289 街燈燈桿實體＋三相位號誌燈（玩家「更多路燈」＋「紅綠燈設置」）：純幾何 fillRect，零亂數。
-     街燈：細桿＋弧臂＋燈頭（日間熄），錨於菱形後緣；號誌：立桿＋三格燈箱，三相位（紅/綠/黃）各一張，
-     draw() 依交通時鐘循環挑張＝動畫紅綠燈。皆置於 buildSprites 尾端不位移既有生成序。===== */
-  { // 街燈燈桿（24×34，ax12 錨於燈桿底；gx/gy＝燈頭中心供夜間光暈對位）
-    const[c,g]=cv(24,34);
-    g.fillStyle='#4a4e56';g.fillRect(11,10,2,22);          // 立桿
-    g.fillStyle='#3a3e46';g.fillRect(11,10,1,22);          // 桿暗側
-    g.fillStyle='#33373d';g.fillRect(9,31,6,2);            // 底座
-    g.fillStyle='#4a4e56';g.fillRect(11,10,6,1);g.fillRect(16,10,1,3); // 弧臂伸出
-    g.fillStyle='#5c6068';g.fillRect(14,12,5,3);           // 燈頭外殼
-    g.fillStyle='#3a3e46';g.fillRect(14,15,5,1);
-    g.fillStyle='#ffe6a0';g.fillRect(15,13,3,2);           // 燈罩（日間微亮）
-    SPR.streetLamp={img:c,ax:12,ay:33,w:24,h:34,gx:16,gy:14};
-  }
-  { // 三相位號誌燈 SPR.signalPhase[0紅/1綠/2黃]（16×28，ax8 ay27 錨底；亮者發光暈、暗者壓黑）
-    SPR.signalPhase=[];
-    const BULB=[['#ff4d4d',5],['#54ff70',11],['#ffd23d',8]]; // [亮色, 亮燈 y]
-    for(let ph=0;ph<3;ph++){
-      const[c,g]=cv(16,28);
-      g.fillStyle='#33373d';g.fillRect(7,13,2,13);         // 立桿
-      g.fillStyle='#2a2d32';g.fillRect(5,25,6,2);          // 底座
-      g.fillStyle='#20232a';g.fillRect(4,15,4,2);          // 橫臂
-      g.fillStyle='#26292e';g.fillRect(3,1,7,14);g.fillStyle='#0b0c0e';g.fillRect(4,2,5,12); // 燈箱
-      const cols=['#3a1414','#143a1a','#3a3214']; // 暗色底（未亮）
-      g.fillStyle=cols[0];g.fillRect(5,3,3,2);
-      g.fillStyle=cols[1];g.fillRect(5,9,3,2);
-      g.fillStyle=cols[2];g.fillRect(5,6,3,2);
-      const active=BULB[ph];g.fillStyle=active[0];g.fillRect(5,active[1]-2,3,2); // 當前相位亮燈（y 換算：紅5→3/綠11→9/黃8→6）
-      g.globalAlpha=.5;g.fillStyle=active[0];g.fillRect(4,active[1]-3,5,4);g.globalAlpha=1; // 亮燈微暈
-      SPR.signalPhase.push({img:c,ax:8,ay:27,w:16,h:28});
-    }
-  }
   { // T265 垃圾焚化發電廠 62_1_0（2×2：傾卸棚／焚化爐／洗滌塔／汽機房／高煙囪）；絕對尾端、零 R()/ri()/Math.random
     const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[s,sg]=cv(136,150);const ax=68,ay=148;
     dia(g,ax,ay-64,64,'#8d897d');
@@ -6192,7 +6093,7 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
   goods=0;gWhCap284=0; // T284：成對重置（鐵律7）
   aiMode=false;aiR=6;try{const bA=$('#bAI');if(bA){bA.style.background='';bA.style.borderColor='';}}catch(e){} // T260：新圖 AI 市長成對重置（鐵律7）
-  bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;trafClock=0;hintShown={};hintsOff=false;
+  bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;hintShown={};hintsOff=false;
   fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，開新圖歸零（鐵律7）
   roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
   commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，開新圖成對歸零（鐵律7）
@@ -7518,34 +7419,13 @@ function aiStep(){
       .filter(s=>miss[s[0]]>=s[2]).sort((a,b2)=>poor?(svcCost[a[1]]-svcCost[b2[1]]):(miss[b2[0]]-miss[a[0]]));
     if(svcOrder.length){
       const tool=svcOrder[0][1];
-      // T289 更自然擺放（玩家「更好更自然的擺放和延申」）：不再「第一個合法點就放」，而是收集半徑內合法候選、
-      // 評分＝該點服務半徑內「缺此服務的住宅數」，挑覆蓋最多者建造＝服務自然延申去補最缺的街區（非全擠質心）。
-      // 有界：候選上限 40、每候選在 rr 方框計數（cap 住成本，比照 T262 單趟掃描紀律）；平票時取離質心近者。
-      const lackTest={ // 各服務「該住宅仍缺」的判定（與上方 miss 統計同源）
-        fire:i=>!(COV.fire[i]>0||COV.fire2[i]>0||COV.fireHQ[i]>0),
-        police:i=>!(COV.police[i]>0||COV.police2[i]>0),
-        clinic:i=>!(COV.hospital[i]>0||COV.clinic[i]>0||COV.ambulance[i]>0),
-        school:i=>COV.school[i]===0,
-        water:i=>{const bb=tiles[i].bld;return bb&&bb.k===1&&!bb.wa;}
-      }[tool]||(()=>false);
-      const rr=tool==='water'?3:6; // 覆蓋評分方框半徑（水塔供水半徑小）
-      let bestX=-1,bestY=-1,bestScore=-1,bestDist=1e9,cand=0;
-      outer4:for(let r2=1;r2<=8&&cand<40;r2++)for(let dy3=-r2;dy3<=r2;dy3++)for(let dx3=-r2;dx3<=r2;dx3++){
+      outer4:for(let r2=1;r2<=8;r2++)for(let dy3=-r2;dy3<=r2;dy3++)for(let dx3=-r2;dx3<=r2;dx3++){
         if(Math.max(Math.abs(dx3),Math.abs(dy3))!==r2)continue;
         const px=mcx+dx3,py=mcy+dy3;
         if(!inMap(px,py)||!hasRoadNear(px,py,2,false))continue;
-        if(tool==='water'&&!((px%6===3&&(py%6===1||py%6===5))||(py%6===3&&(px%6===1||px%6===5))))continue; // T264：水塔必蓋在 %6==3 管線帶上
-        if(canPlace(tool,px,py)!==null)continue; // 僅評分「確實可蓋」的候選（canPlace 回 null＝可蓋）
-        cand++;
-        let score=0;
-        for(let yy=Math.max(0,py-rr);yy<=Math.min(N-1,py+rr);yy++)for(let xx=Math.max(0,px-rr);xx<=Math.min(N-1,px+rr);xx++){
-          const j=idx(xx,yy),bj=tiles[j].bld;
-          if(bj&&bj.k===1&&!bj.ref&&lackTest(j))score++;
-        }
-        const dist=Math.abs(dx3)+Math.abs(dy3);
-        if(score>bestScore||(score===bestScore&&dist<bestDist)){bestScore=score;bestX=px;bestY=py;bestDist=dist;}
+        if(tool==='water'&&!((px%6===3&&(py%6===1||py%6===5))||(py%6===3&&(px%6===1||px%6===5))))continue; // T264：水塔必蓋在 %6==3 管線帶上（且距路 1 格供電）——否則水管 adjPipe4 永遠沒種子（血淚：600 天只鋪出 2 條管、Lv3 恆 0）
+        if(tryP(tool,px,py))break outer4;
       }
-      if(bestX>=0)tryP(tool,bestX,bestY); // 挑到最佳覆蓋點才建（找不到＝本日不硬塞，等擴半徑）
     }
   }
   // ── 5. 民生：垃圾超載→依絕對缺口與財務選焚化廠／垃圾場；缺糧→農場；幸福低→公園 ──
@@ -8422,9 +8302,6 @@ function tick(){
    6. 小車與煙
 ===================================================================== */
 const cars=[],smokes=[];
-let trafClock=0; // T289：交通動畫時鐘（draw() 每幀累加 dt），驅動紅綠燈相位循環；純視覺運行時值，不入存檔
-let signalList=[]; // T289：號誌 tile 座標清單（快取重烘時收集：手動號誌＋4 叉路口自動號誌），live 層每幀依 trafClock 動畫繪製（存 tile 座標＝相機縮放平移每幀重算螢幕位，不受快取凍結）；不入存檔
-function sigPhase(seed){const tt=(trafClock+seed*0.7)%5.7;return tt<2.6?1:tt<3.1?2:0;} // 綠2.6s→黃0.5s→紅2.6s；回傳 0紅/1綠/2黃
 /* T129：道路壅堵運行時場——roadLoad[i] 為衰減式移動平均車流（tick() 每日依 roadPass 累計套公式
    load=load*.85+pass*.15 更新後歸零 roadPass 供下一天統計）；roadPass[i] 為當日累計「經過」該格車輛數，
    updCars 內車輛切格瞬間遞增（純累加，不消耗 R()，不改車輛生成/移動的亂數流）。
@@ -8475,10 +8352,8 @@ function riotBlockedRoad(x,y){
   return false;
 }
 function updCars(dt){
-  // T289 車流密度倍增（玩家「更密集的車流」）：分母 45→26、上限 32→依地圖尺寸放寬（72²→64、216²→120）＝大城真正車水馬龍
-  const carCeil=Math.round(64*(N/72));
-  const target=clamp(Math.floor((pop-busRtCovPop*.3)/26),0,carCeil); // T120：路線覆蓋住宅小車生成率×0.7（30%折抵人口貢獻）；無路線時 busRtCovPop=0
-  if(cars.length<target&&Math.random()<.22){ // T289：生成機率 .1→.22（更快填滿密度）
+  const target=clamp(Math.floor((pop-busRtCovPop*.3)/45),0,32); // T120：路線覆蓋住宅小車生成率×0.7（30%折抵人口貢獻）；無路線時 busRtCovPop=0，與改動前一致
+  if(cars.length<target&&Math.random()<.1){
     // 隨機找條路
     for(let tries=0;tries<30;tries++){
       const x=ri(N),y=ri(N);
@@ -8491,10 +8366,8 @@ function updCars(dt){
         // 車輛移動只改 c.x/c.y，vt/vc 不重算＝同一輛車連續幀車型不變（無閃爍）；SPR.vehTypes 缺失（__noVeh）時
         // vt/vc 恆 0，draw() 端回退既有 SPR.car[ci] 路徑，零位移
         let vt=0,vc=0;
-        if(SPR.vehTypes){vt=Math.floor(streetHash(x,y,910+d)*SPR.vehTypes.arr.length);vc=Math.floor(streetHash(x,y,920+d)*SPR.vehTypes.arr[vt].length);} // T289：車型索引用陣列長（8 種），非硬編碼 4
-        // T289 每車固定速度變異（.82~1.28）：座標決定性挑選、終生不變＝車流有機錯落（快車慢車混行），不消耗 R()
-        const spd=SPR.vehTypes?(.82+streetHash(x,y,930+d)*.46):1;
-        cars.push({x,y,d,p:Math.random(),ci:ri(SPR.car.length),vt,vc,spd});
+        if(SPR.vehTypes){vt=Math.floor(streetHash(x,y,910+d)*4);vc=Math.floor(streetHash(x,y,920+d)*SPR.vehTypes.arr[vt].length);}
+        cars.push({x,y,d,p:Math.random(),ci:ri(SPR.car.length),vt,vc});
         break;
       }
     }
@@ -8515,8 +8388,7 @@ function updCars(dt){
     }
     if(riotBlockedRoad(c.x,c.y))speed=0; // T118：暴亂封鎖路段車速歸零
     if(blizzard)speed*=BLIZZARD_SPEED_MULT; // T137：暴風雪/沙暴期間道路車速幾近癱瘓
-    if(c.spd)speed*=c.spd; // T289：每車固定速度變異＝有機錯落車流
-    c.p+=dt*1.5*speed; // T289：基礎步進 1.4→1.5（整體車流略活躍）
+    c.p+=dt*1.4*speed;
     if(c.p>=1){
       c.p-=1;
       c.x+=DIRV[c.d][0];c.y+=DIRV[c.d][1];
@@ -9167,7 +9039,6 @@ function coastLandAt(x,y){
 let groundDirty=true,groundCache=null,groundCacheCtx=null,groundCacheKey='',groundCacheGlow=[];
 let groundCacheZ=1; // T108：記錄目前快取實際烘焙時的 cam.z，供縮放動畫期間「快取縮放重貼」換算比例（不參與 gKey，快取鍵結構不變）
 function draw(dt){
-  trafClock+=dt||0; // T289：交通時鐘推進（紅綠燈相位）
   const {b,dusk,ph,d}=daylight(); // T149：新增解構 ph/d（既有 b/dusk 用途不變）
   // 天空
   const sky=[Math.round(lerp(13,140,b)),Math.round(lerp(17,195,b)),Math.round(lerp(38,232,b))];
@@ -9318,7 +9189,6 @@ function draw(dt){
     if(!groundCache||groundCache.width!==W||groundCache.height!==H){const gp=cv(W,H);groundCache=gp[0];groundCacheCtx=gp[1];}
     else groundCacheCtx.clearRect(0,0,W,H);
     const gc=groundCacheCtx;
-    signalList.length=0; // T289：快取重烘時重新收集號誌位置（tile 座標，live 層動畫繪）
     for(let y=0;y<N;y++)for(let x=0;x<N;x++){
       const sx=sxOf(x,y),sy=syOf(x,y);
       if(!vis(sx,sy))continue;
@@ -9452,16 +9322,9 @@ function draw(dt){
             gc.globalAlpha=1;
           }
         }
-        if(!lodFar&&!window.__noLamp&&!t.rdec&&!t.bus&&!t.bridge&&SPR.lampGlow&&streetHash(x,y,1650)<.28){ // T165+/T289：街燈密度 .13→.28（玩家「更多路燈」）——僅光禿路格（無路飾/站牌/橋）；streetHash 決定性不消耗 R()
-          if(SPR.streetLamp&&!lodMini){ // T289：燈桿實體（日間可見，夜間光暈對準燈頭）
-            const sl=SPR.streetLamp;
-            gc.drawImage(sl.img,sx+(32-sl.ax)*z,sy+(16-sl.ay)*z,sl.w*z,sl.h*z);
-            const lw=SPR.lampGlow.w*z, lh=SPR.lampGlow.h*z;
-            rdecGlow.push({img:SPR.lampGlow.img,x:sx+(32-sl.ax+sl.gx)*z-lw/2,y:sy+(16-sl.ay+sl.gy)*z-lh/2,w:lw,h:lh});
-          }else{
-            const lw=SPR.lampGlow.w*z, lh=SPR.lampGlow.h*z;
-            rdecGlow.push({img:SPR.lampGlow.img,x:sx+32*z-lw/2,y:sy+16*z-lh/2,w:lw,h:lh});
-          }
+        if(!lodFar&&!window.__noLamp&&!t.rdec&&!t.bus&&!t.bridge&&SPR.lampGlow&&streetHash(x,y,1650)<.13){ // T165+：稀疏街燈光池（Opus 親手）——僅光禿路格（無路飾/站牌/橋），push 進 rdecGlow→nightSprites，夜間 'screen' 疊加；日間 nightSprites 不繪＝零改動；streetHash 決定性不消耗 R()
+          const lw=SPR.lampGlow.w*z, lh=SPR.lampGlow.h*z;
+          rdecGlow.push({img:SPR.lampGlow.img,x:sx+32*z-lw/2,y:sy+16*z-lh/2,w:lw,h:lh});
         }
         if(!lodFar&&t.rdec){ // T107：z<1 不畫路面裝飾（路樹路燈）
           const rs=SPR.rdec;
@@ -9560,10 +9423,7 @@ function draw(dt){
       if(t.dock)gc.drawImage(SPR.dock,sx,sy,64*z,32*z);
       // T42 單行道箭頭
       if(t.oneway&&t.road)gc.drawImage(SPR.oneway[t.oneway-1]||SPR.oneway[0],sx,sy,64*z,32*z);
-      if(t.road&&!window.__noSignal){ // T289：號誌改由 live 層動畫繪製（紅綠燈循環）——此處僅收集 tile 座標（不烘進 groundCache＝可逐幀變相位）
-        if(t.light)signalList.push({x,y,m:1}); // 手動號誌
-        else if(!t.hw&&!t.bridge&&(t.rc||2)>=2&&STREET_POPCOUNT[t.mask]===4)signalList.push({x,y,m:0}); // 幹道 4 叉路口自動號誌
-      }
+      if(t.light&&t.road&&SPR.light&&!window.__noSignal)gc.drawImage(SPR.light,sx,sy-8*z,64*z,40*z); // T192：號誌燈實體（桿+紅黃綠燈箱，抬高 8px 讓燈頭立於路口）
       // T57 洪水疊加
       if(t.flood){gc.globalAlpha=.35;gc.fillStyle='#4a8ab8';gc.fillRect(sx,sy,64*z,32*z);gc.globalAlpha=1;}
       // T70 堤防：內縮菱形描邊示意加高河堤（土黃色，先前僅小地圖上色、地面無標記）
@@ -9778,10 +9638,6 @@ function draw(dt){
   }
   if(!lodFar)for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s}); // T107：z<1 不畫煙粒個體（updSmoke 模擬照跑）
   if(!lodFar)for(const p of fxParts)objs.push({dep:p.dep,fx:p}); // T159：z<1 不畫塵土/碎屑/火花/落葉/尾氣個體（updFxParts 模擬照跑），比照煙粒同款 LOD 門檻
-  if(!lodMini&&SPR.signalPhase&&!window.__noSignal)for(const sg of signalList){ // T289：號誌 live 動畫繪製（收集自快取重烘，逐幀依 trafClock 循環相位）
-    const wx=(sg.x-sg.y)*32, wy=(sg.x+sg.y)*16+16;
-    objs.push({dep:sg.x+sg.y+.02,sig:sg,wx,wy});
-  }
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
   nightSprites.push(...rdecGlow);
@@ -9795,17 +9651,6 @@ function draw(dt){
     occTargets.push({ax:sxOf(selTile.x,selTile.y)+32*z,ay:syOf(selTile.x,selTile.y)+32*z,dep:selTile.x+selTile.y+selTile.y*.001});
   }
   for(const o of objs){
-    if(o.sig){ // T289：紅綠燈（動畫循環相位），立於路口一側
-      const sx=ox+o.wx*z, sy=oy+o.wy*z;
-      const ph=sigPhase(o.sig.x*7+o.sig.y*13);
-      const sp=SPR.signalPhase[ph], sc2=o.sig.m?1.5:1.1; // 手動號誌放大 1.5、自動 1.1
-      ctx.drawImage(sp.img,sx+(o.sig.m?6:8)*z-sp.ax*sc2*z,sy-(sp.ay*sc2-2)*z,sp.w*sc2*z,sp.h*sc2*z);
-      if(b<.55){ // 夜間亮燈微暈（暖色 screen 疊加清單）
-        const gy=[3,9,6][ph];
-        nightSprites.push({rect:[sx+(o.sig.m?6:8)*z-(sp.ax-5)*sc2*z,sy-(sp.ay-gy)*sc2*z,3*sc2*z,3*sc2*z],col:['#ff5a5a','#6bff86','#ffd23d'][ph]});
-      }
-      continue;
-    }
     if(o.car){
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
       let spr,vw=12,vh=8,vox=6,voy=5;
@@ -12490,7 +12335,7 @@ function load(slot){
     computeElMask();
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
-    cars.length=0;smokes.length=0;signalList.length=0;buses.length=0; // 公車運行時重建不存（T26）；T289：號誌清單運行時重建
+    cars.length=0;smokes.length=0;buses.length=0; // 公車運行時重建不存（T26）
     fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，讀檔歸零（鐵律7）
     roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
     commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，讀檔成對歸零（鐵律7）
