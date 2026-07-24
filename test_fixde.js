@@ -904,6 +904,7 @@ console.log('\n-- T305 AI 擋路拆遷 --');
   window.GV.newWorldSeeded(1);
   window.GV.ai(true); window.GV.step(3); window.GV.ai(false);
   assert(isFinite(window.GV.stats().money), 'T305 AI 拆遷邏輯 money 不得 NaN');
+  assert(typeof window.GV.aiRenewN() === 'number' && window.GV.aiRenewN() >= 0, 'T306 都市更新計數 hook 應為非負數');
 }
 // ================= T304 服務車隊 =================
 console.log('\n-- T304 服務車隊 --');

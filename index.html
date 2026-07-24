@@ -7558,6 +7558,7 @@ function computeCityPoints(){
    money/foodPoints/garbRatio）＝同存檔同日重放決策一致（鐵律7 相容）；不新增 R() 消耗點之外的亂數。
    aiMode/aiR 入存檔可選欄位（aim/aiR），newWorld/load 成對重置。
 ===================================================================== */
+let aiRenewN=0; // T306：AI 城市更新累計戶數（運行時觀測，不入存檔）
 let aiMode=false, aiR=6; // 自治開關＋擴張半徑（隨建成擴大直到覆蓋全圖）
 function aiCenter(){
   let sx=0,sy=0,n=0;
@@ -7796,6 +7797,20 @@ function aiStep(){
   //      門檻：pop>100（成熟城才需精神生活）＋cityHappy<.66（幸福已高就不急）＋每 ~70 建築上限 1 座（避免狂建）＋淨收支為正（血淚：無視維護費）＋非窮困。
   if(!poor&&pop>100&&cityHappy<.66&&faithN<Math.max(1,Math.ceil(cbn/70))&&money>COST.faithCenter+RESERVE&&fin&&fin.net>2){
     outer5f:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(hasRoadNear(x,y,2,false)&&tryP('faithCenter',x,y))break outer5f;}
+  }
+  // T306 AI 城市更新（TOD，玩家「該拆哪些內容」進階）：高地價（LAND≥170＝市中心/地鐵大站旁）上長期停留 lv1
+  //      的老住宅（age>40）＝土地浪費——漸進拆遷（每 30 天最多 2 戶，不推平街區）＋原地重劃住宅區，
+  //      高地價驅動快速重長並升級（T292 landUpMul）＝lv1 老屋→高密度高樓的真實城市更新循環。富裕期才做。
+  if(!poor&&day%30===0&&fin&&fin.net>5&&money>2000){
+    let renewed=0;
+    outer6:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+      const i2=idx(x,y),b2=tiles[i2].bld;
+      if(!b2||b2.ref||b2.k!==1||b2.lv!==1||b2.fire||b2.sick||b2.death||b2.riot)continue;
+      if((b2.age||0)<=40||LAND[i2]<155)continue; // 門檻 155（T292 實測大城地價 max≈176，170 太苛幾乎無格達標）
+      if(doPlace('doze',x,y,true)){doPlace('zr',x,y,true);aiRenewN++;renewed++;acts++;}
+      if(renewed>=2||acts>=MAXA)break outer6;
+    }
+    if(renewed)toast('🏗️ 都市更新：'+renewed+' 戶高地價老屋拆遷重建（高密度化）');
   }
   // T300：AI 地鐵規劃——城市成熟後自動規劃地鐵網（連接高客流區，pop 越大線越多，上限 8 或 pop/450）
   if(!poor&&pop>300&&day%25===0&&metroLines.length<Math.min(8,Math.floor(pop/450))&&money>1500&&fin&&fin.net>3){planMetroLine();}
@@ -13297,6 +13312,7 @@ window.GV={
   svcFleet:()=>({...svcFleet}), // T304 測試用：服務車隊快照
   buySvcVehicle:(t,l)=>buySvcVehicle(String(t),!!l), // T304 測試/UI 用
   policeCars:()=>policeCars.length, // T304 測試用：出勤中警車數
+  aiRenewN:()=>aiRenewN, // T306 測試用：AI 都市更新累計戶數
   metroPlan:()=>planMetroLine(), // T300 測試用：手動規劃一條地鐵線
   metroClear:()=>{metroLines.length=0;return 0;}, // T300 測試用：清空地鐵
   eduAt:(x,y)=>inMap(x,y)?EDU[idx(x,y)]:null, // T142：教育場除錯鉤子
