@@ -2,6 +2,7 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-24 | T308 城市事件大擴充（v6.9，DeepSeek 施工／玩家「更多事件」） | DeepSeek v4-pro 產 40 個城市事件 JSON，gen_events.py 批量注入器（驗證 id 唯一/英文小寫、days3-10、tax0.7-1.4、food0.6-1.6、happy-0.06~0.08、去重 vs 現有、至少一欄偏離中性）→ CITY_EVENTS 6→46 個（節慶/豐收/科技/體育/旅遊/文化/天氣/經濟/災害/社會多主題，好壞搭配）。binary 寫防 CRLF。驗收：1168/1168。SW v18→v19。GAME_VER 6.8→6.9。 | 驗收:通過
 2026-07-24 | T307 DeepSeek 施工試點：鐘樓 k67+天文台 k68（v6.8，玩家提供 DS key「Fable 指揮+DeepSeek 施工」） | 建立 Fable/DeepSeek 協作管線：DS(v4-pro)產 sprite 代碼、Fable 出卡(硬約束 system prompt)+審核(剝圍欄/禁RNG斷言/鍵斷言)+19處接線+驗收。鐘樓 1×1 地標(觀光+12/就業4/維護4)、天文台 2×2 地標(觀光+22/就業10/維護9)，全鐵律12 接線+SV。**血淚：接線腳本誤用 text-mode io.open(w) 寫 index.html→Windows 把 13703 個 
  轉 
 →GPT T274 農場字節測試立即抓到(內容同、字節異)→轉回 LF 修復。凡寫 index.html 的腳本必須 binary(open rb/wb)。** 驗收：1168/1168。SW v17→v18。GAME_VER 6.7→6.8。 | 驗收:通過

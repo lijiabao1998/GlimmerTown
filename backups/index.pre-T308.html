@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.1'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='6.8'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -552,46 +552,6 @@ const CITY_EVENTS=[
   {id:'sports',name:'🏆 體育盛會',days:5,tax:1.1,food:1,happy:.06,desc:'全民歡慶，居民幸福 +6%'},
   {id:'boom',name:'💰 經濟繁榮',days:7,tax:1.3,food:1,happy:.03,desc:'百業興旺，全城稅收 +30%'},
   {id:'festival',name:'🎉 城市慶典',days:5,tax:1.15,food:1.1,happy:.05,desc:'節慶氣氛，幸福＋稅收齊漲'},
-  {id:'springfest',name:'🌸 新春庙会',days:5,tax:1.1,food:1.3,happy:0.06,desc:'张灯结彩迎新春，小吃摊排满街。'},
-  {id:'autumnbounty',name:'🌾 秋收庆典',days:4,tax:1.2,food:1.5,happy:0.05,desc:'粮仓爆满，全城同享丰收宴。'},
-  {id:'techfair',name:'🤖 未来科技展',days:3,tax:1.3,food:0.9,happy:0.04,desc:'机器人端咖啡，市民排队体验。'},
-  {id:'marathon',name:'🏃 城市马拉松',days:3,tax:1.05,food:1.0,happy:0.07,desc:'万人奔跑，沿途加油声震天。'},
-  {id:'tourfest',name:'🎒 国际旅游节',days:7,tax:1.4,food:1.1,happy:0.03,desc:'游客如织，酒店民宿全爆满。'},
-  {id:'artwalk',name:'🎨 涂鸦艺术周',days:5,tax:0.9,food:1.2,happy:0.08,desc:'墙壁变画廊，老街区焕新生。'},
-  {id:'musicnite',name:'🎵 不夜音乐季',days:6,tax:1.15,food:1.4,happy:0.05,desc:'露天演唱会从晚嗨到早。'},
-  {id:'solarboom',name:'☀️ 光伏红利期',days:10,tax:1.25,food:1.0,happy:0.02,desc:'电费大降，工厂机器全开动。'},
-  {id:'gardenfest',name:'🌻 城市园艺节',days:4,tax:1.0,food:1.3,happy:0.06,desc:'阳台菜园成风，全市满眼绿。'},
-  {id:'sportcup',name:'⚽ 冠军联赛主场',days:3,tax:1.3,food:1.4,happy:0.07,desc:'球赛引流，酒吧座无虚席。'},
-  {id:'bookfair',name:'📚 旧书交换集',days:5,tax:0.85,food:1.0,happy:0.06,desc:'以书会友，咖啡馆文青扎堆。'},
-  {id:'filmfest',name:'🎬 露天电影节',days:7,tax:1.05,food:1.3,happy:0.04,desc:'星空下免费放映，自带板凳。'},
-  {id:'newyear',name:'🎆 跨年烟火秀',days:3,tax:1.2,food:1.6,happy:0.05,desc:'零点烟花照亮每张笑脸。'},
-  {id:'fishmigrate',name:'🐟 渔汛大年到',days:6,tax:1.15,food:1.6,happy:0.03,desc:'鱼市海鲜便宜到像白送。'},
-  {id:'wintersale',name:'🛍️ 暖冬购物季',days:7,tax:1.25,food:0.9,happy:0.04,desc:'百货打折，人手拎满战利品。'},
-  {id:'cleanair',name:'🍃 空气改善周',days:5,tax:1.1,food:1.0,happy:0.06,desc:'蓝天白云，户外瑜伽遍地开。'},
-  {id:'startupboom',name:'💡 创客孵化潮',days:8,tax:1.35,food:1.0,happy:0.02,desc:'新公司猛增，写字楼租金涨。'},
-  {id:'streetfood',name:'🍢 夜市美食榜',days:4,tax:1.0,food:1.5,happy:0.07,desc:'网红摊排长龙，烟火气拉满。'},
-  {id:'rainyharvest',name:'🌧️ 甘霖解旱情',days:3,tax:1.05,food:1.5,happy:0.03,desc:'久旱逢雨，菜价应声回落。'},
-  {id:'culturalex',name:'🏮 非遗手艺展',days:5,tax:0.95,food:1.2,happy:0.05,desc:'老匠人现场捏面人糖画。'},
-  {id:'puppetparade',name:'🦁 巨型木偶巡游',days:3,tax:1.1,food:1.4,happy:0.06,desc:'三米高玩偶走街，孩童狂追。'},
-  {id:'flowerbloom',name:'💐 全城花季',days:6,tax:1.0,food:1.2,happy:0.08,desc:'樱花海棠接力，满街花瓣雨。'},
-  {id:'riverfest',name:'🚣 龙舟嘉年华',days:4,tax:1.05,food:1.3,happy:0.05,desc:'鼓声震天，岸边全是呐喊声。'},
-  {id:'moonfest',name:'🌕 中秋团圆会',days:3,tax:1.1,food:1.5,happy:0.04,desc:'分食巨型月饼，猜灯谜赢奖。'},
-  {id:'coldwave',name:'❄️ 寒潮急冻',days:5,tax:0.8,food:0.85,happy:-0.03,desc:'水管冻裂，菜价飙升翻倍。'},
-  {id:'plagueout',name:'🦠 流感大爆发',days:7,tax:0.9,food:0.7,happy:-0.06,desc:'诊所排长队，学校停课消毒。'},
-  {id:'strike',name:'🔧 港口大罢工',days:6,tax:0.75,food:0.8,happy:-0.04,desc:'货轮积压，超市货架空一半。'},
-  {id:'recession',name:'📉 经济衰退潮',days:10,tax:0.7,food:1.0,happy:-0.05,desc:'企业裁员，商业街转让告示。'},
-  {id:'heatwave',name:'🔥 酷热限电',days:5,tax:0.85,food:0.9,happy:-0.04,desc:'40度高温，空调开一停一。'},
-  {id:'flood',name:'🌊 暴雨内涝',days:4,tax:0.8,food:0.75,happy:-0.06,desc:'街道成河，菜地被淹损失惨。'},
-  {id:'smog',name:'💨 重度雾霾',days:6,tax:0.95,food:1.0,happy:-0.05,desc:'能见度不足十米，咳嗽声不断。'},
-  {id:'drought',name:'🏜️ 长期干旱',days:8,tax:0.9,food:0.7,happy:-0.03,desc:'水库见底，限水令每日生效。'},
-  {id:'thiefwave',name:'🦝 盗窃案频发',days:5,tax:0.9,food:0.95,happy:-0.04,desc:'入室盗窃激增，居民不安。'},
-  {id:'powerout',name:'⚡ 变电站故障',days:3,tax:0.7,food:0.8,happy:-0.05,desc:'全城大停电，冰箱食物坏光。'},
-  {id:'riot',name:'🚨 球迷骚乱',days:4,tax:0.8,food:0.9,happy:-0.06,desc:'赛后打砸，商店紧急钉板。'},
-  {id:'inflation',name:'💸 恶性通胀',days:10,tax:0.85,food:0.7,happy:-0.04,desc:'钞票变纸，一碗面贵三倍。'},
-  {id:'quake',name:'🌪️ 轻微地震',days:3,tax:0.9,food:1.0,happy:-0.03,desc:'吊灯摇晃，旧楼外墙剥落。'},
-  {id:'blight',name:'🐛 虫害泛滥',days:6,tax:0.95,food:0.6,happy:-0.02,desc:'蝗虫过境，城郊作物全啃光。'},
-  {id:'trafficjam',name:'🚗 全城大堵车',days:4,tax:0.85,food:1.05,happy:-0.05,desc:'高架变停车场，外卖迟2小时。'},
-  {id:'fakenews',name:'📰 谣言恐慌',days:5,tax:0.9,food:1.0,happy:-0.04,desc:'囤货潮起，盐和米被抢光。'},
 ];
 let cityEvent=null; // T299：當前城市事件 {i:事件索引, daysLeft} 或 null；入存檔（cev 可選欄位）
 /* T283 農產市場價（Farming Simulator 對標）：基準價 × 動態雙波動 × 季節供需（秋收過剩賤/冬缺糧貴）
