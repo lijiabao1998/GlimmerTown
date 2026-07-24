@@ -843,6 +843,21 @@ console.log('\n-- T290 大型購物中心 --');
   // 升級不崩（純擴店）
   if (window.GV.upgrade) { window.GV.upgrade(sp.x, sp.y); window.GV.step(3); assert(isFinite(window.GV.stats().money), 'T290 升級後 money 不得 NaN'); }
 }
+// ================= T292 地價系統修復（修僵屍 LANDBASE）=================
+console.log('\n-- T292 地價系統修復 --');
+{
+  window.GV.newWorldSeeded(1);
+  window.GV.addMoney(80000);
+  const N292 = window.GV.N();
+  let maxB = 0; for (let y = 0; y < N292; y++) for (let x = 0; x < N292; x++) maxB = Math.max(maxB, window.GV.landAt(x, y));
+  assert(maxB <= 130, 'T292 新圖無服務時地價應接近中性 128，實得 max=' + maxB);
+  const sp292 = findSpot('police'); assert(sp292, 'T292 應找到警局可建位置');
+  place('police', sp292.x, sp292.y);
+  window.GV.step(2);
+  let maxA = 0; for (let y = 0; y < N292; y++) for (let x = 0; x < N292; x++) maxA = Math.max(maxA, window.GV.landAt(x, y));
+  assert(maxA > maxB, 'T292 建警局後地價應上升（landDirty 修僵屍：原 LANDBASE 僅 newWorld/load/undo 重建，建服務走增量 stampCov 不碰 LANDBASE），實得 ' + maxB + '→' + maxA);
+  assert(maxA >= 136, 'T292 警局覆蓋格地價應≥136（128+服務×8），實得 ' + maxA);
+}
 // ================= T280 溫室：全年恆溫食物/金幣＋NaN 守衛 =================
 console.log('\n-- T280 溫室恆溫 --');
 {
