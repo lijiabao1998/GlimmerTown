@@ -1,6 +1,6 @@
 // 微光小鎮 Glimmerville — 離線快取 Service Worker（T27 / T268）
 const CACHE_PREFIX='glimmerville-shell-';
-const CACHE=CACHE_PREFIX+'v7';
+const CACHE=CACHE_PREFIX+'v8';
 const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);
 const FILES=[
   './index.html',

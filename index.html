@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='5.7'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='5.8'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -6266,7 +6266,7 @@ function newWorld(seedOverride){
     if(sc>bestScore){bestScore=sc;best=[x,y];}
   }
   money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
-  goods=0;gWhCap284=0; // T284：成對重置（鐵律7）
+  goods=0;gWhCap284=0;svcBudget={police:1,fire:1,health:1,edu:1}; // T284/T294：成對重置（鐵律7）——服務預算回預設 1.0×
   aiMode=false;aiR=6;try{const bA=$('#bAI');if(bA){bA.style.background='';bA.style.borderColor='';}}catch(e){} // T260：新圖 AI 市長成對重置（鐵律7）
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;trafClock=0;hintShown={};hintsOff=false;
   fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，開新圖歸零（鐵律7）
@@ -7227,8 +7227,20 @@ const COVR={park:4,plant:4,fire:9,school:8,stadium:10,police:10,hospital:12,clin
 const COV={};for(const f in COVR)COV[f]=new Uint8Array(N*N);
 // T67：新服務 k 接入覆蓋場；高級消防用 fire2 更大半徑
 function covFieldOfK(k){return {4:'park',5:'plant',6:'fire',7:'school',9:'stadium',11:'police',12:'hospital',13:'clinic',14:'library',15:'post',16:'cemetery',28:'ambulance',30:'fire2',31:'prison',32:'university',20:'parking',35:'museum',36:'theater',40:'cinema',41:'grandlib',43:'court',45:'institute',47:'botanical',48:'megahosp',52:'police2',54:'cem2',56:'stadium2',61:'fireHQ'}[k]||null;} // T257：k61 消防總局→fireHQ 場（doze/rebuildCov 自動對稱） // T241：k56 體育園區→stadium2 大幸福半徑 // T233：k54 大墓園→cem2 場 // T222：k52 派出所→police2 場（doze/rebuildCov 自動走此映射） // T138：k35/36/40/41 接入覆蓋場；T139：k43/45/47/48 接入覆蓋場（k42/44/46 市政廳/會展中心/氣象站為全城效果，無 COV 欄）
+/* T294：服務預算滑塊（CS 式錢↔服務範圍權衡）——4 類服務（警/消/醫/教）預算 0.5-1.5×，於 stampCov 內縮放覆蓋半徑
+   （一處改動覆蓋 doPlace/rebuildCov 全部 stampCov 調用）＋維護費按預算縮放（upkeep）。入存檔（可選欄位 sb，缺省 1）。
+   增量蓋印/撤印對稱性：budget 改變時即刻 rebuildCov（fill0 全量重建），故兩次增量之間 budget 不變＝對稱不下溢。 */
+let svcBudget={police:1,fire:1,health:1,edu:1};
+const SVC_BUDGET_CAT={police:'police',police2:'police',court:'police',fire:'fire',fire2:'fire',fireHQ:'fire',hospital:'health',clinic:'health',ambulance:'health',megahosp:'health',school:'edu',university:'edu',library:'edu',grandlib:'edu',institute:'edu'};
+function setSvcBudget(cat,delta){ // T294：調整某類服務預算 ±，即刻 rebuildCov（fill0 全量重建＝增量撤印對稱性保證，見 stampCov 註）
+  if(!Object.prototype.hasOwnProperty.call(svcBudget,cat))return svcBudget;
+  svcBudget[cat]=clamp(+(svcBudget[cat]+delta).toFixed(2),.5,1.5);
+  rebuildCov(); // 用新預算重算所有服務覆蓋半徑
+  return svcBudget;
+}
 // Chebyshev 半徑 r 方框逐格 ±delta（邊界裁剪），支持重疊計數
 function stampCov(field,x,y,r,delta){
+  const cat=SVC_BUDGET_CAT[field];if(cat)r=Math.max(1,Math.round(r*svcBudget[cat])); // T294：預算縮放覆蓋半徑（budget=1 時 round(r×1)=r 精確恆等，不破壞既有覆蓋/測試）
   const a=COV[field];
   for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
     for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;a[idx(nx,ny)]+=delta;}}
@@ -8414,6 +8426,7 @@ function tick(){
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
   const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0); // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
   upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+policeBoxes*1.5+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+bigCemN*8+dumps*2+stadiums*8+waterTowers*3+st*6+gstN*15+scN*18+fpN*14+nkN*28+hyN*9+geN*4+fhqN*10+wteN*10+ghN*3+whN284*4+mallN*16+po*5+ai*25+pa*1.5+tr*4+fa*1+bigFa*6+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+chN*10+crtN*6+cvN*20+inN*10+wsN*4+bgN*14+mhN*16+owN*4+mnN*5+mgN*25+upReg; // T265：焚化發電維護10；T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費；T139：市政廳10/法院6/會展中心20/研究院10/氣象站4/植物園14/綜合醫院16 維護費（綜合醫院比照 T95 教訓，維護費遠高於醫院的5，避免超大半徑碾壓既有醫療建築）；T140：油井4/礦場5/太空研究中心25 維護費
+  upkeep+=(fireStations*3+fs2*6+fhqN*10)*(svcBudget.fire-1)+(policeStations*4+policeBoxes*1.5+crtN*6)*(svcBudget.police-1)+(hospitals*5+clinics*2.5+am*4+mhN*16)*(svcBudget.health-1)+(schools*2.5+libraries*2+un*8+inN*10)*(svcBudget.edu-1); // T294：服務預算維護費調整——各類基礎維護×(budget−1)，預算 1.5×→多花50%養更廣覆蓋、0.5×→省一半但覆蓋縮水；budget=1 時為 0 精確恆等
   const foodPrice=foodPriceOf(day,sea); // T283：本日農產市價（動態波動×季節供需×搶購潮），作用於全部食物系金幣＝賣穀時機玩法（FS 對標）
   const farmGold=Math.round(farmGoldU*FARM_SEASON_MULT[sea]*foodPrice); // T251：農場灌溉金幣收益（隨季節；lv 越高越多＝Skylines 式特化經濟）
   const ranchGold=Math.round(ranchGoldU*foodPrice),ghGold=Math.round(ghGoldU*foodPrice); // T280：溫室金幣恆溫 // T252：牧場牧養金幣收益（不隨季節＝畜牧全年穩定；lv 越高越多）
@@ -12166,6 +12179,7 @@ function showStats(){
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">🚌 公共運輸　日客運量 ${transitRidership} 人　🎫 票務 ${f(Math.round(transitRidership*.03))}／日${railCovPop>0?('　🚈 軌道服務 '+railCovPop+' 人'):''}${busRtCovPop>0?('　🚏 公交服務 '+busRtCovPop+' 人'):''}</div>
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
+     <div class="row">🎚️ 服務預算（越高覆蓋越廣、越貴）　🚓${svcBudget.police.toFixed(1)}× <button class="hbtn" id="budPoM">−</button><button class="hbtn" id="budPoP">＋</button>　🚒${svcBudget.fire.toFixed(1)}× <button class="hbtn" id="budFiM">−</button><button class="hbtn" id="budFiP">＋</button>　🏥${svcBudget.health.toFixed(1)}× <button class="hbtn" id="budHeM">−</button><button class="hbtn" id="budHeP">＋</button>　🎓${svcBudget.edu.toFixed(1)}× <button class="hbtn" id="budEdM">−</button><button class="hbtn" id="budEdP">＋</button></div>
      <div class="row">🚨 法規　<label><input type="checkbox" id="polCurfew"${pol.curfew?' checked':''}> 宵禁</label>　<label><input type="checkbox" id="polRecycle"${pol.recycle?' checked':''}> 回收宣導</label>　<label><input type="checkbox" id="polTour"${pol.tourPromo?' checked':''}> 觀光推廣</label>　<label><input type="checkbox" id="polEco"${pol.ecoReg?' checked':''}> 節能條例</label></div>
      <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}　📜 法規 -${fin.upReg.toFixed(1)}</div>
      <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
@@ -12289,6 +12303,13 @@ function showStats(){
   pb('#polRm','taxR',-1,'住宅');pb('#polRp','taxR',1,'住宅');
   pb('#polCm','taxC',-1,'商業');pb('#polCp','taxC',1,'商業');
   pb('#polIm','taxI',-1,'工業');pb('#polIp','taxI',1,'工業');
+  // T294：服務預算滑塊——±0.1 調整並即刻 rebuildCov 重算覆蓋半徑（setSvcBudget 內），重繪面板
+  const budStep=(cat,d,nm)=>{setSvcBudget(cat,d*.1);toast('🎚️ '+nm+'預算 ×'+svcBudget[cat].toFixed(1)+(d>0?'（覆蓋更廣、更貴）':'（省錢、覆蓋縮水）'));sTick();showStats();};
+  const bb=(id,cat,d,nm)=>{const el=$(id);if(el)el.addEventListener('click',()=>budStep(cat,d,nm));};
+  bb('#budPoM','police',-1,'警察');bb('#budPoP','police',1,'警察');
+  bb('#budFiM','fire',-1,'消防');bb('#budFiP','fire',1,'消防');
+  bb('#budHeM','health',-1,'醫療');bb('#budHeP','health',1,'醫療');
+  bb('#budEdM','edu',-1,'教育');bb('#budEdP','edu',1,'教育');
   // T122：法規開關（勾選即時生效，次日 tick 套用對應係數）
   const polToggle=(id,k,nm)=>{const el=$(id);if(el)el.addEventListener('change',()=>{pol[k]=!!el.checked;toast('🚨 '+nm+(pol[k]?' 已開啟':' 已關閉'));sTick();});};
   polToggle('#polCurfew','curfew','宵禁');
@@ -12514,7 +12535,7 @@ function save(){
       sc:scenario?{id:scenario.id,startDay:scenario.startDay,hold:scenario.hold||0}:null, // T132：進行中場景戰役（可選欄位，仿 loan/riot 慣例存最小進度結構；scDone 通關集合另落 localStorage 獨立鍵，不入本存檔）
       rk:rankIdx, // T133：城市等級（可選欄位，rankIdx 0-based；load 缺欄位時由當前城市狀態即時算出，不因缺欄位降級）
       sup:supplies, // T140：資源供應品全域存量（可選欄位，舊檔缺欄位容錯為 0）
-      aim:aiMode?1:0,aiR,gds:goods, // T284：工業品庫存（可選欄位） // T260：AI 市長開關＋擴張半徑（可選欄位，舊檔缺＝關/6）
+      aim:aiMode?1:0,aiR,gds:goods,sb:{...svcBudget}, // T294：服務預算（可選欄位，舊檔缺＝全 1.0） // T284：工業品庫存（可選欄位） // T260：AI 市長開關＋擴張半徑（可選欄位，舊檔缺＝關/6）
       rdep:rdepArr.length?rdepArr:null}; // T140：資源耗損（稀疏可選欄位，僅存已開採格；缺欄位＝未耗損。RESOURCE 本身不存，由 seed 經 genResource() 重建）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
@@ -12608,6 +12629,8 @@ function load(slot){
     }
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0; // T284：工業品還原（舊檔缺＝0）
+    if(d.sb){for(const k in svcBudget)if(typeof d.sb[k]==='number')svcBudget[k]=clamp(d.sb[k],.5,1.5);}else svcBudget={police:1,fire:1,health:1,edu:1};
+    rebuildCov(); // T294：服務預算還原後重算覆蓋（前面 load 的 rebuildCov 用預設，此處按存檔預算修正半徑；舊檔預算全 1.0＝結果與前次一致）
     try{const bA=$('#bAI');if(bA){bA.style.background=aiMode?'#7a5a18':'';bA.style.borderColor=aiMode?'#ffd45f':'';}}catch(e){} // T260：AI 市長狀態靜默還原（含按鈕高亮，不 toast；舊檔缺欄位＝關/6）
     // T133：城市等級——存檔含 rk 則直接還原（保留「只升不降」的晉升歷史，即使當前城市點數暫時因災害/人口下滑而低於門檻也不降級）；
     // 缺欄位（舊檔）則由當前城市狀態（tiles/COV 此刻皆已重建完畢）即時算出合理等級，不因缺欄位降級為 Lv.1
@@ -12836,6 +12859,8 @@ window.GV={
   wealthAt:(x,y)=>{if(!inMap(x,y))return null;const b=T(idx(x,y)).bld;return(b&&b.k===1)?(b.we!==undefined?b.we:1):null;}, // T123：住宅財富級除錯鉤子（0貧/1中/2富，非住宅回 null）
   landAt:(x,y)=>inMap(x,y)?LAND[idx(x,y)]:null, // T130：地價場除錯鉤子
   transit:()=>({ridership:transitRidership,busPop:busRtCovPop,railPop:railCovPop,rev:Math.round(transitRidership*.03)}), // T293 測試用：公共運輸客運量/票務快照
+  svcBudget:()=>({...svcBudget}), // T294 測試用：服務預算快照
+  setSvcBudget:(cat,d)=>setSvcBudget(cat,+d||0), // T294 測試/UI 用：調整服務預算並即刻重算覆蓋
   eduAt:(x,y)=>inMap(x,y)?EDU[idx(x,y)]:null, // T142：教育場除錯鉤子
   resourceAt:(x,y)=>inMap(x,y)?RESOURCE[idx(x,y)]:null, // T140：資源層除錯鉤子（0無/1油/2礦，由種子決定不受耗損影響）
   supplies:()=>supplies, // T140：資源供應品全域存量
