@@ -2589,51 +2589,61 @@ function buildSprites(){
    for(let i=-2;i<=2;i++){g.fillStyle='rgba(240,240,232,.42)';g.fillRect(ax+i*20,ay-30,1,7);}                     // 車位分隔線（居中窄幅）
    const mcarC=['#c0402e','#3a6ea5','#d8c84a','#4a4a52'];
    for(let i=0;i<4;i++){const px=ax-40+i*22,py=ay-24;sg.fillStyle=mcarC[i];sg.fillRect(px,py-3,11,5);sg.fillStyle=shade(mcarC[i],32);sg.fillRect(px,py-3,11,1);sg.fillStyle='#20262f';sg.fillRect(px+2,py-2,7,1);sg.fillStyle='#151515';sg.fillRect(px+1,py+2,2,1);sg.fillRect(px+8,py+2,2,1);} // 4 車置中（y=ay-24 半寬48→x[88,184] 全含）
-   // 主體大盒（玻璃帷幕）
-   const bw=196,bh=80,bx=ax-98,by=ay-40; const topY=by-bh;
-   sg.fillStyle='#48505c';sg.fillRect(bx-26,by-14-bh,26,bh);          // 左側牆（iso 深色回面）
-   for(let r=0;r<bh;r+=1){sg.fillStyle=r%14<1?'#3a414c':'#4e5762';sg.fillRect(bx-26,by-14-bh+r,26,1);} // 左牆層線
-   sg.fillStyle='#7c8896';sg.fillRect(bx,topY,bw,bh);                 // 前牆玻璃底
-   sg.fillStyle='#8b98a6';sg.fillRect(bx,topY,4,bh);                  // 左亮邊
-   sg.fillStyle='#5a6470';sg.fillRect(bx+bw-5,topY,5,bh);            // 右暗邊
-   // 玻璃帷幕窗格（4 排 × 多列）
-   for(let ry=0;ry<4;ry++)for(let cx2=bx+8;cx2<bx+bw-12;cx2+=15){
-     const wy=topY+8+ry*18;
-     sg.fillStyle=(ry+((cx2-bx)/15|0))%2?'#a7c2d6':'#93b2c8';sg.fillRect(cx2,wy,11,12);
-     sg.fillStyle='#c8ddec';sg.fillRect(cx2,wy,11,2);                 // 上緣反光
-     sg.fillStyle='#42505e';sg.fillRect(cx2+11,wy,1,12);             // 豎框陰影
+   // T303 重畫（玩家「美術突兀」）：冷玻璃大板→暖色三段式體量（左翼低/右翼中高/中庭玻璃僅點綴）＋
+   // 底層彩色店面帶（紅/青/金遮陽棚＝呼應全城商業風）＋暖石簷口＋分翼屋頂線。融入暖磚像素城市。
+   const bw=196,bh=68,bx=ax-98,by=ay-40; const topY=by-bh;
+   const wingL={x:bx,w:64,h:52},wingR={x:bx+132,w:64,h:62},atr={x:ax-27,w:54,h:80}; // 三段體量
+   sg.fillStyle='#b09878';sg.fillRect(bx-24,by-14-wingL.h,24,wingL.h);              // 左側牆（暖影回面）
+   for(let r=0;r<wingL.h;r+=13){sg.fillStyle='#9a8266';sg.fillRect(bx-24,by-14-wingL.h+r,24,1);}
+   // 左翼（奶油砂岩，矮）
+   sg.fillStyle='#e8dcc4';sg.fillRect(wingL.x,by-wingL.h,wingL.w,wingL.h);
+   sg.fillStyle='#f2ead8';sg.fillRect(wingL.x,by-wingL.h,wingL.w,3);                 // 頂亮
+   sg.fillStyle='#c9b896';sg.fillRect(wingL.x+wingL.w-4,by-wingL.h,4,wingL.h);      // 右暗邊
+   sg.fillStyle='#c9b896';sg.fillRect(wingL.x,by-wingL.h+16,wingL.w,2);              // 簷口帶
+   for(let cx2=wingL.x+6;cx2<wingL.x+wingL.w-8;cx2+=13){sg.fillStyle='#8a7a5e';sg.fillRect(cx2,by-wingL.h+22,9,10);sg.fillStyle='#ffe0b0';sg.fillRect(cx2+1,by-wingL.h+23,7,8);ng.fillStyle='#ffd98a';ng.fillRect(cx2+1,by-wingL.h+23,7,8);} // 上層窗（暖玻夜光）
+   // 右翼（淺暖石，中高）
+   sg.fillStyle='#dfd0b8';sg.fillRect(wingR.x,by-wingR.h,wingR.w,wingR.h);
+   sg.fillStyle='#ece0cc';sg.fillRect(wingR.x,by-wingR.h,wingR.w,3);
+   sg.fillStyle='#bfae90';sg.fillRect(wingR.x+wingR.w-4,by-wingR.h,4,wingR.h);
+   sg.fillStyle='#bfae90';sg.fillRect(wingR.x,by-wingR.h+18,wingR.w,2);
+   for(let ry=0;ry<2;ry++)for(let cx2=wingR.x+6;cx2<wingR.x+wingR.w-8;cx2+=13){const wy=by-wingR.h+24+ry*16;sg.fillStyle='#8a7a5e';sg.fillRect(cx2,wy,9,10);sg.fillStyle=(ry+cx2)%2?'#ffe0b0':'#e8f0e0';sg.fillRect(cx2+1,wy+1,7,8);ng.fillStyle='#ffd98a';ng.fillRect(cx2+1,wy+1,7,8);}
+   // 中央玻璃中庭（唯一玻璃體，暖木框）
+   sg.fillStyle='#b98d5e';sg.fillRect(atr.x-3,by-atr.h,atr.w+6,atr.h);              // 暖木外框
+   sg.fillStyle='#9cc0d4';sg.fillRect(atr.x,by-atr.h+3,atr.w,atr.h-3);              // 玻璃
+   sg.fillStyle='#c4dce8';sg.fillRect(atr.x,by-atr.h+3,atr.w,3);
+   for(let mx=atr.x+8;mx<atr.x+atr.w-4;mx+=10){sg.fillStyle='#b98d5e';sg.fillRect(mx,by-atr.h+4,2,atr.h-8);} // 木中梃
+   for(let my=by-atr.h+12;my<by-10;my+=14){sg.fillStyle='rgba(230,244,252,.55)';sg.fillRect(atr.x+2,my,atr.w-6,2);}
+   for(let r=0;r<9;r++){sg.fillStyle=shade('#b98d5e',-r*2);sg.fillRect(ax-(11-r),by-atr.h-r,2*(11-r),1);} // 暖木尖頂
+   sg.fillStyle='#e8c84a';sg.fillRect(ax-2,by-atr.h-12,4,4);ng.fillStyle='#ffe9a8';ng.fillRect(ax-2,by-atr.h-12,4,3); // 頂端金飾（夜光）
+   // 底層店面帶（全幅）：紅/青/金遮陽棚＋暖窗店面＝城市商業同款語彙
+   const shopY=by-16;
+   sg.fillStyle='#8a7a5e';sg.fillRect(bx,shopY,bw,16);
+   const AWN=['#c0453a','#3a8a7a','#d8a83a'];
+   for(let i2b=0,sx3=bx+2;sx3<bx+bw-16;sx3+=22,i2b++){
+     sg.fillStyle='#4a3a28';sg.fillRect(sx3,shopY+3,18,12);
+     sg.fillStyle='#ffe0b0';sg.fillRect(sx3+1,shopY+4,16,9);ng.fillStyle='#ffd98a';ng.fillRect(sx3+1,shopY+4,16,9); // 店窗（夜光）
+     const ac=AWN[i2b%3];sg.fillStyle=ac;sg.fillRect(sx3-1,shopY,20,4);sg.fillStyle=shade(ac,35);sg.fillRect(sx3-1,shopY,20,1); // 遮陽棚
+     for(let st2=sx3;st2<sx3+19;st2+=4){sg.fillStyle='rgba(255,255,255,.35)';sg.fillRect(st2,shopY+1,2,3);} // 棚條紋
    }
-   // 女兒牆 + 屋頂
-   sg.fillStyle='#66707c';sg.fillRect(bx-2,topY-7,bw+4,8);sg.fillStyle='#7a8894';sg.fillRect(bx-2,topY-7,bw+4,2);
-   sg.fillStyle='#59626d';sg.fillRect(bx-26,topY-14-7,26,8);         // 左牆女兒牆
-   // 屋頂天窗拱頂 ×3 + HVAC ×2（畫在女兒牆內緣）
-   for(let i=0;i<3;i++){const dcx=bx+40+i*58,dcy=topY-8;for(let r=0;r<7;r++){const w2=Math.round(Math.sqrt(Math.max(0,49-r*r)));sg.fillStyle=shade('#bcd0e0',-r*3);sg.fillRect(dcx-w2,dcy-r,w2*2,1);}sg.fillStyle='#d8e8f4';sg.fillRect(dcx-4,dcy-6,3,1);}
-   for(let i=0;i<2;i++){const hx=bx+16+i*140,hy=topY-6;sg.fillStyle='#8a909a';sg.fillRect(hx,hy-5,12,6);sg.fillStyle='#6a7078';sg.fillRect(hx+11,hy-5,1,6);sg.fillStyle='#5a606a';sg.fillRect(hx+2,hy-4,3,3);}
-   // 中央玻璃中庭（較高，凸出）
-   const acx=ax,aw=54;
-   sg.fillStyle='#7fa8c0';sg.fillRect(acx-aw/2,topY-22,aw,bh+22);    // 中庭玻璃
-   sg.fillStyle='#9cc4da';sg.fillRect(acx-aw/2,topY-22,aw,3);
-   sg.fillStyle='#5a7e94';sg.fillRect(acx+aw/2-4,topY-22,4,bh+22);
-   for(let mx=acx-aw/2+4;mx<acx+aw/2-2;mx+=9)sg.fillStyle='#5f8298',sg.fillRect(mx,topY-20,1,bh+18); // 豎向中梃
-   for(let my=topY-16;my<by-6;my+=12)sg.fillStyle='rgba(200,225,240,.5)',sg.fillRect(acx-aw/2+2,my,aw-6,2); // 橫向反光帶
-   // 中庭尖頂
-   for(let r=0;r<10;r++){sg.fillStyle=shade('#8fb2c8',-r*2);sg.fillRect(acx-(10-r),topY-22-r,2*(10-r),1);}
-   // MALL 招牌帶（洋紅，位於前牆頂）
-   sg.fillStyle='#d0489a';sg.fillRect(bx+18,topY+5,bw-36,11);sg.fillStyle='#e86ab8';sg.fillRect(bx+18,topY+5,bw-36,2);
-   sg.fillStyle='#fff';for(let i=0;i<4;i++){const lx=acx-26+i*15;sg.fillRect(lx,topY+8,3,5);sg.fillRect(lx,topY+8,i<3?1:3,5);} // 白字塊示意 MALL
-   // 入口雨棚 + 玻璃門
-   sg.fillStyle='#c03a80';sg.fillRect(acx-30,by-14,60,5);sg.fillStyle='#e05aa0';sg.fillRect(acx-30,by-14,60,2); // 雨棚
-   sg.fillStyle='#33475a';sg.fillRect(acx-24,by-9,48,9);                    // 門廊玻璃
-   for(let dxx=acx-24;dxx<acx+24;dxx+=8)sg.fillStyle='#5a7488',sg.fillRect(dxx,by-9,1,9);
-   sg.fillStyle='#26323e';sg.fillRect(acx-4,by-9,8,9);                      // 中央旋轉門
-   // 植栽（門兩側）
-   for(const tx of[acx-40,acx+34]){sg.fillStyle='#6a4a30';sg.fillRect(tx,by-8,6,6);sg.fillStyle='#4f8a44';sg.fillRect(tx-2,by-16,10,9);sg.fillStyle='#63a552';sg.fillRect(tx-1,by-15,7,4);}
-   // 夜光：窗格暖白 + 中庭冷藍 + 招牌洋紅 + 入口暖光
-   for(let ry=0;ry<4;ry++)for(let cx2=bx+8;cx2<bx+bw-12;cx2+=15){const wy=topY+8+ry*18;ng.fillStyle=((ry*3+((cx2-bx)/15|0))%3===0)?'#bfe4ff':'#ffe6a8';ng.fillRect(cx2,wy,11,12);}
-   ng.fillStyle='rgba(150,205,235,.6)';ng.fillRect(acx-aw/2+2,topY-18,aw-6,bh+14);            // 中庭整片夜光
-   ng.fillStyle='#ff8fd0';ng.fillRect(bx+18,topY+5,bw-36,11);                                  // 招牌整條發光
-   ng.fillStyle='rgba(255,220,150,.65)';ng.fillRect(acx-30,by-13,60,13);                       // 入口暖光暈
-   for(let i=0;i<3;i++){const dcx=bx+40+i*58;ng.fillStyle='rgba(200,230,250,.5)';ng.fillRect(dcx-5,topY-13,10,6);} // 天窗夜光
+   // 分翼女兒牆＋屋頂件（高低錯落的屋頂線）
+   sg.fillStyle='#c9b896';sg.fillRect(wingL.x-2,by-wingL.h-6,wingL.w+4,7);sg.fillStyle='#dccdb0';sg.fillRect(wingL.x-2,by-wingL.h-6,wingL.w+4,2);
+   sg.fillStyle='#bfae90';sg.fillRect(wingR.x-2,by-wingR.h-6,wingR.w+4,7);sg.fillStyle='#d4c4a6';sg.fillRect(wingR.x-2,by-wingR.h-6,wingR.w+4,2);
+   sg.fillStyle='#b09878';sg.fillRect(bx-24,by-14-wingL.h-6,24,7);                   // 左牆女兒牆
+   for(const[hx0,hy0]of[[wingL.x+10,by-wingL.h-8],[wingR.x+40,by-wingR.h-8]]){sg.fillStyle='#8a909a';sg.fillRect(hx0,hy0-4,11,5);sg.fillStyle='#6a7078';sg.fillRect(hx0+10,hy0-4,1,5);sg.fillStyle='#5a606a';sg.fillRect(hx0+2,hy0-3,3,3);} // HVAC×2
+   for(const dcx of[wingL.x+40,wingR.x+16]){for(let r=0;r<6;r++){const w2=Math.round(Math.sqrt(Math.max(0,36-r*r)));sg.fillStyle=shade('#d8c8ac',-r*3);sg.fillRect(dcx-w2,by-((dcx<ax)?wingL.h:wingR.h)-8-r,w2*2,1);}} // 翼頂小穹窗
+   // MALL 招牌（暖紅，置中庭框頂）
+   sg.fillStyle='#c0453a';sg.fillRect(ax-34,by-atr.h+6,68,11);sg.fillStyle='#d8695a';sg.fillRect(ax-34,by-atr.h+6,68,2);
+   sg.fillStyle='#fff8e8';for(let i2c=0;i2c<4;i2c++){const lx=ax-24+i2c*13;sg.fillRect(lx,by-atr.h+9,3,5);}
+   // 入口雨棚 + 玻璃門 + 植栽
+   sg.fillStyle='#c0453a';sg.fillRect(ax-30,by-14,60,5);sg.fillStyle='#d8695a';sg.fillRect(ax-30,by-14,60,2);
+   sg.fillStyle='#3a4a44';sg.fillRect(ax-24,by-9,48,9);
+   for(let dxx=ax-24;dxx<ax+24;dxx+=8){sg.fillStyle='#5a7468';sg.fillRect(dxx,by-9,1,9);}
+   sg.fillStyle='#26322c';sg.fillRect(ax-4,by-9,8,9);
+   for(const tx of[ax-40,ax+34]){sg.fillStyle='#6a4a30';sg.fillRect(tx,by-8,6,6);sg.fillStyle='#4f8a44';sg.fillRect(tx-2,by-16,10,9);sg.fillStyle='#63a552';sg.fillRect(tx-1,by-15,7,4);}
+   // 夜光補充：招牌暖紅光＋中庭柔光＋入口暖暈（店窗/上層窗已隨繪逐一入 ng）
+   ng.fillStyle='#ff8a72';ng.fillRect(ax-34,by-atr.h+6,68,11);
+   ng.fillStyle='rgba(190,225,245,.45)';ng.fillRect(atr.x+2,by-atr.h+8,atr.w-6,atr.h-24);
+   ng.fillStyle='rgba(255,220,150,.65)';ng.fillRect(ax-30,by-13,60,13);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};}
   /* ===== FIX-B 亂數流對齊：以下 T29/T30/T35/T36 新增內容一律置於全部既有 sprite 之後，
