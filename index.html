@@ -2383,29 +2383,69 @@ function buildSprites(){
    ng.fillStyle='rgba(255,220,150,.5)';ng.fillRect(fhx-9,fhy-2,18,8);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['57_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
-  { // T257 核電廠 58_1_0（3×3：雙冷卻塔+安全殼圓頂+汽機廠房+警示條）；Math.random 不觸全域 R() 流
+  { // T286 核電廠 58_1_0 重繪（玩家「不及格」重考；TheoTown 級雙面調光影）：雙曲面冷卻塔×2（左亮右暗四階
+    // 色帶+頂緣口沿+紅白航空警示帶+層次蒸汽）＋肋線安全殼圓頂（高光弧+殼座雙面+輻射標）＋鋸齒天窗汽機廳
+    // （夜光玻璃+窗帶+雙導管）＋變電場（三變壓器瓷瓶+格構電塔+垂弧電線）＋金屬圍籬+警示閘門。
+    // spriteTexRand 僅保留原 speck(70) 一次呼叫＝紋理流零位移，其餘全決定性。
    const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[s,sg]=cv(208,220);const ax=104,ay=218;
    dia(g,ax,ay-96,96,'#a8a49a');speck(g,ax,ay-96,96,['#9c988e','#b4b0a6'],70,spriteTexRand);
    diaEdge(g,6,'#918d83',ax,ay-96,96);diaEdge(g,9,'#bab6ac',ax,ay-96,96);
-   for(const tx of[-46,46]){ // 雙冷卻塔（雙曲面：上下寬中間窄）
-     const tcy=ay-58;
-     for(let r=0;r<44;r++){const t2=r/44,w2=Math.round(17-6*Math.sin(t2*3.14159));
-       sg.fillStyle=shade('#dcdcd4',-(r<6?10:0)-Math.round(t2*6));sg.fillRect(ax+tx-w2,tcy-r,w2*2,1);}
-     sg.fillStyle='#b8b8b0';for(let r=0;r<44;r+=1){const t2=r/44,w2=Math.round(17-6*Math.sin(t2*3.14159));sg.fillRect(ax+tx+w2-3,tcy-r,3,1);} // 右暗緣
-     sg.fillStyle='#ff4a3a';sg.fillRect(ax+tx-2,tcy-46,4,2); // 塔頂航警紅
-     for(let p=0;p<3;p++){sg.fillStyle='rgba(245,248,250,'+(0.7-p*0.2)+')';const pw2=8+p*5;sg.fillRect(ax+tx-pw2/2,tcy-52-p*7,pw2,5);} // 蒸汽羽流
-     ng.fillStyle='#ff6a5a';ng.fillRect(ax+tx-2,tcy-46,4,2); // 夜間航警燈
+   g.fillStyle='rgba(0,0,0,.07)';for(let j=-2;j<=2;j++){for(let t=0;t<56;t++)g.fillRect(ax-56+t+j*22,ay-40-Math.round(t/2)+j*11,1,1);} // 混凝土伸縮縫
+   const tower=(cx,by,h,wTop)=>{ // 雙曲面冷卻塔：左亮/中/右暗/深右緣四階＋口沿＋紅白警示帶
+     for(let r=0;r<h;r++){const t2=r/h,w2=Math.round(wTop+5-7*Math.sin(t2*2.7+.25));
+       const y2=by-r;
+       sg.fillStyle='#eef0ea';sg.fillRect(cx-w2,y2,Math.max(1,Math.round(w2*.5)),1);
+       sg.fillStyle='#d9dbd3';sg.fillRect(cx-w2+Math.round(w2*.5),y2,w2,1);
+       sg.fillStyle='#b2b4ac';sg.fillRect(cx+Math.round(w2*.5),y2,Math.round(w2*.4),1);
+       sg.fillStyle='#8f918a';sg.fillRect(cx+w2-2,y2,2,1);
+     }
+     const wt=Math.round(wTop+5-7*Math.sin(2.7+.25));
+     sg.fillStyle='#7f817a';sg.fillRect(cx-wt,by-h,wt*2,2);sg.fillStyle='#5a5c56';sg.fillRect(cx-wt+2,by-h+1,wt*2-4,1); // 口沿+塔口暗
+     for(let b2=0;b2<2;b2++){const rr=h-6-b2*3,w3=Math.round(wTop+5-7*Math.sin((rr/h)*2.7+.25)); // 紅白航空帶
+       sg.fillStyle=b2?'#eef0ea':'#c23c28';sg.fillRect(cx-w3,by-rr,w3*2,2);}
+     sg.fillStyle='#8f918a';sg.fillRect(cx-Math.round(wTop*1.15),by,Math.round(wTop*2.3),2); // 基座裙
+     for(let p2=0;p2<3;p2++){sg.fillStyle='rgba(246,249,251,'+(0.62-p2*0.18)+')';const pw2=9+p2*6;
+       sg.fillRect(cx-Math.round(pw2/2)+p2*4,by-h-5-p2*7,pw2,5);sg.fillRect(cx-Math.round(pw2/2)+p2*4+2,by-h-7-p2*7,pw2-4,2);} // 層次蒸汽（隨風偏右）
+     ng.fillStyle='#ff5a4a';ng.fillRect(cx-wt+1,by-h+1,2,2);ng.fillRect(cx+wt-3,by-h+1,2,2); // 夜間口沿雙航警
+   };
+   tower(ax-54,ay-50,52,13);tower(ax-16,ay-62,46,11); // 前大後小＝景深
+   { // 安全殼圓頂（右）：radial 漸層+左上高光弧+豎肋+殼座雙面+鋼門+輻射標
+     const dcx=ax+38,dcy=ay-40,R2=20;
+     for(let r=0;r<R2;r++){const w2=Math.round(Math.sqrt(Math.max(0,R2*R2-r*r*1.05)));
+       sg.fillStyle=shade('#e6e2d6',-Math.round(r*1.6));sg.fillRect(dcx-w2,dcy-12-(R2-r),w2*2,1);}
+     sg.fillStyle='#f8f6ee';sg.fillRect(dcx-10,dcy-12-R2+3,7,1);sg.fillRect(dcx-12,dcy-12-R2+5,5,1); // 高光弧
+     sg.fillStyle='#a8a498';for(let rx2=-14;rx2<=14;rx2+=7)sg.fillRect(dcx+rx2,dcy-12-8,1,8); // 豎肋（下 2/3）
+     sg.fillStyle='#c6c2b6';sg.fillRect(dcx-19,dcy-12,29,12);sg.fillStyle='#a09c90';sg.fillRect(dcx+10,dcy-12,9,12); // 殼座雙面
+     for(let sx2=-18;sx2<10;sx2+=8){sg.fillStyle='#ffd420';sg.fillRect(dcx+sx2,dcy-4,4,2);sg.fillStyle='#20242c';sg.fillRect(dcx+sx2+4,dcy-4,4,2);} // 警示條
+     sg.fillStyle='#5a5e66';sg.fillRect(dcx-4,dcy-9,6,7);sg.fillStyle='#7a7e86';sg.fillRect(dcx-4,dcy-9,6,1); // 鋼門
+     sg.fillStyle='#ffd420';sg.fillRect(dcx+4,dcy-10,3,3);sg.fillStyle='#20242c';sg.fillRect(dcx+5,dcy-9,1,1); // 輻射標
+     ng.fillStyle='rgba(120,220,160,.30)';ng.fillRect(dcx-12,dcy-12-R2+6,24,10); // 夜間圓頂綠暈
    }
-   { // 安全殼圓頂（中前）
-     const dcx=ax,dcy=ay-40;
-     for(let r=0;r<18;r++){const w2=Math.round(Math.sqrt(Math.max(0,324-r*r*1.1)));sg.fillStyle=shade('#d2cec2',-r);sg.fillRect(dcx-w2,dcy-14-r,w2*2,1);}
-     sg.fillStyle='#b6b2a6';sg.fillRect(dcx-18,dcy-14,36,14); // 殼座
-     sg.fillStyle='#ffd420';for(let sx2=-16;sx2<16;sx2+=8){sg.fillRect(dcx+sx2,dcy-3,4,2);}sg.fillStyle='#20242c';for(let sx2=-12;sx2<16;sx2+=8)sg.fillRect(dcx+sx2,dcy-3,4,2); // 警示條
+   { // 汽機廳（前左）：鋸齒天窗×4+窗帶+雙導管（圓頂→廳）
+     const hx=ax-74,hy=ay-26,hw2=62,hh2=16;
+     sg.fillStyle='#98a2b0';sg.fillRect(hx,hy-hh2,hw2,hh2);sg.fillStyle='#79828e';sg.fillRect(hx+hw2-7,hy-hh2,7,hh2); // 牆雙面
+     sg.fillStyle='#a6b0be';sg.fillRect(hx,hy-hh2,hw2,2);
+     for(let t2=0;t2<4;t2++){const sx3=hx+3+t2*15; // 鋸齒天窗
+       sg.fillStyle='#6a7480';sg.fillRect(sx3,hy-hh2-6,12,6);
+       sg.fillStyle='#bfd6e8';sg.fillRect(sx3,hy-hh2-6,4,6);ng.fillStyle='#cfe6ff';ng.fillRect(sx3,hy-hh2-6,4,6);}
+     for(let wx2=hx+4;wx2<hx+hw2-9;wx2+=9){sg.fillStyle='#b8c8d8';sg.fillRect(wx2,hy-9,5,5);ng.fillStyle='#ffe9a8';ng.fillRect(wx2,hy-9,5,5);} // 窗帶（夜光）
+     sg.fillStyle='#3a3e46';sg.fillRect(hx,hy-1,hw2,1); // 基座暗帶
+     sg.fillStyle='#9aa4ae';sg.fillRect(hx+hw2,hy-12,ax+19-(hx+hw2),2);sg.fillRect(hx+hw2,hy-8,ax+19-(hx+hw2),2); // 雙導管
+     sg.fillStyle='#6a747e';for(let bx2=hx+hw2+4;bx2<ax+16;bx2+=8){sg.fillRect(bx2,hy-12,1,6);} // 導管吊架
    }
-   sg.fillStyle='#8a94a2';sg.fillRect(ax+8,ay-30,58,18);sg.fillStyle='#9ca6b4';sg.fillRect(ax+8,ay-30,58,3);sg.fillStyle='#6a7482';sg.fillRect(ax+58,ay-30,8,18); // 汽機廠房
-   for(let wx2=ax+13;wx2<ax+58;wx2+=9){sg.fillStyle='#bec8d6';sg.fillRect(wx2,ay-25,5,6);ng.fillStyle='#ffe9a8';ng.fillRect(wx2,ay-25,5,6);} // 廠房窗（夜光）
-   sg.fillStyle='#5a6470';sg.fillRect(ax-70,ay-26,26,12);sg.fillStyle='#ffd420';sg.fillRect(ax-70,ay-18,26,2); // 變電設施
-   ng.fillStyle='rgba(120,220,160,.35)';ng.fillRect(ax-18,ay-56,36,10); // 夜間反應堆微光（綠）
+   { // 變電場（前右）：三變壓器（散熱鰭+雙瓷瓶）+格構電塔+垂弧電線+圍籬
+     const yx=ax+52,yy=ay-14;
+     g.fillStyle='#b0aca0';g.fillRect(yx-10,yy-8,44,12); // 場地墊
+     for(let t2=0;t2<3;t2++){const tx2=yx-6+t2*14;
+       sg.fillStyle='#6a7078';sg.fillRect(tx2,yy-8,9,7);sg.fillStyle='rgba(255,255,255,.14)';for(let f2=1;f2<8;f2+=2)sg.fillRect(tx2+f2,yy-8,1,7);
+       sg.fillStyle='#e8eaee';sg.fillRect(tx2+1,yy-11,2,3);sg.fillRect(tx2+5,yy-11,2,3);} // 瓷瓶
+     sg.fillStyle='#4a4e56';sg.fillRect(yx+34,yy-24,1,18);sg.fillRect(yx+40,yy-24,1,18);sg.fillRect(yx+33,yy-24,9,1);sg.fillRect(yx+34,yy-16,7,1); // 格構電塔
+     sg.fillRect(yx+34,yy-23,7,1);
+     sg.fillStyle='#3a3e44';for(let t3=0;t3<14;t3++){sg.fillRect(yx+41+t3*2,yy-23+Math.round(Math.pow(t3/13,2)*8),1,1);} // 垂弧電線出場
+     for(let fp2=0;fp2<7;fp2++){sg.fillStyle='#7a7e86';sg.fillRect(yx-12+fp2*8,yy+3,1,4);}sg.fillStyle='#9a9ea6';sg.fillRect(yx-12,yy+3,56,1); // 金屬圍籬
+     sg.fillStyle='#ffd420';sg.fillRect(ax-4,ay-8,4,3);sg.fillStyle='#20242c';sg.fillRect(ax,ay-8,4,3); // 前門警示閘
+     ng.fillStyle='#ffe9a8';ng.fillRect(yx+8,yy-13,2,2); // 場燈
+   }
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['58_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   { // T257 水力發電廠 59_1_0（2×2：弧形壩體+溢洪道白水+機房）；零 rand
@@ -5623,31 +5663,46 @@ function buildSprites(){
       // 木圍籬：沿上緣兩側田界（左頂點→頂點→右頂點），柱+橫欄
       for(let i=0;i<8;i++){R2(-64+i*8,-32-i*4,1,4,'#7a5c38');R2(-64+i*8,-31-i*4,8,1,'#93714a');}
       for(let i=0;i<8;i++){R2(8+i*8,-60+i*4,1,4,'#7a5c38');R2(8+i*8,-59+i*4,8,1,'#93714a');}
-      // 農舍（頂點左）：白牆+紅瓦斜頂+門窗+煙囪
-      R2(-42,-64,21,6,'#a84a32');R2(-42,-64,21,1,'#c05a3e');            // 屋頂+亮脊
-      if(winter)R2(-42,-65,21,2,'#f2f6fa');                              // 冬季雪帽
-      R2(-40,-58,17,11,'#f2eee4');R2(-25,-58,2,11,'#d8d2c2');            // 牆+右陰影
-      R2(-34,-52,3,5,'#6a4326');R2(-29,-55,3,3,'#ffd98a');               // 門+暖窗
-      R2(-38,-69,2,5,'#8a8e96');                                          // 煙囪
-      // 紅穀倉（頂點右）：X 大門+白脊+暗紅頂
-      R2(14,-66,26,7,'#7a2f22');R2(14,-66,26,1,'#e8e4da');               // 頂+白脊
-      if(winter)R2(14,-67,26,2,'#f2f6fa');
-      R2(16,-60,22,14,'#b5442e');R2(36,-60,2,14,'#8f3323');              // 牆+右陰影
-      R2(23,-54,8,8,'#eee8da');                                           // 白門框
-      for(let i=0;i<4;i++){R2(24+i*1.5,-53+i*1.5,1,1,'#b5442e');R2(29-i*1.5,-53+i*1.5,1,1,'#b5442e');} // X 斜撐
-      // 筒倉（穀倉右後）：銀筒+箍帶+圓頂
-      R2(42,-78,9,24,'#c6ccd4');R2(49,-78,2,24,'#8f97a2');               // 筒身+右陰影
-      for(let i=0;i<4;i++)R2(42,-74+i*6,9,1,'rgba(0,0,0,.12)');           // 箍帶
-      R2(43,-80,7,2,'#dde2e8');R2(44,-82,5,2,'#e8edf2');                  // 圓頂
-      if(winter)R2(43,-83,7,2,'#f2f6fa');
-      // 乾草捆 ×3（下左田緣）
+      // T287 農舍重繪（雙坡瓦頂/雙面牆/框窗/磚囪＋描邊）
+      for(let r=0;r<5;r++){R2(-43+r,-61-r,11-r,1,'#c05a3e');R2(-32,-61-r,10-r,1,'#8a3a28');} // 雙坡：左亮右暗
+      R2(-43,-61,22,1,'#3a3026');R2(-33,-66,3,1,'#f2f6fa');               // 簷口描邊+脊高光
+      if(winter){for(let r=0;r<3;r++)R2(-42+r,-63-r,20-r*2,1,'#f2f6fa');} // 冬季坡頂積雪
+      R2(-40,-58,13,12,'#f2eee4');R2(-27,-58,5,12,'#d8d2c2');             // 前牆亮/側牆暗
+      R2(-27,-58,1,12,'#b8b2a2');R2(-40,-47,18,1,'#3a3026');              // 牆角線+基座描邊
+      R2(-34,-53,4,6,'#6a4326');R2(-35,-53,1,6,'#8a6a4a');R2(-34,-47,4,1,'#c9c2b2'); // 門+框+門階
+      R2(-39,-55,4,4,'#f8f6ee');R2(-38,-54,2,2,'#ffd98a');R2(-39,-51,4,1,'#b8b2a2'); // 框窗+暖玻+窗台
+      R2(-25,-55,3,3,'#f8f6ee');R2(-24,-54,1,1,'#ffd98a');
+      R2(-38,-70,3,6,'#9a5a42');R2(-38,-71,3,1,'#6d6f76');R2(-37,-73,1,1,'#b8bcc2');R2(-36,-75,1,1,'#c8ccd2'); // 磚囪+囪帽+裊煙
+      // T287 紅穀倉重繪（複折式倉頂/乾草閣樓門/白框紅 X 大門＋描邊）
+      for(let r=0;r<3;r++){R2(17+r,-66-r,11-r,1,'#a04030');R2(28,-66-r,11-r,1,'#742a1e');} // 上緩坡
+      for(let r=0;r<3;r++){R2(14+r,-63+r,13-r,1,'#8a3a28');R2(28,-63+r,14-r,1,'#5f2318');} // 下陡坡（複折）
+      R2(26,-69,4,1,'#e8e4da');R2(14,-60,28,1,'#3a3026');                  // 白脊+簷描邊
+      if(winter){R2(17,-67,22,2,'#f2f6fa');}
+      R2(16,-59,17,13,'#b5442e');R2(33,-59,7,13,'#8f3323');                // 前牆/側牆
+      R2(16,-46,26,1,'#3a3026');R2(16,-59,1,13,'#e8e4da');R2(41,-59,1,13,'#e8e4da'); // 基座描邊+白角柱
+      R2(25,-58,5,4,'#4a2c20');R2(26,-57,3,2,'#2f1c14');                    // 乾草閣樓門
+      R2(22,-53,10,8,'#eee8da');R2(23,-52,8,6,'#8f3323');                   // 白框大門+內板
+      for(let i=0;i<7;i++){R2(23+i,-52+Math.round(i*0.85),1,1,'#eee8da');R2(30-i,-52+Math.round(i*0.85),1,1,'#eee8da');} // 白 X 斜撐
+      // T287 筒倉重繪（四階縱向光影/箍帶/爬梯/鏡面點圓頂）
+      R2(42,-80,2,26,'#e8ecf0');R2(44,-80,4,26,'#c6ccd4');R2(48,-80,2,26,'#a9b0ba');R2(50,-80,2,26,'#8f97a2'); // 四階縱影
+      for(let i=0;i<5;i++)R2(42,-77+i*5,10,1,'rgba(0,0,0,.16)');            // 箍帶
+      R2(43,-82,8,2,'#dde2e8');R2(44,-84,6,2,'#e8edf2');R2(45,-85,2,1,'#ffffff'); // 圓頂+鏡面點
+      R2(52,-78,1,24,'#7a8088');for(let i=0;i<8;i++)R2(52,-76+i*3,2,1,'#7a8088'); // 爬梯
+      R2(41,-54,12,1,'#3a3026');                                            // 基座描邊
+      if(winter)R2(43,-86,8,2,'#f2f6fa');
+      // T287 乾草捆重繪（端面螺旋+綑帶）
       for(const[hx,hy]of[[-36,-22],[-28,-17],[-32,-27]]){
-        R2(hx,hy,6,5,'#d8a838');R2(hx+4,hy,2,5,'#b8862a');R2(hx+2,hy,1,5,'#c69430');
-        if(winter)R2(hx,hy-1,6,1,'#f2f6fa');
+        R2(hx,hy,7,5,'#d8a838');R2(hx+5,hy,2,5,'#b8862a');
+        R2(hx+1,hy+1,1,3,'#8f6a20');R2(hx+3,hy+1,1,3,'#8f6a20');            // 綑帶
+        R2(hx+5,hy+1,1,1,'#8f6a20');R2(hx+6,hy+2,1,1,'#c69430');            // 端面螺旋
+        if(winter)R2(hx,hy-1,7,1,'#f2f6fa');
       }
-      // 拖拉機（下右田緣）：紅車身+駕駛艙+大小輪+排氣管
-      R2(26,-22,9,5,'#c23c28');R2(31,-26,4,4,'#d8543a');R2(32,-25,2,2,'#bfe0f0');
-      R2(25,-19,4,4,'#26282c');R2(34,-17,3,3,'#26282c');R2(27,-26,1,4,'#4a4e54');
+      // T287 拖拉機重繪（引擎蓋高光/格柵/艙玻/輪轂/排煙）
+      R2(25,-23,11,5,'#c23c28');R2(25,-23,11,1,'#e05a44');R2(25,-20,2,1,'#8f8f8f');R2(25,-19,2,1,'#6a6a6a'); // 車身+蓋高光+格柵
+      R2(31,-28,5,5,'#8f2f20');R2(32,-27,3,3,'#bfe0f0');R2(31,-28,5,1,'#3a3026'); // 駕駛艙+玻+艙頂
+      R2(24,-19,5,5,'#26282c');R2(26,-17,1,1,'#6a7078');                    // 大輪+轂
+      R2(34,-17,3,3,'#26282c');R2(35,-16,1,1,'#6a7078');                    // 小輪+轂
+      R2(27,-28,1,5,'#4a4e54');R2(27,-29,1,1,'#8a8e94');                    // 排氣管+煙
     };
     /* T282 農莊多樣化六小件：水井/雞舍/柴垛/木車/稻草人/蜂箱——鍵字串 hash 每農場選 3 件不同組合
        ＋穀倉風向雞，讓 16 種農場各有個性（星露谷式農莊生活感）。零亂數。 */
@@ -5742,6 +5797,23 @@ function buildSprites(){
       const h0=kh(key);
       runs.sort((a,b)=>(b[1]-b[0])-(a[1]-a[0]));
       const[r0,r1]=runs[0],rw=r1-r0;
+      const isInd=key.charAt(0)==='3'&&key.charAt(1)==='_'; // T288：工業鍵 '3_lv_v'
+      if(isInd){ // T288 工業專屬屋頂組（玩家「工業建築更多美術細節」）：紅白環帶煙囪+風扇箱+天窗玻璃帶+側壁落管
+        const ry0=roof[Math.min(r0+3,s.w-1)];
+        { const cx2=r0+3+((h0>>>2)%Math.max(1,rw-14)); const cy2=roof[Math.min(cx2,s.w-1)]; // 環帶煙囪
+          g.fillStyle='#8f959d';g.fillRect(cx2,cy2-10,4,10);
+          g.fillStyle='#c23c28';g.fillRect(cx2,cy2-10,4,2);g.fillRect(cx2,cy2-6,4,2);
+          g.fillStyle='#eef0ea';g.fillRect(cx2,cy2-8,4,2);g.fillRect(cx2,cy2-4,4,2);
+          g.fillStyle='#6a7078';g.fillRect(cx2+3,cy2-10,1,10); }
+        if(rw>=18){ const fx2=r0+Math.max(8,((h0>>>7)%Math.max(1,rw-10))); const fy2=roof[Math.min(fx2,s.w-1)]; // 風扇箱
+          g.fillStyle='#b0b6be';g.fillRect(fx2,fy2-4,6,4);g.fillStyle='#7a8088';g.fillRect(fx2+5,fy2-4,1,4);
+          g.fillStyle='#4a4e56';g.fillRect(fx2+2,fy2-3,2,2);g.fillStyle='#8f959d';g.fillRect(fx2+2,fy2-3,1,1); }
+        if(rw>=24){ const sx3=r0+4+((h0>>>11)%Math.max(1,rw-16)); const sy3=roof[Math.min(sx3,s.w-1)]; // 天窗玻璃帶
+          g.fillStyle='#5a6470';g.fillRect(sx3,sy3-2,10,2);g.fillStyle='#9cc8e0';g.fillRect(sx3+1,sy3-2,3,1);g.fillRect(sx3+6,sy3-2,3,1); }
+        { const lastX=r1-2, ly=roof[Math.min(lastX,s.w-1)]; // 側壁落管（沿右緣屋頂線落下 10px）
+          g.fillStyle='#6a7078';g.fillRect(lastX,ly,1,10);g.fillRect(lastX-1,ly+9,2,1); }
+        return;
+      }
       const n=rw>=22?2:1;
       for(let i=0;i<n;i++){
         const kind=props[kinds[(h0>>(i*4))%4===3&&rw<16?0:(h0>>(i*4))%4]]; // 窄段不擺水塔
