@@ -5515,11 +5515,15 @@ function buildSprites(){
       lav:(g,x,y,s)=>{if(s===3)return wither(g,x,y);px1(g,x,y-1,'#4f7a3a');px1(g,x,y-2,'#4f7a3a');const pc=s===2?'#8a6aa8':'#9a6ad0';px1(g,x,y-3,pc);px1(g,x,y-4,pc);px1(g,x-1,y-3,shade(pc,-14));px1(g,x+1,y-3,shade(pc,-14));}
     };
     const CCLASS=['sprout','grain','leaf','corn','vine','orchard','tomato','straw','grape','sun','rice','cabbage','carrot','melon','cotton','lav'];
+    // T279b 整齊排列（玩家「更細更整齊」）：作物沿犁溝方向密植成「行」、行距清晰＝規則格線陣列（TheoTown 式整齊農田）。
+    // 基向量 c=沿犁溝(3,2 螢幕步進≈3.6px 密植)、r=跨犁溝行(5,-2≈5.4px 行距)＝完美對齊的等距格網，兩軸皆成直線。
     const plantGrid=(g,ax,ay,hw,hh,cls,s)=>{
-      const drw=P[cls]||P.sprout,cy=ay-16,span=Math.round((hw-6)/5);
-      for(let a=-5;a<=5;a++)for(let b=-5;b<=5;b++){
-        const dx=(a-b)*span, dy=(a+b)*Math.round(span/2);
-        if(Math.abs(dx)/(hw-3)+Math.abs(dy)/(hh-2)>.9)continue;
+      const drw=P[cls]||P.sprout,cy=ay-16,sc=hw/30; // sc：大農場等比放大行距
+      const cx3=Math.max(3,Math.round(3*sc)),cy3=Math.max(2,Math.round(2*sc)),rx3=Math.max(4,Math.round(5*sc)),ry3=Math.max(2,Math.round(2*sc));
+      const cN=Math.ceil(hw/cx3)+2,rN=Math.ceil(hh/ry3)+2;
+      for(let r=-rN;r<=rN;r++)for(let c=-cN;c<=cN;c++){
+        const dx=c*cx3+r*rx3, dy=c*cy3-r*ry3;
+        if(Math.abs(dx)/(hw-2)+Math.abs(dy)/(hh-1)>.96)continue;
         drw(g,ax+dx,cy+dy,s);
       }
     };
