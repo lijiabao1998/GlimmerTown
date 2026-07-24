@@ -5517,6 +5517,75 @@ function buildSprites(){
        if(sSea)farmstead(sSea.img.getContext('2d'),sSea.ax,sSea.ay,1.55,si===3);}}
   }
   /* ===== T276 農莊套件覆蓋層 END ===== */
+  /* ===== T277 道路 TheoTown 級紋理加蓋（玩家截圖對標：路緣石/斑馬線/人孔蓋）：
+     對已生成的 SPR.roadClass[0..3][mask 0..15] 就地加蓋——①非連接邊「亮緣石+內陰影」立體路緣
+     ②交叉口(連接數≥3)四向入口斑馬線 ③直線段人孔蓋。純幾何決定性零亂數。橋面沿用 T203 護欄不動。 ===== */
+  {
+    const CURB='#9aa0a8',CURB_D='#3a3e46',ZEBRA='rgba(222,227,233,.88)',MH='#33373e',MH_H='#565b64';
+    const pop4=m=>((m&1)?1:0)+((m&2)?1:0)+((m&4)?1:0)+((m&8)?1:0);
+    for(let rcI=0;rcI<4;rcI++){
+      const arr=SPR.roadClass[rcI];if(!arr)continue;
+      for(let m=0;m<16;m++){
+        const g=arr[m].getContext('2d');
+        diaEdge(g,(~m)&15,CURB,32,0,32);        // 亮緣石（最外圈覆蓋原 edge＝立體路緣）
+        diaEdge(g,(~m)&15,CURB_D,32,1,30);      // 內陰影線
+        if(rcI>=1&&pop4(m)>=3){                  // 斑馬線：交叉口各連接方向入口 4 紋
+          g.fillStyle=ZEBRA;
+          const dirs=[[1,40,11,2,-1,2,1],[2,40,19,2,1,2,-1],[4,18,19,-2,1,2,1],[8,18,11,-2,-1,2,-1]];
+          for(const[bit,bx2,by2,ax2,ay2,sx2,sy2]of dirs){
+            if(!(m&bit))continue;
+            for(let i=0;i<4;i++)for(let j2=0;j2<3;j2++)
+              g.fillRect(bx2+ax2*i*2+sx2*j2,by2+ay2*i*2+sy2*j2,2,1);
+          }
+        }
+        if(rcI>=1&&(m===5||m===10)){             // 人孔蓋：直線段中央偏移小橢圓
+          const mx2=m===5?37:26,my2=m===5?19:14;
+          g.fillStyle=MH;g.fillRect(mx2,my2,3,2);
+          g.fillStyle=MH_H;g.fillRect(mx2,my2,3,1);
+        }
+      }
+    }
+  }
+  /* ===== T277 道路紋理加蓋 END ===== */
+  /* ===== T278 RCI 屋頂雜項加蓋（TheoTown 級屋頂密度）：snowCap 同款「逐欄掃最高不透明像素」找屋頂線，
+     取平坦段(高差≤1 連續≥10px)擺道具——冷氣機/通風管/天線/小水塔。牆面是 HERO_PIX 手繪禁區（鐵律11），
+     屋頂為安全加蓋面。sprite 鍵字串 hash 決定性選型零亂數；每圖最多 2 道具。 ===== */
+  {
+    const kh=s=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;};
+    const props={
+      ac:(g,x,y)=>{g.fillStyle='#b8bec6';g.fillRect(x,y-3,5,3);g.fillStyle='#8f959d';g.fillRect(x+4,y-3,1,3);g.fillRect(x,y-1,5,1);g.fillStyle='#6a7078';g.fillRect(x+1,y-2,1,1);g.fillRect(x+3,y-2,1,1);},
+      vent:(g,x,y)=>{g.fillStyle='#8f959d';g.fillRect(x,y-4,2,4);g.fillStyle='#b8bec6';g.fillRect(x-1,y-5,4,2);g.fillStyle='#6a7078';g.fillRect(x+2,y-5,1,2);},
+      ant:(g,x,y)=>{g.fillStyle='#4a4e56';g.fillRect(x,y-6,1,6);g.fillRect(x-2,y-5,5,1);g.fillStyle='#c23c28';g.fillRect(x,y-7,1,1);},
+      tank:(g,x,y)=>{g.fillStyle='#7a5c3a';g.fillRect(x,y-5,5,4);g.fillStyle='#93714a';g.fillRect(x,y-5,5,1);g.fillStyle='#5c4126';g.fillRect(x+4,y-5,1,4);g.fillRect(x,y-1,1,1);g.fillRect(x+4,y-1,1,1);}
+    };
+    const kinds=['ac','vent','ant','tank'];
+    const stampRoof=(key)=>{
+      const s=SPR.bld[key];if(!s||!s.img)return;
+      const g=s.img.getContext('2d');
+      let id;try{id=g.getImageData(0,0,s.w,s.h);}catch(e){return;}
+      const d=id.data,roof=new Int16Array(s.w).fill(-1);
+      for(let x=0;x<s.w;x++)for(let y=0;y<s.h;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}
+      const runs=[];let st=-1;
+      for(let x=1;x<s.w;x++){
+        const flat=roof[x]>=0&&roof[x-1]>=0&&Math.abs(roof[x]-roof[x-1])<=1;
+        if(flat&&st<0)st=x-1;
+        if((!flat||x===s.w-1)&&st>=0){if(x-st>=10)runs.push([st,x]);st=-1;}
+      }
+      if(!runs.length)return;
+      const h0=kh(key);
+      runs.sort((a,b)=>(b[1]-b[0])-(a[1]-a[0]));
+      const[r0,r1]=runs[0],rw=r1-r0;
+      const n=rw>=22?2:1;
+      for(let i=0;i<n;i++){
+        const kind=props[kinds[(h0>>(i*4))%4===3&&rw<16?0:(h0>>(i*4))%4]]; // 窄段不擺水塔
+        const px=r0+3+Math.floor(((h0>>(i*5+3))%97)/97*(rw-8));
+        kind(g,px,roof[Math.min(px,s.w-1)]+1);
+      }
+    };
+    for(const k of[1,2,3])for(let lv=1;lv<=3;lv++)for(let v=0;v<12;v++)stampRoof(k+'_'+lv+'_'+v);
+    stampRoof('33_1_0');stampRoof('33_1_1');stampRoof('34_1_0');stampRoof('34_1_1'); // 摩天塔樓
+  }
+  /* ===== T278 屋頂雜項加蓋 END ===== */
   /* ===== T261 夜燈通用遮罩（buildSprites 絕對尾端，玩家截圖抓 bug）：部分建築的 night 畫布把亮窗畫進
      本體「透明天空區」（windows() 網格超出立面／變體高度差），nightSprites 'screen' 疊加＋畫家順序＝亮窗
      疊在「後面那棟」的屋頂上（截圖屋頂碎黃窗的真兇）。通殺修法：每張 night 畫布 ∩ 本體不透明區
