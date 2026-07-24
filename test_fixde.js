@@ -2851,6 +2851,29 @@ async function runPwaTests() {
 }
 
 runPwaTests().then(() => {
+  // ================= (13) T276 農莊套件覆蓋層 =================
+  console.log('\n-- (13) T276 農莊套件覆蓋層 --');
+  {
+    const t276Start = html.indexOf('T276 農莊套件覆蓋層（');
+    const t276End = html.indexOf('/* ===== T276 農莊套件覆蓋層 END ===== */');
+    const t274EndAt = html.indexOf('/* ===== T274 農場作物變體擴充 END ===== */');
+    const t261At = html.indexOf('T261 夜燈通用遮罩');
+    assert(t276Start > 0 && t276End > t276Start, 'T276 區塊應存在且有 END 標記');
+    assert(t274EndAt < t276Start && t276End < t261At,
+      'T276 應位於 T274 END 之後、T261 遮罩之前（不動既有生成行＝快照回退零影響）');
+    const block276 = html.slice(t276Start, t276End);
+    const code276 = block276.replace(/^[\s\S]*?\*\//, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, ''); // 剝註解（起點標記在區塊頭註解內＝先斬無頭段到首個 */，再剝完整塊註解與行註解；註解可提及亂數詞彙，程式碼不可用）
+    assert(!/\bR\(\)|\bri\(|Math\.random|spriteTexRand|\brand\(/.test(code276),
+      'T276 區塊應零亂數（純 fillRect 決定性）');
+    assert(block276.includes('for(let v=0;v<16;v++)') && block276.includes("'22_1_'+v") &&
+      block276.includes("'53_1_0'"),
+      'T276 應覆蓋 16 作物全變體＋大農場');
+    assert(/for\(const si of\[1,2,3\]\)/.test(block276) && block276.includes('si===3'),
+      'T276 應覆蓋三季節圖且冬季走積雪分支');
+    assert(block276.includes('#b5442e') && block276.includes('#c6ccd4') && block276.includes('#d8a838'),
+      'T276 應含穀倉紅/筒倉銀/乾草金三件套色票');
+  }
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {

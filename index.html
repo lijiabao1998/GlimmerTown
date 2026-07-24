@@ -5468,6 +5468,55 @@ function buildSprites(){
         SPR.farmSea[sea][fk]={img:remap274(b0.img,b0.w,b0.h,MAPS274[si]),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}
   }
   /* ===== T274 農場作物變體擴充 END ===== */
+  /* ===== T276 農莊套件覆蓋層（玩家「農場素材太簡陋」，TheoTown 級細節對標、素材原創）：
+     在既有 16 作物 base＋48 張季節圖＋大農場 4 圖上「加蓋」農舍/紅穀倉/筒倉/木圍籬/乾草捆/拖拉機——
+     置於 T274 之後、T261 遮罩之前＝不動任何既有生成行（T273/T274 快照回退、亂數行紀律零影響）；
+     純 fillRect 決定性零亂數（不消耗 R()/ri()/rand()/spriteTexRand）。冬季版屋頂/筒倉頂/乾草加積雪。 ===== */
+  {
+    const farmstead=(g,ax,ay,sc,winter)=>{
+      const S=v=>Math.round(v*sc);
+      const R2=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(ax+S(x),ay+S(y),Math.max(1,S(w)),Math.max(1,S(h)));};
+      // 木圍籬：沿上緣兩側田界（左頂點→頂點→右頂點），柱+橫欄
+      for(let i=0;i<8;i++){R2(-64+i*8,-32-i*4,1,4,'#7a5c38');R2(-64+i*8,-31-i*4,8,1,'#93714a');}
+      for(let i=0;i<8;i++){R2(8+i*8,-60+i*4,1,4,'#7a5c38');R2(8+i*8,-59+i*4,8,1,'#93714a');}
+      // 農舍（頂點左）：白牆+紅瓦斜頂+門窗+煙囪
+      R2(-42,-64,21,6,'#a84a32');R2(-42,-64,21,1,'#c05a3e');            // 屋頂+亮脊
+      if(winter)R2(-42,-65,21,2,'#f2f6fa');                              // 冬季雪帽
+      R2(-40,-58,17,11,'#f2eee4');R2(-25,-58,2,11,'#d8d2c2');            // 牆+右陰影
+      R2(-34,-52,3,5,'#6a4326');R2(-29,-55,3,3,'#ffd98a');               // 門+暖窗
+      R2(-38,-69,2,5,'#8a8e96');                                          // 煙囪
+      // 紅穀倉（頂點右）：X 大門+白脊+暗紅頂
+      R2(14,-66,26,7,'#7a2f22');R2(14,-66,26,1,'#e8e4da');               // 頂+白脊
+      if(winter)R2(14,-67,26,2,'#f2f6fa');
+      R2(16,-60,22,14,'#b5442e');R2(36,-60,2,14,'#8f3323');              // 牆+右陰影
+      R2(23,-54,8,8,'#eee8da');                                           // 白門框
+      for(let i=0;i<4;i++){R2(24+i*1.5,-53+i*1.5,1,1,'#b5442e');R2(29-i*1.5,-53+i*1.5,1,1,'#b5442e');} // X 斜撐
+      // 筒倉（穀倉右後）：銀筒+箍帶+圓頂
+      R2(42,-78,9,24,'#c6ccd4');R2(49,-78,2,24,'#8f97a2');               // 筒身+右陰影
+      for(let i=0;i<4;i++)R2(42,-74+i*6,9,1,'rgba(0,0,0,.12)');           // 箍帶
+      R2(43,-80,7,2,'#dde2e8');R2(44,-82,5,2,'#e8edf2');                  // 圓頂
+      if(winter)R2(43,-83,7,2,'#f2f6fa');
+      // 乾草捆 ×3（下左田緣）
+      for(const[hx,hy]of[[-36,-22],[-28,-17],[-32,-27]]){
+        R2(hx,hy,6,5,'#d8a838');R2(hx+4,hy,2,5,'#b8862a');R2(hx+2,hy,1,5,'#c69430');
+        if(winter)R2(hx,hy-1,6,1,'#f2f6fa');
+      }
+      // 拖拉機（下右田緣）：紅車身+駕駛艙+大小輪+排氣管
+      R2(26,-22,9,5,'#c23c28');R2(31,-26,4,4,'#d8543a');R2(32,-25,2,2,'#bfe0f0');
+      R2(25,-19,4,4,'#26282c');R2(34,-17,3,3,'#26282c');R2(27,-26,1,4,'#4a4e54');
+    };
+    for(let v=0;v<16;v++){
+      const key='22_1_'+v,b=SPR.bld[key];
+      if(b)farmstead(b.img.getContext('2d'),b.ax,b.ay,1,false);
+      for(const si of[1,2,3]){const sSea=SPR.farmSea&&SPR.farmSea[si]&&SPR.farmSea[si][key];
+        if(sSea)farmstead(sSea.img.getContext('2d'),sSea.ax,sSea.ay,1,si===3);}
+    }
+    {const key='53_1_0',b=SPR.bld[key]; // 大農場 5×5：同套件 1.55×（大院落）
+     if(b)farmstead(b.img.getContext('2d'),b.ax,b.ay,1.55,false);
+     for(const si of[1,2,3]){const sSea=SPR.farmSea&&SPR.farmSea[si]&&SPR.farmSea[si][key];
+       if(sSea)farmstead(sSea.img.getContext('2d'),sSea.ax,sSea.ay,1.55,si===3);}}
+  }
+  /* ===== T276 農莊套件覆蓋層 END ===== */
   /* ===== T261 夜燈通用遮罩（buildSprites 絕對尾端，玩家截圖抓 bug）：部分建築的 night 畫布把亮窗畫進
      本體「透明天空區」（windows() 網格超出立面／變體高度差），nightSprites 'screen' 疊加＋畫家順序＝亮窗
      疊在「後面那棟」的屋頂上（截圖屋頂碎黃窗的真兇）。通殺修法：每張 night 畫布 ∩ 本體不透明區
