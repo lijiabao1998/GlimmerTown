@@ -237,7 +237,7 @@ window.GV.addMoney(100000);
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
 const SV = [ // [tool, k, sz]；T226/T230/T232：farm/ranch/parking 擴變體移出單變體清單；T228：新增 bigFarm 5×5
   ['airport', 19, 4],
-  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3], ['grandStation', 55, 3], ['sportsComplex', 56, 3], ['foodPlant', 57, 3], ['nuclear', 58, 3], ['hydro', 59, 2], ['fireHQ', 61, 3], ['wasteIncinerator', 62, 2]
+  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3], ['grandStation', 55, 3], ['sportsComplex', 56, 3], ['foodPlant', 57, 3], ['nuclear', 58, 3], ['hydro', 59, 2], ['fireHQ', 61, 3], ['greenhouse', 63, 2], ['wasteIncinerator', 62, 2]
 ];
 const svRoots = [];
 for (const [tool, k, sz] of SV) {
@@ -288,10 +288,10 @@ for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.b
 }
 window.GV.save();
 const d1 = JSON.parse(store[SKEY]);
-const SVK = new Set([19, 25, 31, 32, 53, 54, 55, 56, 57, 58, 59, 61, 62]); // T265：wasteIncinerator；T257：nuclear/hydro/fireHQ 亦屬單變體；T228/T233/T234/T241/T254：bigFarm/bigCemetery/grandStation/sportsComplex/foodPlant；T230/T232：ranch/parking 移出
+const SVK = new Set([19, 25, 31, 32, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63]); // T265：wasteIncinerator；T257：nuclear/hydro/fireHQ 亦屬單變體；T228/T233/T234/T241/T254：bigFarm/bigCemetery/grandStation/sportsComplex/foodPlant；T230/T232：ranch/parking 移出
 let tampered = 0;
 for (const rec of d1.bl) if (SVK.has(rec[1])) { rec[3] = 2; tampered++; }
-assert(tampered === 13, '存檔 bl 應含 13 棟單變體建築（實得 ' + tampered + '）');
+assert(tampered === 14, '存檔 bl 應含 13 棟單變體建築（實得 ' + tampered + '）');
 store[SKEY] = JSON.stringify(d1);
 assert(window.GV.load() === true, '竄改後 load 應成功');
 for (const r of svRoots) {
@@ -767,6 +767,28 @@ console.log('\n-- (11) T262 可調地圖規模 --');
   window.GV.newWorldSeeded(1);
   assert(window.GV.N() === 72, '回 72 世界 GV.N() 應為 72');
   assert(window.GV.setMapSize(999) === 72, '非法尺寸 999 應被拒（維持 72）');
+}
+
+// ================= T280 溫室：全年恆溫食物/金幣＋NaN 守衛 =================
+console.log('\n-- T280 溫室恆溫 --');
+{
+  window.GV.newWorldSeeded(280);
+  window.GV.weather(0);
+  if (window.GV.setDiff) window.GV.setDiff(1);
+  window.GV.addMoney(50000);
+  const sp = findSpot('greenhouse');
+  assert(sp, 'greenhouse 應找到可建位置');
+  assert(place('greenhouse', sp.x, sp.y), 'greenhouse 應成功建造');
+  window.GV.setSeason(0); window.GV.step(1);
+  const gf1 = window.GV.food();
+  window.GV.setSeason(3); window.GV.step(1);
+  const gf3 = window.GV.food();
+  assert(gf1 === 6 && gf3 === 6, '溫室 lv1 食物應恆 6 且冬季不減（春' + gf1 + '/冬' + gf3 + '）');
+  let b = tile(sp.x, sp.y).bld, guard = 0;
+  while ((b.lv || 1) < 5 && guard++ < 12) { window.GV.upgrade(sp.x, sp.y); b = tile(sp.x, sp.y).bld; window.GV.addMoney(50000); }
+  window.GV.step(1);
+  assert(window.GV.food() === 30, '溫室 lv5 冬季食物應 30（lv×6 恆溫），實際 ' + window.GV.food());
+  assert(isFinite(window.GV.stats().money), '溫室 lv5 money 不得 NaN（鐵律14 守衛）');
 }
 
 // ================= (12) T263 AI 市長災後維護：滅火＋廢墟自動拆除 =================
