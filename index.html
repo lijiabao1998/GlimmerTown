@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='6.2'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='6.3'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -542,6 +542,16 @@ const season=()=>{const doy=(day-1)%360;return doy>=300?3:doy>=200?2:doy>=100?1:
 // T136 系統效果乘數（基準季＝春，恆為 1，退化為既有無季節效果基準，確保同種子回歸於春季區間不變）：
 // 農場產量春播夏長秋收冬歇；電力夏季冷氣／冬季暖氣抬高需求壓力（有效供電容量打折）；觀光夏秋雙高峰
 const FARM_SEASON_MULT=[1,1.15,1.4,0.4];
+/* T299 城市事件系統：每約 37 天 day 決定性觸發一個臨時活動（不消耗模擬 R() 流），持續數天，加成稅收/食物/幸福，toast 通知＋統計面板顯示。 */
+const CITY_EVENTS=[
+  {id:'harvest',name:'🌾 豐收節',days:6,tax:1,food:1.5,happy:.04,desc:'農產大豐收，食物產量 +50%'},
+  {id:'tourism',name:'🎡 旅遊旺季',days:8,tax:1.25,food:1,happy:.02,desc:'遊客湧入，全城稅收 +25%'},
+  {id:'tech',name:'🔬 科技突破',days:6,tax:1.2,food:1,happy:.03,desc:'產業升級，全城稅收 +20%'},
+  {id:'sports',name:'🏆 體育盛會',days:5,tax:1.1,food:1,happy:.06,desc:'全民歡慶，居民幸福 +6%'},
+  {id:'boom',name:'💰 經濟繁榮',days:7,tax:1.3,food:1,happy:.03,desc:'百業興旺，全城稅收 +30%'},
+  {id:'festival',name:'🎉 城市慶典',days:5,tax:1.15,food:1.1,happy:.05,desc:'節慶氣氛，幸福＋稅收齊漲'},
+];
+let cityEvent=null; // T299：當前城市事件 {i:事件索引, daysLeft} 或 null；入存檔（cev 可選欄位）
 /* T283 農產市場價（Farming Simulator 對標）：基準價 × 動態雙波動 × 季節供需（秋收過剩賤/冬缺糧貴）
    × 搶購潮（每 53 天連 4 天 ×1.35，對映 FS 的 Great Demand）。純 day 函數＝零新存檔狀態、
    同存檔重放決定性；作用於全部食物系金幣（farmGold/ranchGold/ghGold/procGold），賣穀時機成為玩法。 */
@@ -6298,7 +6308,7 @@ function newWorld(seedOverride){
     if(sc>bestScore){bestScore=sc;best=[x,y];}
   }
   money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
-  goods=0;gWhCap284=0;svcBudget={police:1,fire:1,health:1,edu:1}; // T284/T294：成對重置（鐵律7）——服務預算回預設 1.0×
+  goods=0;gWhCap284=0;svcBudget={police:1,fire:1,health:1,edu:1};cityEvent=null; // T284/T294/T299：成對重置（鐵律7）——服務預算回預設 1.0×、城市事件清空
   aiMode=false;aiR=6;try{const bA=$('#bAI');if(bA){bA.style.background='';bA.style.borderColor='';}}catch(e){} // T260：新圖 AI 市長成對重置（鐵律7）
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;trafClock=0;hintShown={};hintsOff=false;
   fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，開新圖歸零（鐵律7）
@@ -7757,6 +7767,8 @@ function aiStep(){
 }
 function tick(){
   day++;
+  if(cityEvent){cityEvent.daysLeft--;if(cityEvent.daysLeft<=0){toast('🎏 活動結束：'+CITY_EVENTS[cityEvent.i].name);cityEvent=null;}} // T299：事件倒數
+  else if(pop>50&&day>15&&day%37===0){const ei=Math.floor(streetHash(day,7,888)*CITY_EVENTS.length)%CITY_EVENTS.length;cityEvent={i:ei,daysLeft:CITY_EVENTS[ei].days};const ev=CITY_EVENTS[ei];toast('✨ '+ev.name+'！'+ev.desc,'gold');sFanfare();} // T299：day 決定性觸發（不消耗 R()）
   const sea=season(); // T136：本日四季索引（0春1夏2秋3冬），供農場/電力/觀光季節係數共用，純由 day 導出不消耗 R()
   if(drought&&sea!==1)drought=false; // T137：乾旱季末（不再是夏）自動解除，純布林比較不消耗 R()
   // 季節轉換 toast（T18）：入冬／開春各一次，flag 防重複；季節由 day 導出
@@ -7935,6 +7947,7 @@ function tick(){
       const jam=congestNear(x,y,2);                       // T129：半徑2內過載道路格數（load 全 0 空車城恆為 0）
       const happyParts=[ // T111：各加減項先收進陣列再 reduce 求和——與原公式逐項同序、每項獨立算式原樣搬移，位元一致
         {name:'基礎',val:.62},
+        {name:'城市活動',val:cityEvent?CITY_EVENTS[cityEvent.i].happy:0}, // T299：城市事件臨時幸福加成（無事件恆為 0，精確恆等）
         {name:'道路等級',val:roadHappy},
         {name:'公園',val:parks?.16:0},
         {name:'多座公園',val:parks>1?.06:0},
@@ -7998,7 +8011,7 @@ function tick(){
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
   if(happyN)cityHappy=happySum/happyN;
   // T81 食物 / T80 觀光
-  foodPoints=Math.round(farmFoodU*FARM_SEASON_MULT[sea])+ranchFoodU+ghFoodU; // T280：溫室恆溫食物不乘季節 // T252：牧場食物改牧養等級加權(ranchFoodU，lv1 時＝ra*2 向後相容，不隨季節)；T251：農場食物灌溉等級加權(farmFoodU，lv1＝fa*3+bigFa*20)；T228：大農場日產 20 // T136：農場產量季節曲線（春播基準1／夏長1.15／秋收峰1.4／冬歇0.4），牧場（ra）不隨季節變動
+  foodPoints=Math.round((farmFoodU*FARM_SEASON_MULT[sea]+ranchFoodU+ghFoodU)*(cityEvent?CITY_EVENTS[cityEvent.i].food:1)); // T299：事件食物加成（豐收節 ×1.5；無事件 ×1 恆等） // T280：溫室恆溫食物不乘季節 // T252：牧場食物改牧養等級加權(ranchFoodU，lv1 時＝ra*2 向後相容，不隨季節)；T251：農場食物灌溉等級加權(farmFoodU，lv1＝fa*3+bigFa*20)；T228：大農場日產 20 // T136：農場產量季節曲線（春播基準1／夏長1.15／秋收峰1.4／冬歇0.4），牧場（ra）不隨季節變動
   tourists=Math.round((la*25+ai*40+st*5+mu*15+th*12+ci*8+aq*35+zo*45+ap*55+bgN*20)*TOUR_SEASON_MULT[sea]); // T136：觀光夏秋雙高峰（春基準1／夏1.3／秋1.2／冬清淡0.85）；T138：博物館/劇院/電影院中度觀光係數＋水族館/動物園/遊樂園強觀光吸引（圖書總館 gl 純教育，不貢獻觀光）；T139：植物園持續觀光貢獻（市政廳/法院/研究院/氣象站/綜合醫院不貢獻觀光）
   if(cvN>0&&day%CONVENTION_PULSE_DAYS===0){ // T139：會展中心——非連續型「觀光脈衝」機制，區別於上方持續型觀光貢獻，每 20 天一次性大額遊客湧入（純由 day 導出，不消耗 R()，cvN=0 時整段不執行、零回歸影響）
     const burst=Math.round(500*cvN*TOUR_SEASON_MULT[sea]);
@@ -8486,6 +8499,7 @@ function tick(){
   const procGold=Math.round(Math.min(foodPoints,procCapU)*1.5*foodPrice); // T254：食品加工廠將食物盈餘加工為金幣＝min(當日食物產出,總加工容量)×1.5 轉換率（農場→加工鏈：食物是瓶頸，蓋越多農場才餵得飽加工廠＝Skylines 式特化鏈）
   income+=farmGold+ranchGold+procGold+ghGold;
   const transitRev=Math.round(transitRidership*.03);income+=transitRev; // T293：公共運輸票務收入（日客運量×票價 0.03）
+  if(cityEvent){income=Math.round(income*CITY_EVENTS[cityEvent.i].tax);} // T299：城市事件稅收加成（旅遊/繁榮 +25~30%；無事件 ×1）
   fin={taxR,taxC,taxI,farmGold,ranchGold,procGold,transitRev,upR:roadUpkeep,upP:parks*.5,upE:plants*4+wteN*10,upPol:policeStations*4+policeBoxes*1.5,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep}; // T266：只補 k62 已存在於 upkeep 的 $10 報表鏡像，不重複扣款
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
@@ -12349,6 +12363,7 @@ function showStats(){
      <div class="row">🎓 平均教育水平 ${rEdu?Math.round(eduSum/rEdu):0}</div>
      <div class="row" style="font-size:11px;opacity:.75">${SEASON_ICON[season()]} ${SEASON_NAME[season()]}季　🌾 農產×${FARM_SEASON_MULT[season()].toFixed(2)}　⚡ 供電×${POWER_SEASON_MULT[season()].toFixed(2)}　🧳 觀光×${TOUR_SEASON_MULT[season()].toFixed(2)}</div>
      <div class="row" style="font-size:11px;color:${((day%53)<4)?'#ffd45f':'#96a4c9'}">📈 農產市價 ×${foodPriceOf(day,season()).toFixed(2)}${((day%53)<4)?'　🔥 搶購潮！高價賣出時機':''}　📦 工業品 ${goods}/${goodsCap283()}</div>
+     ${cityEvent?`<div class="row" style="background:#3a2f1a;border-radius:4px;color:#ffd45f">✨ ${CITY_EVENTS[cityEvent.i].name}（剩 ${cityEvent.daysLeft} 天）　${CITY_EVENTS[cityEvent.i].desc}</div>`:''}
      ${happyHtml}
      ${advHtml}
      ${rankHtml}
@@ -12693,7 +12708,7 @@ function save(){
       sc:scenario?{id:scenario.id,startDay:scenario.startDay,hold:scenario.hold||0}:null, // T132：進行中場景戰役（可選欄位，仿 loan/riot 慣例存最小進度結構；scDone 通關集合另落 localStorage 獨立鍵，不入本存檔）
       rk:rankIdx, // T133：城市等級（可選欄位，rankIdx 0-based；load 缺欄位時由當前城市狀態即時算出，不因缺欄位降級）
       sup:supplies, // T140：資源供應品全域存量（可選欄位，舊檔缺欄位容錯為 0）
-      aim:aiMode?1:0,aiR,gds:goods,sb:{...svcBudget}, // T294：服務預算（可選欄位，舊檔缺＝全 1.0） // T284：工業品庫存（可選欄位） // T260：AI 市長開關＋擴張半徑（可選欄位，舊檔缺＝關/6）
+      aim:aiMode?1:0,aiR,gds:goods,sb:{...svcBudget},cev:cityEvent?{i:cityEvent.i,d:cityEvent.daysLeft}:0, // T299：城市事件（可選欄位） // T294：服務預算（可選欄位，舊檔缺＝全 1.0） // T284：工業品庫存（可選欄位） // T260：AI 市長開關＋擴張半徑（可選欄位，舊檔缺＝關/6）
       rdep:rdepArr.length?rdepArr:null}; // T140：資源耗損（稀疏可選欄位，僅存已開採格；缺欄位＝未耗損。RESOURCE 本身不存，由 seed 經 genResource() 重建）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
@@ -12787,6 +12802,7 @@ function load(slot){
     }
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0; // T284：工業品還原（舊檔缺＝0）
+    cityEvent=(d.cev&&typeof d.cev.i==='number'&&d.cev.i>=0&&d.cev.i<CITY_EVENTS.length)?{i:d.cev.i,daysLeft:(+d.cev.d)||1}:null; // T299：城市事件還原（舊檔缺＝無）
     if(d.sb){for(const k in svcBudget)if(typeof d.sb[k]==='number')svcBudget[k]=clamp(d.sb[k],.5,1.5);}else svcBudget={police:1,fire:1,health:1,edu:1};
     rebuildCov(); // T294：服務預算還原後重算覆蓋（前面 load 的 rebuildCov 用預設，此處按存檔預算修正半徑；舊檔預算全 1.0＝結果與前次一致）
     try{const bA=$('#bAI');if(bA){bA.style.background=aiMode?'#7a5a18':'';bA.style.borderColor=aiMode?'#ffd45f':'';}}catch(e){} // T260：AI 市長狀態靜默還原（含按鈕高亮，不 toast；舊檔缺欄位＝關/6）
@@ -13022,6 +13038,8 @@ window.GV={
   setSvcBudget:(cat,d)=>setSvcBudget(cat,+d||0), // T294 測試/UI 用：調整服務預算並即刻重算覆蓋
   citizens:()=>citizens.map(c=>({name:c.name,age:c.age,job:c.job,home:[c.hx,c.hy],work:c.work>=0?[c.wx,c.wy]:null,at:c.at,pos:[+c.fx.toFixed(2),+c.fy.toFixed(2)],pathLen:c.path?c.path.length:0})), // T295 測試用：抽樣市民快照（含走動位置/路徑長）
   citizenCount:()=>citizens.length,
+  cityEvent:()=>cityEvent?{id:CITY_EVENTS[cityEvent.i].id,name:CITY_EVENTS[cityEvent.i].name,daysLeft:cityEvent.daysLeft,tax:CITY_EVENTS[cityEvent.i].tax,food:CITY_EVENTS[cityEvent.i].food}:null, // T299 測試用：當前城市事件快照
+  setCityEvent:(id)=>{const i=CITY_EVENTS.findIndex(e=>e.id===id);cityEvent=i>=0?{i,daysLeft:CITY_EVENTS[i].days}:null;return cityEvent?CITY_EVENTS[cityEvent.i].id:null;}, // T299 測試用：直接觸發指定事件
   eduAt:(x,y)=>inMap(x,y)?EDU[idx(x,y)]:null, // T142：教育場除錯鉤子
   resourceAt:(x,y)=>inMap(x,y)?RESOURCE[idx(x,y)]:null, // T140：資源層除錯鉤子（0無/1油/2礦，由種子決定不受耗損影響）
   supplies:()=>supplies, // T140：資源供應品全域存量
