@@ -858,6 +858,14 @@ console.log('\n-- T292 地價系統修復 --');
   assert(maxA > maxB, 'T292 建警局後地價應上升（landDirty 修僵屍：原 LANDBASE 僅 newWorld/load/undo 重建，建服務走增量 stampCov 不碰 LANDBASE），實得 ' + maxB + '→' + maxA);
   assert(maxA >= 136, 'T292 警局覆蓋格地價應≥136（128+服務×8），實得 ' + maxA);
 }
+// ================= T293 公共運輸乘客流 =================
+console.log('\n-- T293 公共運輸乘客流 --');
+{
+  window.GV.newWorldSeeded(1);
+  const tr = window.GV.transit();
+  assert(tr && typeof tr.ridership === 'number' && typeof tr.rev === 'number', 'T293 transit hook 應回傳 {ridership,busPop,railPop,rev}');
+  assert(tr.ridership === 0 && tr.busPop === 0 && tr.railPop === 0, 'T293 新圖無公交/軌道時客運量/票務應為 0（基線），實得 ridership=' + tr.ridership + ' busPop=' + tr.busPop + ' railPop=' + tr.railPop);
+}
 // ================= T280 溫室：全年恆溫食物/金幣＋NaN 守衛 =================
 console.log('\n-- T280 溫室恆溫 --');
 {
