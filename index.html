@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='5.9'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='6.0'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -8572,9 +8572,57 @@ function spawnCitizen(){ // 隨機試探找住宅（家）＋工作（商業/工
   return false;
 }
 function updateCitizens(){ // tick 每日：清理無效市民＋補充至上限（人口越多市民越多，封頂 CAP）
-  for(let i=citizens.length-1;i>=0;i--){const hb=T(citizens[i].home).bld;if(!hb||hb.ref||hb.k!==1)citizens.splice(i,1);}
+  for(let i=citizens.length-1;i>=0;i--){const c=citizens[i];const hb=T(c.home).bld;
+    if(!hb||hb.ref||hb.k!==1){citizens.splice(i,1);continue;} // 家沒了→移除
+    if(c.work>=0){const wb=T(c.work).bld;if(!wb||wb.ref||(wb.k!==2&&wb.k!==3)){c.work=-1;c.at=0;c.path=null;}} // 工作沒了→變無業、回家
+  }
   const cap=Math.min(CITIZEN_CAP,Math.floor(pop/8));
   if(citizens.length<cap)spawnCitizen();
+}
+/* T295b 地圖走動小人：市民白天上班（走向工作）、夜晚回家，沿道路 BFS 路徑步行；只在「通勤途中」畫於路上（在家/工作＝室內不畫）。
+   全 Math.random/純幾何、每幀移動不消耗模擬 R() 流。BFS 用版本標記 czSeen 避免每次 fill（O(1) 重置）。 */
+let czSeen=null,czPrev=null,czSeenV=0;
+function nearRoad(x,y){for(const d of DIRV){const nx=x+d[0],ny=y+d[1];if(inMap(nx,ny)&&T(idx(nx,ny)).road)return[nx,ny];}return null;}
+function citizenPath(hx,hy,wx,wy){ // 沿路 BFS，回傳 [[hx,hy],路格...,[wx,wy]]（首尾為建築本身，中間沿路）或 null
+  const s=nearRoad(hx,hy),e=nearRoad(wx,wy);if(!s||!e)return null;
+  const si=idx(s[0],s[1]),ei=idx(e[0],e[1]);
+  if(si===ei)return[[hx,hy],s,[wx,wy]];
+  if(!czSeen||czSeen.length!==N*N){czSeen=new Int32Array(N*N);czPrev=new Int32Array(N*N);czSeenV=0;}
+  czSeenV++;czSeen[si]=czSeenV;czPrev[si]=-1;
+  let q=[si],found=false;
+  while(q.length&&!found){const nq=[];
+    for(const cur of q){const cx=cur%N,cy=(cur/N)|0;
+      for(const d of DIRV){const nx=cx+d[0],ny=cy+d[1];if(!inMap(nx,ny))continue;const ni=idx(nx,ny);
+        if(czSeen[ni]===czSeenV||!T(ni).road)continue;czSeen[ni]=czSeenV;czPrev[ni]=cur;
+        if(ni===ei){found=true;break;}nq.push(ni);}
+      if(found)break;}
+    q=nq;}
+  if(czSeen[ei]!==czSeenV)return null;
+  const road=[];let cur=ei;while(cur!==-1){road.unshift([cur%N,(cur/N)|0]);cur=czPrev[cur];}
+  return[[hx,hy],...road,[wx,wy]];
+}
+function updateCitizensMove(dt){ // 每幀（advance）：昼夜驅動市民在家↔工作間沿路步行
+  if(!SPR.ped||window.__noVeh)return;
+  const isDay=daylight().b>.52;
+  for(const c of citizens){
+    if(c.work<0){c.at=0;c.fx=c.hx;c.fy=c.hy;continue;} // 無業＝留家不走動
+    if(c.at===2){ // 通勤途中：沿 path 走
+      if(!c.path||c.pi>=c.path.length-1){c.at=c.goalWork?1:0;c.fx=c.goalWork?c.wx:c.hx;c.fy=c.goalWork?c.wy:c.hy;c.path=null;continue;}
+      c.p+=dt*.9; // 步行速度（格/秒）
+      while(c.p>=1&&c.pi<c.path.length-1){c.p-=1;c.pi++;}
+      if(c.pi>=c.path.length-1){c.at=c.goalWork?1:0;c.fx=c.goalWork?c.wx:c.hx;c.fy=c.goalWork?c.wy:c.hy;c.path=null;continue;}
+      const p0=c.path[c.pi],p1=c.path[c.pi+1];
+      c.fx=p0[0]+(p1[0]-p0[0])*c.p;c.fy=p0[1]+(p1[1]-p0[1])*c.p;
+    }else{ // 在家(0)/工作(1)：想去的地≠現在→出發通勤
+      const atWork=c.at===1;
+      if(atWork!==isDay){
+        const path=isDay?citizenPath(c.hx,c.hy,c.wx,c.wy):citizenPath(c.wx,c.wy,c.hx,c.hy);
+        if(path&&path.length>=2){c.path=path;c.pi=0;c.p=0;c.at=2;c.goalWork=isDay;}
+        else c.at=isDay?1:0; // 無路→瞬間到（不走動）
+      }
+      c.fx=atWork?c.wx:c.hx;c.fy=atWork?c.wy:c.hy;
+    }
+  }
 }
 /* T129：道路壅堵運行時場——roadLoad[i] 為衰減式移動平均車流（tick() 每日依 roadPass 累計套公式
    load=load*.85+pass*.15 更新後歸零 roadPass 供下一天統計）；roadPass[i] 為當日累計「經過」該格車輛數，
@@ -9938,6 +9986,8 @@ function draw(dt){
     const wx=(sg.x-sg.y)*32, wy=(sg.x+sg.y)*16+16;
     objs.push({dep:sg.x+sg.y+.02,sig:sg,wx,wy});
   }
+  if(!lodFar&&SPR.ped&&!window.__noVeh)for(const c of citizens){if(c.at!==2)continue; // T295b：只畫通勤途中的市民（走在路上）；在家/工作＝室內不畫
+    const wx=(c.fx-c.fy)*32,wy=(c.fx+c.fy)*16+16;objs.push({dep:c.fx+c.fy+.018,ped:c,wx,wy});}
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
   nightSprites.push(...rdecGlow);
@@ -9960,6 +10010,12 @@ function draw(dt){
         const gy=[3,9,6][ph];
         nightSprites.push({rect:[sx+(o.sig.m?6:8)*z-(sp.ax-5)*sc2*z,sy-(sp.ay-gy)*sc2*z,3*sc2*z,3*sc2*z],col:['#ff5a5a','#6bff86','#ffd23d'][ph]});
       }
+      continue;
+    }
+    if(o.ped){ // T295b：抽樣市民走動小人（步行動畫 2 幀，複用 SPR.ped 成人/孩童/推車形態）
+      const sx=ox+o.wx*z, sy=oy+o.wy*z, c=o.ped;
+      const fr=Math.floor(visT*3+c.hx*.7)%2, ps=SPR.ped[c.ptype][fr];
+      ctx.drawImage(ps.img,sx-ps.ax*z,sy-ps.ay*z,ps.w*z,ps.h*z);
       continue;
     }
     if(o.car){
@@ -12747,6 +12803,7 @@ function advance(dtReal){
   updFxParts(dtA);updConfetti(dtA); // T159：粒子特效（塵土/碎屑/火花餘燼/落葉/尾氣/彩帶），與煙/雨同為每幀動畫更新
   updBuses(dtA);   // 公車巡迴（T26）：與 cars/smoke/rain 同為每幀動畫更新
   updRouteBuses(dtA); // T120：路線公車，與一般公車同幀更新
+  updateCitizensMove(dtA); // T295b：抽樣市民每幀步行（家↔工作，昼夜驅動）
 }
 function frame(ts){
   requestAnimationFrame(frame);
@@ -12909,7 +12966,7 @@ window.GV={
   transit:()=>({ridership:transitRidership,busPop:busRtCovPop,railPop:railCovPop,rev:Math.round(transitRidership*.03)}), // T293 測試用：公共運輸客運量/票務快照
   svcBudget:()=>({...svcBudget}), // T294 測試用：服務預算快照
   setSvcBudget:(cat,d)=>setSvcBudget(cat,+d||0), // T294 測試/UI 用：調整服務預算並即刻重算覆蓋
-  citizens:()=>citizens.map(c=>({name:c.name,age:c.age,job:c.job,home:[c.hx,c.hy],work:c.work>=0?[c.wx,c.wy]:null,at:c.at})), // T295 測試用：抽樣市民快照
+  citizens:()=>citizens.map(c=>({name:c.name,age:c.age,job:c.job,home:[c.hx,c.hy],work:c.work>=0?[c.wx,c.wy]:null,at:c.at,pos:[+c.fx.toFixed(2),+c.fy.toFixed(2)],pathLen:c.path?c.path.length:0})), // T295 測試用：抽樣市民快照（含走動位置/路徑長）
   citizenCount:()=>citizens.length,
   eduAt:(x,y)=>inMap(x,y)?EDU[idx(x,y)]:null, // T142：教育場除錯鉤子
   resourceAt:(x,y)=>inMap(x,y)?RESOURCE[idx(x,y)]:null, // T140：資源層除錯鉤子（0無/1油/2礦，由種子決定不受耗損影響）
