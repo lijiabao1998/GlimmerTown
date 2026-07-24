@@ -481,7 +481,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v16';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v16');
+assert(/const CACHE=CACHE_PREFIX\+'v17';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v17');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
@@ -897,6 +897,18 @@ console.log('\n-- T295 抽樣市民 agent --');
   assert(Array.isArray(cz), 'T295 citizens hook 應回傳陣列');
   window.GV.advanceN(0.04, 8); // T295b：市民步行更新（空城）不崩
   assert(isFinite(window.GV.stats().money), 'T295b advanceN（市民步行更新）後 money 不得 NaN');
+}
+// ================= T304 服務車隊 =================
+console.log('\n-- T304 服務車隊 --');
+{
+  window.GV.newWorldSeeded(1);
+  const sf = window.GV.svcFleet();
+  assert(sf.fire === 3 && sf.police === 2 && sf.amb === 2, 'T304 新圖車隊應為默認 fire3/police2/amb2，實得 ' + JSON.stringify(sf));
+  assert(window.GV.buySvcVehicle('police', false) === 'garage-full', 'T304 無警局購警車應 garage-full（車庫=2+站×2）');
+  assert(window.GV.buySvcVehicle('nope', false) === 'bad-type', 'T304 未知車型應 bad-type');
+  assert(window.GV.policeCars() === 0, 'T304 空城應無出勤警車');
+  window.GV.advanceN(0.05, 8);
+  assert(isFinite(window.GV.stats().money), 'T304 警車幀更新後 money 不得 NaN');
 }
 // ================= T302 地鐵深度系統 =================
 console.log('\n-- T302 地鐵深度系統 --');
@@ -1643,8 +1655,8 @@ async function runPwaTests() {
     'glimmerville-shell-v4',
     'gv-other-app', 'shared-cache']) h268.seed(name);
   await h268.fireLife('install');
-  assert(h268.ops.opened[0] === 'glimmerville-shell-v16',
-    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v16 cache');
+  assert(h268.ops.opened[0] === 'glimmerville-shell-v17',
+    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v17 cache');
   assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js');
   assert(h268.ops.skipWaiting === 1 && h268.ops.order.includes('skipWaiting'),
@@ -1656,7 +1668,7 @@ async function runPwaTests() {
       'gv-v1', 'gv-v2'].sort()),
     'T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
   const keys268 = await h268.cacheStorage.keys();
-  assert(keys268.includes('glimmerville-shell-v16') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
+  assert(keys268.includes('glimmerville-shell-v17') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
     'T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache');
   assert(h268.ops.claim === 1 && h268.ops.order[h268.ops.order.length - 1] === 'claim',
     'T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim');
@@ -1712,7 +1724,7 @@ async function runPwaTests() {
     h268.ops.puts.length === putCountBefore503,
     'T268 HTTP 503 應照實回傳且不得污染 canonical app-shell');
 
-  await h268.cacheStorage.delete('glimmerville-shell-v16');
+  await h268.cacheStorage.delete('glimmerville-shell-v17');
   h268.setFetch(async () => { throw new TypeError('offline'); });
   result268 = await h268.fireFetch({ method: 'GET', url: base268, mode: 'navigate' });
   assert(result268.response.status === 503 && (await result268.response.text()).includes('尚未完成首次快取'),
@@ -1775,11 +1787,11 @@ async function runPwaTests() {
   await h269.fireLife('install');
   await h269.fireLife('activate');
   const keys269 = await h269.cacheStorage.keys();
-  assert(h269.ops.opened[0] === 'glimmerville-shell-v16' &&
+  assert(h269.ops.opened[0] === 'glimmerville-shell-v17' &&
     JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T269/T270 v5 install 應維持完整 app-shell 資產閉包');
   assert(!keys269.includes('glimmerville-shell-v3') && !keys269.includes('glimmerville-shell-v4') &&
-    keys269.includes('glimmerville-shell-v16') &&
+    keys269.includes('glimmerville-shell-v17') &&
     keys269.includes('gv-other-app') && keys269.includes('shared-cache'),
     'T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache');
 
@@ -1793,7 +1805,7 @@ async function runPwaTests() {
   assert(result269.intercepted && result269.response.status === 201 &&
     await result269.response.text() === freshManifest269,
     'T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response');
-  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v16');
+  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v17');
   let cachedManifest269 = await cache269.match(base268 + 'manifest.json');
   assert(cachedManifest269 && await cachedManifest269.text() === freshManifest269 &&
     h269.ops.puts.includes(base268 + 'manifest.json'),
@@ -1859,7 +1871,7 @@ async function runPwaTests() {
   assert(await result269.response.text() === freshManifest269,
     'T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest');
 
-  await h269.cacheStorage.delete('glimmerville-shell-v16');
+  await h269.cacheStorage.delete('glimmerville-shell-v17');
   result269 = await h269.fireFetch({
     method: 'GET', url: base268 + 'manifest.json?empty=269', mode: 'same-origin'
   });
@@ -2133,7 +2145,7 @@ async function runPwaTests() {
 
   const h271Miss = makeSwHarness268(sw268);
   await h271Miss.fireLife('install');
-  await h271Miss.cacheStorage.delete('glimmerville-shell-v16');
+  await h271Miss.cacheStorage.delete('glimmerville-shell-v17');
   h271Miss.setFetch(async () => new Response('fresh-cache-miss-271', { status: 200 }));
   networkBefore271 = h271Miss.ops.networkCalls;
   result271 = await h271Miss.fireFetch({
