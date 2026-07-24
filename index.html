@@ -8962,6 +8962,9 @@ function sigPhase(seed){const tt=(trafClock+seed*0.7)%5.7;return tt<2.6?1:tt<3.1
    地圖上從家走到工作（T295b 走動小人）。全用 Math.random（同 cars，不消耗模擬 R() 流＝不位移生長/升級確定性），
    運行時陣列不入存檔（讀檔/新圖重採樣，同 cars/buses）。名字為通用中文姓名組合（原創程序化，非任何作品素材）。 ===== */
 const citizens=[]; // T295：抽樣市民
+const LIFE_TEXTS={infant:['在媽媽懷裡咯咯笑','蹣跚學步撲向陽光','把積木疊得高高的','追著泡泡滿屋跑','午睡時抱著小熊','咿呀學說第一個字','在沙坑裡玩一整天','看見小狗就想去摸'],student:['揹著書包蹦跳去上學','考了滿分想告訴媽媽','和同學分享便當','在操場上追逐打鬧','放學路上買糖葫蘆','為明天的考試熬夜','夢想長大當科學家','在課本角落偷偷塗鴉'],worker:['在寫字樓敲打鍵盤的日常','趕在末班車前衝出公司','週末只想睡到自然醒','為了房貸再拼一年','靠咖啡續命的下午','和同事吐槽老闆','存錢想去看看大海','下班後的燒烤攤最治癒'],retired:['在公園長椅上曬太陽','清晨去菜市場挑最新鮮的','含飴弄孫的好時光','和老友下棋到黃昏','把陽台種成小花園','慢慢散步看城市變化','泡壺茶讀半天報紙','跳廣場舞認識新朋友']};
+const czStage=a=>a<7?'infant':a<18?'student':a<65?'worker':'retired'; // T310 人生階段
+const czQuote=st=>{const a=LIFE_TEXTS[st]||LIFE_TEXTS.worker;return a[Math.floor(Math.random()*a.length)];};
 const CITIZEN_CAP=48;
 const CZ_SUR=['林','陳','王','李','張','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪','曾','邱','廖','賴','周','徐','葉','蘇','莊','呂','高','潘','朱','簡','鍾'];
 const CZ_GIV=['家豪','淑芬','志明','美玲','建宏','雅婷','俊傑','怡君','宗翰','欣怡','冠廷','詩涵','承恩','思妤','柏翰','宜蓁','冠宇','子晴','彥廷','語彤','宇軒','曉薇','俊宏','佳穎','正雄','秀英','文彬','麗華','孟儒','雨潔'];
@@ -8985,7 +8988,7 @@ function spawnCitizen(){ // 隨機試探找住宅（家）＋工作（商業/工
       name:CZ_SUR[Math.floor(Math.random()*CZ_SUR.length)]+CZ_GIV[Math.floor(Math.random()*CZ_GIV.length)],
       home:idx(hx,hy),hx,hy,work:hasJob?idx(wx,wy):-1,wx,wy,age,job,
       // T295b 走動狀態：at＝目前所在(0家/1工作/途中)，fx/fy＝連續座標，path/pi＝路徑，p＝分段進度，ptype＝小人形態
-      fx:hx,fy:hy,at:0,path:null,pi:0,p:0,ptype:age<14?'child':(Math.random()<.12?'stroller':'adult')
+      fx:hx,fy:hy,at:0,path:null,pi:0,p:0,ptype:age<14?'child':(Math.random()<.12?'stroller':'adult'),stage:czStage(age),quote:czQuote(czStage(age))
     });
     return true;
   }
@@ -8995,6 +8998,17 @@ function updateCitizens(){ // tick 每日：清理無效市民＋補充至上限
   for(let i=citizens.length-1;i>=0;i--){const c=citizens[i];const hb=T(c.home).bld;
     if(!hb||hb.ref||hb.k!==1){citizens.splice(i,1);continue;} // 家沒了→移除
     if(c.work>=0){const wb=T(c.work).bld;if(!wb||wb.ref||(wb.k!==2&&wb.k!==3)){c.work=-1;c.at=0;c.path=null;}} // 工作沒了→變無業、回家
+  }
+  if(day%40===0){ // T310 每40天老化一歲：階段轉換(學生→工作/工作→退休)＋82歲離世＋更新心聲
+    for(let i2=citizens.length-1;i2>=0;i2--){const c=citizens[i2];c.age++;
+      if(c.age>=82){citizens.splice(i2,1);continue;}
+      const ns=czStage(c.age);
+      if(ns!==c.stage){c.stage=ns;c.quote=czQuote(ns);
+        if(ns==='worker'){c.job='待業';for(let t3=0;t3<20;t3++){const jx=Math.floor(Math.random()*N),jy=Math.floor(Math.random()*N),jb=T(idx(jx,jy)).bld;if(jb&&!jb.ref&&(jb.k===2||jb.k===3)&&jb.pw){c.work=idx(jx,jy);c.wx=jx;c.wy=jy;c.job=rnJob(jb.k);break;}}}
+        else if(ns==='retired'){c.work=-1;c.wx=-1;c.wy=-1;c.job='退休';c.at=0;c.path=null;}
+        else if(ns==='student')c.job='學生';
+      }
+    }
   }
   const cap=Math.min(CITIZEN_CAP,Math.floor(pop/8));
   if(citizens.length<cap)spawnCitizen();
@@ -11798,7 +11812,7 @@ function inspect(x,y){
            html+=`<div class="row" style="color:#8fd4ff">👥 居民（${res.length}）　心情 ${mood}</div>`;
            for(const c of res.slice(0,4)){
              const cm=c.work>=0?('🏢 通勤 '+(Math.abs(c.wx-x)+Math.abs(c.wy-y))+' 格'):(c.age<18?'📚 就學':c.age>=65?'🌾 在家':'🏠 待業');
-             html+=`<div class="row" style="font-size:11px;opacity:.9">・${c.name}（${c.age}歲・${c.job}）${cm}</div>`;
+             html+=`<div class="row" style="font-size:11px;opacity:.9">・${c.name}（${c.age}歲・${c.job}）${cm}</div><div class="row" style="font-size:10px;opacity:.6;font-style:italic">　“${c.quote||''}”</div>`;
            }
          }}
       }
@@ -13475,7 +13489,7 @@ window.GV={
   transit:()=>({ridership:transitRidership,busPop:busRtCovPop,railPop:railCovPop,metroPop:metroCovPop,rev:Math.round(transitRidership*.03)}), // T293 測試用：公共運輸客運量/票務快照
   svcBudget:()=>({...svcBudget}), // T294 測試用：服務預算快照
   setSvcBudget:(cat,d)=>setSvcBudget(cat,+d||0), // T294 測試/UI 用：調整服務預算並即刻重算覆蓋
-  citizens:()=>citizens.map(c=>({name:c.name,age:c.age,job:c.job,home:[c.hx,c.hy],work:c.work>=0?[c.wx,c.wy]:null,at:c.at,pos:[+c.fx.toFixed(2),+c.fy.toFixed(2)],pathLen:c.path?c.path.length:0})), // T295 測試用：抽樣市民快照（含走動位置/路徑長）
+  citizens:()=>citizens.map(c=>({name:c.name,age:c.age,job:c.job,stage:c.stage,quote:c.quote,home:[c.hx,c.hy],work:c.work>=0?[c.wx,c.wy]:null,at:c.at,pos:[+c.fx.toFixed(2),+c.fy.toFixed(2)],pathLen:c.path?c.path.length:0})), // T295 測試用：抽樣市民快照（含走動位置/路徑長）
   citizenCount:()=>citizens.length,
   cityEvent:()=>cityEvent?{id:CITY_EVENTS[cityEvent.i].id,name:CITY_EVENTS[cityEvent.i].name,daysLeft:cityEvent.daysLeft,tax:CITY_EVENTS[cityEvent.i].tax,food:CITY_EVENTS[cityEvent.i].food}:null, // T299 測試用：當前城市事件快照
   setCityEvent:(id)=>{const i=CITY_EVENTS.findIndex(e=>e.id===id);cityEvent=i>=0?{i,daysLeft:CITY_EVENTS[i].days}:null;return cityEvent?CITY_EVENTS[cityEvent.i].id:null;}, // T299 測試用：直接觸發指定事件
