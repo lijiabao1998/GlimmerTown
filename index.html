@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='6.5'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='6.6'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -7729,7 +7729,8 @@ function aiStep(){
     outer5f:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(hasRoadNear(x,y,2,false)&&tryP('faithCenter',x,y))break outer5f;}
   }
   // T300：AI 地鐵規劃——城市成熟後自動規劃地鐵網（連接高客流區，pop 越大線越多，上限 8 或 pop/450）
-  if(!poor&&pop>300&&day%25===0&&metroLines.length<Math.min(8,Math.floor(pop/450))&&money>1500&&fin&&fin.net>3){planMetroLine();} // 公園 $60＝窮困期最便宜的幸福藥，窮也蓋；T264：上限＝建築數 25%（血淚：幸福卡低時每天狂種到 120 園＝邊際效應歸零＋維護費白燒）
+  if(!poor&&pop>300&&day%25===0&&metroLines.length<Math.min(8,Math.floor(pop/450))&&money>1500&&fin&&fin.net>3){planMetroLine();}
+  if(!poor&&day%15===0&&money>2500){const full=metroLines.find(L=>L.riders>=L.trains*300*.95);if(full)buyMetroTrain(full.id,false);} // T302：AI 滿載線自動購列車擴容 // 公園 $60＝窮困期最便宜的幸福藥，窮也蓋；T264：上限＝建築數 25%（血淚：幸福卡低時每天狂種到 120 園＝邊際效應歸零＋維護費白燒）
   if(!poor&&day%3===0){ // T264：中庭公園——5×5 街區中心十字距路 3 格（分區長不了），種公園＝街區綠心（半徑4幸福覆蓋整個環帶）
     let cpB=2;
     for(let y=y0;y<=y1&&cpB>0;y++)for(let x=x0;x<=x1&&cpB>0;x++){
@@ -8494,6 +8495,17 @@ function tick(){
   for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
   const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0); // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
   upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+policeBoxes*1.5+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+bigCemN*8+dumps*2+stadiums*8+waterTowers*3+st*6+gstN*15+scN*18+fpN*14+nkN*28+hyN*9+geN*4+fhqN*10+wteN*10+ghN*3+whN284*4+mallN*16+po*5+ai*25+pa*1.5+tr*4+fa*1+bigFa*6+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+faN*8+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+chN*10+crtN*6+cvN*20+inN*10+wsN*4+bgN*14+mhN*16+owN*4+mnN*5+mgN*25+upReg; // T265：焚化發電維護10；T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費；T139：市政廳10/法院6/會展中心20/研究院10/氣象站4/植物園14/綜合醫院16 維護費（綜合醫院比照 T95 教訓，維護費遠高於醫院的5，避免超大半徑碾壓既有醫療建築）；T140：油井4/礦場5/太空研究中心25 維護費
+  let metroRev=0,metroAds=0,metroCost=0; // T302 地鐵財政：分線票務（載客受列車運力封頂）＋車站/車身廣告－人工/維修/列車保養
+  for(const L of metroLines){
+    const cap=L.trains*300;
+    L.riders=Math.min(Math.round((L.covPop||0)*.75),cap);
+    metroRev+=L.riders*L.fare*.01;
+    for(const st of L.stations)metroAds+=st.tier===3?1.5:st.tier===2?.8:.4;
+    if(L.riders>0)metroAds+=L.trains*1.2;
+    metroCost+=L.stations.length*(L.underground?2.2:1.5)+L.path.length*(L.underground?.28:.16)+L.trains*2;
+  }
+  metroRev=Math.round(metroRev);metroAds=Math.round(metroAds);metroCost=Math.round(metroCost);
+  income+=metroRev+metroAds;upkeep+=metroCost;
   upkeep+=(fireStations*3+fs2*6+fhqN*10)*(svcBudget.fire-1)+(policeStations*4+policeBoxes*1.5+crtN*6)*(svcBudget.police-1)+(hospitals*5+clinics*2.5+am*4+mhN*16)*(svcBudget.health-1)+(schools*2.5+libraries*2+un*8+inN*10)*(svcBudget.edu-1); // T294：服務預算維護費調整——各類基礎維護×(budget−1)，預算 1.5×→多花50%養更廣覆蓋、0.5×→省一半但覆蓋縮水；budget=1 時為 0 精確恆等
   const foodPrice=foodPriceOf(day,sea); // T283：本日農產市價（動態波動×季節供需×搶購潮），作用於全部食物系金幣＝賣穀時機玩法（FS 對標）
   const farmGold=Math.round(farmGoldU*FARM_SEASON_MULT[sea]*foodPrice); // T251：農場灌溉金幣收益（隨季節；lv 越高越多＝Skylines 式特化經濟）
@@ -8502,7 +8514,7 @@ function tick(){
   income+=farmGold+ranchGold+procGold+ghGold;
   const transitRev=Math.round(transitRidership*.03);income+=transitRev; // T293：公共運輸票務收入（日客運量×票價 0.03）
   if(cityEvent){income=Math.round(income*CITY_EVENTS[cityEvent.i].tax);} // T299：城市事件稅收加成（旅遊/繁榮 +25~30%；無事件 ×1）
-  fin={taxR,taxC,taxI,farmGold,ranchGold,procGold,transitRev,upR:roadUpkeep,upP:parks*.5,upE:plants*4+wteN*10,upPol:policeStations*4+policeBoxes*1.5,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep}; // T266：只補 k62 已存在於 upkeep 的 $10 報表鏡像，不重複扣款
+  fin={taxR,taxC,taxI,farmGold,ranchGold,procGold,transitRev,metroRev,metroAds,metroCost,upR:roadUpkeep,upP:parks*.5,upE:plants*4+wteN*10,upPol:policeStations*4+policeBoxes*1.5,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep}; // T266：只補 k62 已存在於 upkeep 的 $10 報表鏡像，不重複扣款
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   // T88 挑戰檢查
@@ -8625,12 +8637,14 @@ function metroBlocks(){ // 網格塊客流權重（10×10 格一塊）
 function planMetroLine(){ // 規劃一條連接高客流區的地鐵線
   const blocks=metroBlocks();if(blocks.length<3)return false;
   blocks.sort((a,b)=>b.w-a.w);
-  const distToNet=(x,y)=>{let dm=1e9;for(const L of metroLines)for(const st of L.stations){const d=Math.abs(st[0]-x)+Math.abs(st[1]-y);if(d<dm)dm=d;}return dm;};
+  const distToNet=(x,y)=>{let dm=1e9;for(const L of metroLines)for(const st of L.stations){const d=Math.abs(st.x-x)+Math.abs(st.y-y);if(d<dm)dm=d;}return dm;};
   let start=null;
   if(!metroLines.length)start=blocks[0]; // 首條＝最高客流塊
   else{let best=-1;for(const b of blocks.slice(0,15)){const sc=b.w*Math.min(1.5,distToNet(b.cx,b.cy)/12);if(sc>best){best=sc;start=b;}}} // 後續＝高客流且離現網遠
   if(!start)return false;
-  let end=null,bestE=-1;const minSpan=N*0.28;
+  let mnx=1e9,mny=1e9,mxx=-1,mxy=-1; // T302 修：跨度門檻改依「建成區包圍盒」而非地圖尺寸——216 大圖小城 minSpan=N*.28=60 恆大於城寬＝永遠找不到終點（真實地鐵跨度由建成區定，非地圖定）
+  for(const b of blocks){if(b.cx<mnx)mnx=b.cx;if(b.cx>mxx)mxx=b.cx;if(b.cy<mny)mny=b.cy;if(b.cy>mxy)mxy=b.cy;}
+  let end=null,bestE=-1;const minSpan=Math.max(14,((mxx-mnx)+(mxy-mny))*0.42);
   for(const b of blocks){const d=Math.abs(b.cx-start.cx)+Math.abs(b.cy-start.cy);if(d<minSpan)continue;const sc=b.w*d;if(sc>bestE){bestE=sc;end=b;}} // 終點＝夠遠且高客流
   if(!end)return false;
   const dx=end.cx-start.cx,dy=end.cy-start.cy,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
@@ -8641,14 +8655,43 @@ function planMetroLine(){ // 規劃一條連接高客流區的地鐵線
   const nodes=[[start.cx,start.cy]];let lastP=0;
   for(const c of corridor){if(c.proj-lastP>=8){nodes.push([c.b.cx,c.b.cy]);lastP=c.proj;}} // 沿走廊每≥8投影距串一站
   nodes.push([end.cx,end.cy]);
+  return finishMetroLine(nodes,true);
+}
+/* T302 地鐵幾何共用（planMetroLine 與 load() 重建共用＝存檔只存 nodes）：L形連線＋每6格補站（站點物件化）。 */
+function buildMetroGeometry(nodes){
   const path=[];
   for(let i=0;i<nodes.length-1;i++){const ax=nodes[i][0],ay=nodes[i][1],bx=nodes[i+1][0],by=nodes[i+1][1];let cx=ax,cy=ay;if(i===0)path.push([cx,cy]);
     while(cx!==bx){cx+=Math.sign(bx-cx);path.push([cx,cy]);}
     while(cy!==by){cy+=Math.sign(by-cy);path.push([cx,cy]);}} // L 形連線（先水平後垂直）
-  const stations=nodes.map(n=>[n[0],n[1]]);
-  for(let i=0;i<path.length;i+=6){const px=path[i][0],py=path[i][1];if(!stations.some(st=>Math.abs(st[0]-px)+Math.abs(st[1]-py)<3))stations.push([px,py]);} // 沿線每6格補站
-  metroLines.push({id:metroLines.length+1,color:METRO_COLORS[metroLines.length%METRO_COLORS.length],nodes,path,stations});
+  const stations=nodes.map(n=>({x:n[0],y:n[1],tier:1,exits:1,inMall:false}));
+  for(let i=0;i<path.length;i+=6){const px=path[i][0],py=path[i][1];if(!stations.some(st=>Math.abs(st.x-px)+Math.abs(st.y-py)<3))stations.push({x:px,y:py,tier:1,exits:1,inMall:false});} // 沿線每6格補站
+  return{path,stations};
+}
+/* T302 成線（規劃＝付建設成本；load 重建＝免費）：高架/地下由沿線平均地價定（市中心高地價走廊→地下＝造價/維修貴，郊區→高架省），
+   票價隨線長（2+len/30 長線貴），默認列車 2 列（有限運力 300 人/列，買列車擴容）。 */
+function finishMetroLine(nodes,charge){
+  const{path,stations}=buildMetroGeometry(nodes);
+  let landSum=0;for(const n of nodes)landSum+=LAND[idx(n[0],n[1])]||128;
+  const underground=landSum/nodes.length>138;
+  const cost=stations.length*80+path.length*(underground?12:6);
+  if(charge){if(money<cost)return false;money-=cost;}
+  const L={id:metroLines.length+1,color:METRO_COLORS[metroLines.length%METRO_COLORS.length],nodes,path,stations,
+    underground,trains:2,fare:2+Math.round(path.length/30),covPop:0,riders:0};
+  metroLines.push(L);
+  if(charge)toast('🚇 '+L.id+' 號線開通！'+(underground?'地下線':'高架線')+' '+stations.length+' 站・票價 $'+L.fare+'（建設費 $'+cost+'）');
   return true;
+}
+/* T302 買列車：$800/列擴容 300 客；資金不足且無在還貸款時可自動貸款購車（玩家「沒有就默認列車有限或貸款更新」）。 */
+function buyMetroTrain(lineId,allowLoan){
+  const L=metroLines.find(l=>l.id===lineId);if(!L)return 'no-line';
+  const cost=800;
+  if(money<cost){
+    if(allowLoan&&!loan){money+=2000;loan={remain:25,daily:100};toast('🏦 地鐵購車貸款 $2000（25 天每日還 $100）');}
+    else return 'no-money';
+  }
+  if(money<cost)return 'no-money';
+  money-=cost;L.trains++;toast('🚈 '+L.id+' 號線新列車上線！（'+L.trains+' 列・運力 '+(L.trains*300)+'）');updHud();
+  return 'ok';
 }
 let trafClock=0; // T289：交通動畫時鐘（draw() 每幀累加 dt），驅動紅綠燈相位循環；純視覺運行時值，不入存檔
 let signalList=[]; // T289：號誌 tile 座標清單（快取重烘時收集：手動號誌＋4 叉路口自動號誌），live 層每幀依 trafClock 動畫繪製（存 tile 座標＝相機縮放平移每幀重算螢幕位，不受快取凍結）；不入存檔
@@ -9443,9 +9486,13 @@ function computeBusRtCovPop(){ // T293 擴為公共運輸客運量：公交路�
     if(b.k===17||b.k===21||b.k===55){hasRail=true;const r=b.k===55?6:4,sx=i%N,sy=(i/N)|0;
       for(let dy=-r;dy<=r;dy++){const ny=sy+dy;if(ny<0||ny>=N)continue;
         for(let dx=-r;dx<=r;dx++){const nx=sx+dx;if(nx<0||nx>=N)continue;railCov[idx(nx,ny)]=1;}}}}
-  for(const L of metroLines)for(const st of L.stations){const sx=st[0],sy=st[1]; // T301：地鐵站覆蓋（半徑4，大運量）
-    for(let dy=-4;dy<=4;dy++){const ny=sy+dy;if(ny<0||ny>=N)continue;
-      for(let dx=-4;dx<=4;dx++){const nx=sx+dx;if(nx<0||nx>=N)continue;metroCov[idx(nx,ny)]=1;}}}
+  for(const L of metroLines){L.covPop=0; // T302：每線覆蓋人口（分線票務用）＋站點分級（大/中/小站）＋商場出入口偵測
+    for(const st of L.stations){const sx=st.x,sy=st.y;let stPop=0,mall=false;
+      for(let dy=-4;dy<=4;dy++){const ny=sy+dy;if(ny<0||ny>=N)continue;
+        for(let dx=-4;dx<=4;dx++){const nx=sx+dx;if(nx<0||nx>=N)continue;const j=idx(nx,ny);metroCov[j]=1;
+          const bb=tiles[j].bld;if(bb&&!bb.ref&&bb.k===1&&bb.pw)stPop+=Math.round(POPS[bb.lv]*(bb.den?DEN_POP[bb.den-1]:1));
+          if(bb&&bb.k===65&&Math.abs(dx)<=3&&Math.abs(dy)<=3)mall=true;}}
+      st.tier=stPop>=380?3:stPop>=140?2:1;st.exits=st.tier+1;st.inMall=mall;L.covPop+=stPop;}}
   if(!hasBus&&!hasRail&&!metroLines.length){busRtCovPop=0;railCovPop=0;metroCovPop=0;transitRidership=0;return;}
   let busP=0,railP=0,metroP=0;
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b||b.ref||b.k!==1||!b.pw||b.sick||b.death)continue;
@@ -10892,18 +10939,21 @@ function draw(dt){
   if(metroLines.length&&!lodMini&&!window.__noMetro){
     ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
     const tsx=(x,y)=>ox+((x-y)*32)*z, tsy=(x,y)=>oy+((x+y)*16+16)*z;
-    for(const L of metroLines){ // 線
+    for(const L of metroLines){ // 線：高架實線（.8）／地下虛線半透明（.45＝隱於地下）
       if(!L.path||L.path.length<2)continue;
-      ctx.globalAlpha=.68;ctx.strokeStyle=L.color;ctx.lineWidth=Math.max(2,3*z);
+      ctx.globalAlpha=L.underground?.45:.8;ctx.strokeStyle=L.color;ctx.lineWidth=Math.max(2,3*z);
+      ctx.setLineDash(L.underground?[6*z,4*z]:[]);
       ctx.beginPath();ctx.moveTo(tsx(L.path[0][0],L.path[0][1]),tsy(L.path[0][0],L.path[0][1]));
       for(let i=1;i<L.path.length;i++)ctx.lineTo(tsx(L.path[i][0],L.path[i][1]),tsy(L.path[i][0],L.path[i][1]));
       ctx.stroke();
     }
-    ctx.globalAlpha=1;
-    for(const L of metroLines)for(const st of L.stations){ // 站點：白底彩框方點
-      const sx2=tsx(st[0],st[1]),sy2=tsy(st[0],st[1]),r=Math.max(2,2.4*z);
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    for(const L of metroLines)for(const st of L.stations){ // 站點分級：大站3最大＋白環、中2、小1；商場出入口金點
+      const sx2=tsx(st.x,st.y),sy2=tsy(st.x,st.y),r=Math.max(2,(1.6+st.tier*.8)*z);
+      if(st.tier===3){ctx.fillStyle='#fff';ctx.fillRect(sx2-r-1,sy2-r-1,r*2+2,r*2+2);}
       ctx.fillStyle='#fff';ctx.fillRect(sx2-r,sy2-r,r*2,r*2);
       ctx.fillStyle=L.color;ctx.fillRect(sx2-r+1,sy2-r+1,r*2-2,r*2-2);
+      if(st.inMall){ctx.fillStyle='#ffd45f';ctx.fillRect(sx2-1,sy2-r-3,2,2);}
     }
     ctx.restore();
   }
@@ -12422,6 +12472,8 @@ function showStats(){
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
      <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
      <div class="row">🚌 公共運輸　日客運量 ${transitRidership} 人　🎫 票務 ${f(Math.round(transitRidership*.03))}／日${railCovPop>0?('　🚈 軌道服務 '+railCovPop+' 人'):''}${busRtCovPop>0?('　🚏 公交服務 '+busRtCovPop+' 人'):''}</div>
+     ${metroLines.length?`<div class="row" style="font-size:11px">🚇 地鐵 ${metroLines.length} 條線・${metroLines.reduce((s2,L)=>s2+L.stations.length,0)} 站（大${metroLines.reduce((s2,L)=>s2+L.stations.filter(st=>st.tier===3).length,0)}中${metroLines.reduce((s2,L)=>s2+L.stations.filter(st=>st.tier===2).length,0)}小${metroLines.reduce((s2,L)=>s2+L.stations.filter(st=>st.tier===1).length,0)}）・列車 ${metroLines.reduce((s2,L)=>s2+L.trains,0)} 列　載客 ${metroLines.reduce((s2,L)=>s2+(L.riders||0),0)}/${metroLines.reduce((s2,L)=>s2+L.trains*300,0)}</div>
+     <div class="row" style="font-size:11px">💰 票務 ${f(fin.metroRev||0)}＋廣告 ${f(fin.metroAds||0)}－營運 ${f(fin.metroCost||0)}/日${metroLines.some(L=>(L.riders||0)>=L.trains*300*.95)?'　<span style="color:#ffb15f">⚠ 有線路滿載</span>':''}　<button class="hbtn" id="bMetroTrain">🚈 購列車 $800</button></div>`:''}
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
      <div class="row">🎚️ 服務預算（越高覆蓋越廣、越貴）　🚓${svcBudget.police.toFixed(1)}× <button class="hbtn" id="budPoM">−</button><button class="hbtn" id="budPoP">＋</button>　🚒${svcBudget.fire.toFixed(1)}× <button class="hbtn" id="budFiM">−</button><button class="hbtn" id="budFiP">＋</button>　🏥${svcBudget.health.toFixed(1)}× <button class="hbtn" id="budHeM">−</button><button class="hbtn" id="budHeP">＋</button>　🎓${svcBudget.edu.toFixed(1)}× <button class="hbtn" id="budEdM">−</button><button class="hbtn" id="budEdP">＋</button></div>
      <div class="row">🚨 法規　<label><input type="checkbox" id="polCurfew"${pol.curfew?' checked':''}> 宵禁</label>　<label><input type="checkbox" id="polRecycle"${pol.recycle?' checked':''}> 回收宣導</label>　<label><input type="checkbox" id="polTour"${pol.tourPromo?' checked':''}> 觀光推廣</label>　<label><input type="checkbox" id="polEco"${pol.ecoReg?' checked':''}> 節能條例</label></div>
@@ -12555,6 +12607,17 @@ function showStats(){
   bb('#budFiM','fire',-1,'消防');bb('#budFiP','fire',1,'消防');
   bb('#budHeM','health',-1,'醫療');bb('#budHeP','health',1,'醫療');
   bb('#budEdM','edu',-1,'教育');bb('#budEdP','edu',1,'教育');
+  { // T302：購列車按鈕——優先給最擠（載客/運力比最高）的線買，資金不足自動貸款（玩家「貸款才能更新或購買列車」）
+    const el=$('#bMetroTrain');
+    if(el)el.addEventListener('click',()=>{
+      if(!metroLines.length)return;
+      let worst=metroLines[0],wr=-1;
+      for(const L of metroLines){const r=L.trains>0?(L.riders||0)/(L.trains*300):0;if(r>wr){wr=r;worst=L;}}
+      const res=buyMetroTrain(worst.id,true);
+      if(res==='no-money')toast('💸 資金不足且已有貸款在還，無法購車');
+      sTick();showStats();
+    });
+  }
   // T122：法規開關（勾選即時生效，次日 tick 套用對應係數）
   const polToggle=(id,k,nm)=>{const el=$(id);if(el)el.addEventListener('change',()=>{pol[k]=!!el.checked;toast('🚨 '+nm+(pol[k]?' 已開啟':' 已關閉'));sTick();});};
   polToggle('#polCurfew','curfew','宵禁');
@@ -12780,7 +12843,7 @@ function save(){
       sc:scenario?{id:scenario.id,startDay:scenario.startDay,hold:scenario.hold||0}:null, // T132：進行中場景戰役（可選欄位，仿 loan/riot 慣例存最小進度結構；scDone 通關集合另落 localStorage 獨立鍵，不入本存檔）
       rk:rankIdx, // T133：城市等級（可選欄位，rankIdx 0-based；load 缺欄位時由當前城市狀態即時算出，不因缺欄位降級）
       sup:supplies, // T140：資源供應品全域存量（可選欄位，舊檔缺欄位容錯為 0）
-      aim:aiMode?1:0,aiR,gds:goods,sb:{...svcBudget},cev:cityEvent?{i:cityEvent.i,d:cityEvent.daysLeft}:0, // T299：城市事件（可選欄位） // T294：服務預算（可選欄位，舊檔缺＝全 1.0） // T284：工業品庫存（可選欄位） // T260：AI 市長開關＋擴張半徑（可選欄位，舊檔缺＝關/6）
+      aim:aiMode?1:0,aiR,gds:goods,sb:{...svcBudget},cev:cityEvent?{i:cityEvent.i,d:cityEvent.daysLeft}:0,mln:metroLines.map(L=>({n:L.nodes,t:L.trains,u:L.underground?1:0})), // T302：地鐵線（nodes+列車+地下旗標，幾何 load 重建） // T299：城市事件（可選欄位） // T294：服務預算（可選欄位，舊檔缺＝全 1.0） // T284：工業品庫存（可選欄位） // T260：AI 市長開關＋擴張半徑（可選欄位，舊檔缺＝關/6）
       rdep:rdepArr.length?rdepArr:null}; // T140：資源耗損（稀疏可選欄位，僅存已開採格；缺欄位＝未耗損。RESOURCE 本身不存，由 seed 經 genResource() 重建）
     const key=slotKey(curSlot()),out=JSON.stringify(data);
     const prev=localStorage.getItem(key);
@@ -12874,6 +12937,8 @@ function load(slot){
     }
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0; // T284：工業品還原（舊檔缺＝0）
+    metroLines.length=0; // T302：地鐵還原（舊檔缺＝空；nodes→幾何重建，免建設費）
+    if(Array.isArray(d.mln))for(const m of d.mln){if(!Array.isArray(m.n)||m.n.length<2)continue;finishMetroLine(m.n,false);const L2=metroLines[metroLines.length-1];L2.trains=Math.max(1,(+m.t)||2);L2.underground=!!m.u;L2.fare=2+Math.round(L2.path.length/30);}
     cityEvent=(d.cev&&typeof d.cev.i==='number'&&d.cev.i>=0&&d.cev.i<CITY_EVENTS.length)?{i:d.cev.i,daysLeft:(+d.cev.d)||1}:null; // T299：城市事件還原（舊檔缺＝無）
     if(d.sb){for(const k in svcBudget)if(typeof d.sb[k]==='number')svcBudget[k]=clamp(d.sb[k],.5,1.5);}else svcBudget={police:1,fire:1,health:1,edu:1};
     rebuildCov(); // T294：服務預算還原後重算覆蓋（前面 load 的 rebuildCov 用預設，此處按存檔預算修正半徑；舊檔預算全 1.0＝結果與前次一致）
@@ -13112,7 +13177,9 @@ window.GV={
   citizenCount:()=>citizens.length,
   cityEvent:()=>cityEvent?{id:CITY_EVENTS[cityEvent.i].id,name:CITY_EVENTS[cityEvent.i].name,daysLeft:cityEvent.daysLeft,tax:CITY_EVENTS[cityEvent.i].tax,food:CITY_EVENTS[cityEvent.i].food}:null, // T299 測試用：當前城市事件快照
   setCityEvent:(id)=>{const i=CITY_EVENTS.findIndex(e=>e.id===id);cityEvent=i>=0?{i,daysLeft:CITY_EVENTS[i].days}:null;return cityEvent?CITY_EVENTS[cityEvent.i].id:null;}, // T299 測試用：直接觸發指定事件
-  metro:()=>metroLines.map(L=>({id:L.id,color:L.color,stations:L.stations.length,nodes:L.nodes.length,pathLen:L.path.length,ends:[L.nodes[0],L.nodes[L.nodes.length-1]]})), // T300 測試用：地鐵線路快照
+  metro:()=>metroLines.map(L=>({id:L.id,color:L.color,stations:L.stations.length,tiers:L.stations.map(st=>st.tier),mallExits:L.stations.filter(st=>st.inMall).length,nodes:L.nodes.length,pathLen:L.path.length,underground:!!L.underground,trains:L.trains,fare:L.fare,covPop:L.covPop||0,riders:L.riders||0,ends:[L.nodes[0],L.nodes[L.nodes.length-1]]})), // T300/T302 測試用：地鐵線路快照
+  metroBuyTrain:(id,allowLoan)=>buyMetroTrain(+id||1,!!allowLoan), // T302 測試/UI 用
+  metroFin:()=>({rev:fin.metroRev||0,ads:fin.metroAds||0,cost:fin.metroCost||0}), // T302 測試用：地鐵財政快照
   metroPlan:()=>planMetroLine(), // T300 測試用：手動規劃一條地鐵線
   metroClear:()=>{metroLines.length=0;return 0;}, // T300 測試用：清空地鐵
   eduAt:(x,y)=>inMap(x,y)?EDU[idx(x,y)]:null, // T142：教育場除錯鉤子
