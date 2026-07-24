@@ -5468,6 +5468,70 @@ function buildSprites(){
         SPR.farmSea[sea][fk]={img:remap274(b0.img,b0.w,b0.h,MAPS274[si]),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}
   }
   /* ===== T274 農場作物變體擴充 END ===== */
+  /* ===== T279 精細田地層（玩家「農場素材超越本機 TheoTown」；讀本機 TheoTown FarmDecorator 得知農場＝
+     中心建築＋多樣 farmField frames，其豐富度來自多樣田塊。原創超越實作：對 16 作物×4 季（base＋
+     farmSea 1/2/3）的地磚面「加蓋」精細田地——①等距犁溝（暗溝/土/亮脊三級立體）②12 類分季作物株
+     ③田埂；冬季雪脊枯株。純 fillRect 決定性零亂數（不碰 R()/spriteTexRand），插於 T274 END 與 T276
+     農莊之間＝農莊建築壓在田地上、且不動任何既有生成行（GPT T272-274 位元組級測試安全）。 ===== */
+  {
+    // 季節土色 [溝底, 土面, 脊頂]（冬＝雪脊/露土/亮雪）
+    const SOIL=[['#5a3f24','#6f4e2c','#87643a'],['#513a20','#654726','#7c5a34'],['#634527','#7a5732','#96703e'],['#7f7770','#c6ccd4','#e8eef4']];
+    const px1=(g,x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1);};
+    // 犁溝地：地磚菱形內逐像素，(dx-2*dy) 相位＝沿等距 SE 平行犁溝
+    const field=(g,ax,ay,hw,hh,s)=>{
+      const so=SOIL[s],cy=ay-16;
+      for(let yy=-hh;yy<=hh;yy++){
+        const rh=Math.floor(hw*(1-Math.abs(yy)/hh));
+        for(let xx=-rh;xx<=rh;xx++){
+          const ph=(((xx-2*yy)%6)+6)%6;
+          const c=ph<1?so[0]:ph<4?so[1]:so[2];
+          px1(g,ax+xx,cy+yy,c);
+          if(s===3&&ph>=4)px1(g,ax+xx,cy+yy-1,'#eef3f8'); // 冬：脊上薄雪凸起
+        }
+      }
+      // 田埂：菱形四邊亮土細框
+      const edge=s===3?'#b8bcc4':'#8f6e42';
+      for(let t=0;t<=hw;t++){const yr=Math.round(hh*(1-t/hw));
+        px1(g,ax+t,cy-yr,edge);px1(g,ax-t,cy-yr,edge);px1(g,ax+t,cy+yr,edge);px1(g,ax-t,cy+yr,edge);}
+    };
+    // 一株作物（x=株底中心,y=株底,s=季）。冬季多數走枯株。
+    const wither=(g,x,y)=>{px1(g,x,y-1,'#8a7550');px1(g,x-1,y-2,'#9a835c');px1(g,x+1,y-2,'#9a835c');};
+    const P={
+      sprout:(g,x,y,s)=>{const c=s===2?'#9aa83a':'#5bb246';if(s===3)return wither(g,x,y);const h=s===0?2:3;for(let i=0;i<h;i++)px1(g,x,y-1-i,c);px1(g,x-1,y-2,c);px1(g,x+1,y-2,c);},
+      grain:(g,x,y,s)=>{if(s===3)return wither(g,x,y);const st=s===2?'#d8b83a':s===0?'#7fbf5a':'#8fc24a';const ear=s===2?'#e8c850':'#a8c24a';for(let i=0;i<4;i++)px1(g,x,y-1-i,st);px1(g,x,y-5,ear);px1(g,x-1,y-4,ear);px1(g,x+1,y-4,ear);},
+      rice:(g,x,y,s)=>{if(s===3){px1(g,x,y,'#8fa0a8');return;}px1(g,x,y,'#3a6a8a'); /*水光*/const c=s===2?'#d0c040':'#5fb04a';for(let i=0;i<3;i++)px1(g,x,y-1-i,c);px1(g,x-1,y-3,c);px1(g,x+1,y-3,c);},
+      leaf:(g,x,y,s)=>{if(s===3)return wither(g,x,y);const c=s===2?'#7a9a38':'#4f9c3f';px1(g,x-1,y-1,c);px1(g,x,y-1,c);px1(g,x+1,y-1,c);px1(g,x,y-2,shade(c,14));},
+      carrot:(g,x,y,s)=>{if(s===3)return wither(g,x,y);px1(g,x-1,y-1,'#3f9a4a');px1(g,x+1,y-1,'#3f9a4a');px1(g,x,y-2,'#57b25a');if(s===2)px1(g,x,y,'#e0842a');},
+      cabbage:(g,x,y,s)=>{const c=s===3?'#8fb0a0':s===2?'#7a9a48':'#5aa84e';px1(g,x-1,y-1,c);px1(g,x,y-1,shade(c,16));px1(g,x+1,y-1,c);px1(g,x,y-2,c);},
+      corn:(g,x,y,s)=>{if(s===3)return wither(g,x,y);const st=s===2?'#b8a83a':'#4f9a3a';for(let i=0;i<6;i++)px1(g,x,y-1-i,st);px1(g,x-1,y-3,st);px1(g,x+1,y-5,st);if(s>=1)px1(g,x+1,y-4,'#e8c84a');px1(g,x,y-7,shade(st,18));},
+      sun:(g,x,y,s)=>{if(s===3)return wither(g,x,y);for(let i=0;i<6;i++)px1(g,x,y-1-i,'#3f8a34');px1(g,x-1,y-3,'#3f8a34');const fc=s===2?'#c89a2a':'#ffd23a';px1(g,x,y-7,'#6a4a20');px1(g,x-1,y-7,fc);px1(g,x+1,y-7,fc);px1(g,x,y-8,fc);px1(g,x,y-6,fc);},
+      tomato:(g,x,y,s)=>{if(s===3)return wither(g,x,y);const c='#3f9a3f';px1(g,x-1,y-1,c);px1(g,x,y-1,c);px1(g,x+1,y-1,c);px1(g,x,y-2,c);px1(g,x,y-3,c);if(s>=1){px1(g,x-1,y-2,'#e0402a');px1(g,x+1,y-3,'#e0402a');}},
+      straw:(g,x,y,s)=>{if(s===3)return wither(g,x,y);px1(g,x-1,y-1,'#3f9a3f');px1(g,x+1,y-1,'#3f9a3f');px1(g,x,y-2,'#4faa48');if(s>=1){px1(g,x,y-1,'#e04a52');px1(g,x-1,y,'#e04a52');}},
+      grape:(g,x,y,s)=>{px1(g,x,y-1,'#6a4a2a');px1(g,x,y-2,'#6a4a2a');px1(g,x,y-3,'#6a4a2a');px1(g,x-2,y-3,'#6a4a2a');px1(g,x+2,y-3,'#6a4a2a'); /*架*/ if(s===3)return;const gc=s===2?'#7a3a8a':'#5f8a3a';px1(g,x-1,y-2,gc);px1(g,x+1,y-2,gc);if(s>=2){px1(g,x-1,y-1,'#7a3a8a');px1(g,x+1,y-1,'#7a3a8a');}},
+      orchard:(g,x,y,s)=>{px1(g,x,y-1,'#6a4a2a');px1(g,x,y-2,'#6a4a2a');const lc=s===3?'#9aa0a0':s===2?'#c88a2a':'#3f8a3a';px1(g,x-1,y-3,lc);px1(g,x,y-3,lc);px1(g,x+1,y-3,lc);px1(g,x,y-4,lc);px1(g,x-1,y-2,lc);px1(g,x+1,y-2,lc);if(s===1){px1(g,x-1,y-3,'#e04a3a');}},
+      vine:(g,x,y,s)=>{const lc=s===3?'#8f9a94':'#3f8a3a';px1(g,x-1,y,lc);px1(g,x,y,lc);px1(g,x+1,y,lc);px1(g,x-2,y-1,lc);px1(g,x+2,y-1,lc); /*藤*/ const fc=s===2?'#d8843a':'#e0a838';if(s!==3){px1(g,x,y-1,fc);px1(g,x+1,y-1,shade(fc,-16));}}, // 南瓜臥果
+      melon:(g,x,y,s)=>{const lc=s===3?'#8f9a94':'#3f8a3a';px1(g,x-1,y,lc);px1(g,x,y,lc);px1(g,x+1,y,lc);if(s!==3){px1(g,x,y-1,'#2f7a34');px1(g,x+1,y-1,'#57a24a');px1(g,x-1,y-1,'#2f7a34');}}, // 西瓜條紋果
+      cotton:(g,x,y,s)=>{if(s===3){px1(g,x,y-1,'#c8ccd0');return;}px1(g,x,y-1,'#3f7a3a');px1(g,x,y-2,'#3f7a3a');const wc=s===2?'#f2f4f0':'#eef2ee';if(s>=1){px1(g,x-1,y-2,wc);px1(g,x+1,y-3,wc);px1(g,x,y-3,wc);}}, // 棉絮
+      lav:(g,x,y,s)=>{if(s===3)return wither(g,x,y);px1(g,x,y-1,'#4f7a3a');px1(g,x,y-2,'#4f7a3a');const pc=s===2?'#8a6aa8':'#9a6ad0';px1(g,x,y-3,pc);px1(g,x,y-4,pc);px1(g,x-1,y-3,shade(pc,-14));px1(g,x+1,y-3,shade(pc,-14));}
+    };
+    const CCLASS=['sprout','grain','leaf','corn','vine','orchard','tomato','straw','grape','sun','rice','cabbage','carrot','melon','cotton','lav'];
+    const plantGrid=(g,ax,ay,hw,hh,cls,s)=>{
+      const drw=P[cls]||P.sprout,cy=ay-16,span=Math.round((hw-6)/5);
+      for(let a=-5;a<=5;a++)for(let b=-5;b<=5;b++){
+        const dx=(a-b)*span, dy=(a+b)*Math.round(span/2);
+        if(Math.abs(dx)/(hw-3)+Math.abs(dy)/(hh-2)>.9)continue;
+        drw(g,ax+dx,cy+dy,s);
+      }
+    };
+    const doFarm=(key,ax,ay,hw,hh,cls)=>{
+      const b=SPR.bld[key];if(b){const g=b.img.getContext('2d');field(g,ax,ay,hw,hh,0);plantGrid(g,ax,ay,hw,hh,cls,0);}
+      for(const si of[1,2,3]){const ss=SPR.farmSea&&SPR.farmSea[si]&&SPR.farmSea[si][key];
+        if(ss){const g=ss.img.getContext('2d');field(g,ax,ay,hw,hh,si);plantGrid(g,ax,ay,hw,hh,cls,si);}}
+    };
+    for(let v=0;v<16;v++)doFarm('22_1_'+v,68,148,30,15,CCLASS[v]);
+    doFarm('53_1_0',104,218,52,26,'grain'); // 大農場 5×5：放大田＋麥（其自帶多 patch，此層加精細犁溝主田）
+  }
+  /* ===== T279 精細田地層 END ===== */
   /* ===== T276 農莊套件覆蓋層（玩家「農場素材太簡陋」，TheoTown 級細節對標、素材原創）：
      在既有 16 作物 base＋48 張季節圖＋大農場 4 圖上「加蓋」農舍/紅穀倉/筒倉/木圍籬/乾草捆/拖拉機——
      置於 T274 之後、T261 遮罩之前＝不動任何既有生成行（T273/T274 快照回退、亂數行紀律零影響）；
