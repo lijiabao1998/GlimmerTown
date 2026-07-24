@@ -237,7 +237,7 @@ window.GV.addMoney(100000);
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
 const SV = [ // [tool, k, sz]；T226/T230/T232：farm/ranch/parking 擴變體移出單變體清單；T228：新增 bigFarm 5×5
   ['airport', 19, 4],
-  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3], ['grandStation', 55, 3], ['sportsComplex', 56, 3], ['foodPlant', 57, 3], ['nuclear', 58, 3], ['hydro', 59, 2], ['fireHQ', 61, 3], ['greenhouse', 63, 2], ['wasteIncinerator', 62, 2]
+  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3], ['grandStation', 55, 3], ['sportsComplex', 56, 3], ['foodPlant', 57, 3], ['nuclear', 58, 3], ['hydro', 59, 2], ['fireHQ', 61, 3], ['greenhouse', 63, 2], ['warehouse', 64, 2], ['wasteIncinerator', 62, 2]
 ];
 const svRoots = [];
 for (const [tool, k, sz] of SV) {
@@ -288,10 +288,10 @@ for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.b
 }
 window.GV.save();
 const d1 = JSON.parse(store[SKEY]);
-const SVK = new Set([19, 25, 31, 32, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63]); // T265：wasteIncinerator；T257：nuclear/hydro/fireHQ 亦屬單變體；T228/T233/T234/T241/T254：bigFarm/bigCemetery/grandStation/sportsComplex/foodPlant；T230/T232：ranch/parking 移出
+const SVK = new Set([19, 25, 31, 32, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 64]); // T265：wasteIncinerator；T257：nuclear/hydro/fireHQ 亦屬單變體；T228/T233/T234/T241/T254：bigFarm/bigCemetery/grandStation/sportsComplex/foodPlant；T230/T232：ranch/parking 移出
 let tampered = 0;
 for (const rec of d1.bl) if (SVK.has(rec[1])) { rec[3] = 2; tampered++; }
-assert(tampered === 14, '存檔 bl 應含 13 棟單變體建築（實得 ' + tampered + '）');
+assert(tampered === 15, '存檔 bl 應含 13 棟單變體建築（實得 ' + tampered + '）');
 store[SKEY] = JSON.stringify(d1);
 assert(window.GV.load() === true, '竄改後 load 應成功');
 for (const r of svRoots) {
@@ -625,11 +625,19 @@ console.log('\n-- (10) T251 農場升級經濟 / k53-56 稅收 NaN 守衛 --');
   window.GV.step(1);
   assert(window.GV.food() === 60, 'T254 3 大農場春季食物應 = 60，實際 ' + window.GV.food());
   // foodPlant lv1（加工容量 40）：net = 農場金幣36 + procGold min(60,40)*1.5=60 - 維護(14+18)=32 → 64
-  assert(net() === 64, 'foodPlant lv1+3大農場 net 應 = 64（farmGold36+procGold60-upkeep32），實際 ' + net());
+  { // T283 起：期望值依當日農產市價動態計算（farmGold=round(36×價)+procGold=round(min(60,40)×1.5×價)−upkeep32）
+    const n1 = net(), fp1 = window.GV.foodPrice();
+    const exp1 = Math.round(36 * fp1) + Math.round(60 * fp1) - 32;
+    assert(n1 === exp1, 'foodPlant lv1+3大農場 net 應 = ' + exp1 + '（市價×' + fp1.toFixed(2) + '），實際 ' + n1);
+  }
   // 升級 foodPlant 到 lv5（加工容量 120）：procGold min(60,120)*1.5=90 → net = 36+90-32 = 94
   let b = tile(fp.x, fp.y).bld, guard = 0;
   while ((b.lv || 1) < 5 && guard++ < 15) { window.GV.upgrade(fp.x, fp.y); b = tile(fp.x, fp.y).bld; window.GV.addMoney(8000000); }
-  assert(net() === 94, 'foodPlant lv5 net 應 = 94（加工容量120 可處理全部60食物→procGold90），實際 ' + net());
+  { // T283 起：市價動態期望（procGold=round(min(60,120)×1.5×價)=round(90×價)）
+    const n5 = net(), fp5 = window.GV.foodPrice();
+    const exp5 = Math.round(36 * fp5) + Math.round(90 * fp5) - 32;
+    assert(n5 === exp5, 'foodPlant lv5 net 應 = ' + exp5 + '（市價×' + fp5.toFixed(2) + '），實際 ' + n5);
+  }
   assert(isFinite(window.GV.stats().money), 'foodPlant 升級 lv5 後 money 不得 NaN');
   // jobs 恆定：升級不加就業（UP_JOB 57:0，?? 修復確保 0 不被 ||6 覆蓋）
   const jobsLv5 = window.GV.stats().jobs;
@@ -769,6 +777,43 @@ console.log('\n-- (11) T262 可調地圖規模 --');
   assert(window.GV.setMapSize(999) === 72, '非法尺寸 999 應被拒（維持 72）');
 }
 
+// ================= T283/T284 市價與貨物鏈 =================
+console.log('\n-- T283 市價 / T284 貨物鏈 --');
+{
+  // T283：界限/決定性/搶購潮/秋賤冬貴
+  window.GV.newWorldSeeded(283);
+  window.GV.weather(0);
+  if (window.GV.setDiff) window.GV.setDiff(1);
+  let mn283 = 9, mx283 = 0, demSeen = false;
+  const series283 = [];
+  for (let d = 0; d < 120; d++) {
+    window.GV.step(1);
+    const fp = window.GV.foodPrice();
+    series283.push(+fp.toFixed(4));
+    if (fp < mn283) mn283 = fp; if (fp > mx283) mx283 = fp;
+    if (fp > 1.3) demSeen = true;
+  }
+  assert(mn283 >= 0.6 && mx283 <= 1.8, 'T283 市價應在 [0.6,1.8] 界限內（' + mn283.toFixed(2) + '~' + mx283.toFixed(2) + '）');
+  assert(mx283 - mn283 > 0.3, 'T283 市價應有可觀波動（幅度 ' + (mx283 - mn283).toFixed(2) + '）');
+  assert(demSeen, 'T283 120 天內應出現搶購潮高價（>1.3）');
+  // 決定性：同日重放同價
+  const fpNow = window.GV.foodPrice();
+  window.GV.save();
+  assert(window.GV.load() === true, 'T283 存讀應成功');
+  assert(Math.abs(window.GV.foodPrice() - fpNow) < 1e-9, 'T283 市價為純 day 函數＝存讀後同日同價');
+  // T284：油井原料→工業品→商業稅（沙盤：手動小鏈）
+  window.GV.newWorldSeeded(284);
+  window.GV.weather(0);
+  if (window.GV.setDiff) window.GV.setDiff(1);
+  window.GV.addMoney(80000);
+  const g0 = window.GV.goods();
+  assert(g0.stock === 0 && g0.cap === 60, 'T284 初始工業品 0/60，實際 ' + g0.stock + '/' + g0.cap);
+  const wsp = findSpot('warehouse');
+  assert(wsp && place('warehouse', wsp.x, wsp.y), 'T284 倉儲應成功建造');
+  window.GV.step(1);
+  assert(window.GV.goods().cap === 180, 'T284 倉儲後容量應 180（60+120），實際 ' + window.GV.goods().cap);
+  assert(isFinite(window.GV.stats().money), 'T284/285 money 不得 NaN');
+}
 // ================= T280 溫室：全年恆溫食物/金幣＋NaN 守衛 =================
 console.log('\n-- T280 溫室恆溫 --');
 {
