@@ -2703,27 +2703,18 @@ async function runPwaTests() {
       pre274Html.slice(preOldSeasonStart274, preOldSeasonEnd274),
   'T274 不得修改既有 T229 SUM/AUT/WIN/FKEYS 與 12 作物＋大農場季節管線');
 
-  // T275 起：exact rollback 改跑「凍結快照 pre-T275（＝post-T274 封存態）」——沿用 T273 對 post273Html
-  // 的同款慣例（卡完成後由下一卡的 pre 快照承接 byte 比對，live 檔繼續演進不受釘選）；
-  // GPT 寫本測試時 pre-T275 尚不存在只能用 live html，T275 收尾時依慣例切換。
-  const post274Html = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T275.html'), 'utf8');
-  const farmStartAt274s = post274Html.indexOf(farmStart274);
-  const farmEndAt274s = post274Html.indexOf(farmEnd274, farmStartAt274s);
-  const farmBlockEnd274s = farmEndAt274s + farmEnd274.length;
-  assert(farmStartAt274s >= 0 && farmEndAt274s > farmStartAt274s,
-    'T274 rollback 快照（pre-T275）內應含完整 T274 區塊');
-  assert(post274Html.slice(farmBlockEnd274s, farmBlockEnd274s + 1) === '\n',
+  assert(html.slice(farmBlockEnd274, farmBlockEnd274 + 1) === '\n',
     'T274 尾端區塊後應有單一 LF，供 exact rollback');
-  let restoredHtml274 = post274Html.slice(0, farmStartAt274s) +
-    post274Html.slice(farmBlockEnd274s + 1);
+  let restoredHtml274 = html.slice(0, farmStartAt274) +
+    html.slice(farmBlockEnd274 + 1);
   assert(restoredHtml274.split(farmNewLine274).length === 2,
     'T274 exact rollback 應精確定位唯一農場 %16 行');
   restoredHtml274 = restoredHtml274.replace(farmNewLine274, farmOldLine274);
   assert(restoredHtml274 === pre274Html,
     'T274 反向移除四 base＋十二季節圖並還原農場單行後，必須逐 byte 等於 pre-T274');
-  assert(JSON.stringify(rngLines272(post274Html)) === JSON.stringify(rngLines272(pre274Html)),
-    'T274 相對 pre-T274 的 R()/ri() 呼叫行應逐行零差異'); // T275 起改比快照（同 rollback 慣例；live 檔的亂數紀律由後續各卡自行驗證）
-  assert(JSON.stringify(sharedSpriteRandLines272(post274Html)) ===
+  assert(JSON.stringify(rngLines272(html)) === JSON.stringify(rngLines272(pre274Html)),
+    'T274 相對 pre-T274 的 R()/ri() 呼叫行應逐行零差異');
+  assert(JSON.stringify(sharedSpriteRandLines272(html)) ===
     JSON.stringify(sharedSpriteRandLines272(pre274Html)),
   'T274 相對 pre-T274 的既有共用 rand() 呼叫行應逐行零差異');
 

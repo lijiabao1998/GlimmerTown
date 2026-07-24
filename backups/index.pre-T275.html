@@ -958,11 +958,6 @@ function drawHeroPix(key,g,ng){
 const SPR={};
 function buildSprites(){
   resetSpriteTexRand();
-  /* T275（GPT T274 誠實邊界遺留診斷，Opus 收尾）：歷史包袱——最早期 sprite（草地/部分商業變體/公園）
-     生成時消耗全域 R()，熱重建會 ①29 條 sprite 路徑漂移 ②偷吃世界亂數流（probe globalRPreserved:false）。
-     修法＝生成期以「同種子替身流」接管 R、結束還原呼叫前狀態：boot 首次生成時 R 本就是 mulberry32(1)
-     且零消耗＝替身同種子同序列＝boot 逐像素零漂移；熱重建改為決定性（每次同序）且世界流零消耗。 */
-  const __savedR=R;R=mulberry32(1);
   const rand=mulberry32(20260712);
   /* ---------- 草地 4 變化 ---------- */
   SPR.grass=[];
@@ -5481,7 +5476,6 @@ function buildSprites(){
     if(SPR.plantVar)for(const pv of SPR.plantVar)maskNight(pv);
     if(SPR.waterTower)maskNight(SPR.waterTower);
   }
-  R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){

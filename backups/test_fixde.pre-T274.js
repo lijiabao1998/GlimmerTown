@@ -251,15 +251,15 @@ for (const [tool, k, sz] of SV) {
 // SPR.bld 對應鍵存在（原始碼靜態斷言，mock 無法驗像素）
 for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.bld 應生成 ' + k + '_1_0');
 // 竄改存檔 v=2 → load 應正規化回 0
-// T226/T274：農場座標決定性選型＋SPR 鍵存在＋load 保留變體（新設計正面斷言）
+// T226：農場座標決定性選型＋SPR 鍵存在＋load 保留變體（新設計正面斷言）
 {
   const sp = findSpot('farm');
   assert(sp, 'farm 應找到可建位置');
   assert(place('farm', sp.x, sp.y), 'farm 應成功建造');
   const fb = tile(sp.x, sp.y).bld;
-  const expV = (sp.x * 5 + sp.y * 11) % 16; // T274：16 作物
-  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%16=' + expV + '、sz=2');
-  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_15']"), 'SPR.bld 應生成 22_1_1..22_1_15（T226/227/235/T274 農場 16 作物）');
+  const expV = (sp.x * 5 + sp.y * 11) % 12; // T235：12 作物
+  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%12=' + expV + '、sz=2');
+  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_11']"), 'SPR.bld 應生成 22_1_1..22_1_11（T226/227/235 農場 12 作物）');
   svRoots.push({ k: 22, x: sp.x, y: sp.y, keepV: expV });
 }
 // T232：停車場座標決定性選型＋SPR 鍵存在＋load 保留變體
@@ -2218,17 +2218,10 @@ async function runPwaTests() {
   console.log('\n-- (21) T273 牧場變體擴充 3→5 --');
 
   const pre273Html = post272Html;
-  const post273Html = fs.readFileSync(
-    path.join(__dirname, 'backups', 'index.pre-T274.html'), 'utf8');
   assert(
     crypto.createHash('sha256').update(pre273Html).digest('hex').toUpperCase() ===
       '3C1E1A900457AA1365CB88B80907A9DF8CA9FC6A4F315667D1CB049C43BFD6F6',
     'T273 pre-index 備份 SHA-256 應維持開工記錄'
-  );
-  assert(
-    crypto.createHash('sha256').update(post273Html).digest('hex').toUpperCase() ===
-      '2CEA035171C0B3B5220A0FFD681C6758BE9F9DF43E897B6AB039FA5C0BCC0C22',
-    'T273 完成邊界應由 pre-T274（post-T273）SHA-256 封存'
   );
   const ranchOldLine273 =
     "        ct.bld=(dx===0&&dy===0)?{k:23,lv:1,v:(x*7+y*5)%3,age:0,pw:true,h:1,sz:2}:{k:23,ref:[x,y]}; // T230：牧場 3 變體（牛/羊/馬場），座標決定性選型（零 R）";
@@ -2327,23 +2320,18 @@ async function runPwaTests() {
   const ranchTrace273 = traceRanchBlock273(ranchBlockSource273);
   assert(ranchTraceErrors273(ranchTrace273).length === 0,
     'T273 v3/v4 應有足量繪圖操作、固定136×150/68,148 幾何且 fingerprint 互異');
-  const ranchBoundaryStart273 = post273Html.indexOf(ranchStart273);
-  const ranchBoundaryEndMarker273 = post273Html.indexOf(ranchEnd273, ranchBoundaryStart273);
-  const ranchBoundaryEnd273 = ranchBoundaryEndMarker273 + ranchEnd273.length;
-  assert(ranchBoundaryStart273 >= 0 && ranchBoundaryEndMarker273 > ranchBoundaryStart273,
-    'T273 post-T273 完成邊界應保留唯一正式 marker 區塊');
-  assert(post273Html.slice(ranchBoundaryEnd273, ranchBoundaryEnd273 + 1) === '\n',
+  assert(html.slice(ranchBlockEnd273, ranchBlockEnd273 + 1) === '\n',
     'T273 尾端 sprite 區塊後應有單一 LF，供 exact rollback');
-  let restoredHtml273 = post273Html.slice(0, ranchBoundaryStart273) +
-    post273Html.slice(ranchBoundaryEnd273 + 1);
+  let restoredHtml273 = html.slice(0, ranchStartAt273) +
+    html.slice(ranchBlockEnd273 + 1);
   assert(restoredHtml273.split(ranchNewLine273).length === 2,
     'T273 exact rollback 應精確定位唯一牧場 %5 行');
   restoredHtml273 = restoredHtml273.replace(ranchNewLine273, ranchOldLine273);
   assert(restoredHtml273 === pre273Html,
     'T273 反向移除兩張新 sprite 並還原牧場單行後，必須逐 byte 等於 pre-T273');
-  assert(JSON.stringify(rngLines272(post273Html)) === JSON.stringify(rngLines272(pre273Html)),
+  assert(JSON.stringify(rngLines272(html)) === JSON.stringify(rngLines272(pre273Html)),
     'T273 相對 pre-T273 的 R()/ri() 呼叫行應逐行零差異');
-  assert(JSON.stringify(sharedSpriteRandLines272(post273Html)) ===
+  assert(JSON.stringify(sharedSpriteRandLines272(html)) ===
     JSON.stringify(sharedSpriteRandLines272(pre273Html)),
   'T273 相對 pre-T273 的既有共用 rand() 呼叫行應逐行零差異');
 
@@ -2415,438 +2403,6 @@ async function runPwaTests() {
     assert(loaded && loaded.k === 23 && loaded.v === root.v &&
       loaded.lv === 1 && loaded.sz === 2,
     `T273 load 後牧場 v${root.v} 應逐值保留`);
-  }
-
-  console.log('\n-- (22) T274 農場作物變體擴充 12→16 --');
-
-  const pre274Html = post273Html;
-  assert(
-    crypto.createHash('sha256').update(pre274Html).digest('hex').toUpperCase() ===
-      '2CEA035171C0B3B5220A0FFD681C6758BE9F9DF43E897B6AB039FA5C0BCC0C22',
-    'T274 pre-index 備份 SHA-256 應維持開工記錄'
-  );
-  const farmOldLine274 =
-    "        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%12,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T226/T227/T235：農場 12 作物（綠田/麥/菜畦/玉米/南瓜/果園/番茄/草莓/葡萄/向日葵/稻田/高麗菜），座標決定性選型（零 R）";
-  const farmNewLine274 =
-    "        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%16,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T274：農場 16 作物（綠田/麥/菜畦/玉米/南瓜/果園/番茄/草莓/葡萄/向日葵/稻田/高麗菜/胡蘿蔔/西瓜/棉花/薰衣草），座標決定性選型（零 R）";
-  const farmStart274 =
-    '  /* ===== T274 農場作物變體擴充 START（buildSprites 絕對尾端；胡蘿蔔／西瓜／棉花／薰衣草＋四季局部 remap） ===== */';
-  const farmEnd274 = '  /* ===== T274 農場作物變體擴充 END ===== */';
-  const farmKeys274 = ['22_1_12', '22_1_13', '22_1_14', '22_1_15'];
-  const farmKeysLiteral274 =
-    "const FKEYS274=['22_1_12','22_1_13','22_1_14','22_1_15'];";
-  const farmMapsLiteral274 = 'const MAPS274=[SUM274,AUT274,WIN274];';
-  const farmAudit274 = source => {
-    const errors = [];
-    const start = source.indexOf(farmStart274);
-    const end = source.indexOf(farmEnd274);
-    if (source.split(farmNewLine274).length !== 2) errors.push('modulo-line');
-    if (source.split(farmStart274).length !== 2 ||
-        source.split(farmEnd274).length !== 2 || start < 0 || end <= start) {
-      errors.push('markers');
-      return errors;
-    }
-    const block = source.slice(start, end + farmEnd274.length);
-    const k62 = source.indexOf("SPR.bld['62_1_0']");
-    const ranchEnd = source.indexOf(ranchEnd273, k62);
-    const mask = source.indexOf('/* ===== T261 夜燈通用遮罩', ranchEnd);
-    if (!(k62 >= 0 && ranchEnd > k62 && start > ranchEnd &&
-        end > start && mask > end)) errors.push('tail-order');
-    const assignedBaseKeys = Array.from(
-      block.matchAll(/SPR\.bld\['([^']+)'\]\s*=/g), m => m[1]
-    );
-    if (JSON.stringify(assignedBaseKeys) !== JSON.stringify(farmKeys274)) {
-      errors.push('assignment-whitelist');
-    }
-    for (const key of farmKeys274) {
-      const assignment =
-        `SPR.bld['${key}']={img:c,ax,ay,w:136,h:150,smoke:[]};`;
-      if (block.split(assignment).length !== 2) errors.push('base-' + key);
-    }
-    if (block.split(farmKeysLiteral274).length !== 2) errors.push('fkeys');
-    if (block.split(farmMapsLiteral274).length !== 2) errors.push('maps');
-    if ((block.match(/\bplate\s*\(/g) || []).length !== 4) errors.push('plate-count');
-    if ((block.match(/SPR\.farmSea\[sea\]\[fk\]\s*=/g) || []).length !== 1) {
-      errors.push('season-assignment');
-    }
-    if (block.includes('SPR.farmSea={') || block.includes('if(!b0)continue')) {
-      errors.push('season-reset-or-skip');
-    }
-    if (/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(|\bspriteTexRand\b/.test(block)) {
-      errors.push('forbidden-rng');
-    }
-    return errors;
-  };
-  assert(farmAudit274(html).length === 0,
-    'T274 正式碼應精確為尾端四張 base＋十二張季節圖＋%16，且不得碰主／ambient 亂數');
-
-  const farmStartAt274 = html.indexOf(farmStart274);
-  const farmEndAt274 = html.indexOf(farmEnd274, farmStartAt274);
-  const farmBlockEnd274 = farmEndAt274 + farmEnd274.length;
-  const farmBlockSource274 = html.slice(farmStartAt274, farmBlockEnd274);
-  const traceFarmBlock274 = source => {
-    const parseColor = value => {
-      const match = /^#([0-9a-f]{6})$/i.exec(String(value));
-      if (!match) throw new Error('T274 pixel harness unsupported color: ' + value);
-      const n = parseInt(match[1], 16);
-      return [(n >> 16) & 255, (n >> 8) & 255, n & 255, 255];
-    };
-    const makeCanvas = (w, h) => {
-      const pixels = new Uint8ClampedArray(w * h * 4);
-      const ops = [];
-      let fillStyle = '#000000';
-      const canvas = { width: w, height: h, __pixels: pixels, __ops: ops };
-      const ctx = {
-        __ops: ops,
-        fillRect(x, y, rw, rh) {
-          ops.push(['fillRect', fillStyle, x, y, rw, rh]);
-          const rgba = parseColor(fillStyle);
-          const x0 = Math.max(0, Math.floor(x));
-          const y0 = Math.max(0, Math.floor(y));
-          const x1 = Math.min(w, Math.ceil(x + rw));
-          const y1 = Math.min(h, Math.ceil(y + rh));
-          for (let py = y0; py < y1; py++) for (let px = x0; px < x1; px++) {
-            const at = (py * w + px) * 4;
-            pixels[at] = rgba[0]; pixels[at + 1] = rgba[1];
-            pixels[at + 2] = rgba[2]; pixels[at + 3] = rgba[3];
-          }
-        },
-        drawImage(src, dx = 0, dy = 0) {
-          ops.push(['drawImage', dx, dy, src.width, src.height]);
-          for (let sy = 0; sy < src.height; sy++) for (let sx = 0; sx < src.width; sx++) {
-            const tx = sx + dx, ty = sy + dy;
-            if (tx < 0 || ty < 0 || tx >= w || ty >= h) continue;
-            const from = (sy * src.width + sx) * 4;
-            const to = (ty * w + tx) * 4;
-            pixels[to] = src.__pixels[from]; pixels[to + 1] = src.__pixels[from + 1];
-            pixels[to + 2] = src.__pixels[from + 2]; pixels[to + 3] = src.__pixels[from + 3];
-          }
-        },
-        getImageData(x, y, rw, rh) {
-          if (x !== 0 || y !== 0 || rw !== w || rh !== h) {
-            throw new Error('T274 pixel harness expects full-canvas getImageData');
-          }
-          return { data: new Uint8ClampedArray(pixels), width: w, height: h };
-        },
-        putImageData(image, dx, dy) {
-          if (dx !== 0 || dy !== 0 || image.data.length !== pixels.length) {
-            throw new Error('T274 pixel harness expects full-canvas putImageData');
-          }
-          pixels.set(image.data);
-          ops.push(['putImageData', dx, dy, image.data.length]);
-        }
-      };
-      Object.defineProperty(ctx, 'fillStyle', {
-        get() { return fillStyle; },
-        set(value) { fillStyle = String(value); }
-      });
-      canvas.getContext = () => ctx;
-      return [canvas, ctx];
-    };
-    const sandbox = {
-      SPR: { bld: {}, farmSea: { 1: {}, 2: {}, 3: {} } },
-      cv: makeCanvas,
-      plate(g, ax, ay, color) {
-        g.__ops.push(['plate', ax, ay, color]);
-        g.fillStyle = color;
-        g.fillRect(ax - 34, ay - 50, 68, 36);
-      },
-      Uint8ClampedArray
-    };
-    vm.runInNewContext(source, sandbox);
-    const hashCanvas = canvas => crypto.createHash('sha256')
-      .update(Buffer.from(canvas.__pixels)).digest('hex');
-    const out = { base: {}, seasons: { 1: {}, 2: {}, 3: {} } };
-    for (const key of Object.keys(sandbox.SPR.bld)) {
-      const spr = sandbox.SPR.bld[key];
-      out.base[key] = {
-        w: spr.w, h: spr.h, ax: spr.ax, ay: spr.ay,
-        ops: spr.img.__ops, hash: hashCanvas(spr.img), canvas: spr.img
-      };
-    }
-    for (const sea of [1, 2, 3]) for (const key of Object.keys(sandbox.SPR.farmSea[sea])) {
-      const spr = sandbox.SPR.farmSea[sea][key];
-      out.seasons[sea][key] = {
-        w: spr.w, h: spr.h, ax: spr.ax, ay: spr.ay,
-        hash: hashCanvas(spr.img), canvas: spr.img
-      };
-    }
-    return out;
-  };
-  const pixelAt274 = (canvas, x, y) => {
-    const at = (y * canvas.width + x) * 4;
-    return '#' + [0, 1, 2].map(offset =>
-      canvas.__pixels[at + offset].toString(16).padStart(2, '0')).join('');
-  };
-  const farmTraceErrors274 = trace => {
-    const errors = [];
-    if (JSON.stringify(Object.keys(trace.base)) !== JSON.stringify(farmKeys274)) {
-      errors.push('base-keys');
-      return errors;
-    }
-    const baseHashes = [];
-    for (const key of farmKeys274) {
-      const spr = trace.base[key];
-      if (spr.w !== 136 || spr.h !== 150 || spr.ax !== 68 || spr.ay !== 148) {
-        errors.push(key + '-geometry');
-      }
-      if (spr.ops.length < 30) errors.push(key + '-too-simple');
-      baseHashes.push(spr.hash);
-    }
-    if (new Set(baseHashes).size !== 4) errors.push('base-indistinguishable');
-    for (const sea of [1, 2, 3]) {
-      if (JSON.stringify(Object.keys(trace.seasons[sea])) !== JSON.stringify(farmKeys274)) {
-        errors.push('season-' + sea + '-keys');
-        continue;
-      }
-      for (const key of farmKeys274) {
-        const spr = trace.seasons[sea][key];
-        if (spr.w !== 136 || spr.h !== 150 || spr.ax !== 68 || spr.ay !== 148) {
-          errors.push(`season-${sea}-${key}-geometry`);
-        }
-      }
-    }
-    const probes = {
-      '22_1_12': { x: 52, y: 105, colors: ['#e36f24', '#ea7a28', '#d78322', '#d4dce6'] },
-      '22_1_13': { x: 52, y: 105, colors: ['#27613c', '#247342', '#556238', '#c8d4e0'] },
-      '22_1_14': { x: 52, y: 104, colors: ['#f5f0e3', '#fff7e8', '#f0dfc4', '#f5f8fb'] },
-      '22_1_15': { x: 50, y: 104, colors: ['#6d54a6', '#765fbb', '#8d5a7c', '#d4dce6'] }
-    };
-    for (const key of farmKeys274) {
-      const probe = probes[key];
-      const canvases = [trace.base[key] && trace.base[key].canvas]
-        .concat([1, 2, 3].map(sea =>
-          trace.seasons[sea][key] && trace.seasons[sea][key].canvas));
-      if (canvases.some(canvas => !canvas)) continue;
-      const colors = canvases.map(canvas => pixelAt274(canvas, probe.x, probe.y));
-      if (JSON.stringify(colors) !== JSON.stringify(probe.colors)) {
-        errors.push(key + '-season-colors:' + colors.join(','));
-      }
-      const hashes = [trace.base[key].hash]
-        .concat([1, 2, 3].map(sea => trace.seasons[sea][key].hash));
-      if (new Set(hashes).size !== 4) errors.push(key + '-season-indistinguishable');
-    }
-    // 不以 production map 自我推導 expected：硬編 13 個正式來源色的三季完整契約，
-    // 逐像素驗「表內精確換色、表外完全不動」，並要求 13 色都由最終 base 真正命中。
-    const expectedMaps274 = [
-      new Map([
-        [0x65452f, 0x5d4934], [0x3e7339, 0x34843a], [0xe36f24, 0xea7a28],
-        [0xf39a38, 0xf4a648], [0x315f39, 0x286f38], [0x27613c, 0x247342],
-        [0x6d9a49, 0x60ad48], [0x536f35, 0x477f32], [0xd8d2c1, 0xe2dece],
-        [0xf5f0e3, 0xfff7e8], [0x496842, 0x3f7840], [0x6d54a6, 0x765fbb],
-        [0x9b7acb, 0xa58ad8]
-      ]),
-      new Map([
-        [0x65452f, 0x76533a], [0x3e7339, 0x8f7830], [0xe36f24, 0xd78322],
-        [0xf39a38, 0xe2a03a], [0x315f39, 0x7b6830], [0x27613c, 0x556238],
-        [0x6d9a49, 0xa28736], [0x536f35, 0x92743a], [0xd8d2c1, 0xd8c6aa],
-        [0xf5f0e3, 0xf0dfc4], [0x496842, 0x806440], [0x6d54a6, 0x8d5a7c],
-        [0x9b7acb, 0xb07988]
-      ]),
-      new Map([
-        [0x65452f, 0xdee6ee], [0x3e7339, 0xd4dce6], [0xe36f24, 0xd4dce6],
-        [0xf39a38, 0xf2f6fa], [0x315f39, 0xd4dce6], [0x27613c, 0xc8d4e0],
-        [0x6d9a49, 0xe8eef2], [0x536f35, 0xcbd7e2], [0xd8d2c1, 0xdce5ed],
-        [0xf5f0e3, 0xf5f8fb], [0x496842, 0xcbd7e2], [0x6d54a6, 0xd4dce6],
-        [0x9b7acb, 0xf2f6fa]
-      ])
-    ];
-    const hitSources274 = new Set();
-    const pixelMismatches274 = new Set();
-    for (const key of farmKeys274) {
-      const base = trace.base[key] && trace.base[key].canvas;
-      if (!base || [1, 2, 3].some(sea => !trace.seasons[sea][key])) continue;
-      const bd = base.__pixels;
-      for (let at = 0; at < bd.length; at += 4) {
-        if (bd[at + 3] < 10) continue;
-        const sourceColor = (bd[at] << 16) | (bd[at + 1] << 8) | bd[at + 2];
-        if (expectedMaps274[0].has(sourceColor)) hitSources274.add(sourceColor);
-        for (let sea = 1; sea <= 3; sea++) {
-          const sd = trace.seasons[sea][key].canvas.__pixels;
-          const actual = (sd[at] << 16) | (sd[at + 1] << 8) | sd[at + 2];
-          const expected = expectedMaps274[sea - 1].has(sourceColor) ?
-            expectedMaps274[sea - 1].get(sourceColor) : sourceColor;
-          if (actual !== expected || sd[at + 3] !== bd[at + 3]) {
-            pixelMismatches274.add(
-              `${key}:s${sea}:${sourceColor.toString(16)}>${actual.toString(16)}`
-            );
-          }
-        }
-      }
-    }
-    const expectedSources274 = Array.from(expectedMaps274[0].keys()).sort((a, b) => a - b);
-    const actualSources274 = Array.from(hitSources274).sort((a, b) => a - b);
-    if (JSON.stringify(actualSources274) !== JSON.stringify(expectedSources274)) {
-      errors.push('season-source-coverage:' +
-        actualSources274.map(value => value.toString(16)).join(','));
-    }
-    if (pixelMismatches274.size) {
-      errors.push('season-full-map:' + Array.from(pixelMismatches274).slice(0, 8).join(','));
-    }
-    return errors;
-  };
-  const farmTrace274 = traceFarmBlock274(farmBlockSource274);
-  assert(farmTraceErrors274(farmTrace274).length === 0,
-    'T274 四張 base 應有實質繪圖、固定幾何、互異 fingerprint，且十二張季節圖應真 remap');
-
-  const oldSeasonStart274 = source =>
-    source.indexOf('  /* ---------- T229 農場四季');
-  const oldSeasonEnd274 = (source, start) =>
-    source.indexOf('  // T46 牧場 (k=23', start);
-  const preOldSeasonStart274 = oldSeasonStart274(pre274Html);
-  const preOldSeasonEnd274 = oldSeasonEnd274(pre274Html, preOldSeasonStart274);
-  const curOldSeasonStart274 = oldSeasonStart274(html);
-  const curOldSeasonEnd274 = oldSeasonEnd274(html, curOldSeasonStart274);
-  assert(preOldSeasonStart274 >= 0 && preOldSeasonEnd274 > preOldSeasonStart274 &&
-    curOldSeasonStart274 >= 0 && curOldSeasonEnd274 > curOldSeasonStart274 &&
-    html.slice(curOldSeasonStart274, curOldSeasonEnd274) ===
-      pre274Html.slice(preOldSeasonStart274, preOldSeasonEnd274),
-  'T274 不得修改既有 T229 SUM/AUT/WIN/FKEYS 與 12 作物＋大農場季節管線');
-
-  // T275 起：exact rollback 改跑「凍結快照 pre-T275（＝post-T274 封存態）」——沿用 T273 對 post273Html
-  // 的同款慣例（卡完成後由下一卡的 pre 快照承接 byte 比對，live 檔繼續演進不受釘選）；
-  // GPT 寫本測試時 pre-T275 尚不存在只能用 live html，T275 收尾時依慣例切換。
-  const post274Html = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T275.html'), 'utf8');
-  const farmStartAt274s = post274Html.indexOf(farmStart274);
-  const farmEndAt274s = post274Html.indexOf(farmEnd274, farmStartAt274s);
-  const farmBlockEnd274s = farmEndAt274s + farmEnd274.length;
-  assert(farmStartAt274s >= 0 && farmEndAt274s > farmStartAt274s,
-    'T274 rollback 快照（pre-T275）內應含完整 T274 區塊');
-  assert(post274Html.slice(farmBlockEnd274s, farmBlockEnd274s + 1) === '\n',
-    'T274 尾端區塊後應有單一 LF，供 exact rollback');
-  let restoredHtml274 = post274Html.slice(0, farmStartAt274s) +
-    post274Html.slice(farmBlockEnd274s + 1);
-  assert(restoredHtml274.split(farmNewLine274).length === 2,
-    'T274 exact rollback 應精確定位唯一農場 %16 行');
-  restoredHtml274 = restoredHtml274.replace(farmNewLine274, farmOldLine274);
-  assert(restoredHtml274 === pre274Html,
-    'T274 反向移除四 base＋十二季節圖並還原農場單行後，必須逐 byte 等於 pre-T274');
-  assert(JSON.stringify(rngLines272(post274Html)) === JSON.stringify(rngLines272(pre274Html)),
-    'T274 相對 pre-T274 的 R()/ri() 呼叫行應逐行零差異'); // T275 起改比快照（同 rollback 慣例；live 檔的亂數紀律由後續各卡自行驗證）
-  assert(JSON.stringify(sharedSpriteRandLines272(post274Html)) ===
-    JSON.stringify(sharedSpriteRandLines272(pre274Html)),
-  'T274 相對 pre-T274 的既有共用 rand() 呼叫行應逐行零差異');
-
-  const moduloMutant274 = html.replace(farmNewLine274, farmOldLine274);
-  assert(moduloMutant274 !== html && farmAudit274(moduloMutant274).length > 0,
-    'T274 %16 若退回 %12，source audit 必須殺死 mutant');
-  for (const key of farmKeys274) {
-    const assignment = `SPR.bld['${key}']={img:c,ax,ay,w:136,h:150,smoke:[]};`;
-    const missingBaseMutant = html.replace(assignment, '');
-    assert(missingBaseMutant !== html && farmAudit274(missingBaseMutant).length > 0,
-      `T274 若遺失 ${key} base，source audit 必須殺死 mutant`);
-    const withoutKey = farmKeys274.filter(item => item !== key);
-    const missingSeasonMutant = html.replace(
-      farmKeysLiteral274,
-      `const FKEYS274=['${withoutKey.join("','")}'];`
-    );
-    assert(missingSeasonMutant !== html && farmAudit274(missingSeasonMutant).length > 0,
-      `T274 若遺失 ${key} 的三季生成入口，source audit 必須殺死 mutant`);
-  }
-  const oldOverwriteMutant274 = html.replace(
-    "SPR.bld['22_1_12']={img:c,ax,ay,w:136,h:150,smoke:[]};",
-    "SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};"
-  );
-  assert(oldOverwriteMutant274 !== html &&
-    farmAudit274(oldOverwriteMutant274).includes('assignment-whitelist'),
-  'T274 若覆寫既有 22_1_0，assignment whitelist 必須殺死 mutant');
-
-  const identitySummerMutant274 = farmBlockSource274.replace(
-    /const SUM274=\{[^;\r\n]*\};/,
-    'const SUM274={};'
-  );
-  assert(identitySummerMutant274 !== farmBlockSource274 &&
-    farmTraceErrors274(traceFarmBlock274(identitySummerMutant274)).length > 0,
-  'T274 夏季 map 若退化為 identity，獨立像素期望必須殺死 mutant');
-  const singleColorMutant274 = farmBlockSource274.replace(
-    '0x65452f:0x5d4934', '0x65452f:0x65452f'
-  );
-  assert(singleColorMutant274 !== farmBlockSource274 &&
-    farmTraceErrors274(traceFarmBlock274(singleColorMutant274)).length > 0,
-  'T274 任一未抽樣單色若錯映射（夏季土色 identity），完整逐像素契約必須殺死 mutant');
-  const swappedSeasonMutant274 = farmBlockSource274.replace(
-    farmMapsLiteral274, 'const MAPS274=[AUT274,SUM274,WIN274];'
-  );
-  assert(swappedSeasonMutant274 !== farmBlockSource274 &&
-    farmTraceErrors274(traceFarmBlock274(swappedSeasonMutant274)).length > 0,
-  'T274 夏／秋 bucket 若對調，獨立像素期望必須殺死 mutant');
-
-  const flatBaseLines274 = farmKeys274.map(key =>
-    `  {const[c,g]=cv(136,150);const ax=68,ay=148;plate(g,ax,ay,'#8a9a5a');` +
-    `SPR.bld['${key}']={img:c,ax,ay,w:136,h:150,smoke:[]};}`).join('\n');
-  const flatFarmMutant274 = farmStart274 + '\n' + flatBaseLines274 + '\n' +
-    `  {${farmKeysLiteral274}for(const fk of FKEYS274){const b0=SPR.bld[fk];` +
-    `for(let sea=1;sea<=3;sea++)SPR.farmSea[sea][fk]=` +
-    `{img:b0.img,ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}\n` +
-    farmEnd274;
-  assert(farmTraceErrors274(traceFarmBlock274(flatFarmMutant274)).length > 0,
-    'T274 四張圖若退化成空底板且三季共用春圖，pixel trace 必須殺死 mutant');
-
-  const farmBlockWithLf274 = html.slice(farmStartAt274, farmBlockEnd274 + 1);
-  const withoutFarmBlock274 = html.slice(0, farmStartAt274) +
-    html.slice(farmBlockEnd274 + 1);
-  const k62At274 = withoutFarmBlock274.indexOf("SPR.bld['62_1_0']");
-  const movedEarlyMutant274 = withoutFarmBlock274.slice(0, k62At274) +
-    farmBlockWithLf274 + withoutFarmBlock274.slice(k62At274);
-  assert(farmAudit274(movedEarlyMutant274).includes('tail-order'),
-    'T274 新 sprite 若被移到 k62／T273 之前，尾端順序 audit 必須殺死 mutant');
-
-  window.GV.newWorldSeeded(274);
-  window.GV.weather(0);
-  if (window.GV.setDiff) window.GV.setDiff(1);
-  window.GV.addMoney(9000000);
-  const farmRoots274 = [];
-  for (let wanted = 0; wanted < 16; wanted++) {
-    let spot = null;
-    for (let y = 2; y < window.GV.N() - 3 && !spot; y++) {
-      for (let x = 2; x < window.GV.N() - 3; x++) {
-        if ((x * 5 + y * 11) % 16 === wanted &&
-            window.GV.canPlaceTool('farm', x, y) === null) {
-          spot = { x, y }; break;
-        }
-      }
-    }
-    assert(spot, `T274 應找到 residue ${wanted} 的合法 2×2 農場位置`);
-    assert(place('farm', spot.x, spot.y),
-      `T274 residue ${wanted} 農場應真實建造成功`);
-    const root = tile(spot.x, spot.y).bld;
-    assert(root && root.k === 22 && root.v === wanted && root.lv === 1 &&
-      root.sz === 2,
-    `T274 residue ${wanted} root 應精確為 k22/v${wanted}/lv1/sz2`);
-    let refs = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-      if (!dx && !dy) continue;
-      const ref = tile(spot.x + dx, spot.y + dy).bld;
-      if (ref && ref.k === 22 && ref.ref &&
-          ref.ref[0] === spot.x && ref.ref[1] === spot.y) refs++;
-    }
-    assert(refs === 3,
-      `T274 residue ${wanted} 應建立精確3個 ref 格，實際 ${refs}`);
-    farmRoots274.push({ ...spot, v: wanted });
-  }
-  window.GV.save();
-  const rawFarmSave274 = JSON.parse(store[SKEY]);
-  const rawFarmVariants274 = rawFarmSave274.bl.filter(rec => rec[1] === 22)
-    .map(rec => rec[3]).sort((a, b) => a - b);
-  assert(JSON.stringify(rawFarmVariants274) ===
-    JSON.stringify(Array.from({ length: 16 }, (_, v) => v)),
-  'T274 原始存檔 bl 應逐值包含農場 v0..15');
-  assert(window.GV.load() === true,
-    'T274 十六種農場同存檔 save→load 應成功');
-  for (const root of farmRoots274) {
-    const loaded = tile(root.x, root.y).bld;
-    assert(loaded && loaded.k === 22 && loaded.v === root.v &&
-      loaded.lv === 1 && loaded.sz === 2,
-    `T274 load 後農場 v${root.v} root 應逐值保留`);
-    let refs = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-      if (!dx && !dy) continue;
-      const ref = tile(root.x + dx, root.y + dy).bld;
-      if (ref && ref.k === 22 && ref.ref &&
-          ref.ref[0] === root.x && ref.ref[1] === root.y) refs++;
-    }
-    assert(refs === 3,
-      `T274 load 後農場 v${root.v} 應重建精確3個 ref，實際 ${refs}`);
   }
 }
 

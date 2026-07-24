@@ -6,8 +6,6 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const crypto = require('crypto');
-const zlib = require('zlib');
-const childProcess = require('child_process');
 
 // ---- 最小 DOM / BOM mock（以 test_t38.js 為底，強化 classList/click/keydown/AudioContext）----
 const elMap = new Map();
@@ -251,15 +249,15 @@ for (const [tool, k, sz] of SV) {
 // SPR.bld 對應鍵存在（原始碼靜態斷言，mock 無法驗像素）
 for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.bld 應生成 ' + k + '_1_0');
 // 竄改存檔 v=2 → load 應正規化回 0
-// T226/T274：農場座標決定性選型＋SPR 鍵存在＋load 保留變體（新設計正面斷言）
+// T226：農場座標決定性選型＋SPR 鍵存在＋load 保留變體（新設計正面斷言）
 {
   const sp = findSpot('farm');
   assert(sp, 'farm 應找到可建位置');
   assert(place('farm', sp.x, sp.y), 'farm 應成功建造');
   const fb = tile(sp.x, sp.y).bld;
-  const expV = (sp.x * 5 + sp.y * 11) % 16; // T274：16 作物
-  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%16=' + expV + '、sz=2');
-  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_15']"), 'SPR.bld 應生成 22_1_1..22_1_15（T226/227/235/T274 農場 16 作物）');
+  const expV = (sp.x * 5 + sp.y * 11) % 12; // T235：12 作物
+  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%12=' + expV + '、sz=2');
+  assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_11']"), 'SPR.bld 應生成 22_1_1..22_1_11（T226/227/235 農場 12 作物）');
   svRoots.push({ k: 22, x: sp.x, y: sp.y, keepV: expV });
 }
 // T232：停車場座標決定性選型＋SPR 鍵存在＋load 保留變體
@@ -273,17 +271,15 @@ for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.b
   assert(html.includes("SPR.bld['20_1_1']") && html.includes("SPR.bld['20_1_2']"), 'SPR.bld 應生成 20_1_1 / 20_1_2（T232 停車場變體）');
   svRoots.push({ k: 20, x: sp.x, y: sp.y, keepV: expV });
 }
-// T230/T273：牧場座標決定性選型＋SPR 鍵存在＋load 保留變體
+// T230：牧場座標決定性選型＋SPR 鍵存在＋load 保留變體
 {
   const sp = findSpot('ranch');
   assert(sp, 'ranch 應找到可建位置');
   assert(place('ranch', sp.x, sp.y), 'ranch 應成功建造');
   const rb2 = tile(sp.x, sp.y).bld;
-  const expV = (sp.x * 7 + sp.y * 5) % 5;
-  assert(rb2 && rb2.k === 23 && rb2.v === expV && rb2.sz === 2, 'ranch root v 應為座標決定性 (x*7+y*5)%5=' + expV + '、sz=2');
-  assert(html.includes("SPR.bld['23_1_1']") && html.includes("SPR.bld['23_1_2']") &&
-    html.includes("SPR.bld['23_1_3']") && html.includes("SPR.bld['23_1_4']"),
-  'SPR.bld 應生成 23_1_1..23_1_4（T230/T273 牧場 5 變體）');
+  const expV = (sp.x * 7 + sp.y * 5) % 3;
+  assert(rb2 && rb2.k === 23 && rb2.v === expV && rb2.sz === 2, 'ranch root v 應為座標決定性 (x*7+y*5)%3=' + expV + '、sz=2');
+  assert(html.includes("SPR.bld['23_1_1']") && html.includes("SPR.bld['23_1_2']"), 'SPR.bld 應生成 23_1_1 / 23_1_2（T230 牧場變體）');
   svRoots.push({ k: 23, x: sp.x, y: sp.y, keepV: expV });
 }
 window.GV.save();
@@ -479,7 +475,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v5';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v5');
+assert(/const CACHE=CACHE_PREFIX\+'v4';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v4');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
@@ -1334,10 +1330,9 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
 
   // 本卡不得偷偷新增／移動主亂數呼叫；AI 改選固定變體 k62 的既有 ri(3) 差異屬明示策略分岔。
   const pre267Html = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T267.html'), 'utf8');
-  const post267Html = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T268.html'), 'utf8');
   const rngLines267 = s => s.split(/\r?\n/).filter(l => /\b(?:R|ri)\s*\(|Math\.random\s*\(/.test(l));
-  assert(JSON.stringify(rngLines267(post267Html)) === JSON.stringify(rngLines267(pre267Html)),
-    'T267 當卡相對 pre-T267 的 R()/ri()/Math.random() 呼叫行應逐行零差異');
+  assert(JSON.stringify(rngLines267(html)) === JSON.stringify(rngLines267(pre267Html)),
+    'T267 相對備份的 R()/ri()/Math.random() 呼叫行應逐行零差異');
 }
 
 // ================= (16) T268 PWA 快取生命週期／離線入口 =================
@@ -1345,26 +1340,17 @@ async function runPwaTests() {
   console.log('\n-- (16) T268 PWA 快取生命週期／離線入口 --');
   const sw268 = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
   const base268 = 'https://example.test/glimmer-town/';
-  const shellFiles270 = [
-    './index.html',
-    './manifest.json',
-    './icon.svg',
-    './icon-v1-192.png',
-    './icon-v1-512.png',
-    './icon-v1-maskable-512.png'
-  ];
 
   function makeSwHarness268(source) {
     const handlers = Object.create(null);
     const buckets = new Map();
     const ops = {
       opened: [], addAll: [], deleted: [], puts: [], putFailures: 0, openFailures: 0,
-      matchFailures: 0, networkCalls: 0, skipWaiting: 0, claim: 0, order: []
+      skipWaiting: 0, claim: 0, order: []
     };
     let fetchImpl = async () => { throw new TypeError('offline'); };
     let rejectPut = false;
     let rejectOpen = false;
-    let rejectMatch = false;
     const toUrl = request => new URL(typeof request === 'string' ? request : request.url, base268).href;
     const sameKey = (a, b, ignoreSearch) => {
       if (!ignoreSearch) return a === b;
@@ -1385,7 +1371,6 @@ async function runPwaTests() {
           entries.set(toUrl(request), response.clone());
         },
         async match(request, options = {}) {
-          if (rejectMatch) { ops.matchFailures++; throw new Error('cache match unavailable'); }
           const wanted = toUrl(request);
           for (const [key, response] of entries) {
             if (sameKey(key, wanted, !!options.ignoreSearch)) return response.clone();
@@ -1422,7 +1407,7 @@ async function runPwaTests() {
     vm.runInNewContext(source, {
       self: self268,
       caches: cacheStorage,
-      fetch: request => { ops.networkCalls++; return fetchImpl(request); },
+      fetch: request => fetchImpl(request),
       URL, Response, Promise, Set, TypeError, Error, setTimeout, clearTimeout
     }, { filename: 'sw.js' });
 
@@ -1433,7 +1418,6 @@ async function runPwaTests() {
       setFetch(fn) { fetchImpl = fn; },
       failPut(on) { rejectPut = !!on; },
       failOpen(on) { rejectOpen = !!on; },
-      failMatch(on) { rejectMatch = !!on; },
       async fireLife(type) {
         let lifetime = null;
         handlers[type]({ waitUntil(promise) { lifetime = Promise.resolve(promise); } });
@@ -1454,23 +1438,21 @@ async function runPwaTests() {
 
   const h268 = makeSwHarness268(sw268);
   for (const name of ['gv-v1', 'gv-v2', 'glimmerville-shell-v2', 'glimmerville-shell-v3',
-    'glimmerville-shell-v4',
     'gv-other-app', 'shared-cache']) h268.seed(name);
   await h268.fireLife('install');
-  assert(h268.ops.opened[0] === 'glimmerville-shell-v5',
-    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v5 cache');
-  assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(shellFiles270),
-    'T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js');
+  assert(h268.ops.opened[0] === 'glimmerville-shell-v4',
+    'T268/T269 install 應開啟目前專屬 glimmerville-shell-v4 cache');
+  assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(['./index.html', './manifest.json', './icon.svg']),
+    'T268 precache 應只抓 canonical index／manifest／icon，不重複下載 scope root 或 sw.js');
   assert(h268.ops.skipWaiting === 1 && h268.ops.order.includes('skipWaiting'),
     'T268 install.waitUntil 應等待 skipWaiting 完成');
 
   await h268.fireLife('activate');
   assert(JSON.stringify(h268.ops.deleted.slice().sort()) ===
-    JSON.stringify(['glimmerville-shell-v2', 'glimmerville-shell-v3', 'glimmerville-shell-v4',
-      'gv-v1', 'gv-v2'].sort()),
-    'T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
+    JSON.stringify(['glimmerville-shell-v2', 'glimmerville-shell-v3', 'gv-v1', 'gv-v2'].sort()),
+    'T268/T269 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
   const keys268 = await h268.cacheStorage.keys();
-  assert(keys268.includes('glimmerville-shell-v5') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
+  assert(keys268.includes('glimmerville-shell-v4') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
     'T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache');
   assert(h268.ops.claim === 1 && h268.ops.order[h268.ops.order.length - 1] === 'claim',
     'T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim');
@@ -1526,7 +1508,7 @@ async function runPwaTests() {
     h268.ops.puts.length === putCountBefore503,
     'T268 HTTP 503 應照實回傳且不得污染 canonical app-shell');
 
-  await h268.cacheStorage.delete('glimmerville-shell-v5');
+  await h268.cacheStorage.delete('glimmerville-shell-v4');
   h268.setFetch(async () => { throw new TypeError('offline'); });
   result268 = await h268.fireFetch({ method: 'GET', url: base268, mode: 'navigate' });
   assert(result268.response.status === 503 && (await result268.response.text()).includes('尚未完成首次快取'),
@@ -1534,12 +1516,10 @@ async function runPwaTests() {
 
   const index268 = fs.readFileSync(path.join(__dirname, 'index.html'));
   const preIndex268 = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T268.html'));
-  const postIndex268 = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T269.html'));
   const indexText268 = index268.toString('utf8');
-  const rngLines268 = source => source.toString('utf8').split(/\r?\n/)
-    .filter(line => /\b(?:R|ri)\s*\(|Math\.random\s*\(/.test(line));
-  assert(JSON.stringify(rngLines268(postIndex268)) === JSON.stringify(rngLines268(preIndex268)),
-    'T268 當卡 index 註冊提示改動不得新增／移除主亂數呼叫');
+  assert(indexText268.match(/\b(?:R|ri)\s*\(|Math\.random\s*\(/g)?.length ===
+    preIndex268.toString('utf8').match(/\b(?:R|ri)\s*\(|Math\.random\s*\(/g)?.length,
+    'T268 index 註冊提示改動不得新增／移除主亂數呼叫');
   assert(indexText268.includes("updateViaCache:'none'") && indexText268.includes('Service Worker 註冊失敗'),
     'T268 頁面應明示 SW 更新繞過 HTTP cache，且註冊失敗不再靜默吞掉');
   const readme268 = fs.readFileSync(path.join(__dirname, 'README.md'), 'utf8');
@@ -1573,29 +1553,24 @@ async function runPwaTests() {
     assert(startUrl269.href === oldFallbackId269.href,
       'T269 缺省 identity 應維持改卡前 resolved start_url：' + manifestUrl269);
   }
-  const { scope: addedScope269, icons: icons270, ...manifestRest269 } = manifest269;
-  const { icons: preIcons269, ...preManifestRest269 } = preManifest269;
-  assert(addedScope269 === './' && icons270.length >= preIcons269.length &&
-    JSON.stringify(manifestRest269) === JSON.stringify(preManifestRest269),
-    'T269 manifest 除 scope 與 T270 icon 陣列外，start_url／名稱／顯示／顏色應逐值不變');
+  const { scope: addedScope269, ...manifestRest269 } = manifest269;
+  assert(addedScope269 === './' && JSON.stringify(manifestRest269) === JSON.stringify(preManifest269),
+    'T269 manifest 除新增 scope 外，start_url／名稱／顯示／顏色／icon 應逐值不變');
+  const index269 = fs.readFileSync(path.join(__dirname, 'index.html'));
   const preIndex269 = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T269.html'));
-  const postIndex269 = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T270.html'));
-  assert(postIndex269.equals(preIndex269),
-    'T269 當卡 index.html 應與 pre-T269 備份位元組完全一致');
+  assert(index269.equals(preIndex269), 'T269 index.html 應與 pre-T269 備份位元組完全一致');
 
   const h269 = makeSwHarness268(sw268);
-  for (const name of ['gv-v1', 'gv-v2', 'glimmerville-shell-v3', 'glimmerville-shell-v4',
-    'gv-other-app', 'shared-cache']) h269.seed(name);
+  for (const name of ['gv-v1', 'gv-v2', 'glimmerville-shell-v3', 'gv-other-app', 'shared-cache']) h269.seed(name);
   await h269.fireLife('install');
   await h269.fireLife('activate');
   const keys269 = await h269.cacheStorage.keys();
-  assert(h269.ops.opened[0] === 'glimmerville-shell-v5' &&
-    JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(shellFiles270),
-    'T269/T270 v5 install 應維持完整 app-shell 資產閉包');
-  assert(!keys269.includes('glimmerville-shell-v3') && !keys269.includes('glimmerville-shell-v4') &&
-    keys269.includes('glimmerville-shell-v5') &&
+  assert(h269.ops.opened[0] === 'glimmerville-shell-v4' &&
+    JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(['./index.html', './manifest.json', './icon.svg']),
+    'T269 v4 install 應維持 index／manifest／icon 三個完整殼層');
+  assert(!keys269.includes('glimmerville-shell-v3') && keys269.includes('glimmerville-shell-v4') &&
     keys269.includes('gv-other-app') && keys269.includes('shared-cache'),
-    'T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache');
+    'T269 activate 應刪專屬 v3，並保留目前版與 foreign cache');
 
   const freshManifest269 = JSON.stringify({ ...manifest269, description: 'fresh-network-269' });
   h269.setFetch(async () => new Response(freshManifest269, {
@@ -1607,7 +1582,7 @@ async function runPwaTests() {
   assert(result269.intercepted && result269.response.status === 201 &&
     await result269.response.text() === freshManifest269,
     'T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response');
-  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v5');
+  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v4');
   let cachedManifest269 = await cache269.match(base268 + 'manifest.json');
   assert(cachedManifest269 && await cachedManifest269.text() === freshManifest269 &&
     h269.ops.puts.includes(base268 + 'manifest.json'),
@@ -1647,16 +1622,6 @@ async function runPwaTests() {
     JSON.parse(openFailureOfflineText269).error === 'offline-manifest-not-cached',
     'T269 離線且 Cache Storage open 拒絕時應回 valid JSON 503，不得裸 rejection');
   h269.failOpen(false);
-  h269.failMatch(true);
-  result269 = await h269.fireFetch({
-    method: 'GET', url: base268 + 'manifest.json?matchFailureOffline=271', mode: 'same-origin'
-  });
-  const matchFailureOfflineText271 = await result269.response.text();
-  assert(result269.response.status === 503 &&
-    JSON.parse(matchFailureOfflineText271).error === 'offline-manifest-not-cached' &&
-    h269.ops.matchFailures === 1,
-    'T271 manifest 離線 cache.match 拒絕仍應維持 T269 valid JSON 503 語意');
-  h269.failMatch(false);
 
   const manifestPutsBefore503269 = h269.ops.puts.length;
   h269.setFetch(async () => new Response('manifest-maintenance', { status: 503 }));
@@ -1673,7 +1638,7 @@ async function runPwaTests() {
   assert(await result269.response.text() === freshManifest269,
     'T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest');
 
-  await h269.cacheStorage.delete('glimmerville-shell-v5');
+  await h269.cacheStorage.delete('glimmerville-shell-v4');
   result269 = await h269.fireFetch({
     method: 'GET', url: base268 + 'manifest.json?empty=269', mode: 'same-origin'
   });
@@ -1682,1172 +1647,6 @@ async function runPwaTests() {
     result269.response.headers.get('Content-Type').includes('application/manifest+json') &&
     JSON.parse(missingManifestText269).error === 'offline-manifest-not-cached',
     'T269 manifest cache 缺失且離線時應回 valid JSON 503 說明');
-
-  console.log('\n-- (18) T270 Android PWA 圖示資產 --');
-
-  function crc32_270(buffer) {
-    let crc = 0xffffffff;
-    for (const byte of buffer) {
-      crc ^= byte;
-      for (let bit = 0; bit < 8; bit++)
-        crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
-    }
-    return (crc ^ 0xffffffff) >>> 0;
-  }
-
-  function paeth270(a, b, c) {
-    const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
-    return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
-  }
-
-  function parsePng270(data, filename) {
-    const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-    if (!data.subarray(0, 8).equals(signature)) throw new Error(filename + ' PNG signature invalid');
-    let offset = 8, ihdr = null, sawIend = false, firstIdatOffset = -1;
-    const idat = [];
-    const chunks = [];
-    while (offset + 12 <= data.length) {
-      const chunkOffset = offset;
-      const length = data.readUInt32BE(offset);
-      if (offset + 12 + length > data.length)
-        throw new Error(filename + ' truncated PNG chunk');
-      const typeBytes = data.subarray(offset + 4, offset + 8);
-      const type = typeBytes.toString('ascii');
-      const payload = data.subarray(offset + 8, offset + 8 + length);
-      const expectedCrc = data.readUInt32BE(offset + 8 + length);
-      const actualCrc = crc32_270(Buffer.concat([typeBytes, payload]));
-      if (actualCrc !== expectedCrc) throw new Error(filename + ' ' + type + ' CRC mismatch');
-      if (type === 'IHDR') {
-        if (chunks.length || length !== 13) throw new Error(filename + ' invalid IHDR position/length');
-        ihdr = {
-          width: payload.readUInt32BE(0),
-          height: payload.readUInt32BE(4),
-          bitDepth: payload[8],
-          colorType: payload[9],
-          compression: payload[10],
-          filter: payload[11],
-          interlace: payload[12]
-        };
-      } else if (type === 'IDAT') {
-        if (firstIdatOffset < 0) firstIdatOffset = chunkOffset;
-        idat.push(payload);
-      } else if (type === 'tRNS') {
-        throw new Error(filename + ' tRNS transparency is forbidden');
-      } else if (type === 'IEND') {
-        if (length !== 0) throw new Error(filename + ' invalid IEND length');
-        sawIend = true;
-      }
-      chunks.push(type);
-      offset += 12 + length;
-      if (sawIend) break;
-    }
-    if (!ihdr || !idat.length || !sawIend) throw new Error(filename + ' missing IHDR/IDAT/IEND');
-    if (offset !== data.length) throw new Error(filename + ' trailing bytes after IEND');
-    if (ihdr.bitDepth !== 8 || ihdr.colorType !== 2 || ihdr.compression ||
-      ihdr.filter || ihdr.interlace)
-      throw new Error(filename + ' must be non-interlaced 8-bit RGB');
-
-    const bytesPerPixel = 3, stride = ihdr.width * bytesPerPixel;
-    const raw = zlib.inflateSync(Buffer.concat(idat));
-    if (raw.length !== (stride + 1) * ihdr.height)
-      throw new Error(filename + ' inflated byte length mismatch');
-    const pixels = Buffer.alloc(stride * ihdr.height);
-    let source = 0;
-    for (let y = 0; y < ihdr.height; y++) {
-      const filterType = raw[source++];
-      if (filterType > 4) throw new Error(filename + ' invalid PNG filter ' + filterType);
-      for (let x = 0; x < stride; x++) {
-        const destination = y * stride + x;
-        const left = x >= bytesPerPixel ? pixels[destination - bytesPerPixel] : 0;
-        const up = y ? pixels[destination - stride] : 0;
-        const upLeft = y && x >= bytesPerPixel ? pixels[destination - stride - bytesPerPixel] : 0;
-        let predictor = 0;
-        if (filterType === 1) predictor = left;
-        else if (filterType === 2) predictor = up;
-        else if (filterType === 3) predictor = Math.floor((left + up) / 2);
-        else if (filterType === 4) predictor = paeth270(left, up, upLeft);
-        pixels[destination] = (raw[source++] + predictor) & 255;
-      }
-    }
-    return { ...ihdr, pixels, data, chunks, firstIdatOffset };
-  }
-
-  function readPng270(filename) {
-    return parsePng270(fs.readFileSync(path.join(__dirname, filename)), filename);
-  }
-
-  function pngChunk270(type, payload) {
-    const typeBytes = Buffer.from(type, 'ascii');
-    const chunk = Buffer.alloc(12 + payload.length);
-    chunk.writeUInt32BE(payload.length, 0);
-    typeBytes.copy(chunk, 4);
-    payload.copy(chunk, 8);
-    chunk.writeUInt32BE(crc32_270(Buffer.concat([typeBytes, payload])), 8 + payload.length);
-    return chunk;
-  }
-
-  const expectedIcons270 = [
-    ['icon-v1-192.png', '192x192', 'image/png', 'any'],
-    ['icon-v1-512.png', '512x512', 'image/png', 'any'],
-    ['icon-v1-maskable-512.png', '512x512', 'image/png', 'maskable'],
-    ['icon.svg', 'any', 'image/svg+xml', 'any']
-  ];
-  assert(JSON.stringify(manifest269.icons.map(icon =>
-    [icon.src, icon.sizes, icon.type, icon.purpose])) === JSON.stringify(expectedIcons270),
-  'T270 manifest 應精確列出 192/512 any、獨立 512 maskable 與 SVG any');
-  assert(manifest269.icons.every(icon => icon.purpose === 'any' || icon.purpose === 'maskable') &&
-    manifest269.icons.filter(icon => icon.purpose === 'maskable').length === 1,
-  'T270 不得再讓同一圖示合併宣告 any maskable');
-  assert(manifest269.icons.filter(icon => icon.type === 'image/png').every(icon =>
-    /^icon-v\d+-(?:192|512|maskable-512)\.png$/.test(icon.src) &&
-      !/[?#]/.test(icon.src)),
-  'T270 PNG icon URL 應為無 query 的版本化實體檔名');
-
-  const manifestUrl270 = new URL('https://example.test/games/glimmer-town/manifest.json');
-  const scopeUrl270 = new URL(manifest269.scope, manifestUrl270);
-  assert(manifest269.icons.every(icon => {
-    const resolved = new URL(icon.src, manifestUrl270);
-    return resolved.origin === manifestUrl270.origin && resolved.href.startsWith(scopeUrl270.href) &&
-      fs.existsSync(path.join(__dirname, icon.src));
-  }), 'T270 manifest 每個 icon 都應為 scope 內存在的同源本地資產');
-
-  const pngFiles270 = expectedIcons270.filter(icon => icon[2] === 'image/png');
-  const pngInfo270 = new Map(pngFiles270.map(([filename]) => [filename, readPng270(filename)]));
-  for (const [filename, declared] of pngFiles270) {
-    const info = pngInfo270.get(filename);
-    const [declaredWidth, declaredHeight] = declared.split('x').map(Number);
-    assert(info.width === declaredWidth && info.height === declaredHeight &&
-      info.width === info.height && info.bitDepth === 8 && info.colorType === 2 &&
-      !info.chunks.includes('tRNS'),
-    `T270 ${filename} 的真 IHDR 應等於 ${declared}／8-bit RGB 且無 tRNS 透明`);
-  }
-
-  const parserBase270 = pngInfo270.get('icon-v1-192.png');
-  const trnsChunk270 = pngChunk270('tRNS', Buffer.from([0, 13, 0, 18, 0, 38]));
-  const trnsMutant270 = Buffer.concat([
-    parserBase270.data.subarray(0, parserBase270.firstIdatOffset),
-    trnsChunk270,
-    parserBase270.data.subarray(parserBase270.firstIdatOffset)
-  ]);
-  let rejectsTrns270 = false, rejectsTrailing270 = false;
-  try { parsePng270(trnsMutant270, 'tRNS-mutant'); }
-  catch (err) { rejectsTrns270 = /\btRNS\b/.test(String(err && err.message)); }
-  try { parsePng270(Buffer.concat([parserBase270.data, Buffer.from([0])]), 'trailing-mutant'); }
-  catch (err) { rejectsTrailing270 = /trailing bytes/.test(String(err && err.message)); }
-  assert(rejectsTrns270 && rejectsTrailing270,
-    'T270 PNG parser 應實際攔截合法 tRNS 透明與 IEND 後尾隨資料');
-
-  const svg270 = fs.readFileSync(path.join(__dirname, 'icon.svg'), 'utf8');
-  const palette270 = new Set(Array.from(svg270.matchAll(/fill="(#[0-9a-f]{6})"/gi),
-    match => match[1].toLowerCase()));
-  const background270 = [0x0d, 0x12, 0x26];
-  for (const [filename, info] of pngInfo270) {
-    const colors = new Set();
-    for (let offset270 = 0; offset270 < info.pixels.length; offset270 += 3)
-      colors.add('#' + info.pixels.subarray(offset270, offset270 + 3).toString('hex'));
-    assert(colors.size === palette270.size && Array.from(colors).every(color => palette270.has(color)),
-      `T270 ${filename} 不得產生 SVG 調色盤外的抗鋸齒／插值色`);
-  }
-
-  const mask270 = pngInfo270.get('icon-v1-maskable-512.png');
-  let foreground270 = 0, escaped270 = 0;
-  const center270 = mask270.width / 2, radius270 = mask270.width * 0.4;
-  for (let y270 = 0; y270 < mask270.height; y270++) for (let x270 = 0; x270 < mask270.width; x270++) {
-    const pixelOffset270 = (y270 * mask270.width + x270) * 3;
-    if (mask270.pixels[pixelOffset270] === background270[0] &&
-      mask270.pixels[pixelOffset270 + 1] === background270[1] &&
-      mask270.pixels[pixelOffset270 + 2] === background270[2]) continue;
-    foreground270++;
-    const dx270 = x270 + 0.5 - center270, dy270 = y270 + 0.5 - center270;
-    if (dx270 * dx270 + dy270 * dy270 > radius270 * radius270) escaped270++;
-  }
-  assert(foreground270 > 0 && escaped270 === 0,
-    `T270 maskable 非背景前景應全在中心40%安全圈，foreground=${foreground270} escaped=${escaped270}`);
-
-  const expectedHashes270 = {
-    'icon-v1-192.png': 'A7252477296CC7704BD3D485C8A3A25BCFB6C36BCB5DF2B0DCA666BAB4537951',
-    'icon-v1-512.png': '42D58A67CC90BAC9F965DBE8497AA5913AA5907623D2F278C2BA6CCC45566D4D',
-    'icon-v1-maskable-512.png': '56FFC2B39731BACF19E121770FDCE612C0CC915BB663C1A781D6E1E213005950'
-  };
-  assert(Object.entries(expectedHashes270).every(([filename, expected]) =>
-    crypto.createHash('sha256').update(pngInfo270.get(filename).data).digest('hex').toUpperCase() === expected),
-  'T270 三張 PNG SHA-256 應與可重現生成記錄一致；改圖時須換 icon 版本化檔名');
-
-  const manifestIconFiles270 = manifest269.icons.map(icon => './' + icon.src);
-  const expectedClosure270 = Array.from(new Set([
-    './index.html', './manifest.json', './icon.svg', ...manifestIconFiles270
-  ])).sort();
-  assert(JSON.stringify(Array.from(new Set(h269.ops.addAll[0])).sort()) === JSON.stringify(expectedClosure270),
-    'T270 Service Worker install FILES 應閉包 index／manifest／favicon 與全部 manifest icon');
-
-  const preIcon270 = fs.readFileSync(path.join(__dirname, 'backups', 'icon.pre-T270.svg'));
-  const preIndex270 = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T270.html'));
-  const postIndex270 = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T271.html'));
-  assert(Buffer.from(svg270).equals(preIcon270), 'T270 icon.svg 母版應與 pre-T270 備份位元組完全一致');
-  assert(postIndex270.equals(preIndex270),
-    'T270 當卡 index.html 應與 pre-T270 備份位元組完全一致');
-
-  const generator270 = fs.readFileSync(path.join(__dirname, 'generate_pwa_icons.py'), 'utf8');
-  assert(Object.keys(expectedHashes270).every(filename => generator270.includes(filename)) &&
-    generator270.includes('Image.new("RGB"') && generator270.includes('foreground_scale=Fraction(3, 2)'),
-  'T270 生成器應固定輸出三個版本化 RGB 資產，maskable 前景縮至75%');
-  const pngStateBefore270 = Object.keys(expectedHashes270).map(filename => {
-    const fullPath = path.join(__dirname, filename);
-    const stat = fs.statSync(fullPath);
-    return [filename, crypto.createHash('sha256').update(fs.readFileSync(fullPath)).digest('hex'),
-      stat.size, stat.mtimeMs];
-  });
-  function runGeneratorCheck270() {
-    const candidates = [];
-    if (process.platform === 'win32') candidates.push(['py', ['-3']]);
-    if (process.env.PYTHON) candidates.push([process.env.PYTHON, []]);
-    candidates.push(process.platform === 'win32' ? ['python', []] : ['python3', []]);
-    candidates.push(['python3', []], ['python', []]);
-    const seen = new Set();
-    let firstFailure = null;
-    for (const [executable, prefixArgs] of candidates) {
-      const candidateKey = executable + '\0' + prefixArgs.join('\0');
-      if (seen.has(candidateKey)) continue;
-      seen.add(candidateKey);
-      const result = childProcess.spawnSync(
-        executable, [...prefixArgs, '-B', 'generate_pwa_icons.py', '--check'],
-        { cwd: __dirname, encoding: 'utf8', windowsHide: true }
-      );
-      if (result.error && result.error.code === 'ENOENT') continue;
-      if (result.status === 0) return result;
-      if (!firstFailure) firstFailure = result;
-    }
-    return firstFailure || { status: -1, stdout: '', stderr: 'Python interpreter not found' };
-  }
-  const generatorChecks270 = [runGeneratorCheck270(), runGeneratorCheck270()];
-  const pngStateAfter270 = Object.keys(expectedHashes270).map(filename => {
-    const fullPath = path.join(__dirname, filename);
-    const stat = fs.statSync(fullPath);
-    return [filename, crypto.createHash('sha256').update(fs.readFileSync(fullPath)).digest('hex'),
-      stat.size, stat.mtimeMs];
-  });
-  assert(generatorChecks270.every(result =>
-    result.status === 0 && Object.keys(expectedHashes270).every(filename =>
-      result.stdout.includes(filename) && result.stdout.includes(expectedHashes270[filename]))) &&
-    JSON.stringify(pngStateAfter270) === JSON.stringify(pngStateBefore270),
-  'T270 生成器 --check 應連跑兩次逐 bytes 重建成功，且不寫入／改時戳');
-
-  console.log('\n-- (19) T271 PWA 快取讀取故障降級 --');
-
-  const h271Hit = makeSwHarness268(sw268);
-  await h271Hit.fireLife('install');
-  h271Hit.setFetch(async () => { throw new Error('cache hit must not use network'); });
-  let networkBefore271 = h271Hit.ops.networkCalls;
-  let result271 = await h271Hit.fireFetch({
-    method: 'GET', url: base268 + 'icon-v1-512.png?hit=271', mode: 'same-origin'
-  });
-  assert(await result271.response.text() === 'cached:./icon-v1-512.png' &&
-    h271Hit.ops.networkCalls === networkBefore271,
-  'T271 app-shell cache 命中應直接回 cached response，network calls 維持0增量');
-
-  const h271Miss = makeSwHarness268(sw268);
-  await h271Miss.fireLife('install');
-  await h271Miss.cacheStorage.delete('glimmerville-shell-v5');
-  h271Miss.setFetch(async () => new Response('fresh-cache-miss-271', { status: 200 }));
-  networkBefore271 = h271Miss.ops.networkCalls;
-  result271 = await h271Miss.fireFetch({
-    method: 'GET', url: base268 + 'icon-v1-192.png?miss=271', mode: 'same-origin'
-  });
-  assert(await result271.response.text() === 'fresh-cache-miss-271' &&
-    h271Miss.ops.networkCalls === networkBefore271 + 1,
-  'T271 app-shell cache miss 應只回退一次真 network fetch');
-
-  const h271Open = makeSwHarness268(sw268);
-  await h271Open.fireLife('install');
-  h271Open.failOpen(true);
-  h271Open.setFetch(async () => new Response('fresh-open-failure-271', { status: 200 }));
-  networkBefore271 = h271Open.ops.networkCalls;
-  result271 = await h271Open.fireFetch({
-    method: 'GET', url: base268 + 'icon-v1-maskable-512.png?open=271', mode: 'same-origin'
-  });
-  assert(await result271.response.text() === 'fresh-open-failure-271' &&
-    h271Open.ops.openFailures === 1 && h271Open.ops.networkCalls === networkBefore271 + 1,
-  'T271 app-shell caches.open 拒絕時仍應只呼叫一次 network 並回成功 response');
-
-  const h271Match = makeSwHarness268(sw268);
-  await h271Match.fireLife('install');
-  h271Match.failMatch(true);
-  h271Match.setFetch(async () => new Response('fresh-match-failure-271', { status: 200 }));
-  networkBefore271 = h271Match.ops.networkCalls;
-  result271 = await h271Match.fireFetch({
-    method: 'GET', url: base268 + 'icon.svg?match=271', mode: 'same-origin'
-  });
-  assert(await result271.response.text() === 'fresh-match-failure-271' &&
-    h271Match.ops.matchFailures === 1 && h271Match.ops.networkCalls === networkBefore271 + 1,
-  'T271 app-shell cache.match 拒絕時仍應只呼叫一次 network 並回成功 response');
-
-  const h271Both = makeSwHarness268(sw268);
-  await h271Both.fireLife('install');
-  h271Both.failOpen(true);
-  h271Both.setFetch(async () => { throw new TypeError('network-offline-271'); });
-  let staticReject271 = '';
-  try {
-    await h271Both.fireFetch({
-      method: 'GET', url: base268 + 'icon-v1-192.png?both=271', mode: 'same-origin'
-    });
-  } catch (err) {
-    staticReject271 = String(err && err.message);
-  }
-  assert(staticReject271 === 'network-offline-271' && h271Both.ops.networkCalls === 1,
-    'T271 靜態 cache 與 network 同時失敗時應保留真 fetch rejection，不偽造文字圖片');
-
-  const h271NavOpen = makeSwHarness268(sw268);
-  await h271NavOpen.fireLife('install');
-  h271NavOpen.failOpen(true);
-  h271NavOpen.setFetch(async () => { throw new TypeError('offline'); });
-  result271 = await h271NavOpen.fireFetch({
-    method: 'GET', url: base268 + 'index.html?navOpen=271', mode: 'navigate'
-  });
-  assert(result271.response.status === 503 &&
-    (await result271.response.text()).includes('尚未完成首次快取') &&
-    result271.response.headers.get('Content-Type').includes('text/plain'),
-  'T271 離線導航遇 caches.open 拒絕應回既定文字 503，不得裸 rejection');
-
-  const h271NavMatch = makeSwHarness268(sw268);
-  await h271NavMatch.fireLife('install');
-  h271NavMatch.failMatch(true);
-  h271NavMatch.setFetch(async () => { throw new TypeError('offline'); });
-  result271 = await h271NavMatch.fireFetch({
-    method: 'GET', url: base268 + 'index.html?navMatch=271', mode: 'navigate'
-  });
-  assert(result271.response.status === 503 &&
-    (await result271.response.text()).includes('尚未完成首次快取') &&
-    h271NavMatch.ops.matchFailures === 1,
-  'T271 離線導航遇 cache.match 拒絕應回既定文字 503，不得裸 rejection');
-
-  const h271NavOnline = makeSwHarness268(sw268);
-  await h271NavOnline.fireLife('install');
-  h271NavOnline.failOpen(true);
-  h271NavOnline.setFetch(async () => new Response('fresh-nav-cache-failure-271', { status: 200 }));
-  networkBefore271 = h271NavOnline.ops.networkCalls;
-  result271 = await h271NavOnline.fireFetch({
-    method: 'GET', url: base268 + 'index.html?navOnline=271', mode: 'navigate'
-  });
-  assert(await result271.response.text() === 'fresh-nav-cache-failure-271' &&
-    h271NavOnline.ops.networkCalls === networkBefore271 + 1 && h271NavOnline.ops.openFailures === 1,
-  'T271 在線導航遇 canonical cache open 拒絕仍應回 network 200');
-
-  const shellTailMarker271 = '  if(!SHELL_PATHS.has(url.pathname))return;\n';
-  const shellTailAt271 = sw268.indexOf(shellTailMarker271);
-  assert(shellTailAt271 >= 0, 'T271 mutant 前置應能精確定位靜態 app-shell 分支');
-  const oldStaticBranch271 =
-    "  e.respondWith(\n" +
-    "    caches.open(CACHE).then(cache=>cache.match(url.href,{ignoreSearch:true})).then(hit=>hit||fetch(req))\n" +
-    "  );\n});\n";
-  const mutant271 = sw268.slice(0, shellTailAt271 + shellTailMarker271.length) + oldStaticBranch271;
-  const h271Mutant = makeSwHarness268(mutant271);
-  await h271Mutant.fireLife('install');
-  h271Mutant.failOpen(true);
-  h271Mutant.setFetch(async () => new Response('mutant-network-should-be-reached', { status: 200 }));
-  let mutantReject271 = '';
-  try {
-    await h271Mutant.fireFetch({
-      method: 'GET', url: base268 + 'icon-v1-512.png?mutant=271', mode: 'same-origin'
-    });
-  } catch (err) {
-    mutantReject271 = String(err && err.message);
-  }
-  assert(mutantReject271 === 'cache storage unavailable' && h271Mutant.ops.networkCalls === 0,
-    'T271 修改前 promise-chain mutant 應被故障注入證明會攔死可用 network');
-
-  console.log('\n-- (20) T272 Sprite 紋理確定化 --');
-
-  const pre272Html = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T272.html'), 'utf8');
-  const post272Html = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T273.html'), 'utf8');
-  assert(
-    crypto.createHash('sha256').update(pre272Html).digest('hex').toUpperCase() ===
-      '3CCEEADC10563DEDF35EADFFB86D240D19719D20911EEE26F79143387A7D5097',
-    'T272 pre-index 備份 SHA-256 應維持開工記錄，不得隨 current 漂移'
-  );
-  assert(
-    crypto.createHash('sha256').update(post272Html).digest('hex').toUpperCase() ===
-      '3C1E1A900457AA1365CB88B80907A9DF8CA9FC6A4F315667D1CB049C43BFD6F6',
-    'T272 完成邊界應由 pre-T273（post-T272）SHA-256 封存'
-  );
-  const functionSlice272 = (source, name) => {
-    const start = source.indexOf('function ' + name + '(');
-    assert(start >= 0, `T272 應可定位正式 ${name}()`);
-    const bodyStart = source.indexOf('{', start);
-    let depth = 0;
-    for (let at = bodyStart; at < source.length; at++) {
-      if (source[at] === '{') depth++;
-      else if (source[at] === '}' && --depth === 0) return source.slice(start, at + 1);
-    }
-    throw new Error(`T272 無法完整抽取 ${name}()`);
-  };
-  const textureInitPattern272 =
-    /const SPRITE_TEX_SEED=0x54455832;\s*let spriteTexRand=mulberry32\(SPRITE_TEX_SEED\);\s*function resetSpriteTexRand\(\)\{[^}]*\}/;
-  const textureInitMatch272 = js.match(textureInitPattern272);
-  assert(textureInitMatch272,
-    'T272 應可抽取正式 seed/state/reset 鏈，且 seed 必須維持 0x54455832');
-  const buildStart272 = js.indexOf('function buildSprites(){');
-  const buildEnd272 = js.indexOf('\nfunction wealthSpr(', buildStart272);
-  assert(buildStart272 >= 0 && buildEnd272 > buildStart272,
-    'T272 應可界定完整 buildSprites() 區段');
-  const buildSource272 = js.slice(buildStart272, buildEnd272);
-
-  const makeRand272 = seed => {
-    let a = seed | 0;
-    return () => {
-      a |= 0; a = a + 0x6D2B79F5 | 0;
-      let t = Math.imul(a ^ a >>> 15, 1 | a);
-      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
-  };
-  const plateFingerprint272 = (source, ambientSeed) => {
-    const trace = [];
-    const sandbox = {
-      ambientRandom272: makeRand272(ambientSeed),
-      g: {},
-      dia(_g, ...args) { trace.push(['dia', ...args]); },
-      diaEdge(_g, ...args) { trace.push(['edge', ...args]); },
-      shade(col, amount) { return `${col}:${amount}`; },
-      speck(_g, cx, ty, hw, cols, count, rand) {
-        const samples = [];
-        for (let n = 0; n < count * 3; n++) samples.push(rand());
-        trace.push(['speck', cx, ty, hw, cols, count, samples]);
-      }
-    };
-    const formalMulberry272 = functionSlice272(source, 'mulberry32');
-    const formalPlate272 = functionSlice272(source, 'plate');
-    const formalTextureInit272 = source.match(textureInitPattern272);
-    assert(formalTextureInit272,
-      'T272 fresh VM 應執行正式 seed/state/reset 鏈，不得由 sandbox 注入替身');
-    vm.runInNewContext(
-      'Math.random=ambientRandom272;\n' + formalMulberry272 + '\n' +
-      formalTextureInit272[0] + '\n' + formalPlate272 +
-      "\nresetSpriteTexRand();plate(g,36,110,'#9a9484');", sandbox
-    );
-    return crypto.createHash('sha256').update(JSON.stringify(trace)).digest('hex');
-  };
-  const plateA272 = plateFingerprint272(js, 0x11111111);
-  const plateB272 = plateFingerprint272(js, 0x77777777);
-  assert(plateA272 === plateB272,
-    'T272 正式 seed→reset→plate 鏈在兩個不同 ambient Math.random 的 fresh VM 中應產生相同 fingerprint');
-
-  const resetMutant272 = js.replace(
-    'function resetSpriteTexRand(){spriteTexRand=mulberry32(SPRITE_TEX_SEED);}',
-    'function resetSpriteTexRand(){spriteTexRand=()=>Math.random();}'
-  );
-  assert(resetMutant272 !== js,
-    'T272 reset 負向 mutant 應能精確替換正式重設函式');
-  assert(
-    plateFingerprint272(resetMutant272, 0x11111111) !==
-      plateFingerprint272(resetMutant272, 0x77777777),
-    'T272 reset 若退回 ambient Math.random，fresh VM 行為測試必須殺死 mutant'
-  );
-
-  const ambientSites272 = source => {
-    const textureInit = source.match(textureInitPattern272);
-    const platePart = functionSlice272(source, 'plate');
-    const buildStart = source.indexOf('function buildSprites(){');
-    const buildEnd = source.indexOf('\nfunction wealthSpr(', buildStart);
-    return ((textureInit ? textureInit[0] : '') + '\n' + platePart + '\n' +
-      source.slice(buildStart, buildEnd))
-      .match(/Math\.random\s*\(/g) || [];
-  };
-  assert(ambientSites272(js).length === 0,
-    'T272 seed/reset/plate/buildSprites 載入期 ambient Math.random 來源應由9歸零');
-  assert(/function buildSprites\(\)\{\s*resetSpriteTexRand\(\);/.test(buildSource272),
-    'T272 每次 buildSprites() 起手必須重設專屬紋理 PRNG');
-
-  const textureSpeckLines272 = source => source.split(/\r?\n/)
-    .filter(line => line.includes('speck(') &&
-      (line.includes('Math.random') || line.includes('spriteTexRand')))
-    .map(line => line.trim()
-      .replace(/\(\)=>Math\.random\(\)|spriteTexRand/g, '<TEXTURE_RNG>'));
-  const preTextureLines272 = textureSpeckLines272(pre272Html);
-  const postTextureLines272 = textureSpeckLines272(post272Html);
-  assert(preTextureLines272.length === 9 &&
-    JSON.stringify(postTextureLines272) === JSON.stringify(preTextureLines272),
-  'T272 9 個 speck 的顏色／數量／座標／尺寸應逐行不變，只可替換亂數來源');
-
-  const rngLines272 = source => source.split(/\r?\n/)
-    .filter(line => /\b(?:R|ri)\s*\(/.test(line));
-  const sharedSpriteRandLines272 = source => source.split(/\r?\n/)
-    .filter(line => /\brand\s*\(/.test(line));
-  assert(JSON.stringify(rngLines272(post272Html)) === JSON.stringify(rngLines272(pre272Html)),
-    'T272 相對備份的 R()/ri() 呼叫行應逐行零差異');
-  assert(JSON.stringify(sharedSpriteRandLines272(post272Html)) ===
-    JSON.stringify(sharedSpriteRandLines272(pre272Html)),
-  'T272 相對備份的既有共用 rand() 消耗行應逐行零差異');
-
-  const textureHeader272 =
-    '// T272：載入期紋理使用隔離的固定種子流；每次重建 sprite 都從同一狀態開始。\n' +
-    'const SPRITE_TEX_SEED=0x54455832;\n' +
-    'let spriteTexRand=mulberry32(SPRITE_TEX_SEED);\n' +
-    'function resetSpriteTexRand(){spriteTexRand=mulberry32(SPRITE_TEX_SEED);}\n';
-  assert(post272Html.split(textureHeader272).length === 2,
-    'T272 專屬 seed/state/reset 宣告應精確出現一次');
-  let restoredHtml272 = post272Html.replace(textureHeader272, '');
-  const buildResetMarker272 = 'function buildSprites(){\n  resetSpriteTexRand();';
-  assert(restoredHtml272.split(buildResetMarker272).length === 2,
-    'T272 buildSprites 起手 reset 差異應精確出現一次');
-  restoredHtml272 = restoredHtml272.replace(
-    buildResetMarker272, 'function buildSprites(){'
-  );
-  let restoredTextureSites272 = 0;
-  restoredHtml272 = restoredHtml272.replace(
-    /,spriteTexRand\)/g,
-    () => { restoredTextureSites272++; return ',()=>Math.random())'; }
-  );
-  assert(restoredTextureSites272 === 9,
-    'T272 精確反向正規化時應只還原9個紋理 RNG 接點');
-  assert(restoredHtml272 === pre272Html,
-    'T272 post-T272 邊界反向移除允許差異後，必須逐 byte 等於 pre-T272');
-
-  const textureSiteMatches272 = Array.from(
-    html.matchAll(/speck\([^\r\n]*\bspriteTexRand\b[^\r\n]*\)/g)
-  );
-  assert(textureSiteMatches272.length === 9,
-    'T272 應精確有9個 speck 改接專屬 spriteTexRand');
-  for (const site of textureSiteMatches272) {
-    const replacement = site[0].replace(/\bspriteTexRand\b/, '()=>Math.random()');
-    const mutant = html.slice(0, site.index) + replacement +
-      html.slice(site.index + site[0].length);
-    assert(ambientSites272(mutant).length === 1,
-      'T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截');
-  }
-
-  console.log('\n-- (21) T273 牧場變體擴充 3→5 --');
-
-  const pre273Html = post272Html;
-  const post273Html = fs.readFileSync(
-    path.join(__dirname, 'backups', 'index.pre-T274.html'), 'utf8');
-  assert(
-    crypto.createHash('sha256').update(pre273Html).digest('hex').toUpperCase() ===
-      '3C1E1A900457AA1365CB88B80907A9DF8CA9FC6A4F315667D1CB049C43BFD6F6',
-    'T273 pre-index 備份 SHA-256 應維持開工記錄'
-  );
-  assert(
-    crypto.createHash('sha256').update(post273Html).digest('hex').toUpperCase() ===
-      '2CEA035171C0B3B5220A0FFD681C6758BE9F9DF43E897B6AB039FA5C0BCC0C22',
-    'T273 完成邊界應由 pre-T274（post-T273）SHA-256 封存'
-  );
-  const ranchOldLine273 =
-    "        ct.bld=(dx===0&&dy===0)?{k:23,lv:1,v:(x*7+y*5)%3,age:0,pw:true,h:1,sz:2}:{k:23,ref:[x,y]}; // T230：牧場 3 變體（牛/羊/馬場），座標決定性選型（零 R）";
-  const ranchNewLine273 =
-    "        ct.bld=(dx===0&&dy===0)?{k:23,lv:1,v:(x*7+y*5)%5,age:0,pw:true,h:1,sz:2}:{k:23,ref:[x,y]}; // T273：牧場 5 變體（牛/羊/馬/豬/家禽），座標決定性選型（零 R）";
-  const ranchStart273 =
-    '  /* ===== T273 牧場變體擴充 START（buildSprites 絕對尾端；豬場／家禽場，零模擬亂數） ===== */';
-  const ranchEnd273 = '  /* ===== T273 牧場變體擴充 END ===== */';
-  const ranchAudit273 = source => {
-    const errors = [];
-    const start = source.indexOf(ranchStart273);
-    const end = source.indexOf(ranchEnd273);
-    if (source.split(ranchNewLine273).length !== 2) errors.push('modulo-line');
-    if (source.split(ranchStart273).length !== 2 ||
-        source.split(ranchEnd273).length !== 2 || start < 0 || end <= start) {
-      errors.push('markers');
-      return errors;
-    }
-    const block = source.slice(start, end + ranchEnd273.length);
-    const k62 = source.indexOf("SPR.bld['62_1_0']");
-    const mask = source.indexOf('/* ===== T261 夜燈通用遮罩', k62);
-    if (!(k62 >= 0 && start > k62 && mask > start)) errors.push('tail-order');
-    for (const v of [3, 4]) {
-      const key = `SPR.bld['23_1_${v}']={img:c,ax,ay,w:136,h:150,smoke:[]};`;
-      if (block.split(key).length !== 2) errors.push('key-' + v);
-    }
-    const assignedKeys = Array.from(
-      block.matchAll(/SPR\.bld\['([^']+)'\]\s*=/g), m => m[1]
-    );
-    if (JSON.stringify(assignedKeys) !==
-        JSON.stringify(['23_1_3', '23_1_4'])) errors.push('assignment-whitelist');
-    if ((block.match(/\bplate\s*\(/g) || []).length !== 2) errors.push('plate-count');
-    if (/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(|\bspriteTexRand\b/.test(block)) {
-      errors.push('forbidden-rng');
-    }
-    return errors;
-  };
-  assert(ranchAudit273(html).length === 0,
-    'T273 正式碼應精確為尾端兩張牧場 sprite＋%5 選型，且不得新增主／ambient 亂數');
-
-  const ranchStartAt273 = html.indexOf(ranchStart273);
-  const ranchEndAt273 = html.indexOf(ranchEnd273, ranchStartAt273);
-  const ranchBlockEnd273 = ranchEndAt273 + ranchEnd273.length;
-  const ranchBlockSource273 = html.slice(ranchStartAt273, ranchBlockEnd273);
-  const traceRanchBlock273 = source => {
-    const sandbox = {
-      SPR: { bld: {} },
-      cv(w, h) {
-        const ops = [];
-        const canvas = { width: w, height: h, __ops: ops };
-        let fillStyle = '';
-        const ctx = {
-          __ops: ops,
-          fillRect(...args) { ops.push(['fillRect', fillStyle, ...args]); }
-        };
-        Object.defineProperty(ctx, 'fillStyle', {
-          get() { return fillStyle; },
-          set(value) { fillStyle = String(value); }
-        });
-        return [canvas, ctx];
-      },
-      plate(g, ...args) { g.__ops.push(['plate', ...args]); }
-    };
-    vm.runInNewContext(source, sandbox);
-    const out = {};
-    for (const key of Object.keys(sandbox.SPR.bld)) {
-      const spr = sandbox.SPR.bld[key];
-      out[key] = {
-        w: spr.w, h: spr.h, ax: spr.ax, ay: spr.ay,
-        ops: spr.img.__ops,
-        hash: crypto.createHash('sha256')
-          .update(JSON.stringify(spr.img.__ops)).digest('hex')
-      };
-    }
-    return out;
-  };
-  const ranchTraceErrors273 = trace => {
-    const errors = [];
-    const keys = Object.keys(trace);
-    if (JSON.stringify(keys) !== JSON.stringify(['23_1_3', '23_1_4'])) {
-      errors.push('trace-keys');
-      return errors;
-    }
-    for (const key of keys) {
-      const spr = trace[key];
-      if (spr.w !== 136 || spr.h !== 150 || spr.ax !== 68 || spr.ay !== 148) {
-        errors.push(key + '-geometry');
-      }
-      if (spr.ops.length < 30) errors.push(key + '-too-simple');
-    }
-    if (trace['23_1_3'].hash === trace['23_1_4'].hash) {
-      errors.push('indistinguishable');
-    }
-    return errors;
-  };
-  const ranchTrace273 = traceRanchBlock273(ranchBlockSource273);
-  assert(ranchTraceErrors273(ranchTrace273).length === 0,
-    'T273 v3/v4 應有足量繪圖操作、固定136×150/68,148 幾何且 fingerprint 互異');
-  const ranchBoundaryStart273 = post273Html.indexOf(ranchStart273);
-  const ranchBoundaryEndMarker273 = post273Html.indexOf(ranchEnd273, ranchBoundaryStart273);
-  const ranchBoundaryEnd273 = ranchBoundaryEndMarker273 + ranchEnd273.length;
-  assert(ranchBoundaryStart273 >= 0 && ranchBoundaryEndMarker273 > ranchBoundaryStart273,
-    'T273 post-T273 完成邊界應保留唯一正式 marker 區塊');
-  assert(post273Html.slice(ranchBoundaryEnd273, ranchBoundaryEnd273 + 1) === '\n',
-    'T273 尾端 sprite 區塊後應有單一 LF，供 exact rollback');
-  let restoredHtml273 = post273Html.slice(0, ranchBoundaryStart273) +
-    post273Html.slice(ranchBoundaryEnd273 + 1);
-  assert(restoredHtml273.split(ranchNewLine273).length === 2,
-    'T273 exact rollback 應精確定位唯一牧場 %5 行');
-  restoredHtml273 = restoredHtml273.replace(ranchNewLine273, ranchOldLine273);
-  assert(restoredHtml273 === pre273Html,
-    'T273 反向移除兩張新 sprite 並還原牧場單行後，必須逐 byte 等於 pre-T273');
-  assert(JSON.stringify(rngLines272(post273Html)) === JSON.stringify(rngLines272(pre273Html)),
-    'T273 相對 pre-T273 的 R()/ri() 呼叫行應逐行零差異');
-  assert(JSON.stringify(sharedSpriteRandLines272(post273Html)) ===
-    JSON.stringify(sharedSpriteRandLines272(pre273Html)),
-  'T273 相對 pre-T273 的既有共用 rand() 呼叫行應逐行零差異');
-
-  const moduloMutant273 = html.replace(ranchNewLine273, ranchOldLine273);
-  assert(moduloMutant273 !== html && ranchAudit273(moduloMutant273).length > 0,
-    'T273 %5 若退回 %3，source audit 必須殺死 mutant');
-  for (const v of [3, 4]) {
-    const assignment =
-      `SPR.bld['23_1_${v}']={img:c,ax,ay,w:136,h:150,smoke:[]};`;
-    const missingKeyMutant = html.replace(assignment, '');
-    assert(missingKeyMutant !== html && ranchAudit273(missingKeyMutant).length > 0,
-      `T273 若遺失牧場 v${v} sprite 鍵，source audit 必須殺死 mutant`);
-  }
-  const flatPlateMutant273 = ranchStart273 + '\n' +
-    "  {const[c,g]=cv(136,150);const ax=68,ay=148;plate(g,ax,ay,'#7a9a4a');" +
-    "SPR.bld['23_1_3']={img:c,ax,ay,w:136,h:150,smoke:[]};}\n" +
-    "  {const[c,g]=cv(136,150);const ax=68,ay=148;plate(g,ax,ay,'#7a9a4a');" +
-    "SPR.bld['23_1_4']={img:c,ax,ay,w:136,h:150,smoke:[]};}\n" +
-    ranchEnd273;
-  assert(ranchTraceErrors273(traceRanchBlock273(flatPlateMutant273)).length > 0,
-    'T273 v3/v4 若退化成兩張相同空底板，繪圖 trace 必須殺死 mutant');
-  const ranchBlockWithLf273 = html.slice(ranchStartAt273, ranchBlockEnd273 + 1);
-  const withoutRanchBlock273 = html.slice(0, ranchStartAt273) +
-    html.slice(ranchBlockEnd273 + 1);
-  const k62At273 = withoutRanchBlock273.indexOf("SPR.bld['62_1_0']");
-  const movedEarlyMutant273 = withoutRanchBlock273.slice(0, k62At273) +
-    ranchBlockWithLf273 + withoutRanchBlock273.slice(k62At273);
-  assert(ranchAudit273(movedEarlyMutant273).includes('tail-order'),
-    'T273 新 sprite 若被移到 k62 之前，尾端順序 audit 必須殺死 mutant');
-
-  window.GV.newWorldSeeded(273);
-  window.GV.weather(0);
-  if (window.GV.setDiff) window.GV.setDiff(1);
-  window.GV.addMoney(5000000);
-  const ranchRoots273 = [];
-  for (let wanted = 0; wanted < 5; wanted++) {
-    let spot = null;
-    for (let y = 2; y < window.GV.N() - 3 && !spot; y++) {
-      for (let x = 2; x < window.GV.N() - 3; x++) {
-        if ((x * 7 + y * 5) % 5 === wanted &&
-            window.GV.canPlaceTool('ranch', x, y) === null) {
-          spot = { x, y }; break;
-        }
-      }
-    }
-    assert(spot, `T273 應找到 residue ${wanted} 的合法 2×2 牧場位置`);
-    assert(place('ranch', spot.x, spot.y),
-      `T273 residue ${wanted} 牧場應真實建造成功`);
-    const root = tile(spot.x, spot.y).bld;
-    assert(root && root.k === 23 && root.v === wanted && root.lv === 1 &&
-      root.sz === 2,
-    `T273 residue ${wanted} root 應精確為 k23/v${wanted}/lv1/sz2`);
-    let refs = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-      if (!dx && !dy) continue;
-      const ref = tile(spot.x + dx, spot.y + dy).bld;
-      if (ref && ref.k === 23 && ref.ref &&
-          ref.ref[0] === spot.x && ref.ref[1] === spot.y) refs++;
-    }
-    assert(refs === 3,
-      `T273 residue ${wanted} 應建立精確3個 ref 格，實際 ${refs}`);
-    ranchRoots273.push({ ...spot, v: wanted });
-  }
-  window.GV.save();
-  assert(window.GV.load() === true,
-    'T273 五種牧場同存檔 save→load 應成功');
-  for (const root of ranchRoots273) {
-    const loaded = tile(root.x, root.y).bld;
-    assert(loaded && loaded.k === 23 && loaded.v === root.v &&
-      loaded.lv === 1 && loaded.sz === 2,
-    `T273 load 後牧場 v${root.v} 應逐值保留`);
-  }
-
-  console.log('\n-- (22) T274 農場作物變體擴充 12→16 --');
-
-  const pre274Html = post273Html;
-  assert(
-    crypto.createHash('sha256').update(pre274Html).digest('hex').toUpperCase() ===
-      '2CEA035171C0B3B5220A0FFD681C6758BE9F9DF43E897B6AB039FA5C0BCC0C22',
-    'T274 pre-index 備份 SHA-256 應維持開工記錄'
-  );
-  const farmOldLine274 =
-    "        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%12,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T226/T227/T235：農場 12 作物（綠田/麥/菜畦/玉米/南瓜/果園/番茄/草莓/葡萄/向日葵/稻田/高麗菜），座標決定性選型（零 R）";
-  const farmNewLine274 =
-    "        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%16,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T274：農場 16 作物（綠田/麥/菜畦/玉米/南瓜/果園/番茄/草莓/葡萄/向日葵/稻田/高麗菜/胡蘿蔔/西瓜/棉花/薰衣草），座標決定性選型（零 R）";
-  const farmStart274 =
-    '  /* ===== T274 農場作物變體擴充 START（buildSprites 絕對尾端；胡蘿蔔／西瓜／棉花／薰衣草＋四季局部 remap） ===== */';
-  const farmEnd274 = '  /* ===== T274 農場作物變體擴充 END ===== */';
-  const farmKeys274 = ['22_1_12', '22_1_13', '22_1_14', '22_1_15'];
-  const farmKeysLiteral274 =
-    "const FKEYS274=['22_1_12','22_1_13','22_1_14','22_1_15'];";
-  const farmMapsLiteral274 = 'const MAPS274=[SUM274,AUT274,WIN274];';
-  const farmAudit274 = source => {
-    const errors = [];
-    const start = source.indexOf(farmStart274);
-    const end = source.indexOf(farmEnd274);
-    if (source.split(farmNewLine274).length !== 2) errors.push('modulo-line');
-    if (source.split(farmStart274).length !== 2 ||
-        source.split(farmEnd274).length !== 2 || start < 0 || end <= start) {
-      errors.push('markers');
-      return errors;
-    }
-    const block = source.slice(start, end + farmEnd274.length);
-    const k62 = source.indexOf("SPR.bld['62_1_0']");
-    const ranchEnd = source.indexOf(ranchEnd273, k62);
-    const mask = source.indexOf('/* ===== T261 夜燈通用遮罩', ranchEnd);
-    if (!(k62 >= 0 && ranchEnd > k62 && start > ranchEnd &&
-        end > start && mask > end)) errors.push('tail-order');
-    const assignedBaseKeys = Array.from(
-      block.matchAll(/SPR\.bld\['([^']+)'\]\s*=/g), m => m[1]
-    );
-    if (JSON.stringify(assignedBaseKeys) !== JSON.stringify(farmKeys274)) {
-      errors.push('assignment-whitelist');
-    }
-    for (const key of farmKeys274) {
-      const assignment =
-        `SPR.bld['${key}']={img:c,ax,ay,w:136,h:150,smoke:[]};`;
-      if (block.split(assignment).length !== 2) errors.push('base-' + key);
-    }
-    if (block.split(farmKeysLiteral274).length !== 2) errors.push('fkeys');
-    if (block.split(farmMapsLiteral274).length !== 2) errors.push('maps');
-    if ((block.match(/\bplate\s*\(/g) || []).length !== 4) errors.push('plate-count');
-    if ((block.match(/SPR\.farmSea\[sea\]\[fk\]\s*=/g) || []).length !== 1) {
-      errors.push('season-assignment');
-    }
-    if (block.includes('SPR.farmSea={') || block.includes('if(!b0)continue')) {
-      errors.push('season-reset-or-skip');
-    }
-    if (/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(|\bspriteTexRand\b/.test(block)) {
-      errors.push('forbidden-rng');
-    }
-    return errors;
-  };
-  assert(farmAudit274(html).length === 0,
-    'T274 正式碼應精確為尾端四張 base＋十二張季節圖＋%16，且不得碰主／ambient 亂數');
-
-  const farmStartAt274 = html.indexOf(farmStart274);
-  const farmEndAt274 = html.indexOf(farmEnd274, farmStartAt274);
-  const farmBlockEnd274 = farmEndAt274 + farmEnd274.length;
-  const farmBlockSource274 = html.slice(farmStartAt274, farmBlockEnd274);
-  const traceFarmBlock274 = source => {
-    const parseColor = value => {
-      const match = /^#([0-9a-f]{6})$/i.exec(String(value));
-      if (!match) throw new Error('T274 pixel harness unsupported color: ' + value);
-      const n = parseInt(match[1], 16);
-      return [(n >> 16) & 255, (n >> 8) & 255, n & 255, 255];
-    };
-    const makeCanvas = (w, h) => {
-      const pixels = new Uint8ClampedArray(w * h * 4);
-      const ops = [];
-      let fillStyle = '#000000';
-      const canvas = { width: w, height: h, __pixels: pixels, __ops: ops };
-      const ctx = {
-        __ops: ops,
-        fillRect(x, y, rw, rh) {
-          ops.push(['fillRect', fillStyle, x, y, rw, rh]);
-          const rgba = parseColor(fillStyle);
-          const x0 = Math.max(0, Math.floor(x));
-          const y0 = Math.max(0, Math.floor(y));
-          const x1 = Math.min(w, Math.ceil(x + rw));
-          const y1 = Math.min(h, Math.ceil(y + rh));
-          for (let py = y0; py < y1; py++) for (let px = x0; px < x1; px++) {
-            const at = (py * w + px) * 4;
-            pixels[at] = rgba[0]; pixels[at + 1] = rgba[1];
-            pixels[at + 2] = rgba[2]; pixels[at + 3] = rgba[3];
-          }
-        },
-        drawImage(src, dx = 0, dy = 0) {
-          ops.push(['drawImage', dx, dy, src.width, src.height]);
-          for (let sy = 0; sy < src.height; sy++) for (let sx = 0; sx < src.width; sx++) {
-            const tx = sx + dx, ty = sy + dy;
-            if (tx < 0 || ty < 0 || tx >= w || ty >= h) continue;
-            const from = (sy * src.width + sx) * 4;
-            const to = (ty * w + tx) * 4;
-            pixels[to] = src.__pixels[from]; pixels[to + 1] = src.__pixels[from + 1];
-            pixels[to + 2] = src.__pixels[from + 2]; pixels[to + 3] = src.__pixels[from + 3];
-          }
-        },
-        getImageData(x, y, rw, rh) {
-          if (x !== 0 || y !== 0 || rw !== w || rh !== h) {
-            throw new Error('T274 pixel harness expects full-canvas getImageData');
-          }
-          return { data: new Uint8ClampedArray(pixels), width: w, height: h };
-        },
-        putImageData(image, dx, dy) {
-          if (dx !== 0 || dy !== 0 || image.data.length !== pixels.length) {
-            throw new Error('T274 pixel harness expects full-canvas putImageData');
-          }
-          pixels.set(image.data);
-          ops.push(['putImageData', dx, dy, image.data.length]);
-        }
-      };
-      Object.defineProperty(ctx, 'fillStyle', {
-        get() { return fillStyle; },
-        set(value) { fillStyle = String(value); }
-      });
-      canvas.getContext = () => ctx;
-      return [canvas, ctx];
-    };
-    const sandbox = {
-      SPR: { bld: {}, farmSea: { 1: {}, 2: {}, 3: {} } },
-      cv: makeCanvas,
-      plate(g, ax, ay, color) {
-        g.__ops.push(['plate', ax, ay, color]);
-        g.fillStyle = color;
-        g.fillRect(ax - 34, ay - 50, 68, 36);
-      },
-      Uint8ClampedArray
-    };
-    vm.runInNewContext(source, sandbox);
-    const hashCanvas = canvas => crypto.createHash('sha256')
-      .update(Buffer.from(canvas.__pixels)).digest('hex');
-    const out = { base: {}, seasons: { 1: {}, 2: {}, 3: {} } };
-    for (const key of Object.keys(sandbox.SPR.bld)) {
-      const spr = sandbox.SPR.bld[key];
-      out.base[key] = {
-        w: spr.w, h: spr.h, ax: spr.ax, ay: spr.ay,
-        ops: spr.img.__ops, hash: hashCanvas(spr.img), canvas: spr.img
-      };
-    }
-    for (const sea of [1, 2, 3]) for (const key of Object.keys(sandbox.SPR.farmSea[sea])) {
-      const spr = sandbox.SPR.farmSea[sea][key];
-      out.seasons[sea][key] = {
-        w: spr.w, h: spr.h, ax: spr.ax, ay: spr.ay,
-        hash: hashCanvas(spr.img), canvas: spr.img
-      };
-    }
-    return out;
-  };
-  const pixelAt274 = (canvas, x, y) => {
-    const at = (y * canvas.width + x) * 4;
-    return '#' + [0, 1, 2].map(offset =>
-      canvas.__pixels[at + offset].toString(16).padStart(2, '0')).join('');
-  };
-  const farmTraceErrors274 = trace => {
-    const errors = [];
-    if (JSON.stringify(Object.keys(trace.base)) !== JSON.stringify(farmKeys274)) {
-      errors.push('base-keys');
-      return errors;
-    }
-    const baseHashes = [];
-    for (const key of farmKeys274) {
-      const spr = trace.base[key];
-      if (spr.w !== 136 || spr.h !== 150 || spr.ax !== 68 || spr.ay !== 148) {
-        errors.push(key + '-geometry');
-      }
-      if (spr.ops.length < 30) errors.push(key + '-too-simple');
-      baseHashes.push(spr.hash);
-    }
-    if (new Set(baseHashes).size !== 4) errors.push('base-indistinguishable');
-    for (const sea of [1, 2, 3]) {
-      if (JSON.stringify(Object.keys(trace.seasons[sea])) !== JSON.stringify(farmKeys274)) {
-        errors.push('season-' + sea + '-keys');
-        continue;
-      }
-      for (const key of farmKeys274) {
-        const spr = trace.seasons[sea][key];
-        if (spr.w !== 136 || spr.h !== 150 || spr.ax !== 68 || spr.ay !== 148) {
-          errors.push(`season-${sea}-${key}-geometry`);
-        }
-      }
-    }
-    const probes = {
-      '22_1_12': { x: 52, y: 105, colors: ['#e36f24', '#ea7a28', '#d78322', '#d4dce6'] },
-      '22_1_13': { x: 52, y: 105, colors: ['#27613c', '#247342', '#556238', '#c8d4e0'] },
-      '22_1_14': { x: 52, y: 104, colors: ['#f5f0e3', '#fff7e8', '#f0dfc4', '#f5f8fb'] },
-      '22_1_15': { x: 50, y: 104, colors: ['#6d54a6', '#765fbb', '#8d5a7c', '#d4dce6'] }
-    };
-    for (const key of farmKeys274) {
-      const probe = probes[key];
-      const canvases = [trace.base[key] && trace.base[key].canvas]
-        .concat([1, 2, 3].map(sea =>
-          trace.seasons[sea][key] && trace.seasons[sea][key].canvas));
-      if (canvases.some(canvas => !canvas)) continue;
-      const colors = canvases.map(canvas => pixelAt274(canvas, probe.x, probe.y));
-      if (JSON.stringify(colors) !== JSON.stringify(probe.colors)) {
-        errors.push(key + '-season-colors:' + colors.join(','));
-      }
-      const hashes = [trace.base[key].hash]
-        .concat([1, 2, 3].map(sea => trace.seasons[sea][key].hash));
-      if (new Set(hashes).size !== 4) errors.push(key + '-season-indistinguishable');
-    }
-    // 不以 production map 自我推導 expected：硬編 13 個正式來源色的三季完整契約，
-    // 逐像素驗「表內精確換色、表外完全不動」，並要求 13 色都由最終 base 真正命中。
-    const expectedMaps274 = [
-      new Map([
-        [0x65452f, 0x5d4934], [0x3e7339, 0x34843a], [0xe36f24, 0xea7a28],
-        [0xf39a38, 0xf4a648], [0x315f39, 0x286f38], [0x27613c, 0x247342],
-        [0x6d9a49, 0x60ad48], [0x536f35, 0x477f32], [0xd8d2c1, 0xe2dece],
-        [0xf5f0e3, 0xfff7e8], [0x496842, 0x3f7840], [0x6d54a6, 0x765fbb],
-        [0x9b7acb, 0xa58ad8]
-      ]),
-      new Map([
-        [0x65452f, 0x76533a], [0x3e7339, 0x8f7830], [0xe36f24, 0xd78322],
-        [0xf39a38, 0xe2a03a], [0x315f39, 0x7b6830], [0x27613c, 0x556238],
-        [0x6d9a49, 0xa28736], [0x536f35, 0x92743a], [0xd8d2c1, 0xd8c6aa],
-        [0xf5f0e3, 0xf0dfc4], [0x496842, 0x806440], [0x6d54a6, 0x8d5a7c],
-        [0x9b7acb, 0xb07988]
-      ]),
-      new Map([
-        [0x65452f, 0xdee6ee], [0x3e7339, 0xd4dce6], [0xe36f24, 0xd4dce6],
-        [0xf39a38, 0xf2f6fa], [0x315f39, 0xd4dce6], [0x27613c, 0xc8d4e0],
-        [0x6d9a49, 0xe8eef2], [0x536f35, 0xcbd7e2], [0xd8d2c1, 0xdce5ed],
-        [0xf5f0e3, 0xf5f8fb], [0x496842, 0xcbd7e2], [0x6d54a6, 0xd4dce6],
-        [0x9b7acb, 0xf2f6fa]
-      ])
-    ];
-    const hitSources274 = new Set();
-    const pixelMismatches274 = new Set();
-    for (const key of farmKeys274) {
-      const base = trace.base[key] && trace.base[key].canvas;
-      if (!base || [1, 2, 3].some(sea => !trace.seasons[sea][key])) continue;
-      const bd = base.__pixels;
-      for (let at = 0; at < bd.length; at += 4) {
-        if (bd[at + 3] < 10) continue;
-        const sourceColor = (bd[at] << 16) | (bd[at + 1] << 8) | bd[at + 2];
-        if (expectedMaps274[0].has(sourceColor)) hitSources274.add(sourceColor);
-        for (let sea = 1; sea <= 3; sea++) {
-          const sd = trace.seasons[sea][key].canvas.__pixels;
-          const actual = (sd[at] << 16) | (sd[at + 1] << 8) | sd[at + 2];
-          const expected = expectedMaps274[sea - 1].has(sourceColor) ?
-            expectedMaps274[sea - 1].get(sourceColor) : sourceColor;
-          if (actual !== expected || sd[at + 3] !== bd[at + 3]) {
-            pixelMismatches274.add(
-              `${key}:s${sea}:${sourceColor.toString(16)}>${actual.toString(16)}`
-            );
-          }
-        }
-      }
-    }
-    const expectedSources274 = Array.from(expectedMaps274[0].keys()).sort((a, b) => a - b);
-    const actualSources274 = Array.from(hitSources274).sort((a, b) => a - b);
-    if (JSON.stringify(actualSources274) !== JSON.stringify(expectedSources274)) {
-      errors.push('season-source-coverage:' +
-        actualSources274.map(value => value.toString(16)).join(','));
-    }
-    if (pixelMismatches274.size) {
-      errors.push('season-full-map:' + Array.from(pixelMismatches274).slice(0, 8).join(','));
-    }
-    return errors;
-  };
-  const farmTrace274 = traceFarmBlock274(farmBlockSource274);
-  assert(farmTraceErrors274(farmTrace274).length === 0,
-    'T274 四張 base 應有實質繪圖、固定幾何、互異 fingerprint，且十二張季節圖應真 remap');
-
-  const oldSeasonStart274 = source =>
-    source.indexOf('  /* ---------- T229 農場四季');
-  const oldSeasonEnd274 = (source, start) =>
-    source.indexOf('  // T46 牧場 (k=23', start);
-  const preOldSeasonStart274 = oldSeasonStart274(pre274Html);
-  const preOldSeasonEnd274 = oldSeasonEnd274(pre274Html, preOldSeasonStart274);
-  const curOldSeasonStart274 = oldSeasonStart274(html);
-  const curOldSeasonEnd274 = oldSeasonEnd274(html, curOldSeasonStart274);
-  assert(preOldSeasonStart274 >= 0 && preOldSeasonEnd274 > preOldSeasonStart274 &&
-    curOldSeasonStart274 >= 0 && curOldSeasonEnd274 > curOldSeasonStart274 &&
-    html.slice(curOldSeasonStart274, curOldSeasonEnd274) ===
-      pre274Html.slice(preOldSeasonStart274, preOldSeasonEnd274),
-  'T274 不得修改既有 T229 SUM/AUT/WIN/FKEYS 與 12 作物＋大農場季節管線');
-
-  // T275 起：exact rollback 改跑「凍結快照 pre-T275（＝post-T274 封存態）」——沿用 T273 對 post273Html
-  // 的同款慣例（卡完成後由下一卡的 pre 快照承接 byte 比對，live 檔繼續演進不受釘選）；
-  // GPT 寫本測試時 pre-T275 尚不存在只能用 live html，T275 收尾時依慣例切換。
-  const post274Html = fs.readFileSync(path.join(__dirname, 'backups', 'index.pre-T275.html'), 'utf8');
-  const farmStartAt274s = post274Html.indexOf(farmStart274);
-  const farmEndAt274s = post274Html.indexOf(farmEnd274, farmStartAt274s);
-  const farmBlockEnd274s = farmEndAt274s + farmEnd274.length;
-  assert(farmStartAt274s >= 0 && farmEndAt274s > farmStartAt274s,
-    'T274 rollback 快照（pre-T275）內應含完整 T274 區塊');
-  assert(post274Html.slice(farmBlockEnd274s, farmBlockEnd274s + 1) === '\n',
-    'T274 尾端區塊後應有單一 LF，供 exact rollback');
-  let restoredHtml274 = post274Html.slice(0, farmStartAt274s) +
-    post274Html.slice(farmBlockEnd274s + 1);
-  assert(restoredHtml274.split(farmNewLine274).length === 2,
-    'T274 exact rollback 應精確定位唯一農場 %16 行');
-  restoredHtml274 = restoredHtml274.replace(farmNewLine274, farmOldLine274);
-  assert(restoredHtml274 === pre274Html,
-    'T274 反向移除四 base＋十二季節圖並還原農場單行後，必須逐 byte 等於 pre-T274');
-  assert(JSON.stringify(rngLines272(post274Html)) === JSON.stringify(rngLines272(pre274Html)),
-    'T274 相對 pre-T274 的 R()/ri() 呼叫行應逐行零差異'); // T275 起改比快照（同 rollback 慣例；live 檔的亂數紀律由後續各卡自行驗證）
-  assert(JSON.stringify(sharedSpriteRandLines272(post274Html)) ===
-    JSON.stringify(sharedSpriteRandLines272(pre274Html)),
-  'T274 相對 pre-T274 的既有共用 rand() 呼叫行應逐行零差異');
-
-  const moduloMutant274 = html.replace(farmNewLine274, farmOldLine274);
-  assert(moduloMutant274 !== html && farmAudit274(moduloMutant274).length > 0,
-    'T274 %16 若退回 %12，source audit 必須殺死 mutant');
-  for (const key of farmKeys274) {
-    const assignment = `SPR.bld['${key}']={img:c,ax,ay,w:136,h:150,smoke:[]};`;
-    const missingBaseMutant = html.replace(assignment, '');
-    assert(missingBaseMutant !== html && farmAudit274(missingBaseMutant).length > 0,
-      `T274 若遺失 ${key} base，source audit 必須殺死 mutant`);
-    const withoutKey = farmKeys274.filter(item => item !== key);
-    const missingSeasonMutant = html.replace(
-      farmKeysLiteral274,
-      `const FKEYS274=['${withoutKey.join("','")}'];`
-    );
-    assert(missingSeasonMutant !== html && farmAudit274(missingSeasonMutant).length > 0,
-      `T274 若遺失 ${key} 的三季生成入口，source audit 必須殺死 mutant`);
-  }
-  const oldOverwriteMutant274 = html.replace(
-    "SPR.bld['22_1_12']={img:c,ax,ay,w:136,h:150,smoke:[]};",
-    "SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};"
-  );
-  assert(oldOverwriteMutant274 !== html &&
-    farmAudit274(oldOverwriteMutant274).includes('assignment-whitelist'),
-  'T274 若覆寫既有 22_1_0，assignment whitelist 必須殺死 mutant');
-
-  const identitySummerMutant274 = farmBlockSource274.replace(
-    /const SUM274=\{[^;\r\n]*\};/,
-    'const SUM274={};'
-  );
-  assert(identitySummerMutant274 !== farmBlockSource274 &&
-    farmTraceErrors274(traceFarmBlock274(identitySummerMutant274)).length > 0,
-  'T274 夏季 map 若退化為 identity，獨立像素期望必須殺死 mutant');
-  const singleColorMutant274 = farmBlockSource274.replace(
-    '0x65452f:0x5d4934', '0x65452f:0x65452f'
-  );
-  assert(singleColorMutant274 !== farmBlockSource274 &&
-    farmTraceErrors274(traceFarmBlock274(singleColorMutant274)).length > 0,
-  'T274 任一未抽樣單色若錯映射（夏季土色 identity），完整逐像素契約必須殺死 mutant');
-  const swappedSeasonMutant274 = farmBlockSource274.replace(
-    farmMapsLiteral274, 'const MAPS274=[AUT274,SUM274,WIN274];'
-  );
-  assert(swappedSeasonMutant274 !== farmBlockSource274 &&
-    farmTraceErrors274(traceFarmBlock274(swappedSeasonMutant274)).length > 0,
-  'T274 夏／秋 bucket 若對調，獨立像素期望必須殺死 mutant');
-
-  const flatBaseLines274 = farmKeys274.map(key =>
-    `  {const[c,g]=cv(136,150);const ax=68,ay=148;plate(g,ax,ay,'#8a9a5a');` +
-    `SPR.bld['${key}']={img:c,ax,ay,w:136,h:150,smoke:[]};}`).join('\n');
-  const flatFarmMutant274 = farmStart274 + '\n' + flatBaseLines274 + '\n' +
-    `  {${farmKeysLiteral274}for(const fk of FKEYS274){const b0=SPR.bld[fk];` +
-    `for(let sea=1;sea<=3;sea++)SPR.farmSea[sea][fk]=` +
-    `{img:b0.img,ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}\n` +
-    farmEnd274;
-  assert(farmTraceErrors274(traceFarmBlock274(flatFarmMutant274)).length > 0,
-    'T274 四張圖若退化成空底板且三季共用春圖，pixel trace 必須殺死 mutant');
-
-  const farmBlockWithLf274 = html.slice(farmStartAt274, farmBlockEnd274 + 1);
-  const withoutFarmBlock274 = html.slice(0, farmStartAt274) +
-    html.slice(farmBlockEnd274 + 1);
-  const k62At274 = withoutFarmBlock274.indexOf("SPR.bld['62_1_0']");
-  const movedEarlyMutant274 = withoutFarmBlock274.slice(0, k62At274) +
-    farmBlockWithLf274 + withoutFarmBlock274.slice(k62At274);
-  assert(farmAudit274(movedEarlyMutant274).includes('tail-order'),
-    'T274 新 sprite 若被移到 k62／T273 之前，尾端順序 audit 必須殺死 mutant');
-
-  window.GV.newWorldSeeded(274);
-  window.GV.weather(0);
-  if (window.GV.setDiff) window.GV.setDiff(1);
-  window.GV.addMoney(9000000);
-  const farmRoots274 = [];
-  for (let wanted = 0; wanted < 16; wanted++) {
-    let spot = null;
-    for (let y = 2; y < window.GV.N() - 3 && !spot; y++) {
-      for (let x = 2; x < window.GV.N() - 3; x++) {
-        if ((x * 5 + y * 11) % 16 === wanted &&
-            window.GV.canPlaceTool('farm', x, y) === null) {
-          spot = { x, y }; break;
-        }
-      }
-    }
-    assert(spot, `T274 應找到 residue ${wanted} 的合法 2×2 農場位置`);
-    assert(place('farm', spot.x, spot.y),
-      `T274 residue ${wanted} 農場應真實建造成功`);
-    const root = tile(spot.x, spot.y).bld;
-    assert(root && root.k === 22 && root.v === wanted && root.lv === 1 &&
-      root.sz === 2,
-    `T274 residue ${wanted} root 應精確為 k22/v${wanted}/lv1/sz2`);
-    let refs = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-      if (!dx && !dy) continue;
-      const ref = tile(spot.x + dx, spot.y + dy).bld;
-      if (ref && ref.k === 22 && ref.ref &&
-          ref.ref[0] === spot.x && ref.ref[1] === spot.y) refs++;
-    }
-    assert(refs === 3,
-      `T274 residue ${wanted} 應建立精確3個 ref 格，實際 ${refs}`);
-    farmRoots274.push({ ...spot, v: wanted });
-  }
-  window.GV.save();
-  const rawFarmSave274 = JSON.parse(store[SKEY]);
-  const rawFarmVariants274 = rawFarmSave274.bl.filter(rec => rec[1] === 22)
-    .map(rec => rec[3]).sort((a, b) => a - b);
-  assert(JSON.stringify(rawFarmVariants274) ===
-    JSON.stringify(Array.from({ length: 16 }, (_, v) => v)),
-  'T274 原始存檔 bl 應逐值包含農場 v0..15');
-  assert(window.GV.load() === true,
-    'T274 十六種農場同存檔 save→load 應成功');
-  for (const root of farmRoots274) {
-    const loaded = tile(root.x, root.y).bld;
-    assert(loaded && loaded.k === 22 && loaded.v === root.v &&
-      loaded.lv === 1 && loaded.sz === 2,
-    `T274 load 後農場 v${root.v} root 應逐值保留`);
-    let refs = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-      if (!dx && !dy) continue;
-      const ref = tile(root.x + dx, root.y + dy).bld;
-      if (ref && ref.k === 22 && ref.ref &&
-          ref.ref[0] === root.x && ref.ref[1] === root.y) refs++;
-    }
-    assert(refs === 3,
-      `T274 load 後農場 v${root.v} 應重建精確3個 ref，實際 ${refs}`);
-  }
 }
 
 runPwaTests().then(() => {

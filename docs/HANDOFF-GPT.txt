@@ -1,0 +1,104 @@
+================================================================
+微光小鎮 Glimmerville — GPT 接力施工手冊（純文字版）
+交接人：Claude（Opus/Fable）　日期：2026-07-23　遊戲版本：v5.0
+================================================================
+
+【項目是什麼】
+- 原創 TheoTown 風格城市建造遊戲。單一檔案 index.html（約 13,000 行），
+  零依賴、全 Canvas 程序化像素美術、PWA。等距 64x32 瓦片、72x72 到 216x216 可選地圖。
+- 61 種建築(k=1..61)、四季系統、災害、AI 市長模式、升級系統、特化經濟鏈。
+- 測試套件 test_fixde.js：539 個斷言，DOM mock + eval 整個遊戲 + GV 鉤子驅動。
+
+【開工前必做三件事】
+1. 備份：複製 index.html 為 backups/index.pre-gpt.html（沒有 backups 目錄就建一個）。
+2. 跑基線：node test_fixde.js → 必須看到 539 個 PASS、0 FAIL。不是 539 就停手回報。
+3. 讀 docs/CHANGELOG.md 最上面 15 行，了解最近改了什麼。
+
+【每一張任務卡的工作循環（嚴格照做）】
+1. 改 index.html（一次只做一件事，小步提交心態）。
+2. 語法檢查：
+   node -e "const fs=require('fs');const s=fs.readFileSync('index.html','utf8');const m=s.match(/<script>([\s\S]*?)<\/script>/);new Function(m[1]);console.log('OK')"
+3. node test_fixde.js → PASS 數只許增不許減（新功能要加新斷言）。
+4. 瀏覽器驗證（見下節）。
+5. 在 docs/CHANGELOG.md 頂部（「格式：」行之後）追加一行：
+   日期 | 卡號(接續 T265 起) | 一句話說明+驗收數據 | 驗收:通過
+6. 下一卡。
+
+【瀏覽器驗證規矩（保命條款）】
+- 啟動：python -m http.server 8123 --directory <本資料夾>
+- 一律用 http://127.0.0.1:8123 開測試頁（獨立 origin）。
+- 玩家的真實存檔在 http://localhost:8123 這個 origin 的 localStorage——絕對不要開
+  localhost 去測試，絕對不要動它的存檔。
+- 測試頁先執行：localStorage.setItem('glimmerville.v1.slot','3')
+  只允許用槽 3。絕不讀寫 glimmerville.v1.s1 / s2。
+- 有 Service Worker：測前 unregister 全部 SW + caches.delete 全部，再帶
+  ?cb=隨機字串 重載，否則你跑的是舊代碼（血淚教訓）。
+- 遊戲全域 GV 是測試鉤子入口（window 下沒有，但 GV 有暴露）。常用：
+  GV.newWorld() / GV.newWorldSeeded(n) / GV.place(tool,x,y) / GV.tile(x,y)
+  GV.step(n)(n<=60，長跑用迴圈) / GV.addMoney(n) / GV.stats() / GV.food()
+  GV.setSeason(0..3) / GV.weather(0)鎖晴 / GV.setVisT(0夜|55正午) / GV.forceDraw()
+  GV.lookAt(x,y)+GV.setZoom(z) 相機 / GV.upgrade(x,y) / GV.inspectAt(x,y)
+  GV.ai(true|false) AI市長 / GV.ignite(x,y)點火 / GV.setMapSize(72|108|144|216)
+  GV.canPlaceTool(tool,x,y)→null=可蓋 / GV.sprNightAudit()夜燈審計(應回空陣列)
+  GV.region().powerCap 供電容量 / GV.cov(field,x,y) 服務覆蓋
+
+【鐵律（每一條都是真實事故換來的，違反=大概率翻車）】
+1. 單寫者：同一時刻只允許一個 AI 寫這個資料夾。你開工期間 Claude 已停筆；
+   你停止後也不要留背景進程繼續改檔。
+2. 亂數流：新增會消耗 rand()/R() 的 sprite 生成，只能放 buildSprites 尾端
+   （搜 "FIX-B 亂數流對齊"），或用局部 PRNG（mulberry32/局部 LCG/Math.random
+   僅限 sprite 生成內），或純座標雜湊 streetHash(x,y,salt)。動了中段亂數流
+   = 全部既有地圖變樣。
+3. 存檔相容：save()/load() 格式改動要向後相容（新欄位一律「可選、缺省安全」）。
+   load 端每個 k 有獨立重建碼——新欄位要用「非預設值」實測 load 是否硬編碼。
+4. 稅收守衛：新建築 k 若會進 tick() 第二經濟迴圈，必須在稅收 else-if 鏈加一條
+   空守衛 `else if(b.k===K);`，否則 fall through 到工業稅，建築升級到 lv>=4 時
+   JOBSI[lv]=undefined → money=NaN → 存檔毀（搜 "鐵律14"）。
+5. 預設值：設定表(如 UP_JOB)讀取用 ?? 不用 ||（顯式 0 會被 0||6 吃掉）。
+6. 完工線：建築 age>=9 才算蓋完（9 天分階段施工）。驗渲染效果前先
+   GV.step(12) 催熟，否則本體還沒畫、diff 全 0 是假象。
+7. 夜燈：建築 night 畫布在 buildSprites 尾端有 destination-in 本體遮罩
+   （maskNight）。新建築 sprite 有夜燈的話會自動被遮，別把夜燈畫到本體外。
+8. 像素驗證要用「乾淨隔離世界」：GV.newWorld + GV.weather(0) + 指定季節 +
+   手動建設 + 催熟，再取樣。AI 長跑過的世界有天氣殘留（濕膜/雪）會把畫面
+   洗白造成誤判。
+9. 全域狀態新增時，newWorld() 與 load() 要成對重置（搜「鐵律7」樣例）。
+10. GV.tile() 回傳副本，直接改它的欄位不會生效。要改狀態走 GV.place/
+    GV.upgrade 等操作型鉤子。
+11. RCI 住宅/商業立面多為手繪 HERO_PIX 覆蓋，程序化改立面大概率不可見。
+    改前先 git/checksum A/B 確認有像素差，沒差就回退別硬做。
+12. 多格新建築完整清單（做新建築照抄這份，漏一項就出 bug）：
+    TOOLS 條目 / COST / KNAME / canPlace(canPlaceMulti) / placeCost switch /
+    doPlace(root+ref 格) / 第一迴圈計數+jobs+upkeep / 第二迴圈稅收守衛 /
+    inspect 文案 / MSZ 表(load 反查 sz，漏了 ref 格全失) / MINI_BLD_PAL 色 /
+    sprite(尾端) / test_fixde.js 的 SV 清單+SVK+tampered 計數同步 +1。
+
+【當前狀態速覽】
+- v5.0：電廠 7 系(煤/太陽/風/核/水力/地熱)全可升級擴容；農場/牧場/加工廠
+  特化經濟鏈；AI 市長(大街區+供水+摩天樓合併+災後維護+財政三檔)；
+  地圖 72/108/144/216 可選；9 天分階段施工動畫；海洋環繞。
+- 測試 539/539。CHANGELOG 完整到 T264。
+
+【建議任務隊列（由安全到激進，做多少算多少）】
+A. 內容型（安全，照第 12 條清單做）：
+   - 垃圾焚化發電廠 k62（第 8 電源系：燒垃圾發電，garbCap 加成+供電 60+8/級）
+   - 更多球類場館變體、更多農作物、更多 RCI 變體（照 T237/T235 模式）
+   - 新地標建築（2x2/3x3，觀光係數，照 k24 地標模式）
+B. 打磨型（中等）：
+   - AI 市長用更多大型建築（體育園區/大墓園/中央車站，照 T264 大農場模式）
+   - 高畫質檔更多特效（比照 T255 quality===2 gate，勿動中/低畫質基線）
+   - 音效補齊（sTick/sBuild/sErr/sPop/sFanfare 家族，無 sOk 這個函數）
+C. 激進型（做前三思，務必先備份+可回退）：
+   - 9x9 超巨型建築（太空發射中心：目前最大 5x5，9x9 需驗 canPlaceMulti/
+     深度排序/COV 半徑上限）
+   - 分塊無限地圖（架構級改造，建議只做設計文檔不動手）
+
+【求救/停手條件】
+- 測試 PASS 數下降且 30 分鐘內修不回 → 還原備份，在 CHANGELOG 記一行
+  「嘗試X失敗已回退」。
+- 畫面全黑/全白 → 先查 #start 覆蓋層與天氣殘留（不是你想的那個 bug）。
+- 玩家存檔(s1/s2)被動過 → 立即停手全部工作，如實記錄。
+- 誠實原則：驗收數據必須是真跑出來的。沒驗證的就寫「未驗證」。
+  這個項目的一切信譽建立在驗收數據是真的之上。
+
+（完）

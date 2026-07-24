@@ -1,17 +1,9 @@
 // 微光小鎮 Glimmerville — 離線快取 Service Worker（T27 / T268）
 const CACHE_PREFIX='glimmerville-shell-';
-const CACHE=CACHE_PREFIX+'v5';
+const CACHE=CACHE_PREFIX+'v3';
 const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);
-const FILES=[
-  './index.html',
-  './manifest.json',
-  './icon.svg',
-  './icon-v1-192.png',
-  './icon-v1-512.png',
-  './icon-v1-maskable-512.png'
-];
+const FILES=['./index.html','./manifest.json','./icon.svg'];
 const INDEX_URL=new URL('./index.html',self.location.href).href;
-const MANIFEST_URL=new URL('./manifest.json',self.location.href).href;
 const SCOPE_URL=new URL(self.registration.scope);
 const ENTRY_PATHS=new Set([SCOPE_URL.pathname,new URL(INDEX_URL).pathname]);
 const SHELL_PATHS=new Set(FILES.map(src=>new URL(src,self.location.href).pathname));
@@ -53,11 +45,9 @@ self.addEventListener('fetch',e=>{
         }
         return fresh;
       }catch(err){
-        try{
-          const cache=await caches.open(CACHE);
-          const offline=await cache.match(INDEX_URL);
-          if(offline)return offline;
-        }catch(_){/* Cache Storage 不可讀時仍回明確導航 503，而非裸 rejection */}
+        const cache=await caches.open(CACHE);
+        const offline=await cache.match(INDEX_URL);
+        if(offline)return offline;
         return new Response('離線且尚未完成首次快取。',{
           status:503,
           headers:{'Content-Type':'text/plain;charset=utf-8'}
@@ -67,41 +57,8 @@ self.addEventListener('fetch',e=>{
     return;
   }
 
-  if(url.pathname===new URL(MANIFEST_URL).pathname){
-    e.respondWith((async()=>{
-      try{
-        const fresh=await fetch(req);
-        if(fresh&&fresh.ok){
-          try{
-            const cache=await caches.open(CACHE);
-            await cache.put(MANIFEST_URL,fresh.clone());
-          }catch(_){/* 寫入失敗不應吞掉已成功的 manifest 網路回應 */}
-        }
-        return fresh;
-      }catch(err){
-        try{
-          const cache=await caches.open(CACHE);
-          const offline=await cache.match(MANIFEST_URL);
-          if(offline)return offline;
-        }catch(_){/* Cache Storage 無法讀取時仍應回明確 503，而非裸 rejection */}
-        return new Response('{"error":"offline-manifest-not-cached"}',{
-          status:503,
-          headers:{'Content-Type':'application/manifest+json;charset=utf-8'}
-        });
-      }
-    })());
-    return;
-  }
-
   if(!SHELL_PATHS.has(url.pathname))return;
   e.respondWith(
-    (async()=>{
-      try{
-        const cache=await caches.open(CACHE);
-        const hit=await cache.match(url.href,{ignoreSearch:true});
-        if(hit)return hit;
-      }catch(_){/* 快取讀取故障時降級至網路，不能攔死仍可用的 app-shell response */}
-      return fetch(req);
-    })()
+    caches.open(CACHE).then(cache=>cache.match(url.href,{ignoreSearch:true})).then(hit=>hit||fetch(req))
   );
 });

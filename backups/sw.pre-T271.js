@@ -53,11 +53,9 @@ self.addEventListener('fetch',e=>{
         }
         return fresh;
       }catch(err){
-        try{
-          const cache=await caches.open(CACHE);
-          const offline=await cache.match(INDEX_URL);
-          if(offline)return offline;
-        }catch(_){/* Cache Storage 不可讀時仍回明確導航 503，而非裸 rejection */}
+        const cache=await caches.open(CACHE);
+        const offline=await cache.match(INDEX_URL);
+        if(offline)return offline;
         return new Response('離線且尚未完成首次快取。',{
           status:503,
           headers:{'Content-Type':'text/plain;charset=utf-8'}
@@ -95,13 +93,6 @@ self.addEventListener('fetch',e=>{
 
   if(!SHELL_PATHS.has(url.pathname))return;
   e.respondWith(
-    (async()=>{
-      try{
-        const cache=await caches.open(CACHE);
-        const hit=await cache.match(url.href,{ignoreSearch:true});
-        if(hit)return hit;
-      }catch(_){/* 快取讀取故障時降級至網路，不能攔死仍可用的 app-shell response */}
-      return fetch(req);
-    })()
+    caches.open(CACHE).then(cache=>cache.match(url.href,{ignoreSearch:true})).then(hit=>hit||fetch(req))
   );
 });

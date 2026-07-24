@@ -958,11 +958,6 @@ function drawHeroPix(key,g,ng){
 const SPR={};
 function buildSprites(){
   resetSpriteTexRand();
-  /* T275（GPT T274 誠實邊界遺留診斷，Opus 收尾）：歷史包袱——最早期 sprite（草地/部分商業變體/公園）
-     生成時消耗全域 R()，熱重建會 ①29 條 sprite 路徑漂移 ②偷吃世界亂數流（probe globalRPreserved:false）。
-     修法＝生成期以「同種子替身流」接管 R、結束還原呼叫前狀態：boot 首次生成時 R 本就是 mulberry32(1)
-     且零消耗＝替身同種子同序列＝boot 逐像素零漂移；熱重建改為決定性（每次同序）且世界流零消耗。 */
-  const __savedR=R;R=mulberry32(1);
   const rand=mulberry32(20260712);
   /* ---------- 草地 4 變化 ---------- */
   SPR.grass=[];
@@ -5363,111 +5358,6 @@ function buildSprites(){
     SPR.bld['23_1_4']={img:c,ax,ay,w:136,h:150,smoke:[]};
   }
   /* ===== T273 牧場變體擴充 END ===== */
-  /* ===== T274 農場作物變體擴充 START（buildSprites 絕對尾端；胡蘿蔔／西瓜／棉花／薰衣草＋四季局部 remap） ===== */
-  { // v12 胡蘿蔔田：深土高壟、密集橙根與收成箱
-    const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
-    g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,27,18);g.fillRect(ax+9,ay-40,14,12);
-    for(let r2=0;r2<4;r2++){
-      const ry=ay-44+r2*4;
-      g.fillStyle='#3e7339';g.fillRect(ax-18,ry,23,2);
-      for(let i2=0;i2<5;i2++){
-        const rx=ax-16+i2*5;
-        g.fillStyle='#e36f24';g.fillRect(rx,ry+1,2,2);
-        g.fillStyle='#f39a38';g.fillRect(rx+1,ry+1,1,1);
-      }
-    }
-    for(let r2=0;r2<3;r2++){
-      const ry=ay-38+r2*4;
-      g.fillStyle='#3e7339';g.fillRect(ax+10,ry,11,2);
-      for(let i2=0;i2<3;i2++){
-        const rx=ax+11+i2*4;
-        g.fillStyle='#e36f24';g.fillRect(rx,ry+1,2,2);
-        g.fillStyle='#f39a38';g.fillRect(rx+1,ry+1,1,1);
-      }
-    }
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-24,13,13);
-    g.fillStyle='#9a8a4a';g.fillRect(ax-26,ay-27,9,3);
-    g.fillStyle='#c9974e';g.fillRect(ax+15,ay-22,10,6);
-    g.fillStyle='#8a6538';g.fillRect(ax+15,ay-19,10,1);g.fillRect(ax+19,ay-22,1,6);
-    SPR.bld['22_1_12']={img:c,ax,ay,w:136,h:150,smoke:[]};
-  }
-  { // v13 西瓜田：低藤網、深綠條紋瓜與灌溉桶
-    const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
-    g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,27,18);g.fillRect(ax+9,ay-40,14,12);
-    g.fillStyle='#315f39';
-    for(let r2=0;r2<4;r2++)g.fillRect(ax-19,ay-44+r2*5,25,1);
-    for(let i2=0;i2<6;i2++)g.fillRect(ax-18+i2*5,ay-45,1,16);
-    g.fillRect(ax+10,ay-38,11,1);g.fillRect(ax+10,ay-33,11,1);
-    const WM=[[-16,-43],[-8,-39],[0,-44],[-13,-33],[-3,-31],[10,-38],[16,-34],[11,-29],[18,-40]];
-    for(const[wx,wy]of WM){
-      g.fillStyle='#27613c';g.fillRect(ax+wx,ay+wy,5,3);
-      g.fillStyle='#6d9a49';g.fillRect(ax+wx+2,ay+wy,1,3);
-      g.fillStyle='#315f39';g.fillRect(ax+wx+4,ay+wy-1,2,1);
-    }
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-24,13,13);
-    g.fillStyle='#9a8a4a';g.fillRect(ax-26,ay-27,9,3);
-    g.fillStyle='#4c7890';g.fillRect(ax+16,ay-23,7,8);
-    g.fillStyle='#7eb0c4';g.fillRect(ax+17,ay-22,5,2);
-    SPR.bld['22_1_13']={img:c,ax,ay,w:136,h:150,smoke:[]};
-  }
-  { // v14 棉花田：橄欖稈、三色白棉鈴與棉包
-    const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
-    g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,27,18);g.fillRect(ax+9,ay-40,14,12);
-    g.fillStyle='#536f35';
-    for(let i2=0;i2<6;i2++)g.fillRect(ax-17+i2*5,ay-45,1,16);
-    for(let i2=0;i2<4;i2++)g.fillRect(ax+10+i2*4,ay-39,1,11);
-    const CT=[[-16,-43],[-11,-37],[-6,-42],[-1,-34],[4,-41],[-14,-30],[-5,-29],[10,-37],[15,-32],[19,-39]];
-    for(const[cx,cy]of CT){
-      g.fillStyle='#d8d2c1';g.fillRect(ax+cx-1,ay+cy,5,3);
-      g.fillStyle='#f5f0e3';g.fillRect(ax+cx,ay+cy-1,2,2);g.fillRect(ax+cx+2,ay+cy,2,2);
-      g.fillStyle='#536f35';g.fillRect(ax+cx+1,ay+cy+3,1,2);
-    }
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-24,13,13);
-    g.fillStyle='#9a8a4a';g.fillRect(ax-26,ay-27,9,3);
-    g.fillStyle='#eee0c2';g.fillRect(ax+14,ay-22,12,7);
-    g.fillStyle='#9b7448';g.fillRect(ax+19,ay-22,1,7);g.fillRect(ax+14,ay-19,12,1);
-    SPR.bld['22_1_14']={img:c,ax,ay,w:136,h:150,smoke:[]};
-  }
-  { // v15 薰衣草田：平行雙色紫花帶與兩只蜂箱
-    const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
-    g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,43,18);
-    for(let r2=0;r2<4;r2++){
-      const ry=ay-45+r2*5;
-      g.fillStyle='#496842';g.fillRect(ax-20,ry,43,3);
-      g.fillStyle='#6d54a6';g.fillRect(ax-18,ry+1,39,2);
-      for(let i2=0;i2<7;i2++){
-        g.fillStyle='#9b7acb';g.fillRect(ax-16+i2*6,ry,2,2);
-      }
-    }
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-24,13,13);
-    g.fillStyle='#9a8a4a';g.fillRect(ax-26,ay-27,9,3);
-    for(const hx of[14,22]){
-      g.fillStyle='#d9a63c';g.fillRect(ax+hx,ay-22,6,8);
-      g.fillStyle='#6a4a2f';g.fillRect(ax+hx,ay-20,6,1);g.fillRect(ax+hx+2,ay-23,2,1);
-    }
-    SPR.bld['22_1_15']={img:c,ax,ay,w:136,h:150,smoke:[]};
-  }
-  { // 新四作物的局部四季色表；只作用於新鍵，不改 T229 舊 map／FKEYS
-    const remap274=(src,w,h,map)=>{const[c2,g2]=cv(w,h);g2.drawImage(src,0,0);
-      const im=g2.getImageData(0,0,w,h),d=im.data;
-      for(let i2=0;i2<d.length;i2+=4){if(d[i2+3]<10)continue;
-        const key=(d[i2]<<16)|(d[i2+1]<<8)|d[i2+2],m=map[key];
-        if(m!==undefined){d[i2]=(m>>16)&255;d[i2+1]=(m>>8)&255;d[i2+2]=m&255;}}
-      g2.putImageData(im,0,0);return c2;};
-    const SUM274={0x65452f:0x5d4934,0x3e7339:0x34843a,0xe36f24:0xea7a28,0xf39a38:0xf4a648,0x315f39:0x286f38,0x27613c:0x247342,0x6d9a49:0x60ad48,0x536f35:0x477f32,0xd8d2c1:0xe2dece,0xf5f0e3:0xfff7e8,0x496842:0x3f7840,0x6d54a6:0x765fbb,0x9b7acb:0xa58ad8};
-    const AUT274={0x65452f:0x76533a,0x3e7339:0x8f7830,0xe36f24:0xd78322,0xf39a38:0xe2a03a,0x315f39:0x7b6830,0x27613c:0x556238,0x6d9a49:0xa28736,0x536f35:0x92743a,0xd8d2c1:0xd8c6aa,0xf5f0e3:0xf0dfc4,0x496842:0x806440,0x6d54a6:0x8d5a7c,0x9b7acb:0xb07988};
-    const WIN274={0x65452f:0xdee6ee,0x3e7339:0xd4dce6,0xe36f24:0xd4dce6,0xf39a38:0xf2f6fa,0x315f39:0xd4dce6,0x27613c:0xc8d4e0,0x6d9a49:0xe8eef2,0x536f35:0xcbd7e2,0xd8d2c1:0xdce5ed,0xf5f0e3:0xf5f8fb,0x496842:0xcbd7e2,0x6d54a6:0xd4dce6,0x9b7acb:0xf2f6fa};
-    const FKEYS274=['22_1_12','22_1_13','22_1_14','22_1_15'];
-    const MAPS274=[SUM274,AUT274,WIN274];
-    for(const fk of FKEYS274){const b0=SPR.bld[fk];
-      for(let si=0;si<3;si++){const sea=si+1;
-        SPR.farmSea[sea][fk]={img:remap274(b0.img,b0.w,b0.h,MAPS274[si]),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}
-  }
-  /* ===== T274 農場作物變體擴充 END ===== */
   /* ===== T261 夜燈通用遮罩（buildSprites 絕對尾端，玩家截圖抓 bug）：部分建築的 night 畫布把亮窗畫進
      本體「透明天空區」（windows() 網格超出立面／變體高度差），nightSprites 'screen' 疊加＋畫家順序＝亮窗
      疊在「後面那棟」的屋頂上（截圖屋頂碎黃窗的真兇）。通殺修法：每張 night 畫布 ∩ 本體不透明區
@@ -5481,7 +5371,6 @@ function buildSprites(){
     if(SPR.plantVar)for(const pv of SPR.plantVar)maskNight(pv);
     if(SPR.waterTower)maskNight(SPR.waterTower);
   }
-  R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
 function wealthSpr(baseKey,we){
@@ -6280,7 +6169,7 @@ function doPlace(toolId,x,y,silent){
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
         if((dx||dy)&&ct.tree)stampPolTree(sx,sy,-1); // root 樹由 doPlace 尾端 hadTree 處理；ref 三格在此對稱撤除樹木減污
         ct.tree=0;ct.zone=0;ct.deco=0;
-        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%16,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T274：農場 16 作物（綠田/麥/菜畦/玉米/南瓜/果園/番茄/草莓/葡萄/向日葵/稻田/高麗菜/胡蘿蔔/西瓜/棉花/薰衣草），座標決定性選型（零 R）
+        ct.bld=(dx===0&&dy===0)?{k:22,lv:1,v:(x*5+y*11)%12,age:0,pw:true,h:1,sz:2}:{k:22,ref:[x,y]}; // T226/T227/T235：農場 12 作物（綠田/麥/菜畦/玉米/南瓜/果園/番茄/草莓/葡萄/向日葵/稻田/高麗菜），座標決定性選型（零 R）
       }
       break;}
     case 'bigFarm':{ // T228：大農場 5×5（玩家指令「更大的地塊」）
