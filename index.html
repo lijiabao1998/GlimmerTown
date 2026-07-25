@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.1'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.2'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -12819,7 +12819,7 @@ function importShareCode(code){ // T135：匯入核心邏輯（不依賴 prompt 
   try{
     const body=code.startsWith(SHARE_VER)?code.slice(SHARE_VER.length):code; // 版本前綴可選：有則剝除，無則視為舊版碼，一律沿用同一 base64 解碼路徑
     const json=decodeURIComponent(escape(atob(body)));
-    const d=JSON.parse(json);
+    const d=saveInflate(JSON.parse(json)); // T312
     if(!(d.v===1&&d.ter&&d.ter.length===N*N)){toast('分享碼無效','bad');return false;}
     const egoal=d.egoal||null; // T135：擴充版分享碼才有的編輯器目標包；舊碼天然無此欄位
     if(egoal)delete d.egoal;   // 硬性不變量：編輯器產物不落入常規存檔，寫回 localStorage 前先剔除
@@ -12912,7 +12912,7 @@ function showEditor(){
 function buildEditorShareData(){ // 組出待編碼的存檔＋目標物件（純記憶體操作，不落地 localStorage），供匯出按鈕與 GV 測試鉤子共用
   const raw=localStorage.getItem(slotKey(curSlot()));
   if(!raw)return null;
-  let d;try{d=JSON.parse(raw);}catch(e){return null;}
+  let d;try{d=saveInflate(JSON.parse(raw));}catch(e){return null;} // T312
   const g=editorGoal;
   d.egoal={name:townName||'自製場景',icon:'🛠',
     goal:{type:g.type,target:g.target,byDay:g.byDay,hold:g.hold,field:g.field},
@@ -13434,12 +13434,47 @@ function slotInfo(n){
   try{
     const raw=localStorage.getItem(slotKey(n));
     if(!raw)return null;
-    const d=JSON.parse(raw);
+    const d=saveInflate(JSON.parse(raw)); // T312
     if(d.v!==1)return null;
     let p=0;for(const b of d.bl||[])if(b[1]===1)p+=POPS[b[2]]||0;
     return{nm:d.nm||'微光小鎮',pop:p,day:d.day||1};
   }catch(e){return null;}
 }
+/* T312 存檔壓縮（RLE，脫離 localStorage 5MB 懸崖）：存檔的 29 個並列欄位皆為「每格一數字字元」的長串
+   （ter/tre/rd/zn/…，216² 時各 45.6KB、合計 1.3MB），內容高度重複（多為連續 '0'），RLE 可壓 20 倍以上。
+   設計為「對下游完全透明」：save 落盤前 saveDeflate 壓縮並打 z:1 標記；所有讀檔點一律先 saveInflate 還原，
+   之後的驗證（含 v===1 與 ter.length===n*n 檢查）/重建/匯出/編輯器邏輯看到的與舊格式逐欄位一致，故零語意改動。
+   這些欄位內容僅含數字字元，故以 '*' 與 ';' 作 RLE 控制字元絕不衝突（無損可證）；舊檔無 z 標記照原路徑載入。 */
+const RLE_F=['ter','tre','rd','zn','dc','rn','rc','rcl','wp','el','bs','cm','sk','dt','skd','dtd','rl','rb','dk','ow','tl','pm','bln','tr','of','fl','le','ab','ctr'];
+function rleEnc(s){
+  /* T312 修：token 標記必須「前置」——舊格式 c+'*'+n+';' 有歧義（源串 '01111' → '0*4;'，
+     解碼端無法分辨開頭 '0' 是字面字元還是 token 的運行字元，會解成 '0000' ＝存檔靜默損壞，
+     T267 AI 選址測試抓到）。改為 '*'+n+','+c：源資料永不含 '*'，故解碼無歧義。 */
+  if(typeof s!=='string'||!s)return s;
+  let o='',i=0;
+  while(i<s.length){
+    const c=s.charCodeAt(i);let n=1;
+    while(i+n<s.length&&s.charCodeAt(i+n)===c&&n<99999)n++;
+    o+=(n>3)?('*'+n+','+s[i]):s.substr(i,n);
+    i+=n;
+  }
+  return o;
+}
+function rleDec(s){
+  if(typeof s!=='string'||!s||s.indexOf('*')<0)return s;
+  let o='',i=0;
+  while(i<s.length){
+    if(s[i]==='*'){
+      const j=s.indexOf(',',i+1);
+      if(j<0){o+=s.slice(i);break;}
+      const n=+s.slice(i+1,j);
+      o+=s[j+1].repeat(n>0?n:0);i=j+2;
+    }else{o+=s[i];i++;}
+  }
+  return o;
+}
+function saveDeflate(d){const o={};for(const k in d)o[k]=d[k];for(const f of RLE_F)if(typeof o[f]==='string')o[f]=rleEnc(o[f]);o.z=1;return o;}
+function saveInflate(d){if(d&&d.z===1){for(const f of RLE_F)if(typeof d[f]==='string')d[f]=rleDec(d[f]);delete d.z;}return d;}
 function save(){
   try{
     const bl=[];
@@ -13494,7 +13529,7 @@ function save(){
       sup:supplies, // T140：資源供應品全域存量（可選欄位，舊檔缺欄位容錯為 0）
       aim:aiMode?1:0,aiR,gds:goods,sb:{...svcBudget},cev:cityEvent?{i:cityEvent.i,d:cityEvent.daysLeft}:0,mln:metroLines.map(L=>({n:L.nodes,t:L.trains,u:L.underground?1:0})),sf:{...svcFleet}, // T304：服務車隊 // T302：地鐵線（nodes+列車+地下旗標，幾何 load 重建） // T299：城市事件（可選欄位） // T294：服務預算（可選欄位，舊檔缺＝全 1.0） // T284：工業品庫存（可選欄位） // T260：AI 市長開關＋擴張半徑（可選欄位，舊檔缺＝關/6）
       rdep:rdepArr.length?rdepArr:null}; // T140：資源耗損（稀疏可選欄位，僅存已開採格；缺欄位＝未耗損。RESOURCE 本身不存，由 seed 經 genResource() 重建）
-    const key=slotKey(curSlot()),out=JSON.stringify(data);
+    const key=slotKey(curSlot()),out=JSON.stringify(saveDeflate(data)); // T312：落盤前 RLE 壓縮（讀檔端 saveInflate 透明還原）
     const prev=localStorage.getItem(key);
     if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
     localStorage.setItem(key,out);
@@ -13509,11 +13544,11 @@ function load(slot){
   try{
     const key=slotKey(slot||curSlot());
     let d=null;
-    try{const raw=localStorage.getItem(key);if(raw)d=JSON.parse(raw);}catch(e){d=null;}
+    try{const raw=localStorage.getItem(key);if(raw)d=saveInflate(JSON.parse(raw));}catch(e){d=null;} // T312
     const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;return dd&&dd.v===1&&(dd.ter||'').length===dn*dn;}; // T262：長度驗證改依存檔內 n 欄位（舊檔缺 n＝72）
     if(!vlen(d)){ // 主鍵缺損 → 先嘗試 _bak 備份（save/import 覆寫前的保險）
       console.warn('主存檔缺損，嘗試 _bak 備份鍵');
-      try{const braw=localStorage.getItem(key+'_bak');d=braw?JSON.parse(braw):null;}catch(e){d=null;}
+      try{const braw=localStorage.getItem(key+'_bak');d=braw?saveInflate(JSON.parse(braw)):null;}catch(e){d=null;} // T312
     }
     if(!vlen(d))return false;
     {const dn=+(d.n)||72;if(dn!==N){N=dn;allocGrids();}} // T262：先切到存檔尺寸再重建 tiles/場陣列（不限檔位白名單＝任何合法存檔都能開；同尺寸 no-op）
@@ -13819,6 +13854,10 @@ window.GV={
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   polAt:(x,y)=>inMap(x,y)?POL[idx(x,y)]:null, // T110：污染場除錯鉤子（命名避開稅率政策 GV.pol）
   wealthAt:(x,y)=>{if(!inMap(x,y))return null;const b=T(idx(x,y)).bld;return(b&&b.k===1)?(b.we!==undefined?b.we:1):null;}, // T123：住宅財富級除錯鉤子（0貧/1中/2富，非住宅回 null）
+  rleRT:(str)=>rleDec(rleEnc(str))===str,
+  inflateSave:(raw)=>saveInflate(JSON.parse(raw)),
+  rawSave:()=>localStorage.getItem(slotKey(curSlot()))||"", // T312 測試用：讀當前槽原始落盤字串 // T312 測試用：解析並解壓存檔（測試按格索引 rd/zn 前必須解壓） // T312 測試用：RLE 往返無損驗證
+  saveSize:()=>{const k=slotKey(curSlot());const r=localStorage.getItem(k);return r?r.length:0;}, // T312 測試用：實際落盤位元組
   landAt:(x,y)=>inMap(x,y)?LAND[idx(x,y)]:null, // T130：地價場除錯鉤子
   transit:()=>({ridership:transitRidership,busPop:busRtCovPop,railPop:railCovPop,metroPop:metroCovPop,rev:Math.round(transitRidership*.03)}), // T293 測試用：公共運輸客運量/票務快照
   svcBudget:()=>({...svcBudget}), // T294 測試用：服務預算快照
