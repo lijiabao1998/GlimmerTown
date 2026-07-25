@@ -487,7 +487,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v29';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v29');
+assert(/const CACHE=CACHE_PREFIX\+'v30';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v30');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
@@ -1807,8 +1807,8 @@ async function runPwaTests() {
     'glimmerville-shell-v4',
     'gv-other-app', 'shared-cache']) h268.seed(name);
   await h268.fireLife('install');
-  assert(h268.ops.opened[0] === 'glimmerville-shell-v29',
-    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v29 cache');
+  assert(h268.ops.opened[0] === 'glimmerville-shell-v30',
+    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v30 cache');
   assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js');
   assert(h268.ops.skipWaiting === 1 && h268.ops.order.includes('skipWaiting'),
@@ -1820,7 +1820,7 @@ async function runPwaTests() {
       'gv-v1', 'gv-v2'].sort()),
     'T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
   const keys268 = await h268.cacheStorage.keys();
-  assert(keys268.includes('glimmerville-shell-v29') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
+  assert(keys268.includes('glimmerville-shell-v30') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
     'T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache');
   assert(h268.ops.claim === 1 && h268.ops.order[h268.ops.order.length - 1] === 'claim',
     'T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim');
@@ -1876,7 +1876,7 @@ async function runPwaTests() {
     h268.ops.puts.length === putCountBefore503,
     'T268 HTTP 503 應照實回傳且不得污染 canonical app-shell');
 
-  await h268.cacheStorage.delete('glimmerville-shell-v29');
+  await h268.cacheStorage.delete('glimmerville-shell-v30');
   h268.setFetch(async () => { throw new TypeError('offline'); });
   result268 = await h268.fireFetch({ method: 'GET', url: base268, mode: 'navigate' });
   assert(result268.response.status === 503 && (await result268.response.text()).includes('尚未完成首次快取'),
@@ -1939,11 +1939,11 @@ async function runPwaTests() {
   await h269.fireLife('install');
   await h269.fireLife('activate');
   const keys269 = await h269.cacheStorage.keys();
-  assert(h269.ops.opened[0] === 'glimmerville-shell-v29' &&
+  assert(h269.ops.opened[0] === 'glimmerville-shell-v30' &&
     JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T269/T270 v5 install 應維持完整 app-shell 資產閉包');
   assert(!keys269.includes('glimmerville-shell-v3') && !keys269.includes('glimmerville-shell-v4') &&
-    keys269.includes('glimmerville-shell-v29') &&
+    keys269.includes('glimmerville-shell-v30') &&
     keys269.includes('gv-other-app') && keys269.includes('shared-cache'),
     'T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache');
 
@@ -1957,7 +1957,7 @@ async function runPwaTests() {
   assert(result269.intercepted && result269.response.status === 201 &&
     await result269.response.text() === freshManifest269,
     'T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response');
-  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v29');
+  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v30');
   let cachedManifest269 = await cache269.match(base268 + 'manifest.json');
   assert(cachedManifest269 && await cachedManifest269.text() === freshManifest269 &&
     h269.ops.puts.includes(base268 + 'manifest.json'),
@@ -2023,7 +2023,7 @@ async function runPwaTests() {
   assert(await result269.response.text() === freshManifest269,
     'T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest');
 
-  await h269.cacheStorage.delete('glimmerville-shell-v29');
+  await h269.cacheStorage.delete('glimmerville-shell-v30');
   result269 = await h269.fireFetch({
     method: 'GET', url: base268 + 'manifest.json?empty=269', mode: 'same-origin'
   });
@@ -2297,7 +2297,7 @@ async function runPwaTests() {
 
   const h271Miss = makeSwHarness268(sw268);
   await h271Miss.fireLife('install');
-  await h271Miss.cacheStorage.delete('glimmerville-shell-v29');
+  await h271Miss.cacheStorage.delete('glimmerville-shell-v30');
   h271Miss.setFetch(async () => new Response('fresh-cache-miss-271', { status: 200 }));
   networkBefore271 = h271Miss.ops.networkCalls;
   result271 = await h271Miss.fireFetch({
@@ -3330,8 +3330,74 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    assert(window.GV.stats().pop === 355, 'T324 拮据城應與基線逐位一致（pop=355），實得 ' + window.GV.stats().pop);
+    // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
+    //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
+    assert(window.GV.stats().pop === 3285, 'T324/T326 seed301 400天 pop 應恆為 3285（確定性釘），實得 ' + window.GV.stats().pop);
     assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
+  }
+
+
+  // ===== T325-T329 CS/模擬人生系統波：噪音場/人口學/政策包/市民需求/里程碑解鎖 =====
+  {
+    // T325 噪音場：中心強距離遞減、半徑外為零、拆除次日歸零（每日重建＝零殭屍）
+    window.GV.newWorldSeeded(9);
+    window.GV.setDiff(3);
+    window.GV.addMoney(99999);
+    const n325 = window.GV.N();
+    let sx = -1, sy = -1;
+    for (let y = 8; y < n325 - 8 && sx < 0; y++) for (let x = 8; x < n325 - 8; x++) {
+      const ok = [[0,0],[1,0],[0,1],[1,1]].every(d => { const t = window.GV.tile(x+d[0], y+d[1]); return t && (t.t === 1 || t.t === 2) && !t.bld && !t.road; });
+      if (ok && window.GV.place('stad', x, y)) { sx = x; sy = y; break; }
+    }
+    assert(sx >= 0, 'T325 需能放置體育場');
+    window.GV.step(1);
+    const nz0 = window.GV.noiseAt(sx, sy), nz3 = window.GV.noiseAt(sx + 3, sy);
+    assert(nz0 > nz3 && nz3 > 0, 'T325 噪音應中心強、距離遞減（' + nz0 + '→' + nz3 + '）');
+    assert(window.GV.noiseAt(Math.min(n325 - 1, sx + 9), sy) === 0, 'T325 半徑外應為 0');
+    window.GV.place('doze', sx, sy);
+    window.GV.step(1);
+    assert(window.GV.noiseAt(sx, sy) === 0, 'T325 拆除後次日噪音歸零');
+
+    // T326 移民潮：每日遞減；newWorld 成對重置（鐵律7）
+    window.GV.immWave(3);
+    window.GV.step(1);
+    assert(window.GV.immWave() === 2, 'T326 immWave 應每日遞減，實得 ' + window.GV.immWave());
+    window.GV.newWorldSeeded(9);
+    assert(window.GV.immWave() === 0, 'T326 newWorld 應重置 immWave（鐵律7）');
+
+    // T327 政策包：三條有日費政策 → 法規支出精確 -23.0（12+6+5）；免費公交 → 票務行消失
+    window.GV.newWorldSeeded(22);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 150; d++) window.GV.step(1);
+    window.GV.ai(false);
+    window.GV.pol({ taxR: 1, taxC: 1, taxI: 1, schoolLunch: true, smokeDetect: true, parkNight: true });
+    window.GV.step(1);
+    const mt327 = window.GV.chipText('money').replace(/\n/g, ' ');
+    assert(/法規\s*-23(\.0)?(\s|$)/.test(mt327), 'T327 三政策日費應精確 -23（12+6+5），面板節錄：' + mt327.slice(0, 100));
+    assert(isFinite(window.GV.stats().money), 'T327 開政策後 money 必須有限');
+    window.GV.pol({ taxR: 1, taxC: 1, taxI: 1, freeTransit: true });
+    window.GV.step(1);
+    assert(!/公共運輸票務/.test(window.GV.chipText('money')), 'T327 免費公交後票務行應消失（=0 不顯示）');
+    elMap.get('bStats').onclick();
+    const sh327 = elMap.get('infoBody').innerHTML;
+    for (const id of ['polFreeT', 'polLunch', 'polSmoke', 'polIndS', 'polNight', 'polParkN'])
+      assert(sh327.includes('id="' + id + '"'), 'T327 統計面板需含政策 checkbox #' + id);
+
+    // T328 市民需求卡（Sims 式）：四需求＋無壞值
+    const nn328 = window.GV.N(); let f328 = null;
+    for (let y = 0; y < nn328 && !f328; y++) for (let x = 0; x < nn328; x++) { const t = window.GV.tile(x, y); if (t && t.bld && t.bld.k === 1) { f328 = [x, y]; break; } }
+    assert(f328, 'T328 需有住宅可檢視');
+    window.GV.inspectAt(f328[0], f328[1]);
+    const card328 = elMap.get('infoBody').innerHTML;
+    for (const w of ['市民需求', '娛樂', '社交', '健康', '教育']) assert(card328.includes(w), 'T328 需求卡缺「' + w + '」');
+    assert(!/undefined|NaN/.test(card328), 'T328 需求卡不得含壞值');
+
+    // T329 里程碑解鎖真做：unlockRank 條數精確＋RANKS 文案全部兌現
+    assert((html.match(/unlockRank:6/g) || []).length === 7, 'T329 文化建築 7 條需 unlockRank:6');
+    assert((html.match(/unlockRank:8/g) || []).length === 9, 'T329 小型地標 9 條需 unlockRank:8');
+    assert((html.match(/unlockRank:17/g) || []).length === 6, 'T329 紀念工程 6 條需 unlockRank:17');
+    assert(!html.includes('未來版本開放'), 'T329 RANKS 解鎖文案應全部兌現（不得再有「未來版本開放」）');
   }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
