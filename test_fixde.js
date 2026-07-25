@@ -487,7 +487,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v34';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v34');
+assert(/const CACHE=CACHE_PREFIX\+'v35';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v35');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
@@ -1807,8 +1807,8 @@ async function runPwaTests() {
     'glimmerville-shell-v4',
     'gv-other-app', 'shared-cache']) h268.seed(name);
   await h268.fireLife('install');
-  assert(h268.ops.opened[0] === 'glimmerville-shell-v34',
-    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v34 cache');
+  assert(h268.ops.opened[0] === 'glimmerville-shell-v35',
+    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v35 cache');
   assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js');
   assert(h268.ops.skipWaiting === 1 && h268.ops.order.includes('skipWaiting'),
@@ -1820,7 +1820,7 @@ async function runPwaTests() {
       'gv-v1', 'gv-v2'].sort()),
     'T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
   const keys268 = await h268.cacheStorage.keys();
-  assert(keys268.includes('glimmerville-shell-v34') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
+  assert(keys268.includes('glimmerville-shell-v35') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
     'T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache');
   assert(h268.ops.claim === 1 && h268.ops.order[h268.ops.order.length - 1] === 'claim',
     'T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim');
@@ -1876,7 +1876,7 @@ async function runPwaTests() {
     h268.ops.puts.length === putCountBefore503,
     'T268 HTTP 503 應照實回傳且不得污染 canonical app-shell');
 
-  await h268.cacheStorage.delete('glimmerville-shell-v34');
+  await h268.cacheStorage.delete('glimmerville-shell-v35');
   h268.setFetch(async () => { throw new TypeError('offline'); });
   result268 = await h268.fireFetch({ method: 'GET', url: base268, mode: 'navigate' });
   assert(result268.response.status === 503 && (await result268.response.text()).includes('尚未完成首次快取'),
@@ -1939,11 +1939,11 @@ async function runPwaTests() {
   await h269.fireLife('install');
   await h269.fireLife('activate');
   const keys269 = await h269.cacheStorage.keys();
-  assert(h269.ops.opened[0] === 'glimmerville-shell-v34' &&
+  assert(h269.ops.opened[0] === 'glimmerville-shell-v35' &&
     JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T269/T270 v5 install 應維持完整 app-shell 資產閉包');
   assert(!keys269.includes('glimmerville-shell-v3') && !keys269.includes('glimmerville-shell-v4') &&
-    keys269.includes('glimmerville-shell-v34') &&
+    keys269.includes('glimmerville-shell-v35') &&
     keys269.includes('gv-other-app') && keys269.includes('shared-cache'),
     'T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache');
 
@@ -1957,7 +1957,7 @@ async function runPwaTests() {
   assert(result269.intercepted && result269.response.status === 201 &&
     await result269.response.text() === freshManifest269,
     'T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response');
-  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v34');
+  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v35');
   let cachedManifest269 = await cache269.match(base268 + 'manifest.json');
   assert(cachedManifest269 && await cachedManifest269.text() === freshManifest269 &&
     h269.ops.puts.includes(base268 + 'manifest.json'),
@@ -2023,7 +2023,7 @@ async function runPwaTests() {
   assert(await result269.response.text() === freshManifest269,
     'T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest');
 
-  await h269.cacheStorage.delete('glimmerville-shell-v34');
+  await h269.cacheStorage.delete('glimmerville-shell-v35');
   result269 = await h269.fireFetch({
     method: 'GET', url: base268 + 'manifest.json?empty=269', mode: 'same-origin'
   });
@@ -2297,7 +2297,7 @@ async function runPwaTests() {
 
   const h271Miss = makeSwHarness268(sw268);
   await h271Miss.fireLife('install');
-  await h271Miss.cacheStorage.delete('glimmerville-shell-v34');
+  await h271Miss.cacheStorage.delete('glimmerville-shell-v35');
   h271Miss.setFetch(async () => new Response('fresh-cache-miss-271', { status: 200 }));
   networkBefore271 = h271Miss.ops.networkCalls;
   result271 = await h271Miss.fireFetch({
@@ -3526,6 +3526,89 @@ runPwaTests().then(() => {
     const mt340 = window.GV.chipText('money');
     assert(mt340.includes('釀酒廠'), 'T340 有糧時財政晶片應含釀酒廠行');
     assert(isFinite(window.GV.stats().money), 'T340 不得 NaN');
+  }
+
+
+  // ===== T341 巨型合併鏈：Lv2+ 簇 → 2×2 摩天樓 → 3×3 巨廈（有機垂直進化） =====
+  {
+    assert(html.includes("SPR.bld['105_1_0']") && html.includes("SPR.bld['106_1_0']"), 'T341 巨廈/綜合體 sprite 鍵');
+    assert(html.includes('const MEGA_POP=Math.round(POPS[3]*9*1.35)'), 'T341 巨廈人口＝九棟 lv3 總和×1.35');
+    assert(html.includes('105:3,106:3'), 'T341 MSZ 需含 105:3/106:3（鐵律13）');
+    assert(html.includes('T341h') && html.includes('parks341'), 'T341h 直接成形＋公園吸收規則需存在');
+    // 端到端：同種子 AI 城須在 450 天內有機長出塔樓與巨廈（瀏覽器實測 塔200天/巨廈400天）
+    window.GV.newWorldSeeded(22);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    let towerDay = -1, megaDay = -1, mroot = null, mk341 = 0;
+    const n341 = window.GV.N();
+    for (let d = 0; d < 900 && megaDay < 0; d++) {
+      window.GV.step(1);
+      if (d % 50 === 25) window.GV.addMoney(6000);
+      if (d % 20 === 19) {
+        for (let y = 0; y < n341; y++) for (let x = 0; x < n341; x++) {
+          const t = tile(x, y);
+          if (t && t.bld && !t.bld.ref) {
+            if ((t.bld.k === 33 || t.bld.k === 34) && towerDay < 0) towerDay = d;
+            if ((t.bld.k === 105 || t.bld.k === 106) && megaDay < 0) { megaDay = d; mroot = [x, y]; mk341 = t.bld.k; }
+          }
+        }
+      }
+    }
+    window.GV.ai(false);
+    assert(towerDay >= 0, 'T341 900 天內應有機長出摩天樓');
+    if (megaDay < 0) { // 診斷：塔周環分類
+      const diag341 = [];
+      for (let y = 0; y < n341; y++) for (let x = 0; x < n341; x++) {
+        const t0 = tile(x, y);
+        if (!(t0 && t0.bld && !t0.bld.ref && (t0.bld.k === 33 || t0.bld.k === 34))) continue;
+        const kk = t0.bld.k === 33 ? 1 : 2;
+        const os = [];
+        for (const [ax, ay] of [[x, y], [x - 1, y], [x, y - 1], [x - 1, y - 1]]) {
+          if (ax < 0 || ay < 0 || ax + 3 > n341 || ay + 3 > n341) continue;
+          const cs = [];
+          for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) {
+            const cx = ax + dx, cy = ay + dy;
+            if (cx >= x && cx <= x + 1 && cy >= y && cy <= y + 1) continue;
+            const t = tile(cx, cy);
+            if (!t) { cs.push('?'); continue; }
+            if (t.road) cs.push('R');
+            else if (t.bld && t.bld.ref) cs.push('r');
+            else if (t.bld && t.bld.k === kk) cs.push('L' + t.bld.lv + (t.bld.pw ? '' : 'x'));
+            else if (t.bld) cs.push('k' + t.bld.k);
+            else if (t.zone === kk) cs.push('z');
+            else if (t.zone) cs.push('Z');
+            else cs.push(t.t === 2 ? 'g' : 't' + t.t);
+          }
+          os.push(cs.join(''));
+        }
+        diag341.push('(' + x + ',' + y + ')' + os.join('|'));
+        if (diag341.length >= 5) break;
+      }
+      console.log('T341-DIAG towers=' + diag341.length + ' :: ' + diag341.join(' ;; '));
+    }
+    assert(megaDay >= 0, 'T341 900 天內應有機進化出巨廈（鐵律7：乾淨流與髒歷史瀏覽器會分岔，實測乾淨流晚於 450）');
+    const rb341 = tile(mroot[0], mroot[1]).bld;
+    let refs341 = 0;
+    for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) {
+      if (!dx && !dy) continue;
+      const b = tile(mroot[0] + dx, mroot[1] + dy).bld;
+      if (b && b.k === mk341 && b.ref && b.ref[0] === mroot[0] && b.ref[1] === mroot[1]) refs341++;
+    }
+    assert(rb341.sz === 3 && refs341 === 8, 'T341 巨廈 root sz=3＋8 ref 完整');
+    assert(isFinite(window.GV.stats().money), 'T341 巨廈稅收不得 NaN（鐵律14）');
+    // 存讀往返（鐵律13）
+    window.GV.save();
+    assert(window.GV.load() === true, 'T341 巨廈存檔應可讀回');
+    const rb2 = tile(mroot[0], mroot[1]).bld;
+    let refs2 = 0;
+    for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) {
+      if (!dx && !dy) continue;
+      const b = tile(mroot[0] + dx, mroot[1] + dy).bld;
+      if (b && b.k === mk341 && b.ref) refs2++;
+    }
+    assert(rb2 && rb2.k === mk341 && rb2.sz === 3 && refs2 === 8, 'T341 巨廈 save→load 往返 root sz＋ref 全保留');
+    window.GV.step(1);
+    assert(isFinite(window.GV.stats().money) && window.GV.stats().pop > 0, 'T341 讀檔後首 tick 人口/資金正常');
   }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
