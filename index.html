@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.3'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.4'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -12260,6 +12260,69 @@ function tone(f,dur,type,vol,slide){
   o.connect(g).connect(AC.destination);
   o.start();o.stop(AC.currentTime+dur);
 }
+/* ===== T314 程序化四季環境音樂（玩家問「你能產音樂素材嘛」）：以 Web Audio 即時合成波形產生旋律，
+   **不使用任何取樣/外部音檔＝100% 原創**，零檔案體積（幾十行代碼＝無限長的曲子）。
+   設計：①五聲音階（pentatonic，天生不易出現刺耳音程，隨機取音也好聽）②四季各自調式與音色
+   （春 D 大調亮/夏 A 大調活潑/秋 G 大調溫暖/冬 A 小調清冷）③三層結構：低音 pad 長音鋪底、
+   中頻旋律、偶發高音點綴 ④節奏由 day 與音符計數決定（決定性、不消耗模擬 R()）⑤夜間降低音量與密度。
+   遵守既有 muted/sndMode 開關；AC 未初始化（玩家未互動過）時完全不發聲。 ===== */
+let musicOn=false, musicNote=0, musicAcc=0, musicGain=null;
+const MUSIC_SCALE={ // 五聲音階（含八度），Hz
+  0:[293.66,329.63,392.00,440.00,523.25,587.33,659.25],   // 春：D 大調五聲（明亮）
+  1:[329.63,369.99,440.00,493.88,587.33,659.25,739.99],   // 夏：E 起（活潑）
+  2:[261.63,293.66,349.23,392.00,440.00,523.25,587.33],   // 秋：C 起（溫暖）
+  3:[220.00,261.63,293.66,329.63,392.00,440.00,523.25]    // 冬：A 小調五聲（清冷）
+};
+const MUSIC_PAD={0:146.83,1:164.81,2:130.81,3:110.00};     // 各季低音 pad 根音
+const MUSIC_WAVE={0:'triangle',1:'triangle',2:'sine',3:'sine'};
+function musicNoteOn(f,dur,type,vol){
+  if(!AC||muted||!musicOn)return;
+  const o=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();
+  o.type=type;o.frequency.value=f;
+  lp.type='lowpass';lp.frequency.value=1800;                 // 柔化高頻，避免刺耳
+  g.gain.setValueAtTime(0,AC.currentTime);
+  g.gain.linearRampToValueAtTime(vol,AC.currentTime+dur*0.25); // 慢起音＝環境感
+  g.gain.exponentialRampToValueAtTime(.0008,AC.currentTime+dur);
+  o.connect(lp).connect(g).connect(AC.destination);
+  o.start();o.stop(AC.currentTime+dur);
+}
+function musicPad(sea){ // 低音長音鋪底（每 8 音一次）
+  if(!AC||muted||!musicOn)return;
+  const root=MUSIC_PAD[sea]||130.81;
+  for(const f of [root,root*1.5]){                            // 根音＋純五度＝穩定和聲
+    const o=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();
+    o.type='sine';o.frequency.value=f;
+    lp.type='lowpass';lp.frequency.value=600;
+    g.gain.setValueAtTime(0,AC.currentTime);
+    g.gain.linearRampToValueAtTime(.035,AC.currentTime+1.2);
+    g.gain.exponentialRampToValueAtTime(.0008,AC.currentTime+5.5);
+    o.connect(lp).connect(g).connect(AC.destination);
+    o.start();o.stop(AC.currentTime+5.6);
+  }
+}
+/* 每幀推進：以真實時間累積，約每 0.62 秒一個音（緩慢＝環境音樂而非旋律曲）。
+   音高由 musicNote 計數與季節決定性選取（不消耗模擬 R()）；夜間音量減半、密度降低。 */
+function musicStep(dt){
+  if(!AC||muted||!musicOn)return;
+  musicAcc+=dt;
+  const night=(typeof daylight==='function')?(daylight().b<.5):false;
+  const step=night?0.9:0.62;
+  if(musicAcc<step)return;
+  musicAcc=0;
+  const sea=(typeof season==='function')?season():0;
+  const sc=MUSIC_SCALE[sea]||MUSIC_SCALE[0];
+  const n=musicNote++;
+  if(n%8===0)musicPad(sea);                                    // 每 8 音鋪一次和聲墊
+  // 決定性旋律走向：以整數雜湊在音階內遊走（相鄰音優先＝旋律連貫）
+  const h=((n*2654435761)>>>0);
+  const idxN=(h>>>8)%sc.length;
+  const vol=(night?.026:.042)*(1+((h>>>3)%3)*0.12);
+  musicNoteOn(sc[idxN],night?1.5:1.1,MUSIC_WAVE[sea]||'sine',vol);
+  if((h>>>16)%5===0){                                          // 偶發高八度點綴
+    const hi=sc[(idxN+2)%sc.length]*2;
+    setTimeout(()=>musicNoteOn(hi,.7,'sine',vol*0.5),260);
+  }
+}
 const sTick=()=>tone(520,.05,'square',.05);
 const sBuild=()=>{tone(300,.09,'square',.07,180);setTimeout(()=>tone(430,.07,'square',.05),60);};
 const sErr=()=>tone(110,.18,'sawtooth',.08);
@@ -12777,8 +12840,8 @@ $('#bSpeed').onclick=()=>{
   sTick();
 };
 $('#bSound').onclick=()=>{
-  sndMode=(sndMode+1)%3;
-  muted=sndMode===0;
+  sndMode=(sndMode+1)%3;musicOn=(sndMode===2); // T314：🎵 檔＝音效+環境音樂，其餘檔關音樂
+  muted=sndMode===0;musicOn=(sndMode===2);
   $('#bSound').textContent=['🔇','🔊','🎵'][sndMode];
   localStorage.setItem(SAVEKEY+'.snd',sndMode);
   if(sndMode===2){composer.start();ambientBus.start();}else{composer.stop();ambientBus.stop();} // T144：環境音匯流排沿用既有音效總開關，跟 composer 同進退
@@ -13709,6 +13772,7 @@ function advance(dtReal){
   updBuses(dtA);   // 公車巡迴（T26）：與 cars/smoke/rain 同為每幀動畫更新
   updRouteBuses(dtA); // T120：路線公車，與一般公車同幀更新
   updateCitizensMove(dtA); // T295b：抽樣市民每幀步行（家↔工作，昼夜驅動）
+  musicStep(dtA); // T314：程序化四季環境音樂（合成波形、零取樣素材）
 }
 function frame(ts){
   requestAnimationFrame(frame);
@@ -13746,7 +13810,7 @@ startTitleAnim(); // T158：開始畫面標題背景動畫啟動（begin() 進�
 const oldMute=localStorage.getItem(SAVEKEY+'.mute');
 sndMode=+(localStorage.getItem(SAVEKEY+'.snd')??(oldMute==='1'?0:1));
 if(sndMode<0||sndMode>2||isNaN(sndMode))sndMode=1;
-muted=sndMode===0;
+muted=sndMode===0;musicOn=(sndMode===2);
 $('#bSound').textContent=['🔇','🔊','🎵'][sndMode];
 // 一次性遷移：舊單一鍵 SAVEKEY 若有值且槽1為空 → 搬到槽1並刪除舊鍵
 const oldSave=localStorage.getItem(SAVEKEY);
@@ -13867,6 +13931,8 @@ window.GV={
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   polAt:(x,y)=>inMap(x,y)?POL[idx(x,y)]:null, // T110：污染場除錯鉤子（命名避開稅率政策 GV.pol）
   wealthAt:(x,y)=>{if(!inMap(x,y))return null;const b=T(idx(x,y)).bld;return(b&&b.k===1)?(b.we!==undefined?b.we:1):null;}, // T123：住宅財富級除錯鉤子（0貧/1中/2富，非住宅回 null）
+  music:()=>({on:musicOn,note:musicNote,scale:(typeof season==='function')?season():0}), // T314 測試用：音樂狀態
+  setMusic:(v)=>{musicOn=!!v;return musicOn;}, // T314 測試/UI 用：音樂開關
   rleRT:(str)=>rleDec(rleEnc(str))===str,
   inflateSave:(raw)=>saveInflate(JSON.parse(raw)),
   rawSave:()=>localStorage.getItem(slotKey(curSlot()))||"", // T312 測試用：讀當前槽原始落盤字串 // T312 測試用：解析並解壓存檔（測試按格索引 rd/zn 前必須解壓） // T312 測試用：RLE 往返無損驗證
