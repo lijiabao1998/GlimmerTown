@@ -101,6 +101,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   display:none;min-width:180px;max-width:70vw;box-shadow:var(--shadow-panel);animation:panelIn .2s var(--ease)}
 #info h3{font-size:14px;color:var(--accent);margin-bottom:4px}
 #info .row{margin:2px 0;color:#c9d2ea;line-height:1.5}
+/* ===== T319 標準化數據表格（HOI4 風：密集對齊、數值等寬右對齊、分區標頭、色彩編碼增減） =====
+   全遊戲共用同一組類名，任何面板（建築檢視／統計／指南／地鐵站）都用 statTab() 產生，
+   確保「同一種數據在任何地方長得一樣」＝標準化。 */
+.stab{display:grid;grid-template-columns:auto 1fr auto;gap:1px 10px;font-size:12px;margin:3px 0 5px}
+.stab .k{color:#8fa0c0;white-space:nowrap}
+.stab .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:#e6edfa;white-space:nowrap}
+.stab .u{color:#6f7f9a;font-size:10px;white-space:nowrap;align-self:center}
+.stab .v.good{color:#7be08a}.stab .v.bad{color:#ff8a72}.stab .v.warn{color:#ffc95f}.stab .v.dim{color:#7f8ca6}
+.sec{margin:8px 0 3px;font-size:10px;letter-spacing:.1em;color:#7fd4ff;border-bottom:1px solid #2a3448;padding-bottom:2px}
+.sbar{grid-column:1/-1;height:3px;background:#1e2740;border-radius:2px;overflow:hidden;margin:1px 0 3px}
+.sbar>i{display:block;height:100%;background:linear-gradient(90deg,#5ec8ff,#7be08a)}
+/* 可排序速查表 */
+table.dtab{border-collapse:collapse;width:100%;font-size:11px;margin:4px 0}
+table.dtab th{background:#1d2637;color:#9fc0e8;padding:3px 6px;text-align:left;cursor:pointer;user-select:none;
+  position:sticky;top:0;border-bottom:1px solid #33415c;white-space:nowrap}
+table.dtab th:hover{background:#25314a;color:#cfe4ff}
+table.dtab th.sorted::after{content:' ▾';color:#7fd4ff}
+table.dtab th.sortedAsc::after{content:' ▴';color:#7fd4ff}
+table.dtab td{padding:2px 6px;border-bottom:1px solid #232c3f;color:#c9d2ea}
+table.dtab td.n{text-align:right;font-variant-numeric:tabular-nums}
+table.dtab tr:hover td{background:#1b2334}
+.dtwrap{max-height:46vh;overflow:auto;border:1px solid #2a3448;border-radius:4px}
+.gsec{margin:9px 0 3px;font-size:12px;color:#ffd977;font-weight:700}
+
 #info .x{position:absolute;top:4px;right:8px;color:var(--text-dim);cursor:pointer;font-size:15px;transition:color var(--ease)}
 #info .x:hover{color:var(--text)}
 @keyframes panelIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -314,7 +338,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.7'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.8'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -12253,6 +12277,53 @@ function upgradeBld(x,y){
 /* 檢視面板 */
 let selTile=null; // T126：inspect 選中建築格（{x,y}或null），供 draw() 前方遮擋物半透明判定；純 UI 狀態，比照 hover/rect 慣例不進 newWorld/load 重置
 let traceOverlay=null; // T143：因果追溯疊圖狀態 {factor,tiles:[{x,y}...]} 或 null；純 UI 狀態，比照 selTile 慣例不進 newWorld/load 重置，關面板或再點同一因子清空
+/* T320 地鐵站數據表（玩家「地鐵站、消防站的數據應結構化成會變化的表格」）：
+   點擊站點所在格即顯示該站標準表——站名/等級/出入口/所屬線/票價/該線載客與運力/高架地下/所屬地區。 */
+/* T321 服務建築標準化數據表（玩家「消防站啥的數據應結構化成會變化的表格」）：
+   任何有覆蓋場的建築通用一套表——服務半徑／覆蓋格數／該半徑內實際服務的住宅數（會隨城市變化）／
+   造價／占地／所屬地區／預算縮放提示。資料全由既有真相來源導出（COVR/COST/MSZ/COV 場），
+   故調服務預算或城市成長時表格數值自動跟著變（＝玩家要的「會變化的表格」）。 */
+function svcStatTable(x,y,b){
+  const f=covFieldOfK(b.k); if(!f)return '';
+  const r=COVR[f]||0; if(!r)return '';
+  const bud=SVC_BUDGET_CAT[f];
+  const rEff=bud?Math.max(1,Math.round(r*svcBudget[bud])):r;   // 預算縮放後的實際半徑
+  let served=0,pop2=0;
+  for(let dy=-rEff;dy<=rEff;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
+    for(let dx=-rEff;dx<=rEff;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;
+      const bb=tiles[idx(nx,ny)].bld;
+      if(bb&&!bb.ref&&bb.k===1){served++;if(bb.pw)pop2+=Math.round(POPS[bb.lv]*(bb.den?DEN_POP[bb.den-1]:1));}
+    }}
+  const sz=MSZ[b.k]||1;
+  return '<div class="sec">📊 服務數據</div>'+statTab([
+    {k:'服務半徑',v:rEff,u:'格'+(bud&&rEff!==r?('（基準 '+r+' ×預算 '+svcBudget[bud].toFixed(1)+'）'):'')},
+    {k:'覆蓋格數',v:((rEff*2+1)*(rEff*2+1)),u:'格'},
+    {k:'服務住宅',v:served,u:'棟',t:served?'good':'warn'},
+    {k:'服務人口',v:pop2,u:'人',t:pop2?'good':'dim'},
+    {k:'占地',v:sz+'×'+sz,u:'格'},
+    {k:'所屬地區',v:districtName(distIdx(x,y)),u:''},
+    bud?{k:'預算類別',v:({police:'🚓 警察',fire:'🚒 消防',health:'🏥 醫療',edu:'🎓 教育'})[bud],u:'📊 面板可調 0.5–1.5×'}:null,
+  ]);
+}
+function metroStationAt(x,y){
+  for(const L of metroLines)for(const st of L.stations)if(st.x===x&&st.y===y)return {st,L};
+  return null;
+}
+function metroStationTable(x,y){
+  const f=metroStationAt(x,y);if(!f)return '';
+  const {st,L}=f;
+  const cap=L.trains*300, load=cap?Math.min(1,(L.riders||0)/cap):0;
+  return '<div class="sec" style="color:'+L.color+'">🚇 '+(st.name||stationName(st))+'</div>'+statTab([
+    {k:'等級',v:['小站','中站','大站'][(st.tier||1)-1],u:'出入口 '+(st.exits||1)+' 個'},
+    {k:'所屬線',v:L.id+' 號線',u:L.underground?'地下':'高架'},
+    {k:'票價',v:'$'+L.fare,u:'隨線長'},
+    {k:'該線載客',v:(L.riders||0)+' / '+cap,u:'人／日',t:load>.95?'bad':load>.7?'warn':'good'},
+    {bar:load},
+    {k:'該線列車',v:L.trains,u:'輛'},
+    {k:'所屬地區',v:districtName(distIdx(x,y)),u:''},
+    st.inMall?{k:'特殊',v:'商場內出入口',u:'',t:'good'}:null,
+  ]);
+}
 function inspect(x,y){
   if(!inMap(x,y)){hideInfo();return;}
   const t=T(idx(x,y));
@@ -12420,6 +12491,12 @@ function inspect(x,y){
     html=`<h3>${t.levee?'🧱 堤防':'🌊 淹水中'}</h3>`+
       (t.levee?'<div class="row">鄰近河岸免疫洪水</div>':'<div class="row">連雨積水，會自然消退（可用 💥 拆除）</div>');
   }else return hideInfo();
+  { // T321：附加標準化數據表（不改任何既有分支，純附加）
+    const mt=metroStationTable(x,y);
+    if(mt)html+=mt;
+    const bb2=t.bld&&!t.bld.ref?t.bld:(t.bld&&t.bld.ref?T(idx(t.bld.ref[0],t.bld.ref[1])).bld:null);
+    if(bb2&&bb2.k>3)html+=svcStatTable(t.bld.ref?t.bld.ref[0]:x,t.bld.ref?t.bld.ref[1]:y,bb2);
+  }
   $('#infoBody').innerHTML=html;
   const ub=$('#upBtn');                                  // T239：功能建築升級按鈕
   if(ub)ub.addEventListener('click',()=>upgradeBld(x,y));
@@ -12988,6 +13065,72 @@ $('#miniToggle').addEventListener('click',e=>{
   $('#miniToggle').title='小地圖視圖：'+MINI_VIEW_NAME[miniView];
   drawMini();
 });
+/* ===== T319 標準化數據表格產生器：全遊戲唯一入口，任何面板都用它輸出數據列
+   rows 元素格式：
+     {sec:'分區標題'}                     → 分區標頭
+     {k:'標籤',v:值,u:'單位',t:'good|bad|warn|dim'}  → 一列數據
+     {bar:0..1}                          → 迷你進度條
+   數值自動右對齊等寬字（tabular-nums），確保多列縱向對齊＝HOI4 觀感。 ===== */
+function statTab(rows){
+  let h='<div class="stab">';
+  for(const r of rows){
+    if(!r)continue;
+    if(r.sec!==undefined){h+='<div class="sec" style="grid-column:1/-1">'+r.sec+'</div>';continue;}
+    if(r.bar!==undefined){h+='<div class="sbar"><i style="width:'+Math.round(clamp(r.bar,0,1)*100)+'%"></i></div>';continue;}
+    h+='<div class="k">'+r.k+'</div><div class="v'+(r.t?' '+r.t:'')+'">'+r.v+'</div><div class="u">'+(r.u||'')+'</div>';
+  }
+  return h+'</div>';
+}
+/* T319 可排序速查表：thead 點擊排序（數值欄依數值、文字欄依字典序，再點反向）。
+   資料一律由遊戲真實變數即時生成（COST/COVR/KNAME…），故永不與實際數值脫節。 */
+let dtabSort={col:-1,asc:false};
+function dataTable(cols,rows,id){
+  // cols: [{h:'標題',n:true/false}]，rows: 二維陣列（值為 number 或 string）
+  const sc=dtabSort.col;
+  if(sc>=0&&sc<cols.length){
+    rows=rows.slice().sort((a,b)=>{
+      const x=a[sc],y=b[sc];
+      const d=(typeof x==='number'&&typeof y==='number')?x-y:String(x).localeCompare(String(y),'zh-Hant');
+      return dtabSort.asc?d:-d;
+    });
+  }
+  let h='<div class="dtwrap"><table class="dtab" id="'+id+'"><thead><tr>';
+  cols.forEach((c,i)=>{h+='<th data-c="'+i+'" class="'+(sc===i?(dtabSort.asc?'sortedAsc':'sorted'):'')+'">'+c.h+'</th>';});
+  h+='</tr></thead><tbody>';
+  for(const r of rows){
+    h+='<tr>';
+    r.forEach((v,i)=>{h+='<td class="'+(cols[i].n?'n':'')+'">'+v+'</td>';});
+    h+='</tr>';
+  }
+  return h+'</tbody></table></div>';
+}
+function bindDataTable(id,redraw){ // 綁定表頭排序（重繪由呼叫端提供）
+  const el=$('#'+id);if(!el)return;
+  el.querySelectorAll('th').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const c=+th.dataset.c;
+      if(dtabSort.col===c)dtabSort.asc=!dtabSort.asc;else{dtabSort.col=c;dtabSort.asc=false;}
+      redraw();sTick();
+    });
+  });
+}
+/* T319 服務建築速查表資料：由 KNAME/COST/COVR/covFieldOfK 即時導出（單一真相來源，改數值不需改指南）。 */
+function serviceRefRows(){
+  const rows=[];
+  const TOOLID={6:'fire',30:'fireStation2',61:'fireHQ',11:'police',52:'policeBox',43:'court',
+    12:'hospital',13:'clinic',28:'ambulance',48:'megahosp',7:'school',32:'university',14:'library',41:'grandlib',45:'institute',
+    15:'post',16:'cemetery',54:'bigCemetery',4:'park',47:'botanical',9:'stad',56:'sportsComplex',
+    35:'museum',36:'theater',40:'cinema',66:'faithCenter',10:'water',27:'sewage',8:'dump',29:'recycling',62:'wasteIncinerator'};
+  for(const k in TOOLID){
+    const kk=+k, f=covFieldOfK(kk), tool=TOOLID[k];
+    const cost=COST[tool];
+    if(cost===undefined)continue;
+    const r=f?(COVR[f]||0):0;
+    const area=r?((r*2+1)*(r*2+1)):0;
+    rows.push([KNAME[kk]||('k'+kk), cost, r||'—', area||'—', (MSZ[kk]||1)+'×'+(MSZ[kk]||1)]);
+  }
+  return rows;
+}
 function toast(msg,cls,x,y){
   /* T311 提示訊息不刷屏（玩家反饋：三倍速時 toast 蓋滿整個畫面）——同屏最多 2 條，
      第 3 條到達時把最舊的那條淡出擠掉（新條淡入補上其位置），其餘照常 2.8s 後自動淡出。
@@ -13625,33 +13768,104 @@ function showAch(){
   $('#info').style.display='block';
 }
 $('#bAch').onclick=()=>{showAch();sTick();};
+let guideTab=0; // T320：玩法指南分頁（0 流程 1 服務 2 經濟 3 速查表）
 function showHelp(){
-  $('#infoBody').innerHTML=
-    `<h3>❓ 玩法指南</h3>
-     <div class="row">🖐 拖曳平移・滾輪/雙指縮放・點擊建築看詳情</div>
-     <div class="row">🛣 先鋪路 → 🏠🏪🏭 沿路劃區 → ⚡ 蓋電廠供電</div>
-     <div class="row">建築自動生長升級（最高 Lv3），每天繳稅給你</div>
-     <div class="row">需求條 R/C/I：綠＝想搬來・藍＝缺商店・黃＝缺工廠</div>
-     <div class="row">🌳 公園加幸福；住宅緊鄰工業/電廠會扣幸福</div>
-     <div class="row">⚡ 每座電廠供 50 棟建築，電力沿道路輸送</div>
-     <div class="row">💧 水塔供 80 棟建築，需鋪設地下水管，建築需水電才能升到 Lv3</div>
-     <div class="row">🚓 警察局半徑10降低犯罪；犯罪會降低鄰近幸福，點擊建築可處理</div>
-     <div class="row">🏥 醫院半徑12防止疾病；無醫院覆蓋的住宅可能生病並停止產出</div>
-     <div class="row">🏥 診所半徑6降低疾病風險，適合早期小城鎮</div>
-     <div class="row">📚 圖書館半徑6內住宅 +幸福、升級加快，就業 4</div>
-     <div class="row">📮 郵局半徑8內商業 +15% 稅收、住宅 +幸福，就業 5</div>
-     <div class="row">💀 墓園半徑10安撫死亡事件；長期未治療的生病住宅可能發生憾事，影響鄰近幸福</div>
-     <div class="row">🛠 工具列上方可依「基本／道路／分區／服務／大型」分類篩選，手機可左右滑動（T62）</div>
-     <div class="row">🚉🚢✈️🚋 火車站・港口・機場・輕軌站在「大型」分類，相鄰兩座以上會有列車/貨船/電車自動巡迴</div>
-     <div class="row">🌾 農場・🐄 牧場產食物、全城提升住宅幸福；🗼 地標・✈️ 機場・🚉 火車站吸引遊客、提升商業稅收（上限 +20%）</div>
-     <div class="row">☀️ 太陽能・🌬️ 風力可疊加電廠供電容量；🚿 污水廠減輕工業對鄰近住宅的幸福懲罰；♻️ 回收中心 +30 垃圾容量；♨️ 焚化發電廠 +100 垃圾容量並供電，但污染很高</div>
-     <div class="row">🚑 救護站半徑10健康覆蓋（同醫院）・🏛️ 監獄半徑8防犯罪・🎓 大學半徑10內升級率 ×1.8・🚒 高級消防局半徑12降低起火率（撲滅靠消防車出勤）</div>
-     <div class="row">🅿️ 停車場半徑8內商業 +10% 稅收；📊 統計面板內「稅率政策」可調整住/商/工稅率</div>
-     <div class="row">⚠️ 地震／連雨洪水會偶發（設定可關閉）；🧱 堤防鄰格可免疫洪水</div>
-     <div class="row">💥 拆除 Lv2+ 建築需點兩次確認</div>
-     <div class="row">快捷鍵：1-0 工具・w=水塔・g=水管・j=警察局・h=醫院・c=診所・l=圖書館・o=郵局・m=墓園・空白鍵暫停・Esc 檢視</div>`;
+  /* T320 玩法指南重構（玩家「更有序、做排序、數據更表格化」）：原本 30 行平鋪 row、無分類、
+     且服務半徑等數值寫死在散文裡（改數值就過期）。改為四分頁＋標準化表格；速查表資料由
+     serviceRefRows() 從 KNAME/COST/COVR/MSZ 即時導出＝單一真相來源、永不脫節，且表頭可點擊排序。 */
+  const tabs=['🚦 上手流程','🏛 服務設施','💰 經濟系統','📊 建築速查'];
+  let h='<h3>📖 玩法指南</h3><div class="row" style="margin-bottom:6px">';
+  tabs.forEach((t,i2)=>{h+='<button class="hbtn" id="gt'+i2+'" style="'+(guideTab===i2?'background:#2a67c9;color:#fff':'opacity:.6')+'">'+t+'</button>';});
+  h+='</div>';
+  if(guideTab===0){
+    h+='<div class="gsec">① 開局三步</div>'+statTab([
+      {k:'1. 鋪路',v:'🛣 道路',u:'先有路才能劃區'},
+      {k:'2. 劃分區',v:'🏠🏪🏭',u:'住宅/商業/工業'},
+      {k:'3. 供電',v:'⚡ 電廠',u:'無電不生長'},
+    ]);
+    h+='<div class="gsec">② 成長條件</div>'+statTab([
+      {sec:'建築升級門檻'},
+      {k:'Lv1 → Lv2',v:'警力覆蓋',u:'必需'},
+      {k:'Lv2 → Lv3',v:'學校覆蓋＋供水',u:'必需'},
+      {k:'高密度化',v:'高地價',u:'地價越高越快'},
+      {k:'四棟 Lv3 住宅',v:'可合併摩天樓',u:'需供水'},
+      {sec:'需求（R/C/I）'},
+      {k:'需求條',v:'綠正紅負',u:'負值該類停止生長'},
+      {k:'調節手段',v:'稅率／服務／就業',u:''},
+    ]);
+    h+='<div class="gsec">③ 操作技巧</div>'+statTab([
+      {k:'拖曳鋪設',v:'道路/分區/水管',u:'按住拖'},
+      {k:'查看細節',v:'點擊任何建築',u:'顯示數據表'},
+      {k:'小地圖圖層',v:'🏭 鈕循環',u:'地價/污染/壅堵/犯罪…'},
+      {k:'地鐵路線',v:'🚇 鈕開關',u:'預設關閉'},
+      {k:'拆除 Lv2+',v:'需點兩次確認',u:'防誤拆'},
+    ]);
+    h+='<div class="gsec">④ 關鍵取捨</div>';
+    h+='<div class="row" style="font-size:11px">♻️ 焚化發電廠 +100 垃圾容量並供電，但污染很高（2×2，勿貼住宅）</div>';
+    h+=statTab([
+      {k:'焚化發電廠 +100',v:'垃圾容量並發電，但污染很高',u:'2×2，勿貼住宅'},
+      {k:'工業 vs 住宅',v:'污染會殺幸福',u:'分區隔離'},
+      {k:'服務維護費',v:'淨收支為負會破產',u:'看 📊 面板'},
+      {k:'其餘分類',v:'見上方分頁',u:'服務／經濟／速查表'},
+    ]);
+  }else if(guideTab===1){
+    h+='<div class="gsec">服務設施：作用與門檻</div>'+statTab([
+      {sec:'治安'},
+      {k:'派出所／警察局',v:'降犯罪',u:'Lv2 升級的必需覆蓋'},
+      {k:'法院',v:'配合警局再降犯罪',u:'×0.5'},
+      {k:'監獄',v:'防犯罪發生',u:''},
+      {sec:'消防'},
+      {k:'消防局／高級／總局',v:'火災由消防車趕到撲滅',u:'覆蓋外不出車'},
+      {sec:'醫療'},
+      {k:'診所／醫院／綜合醫院',v:'治病',u:'醫院覆蓋次日康復'},
+      {k:'救護站',v:'派救護車',u:'延遲＝路距'},
+      {sec:'教育'},
+      {k:'學校',v:'Lv3 升級必需',u:'升級加成 ×1.6'},
+      {k:'圖書館／圖書總館',v:'教育場＋幸福',u:'×1.25 / ×1.5'},
+      {k:'大學',v:'最強教育加成',u:'×1.8'},
+      {k:'研究院',v:'全類型升級加成',u:'×1.4'},
+      {sec:'民生'},
+      {k:'水塔＋水管',v:'供水（Lv3 鑰匙）',u:'每塔 80 建築'},
+      {k:'垃圾場',v:'處理垃圾',u:'容量 40／座'},
+      {k:'焚化發電廠 +100',v:'垃圾容量並發電，但污染很高',u:'2×2 高污染，勿貼住宅'},
+      {k:'公園／植物園',v:'幸福＋地價',u:''},
+      {k:'信仰中心',v:'精神滿足',u:'幸福 +6%'},
+      {sec:'服務預算'},
+      {k:'📊 面板 🎚️ 滑塊',v:'0.5×～1.5×',u:'覆蓋半徑與維護費同步縮放'},
+    ]);
+  }else if(guideTab===2){
+    h+='<div class="gsec">經濟系統</div>'+statTab([
+      {sec:'稅收來源'},
+      {k:'住宅稅',v:'人口 × 財富係數',u:'貧.6／中1／富1.5'},
+      {k:'商業稅',v:'就業 × 道路等級 × 遊客',u:'工業品供貨 +25%'},
+      {k:'工業稅',v:'就業 × 原料加成',u:'高階受教育場加成'},
+      {sec:'產業鏈'},
+      {k:'油井／礦場',v:'產原料',u:'需資源格'},
+      {k:'工業 Lv2+',v:'原料 → 工業品',u:'1 料 → 2 件'},
+      {k:'商業 Lv2+',v:'銷售工業品',u:'商業稅 ×1.25'},
+      {k:'倉儲物流中心',v:'工業品容量',u:'+120／級 +60'},
+      {sec:'農業'},
+      {k:'農場／大農場',v:'食物＋金幣',u:'灌溉可升級'},
+      {k:'溫室',v:'全年恆溫',u:'冬季免疫'},
+      {k:'食品加工廠',v:'食物盈餘 → 金幣',u:'×1.5'},
+      {k:'農產市價',v:'每日波動 0.6～1.8×',u:'搶購潮高價賣出'},
+      {sec:'公共運輸'},
+      {k:'公車路線／軌道站',v:'客運量',u:'票務收入＋分流車流'},
+      {k:'地鐵',v:'站分級／高架地下',u:'票價隨線長；廣告收入'},
+      {sec:'觀光'},
+      {k:'地標／機場／火車站',v:'吸引遊客',u:'商業稅最高 +20%'},
+    ]);
+  }else{
+    const cols=[{h:'建築'},{h:'造價',n:true},{h:'服務半徑',n:true},{h:'覆蓋格數',n:true},{h:'占地'}];
+    h+='<div class="gsec">建築速查表 <span style="font-size:10px;opacity:.7">（點表頭排序；數據由遊戲即時導出）</span></div>';
+    h+=dataTable(cols,serviceRefRows(),'gRefTab');
+  }
+  $('#infoBody').innerHTML=h;
+  tabs.forEach((t,i2)=>{const b=$('#gt'+i2);if(b)b.addEventListener('click',()=>{guideTab=i2;showHelp();sTick();});});
+  if(guideTab===3)bindDataTable('gRefTab',showHelp);
   $('#info').style.display='block';
 }
+
 function undo(){
   const g2=undoStack.pop();
   if(!g2){toast('沒有可撤銷的操作');return;}
@@ -14159,6 +14373,7 @@ window.GV={
   citizenCount:()=>citizens.length,
   cityEvent:()=>cityEvent?{id:CITY_EVENTS[cityEvent.i].id,name:CITY_EVENTS[cityEvent.i].name,daysLeft:cityEvent.daysLeft,tax:CITY_EVENTS[cityEvent.i].tax,food:CITY_EVENTS[cityEvent.i].food}:null, // T299 測試用：當前城市事件快照
   setCityEvent:(id)=>{const i=CITY_EVENTS.findIndex(e=>e.id===id);cityEvent=i>=0?{i,daysLeft:CITY_EVENTS[i].days}:null;return cityEvent?CITY_EVENTS[cityEvent.i].id:null;}, // T299 測試用：直接觸發指定事件
+  serviceRef:()=>serviceRefRows(), // T320 測試用：建築速查表資料（由遊戲真實數據導出）
   districts:()=>{const m=districtPops();return Object.keys(m).map(k=>({di:+k,name:districtName(+k),pop:m[k],named:!!districtNamed[k]})).sort((a,b)=>b.pop-a.pop);}, // T317 測試用：地區人口與名稱
   districtAt:(x,y)=>inMap(x,y)?districtName(distIdx(x,y)):null, // T317 測試用：某格所屬地區名
   stationNames:()=>metroLines.flatMap(L=>L.stations.map(st=>({line:L.id,tier:st.tier,name:stationName(st)}))), // T317 測試用：全部站名
