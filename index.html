@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.4'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.5'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -7112,7 +7112,7 @@ function placeCost(toolId,x,y){
   return c;
 }
 function doPlace(toolId,x,y,silent){
-  landDirty=true; // T292：任何建造/拆除都可能改 COV/POL/公園景觀→地價靜態基準需在下一 tick 重建（doPlace 亦處理 doze 拆除 case）
+  markLandDirty(x,y,20); // T315：只標記受影響框（半徑20 覆蓋最大覆蓋場18/污染5）；T292：任何建造/拆除都可能改 COV/POL/公園景觀→地價靜態基準需在下一 tick 重建（doPlace 亦處理 doze 拆除 case）
   const err=canPlace(toolId,x,y);
   if(err){if(!silent){toast(err,'bad');sErr();}return false;}
   const cost=placeCost(toolId,x,y);
@@ -7831,7 +7831,24 @@ function startLeak(x,y){ // 供 tick() 因果觸發與 GV.leak() 手動鉤子共
    水域且常伴生樹木，若計入天然地形將無法滿足「空曠新圖 LAND 恆 128」硬性不變量，故卡面「景觀（公園/樹/水岸）」
    用詞中僅落地與空曠新圖歸零相容的公園覆蓋，如實記錄此設計取捨）。不入存檔（rebuild 可重建）。*/
 let LAND=new Uint8Array(N*N), LANDBASE=new Uint8Array(N*N); // T262：const→let
-let landDirty=true; // T292：地價靜態基準髒標記——建造/拆除後置 true，下一個 tick 重建 LANDBASE 一次（修僵屍 bug：原 LANDBASE 僅 newWorld/load/undo 重建，建服務走增量 stampCov 不碰 LANDBASE→地價永停 128，拖累生長/稅收/升級三處全失效）；運行時全域不入存檔，rebuildCov 重建後清 false
+let landDirty=true;
+/* T315 地價場增量更新：原本任何建造都令下一 tick「全圖重算 LANDBASE」——但 landStaticAt 內含 countNear(r=4)
+   ＝每格 81 次鄰域讀取，432² 全圖實測 104.9ms（比整個 tick 還貴 2.5 倍），而放一座建築真正受影響的只有它周圍
+   約 40×40 格＝白工 99%。改為維護「受影響框」landBox：每個輸入變化（建造/拆除 → COV/POL 半徑最大 18；
+   犯罪出現/解除 → countNear 半徑 4）各自標記自己的影響框，tick 只重算框內。landBox=null 時退回全圖重算
+   （load/地圖尺寸變更等保守情形），故永不漏算。 */
+let landBox=null; // {x0,y0,x1,y1} 或 null（null＋landDirty＝全圖重算）
+function markLandDirty(x,y,r){
+  landDirty=true;
+  const x0=Math.max(0,x-r),y0=Math.max(0,y-r),x1=Math.min(N-1,x+r),y1=Math.min(N-1,y+r);
+  if(!landBox)landBox={x0,y0,x1,y1};
+  else{
+    if(x0<landBox.x0)landBox.x0=x0;
+    if(y0<landBox.y0)landBox.y0=y0;
+    if(x1>landBox.x1)landBox.x1=x1;
+    if(y1>landBox.y1)landBox.y1=y1;
+  }
+} // T292：地價靜態基準髒標記——建造/拆除後置 true，下一個 tick 重建 LANDBASE 一次（修僵屍 bug：原 LANDBASE 僅 newWorld/load/undo 重建，建服務走增量 stampCov 不碰 LANDBASE→地價永停 128，拖累生長/稅收/升級三處全失效）；運行時全域不入存檔，rebuildCov 重建後清 false
 // 靜態基準單格公式：服務覆蓋（警/消/校/醫/圖/郵各 COV.xxx>0 記1分，0~6）＋景觀（COV.park 封頂2分）
 // －污染 POL[i]*1.2－犯罪 countNear*10；全零時 clamp(128+0,0,255) 精確回傳 128（空曠新圖不變量之根本）
 function landStaticAt(x,y){
@@ -7846,10 +7863,26 @@ function landStaticAt(x,y){
 function landCongestAt(x,y){return Math.min(50,congestNear(x,y,2)*12);}
 // 由 LANDBASE 衍生 LAND（扣壅堵懲罰後先夾0再寫回 Uint8Array，避免無號下溢）；rebuildCov 尾端與 tick() 每日皆呼叫
 function recomputeLandDynamic(){
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const i=idx(x,y);
-    const v=LANDBASE[i]-landCongestAt(x,y);
-    LAND[i]=v>0?(v<255?v:255):0;
+  /* T315 快路徑：LAND=clamp(LANDBASE−壅堵扣分)。原本每格都跑 landCongestAt（congestNear r=2＝25 格鄰域），
+     432² 全圖＝470 萬次讀取／每 tick。但「過載道路」通常極少甚至沒有（空車城恆 0），此時壅堵扣分處處為 0，
+     LAND 就等於 LANDBASE（LANDBASE 已 clamp 0-255）＝一次 TypedArray memcpy 即完全正確。
+     有過載時也只需重算「過載格半徑2鄰域」（congestNear 的定義域），其餘維持 memcpy 結果。逐位元等價、非近似。 */
+  const jam=[];
+  for(let i=0;i<N*N;i++){
+    if(roadLoad[i]===0)continue;                       // 多數格恆 0，先廉價跳過
+    const t=tiles[i];
+    if(t.road&&roadLoad[i]>ROAD_CAP[(t.rc||2)-1])jam.push(i);
+  }
+  LAND.set(LANDBASE);                                  // 基線＝無壅堵情形（一次 memcpy）
+  if(!jam.length)return;
+  for(const ji of jam){                                // 只修正受壅堵影響的鄰域
+    const jx=ji%N,jy=(ji/N)|0;
+    for(let dy=-2;dy<=2;dy++){const y=jy+dy;if(y<0||y>=N)continue;
+      for(let dx=-2;dx<=2;dx++){const x=jx+dx;if(x<0||x>=N)continue;
+        const i=idx(x,y);
+        const v=LANDBASE[i]-landCongestAt(x,y);
+        LAND[i]=v>0?(v<255?v:255):0;
+      }}
   }
 }
 /* T142：教育場——依 school/university/library 覆蓋累積住宅可用之受教勞動力水準，比照 §COV/POL/LAND 家族設計
@@ -7883,7 +7916,7 @@ function rebuildCov(){
     if(t.tree)stampPolTree(x,y,1); // T110：樹格鄰域污染減免
   }
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)LANDBASE[idx(x,y)]=landStaticAt(x,y); // T130：地價靜態基準隨 COV/POL 同步全量重建
-  landDirty=false; // T292：rebuildCov 已全量重建 LANDBASE，清髒標記避免下一 tick 重複重建
+  landDirty=false;landBox=null; // T315：全量重建後清框；T292：rebuildCov 已全量重建 LANDBASE，清髒標記避免下一 tick 重複重建
   recomputeLandDynamic(); // T130：以當下 roadLoad 疊一次壅堵初值（undo 未重置 roadLoad，newWorld/load 已於呼叫前歸零）
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)EDU[idx(x,y)]=eduStaticAt(x,y); // T142：教育場隨 COV 同步全量重建
 }
@@ -8392,7 +8425,11 @@ function tick(){
   // T129：道路壅堵場——用當日累計 roadPass 做衰減式移動平均，套公式後歸零累加器供下一天統計
   // （純陣列運算，不消耗 R()；空車城 roadPass 恆 0 時 load 恆 0，speed/happyParts 與改動前逐位元一致）
   for(let i=0;i<N*N;i++){roadLoad[i]=roadLoad[i]*.85+roadPass[i]*.15;roadPass[i]=0;}
-  if(landDirty){for(let i=0;i<N*N;i++)LANDBASE[i]=landStaticAt(i%N,(i/N)|0);landDirty=false;} // T292：地價靜態基準髒重建——建造/拆除後才全量刷新（平時零成本），修僵屍 bug 讓地價真正響應服務/景觀/污染
+  if(landDirty){ // T315：只重算受影響框（landBox=null 時保守全圖）
+    if(landBox){for(let yy=landBox.y0;yy<=landBox.y1;yy++)for(let xx=landBox.x0;xx<=landBox.x1;xx++)LANDBASE[idx(xx,yy)]=landStaticAt(xx,yy);}
+    else for(let i=0;i<N*N;i++)LANDBASE[i]=landStaticAt(i%N,(i/N)|0);
+    landDirty=false;landBox=null;
+  } // T292：地價靜態基準髒重建——建造/拆除後才全量刷新（平時零成本），修僵屍 bug 讓地價真正響應服務/景觀/污染
   recomputeLandDynamic(); // T130：地價動態部分——每日依最新 roadLoad 疊加壅堵扣分（靜態基準 LANDBASE 於上方髒重建後，此處疊壅堵動態扣分）
   // T141：通勤場獨立衰減式移動平均（純觀察用途，供 GV.commuteLoad/commuteAt 讀取，不回饋 roadLoad 避免雙重疊加；
   // 無通勤 trip 時 commutePass 恆 0，此項恆為 0，與改動前逐位元一致）
@@ -8945,7 +8982,7 @@ function tick(){
     const x=i%N,y=(i/N)|0;
     if(COV.police[i]>0||COV.police2[i]>0)continue; // T61：警察局半徑10覆蓋則受保護（原 countNear k===11）；T222：派出所小半徑同效
     if(!(COV.prison&&COV.prison[i]>0)&&R()<.001*(b.k===2?2:1)*b.lv*(pol&&pol.curfew?.6:1)*((COV.court&&COV.court[i]>0)?.5:1)){ // T67：監獄半徑8覆蓋則防犯罪（原 countNear k===31，O(N)→O(1)）；T122 宵禁：犯罪率×0.6；T139：法院半徑10覆蓋配合警局再降犯罪率×0.5（未放置時恆×1）
-      b.crime=1;
+      b.crime=1;markLandDirty(x,y,4); // T315：犯罪影響地價，標記影響框
       if(!crimeAlert){toast('🚓 '+townName+'發生犯罪！點擊受害建築處理','bad',x,y);sErr();crimeAlert=true;}
     }
   }
@@ -9990,7 +10027,7 @@ function updPoliceCars(dt){
   let told=false;
   updDispatch(policeCars,dt,2.4,svcFleet.police,sts,crimes,c=>{
     const b=T(idx(c.x,c.y)).bld;
-    if(b&&b.k<=3&&b.crime){b.crime=0;b.crimeDays=0;if(!told){toast('🚓 警方到場處理了犯罪','gold');told=true;}}
+    if(b&&b.k<=3&&b.crime){b.crime=0;b.crimeDays=0;markLandDirty(c.x,c.y,4);if(!told){toast('🚓 警方到場處理了犯罪','gold');told=true;}}
   });
 }
 // T119/T265：垃圾車——從垃圾場(k8)或焚化發電廠(k62)沿路巡迴（抵達即挑下一個路面點繼續走，持續出勤不消失）
@@ -12223,7 +12260,8 @@ function inspect(x,y){
   if(cb)cb.addEventListener('click',()=>{
     const bb=inMap(x,y)?T(idx(x,y)).bld:null;
     if(!bb||!bb.crime)return;
-    bb.crime=0;toast('🚓 犯罪已處理','gold');updHud();hideInfo();
+    bb.crime=0;markLandDirty(x,y,4); // T315
+    toast('🚓 犯罪已處理','gold');updHud();hideInfo();
   });
   const sb=$('#sickBtn');                                // 治療生病按鈕（T33）
   if(sb)sb.addEventListener('click',()=>{
