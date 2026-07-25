@@ -481,7 +481,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v21';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v20');
+assert(/const CACHE=CACHE_PREFIX\+'v21';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v21');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
