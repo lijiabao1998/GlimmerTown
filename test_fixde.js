@@ -106,7 +106,13 @@ const document = {
   removeEventListener() {},
   hidden: false,
   visibilityState: 'visible',
-  body: makeEl('body')
+  body: makeEl('body'),
+  // T322：#info 的限高靠 --hud-h（syncHudH 實測導航欄高度寫入）。補上 documentElement.style
+  // 的最小樁，讓「面板不頂穿導航欄」這條約束在 node 端也可斷言，而不只是瀏覽器裡看得到。
+  documentElement: (() => {
+    const props = {};
+    return { style: { setProperty(k, v) { props[k] = v; }, getPropertyValue(k) { return props[k] || ''; } }, _props: props };
+  })()
 };
 
 const store = {};
@@ -481,7 +487,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v28';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v28');
+assert(/const CACHE=CACHE_PREFIX\+'v29';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v29');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
@@ -1799,8 +1805,8 @@ async function runPwaTests() {
     'glimmerville-shell-v4',
     'gv-other-app', 'shared-cache']) h268.seed(name);
   await h268.fireLife('install');
-  assert(h268.ops.opened[0] === 'glimmerville-shell-v28',
-    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v28 cache');
+  assert(h268.ops.opened[0] === 'glimmerville-shell-v29',
+    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v29 cache');
   assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js');
   assert(h268.ops.skipWaiting === 1 && h268.ops.order.includes('skipWaiting'),
@@ -1812,7 +1818,7 @@ async function runPwaTests() {
       'gv-v1', 'gv-v2'].sort()),
     'T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
   const keys268 = await h268.cacheStorage.keys();
-  assert(keys268.includes('glimmerville-shell-v28') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
+  assert(keys268.includes('glimmerville-shell-v29') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
     'T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache');
   assert(h268.ops.claim === 1 && h268.ops.order[h268.ops.order.length - 1] === 'claim',
     'T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim');
@@ -1868,7 +1874,7 @@ async function runPwaTests() {
     h268.ops.puts.length === putCountBefore503,
     'T268 HTTP 503 應照實回傳且不得污染 canonical app-shell');
 
-  await h268.cacheStorage.delete('glimmerville-shell-v28');
+  await h268.cacheStorage.delete('glimmerville-shell-v29');
   h268.setFetch(async () => { throw new TypeError('offline'); });
   result268 = await h268.fireFetch({ method: 'GET', url: base268, mode: 'navigate' });
   assert(result268.response.status === 503 && (await result268.response.text()).includes('尚未完成首次快取'),
@@ -1931,11 +1937,11 @@ async function runPwaTests() {
   await h269.fireLife('install');
   await h269.fireLife('activate');
   const keys269 = await h269.cacheStorage.keys();
-  assert(h269.ops.opened[0] === 'glimmerville-shell-v28' &&
+  assert(h269.ops.opened[0] === 'glimmerville-shell-v29' &&
     JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T269/T270 v5 install 應維持完整 app-shell 資產閉包');
   assert(!keys269.includes('glimmerville-shell-v3') && !keys269.includes('glimmerville-shell-v4') &&
-    keys269.includes('glimmerville-shell-v28') &&
+    keys269.includes('glimmerville-shell-v29') &&
     keys269.includes('gv-other-app') && keys269.includes('shared-cache'),
     'T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache');
 
@@ -1949,7 +1955,7 @@ async function runPwaTests() {
   assert(result269.intercepted && result269.response.status === 201 &&
     await result269.response.text() === freshManifest269,
     'T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response');
-  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v28');
+  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v29');
   let cachedManifest269 = await cache269.match(base268 + 'manifest.json');
   assert(cachedManifest269 && await cachedManifest269.text() === freshManifest269 &&
     h269.ops.puts.includes(base268 + 'manifest.json'),
@@ -2015,7 +2021,7 @@ async function runPwaTests() {
   assert(await result269.response.text() === freshManifest269,
     'T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest');
 
-  await h269.cacheStorage.delete('glimmerville-shell-v28');
+  await h269.cacheStorage.delete('glimmerville-shell-v29');
   result269 = await h269.fireFetch({
     method: 'GET', url: base268 + 'manifest.json?empty=269', mode: 'same-origin'
   });
@@ -2289,7 +2295,7 @@ async function runPwaTests() {
 
   const h271Miss = makeSwHarness268(sw268);
   await h271Miss.fireLife('install');
-  await h271Miss.cacheStorage.delete('glimmerville-shell-v28');
+  await h271Miss.cacheStorage.delete('glimmerville-shell-v29');
   h271Miss.setFetch(async () => new Response('fresh-cache-miss-271', { status: 200 }));
   networkBefore271 = h271Miss.ops.networkCalls;
   result271 = await h271Miss.fireFetch({
@@ -3214,6 +3220,84 @@ runPwaTests().then(() => {
       'T276 應覆蓋三季節圖且冬季走積雪分支');
     assert(block276.includes('#b5442e') && block276.includes('#c6ccd4') && block276.includes('#d8a838'),
       'T276 應含穀倉紅/筒倉銀/乾草金三件套色票');
+  }
+
+
+  // ===== T322 HUD 指標晶片明細面板 ＋ 檢視面板不頂穿導航欄 =====
+  {
+    // ① 限高機制存在且不是寫死高度（導航欄會折行，寫死會不夠）
+    assert(/#info\{[^}]*max-height:max\(120px,calc\(100vh - 80px - var\(--hud-h/.test(html.replace(/\n/g, '')),
+      'T322 #info 需以 --hud-h 扣除導航欄實高來限高');
+    assert(/#info\{[^}]*overflow-y:auto/.test(html.replace(/\n/g, '')),
+      'T322 #info 超出限高需內部滾動（而非向上溢出蓋住導航欄）');
+    assert(/#hud\{[^}]*z-index:30/.test(html.replace(/\n/g, '')),
+      'T322 #hud z-index 需高於 #info(22)，導航欄永在最上層');
+    // 所有顯示檢視面板的入口都必須走 showInfoPanel()（先同步實測導航欄高度再顯示）
+    assert((html.match(/\$\('#info'\)\.style\.display='block'/g) || []).length === 1,
+      'T322 直接設 #info display 只允許出現在 showInfoPanel() 內；其餘入口必須改呼叫它以同步 --hud-h');
+    assert(html.includes("function showInfoPanel(){syncHudH();$('#info').style.display='block';}"),
+      'T322 showInfoPanel 需先 syncHudH 再顯示');
+
+    // ② 六個晶片都綁上點擊 → 開出對應明細面板
+    const CHIPS = ['money', 'pop', 'jobs', 'happy', 'star', 'date'];
+    const TITLES = { money: '財政明細', pop: '人口明細', jobs: '就業明細', happy: '幸福明細', star: '評分明細', date: '時間與季節' };
+    window.GV.newWorldSeeded(22);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 220; d++) window.GV.step(1);
+    window.GV.ai(false);
+    for (const c of CHIPS) {
+      const el = elMap.get(c);
+      assert(el && el._listeners && el._listeners.click && el._listeners.click.length,
+        'T322 晶片 #' + c + ' 需綁定 click（原本是純顯示 span，點了沒反應）');
+      elMap.get('infoBody').innerHTML = '';
+      el.click();
+      const h = elMap.get('infoBody').innerHTML;
+      assert(h.includes(TITLES[c]), 'T322 #' + c + ' 應開出「' + TITLES[c] + '」，實得：' + h.slice(0, 60));
+      assert(h.includes('class="stab"'), 'T322 #' + c + ' 明細需用 statTab 標準化表格（與其他面板同一套規範）');
+      assert(/class="k"/.test(h), 'T322 #' + c + ' 明細不可為空表');
+      assert(!/undefined|NaN|Infinity/.test(h), 'T322 #' + c + ' 明細不得出現 undefined/NaN/Infinity：' + h.slice(0, 120));
+    }
+
+    // ③ 數據真實性：分層人口／就業來源加總必須與 HUD 顯示的總數逐位相符
+    //    （tick 先算 pop 再讓建築生長，面板重算會新一步；故分層用最大餘額法歸一到 pop）
+    for (const seed of [22, 77, 301]) {
+      window.GV.newWorldSeeded(seed);
+      window.GV.setDiff(1);
+      window.GV.ai(true);
+      for (let d = 0; d < 200; d++) window.GV.step(1);
+      window.GV.ai(false);
+      const p = window.GV.chipSum('pop');
+      assert(p.hud > 0, 'T322 seed' + seed + ' 應已長出人口');
+      assert(p.sum === p.hud,
+        'T322 seed' + seed + ' 財富分層加總(' + p.sum + ') 必須等於總人口(' + p.hud + ')');
+      const j = window.GV.chipSum('jobs');
+      assert(Math.abs(j.sum - j.hud) <= 1,
+        'T322 seed' + seed + ' 崗位來源加總(' + j.sum + ') 必須等於總崗位(' + j.hud + ')');
+    }
+
+    // ④ 就業面板需鏡像 tick 的兩條特例（否則來源加總會偷偷被「服務／其他」吸收掉誤差）
+    const chipSrc = html.slice(html.indexOf('function chipPanel('), html.indexOf('function showHelp('));
+    assert(chipSrc.includes('tiles[i].office?1.5:1'), 'T322 就業面板需含辦公區 ×1.5（T79）');
+    assert(chipSrc.includes('TOWER_JOBS') && chipSrc.includes('TOWER_POP'),
+      'T322 需計入商業塔就業與住宅塔人口（T127；且摩天樓不看供電）');
+    assert(/b\.sick\|\|b\.death/.test(chipSrc), 'T322 人口面板需排除疫病/死亡停擺住宅（鏡像 tick）');
+
+    // ⑤ 財政面板：淨收入行存在，且現金與 window.GV.stats().money 一致
+    window.GV.newWorldSeeded(22);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 200; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const mt = window.GV.chipText('money');
+    assert(mt.includes('每日淨收入'), 'T322 財政面板需有每日淨收入');
+    const cash = (mt.match(/現金\s*([\d,-]+)/) || [])[1];
+    assert(cash !== undefined && parseInt(cash.replace(/,/g, ''), 10) === Math.round(window.GV.stats().money),
+      'T322 財政面板現金需與 stats().money 一致');
+
+    // ⑥ --hud-h 實測寫入（不是留在預設值）
+    assert(document.documentElement.style.getPropertyValue('--hud-h') !== '',
+      'T322 syncHudH 應把導航欄實高寫入 --hud-h');
   }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');

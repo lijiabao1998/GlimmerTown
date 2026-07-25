@@ -43,9 +43,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 /* ---------- 頂部資訊列 ---------- */
 #hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:6px;
   padding:5px 8px;background:rgba(10,14,26,.86);border-bottom:2px solid #2c3450;
-  color:#dfe6f5;font-size:13px;z-index:20;flex-wrap:wrap}
-.chip{display:flex;align-items:center;gap:4px;background:#181f36;border:1px solid var(--panel-border-soft);
+  color:#dfe6f5;font-size:13px;z-index:30;flex-wrap:wrap}  /* T322：z-index 20→30，導航欄永在面板之上 */
+.chip{cursor:pointer;display:flex;align-items:center;gap:4px;background:#181f36;border:1px solid var(--panel-border-soft);
   border-radius:var(--radius-xs);padding:2px 8px;white-space:nowrap;line-height:20px;transition:border-color var(--ease),box-shadow var(--ease)}
+.chip:hover{border-color:#5ec8ff;box-shadow:0 0 0 1px rgba(94,200,255,.35)}  /* T322：晶片可點提示 */
+.chip:active{transform:translateY(1px)}
 .chip b{font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
 #money b{color:var(--accent)}
 #hud .spacer{flex:1}
@@ -98,7 +100,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 /* ---------- 檢視面板 ---------- */
 #info{position:absolute;left:10px;bottom:80px;z-index:22;background:var(--panel-bg);
   border:2px solid var(--panel-border);border-radius:var(--radius-lg);padding:10px 14px;color:var(--text);font-size:13px;
-  display:none;min-width:180px;max-width:70vw;box-shadow:var(--shadow-panel);animation:panelIn .2s var(--ease)}
+  display:none;min-width:180px;max-width:70vw;box-shadow:var(--shadow-panel);animation:panelIn .2s var(--ease);
+  /* T322 修「面板長內容頂穿導航欄」：#info 為 bottom 錨定且原本無高度上限，內容一長就向上溢出蓋住 #hud。
+     限高＝視窗高 − 底部錨點 80 − 導航欄實高 − 留白 12，超出則內部滾動；#hud 另提高 z-index 保證永在最上層。
+     --hud-h 由 syncHudH() 於載入/縮放時實測寫入：導航欄 flex-wrap 在窄螢幕會折成 2～3 行，寫死高度會不夠。 */
+  max-height:max(120px,calc(100vh - 80px - var(--hud-h,40px) - 12px));overflow-y:auto;overscroll-behavior:contain}
+#info::-webkit-scrollbar{width:8px}
+#info::-webkit-scrollbar-thumb{background:#2f3c5c;border-radius:4px}
+#info::-webkit-scrollbar-track{background:#141a2a}
 #info h3{font-size:14px;color:var(--accent);margin-bottom:4px}
 #info .row{margin:2px 0;color:#c9d2ea;line-height:1.5}
 /* ===== T319 標準化數據表格（HOI4 風：密集對齊、數值等寬右對齊、分區標頭、色彩編碼增減） =====
@@ -338,7 +347,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.8'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.9'; // T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -749,8 +758,21 @@ function resize(){
   W=cvs.width=Math.round(cvs.clientWidth*DPR);
   H=cvs.height=Math.round(cvs.clientHeight*DPR);
   ctx.imageSmoothingEnabled=false;
+  syncHudH();
 }
+// T322：實測導航欄高度寫入 --hud-h，#info 的 max-height 據此扣除。
+// 導航欄 flex-wrap 在窄螢幕會折成 2～3 行（實測 420px 寬時高 98px），寫死高度會讓長面板頂穿導航欄。
+function syncHudH(){
+  const h=$('#hud'),de=document.documentElement;
+  if(h&&de&&de.style)de.style.setProperty('--hud-h',(h.offsetHeight||40)+'px');
+}
+// 所有顯示檢視面板的入口統一走這裡：開啟前同步實測導航欄高度。
+// ResizeObserver 是下一幀才回呼，若只靠它，面板在導航欄剛折行的那一幀仍會頂穿。
+function showInfoPanel(){syncHudH();$('#info').style.display='block';}
+// 面板純文字（供測試斷言用）：瀏覽器走 innerText，node 測試樁沒有 innerText，退回剝標籤。
+function infoPlainText(){const e=$('#infoBody');return e.innerText||String(e.innerHTML||'').replace(/<[^>]*>/g,' ');}
 window.addEventListener('resize',resize);
+if(window.ResizeObserver&&$('#hud'))new ResizeObserver(syncHudH).observe($('#hud')); // 晶片文字變長（人口破萬）也會折行
 
 const T=i=>tiles[i];
 const idx=(x,y)=>y*N+x;
@@ -12521,7 +12543,7 @@ function inspect(x,y){
     if(money>=30){money-=30;bb.fire=0;toast('🧯 火勢已撲滅！','gold');updHud();hideInfo();}
     else{toast('資金不足！滅火需 $30','bad');sErr();}
   });
-  $('#info').style.display='block';
+  showInfoPanel();
 }
 function hideInfo(){$('#info').style.display='none';selTile=null;traceOverlay=null;} // T143：關閉面板清除因子追溯疊圖
 $('#infoX').onclick=hideInfo;
@@ -12988,7 +13010,7 @@ function showBusRt(){
   const clr=document.createElement('button');clr.className='hbtn';clr.textContent='清空此路線';
   clr.addEventListener('click',()=>{rt.stops.length=0;showBusRt();});
   body.appendChild(clr);
-  $('#info').style.display='block';
+  showInfoPanel();
 }
 /* 小地圖 */
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
@@ -13227,7 +13249,7 @@ function showSlots(){
   const bImp=document.createElement('button');bImp.className='hbtn';bImp.textContent='匯入分享碼';
   bImp.addEventListener('click',importShare);
   io.appendChild(bExp);io.appendChild(bImp);body.appendChild(io);
-  $('#info').style.display='block';
+  showInfoPanel();
 }
 function exportShare(){
   const raw=localStorage.getItem(slotKey(curSlot()));
@@ -13332,7 +13354,7 @@ function showEditor(){
   bExit.addEventListener('click',()=>{editMode=false;diff=1;$('#bEditor').style.display='none';hideInfo();toast('已離開編輯器，回到一般模式');});
   io.appendChild(bExit);
   body.appendChild(io);
-  $('#info').style.display='block';
+  showInfoPanel();
 }
 function buildEditorShareData(){ // 組出待編碼的存檔＋目標物件（純記憶體操作，不落地 localStorage），供匯出按鈕與 GV 測試鉤子共用
   const raw=localStorage.getItem(slotKey(curSlot()));
@@ -13566,7 +13588,7 @@ function showStats(){
      ${riot?`<div class="row" style="color:#ff8a5c">🔥 暴亂中（${riot.cells.length} 戶封路）<button class="hbtn" id="riotBtn">🚔 鎮壓 $200</button></div>`:''}
      ${plague?`<div class="row" style="color:#ffb84d">🦠 疫情蔓延中（${plague.cells.length} 戶感染）<button class="hbtn" id="plagueBtn">💉 隔離 $150</button></div>`:''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
-  $('#info').style.display='block';
+  showInfoPanel();
   happySorted.forEach((p,pi)=>{ // T143：幸福構成負向因子點擊→因果追溯疊圖（設 traceOverlay，draw() 對應繪製；再點同一因子清空）
     if(!(p.val<0&&FACTOR_TRACE[p.name]))return;
     const el=$('#hpTr'+pi);
@@ -13735,7 +13757,7 @@ function showLog(){
     }
   }
   body.appendChild(list);
-  $('#info').style.display='block';
+  showInfoPanel();
 }
 $('#bBell').onclick=()=>{unread=0;updBell();showLog();sTick();};
 // T134：成就面板（複用 #infoBody/.row 樣式，比照 showStats()/showLog() 先例）——分類顯示、進度條、隱藏成就未解鎖顯示「？」
@@ -13765,10 +13787,156 @@ function showAch(){
     body+=`<div class="row" style="margin-top:8px"><b>${ACH_CAT_NAME[cat]}</b></div>`+list.map(achRow).join('');
   }
   $('#infoBody').innerHTML=body;
-  $('#info').style.display='block';
+  showInfoPanel();
 }
 $('#bAch').onclick=()=>{showAch();sTick();};
+/* T322：HUD 指標晶片綁定明細面板（原本純顯示、點了沒反應） */
+for(const[id,which]of[['money','money'],['pop','pop'],['jobs','jobs'],['happy','happy'],['star','star'],['date','date']]){
+  const el=$('#'+id);
+  if(el){el.title='點擊查看'+({money:'財政明細',pop:'人口明細',jobs:'就業明細',happy:'幸福明細',star:'評分明細',date:'時間與季節'})[which];
+    el.addEventListener('click',()=>{chipPanel(which);sTick();});}
+}
 let guideTab=0; // T320：玩法指南分頁（0 流程 1 服務 2 經濟 3 速查表）
+/* ===== T322 HUD 指標晶片明細面板（玩家「導航欄左上的按鈕應該能點開，並且有實際的數據」）：
+   原本 money/pop/jobs/happy/star/date 是純顯示 span，看似可點卻無反應。現在每個都可點開標準化明細表
+   （全部走 statTab，與建築檢視/指南同一套視覺規範）。資料一律取自既有真相來源（fin/happyAgg/
+   scoreParts/districts/citizens/season），不新增狀態、不影響模擬。 ===== */
+function chipPanel(which){
+  const f=v=>(v>=0?'+':'')+Math.round(v*10)/10;
+  const rows=[];
+  if(which==='money'){
+    rows.push({sec:'💰 每日收入'});
+    rows.push({k:'🏠 住宅稅',v:f(fin.taxR||0),u:'/日',t:'good'});
+    rows.push({k:'🏪 商業稅',v:f(fin.taxC||0),u:'/日',t:'good'});
+    rows.push({k:'🏭 工業稅',v:f(fin.taxI||0),u:'/日',t:'good'});
+    if(fin.farmGold)rows.push({k:'🌾 農產',v:f(fin.farmGold),u:'/日',t:'good'});
+    if(fin.ranchGold)rows.push({k:'🐄 畜牧',v:f(fin.ranchGold),u:'/日',t:'good'});
+    if(fin.procGold)rows.push({k:'🏭 食品加工',v:f(fin.procGold),u:'/日',t:'good'});
+    if(fin.transitRev)rows.push({k:'🎫 公共運輸票務',v:f(fin.transitRev),u:'/日',t:'good'});
+    if(fin.metroRev)rows.push({k:'🚇 地鐵票務',v:f(fin.metroRev),u:'/日',t:'good'});
+    if(fin.metroAds)rows.push({k:'📣 地鐵廣告',v:f(fin.metroAds),u:'/日',t:'good'});
+    rows.push({sec:'💸 每日支出'});
+    const ups=[['🛣 道路',fin.upR],['🌳 公園',fin.upP],['⚡ 電廠',fin.upE],['💧 水塔',fin.upW],
+      ['🚓 警政',fin.upPol],['🏥 醫院',fin.upH],['🏥 診所',fin.upC],['📚 圖書館',fin.upL],
+      ['📮 郵局',fin.upPo],['💀 墓園',fin.upCe],['📜 法規',fin.upReg],['🚇 地鐵營運',fin.metroCost]];
+    for(const[n,v]of ups)if(v)rows.push({k:n,v:'-'+(Math.round(v*10)/10),u:'/日',t:'bad'});
+    rows.push({sec:'📊 結算'});
+    rows.push({k:'每日淨收入',v:f(fin.net||0),u:'/日',t:(fin.net||0)>=0?'good':'bad'});
+    rows.push({k:'現金',v:Math.round(money).toLocaleString(),u:'$'});
+    if(loan)rows.push({k:'🏦 貸款餘期',v:loan.remain,u:'天（每日 -$'+loan.daily+'）',t:'warn'});
+    if(cityEvent)rows.push({k:'✨ 活動加成',v:'稅 ×'+CITY_EVENTS[cityEvent.i].tax,u:CITY_EVENTS[cityEvent.i].name,t:'good'});
+  }else if(which==='pop'){
+    // 完全鏡像 tick 的人口累加式（b.pw && !b.sick && !b.death；另加 k33 住宅摩天樓），
+    // 否則分層加總會和 HUD 的總人口對不上（生病/死亡樓要扣、摩天樓要算）。
+    let pP=0,pM=0,pR=0,res=0,twr=0,lv=[0,0,0,0],sickN=0;
+    for(const i of tickBld){const b=tiles[i].bld;if(!b||b.ref)continue;
+      if(b.k===33){twr++;pR+=TOWER_POP;continue;}    // 摩天樓不看供電（與 tick 的 trR 計數一致）
+      if(b.k!==1)continue;
+      res++;lv[b.lv]=(lv[b.lv]||0)+1;
+      if(b.sick||b.death){sickN++;continue;}
+      const p2=(b.pw!==false)?Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1)):0;
+      const we=b.we!==undefined?b.we:1;
+      if(we===0)pP+=p2;else if(we===2)pR+=p2;else pM+=p2;}
+    // tick 的順序是「先算 pop → 再讓建築生長/升級」，所以面板重算會比 HUD 的 pop 新一個生長步，
+    // 直接顯示會出現「分層相加 ≠ 總人口」。故把分層當成總人口的「構成比例」，用最大餘額法分配到
+    // HUD 的 pop 上：比例來自真實逐棟統計，加總則保證與顯示的總人口逐位相符。
+    const tot=pP+pM+pR||1;
+    {const raw=[pP/tot*pop,pM/tot*pop,pR/tot*pop],fl=raw.map(v=>Math.floor(v));
+     let rem=pop-fl.reduce((a,b)=>a+b,0);
+     const ord=[0,1,2].sort((a,b)=>(raw[b]-fl[b])-(raw[a]-fl[a]));
+     for(let z=0;z<rem;z++)fl[ord[z%3]]++;
+     pP=fl[0];pM=fl[1];pR=fl[2];}
+    rows.push({sec:'👥 人口總覽'});
+    rows.push({k:'總人口',v:pop.toLocaleString(),u:'人'});
+    rows.push({k:'住宅棟數',v:res+(twr?(' + '+twr+' 塔'):''),u:'棟'});
+    rows.push({k:'平均每棟',v:res+twr?Math.round(pop/(res+twr)):0,u:'人'});
+    if(sickN)rows.push({k:'⚠ 疫病／死亡停擺',v:sickN,u:'棟（不計入人口）',t:'bad'});
+    const den=pop||1;
+    rows.push({sec:'🏘️ 財富分層'});
+    rows.push({k:'🏚️ 貧困',v:pP+'（'+Math.round(pP/den*100)+'%）',u:'人',t:'warn'});
+    rows.push({k:'🏠 中產',v:pM+'（'+Math.round(pM/den*100)+'%）',u:'人'});
+    rows.push({k:'🏡 富裕',v:pR+'（'+Math.round(pR/den*100)+'%）',u:'人',t:'good'});
+    rows.push({sec:'🏗️ 住宅等級'});
+    for(let l=1;l<=3;l++)rows.push({k:'Lv.'+l+' '+LVNAME[1][l-1],v:lv[l]||0,u:'棟'});
+    const dm=districtPops(),dk=Object.keys(dm).sort((a,b)=>dm[b]-dm[a]);
+    if(dk.length){
+      rows.push({sec:'🏘️ 地區人口（前5）'});
+      dk.slice(0,5).forEach(k=>rows.push({k:districtName(+k),v:dm[k],u:'人'+(districtNamed[k]?'':'（未命名）'),t:districtNamed[k]?'':'dim'}));
+    }
+    rows.push({sec:'🧍 抽樣市民'});
+    rows.push({k:'追蹤市民',v:citizens.length,u:'人'});
+    const stg={infant:0,student:0,worker:0,retired:0};
+    for(const c of citizens)if(stg[c.stage]!==undefined)stg[c.stage]++;
+    rows.push({k:'幼兒/學生/工作/退休',v:stg.infant+' / '+stg.student+' / '+stg.worker+' / '+stg.retired,u:'人'});
+  }else if(which==='jobs'){
+    // 鏡像 tick 的就業累加式：商業辦公區 ×1.5（T79）、商業摩天樓 TOWER_JOBS（T127）
+    let jc=0,ji=0,unemp=0,ctw=0;
+    for(const i of tickBld){const b=tiles[i].bld;if(!b||b.ref)continue;
+      if(b.k===34){ctw++;jc+=TOWER_JOBS;continue;}   // 摩天樓不看供電（與 tick 的 trC 計數一致）
+      if(!b.pw)continue;
+      if(b.k===2)jc+=JOBSC[b.lv]*(tiles[i].office?1.5:1);
+      else if(b.k===3)ji+=JOBSI[b.lv];}
+    const workers=Math.round(pop*.55);
+    unemp=Math.max(0,workers-jobs);
+    rows.push({sec:'💼 就業總覽'});
+    rows.push({k:'總崗位',v:jobs.toLocaleString(),u:'個'});
+    rows.push({k:'勞動人口',v:workers.toLocaleString(),u:'人（約 55% 人口）'});
+    rows.push({k:'缺口',v:unemp?('-'+unemp):'0',u:unemp?'人失業':'充分就業',t:unemp?'bad':'good'});
+    rows.push({bar:jobs?Math.min(1,jobs/Math.max(1,workers)):0});
+    rows.push({sec:'📋 崗位來源'});
+    rows.push({k:'🏪 商業',v:Math.round(jc),u:'個'+(ctw?('（含 '+ctw+' 座商業塔）'):'')});
+    rows.push({k:'🏭 工業',v:ji,u:'個'});
+    rows.push({k:'🏛 服務／其他',v:Math.max(0,jobs-jc-ji),u:'個'});
+    rows.push({sec:'🚌 通勤'});
+    rows.push({k:'公共運輸日客運量',v:transitRidership,u:'人'});
+    rows.push({k:'路上車輛',v:cars.length,u:'輛'});
+  }else if(which==='happy'){
+    rows.push({sec:'😊 幸福總計'});
+    rows.push({k:'城市幸福',v:Math.round(cityHappy*100)+'%',u:'',t:cityHappy>.7?'good':cityHappy>.45?'warn':'bad'});
+    rows.push({bar:cityHappy});
+    if(happyAgg&&happyAgg.length){
+      rows.push({sec:'📊 幸福構成（全城平均）'});
+      const sorted=happyAgg.slice().filter(p=>Math.abs(p.val)>0.0005).sort((a,b)=>b.val-a.val);
+      for(const p of sorted)rows.push({k:p.name,v:(p.val>=0?'+':'')+(p.val*100).toFixed(1)+'%',u:'',t:p.val>0?'good':'bad'});
+    }else rows.push({k:'（尚無資料）',v:'—',u:'需先有住宅'});
+  }else if(which==='star'){
+    rows.push({sec:'⭐ 城市評分'});
+    rows.push({k:'評分',v:(score<0?'—':Math.round(score))+' / 100',u:cityStar<0?'（人口需 ≥50）':'⭐×'+cityStar});
+    if(score>=0)rows.push({bar:clamp(score/100,0,1)});
+    rows.push({k:'歷史最佳',v:bestStar,u:'⭐'});
+    rows.push({sec:'📋 評分構成'});
+    const sp=scoreParts||{};
+    rows.push({k:'😊 幸福',v:(sp.happy||0).toFixed(1),u:''});
+    rows.push({k:'💼 就業',v:(sp.job||0).toFixed(1),u:''});
+    rows.push({k:'🚒 消防',v:(sp.fire||0).toFixed(1),u:''});
+    rows.push({k:'🗑 垃圾',v:(sp.garb||0).toFixed(1),u:''});
+    rows.push({k:'🎓 教育',v:(sp.edu||0).toFixed(1),u:''});
+    rows.push({sec:'🏙️ 城市等級'});
+    const rk=RANKS[rankIdx]||{name:'—'};
+    rows.push({k:'等級',v:'Lv.'+(rankIdx+1)+' '+rk.name,u:''});
+    rows.push({k:'城市點數',v:cityPoints,u:'點'});
+  }else if(which==='date'){
+    const sea=season(),yr=Math.floor((day-1)/360)+1,dd=((day-1)%360)+1;
+    rows.push({sec:'📅 時間'});
+    rows.push({k:'日期',v:'第 '+yr+' 年 第 '+dd+' 天',u:''});
+    rows.push({k:'季節',v:['🌸 春','☀️ 夏','🍂 秋','❄️ 冬'][sea],u:''});
+    rows.push({k:'天氣',v:['☀️ 晴','🌧 雨','⛈ 暴雨'][weather],u:''});
+    rows.push({k:'遊戲速度',v:['暫停','1×','2×','3×'][speed]||speed,u:''});
+    rows.push({sec:'🌾 季節效應'});
+    rows.push({k:'農產倍率',v:'×'+FARM_SEASON_MULT[sea],u:['春播基準','夏季生長','秋收高峰','冬季歇耕'][sea]});
+    rows.push({k:'觀光倍率',v:'×'+TOUR_SEASON_MULT[sea],u:''});
+    rows.push({k:'農產市價',v:'×'+foodPriceOf(day,sea).toFixed(2),u:((day%53)<4)?'🔥 搶購潮':''});
+    if(cityEvent){
+      rows.push({sec:'✨ 進行中活動'});
+      const ev=CITY_EVENTS[cityEvent.i];
+      rows.push({k:ev.name,v:'剩 '+cityEvent.daysLeft+' 天',u:ev.desc});
+    }
+  }
+  const TITLE={money:'💰 財政明細',pop:'👥 人口明細',jobs:'💼 就業明細',happy:'😊 幸福明細',star:'⭐ 評分明細',date:'📅 時間與季節'};
+  $('#infoBody').innerHTML='<h3>'+TITLE[which]+'</h3>'+statTab(rows);
+  showInfoPanel();
+  $('#info').scrollTop=0;
+}
 function showHelp(){
   /* T320 玩法指南重構（玩家「更有序、做排序、數據更表格化」）：原本 30 行平鋪 row、無分類、
      且服務半徑等數值寫死在散文裡（改數值就過期）。改為四分頁＋標準化表格；速查表資料由
@@ -13863,7 +14031,7 @@ function showHelp(){
   $('#infoBody').innerHTML=h;
   tabs.forEach((t,i2)=>{const b=$('#gt'+i2);if(b)b.addEventListener('click',()=>{guideTab=i2;showHelp();sTick();});});
   if(guideTab===3)bindDataTable('gRefTab',showHelp);
-  $('#info').style.display='block';
+  showInfoPanel();
 }
 
 function undo(){
@@ -14374,6 +14542,13 @@ window.GV={
   cityEvent:()=>cityEvent?{id:CITY_EVENTS[cityEvent.i].id,name:CITY_EVENTS[cityEvent.i].name,daysLeft:cityEvent.daysLeft,tax:CITY_EVENTS[cityEvent.i].tax,food:CITY_EVENTS[cityEvent.i].food}:null, // T299 測試用：當前城市事件快照
   setCityEvent:(id)=>{const i=CITY_EVENTS.findIndex(e=>e.id===id);cityEvent=i>=0?{i,daysLeft:CITY_EVENTS[i].days}:null;return cityEvent?CITY_EVENTS[cityEvent.i].id:null;}, // T299 測試用：直接觸發指定事件
   serviceRef:()=>serviceRefRows(), // T320 測試用：建築速查表資料（由遊戲真實數據導出）
+  // T322 測試用：晶片明細面板的分層人口／就業必須與 HUD 總數逐位相符（面板重算式＝tick 累加式的鏡像）
+  chipSum:(w)=>{chipPanel(w);const T=infoPlainText();
+    const n=re=>{const m=T.match(re);return m?(parseInt(m[1].replace(/,/g,''),10)||0):null;};
+    if(w==='pop')return {hud:pop,sum:n(/貧困\s*([\d,]+)/)+n(/中產\s*([\d,]+)/)+n(/富裕\s*([\d,]+)/)};
+    if(w==='jobs')return {hud:jobs,sum:n(/商業\s*([\d,]+)/)+n(/工業\s*([\d,]+)/)+n(/服務／其他\s*([\d,]+)/)};
+    return {hud:0,sum:0};},
+  chipText:(w)=>{chipPanel(w);return infoPlainText();},
   districts:()=>{const m=districtPops();return Object.keys(m).map(k=>({di:+k,name:districtName(+k),pop:m[k],named:!!districtNamed[k]})).sort((a,b)=>b.pop-a.pop);}, // T317 測試用：地區人口與名稱
   districtAt:(x,y)=>inMap(x,y)?districtName(distIdx(x,y)):null, // T317 測試用：某格所屬地區名
   stationNames:()=>metroLines.flatMap(L=>L.stations.map(st=>({line:L.id,tier:st.tier,name:stationName(st)}))), // T317 測試用：全部站名
