@@ -270,7 +270,7 @@ function makeNoise(rand,G){
 ===================================================================== */
 const TW=64,TH=32;         // 單格像素尺寸（精細版：每格 64×32）
 let N=72;                  // T262：地圖邊長改可變（72/108/144/216＝面積 1×/2.25×/4×/9×）。newWorld 依 mapSizePref 套用、load 依存檔 n 欄位還原；所有 N*N 定長場陣列經 allocGrids() 成對重建
-const MAP_SIZES=[72,108,144,216]; // T262：合法尺寸檔位（216²=46,656 格＝現行架構+localStorage 存檔的安全上限；更大需分塊+IndexedDB，見無限地圖評估）
+const MAP_SIZES=[72,108,144,216,432]; // T262：合法尺寸檔位（216²=46,656 格＝現行架構+localStorage 存檔的安全上限；更大需分塊+IndexedDB，見無限地圖評估）
 const SAVEKEY='glimmerville.v1';
 const DAYLEN=0.9;          // 一天（模擬）＝0.9 秒（1x）
 const CYCLE=110;           // 日夜循環（真實秒）
@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.2'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.3'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -8334,7 +8334,20 @@ function aiStep(){
   }
   if(acts)updHud();
 }
+/* T313 稀疏 tick（大地圖可玩性）：tick 內原有 29 個全圖 O(N²) 掃描，而建築僅占瓦片不到 1%
+   （216² 實測 407/46656＝0.87%），99% 掃描花在空地——實測 tick 成本幾乎正比於瓦片數而與城市規模無關
+   （216²=22.9ms → 432²=86.4ms：格數 4 倍、耗時 3.8 倍）。解法：tick 開頭只掃一遍建立建築格索引 tickBld，
+   tick 內純建築迴圈改遍歷此小陣列（升序，與原 row-major 同序）。
+   **安全設計**：①索引「每 tick 重建」而非增量維護＝不可能失同步；②只轉換 tick() 函數體內的迴圈
+   （tick 外的函數可能在 tick 之間被呼叫，索引會過期，故一律不動）；③亂數流安全：被轉換的迴圈皆在
+   if(!b)continue 之前不消耗 R()，跳過空地不改變亂數序（鐵律2）；④含 .bld= 賦值（會新增建築）的迴圈不轉。 */
+let tickBld=[];
+function buildTickIndex(){
+  tickBld.length=0;
+  for(let i=0;i<N*N;i++)if(tiles[i].bld)tickBld.push(i);
+}
 function tick(){
+  buildTickIndex(); // T313：本 tick 的建築格索引
   day++;
   if(cityEvent){cityEvent.daysLeft--;if(cityEvent.daysLeft<=0){toast('🎏 活動結束：'+CITY_EVENTS[cityEvent.i].name);cityEvent=null;}} // T299：事件倒數
   else if(pop>50&&day>15&&day%37===0){const ei=Math.floor(streetHash(day,7,888)*CITY_EVENTS.length)%CITY_EVENTS.length;cityEvent={i:ei,daysLeft:CITY_EVENTS[ei].days};const ev=CITY_EVENTS[ei];toast('✨ '+ev.name+'！'+ev.desc,'gold');sFanfare();} // T299：day 決定性觸發（不消耗 R()）
@@ -8389,10 +8402,10 @@ function tick(){
   // 死亡與墓園前置處理（T38）：既有死亡事件的懲罰標記與自動消退
   const deathPenalty=new Uint8Array(N*N);
   let cemCount=0,bigCem=0;
-  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k===16)cemCount++;if(b&&b.k===54&&!b.ref)bigCem++;} // T233：大墓園 root 計數
+  for(const i of tickBld){const b=tiles[i].bld;if(b&&b.k===16)cemCount++;if(b&&b.k===54&&!b.ref)bigCem++;} // T233：大墓園 root 計數
   const cemCap=cemCount*3+bigCem*24; // T233：大墓園容量 24（8 座墓園）
   let soothed=0;
-  for(let i=0;i<N*N;i++){
+  for(const i of tickBld){
     const b=tiles[i].bld;
     if(!b||b.k!==1||!b.death)continue;
     b.deathAge=(b.deathAge||0)+1;
@@ -8566,7 +8579,7 @@ function tick(){
   if(garbage>0&&garbRatio>1){ // T266：空城 garbage=0/cap=0 時 ratio 的保守值為 2，但不應誤報「垃圾堆積」
     const pen=(garbRatio-1)*.15;
     happySum=0;happyN=0;
-    for(let i=0;i<N*N;i++){
+    for(const i of tickBld){
       const b=tiles[i].bld;
       if(!b||b.k!==1)continue;
       b.h=clamp(b.h-pen,.05,1);
@@ -8580,7 +8593,7 @@ function tick(){
   computeBusRtCovPop(); // T120：路線覆蓋住宅人口重算，供 updCars 小車生成率折抵
   updateCitizens(); // T295：抽樣市民每日維護（清理無效＋補充至上限）
   happySum=0;happyN=0;
-  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
+  for(const i of tickBld){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
   if(happyN)cityHappy=happySum/happyN;
   // T81 食物 / T80 觀光
   foodPoints=Math.round((farmFoodU*FARM_SEASON_MULT[sea]+ranchFoodU+ghFoodU)*(cityEvent?CITY_EVENTS[cityEvent.i].food:1)); // T299：事件食物加成（豐收節 ×1.5；無事件 ×1 恆等） // T280：溫室恆溫食物不乘季節 // T252：牧場食物改牧養等級加權(ranchFoodU，lv1 時＝ra*2 向後相容，不隨季節)；T251：農場食物灌溉等級加權(farmFoodU，lv1＝fa*3+bigFa*20)；T228：大農場日產 20 // T136：農場產量季節曲線（春播基準1／夏長1.15／秋收峰1.4／冬歇0.4），牧場（ra）不隨季節變動
@@ -8617,7 +8630,7 @@ function tick(){
   }
   if(foodPoints>0||se>0){
     happySum=0;happyN=0;
-    for(let i=0;i<N*N;i++){
+    for(const i of tickBld){
       const b=tiles[i].bld;if(!b||b.k!==1||b.ref)continue;
       if(foodPoints>0)b.h=clamp(b.h+Math.min(.08,foodPoints*.002),.05,1);
       if(se>0){const ind=countNear(i%N,(i/N)|0,3,tt=>tt.bld&&tt.bld.k===3);if(ind)b.h=clamp(b.h+ind*.025,.05,1);}
@@ -8680,7 +8693,7 @@ function tick(){
     // T118：暴亂——幸福過低且存在高犯罪住宅簇時低機率觸發，封鎖鄰接道路直到警局自然平息或付費鎮壓（複用既有犯罪場 countNear 判定手法，同 T111 幸福構成 crime 局部密度算式）
     if(!riot&&cityHappy<.3){
       const hot=[];
-      for(let i=0;i<N*N;i++){
+      for(const i of tickBld){
         const b=tiles[i].bld;
         if(!b||b.k!==1||b.ref)continue;
         const hx=i%N,hy=(i/N)|0;
@@ -8712,7 +8725,7 @@ function tick(){
     // T137：瘟疫——高密度＋低診所/醫院覆蓋住宅簇間蔓延（複用上方 T118 暴亂熱點簇掃描手法：countNear 密度門檻→候選清單→機率觸發→cells/days 狀態機）
     if(!plague){
       const hot=[];
-      for(let i=0;i<N*N;i++){
+      for(const i of tickBld){
         const b=tiles[i].bld;
         if(!b||b.k!==1||b.ref||b.plague)continue;
         if(COV.clinic[i]>0||COV.hospital[i]>0)continue; // 已受健康設施覆蓋不列入熱點
@@ -8807,7 +8820,7 @@ function tick(){
     }
   }
   // 升級
-  for(let i=0;i<N*N;i++){
+  for(const i of tickBld){
     const b=tiles[i].bld;
     if(!b||b.ref)continue;                  // T168：ref 格（多格建築非 root）無 age 欄位，跳過避免 NaN
     b.age++;                                 // T168：所有建築（含服務/大型，原僅 k<=3）皆遞增 age——使施工鷹架能正常拆除；age++ 不消耗 R()，下方升級邏輯仍以 b.k>3 continue 僅作用 RCI，故亂數流與升級行為完全不變
@@ -8834,7 +8847,7 @@ function tick(){
   // T124：每 30 天重判存量住宅財富級——環境緩慢變化（新污染源/新設施覆蓋）致升降級，漸變：一次最多變一級，不驟升驟降；
   // 走 day（存讀檔本已保留，節奏自然連續不重置）、不消耗 R()，不影響既有隨機流位置與其他系統的種子化重播
   if(day%30===0){
-    for(let i=0;i<N*N;i++){
+    for(const i of tickBld){
       const b=tiles[i].bld;
       if(!b||b.k!==1)continue;
       const x=i%N,y=(i/N)|0;
@@ -8878,9 +8891,9 @@ function tick(){
   }
   // 火災（升級段之後）：起火→蔓延→推進燃燒/燒毀成焦土
   const burning=[];
-  for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&b.fire)burning.push(i);}
+  for(const i of tickBld){const b=tiles[i].bld;if(b&&b.k<=3&&b.fire)burning.push(i);}
   let fireAlert=false;
-  for(let i=0;i<N*N;i++){                                // 起火擲骰（未燃 k≤3）
+  for(const i of tickBld){                                // 起火擲骰（未燃 k≤3）
     const b=tiles[i].bld;
     if(!b||b.k>3||b.fire)continue;
     let p=.0005*(b.k===3?3:1)*b.lv;
@@ -8913,7 +8926,7 @@ function tick(){
     if(b.fire>=5){if(b.k===3)stampPolSrc(x,y,3,-1);t.bld=null;t.ruin=1;} // zone 保留；T110：工業燒毀→撤銷污染源
   }
   if(disastersOn){ // T137：工業洩漏——工業建築正在燃燒且該格尚無洩漏時機率觸發（因果緊扣起火，非獨立隨機事件；置於火災段之後才能捕捉本日新起火與既有延燒/災害引燃）
-    for(let i=0;i<N*N;i++){
+    for(const i of tickBld){
       const b=tiles[i].bld;
       if(b&&b.k===3&&b.fire&&!leakDays[i]&&R()<.5*DIFF_HAZ[diff])startLeak(i%N,(i/N)|0);
     }
@@ -8926,7 +8939,7 @@ function tick(){
   }
   // 犯罪（T32）：未受警察局半徑10覆蓋的 k≤3 建築每天小機率發生犯罪
   let crimeAlert=false;
-  for(let i=0;i<N*N;i++){
+  for(const i of tickBld){
     const b=tiles[i].bld;
     if(!b||b.k>3||b.crime)continue;
     const x=i%N,y=(i/N)|0;
@@ -8939,7 +8952,7 @@ function tick(){
   // 廢棄（T71）：犯罪持續未被玩家處理（crimeBtn/GV.clearCrime）滿 15 天後每天 5% 機率轉為廢棄；
   // 廢棄建築的停稅由既有經濟段 `!b.abandoned` 判定（原已預留，本卡補上唯一賦值來源）
   let abandonAlert=false;
-  for(let i=0;i<N*N;i++){
+  for(const i of tickBld){
     const b=tiles[i].bld;
     if(!b||b.k>3||!b.crime||b.abandoned)continue;
     b.crimeDays=(b.crimeDays||0)+1;
@@ -8950,7 +8963,7 @@ function tick(){
   }
   // 生病（T33/T34）：未受健康設施覆蓋的住宅每天小機率生病；醫院覆蓋內次日康復，診所覆蓋內每天50%機率康復
   let sickAlert=false;
-  for(let i=0;i<N*N;i++){
+  for(const i of tickBld){
     const b=tiles[i].bld;
     if(!b||b.k!==1)continue;
     const x=i%N,y=(i/N)|0;
@@ -8969,7 +8982,7 @@ function tick(){
   }
   // 生病→死亡轉化（T38）：sick≥3 天未康復每天 10% 轉死亡
   let deathAlert=false;
-  for(let i=0;i<N*N;i++){
+  for(const i of tickBld){
     const b=tiles[i].bld;
     if(!b||b.k!==1||!b.sick||b.death)continue;
     b.sickDays=(b.sickDays||0)+1;
@@ -9136,7 +9149,7 @@ function tick(){
     score=-1;cityStar=-1;
   }else{
     let fireCoverN=0,fireTotalN=0,schoolCoverN=0,schoolTotalN=0;
-    for(let i=0;i<N*N;i++){
+    for(const i of tickBld){
       const b=tiles[i].bld;
       if(!b||b.k>3||b.ref)continue;
       const x=i%N,y=(i/N)|0;
