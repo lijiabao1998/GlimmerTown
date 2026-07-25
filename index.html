@@ -270,7 +270,7 @@ function makeNoise(rand,G){
 ===================================================================== */
 const TW=64,TH=32;         // 單格像素尺寸（精細版：每格 64×32）
 let N=72;                  // T262：地圖邊長改可變（72/108/144/216＝面積 1×/2.25×/4×/9×）。newWorld 依 mapSizePref 套用、load 依存檔 n 欄位還原；所有 N*N 定長場陣列經 allocGrids() 成對重建
-const MAP_SIZES=[72,108,144,216,432]; // T262：合法尺寸檔位（216²=46,656 格＝現行架構+localStorage 存檔的安全上限；更大需分塊+IndexedDB，見無限地圖評估）
+const MAP_SIZES=[72,108,144,216,432,648,1000]; // T262：合法尺寸檔位（216²=46,656 格＝現行架構+localStorage 存檔的安全上限；更大需分塊+IndexedDB，見無限地圖評估）
 const SAVEKEY='glimmerville.v1';
 const DAYLEN=0.9;          // 一天（模擬）＝0.9 秒（1x）
 const CYCLE=110;           // 日夜循環（真實秒）
@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.5'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.6'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -8374,10 +8374,23 @@ function aiStep(){
    **安全設計**：①索引「每 tick 重建」而非增量維護＝不可能失同步；②只轉換 tick() 函數體內的迴圈
    （tick 外的函數可能在 tick 之間被呼叫，索引會過期，故一律不動）；③亂數流安全：被轉換的迴圈皆在
    if(!b)continue 之前不消耗 R()，跳過空地不改變亂數序（鐵律2）；④含 .bld= 賦值（會新增建築）的迴圈不轉。 */
-let tickBld=[];
+let tickBld=[],tickRoad=[],tickZone=[];
+let tickRoadsN=0,tickBridgesN=0,tickCzoneN=0;
+/* T316 合併掃描：tick 內原剩 11 個全圖掃描（648² 空城 tick 實測 244.5ms＝三倍速不可玩），其中對象訪問大戶
+   （主計數迴圈/生長候選/總計數/道路維護/czone）全靠一次掃描的產物餵養。索引＝「候選超集＋條件實時重驗」：
+   tick 中途建築被清（火災全損）→實時驗自然跳過；中途新生建築（生長 spawn）→該處同步 push 進 tickBld
+   ＝計數迴圈語義與原全圖掃描完全一致。亂數流安全：所有改寫迴圈遍歷升序索引＝與原 row-major 同集合同序，
+   消耗 R() 的次數與順序逐位不變（鐵律2）。 */
 function buildTickIndex(){
-  tickBld.length=0;
-  for(let i=0;i<N*N;i++)if(tiles[i].bld)tickBld.push(i);
+  tickBld.length=0;tickRoad.length=0;tickZone.length=0;
+  tickRoadsN=0;tickBridgesN=0;tickCzoneN=0;
+  for(let i=0;i<N*N;i++){
+    const t=tiles[i];
+    if(t.bld)tickBld.push(i);
+    if(t.road){tickRoad.push(i);tickRoadsN++;}
+    if(t.bridge)tickBridgesN++;
+    if(t.zone){tickZone.push(i);if(t.zone===2)tickCzoneN++;}
+  }
 }
 function tick(){
   buildTickIndex(); // T313：本 tick 的建築格索引
@@ -8467,10 +8480,11 @@ function tick(){
   let owN=0,mnN=0,mgN=0,indBldN=0,suppliesGain=0; // T140：owN油井/mnN礦場/mgN太空研究中心（root）計數；indBldN=工業建築計數（供資源消耗鏈用，獨立於既有 nI/jobsI，不限電力）；suppliesGain=本日開採彙總
   let happyAggSum=null; // T111：幸福構成累加器（沿用既有 happySum/happyN 迴圈，逐建築累加各項後於迴圈尾除以 happyN）
   const grown=[];
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const t=T(idx(x,y));
+  for(const i88 of tickBld){ // T316：主計數迴圈改遍歷建築索引（空格子純白跑；同集合同序＝亂數流零位移）
+    const x=i88%N,y=(i88/N)|0;
+    const t=tiles[i88];
     const b=t.bld;
-    if(b&&b.ref)continue;              // 多格建築 ref 格不參與任何模擬（T22）
+    if(!b||b.ref)continue;             // 多格建築 ref 格不參與任何模擬（T22）
     if(b&&UP_MAX[b.k]&&b.lv>1)upJob+=(b.lv-1)*(UP_JOB[b.k]??6); // T239：升級服務每級加成就業；T254 修：用 ?? 而非 ||，否則顯式 0（電源/加工廠 k5/25/26/57 純擴容不加就業）會被 0||6 誤 fallback 成 6
     if(b&&b.k===7)schools++;
     if(b&&b.k===8)dumps++;
@@ -8824,13 +8838,14 @@ function tick(){
   const jobSurplus=clamp((jobs*1.2+25-workers)/70,-1,1); // 就業盈餘（沿用既有基準算式）
   const happyAdj=clamp((cityHappy-.6)*1.2,-1,1);         // 幸福加權：偏離基準幸福 .6 的正負訊號
   dem[1]=clamp(jobSurplus*.7+happyAdj*.3,-1,1);
-  let czone=0;for(let i=0;i<N*N;i++)if(tiles[i].zone===2)czone++; // 商業格數（含未建成，對應「格數」字面）
+  let czone=tickCzoneN; // T316：czone 由合併掃描計得（zone 在 tick 前段不變） // 商業格數（含未建成，對應「格數」字面）
   dem[2]=clamp((pop/Math.max(1,czone)-3)/6,-1,1);
   dem[3]=clamp((jobsC*.8-jobsI)/40,-1,1);
   // 生長：收集候選
   const cands=[];
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const t=T(idx(x,y));
+  for(const iz of tickZone){ // T316：只掃 zone 格（升序＝原 row-major 同序，條件實時重驗＝cands 逐項一致）
+    const x=iz%N,y=(iz/N)|0;
+    const t=tiles[iz];
     if(t.zone&&!t.bld&&!t.ruin&&hasRoadNear(x,y,2,true,true))cands.push([x,y,t.zone]); // 生長鄰路只認通電普通路（高速不算，T21）
   }
   // 洗牌取前幾個
@@ -8851,7 +8866,8 @@ function tick(){
       const den=z===1?clamp(getMaxRoadClass(x,y,3),1,5):undefined;
       const kk=cell.office?2:z;
       const we=kk===1?judgeWealth(x,y):undefined; // T123：住宅新建時判定財富級（純資料，不讀不影響經濟）
-      cell.bld={k:kk,lv:1,v:(kk===1||kk===2||kk===3)?ri(12):ri(4),age:0,pw:true,h:.6,den,we}; // T101-103：住宅/商業/工業 v 擴至 ri(8)；T150：再擴至 ri(12)（逐 k 判斷，其餘 k 仍 ri(4) 不變）
+      cell.bld={k:kk,lv:1,v:(kk===1||kk===2||kk===3)?ri(12):ri(4),age:0,pw:true,h:.6,den,we};
+      tickBld.push(idx(x,y)); // T316：新生建築入本 tick 索引（後續總計數迴圈需看到，與原全圖掃描語義一致） // T101-103：住宅/商業/工業 v 擴至 ri(8)；T150：再擴至 ri(12)（逐 k 判斷，其餘 k 仍 ri(4) 不變）
       if(kk===3)stampPolSrc(x,y,3,1); // T110：工業新生長為污染源
       spawns++;sPop();
     }
@@ -9032,10 +9048,9 @@ function tick(){
   let income=0,upkeep=0,roads=0,parks=0,plants=0,bridges=0,nI=0,taxR=0,taxC=0,taxI=0,fireStations=0,policeStations=0,hospitals=0,policeBoxes=0; // T222：派出所計數
   let stations=0,ports=0,airports=0,parkingLots=0,tramStations=0,farms=0,ranches=0,landmarks=0,solars=0,winds=0,sewages=0,ambulances2=0,recyclings=0,fireStation2s=0,prisons=0,universities=0;
   const civicMul=chN>0?1.03:1; // T139：市政廳全城行政加成——住宅/商業/工業稅收皆微增 3%（不隨市政廳數量疊加，避免碾壓），未放置時精確恆等 ×1
-  for(let i=0;i<N*N;i++){
+  roads+=tickRoadsN;bridges+=tickBridgesN; // T316：道路/橋樑由合併掃描計得
+  for(const i of tickBld){
     const t=tiles[i];
-    if(t.road)roads++;
-    if(t.bridge)bridges++;
     const b=t.bld;
     if(!b)continue;
     if(b.ref)continue;                // 多格建築 ref 格不參與經濟（T22）
@@ -9114,7 +9129,7 @@ function tick(){
     }
   }
   let roadUpkeep=0;
-  for(let i=0;i<N*N;i++){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];}
+  for(const i of tickRoad){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];} // T316：只掃道路格
   const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0); // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
   upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+policeBoxes*1.5+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+bigCemN*8+dumps*2+stadiums*8+waterTowers*3+st*6+gstN*15+scN*18+fpN*14+nkN*28+hyN*9+geN*4+fhqN*10+wteN*10+ghN*3+whN284*4+mallN*16+po*5+ai*25+pa*1.5+tr*4+fa*1+bigFa*6+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+faN*8+ctN307*4+obN307*9+upLm309+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+chN*10+crtN*6+cvN*20+inN*10+wsN*4+bgN*14+mhN*16+owN*4+mnN*5+mgN*25+upReg; // T265：焚化發電維護10；T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費；T139：市政廳10/法院6/會展中心20/研究院10/氣象站4/植物園14/綜合醫院16 維護費（綜合醫院比照 T95 教訓，維護費遠高於醫院的5，避免超大半徑碾壓既有醫療建築）；T140：油井4/礦場5/太空研究中心25 維護費
   let metroRev=0,metroAds=0,metroCost=0; // T302 地鐵財政：分線票務（載客受列車運力封頂）＋車站/車身廣告－人工/維修/列車保養
