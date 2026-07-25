@@ -8464,6 +8464,111 @@ function aiStep(){
   if(!poor&&pop>240&&money>COST.grandMall+500&&mallN<Math.ceil(pop/450)){ // T290：成型城市→大型購物中心（4×4 商業旗艦，吸就業+商業稅）；依人口設上限（每 450 人一座）避免爆蓋，每日檢查（4×4 空地稀缺＝天然節流）
     outer5mm:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(hasRoadNear(x,y,2,false)&&tryP('grandMall',x,y))break outer5mm;}
   }
+  // ===== T324 適應性建設（玩家：「AI 市長有一些建築不會主動去蓋，加入這些建築進行適應性匹配」）＝
+  // AI 原僅蓋 18 種建築、62 種從不碰。本段以需求驅動表補齊：醫療/治安/教育/環衛/殯葬/文化/市政/
+  // 交通/資源/綠能/地標 11 族——各自人口門檻＋按人口的數量上限（防狂建）＋財政閘門（net>2、留備用金），
+  // rank 門檻鏡像工具列 unlockRank（institute Lv12／megaproject Lv22）。每日至多 2 座進階建築＋2 公車站。
+  // 選址純確定性掃描（row-major，同種子同結果），全程不消耗 R()（鐵律2）；全為既有 k＝稅收守衛既備（鐵律14）。 =====
+  // 閘門校準（T324b）：實測 seed77 400天基線 pop746 → 初版閘門(net>2,餘量150)後僅 388＝進階建設
+  // 反覆把現金打到 poor 線(800)以下、分區/道路預算被節流、成長腰斬。改為：淨收入>4 且現金>1400 才進場、
+  // 單筆蓋完仍須離 poor 線有距離（餘量+600）、小城(pop<800)每日限 1 座且隔日評估＝服務跟著財政走而非拖垮財政。
+  if(!poor&&pop>140&&fin&&fin.net>4&&money>1400&&day%2===0&&acts<MAXA){
+    const aiCnt=Object.create(null);let aiCrime=0,aiEduSum=0,aiEduN=0;
+    for(const i2 of tickBld){const b2=tiles[i2].bld;if(!b2)continue;
+      if(!b2.ref)aiCnt[b2.k]=(aiCnt[b2.k]||0)+1;
+      if(b2.k<=3&&b2.crime)aiCrime++;
+      if(b2.k===1&&!b2.ref){aiEduSum+=EDU[i2];aiEduN++;}
+    }
+    const aiEdu=aiEduN?aiEduSum/aiEduN:0;
+    const C2=k2=>aiCnt[k2]||0;
+    const aiNearWater=(x,y)=>{for(let dy=-1;dy<=2;dy++)for(let dx=-1;dx<=2;dx++){const x3=x+dx,y3=y+dy;if(x3<0||y3<0||x3>=N||y3>=N)continue;if(tiles[idx(x3,y3)].t===0)return true;}return false;};
+    // [tool, 需求成立, 選址]  res=貼路網 / avoid=避住宅重設施 / water=臨水 / oil|ore=資源格上
+    const wants=[
+      ['ambulance',   pop>200&&C2(28)<Math.ceil(pop/800),'res'],
+      ['hospital',    pop>350&&C2(12)<Math.ceil(pop/1200),'res'],
+      ['megahosp',    pop>2200&&C2(48)<Math.ceil(pop/2600),'res'],
+      ['policeBox',   pop>150&&C2(52)<Math.ceil(pop/600),'res'],
+      ['fireStation2',pop>900&&C2(30)<Math.ceil(pop/1600),'res'],
+      ['fireHQ',      pop>1800&&C2(61)<Math.ceil(pop/3200),'res'],
+      ['cemetery',    pop>250&&C2(16)<Math.ceil(pop/1100),'res'],
+      ['bigCemetery', pop>1800&&C2(54)<Math.ceil(pop/3600),'res'],
+      ['library',     pop>250&&C2(14)<Math.ceil(pop/700),'res'],
+      ['post',        pop>300&&C2(15)<Math.ceil(pop/900),'res'],
+      ['university',  pop>600&&aiEdu<70&&C2(32)<Math.ceil(pop/1800),'res'],
+      ['grandlib',    pop>1500&&C2(41)<Math.ceil(pop/3200),'res'],
+      ['recycling',   pop>400&&garbRatio>.7&&C2(29)<Math.ceil(pop/1000),'res'],
+      ['sewage',      pop>500&&C2(27)<Math.ceil(pop/1300),'avoid'],
+      ['prison',      aiCrime>4&&pop>700&&C2(31)<Math.ceil(pop/1800),'avoid'],
+      ['court',       aiCrime>2&&pop>1000&&C2(43)<Math.ceil(pop/2200),'res'],
+      ['cinema',      pop>500&&C2(40)<Math.ceil(pop/1500),'res'],
+      ['museum',      pop>700&&C2(35)<Math.ceil(pop/2000),'res'],
+      ['theater',     pop>1000&&C2(36)<Math.ceil(pop/2500),'res'],
+      ['botanical',   pop>1200&&C2(47)<Math.ceil(pop/3000),'res'],
+      ['stad',        pop>800&&C2(9)<Math.ceil(pop/2500),'res'],
+      ['sportsComplex',pop>2500&&C2(56)<Math.ceil(pop/5200),'res'],
+      ['civichall',   pop>800&&C2(42)<1,'res'],
+      ['convention',  pop>1600&&C2(44)<Math.ceil(pop/4200),'res'],
+      ['institute',   rankIdx+1>=12&&pop>1200&&C2(45)<Math.ceil(pop/3200),'res'],
+      ['wstation',    disastersOn&&pop>700&&C2(46)<1,'res'],
+      ['station',     pop>600&&C2(17)<Math.ceil(pop/1600),'res'],
+      ['grandStation',pop>2000&&C2(55)<1,'res'],
+      ['parking',     C2(2)>30&&C2(20)<Math.ceil(C2(2)/45),'res'],
+      ['port',        pop>1200&&C2(18)<Math.ceil(pop/3200),'water'],
+      ['airport',     pop>2500&&C2(19)<Math.max(1,Math.floor(pop/6000)),'avoid'],
+      ['ranch',       pop>350&&C2(23)===0,'res'],
+      ['aquarium',    pop>1400&&C2(37)<Math.ceil(pop/4000),'res'],
+      ['zoo',         pop>1800&&C2(38)<Math.ceil(pop/4500),'res'],
+      ['amuse',       pop>2200&&C2(39)<Math.ceil(pop/5000),'res'],
+      ['solar',       money>15000&&pop>800&&C2(25)<3,'res'],
+      ['wind',        money>15000&&pop>800&&C2(26)<3,'res'],
+      ['oilwell',     pop>800&&C2(49)<3,'oil'],
+      ['mine',        pop>800&&C2(50)<3,'ore'],
+      ['megaproject', rankIdx+1>=22&&money>((COST.megaproject||0)+20000)&&C2(51)<1,'avoid']];
+    // 觀光地標：財政健康的成熟城定期添景（每40天審視、按人口上限、優先沒有的種類＝多樣性）
+    if(pop>900&&fin.net>15&&day%40===0){
+      const lmPool=[[76,'ferriswheel'],[72,'monument'],[75,'archway'],[73,'skytower'],[68,'observatory'],[67,'clockTower'],[71,'fountain'],[70,'windmill'],[80,'carousel'],[74,'pavilion'],[79,'harborlm'],[69,'lighthouse'],[78,'ancienttree'],[77,'watertowerlm']];
+      let lmTotal=0;for(const e2 of lmPool)lmTotal+=C2(e2[0]);
+      if(lmTotal<Math.ceil(pop/1200)){
+        const pick=lmPool.find(e2=>C2(e2[0])===0&&COST[e2[1]]!==undefined&&money>COST[e2[1]]+RESERVE+300);
+        if(pick)wants.push([pick[1],true,'res']);
+      }
+    }
+    const aiCostOf=t2=>t2==='civichall'?COST.civicHall:COST[t2]; // 唯一 id≠COST 鍵的例外
+    let advBuilt=0;const advCap=pop>800?2:1; // T324b：小城每日限1座
+    for(const w of wants){
+      if(advBuilt>=advCap||acts>=MAXA)break;
+      if(!w[1])continue;
+      const tool=w[0],c2=aiCostOf(tool);
+      if(c2===undefined||money<c2+RESERVE+600)continue; // T324b：蓋完仍離 poor 線有距離
+      let done=false;
+      outerW:for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+        if(w[2]==='res'){if(!hasRoadNear(x,y,2,false))continue;}
+        else if(w[2]==='avoid'){if(nearRes(x,y)||!roadTouchFoot(x,y,2))continue;}
+        else if(w[2]==='water'){if(!aiNearWater(x,y)||!hasRoadNear(x,y,2,false))continue;}
+        else if(w[2]==='oil'){if(RESOURCE[idx(x,y)]!==1||RDEP[idx(x,y)]>=RESOURCE_STOCK)continue;}
+        else if(w[2]==='ore'){if(RESOURCE[idx(x,y)]!==2||RDEP[idx(x,y)]>=RESOURCE_STOCK)continue;}
+        if(tryP(tool,x,y,true)){done=true;break outerW;}
+      }
+      if(done)advBuilt++;
+    }
+    // 公車站：住宅密集卻無公交覆蓋 → 每10天補2站（幸福+4%、公共運輸客源）
+    if(pop>350&&day%10===0&&money>((COST.bus||0)+RESERVE+400)){ // T324b：公車站也讓利成長期
+      let busB=2;
+      outerBus:for(let y=y0;y<=y1&&busB>0;y++)for(let x=x0;x<=x1;x++){
+        const i2=idx(x,y),t2=tiles[i2];
+        if(t2.bld||t2.zone||t2.road||t2.t!==2)continue;
+        if(COV.bus[i2]>0||!hasRoadNear(x,y,1,false))continue;
+        let resN2=0;
+        for(let dy=-3;dy<=3&&resN2<5;dy++)for(let dx=-3;dx<=3&&resN2<5;dx++){
+          const x3=x+dx,y3=y+dy;if(x3<0||y3<0||x3>=N||y3>=N)continue;
+          const b3=tiles[idx(x3,y3)].bld;if(b3&&b3.k===1)resN2++;
+        }
+        if(resN2<5)continue;
+        if(tryP('bus',x,y,true))busB--;
+        if(acts>=MAXA)break outerBus;
+      }
+    }
+  }
   // ── 6. 演化：本半徑無事可做 → 擴張半徑（直到覆蓋全圖）；另每 20 天自然生長。窮困/攢錢期不擴（血淚：攢錢期 acts=0 天天觸發＝半徑 6→72 失控，路網維護費暴增）──
   if(!poor){
     if(acts===0)aiR=Math.min(aiR+2,N);
@@ -13478,7 +13583,9 @@ function showStats(){
   let nSt=0,nPt=0,nAi=0,nPk=0,nTs=0,nFa=0,nRa=0,nLd=0,nSo=0,nWi=0,nSe=0,nAm=0,nRc=0,nF2=0,nPr=0,nUn=0; // T89：v3.0（T39-T54）新建築計數
   let popP=0,popM=0,popR=0; // T124：貧/中/富人口占比累加（沿用既有 pop 計算口徑，逐格掃描）
   let eduSum=0,rEdu=0; // T142：住宅格教育場平均值累加（沿用同一逐格掃描，純顯示不影響任何模擬公式）
+  const kCnt=Object.create(null); // T323：全 k 通用計數（root only），建築統計 dataTable 的資料源
   for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(!b)continue;
+    if(!b.ref)kCnt[b.k]=(kCnt[b.k]||0)+1; // T323
     if(b.k===1){nR++;const we=b.we!==undefined?b.we:1;const pc=(b.pw&&!b.sick&&!b.death)?Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1)):0;if(we===0)popP+=pc;else if(we===2)popR+=pc;else popM+=pc;eduSum+=EDU[i];rEdu++;}
     else if(b.k===2)nC++;else if(b.k===3)nI++;
     else if(b.k===4)nP++;else if((b.k===5||b.k===62)&&!b.ref)nE++;else if(b.k===6)nF++; // T266：k62 只計 root，2×2 不得顯示成四棟
@@ -13527,15 +13634,20 @@ function showStats(){
     '天氣':'🌧️ 壞天氣暫時拉低幸福→天氣好轉後會恢復',
     '冬季':'❄️ 冬季拉低幸福→開春後會恢復'
   };
-  const happyRows=happySorted.map((p,pi)=>{
+  // T323：幸福構成改走 statTab；可追溯負因子保留 #hpTr 點擊 id（下方綁定代碼零改動），最差項紅色、建議另起一行
+  const happyRows=[{sec:'😊 幸福構成（城市平均）'}];
+  happySorted.forEach((p,pi)=>{
     const bad=!!happyWorst&&p===happyWorst&&p.val<0;
-    const traceable=p.val<0&&FACTOR_TRACE[p.name]; // T143：僅負值且有對應來源格計算的因子可點擊追溯
-    const styles=[];if(bad)styles.push('color:#e05252');if(traceable)styles.push('cursor:pointer');
-    const idAttr=traceable?` id="hpTr${pi}"`:'';
-    return `<div class="row"${idAttr}${styles.length?' style="'+styles.join(';')+'"':''}>${escHtml(p.name)}　${fp(p.val)}${bad&&HAPPY_TIP[p.name]?'　'+HAPPY_TIP[p.name]:''}</div>`;
-  }).join('');
+    const traceable=p.val<0&&FACTOR_TRACE[p.name];
+    let kH=escHtml(p.name)+(traceable?' 🔍':'');
+    if(traceable)kH=`<span id="hpTr${pi}" style="cursor:pointer${bad?';color:#e05252':''}">${kH}</span>`;
+    else if(bad)kH=`<span style="color:#e05252">${kH}</span>`;
+    happyRows.push({k:kH,v:fp(p.val),t:p.val>0?'good':p.val<0?'bad':'dim'});
+  });
   const happyTotal=happySorted.reduce((s,p)=>s+p.val,0);
-  const happyHtml=happySorted.length?`<div class="row"><b>😊 幸福構成</b>（城市平均）</div>${happyRows}<div class="row" style="opacity:.8">合計 ${fp(happyTotal)}</div>`:'';
+  happyRows.push({k:'合計',v:fp(happyTotal),t:happyTotal>=.4?'good':'warn'});
+  const worstTip=(happyWorst&&happyWorst.val<0&&HAPPY_TIP[happyWorst.name])?`<div class="row" style="color:#e05252;font-size:11px">${HAPPY_TIP[happyWorst.name]}</div>`:'';
+  const happyHtml=happySorted.length?statTab(happyRows)+worstTip:'';
   const popT=popP+popM+popR; // T124：貧/中/富人口占比分母
   const advTips=cityAdvisor(); // T131：城市顧問——服務缺口/污染犯罪壅堵熱點/RCI/財政彙總（單次全圖掃描，只在面板開啟時執行）
   const SVC_GAP_KEYS=['治安覆蓋不足','消防覆蓋不足','醫療覆蓋不足','教育覆蓋不足','綠地覆蓋不足']; // T143：與 cityAdvisor() SVC_NM 文案對齊，不改動 cityAdvisor 本體，僅比對文字取得可追溯因子鍵
@@ -13554,33 +13666,85 @@ function showStats(){
   const rankHtml=`<div class="row"><b>🏙️ 城市等級</b>　Lv.${rankIdx+1} ${rkCur.name}${rkCur.unlock?'（'+rkCur.unlock+'）':''}</div>
      <div class="row" style="background:#1c2340;border-radius:4px;height:8px;overflow:hidden"><div style="width:${rkPct}%;height:100%;background:linear-gradient(90deg,#5ec8ff,#7be08a)"></div></div>
      <div class="row" style="font-size:11px;opacity:.75">${rkNext?`${cityPoints}/${rkNext.threshold} 點　邁向 Lv.${rankIdx+2} ${rkNext.name}`:`👑 已達最高等級（${cityPoints} 點）`}</div>`;
+  // ===== T323：統計面板結構化＝純數據全走 statTab/dataTable 標準組件（與晶片明細/檢視/指南同一套規範），
+  // 互動控件（購列車/購車/稅率預算±/法規勾選/歷史曲線/災害鈕/貸款）保持原 id 原樣，下方綁定代碼零改動。 =====
+  const sea=season();
+  const finRows=[
+    {sec:'💰 財政'},
+    {k:'🏠 住宅稅',v:f(fin.taxR),u:'/日',t:'good'},
+    {k:'🏪 商業稅',v:f(fin.taxC),u:'/日',t:'good'},
+    {k:'🏭 工業稅',v:f(fin.taxI),u:'/日',t:'good'},
+    {k:'每日淨收入',v:f(fin.net),u:'/日',t:fin.net>=0?'good':'bad'},
+    {sec:'🚌 公共運輸'},
+    {k:'日客運量',v:transitRidership,u:'人'},
+    {k:'🎫 票務',v:f(Math.round(transitRidership*.03)),u:'/日',t:'good'},
+    railCovPop>0?{k:'🚈 軌道服務',v:railCovPop,u:'人'}:null,
+    busRtCovPop>0?{k:'🚏 公交服務',v:busRtCovPop,u:'人'}:null];
+  if(metroLines.length){
+    const stN=metroLines.reduce((s2,L2)=>s2+L2.stations.length,0);
+    const big=metroLines.reduce((s2,L2)=>s2+L2.stations.filter(st=>st.tier===3).length,0);
+    const mid=metroLines.reduce((s2,L2)=>s2+L2.stations.filter(st=>st.tier===2).length,0);
+    const trn=metroLines.reduce((s2,L2)=>s2+L2.trains,0);
+    const rid=metroLines.reduce((s2,L2)=>s2+(L2.riders||0),0),mcap=trn*300;
+    finRows.push({sec:'🚇 地鐵'},
+      {k:'線路／車站',v:metroLines.length+' 線・'+stN+' 站',u:'大'+big+' 中'+mid+' 小'+(stN-big-mid)},
+      {k:'列車',v:trn,u:'列'},
+      {k:'載客',v:rid+'/'+mcap,u:(mcap&&rid>=mcap*.95)?'⚠ 有線路滿載':'',t:(mcap&&rid>=mcap*.95)?'warn':''},
+      mcap?{bar:clamp(rid/mcap,0,1)}:null,
+      {k:'🎫 地鐵票務',v:f(fin.metroRev||0),u:'/日',t:'good'},
+      {k:'📣 地鐵廣告',v:f(fin.metroAds||0),u:'/日',t:'good'},
+      {k:'🔧 地鐵營運',v:'-'+(fin.metroCost||0).toFixed(1),u:'/日',t:'bad'});
+  }
+  const expRows=[{sec:'💸 每日支出'}].concat([
+    ['🛣 道路',fin.upR],['🌳 公園',fin.upP],['⚡ 電廠',fin.upE],['💧 水塔',fin.upW],['🚓 警察局',fin.upPol],['🏥 醫院',fin.upH],['🏥 診所',fin.upC],['📚 圖書館',fin.upL],['📮 郵局',fin.upPo],['💀 墓園',fin.upCe],['📜 法規',fin.upReg]]
+    .map(e=>({k:e[0],v:'-'+e[1].toFixed(1),u:'/日',t:'bad'})));
+  expRows.push({k:'🔧 v3.0 維護',v:'-'+v3Up.toFixed(1),u:'/日',t:'bad'});
+  const cityRows=[
+    {sec:'🏙️ 城市指標'},
+    {k:'👥 人口',v:pop.toLocaleString(),u:'人'},
+    {k:'💼 就業',v:jobs.toLocaleString(),u:'個'},
+    {k:'😊 幸福',v:Math.round(cityHappy*100)+'%',u:'',t:cityHappy>.7?'good':cityHappy>.45?'warn':'bad'},
+    {bar:cityHappy},
+    {k:'🗑️ 垃圾',v:garbage.toFixed(1)+'/'+garbCap,u:'',t:(garbCap&&garbage>garbCap)?'bad':''},
+    garbCap>0?{bar:clamp(garbage/garbCap,0,1)}:null,
+    {k:'🏚️ 貧／🏠 中／🏡 富',v:(popT?Math.round(popP/popT*100):0)+'% / '+(popT?Math.round(popM/popT*100):0)+'% / '+(popT?Math.round(popR/popT*100):0)+'%',u:''},
+    {k:'🎓 平均教育',v:rEdu?Math.round(eduSum/rEdu):0,u:''},
+    {sec:'🌦️ 季節與市場'},
+    {k:'季節',v:SEASON_ICON[sea]+' '+SEASON_NAME[sea]+'季',u:''},
+    {k:'🌾 農產倍率',v:'×'+FARM_SEASON_MULT[sea].toFixed(2),u:''},
+    {k:'⚡ 供電倍率',v:'×'+POWER_SEASON_MULT[sea].toFixed(2),u:''},
+    {k:'🧳 觀光倍率',v:'×'+TOUR_SEASON_MULT[sea].toFixed(2),u:''},
+    {k:'📈 農產市價',v:'×'+foodPriceOf(day,sea).toFixed(2),u:((day%53)<4)?'🔥 搶購潮！高價賣出時機':'',t:((day%53)<4)?'warn':''},
+    {k:'📦 工業品',v:goods+'/'+goodsCap283(),u:''}];
+  const bldRows=Object.keys(kCnt).map(k2=>[KNAME[k2]||('#'+k2),kCnt[k2]]).sort((a2,b2)=>b2[1]-a2[1]);
+  const bldTotal=bldRows.reduce((s2,r2)=>s2+r2[1],0);
+  const bldHtml=bldRows.length?('<div class="gsec">🏗️ 建築統計（共 '+bldTotal+' 棟・點表頭排序）</div>'+dataTable([{h:'建築'},{h:'數量',n:true}],bldRows,'dtBld')):'';
+  const scoreHtml=score<0?'<div class="row">⭐ 評分：人口未達 50，暫不評分</div>':statTab([
+    {sec:'⭐ 城市評分'},
+    {k:'評分',v:Math.round(score)+'/100',u:'⭐×'+cityStar},
+    {bar:clamp(score/100,0,1)},
+    {k:'😊 幸福',v:scoreParts.happy.toFixed(1),u:''},
+    {k:'💼 就業',v:scoreParts.job.toFixed(1),u:''},
+    {k:'🚒 消防',v:scoreParts.fire.toFixed(1),u:''},
+    {k:'🗑️ 垃圾',v:scoreParts.garb.toFixed(1),u:''},
+    {k:'🏫 教育',v:scoreParts.edu.toFixed(1),u:''}]);
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
-     <div class="row">🏠 住宅稅 ${f(fin.taxR)}　🏪 商業稅 ${f(fin.taxC)}　🏭 工業稅 ${f(fin.taxI)}</div>
-     <div class="row">🚌 公共運輸　日客運量 ${transitRidership} 人　🎫 票務 ${f(Math.round(transitRidership*.03))}／日${railCovPop>0?('　🚈 軌道服務 '+railCovPop+' 人'):''}${busRtCovPop>0?('　🚏 公交服務 '+busRtCovPop+' 人'):''}</div>
-     ${metroLines.length?`<div class="row" style="font-size:11px">🚇 地鐵 ${metroLines.length} 條線・${metroLines.reduce((s2,L)=>s2+L.stations.length,0)} 站（大${metroLines.reduce((s2,L)=>s2+L.stations.filter(st=>st.tier===3).length,0)}中${metroLines.reduce((s2,L)=>s2+L.stations.filter(st=>st.tier===2).length,0)}小${metroLines.reduce((s2,L)=>s2+L.stations.filter(st=>st.tier===1).length,0)}）・列車 ${metroLines.reduce((s2,L)=>s2+L.trains,0)} 列　載客 ${metroLines.reduce((s2,L)=>s2+(L.riders||0),0)}/${metroLines.reduce((s2,L)=>s2+L.trains*300,0)}</div>
-     <div class="row" style="font-size:11px">💰 票務 ${f(fin.metroRev||0)}＋廣告 ${f(fin.metroAds||0)}－營運 ${f(fin.metroCost||0)}/日${metroLines.some(L=>(L.riders||0)>=L.trains*300*.95)?'　<span style="color:#ffb15f">⚠ 有線路滿載</span>':''}　<button class="hbtn" id="bMetroTrain">🚈 購列車 $800</button></div>`:''}
+     ${statTab(finRows)}
+     ${metroLines.length?`<div class="row" style="font-size:11px"><button class="hbtn" id="bMetroTrain">🚈 購列車 $800</button></div>`:''}
      <div class="row" style="font-size:11px">🚒 消防車 ${svcFleet.fire} 輛　🚓 警車 ${svcFleet.police} 輛（自動出警處理犯罪）　🚑 救護車 ${svcFleet.amb} 輛　<button class="hbtn" id="bBuyFire">🚒$400</button><button class="hbtn" id="bBuyPolice">🚓$400</button><button class="hbtn" id="bBuyAmb">🚑$400</button></div>
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
      <div class="row">🎚️ 服務預算（越高覆蓋越廣、越貴）　🚓${svcBudget.police.toFixed(1)}× <button class="hbtn" id="budPoM">−</button><button class="hbtn" id="budPoP">＋</button>　🚒${svcBudget.fire.toFixed(1)}× <button class="hbtn" id="budFiM">−</button><button class="hbtn" id="budFiP">＋</button>　🏥${svcBudget.health.toFixed(1)}× <button class="hbtn" id="budHeM">−</button><button class="hbtn" id="budHeP">＋</button>　🎓${svcBudget.edu.toFixed(1)}× <button class="hbtn" id="budEdM">−</button><button class="hbtn" id="budEdP">＋</button></div>
      <div class="row">🚨 法規　<label><input type="checkbox" id="polCurfew"${pol.curfew?' checked':''}> 宵禁</label>　<label><input type="checkbox" id="polRecycle"${pol.recycle?' checked':''}> 回收宣導</label>　<label><input type="checkbox" id="polTour"${pol.tourPromo?' checked':''}> 觀光推廣</label>　<label><input type="checkbox" id="polEco"${pol.ecoReg?' checked':''}> 節能條例</label></div>
-     <div class="row">🛣 道路 -${fin.upR.toFixed(1)}　🌳 公園 -${fin.upP.toFixed(1)}　⚡ 電廠 -${fin.upE.toFixed(1)}　💧 水塔 -${fin.upW.toFixed(1)}　🚓 警察局 -${fin.upPol.toFixed(1)}　🏥 醫院 -${fin.upH.toFixed(1)}　🏥 診所 -${fin.upC.toFixed(1)}　📚 圖書館 -${fin.upL.toFixed(1)}　📮 郵局 -${fin.upPo.toFixed(1)}　💀 墓園 -${fin.upCe.toFixed(1)}　📜 法規 -${fin.upReg.toFixed(1)}</div>
-     <div class="row"><b>每日淨收入 ${f(fin.net)}</b></div>
-     <div class="row">建築：住${nR} 商${nC} 工${nI} 公園${nP} 電廠${nE} 消防局${nF} 學校${nS} 垃圾場${nD} 體育場${nT} 水塔${nW} 警察局${nPol} 醫院${nH} 診所${nCl} 圖書館${nL} 郵局${nPo} 墓園${nCe}</div>
-     <div class="row" style="font-size:11px;opacity:.75">v3.0：🚉${nSt} ⚓${nPt} ✈️${nAi} 🅿️${nPk} 🚋${nTs} 🌾${nFa} 🐄${nRa} 🗿${nLd} ☀️${nSo} 💨${nWi} 🚰${nSe} 🚑${nAm} ♻️${nRc} 🚒${nF2} 🚔${nPr} 🎓${nUn}　🔧維護-${v3Up.toFixed(1)}</div>
-     <div class="row">🗑️ 垃圾 ${garbage.toFixed(1)}/${garbCap}</div>
-     <div class="row">👥 ${pop}　💼 ${jobs}　😊 ${Math.round(cityHappy*100)}%</div>
-     <div class="row">🏚️ 貧 ${popT?Math.round(popP/popT*100):0}%　🏠 中 ${popT?Math.round(popM/popT*100):0}%　🏡 富 ${popT?Math.round(popR/popT*100):0}%</div>
-     <div class="row">🎓 平均教育水平 ${rEdu?Math.round(eduSum/rEdu):0}</div>
-     <div class="row" style="font-size:11px;opacity:.75">${SEASON_ICON[season()]} ${SEASON_NAME[season()]}季　🌾 農產×${FARM_SEASON_MULT[season()].toFixed(2)}　⚡ 供電×${POWER_SEASON_MULT[season()].toFixed(2)}　🧳 觀光×${TOUR_SEASON_MULT[season()].toFixed(2)}</div>
-     <div class="row" style="font-size:11px;color:${((day%53)<4)?'#ffd45f':'#96a4c9'}">📈 農產市價 ×${foodPriceOf(day,season()).toFixed(2)}${((day%53)<4)?'　🔥 搶購潮！高價賣出時機':''}　📦 工業品 ${goods}/${goodsCap283()}</div>
+     ${statTab(expRows)}
+     ${bldHtml}
+     ${statTab(cityRows)}
      ${cityEvent?`<div class="row" style="background:#3a2f1a;border-radius:4px;color:#ffd45f">✨ ${CITY_EVENTS[cityEvent.i].name}（剩 ${cityEvent.daysLeft} 天）　${CITY_EVENTS[cityEvent.i].desc}</div>`:''}
      ${happyHtml}
      ${advHtml}
      ${rankHtml}
-     <div class="row">${score<0?'⭐ 評分：人口未達 50，暫不評分':`⭐ 評分 ${Math.round(score)}/100（⭐×${cityStar}）`}</div>
-     ${score<0?'':`<div class="row" style="font-size:11px;opacity:.75">😊幸福${scoreParts.happy.toFixed(1)}　💼就業${scoreParts.job.toFixed(1)}　🚒消防${scoreParts.fire.toFixed(1)}　🗑️垃圾${scoreParts.garb.toFixed(1)}　🏫教育${scoreParts.edu.toFixed(1)}</div>`}
+     ${scoreHtml}
      <div class="row">📈 歷史曲線　<button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div>
      <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
      <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
@@ -13589,6 +13753,7 @@ function showStats(){
      ${plague?`<div class="row" style="color:#ffb84d">🦠 疫情蔓延中（${plague.cells.length} 戶感染）<button class="hbtn" id="plagueBtn">💉 隔離 $150</button></div>`:''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$120`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`}</div>`;
   showInfoPanel();
+  if(bldRows.length)bindDataTable('dtBld',showStats); // T323：建築統計表頭排序→重繪整面板
   happySorted.forEach((p,pi)=>{ // T143：幸福構成負向因子點擊→因果追溯疊圖（設 traceOverlay，draw() 對應繪製；再點同一因子清空）
     if(!(p.val<0&&FACTOR_TRACE[p.name]))return;
     const el=$('#hpTr'+pi);

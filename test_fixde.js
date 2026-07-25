@@ -1360,9 +1360,11 @@ console.log('\n-- (14) T266 垃圾服務可觀測性 --');
   assert(hist266BeforePanel && hist266BeforePanel.net === -10, 'T266 單座 k62 歷史 net 應精確 -10，實際 ' + (hist266BeforePanel && hist266BeforePanel.net));
   elMap.get('bStats').onclick();
   const stats266 = elMap.get('infoBody').innerHTML;
-  assert(stats266.includes('⚡ 電廠 -10.0'), 'T266 財務面板應把 k62 的既有 $10 維護鏡像到電廠分項');
-  assert(stats266.includes('建築：住0 商0 工0 公園0 電廠1'), 'T266 建築統計應把單座 k62 精確計為電廠1');
-  assert(!stats266.includes('電廠4'), 'T266 2×2 k62 的三個 ref 不得重複計成電廠4');
+  // T323：面板改 statTab/dataTable 結構化後，斷言隨之改為結構化格式（意圖不變：k62 維護鏡像到電廠分項、ref 不重複計數）
+  assert(stats266.includes('⚡ 電廠') && stats266.includes('>-10.0<'), 'T266 財務面板應把 k62 的既有 $10 維護鏡像到電廠分項（statTab）');
+  assert(stats266.includes('垃圾焚化發電廠</td><td class="n">1</td>'), 'T266 建築統計表應把單座 k62 精確計為 1 棟');
+  assert(!stats266.includes('垃圾焚化發電廠</td><td class="n">4</td>'), 'T266 2×2 k62 的三個 ref 不得重複計成 4 棟');
+  assert(stats266.includes('class="stab"') && stats266.includes('table class="dtab"'), 'T323 統計面板需含 statTab 與可排序 dataTable');
   const hist266AfterPanel = window.GV.hist().slice(-1)[0];
   assert(window.GV.stats().money === money266BeforePanel && hist266AfterPanel.net === hist266BeforePanel.net,
     'T266 開啟統計面板前後 money/net 必須完全不變');
@@ -3298,6 +3300,38 @@ runPwaTests().then(() => {
     // ⑥ --hud-h 實測寫入（不是留在預設值）
     assert(document.documentElement.style.getPropertyValue('--hud-h') !== '',
       'T322 syncHudH 應把導航欄實高寫入 --hud-h');
+  }
+
+
+  // ===== T324 AI 市長適應性建設：62 種從不蓋 → 需求驅動補齊；財政閘門保證不拖垮窮城 =====
+  {
+    // ① 富裕城：原本從不蓋的建築應大量出現（醫療/治安/殯葬/文化/交通…）
+    window.GV.newWorldSeeded(22);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 350; d++) { window.GV.step(1); if (d % 50 === 25) window.GV.addMoney(4000); }
+    window.GV.ai(false);
+    const n324 = window.GV.N(); const cnt324 = {};
+    for (let y = 0; y < n324; y++) for (let x = 0; x < n324; x++) {
+      const t = window.GV.tile(x, y);
+      if (t && t.bld && !t.bld.ref) cnt324[t.bld.k] = (cnt324[t.bld.k] || 0) + 1;
+    }
+    const NEVER324 = [9,12,14,15,16,17,18,19,20,23,27,28,29,30,31,32,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,52,54,55,56,61,67,68,69,70,71,72,73,74,75,76,77,78,79,80];
+    const built324 = NEVER324.filter(k => cnt324[k]);
+    assert(built324.length >= 10, 'T324 富裕 AI 城 350 天應蓋出 ≥10 種原本從不蓋的建築，實得 ' + built324.length + ' 種');
+    for (const k of [16, 52, 14, 28]) assert(cnt324[k] >= 1, 'T324 關鍵民生 k=' + k + '（墓園/派出所/圖書館/救護站）應至少 1 座');
+    const popNow324 = window.GV.stats().pop;
+    for (const k of built324) assert(cnt324[k] <= Math.ceil(popNow324 / 500) + 2, 'T324 k=' + k + ' 蓋了 ' + cnt324[k] + ' 座＝狂建（pop=' + popNow324 + '）');
+
+    // ② 拮据城：財政閘門（net>4 且 money>1400）必須讓適應建設完全讓路＝與無 T324 的基線逐位一致
+    //    （基線實測：seed301 400天 pop=355；若破＝閘門鬆了，進階支出又在拖垮窮城）
+    window.GV.newWorldSeeded(301);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 400; d++) window.GV.step(1);
+    window.GV.ai(false);
+    assert(window.GV.stats().pop === 355, 'T324 拮据城應與基線逐位一致（pop=355），實得 ' + window.GV.stats().pop);
+    assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
   }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
