@@ -243,7 +243,7 @@ window.GV.addMoney(100000);
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
 const SV = [ // [tool, k, sz]；T226/T230/T232：farm/ranch/parking 擴變體移出單變體清單；T228：新增 bigFarm 5×5
   ['airport', 19, 4],
-  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3], ['grandStation', 55, 3], ['sportsComplex', 56, 3], ['foodPlant', 57, 3], ['nuclear', 58, 3], ['hydro', 59, 2], ['fireHQ', 61, 3], ['greenhouse', 63, 2], ['warehouse', 64, 2], ['grandMall', 65, 4], ['faithCenter', 66, 2], ['observatory', 68, 2], ['wasteIncinerator', 62, 2]
+  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3], ['grandStation', 55, 3], ['sportsComplex', 56, 3], ['foodPlant', 57, 3], ['nuclear', 58, 3], ['hydro', 59, 2], ['fireHQ', 61, 3], ['greenhouse', 63, 2], ['warehouse', 64, 2], ['grandMall', 65, 4], ['faithCenter', 66, 2], ['observatory', 68, 2], ['wasteIncinerator', 62, 2], ['hotel', 82, 2], ['resort', 83, 3], ['market', 87, 2], ['marina', 90, 2]
 ];
 const svRoots = [];
 for (const [tool, k, sz] of SV) {
@@ -296,10 +296,10 @@ assert(Array.isArray(window.GV.sprFootAudit()), 'T291 sprFootAudit 應回傳陣�
 }
 window.GV.save();
 const d1 = JSON.parse(store[SKEY]);
-const SVK = new Set([19, 25, 31, 32, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 64, 65, 66, 68]); // T296：faithCenter 信仰中心單變體 // T265：wasteIncinerator；T257：nuclear/hydro/fireHQ 亦屬單變體；T228/T233/T234/T241/T254：bigFarm/bigCemetery/grandStation/sportsComplex/foodPlant；T230/T232：ranch/parking 移出
+const SVK = new Set([19, 25, 31, 32, 53, 54, 55, 56, 57, 58, 59, 61, 62, 63, 64, 65, 66, 68, 82, 83, 87, 90]); // T296：faithCenter 信仰中心單變體 // T265：wasteIncinerator；T257：nuclear/hydro/fireHQ 亦屬單變體；T228/T233/T234/T241/T254：bigFarm/bigCemetery/grandStation/sportsComplex/foodPlant；T230/T232：ranch/parking 移出
 let tampered = 0;
 for (const rec of d1.bl) if (SVK.has(rec[1])) { rec[3] = 2; tampered++; }
-assert(tampered === 18, '存檔 bl 應含單變體建築（實得 ' + tampered + '）');
+assert(tampered === 22, '存檔 bl 應含單變體建築（實得 ' + tampered + '）');
 store[SKEY] = JSON.stringify(d1);
 assert(window.GV.load() === true, '竄改後 load 應成功');
 for (const r of svRoots) {
@@ -487,7 +487,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v30';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v30');
+assert(/const CACHE=CACHE_PREFIX\+'v31';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v31');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
@@ -1807,8 +1807,8 @@ async function runPwaTests() {
     'glimmerville-shell-v4',
     'gv-other-app', 'shared-cache']) h268.seed(name);
   await h268.fireLife('install');
-  assert(h268.ops.opened[0] === 'glimmerville-shell-v30',
-    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v30 cache');
+  assert(h268.ops.opened[0] === 'glimmerville-shell-v31',
+    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v31 cache');
   assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js');
   assert(h268.ops.skipWaiting === 1 && h268.ops.order.includes('skipWaiting'),
@@ -1820,7 +1820,7 @@ async function runPwaTests() {
       'gv-v1', 'gv-v2'].sort()),
     'T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
   const keys268 = await h268.cacheStorage.keys();
-  assert(keys268.includes('glimmerville-shell-v30') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
+  assert(keys268.includes('glimmerville-shell-v31') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
     'T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache');
   assert(h268.ops.claim === 1 && h268.ops.order[h268.ops.order.length - 1] === 'claim',
     'T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim');
@@ -1876,7 +1876,7 @@ async function runPwaTests() {
     h268.ops.puts.length === putCountBefore503,
     'T268 HTTP 503 應照實回傳且不得污染 canonical app-shell');
 
-  await h268.cacheStorage.delete('glimmerville-shell-v30');
+  await h268.cacheStorage.delete('glimmerville-shell-v31');
   h268.setFetch(async () => { throw new TypeError('offline'); });
   result268 = await h268.fireFetch({ method: 'GET', url: base268, mode: 'navigate' });
   assert(result268.response.status === 503 && (await result268.response.text()).includes('尚未完成首次快取'),
@@ -1939,11 +1939,11 @@ async function runPwaTests() {
   await h269.fireLife('install');
   await h269.fireLife('activate');
   const keys269 = await h269.cacheStorage.keys();
-  assert(h269.ops.opened[0] === 'glimmerville-shell-v30' &&
+  assert(h269.ops.opened[0] === 'glimmerville-shell-v31' &&
     JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T269/T270 v5 install 應維持完整 app-shell 資產閉包');
   assert(!keys269.includes('glimmerville-shell-v3') && !keys269.includes('glimmerville-shell-v4') &&
-    keys269.includes('glimmerville-shell-v30') &&
+    keys269.includes('glimmerville-shell-v31') &&
     keys269.includes('gv-other-app') && keys269.includes('shared-cache'),
     'T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache');
 
@@ -1957,7 +1957,7 @@ async function runPwaTests() {
   assert(result269.intercepted && result269.response.status === 201 &&
     await result269.response.text() === freshManifest269,
     'T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response');
-  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v30');
+  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v31');
   let cachedManifest269 = await cache269.match(base268 + 'manifest.json');
   assert(cachedManifest269 && await cachedManifest269.text() === freshManifest269 &&
     h269.ops.puts.includes(base268 + 'manifest.json'),
@@ -2023,7 +2023,7 @@ async function runPwaTests() {
   assert(await result269.response.text() === freshManifest269,
     'T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest');
 
-  await h269.cacheStorage.delete('glimmerville-shell-v30');
+  await h269.cacheStorage.delete('glimmerville-shell-v31');
   result269 = await h269.fireFetch({
     method: 'GET', url: base268 + 'manifest.json?empty=269', mode: 'same-origin'
   });
@@ -2297,7 +2297,7 @@ async function runPwaTests() {
 
   const h271Miss = makeSwHarness268(sw268);
   await h271Miss.fireLife('install');
-  await h271Miss.cacheStorage.delete('glimmerville-shell-v30');
+  await h271Miss.cacheStorage.delete('glimmerville-shell-v31');
   h271Miss.setFetch(async () => new Response('fresh-cache-miss-271', { status: 200 }));
   networkBefore271 = h271Miss.ops.networkCalls;
   result271 = await h271Miss.fireFetch({
@@ -3332,7 +3332,7 @@ runPwaTests().then(() => {
     window.GV.ai(false);
     // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
     //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
-    assert(window.GV.stats().pop === 3285, 'T324/T326 seed301 400天 pop 應恆為 3285（確定性釘），實得 ' + window.GV.stats().pop);
+    assert(window.GV.stats().pop === 3535, 'T324/T335b seed301 400天 pop 應恆為 3535（wants 輪轉+旅宿費率校準後重釘），實得 ' + window.GV.stats().pop);
     assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
   }
 
@@ -3395,9 +3395,53 @@ runPwaTests().then(() => {
 
     // T329 里程碑解鎖真做：unlockRank 條數精確＋RANKS 文案全部兌現
     assert((html.match(/unlockRank:6/g) || []).length === 7, 'T329 文化建築 7 條需 unlockRank:6');
-    assert((html.match(/unlockRank:8/g) || []).length === 9, 'T329 小型地標 9 條需 unlockRank:8');
+    assert((html.match(/unlockRank:8/g) || []).length === 10, 'T329/T330 小型地標+遊艇碼頭 10 條需 unlockRank:8');
     assert((html.match(/unlockRank:17/g) || []).length === 6, 'T329 紀念工程 6 條需 unlockRank:17');
     assert(!html.includes('未來版本開放'), 'T329 RANKS 解鎖文案應全部兌現（不得再有「未來版本開放」）');
+  }
+
+
+  // ===== T330-T335 十座新建築 + 旅宿經濟 =====
+  {
+    for (let k = 81; k <= 90; k++) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'T335 SPR.bld 應生成 ' + k + '_1_0');
+    window.GV.newWorldSeeded(9);
+    window.GV.setDiff(3);
+    window.GV.addMoney(999999);
+    const find330 = (tool) => { const sp = findSpot(tool); assert(sp, 'T330 ' + tool + ' 應找到可建位置'); assert(place(tool, sp.x, sp.y), 'T330 ' + tool + ' 應成功建造'); return sp; };
+    find330('guesthouse'); find330('hotel'); find330('resort'); find330('compost'); find330('bank'); find330('tvtower');
+    window.GV.step(2);
+    const h330 = window.GV.hotel330();
+    assert(h330.beds === 158, 'T334 床位應精確 158（8+40+110），實得 ' + h330.beds);
+    assert(h330.occ === Math.min(h330.tourists, 158), 'T334 入住=min(遊客,床位)');
+    assert(isFinite(window.GV.stats().money), 'T330 新建築經濟不得產生 NaN（鐵律14）');
+
+    elMap.get('bStats').onclick();
+    assert(elMap.get('infoBody').innerHTML.includes('銀行貸款 $5000'), 'T330 銀行存在時貸款鈕應升級 $5000');
+    assert(elMap.get('infoBody').innerHTML.includes('旅宿與觀光'), 'T334 統計面板應含旅宿與觀光分區');
+    let inland330 = null;
+    const n330 = window.GV.N();
+    outer330: for (let y = 6; y < n330 - 6; y++) for (let x = 6; x < n330 - 6; x++) {
+      let ok = true, wn = 0;
+      for (let dy = -1; dy <= 2 && ok; dy++) for (let dx = -1; dx <= 2; dx++) {
+        const t = tile(x + dx, y + dy); if (!t) { ok = false; break; }
+        if (t.t === 0) wn++;
+        if (dx >= 0 && dx < 2 && dy >= 0 && dy < 2 && (t.bld || t.road || (t.t !== 1 && t.t !== 2))) { ok = false; break; }
+      }
+      if (ok && wn === 0) { inland330 = [x, y]; break outer330; }
+    }
+    if (inland330) assert(window.GV.canPlaceTool('marina', inland330[0], inland330[1]) !== null, 'T330 遊艇碼頭內陸應被拒（需臨水）');
+    window.GV.newWorldSeeded(22);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 300; d++) { window.GV.step(1); if (d % 50 === 25) window.GV.addMoney(5000); }
+    window.GV.ai(false);
+    const newKinds330 = new Set();
+    for (let y = 0; y < n330; y++) for (let x = 0; x < n330; x++) { const t = tile(x, y); if (t && t.bld && !t.bld.ref && t.bld.k >= 81) newKinds330.add(t.bld.k); }
+    // 電視訊號需要有住宅的城市（空城 happyAgg 空陣列）：在 AI 城裡手動補一座電視塔再驗
+    window.GV.addMoney(99999);
+    { const sp = findSpot('tvtower'); if (sp) { place('tvtower', sp.x, sp.y); window.GV.step(2);
+      assert(window.GV.chipText('happy').includes('電視訊號'), 'T330 電視塔存在時幸福構成應含「電視訊號」'); } }
+    assert(newKinds330.size >= 3, 'T335b AI 富裕城 300 天應蓋出 ≥3 種新樓（wants 輪轉防餓死），實得 ' + newKinds330.size + ' 種');
   }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
