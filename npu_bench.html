@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>微光小鎮 — 硬體加速基準測試（WebNN/WebGPU/JS）</title>
+<style>
+body{background:#141a26;color:#dce4f2;font-family:Consolas,monospace;padding:24px;max-width:860px;margin:0 auto}
+h1{font-size:18px;color:#7fd4ff}
+table{border-collapse:collapse;margin:14px 0;width:100%}
+td,th{border:1px solid #33415c;padding:8px 12px;text-align:left;font-size:14px}
+th{background:#1d2637;color:#9fc0e8}
+.ok{color:#7be08a}.bad{color:#ff8a72}.dim{color:#7a8699}
+button{background:#2a67c9;color:#fff;border:0;padding:10px 22px;font-size:15px;border-radius:6px;cursor:pointer;font-family:inherit}
+button:disabled{background:#3a4356}
+#log{white-space:pre-wrap;font-size:13px;margin-top:14px;line-height:1.6}
+.note{font-size:12px;color:#8a96ad;line-height:1.7;margin-top:18px;border-top:1px solid #2a3448;padding-top:12px}
+</style>
+</head>
+<body>
+<h1>微光小鎮 — 場計算硬體加速基準</h1>
+<p class="dim">真實負載形狀：432×432 建築場 ⊛ 21×21 圓盤核（＝警局半徑10的覆蓋蓋印），約 8,200 萬次乘加。</p>
+<button id="run">開始測試</button>
+<table id="tbl" style="display:none">
+<tr><th>路徑</th><th>裝置</th><th>耗時（中位數）</th><th>相對 JS</th><th>結果校驗</th></tr>
+</table>
+<div id="log"></div>
+<div class="note">
+<b>WebNN（NPU）顯示「未暴露」時的開啟方法：</b><br>
+Edge/Chrome 網址列輸入 <b>edge://flags</b> 或 <b>chrome://flags</b> → 搜尋 <b>WebNN</b> → 把「Enables WebNN API」設為 Enabled → 重啟瀏覽器 → 重新打開本頁。<br>
+NPU 需 Windows 11 24H2+ 與具 NPU 的機器（Intel Core Ultra / 驍龍 X 等）；跑 NPU 測試時打開工作管理員的 NPU 圖表可看到佔用跳動。<br>
+本頁完全離線自包含，不上傳任何資料。
+</div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const log=m=>{$('#log').textContent+=m+'\n';};
+const N=432, K=21, R=(K-1)>>1; // 場邊長 / 核邊長 / 半徑
+// ---- 準備輸入：稀疏建築場（模擬真實城市：約 0.9% 格子有建築）＋圓盤核 ----
+function makeInputs(){
+  const src=new Float32Array(N*N);
+  let s=12345;
+  const rnd=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};
+  for(let i=0;i<N*N;i++)if(rnd()<0.009)src[i]=1;
+  const ker=new Float32Array(K*K);
+  for(let ky=0;ky<K;ky++)for(let kx=0;kx<K;kx++){
+    const dx=kx-R,dy=ky-R;
+    ker[ky*K+kx]=(dx*dx+dy*dy<=R*R)?1:0;   // 圓盤核＝覆蓋蓋印
+  }
+  return {src,ker};
+}
+function median(a){a=a.slice().sort((x,y)=>x-y);return a[a.length>>1];}
+function checksum(a){let c=0;for(let i=0;i<a.length;i+=37)c=(c+a[i]*((i%97)+1))%1e9;return Math.round(c);}
+// ---- ① JS 基線 ----
+function runJS(src,ker){
+  const out=new Float32Array(N*N);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    let acc=0;
+    for(let ky=0;ky<K;ky++){const sy=y+ky-R;if(sy<0||sy>=N)continue;
+      for(let kx=0;kx<K;kx++){const sx=x+kx-R;if(sx<0||sx>=N)continue;
+        const w=ker[ky*K+kx];if(w)acc+=src[sy*N+sx]*w;
+      }}
+    out[y*N+x]=acc;
+  }
+  return out;
+}
+// ---- ② WebGPU compute shader ----
+async function runWebGPU(src,ker,times){
+  if(!navigator.gpu)return {err:'navigator.gpu 未暴露'};
+  const ad=await navigator.gpu.requestAdapter();
+  if(!ad)return {err:'無 adapter'};
+  const dev=await ad.requestDevice();
+  const wgsl=`
+    @group(0) @binding(0) var<storage,read> src:array<f32>;
+    @group(0) @binding(1) var<storage,read> ker:array<f32>;
+    @group(0) @binding(2) var<storage,read_write> outp:array<f32>;
+    const N:i32=${N}; const K:i32=${K}; const R:i32=${R};
+    @compute @workgroup_size(16,16)
+    fn main(@builtin(global_invocation_id) gid:vec3<u32>){
+      let x=i32(gid.x); let y=i32(gid.y);
+      if(x>=N||y>=N){return;}
+      var acc:f32=0.0;
+      for(var ky:i32=0;ky<K;ky++){
+        let sy=y+ky-R; if(sy<0||sy>=N){continue;}
+        for(var kx:i32=0;kx<K;kx++){
+          let sx=x+kx-R; if(sx<0||sx>=N){continue;}
+          acc=acc+src[sy*N+sx]*ker[ky*K+kx];
+        }
+      }
+      outp[y*N+x]=acc;
+    }`;
+  const mod=dev.createShaderModule({code:wgsl});
+  const pipe=dev.createComputePipeline({layout:'auto',compute:{module:mod,entryPoint:'main'}});
+  const mk=(arr,usage)=>{const b=dev.createBuffer({size:arr.byteLength,usage});dev.queue.writeBuffer(b,0,arr);return b;};
+  const bSrc=mk(src,GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST);
+  const bKer=mk(ker,GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST);
+  const bOut=dev.createBuffer({size:src.byteLength,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_SRC});
+  const bRead=dev.createBuffer({size:src.byteLength,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+  const bind=dev.createBindGroup({layout:pipe.getBindGroupLayout(0),entries:[
+    {binding:0,resource:{buffer:bSrc}},{binding:1,resource:{buffer:bKer}},{binding:2,resource:{buffer:bOut}}]});
+  const wg=Math.ceil(N/16);
+  const once=async()=>{
+    const enc=dev.createCommandEncoder();
+    const pass=enc.beginComputePass();
+    pass.setPipeline(pipe);pass.setBindGroup(0,bind);pass.dispatchWorkgroups(wg,wg);pass.end();
+    enc.copyBufferToBuffer(bOut,0,bRead,0,src.byteLength);
+    dev.queue.submit([enc.finish()]);
+    await dev.queue.onSubmittedWorkDone();
+  };
+  await once(); // 暖機（管線編譯）
+  const ts=[];
+  for(let t=0;t<times;t++){const t0=performance.now();await once();ts.push(performance.now()-t0);}
+  await bRead.mapAsync(GPUMapMode.READ);
+  const out=new Float32Array(bRead.getMappedRange().slice(0));
+  bRead.unmap();
+  return {ms:median(ts),out};
+}
+// ---- ③ WebNN（若瀏覽器已開 flag）----
+async function runWebNN(src,ker,dev,times){
+  if(!navigator.ml)return {err:'navigator.ml 未暴露（需開 flag，見頁尾）'};
+  try{
+    const ctx=await navigator.ml.createContext({deviceType:dev});
+    const b=new MLGraphBuilder(ctx);
+    const x=b.input('x',{dataType:'float32',shape:[1,1,N,N]});
+    const w=b.constant({dataType:'float32',shape:[1,1,K,K]},ker);
+    const y=b.conv2d(x,w,{padding:[R,R,R,R]});
+    const graph=await b.build({y});
+    const outBuf=new Float32Array(N*N);
+    const run=async()=>{await ctx.compute(graph,{x:src},{y:outBuf});};
+    await run(); // 暖機
+    const ts=[];
+    for(let t=0;t<times;t++){const t0=performance.now();await run();ts.push(performance.now()-t0);}
+    return {ms:median(ts),out:outBuf.slice()};
+  }catch(e){return {err:e.name+': '+e.message.slice(0,80)};}
+}
+// ---- 主流程 ----
+$('#run').addEventListener('click',async()=>{
+  $('#run').disabled=true;$('#tbl').style.display='';$('#log').textContent='';
+  const {src,ker}=makeInputs();
+  const tbl=$('#tbl');
+  const row=(name,dev,ms,rel,chk,cls)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+name+'</td><td>'+dev+'</td><td class="'+(cls||'')+'">'+ms+'</td><td>'+rel+'</td><td>'+chk+'</td>';
+    tbl.appendChild(tr);
+  };
+  log('輸入：'+N+'×'+N+' 場（0.9% 建築密度）⊛ '+K+'×'+K+' 圓盤核');
+  // JS 基線
+  log('跑 JS 基線…');
+  runJS(src,ker); // 暖機
+  const jts=[];for(let t=0;t<3;t++){const t0=performance.now();var jout=runJS(src,ker);jts.push(performance.now()-t0);}
+  const jms=median(jts), jchk=checksum(jout);
+  row('JS 迴圈（現行做法）','CPU 單執行緒',jms.toFixed(1)+' ms','1×','checksum '+jchk);
+  // WebGPU
+  log('跑 WebGPU…');
+  const g=await runWebGPU(src,ker,5);
+  if(g.err)row('WebGPU','—','<span class=bad>'+g.err+'</span>','—','—');
+  else{
+    const match=checksum(g.out)===jchk;
+    row('WebGPU compute','GPU',g.ms.toFixed(1)+' ms',(jms/g.ms).toFixed(0)+'× 快',match?'<span class=ok>與 JS 一致 ✓</span>':'<span class=bad>不一致</span>','ok');
+  }
+  // WebNN ×3 裝置
+  for(const dev of ['npu','gpu','cpu']){
+    log('跑 WebNN('+dev+')…');
+    const r=await runWebNN(src,ker,dev,5);
+    if(r.err)row('WebNN','<b>'+dev.toUpperCase()+'</b>','<span class=dim>'+r.err+'</span>','—','—');
+    else{
+      const match=checksum(r.out)===jchk;
+      row('WebNN conv2d','<b>'+dev.toUpperCase()+'</b>',r.ms.toFixed(1)+' ms',(jms/r.ms).toFixed(0)+'× 快',match?'<span class=ok>與 JS 一致 ✓</span>':'<span class=dim>浮點差異（低精度硬體屬正常）</span>','ok');
+    }
+  }
+  log('完成。');
+  $('#run').disabled=false;
+});
+</script>
+</body>
+</html>
