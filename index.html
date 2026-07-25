@@ -200,7 +200,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
   <button class="hbtn" id="bMenu" title="返回主選單（選難度／挑戰／戰役／畫質）">🏠</button>
   <button class="hbtn" id="bAI" title="AI 市長：自動修路、分區、補服務、演化擴張直到覆蓋全圖">🤖</button>
   <button class="hbtn" id="bNew">🆕</button>
-  <button class="hbtn" id="bBell">🔔<span id="bellDot" class="dot" style="display:none">0</span></button>
+  <button class="hbtn" id="bMetro" title="切換地鐵路線圖層（站體美術恆顯示）">🚇</button><button class="hbtn" id="bBell">🔔<span id="bellDot" class="dot" style="display:none">0</span></button>
   <button class="hbtn" id="bAch">🏆</button>
   <button class="hbtn" id="bEditor" style="display:none">🛠 目標</button>
 </div>
@@ -314,7 +314,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='7.6'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='7.7'; // T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -6485,6 +6485,72 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     stampRoof('33_1_0');stampRoof('33_1_1');stampRoof('34_1_0');stampRoof('34_1_1'); // 摩天塔樓
   }
   /* ===== T278 屋頂雜項加蓋 END ===== */
+  { /* T318 地鐵站站體（玩家「地鐵美術要讓人看到，這是地鐵站有顯著區別」）：三級站體各一張，
+       畫進世界層並參與深度排序（不是 overlay，故不受 🚇 路線圖層開關影響＝地面上永遠看得到）。
+       小站：下行樓梯口＋不鏽鋼欄杆＋圓形 M 燈箱柱；中站：加寬雙樓梯＋頂棚＋雙面燈箱；
+       大站：石砌站廳＋玻璃雨棚＋大型燈箱塔＋時刻表看板。夜間燈箱與站內發光（ng）。零亂數。 */
+   const mkSta=(tier)=>{
+     const W2=tier===3?96:tier===2?72:56, H2=tier===3?86:tier===2?68:56;
+     const[c,g]=cv(W2,H2),[nc,ng]=cv(W2,H2),[sp,sg]=cv(W2,H2);
+     const ax=W2>>1, ay=H2-6;
+     const col=tier===3?'#c8ccd4':tier===2?'#b8bcc4':'#a8acb4';   // 站體石/鋼色
+     const acc='#2f6fc0';                                          // 地鐵標準藍
+     // 地面開口（下行樓梯：由亮到暗的階梯，暗示往地下）
+     const ow=tier===3?30:tier===2?24:18;
+     for(let r2=0;r2<6;r2++){
+       sg.fillStyle=shade('#3a4048',-r2*4);
+       sg.fillRect(ax-(ow>>1)+r2,ay-8+r2,ow-r2*2,2);
+     }
+     sg.fillStyle='#1c2028';sg.fillRect(ax-(ow>>1)+5,ay-3,ow-10,3);  // 最深處＝入口黑
+     ng.fillStyle='rgba(255,225,160,.55)';ng.fillRect(ax-(ow>>1)+5,ay-4,ow-10,3); // 站內透出暖光
+     // 不鏽鋼欄杆（兩側）
+     sg.fillStyle=col;
+     sg.fillRect(ax-(ow>>1)-2,ay-14,2,10);sg.fillRect(ax+(ow>>1),ay-14,2,10);
+     sg.fillStyle=shade(col,28);
+     sg.fillRect(ax-(ow>>1)-2,ay-14,2,2);sg.fillRect(ax+(ow>>1),ay-14,2,2);
+     for(let bx=ax-(ow>>1)-2;bx<=ax+(ow>>1);bx+=4){sg.fillStyle=shade(col,-18);sg.fillRect(bx,ay-11,2,1);}
+     if(tier>=2){ // 頂棚（中/大站）
+       const cw=ow+10;
+       sg.fillStyle=shade(acc,-18);sg.fillRect(ax-(cw>>1),ay-24,cw,4);
+       sg.fillStyle=acc;sg.fillRect(ax-(cw>>1),ay-24,cw,2);
+       sg.fillStyle='#8f96a0';sg.fillRect(ax-(cw>>1)+1,ay-20,2,7);sg.fillRect(ax+(cw>>1)-3,ay-20,2,7);
+       ng.fillStyle='rgba(200,225,255,.35)';ng.fillRect(ax-(cw>>1)+2,ay-21,cw-4,2);
+     }
+     if(tier===3){ // 大站：石砌站廳＋玻璃雨棚＋時刻表看板
+       sg.fillStyle=shade(col,-10);sg.fillRect(ax-34,ay-44,26,22);
+       sg.fillStyle=col;sg.fillRect(ax-34,ay-44,26,3);
+       sg.fillStyle='#3a4048';sg.fillRect(ax-34,ay-22,26,1);
+       for(let wx=ax-31;wx<ax-12;wx+=7){sg.fillStyle='#9cc0dc';sg.fillRect(wx,ay-38,5,8);ng.fillStyle='#ffe9b0';ng.fillRect(wx,ay-38,5,8);}
+       sg.fillStyle='#1e2a3a';sg.fillRect(ax+12,ay-40,16,11);       // 時刻表看板
+       sg.fillStyle='#4a5a70';sg.fillRect(ax+13,ay-39,14,2);
+       for(let ry=0;ry<3;ry++){sg.fillStyle='#6a8aa8';sg.fillRect(ax+13,ay-35+ry*3,10,1);}
+       ng.fillStyle='rgba(150,200,255,.5)';ng.fillRect(ax+13,ay-39,14,9);
+     }
+     // 圓形 M 燈箱柱（地鐵最醒目的識別物）
+     const px=ax+(ow>>1)+6, ph=tier===3?34:tier===2?26:20;
+     sg.fillStyle='#6a7078';sg.fillRect(px,ay-ph,3,ph);             // 柱
+     sg.fillStyle=shade('#6a7078',22);sg.fillRect(px,ay-ph,1,ph);
+     const rr=tier===3?9:tier===2?7:6, cyy=ay-ph-rr+2;
+     for(let dy2=-rr;dy2<=rr;dy2++)for(let dx2=-rr;dx2<=rr;dx2++){  // 圓形燈箱
+       if(dx2*dx2+dy2*dy2>rr*rr)continue;
+       const edge=(dx2*dx2+dy2*dy2>(rr-2)*(rr-2));
+       sg.fillStyle=edge?'#ffffff':acc;
+       sg.fillRect(px+1+dx2,cyy+dy2,1,1);
+     }
+     sg.fillStyle='#ffffff';                                        // 白色 M 字（地鐵符號）
+     const mx=px+1-(rr>>1), my=cyy-2;
+     sg.fillRect(mx,my,1,5);sg.fillRect(mx+rr-1,my,1,5);
+     sg.fillRect(mx+1,my+1,1,1);sg.fillRect(mx+rr-2,my+1,1,1);
+     sg.fillRect(mx+((rr-1)>>1),my+2,1,1);
+     ng.fillStyle='rgba(120,190,255,.85)';                          // 夜間燈箱整體發光
+     for(let dy2=-rr;dy2<=rr;dy2++)for(let dx2=-rr;dx2<=rr;dx2++){
+       if(dx2*dx2+dy2*dy2>rr*rr)continue;ng.fillRect(px+1+dx2,cyy+dy2,1,1);
+     }
+     outlineSprite(sp,26,30,44);g.drawImage(sp,0,0);
+     return {img:c,night:nc,ax,ay,w:W2,h:H2};
+   };
+   SPR.metroStation=[mkSta(1),mkSta(2),mkSta(3)];
+  }
   /* ===== T261 夜燈通用遮罩（buildSprites 絕對尾端，玩家截圖抓 bug）：部分建築的 night 畫布把亮窗畫進
      本體「透明天空區」（windows() 網格超出立面／變體高度差），nightSprites 'screen' 疊加＋畫家順序＝亮窗
      疊在「後面那棟」的屋頂上（截圖屋頂碎黃窗的真兇）。通殺修法：每張 night 畫布 ∩ 本體不透明區
@@ -6771,7 +6837,7 @@ function newWorld(seedOverride){
   money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0}; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
   goods=0;gWhCap284=0;svcBudget={police:1,fire:1,health:1,edu:1};cityEvent=null;svcFleet={fire:3,police:2,amb:2}; // T304：車隊成對重置 // T284/T294/T299：成對重置（鐵律7）——服務預算回預設 1.0×、城市事件清空
   aiMode=false;aiR=6;try{const bA=$('#bAI');if(bA){bA.style.background='';bA.style.borderColor='';}}catch(e){} // T260：新圖 AI 市長成對重置（鐵律7）
-  bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;trafClock=0;hintShown={};hintsOff=false;
+  bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;districtNamed={};trafClock=0;hintShown={};hintsOff=false;
   fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，開新圖歸零（鐵律7）
   roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，開新圖歸零（鐵律7）
   commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，開新圖成對歸零（鐵律7）
@@ -8643,6 +8709,7 @@ function tick(){
   computeGarbLocal();
   computeBusRtCovPop(); // T120：路線覆蓋住宅人口重算，供 updCars 小車生成率折抵
   updateCitizens(); // T295：抽樣市民每日維護（清理無效＋補充至上限）
+  updateDistricts(); // T317：地區人口跨門檻→自動命名
   happySum=0;happyN=0;
   for(const i of tickBld){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
   if(happyN)cityHappy=happySum/happyN;
@@ -9256,6 +9323,67 @@ const cars=[],smokes=[];
    演算法＝①網格塊客流權重（住宅人口+商業就業×1.5+樞紐×200+摩天樓×150+地標×70）②選端點（起點高權重、
    終點夠遠、方向多樣避免重疊）③起終走廊內串聯沿線高客流塊作中間站④L形連線成路徑⑤沿線每6格補站。
    城市越大 AI 規劃越多線，線路交叉處自然成換乘站。運行時陣列（不入存檔，AI 重規劃）。 ===== */
+/* ===== T317 地區自動命名（玩家「人口多了之後這個地區會自己命名」）：地圖切成 24×24 格的「地區」，
+   每日統計各區住宅人口；人口跨過門檻（40）即自動獲得名字並發 toast 宣告。**名字為純衍生**——由
+   seed＋區塊索引經整數雜湊選詞（不消耗模擬 R()、不入存檔），故同一局同一區永遠同名、讀檔後不變。
+   命名風格沿用既有城鎮名詞庫（NM1 地貌詞＋DIST_SUF 行政後綴），全部原創詞組。 ===== */
+const DIST_SIZE=24;                       // 一個地區的邊長（格）
+const DIST_POP_MIN=40;                    // 獲得名字的人口門檻
+const DIST_SUF=['區','町','坊','新村','邑','里'];
+let districtNamed={};                     // 已命名地區：key=區塊索引 → 1（運行時，newWorld/load 重置）
+function distIdx(x,y){const c=Math.ceil(N/DIST_SIZE);return ((y/DIST_SIZE)|0)*c+((x/DIST_SIZE)|0);}
+function districtName(di){                // 純衍生名（seed+區塊索引 → 穩定）
+  const h=(((di*2654435761)>>>0)^((seed*40503)>>>0))>>>0;
+  return NM1[(h>>>7)%NM1.length]+DIST_SUF[(h>>>19)%DIST_SUF.length];
+}
+function districtPops(){                  // 各區住宅人口（遍歷建築索引，不掃空地）
+  const m={};
+  for(const i of tickBld){
+    const b=tiles[i].bld;
+    if(!b||b.ref||b.k!==1||!b.pw)continue;
+    const di=distIdx(i%N,(i/N)|0);
+    m[di]=(m[di]||0)+Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1));
+  }
+  return m;
+}
+function updateDistricts(){               // tick 每日：跨門檻即命名（每日最多宣告一個，避免刷屏）
+  const m=districtPops();
+  for(const k in m){
+    if(districtNamed[k]||m[k]<DIST_POP_MIN)continue;
+    districtNamed[k]=1;
+    toast('🏘️ 新地區成形：'+districtName(+k)+'（人口 '+m[k]+'）','gold');
+    break;
+  }
+}
+/* T317 地鐵站命名：站名＝所在地區名去掉行政後綴＋方位（同區多站時）＋「站」，仿真實地鐵命名慣例；
+   商場內出入口另標記。純衍生、不入存檔。 */
+function stationBase(st){ // 地區名去行政後綴＋九宮格方位（比四方位細，先天少碰撞）
+  const di=distIdx(st.x,st.y);
+  const base=districtName(di).replace(/新村$/,'').replace(/[區町坊邑里]$/,'');
+  const lx=st.x%DIST_SIZE, ly=st.y%DIST_SIZE, t3=DIST_SIZE/3;
+  const cx=lx<t3?0:(lx<t3*2?1:2), cy=ly<t3?0:(ly<t3*2?1:2);
+  const dir=['西北','北','東北','西','','東','西南','南','東南'][cy*3+cx];
+  return base+dir;
+}
+/* T317c 站名去重（真實地鐵無同名站）：建線時一次指派並寫入 st.name，全網去重——
+   同名時依序試「基名＋一/二/三…」；讀檔重建走同一決定性流程故名字穩定。渲染只讀 st.name。 */
+function assignStationNames(L){
+  const used=new Set();
+  for(const L2 of metroLines)if(L2!==L)for(const s2 of L2.stations)if(s2.name)used.add(s2.name);
+  const ORD=['','二','三','四','五','六','七','八','九'];
+  for(const st of L.stations){
+    const base=stationBase(st);
+    let nm='';
+    for(let k=0;k<ORD.length;k++){
+      const cand=base+ORD[k]+'站';
+      if(!used.has(cand)){nm=cand;break;}
+    }
+    if(!nm)nm=base+'站'+(st.x*7+st.y*13)%97;   // 極端兜底（保證唯一）
+    st.name=nm+(st.inMall?'（商場口）':'');
+    used.add(nm);
+  }
+}
+function stationName(st){return st.name||(stationBase(st)+'站');} // 相容舊呼叫點
 const metroLines=[]; // T300：AI 規劃的地鐵線 [{id,color,nodes,path,stations}]
 const METRO_COLORS=['#e0453a','#3a7ad0','#3aa84a','#e0a83a','#9a5ad0','#20b0b0','#e05a9a','#88a83a'];
 function metroBlocks(){ // 網格塊客流權重（10×10 格一塊）
@@ -9316,6 +9444,7 @@ function finishMetroLine(nodes,charge){
   const L={id:metroLines.length+1,color:METRO_COLORS[metroLines.length%METRO_COLORS.length],nodes,path,stations,
     underground,trains:2,fare:2+Math.round(path.length/30),covPop:0,riders:0};
   metroLines.push(L);
+  assignStationNames(L); // T317c：建線即定名並全網去重
   if(charge)toast('🚇 '+L.id+' 號線開通！'+(underground?'地下線':'高架線')+' '+stations.length+' 站・票價 $'+L.fare+'（建設費 $'+cost+'）');
   return true;
 }
@@ -10294,7 +10423,7 @@ function draw(dt){
       const ra=clamp(rainbowT/9,0,1)*.46, RB=['#e0504a','#e8934a','#e8d24a','#54b858','#4a90d8','#5a5ac8','#9a54c8'];
       const rcx=W*.5, rcy=H*1.08, rout=H*.92, lw=Math.max(2,H*.011);
       ctx.save();ctx.globalAlpha=ra;ctx.lineWidth=lw; // source-over：半透明色帶顯真色（'lighter' 會把暖帶疊在藍天上洗白，同 T195/T207 飽和教訓）
-      for(let i=0;i<7;i++){ctx.strokeStyle=RB[i];ctx.beginPath();ctx.arc(rcx,rcy,rout-i*lw,Math.PI*1.16,Math.PI*1.84);ctx.stroke();}
+      for(let i=0;i<7;i++){ctx.strokeStyle=RB[i];ctx.beginPath();ctx.arc(rcx,rcy,Math.max(1,rout-i*lw),Math.PI*1.16,Math.PI*1.84);ctx.stroke();}
       ctx.restore();
     }
     rainbowT=Math.max(0,rainbowT-dt);
@@ -10829,6 +10958,10 @@ function draw(dt){
   }
   if(!lodFar)for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s}); // T107：z<1 不畫煙粒個體（updSmoke 模擬照跑）
   if(!lodFar)for(const p of fxParts)objs.push({dep:p.dep,fx:p}); // T159：z<1 不畫塵土/碎屑/火花/落葉/尾氣個體（updFxParts 模擬照跑），比照煙粒同款 LOD 門檻
+  if(!lodMini&&SPR.metroStation&&!window.__noMetro)for(const L of metroLines)for(const st of L.stations){ // T318：地鐵站體入世界層（不受 🚇 路線圖層開關影響）
+    const wx=(st.x-st.y)*32, wy=(st.x+st.y)*16+16;
+    objs.push({dep:st.x+st.y+.03,sta:st,staL:L,wx,wy});
+  }
   if(!lodMini&&SPR.signalPhase&&!window.__noSignal)for(const sg of signalList){ // T289：號誌 live 動畫繪製（收集自快取重烘，逐幀依 trafClock 循環相位）
     const wx=(sg.x-sg.y)*32, wy=(sg.x+sg.y)*16+16;
     objs.push({dep:sg.x+sg.y+.02,sig:sg,wx,wy});
@@ -10848,6 +10981,14 @@ function draw(dt){
     occTargets.push({ax:sxOf(selTile.x,selTile.y)+32*z,ay:syOf(selTile.x,selTile.y)+32*z,dep:selTile.x+selTile.y+selTile.y*.001});
   }
   for(const o of objs){
+    if(o.sta){ // T318：地鐵站體（小/中/大三級，燈箱柱染該線顏色）
+      const sx=ox+o.wx*z, sy=oy+o.wy*z;
+      const sp2=SPR.metroStation[Math.max(0,Math.min(2,(o.sta.tier||1)-1))];
+      const dx2=sx-sp2.ax*z, dy2=sy-sp2.ay*z;
+      ctx.drawImage(sp2.img,dx2,dy2,sp2.w*z,sp2.h*z);
+      if(b<.62&&sp2.night)nightSprites.push({img:sp2.night,x:dx2,y:dy2,w:sp2.w*z,h:sp2.h*z});
+      continue;
+    }
     if(o.sig){ // T289：紅綠燈（動畫循環相位），立於路口一側
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
       const ph=sigPhase(o.sig.x*7+o.sig.y*13);
@@ -11507,7 +11648,7 @@ function draw(dt){
     ctx.save();ctx.globalCompositeOperation='screen';ctx.lineWidth=lw;
     for(let i=0;i<RB.length;i++){
       ctx.strokeStyle=`rgba(${RB[i][0]},${RB[i][1]},${RB[i][2]},${rbA.toFixed(3)})`;
-      ctx.beginPath();ctx.arc(rcx,rcy,rrad-i*lw,Math.PI*1.17,Math.PI*1.83);ctx.stroke();
+      ctx.beginPath();ctx.arc(rcx,rcy,Math.max(1,rrad-i*lw),Math.PI*1.17,Math.PI*1.83);ctx.stroke();
     }
     ctx.restore();
   }
@@ -11617,7 +11758,7 @@ function draw(dt){
     ctx.fillRect(0,0,W,H);
   }
   // ---- T300b 地鐵網 overlay（畫於建築之後、夜燈之前，世界座標隨相機；半透明彩線＋白底彩框站點，像地鐵圖疊城市）----
-  if(metroLines.length&&!lodMini&&!window.__noMetro){
+  if(metroShow&&metroLines.length&&!lodMini&&!window.__noMetro){ // T317：需按 🚇 開啟才畫路線圖層
     ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
     const tsx=(x,y)=>ox+((x-y)*32)*z, tsy=(x,y)=>oy+((x+y)*16+16)*z;
     for(const L of metroLines){ // 線：高架實線（.8）／地下虛線半透明（.45＝隱於地下）
@@ -11635,6 +11776,16 @@ function draw(dt){
       ctx.fillStyle='#fff';ctx.fillRect(sx2-r,sy2-r,r*2,r*2);
       ctx.fillStyle=L.color;ctx.fillRect(sx2-r+1,sy2-r+1,r*2-2,r*2-2);
       if(st.inMall){ctx.fillStyle='#ffd45f';ctx.fillRect(sx2-1,sy2-r-3,2,2);}
+    }
+    if(z>=1.2){ // T317：站名標籤（近景才顯示，避免遠景糊成一團；大站/中站優先）
+      ctx.font='bold '+Math.round(9*Math.min(z,2))+'px system-ui,sans-serif';
+      ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(12,16,26,.85)';
+      for(const L of metroLines)for(const st of L.stations){
+        if(st.tier<2&&z<2)continue;
+        const nm=stationName(st),sx2=tsx(st.x,st.y),sy2=tsy(st.x,st.y)-(6+st.tier*3)*z;
+        ctx.strokeText(nm,sx2,sy2);ctx.fillStyle='#eef4ff';ctx.fillText(nm,sx2,sy2);
+      }
+      ctx.textAlign='left';
     }
     ctx.restore();
   }
@@ -12185,6 +12336,7 @@ function inspect(x,y){
         html+=`<div class="row">${DEN_NAME[den-1]}住宅</div>`;
         const we=b.we!==undefined?b.we:1; // T123：財富級徽記（舊檔/未判定缺省 1 中）
         html+=`<div class="row">${WEALTH_ICON[we]} ${WEALTH_NAME[we]}宅</div>`;
+        html+=`<div class="row" style="font-size:11px;opacity:.8">🏘️ ${districtName(distIdx(x,y))}</div>`; // T317：所屬地區
         {const homeI=idx(x,y),res=citizens.filter(c=>c.home===homeI); // T295a：抽樣居民卡片——住這棟的故事市民
          if(res.length){const mood=(b.h>.7?'😊 開心':b.h>.45?'😐 普通':'😟 煩惱');
            html+=`<div class="row" style="color:#8fd4ff">👥 居民（${res.length}）　心情 ${mood}</div>`;
@@ -12319,6 +12471,7 @@ function tone(f,dur,type,vol,slide){
    （春 D 大調亮/夏 A 大調活潑/秋 G 大調溫暖/冬 A 小調清冷）③三層結構：低音 pad 長音鋪底、
    中頻旋律、偶發高音點綴 ④節奏由 day 與音符計數決定（決定性、不消耗模擬 R()）⑤夜間降低音量與密度。
    遵守既有 muted/sndMode 開關；AC 未初始化（玩家未互動過）時完全不發聲。 ===== */
+let metroShow=false; // T317：地鐵路線圖層開關（預設關，按 🚇 才顯示；站體像素美術不受此開關影響）
 let musicOn=false, musicNote=0, musicAcc=0, musicGain=null;
 const MUSIC_SCALE={ // 五聲音階（含八度），Hz
   0:[293.66,329.63,392.00,440.00,523.25,587.33,659.25],   // 春：D 大調五聲（明亮）
@@ -13378,7 +13531,15 @@ function showStats(){
   bb('#budHeM','health',-1,'醫療');bb('#budHeP','health',1,'醫療');
   bb('#budEdM','edu',-1,'教育');bb('#budEdP','edu',1,'教育');
   { // T302：購列車按鈕——優先給最擠（載客/運力比最高）的線買，資金不足自動貸款（玩家「貸款才能更新或購買列車」）
-    const el=$('#bMetroTrain');
+    {const mb=$('#bMetro');
+   if(mb)mb.addEventListener('click',()=>{ // T317：地鐵路線圖層開關
+     metroShow=!metroShow;
+     mb.style.opacity=metroShow?'1':'0.55';
+     toast(metroShow?('🚇 地鐵路線圖層開（'+metroLines.length+' 條線）'):'🚇 地鐵路線圖層關');
+     sTick();
+   });
+   if(mb)mb.style.opacity='0.55';}
+  const el=$('#bMetroTrain');
     if(el)el.addEventListener('click',()=>{
       if(!metroLines.length)return;
       let worst=metroLines[0],wr=-1;
@@ -13737,7 +13898,7 @@ function load(slot){
     computeElMask();
     computeWater(); // 重建供水網路（T31）
     rebuildCov(); // T61：讀檔後全量重建服務覆蓋場（不入存檔）
-    cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;buses.length=0; // 公車運行時重建不存（T26）；T289：號誌清單運行時重建
+    cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;districtNamed={};buses.length=0; // 公車運行時重建不存（T26）；T289：號誌清單運行時重建
     fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，讀檔歸零（鐵律7）
     roadLoad.fill(0);roadPass.fill(0); // T129：道路壅堵運行時場不入存檔，讀檔歸零（鐵律7）
     commuteLoad.fill(0);commutePass.fill(0);commutePenalty.fill(0);commuteUnreach.fill(0);commuteClusters.length=0; // T141：通勤運行時場/叢集快取不入存檔，讀檔成對歸零（鐵律7）
@@ -13998,6 +14159,10 @@ window.GV={
   citizenCount:()=>citizens.length,
   cityEvent:()=>cityEvent?{id:CITY_EVENTS[cityEvent.i].id,name:CITY_EVENTS[cityEvent.i].name,daysLeft:cityEvent.daysLeft,tax:CITY_EVENTS[cityEvent.i].tax,food:CITY_EVENTS[cityEvent.i].food}:null, // T299 測試用：當前城市事件快照
   setCityEvent:(id)=>{const i=CITY_EVENTS.findIndex(e=>e.id===id);cityEvent=i>=0?{i,daysLeft:CITY_EVENTS[i].days}:null;return cityEvent?CITY_EVENTS[cityEvent.i].id:null;}, // T299 測試用：直接觸發指定事件
+  districts:()=>{const m=districtPops();return Object.keys(m).map(k=>({di:+k,name:districtName(+k),pop:m[k],named:!!districtNamed[k]})).sort((a,b)=>b.pop-a.pop);}, // T317 測試用：地區人口與名稱
+  districtAt:(x,y)=>inMap(x,y)?districtName(distIdx(x,y)):null, // T317 測試用：某格所屬地區名
+  stationNames:()=>metroLines.flatMap(L=>L.stations.map(st=>({line:L.id,tier:st.tier,name:stationName(st)}))), // T317 測試用：全部站名
+  setMetroShow:(v)=>{metroShow=!!v;return metroShow;}, // T317 測試/UI 用：路線圖層開關
   metro:()=>metroLines.map(L=>({id:L.id,color:L.color,stations:L.stations.length,tiers:L.stations.map(st=>st.tier),mallExits:L.stations.filter(st=>st.inMall).length,nodes:L.nodes.length,pathLen:L.path.length,underground:!!L.underground,trains:L.trains,fare:L.fare,covPop:L.covPop||0,riders:L.riders||0,ends:[L.nodes[0],L.nodes[L.nodes.length-1]]})), // T300/T302 測試用：地鐵線路快照
   metroBuyTrain:(id,allowLoan)=>buyMetroTrain(+id||1,!!allowLoan), // T302 測試/UI 用
   metroFin:()=>({rev:fin.metroRev||0,ads:fin.metroAds||0,cost:fin.metroCost||0}), // T302 測試用：地鐵財政快照
@@ -14066,6 +14231,22 @@ window.GV={
     if(SPR.plantVar)SPR.plantVar.forEach((pv,i)=>chk('plantVar'+i,pv));
     if(SPR.waterTower)chk('waterTower',SPR.waterTower);
     return out;
+  },
+  sprMetroAudit:()=>{ // T318 測試用：地鐵站體三級 sprite 的尺寸與特徵色像素數（驗證真的畫了東西）
+    if(!SPR.metroStation)return null;
+    return SPR.metroStation.map((sp,i)=>{
+      const r={tier:i+1,w:sp.w,h:sp.h,opaque:0,metroBlue:0,white:0,darkEntry:0,nightGlow:0};
+      try{
+        const d=sp.img.getContext('2d').getImageData(0,0,sp.w,sp.h).data;
+        for(let p=0;p<d.length;p+=4){const R=d[p],G=d[p+1],B=d[p+2];if(d[p+3]<20)continue;r.opaque++;
+          if(B>150&&B>R+50&&G>90&&G<160)r.metroBlue++;
+          if(R>240&&G>240&&B>240)r.white++;
+          if(R<45&&G<50&&B<58)r.darkEntry++;}
+        const nd=sp.night.getContext('2d').getImageData(0,0,sp.w,sp.h).data;
+        for(let p=0;p<nd.length;p+=4)if(nd[p+3]>20)r.nightGlow++;
+      }catch(e){r.err=String(e).slice(0,40);}
+      return r;
+    });
   },
   sprFootAudit:()=>{ // T291 測試用：量每個多格建築 sprite「底部超出 footprint 菱形」的不透明像素（T291 底部貼合後應全 0）
     const SZM={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,63:2,64:2,62:2,65:4,66:2,68:2};

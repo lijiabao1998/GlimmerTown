@@ -481,7 +481,7 @@ const statHtml = elMap.get('infoBody').innerHTML;
 assert(statHtml.includes('&lt;img'), 'showStats 鎮名應被 escHtml 逸出');
 assert(!statHtml.includes('<img'), 'showStats 不得輸出未逸出的 <img>');
 const swSrc = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
-assert(/const CACHE=CACHE_PREFIX\+'v26';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v26');
+assert(/const CACHE=CACHE_PREFIX\+'v27';/.test(swSrc), 'sw.js CACHE 應由專屬前綴組成 v27');
 assert(!/const CACHE\s*=\s*['"]gv-v2['"]/.test(swSrc), 'sw.js 不得再把 gv-v2 當目前快取');
 for (const s of ['供電 15 棟', '供電 20 棟', '半徑 8 防止犯罪發生', '半徑 10 健康覆蓋（效果同醫院）',
   '升級率 ×1.8', '全城垃圾容量 +30', '半徑 8 內商業 +10% 稅收', '大眾運輸節點',
@@ -897,6 +897,37 @@ console.log('\n-- T295 抽樣市民 agent --');
   assert(Array.isArray(cz), 'T295 citizens hook 應回傳陣列');
   window.GV.advanceN(0.04, 8); // T295b：市民步行更新（空城）不崩
   assert(isFinite(window.GV.stats().money), 'T295b advanceN（市民步行更新）後 money 不得 NaN');
+}
+// ================= T317/T318 地區命名＋地鐵站命名＋站體美術 =================
+console.log('\n-- T317/T318 地區與地鐵站命名/美術 --');
+{
+  window.GV.newWorldSeeded(317);
+  // 地區名為純衍生：同格必同名、同 seed 可重現
+  const n1 = window.GV.districtAt(30, 30), n2 = window.GV.districtAt(30, 30);
+  assert(typeof n1 === 'string' && n1.length >= 2, 'T317 districtAt 應回傳地區名，實得 ' + n1);
+  assert(n1 === n2, 'T317 地區名應穩定（純衍生、同格同名）');
+  assert(window.GV.districtAt(-1, -1) === null, 'T317 界外應回 null');
+  // 同一地區內不同格應同名；跨地區應可能不同
+  assert(window.GV.districtAt(30, 30) === window.GV.districtAt(31, 31), 'T317 同地區內不同格應同名');
+  // 新圖無地鐵時站名表為空
+  window.GV.metroClear();
+  assert(window.GV.stationNames().length === 0, 'T317 無地鐵時站名表應為空');
+  // 路線圖層開關（預設關＝玩家「按到之後才顯示」）
+  assert(window.GV.setMetroShow(false) === false, 'T317 圖層開關可關');
+  assert(window.GV.setMetroShow(true) === true, 'T317 圖層開關可開');
+  window.GV.setMetroShow(false);
+  // 站體 sprite 三級皆有實質繪圖且尺寸遞增（視覺可區分）
+  const ms = window.GV.sprMetroAudit();
+  assert(Array.isArray(ms) && ms.length === 3, 'T318 應有三級站體 sprite');
+  // 結構驗證（harness 的 canvas 為 stub，像素計數在此恆 0；真實像素驗證見瀏覽器 GV.sprMetroAudit：
+  // 實測 tier1/2/3 不透明 490/881/1856、地鐵藍 36/204/279、樓梯暗口 208/353/514、夜光 137/251/549）
+  for (const r of ms) {
+    assert(r.w > 0 && r.h > 0, 'T318 tier' + r.tier + ' 站體應有非零尺寸，實得 ' + r.w + 'x' + r.h);
+    assert(!r.err, 'T318 tier' + r.tier + ' 站體審計不得出錯：' + r.err);
+  }
+  assert(ms[0].w < ms[1].w && ms[1].w < ms[2].w, 'T318 站體尺寸應隨等級遞增（小<中<大，視覺可區分）');
+  assert(ms[0].h < ms[1].h && ms[1].h < ms[2].h, 'T318 站體高度應隨等級遞增');
+  assert(isFinite(window.GV.stats().money), 'T317/T318 後 money 不得 NaN');
 }
 // ================= T315 地價場增量更新 =================
 console.log('\n-- T315 地價場增量 --');
@@ -1736,8 +1767,8 @@ async function runPwaTests() {
     'glimmerville-shell-v4',
     'gv-other-app', 'shared-cache']) h268.seed(name);
   await h268.fireLife('install');
-  assert(h268.ops.opened[0] === 'glimmerville-shell-v26',
-    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v26 cache');
+  assert(h268.ops.opened[0] === 'glimmerville-shell-v27',
+    'T268-T270 install 應開啟目前專屬 glimmerville-shell-v27 cache');
   assert(JSON.stringify(h268.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js');
   assert(h268.ops.skipWaiting === 1 && h268.ops.order.includes('skipWaiting'),
@@ -1749,7 +1780,7 @@ async function runPwaTests() {
       'gv-v1', 'gv-v2'].sort()),
     'T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2');
   const keys268 = await h268.cacheStorage.keys();
-  assert(keys268.includes('glimmerville-shell-v26') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
+  assert(keys268.includes('glimmerville-shell-v27') && keys268.includes('gv-other-app') && keys268.includes('shared-cache'),
     'T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache');
   assert(h268.ops.claim === 1 && h268.ops.order[h268.ops.order.length - 1] === 'claim',
     'T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim');
@@ -1805,7 +1836,7 @@ async function runPwaTests() {
     h268.ops.puts.length === putCountBefore503,
     'T268 HTTP 503 應照實回傳且不得污染 canonical app-shell');
 
-  await h268.cacheStorage.delete('glimmerville-shell-v26');
+  await h268.cacheStorage.delete('glimmerville-shell-v27');
   h268.setFetch(async () => { throw new TypeError('offline'); });
   result268 = await h268.fireFetch({ method: 'GET', url: base268, mode: 'navigate' });
   assert(result268.response.status === 503 && (await result268.response.text()).includes('尚未完成首次快取'),
@@ -1868,11 +1899,11 @@ async function runPwaTests() {
   await h269.fireLife('install');
   await h269.fireLife('activate');
   const keys269 = await h269.cacheStorage.keys();
-  assert(h269.ops.opened[0] === 'glimmerville-shell-v26' &&
+  assert(h269.ops.opened[0] === 'glimmerville-shell-v27' &&
     JSON.stringify(h269.ops.addAll[0]) === JSON.stringify(shellFiles270),
     'T269/T270 v5 install 應維持完整 app-shell 資產閉包');
   assert(!keys269.includes('glimmerville-shell-v3') && !keys269.includes('glimmerville-shell-v4') &&
-    keys269.includes('glimmerville-shell-v26') &&
+    keys269.includes('glimmerville-shell-v27') &&
     keys269.includes('gv-other-app') && keys269.includes('shared-cache'),
     'T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache');
 
@@ -1886,7 +1917,7 @@ async function runPwaTests() {
   assert(result269.intercepted && result269.response.status === 201 &&
     await result269.response.text() === freshManifest269,
     'T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response');
-  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v26');
+  const cache269 = await h269.cacheStorage.open('glimmerville-shell-v27');
   let cachedManifest269 = await cache269.match(base268 + 'manifest.json');
   assert(cachedManifest269 && await cachedManifest269.text() === freshManifest269 &&
     h269.ops.puts.includes(base268 + 'manifest.json'),
@@ -1952,7 +1983,7 @@ async function runPwaTests() {
   assert(await result269.response.text() === freshManifest269,
     'T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest');
 
-  await h269.cacheStorage.delete('glimmerville-shell-v26');
+  await h269.cacheStorage.delete('glimmerville-shell-v27');
   result269 = await h269.fireFetch({
     method: 'GET', url: base268 + 'manifest.json?empty=269', mode: 'same-origin'
   });
@@ -2226,7 +2257,7 @@ async function runPwaTests() {
 
   const h271Miss = makeSwHarness268(sw268);
   await h271Miss.fireLife('install');
-  await h271Miss.cacheStorage.delete('glimmerville-shell-v26');
+  await h271Miss.cacheStorage.delete('glimmerville-shell-v27');
   h271Miss.setFetch(async () => new Response('fresh-cache-miss-271', { status: 200 }));
   networkBefore271 = h271Miss.ops.networkCalls;
   result271 = await h271Miss.fireFetch({
