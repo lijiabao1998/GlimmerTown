@@ -329,11 +329,12 @@ const KCB={1:'R',33:'R',105:'R',
   9:'A',24:'A',35:'A',36:'A',37:'A',38:'A',39:'A',40:'A',44:'A',46:'A',51:'A',56:'A',66:'A',
   67:'A',68:'A',69:'A',70:'A',71:'A',72:'A',73:'A',74:'A',75:'A',76:'A',77:'A',78:'A',79:'A',80:'A',
   81:'A',82:'A',83:'A',89:'A',90:'A',93:'A',94:'A',96:'A',98:'A',99:'A',101:'A',
-  22:'F',23:'F',53:'F',63:'F',87:'F',97:'F',104:'F',
+  22:'F',23:'F',53:'F',63:'F',87:'F',97:'F',104:'F',119:'F',120:'F',
+  117:'E',118:'I',
   4:'G',47:'G',92:'G',112:'G',
   8:'W',10:'W',27:'W',29:'W',88:'W',111:'W'};
 const kcatOf=(k)=>KCB[k]||'S';
-const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局',7:'學校',8:'垃圾場',9:'體育場',10:'水塔',11:'警察局',12:'醫院',13:'診所',14:'圖書館',15:'郵局',16:'墓園',17:'火車站',18:'港口',19:'機場',20:'停車場',21:'輕軌站',22:'農場',23:'牧場',24:'地標',25:'太陽能',26:'風力',27:'污水廠',28:'救護站',29:'回收中心',30:'高級消防',31:'監獄',32:'大學',33:'住宅摩天樓',34:'商業摩天樓',35:'博物館',36:'劇院',37:'水族館',38:'動物園',39:'遊樂園',40:'電影院',41:'圖書總館',42:'市政廳',43:'法院',44:'會展中心',45:'研究院',46:'氣象站',47:'植物園',48:'綜合醫院',49:'油井',50:'礦場',51:'太空研究中心',52:'派出所',53:'大農場',54:'大墓園',55:'中央車站',56:'體育園區',57:'食品加工廠',58:'核電廠',59:'水力發電廠',60:'地熱發電',61:'消防總局',62:'垃圾焚化發電廠',63:'溫室',64:'倉儲物流中心',65:'大型購物中心',66:'信仰中心',67:'鐘樓',68:'天文台',70:'風車',73:'觀景塔',78:'古樹神木',79:'碼頭亭',80:'旋轉木馬',81:'民宿',82:'商務旅館',83:'度假酒店',84:'幼兒園',85:'樂齡中心',86:'銀行',87:'農貿市場',88:'堆肥場',89:'電視塔',90:'遊艇碼頭',91:'貿易站',92:'遛狗公園',93:'溜冰場',94:'滑板公園',95:'消防瞭望塔',96:'游泳池',97:'釣魚碼頭',98:'青年旅舍',99:'婚禮教堂',100:'釀酒廠',101:'水上樂園',102:'寵物醫院',103:'天際觀景餐廳',104:'社區菜園',105:'住宅巨廈',106:'商業綜合體',107:'火葬場',108:'高中',109:'科技園',110:'貨運站',111:'資源回收廠',112:'中央公園',113:'大學城',114:'國際機場',115:'市民中心',116:'數據中心',74:'涼亭',69:'燈塔',71:'噴泉廣場',72:'紀念碑',75:'凱旋門',76:'摩天輪',77:'水塔景觀'}; // T280：k63 溫室 2×2（全年恆溫種植，星露谷/CS2 對標） // T265：k62 2×2 垃圾處理×能源回收 // T257：k58 核電 3×3／k59 水力 2×2 鄰水／k60 地熱 1×1／k61 消防總局 3×3（電廠家族對齊地球真實電廠＋尺寸階梯 1/2/3） // T254：k57 食品加工廠 3×3（農場加工鏈） // T233：k54 大墓園 3×3；T234：k55 中央車站 3×3；T241：k56 大型體育園區 3×3 // T222：k52 派出所；T228：k53 大農場（5×5 玩家指令「更大地塊」） // T127：k33/34 摩天樓（2×2 合併建築）；T138：k35-41 文化娛樂建築；T139：k42-48 民生科研建築（建築型別達 48）；T140：k49油井/50礦場/51太空研究中心（資源供應鏈，建築型別達 51）
+const KNAME={1:'住宅',2:'商業',3:'工業',4:'公園',5:'發電廠',6:'消防局',7:'學校',8:'垃圾場',9:'體育場',10:'水塔',11:'警察局',12:'醫院',13:'診所',14:'圖書館',15:'郵局',16:'墓園',17:'火車站',18:'港口',19:'機場',20:'停車場',21:'輕軌站',22:'農場',23:'牧場',24:'地標',25:'太陽能',26:'風力',27:'污水廠',28:'救護站',29:'回收中心',30:'高級消防',31:'監獄',32:'大學',33:'住宅摩天樓',34:'商業摩天樓',35:'博物館',36:'劇院',37:'水族館',38:'動物園',39:'遊樂園',40:'電影院',41:'圖書總館',42:'市政廳',43:'法院',44:'會展中心',45:'研究院',46:'氣象站',47:'植物園',48:'綜合醫院',49:'油井',50:'礦場',51:'太空研究中心',52:'派出所',53:'大農場',54:'大墓園',55:'中央車站',56:'體育園區',57:'食品加工廠',58:'核電廠',59:'水力發電廠',60:'地熱發電',61:'消防總局',62:'垃圾焚化發電廠',63:'溫室',64:'倉儲物流中心',65:'大型購物中心',66:'信仰中心',67:'鐘樓',68:'天文台',70:'風車',73:'觀景塔',78:'古樹神木',79:'碼頭亭',80:'旋轉木馬',81:'民宿',82:'商務旅館',83:'度假酒店',84:'幼兒園',85:'樂齡中心',86:'銀行',87:'農貿市場',88:'堆肥場',89:'電視塔',90:'遊艇碼頭',91:'貿易站',92:'遛狗公園',93:'溜冰場',94:'滑板公園',95:'消防瞭望塔',96:'游泳池',97:'釣魚碼頭',98:'青年旅舍',99:'婚禮教堂',100:'釀酒廠',101:'水上樂園',102:'寵物醫院',103:'天際觀景餐廳',104:'社區菜園',105:'住宅巨廈',106:'商業綜合體',107:'火葬場',108:'高中',109:'科技園',110:'貨運站',111:'資源回收廠',112:'中央公園',113:'大學城',114:'國際機場',115:'市民中心',116:'數據中心',117:'天然氣井',118:'化肥廠',119:'中央廚房',120:'魚塘',74:'涼亭',69:'燈塔',71:'噴泉廣場',72:'紀念碑',75:'凱旋門',76:'摩天輪',77:'水塔景觀'}; // T280：k63 溫室 2×2（全年恆溫種植，星露谷/CS2 對標） // T265：k62 2×2 垃圾處理×能源回收 // T257：k58 核電 3×3／k59 水力 2×2 鄰水／k60 地熱 1×1／k61 消防總局 3×3（電廠家族對齊地球真實電廠＋尺寸階梯 1/2/3） // T254：k57 食品加工廠 3×3（農場加工鏈） // T233：k54 大墓園 3×3；T234：k55 中央車站 3×3；T241：k56 大型體育園區 3×3 // T222：k52 派出所；T228：k53 大農場（5×5 玩家指令「更大地塊」） // T127：k33/34 摩天樓（2×2 合併建築）；T138：k35-41 文化娛樂建築；T139：k42-48 民生科研建築（建築型別達 48）；T140：k49油井/50礦場/51太空研究中心（資源供應鏈，建築型別達 51）
 const LVNAME={
   1:['小屋','公寓','住宅大樓'],
   2:['小舖','商場','商業大樓'],
@@ -371,9 +372,9 @@ const COMMUTE_PEN_STEP=.012;     // T141：每超額 1 格疊加的通勤懲罰�
 const COMMUTE_PEN_MAX=.18;       // T141：「過長」通勤懲罰上限（未達不可達門檻前）
 const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到任何就業區）固定懲罰，明顯重於「過長」封頂值（滿足「不可達最重」驗收）
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
-const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
+const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='8.7'; // T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='8.8'; // T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -467,6 +468,10 @@ const TOOLS=[
   {id:'megaport',cat:'mega',ic:'🛫',nm:'國際機場',pr:'$'+COST.megaport,unlockRank:18}, // T342：5×5 觀光120＋高噪音污染
   {id:'civiccenter',cat:'civic',ic:'🏛️',nm:'市民中心',pr:'$'+COST.civiccenter}, // T342：3×3 綜合市政（幸福+4% 半徑9）
   {id:'datacenter',cat:'mega',ic:'🖥️',nm:'數據中心',pr:'$'+COST.datacenter,unlockRank:13}, // T342：伺服器經濟 $40/日
+  {id:'gaswell',cat:'resource',ic:'⛽',nm:'天然氣井',pr:'$'+COST.gaswell}, // T346：油田格產天然氣（鏈條源頭）
+  {id:'fertplant',cat:'resource',ic:'🧪',nm:'化肥廠',pr:'$'+COST.fertplant}, // T346：2×2 耗氣產化肥→農場增產
+  {id:'kitchen',cat:'civic',ic:'🍳',nm:'中央廚房',pr:'$'+COST.kitchen}, // T346：2×2 生食＋天然氣→熟食→幸福
+  {id:'fishfarm',cat:'resource',ic:'🐟',nm:'魚塘',pr:'$'+COST.fishfarm}, // T346：臨水養殖（食物來源多樣化）
   {id:'stad',cat:'svc',ic:'🏟️',nm:'體育場',pr:'$'+COST.stad},
   {id:'sportsComplex',cat:'mega',ic:'🏅',nm:'體育園區',pr:'$'+COST.sportsComplex}, // T241：3×3 多場館綜合
   {id:'foodPlant',cat:'mega',ic:'🥫',nm:'食品加工廠',pr:'$'+COST.foodPlant}, // T254：3×3 農場加工鏈（食物盈餘轉金幣）
@@ -744,7 +749,14 @@ let meteorTrail=null;    // T207：隕石入場火球拖尾視覺計時（{x,y,t
 let pol=null;            // 稅率政策 {taxR,taxC,taxI, heightLimit, envReg, transitSubsidy}（T55）；T122 擴四布林 curfew/recycle/tourPromo/ecoReg（城市法規開關，皆非稅收槓桿）
 let foodPoints=0;        // 食物點數（T46，每天重算）
 let tourists=0;
-let hotelBeds=0,hotelOcc=0,tvSignal=false; // T330/T334：每日重算，不入存檔（newWorld/load 成對歸零）          // 遊客數（T47，每天重算）
+let hotelBeds=0,hotelOcc=0,tvSignal=false;
+/* T346 產業鏈循環（玩家「發現需求就補上去」的現實鏈條）：
+   油田 →（天然氣井）gas →（化肥廠）fert → 農產增產 → 生食
+   生食 + gas →（中央廚房）cooked → 居民幸福 → 人口 → 勞動力 → 工廠 → 就業
+   就業/勞動人口 → wageIdx（工資水準）→ 消費（商業稅）＋房貸（銀行利息）→ 財政 → 再建工廠
+   全部每日重算的流量（不入存檔），效果採「前一日值」讀取＝1 天傳導延遲（現實感＋避免同迴圈相依）。 */
+let gasSup=0,gasDem=0,gasRatio=1,fertOut=0,cookedOut=0,wageIdx=1,fertReady=false,cookedReady=false;
+let mortPopLast346=0; /* T346 房貸人口的模組層铡像（mortPop346 宣於 tick 内，GV 鉤子取不到） */ // T330/T334：每日重算，不入存檔（newWorld/load 成對歸零）          // 遊客數（T47，每天重算）
 let supplies=0;          // T140：資源供應品全域存量（油井/礦場每日抽取累加、工業消耗鏈與太空研究中心週期性消耗，跨日持續累積、非每天重算；存檔可選欄位 sup，newWorld/load 成對歸零，鐵律7）
 let region={};            // 區域聯動摘要（T60）
 let disastersOn=true;     // T92 災害開關
@@ -3773,6 +3785,92 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
  }
  outlineSprite(s,60,66,84); g.drawImage(s,0,0);
  SPR.bld['116_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
+ { // 天然氣井 117_1_0：井架＋球形儲氣罐＋管閥組＋警示旗
+ const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112); const ax=36,ay=110;
+ dia(g,ax,ay-32,32,'#9a9484'); diaEdge(g,6,'#8a8478',ax,ay-32,32); diaEdge(g,9,'#aca696',ax,ay-32,32);
+ sg.strokeStyle='#8a8a92'; sg.lineWidth=2;                 // 井架四腳
+ sg.beginPath(); sg.moveTo(18,94); sg.lineTo(26,48); sg.stroke();
+ sg.beginPath(); sg.moveTo(34,94); sg.lineTo(30,48); sg.stroke();
+ sg.lineWidth=1;
+ for(let i2=0;i2<4;i2++){const wy=88-i2*11;
+   sg.beginPath(); sg.moveTo(19+i2,wy); sg.lineTo(33-i2,wy-8); sg.stroke();
+   sg.beginPath(); sg.moveTo(33-i2,wy); sg.lineTo(19+i2,wy-8); sg.stroke();}
+ sg.fillStyle='#c8ccd4'; sg.fillRect(24,42,8,7);           // 井口平台
+ sg.fillStyle='#e0b050'; sg.beginPath(); sg.arc(50,80,11,0,2*Math.PI); sg.fill(); // 球罐
+ sg.fillStyle='#f0d080'; sg.beginPath(); sg.arc(46,76,4,0,2*Math.PI); sg.fill();
+ sg.fillStyle='#8a8a92'; sg.fillRect(46,90,3,6); sg.fillRect(53,90,3,6);
+ sg.strokeStyle='#a8a8b0'; sg.lineWidth=3;                 // 輸氣管
+ sg.beginPath(); sg.moveTo(34,88); sg.lineTo(42,88); sg.stroke();
+ sg.fillStyle='#d84838'; sg.fillRect(40,84,4,4);           // 閥門
+ sg.fillStyle='#8a6a42'; sg.fillRect(14,60,2,10);
+ sg.fillStyle='#ffb35a'; sg.beginPath(); sg.moveTo(16,60); sg.lineTo(24,63); sg.lineTo(16,66); sg.closePath(); sg.fill();
+ ng.fillStyle='#ffd98a'; ng.fillRect(24,42,8,4); ng.fillStyle='#ff7a5a'; ng.fillRect(40,84,4,4);
+ outlineSprite(s,64,60,50); g.drawImage(s,0,0);
+ SPR.bld['117_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[{x:28,y:42}]};}
+{ // 化肥廠 118_1_0 (2×2)：料倉三連＋反應塔＋輸送帶＋白袋堆
+ const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[s,sg]=cv(136,150); const ax=68,ay=148;
+ dia(g,ax,ay-64,64,'#a09878'); diaEdge(g,6,'#8c8466',ax,ay-64,64); diaEdge(g,9,'#b4ac8a',ax,ay-64,64);
+ sg.fillStyle='#c8ccc0'; sg.fillRect(30,74,52,34);         // 廠房
+ sg.fillStyle='#a8ac a0'.replace(' ',''); sg.fillRect(82,74,12,34);
+ sg.fillStyle='#8a8e84'; sg.fillRect(26,68,72,7);
+ for(const sx2 of [36,52,68]){                              // 圓筒料倉
+   sg.fillStyle='#dfe4d8'; sg.fillRect(sx2,44,12,26);
+   sg.fillStyle='#bfc4b8'; sg.fillRect(sx2+9,44,3,26);
+   sg.fillStyle='#8a8e84'; sg.beginPath(); sg.moveTo(sx2-2,44); sg.lineTo(sx2+6,36); sg.lineTo(sx2+14,44); sg.closePath(); sg.fill();
+ }
+ sg.fillStyle='#9aa08e'; sg.fillRect(96,38,12,36);          // 反應塔
+ sg.fillStyle='#7f8574'; sg.fillRect(105,38,3,36);
+ sg.fillStyle='#c8ccc0'; sg.beginPath(); sg.arc(102,38,6,Math.PI,0); sg.fill();
+ sg.strokeStyle='#8a8a92'; sg.lineWidth=4;                  // 輸送帶
+ sg.beginPath(); sg.moveTo(28,112); sg.lineTo(62,96); sg.stroke();
+ sg.strokeStyle='#5a5a64'; sg.lineWidth=1;
+ for(let i2=0;i2<6;i2++){sg.beginPath();sg.moveTo(30+i2*6,111-i2*3);sg.lineTo(33+i2*6,113-i2*3);sg.stroke();}
+ for(const bg2 of [[24,118],[36,122],[48,126]]){            // 化肥白袋
+   sg.fillStyle='#eef0e6'; sg.fillRect(bg2[0],bg2[1],11,8);
+   sg.fillStyle='#cfd4c4'; sg.fillRect(bg2[0],bg2[1]+6,11,2);
+   sg.fillStyle='#7fae5a'; sg.fillRect(bg2[0]+3,bg2[1]+2,5,3);
+ }
+ sg.fillStyle='#7fb0d8'; sg.fillRect(36,82,10,8); sg.fillRect(58,82,10,8);
+ ng.fillStyle='#ffe9b0'; ng.fillRect(36,82,10,8); ng.fillRect(58,82,10,8); ng.fillStyle='#ffd98a'; ng.fillRect(98,40,8,4);
+ outlineSprite(s,60,62,52); g.drawImage(s,0,0);
+ SPR.bld['118_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[{x:102,y:32}]};}
+{ // 中央廚房 119_1_0 (2×2)：不鏽鋼廚房＋排煙罩＋蒸氣＋出餐車
+ const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[s,sg]=cv(136,150); const ax=68,ay=148;
+ dia(g,ax,ay-64,64,'#a89c88'); diaEdge(g,6,'#948874',ax,ay-64,64); diaEdge(g,9,'#bcb09c',ax,ay-64,64);
+ sg.fillStyle='#e8e4d8'; sg.fillRect(30,70,58,38);          // 廠體
+ sg.fillStyle='#c8c4b8'; sg.fillRect(88,70,12,38);
+ sg.fillStyle='#c05a3a'; sg.fillRect(26,64,78,7);           // 磚紅簷
+ sg.fillStyle='#b8bcc4'; sg.fillRect(44,40,30,10);          // 排煙罩
+ sg.fillStyle='#98a0a8'; sg.fillRect(52,30,14,12);
+ sg.fillStyle='#8a8e96'; sg.fillRect(50,26,18,5);
+ sg.fillStyle='#f0d060'; sg.fillRect(34,78,12,10);          // 明亮出餐窗
+ sg.fillStyle='#7fb0d8'; sg.fillRect(54,78,10,9); sg.fillRect(70,78,10,9);
+ ng.fillStyle='#fff0b0'; ng.fillRect(34,78,12,10); ng.fillStyle='#ffe9b0'; ng.fillRect(54,78,10,9); ng.fillRect(70,78,10,9);
+ sg.fillStyle='#a8acb4'; sg.fillRect(92,110,20,12);         // 出餐推車
+ sg.fillStyle='#c8ccd4'; sg.fillRect(94,108,16,3);
+ sg.fillStyle='#3a3046'; sg.beginPath(); sg.arc(97,123,3,0,2*Math.PI); sg.fill(); sg.beginPath(); sg.arc(108,123,3,0,2*Math.PI); sg.fill();
+ sg.fillStyle='#8a6a42'; sg.fillRect(30,112,14,9); sg.fillStyle='#d8b070'; sg.fillRect(32,110,10,3); // 食材木箱
+ outlineSprite(s,60,58,46); g.drawImage(s,0,0);
+ SPR.bld['119_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[{x:59,y:26}]};}
+{ // 魚塘 120_1_0：方形水池＋網箱浮框＋增氧機水花＋小屋
+ const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[s,sg]=cv(72,112); const ax=36,ay=110;
+ dia(g,ax,ay-32,32,'#8f9a7e'); diaEdge(g,6,'#7c876c',ax,ay-32,32); diaEdge(g,9,'#a2ad8e',ax,ay-32,32);
+ sg.fillStyle='#3f8fa8'; sg.beginPath();                    // 池水（等距方池）
+ sg.moveTo(34,68); sg.lineTo(62,82); sg.lineTo(34,96); sg.lineTo(6,82); sg.closePath(); sg.fill();
+ sg.fillStyle='#5fb0c8'; sg.beginPath();
+ sg.moveTo(34,72); sg.lineTo(56,82); sg.lineTo(34,92); sg.lineTo(12,82); sg.closePath(); sg.fill();
+ sg.strokeStyle='#8a6a42'; sg.lineWidth=1.5;                // 網箱浮框 ×2
+ sg.beginPath(); sg.moveTo(24,78); sg.lineTo(34,83); sg.lineTo(24,88); sg.lineTo(14,83); sg.closePath(); sg.stroke();
+ sg.beginPath(); sg.moveTo(44,78); sg.lineTo(54,83); sg.lineTo(44,88); sg.lineTo(34,83); sg.closePath(); sg.stroke();
+ sg.fillStyle='#e8f4f8'; sg.fillRect(31,74,3,2); sg.fillRect(40,86,3,2); sg.fillRect(50,80,2,2); // 水花
+ sg.fillStyle='#c8ccd4'; sg.fillRect(20,70,4,4);            // 增氧機
+ sg.fillStyle='#d9c4a0'; sg.fillRect(46,58,14,12);          // 看護小屋
+ sg.fillStyle='#8a5a3a'; sg.beginPath(); sg.moveTo(44,58); sg.lineTo(53,50); sg.lineTo(62,58); sg.closePath(); sg.fill();
+ sg.fillStyle='#7fb0d8'; sg.fillRect(50,62,5,5);
+ ng.fillStyle='#ffd98a'; ng.fillRect(50,62,5,5);
+ ng.fillStyle='#66c8e0'; ng.fillRect(31,74,3,2); ng.fillRect(40,86,3,2);
+ outlineSprite(s,52,66,58); g.drawImage(s,0,0);
+ SPR.bld['120_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   { // T290 大型購物中心 65_1_0（4×4=16 格；玻璃帷幕大盒+中央玻璃中庭雨棚門廊+MALL 招牌+屋頂天窗HVAC女兒牆+前庭停車場+植栽；純幾何零亂數）
    const[c,g]=cv(272,280),[nc,ng]=cv(272,280),[s,sg]=cv(272,280);const ax=136,ay=278;
    dia(g,ax,ay-128,128,'#b6b2a6'); // 4×4 廣場鋪面底
@@ -7329,7 +7427,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
      徽記位置逐列掃描該 sprite 中央帶的最高不透明像素（鐵律11：勿在透明天空區加東西），畫在屋頂線上方。 */
   if(!window.__noBadge){
     const SZB={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,62:2,63:2,64:2,65:4,66:2,68:2,
-      82:2,83:3,87:2,90:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2};
+      82:2,83:3,87:2,90:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2,118:2,119:2};
     const GLYPH={ // 3-6px 象形符（白色 fillRect 組合，座標相對徽記左上角 9×9）
       R:[[3,2,3,1],[2,3,5,1],[3,4,3,4]],                 // 屋頂＋牆
       C:[[2,2,5,1],[2,3,1,4],[6,3,1,4],[3,5,3,1]],       // 店面雨棚
@@ -7643,7 +7741,7 @@ function newWorld(seedOverride){
     }
     if(sc>bestScore){bestScore=sc;best=[x,y];}
   }
-  money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};immWave=0;tvSignal=false;hotelBeds=0;hotelOcc=0; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
+  money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};immWave=0;tvSignal=false;hotelBeds=0;hotelOcc=0;gasSup=0;gasDem=0;gasRatio=1;fertOut=0;cookedOut=0;wageIdx=1;fertReady=false;cookedReady=false;mortPopLast346=0; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
   goods=0;gWhCap284=0;svcBudget={police:1,fire:1,health:1,edu:1};cityEvent=null;svcFleet={fire:3,police:2,amb:2}; // T304：車隊成對重置 // T284/T294/T299：成對重置（鐵律7）——服務預算回預設 1.0×、城市事件清空
   aiMode=false;aiR=6;try{const bA=$('#bAI');if(bA){bA.style.background='';bA.style.borderColor='';}}catch(e){} // T260：新圖 AI 市長成對重置（鐵律7）
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;districtNamed={};trafClock=0;hintShown={};hintsOff=false;
@@ -7804,7 +7902,8 @@ function canPlace(toolId,x,y){
     case 'guesthouse':case 'hotel':case 'resort':case 'kindergarten':case 'seniorCenter':case 'bank':case 'market':case 'compost':case 'tvtower':case 'marina': // T330 新民生/旅宿群
     case 'tradepost':case 'dogpark':case 'icerink':case 'skatepark': // T336 休閒與貿易
     case 'firewatch':case 'pool':case 'fishpier':case 'hostel':case 'chapel':case 'brewery':case 'waterpark':case 'vetclinic':case 'skyrest':case 'cgarden': // T340
-    case 'crematorium':case 'highschool':case 'techpark':case 'freight':case 'upcycle':case 'centralpark':case 'unicampus':case 'megaport':case 'civiccenter':case 'datacenter': // T342 閉環群 // T307；T296；T290：大型購物中心；T280：溫室；T265：焚化發電；T257：電廠家族＋消防總局
+    case 'crematorium':case 'highschool':case 'techpark':case 'freight':case 'upcycle':case 'centralpark':case 'unicampus':case 'megaport':case 'civiccenter':case 'datacenter': // T342 閉環群
+    case 'gaswell':case 'fertplant':case 'kitchen':case 'fishfarm': // T346 產業鏈 // T307；T296；T290：大型購物中心；T280：溫室；T265：焚化發電；T257：電廠家族＋消防總局
       if(t.t!==2&&t.t!==1)return '只能蓋在陸地上';
       if(t.road||t.rail||t.tram)return '交通線上不能建造';
       if(t.bld)return '已有建築';
@@ -7816,6 +7915,9 @@ function canPlace(toolId,x,y){
       if(toolId==='observatory')return canPlaceMulti(x,y,2,'需 2×2 陸地'); // T307
       if(toolId==='hotel'||toolId==='market'||toolId==='tradepost'||toolId==='brewery'||toolId==='waterpark'||toolId==='highschool'||toolId==='freight'||toolId==='upcycle'||toolId==='datacenter')return canPlaceMulti(x,y,2,'需 2×2 陸地'); // T330/T336/T340/T342
       if(toolId==='techpark'||toolId==='centralpark'||toolId==='civiccenter')return canPlaceMulti(x,y,3,'需 3×3 陸地'); // T342
+      if(toolId==='fertplant'||toolId==='kitchen')return canPlaceMulti(x,y,2,'需 2×2 陸地'); // T346
+      if(toolId==='gaswell'&&RESOURCE[idx(x,y)]!==1)return '需油田資源格（天然氣伴生）'; // T346
+      if(toolId==='fishfarm'&&countNear(x,y,1,tt=>tt.t===0)<1)return '需臨水'; // T346
       if(toolId==='unicampus')return canPlaceMulti(x,y,4,'需 4×4 陸地'); // T342
       if(toolId==='megaport')return canPlaceMulti(x,y,5,'需 5×5 陸地'); // T342
       if(toolId==='fishpier'&&countNear(x,y,1,tt=>tt.t===0)<1)return '需臨水'; // T340
@@ -7990,6 +8092,7 @@ function placeCost(toolId,x,y){
     case 'guesthouse':c=COST.guesthouse;break;case 'hotel':c=COST.hotel;break;case 'resort':c=COST.resort;break; // T330
     case 'kindergarten':c=COST.kindergarten;break;case 'seniorCenter':c=COST.seniorCenter;break;case 'bank':c=COST.bank;break;
     case 'market':c=COST.market;break;case 'compost':c=COST.compost;break;case 'tvtower':c=COST.tvtower;break;case 'marina':c=COST.marina;break;
+    case 'gaswell':c=COST.gaswell;break;case 'fertplant':c=COST.fertplant;break;case 'kitchen':c=COST.kitchen;break;case 'fishfarm':c=COST.fishfarm;break; // T346
     case 'crematorium':c=COST.crematorium;break;case 'highschool':c=COST.highschool;break;case 'techpark':c=COST.techpark;break;case 'freight':c=COST.freight;break;case 'upcycle':c=COST.upcycle;break; // T342
     case 'centralpark':c=COST.centralpark;break;case 'unicampus':c=COST.unicampus;break;case 'megaport':c=COST.megaport;break;case 'civiccenter':c=COST.civiccenter;break;case 'datacenter':c=COST.datacenter;break;
     case 'tradepost':c=COST.tradepost;break;case 'dogpark':c=COST.dogpark;break;case 'icerink':c=COST.icerink;break;case 'skatepark':c=COST.skatepark;break; // T336
@@ -8380,6 +8483,8 @@ function doPlace(toolId,x,y,silent){
     case 'vetclinic':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:102,lv:1,v:0,age:0,pw:true,h:1};stampCov('vet',x,y,COVR.vet,1);break;} // T340
     case 'skyrest':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:103,lv:1,v:0,age:0,pw:true,h:1};break;} // T340
     case 'cgarden':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:104,lv:1,v:0,age:0,pw:true,h:1};stampCov('cgarden',x,y,COVR.cgarden,1);break;} // T340
+    case 'gaswell':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:117,lv:1,v:0,age:0,pw:true,h:1};stampPolSrc(x,y,117,1);break;} // T346
+    case 'fishfarm':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:120,lv:1,v:0,age:0,pw:true,h:1};break;} // T346
     case 'crematorium':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:107,lv:1,v:0,age:0,pw:true,h:1};stampCov('crem',x,y,COVR.crem,1);stampPolSrc(x,y,107,1);break;} // T342
     case 'techpark':case 'centralpark':case 'civiccenter':{ // T342：3×3 群
       const K342={techpark:109,centralpark:112,civiccenter:115}[toolId];
@@ -8413,8 +8518,8 @@ function doPlace(toolId,x,y,silent){
     case 'dogpark':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:92,lv:1,v:0,age:0,pw:true,h:1};stampCov('dogpark',x,y,COVR.dogpark,1);break;} // T336
     case 'icerink':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:93,lv:1,v:0,age:0,pw:true,h:1};stampCov('icerink',x,y,COVR.icerink,1);break;} // T336
     case 'skatepark':{t.tree=0;t.zone=0;t.deco=0;t.bld={k:94,lv:1,v:0,age:0,pw:true,h:1};stampCov('skate',x,y,COVR.skate,1);break;} // T336
-    case 'hotel':case 'market':case 'marina':case 'tradepost':case 'brewery':case 'waterpark':case 'highschool':case 'freight':case 'upcycle':case 'datacenter':{ // T330/T336/T340/T342：2×2 群
-      const K330={hotel:82,market:87,marina:90,tradepost:91,brewery:100,waterpark:101,highschool:108,freight:110,upcycle:111,datacenter:116}[toolId];
+    case 'hotel':case 'market':case 'marina':case 'tradepost':case 'brewery':case 'waterpark':case 'highschool':case 'freight':case 'upcycle':case 'datacenter':case 'fertplant':case 'kitchen':{ // T330-T346：2×2 群
+      const K330={hotel:82,market:87,marina:90,tradepost:91,brewery:100,waterpark:101,highschool:108,freight:110,upcycle:111,datacenter:116,fertplant:118,kitchen:119}[toolId];
       for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
         const sx=x+dx,sy=y+dy,j=idx(sx,sy),ct=T(j);
         if(undoGroup&&!undoGroup.seen[j]){undoGroup.seen[j]=1;undoGroup.snaps.push({i:j,s:JSON.stringify(ct)});}
@@ -8425,6 +8530,8 @@ function doPlace(toolId,x,y,silent){
       if(toolId==='brewery')stampPolSrc(x,y,100,1); // T340：放置蓋印（doze 走 POL_SRC 通用撤印）
       if(toolId==='highschool')stampCov('highsch',x,y,COVR.highsch,1); // T342
       if(toolId==='freight')stampCov('freight',x,y,COVR.freight,1); // T342
+      if(toolId==='fertplant'){stampCov('fertco',x,y,COVR.fertco,1);stampPolSrc(x,y,118,1);} // T346
+      if(toolId==='kitchen')stampCov('kitchen',x,y,COVR.kitchen,1); // T346
       break;}
     case 'resort':{ // T330：度假酒店 3×3
       for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){
@@ -8728,10 +8835,10 @@ function congestNear(x,y,r){
 }
 /* T61 服務覆蓋計數場：擺放時蓋印一次，tick 內 O(1) 讀取（取代逐棟 countNear 方框掃描）。
    運行時重建、不入存檔（load/newWorld 後與 undo 後 rebuildCov 全量重建）。語義與原 countNear(...)>0／計數完全一致。*/
-const COVR={park:4,plant:4,fire:9,school:8,stadium:10,police:10,hospital:12,clinic:6,library:6,post:8,cemetery:10,bus:6,rdec:2,ambulance:10,fire2:12,prison:8,university:10,parking:8,museum:8,theater:7,cinema:6,grandlib:12,court:10,institute:8,botanical:10,megahosp:18,police2:5,cem2:16,stadium2:16,fireHQ:16,faith:8,kindergarten:6,senior:6,bank:5,market:5,dogpark:4,icerink:6,skate:5,firewatch:6,pool:6,chapel:5,vet:5,cgarden:4,crem:12,highsch:10,freight:8,cpark:8,campus:12,civicc:9}; // T257：fireHQ＝消防總局超大半徑消防場（fire/fire2 三場 OR） // T233：cem2＝大墓園大半徑安撫場 // T222：police2＝派出所小半徑警力場（fire2 同款雙場模式）；T138：博物館/劇院/電影院＝觀光＋幸福半徑；圖書總館＝大範圍教育（水族館/動物園/遊樂園純觀光係數，無 COV 欄）；T139：法院＝降犯罪半徑（配合警局）；研究院＝科技升級加成半徑；植物園＝大範圍幸福半徑；綜合醫院＝超大半徑醫療（市政廳/會展中心/氣象站為全城效果，無 COV 欄）
+const COVR={park:4,plant:4,fire:9,school:8,stadium:10,police:10,hospital:12,clinic:6,library:6,post:8,cemetery:10,bus:6,rdec:2,ambulance:10,fire2:12,prison:8,university:10,parking:8,museum:8,theater:7,cinema:6,grandlib:12,court:10,institute:8,botanical:10,megahosp:18,police2:5,cem2:16,stadium2:16,fireHQ:16,faith:8,kindergarten:6,senior:6,bank:5,market:5,dogpark:4,icerink:6,skate:5,firewatch:6,pool:6,chapel:5,vet:5,cgarden:4,crem:12,highsch:10,freight:8,cpark:8,campus:12,civicc:9,fertco:10,kitchen:8}; // T257：fireHQ＝消防總局超大半徑消防場（fire/fire2 三場 OR） // T233：cem2＝大墓園大半徑安撫場 // T222：police2＝派出所小半徑警力場（fire2 同款雙場模式）；T138：博物館/劇院/電影院＝觀光＋幸福半徑；圖書總館＝大範圍教育（水族館/動物園/遊樂園純觀光係數，無 COV 欄）；T139：法院＝降犯罪半徑（配合警局）；研究院＝科技升級加成半徑；植物園＝大範圍幸福半徑；綜合醫院＝超大半徑醫療（市政廳/會展中心/氣象站為全城效果，無 COV 欄）
 const COV={};for(const f in COVR)COV[f]=new Uint8Array(N*N);
 // T67：新服務 k 接入覆蓋場；高級消防用 fire2 更大半徑
-function covFieldOfK(k){return {4:'park',5:'plant',6:'fire',7:'school',9:'stadium',11:'police',12:'hospital',13:'clinic',14:'library',15:'post',16:'cemetery',28:'ambulance',30:'fire2',31:'prison',32:'university',20:'parking',35:'museum',36:'theater',40:'cinema',41:'grandlib',43:'court',45:'institute',47:'botanical',48:'megahosp',52:'police2',54:'cem2',56:'stadium2',61:'fireHQ',66:'faith',84:'kindergarten',85:'senior',86:'bank',87:'market',92:'dogpark',93:'icerink',94:'skate',95:'firewatch',96:'pool',99:'chapel',102:'vet',104:'cgarden',107:'crem',108:'highsch',110:'freight',112:'cpark',113:'campus',115:'civicc'}[k]||null;} // T257：k61 消防總局→fireHQ 場（doze/rebuildCov 自動對稱） // T241：k56 體育園區→stadium2 大幸福半徑 // T233：k54 大墓園→cem2 場 // T222：k52 派出所→police2 場（doze/rebuildCov 自動走此映射） // T138：k35/36/40/41 接入覆蓋場；T139：k43/45/47/48 接入覆蓋場（k42/44/46 市政廳/會展中心/氣象站為全城效果，無 COV 欄）
+function covFieldOfK(k){return {4:'park',5:'plant',6:'fire',7:'school',9:'stadium',11:'police',12:'hospital',13:'clinic',14:'library',15:'post',16:'cemetery',28:'ambulance',30:'fire2',31:'prison',32:'university',20:'parking',35:'museum',36:'theater',40:'cinema',41:'grandlib',43:'court',45:'institute',47:'botanical',48:'megahosp',52:'police2',54:'cem2',56:'stadium2',61:'fireHQ',66:'faith',84:'kindergarten',85:'senior',86:'bank',87:'market',92:'dogpark',93:'icerink',94:'skate',95:'firewatch',96:'pool',99:'chapel',102:'vet',104:'cgarden',107:'crem',108:'highsch',110:'freight',112:'cpark',113:'campus',115:'civicc',118:'fertco',119:'kitchen'}[k]||null;} // T257：k61 消防總局→fireHQ 場（doze/rebuildCov 自動對稱） // T241：k56 體育園區→stadium2 大幸福半徑 // T233：k54 大墓園→cem2 場 // T222：k52 派出所→police2 場（doze/rebuildCov 自動走此映射） // T138：k35/36/40/41 接入覆蓋場；T139：k43/45/47/48 接入覆蓋場（k42/44/46 市政廳/會展中心/氣象站為全城效果，無 COV 欄）
 /* T294：服務預算滑塊（CS 式錢↔服務範圍權衡）——4 類服務（警/消/醫/教）預算 0.5-1.5×，於 stampCov 內縮放覆蓋半徑
    （一處改動覆蓋 doPlace/rebuildCov 全部 stampCov 調用）＋維護費按預算縮放（upkeep）。入存檔（可選欄位 sb，缺省 1）。
    增量蓋印/撤印對稱性：budget 改變時即刻 rebuildCov（fill0 全量重建），故兩次增量之間 budget 不變＝對稱不下溢。 */
@@ -8756,7 +8863,7 @@ function stampCov(field,x,y,r,delta){
    （教訓見 §11-12：COV 缺蓋印會 0→255，此處改用雙陣列衍生法從根本避開，種樹/砍樹可安全對稱 ±）。
    命名地雷：勿與稅率政策全域 pol（T55，小寫）混淆。運行時重建、不入存檔（隨 rebuildCov 一併重建）。*/
 let POL=new Uint8Array(N*N),POLBASE=new Uint8Array(N*N),POLTREE=new Uint8Array(N*N); // T262：const→let（allocGrids 依新 N 重建）
-const POL_SRC={3:{r:5,p:30},5:{r:6,p:40},8:{r:5,p:26},19:{r:6,p:34},62:{r:7,p:44},100:{r:3,p:12},107:{r:2,p:8},114:{r:8,p:40}}; // T340：釀酒廠少量污染（doze 通用撤印自動對稱） // T265：焚化發電高污染 r7/p44；工業/電廠/垃圾場/機場：中心峰值向外遞減
+const POL_SRC={3:{r:5,p:30},5:{r:6,p:40},8:{r:5,p:26},19:{r:6,p:34},62:{r:7,p:44},100:{r:3,p:12},107:{r:2,p:8},114:{r:8,p:40},117:{r:4,p:22},118:{r:3,p:14}}; // T340：釀酒廠少量污染（doze 通用撤印自動對稱） // T265：焚化發電高污染 r7/p44；工業/電廠/垃圾場/機場：中心峰值向外遞減
 const POL_LV3_MAX=15; // T113：lv2→3 升級要求 POL 低於此值（低污染門檻）
 function recomputePol(i){const v=POLBASE[i]-POLTREE[i];POL[i]=v>0?(v<255?v:255):0;}
 // 中心強、半徑遞減至0（Chebyshev，與COVR家族一致）；sign=+1放置/-1拆除，doPlace/doze成對呼叫維持±對稱
@@ -9210,7 +9317,12 @@ function aiStep(){
   }
   // ── 3. 分區：路旁空草地劃最高需求區（RCI 自我調節＝「自己改需求」） ──
   const dtype=dem[1]>=dem[2]&&dem[1]>=dem[3]?'zr':dem[2]>=dem[3]?'zc':'zi';
-  let zoneBudget=saving?1:6; // 攢錢模式近乎停區（留 1 格維持微成長）
+  /* T346d⬚攛錢模式的分區預算 1→4（結构性改善，不是給錢）：原本一種「貧困陷阱」是
+     資金<800 → saving 模式把道路與分區預算戒掉 → 永遠不會有新納稅人 → 永遠窑。
+     分區本身幾乎免費（域不花錢、成屋才有維護），回到 4 就給了自救的路。
+     六種子實測（zb=1 vs 4）：301 3155→4153、22 2572→4550、77 2440→2925、9 3829→3164，四個可行種子三勝一負，
+     崩城率不變（seed5/15 在 v8.7 基準也是 0 人＝早先存在的獨立 bug）。__zb 保留作未來掃參開關。 */
+  let zoneBudget=saving?(window.__zb===undefined?4:window.__zb):6; // 攢錢模式近乎停區（留 1 格維持微成長）
   const nearInd=(x,y)=>countNear(x,y,3,tt=>(tt.bld&&tt.bld.k===3)||tt.zone===3)>0;   // 工業鄰域（污染懲罰半徑）
   const nearRes=(x,y)=>countNear(x,y,3,tt=>(tt.bld&&tt.bld.k===1)||tt.zone===1)>0;   // 住宅鄰域
   for(let y=y0;y<=y1&&zoneBudget>0;y++)for(let x=x0;x<=x1&&zoneBudget>0;x++){
@@ -9360,7 +9472,13 @@ function aiStep(){
   // 閘門校準（T324b）：實測 seed77 400天基線 pop746 → 初版閘門(net>2,餘量150)後僅 388＝進階建設
   // 反覆把現金打到 poor 線(800)以下、分區/道路預算被節流、成長腰斬。改為：淨收入>4 且現金>1400 才進場、
   // 單筆蓋完仍須離 poor 線有距離（餘量+600）、小城(pop<800)每日限 1 座且隔日評估＝服務跟著財政走而非拖垮財政。
-  if(!poor&&pop>140&&fin&&fin.net>4&&money>1400&&day%2===0&&acts<MAXA){
+  /* T346c：進階建設的財政閘門改「隨城市規模縮放」——原本 fin.net>4 是絕對值，對稅收上百的城市
+   等於毫無門檻：一座新建築的維護費就翻負，下一日又蓋，形成死亡螺旋。實測：只要給城市任何額外
+   收入（如 T346 工資→消費），seed301 就從 3155 人崩到 387 人，因為多來的錢讓它提前跨出 poor 區、
+   提前開始花錢。改成「淨收入須達稅收規模的 8%」即與城市大小同步：小城門檻低、大城自動抬高。 */
+      const taxTot346=((fin&&fin.taxR)||0)+((fin&&fin.taxC)||0)+((fin&&fin.taxI)||0);
+      const netGate346=Math.max(6,taxTot346*.08);
+      if(!poor&&pop>140&&fin&&fin.net>netGate346&&money>1400&&day%2===0&&acts<MAXA){
     const aiCnt=Object.create(null);let aiCrime=0,aiEduSum=0,aiEduN=0;
     for(const i2 of tickBld){const b2=tiles[i2].bld;if(!b2)continue;
       if(!b2.ref)aiCnt[b2.k]=(aiCnt[b2.k]||0)+1;
@@ -9435,6 +9553,13 @@ function aiStep(){
       ['vetclinic',   C2(92)>0&&pop>400&&C2(102)<Math.ceil(pop/1500),'res'],
       ['skyrest',     rankIdx+1>=12&&pop>1800&&C2(103)<2,'res'],
       ['cgarden',     pop>150&&C2(104)<Math.ceil(pop/800),'res'],
+      /* T346b 閘門紀律（T324b 教訓重演）：首版四條只看「有沒有」不看「負不負得起」——
+         seed301 拮據城實測從 3228 人崩到 387 人（進階支出反覆擊穿 poor 線→分區/道路預算被節流）。
+         經濟鏈屬「錨黃金期才趙錢」的投資，故除了人口閘門再加 fin.net 與現金双重閘門。 */
+      ['gaswell',     pop>600&&fin.net>8&&money>3200&&C2(117)<2,'oil'],
+      ['fertplant',   pop>900&&fin.net>10&&(C2(22)+C2(53))>1&&C2(117)>0&&C2(118)<Math.ceil(pop/3000),'res'],
+      ['kitchen',     pop>1100&&fin.net>10&&C2(117)>0&&C2(119)<Math.ceil(pop/2600),'res'],
+      ['fishfarm',    pop>450&&fin.net>6&&C2(120)<2,'water'],
       ['crematorium', pop>800&&C2(107)<Math.ceil(pop/2500),'avoid'], // T342
       ['highschool',  pop>500&&C2(108)<Math.ceil(pop/1400),'res'],
       ['techpark',    rankIdx+1>=13&&pop>1600&&C2(109)<Math.ceil(pop/4000),'res'],
@@ -9618,7 +9743,7 @@ function tick(){
   // 供電／供水判定
   let powered=0,watered=0;
   let popN=0,jobsC=0,jobsI=0,happySum=0,happyN=0,schools=0,dumps=0,stadiums=0,waterTowers=0,clinics=0,libraries=0,posts=0,cemeteries=0;
-  let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0,trR=0,trC=0,bigFa=0,bigCemN=0,gstN=0,scN=0,upJob=0,farmFoodU=0,farmGoldU=0,ranchFoodU=0,ranchGoldU=0,fpN=0,procCapU=0,nkN=0,hyN=0,geN=0,fhqN=0,ghN=0,ghFoodU=0,ghGoldU=0,wteN=0,whN284=0,whCap284=0,nIndG284=0,nComG284=0,mallN=0,gh330=0,ht330=0,rs330=0,kg330=0,sn330=0,bk330=0,mk330=0,cp330=0,tv330=0,mr330=0,tp336=0,dg336=0,ir336=0,sk336=0,fw340=0,pl340=0,fp340=0,hs340=0,ch340=0,br340=0,wp340=0,vt340=0,sr340=0,cg340=0,mgR341=0,mgC341=0,cr342=0,hsc342=0,tpk342=0,frt342=0,upc342=0,cpk342=0,cam342=0,mpt342=0,cvc342=0,dtc342=0,eduSumT342=0,eduCntT342=0; // T290：購物中心計數 // T265：焚化發電計數；T257：核電/水力/地熱/消防總局計數；T228：大農場計數；T233：大墓園計數；T234：中央車站計數；T241：體育園區計數；T239：升級就業加成；T251：農場等級加權食物/金幣累加；T252：牧場等級加權食物/金幣累加（不隨季節＝畜牧全年穩定）；T254：食品加工廠計數＋加工容量累加
+  let st=0,po=0,ai=0,pa=0,tr=0,fa=0,ra=0,la=0,so=0,wi=0,se=0,am=0,rc=0,fs2=0,pr=0,un=0,trR=0,trC=0,bigFa=0,bigCemN=0,gstN=0,scN=0,upJob=0,farmFoodU=0,farmGoldU=0,ranchFoodU=0,ranchGoldU=0,fpN=0,procCapU=0,nkN=0,hyN=0,geN=0,fhqN=0,ghN=0,ghFoodU=0,ghGoldU=0,wteN=0,whN284=0,whCap284=0,nIndG284=0,nComG284=0,mallN=0,gh330=0,ht330=0,rs330=0,kg330=0,sn330=0,bk330=0,mk330=0,cp330=0,tv330=0,mr330=0,tp336=0,dg336=0,ir336=0,sk336=0,fw340=0,pl340=0,fp340=0,hs340=0,ch340=0,br340=0,wp340=0,vt340=0,sr340=0,cg340=0,mgR341=0,mgC341=0,cr342=0,hsc342=0,tpk342=0,frt342=0,upc342=0,cpk342=0,cam342=0,mpt342=0,cvc342=0,dtc342=0,eduSumT342=0,eduCntT342=0,gw346=0,fp346=0,kt346=0,ff346=0,mortPop346=0; // T290：購物中心計數 // T265：焚化發電計數；T257：核電/水力/地熱/消防總局計數；T228：大農場計數；T233：大墓園計數；T234：中央車站計數；T241：體育園區計數；T239：升級就業加成；T251：農場等級加權食物/金幣累加；T252：牧場等級加權食物/金幣累加（不隨季節＝畜牧全年穩定）；T254：食品加工廠計數＋加工容量累加
   let mu=0,th=0,aq=0,zo=0,ap=0,ci=0,gl=0,faN=0,ctN307=0,obN307=0,tourLm309=0,jobsLm309=0,upLm309=0; // T307 鐘樓/天文台；T296 信仰中心；T138：mu博物館/th劇院/aq水族館/zo動物園/ap遊樂園/ci電影院/gl圖書總館（root）計數
   let chN=0,crtN=0,cvN=0,inN=0,wsN=0,bgN=0,mhN=0; // T139：chN市政廳/crtN法院/cvN會展中心/inN研究院/wsN氣象站/bgN植物園/mhN綜合醫院（root）計數
   let owN=0,mnN=0,mgN=0,indBldN=0,suppliesGain=0; // T140：owN油井/mnN礦場/mgN太空研究中心（root）計數；indBldN=工業建築計數（供資源消耗鏈用，獨立於既有 nI/jobsI，不限電力）；suppliesGain=本日開採彙總
@@ -9663,8 +9788,8 @@ function tick(){
     if(b&&b.k===19)ai++;               // 機場（T41）
     if(b&&b.k===20)pa++;               // 停車場（T43）
     if(b&&b.k===21)tr++;               // 輕軌站（T44）
-    if(b&&b.k===22){fa++;const flv=b.lv||1;farmFoodU+=flv*3;farmGoldU+=flv*3;} // 農場（T46）；T251：灌溉等級加權食物(3/級)＋金幣收益(3/級)
-    if(b&&b.k===53){bigFa++;const flv=b.lv||1;farmFoodU+=flv*20;farmGoldU+=flv*12;} // 大農場（T228，5×5 root）；T251：食物20/級＋金幣12/級
+    if(b&&b.k===22){fa++;const flv=b.lv||1;const fb=(fertReady&&COV.fertco&&COV.fertco[idx(x,y)]>0)?1.35:1;farmFoodU+=flv*3*fb;farmGoldU+=flv*3*fb;} /* T346 化肥增產 */ // 農場（T46）；T251：灌溉等級加權食物(3/級)＋金幣收益(3/級)
+    if(b&&b.k===53){bigFa++;const flv=b.lv||1;const fb=(fertReady&&COV.fertco&&COV.fertco[idx(x,y)]>0)?1.35:1;farmFoodU+=flv*20*fb;farmGoldU+=flv*12*fb;} /* T346 化肥增產 */ // 大農場（T228，5×5 root）；T251：食物20/級＋金幣12/級
     if(b&&b.k===23){ra++;const rlv=b.lv||1;ranchFoodU+=rlv*2;ranchGoldU+=rlv*2;} // 牧場（T46）；T252：牧養等級加權食物(2/級)＋金幣收益(2/級)，不隨季節（畜牧全年穩定，與農場季節峰谷區隔）
     if(b&&b.k===24)la++;               // 地標（T47）
     if(b&&b.k===25)so++;               // 太陽能（T48）
@@ -9676,6 +9801,7 @@ function tick(){
     if(b&&b.k===31)pr++;               // 監獄（T53）
     if(b&&b.k===32)un++;               // 大學（T54）
     if(b&&b.k===107)cr342++;if(b&&b.k===108)hsc342++;if(b&&b.k===109)tpk342++;if(b&&b.k===110)frt342++;if(b&&b.k===111)upc342++; // T342
+    if(b&&b.k===117)gw346++;if(b&&b.k===118)fp346++;if(b&&b.k===119)kt346++;if(b&&b.k===120)ff346++; // T346
     if(b&&b.k===112)cpk342++;if(b&&b.k===113)cam342++;if(b&&b.k===114)mpt342++;if(b&&b.k===115)cvc342++;if(b&&b.k===116)dtc342++; // T342
     if(b&&b.k===105)mgR341++;         // T341：住宅巨廈（root）
     if(b&&b.k===106)mgC341++;         // T341：商業綜合體（root）
@@ -9726,7 +9852,8 @@ function tick(){
     if(b.k===1){
       const ci=idx(x,y);                                 // T61：本格覆蓋場索引
       const parks=COV.park[ci];
-      eduSumT342+=EDU[ci];eduCntT342++; /* T342：全城住宅教育均值（科技園產值閉環） */                          // 公園半徑4計數（原 countNear k===4）
+      eduSumT342+=EDU[ci];eduCntT342++;
+      if(!window.__noMort&&COV.bank&&COV.bank[ci]>0&&b.pw)mortPop346+=Math.round(POPS[b.lv]*(b.den?DEN_POP[b.den-1]:1)); /* T346 房貸人口（銀行覆蓋住宅） */ /* T342：全城住宅教育均值（科技園產值閉環） */                          // 公園半徑4計數（原 countNear k===4）
       const ind  =countNear(x,y,3,tt=>tt.bld&&tt.bld.k===3);   // 工業＝動態源（生長/火災，非 doPlace），保留 countNear（T61）
       const pl   =COV.plant[ci];                         // 電廠半徑4計數（原 countNear k===5）
       const crime=countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime); // 犯罪＝每日生滅動態源，保留 countNear（T61）
@@ -9759,7 +9886,8 @@ function tick(){
         {name:'寵物醫院',val:(COV.vet&&COV.vet[ci]>0)?.02:0}, // T340
         {name:'社區菜園',val:(COV.cgarden&&COV.cgarden[ci]>0)?.015:0}, // T340
         {name:'中央公園',val:(COV.cpark&&COV.cpark[ci]>0)?.05:0}, /* T342 */
-        {name:'市民中心',val:(COV.civicc&&COV.civicc[ci]>0)?.04:0}, /* T342 */ // T296：信仰中心覆蓋→精神滿足幸福加成（未放置時恆為 0，精確恆等）
+        {name:'市民中心',val:(COV.civicc&&COV.civicc[ci]>0)?.04:0}, /* T342 */
+        {name:'熟食供應',val:(cookedReady&&COV.kitchen&&COV.kitchen[ci]>0)?.03:0}, /* T346 */ // T296：信仰中心覆蓋→精神滿足幸福加成（未放置時恆為 0，精確恆等）
         {name:'劇院',val:COV.theater[ci]>0?.05:0},
         {name:'電影院',val:COV.cinema[ci]>0?.04:0},
         {name:'圖書館',val:library?.04:0},
@@ -9792,7 +9920,7 @@ function tick(){
       if(b.k===2)jobsC+=JOBSC[b.lv]*(t.office?1.5:1);else jobsI+=JOBSI[b.lv]; // T79：辦公區商業高就業 ×1.5
     }
   }
-  pop=popN+trR*TOWER_POP+mgR341*MEGA_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+bigCemN*8+st*12+gstN*30+scN*40+fpN*25+nkN*30+hyN*12+geN*5+fhqN*20+ghN*4+whN284*8+mallN*70+wteN*12+po*10+ai*40+pa*1+tr*6+fa*3+bigFa*18+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS+mgC341*MEGA_JOBS+faN*12+ctN307*4+obN307*10+jobsLm309+mu*12+th*10+aq*14+zo*20+ap*24+ci*6+gl*16+chN*20+crtN*14+cvN*35+inN*22+wsN*8+bgN*18+mhN*28+owN*6+mnN*8+mgN*40+gh330*2+ht330*12+rs330*30+kg330*4+sn330*3+bk330*8+mk330*10+cp330*4+tv330*6+mr330*8+tp336*8+dg336*1+ir336*5+sk336*3+fw340*1+pl340*3+fp340*3+hs340*4+ch340*5+br340*14+wp340*16+vt340*4+sr340*10+cg340*1+cr342*4+hsc342*12+tpk342*45+frt342*10+upc342*12+cpk342*2+cam342*40+mpt342*60+cvc342*18+dtc342*20+upJob;   // T265：焚化發電固定 12 就業；T239：升級服務就業加成；T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15；T138：博物館12/劇院10/水族館14/動物園20/遊樂園24/電影院6/圖書總館16 就業；T139：市政廳20/法院14/會展中心35/研究院22/氣象站8/植物園18/綜合醫院28 就業；T140：油井6/礦場8/太空研究中心40 就業
+  pop=popN+trR*TOWER_POP+mgR341*MEGA_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+bigCemN*8+st*12+gstN*30+scN*40+fpN*25+nkN*30+hyN*12+geN*5+fhqN*20+ghN*4+whN284*8+mallN*70+wteN*12+po*10+ai*40+pa*1+tr*6+fa*3+bigFa*18+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS+mgC341*MEGA_JOBS+faN*12+ctN307*4+obN307*10+jobsLm309+mu*12+th*10+aq*14+zo*20+ap*24+ci*6+gl*16+chN*20+crtN*14+cvN*35+inN*22+wsN*8+bgN*18+mhN*28+owN*6+mnN*8+mgN*40+gh330*2+ht330*12+rs330*30+kg330*4+sn330*3+bk330*8+mk330*10+cp330*4+tv330*6+mr330*8+tp336*8+dg336*1+ir336*5+sk336*3+fw340*1+pl340*3+fp340*3+hs340*4+ch340*5+br340*14+wp340*16+vt340*4+sr340*10+cg340*1+cr342*4+hsc342*12+tpk342*45+frt342*10+upc342*12+cpk342*2+cam342*40+mpt342*60+cvc342*18+dtc342*20+gw346*6+fp346*14+kt346*12+ff346*4+upJob;   // T265：焚化發電固定 12 就業；T239：升級服務就業加成；T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15；T138：博物館12/劇院10/水族館14/動物園20/遊樂園24/電影院6/圖書總館16 就業；T139：市政廳20/法院14/會展中心35/研究院22/氣象站8/植物園18/綜合醫院28 就業；T140：油井6/礦場8/太空研究中心40 就業
   tvSignal=tv330>0; // T330：電視訊號（本日計數，happyParts 於同迴圈先讀＝1 天延遲，可接受）
   cityHappy=happyN?happySum/happyN:.6;
   happyAgg=happyN&&happyAggSum?happyAggSum.map(p=>({name:p.name,val:p.val/happyN})):[]; // T111：城市平均幸福構成，供 showStats 讀取
@@ -9822,7 +9950,7 @@ function tick(){
   for(const i of tickBld){const b=tiles[i].bld;if(!b||b.k!==1)continue;happySum+=b.h;happyN++;}
   if(happyN)cityHappy=happySum/happyN;
   // T81 食物 / T80 觀光
-  foodPoints=Math.round((farmFoodU*FARM_SEASON_MULT[sea]+ranchFoodU+ghFoodU+fp340*3+cg340*1)*(cityEvent?CITY_EVENTS[cityEvent.i].food:1)); // T299：事件食物加成（豐收節 ×1.5；無事件 ×1 恆等） // T280：溫室恆溫食物不乘季節 // T252：牧場食物改牧養等級加權(ranchFoodU，lv1 時＝ra*2 向後相容，不隨季節)；T251：農場食物灌溉等級加權(farmFoodU，lv1＝fa*3+bigFa*20)；T228：大農場日產 20 // T136：農場產量季節曲線（春播基準1／夏長1.15／秋收峰1.4／冬歇0.4），牧場（ra）不隨季節變動
+  foodPoints=Math.round((farmFoodU*FARM_SEASON_MULT[sea]+ranchFoodU+ghFoodU+fp340*3+cg340*1+ff346*4)*(cityEvent?CITY_EVENTS[cityEvent.i].food:1)); // T299：事件食物加成（豐收節 ×1.5；無事件 ×1 恆等） // T280：溫室恆溫食物不乘季節 // T252：牧場食物改牧養等級加權(ranchFoodU，lv1 時＝ra*2 向後相容，不隨季節)；T251：農場食物灌溉等級加權(farmFoodU，lv1＝fa*3+bigFa*20)；T228：大農場日產 20 // T136：農場產量季節曲線（春播基準1／夏長1.15／秋收峰1.4／冬歇0.4），牧場（ra）不隨季節變動
   tourists=Math.round((la*25+ctN307*12+obN307*22+tourLm309+ai*40+st*5+mu*15+th*12+ci*8+aq*35+zo*45+ap*55+bgN*20+rs330*15+tv330*18+mr330*30+ch340*8+wp340*34+sr340*16+cpk342*12+mpt342*120)*TOUR_SEASON_MULT[sea]); /* T342 */ // T136：觀光夏秋雙高峰（春基準1／夏1.3／秋1.2／冬清淡0.85）；T138：博物館/劇院/電影院中度觀光係數＋水族館/動物園/遊樂園強觀光吸引（圖書總館 gl 純教育，不貢獻觀光）；T139：植物園持續觀光貢獻（市政廳/法院/研究院/氣象站/綜合醫院不貢獻觀光）
   if(cvN>0&&day%CONVENTION_PULSE_DAYS===0){ // T139：會展中心——非連續型「觀光脈衝」機制，區別於上方持續型觀光貢獻，每 20 天一次性大額遊客湧入（純由 day 導出，不消耗 R()，cvN=0 時整段不執行、零回歸影響）
     const burst=Math.round(500*cvN*TOUR_SEASON_MULT[sea]);
@@ -10341,7 +10469,7 @@ function tick(){
     else if(b.k===67);                // 鐘樓（T307）：地標無稅收，鐵律14
     else if(b.k===68);                // 天文台（T307）：地標無稅收，鐵律14
     else if(LMCFG309[b.k]);
-      else if(b.k>=81&&b.k<=116&&b.k!==105&&b.k!==106); /* T330-T342（105/106 有專屬稅分支） */ // ：新民生/旅宿群零直接稅（收益走 lodgeRev/mktGold/觀光乘數；守衛防 fall-through NaN＝鐵律14）           // T309 觀光地標群：無稅收，鐵律14：無稅收（容量設施），鐵律14 防升級 NaN：收益走 ghGold 恆溫產出，不參與 RCI 稅，鐵律14 防升級 NaN
+      else if(b.k>=81&&b.k<=120&&b.k!==105&&b.k!==106); /* T330-T342（105/106 有專屬稅分支） */ // ：新民生/旅宿群零直接稅（收益走 lodgeRev/mktGold/觀光乘數；守衛防 fall-through NaN＝鐵律14）           // T309 觀光地標群：無稅收，鐵律14：無稅收（容量設施），鐵律14 防升級 NaN：收益走 ghGold 恆溫產出，不參與 RCI 稅，鐵律14 防升級 NaN
     else if(b.pw&&!b.fire&&!b.sick&&!b.death&&!b.abandoned&&!b.riot&&!b.plague){ // T118：暴亂中住宅停稅收；T137：瘟疫中住宅暫停繳稅（產能停擺）
       const pm=pol||{taxR:1,taxC:1,taxI:1};
       if(b.k===1){const we=b.we!==undefined?b.we:1;const landTaxMul=1+(LAND[i]-128)/128*.15;const v2=POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]*landTaxMul*civicMul;income+=v2;taxR+=v2;} // T124：財富分級稅收係數（貧.6/中1/富1.5）；T130：輕度地價稅收槓桿，中性地價(128)精確恆等 ×1；T139：市政廳全城稅收微增
@@ -10353,7 +10481,7 @@ function tick(){
   let roadUpkeep=0;
   for(const i of tickRoad){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];} // T316：只掃道路格
   const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0)+(pol&&pol.schoolLunch?12:0)+(pol&&pol.smokeDetect?6:0)+(pol&&pol.parkNight?5:0)+(pol&&pol.insurance?18:0); // T327/T337 保險保費 $18/日 // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
-  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+policeBoxes*1.5+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+bigCemN*8+dumps*2+stadiums*8+waterTowers*3+st*6+gstN*15+scN*18+fpN*14+nkN*28+hyN*9+geN*4+fhqN*10+wteN*10+ghN*3+whN284*4+mallN*16+po*5+ai*25+pa*1.5+tr*4+fa*1+bigFa*6+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+faN*8+ctN307*4+obN307*9+upLm309+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+chN*10+crtN*6+cvN*20+inN*10+wsN*4+bgN*14+mhN*16+owN*4+mnN*5+mgN*25+upReg+gh330*1+ht330*5+rs330*12+kg330*2+sn330*2+bk330*3+mk330*3+cp330*2+tv330*4+mr330*4+tp336*4+dg336*1+ir336*3+sk336*2+fw340*1+pl340*2+fp340*1+hs340*2+ch340*3+br340*5+wp340*6+vt340*2+sr340*4+cg340*1+cr342*3+hsc342*5+tpk342*10+frt342*4+upc342*4+cpk342*2+cam342*12+mpt342*20+cvc342*6+dtc342*8; // T265：焚化發電維護10；T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費；T139：市政廳10/法院6/會展中心20/研究院10/氣象站4/植物園14/綜合醫院16 維護費（綜合醫院比照 T95 教訓，維護費遠高於醫院的5，避免超大半徑碾壓既有醫療建築）；T140：油井4/礦場5/太空研究中心25 維護費
+  upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+policeBoxes*1.5+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+bigCemN*8+dumps*2+stadiums*8+waterTowers*3+st*6+gstN*15+scN*18+fpN*14+nkN*28+hyN*9+geN*4+fhqN*10+wteN*10+ghN*3+whN284*4+mallN*16+po*5+ai*25+pa*1.5+tr*4+fa*1+bigFa*6+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+faN*8+ctN307*4+obN307*9+upLm309+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+chN*10+crtN*6+cvN*20+inN*10+wsN*4+bgN*14+mhN*16+owN*4+mnN*5+mgN*25+upReg+gh330*1+ht330*5+rs330*12+kg330*2+sn330*2+bk330*3+mk330*3+cp330*2+tv330*4+mr330*4+tp336*4+dg336*1+ir336*3+sk336*2+fw340*1+pl340*2+fp340*1+hs340*2+ch340*3+br340*5+wp340*6+vt340*2+sr340*4+cg340*1+cr342*3+hsc342*5+tpk342*10+frt342*4+upc342*4+cpk342*2+cam342*12+mpt342*20+cvc342*6+dtc342*8+gw346*4+fp346*5+kt346*4+ff346*2; // T265：焚化發電維護10；T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費；T139：市政廳10/法院6/會展中心20/研究院10/氣象站4/植物園14/綜合醫院16 維護費（綜合醫院比照 T95 教訓，維護費遠高於醫院的5，避免超大半徑碾壓既有醫療建築）；T140：油井4/礦場5/太空研究中心25 維護費
   let metroRev=0,metroAds=0,metroCost=0; // T302 地鐵財政：分線票務（載客受列車運力封頂）＋車站/車身廣告－人工/維修/列車保養
   for(const L of metroLines){
     const cap=L.trains*300;
@@ -10374,16 +10502,29 @@ function tick(){
   const foodSurplus=Math.max(0,foodPoints-Math.ceil(pop/10)); // T336：城市自需之外的糧食盈餘
   const tradeGold=tp336>0?Math.round(Math.min(foodSurplus,tp336*15)*1.1*foodPrice):0; // T336 貿易站出口（每站上限15單位）
   const brewGold=br340>0?Math.round(Math.min(foodPoints,br340*3)*2.2*foodPrice):0; // T340 釀酒廠高值加工
+  /* T346 鏈條結算：天然氣供需→化肥/熟食產出→工資指數。全為每日流量，效果由「下一日」讀取。 */
+  gasSup=gw346*8;
+  gasDem=fp346*3+kt346*2+fpN*1;
+  gasRatio=gasDem>0?Math.min(1,gasSup/gasDem):1;
+  fertOut=Math.round(fp346*6*gasRatio);
+  cookedOut=Math.round(Math.min(foodPoints,kt346*10)*gasRatio);
+  fertReady=fertOut>0;cookedReady=cookedOut>0;
+  const workers346=Math.max(1,Math.round(pop*.55));
+  wageIdx=clamp(jobs/workers346,0,2);
+  const gasGold=Math.round(Math.max(0,gasSup-gasDem)*1.2);
+  const cookGold=Math.round(cookedOut*.6);
+  mortPopLast346=mortPop346;
+  const bankInt=Math.round(mortPop346*.015);
   const eduAvg342=eduCntT342?eduSumT342/eduCntT342:0;
   const techGold=tpk342>0?Math.round(tpk342*60*Math.min(1.2,eduAvg342/100)):0; /* T342：科技園產值＝教育閉環（教育100→滿產60/座/日） */
   const dcGold=dtc342*40; /* T342：數據中心固定產值 */
   const farmGold=Math.round(farmGoldU*FARM_SEASON_MULT[sea]*foodPrice); // T251：農場灌溉金幣收益（隨季節；lv 越高越多＝Skylines 式特化經濟）
   const ranchGold=Math.round(ranchGoldU*foodPrice),ghGold=Math.round(ghGoldU*foodPrice); // T280：溫室金幣恆溫 // T252：牧場牧養金幣收益（不隨季節＝畜牧全年穩定；lv 越高越多）
   const procGold=Math.round(Math.min(foodPoints,procCapU)*1.5*foodPrice); // T254：食品加工廠將食物盈餘加工為金幣＝min(當日食物產出,總加工容量)×1.5 轉換率（農場→加工鏈：食物是瓶頸，蓋越多農場才餵得飽加工廠＝Skylines 式特化鏈）
-  income+=farmGold+ranchGold+procGold+ghGold+lodgeRev+mktGold+tradeGold+brewGold+techGold+dcGold; /* T342 */
+  income+=farmGold+ranchGold+procGold+ghGold+lodgeRev+mktGold+tradeGold+brewGold+techGold+dcGold+gasGold+cookGold+bankInt; /* T342/T346 */
   const transitRev=(pol&&pol.freeTransit)?0:Math.round(transitRidership*.03);income+=transitRev; // T327：免費公交＝票務歸零（換幸福與運量） // T293：公共運輸票務收入（日客運量×票價 0.03）
   if(cityEvent){income=Math.round(income*CITY_EVENTS[cityEvent.i].tax);} // T299：城市事件稅收加成（旅遊/繁榮 +25~30%；無事件 ×1）
-  fin={taxR,taxC,taxI,farmGold,ranchGold,procGold,lodgeRev,mktGold,tradeGold,brewGold,techGold,dcGold,transitRev,metroRev,metroAds,metroCost,upR:roadUpkeep,upP:parks*.5,upE:plants*4+wteN*10,upPol:policeStations*4+policeBoxes*1.5,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep}; // T266：只補 k62 已存在於 upkeep 的 $10 報表鏡像，不重複扣款
+  fin={taxR,taxC,taxI,farmGold,ranchGold,procGold,lodgeRev,mktGold,tradeGold,brewGold,techGold,dcGold,gasGold,cookGold,bankInt,gasSup,gasDem,fertOut,cookedOut,wageIdx,transitRev,metroRev,metroAds,metroCost,upR:roadUpkeep,upP:parks*.5,upE:plants*4+wteN*10,upPol:policeStations*4+policeBoxes*1.5,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep}; // T266：只補 k62 已存在於 upkeep 的 $10 報表鏡像，不重複扣款
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   // T88 挑戰檢查
@@ -13538,8 +13679,8 @@ function inspect(x,y){
     else if(b.k===62){const wlv=b.lv||1,wpc=60+(wlv-1)*8;html=`<h3>♨️ 垃圾焚化發電廠</h3><div class="row">2×2 垃圾處理＋能源回收｜可啟動電網</div><div class="row">🗑️ 處理容量 100　⚡ 供電 ${wpc} 棟</div><div class="row">就業 12｜維護費 $10/天｜高污染 r7/p44</div>`;} // T265
     else if(b.k===63)html=`<h3>🏡 溫室</h3><div class="row">2×2 全年恆溫種植｜食物＋金幣不受季節影響</div><div class="row">🏡 可升級擴建（下方）｜就業 4</div><div class="row">維護費 $3/天（冬季照常生產）</div>`; // T280
     else if(b.k===66)html=`<h3>🛐 信仰中心</h3><div class="row">2×2 宗教建築｜服務半徑 8 格提供信仰滿足＝居民幸福 +6%（中性多元，尊重各種信仰）</div><div class="row">就業 12｜維護費 $8/天</div>`; // T296
-    else if(b.k>=81&&b.k<=116&&b.k!==105&&b.k!==106){ // T330-T342 新建築群
-        const I330={81:'🛏️ 床位 8｜就業 2｜維護 $1／日',82:'🛏️ 床位 40｜就業 12｜維護 $5／日',83:'🛏️ 床位 110｜🧳 觀光 +15｜就業 30｜維護 $12／日',84:'覆蓋半徑 6：家庭幸福 +3%｜就業 4',85:'覆蓋半徑 6：樂齡幸福 +3%｜就業 3',86:'覆蓋半徑 5：商業稅 ×1.08｜解鎖大額貸款 $5000｜就業 8',87:'收購食物 ≤4／日 → 金幣｜覆蓋幸福 +2%｜就業 10',88:'垃圾容量 +60（零污染）｜就業 4',89:'全城電視訊號：住宅幸福 +1.5%｜🧳 觀光 +18｜就業 6',90:'🧳 觀光 +30（乘季節）｜就業 8',91:'出口糧食盈餘 ≤15／日 → 金幣（×1.1×市價）｜就業 8',92:'覆蓋半徑 4：幸福 +2.5%',93:'覆蓋半徑 6：冬季幸福 +5%／平時 +2%',94:'覆蓋半徑 5：幸福 +2.5%｜就業 3',95:'弱火險：無正規消防時起火 ×0.45｜維護 $1',96:'覆蓋半徑 6：夏季幸福 +5%／平時 +2%',97:'食物 +3（全年穩定）｜需臨水',98:'🛏️ 平價床位 14｜就業 4',99:'覆蓋半徑 5：幸福 +2%｜🧳 觀光 +8',100:'釀造食物 ≤3／日 → 高值金幣（×2.2×市價）｜少量污染',101:'🧳 觀光 +34（乘季節）｜就業 16',102:'覆蓋半徑 5：幸福 +2%（毛孩子安心）',103:'🧳 觀光 +16｜就業 10（Lv.12 解鎖）',104:'食物 +1｜覆蓋半徑 4：幸福 +1.5%',107:'殯葬閉環：安撫半徑 12・容量 40｜少量污染',108:'教育鏈：EDU +70 半徑 10｜就業 12',109:'教育閉環：產值＝60×(全城教育/100)／日｜就業 45（Lv.13）',110:'貨運閉環：半徑 8 商業稅 ×1.05｜就業 10',111:'♻️ 垃圾→工業品（×0.08，上限 6/座）＋垃圾容量 40',112:'城市綠肺：半徑 8 幸福 +5%｜🧳 觀光 +12',113:'教育旗艦：EDU +120 半徑 12｜就業 40（Lv.14）',114:'🧳 觀光 +120｜高噪音污染｜就業 60（Lv.18）',115:'綜合市政：半徑 9 幸福 +4%｜就業 18（一城一座）',116:'伺服器經濟 $40/日｜就業 20（Lv.13）'};
+    else if(b.k>=81&&b.k<=120&&b.k!==105&&b.k!==106){ // T330-T346 新建築群
+        const I330={81:'🛏️ 床位 8｜就業 2｜維護 $1／日',82:'🛏️ 床位 40｜就業 12｜維護 $5／日',83:'🛏️ 床位 110｜🧳 觀光 +15｜就業 30｜維護 $12／日',84:'覆蓋半徑 6：家庭幸福 +3%｜就業 4',85:'覆蓋半徑 6：樂齡幸福 +3%｜就業 3',86:'覆蓋半徑 5：商業稅 ×1.08｜解鎖大額貸款 $5000｜就業 8',87:'收購食物 ≤4／日 → 金幣｜覆蓋幸福 +2%｜就業 10',88:'垃圾容量 +60（零污染）｜就業 4',89:'全城電視訊號：住宅幸福 +1.5%｜🧳 觀光 +18｜就業 6',90:'🧳 觀光 +30（乘季節）｜就業 8',91:'出口糧食盈餘 ≤15／日 → 金幣（×1.1×市價）｜就業 8',92:'覆蓋半徑 4：幸福 +2.5%',93:'覆蓋半徑 6：冬季幸福 +5%／平時 +2%',94:'覆蓋半徑 5：幸福 +2.5%｜就業 3',95:'弱火險：無正規消防時起火 ×0.45｜維護 $1',96:'覆蓋半徑 6：夏季幸福 +5%／平時 +2%',97:'食物 +3（全年穩定）｜需臨水',98:'🛏️ 平價床位 14｜就業 4',99:'覆蓋半徑 5：幸福 +2%｜🧳 觀光 +8',100:'釀造食物 ≤3／日 → 高值金幣（×2.2×市價）｜少量污染',101:'🧳 觀光 +34（乘季節）｜就業 16',102:'覆蓋半徑 5：幸福 +2%（毛孩子安心）',103:'🧳 觀光 +16｜就業 10（Lv.12 解鎖）',104:'食物 +1｜覆蓋半徑 4：幸福 +1.5%',107:'殯葬閉環：安撫半徑 12・容量 40｜少量污染',108:'教育鏈：EDU +70 半徑 10｜就業 12',109:'教育閉環：產值＝60×(全城教育/100)／日｜就業 45（Lv.13）',110:'貨運閉環：半徑 8 商業稅 ×1.05｜就業 10',111:'♻️ 垃圾→工業品（×0.08，上限 6/座）＋垃圾容量 40',112:'城市綠肺：半徑 8 幸福 +5%｜🧳 觀光 +12',113:'教育旗艦：EDU +120 半徑 12｜就業 40（Lv.14）',114:'🧳 觀光 +120｜高噪音污染｜就業 60（Lv.18）',115:'綜合市政：半徑 9 幸福 +4%｜就業 18（一城一座）',116:'伺服器經濟 $40/日｜就業 20（Lv.13）',117:'⛽ 天然氣 +8／日（需油田格）｜盈餘售出 ×1.2｜就業 6',118:'🧪 耗氣 3／日 → 化肥 6：覆蓋半徑 10 內農場/大農場產量 ×1.35｜就業 14',119:'🍳 耗氣 2／日＋生食 → 熟食：覆蓋半徑 8 住宅幸福 +3%｜就業 12',120:'🐟 食物 +4（全年穩定）｜需臨水｜就業 4'};
         html+=`<div class="row">${I330[b.k]}</div>`;
         if(b.k>=81&&b.k<=83)html+=`<div class="row" style="font-size:11px;opacity:.75">入住率見統計面板「🏨 旅宿與觀光」</div>`;
         if(b.k===91&&fin&&fin.tradeGold)html+=`<div class="row" style="font-size:11px;opacity:.75">今日出口 +$${fin.tradeGold}</div>`;
@@ -14188,7 +14329,7 @@ function showBusRt(){
 /* 小地圖 */
 const miniCv=$('#mini'),miniG=miniCv.getContext('2d');
 // T90 小地圖建築色表；T107 遠景 LOD 建築色塊直接複用同一陣列（保證遠景與小地圖視覺語言一致），索引 0..32 對齊 KNAME 1..32
-const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090','#d4907a','#4a78b0','#d8cca8','#a8506a','#3a7a9a','#6f9a48','#e8905a','#3a3050','#c8b898','#c8a860','#6a7a9a','#4ab0a0','#50a0c0','#90a8c0','#6ab050','#d05a5a','#332a24','#8a7256','#4a6fa5','#4a6ab8','#d8b83a','#5a6a5a','#a66b4a','#d0a040','#b05a3a','#d8d8d0','#5a88b8','#7aa890','#e04040','#a86a3a','#7ac8a8','#8a8fa0','#d05a9a','#c8a8d0','#c8b878','#d8dce8','#8a8a8a','#c8a850','#8a8a8a','#8a8a8a','#d0d4dc','#8a8a8a','#8a8a8a','#8a8a8a','#8a8a8a','#5a8a4a','#7a9aa8','#e0a0c0','#e0a0c0','#d8b890','#6a9fd8','#f0d9a8','#f2b6c6','#c9a27a','#e8e0c8','#ffb35a','#8a6f4d','#e05252','#9ad8e8','#c9884a','#8fbf6a','#a8dceb','#9a9aa8','#c05030','#4fc3d9','#7a9ab8','#e0b050','#f0e0e8','#a87838','#58b8e0','#e8f0e8','#b8a0d0','#88b060','#ffd45f','#66c8f0','#b8b8c0','#d8a860','#6ad0e8','#c88a50','#58c890','#3e8a4e','#e8d090','#9ab8d8','#e0d8c0','#7a88e0']; // T290：索引65 大型購物中心（商業洋紅） // T280：索引63溫室(玻璃綠)；T265：索引62焚化發電（鏽棕）；T257：索引58核電(冷卻塔白)/59水力(壩藍)/60地熱(汽銀綠)/61消防總局(紅)（陣列長度 58→62） // T254：索引57食品加工廠（陣列長度 57→58）；T222：索引52派出所；T228：索引53大農場；T233：索引54大墓園；T234：索引55中央車站；T241：索引56體育園區（陣列長度 56→57）；T127：索引33住宅塔/34商業塔（陣列長度 33→35）；T138：索引35博物館-41圖書總館（陣列長度 35→42）；T139：索引42市政廳-48綜合醫院（陣列長度 42→49）；T140：索引49油井/50礦場/51太空研究中心（陣列長度 49→52）
+const MINI_BLD_PAL=['','#58c470','#5aa0e8','#e8b23e','#3e9a3c','#c8cfd8','#e05252','#ffd45f','#8a6f5f','#b184d8','#4a9fd4','#3a5a9c','#e05252','#f27e7e','#c49a5e','#d4a24c','#5a6b5a','#a08050','#3a6a9a','#6a6a8a','#7a7a90','#5a8ab0','#8a9a40','#9a7a50','#c0a040','#e8c840','#90b0c0','#5a8a8a','#e05050','#50a070','#e06040','#606060','#d0c090','#d4907a','#4a78b0','#d8cca8','#a8506a','#3a7a9a','#6f9a48','#e8905a','#3a3050','#c8b898','#c8a860','#6a7a9a','#4ab0a0','#50a0c0','#90a8c0','#6ab050','#d05a5a','#332a24','#8a7256','#4a6fa5','#4a6ab8','#d8b83a','#5a6a5a','#a66b4a','#d0a040','#b05a3a','#d8d8d0','#5a88b8','#7aa890','#e04040','#a86a3a','#7ac8a8','#8a8fa0','#d05a9a','#c8a8d0','#c8b878','#d8dce8','#8a8a8a','#c8a850','#8a8a8a','#8a8a8a','#d0d4dc','#8a8a8a','#8a8a8a','#8a8a8a','#8a8a8a','#5a8a4a','#7a9aa8','#e0a0c0','#e0a0c0','#d8b890','#6a9fd8','#f0d9a8','#f2b6c6','#c9a27a','#e8e0c8','#ffb35a','#8a6f4d','#e05252','#9ad8e8','#c9884a','#8fbf6a','#a8dceb','#9a9aa8','#c05030','#4fc3d9','#7a9ab8','#e0b050','#f0e0e8','#a87838','#58b8e0','#e8f0e8','#b8a0d0','#88b060','#ffd45f','#66c8f0','#b8b8c0','#d8a860','#6ad0e8','#c88a50','#58c890','#3e8a4e','#e8d090','#9ab8d8','#e0d8c0','#7a88e0','#f0a848','#8ad06a','#e8a870','#4fa8c8']; // T290：索引65 大型購物中心（商業洋紅） // T280：索引63溫室(玻璃綠)；T265：索引62焚化發電（鏽棕）；T257：索引58核電(冷卻塔白)/59水力(壩藍)/60地熱(汽銀綠)/61消防總局(紅)（陣列長度 58→62） // T254：索引57食品加工廠（陣列長度 57→58）；T222：索引52派出所；T228：索引53大農場；T233：索引54大墓園；T234：索引55中央車站；T241：索引56體育園區（陣列長度 56→57）；T127：索引33住宅塔/34商業塔（陣列長度 33→35）；T138：索引35博物館-41圖書總館（陣列長度 35→42）；T139：索引42市政廳-48綜合醫院（陣列長度 42→49）；T140：索引49油井/50礦場/51太空研究中心（陣列長度 49→52）
 const MINI_VIEW_NAME=['一般','地價','污染熱度','壅堵','犯罪熱點','服務覆蓋','資源']; // T131：小地圖視圖標籤，索引對齊 miniView；T140：新增「資源」視圖
 const MINI_VIEW_ICON=['🏭','💰','🗺️','🚗','🚨','🛡️','🛢️']; // T131：小地圖切換鈕圖示，索引對齊 miniView；T140：新增「資源」圖示
 function drawMini(){
@@ -14765,6 +14906,14 @@ function showStats(){
       {k:'📣 地鐵廣告',v:f(fin.metroAds||0),u:'/日',t:'good'},
       {k:'🔧 地鐵營運',v:'-'+(fin.metroCost||0).toFixed(1),u:'/日',t:'bad'});
   }
+  if((fin.gasSup||0)>0||(fin.fertOut||0)>0||(fin.cookedOut||0)>0){ /* T346 產業鏈分區 */
+    finRows.push({sec:'🔗 產業鏈'},
+      {k:'⛽ 天然氣 供／需',v:(fin.gasSup||0)+' / '+(fin.gasDem||0),u:'',t:((fin.gasSup||0)>=(fin.gasDem||0))?'good':'bad'},
+      (fin.gasDem||0)>0?{bar:clamp((fin.gasSup||0)/(fin.gasDem||1),0,1)}:null,
+      {k:'🧪 化肥產出',v:(fin.fertOut||0),u:'覆蓋農場 ×1.35',t:(fin.fertOut||0)>0?'good':'dim'},
+      {k:'🍳 熟食產出',v:(fin.cookedOut||0),u:'覆蓋住宅 幸福 +3%',t:(fin.cookedOut||0)>0?'good':'dim'},
+      {k:'💵 工資指數',v:(fin.wageIdx||1).toFixed(2)+'×',u:(fin.wageIdx||1)>1?('消費力 +'+Math.round(Math.min(.15,((fin.wageIdx||1)-1)*.15)*100)+'% 商業稅'):'崗位不足',t:(fin.wageIdx||1)>1?'good':'warn'});
+  }
   if(hotelBeds>0||tourists>0){ // T334 旅宿與觀光分區
     finRows.push({sec:'🏨 旅宿與觀光'},
       {k:'🧳 遊客',v:tourists,u:'人/日'},
@@ -15069,6 +15218,9 @@ function chipPanel(which){
     if(fin.brewGold)rows.push({k:'🍺 釀酒廠',v:f(fin.brewGold),u:'/日',t:'good'}); // T340
     if(fin.techGold)rows.push({k:'💻 科技園',v:f(fin.techGold),u:'/日（隨教育水平）',t:'good'}); /* T342 */
     if(fin.dcGold)rows.push({k:'🖥️ 數據中心',v:f(fin.dcGold),u:'/日',t:'good'}); /* T342 */
+    if(fin.gasGold)rows.push({k:'⛽ 天然氣盈餘',v:f(fin.gasGold),u:'/日',t:'good'}); /* T346 */
+    if(fin.cookGold)rows.push({k:'🍳 熟食銷售',v:f(fin.cookGold),u:'/日',t:'good'}); /* T346 */
+    if(fin.bankInt)rows.push({k:'🏦 房貸利息',v:f(fin.bankInt),u:'/日',t:'good'}); /* T346 */
     rows.push({sec:'💸 每日支出'});
     const ups=[['🛣 道路',fin.upR],['🌳 公園',fin.upP],['⚡ 電廠',fin.upE],['💧 水塔',fin.upW],
       ['🚓 警政',fin.upPol],['🏥 醫院',fin.upH],['🏥 診所',fin.upC],['📚 圖書館',fin.upL],
@@ -15500,7 +15652,7 @@ function save(){
 function recalcAllRailMasks(){
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)recalcRailMask(x,y);
 }
-const MSZ={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,63:2,64:2,65:4,66:2,68:2,62:2,82:2,83:3,87:2,90:2,91:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2}; // T290：k65 大型購物中心 4×4 // T265：k62 焚化發電 2×2；T228：k53 大農場 5×5；T233：k54 大墓園 3×3；T234：k55 中央車站 3×3；T241：k56 體育園區 3×3 // FIX-J：多格建築 k→sz 對照（與各 doPlace 分支硬編碼一致；k9 體育場沿用存檔第 6 位 sz，不入表）；T127：k33/34 摩天樓（tick() 合併生成、無 doPlace 分支，sz 對照仍需入表供 load() 反查重建 ref 格）；T138：k35博物館/36劇院/37水族館 2×2、k38動物園/39遊樂園 3×3、k41圖書總館 2×2（k40電影院 1×1 不入表）；T139：k42市政廳/43法院/45研究院 2×2、k44會展中心/47植物園/48綜合醫院 3×3（k46氣象站 1×1 不入表）；T140：k51太空研究中心 3×3（k49油井/50礦場 1×1 不入表）
+const MSZ={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,63:2,64:2,65:4,66:2,68:2,62:2,82:2,83:3,87:2,90:2,91:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2,118:2,119:2}; // T290：k65 大型購物中心 4×4 // T265：k62 焚化發電 2×2；T228：k53 大農場 5×5；T233：k54 大墓園 3×3；T234：k55 中央車站 3×3；T241：k56 體育園區 3×3 // FIX-J：多格建築 k→sz 對照（與各 doPlace 分支硬編碼一致；k9 體育場沿用存檔第 6 位 sz，不入表）；T127：k33/34 摩天樓（tick() 合併生成、無 doPlace 分支，sz 對照仍需入表供 load() 反查重建 ref 格）；T138：k35博物館/36劇院/37水族館 2×2、k38動物園/39遊樂園 3×3、k41圖書總館 2×2（k40電影院 1×1 不入表）；T139：k42市政廳/43法院/45研究院 2×2、k44會展中心/47植物園/48綜合醫院 3×3（k46氣象站 1×1 不入表）；T140：k51太空研究中心 3×3（k49油井/50礦場 1×1 不入表）
 function load(slot){
   try{
     const key=slotKey(slot||curSlot());
@@ -15594,7 +15746,7 @@ function load(slot){
     cityPoints=computeCityPoints();
     if(d.rk!==undefined)rankIdx=clamp(d.rk|0,0,RANKS.length-1);
     else{rankIdx=0;while(rankIdx<RANKS.length-1&&cityPoints>=RANKS[rankIdx+1].threshold)rankIdx++;}
-    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;policeCars.length=0;pol=null;region={};riot=null;plague=null;immWave=0;tvSignal=false;hotelBeds=0;hotelOcc=0; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車；T137：瘟疫狀態預設清空，下方視存檔內容還原
+    trains.length=0;cargoShips.length=0;tramCars.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;policeCars.length=0;pol=null;region={};riot=null;plague=null;immWave=0;tvSignal=false;hotelBeds=0;hotelOcc=0;gasSup=0;gasDem=0;gasRatio=1;fertOut=0;cookedOut=0;wageIdx=1;fertReady=false;cookedReady=false;mortPopLast346=0; // T39-T60 運行時重建；FIX-H：補清救護車（防舊圖救護車朝新圖舊目標行駛）；T118：暴亂狀態預設清空，下方視存檔內容還原；T119：補清消防車/垃圾車；T137：瘟疫狀態預設清空，下方視存檔內容還原
     svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本讀檔歸零（鐵律7）
     rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：路線公車運行時重建不存；路線設定下方視存檔內容還原
     if(d.pol)pol=d.pol;
@@ -15816,6 +15968,7 @@ window.GV={
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   noiseAt:(x,y)=>NOISE[idx(x,y)], // T325 測試用
   hotel330:()=>({beds:hotelBeds,occ:hotelOcc,tourists,lodge:(fin&&fin.lodgeRev)||0}), // T334 測試用
+  chain346:()=>({gasSup,gasDem,gasRatio,fertOut,cookedOut,wageIdx,fertReady,cookedReady,mortPop:mortPopLast346,bankInt:(fin&&fin.bankInt)||0}), /* T346 測試用 */
   kcat345:(k)=>({cat:kcatOf(k),col:KCAT[kcatOf(k)].c,nm:KCAT[kcatOf(k)].nm}), /* T345 測試用 */
   catGeom345:(k)=>{ /* T345 幾何驗收：類別色像素的 y 分佈——應分成「基座色環（貼近 ay）」與「屋頂徽記（靠上）」兩群 */
     let sp=null;const pre=k+'_';for(const kk in SPR.bld){if(kk.indexOf(pre)===0){sp=SPR.bld[kk];break;}}
