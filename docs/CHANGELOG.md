@@ -2,6 +2,7 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-24 | T309b 觀光地標群補齊 12 座（v7.1，DeepSeek 量產） | 補上 🗼燈塔/⛲噴泉廣場/🗿紀念碑/🏛️涼亭/🏛凱旋門/🎡摩天輪/🚰水塔景觀 共 7 座（累計 12 座 1×1 觀光地標，k69-80）。新增 _wire_more.py 增量接線器（往已存在 T309 結構追加：KNAME/COST/TOOLS/canPlace/placeCost/doPlace/LMCFG309/count 範圍/PAL 補齊到索引80/sprite 注入），內建今日血淚自動斷言（剝首尾孤立反引號、拒代碼體內反引號、拒 dia/diaEdge 傳 canvas、鍵必存在）。DS system 卡硬化後產出品質 5/12→12/12 通過沙盒驗證。驗收：1168/1168＋瀏覽器實測（12 座全部可建、zero-size draw=0、色階 310、經濟正常）。 | 驗收:通過
 2026-07-24 | T311 提示訊息不刷屏（v7.1，玩家反饋「三倍速時 toast 蓋滿整個畫面」） | toast 同屏最多 2 條活躍：第 3 條到達時把最舊的淡出擠掉（.35s 淡出/淡入交錯），被擠掉的立刻 position:absolute 脫離排版（三倍速下淡出中舊條不佔位、不推擠新條），並保險清理 DOM 中淡出殘留>3 個。通知中心日誌/未讀計數完全不受影響。驗收：1168/1168＋瀏覽器實測（AI 城 160 天快進取樣：活躍最大 2、DOM 最大 5（修前 18）、佔位淡出條 0）。 | 驗收:通過
 2026-07-24 | T309 DeepSeek 觀光地標群（v7.1，DS 量產） | 5 座 1×1 觀光地標（🌀風車/📡觀景塔/🌳古樹神木/⚓碼頭亭/🎠旋轉木馬），LMCFG309 配置表驅動（觀光/就業/維護），報告驅動接線器 gen_landmark2 一次接 16 處（KNAME/COST/TOOLS/canPlace/placeCost/doPlace/decl/LMCFG/count/tourists/jobs/upkeep/稅收守衛/inspect/PAL/sprite）。**修 DS 產碼 3 缺陷**：2 個游離反引號（把上萬行代碼吞成模板字串→ctx undefined 崩潰）、dia(nc,…) 誤把 canvas 當 context（fillRect is not a function）。system 卡已硬化（禁反引號/禁 canvas 當參數/限 40 行/max_tokens 16000 防截斷）。驗收：1168/1168。 | 驗收:通過
 2026-07-24 | T310 市民人生階段（v7.1） | 市民會老化（每 40 天 +1 歲）、階段轉換（infant→student→worker→retired，czStage 判定）、82 歲離世；轉入工作年齡自動找工作、退休自動離職回家；32 條生活心聲（LIFE_TEXTS 四階段各 8 條）於住宅 inspect 顯示引言。GV.citizens 加 stage/quote。驗收：1168/1168＋SW v21。 | 驗收:通過
