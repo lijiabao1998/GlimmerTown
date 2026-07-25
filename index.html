@@ -12532,11 +12532,32 @@ $('#miniToggle').addEventListener('click',e=>{
   drawMini();
 });
 function toast(msg,cls,x,y){
+  /* T311 提示訊息不刷屏（玩家反饋：三倍速時 toast 蓋滿整個畫面）——同屏最多 2 條，
+     第 3 條到達時把最舊的那條淡出擠掉（新條淡入補上其位置），其餘照常 2.8s 後自動淡出。
+     只改視覺呈現，通知中心日誌（log）與未讀計數完全不受影響。 */
+  const box=$('#toasts');
   const el=document.createElement('div');
   el.className='toast'+(cls?' '+cls:'');
   el.textContent=msg;
-  $('#toasts').appendChild(el);
-  setTimeout(()=>{el.style.transition='opacity .5s';el.style.opacity='0';},2800);
+  el.style.transition='opacity .35s';
+  el.style.opacity='0';                                    // 淡入起點
+  if(box){
+    const live=[...box.children].filter(c=>c.dataset.dying!=='1');
+    while(live.length>=2){                                 // 超過 2 條：擠掉最舊的（淡出後移除）
+      const old=live.shift();
+      old.dataset.dying='1';
+      old.style.transition='opacity .35s';old.style.opacity='0';
+      old.style.position='absolute';old.style.pointerEvents='none'; // 立刻脫離排版（三倍速下淡出中的舊條不佔位、不推擠新條）
+      setTimeout(()=>old.remove(),400);
+    }
+    for(const dead of [...box.children].filter(c=>c.dataset.dying==='1')){ // 三倍速保險：DOM 中淡出殘留超過 3 個就即刻清掉最舊的
+      if([...box.children].filter(c=>c.dataset.dying==='1').length<=3)break;
+      dead.remove();
+    }
+    box.appendChild(el);
+    requestAnimationFrame(()=>{el.style.opacity='1';});    // 觸發淡入
+  }
+  setTimeout(()=>{el.style.transition='opacity .5s';el.style.opacity='0';el.dataset.dying='1';},2800);
   setTimeout(()=>el.remove(),3400);
   // T114：同步寫入通知中心日誌（100 筆封頂丟最舊）；x/y 為選填座標（災害/事件類呼叫點補傳）
   const le={d:day,m:msg,c:cls};if(x!==undefined&&y!==undefined){le.x=x;le.y=y;}
