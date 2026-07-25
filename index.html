@@ -347,7 +347,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='8.2'; // T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='8.3'; // T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -652,6 +652,18 @@ const CITY_EVENTS=[
   {id:'blight',name:'🐛 虫害泛滥',days:6,tax:0.95,food:0.6,happy:-0.02,desc:'蝗虫过境，城郊作物全啃光。'},
   {id:'trafficjam',name:'🚗 全城大堵车',days:4,tax:0.85,food:1.05,happy:-0.05,desc:'高架变停车场，外卖迟2小时。'},
   {id:'fakenews',name:'📰 谣言恐慌',days:5,tax:0.9,food:1.0,happy:-0.04,desc:'囤货潮起，盐和米被抢光。'},
+  {id:'fireworks',name:'🎆 煙火大會',days:4,tax:1.1,food:1.0,happy:0.09,desc:'夜空綻放，全城仰望。'}, // T338 擴充 12 條
+  {id:'comiccon',name:'🎭 動漫嘉年華',days:6,tax:1.3,food:1.0,happy:0.05,desc:'角色扮演者擠滿商業街。'},
+  {id:'adoptday',name:'🐾 寵物領養日',days:5,tax:1.0,food:1.0,happy:0.06,desc:'毛孩子找到新家。'},
+  {id:'carfree',name:'🚲 無車日',days:3,tax:0.9,food:1.0,happy:0.06,desc:'馬路還給行人與單車。'},
+  {id:'lanternfest',name:'🏮 燈光節',days:7,tax:1.2,food:1.0,happy:0.04,desc:'萬盞燈籠映亮河岸。'},
+  {id:'beerfest',name:'🍺 啤酒節',days:5,tax:1.25,food:0.9,happy:0.05,desc:'酒香四溢，餐館爆滿。'},
+  {id:'sciexpo',name:'🔬 科普博覽',days:6,tax:1.15,food:1.0,happy:0.03,desc:'孩子們排隊看機器人。'},
+  {id:'oldstreet',name:'🏮 老街市集',days:5,tax:1.12,food:1.05,happy:0.04,desc:'手作攤位擺滿巷弄。'},
+  {id:'kitefest',name:'🪁 風箏節',days:4,tax:1.05,food:1.0,happy:0.05,desc:'天空被彩色風箏佔領。'},
+  {id:'streetart',name:'🎨 街頭藝術節',days:6,tax:1.08,food:1.0,happy:0.06,desc:'灰牆一夜變畫布。'},
+  {id:'recycleweek',name:'♻️ 回收週',days:5,tax:0.97,food:1.0,happy:0.03,desc:'全城大掃除，舊物換新生。'},
+  {id:'foodtruck',name:'🚚 餐車大會',days:4,tax:1.18,food:0.95,happy:0.05,desc:'排隊最長的攤位飄著焦糖香。'},
 ];
 let cityEvent=null; // T299：當前城市事件 {i:事件索引, daysLeft} 或 null；入存檔（cev 可選欄位）
 /* T283 農產市場價（Farming Simulator 對標）：基準價 × 動態雙波動 × 季節供需（秋收過剩賤/冬缺糧貴）
@@ -8254,6 +8266,12 @@ function rebuildNoise(idxList){ // idxList=tickBld（tick 內）或 null（rebui
 }
 // T137：工業洩漏——工業建築起火期間機率觸發，該格 POL 疊加尖峰並持續數日（比照 stampPolSrc 加法對稱手法＋隕石坑「持續危害」樣板，改為顯式天數倒數）
 const LEAK_POL_SPIKE=60,LEAK_DURATION=6; // 洩漏 POL 疊加尖峰值與持續天數
+let insToastDay=-1; // T337：災害保險理賠 toast 節流（同日多戶只報一次；運行時，不入存檔）
+function insPayout(x,y){ // T337：投保時每戶被毀理賠 $35（未投保精確恆等＝不呼叫）
+  if(!(pol&&pol.insurance))return;
+  money+=35;
+  if(insToastDay!==day){insToastDay=day;toast('🛡️ 災害保險理賠 +$35／戶','gold',x,y);}
+}
 let leakDays=new Uint8Array(N*N); // T262：const→let // 洩漏持續天數倒數（0=無洩漏），運行時場，不入存檔；隨 rebuildCov 全量重建時尖峰同步失效，需與此陣列成對歸零（newWorld/load，鐵律7）
 function startLeak(x,y){ // 供 tick() 因果觸發與 GV.leak() 手動鉤子共用，避免兩處邏輯分岔（仿 meteorStrike 慣例）
   const i=idx(x,y);
@@ -8439,7 +8457,7 @@ function meteorStrike(cx,cy){
     const nx=cx+dx,ny=cy+dy;
     if(!inMap(nx,ny))continue;
     const nt=T(idx(nx,ny)),nb=nt.bld;
-    if(nb&&!nb.ref&&nb.k<=3){if(nb.k===3)stampPolSrc(nx,ny,3,-1);nt.bld=null;if(!(dx===0&&dy===0))nt.ruin=1;}
+    if(nb&&!nb.ref&&nb.k<=3){if(nb.k===3)stampPolSrc(nx,ny,3,-1);nt.bld=null;if(!(dx===0&&dy===0))nt.ruin=1;insPayout(nx,ny);}
     if(nt.tree)nt.tree=0;
   }
   const ct=T(idx(cx,cy));ct.ruin=0;ct.crater=1;
@@ -8876,7 +8894,8 @@ function aiStep(){
     const aiCostOf=t2=>t2==='civichall'?COST.civicHall:COST[t2]; // 唯一 id≠COST 鍵的例外
     let advBuilt=0;const advCap=pop>800?2:1; // T324b：小城每日限1座
     for(let wi330=0;wi330<wants.length;wi330++){ // T335b：以 day 輪轉起點——原按序評估讓表尾（旅宿/配套）被每日上限餓死（實測 400 天只蓋 1 民宿）
-      const w=wants[(wi330+day)%wants.length];
+      const rot336=(day%4===2)?day:0; // T337b：固定序日（civic 保底）與輪轉日（表尾公平）交替——純輪轉讓救護站這類表頭關鍵民生每 ~50 天才輪到一次保底
+      const w=wants[(wi330+rot336)%wants.length];
       if(advBuilt>=advCap||acts>=MAXA)break;
       if(!w[1])continue;
       const tool=w[0],c2=aiCostOf(tool);
@@ -9299,7 +9318,7 @@ function tick(){
       tornado.x+=tornado.dx;tornado.y+=tornado.dy;tornado.life--;
       if(inMap(tornado.x,tornado.y)){
         const tti=idx(tornado.x,tornado.y),ttl=tiles[tti],ttb=ttl.bld;
-        if(ttb&&!ttb.ref&&ttb.k<=3){if(ttb.k===3)stampPolSrc(tornado.x,tornado.y,3,-1);ttl.bld=null;ttl.ruin=1;if(!window.__noDebris){spawnDebris(tornado.x,tornado.y);spawnDust(tornado.x,tornado.y);}} // T198：龍捲摧毀碎屑塵爆
+        if(ttb&&!ttb.ref&&ttb.k<=3){if(ttb.k===3)stampPolSrc(tornado.x,tornado.y,3,-1);ttl.bld=null;ttl.ruin=1;insPayout(tornado.x,tornado.y);if(!window.__noDebris){spawnDebris(tornado.x,tornado.y);spawnDust(tornado.x,tornado.y);}} // T198：龍捲摧毀碎屑塵爆
         if(ttl.tree)ttl.tree=0;
       }else tornado.life=0;
       if(tornado.life<=0||!inMap(tornado.x,tornado.y))tornado=null;
@@ -9559,7 +9578,7 @@ function tick(){
     if(!b||!b.fire)continue;
     const x=i%N,y=(i/N)|0;
     b.fire++;
-    if(b.fire>=5){if(b.k===3)stampPolSrc(x,y,3,-1);t.bld=null;t.ruin=1;} // zone 保留；T110：工業燒毀→撤銷污染源
+    if(b.fire>=5){if(b.k===3)stampPolSrc(x,y,3,-1);t.bld=null;t.ruin=1;insPayout(x,y);} // zone 保留；T110：工業燒毀→撤銷污染源
   }
   if(disastersOn){ // T137：工業洩漏——工業建築正在燃燒且該格尚無洩漏時機率觸發（因果緊扣起火，非獨立隨機事件；置於火災段之後才能捕捉本日新起火與既有延燒/災害引燃）
     for(const i of tickBld){
@@ -9714,7 +9733,7 @@ function tick(){
   }
   let roadUpkeep=0;
   for(const i of tickRoad){const t=tiles[i];if(t.road)roadUpkeep+=ROAD_UPKEEP[(t.rc||2)-1];} // T316：只掃道路格
-  const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0)+(pol&&pol.schoolLunch?12:0)+(pol&&pol.smokeDetect?6:0)+(pol&&pol.parkNight?5:0); // T327 // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
+  const upReg=(pol&&pol.recycle?8:0)+(pol&&pol.tourPromo?10:0)+(pol&&pol.schoolLunch?12:0)+(pol&&pol.smokeDetect?6:0)+(pol&&pol.parkNight?5:0)+(pol&&pol.insurance?18:0); // T327/T337 保險保費 $18/日 // T122：法規每日固定支出——回收宣導$8、觀光推廣$10
   upkeep=roadUpkeep+parks*.5+plants*4+fireStations*3+policeStations*4+policeBoxes*1.5+hospitals*5+clinics*2.5+schools*2.5+libraries*2+posts*3+cemeteries*2+bigCemN*8+dumps*2+stadiums*8+waterTowers*3+st*6+gstN*15+scN*18+fpN*14+nkN*28+hyN*9+geN*4+fhqN*10+wteN*10+ghN*3+whN284*4+mallN*16+po*5+ai*25+pa*1.5+tr*4+fa*1+bigFa*6+ra*1.5+la*8+so*1+wi*1.5+se*3+am*4+rc*2+fs2*6+pr*5+un*8+faN*8+ctN307*4+obN307*9+upLm309+mu*6+th*5+aq*7+zo*10+ap*12+ci*3+gl*8+chN*10+crtN*6+cvN*20+inN*10+wsN*4+bgN*14+mhN*16+owN*4+mnN*5+mgN*25+upReg+gh330*1+ht330*5+rs330*12+kg330*2+sn330*2+bk330*3+mk330*3+cp330*2+tv330*4+mr330*4+tp336*4+dg336*1+ir336*3+sk336*2; // T265：焚化發電維護10；T39-T54 維護費（T95：am 3→4，同步 COST.ambulance 調整）；T122 追加法規固定支出；T138：博物館6/劇院5/水族館7/動物園10/遊樂園12/電影院3/圖書總館8 維護費；T139：市政廳10/法院6/會展中心20/研究院10/氣象站4/植物園14/綜合醫院16 維護費（綜合醫院比照 T95 教訓，維護費遠高於醫院的5，避免超大半徑碾壓既有醫療建築）；T140：油井4/礦場5/太空研究中心25 維護費
   let metroRev=0,metroAds=0,metroCost=0; // T302 地鐵財政：分線票務（載客受列車運力封頂）＋車站/車身廣告－人工/維修/列車保養
   for(const L of metroLines){
@@ -13970,7 +13989,7 @@ const FACTOR_TRACE={ // 鍵名對齊 happyRows（T111）/cityAdvisor（T131）�
 function traceFactor(factor){const fn=FACTOR_TRACE[factor];return fn?fn():null;}
 function showStats(){
   // T68 政策快捷（稅率倍率）
-  if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false,freeTransit:false,schoolLunch:false,smokeDetect:false,indSubsidy:false,nightMarket:false,parkNight:false}; // T327：六條新政策（舊檔缺欄位得 undefined＝falsy，效果處全三元式天然容錯）
+  if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false,freeTransit:false,schoolLunch:false,smokeDetect:false,indSubsidy:false,nightMarket:false,parkNight:false,insurance:false}; // T327：六條新政策（舊檔缺欄位得 undefined＝falsy，效果處全三元式天然容錯）
   let nR=0,nC=0,nI=0,nP=0,nE=0,nF=0,nS=0,nD=0,nT=0,nW=0,nPol=0,nH=0,nCl=0,nL=0,nPo=0,nCe=0;
   let nSt=0,nPt=0,nAi=0,nPk=0,nTs=0,nFa=0,nRa=0,nLd=0,nSo=0,nWi=0,nSe=0,nAm=0,nRc=0,nF2=0,nPr=0,nUn=0; // T89：v3.0（T39-T54）新建築計數
   let popP=0,popM=0,popR=0; // T124：貧/中/富人口占比累加（沿用既有 pop 計算口徑，逐格掃描）
@@ -14139,7 +14158,7 @@ function showStats(){
      <div class="row">📜 稅率政策　住${pol.taxR.toFixed(2)}× <button class="hbtn" id="polRm">−</button><button class="hbtn" id="polRp">＋</button>　商${pol.taxC.toFixed(2)}× <button class="hbtn" id="polCm">−</button><button class="hbtn" id="polCp">＋</button>　工${pol.taxI.toFixed(2)}× <button class="hbtn" id="polIm">−</button><button class="hbtn" id="polIp">＋</button></div>
      <div class="row">🎚️ 服務預算（越高覆蓋越廣、越貴）　🚓${svcBudget.police.toFixed(1)}× <button class="hbtn" id="budPoM">−</button><button class="hbtn" id="budPoP">＋</button>　🚒${svcBudget.fire.toFixed(1)}× <button class="hbtn" id="budFiM">−</button><button class="hbtn" id="budFiP">＋</button>　🏥${svcBudget.health.toFixed(1)}× <button class="hbtn" id="budHeM">−</button><button class="hbtn" id="budHeP">＋</button>　🎓${svcBudget.edu.toFixed(1)}× <button class="hbtn" id="budEdM">−</button><button class="hbtn" id="budEdP">＋</button></div>
      <div class="row">🚨 法規　<label><input type="checkbox" id="polCurfew"${pol.curfew?' checked':''}> 宵禁</label>　<label><input type="checkbox" id="polRecycle"${pol.recycle?' checked':''}> 回收宣導</label>　<label><input type="checkbox" id="polTour"${pol.tourPromo?' checked':''}> 觀光推廣</label>　<label><input type="checkbox" id="polEco"${pol.ecoReg?' checked':''}> 節能條例</label></div>
-     <div class="row">🏛️ 政策　<label><input type="checkbox" id="polFreeT"${pol.freeTransit?' checked':''}> 免費公交</label>　<label><input type="checkbox" id="polLunch"${pol.schoolLunch?' checked':''}> 營養午餐</label>　<label><input type="checkbox" id="polSmoke"${pol.smokeDetect?' checked':''}> 煙霧偵測</label>　<label><input type="checkbox" id="polIndS"${pol.indSubsidy?' checked':''}> 工業補貼</label>　<label><input type="checkbox" id="polNight"${pol.nightMarket?' checked':''}> 夜市</label>　<label><input type="checkbox" id="polParkN"${pol.parkNight?' checked':''}> 公園夜開</label></div>
+     <div class="row">🏛️ 政策　<label><input type="checkbox" id="polFreeT"${pol.freeTransit?' checked':''}> 免費公交</label>　<label><input type="checkbox" id="polLunch"${pol.schoolLunch?' checked':''}> 營養午餐</label>　<label><input type="checkbox" id="polSmoke"${pol.smokeDetect?' checked':''}> 煙霧偵測</label>　<label><input type="checkbox" id="polIndS"${pol.indSubsidy?' checked':''}> 工業補貼</label>　<label><input type="checkbox" id="polNight"${pol.nightMarket?' checked':''}> 夜市</label>　<label><input type="checkbox" id="polParkN"${pol.parkNight?' checked':''}> 公園夜開</label>　<label><input type="checkbox" id="polInsur"${pol.insurance?' checked':''}> 災害保險</label></div>
      ${statTab(expRows)}
      ${bldHtml}
      ${statTab(cityRows)}
@@ -14298,7 +14317,7 @@ function showStats(){
   polToggle('#polEco','ecoReg','節能條例');
   polToggle('#polFreeT','freeTransit','免費公交');polToggle('#polLunch','schoolLunch','營養午餐',()=>rebuildCov());
   polToggle('#polSmoke','smokeDetect','煙霧偵測');polToggle('#polIndS','indSubsidy','工業補貼');
-  polToggle('#polNight','nightMarket','夜市');polToggle('#polParkN','parkNight','公園夜間開放'); // T327
+  polToggle('#polNight','nightMarket','夜市');polToggle('#polParkN','parkNight','公園夜間開放');polToggle('#polInsur','insurance','災害保險'); // T327/T337
 }
 $('#bStats').onclick=()=>{showStats();sTick();};
 // T114：通知中心——HUD 鈴鐺按鈕、未讀紅點、事件日誌面板（複用 #infoBody/.row 樣式）
@@ -14482,6 +14501,21 @@ function chipPanel(which){
       const sorted=happyAgg.slice().filter(p=>Math.abs(p.val)>0.0005).sort((a,b)=>b.val-a.val);
       for(const p of sorted)rows.push({k:p.name,v:(p.val>=0?'+':'')+(p.val*100).toFixed(1)+'%',u:'',t:p.val>0?'good':'bad'});
     }else rows.push({k:'（尚無資料）',v:'—',u:'需先有住宅'});
+    if(citizens.length){ // T339：抽樣市民住家的 Sims 四需求平均（與 T328 需求卡同公式）
+      let nf=0,ns=0,nh=0,ne=0;
+      for(const c of citizens){const ni=c.home;
+        nf+=clamp((COV.park[ni]>0?.35:0)+(COV.cinema[ni]>0?.25:0)+(COV.theater[ni]>0?.2:0)+(((COV.stadium&&COV.stadium[ni]>0)||(COV.stadium2&&COV.stadium2[ni]>0))?.2:0)+((COV.museum&&COV.museum[ni]>0)?.15:0),0,1);
+        ns+=clamp((COV.park[ni]>0?.3:0)+(COV.bus[ni]>0?.25:0)+((COV.faith&&COV.faith[ni]>0)?.25:0)+(COV.library[ni]>0?.15:0)+(cityEvent?.15:0),0,1);
+        nh+=clamp(.3+((COV.clinic[ni]>0||COV.hospital[ni]>0||(COV.ambulance&&COV.ambulance[ni]>0))?.5:0)+.2-(POL[ni]/255)*.5-((NOISE[ni]||0)/255)*.3,0,1);
+        ne+=clamp(EDU[ni]/160,0,1);
+      }
+      const cN=citizens.length;
+      rows.push({sec:'🎭 市民需求（抽樣平均）'});
+      for(const e3 of [['🎡 娛樂',nf/cN],['💬 社交',ns/cN],['💊 健康',nh/cN],['🎓 教育',ne/cN]]){
+        rows.push({k:e3[0],v:Math.round(e3[1]*100)+'%',u:'',t:e3[1]>.5?'good':e3[1]>.25?'warn':'bad'});
+        rows.push({bar:e3[1]});
+      }
+    }
   }else if(which==='star'){
     rows.push({sec:'⭐ 城市評分'});
     rows.push({k:'評分',v:(score<0?'—':Math.round(score))+' / 100',u:cityStar<0?'（人口需 ≥50）':'⭐×'+cityStar});
@@ -15266,7 +15300,7 @@ window.GV={
   composer:composer,
   npu:npuComposer,
   ver:()=>GAME_VER,
-  pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1,curfew:!!p.curfew,recycle:!!p.recycle,tourPromo:!!p.tourPromo,ecoReg:!!p.ecoReg,freeTransit:!!p.freeTransit,schoolLunch:!!p.schoolLunch,smokeDetect:!!p.smokeDetect,indSubsidy:!!p.indSubsidy,nightMarket:!!p.nightMarket,parkNight:!!p.parkNight};return pol;}, // T327 // T122：擴四布林（法規開關，測試用整組覆寫，taxR/taxC/taxI 既有覆寫語義不變）
+  pol:(p)=>{if(p&&typeof p==='object')pol={taxR:p.taxR??1,taxC:p.taxC??1,taxI:p.taxI??1,curfew:!!p.curfew,recycle:!!p.recycle,tourPromo:!!p.tourPromo,ecoReg:!!p.ecoReg,freeTransit:!!p.freeTransit,schoolLunch:!!p.schoolLunch,smokeDetect:!!p.smokeDetect,indSubsidy:!!p.indSubsidy,nightMarket:!!p.nightMarket,parkNight:!!p.parkNight,insurance:!!p.insurance};return pol;}, // T327 // T122：擴四布林（法規開關，測試用整組覆寫，taxR/taxC/taxI 既有覆寫語義不變）
   quake:()=>{if(!disastersOn)return false;shakeT=.55;quakeRecover=20;return true;},
   tornado:()=>{ // T116：手動觸發龍捲風（受災害總開關管轄，仿 quake() 慣例）
     if(!disastersOn)return false;
