@@ -328,6 +328,24 @@ assert(/clipBase\(t\[key\]\)/.test(html) && /if\(SPR\.farmSea\)for\(const si of\
 }
 // T355 上緣溢出審計 hook 應存在（真實像素量測於瀏覽器端：k112 修前 88px → 修後 23px）
 assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳陣列');
+/* ===== T356 素材清冊（sprAtlas356）=====
+   圖鑑頁與素材指紋的地基：SPR 全家族正規化攤平。Node 端 mock canvas 只回 4 bytes，
+   故此處斷中繼資料契約（涵蓋率／尺寸／錨點形狀／巢狀家族），像素指紋於瀏覽器端 atlas.html 驗。
+   門檻皆留成長餘量：只抓「素材群被誤刪／正規化漏新形狀」，不擋新增。 */
+{
+  const at = window.GV.sprAtlas356();
+  assert(at && Array.isArray(at.entries), 'T356 sprAtlas356 應回傳 {entries,skipped,families}');
+  assert(at.families >= 100, 'T356 SPR 家族數應 ≥100（實得 ' + at.families + '，驟減＝家族被誤刪）');
+  assert(at.entries.length >= 1200, 'T356 清冊條目應 ≥1200（實得 ' + at.entries.length + '）');
+  assert(at.skipped <= 60, 'T356 不可解析成員應維持少量（實得 ' + at.skipped + '；暴增＝正規化漏了新形狀）');
+  const badDim356 = at.entries.filter(e => !(e.w > 0 && e.h > 0));
+  assert(badDim356.length === 0, 'T356 全部 sprite 尺寸應 >0：' + JSON.stringify(badDim356.slice(0, 3)));
+  const bld356 = at.entries.filter(e => e.fam === 'bld');
+  assert(bld356.length >= 370, 'T356 bld 應 ≥370（實得 ' + bld356.length + '）');
+  assert(bld356.every(e => e.ax !== null && e.ay !== null), 'T356 bld 每張都應有錨點中繼（ax/ay）');
+  assert(at.entries.some(e => e.fam === 'bld' && e.key === '112_1_0'), 'T356 清冊應涵蓋 k112');
+  assert(at.entries.some(e => e.fam === 'farmGrow'), 'T356 清冊應涵蓋巢狀家族 farmGrow（遞迴攤平證明）');
+}
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
   "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>微光小鎮 — 素材圖鑑（T356）</title>
+<style>
+body{background:#141a26;color:#dce4f2;font-family:"Microsoft YaHei",system-ui,sans-serif;padding:16px 20px;margin:0}
+h1{font-size:18px;color:#7fd4ff;margin:4px 0}
+.bar{position:sticky;top:0;background:#141a26ee;padding:8px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center;z-index:9;border-bottom:1px solid #2a3448}
+.bar button,.bar select{background:#2a67c9;color:#fff;border:0;padding:6px 14px;font-size:13px;border-radius:5px;cursor:pointer;font-family:inherit}
+.bar button.alt{background:#3a4356}
+.bar input[type=text]{background:#0f1420;color:#dce4f2;border:1px solid #33415c;padding:6px 10px;border-radius:5px;width:200px;font-family:inherit}
+.fam{margin:18px 0 6px;font-size:15px;color:#ffd45f;border-bottom:1px solid #2a3448;padding-bottom:3px}
+.fam small{color:#7a8699;font-weight:normal;margin-left:8px}
+.grid{display:flex;flex-wrap:wrap;gap:6px}
+.cell{background:#0f1420;border:1px solid #232c40;border-radius:4px;padding:4px;text-align:center;position:relative}
+.cell canvas{image-rendering:pixelated;display:block;margin:0 auto}
+.cell .cap{font-size:10px;color:#8a96ad;margin-top:2px;line-height:1.4;word-break:break-all}
+.dim{color:#7a8699;font-size:12px}
+#log{white-space:pre-wrap;font-family:Consolas,monospace;font-size:12px;margin-top:10px;line-height:1.6;max-height:260px;overflow:auto;border-top:1px solid #2a3448;padding-top:8px}
+.ok{color:#7be08a}.bad{color:#ff8a72}.warn{color:#ffd45f}
+textarea{width:100%;height:64px;background:#0f1420;color:#dce4f2;border:1px solid #33415c;border-radius:5px;font-family:Consolas,monospace;font-size:11px;display:none}
+</style>
+</head>
+<body>
+<h1>微光小鎮 — 素材圖鑑 <span class="dim" id="ver"></span></h1>
+<div class="bar">
+  <input type="text" id="q" placeholder="篩選鍵名 / 家族…">
+  <select id="famSel"><option value="">全部家族</option></select>
+  <button class="alt" id="bNight">🌙 夜光</button>
+  <button class="alt" id="bAnchor">✛ 錨點</button>
+  <button id="bPins">🧬 算指紋</button>
+  <button class="alt" id="bExport">⬇ 匯出指紋</button>
+  <button class="alt" id="bCmp">⇄ 比對</button>
+  <span class="dim" id="stat"></span>
+</div>
+<textarea id="pinBox" placeholder="貼上先前匯出的指紋 JSON，按「比對」"></textarea>
+<div id="root"></div>
+<div id="log"></div>
+<iframe id="gm" src="index.html" style="position:absolute;left:-9999px;width:64px;height:64px" tabindex="-1"></iframe>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const log=(m,c)=>{$('#log').innerHTML+=(c?'<span class="'+c+'">'+m+'</span>':m)+'\n';};
+let DATA=null,PINS=null,night=false,anchor=false;
+
+// ---- CRC32（指紋用）----
+const CT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c;}return t;})();
+const crc32=u8=>{let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CT[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;};
+
+function crcOf(cvs){
+  const g=cvs.getContext('2d');
+  const d=g.getImageData(0,0,cvs.width,cvs.height).data;
+  return crc32(new Uint8Array(d.buffer,d.byteOffset,d.byteLength));
+}
+
+// ---- 等 iframe 遊戲開機 ----
+function waitGV(cb){
+  const w=$('#gm').contentWindow;
+  if(w&&w.GV&&w.GV.sprAtlas356)return cb(w);
+  setTimeout(()=>waitGV(cb),300);
+}
+
+function build(){
+  const w=$('#gm').contentWindow;
+  fetch('index.html').then(r=>r.text()).then(t=>{
+    const m=t.match(/const GAME_VER='([^']*)'/);
+    $('#ver').textContent='· GAME_VER '+(m?m[1]:'?')+'（atlas T356）';
+  });
+  const r=w.GV.sprAtlas356();
+  DATA=r.entries;
+  log('清冊載入：'+r.entries.length+' 條／'+r.families+' 家族／skipped '+r.skipped,'ok');
+  const fams=[...new Set(DATA.map(e=>e.fam))].sort();
+  for(const f of fams){const o=document.createElement('option');o.value=f;o.textContent=f+'（'+DATA.filter(e=>e.fam===f).length+'）';$('#famSel').appendChild(o);}
+  render();
+  // #autotest：無頭驗收模式——切到 bld 家族、自動算指紋（結果進 #log 供 dump-dom 斷言）
+  if(location.hash.includes('autotest')){$('#famSel').value='bld';render();$('#bPins').click();}
+}
+
+function render(){
+  const q=$('#q').value.trim().toLowerCase(), ff=$('#famSel').value;
+  const root=$('#root');root.innerHTML='';
+  const fams=[...new Set(DATA.map(e=>e.fam))];
+  let shown=0;
+  for(const f of fams){
+    const items=DATA.filter(e=>e.fam===f&&(!ff||e.fam===ff)&&(!q||(e.fam+'/'+e.key).toLowerCase().includes(q)));
+    if(!items.length)continue;
+    const h=document.createElement('div');h.className='fam';h.textContent=f;
+    const sm=document.createElement('small');sm.textContent=items.length+' 件';h.appendChild(sm);root.appendChild(h);
+    const grid=document.createElement('div');grid.className='grid';
+    for(const e of items){
+      const cell=document.createElement('div');cell.className='cell';
+      const c=document.createElement('canvas');
+      const src=(night&&e.night)?e.night:e.img;
+      c.width=src.width;c.height=src.height;
+      const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+      g.drawImage(src,0,0);
+      if(anchor&&e.ax!==null){
+        g.strokeStyle='#ff5577';g.lineWidth=1;
+        g.beginPath();g.moveTo(e.ax-5,e.ay);g.lineTo(e.ax+5,e.ay);g.moveTo(e.ax,e.ay-5);g.lineTo(e.ax,e.ay+5);g.stroke();
+        g.strokeStyle='#ff557788';g.beginPath();g.moveTo(e.ax-8,e.ay);g.lineTo(e.ax+8,e.ay);g.stroke();
+      }
+      const cap=document.createElement('div');cap.className='cap';
+      cap.textContent=e.key+'　'+e.w+'×'+e.h+(e.night?'　🌙':'');
+      cell.appendChild(c);cell.appendChild(cap);grid.appendChild(cell);shown++;
+    }
+    root.appendChild(grid);
+  }
+  $('#stat').textContent='顯示 '+shown+' / '+DATA.length+' 件';
+}
+
+$('#q').addEventListener('input',render);
+$('#famSel').addEventListener('change',render);
+$('#bNight').onclick=()=>{night=!night;$('#bNight').style.background=night?'#7a5a18':'';render();};
+$('#bAnchor').onclick=()=>{anchor=!anchor;$('#bAnchor').style.background=anchor?'#7a5a18':'';render();};
+
+$('#bPins').onclick=()=>{
+  const t0=performance.now();PINS={};
+  let n=0;
+  for(const e of DATA){
+    const id=e.fam+'/'+e.key;
+    PINS[id]=[crcOf(e.img).toString(16)];
+    if(e.night)PINS[id].push(crcOf(e.night).toString(16));
+    n++;
+  }
+  PINS.__meta={ver:$('#ver').textContent,count:n,at:new Date().toISOString()};
+  log('指紋完成：'+n+' 件（含夜光另計），耗時 '+(performance.now()-t0).toFixed(0)+'ms','ok');
+};
+$('#bExport').onclick=()=>{
+  if(!PINS){log('請先按「算指紋」','warn');return;}
+  const blob=new Blob([JSON.stringify(PINS)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spr-pins.json';a.click();
+  log('已匯出 spr-pins.json（'+Object.keys(PINS).length+' 鍵）','ok');
+};
+$('#bCmp').onclick=()=>{
+  const tb=$('#pinBox');
+  if(tb.style.display==='none'||!tb.style.display){tb.style.display='block';log('貼上先前匯出的指紋 JSON 後再按一次「比對」');return;}
+  if(!PINS){log('請先按「算指紋」產生目前指紋','warn');return;}
+  let old;try{old=JSON.parse(tb.value);}catch(e){log('JSON 解析失敗：'+e.message,'bad');return;}
+  const added=[],removed=[],changed=[];
+  for(const k in PINS){if(k==='__meta')continue;if(!(k in old))added.push(k);else if(String(old[k])!==String(PINS[k]))changed.push(k);}
+  for(const k in old){if(k==='__meta')continue;if(!(k in PINS))removed.push(k);}
+  log('—— 比對結果 ——');
+  log('新增 '+added.length+'：'+added.slice(0,10).join('、'),added.length?'warn':'dim');
+  log('移除 '+removed.length+'：'+removed.slice(0,10).join('、'),removed.length?'bad':'dim');
+  log('變更 '+changed.length+'：'+changed.slice(0,10).join('、'),changed.length?'bad':'ok');
+  if(!added.length&&!removed.length&&!changed.length)log('素材指紋完全一致 ✓','ok');
+};
+
+waitGV(build);
+</script>
+</body>
+</html>
