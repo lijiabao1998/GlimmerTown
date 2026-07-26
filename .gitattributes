@@ -1,0 +1,20 @@
+# T350 換行契約（治本，鐵律20）：本專案把「位元」當契約——T274 等回歸測試會拿 index.html
+# 的指定代碼區塊與 backups/ 的舊版逐字比對，一旦 Windows 的 autocrlf 把 LF 轉成 CRLF，
+# 整套位元級測試立刻紅（已發生兩次：一次 git checkout 還原、一次 git worktree add 建車位）。
+# 這裡明確宣告：所有文字檔在倉庫與工作區一律 LF，不受 core.autocrlf 影響。
+*           text=auto eol=lf
+*.html      text eol=lf
+*.js        text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.py        text eol=lf
+*.txt       text eol=lf
+*.svg       text eol=lf
+*.webmanifest text eol=lf
+
+# 二進位：絕不做任何轉換
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.wav       binary
+*.mp3       binary
