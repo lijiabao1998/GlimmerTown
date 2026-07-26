@@ -3776,6 +3776,42 @@ runPwaTests().then(() => {
     assert(window.GV.stats().pop === 4550, 'T348 健康種子 seed22 須維持 4550（紓困為手術式，健康城市位元恆等），實得 ' + window.GV.stats().pop);
   }
 
+
+  // ===== T344 鐵軌軌距／多種軌道／精細火車 =====
+  {
+    // T344a 軌距：必須用「地面正交軸」PERP，不得再用螢幕垂直向量
+    assert(html.includes("const PERP={1:[2,1],2:[2,-1],4:[-2,-1],8:[-2,1]};"),
+      'T344a railTrack 必須用 PERP（地面正交＝另一條等距軸）算軌距；舊版用螢幕垂直 (-ay,ax) 導致雙軌不貼地、間距偏窄');
+    assert(/function railTrack\(g,m,cy,len,cfg\)/.test(html), 'T344a railTrack 需可參數化（供輕軌換風格）');
+    assert(html.includes("g.fillStyle=((qx+qy)&1)?'#7d7060':'#6a5f50';"), 'T344a 道碴須為決定性棋盤紋（零亂數，鐵律2）');
+    // T344b 輕軌自有貼圖（原本直接借用 SPR.rail，兩種軌道長得一樣）
+    assert(html.includes('SPR.tramTrack=[]') && html.includes('SPR.tramBridgeT=[]'), 'T344b 輕軌需自有貼圖陣列');
+    assert(html.includes('SPR.tramTrack?SPR.tramTrack[t.tramMask]'), 'T344b draw 端須改用輕軌貼圖');
+    assert(html.includes('SPR.tramPole') && html.includes("streetHash(x,y,613)<.26"), 'T344b 電桿須以 streetHash 稀疏擺放（決定性，零亂數）');
+    // T344c 精細火車：預生成 sprite 取代每幀 fillRect
+    for (const key of ['SPR.trainLoco=', 'SPR.trainCar=', 'SPR.tramVeh=', 'SPR.tramVehB=']) {
+      assert(html.includes(key), 'T344c 需預生成 ' + key);
+    }
+    assert(html.includes('objs.push({dep:fx+fy+.01,train:tr,carIdx:ci,wx,wy,td:tr.d});'),
+      'T344c 每節車廂須各自 push 取得獨立 dep（舊版整列共用車頭一個 dep，轉彎穿牆）');
+    assert(html.includes("if(o.train&&SPR.trainLoco&&!window.__noTrainSpr){"), 'T344c 新 sprite 路徑須有 __noTrainSpr fallback 開關');
+    // 火車 sprite 生成段不得消耗亂數（鐵律2）
+    {
+      const i0 = html.indexOf('T344c 精細火車／電車 sprite');
+      const i1 = html.indexOf('T344b 輕軌電桿', i0);
+      const seg = html.slice(i0, i1);
+      assert(i1 > i0 && seg.length > 1000, 'T344c 生成段應可擷取');
+      assert(!/\bR\(\)|\bri\(|\brand\(|Math\.random/.test(seg), 'T344c 火車 sprite 生成不得消耗亂數（鐵律2）');
+    }
+    // railTrack 本體亦不得消耗亂數
+    {
+      const i0 = html.indexOf('function railTrack(g,m,cy,len,cfg){');
+      const i1 = html.indexOf('\n}', i0);
+      const seg = html.slice(i0, i1);
+      assert(!/\bR\(\)|\bri\(|\brand\(|Math\.random/.test(seg), 'T344a railTrack 不得消耗亂數（鐵律2）');
+    }
+  }
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
