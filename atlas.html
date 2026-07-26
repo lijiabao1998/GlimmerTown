@@ -41,7 +41,8 @@ textarea{width:100%;height:64px;background:#0f1420;color:#dce4f2;border:1px soli
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const log=(m,c)=>{$('#log').innerHTML+=(c?'<span class="'+c+'">'+m+'</span>':m)+'\n';};
+// T357 修注入：鍵名來自使用者貼入的 JSON，一律走 textContent（innerHTML 會把鍵名當標籤解析）
+const log=(m,c)=>{const d=document.createElement('div');if(c)d.className=c;d.textContent=m;$('#log').appendChild(d);};
 let DATA=null,PINS=null,night=false,anchor=false;
 
 // ---- CRC32（指紋用）----

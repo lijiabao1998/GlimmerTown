@@ -346,6 +346,25 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(at.entries.some(e => e.fam === 'bld' && e.key === '112_1_0'), 'T356 清冊應涵蓋 k112');
   assert(at.entries.some(e => e.fam === 'farmGrow'), 'T356 清冊應涵蓋巢狀家族 farmGrow（遞迴攤平證明）');
 }
+/* ===== T357 逐家族素材基線＋atlas 注入守衛 =====
+   T356 的寬鬆門檻只抓家族級誤刪；本卡把 tools/spr_families.json 釘為逐家族基線，
+   任一家族「變少」立刻紅（新增素材恆大於基線、不必更新；刻意刪減才重跑 gen_spr_baseline.js 降基線）。 */
+{
+  const at = window.GV.sprAtlas356();
+  const cur = {};
+  for (const e of at.entries) cur[e.fam] = (cur[e.fam] || 0) + 1;
+  const base = JSON.parse(fs.readFileSync(path.join(__dirname, 'tools', 'spr_families.json'), 'utf8'));
+  const shrunk = Object.keys(base.families).filter(f => (cur[f] || 0) < base.families[f]);
+  assert(shrunk.length === 0,
+    'T357 這些家族的素材數低於基線（誤刪？）：' + shrunk.map(f => f + ' ' + (cur[f] || 0) + '<' + base.families[f]).join('、'));
+  assert(at.entries.length >= base.total, 'T357 素材總數 ' + at.entries.length + ' 應 ≥ 基線 ' + base.total);
+}
+// T357 atlas 注入守衛：log 輸出必須走 textContent，innerHTML 只允許清空（=''），貼入 JSON 的鍵名不得被當標籤解析
+{
+  const atlasSrc = fs.readFileSync(path.join(__dirname, 'atlas.html'), 'utf8');
+  assert(!/innerHTML\+=/.test(atlasSrc), 'T357 atlas.html 不得用 innerHTML+= 拼接輸出（注入風險）');
+  assert(!/innerHTML\s*=\s*[^'\s]/.test(atlasSrc), "T357 atlas.html 的 innerHTML 只允許清空（=''）");
+}
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
   "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");
