@@ -618,6 +618,83 @@ def run_trusted_verifier(
     return result
 
 
+VERIFIER_PASS_LINE = re.compile(r'^  \[OK\]   suite green: PASS=(\d+) exit=0$')
+
+
+def verified_pass_count(
+    result: CommandResult,
+    label: str,
+    minimum: int,
+) -> int:
+    """Read the canonical verifier's fail-closed assess_suite result.
+
+    verify.py is the trusted implementation of assess_suite.  Its single green
+    summary line is intentionally treated as a strict machine interface here:
+    a missing, duplicated, malformed, or sub-baseline count is never guessed.
+    """
+    if result.returncode != 0:
+        raise ToolError('%s verifier did not exit green' % label)
+    matches = [
+        match
+        for line in result.stdout.splitlines()
+        for match in (VERIFIER_PASS_LINE.fullmatch(line),)
+        if match is not None
+    ]
+    if len(matches) != 1:
+        raise ToolError(
+            '%s verifier did not emit exactly one trusted PASS count' % label
+        )
+    passes = int(matches[0].group(1))
+    if passes < minimum:
+        raise ToolError(
+            '%s verifier reported PASS=%d below baseline %d'
+            % (label, passes, minimum)
+        )
+    return passes
+
+
+def verify_base_source_ratchet(
+    config: MergeConfig,
+    name: str,
+    base: str,
+    source: str,
+    runner: Runner = run_cmd,
+) -> int:
+    """Verify frozen B/S and return S's PASS count without persisting it."""
+    if validate_master(config, runner=runner, require_clean=True) != base:
+        raise ToolError('master moved before frozen B/S verification')
+    if (
+        validate_bay_identity(config, name, runner=runner, require_clean=True)
+        != source
+    ):
+        raise ToolError('source bay moved before frozen B/S verification')
+
+    base_gate = run_trusted_verifier(config, config.root, runner=runner)
+    if base_gate.returncode != 0:
+        raise ToolError('frozen master base verification failed; transaction is not started')
+    base_passes = verified_pass_count(base_gate, 'base B', config.min_pass)
+
+    source_gate = run_trusted_verifier(config, config.bays[name], runner=runner)
+    if source_gate.returncode != 0:
+        raise ToolError('bay verification failed; master is unchanged')
+    source_passes = verified_pass_count(source_gate, 'source S', config.min_pass)
+
+    if validate_master(config, runner=runner, require_clean=True) != base:
+        raise ToolError('master moved during frozen B/S verification')
+    if (
+        validate_bay_identity(config, name, runner=runner, require_clean=True)
+        != source
+    ):
+        raise ToolError('source bay moved during frozen B/S verification')
+    if source_passes < base_passes:
+        raise ToolError(
+            'PASS(S)=%d < PASS(B)=%d; master is unchanged'
+            % (source_passes, base_passes)
+        )
+    ok('PASS ratchet B=%d S=%d' % (base_passes, source_passes))
+    return source_passes
+
+
 def _branch_exists(config: MergeConfig, branch: str, runner: Runner = run_cmd) -> bool:
     result = git_result(
         config.root,
@@ -903,6 +980,7 @@ def verify_integration(
     config: MergeConfig,
     state: Dict[str, object],
     state_path: Path,
+    source_passes: int,
     runner: Runner = run_cmd,
 ) -> bool:
     path = Path(str(state['integration_path']))
@@ -915,11 +993,23 @@ def verify_integration(
     if result.returncode != 0:
         save_state(state_path, state, 'INTEGRATION_RED')
         return False
+    try:
+        merged_passes = verified_pass_count(result, 'integration M', config.min_pass)
+    except ToolError:
+        save_state(state_path, state, 'INTEGRATION_RED')
+        raise
     if validate_integration(config, state, runner=runner) != merged:
         raise ToolError('integration HEAD moved during verification')
     ensure_clean(path, 'integration', runner=runner)
+    if merged_passes < source_passes:
+        save_state(state_path, state, 'INTEGRATION_RED')
+        raise ToolError(
+            'PASS(M)=%d < PASS(S)=%d; master is unchanged'
+            % (merged_passes, source_passes)
+        )
     state['verified_oid'] = merged
     save_state(state_path, state, 'VERIFIED')
+    ok('PASS ratchet S=%d M=%d' % (source_passes, merged_passes))
     return True
 
 
@@ -1776,7 +1866,7 @@ def _finish_after_promotion(
         if receipt_status == 'missing':
             write_deploy_receipt(config, merged, runner=runner)
     elif not state.get('deploy_requested'):
-        info('deployment skipped (transaction was created without --deploy)')
+        info('WARNING: explicit --no-deploy selected; player runtime remains unchanged')
 
     step('sync clean, purely-behind bays using --ff-only')
     results = sync_all_bays(config, runner=runner)
@@ -1835,16 +1925,16 @@ def start_transaction(
     for line in log.splitlines()[:12]:
         info(line)
 
-    step('2. verify frozen bay with canonical verifier')
-    source_gate = run_trusted_verifier(config, config.bays[name], runner=runner)
-    if source_gate.returncode != 0:
-        raise ToolError('bay verification failed; master is unchanged')
-    if validate_master(config, runner=runner, require_clean=True) != base:
-        raise ToolError('master moved during bay verification')
-    if validate_bay_identity(config, name, runner=runner, require_clean=True) != source:
-        raise ToolError('bay moved during verification')
+    step('2. verify frozen base and bay with canonical verifier')
+    source_passes = verify_base_source_ratchet(
+        config,
+        name,
+        base,
+        source,
+        runner=runner,
+    )
     ensure_integration_slot_free(config, runner=runner)
-    ok('bay gate green at frozen OID')
+    ok('base/bay gates green at frozen OIDs')
 
     state = _new_transaction_state(config, name, base, source, deploy_requested)
     validate_state(config, state, runner=runner)
@@ -1859,7 +1949,13 @@ def start_transaction(
     ok('integration merge commit = ' + merged)
 
     step('4. verify integration before master changes')
-    if not verify_integration(config, state, state_path, runner=runner):
+    if not verify_integration(
+        config,
+        state,
+        state_path,
+        source_passes,
+        runner=runner,
+    ):
         raise ToolError(
             'integration gate failed; master is unchanged; use --resume to retry or --abort'
         )
@@ -1921,6 +2017,18 @@ def resume_transaction(
         ok('recognized already-completed master fast-forward')
         return _finish_after_promotion(config, state, state_path, runner=runner)
 
+    try:
+        source_passes = verify_base_source_ratchet(
+            config,
+            name,
+            base,
+            str(state['source_oid']),
+            runner=runner,
+        )
+    except ToolError:
+        save_state(state_path, state, 'INTEGRATION_RED')
+        raise
+
     if not merged:
         if not Path(str(state['integration_path'])).exists():
             recreate_missing_integration(config, state, state_path, runner=runner)
@@ -1935,11 +2043,16 @@ def resume_transaction(
             raise ToolError('integration worktree no longer matches persisted merge OID')
         ensure_clean(Path(str(state['integration_path'])), 'integration', runner=runner)
 
-    if state.get('verified_oid') != merged:
-        step('re-run integration gate')
-        if not verify_integration(config, state, state_path, runner=runner):
-            raise ToolError('integration gate remains red; master is unchanged')
-        ok('integration gate green at exact merge OID')
+    step('re-run integration gate')
+    if not verify_integration(
+        config,
+        state,
+        state_path,
+        source_passes,
+        runner=runner,
+    ):
+        raise ToolError('integration gate remains red; master is unchanged')
+    ok('integration gate green at exact merge OID')
 
     if master == base:
         step('fast-forward master to verified OID')
@@ -2017,7 +2130,20 @@ def validate_cli_location(config: MergeConfig, runner: Runner = run_cmd) -> None
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Transactional Glimmer Town bay merger')
     parser.add_argument('name', nargs='?', choices=sorted(BAYS))
-    parser.add_argument('--deploy', action='store_true', help='publish runtime after promotion')
+    deploy_group = parser.add_mutually_exclusive_group()
+    deploy_group.add_argument(
+        '--deploy',
+        dest='deploy_requested',
+        action='store_true',
+        help='publish runtime after promotion',
+    )
+    deploy_group.add_argument(
+        '--no-deploy',
+        dest='deploy_requested',
+        action='store_false',
+        help='explicitly leave player runtime unchanged after promotion',
+    )
+    parser.set_defaults(deploy_requested=None)
     parser.add_argument('--resume', metavar='BAY', choices=sorted(BAYS))
     parser.add_argument('--abort', metavar='BAY', choices=sorted(BAYS))
     parser.add_argument('--status', action='store_true')
@@ -2025,8 +2151,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     actions = int(args.name is not None) + int(args.resume is not None) + int(args.abort is not None) + int(args.status)
     if actions != 1:
         parser.error('choose exactly one of BAY, --resume BAY, --abort BAY, or --status')
-    if args.deploy and args.name is None:
-        parser.error('--deploy is frozen when a new BAY transaction is created')
+    if args.name is not None and args.deploy_requested is None:
+        parser.error('new BAY transaction requires exactly one of --deploy or --no-deploy')
+    if args.name is None and args.deploy_requested is not None:
+        parser.error('--deploy/--no-deploy are frozen when a new BAY transaction is created')
     return args
 
 
@@ -2042,7 +2170,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 return resume_transaction(DEFAULT_CONFIG, args.resume)
             if args.abort:
                 return abort_transaction(DEFAULT_CONFIG, args.abort)
-            return start_transaction(DEFAULT_CONFIG, args.name, args.deploy)
+            return start_transaction(DEFAULT_CONFIG, args.name, args.deploy_requested)
     except ConflictPending as conflict:
         bad(str(conflict))
         return 2
