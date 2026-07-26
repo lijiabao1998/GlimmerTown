@@ -277,6 +277,57 @@ assert(/SPR\.farmGrow\[si\]\[st\]\[key\]=\{img:c2,ax:gax,ay:gay/.test(html),
 // T353 靜態守衛二：底座裁切必須覆蓋 farmSea/farmGrow，否則那 9 張圖的田地會溢出到鄰格
 assert(/clipBase\(t\[key\]\)/.test(html) && /if\(SPR\.farmSea\)for\(const si of\[1,2,3\]\)\{const t=SPR\.farmSea\[si\];if\(t&&t\[key\]\)clipBase/.test(html),
   'T353 clipBase 必須同時裁切 SPR.farmSea 與 SPR.farmGrow（不能只裁 SPR.bld）');
+/* ===== T355 中央公園 k112 地面裝飾層內含守衛 =====
+   病灶：dia(g,cx,ty,hw) 的 ty 是菱形【頂點】，舊版把它當成中心，於是整個裝飾層（十字步道/池塘/音樂台/
+   兩棵樹）畫在畫布 y56..190，而 3×3 的 footprint 是 y122..217（中心 (104,170) 半寬96 半高48）——
+   全部浮在鄰格空中，地塊下半反而空著。離線重播量到「超出菱形上緣」最高 88px，重排後 10px。
+   這條守衛不需要 canvas：直接從原始碼把座標解析出來，用 |x-104|/96+|y-170|/48 <= 1 驗算，是真跑斷言。 */
+{
+  const AX112 = 104, CY112 = 218 - 16 * 3, HW112 = 32 * 3, HH112 = 16 * 3;
+  const inFoot112 = (x, y) => Math.abs(x - AX112) / HW112 + Math.abs(y - CY112) / HH112 <= 1.0001;
+  const blk112 = html.slice(html.indexOf("{ // 中央公園 112_1_0"), html.indexOf("SPR.bld['112_1_0']"));
+  assert(blk112.length > 400, 'T355 應找到 k112 中央公園的 sprite 區塊');
+  assert(/T355/.test(blk112), 'T355 k112 區塊應帶 T355 重排註解（防悄悄回退成浮空版面）');
+
+  // 樹：底部落點必須在菱形內（樹冠往上超出是合法垂直結構）
+  const trees112 = [...blk112.matchAll(/\[(\d+),(\d+)\]/g)]
+    .map(m => [+m[1], +m[2]])
+    .filter(p => blk112.indexOf('for(const tr2 of [') >= 0);
+  const treeSeg112 = blk112.slice(blk112.indexOf('for(const tr2 of ['));
+  const treePts112 = [...treeSeg112.slice(0, treeSeg112.indexOf(']]') + 2).matchAll(/\[(\d+),(\d+)\]/g)].map(m => [+m[1], +m[2]]);
+  assert(treePts112.length >= 5, 'T355 k112 應解析到 5 棵以上的樹，實得 ' + treePts112.length);
+  const badTree112 = treePts112.filter(([x, y]) => !inFoot112(x, y));
+  assert(badTree112.length === 0,
+    'T355 k112 每棵樹的底部都必須在 3×3 footprint 菱形內，出界：' + JSON.stringify(badTree112));
+
+  // 步道帶：bd112(x1,y1,x2,y2) 的兩個端點必須在菱形內
+  const bands112 = [...blk112.matchAll(/bd112\((\d+),(\d+),(\d+),(\d+)\)/g)].map(m => m.slice(1).map(Number));
+  assert(bands112.length === 2, 'T355 k112 應有兩條 X 形步道，實得 ' + bands112.length);
+  for (const [x1, y1, x2, y2] of bands112) {
+    assert(inFoot112(x1, y1) && inFoot112(x2, y2),
+      'T355 k112 步道端點必須在菱形內：' + JSON.stringify([x1, y1, x2, y2]));
+  }
+
+  // 橢圓（噴泉/池塘）：四個極點必須在菱形內
+  const ells112 = [...blk112.matchAll(/sg\.ellipse\((\d+),(\d+),(\d+),(\d+),/g)].map(m => m.slice(1).map(Number));
+  assert(ells112.length >= 4, 'T355 k112 應解析到 4 個以上的橢圓（噴泉＋池塘），實得 ' + ells112.length);
+  for (const [cx, cy, rx, ry] of ells112) {
+    const pts = [[cx - rx, cy], [cx + rx, cy], [cx, cy - ry], [cx, cy + ry]];
+    const bad = pts.filter(([x, y]) => !inFoot112(x, y));
+    assert(bad.length === 0,
+      'T355 k112 水景橢圓極點必須在菱形內：ellipse(' + [cx, cy, rx, ry].join(',') + ') 出界 ' + JSON.stringify(bad));
+  }
+
+  // 花圃菱形中心＋左右端必須在菱形內
+  const beds112 = [...blk112.matchAll(/\[(\d+),(\d+),'#[0-9a-f]{6}','#[0-9a-f]{6}'\]/g)].map(m => [+m[1], +m[2]]);
+  assert(beds112.length === 3, 'T355 k112 應有三畦花圃，實得 ' + beds112.length);
+  for (const [x, y] of beds112) {
+    assert(inFoot112(x, y) && inFoot112(x - 9, y) && inFoot112(x + 9, y) && inFoot112(x, y + 4),
+      'T355 k112 花圃必須在菱形內：' + JSON.stringify([x, y]));
+  }
+}
+// T355 上緣溢出審計 hook 應存在（真實像素量測於瀏覽器端：k112 修前 88px → 修後 23px）
+assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳陣列');
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
   "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");
