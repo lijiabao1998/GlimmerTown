@@ -12,6 +12,11 @@
 *.svg       text eol=lf
 *.webmanifest text eol=lf
 
+# 備份快照＝位元契約（T269 釘 manifest.pre-T269.json 的 SHA-256、T274 逐字比對舊版代碼區塊）：
+# 一律不做任何換行轉換，checkout 出來必須與提交時逐位元相同。
+backups/**  -text
+attic/**    -text
+
 # 二進位：絕不做任何轉換
 *.png       binary
 *.jpg       binary
