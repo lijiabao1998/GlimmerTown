@@ -7,6 +7,7 @@ Glimmer Town merge command, player deployment directory, or 1902-test suite.
 from __future__ import annotations
 
 import json
+import io
 import os
 import subprocess
 import tempfile
@@ -109,8 +110,15 @@ class TempRepo:
 class GateRunner:
     """Delegate Git to the real runner and inject trusted-verifier outcomes."""
 
-    def __init__(self, gate_codes, on_gate=None):
+    def __init__(self, gate_codes, gate_passes=None, on_gate=None):
         self.gate_codes = list(gate_codes)
+        self.gate_passes = list(
+            gate_passes
+            if gate_passes is not None
+            else [verify.MIN_PASS] * len(self.gate_codes)
+        )
+        if len(self.gate_passes) != len(self.gate_codes):
+            raise ValueError('gate_codes and gate_passes must have the same length')
         self.on_gate = on_gate
         self.gate_calls = []
         self.commands = []
@@ -125,7 +133,12 @@ class GateRunner:
                 self.on_gate(index)
             code = self.gate_codes[index]
             if code == 0:
-                return merge_bay.CommandResult(0, 'RESULT: ALL GREEN\n', '')
+                return merge_bay.CommandResult(
+                    0,
+                    '  [OK]   suite green: PASS=%d exit=0\nRESULT: ALL GREEN\n'
+                    % self.gate_passes[index],
+                    '',
+                )
             return merge_bay.CommandResult(code, 'RESULT: RED\n', 'injected gate failure')
         return merge_bay.run_cmd(rendered, Path(cwd), timeout)
 
@@ -201,7 +214,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             repo.commit(repo.bay, 'incoming feature')
             original_oid = repo.oid(repo.root)
             original_shared = (repo.root / 'shared.txt').read_bytes()
-            runner = GateRunner([0, 9])
+            runner = GateRunner([0, 0, 9])
             with self.assertRaisesRegex(merge_bay.ToolError, 'integration gate failed'):
                 merge_bay.start_transaction(
                     repo.config,
@@ -216,10 +229,89 @@ class ToolchainRegressionTests(unittest.TestCase):
                 repo.git(repo.root, 'rev-parse', '-q', '--verify', 'MERGE_HEAD', check=False).returncode,
                 1,
             )
-            self.assertEqual(len(runner.gate_calls), 2)
-            integration_target = Path(runner.gate_calls[1][0][3]).resolve()
+            self.assertEqual(len(runner.gate_calls), 3)
+            integration_target = Path(runner.gate_calls[2][0][3]).resolve()
             self.assertTrue((integration_target / 'feature.txt').is_file())
             merge_bay.abort_transaction(repo.config, 'kimi')
+
+    def test_pass_ratchet_rejects_source_below_base(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            original_oid = repo.oid(repo.root)
+            runner = GateRunner(
+                [0, 0],
+                gate_passes=[verify.MIN_PASS + 1, verify.MIN_PASS],
+            )
+            with self.assertRaisesRegex(
+                merge_bay.ToolError,
+                r'PASS\(S\)=1902 < PASS\(B\)=1903; master is unchanged',
+            ):
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    False,
+                    runner=runner,
+                )
+            self.assertEqual(repo.oid(repo.root), original_oid)
+            state_path, _ = merge_bay.state_locations(repo.config)
+            self.assertFalse(state_path.exists())
+            self.assertFalse(repo.integration.exists())
+
+    def test_pass_ratchet_rejects_integration_below_source_after_conflict_resolution(self):
+        with TempRepo() as repo:
+            repo.write(repo.root, 'shared.txt', 'master version\n')
+            base = repo.commit(repo.root, 'master side')
+            repo.write(repo.bay, 'shared.txt', 'bay version\n')
+            repo.commit(repo.bay, 'bay side')
+            runner = GateRunner(
+                [0, 0, 0, 0, 0],
+                gate_passes=[
+                    verify.MIN_PASS,
+                    verify.MIN_PASS + 1,
+                    verify.MIN_PASS,
+                    verify.MIN_PASS + 1,
+                    verify.MIN_PASS,
+                ],
+            )
+            self.assertEqual(
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    False,
+                    runner=runner,
+                ),
+                2,
+            )
+            repo.write(repo.integration, 'shared.txt', 'resolved union\n')
+            repo.git(repo.integration, 'add', 'shared.txt')
+            with self.assertRaisesRegex(
+                merge_bay.ToolError,
+                r'PASS\(M\)=1902 < PASS\(S\)=1903; master is unchanged',
+            ):
+                merge_bay.resume_transaction(repo.config, 'kimi', runner=runner)
+            self.assertEqual(repo.oid(repo.root), base)
+            state_path, _ = merge_bay.state_locations(repo.config)
+            state = merge_bay.load_state(state_path)
+            self.assertIsNotNone(state)
+            self.assertEqual(state['phase'], 'INTEGRATION_RED')
+            merge_bay.abort_transaction(repo.config, 'kimi')
+
+    def test_new_merge_requires_explicit_deployment_choice(self):
+        with mock.patch('sys.stderr', new=io.StringIO()):
+            with self.assertRaises(SystemExit) as caught:
+                merge_bay.parse_args(['kimi'])
+        self.assertEqual(caught.exception.code, 2)
+        no_deploy = merge_bay.parse_args(['kimi', '--no-deploy'])
+        self.assertFalse(no_deploy.deploy_requested)
+        self.assertTrue(merge_bay.parse_args(['--status']).status)
+        self.assertEqual(merge_bay.parse_args(['--resume', 'kimi']).resume, 'kimi')
+
+    def test_deploy_flags_are_mutually_exclusive(self):
+        with mock.patch('sys.stderr', new=io.StringIO()):
+            with self.assertRaises(SystemExit) as caught:
+                merge_bay.parse_args(['kimi', '--deploy', '--no-deploy'])
+        self.assertEqual(caught.exception.code, 2)
 
     def test_master_advance_during_integration_gate_is_not_overwritten(self):
         with TempRepo() as repo:
@@ -228,11 +320,11 @@ class ToolchainRegressionTests(unittest.TestCase):
             concurrent_oid = []
 
             def advance_master(gate_index):
-                if gate_index == 1:
+                if gate_index == 2:
                     repo.write(repo.root, 'concurrent.txt', 'other writer\n')
                     concurrent_oid.append(repo.commit(repo.root, 'concurrent master advance'))
 
-            runner = GateRunner([0, 0], on_gate=advance_master)
+            runner = GateRunner([0, 0, 0], on_gate=advance_master)
             with self.assertRaisesRegex(merge_bay.ToolError, 'transaction is stale'):
                 merge_bay.start_transaction(
                     repo.config,
@@ -249,7 +341,7 @@ class ToolchainRegressionTests(unittest.TestCase):
         with TempRepo() as repo:
             repo.write(repo.bay, 'feature.txt', 'incoming\n')
             repo.commit(repo.bay, 'incoming feature')
-            delegate = GateRunner([0, 0])
+            delegate = GateRunner([0, 0, 0])
             frozen = []
             raced = []
 
@@ -283,7 +375,7 @@ class ToolchainRegressionTests(unittest.TestCase):
         with TempRepo() as repo:
             repo.write(repo.bay, 'feature.txt', 'incoming\n')
             repo.commit(repo.bay, 'incoming feature')
-            delegate = GateRunner([0, 0])
+            delegate = GateRunner([0, 0, 0])
             blocked_branch_delete = []
 
             def cleanup_crash_runner(args, cwd, timeout):
@@ -374,7 +466,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             base = repo.commit(repo.root, 'master side')
             repo.write(repo.bay, 'shared.txt', 'bay version\n')
             source = repo.commit(repo.bay, 'bay side')
-            runner = GateRunner([0, 0])
+            runner = GateRunner([0, 0, 0, 0, 0])
 
             result = merge_bay.start_transaction(
                 repo.config,
@@ -399,6 +491,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             repo.git(repo.integration, 'add', 'shared.txt')
             resumed = merge_bay.resume_transaction(repo.config, 'kimi', runner=runner)
             self.assertEqual(resumed, 0)
+            self.assertEqual(len(runner.gate_calls), 5)
             merged = repo.oid(repo.root)
             parents = repo.git(repo.root, 'show', '-s', '--format=%P', merged).stdout.split()
             self.assertEqual(parents, [base, source])
@@ -741,7 +834,7 @@ class ToolchainRegressionTests(unittest.TestCase):
                         repo.config,
                         'kimi',
                         True,
-                        runner=GateRunner([0, 0]),
+                        runner=GateRunner([0, 0, 0]),
                     )
 
             state_path, _ = merge_bay.state_locations(repo.config)
