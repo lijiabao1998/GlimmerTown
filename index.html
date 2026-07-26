@@ -877,7 +877,9 @@ function cv(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;
 function snowCap(s){
   if(s.snow!==undefined)return s.snow;
   const w=s.w|0,h=s.h|0;
-  const[mc,mg]=cv(w,h);mg.drawImage(s.img,0,0);
+  const[mc,mg]=cv(w,h);
+  // T364a：sc sprite 的 img 是 2× 原始畫布，遮罩快取必須先縮到邏輯尺寸；無 sc 時保留原 drawImage 式。
+  if(s._scSrcW!==undefined)mg.drawImage(s.img,0,0,s._scSrcW,s._scSrcH,0,0,w,h);else mg.drawImage(s.img,0,0);
   const sd=mg.getImageData(0,0,w,h).data;
   const[sc,sg]=cv(w,h);
   const out=sg.createImageData(w,h),nd=out.data;
@@ -901,7 +903,9 @@ function snowCap(s){
 function icicleCap(s){
   if(s.icicle!==undefined)return s.icicle;
   const w=s.w|0,h=s.h|0;
-  const[mc,mg]=cv(w,h);mg.drawImage(s.img,0,0);
+  const[mc,mg]=cv(w,h);
+  // T364a：與 snowCap 同一個 sc 快取語意；既有 sprite 仍走原式。
+  if(s._scSrcW!==undefined)mg.drawImage(s.img,0,0,s._scSrcW,s._scSrcH,0,0,w,h);else mg.drawImage(s.img,0,0);
   const sd=mg.getImageData(0,0,w,h).data;
   const[ic,ig]=cv(w,h);const out=ig.createImageData(w,h),nd=out.data;
   const cap=Math.max(3,Math.round(h*.11));
@@ -924,7 +928,8 @@ function icicleCap(s){
 function wetSkin(s){
   if(s.wet!==undefined)return s.wet;
   const[c,g]=cv(s.w|0,s.h|0);
-  g.drawImage(s.img,0,0);
+  // T364a：濕膜畫布以顯示尺寸快取；2× 原圖要明確縮放，無 sc 保留原式。
+  if(s._scSrcW!==undefined)g.drawImage(s.img,0,0,s._scSrcW,s._scSrcH,0,0,s.w,s.h);else g.drawImage(s.img,0,0);
   const grad=g.createLinearGradient(0,0,0,s.h);
   grad.addColorStop(0,'rgba(40,54,76,0.16)');grad.addColorStop(1,'rgba(24,36,56,0.5)');
   g.globalCompositeOperation='source-atop';
@@ -13143,6 +13148,13 @@ function draw(dt){
     else if(bd.k===1&&bd.lv===3&&bd.den>=4)s=wealthSpr('1_3_4',bd.we); // 高密度 Lv3 住宅（T30）；T125：財富色變，缺鍵回退中產
     else if(bd.k===1)s=wealthSpr(bd.k+'_'+bd.lv+'_'+bd.v,bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0']; // T125：住宅財富色變；變體鍵兜底同 FIX-D
     else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）；T239：服務升級 lv>1 無對應圖時退回 lv1（升級不改外觀、僅疊等級星）
+    /* T364a sc sprite view：新波素材以 2× 畫布保存細節，僅在世界繪製時縮放。
+       無 sc 的既有素材直接保留原物件／原 w,h,ax,ay，下面所有舊算式逐位元不變；
+       有 sc 才建立一次快取檢視，將邏輯尺寸與錨點同步縮放，並保留原圖尺寸給施工裁切與遮罩快取。 */
+    if(s.sc!==undefined){
+      const raw=s,q=s.sc;
+      s=raw._scView||(raw._scView={...raw,w:raw.w*q,h:raw.h*q,ax:raw.ax*q,ay:raw.ay*q,_scSrcW:raw.w,_scSrcH:raw.h});
+    }
     let bx,by;
     if(bd.sz&&bd.sz>=2){ // T39-T60 多格建築通用定位：錨點對齊 (x+sz-1, y+sz-1) 底頂點
       const sz=bd.sz;
@@ -13289,9 +13301,16 @@ function draw(dt){
     if(drawA<1)ctx.globalAlpha=drawA;
     if(constrRise){ // T259：樓體「蓋到哪露到哪」——只畫 sprite 底部 riseF 切片（源矩形裁切），頂緣加混凝土樓板線＋鋼筋頭＝逐層長高
       const riseF=[.30,.50,.68,.84,.96][bd.age-4];
-      const cutY=s.h*(1-riseF);
-      ctx.drawImage(s.img,0,cutY,s.w,s.h*riseF,bx,by+cutY*z,s.w*z,s.h*riseF*z);
-      const slabY=by+cutY*z;
+      let slabY;
+      if(s._scSrcW!==undefined){ // T364a：source 用 2× 原畫布，destination 用已縮放的邏輯尺寸
+        const cutSrcY=s._scSrcH*(1-riseF),cutDrawY=s.h*(1-riseF);
+        ctx.drawImage(s.img,0,cutSrcY,s._scSrcW,s._scSrcH*riseF,bx,by+cutDrawY*z,s.w*z,s.h*riseF*z);
+        slabY=by+cutDrawY*z;
+      }else{
+        const cutY=s.h*(1-riseF);
+        ctx.drawImage(s.img,0,cutY,s.w,s.h*riseF,bx,by+cutY*z,s.w*z,s.h*riseF*z);
+        slabY=by+cutY*z;
+      }
       ctx.fillStyle='rgba(178,172,160,.85)';ctx.fillRect(bx+s.w*z*.2,slabY-Math.max(1,1.6*z),s.w*z*.6,Math.max(1,1.8*z)); // 樓板線
       ctx.strokeStyle='#8a5a3a';ctx.lineWidth=Math.max(1,z*.6); // 鋼筋頭（板上豎筋）
       for(let rb3=0;rb3<5;rb3++){const rx3=bx+s.w*z*(.25+rb3*.125);ctx.beginPath();ctx.moveTo(rx3,slabY-1.6*z);ctx.lineTo(rx3,slabY-5*z);ctx.stroke();}
@@ -16688,16 +16707,17 @@ window.GV={
     非 sprite 成員（字串包／函式／null）略過並計入 skipped，讓清冊涵蓋率本身可被斷言。 */
     const out=[];let skipped=0;
     const isCvs=o=>o&&typeof o.width==='number'&&typeof o.getContext==='function';
-    const push=(fam,key,img,night,ax,ay)=>{
+    const push=(fam,key,img,night,ax,ay,sc)=>{
       if(!isCvs(img)){skipped++;return;}
       out.push({fam,key,img,night:(night&&isCvs(night))?night:null,
-        w:img.width,h:img.height,ax:(typeof ax==='number')?ax:null,ay:(typeof ay==='number')?ay:null});
+        w:img.width,h:img.height,ax:(typeof ax==='number')?ax:null,ay:(typeof ay==='number')?ay:null,
+        sc:(typeof sc==='number')?sc:null}); // T364a：atlas 保留可選縮放 metadata；atlas.html 忽略此欄，既有行為不變
     };
     const walk=(fam,key,v)=>{
       if(isCvs(v)){push(fam,key,v);return;}
       if(!v||typeof v!=='object'){skipped++;return;}
-      if(v.img!==undefined){push(fam,key,v.img,v.night,v.ax,v.ay);return;}
-      if(v.A!==undefined){push(fam,key+'.A',v.A,v.NA||null,v.ax,v.ay);if(v.B!==undefined)push(fam,key+'.B',v.B,v.NB||null,v.ax,v.ay);return;}
+      if(v.img!==undefined){push(fam,key,v.img,v.night,v.ax,v.ay,v.sc);return;}
+      if(v.A!==undefined){push(fam,key+'.A',v.A,v.NA||null,v.ax,v.ay,v.sc);if(v.B!==undefined)push(fam,key+'.B',v.B,v.NB||null,v.ax,v.ay,v.sc);return;}
       if(Array.isArray(v)){for(let i=0;i<v.length;i++)walk(fam,(key?key+'.':'')+i,v[i]);return;}
       let any=false;
       for(const k2 in v){any=true;walk(fam,(key?key+'.':'')+k2,v[k2]);}

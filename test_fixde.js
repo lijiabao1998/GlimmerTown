@@ -447,6 +447,35 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   }
   window.__noWteFx = false;
 }
+/* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
+{
+  const at=window.GV.sprAtlas356();
+  assert(at.entries.every(e=>e.sc===null||typeof e.sc==='number'),
+    'T364a sprAtlas356 的 sc metadata 必須是 null 或 number');
+  const oldScaled=at.entries.filter(e=>e.fam==='bld'&&Number(e.key.split('_')[0])<=120&&e.sc!==null);
+  assert(oldScaled.length===0,'T364a 既有 120 座 SPR.bld 不得出現 sc：'+JSON.stringify(oldScaled.slice(0,3)));
+  const scStart=html.indexOf('T364a sc sprite view');
+  const scEnd=html.indexOf('let bx,by;',scStart);
+  assert(scStart>0&&scEnd>scStart,'T364a sc view 區塊應可擷取');
+  const scBlock=html.slice(scStart,scEnd);
+  assert(/if\(s\.sc!==undefined\)/.test(scBlock),'T364a 僅在 sprite 明示 sc 時建立縮放檢視');
+  assert(/w:raw\.w\*q,h:raw\.h\*q,ax:raw\.ax\*q,ay:raw\.ay\*q/.test(scBlock),
+    'T364a 必須同步縮放 w/h 與 ax/ay，不能只縮本體');
+  assert(/_scSrcW:raw\.w,_scSrcH:raw\.h/.test(scBlock),'T364a 必須保留 2× 原圖尺寸供施工裁切');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(scBlock),
+    'T364a sc view 區塊不得消耗共用亂數');
+  assert(/if\(s\._scSrcW!==undefined\)mg\.drawImage\(s\.img,0,0,s\._scSrcW,s\._scSrcH,0,0,w,h\);else mg\.drawImage\(s\.img,0,0\);/.test(html),
+    'T364a snow／icicle 遮罩必須把 2× 原圖縮到邏輯尺寸，無 sc 保留原式');
+  assert(/if\(s\._scSrcW!==undefined\)g\.drawImage\(s\.img,0,0,s\._scSrcW,s\._scSrcH,0,0,s\.w,s\.h\);else g\.drawImage\(s\.img,0,0\);/.test(html),
+    'T364a wetSkin 必須把 2× 原圖縮到邏輯尺寸，無 sc 保留原式');
+  const riseStart=html.indexOf('if(constrRise){ // T259：樓體「蓋到哪露到哪」');
+  const riseEnd=html.indexOf('if(drawA<1)ctx.globalAlpha=1;',riseStart);
+  const riseBlock=html.slice(riseStart,riseEnd);
+  assert(/if\(s\._scSrcW!==undefined\)/.test(riseBlock)&&/cutSrcY=s\._scSrcH\*\(1-riseF\),cutDrawY=s\.h\*\(1-riseF\)/.test(riseBlock),
+    'T364a 施工切片必須分開使用原圖 source 與縮放後 destination');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(riseBlock),
+    'T364a 施工切片分支不得消耗共用亂數');
+}
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
   "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");
