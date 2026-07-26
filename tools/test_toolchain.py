@@ -444,28 +444,16 @@ class ToolchainRegressionTests(unittest.TestCase):
             self.assertIn('--ff-only', merge_commands[0])
 
     def test_second_publish_failure_rolls_back_both_runtime_files(self):
-        with tempfile.TemporaryDirectory(prefix='glimmer-deploy-test-') as raw:
-            base = Path(raw)
-            source = base / 'source'
-            deploy = base / 'deploy'
-            source.mkdir()
-            deploy.mkdir()
-            (source / 'index.html').write_bytes(b'new-index')
-            (source / 'sw.js').write_bytes(b'new-sw')
-            (source / 'atlas.html').write_bytes(b'source-atlas')
-            (deploy / 'index.html').write_bytes(b'old-index')
-            (deploy / 'sw.js').write_bytes(b'old-sw')
-            (deploy / 'atlas.html').write_bytes(b'deploy-atlas')
-            (deploy / merge_bay.DEPLOY_MARKER).write_text(
-                'test deployment marker\n',
-                encoding='utf-8',
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
             )
-            config = merge_bay.MergeConfig(
-                root=source,
-                deploy=deploy,
-                bays={},
-                integration_path=base / 'integration',
-            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            (repo.deploy / 'atlas.html').write_bytes(b'deploy-atlas')
 
             def fail_on_sw_publish(src, dst):
                 src_path = Path(src)
@@ -476,21 +464,125 @@ class ToolchainRegressionTests(unittest.TestCase):
 
             with self.assertRaises(merge_bay.DeployError):
                 merge_bay.deploy_runtime_atomic(
-                    config,
+                    repo.config,
                     source,
                     'rollback-test',
-                    '1' * 40,
+                    source_oid,
                     replace_fn=fail_on_sw_publish,
                 )
-            self.assertEqual((deploy / 'index.html').read_bytes(), b'old-index')
-            self.assertEqual((deploy / 'sw.js').read_bytes(), b'old-sw')
-            self.assertEqual((deploy / 'atlas.html').read_bytes(), b'deploy-atlas')
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+            self.assertEqual((repo.deploy / 'atlas.html').read_bytes(), b'deploy-atlas')
             leftovers = [
                 path.name
-                for path in deploy.iterdir()
+                for path in repo.deploy.iterdir()
                 if path.name.startswith('.glimmer-')
             ]
             self.assertEqual(leftovers, [])
+
+    def test_rollback_failure_keeps_journal_until_resume_restores_both_files(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+
+            def fail_publish_and_rollback(src, dst):
+                src_path = Path(src)
+                dst_path = Path(dst)
+                if src_path.suffix == '.new' and dst_path.name == 'sw.js':
+                    raise OSError('injected second publish failure')
+                if src_path.suffix == '.rollback':
+                    raise OSError('injected rollback failure')
+                return os.replace(src_path, dst_path)
+
+            with self.assertRaisesRegex(merge_bay.DeployError, 'rollback ALSO failed'):
+                merge_bay.deploy_runtime_atomic(
+                    repo.config,
+                    source,
+                    'rollback-retry',
+                    source_oid,
+                    replace_fn=fail_publish_and_rollback,
+                )
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(
+                merge_bay.recover_deployment(
+                    repo.config,
+                    expected_txn='rollback-retry',
+                    expected_source_oid=source_oid,
+                ),
+                'rolled_back',
+            )
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+
+    def test_journal_is_durable_before_first_artifact_and_recovers_all_old(self):
+        for cut_at in range(1, 5):
+            with self.subTest(cut_at=cut_at):
+                with TempRepo() as repo:
+                    source = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+                    original_write = merge_bay._durable_write
+                    calls = 0
+
+                    def kill_at_artifact_boundary(path, data, exclusive=True):
+                        nonlocal calls
+                        calls += 1
+                        if calls == cut_at:
+                            raise KeyboardInterrupt(
+                                'injected hard kill at artifact boundary %d' % cut_at
+                            )
+                        return original_write(path, data, exclusive=exclusive)
+
+                    with mock.patch.object(
+                        merge_bay,
+                        '_durable_write',
+                        side_effect=kill_at_artifact_boundary,
+                    ):
+                        with self.assertRaises(KeyboardInterrupt):
+                            merge_bay.prepare_deployment(
+                                repo.config,
+                                source,
+                                'journal-first',
+                                repo.base_oid,
+                            )
+                    self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+                    self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+                    self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+                    self.assertEqual(
+                        merge_bay.recover_deployment(
+                            repo.config,
+                            expected_txn='journal-first',
+                            expected_source_oid=repo.base_oid,
+                        ),
+                        'rolled_back',
+                    )
+                    self.assertFalse(
+                        any(
+                            path.name.startswith('.glimmer-')
+                            for path in repo.deploy.iterdir()
+                        )
+                    )
+
+    def test_unowned_prejournal_artifact_fails_before_writing_evidence_or_runtime(self):
+        with TempRepo() as repo:
+            source = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            backup, _ = merge_bay._artifact_names('orphan-test', 'index.html')
+            (repo.deploy / backup).write_bytes(b'unowned')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'without a journal'):
+                merge_bay.prepare_deployment(
+                    repo.config,
+                    source,
+                    'orphan-test',
+                    repo.base_oid,
+                )
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
 
     def test_mixed_hard_kill_state_recovers_from_durable_journal(self):
         with tempfile.TemporaryDirectory(prefix='glimmer-recovery-test-') as raw:
@@ -595,23 +687,15 @@ class ToolchainRegressionTests(unittest.TestCase):
             self.assertEqual((deploy / 'atlas.html').read_bytes(), b'must-survive')
 
     def test_cleanup_lock_keeps_truthful_journal_and_new_runtime(self):
-        with tempfile.TemporaryDirectory(prefix='glimmer-cleanup-lock-test-') as raw:
-            base = Path(raw)
-            source = base / 'source'
-            deploy = base / 'deploy'
-            source.mkdir()
-            deploy.mkdir()
-            (source / 'index.html').write_bytes(b'new-index')
-            (source / 'sw.js').write_bytes(b'new-sw')
-            (deploy / 'index.html').write_bytes(b'old-index')
-            (deploy / 'sw.js').write_bytes(b'old-sw')
-            (deploy / merge_bay.DEPLOY_MARKER).write_text('marker\n', encoding='utf-8')
-            config = merge_bay.MergeConfig(
-                root=source,
-                deploy=deploy,
-                bays={},
-                integration_path=base / 'integration',
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
             )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
             original_unlink = Path.unlink
 
             def locked_backup(path, *args, **kwargs):
@@ -622,17 +706,180 @@ class ToolchainRegressionTests(unittest.TestCase):
             with mock.patch.object(Path, 'unlink', locked_backup):
                 with self.assertRaises(merge_bay.DeployCleanupPending) as caught:
                     merge_bay.deploy_runtime_atomic(
-                        config,
+                        repo.config,
                         source,
                         'cleanup-lock',
-                        '5' * 40,
+                        source_oid,
                     )
             self.assertEqual(caught.exception.runtime_state, 'committed')
-            self.assertEqual((deploy / 'index.html').read_bytes(), b'new-index')
-            self.assertEqual((deploy / 'sw.js').read_bytes(), b'new-sw')
-            self.assertTrue((deploy / merge_bay.DEPLOY_JOURNAL).exists())
-            self.assertEqual(merge_bay.recover_deployment(config), 'committed')
-            self.assertFalse((deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), source['index.html'])
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), source['sw.js'])
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.recover_deployment(repo.config), 'committed')
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+
+    def test_cleanup_pending_all_old_resume_republishes_verified_runtime(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.bay,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.bay, 'sw.js', "const APP_VER='2.0';\n")
+            repo.write(repo.bay, 'feature.txt', 'deploy me\n')
+            repo.commit(repo.bay, 'new deployable runtime')
+            original_unlink = Path.unlink
+
+            def locked_backup(path, *args, **kwargs):
+                if path.name.endswith('.bak'):
+                    raise PermissionError('injected cleanup lock')
+                return original_unlink(path, *args, **kwargs)
+
+            with mock.patch.object(Path, 'unlink', locked_backup):
+                with self.assertRaises(merge_bay.DeployCleanupPending):
+                    merge_bay.start_transaction(
+                        repo.config,
+                        'kimi',
+                        True,
+                        runner=GateRunner([0, 0]),
+                    )
+
+            state_path, _ = merge_bay.state_locations(repo.config)
+            state = merge_bay.load_state(state_path)
+            self.assertIsNotNone(state)
+            self.assertTrue(state['deployed'])
+            journal = merge_bay._load_deploy_journal(
+                repo.config,
+                expected_txn=state['txn_id'],
+                expected_source_oid=state['integration_oid'],
+            )
+            self.assertIsNotNone(journal)
+
+            # Model a late OneDrive/crash rollback while cleanup evidence is
+            # still present: both live files return to the journal's old bytes.
+            for entry in journal['files']:
+                old_data = (repo.deploy / entry['backup']).read_bytes()
+                (repo.deploy / entry['name']).write_bytes(old_data)
+
+            original_recover = merge_bay.recover_deployment
+            interrupted = []
+
+            def kill_after_recovery(*args, **kwargs):
+                result = original_recover(*args, **kwargs)
+                if result == 'rolled_back' and not interrupted:
+                    interrupted.append(result)
+                    raise KeyboardInterrupt('injected kill after journal removal')
+                return result
+
+            with mock.patch.object(
+                merge_bay,
+                'recover_deployment',
+                side_effect=kill_after_recovery,
+            ):
+                with self.assertRaises(KeyboardInterrupt):
+                    merge_bay.resume_transaction(
+                        repo.config,
+                        'kimi',
+                        runner=GateRunner([]),
+                    )
+            interrupted_state = merge_bay.load_state(state_path)
+            self.assertIsNotNone(interrupted_state)
+            self.assertFalse(interrupted_state['deployed'])
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+
+            self.assertEqual(
+                merge_bay.resume_transaction(
+                    repo.config,
+                    'kimi',
+                    runner=GateRunner([]),
+                ),
+                0,
+            )
+            merged = repo.oid(repo.root)
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, merged)
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), expected['index.html'])
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), expected['sw.js'])
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertFalse(state_path.exists())
+
+    def test_receipt_exists_before_journal_unlink_hard_kill_cut(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            original_unlink = Path.unlink
+
+            def kill_before_journal_unlink(path, *args, **kwargs):
+                if path.name == merge_bay.DEPLOY_JOURNAL:
+                    receipt = merge_bay.deploy_receipt_path(repo.config)
+                    self.assertTrue(receipt.exists())
+                    raise KeyboardInterrupt('injected kill at journal unlink')
+                return original_unlink(path, *args, **kwargs)
+
+            with mock.patch.object(
+                Path,
+                'unlink',
+                new=kill_before_journal_unlink,
+            ):
+                with self.assertRaises(KeyboardInterrupt):
+                    merge_bay.deploy_runtime_atomic(
+                        repo.config,
+                        source,
+                        'receipt-before-cleanup',
+                        source_oid,
+                    )
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(
+                merge_bay.recover_deployment(
+                    repo.config,
+                    expected_txn='receipt-before-cleanup',
+                    expected_source_oid=source_oid,
+                ),
+                'committed',
+            )
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), source['index.html'])
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), source['sw.js'])
+
+    def test_all_new_recovery_writes_exact_receipt_before_removing_journal(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            journal = merge_bay.prepare_deployment(
+                repo.config,
+                source,
+                'all-new-recovery',
+                source_oid,
+            )
+            for entry in journal['files']:
+                os.replace(
+                    repo.deploy / entry['stage'],
+                    repo.deploy / entry['name'],
+                )
+            self.assertFalse(merge_bay.deploy_receipt_path(repo.config).exists())
+            self.assertEqual(
+                merge_bay.recover_deployment(
+                    repo.config,
+                    expected_txn='all-new-recovery',
+                    expected_source_oid=source_oid,
+                ),
+                'committed',
+            )
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
 
     def test_corrupt_second_backup_causes_zero_rollback_writes(self):
         with tempfile.TemporaryDirectory(prefix='glimmer-backup-corrupt-test-') as raw:
@@ -721,13 +968,43 @@ class ToolchainRegressionTests(unittest.TestCase):
 
     def test_deploy_receipt_detects_late_onedrive_style_rollback(self):
         with TempRepo() as repo:
+            with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
+                merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            for name, data in expected.items():
+                (repo.deploy / name).write_bytes(data)
             merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+            receipt_path = merge_bay.deploy_receipt_path(repo.config)
+            receipt_before = receipt_path.read_bytes()
             self.assertEqual(
                 merge_bay.verify_deploy_receipt(repo.config),
                 'match',
             )
+            (repo.deploy / 'index.html').write_bytes(b'wrong-before-resign')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
+                merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+            self.assertEqual(receipt_path.read_bytes(), receipt_before)
+            (repo.deploy / 'index.html').write_bytes(expected['index.html'])
             (repo.deploy / 'index.html').write_bytes(b'late-rollback')
             with self.assertRaisesRegex(merge_bay.DeployError, 'drifted'):
+                merge_bay.verify_deploy_receipt(repo.config)
+
+    def test_forged_receipt_hashes_cannot_bless_bytes_outside_source_commit(self):
+        with TempRepo() as repo:
+            forged = {
+                'schema': 1,
+                'source_oid': repo.base_oid,
+                'runtime_sha256': {
+                    name: merge_bay._sha256_file(repo.deploy / name)
+                    for name in merge_bay.RUNTIME
+                },
+                'written_at': 1,
+            }
+            merge_bay._atomic_write_json(
+                merge_bay.deploy_receipt_path(repo.config),
+                forged,
+            )
+            with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
                 merge_bay.verify_deploy_receipt(repo.config)
 
 

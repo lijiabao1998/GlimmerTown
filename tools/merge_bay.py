@@ -1186,6 +1186,7 @@ def recover_deployment(
     force_rollback: bool = False,
     expected_txn: Optional[str] = None,
     expected_source_oid: Optional[str] = None,
+    runner: Runner = run_cmd,
 ) -> str:
     """Recover an interrupted two-file publish from durable backups/journal."""
     journal = _load_deploy_journal(
@@ -1219,7 +1220,7 @@ def recover_deployment(
     )
     if all_new and not force_rollback:
         try:
-            _cleanup_deploy_artifacts(config, journal)
+            _finalize_committed_deployment(config, journal, runner=runner)
         except DeployCleanupPending as exc:
             raise DeployCleanupPending(str(exc), 'committed') from exc
         return 'committed'
@@ -1303,48 +1304,55 @@ def prepare_deployment(
             except OSError as exc:
                 raise DeployError('unable to read source runtime %s: %s' % (name, exc)) from exc
     entries = []
-    created = []
+    payloads = []
+    for name in config.runtime_files:
+        if Path(name).name != name:
+            raise DeployError('unsafe runtime whitelist entry: ' + name)
+        target = deploy / name
+        try:
+            old_data = target.read_bytes()
+        except OSError as exc:
+            raise DeployError('unable to read runtime target %s: %s' % (name, exc)) from exc
+        new_data = source_bytes[name]
+        backup_name, stage_name = _artifact_names(txn_id, name)
+        backup = deploy / backup_name
+        stage_path = deploy / stage_name
+        for artifact in (backup, stage_path):
+            if os.path.lexists(str(artifact)):
+                raise DeployError(
+                    'deployment artifact already exists without a journal: ' + artifact.name
+                )
+        entries.append(
+            {
+                'name': name,
+                'backup': backup.name,
+                'stage': stage_path.name,
+                'old_sha256': _sha256_bytes(old_data),
+                'new_sha256': _sha256_bytes(new_data),
+            }
+        )
+        payloads.extend(((backup, old_data), (stage_path, new_data)))
+
+    journal = {
+        'schema': DEPLOY_SCHEMA,
+        'txn_id': txn_id,
+        'source_oid': source_oid,
+        'created_at': int(time.time()),
+        'files': entries,
+    }
+    # Recovery evidence comes first.  A kill before or during any following
+    # artifact write therefore leaves an all-old transaction that can be
+    # cleaned and retried instead of an unowned O_EXCL orphan.
+    _atomic_create_json(deploy / DEPLOY_JOURNAL, journal)
     try:
-        for name in config.runtime_files:
-            if Path(name).name != name:
-                raise DeployError('unsafe runtime whitelist entry: ' + name)
-            target = deploy / name
-            try:
-                old_data = target.read_bytes()
-            except OSError as exc:
-                raise DeployError('unable to read runtime target %s: %s' % (name, exc)) from exc
-            new_data = source_bytes[name]
-            backup_name, stage_name = _artifact_names(txn_id, name)
-            backup = deploy / backup_name
-            stage_path = deploy / stage_name
-            _durable_write(backup, old_data, exclusive=True)
-            created.append(backup)
-            _durable_write(stage_path, new_data, exclusive=True)
-            created.append(stage_path)
-            entries.append(
-                {
-                    'name': name,
-                    'backup': backup.name,
-                    'stage': stage_path.name,
-                    'old_sha256': _sha256_bytes(old_data),
-                    'new_sha256': _sha256_bytes(new_data),
-                }
-            )
-        journal = {
-            'schema': DEPLOY_SCHEMA,
-            'txn_id': txn_id,
-            'source_oid': source_oid,
-            'created_at': int(time.time()),
-            'files': entries,
-        }
-        _atomic_create_json(deploy / DEPLOY_JOURNAL, journal)
-        return journal
-    except BaseException:
-        if not (deploy / DEPLOY_JOURNAL).exists():
-            for path in created:
-                if path.exists():
-                    path.unlink()
-        raise
+        for path, data in payloads:
+            _durable_write(path, data, exclusive=True)
+    except OSError as exc:
+        raise DeployError(
+            'deployment artifact preparation failed; journal retained for --resume: %s'
+            % exc
+        ) from exc
+    return journal
 
 
 def deploy_runtime_atomic(
@@ -1353,6 +1361,7 @@ def deploy_runtime_atomic(
     txn_id: str,
     source_oid: str,
     replace_fn: Callable[[object, object], object] = os.replace,
+    runner: Runner = run_cmd,
 ) -> None:
     """Publish index then SW, with durable hard-kill recovery and caught-error rollback."""
     prior = recover_deployment(
@@ -1360,9 +1369,12 @@ def deploy_runtime_atomic(
         replace_fn=replace_fn,
         expected_txn=txn_id,
         expected_source_oid=source_oid,
+        runner=runner,
     )
     if prior != 'none':
         info('recovered previous deployment journal: ' + prior)
+    if prior == 'committed':
+        return
     journal = prepare_deployment(config, source, txn_id, source_oid)
     deploy = Path(config.deploy)
     try:
@@ -1383,6 +1395,7 @@ def deploy_runtime_atomic(
                 force_rollback=True,
                 expected_txn=txn_id,
                 expected_source_oid=source_oid,
+                runner=runner,
             )
         except BaseException as rollback:
             raise DeployError(
@@ -1396,7 +1409,7 @@ def deploy_runtime_atomic(
     # outside the rollback block: if Windows locks a .bak, runtime is NEW and
     # the journal must remain as truthful cleanup evidence.
     try:
-        _cleanup_deploy_artifacts(config, journal)
+        _finalize_committed_deployment(config, journal, runner=runner)
     except DeployCleanupPending as exc:
         raise DeployCleanupPending(str(exc), 'committed') from exc
 
@@ -1411,11 +1424,24 @@ def write_deploy_receipt(
     runner: Runner = run_cmd,
 ) -> None:
     validate_deploy_target(config)
-    if git_oid(config.root, source_oid, runner=runner) != source_oid:
+    try:
+        resolved = git_oid(config.root, source_oid, runner=runner)
+    except ToolError as exc:
+        raise DeployError('cannot resolve receipt source commit: %s' % exc) from exc
+    if resolved != source_oid:
         raise DeployError('cannot record receipt for an unresolved source OID')
-    hashes = {name: _sha256_file(Path(config.deploy) / name) for name in RUNTIME}
-    if any(not isinstance(value, str) for value in hashes.values()):
-        raise DeployError('cannot record deployment receipt: runtime hash missing')
+    expected_bytes = runtime_bytes_at_commit(config, source_oid, runner=runner)
+    hashes = {name: _sha256_bytes(expected_bytes[name]) for name in RUNTIME}
+    mismatches = [
+        name
+        for name in RUNTIME
+        if _sha256_file(Path(config.deploy) / name) != hashes[name]
+    ]
+    if mismatches:
+        raise DeployError(
+            'cannot record receipt: deployed runtime differs from exact source OID: '
+            + ', '.join(mismatches)
+        )
     receipt = {
         'schema': 1,
         'source_oid': source_oid,
@@ -1423,6 +1449,19 @@ def write_deploy_receipt(
         'written_at': int(time.time()),
     }
     _atomic_write_json(deploy_receipt_path(config, runner=runner), receipt)
+
+
+def _finalize_committed_deployment(
+    config: MergeConfig,
+    journal: Mapping[str, object],
+    runner: Runner = run_cmd,
+) -> None:
+    """Make the exact receipt durable before removing recovery evidence."""
+    # If receipt persistence fails or the process is killed, the all-new
+    # journal remains authoritative and --resume can safely retry.  Journal
+    # unlink is therefore the final commit point.
+    write_deploy_receipt(config, str(journal['source_oid']), runner=runner)
+    _cleanup_deploy_artifacts(config, journal)
 
 
 def verify_deploy_receipt(config: MergeConfig, runner: Runner = run_cmd) -> str:
@@ -1449,10 +1488,27 @@ def verify_deploy_receipt(config: MergeConfig, runner: Runner = run_cmd) -> str:
     for value in hashes.values():
         if not isinstance(value, str) or not SHA256_RE.fullmatch(value):
             raise DeployError('deployment receipt SHA-256 is invalid')
+    try:
+        resolved = git_oid(config.root, receipt['source_oid'], runner=runner)
+    except ToolError as exc:
+        raise DeployError('deployment receipt source commit is invalid: %s' % exc) from exc
+    if resolved != receipt['source_oid']:
+        raise DeployError('deployment receipt source commit did not resolve exactly')
+    expected_bytes = runtime_bytes_at_commit(config, receipt['source_oid'], runner=runner)
+    expected_hashes = {
+        name: _sha256_bytes(expected_bytes[name])
+        for name in RUNTIME
+    }
+    forged = [name for name in RUNTIME if hashes[name] != expected_hashes[name]]
+    if forged:
+        raise DeployError(
+            'deployment receipt hashes do not match its exact source OID: '
+            + ', '.join(forged)
+        )
     mismatches = [
         name
         for name in RUNTIME
-        if _sha256_file(Path(config.deploy) / name) != hashes[name]
+        if _sha256_file(Path(config.deploy) / name) != expected_hashes[name]
     ]
     if mismatches:
         raise DeployError(
@@ -1657,11 +1713,11 @@ def _finish_after_promotion(
                 immutable_runtime,
                 str(state['txn_id']),
                 merged,
+                runner=runner,
             )
         except DeployCleanupPending as exc:
             if exc.runtime_state == 'committed':
                 state['deployed'] = True
-                write_deploy_receipt(config, merged, runner=runner)
                 save_state(state_path, state, 'DEPLOY_CLEANUP_PENDING')
             else:
                 save_state(state_path, state, 'DEPLOY_FAILED')
@@ -1669,17 +1725,37 @@ def _finish_after_promotion(
         except DeployError:
             save_state(state_path, state, 'DEPLOY_FAILED')
             raise
-        write_deploy_receipt(config, merged, runner=runner)
         state['deployed'] = True
         save_state(state_path, state, 'DEPLOYED')
         ok('index.html + sw.js published byte-identically; sw.js committed last')
     elif state.get('deploy_requested'):
         if (Path(config.deploy) / DEPLOY_JOURNAL).exists():
+            # Persist the conservative intent before recovery can remove the
+            # journal.  A kill after rollback/cleanup must never leave
+            # deployed=true with OLD runtime and no recovery evidence.
+            state['deployed'] = False
+            save_state(state_path, state, 'DEPLOYING')
             recovered = recover_deployment(
                 config,
                 expected_txn=str(state['txn_id']),
                 expected_source_oid=merged,
+                runner=runner,
             )
+            if recovered == 'committed':
+                state['deployed'] = True
+                save_state(state_path, state, 'DEPLOYED')
+            if recovered == 'rolled_back':
+                # Cleanup-pending runtime can be reverted to the journal's
+                # proven old bytes by OneDrive or a crash.  Persist the state
+                # correction before re-publishing the same verified commit.
+                save_state(state_path, state, 'DEPLOY_FAILED')
+                info('deployment reverted to proven old bytes; re-publishing verified OID')
+                return _finish_after_promotion(
+                    config,
+                    state,
+                    state_path,
+                    runner=runner,
+                )
             if recovered != 'committed':
                 raise DeployError(
                     'deployed state recovered as %s instead of committed' % recovered
@@ -1732,7 +1808,7 @@ def start_transaction(
     if load_state(state_path) is not None:
         raise ToolError('an active transaction exists; use --resume or --abort')
     if (Path(config.deploy) / DEPLOY_JOURNAL).exists():
-        recovery = recover_deployment(config)
+        recovery = recover_deployment(config, runner=runner)
         info('startup deployment recovery: ' + recovery)
     verify_deploy_receipt(config, runner=runner)
     if deploy_requested:
@@ -1821,6 +1897,7 @@ def resume_transaction(
                     force_rollback=not bool(state.get('deployed')),
                     expected_txn=str(state['txn_id']),
                     expected_source_oid=merged,
+                    runner=runner,
                 )
             state['phase'] = 'SUPERSEDED'
             save_state(state_path, state)

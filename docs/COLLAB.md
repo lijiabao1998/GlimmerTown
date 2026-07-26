@@ -121,8 +121,9 @@ git checkout -- <file>  # 復原到自己的 commit
 cd C:\dev\glimmer-town && python tools/merge_bay.py kimi --deploy
 ```
 
-（`codex` 同理；不加 `--deploy` 就只合併不發佈；`--status` 只看各車位領先/落後幾個
-commit。）腳本**只能從 `C:\dev\glimmer-town` 的 `master` 執行**；車位裡那份副本會拒絕
+（`codex` 同理；不加 `--deploy` 就只合併不發佈；`--status` 會列各車位 ahead/behind，
+並檢查 active transaction 與部署 receipt，發現漂移會以非零退出。）腳本**只能從
+`C:\dev\glimmer-town` 的 `master` 執行**；車位裡那份副本會拒絕
 運行，避免把施工分支誤認成合併主控台。
 
 ### 不可變量
@@ -143,7 +144,7 @@ commit。）腳本**只能從 `C:\dev\glimmer-town` 的 `master` 執行**；車�
 | 2 | 用 master 內的 verifier 驗 bay，並在完成後重驗 B/S 未變 | incoming 分支不能把閘門本身改弱 |
 | 3 | 從 B 建獨立 integration worktree，合入**精確 S OID**，產生 M | master 在衝突與紅測試期間逐位元不動 |
 | 4 | 再用可信 verifier 驗 M，驗後重查 HEAD 與 clean 狀態 | 防「兩邊各自綠，合起來紅」及測試期間篡改 |
-| 5 | master 仍精確等於 B 時，執行 `git merge --ff-only <integration-branch>` | master 只接受剛驗過的 M，不在主工作區重新製造合併 |
+| 5 | master 仍精確等於 B 時，執行 `git merge --ff-only <精確 M OID>` | master 只接受剛驗過的 M，不追隨可能移動的 integration branch ref |
 | 6 | `--deploy` 才發布 `index.html`、`sw.js`；最後才替換 SW | SW install 不會先把舊 index 收進新快取 |
 | 7 | 只把 clean 且純 behind 的 bay 用 `--ff-only` 回同步 | ahead／diverged／dirty 車位一律列為 skipped，絕不替別人合併 |
 
@@ -169,13 +170,17 @@ python tools/merge_bay.py --abort kimi
 ### 部署 journal 與誠實邊界
 
 部署內容直接從 verified M 的 Git blobs 讀取，不讀可能被編輯器改動中的 master 工作樹。
-腳本會先驗 `_這是部署目錄請勿在此施工.txt` 與 runtime 白名單，再在 8123 目錄同一個
-filesystem 寫好新檔、舊檔備份與不可覆寫的持久 journal，依序以
-`os.replace` 發布 `index.html` → `sw.js`。可捕捉的任一失敗會把**兩檔都回滾**並逐位元驗證；
-若程序被強殺或斷電，下次 merge/resume 會讀 journal：兩檔都已是 new 則完成清理，任何混合狀態
-都由備份恢復成 old；若 target hash 已不屬於 journal 的 old/new（例如較新部署），則零寫入停手，
-絕不拿舊備份降級。journal 清除後另在 Git common-dir 留 source OID＋兩檔 hash receipt，下一次
-命令可抓到 OneDrive 晚到回退。
+腳本會先驗 `_這是部署目錄請勿在此施工.txt` 與 runtime 白名單，在 8123 目錄先持久建立
+不可覆寫的 journal，然後才寫同 filesystem 的舊檔備份與新檔 stage，依序以 `os.replace`
+發布 `index.html` → `sw.js`。發布失敗且回滾寫入成功時，會立刻把**兩檔都回滾**並逐位元驗證；
+若回滾本身也失敗，journal 會保留，待故障解除後由 resume 恢復，絕不假稱已回滾。
+若程序被強殺或斷電，下次 merge/resume 會讀 journal：兩檔都已是 new 時，先把 exact source
+OID 的 Git blobs 與 live runtime 逐檔核對，將該 OID＋兩檔 expected hash receipt 持久寫入
+Git common-dir，最後才刪 journal；任何 mixed 狀態都由備份恢復成 old。若 target hash 已不屬於
+journal 的 old/new（例如較新部署），則零寫入停手，絕不拿舊備份降級。下一次命令會把 receipt
+重新綁回該 OID 的 blobs，既能抓 OneDrive 晚到回退，也不接受手造 hash 自圓其說。
+若已標記 committed 但尚未清完 journal 時兩檔又一起回到可證明的 old，resume 會先把
+`deployed` 狀態持久退回 false，再重發同一個 verified OID，避免留下無法續接的假 committed。
 
 這不是檔案系統提供的「跨兩檔同時原子交易」：HTTP client 理論上仍可能在兩次 replace 的毫秒級
 窗口讀到混版；要消除此窗口必須停 8123 server，或改成版本目錄後原子切 server root。journal
