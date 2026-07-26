@@ -10,8 +10,11 @@
   2. 本腳本同時改兩處，不可能只改一邊
   3. test_fixde.js 有一條斷言比對兩檔的版本字串必須相等（漂移立刻紅）
 """
-import io,re,sys
-ROOT=r'C:\dev\glimmer-town'
+import io,re,sys,os
+# T354 修：ROOT 原硬編碼 C:\dev\glimmer-town——在 worktree 車位執行時會靜默改到 master 的檔案
+# （實際事故：bay-kimi 內執行 bump，master 工作區的 GAME_VER/APP_VER 被改、車位自己沒改）。
+# 改為以腳本所在位置推導（tools/ 的上一層）＝在哪個 worktree 跑就改哪個。
+ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def readb(p): return io.open(p,'rb').read().decode('utf-8')
 def writeb(p,s):
     assert '\r\n' not in s, 'CRLF 混入（鐵律20）：'+p
