@@ -41,7 +41,7 @@ BAYS = {
 }
 INTEGRATION = Path(r'C:\dev\glimmer-town-integration')
 RUNTIME = ('index.html', 'sw.js')
-MIN_PASS = 1898
+MIN_PASS = 1902
 STATE_SCHEMA = 1
 DEPLOY_SCHEMA = 2
 STATE_NAME = 'active.json'

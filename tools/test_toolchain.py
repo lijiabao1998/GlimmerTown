@@ -2,7 +2,7 @@
 """Failure-injection regression tests for the T358 toolchain.
 
 The tests use disposable repositories only.  They never invoke the real
-Glimmer Town merge command, player deployment directory, or 1898-test suite.
+Glimmer Town merge command, player deployment directory, or 1902-test suite.
 """
 from __future__ import annotations
 
@@ -154,7 +154,7 @@ class ToolchainRegressionTests(unittest.TestCase):
         exact += verify.DONE_MARKER + '\n'
         exact_result = verify.assess_suite(0, exact, '', verify.MIN_PASS)
         self.assertTrue(exact_result.green)
-        self.assertGreaterEqual(verify.MIN_PASS, 1898)
+        self.assertGreaterEqual(verify.MIN_PASS, 1902)
 
     def test_suite_requires_completion_marker_as_final_stdout_line(self):
         stdout = ''.join('PASS: case %d\n' % index for index in range(verify.MIN_PASS))

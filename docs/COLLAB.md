@@ -47,7 +47,7 @@ grep -o "GAME_VER='[0-9.]*'" index.html
 1. 在自己車位開工，卡面照舊（定位錨／允許觸碰／禁區／驗收／回滾）。
 2. **驗收三件套**缺一不可：
    - `node -e` 語法檢查（`new Function` 整個 script 區塊）
-   - `node test_fixde.js` → **必須 1898+ PASS / 0 FAIL**
+   - `node test_fixde.js` → **必須 1902+ PASS / 0 FAIL**
    - 瀏覽器實測（自己的端口，非 8123）
 3. 版本升號只能用 `python tools/bump.py <新版本>`（一次同步 index.html 的 `GAME_VER` 與 sw.js 的 `APP_VER`；
    測試有斷言比對兩者相等，漂移立刻紅）。
@@ -58,7 +58,7 @@ grep -o "GAME_VER='[0-9.]*'" index.html
    python tools/verify.py
    ```
 
-   語法／`CRLF==0`／版本雙處同步／Node exit=0／**至少 1898 PASS**／0 FAIL／
+   語法／`CRLF==0`／版本雙處同步／Node exit=0／**至少 1902 PASS**／0 FAIL／
    正常完成標記／**兩條亂數流哨兵**。其中任何一項缺失都判紅；「程序崩潰但來不及印
    `FAIL:`」不再可能被當成綠燈。
    第五項專防一種作弊：為了讓測試變綠而刪掉釘定種子斷言 —— 那等於拆掉整個位元契約。

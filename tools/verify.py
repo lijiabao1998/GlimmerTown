@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 HERE = Path(__file__).resolve().parent.parent
-MIN_PASS = 1898
+MIN_PASS = 1902
 MIN_SEED_PINS = 2
 DONE_MARKER = 'FIX-D/FIX-E 回歸測試全部通過'
 TEXT_CHECK = ('index.html', 'sw.js', 'test_fixde.js')
