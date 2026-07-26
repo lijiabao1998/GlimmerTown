@@ -1,6 +1,6 @@
 {
  "ver": "9.5",
- "total": 1285,
+ "total": 1291,
  "skipped": 37,
  "families": {
   "grass": 4,
@@ -107,6 +107,12 @@
   "streetLamp": 1,
   "signalPhase": 3,
   "farmGrow": 102,
-  "metroStation": 3
+  "metroStation": 3,
+  "lampConeWarm": 1,
+  "lampConeCool": 1,
+  "railWashWarm": 1,
+  "railWashCool": 1,
+  "bridgeLamp": 1,
+  "spotBeam": 1
  }
 }

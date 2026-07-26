@@ -365,6 +365,21 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(!/innerHTML\+=/.test(atlasSrc), 'T357 atlas.html 不得用 innerHTML+= 拼接輸出（注入風險）');
   assert(!/innerHTML\s*=\s*[^'\s]/.test(atlasSrc), "T357 atlas.html 的 innerHTML 只允許清空（=''）");
 }
+/* ===== T359 夜景燈光群（路燈光錐冷暖／橋面欄杆光洗／地標探照燈）===== */
+{
+  const at = window.GV.sprAtlas356();
+  for (const k of ['lampConeWarm', 'lampConeCool', 'railWashWarm', 'railWashCool', 'bridgeLamp', 'spotBeam'])
+    assert(at.entries.some(e => e.fam === k), 'T359 sprite 家族應生成：' + k);
+  // 亂數流守衛：T359 sprite 區塊不得消耗 rand/R/ri（置 buildSprites 尾端但仍以零亂數為硬性不變量）
+  const blk359 = html.slice(html.indexOf('T359 夜景燈光群'), html.indexOf('R=__savedR'));
+  assert(blk359.length > 500, 'T359 應找到 sprite 區塊');
+  assert(!/rand\(|[^a-zA-Z]R\(\)|ri\(/.test(blk359), 'T359 sprite 區塊不得消耗 rand()/R()/ri()（零亂數位移）');
+  // 接線守衛：冷暖分色走同一鹽（地圖上任一格燈溫一致）、探照燈白名單、noHalo 跳過光暈
+  assert(/streetHash\(x,y,1651\)</.test(html), 'T359 冷暖分色應用 streetHash(x,y,1651)（同格燈溫決定性一致）');
+  assert(/SPOT_K359\[bd\.k\]/.test(html), 'T359 探照燈應走 SPOT_K359 白名單');
+  assert(/if\(rg2\.noHalo\)continue/.test(html), 'T359 光暈迴圈應跳過 noHalo 條目（光錐中心在半空）');
+  assert(/const SPOT_K359=\{24:1,67:1,68:1/.test(html), 'T359 SPOT_K359 應含 k24/67/68 地標');
+}
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
   "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");
