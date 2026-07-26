@@ -38,6 +38,7 @@ DEPLOY = Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\glimmer-town')
 BAYS = {
     'kimi': Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-kimi'),
     'codex': Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-codex'),
+    'grok': Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-grok'),
 }
 INTEGRATION = Path(r'C:\dev\glimmer-town-integration')
 RUNTIME = ('index.html', 'sw.js')

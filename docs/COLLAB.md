@@ -1,6 +1,6 @@
 # 多 AI 協作規約（T351）
 
-三方（Claude / Kimi / Codex）都可施工。以下是**唯一**一份權威說明；任何與此衝突的舊副本一律作廢。
+四方（Claude / Kimi / Codex / Grok）都可施工。以下是**唯一**一份權威說明；任何與此衝突的舊副本一律作廢。
 
 ---
 
@@ -11,6 +11,7 @@
 | `C:\dev\glimmer-town` | **原始碼唯一真相**（git `master`） | 只有「當班施工者」可直接寫 |
 | `安卓探索\bay-kimi` | Kimi 的施工車位（git worktree，分支 `bay/kimi`） | Kimi 專屬 |
 | `安卓探索\bay-codex` | Codex 的施工車位（git worktree，分支 `bay/codex`） | Codex 專屬 |
+| `安卓探索\bay-grok` | Grok 的施工車位（git worktree，分支 `bay/grok`） | Grok 專屬 |
 | `安卓探索\glimmer-town` | **玩家遊玩目錄（部署目標）**，只放執行期檔案 | 只由合併後的部署步驟寫 |
 
 **車位＝真 git worktree**，共用 `C:\dev\glimmer-town` 的物件庫與 config。所以在車位裡：
@@ -37,6 +38,7 @@ grep -o "GAME_VER='[0-9.]*'" index.html
 | 8124 | `C:\dev\glimmer-town` | 當班施工者驗證 |
 | 8125 | `安卓探索\bay-kimi` | Kimi 驗證 |
 | 8126 | `安卓探索\bay-codex` | Codex 驗證 |
+| 8127 | `安卓探索\bay-grok` | Grok 驗證 |
 
 瀏覽器端測試前必做：`localStorage.setItem('glimmerville.v1.slot','3')` — **只用槽 3，絕不碰 s1/s2**（鐵律3）。
 
@@ -100,7 +102,7 @@ CHANGELOG 是否記了「被否決的方案與否決依據」（本專案要求�
 
 ## 六、OneDrive 風險提醒
 
-兩個車位在 OneDrive 同步範圍內。本專案曾因 OneDrive 毫秒級回退 `index.html` 而搬到 `C:\dev`。
+三個車位在 OneDrive 同步範圍內。本專案曾因 OneDrive 毫秒級回退 `index.html` 而搬到 `C:\dev`。
 車位是 git worktree，所以回退**可偵測可復原**：
 
 ```bash
