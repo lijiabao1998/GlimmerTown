@@ -49,7 +49,7 @@ grep -o "GAME_VER='[0-9.]*'" index.html
 1. 在自己車位開工，卡面照舊（定位錨／允許觸碰／禁區／驗收／回滾）。
 2. **驗收三件套**缺一不可：
    - `node -e` 語法檢查（`new Function` 整個 script 區塊）
-   - `node test_fixde.js` → **必須 1850+ PASS / 0 FAIL**
+   - `node test_fixde.js` → **必須 1902+ PASS / 0 FAIL**
    - 瀏覽器實測（自己的端口，非 8123）
 3. 版本升號只能用 `python tools/bump.py <新版本>`（一次同步 index.html 的 `GAME_VER` 與 sw.js 的 `APP_VER`；
    測試有斷言比對兩者相等，漂移立刻紅）。
@@ -60,7 +60,9 @@ grep -o "GAME_VER='[0-9.]*'" index.html
    python tools/verify.py
    ```
 
-   語法／`CRLF==0`／版本雙處同步／全套 0 FAIL／**亂數流哨兵**。
+   語法／`CRLF==0`／版本雙處同步／Node exit=0／**至少 1902 PASS**／0 FAIL／
+   正常完成標記／**兩條亂數流哨兵**。其中任何一項缺失都判紅；「程序崩潰但來不及印
+   `FAIL:`」不再可能被當成綠燈。
    第五項專防一種作弊：為了讓測試變綠而刪掉釘定種子斷言 —— 那等於拆掉整個位元契約。
 
 6. `git commit` 到自己分支 → 通知合併（合併流程見第七節）。
@@ -113,7 +115,7 @@ git checkout -- <file>  # 復原到自己的 commit
 
 ---
 
-## 七、合併流程（T352）
+## 七、交易式合併流程（T358）
 
 車位施工完成後，由當班者在 `master` 執行**一條命令**：
 
@@ -121,41 +123,82 @@ git checkout -- <file>  # 復原到自己的 commit
 cd C:\dev\glimmer-town && python tools/merge_bay.py kimi --deploy
 ```
 
-（`codex` 同理；不加 `--deploy` 就只合併不發佈；`--status` 只看各車位領先/落後幾個 commit。）
+（`codex` 同理；不加 `--deploy` 就只合併不發佈；`--status` 會列各車位 ahead/behind，
+並檢查 active transaction 與部署 receipt，發現漂移會以非零退出。）腳本**只能從
+`C:\dev\glimmer-town` 的 `master` 執行**；車位裡那份副本會拒絕
+運行，避免把施工分支誤認成合併主控台。
 
-腳本的七步，任一步紅就停，不會留下半成品：
+### 不可變量
+
+- 開始時釘住 `master` 基底 B 與 bay 交接點 S 的完整 OID；後續不拿會移動的分支名代替交易輸入。
+- 合併只發生在鎖定的 `C:\dev\glimmer-town-integration` worktree。衝突、語法錯誤、測試崩潰與
+  1897 PASS 都只留在 integration；`master` 不進 `MERGE_HEAD`。
+- integration 產生兩父提交 M（父代必須精確為 B、S），由 canonical master 內的可信
+  `verify.py` 驗證；只有 `verified_oid == M` 才能把 master 以 `--ff-only` 從 B 推到 M。
+- 任何 Git 查詢非零退出都判紅；`status` 查詢失敗絕不解讀成 clean。
+- 同一時間只容許一筆交易；交易狀態持久寫進共用 Git 目錄，程序被中斷後可對帳續接。
+
+### 正常流程
 
 | 步 | 動作 | 為什麼非機械化不可 |
 |---|---|---|
-| 1 | 車位工作區乾淨 + 領先 master ≥1 commit，並列出待合併 commit | 防止併入未提交的東西，或做一次空合併 |
-| 2 | **在車位裡先跑完整套件**（CRLF=0 + 0 FAIL） | 壞的東西根本進不了 master |
-| 3 | master 工作區乾淨 | 避免混入當班者未提交的改動 |
-| 4 | `git merge --no-ff --no-edit bay/<name>` | 留下 merge commit，歷史上看得出「這批來自誰」 |
-| 5 | 合併後三項機械檢查：CRLF=0、版本雙處同步、全套 0 FAIL | 兩邊各自都對、合起來卻壞，是真實存在的狀態 |
-| 6 | `--deploy`：寫入玩家目錄並**逐位元比對** | 部署與倉庫不得有差 |
-| 7 | 把 master 回同步到**所有**車位 | 讓另一個車位立刻跟上，縮小下次衝突面 |
+| 1 | 驗 canonical master／bay 路徑、分支、HEAD-ref、共用 Git 目錄、clean 狀態，凍結 B/S | 防錯目錄、detached HEAD、查詢假綠與測試期間漂移 |
+| 2 | 用 master 內的 verifier 驗 bay，並在完成後重驗 B/S 未變 | incoming 分支不能把閘門本身改弱 |
+| 3 | 從 B 建獨立 integration worktree，合入**精確 S OID**，產生 M | master 在衝突與紅測試期間逐位元不動 |
+| 4 | 再用可信 verifier 驗 M，驗後重查 HEAD 與 clean 狀態 | 防「兩邊各自綠，合起來紅」及測試期間篡改 |
+| 5 | master 仍精確等於 B 時，執行 `git merge --ff-only <精確 M OID>` | master 只接受剛驗過的 M，不追隨可能移動的 integration branch ref |
+| 6 | `--deploy` 才發布 `index.html`、`sw.js`；最後才替換 SW | SW install 不會先把舊 index 收進新快取 |
+| 7 | 只把 clean 且純 behind 的 bay 用 `--ff-only` 回同步 | ahead／diverged／dirty 車位一律列為 skipped，絕不替別人合併 |
 
-### 衝突時
+### 衝突、續接與放棄
 
-腳本**不會** abort，它保留衝突狀態、列出衝突檔，並印出本專案已知的衝突點與解法：
+衝突只留在腳本列出的 integration 路徑。到該處解衝突並 `git add`，**不必手動 commit**，然後：
 
-| 檔案 | 解法 |
-|---|---|
-| `docs/CHANGELOG.md` | 聯集合併，新條目在最上 |
-| `test_fixde.js` | 雙方都往同一錨點前插測試 → **兩塊都留** |
-| `index.html` | 真衝突：對照卡面的「允許觸碰區」判斷歸屬 |
-| 版本字串 | **不要手改**，解完後跑 `python tools/bump.py <ver>` |
+```bash
+cd C:\dev\glimmer-town
+python tools/merge_bay.py --resume kimi
+```
 
-解完 `git add -A && git commit`，再重跑同一條命令，它會從第 5 步重新驗一遍。
+`--resume` 先把持久狀態與 Git 現況對帳：只接受仍在 B+S 合併中的 worktree，或父代精確為
+B/S 的既有 merge commit；master 若已從 B 前進，不會偷偷把新 master 再混入舊交易，而是停手。
+若決定丟棄尚未進 master 的證據，才顯式執行：
 
-### 降低衝突的三條紀律
+```bash
+python tools/merge_bay.py --abort kimi
+```
 
-1. **卡要小、合要勤** —— 車位漂越久，這個 16k 行單檔的衝突面越大。
-2. **卡面寫清「允許觸碰區」** —— 這是單檔專案唯一可機械化的邊界。
-3. **合完立刻回同步全部車位**（第 7 步自動做），讓兩個車位永遠同起點。
+已經推進 master 的交易不能 abort，只能 resume 完成部署／同步／清理。
 
-### 已知陷阱
+### 部署 journal 與誠實邊界
 
-腳本會跑**兩次**完整套件（車位閘門 + 合併後驗證），約 3～4 分鐘，**超過某些工具的 2 分鐘逾時**。
-若在有逾時限制的環境呼叫，請丟到背景執行；被中斷時合併本身可能已完成而後半檢查沒跑，
-此時直接補跑 `python tools/verify.py` 即可（實際發生過一次）。
+部署內容直接從 verified M 的 Git blobs 讀取，不讀可能被編輯器改動中的 master 工作樹。
+腳本會先驗 `_這是部署目錄請勿在此施工.txt` 與 runtime 白名單，在 8123 目錄先持久建立
+不可覆寫的 journal，然後才寫同 filesystem 的舊檔備份與新檔 stage，依序以 `os.replace`
+發布 `index.html` → `sw.js`。發布失敗且回滾寫入成功時，會立刻把**兩檔都回滾**並逐位元驗證；
+若回滾本身也失敗，journal 會保留，待故障解除後由 resume 恢復，絕不假稱已回滾。
+若程序被強殺或斷電，下次 merge/resume 會讀 journal：兩檔都已是 new 時，先把 exact source
+OID 的 Git blobs 與 live runtime 逐檔核對，將該 OID＋兩檔 expected hash receipt 持久寫入
+Git common-dir，最後才刪 journal；任何 mixed 狀態都由備份恢復成 old。若 target hash 已不屬於
+journal 的 old/new（例如較新部署），則零寫入停手，絕不拿舊備份降級。下一次命令會把 receipt
+重新綁回該 OID 的 blobs，既能抓 OneDrive 晚到回退，也不接受手造 hash 自圓其說。
+若已標記 committed 但尚未清完 journal 時兩檔又一起回到可證明的 old，resume 會先把
+`deployed` 狀態持久退回 false，再重發同一個 verified OID，避免留下無法續接的假 committed。
+
+這不是檔案系統提供的「跨兩檔同時原子交易」：HTTP client 理論上仍可能在兩次 replace 的毫秒級
+窗口讀到混版；要消除此窗口必須停 8123 server，或改成版本目錄後原子切 server root。journal
+保證的是**崩潰後可判定、可恢復，不假裝兩個檔名能在同一瞬間切換**。
+同理，Windows／OneDrive 的雲端持久性不是 `fsync`／`os.replace` 能替供應商承諾的；receipt 的
+作用是讓晚到回退變成明確紅燈，而不是宣稱它不會發生。
+
+`atlas.html` 是施工圖鑑，只供 8124／8125／8126。它刻意不在 runtime 白名單，永遠不 mirror
+到玩家 8123 目錄。
+
+### 時間與輸出
+
+車位 gate 與 integration gate 會跑兩次完整套件，約 3～4 分鐘。呼叫端 timeout 應至少 25 分鐘；
+即使外層被中斷，也不要猜進度或手動補 merge，直接從 master 執行同一 bay 的 `--resume`。驗收數據
+只寫真跑結果；未跑就明標「未驗證」。
+
+bay 回同步的 clean→`--ff-only` 仍以本文件的**單寫者協議**為前提：合併程序持鎖期間，bay 擁有者
+不得同時寫該 worktree。Git 沒有能阻止非合作編輯器／OneDrive 在兩個系統呼叫之間落檔的「目錄交易鎖」；
+因此觀測到 dirty、ahead、diverged 會零寫入 skipped，但不把非合作的同毫秒寫入誇稱為可原子隔離。

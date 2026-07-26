@@ -1,2 +1,4 @@
 .zcode/
 *.log
+__pycache__/
+*.pyc

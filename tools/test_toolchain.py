@@ -1,0 +1,1012 @@
+# -*- coding: utf-8 -*-
+"""Failure-injection regression tests for the T358 toolchain.
+
+The tests use disposable repositories only.  They never invoke the real
+Glimmer Town merge command, player deployment directory, or 1902-test suite.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from tools import merge_bay
+from tools import verify
+
+
+class TempRepo:
+    def __init__(self):
+        self.temp = None
+
+    def __enter__(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='glimmer-t358-test-')
+        self.base = Path(self.temp.name).resolve()
+        self.root = self.base / 'master'
+        self.bay = self.base / 'bay-kimi'
+        self.integration = self.base / 'integration'
+        self.deploy = self.base / 'deploy'
+        self.root.mkdir()
+        self.deploy.mkdir()
+        self.env = os.environ.copy()
+        self.env.update(
+            {
+                'GIT_CONFIG_NOSYSTEM': '1',
+                'GIT_CONFIG_GLOBAL': os.devnull,
+                'GIT_TERMINAL_PROMPT': '0',
+            }
+        )
+        self.git(self.root, 'init', '--initial-branch=master')
+        self.git(self.root, 'config', 'user.name', 'T358 Test')
+        self.git(self.root, 'config', 'user.email', 't358@example.invalid')
+        self.git(self.root, 'config', 'core.autocrlf', 'false')
+        self.git(self.root, 'config', 'commit.gpgsign', 'false')
+        self.git(self.root, 'config', 'core.hooksPath', '.git/no-hooks')
+        self.write(self.root, 'index.html', "<script>const GAME_VER='1.0';</script>\n")
+        self.write(self.root, 'sw.js', "const APP_VER='1.0';\n")
+        self.write(
+            self.root,
+            'test_fixde.js',
+            "// stats().pop === 1\n// stats().pop === 2\n",
+        )
+        self.write(self.root, 'shared.txt', 'base\n')
+        self.write(self.root, 'tools/verify.py', '# trusted verifier placeholder\n')
+        self.git(self.root, 'add', '-A')
+        self.git(self.root, 'commit', '-m', 'base')
+        self.base_oid = self.oid(self.root)
+        self.git(self.root, 'worktree', 'add', '-b', 'bay/kimi', self.bay, 'master')
+        (self.deploy / 'index.html').write_bytes(b'old-index')
+        (self.deploy / 'sw.js').write_bytes(b'old-sw')
+        (self.deploy / merge_bay.DEPLOY_MARKER).write_text(
+            'test deployment marker\n',
+            encoding='utf-8',
+        )
+        self.config = merge_bay.MergeConfig(
+            root=self.root,
+            deploy=self.deploy,
+            bays={'kimi': self.bay},
+            integration_path=self.integration,
+        )
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        if self.temp is not None:
+            self.temp.cleanup()
+
+    def git(self, cwd, *args, check=True):
+        result = subprocess.run(
+            ['git', *[str(arg) for arg in args]],
+            cwd=str(cwd),
+            env=self.env,
+            capture_output=True,
+            text=True,
+        )
+        if check and result.returncode != 0:
+            raise AssertionError(
+                'git %s failed:\n%s\n%s'
+                % (' '.join(str(arg) for arg in args), result.stdout, result.stderr)
+            )
+        return result
+
+    def write(self, cwd, relative, text):
+        path = Path(cwd) / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding='utf-8', newline='\n')
+        return path
+
+    def commit(self, cwd, message):
+        self.git(cwd, 'add', '-A')
+        self.git(cwd, 'commit', '-m', message)
+        return self.oid(cwd)
+
+    def oid(self, cwd, ref='HEAD'):
+        return self.git(cwd, 'rev-parse', ref).stdout.strip().lower()
+
+
+class GateRunner:
+    """Delegate Git to the real runner and inject trusted-verifier outcomes."""
+
+    def __init__(self, gate_codes, on_gate=None):
+        self.gate_codes = list(gate_codes)
+        self.on_gate = on_gate
+        self.gate_calls = []
+        self.commands = []
+
+    def __call__(self, args, cwd, timeout):
+        rendered = [str(arg) for arg in args]
+        self.commands.append((rendered, Path(cwd)))
+        if len(rendered) >= 2 and Path(rendered[1]).name == 'verify.py':
+            self.gate_calls.append((rendered, Path(cwd)))
+            index = len(self.gate_calls) - 1
+            if self.on_gate is not None:
+                self.on_gate(index)
+            code = self.gate_codes[index]
+            if code == 0:
+                return merge_bay.CommandResult(0, 'RESULT: ALL GREEN\n', '')
+            return merge_bay.CommandResult(code, 'RESULT: RED\n', 'injected gate failure')
+        return merge_bay.run_cmd(rendered, Path(cwd), timeout)
+
+
+class ToolchainRegressionTests(unittest.TestCase):
+    def test_suite_rejects_nonzero_without_fail_lines(self):
+        stdout = ''.join('PASS: case %d\n' % index for index in range(verify.MIN_PASS))
+        stdout += verify.DONE_MARKER + '\n'
+        result = verify.assess_suite(7, stdout, '', verify.MIN_PASS)
+        self.assertFalse(result.green)
+        self.assertEqual(result.passes, verify.MIN_PASS)
+        self.assertEqual(result.failures, ())
+        self.assertIn('process exit code 7', result.reasons)
+
+    def test_suite_rejects_low_pass_and_accepts_exact_baseline(self):
+        low = ''.join('PASS: low %d\n' % index for index in range(verify.MIN_PASS - 1))
+        low += verify.DONE_MARKER + '\n'
+        low_result = verify.assess_suite(0, low, '', verify.MIN_PASS)
+        self.assertFalse(low_result.green)
+        self.assertIn(
+            'PASS=%d below baseline %d' % (verify.MIN_PASS - 1, verify.MIN_PASS),
+            low_result.reasons,
+        )
+
+        exact = ''.join('PASS: exact %d\n' % index for index in range(verify.MIN_PASS))
+        exact += verify.DONE_MARKER + '\n'
+        exact_result = verify.assess_suite(0, exact, '', verify.MIN_PASS)
+        self.assertTrue(exact_result.green)
+        self.assertGreaterEqual(verify.MIN_PASS, 1902)
+
+    def test_suite_requires_completion_marker_as_final_stdout_line(self):
+        stdout = ''.join('PASS: case %d\n' % index for index in range(verify.MIN_PASS))
+        stdout += verify.DONE_MARKER + '\nlate noise\n'
+        result = verify.assess_suite(0, stdout, '', verify.MIN_PASS)
+        self.assertFalse(result.green)
+        self.assertIn('completion marker is not the final stdout line', result.reasons)
+
+    def test_assert_noop_and_fake_pass_producer_break_harness_contract(self):
+        healthy = (
+            verify.ASSERT_CONTRACT
+            + '\n'
+            + verify.DONE_CONTRACT
+        )
+        self.assertEqual(verify.harness_contract_reasons(healthy), ())
+        no_op = healthy.replace(
+            "if (!cond) { console.error('FAIL:', msg); process.exit(1); }",
+            "if (!cond) { console.log('PASS:', msg); }",
+        )
+        reasons = verify.harness_contract_reasons(no_op)
+        self.assertIn('assert implementation differs from the fail-fast contract', reasons)
+        self.assertIn('PASS output has an unexpected producer', reasons)
+
+    def test_status_failure_is_not_clean(self):
+        def broken_runner(args, cwd, timeout):
+            return merge_bay.CommandResult(128, '', 'fatal: injected status failure')
+
+        with self.assertRaisesRegex(merge_bay.ToolError, 'failed'):
+            merge_bay.worktree_status(Path('unused'), runner=broken_runner)
+
+    def test_rejects_detached_bay_even_when_clean(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'bay.txt', 'ahead\n')
+            repo.commit(repo.bay, 'bay ahead')
+            repo.git(repo.bay, 'checkout', '--detach', repo.base_oid)
+            self.assertEqual(repo.git(repo.bay, 'status', '--porcelain').stdout, '')
+            with self.assertRaises(merge_bay.ToolError):
+                merge_bay.validate_bay_identity(repo.config, 'kimi')
+            self.assertEqual(repo.oid(repo.root), repo.base_oid)
+
+    def test_failed_integration_gate_keeps_master_unchanged(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            original_oid = repo.oid(repo.root)
+            original_shared = (repo.root / 'shared.txt').read_bytes()
+            runner = GateRunner([0, 9])
+            with self.assertRaisesRegex(merge_bay.ToolError, 'integration gate failed'):
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    False,
+                    runner=runner,
+                )
+            self.assertEqual(repo.oid(repo.root), original_oid)
+            self.assertEqual((repo.root / 'shared.txt').read_bytes(), original_shared)
+            self.assertEqual(repo.git(repo.root, 'status', '--porcelain').stdout, '')
+            self.assertEqual(
+                repo.git(repo.root, 'rev-parse', '-q', '--verify', 'MERGE_HEAD', check=False).returncode,
+                1,
+            )
+            self.assertEqual(len(runner.gate_calls), 2)
+            integration_target = Path(runner.gate_calls[1][0][3]).resolve()
+            self.assertTrue((integration_target / 'feature.txt').is_file())
+            merge_bay.abort_transaction(repo.config, 'kimi')
+
+    def test_master_advance_during_integration_gate_is_not_overwritten(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            concurrent_oid = []
+
+            def advance_master(gate_index):
+                if gate_index == 1:
+                    repo.write(repo.root, 'concurrent.txt', 'other writer\n')
+                    concurrent_oid.append(repo.commit(repo.root, 'concurrent master advance'))
+
+            runner = GateRunner([0, 0], on_gate=advance_master)
+            with self.assertRaisesRegex(merge_bay.ToolError, 'transaction is stale'):
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    False,
+                    runner=runner,
+                )
+            self.assertEqual(len(concurrent_oid), 1)
+            self.assertEqual(repo.oid(repo.root), concurrent_oid[0])
+            self.assertEqual((repo.root / 'concurrent.txt').read_text(encoding='utf-8'), 'other writer\n')
+            self.assertEqual(repo.git(repo.root, 'status', '--porcelain').stdout, '')
+
+    def test_promotion_targets_frozen_oid_even_if_integration_ref_moves(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            delegate = GateRunner([0, 0])
+            frozen = []
+            raced = []
+
+            def race_runner(args, cwd, timeout):
+                rendered = [str(arg) for arg in args]
+                if (
+                    rendered[:3] == ['git', 'merge', '--ff-only']
+                    and Path(cwd).resolve() == repo.root
+                    and not raced
+                ):
+                    frozen.append(rendered[3])
+                    repo.write(repo.integration, 'unverified.txt', 'raced ref\n')
+                    raced.append(repo.commit(repo.integration, 'unverified ref advance'))
+                return delegate(rendered, Path(cwd), timeout)
+
+            with self.assertRaisesRegex(
+                merge_bay.ToolError,
+                'integration cleanup HEAD is outside',
+            ):
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    False,
+                    runner=race_runner,
+                )
+            self.assertEqual(len(frozen), 1)
+            self.assertEqual(repo.oid(repo.root), frozen[0])
+            self.assertNotEqual(repo.oid(repo.root), raced[0])
+
+    def test_resume_finishes_cleanup_after_worktree_was_already_removed(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            delegate = GateRunner([0, 0])
+            blocked_branch_delete = []
+
+            def cleanup_crash_runner(args, cwd, timeout):
+                rendered = [str(arg) for arg in args]
+                if (
+                    rendered[:3] == ['git', 'branch', '-d']
+                    and rendered[3].startswith('_merge/')
+                    and not blocked_branch_delete
+                ):
+                    blocked_branch_delete.append(rendered[3])
+                    return merge_bay.CommandResult(9, '', 'injected cleanup interruption')
+                return delegate(rendered, Path(cwd), timeout)
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'injected cleanup interruption'):
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    False,
+                    runner=cleanup_crash_runner,
+                )
+            self.assertFalse(repo.integration.exists())
+            state_path, _ = merge_bay.state_locations(repo.config)
+            self.assertTrue(state_path.exists())
+            self.assertEqual(len(blocked_branch_delete), 1)
+
+            resumed = merge_bay.resume_transaction(
+                repo.config,
+                'kimi',
+                runner=GateRunner([]),
+            )
+            self.assertEqual(resumed, 0)
+            self.assertFalse(state_path.exists())
+            self.assertNotEqual(
+                repo.git(
+                    repo.root,
+                    'show-ref',
+                    '--verify',
+                    '--quiet',
+                    'refs/heads/' + blocked_branch_delete[0],
+                    check=False,
+                ).returncode,
+                0,
+            )
+
+    def test_forged_state_cannot_make_abort_remove_a_real_bay(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            source = repo.commit(repo.bay, 'incoming feature')
+            state_path, _ = merge_bay.state_locations(repo.config)
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            state_path.write_text(
+                json.dumps(
+                    {
+                        'schema': merge_bay.STATE_SCHEMA,
+                        'txn_id': 'forged',
+                        'phase': 'PREFLIGHTED',
+                        'bay_name': 'kimi',
+                        'source_ref': 'refs/heads/bay/kimi',
+                        'base_master_oid': repo.base_oid,
+                        'source_oid': source,
+                        'integration_branch': 'bay/kimi',
+                        'integration_path': str(repo.bay),
+                        'deploy_requested': False,
+                        'deployed': False,
+                    }
+                ),
+                encoding='utf-8',
+            )
+            with self.assertRaises(merge_bay.ToolError):
+                merge_bay.abort_transaction(repo.config, 'kimi')
+            self.assertTrue(repo.bay.is_dir())
+            self.assertEqual(repo.oid(repo.bay), source)
+            self.assertEqual(
+                repo.git(
+                    repo.root,
+                    'show-ref',
+                    '--verify',
+                    '--quiet',
+                    'refs/heads/bay/kimi',
+                    check=False,
+                ).returncode,
+                0,
+            )
+
+    def test_conflict_is_resumable_and_master_never_holds_conflict(self):
+        with TempRepo() as repo:
+            repo.write(repo.root, 'shared.txt', 'master version\n')
+            base = repo.commit(repo.root, 'master side')
+            repo.write(repo.bay, 'shared.txt', 'bay version\n')
+            source = repo.commit(repo.bay, 'bay side')
+            runner = GateRunner([0, 0])
+
+            result = merge_bay.start_transaction(
+                repo.config,
+                'kimi',
+                False,
+                runner=runner,
+            )
+            self.assertEqual(result, 2)
+            self.assertEqual(repo.oid(repo.root), base)
+            self.assertEqual(repo.git(repo.root, 'status', '--porcelain').stdout, '')
+            self.assertEqual(
+                repo.git(repo.root, 'rev-parse', '-q', '--verify', 'MERGE_HEAD', check=False).returncode,
+                1,
+            )
+            self.assertTrue(repo.integration.is_dir())
+            self.assertNotEqual(
+                repo.git(repo.integration, 'diff', '--name-only', '--diff-filter=U').stdout.strip(),
+                '',
+            )
+
+            repo.write(repo.integration, 'shared.txt', 'resolved union\n')
+            repo.git(repo.integration, 'add', 'shared.txt')
+            resumed = merge_bay.resume_transaction(repo.config, 'kimi', runner=runner)
+            self.assertEqual(resumed, 0)
+            merged = repo.oid(repo.root)
+            parents = repo.git(repo.root, 'show', '-s', '--format=%P', merged).stdout.split()
+            self.assertEqual(parents, [base, source])
+            self.assertFalse(repo.integration.exists())
+            state_path, _ = merge_bay.state_locations(repo.config)
+            self.assertFalse(state_path.exists())
+            self.assertEqual(repo.git(repo.root, 'status', '--porcelain').stdout, '')
+
+    def test_sync_skips_ahead_and_diverged_without_merge(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'bay.txt', 'ahead\n')
+            ahead_oid = repo.commit(repo.bay, 'bay ahead')
+            spy = GateRunner([])
+            status, _ = merge_bay.sync_one_bay(repo.config, 'kimi', runner=spy)
+            self.assertEqual(status, 'SKIPPED_AHEAD')
+            self.assertEqual(repo.oid(repo.bay), ahead_oid)
+            self.assertFalse(
+                any(command[:2] == ['git', 'merge'] for command, _ in spy.commands)
+            )
+
+            repo.write(repo.root, 'master.txt', 'master ahead too\n')
+            repo.commit(repo.root, 'master ahead')
+            spy = GateRunner([])
+            status, _ = merge_bay.sync_one_bay(repo.config, 'kimi', runner=spy)
+            self.assertEqual(status, 'SKIPPED_DIVERGED')
+            self.assertEqual(repo.oid(repo.bay), ahead_oid)
+            self.assertFalse(
+                any(command[:2] == ['git', 'merge'] for command, _ in spy.commands)
+            )
+
+    def test_sync_only_behind_uses_ff_only(self):
+        with TempRepo() as repo:
+            repo.write(repo.root, 'master.txt', 'new master\n')
+            master_oid = repo.commit(repo.root, 'master forward')
+            spy = GateRunner([])
+            status, _ = merge_bay.sync_one_bay(repo.config, 'kimi', runner=spy)
+            self.assertEqual(status, 'SYNCED')
+            self.assertEqual(repo.oid(repo.bay), master_oid)
+            merge_commands = [
+                command for command, _ in spy.commands if command[:2] == ['git', 'merge']
+            ]
+            self.assertEqual(len(merge_commands), 1)
+            self.assertIn('--ff-only', merge_commands[0])
+
+    def test_second_publish_failure_rolls_back_both_runtime_files(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            (repo.deploy / 'atlas.html').write_bytes(b'deploy-atlas')
+
+            def fail_on_sw_publish(src, dst):
+                src_path = Path(src)
+                dst_path = Path(dst)
+                if src_path.suffix == '.new' and dst_path.name == 'sw.js':
+                    raise OSError('injected second publish failure')
+                return os.replace(src_path, dst_path)
+
+            with self.assertRaises(merge_bay.DeployError):
+                merge_bay.deploy_runtime_atomic(
+                    repo.config,
+                    source,
+                    'rollback-test',
+                    source_oid,
+                    replace_fn=fail_on_sw_publish,
+                )
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+            self.assertEqual((repo.deploy / 'atlas.html').read_bytes(), b'deploy-atlas')
+            leftovers = [
+                path.name
+                for path in repo.deploy.iterdir()
+                if path.name.startswith('.glimmer-')
+            ]
+            self.assertEqual(leftovers, [])
+
+    def test_rollback_failure_keeps_journal_until_resume_restores_both_files(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+
+            def fail_publish_and_rollback(src, dst):
+                src_path = Path(src)
+                dst_path = Path(dst)
+                if src_path.suffix == '.new' and dst_path.name == 'sw.js':
+                    raise OSError('injected second publish failure')
+                if src_path.suffix == '.rollback':
+                    raise OSError('injected rollback failure')
+                return os.replace(src_path, dst_path)
+
+            with self.assertRaisesRegex(merge_bay.DeployError, 'rollback ALSO failed'):
+                merge_bay.deploy_runtime_atomic(
+                    repo.config,
+                    source,
+                    'rollback-retry',
+                    source_oid,
+                    replace_fn=fail_publish_and_rollback,
+                )
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(
+                merge_bay.recover_deployment(
+                    repo.config,
+                    expected_txn='rollback-retry',
+                    expected_source_oid=source_oid,
+                ),
+                'rolled_back',
+            )
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+
+    def test_journal_is_durable_before_first_artifact_and_recovers_all_old(self):
+        for cut_at in range(1, 5):
+            with self.subTest(cut_at=cut_at):
+                with TempRepo() as repo:
+                    source = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+                    original_write = merge_bay._durable_write
+                    calls = 0
+
+                    def kill_at_artifact_boundary(path, data, exclusive=True):
+                        nonlocal calls
+                        calls += 1
+                        if calls == cut_at:
+                            raise KeyboardInterrupt(
+                                'injected hard kill at artifact boundary %d' % cut_at
+                            )
+                        return original_write(path, data, exclusive=exclusive)
+
+                    with mock.patch.object(
+                        merge_bay,
+                        '_durable_write',
+                        side_effect=kill_at_artifact_boundary,
+                    ):
+                        with self.assertRaises(KeyboardInterrupt):
+                            merge_bay.prepare_deployment(
+                                repo.config,
+                                source,
+                                'journal-first',
+                                repo.base_oid,
+                            )
+                    self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+                    self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+                    self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+                    self.assertEqual(
+                        merge_bay.recover_deployment(
+                            repo.config,
+                            expected_txn='journal-first',
+                            expected_source_oid=repo.base_oid,
+                        ),
+                        'rolled_back',
+                    )
+                    self.assertFalse(
+                        any(
+                            path.name.startswith('.glimmer-')
+                            for path in repo.deploy.iterdir()
+                        )
+                    )
+
+    def test_unowned_prejournal_artifact_fails_before_writing_evidence_or_runtime(self):
+        with TempRepo() as repo:
+            source = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            backup, _ = merge_bay._artifact_names('orphan-test', 'index.html')
+            (repo.deploy / backup).write_bytes(b'unowned')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'without a journal'):
+                merge_bay.prepare_deployment(
+                    repo.config,
+                    source,
+                    'orphan-test',
+                    repo.base_oid,
+                )
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+
+    def test_mixed_hard_kill_state_recovers_from_durable_journal(self):
+        with tempfile.TemporaryDirectory(prefix='glimmer-recovery-test-') as raw:
+            base = Path(raw)
+            source = base / 'source'
+            deploy = base / 'deploy'
+            source.mkdir()
+            deploy.mkdir()
+            (source / 'index.html').write_bytes(b'new-index')
+            (source / 'sw.js').write_bytes(b'new-sw')
+            (deploy / 'index.html').write_bytes(b'old-index')
+            (deploy / 'sw.js').write_bytes(b'old-sw')
+            (deploy / merge_bay.DEPLOY_MARKER).write_text(
+                'test deployment marker\n',
+                encoding='utf-8',
+            )
+            config = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+            )
+            journal = merge_bay.prepare_deployment(
+                config,
+                source,
+                'hard-kill-test',
+                '2' * 40,
+            )
+            index_entry = journal['files'][0]
+            os.replace(deploy / index_entry['stage'], deploy / index_entry['name'])
+            self.assertEqual((deploy / 'index.html').read_bytes(), b'new-index')
+            self.assertEqual((deploy / 'sw.js').read_bytes(), b'old-sw')
+
+            recovered = merge_bay.recover_deployment(config)
+            self.assertEqual(recovered, 'rolled_back')
+            self.assertEqual((deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((deploy / 'sw.js').read_bytes(), b'old-sw')
+            self.assertFalse((deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertFalse(
+                any(path.name.startswith('.glimmer-') for path in deploy.iterdir())
+            )
+
+    def test_stale_foreign_journal_never_overwrites_newer_runtime(self):
+        with tempfile.TemporaryDirectory(prefix='glimmer-foreign-test-') as raw:
+            base = Path(raw)
+            source = base / 'source'
+            deploy = base / 'deploy'
+            source.mkdir()
+            deploy.mkdir()
+            (source / 'index.html').write_bytes(b'new-index')
+            (source / 'sw.js').write_bytes(b'new-sw')
+            (deploy / 'index.html').write_bytes(b'old-index')
+            (deploy / 'sw.js').write_bytes(b'old-sw')
+            (deploy / merge_bay.DEPLOY_MARKER).write_text('marker\n', encoding='utf-8')
+            config = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+            )
+            merge_bay.prepare_deployment(config, source, 'foreign-test', '3' * 40)
+            (deploy / 'index.html').write_bytes(b'foreign-newer-index')
+            before_index = (deploy / 'index.html').read_bytes()
+            before_sw = (deploy / 'sw.js').read_bytes()
+            with self.assertRaisesRegex(merge_bay.DeployError, 'stale/foreign'):
+                merge_bay.recover_deployment(config)
+            self.assertEqual((deploy / 'index.html').read_bytes(), before_index)
+            self.assertEqual((deploy / 'sw.js').read_bytes(), before_sw)
+
+    def test_malicious_journal_cannot_name_atlas_as_artifact(self):
+        with tempfile.TemporaryDirectory(prefix='glimmer-atlas-journal-test-') as raw:
+            base = Path(raw)
+            source = base / 'source'
+            deploy = base / 'deploy'
+            source.mkdir()
+            deploy.mkdir()
+            (source / 'index.html').write_bytes(b'new-index')
+            (source / 'sw.js').write_bytes(b'new-sw')
+            (deploy / 'index.html').write_bytes(b'old-index')
+            (deploy / 'sw.js').write_bytes(b'old-sw')
+            (deploy / 'atlas.html').write_bytes(b'must-survive')
+            (deploy / merge_bay.DEPLOY_MARKER).write_text('marker\n', encoding='utf-8')
+            config = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+            )
+            journal = merge_bay.prepare_deployment(
+                config,
+                source,
+                'atlas-attack',
+                '4' * 40,
+            )
+            journal['files'][0]['backup'] = 'atlas.html'
+            (deploy / merge_bay.DEPLOY_JOURNAL).write_text(
+                json.dumps(journal),
+                encoding='utf-8',
+            )
+            with self.assertRaisesRegex(merge_bay.DeployError, 'artifact name'):
+                merge_bay.recover_deployment(config)
+            self.assertEqual((deploy / 'atlas.html').read_bytes(), b'must-survive')
+
+    def test_cleanup_lock_keeps_truthful_journal_and_new_runtime(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            original_unlink = Path.unlink
+
+            def locked_backup(path, *args, **kwargs):
+                if path.name.endswith('.bak'):
+                    raise PermissionError('injected OneDrive artifact lock')
+                return original_unlink(path, *args, **kwargs)
+
+            with mock.patch.object(Path, 'unlink', locked_backup):
+                with self.assertRaises(merge_bay.DeployCleanupPending) as caught:
+                    merge_bay.deploy_runtime_atomic(
+                        repo.config,
+                        source,
+                        'cleanup-lock',
+                        source_oid,
+                    )
+            self.assertEqual(caught.exception.runtime_state, 'committed')
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), source['index.html'])
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), source['sw.js'])
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.recover_deployment(repo.config), 'committed')
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+
+    def test_cleanup_pending_all_old_resume_republishes_verified_runtime(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.bay,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.bay, 'sw.js', "const APP_VER='2.0';\n")
+            repo.write(repo.bay, 'feature.txt', 'deploy me\n')
+            repo.commit(repo.bay, 'new deployable runtime')
+            original_unlink = Path.unlink
+
+            def locked_backup(path, *args, **kwargs):
+                if path.name.endswith('.bak'):
+                    raise PermissionError('injected cleanup lock')
+                return original_unlink(path, *args, **kwargs)
+
+            with mock.patch.object(Path, 'unlink', locked_backup):
+                with self.assertRaises(merge_bay.DeployCleanupPending):
+                    merge_bay.start_transaction(
+                        repo.config,
+                        'kimi',
+                        True,
+                        runner=GateRunner([0, 0]),
+                    )
+
+            state_path, _ = merge_bay.state_locations(repo.config)
+            state = merge_bay.load_state(state_path)
+            self.assertIsNotNone(state)
+            self.assertTrue(state['deployed'])
+            journal = merge_bay._load_deploy_journal(
+                repo.config,
+                expected_txn=state['txn_id'],
+                expected_source_oid=state['integration_oid'],
+            )
+            self.assertIsNotNone(journal)
+
+            # Model a late OneDrive/crash rollback while cleanup evidence is
+            # still present: both live files return to the journal's old bytes.
+            for entry in journal['files']:
+                old_data = (repo.deploy / entry['backup']).read_bytes()
+                (repo.deploy / entry['name']).write_bytes(old_data)
+
+            original_recover = merge_bay.recover_deployment
+            interrupted = []
+
+            def kill_after_recovery(*args, **kwargs):
+                result = original_recover(*args, **kwargs)
+                if result == 'rolled_back' and not interrupted:
+                    interrupted.append(result)
+                    raise KeyboardInterrupt('injected kill after journal removal')
+                return result
+
+            with mock.patch.object(
+                merge_bay,
+                'recover_deployment',
+                side_effect=kill_after_recovery,
+            ):
+                with self.assertRaises(KeyboardInterrupt):
+                    merge_bay.resume_transaction(
+                        repo.config,
+                        'kimi',
+                        runner=GateRunner([]),
+                    )
+            interrupted_state = merge_bay.load_state(state_path)
+            self.assertIsNotNone(interrupted_state)
+            self.assertFalse(interrupted_state['deployed'])
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+
+            self.assertEqual(
+                merge_bay.resume_transaction(
+                    repo.config,
+                    'kimi',
+                    runner=GateRunner([]),
+                ),
+                0,
+            )
+            merged = repo.oid(repo.root)
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, merged)
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), expected['index.html'])
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), expected['sw.js'])
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertFalse(state_path.exists())
+
+    def test_receipt_exists_before_journal_unlink_hard_kill_cut(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            original_unlink = Path.unlink
+
+            def kill_before_journal_unlink(path, *args, **kwargs):
+                if path.name == merge_bay.DEPLOY_JOURNAL:
+                    receipt = merge_bay.deploy_receipt_path(repo.config)
+                    self.assertTrue(receipt.exists())
+                    raise KeyboardInterrupt('injected kill at journal unlink')
+                return original_unlink(path, *args, **kwargs)
+
+            with mock.patch.object(
+                Path,
+                'unlink',
+                new=kill_before_journal_unlink,
+            ):
+                with self.assertRaises(KeyboardInterrupt):
+                    merge_bay.deploy_runtime_atomic(
+                        repo.config,
+                        source,
+                        'receipt-before-cleanup',
+                        source_oid,
+                    )
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(
+                merge_bay.recover_deployment(
+                    repo.config,
+                    expected_txn='receipt-before-cleanup',
+                    expected_source_oid=source_oid,
+                ),
+                'committed',
+            )
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), source['index.html'])
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), source['sw.js'])
+
+    def test_all_new_recovery_writes_exact_receipt_before_removing_journal(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'new runtime')
+            source = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            journal = merge_bay.prepare_deployment(
+                repo.config,
+                source,
+                'all-new-recovery',
+                source_oid,
+            )
+            for entry in journal['files']:
+                os.replace(
+                    repo.deploy / entry['stage'],
+                    repo.deploy / entry['name'],
+                )
+            self.assertFalse(merge_bay.deploy_receipt_path(repo.config).exists())
+            self.assertEqual(
+                merge_bay.recover_deployment(
+                    repo.config,
+                    expected_txn='all-new-recovery',
+                    expected_source_oid=source_oid,
+                ),
+                'committed',
+            )
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+
+    def test_corrupt_second_backup_causes_zero_rollback_writes(self):
+        with tempfile.TemporaryDirectory(prefix='glimmer-backup-corrupt-test-') as raw:
+            base = Path(raw)
+            source = base / 'source'
+            deploy = base / 'deploy'
+            source.mkdir()
+            deploy.mkdir()
+            (source / 'index.html').write_bytes(b'new-index')
+            (source / 'sw.js').write_bytes(b'new-sw')
+            (deploy / 'index.html').write_bytes(b'old-index')
+            (deploy / 'sw.js').write_bytes(b'old-sw')
+            (deploy / merge_bay.DEPLOY_MARKER).write_text('marker\n', encoding='utf-8')
+            config = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+            )
+            journal = merge_bay.prepare_deployment(
+                config,
+                source,
+                'backup-corrupt',
+                '6' * 40,
+            )
+            index_entry, sw_entry = journal['files']
+            os.replace(deploy / index_entry['stage'], deploy / index_entry['name'])
+            (deploy / sw_entry['backup']).write_bytes(b'corrupt')
+            before_index = (deploy / 'index.html').read_bytes()
+            before_sw = (deploy / 'sw.js').read_bytes()
+            with self.assertRaisesRegex(merge_bay.DeployError, 'backup hash mismatch'):
+                merge_bay.recover_deployment(config)
+            self.assertEqual((deploy / 'index.html').read_bytes(), before_index)
+            self.assertEqual((deploy / 'sw.js').read_bytes(), before_sw)
+
+    def test_deploy_source_bytes_come_from_frozen_commit_not_worktree(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='foreign';</script>\n",
+            )
+            blobs = merge_bay.runtime_bytes_at_commit(
+                repo.config,
+                repo.base_oid,
+            )
+            self.assertEqual(
+                blobs['index.html'],
+                b"<script>const GAME_VER='1.0';</script>\n",
+            )
+            self.assertEqual(blobs['sw.js'], b"const APP_VER='1.0';\n")
+
+    def test_wrong_deploy_marker_and_extended_runtime_whitelist_are_rejected(self):
+        with tempfile.TemporaryDirectory(prefix='glimmer-deploy-identity-test-') as raw:
+            base = Path(raw)
+            source = base / 'source'
+            deploy = base / 'deploy'
+            source.mkdir()
+            deploy.mkdir()
+            for directory, prefix in ((source, b'new-'), (deploy, b'old-')):
+                (directory / 'index.html').write_bytes(prefix + b'index')
+                (directory / 'sw.js').write_bytes(prefix + b'sw')
+            config = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+            )
+            with self.assertRaisesRegex(merge_bay.DeployError, 'marker'):
+                merge_bay.prepare_deployment(config, source, 'wrong-marker', '7' * 40)
+            (deploy / merge_bay.DEPLOY_MARKER).write_text('marker\n', encoding='utf-8')
+            extended = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+                runtime_files=('index.html', 'sw.js', 'atlas.html'),
+            )
+            with self.assertRaisesRegex(merge_bay.DeployError, 'whitelist'):
+                merge_bay.prepare_deployment(
+                    extended,
+                    source,
+                    'extended-runtime',
+                    '8' * 40,
+                )
+
+    def test_deploy_receipt_detects_late_onedrive_style_rollback(self):
+        with TempRepo() as repo:
+            with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
+                merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            for name, data in expected.items():
+                (repo.deploy / name).write_bytes(data)
+            merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+            receipt_path = merge_bay.deploy_receipt_path(repo.config)
+            receipt_before = receipt_path.read_bytes()
+            self.assertEqual(
+                merge_bay.verify_deploy_receipt(repo.config),
+                'match',
+            )
+            (repo.deploy / 'index.html').write_bytes(b'wrong-before-resign')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
+                merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+            self.assertEqual(receipt_path.read_bytes(), receipt_before)
+            (repo.deploy / 'index.html').write_bytes(expected['index.html'])
+            (repo.deploy / 'index.html').write_bytes(b'late-rollback')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'drifted'):
+                merge_bay.verify_deploy_receipt(repo.config)
+
+    def test_forged_receipt_hashes_cannot_bless_bytes_outside_source_commit(self):
+        with TempRepo() as repo:
+            forged = {
+                'schema': 1,
+                'source_oid': repo.base_oid,
+                'runtime_sha256': {
+                    name: merge_bay._sha256_file(repo.deploy / name)
+                    for name in merge_bay.RUNTIME
+                },
+                'written_at': 1,
+            }
+            merge_bay._atomic_write_json(
+                merge_bay.deploy_receipt_path(repo.config),
+                forged,
+            )
+            with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
+                merge_bay.verify_deploy_receipt(repo.config)
+
+
+if __name__ == '__main__':
+    unittest.main()
