@@ -17,7 +17,8 @@ import io,os,re,subprocess,sys
 ROOT=r'C:\dev\glimmer-town'
 DEPLOY=r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\glimmer-town'
 BAYS={'kimi':r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-kimi',
-      'codex':r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-codex'}
+      'codex':r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-codex',
+      'grok':r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-grok'}
 RUNTIME=['index.html','sw.js']
 TEXT_CHECK=['index.html','sw.js','test_fixde.js']
 
@@ -77,7 +78,7 @@ def main():
     if '--status' in sys.argv: status_only(); return 0
     if len(sys.argv)<2: print(__doc__); return 1
     name=sys.argv[1]
-    if name not in BAYS: print('unknown bay: '+name+' (expect kimi|codex)'); return 1
+    if name not in BAYS: print('unknown bay: '+name+' (expect '+('|'.join(BAYS))+')'); return 1
     bay=BAYS[name]; branch='bay/'+name
     deploy='--deploy' in sys.argv
 
