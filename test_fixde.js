@@ -258,6 +258,28 @@ for (const [tool, k, sz] of SV) {
 for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.bld 應生成 ' + k + '_1_0');
 // T291 底部貼合格子：sprFootAudit hook 應存在且回陣列（真實像素溢出驗證於瀏覽器端＝總溢出 0px；harness getImageData 為 stub 故此處為煙霧測試）
 assert(Array.isArray(window.GV.sprFootAudit()), 'T291 sprFootAudit 應回傳陣列（底部貼合格子審計 hook）');
+/* ===== T353 錨點一致性守衛（修「農場動畫漂移」）=====
+   病灶：doFarm() 的 (ax,ay) 是「田地在畫布上的繪製座標」，T281 的 stages() 卻把它當成精靈錨點
+   metadata 寫入 SPR.farmGrow。大農場 base/farmSea=164/242、farmGrow=104/218 ⇒ draw() 用 s.ax/s.ay
+   定位，生長階段每 4 天輪替一次就整片地皮滑動 (60z,24z)（實測 zoom2 = 120,48 螢幕像素）。
+   這條守衛不需要 getImageData，所以在 harness 裡是真跑而非煙霧測試。 */
+{
+  const aud = window.GV.sprAnchorAudit();
+  assert(Array.isArray(aud), 'T353 sprAnchorAudit 應回傳陣列');
+  assert(aud.pairs > 0, 'T353 sprAnchorAudit 必須真的比對到變體（pairs>0，否則表為空也會假綠）');
+  assert(aud.length === 0,
+    'T353 季節相/生長階段的錨點必須與 base 相同，否則建築會隨日子跳動；不符：' +
+    JSON.stringify(aud.slice(0, 4)));
+}
+// T353 靜態守衛一：farmGrow 的錨點只能抄 base 精靈，不可寫 doFarm 的繪製座標
+assert(/SPR\.farmGrow\[si\]\[st\]\[key\]=\{img:c2,ax:gax,ay:gay/.test(html),
+  'T353 farmGrow 錨點必須寫 gax/gay（取自 SPR.bld[key]），不可寫 doFarm 的 ax/ay');
+// T353 靜態守衛二：底座裁切必須覆蓋 farmSea/farmGrow，否則那 9 張圖的田地會溢出到鄰格
+assert(/clipBase\(t\[key\]\)/.test(html) && /if\(SPR\.farmSea\)for\(const si of\[1,2,3\]\)\{const t=SPR\.farmSea\[si\];if\(t&&t\[key\]\)clipBase/.test(html),
+  'T353 clipBase 必須同時裁切 SPR.farmSea 與 SPR.farmGrow（不能只裁 SPR.bld）');
+// T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
+assert(/doFarm\('53_1_0',164,/.test(html),
+  "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");
 // 竄改存檔 v=2 → load 應正規化回 0
 // T226/T274：農場座標決定性選型＋SPR 鍵存在＋load 保留變體（新設計正面斷言）
 {

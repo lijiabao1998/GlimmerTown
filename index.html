@@ -374,7 +374,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='9.0'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='9.1'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 const TOOLS=[
   {id:'pan',cat:'base',ic:'🖐',nm:'檢視',pr:''},
   {id:'alley',cat:'road',ic:'🚶',nm:'小巷',pr:'$'+ROAD_COST[0]},
@@ -7207,6 +7207,37 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
         SPR.farmSea[sea][fk]={img:remap274(b0.img,b0.w,b0.h,MAPS274[si]),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}
   }
   /* ===== T274 農場作物變體擴充 END ===== */
+  /* ===== T353 季節色表補漏（加蓋式）：T229 的 SUM/AUT/WIN 三表被 T274 的位元守衛永久凍結
+     （測試會把 live 檔的 T229 區塊與 pre-T274 備份逐位元比對），所以缺漏的色不能回頭改那張表——
+     比照 T274 自己的作法「另開一組 map 加蓋」，在此對已生成的 farmSea 畫布就地補色。
+     位置在 T279 之前＝T281 的 farmGrow 從 farmSea clone 時就已帶到修正色。純查表零亂數。
+     三個缺漏（皆由多路原始碼審查程式化比對出來）：
+       ①冬季少了「草底地基」——WIN 只換作物像素。2×2 農場地基只有一格所以看不太出來，
+         但大農場的地基就是整片 5×5 菱形＝約 89% 的地塊永遠停在夏綠，
+         冬天於是變成「一片綠地上飄著幾塊白板子」（玩家截圖 1 的畫面）。
+         兩組來源都要補：大農場自畫的 dia/speck/diaEdge 顯式色，與 k22 走 plate() 由 shade() 算出的色。
+       ②秋季少了高麗菜田（22_1_11）整組三色（#6b4a30 土／#7ab88a 菜球／#98d0a4 高光），
+         AUT 一個都沒有 ⇒ 秋季基底帶與春季逐像素相同（約 772px），只有下方犁溝層換季＝一塊田兩個季節。
+       ③夏季有菜球色卻漏了高光色，換了球體留下春季高光。 ===== */
+  {
+    const patch353=(spr,map)=>{if(!spr||!spr.img)return;
+      const g2=spr.img.getContext('2d'),im=g2.getImageData(0,0,spr.w,spr.h),d=im.data;
+      for(let i=0;i<d.length;i+=4){if(d[i+3]<10)continue;
+        const k2=(d[i]<<16)|(d[i+1]<<8)|d[i+2],m=map[k2];
+        if(m!==undefined){d[i]=(m>>16)&255;d[i+1]=(m>>8)&255;d[i+2]=m&255;}}
+      g2.putImageData(im,0,0);};
+    const SUM353={0x98d0a4:0x8ad898};
+    const AUT353={0x6b4a30:0x7a5a34,0x7ab88a:0xa8b06a,0x98d0a4:0xc4cc88};
+    const WIN353={0x8a9a5a:0xe0e8ee,0x7e8e50:0xd6dfe8,0x96a662:0xeaf1f6,0x6e7e44:0xccd6e0,0x9aaa66:0xf0f5f9,
+                  0x808f50:0xd8e1e9,0x92a262:0xe6eef4,0x768646:0xd0dae3,0x94a464:0xe8f0f5};
+    const K353=[];for(let v=0;v<16;v++)K353.push('22_1_'+v);K353.push('53_1_0');
+    for(const key of K353){
+      if(SPR.farmSea&&SPR.farmSea[1])patch353(SPR.farmSea[1][key],SUM353);
+      if(SPR.farmSea&&SPR.farmSea[2])patch353(SPR.farmSea[2][key],AUT353);
+      if(SPR.farmSea&&SPR.farmSea[3])patch353(SPR.farmSea[3][key],WIN353);
+    }
+  }
+  /* ===== T353 季節色表補漏 END ===== */
   /* ===== T279 精細田地層（玩家「農場素材超越本機 TheoTown」；讀本機 TheoTown FarmDecorator 得知農場＝
      中心建築＋多樣 farmField frames，其豐富度來自多樣田塊。原創超越實作：對 16 作物×4 季（base＋
      farmSea 1/2/3）的地磚面「加蓋」精細田地——①等距犁溝（暗溝/土/亮脊三級立體）②12 類分季作物株
@@ -7285,11 +7316,18 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       }
     };
     const doFarm=(key,ax,ay,hw,hh,cls)=>{
+      /* T353 錨點分離（修「農場動畫漂移」）：ax/ay 是【田地在畫布上的繪製座標】，
+         不是【精靈錨點 metadata】。生長階段畫布的錨點必須抄 base 精靈，否則 draw() 用
+         s.ax/s.ay 定位時，gst 0/1（farmGrow）與 gst 2（base/farmSea）錨點不同 ⇒ 每 4 天整棟跳一次。
+         實測：大農場 base=164/242、舊 farmGrow=104/218，zoom2 下跳 (120,48) 螢幕像素
+         （SAD 對位 59.6 vs 原位 77.9）。k22 傳的 68/148 與 base 相同，故對 k22 位元恆等。 */
+      const bAnchor=SPR.bld[key];
+      const gax=bAnchor?bAnchor.ax:ax, gay=bAnchor?bAnchor.ay:ay;
       const stages=(srcCv,si)=>{ // 由「已畫裸田」的畫布 clone 出兩階段
         for(const st of[0,1]){
           const[c2,g2]=cv(srcCv.width,srcCv.height);g2.drawImage(srcCv,0,0);
           stagePlant(g2,ax,ay,hw,hh,cls,si,st);
-          SPR.farmGrow[si][st][key]={img:c2,ax,ay,w:srcCv.width,h:srcCv.height,smoke:[]};
+          SPR.farmGrow[si][st][key]={img:c2,ax:gax,ay:gay,w:srcCv.width,h:srcCv.height,smoke:[]};
         }
       };
       const b=SPR.bld[key];
@@ -7298,7 +7336,12 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
         if(ss){const g=ss.img.getContext('2d');field(g,ax,ay,hw,hh,si);if(si!==3)stages(ss.img,si);plantGrid(g,ax,ay,hw,hh,cls,si);}}
     };
     for(let v=0;v<16;v++)doFarm('22_1_'+v,68,148,30,15,CCLASS[v]);
-    doFarm('53_1_0',104,218,52,26,'grain'); // 大農場 5×5：放大田＋麥（其自帶多 patch，此層加精細犁溝主田）
+    /* T353 大農場田地歸位：舊值 (104,218) 讓田地中心落在畫布 (104,202)，而 5×5 的 footprint 中心是
+       (164,162)（＝ax, ay-16*sz）——左偏 60px、下偏 40px，左緣整整 32px 在地塊外，y=221..228 共 8 列
+       整列懸空。k22 的慣例是 cy = footprint 中心 +16（＝最前一格的中心），照同一慣例 k53 應是 cy=178；
+       但 y152..204 那一帶正是 base 自帶的雙筒倉/農舍/乾草捆，田會把它們蓋掉，故改放前緣空地：
+       cy=206（ay 傳 222），菱形 x112..216 / y180..232，內含度 0.875 < 1＝完全在地塊內。 */
+    doFarm('53_1_0',164,222,52,26,'grain'); // 大農場 5×5：前緣空地的精細犁溝主田（其自帶多 patch）
   }
   /* ===== T279 精細田地層 END ===== */
   /* ===== T276 農莊套件覆蓋層（玩家「農場素材太簡陋」，TheoTown 級細節對標、素材原創）：
@@ -7569,6 +7612,14 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
           cx2.putImageData(id,0,0);
         }};
       for(const key in SPR.bld){const m=key.match(/^(\d+)_/);if(!m)continue;const sz=SZC[+m[1]];if(sz>=2)clipBase(SPR.bld[key]);}
+      /* T353：季節相（farmSea）與生長階段（farmGrow）是同一棟建築的「時間替身」，draw() 會在不同
+         日子選到它們，卻從來沒被裁切過——舊版這個迴圈只走 SPR.bld。大農場 3 張季節圖＋6 張階段圖
+         的精細田因此把犁溝土與 #8f6e42 田埂框整片噴到左前方鄰格（玩家截圖裡地塊外那些褐色／雪白碎塊）。
+         同一個遮罩補上，讓 10 張圖的底座裁切完全一致。k22 的田本來就在界內，故對 k22 位元恆等。 */
+      for(const key in SPR.bld){const m=key.match(/^(\d+)_/);if(!m)continue;const sz=SZC[+m[1]];if(!(sz>=2))continue;
+        if(SPR.farmSea)for(const si of[1,2,3]){const t=SPR.farmSea[si];if(t&&t[key])clipBase(t[key]);}
+        if(SPR.farmGrow)for(const si of[0,1,2])for(const st of[0,1]){const t=SPR.farmGrow[si]&&SPR.farmGrow[si][st];if(t&&t[key])clipBase(t[key]);}
+      }
     }
   }
   /* T345 加蓋層：為每個建築 sprite 疊「基座類別色環」＋「屋頂徽記」。純幾何/像素運算，零亂數消耗。
@@ -7576,7 +7627,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
      徽記位置逐列掃描該 sprite 中央帶的最高不透明像素（鐵律11：勿在透明天空區加東西），畫在屋頂線上方。 */
   if(!window.__noBadge){
     const SZB={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,62:2,63:2,64:2,65:4,66:2,68:2,
-      82:2,83:3,87:2,90:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2,118:2,119:2};
+      82:2,83:3,87:2,90:2,91:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2,118:2,119:2}; /* T353 補 91:2（貿易站）：本表是 MSZ 的手抄副本並已漂移，程式化比對兩表只差這一鍵，`||1` 讓它退成 1×1，色環長度只有應有的一半 */
     const GLYPH={ // 3-6px 象形符（白色 fillRect 組合，座標相對徽記左上角 9×9）
       R:[[3,2,3,1],[2,3,5,1],[3,4,3,4]],                 // 屋頂＋牆
       C:[[2,2,5,1],[2,3,1,4],[6,3,1,4],[3,5,3,1]],       // 店面雨棚
@@ -7595,6 +7646,14 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     const extra345=[];
     const push345=(k,v)=>{if(!v)return;if(Array.isArray(v))for(const it of v){if(it&&it.img)extra345.push([k,it]);}else if(v.img)extra345.push([k,v]);};
     push345(4,SPR.park);push345(4,SPR.parkW);
+    /* T353：加蓋層必須覆蓋「同一棟建築的所有時相替身」，否則畫面會隨日子閃變。
+       夏/秋公園 parkS/parkA（6219-6220 由 SPR.park clone）與農場的 farmSea[1..3]／farmGrow[0..2][0..1]
+       都在本 pass 之前就 clone 出去了，舊版只收 SPR.bld ⇒ 農場的類別色環＋麥穗徽記只在
+       「春季且成熟期」那 4 天亮出來（gst 每 4 天一輪、出春季三季全無），公園則夏秋兩季整體消失。 */
+    push345(4,SPR.parkS);push345(4,SPR.parkA);
+    const pushTime345=t=>{if(!t)return;for(const key in t){const m2=key.match(/^(\d+)_/);const it=t[key];if(m2&&it&&it.img)extra345.push([+m2[1],it]);}};
+    if(SPR.farmSea)for(const si of[1,2,3])pushTime345(SPR.farmSea[si]);
+    if(SPR.farmGrow)for(const si of[0,1,2])for(const st of[0,1])pushTime345(SPR.farmGrow[si]&&SPR.farmGrow[si][st]);
     push345(5,SPR.plant);push345(5,SPR.plantVar);
     push345(10,SPR.waterTower);push345(10,SPR.waterTowerVar);
     push345(11,SPR.police);push345(11,SPR.policeVar);
@@ -16439,6 +16498,21 @@ window.GV={
       }catch(e){}
     }
     return out; // 空陣列＝全部貼合格子
+  },
+  sprAnchorAudit:()=>{ /* T353 測試用：同一棟建築的所有「時間變體」錨點必須一致，否則建築會隨時間跳動。
+       farmSea（季節相）與 farmGrow（生長階段）都是 draw() 會在不同日子選到的替身，
+       它們的 ax/ay 若與 SPR.bld 同鍵不同，畫面上就是週期性位移＝玩家看到的「漂移」。
+       不用 getImageData，所以 Node 測試環境也能真跑（非煙霧測試）。空陣列＝全部對齊。 */
+    const out=[];let pairs=0;
+    const chk=(fam,key,s,b)=>{if(!s||!b)return;pairs++;
+      if(s.ax!==b.ax||s.ay!==b.ay)out.push({fam,key,ax:s.ax,ay:s.ay,baseAx:b.ax,baseAy:b.ay,dx:s.ax-b.ax,dy:s.ay-b.ay});};
+    for(const key in SPR.bld){const b=SPR.bld[key];
+      if(SPR.farmSea)for(const si of[1,2,3]){const t=SPR.farmSea[si];if(t)chk('farmSea['+si+']',key,t[key],b);}
+      if(SPR.farmGrow)for(const si of[0,1,2])for(const st of[0,1]){
+        const t=SPR.farmGrow[si]&&SPR.farmGrow[si][st];if(t)chk('farmGrow['+si+']['+st+']',key,t[key],b);}
+    }
+    out.pairs=pairs; /* 掛在陣列上：測試要斷言 pairs>0，否則「表是空的」也會回空陣列＝假綠 */
+    return out;
   },
   buses:()=>buses.map(b=>({x:b.x,y:b.y,stop:[b.stop%N,(b.stop/N)|0],p:+b.p.toFixed(2),wait:+b.wait.toFixed(2),moving:!!b.path})), // 公車運行快照（T26 測試用）
   busRoutes:()=>busRoutes.map(rt=>({stops:rt.stops.map(i=>[i%N,(i/N)|0])})),         // T120 測試用：目前 3 條路線快照（座標陣列）
