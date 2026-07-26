@@ -380,6 +380,39 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(/if\(rg2\.noHalo\)continue/.test(html), 'T359 光暈迴圈應跳過 noHalo 條目（光錐中心在半空）');
   assert(/const SPOT_K359=\{24:1,67:1,68:1/.test(html), 'T359 SPOT_K359 應含 k24/67/68 地標');
 }
+/* ===== T361 動態生命感（船・飛機・季節粒子；Grok 首卡；1A+2A）===== */
+{
+  const at = window.GV.sprAtlas356();
+  assert(at.entries.some(e => e.fam === 'lifeShip' && e.key === 'cargo'), 'T361a SPR.lifeShip.cargo 應生成');
+  assert(at.entries.some(e => e.fam === 'lifeShip' && e.key === 'yacht'), 'T361a SPR.lifeShip.yacht 應生成');
+  assert(at.entries.some(e => e.fam === 'lifeShip' && e.key === 'fish'), 'T361a SPR.lifeShip.fish 應生成');
+  assert(at.entries.filter(e => e.fam === 'plane').length >= 2, 'T361b SPR.plane 應 ≥2 幀');
+  // 靜態守衛：T361 sprite 區塊零亂數
+  const i361 = html.indexOf('T361 動態生命感 sprites');
+  const iEnd = html.indexOf('R=__savedR', i361);
+  assert(i361 > 0 && iEnd > i361, 'T361 應找到 sprite 區塊於 buildSprites 尾端');
+  const blk361 = html.slice(i361, iEnd);
+  assert(blk361.length > 400, 'T361 sprite 區塊應非空');
+  assert(!/\brand\s*\(|[^a-zA-Z_]R\s*\(|\bri\s*\(|Math\.random\s*\(/.test(blk361),
+    'T361 sprite 區塊不得消耗 rand()/R()/ri()/Math.random()');
+  // 接線守衛
+  assert(/function updLifeShips/.test(html), 'T361a 應有 updLifeShips');
+  assert(/updLifeShips\(dtA\)/.test(html), 'T361a 應掛入 advance()');
+  assert(/window\.__noLife/.test(html), 'T361 應提供 __noLife 總開關');
+  assert(/lifeShip:sh/.test(html) || /lifeShip:sh,/.test(html) || /lifeShip:sh\}/.test(html) || /\{dep:fx\+fy\+\.012,lifeShip:sh/.test(html),
+    'T361a 應以獨立 dep 推入 objs');
+  assert(/b\.k===18/.test(html) && /b\.k===90/.test(html) && /b\.k===97/.test(html),
+    'T361a 應依 k18/k90/k97 生成船種');
+  assert(/b\.k===19\|\|b\.k===114/.test(html), 'T361b 應在機場 k19／國際機場 k114 存在時繪製飛機');
+  assert(/streetHash\(phase,1,1801\)/.test(html), 'T361b 班次應決定性（streetHash phase）');
+  assert(/seaL===1&&nightDepth>0/.test(html), 'T361c 螢火蟲應僅夏夜（nightDepth>0）');
+  assert(typeof window.GV.lifeShips === 'function', 'T361a GV.lifeShips 鉤子應存在');
+  assert(typeof window.GV.lifeShipsByKind === 'function', 'T361a GV.lifeShipsByKind 鉤子應存在');
+  // 運行時：__noLife 時 updLifeShips 應清空（不依賴模擬種子）
+  window.__noLife = true;
+  assert(window.GV.lifeShips() === 0, 'T361 __noLife 開啟前預設船隊為 0（新圖）');
+  window.__noLife = false;
+}
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
   "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");
