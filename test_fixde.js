@@ -413,6 +413,40 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(window.GV.lifeShips() === 0, 'T361 __noLife 開啟前預設船隊為 0（新圖）');
   window.__noLife = false;
 }
+/* ===== T363 垃圾焚化發電廠運轉視覺（k62 draw-time 排氣／夜班；禁 updSmoke）===== */
+{
+  assert(/T363 垃圾焚化發電廠運轉視覺/.test(html), 'T363 應有運轉視覺區塊註解錨');
+  assert(/window\.__noWteFx/.test(html), 'T363 應提供 __noWteFx 總開關');
+  assert(/bd\.k===62&&!bd\.ref&&\(bd\.age\|0\)>=9/.test(html), 'T363 應僅對完工 k62 root 生效');
+  assert(/garbage>0&&animOn/.test(html), 'T363 活動排氣應要求 garbage>0 且 animOn');
+  // 靜態守衛：T363 區塊零亂數、不碰粒子管線
+  const i363 = html.indexOf('T363 垃圾焚化發電廠運轉視覺');
+  const i363end = html.indexOf('if(nightDepth>0&&SPOT_K359', i363);
+  assert(i363 > 0 && i363end > i363, 'T363 區塊應可擷取');
+  const blk363 = html.slice(i363, i363end);
+  assert(blk363.length > 200, 'T363 區塊應非空');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(blk363),
+    'T363 區塊不得消耗 R()/ri()/rand()/Math.random');
+  assert(!/smokes\.push|fxParts\.push/.test(blk363), 'T363 不得 push 進 smokes/fxParts');
+  assert(!/function updSmoke/.test(blk363), 'T363 不得改寫 updSmoke');
+  // updSmoke 本體仍不得被改成接 k62 煙（smoke:[] 契約）
+  assert(/SPR\.bld\['62_1_0'\]=\{img:c,night:nc,ax,ay,w:136,h:150,smoke:\[\]\}/.test(html),
+    'T265/T363：k62 仍應為 smoke:[]（不接入每幀煙霧亂數流）');
+  // 行為：放置 k62 後 forceDraw 不拋錯；開關可設
+  window.__noWteFx = false;
+  try {
+    if (typeof window.GV.forceDraw === 'function') window.GV.forceDraw();
+  } catch (e) {
+    assert(false, 'T363 forceDraw 不應拋錯：' + e.message);
+  }
+  window.__noWteFx = true;
+  try {
+    if (typeof window.GV.forceDraw === 'function') window.GV.forceDraw();
+  } catch (e) {
+    assert(false, 'T363 __noWteFx 下 forceDraw 不應拋錯：' + e.message);
+  }
+  window.__noWteFx = false;
+}
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
   "T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外");
