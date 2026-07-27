@@ -448,6 +448,39 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   }
   window.__noWteFx = false;
 }
+/* ===== T367 視角四向旋轉（view-space 變換層）===== */
+{
+  assert(typeof window.GV.w2v === 'function' && typeof window.GV.v2w === 'function', 'T367 GV.w2v/v2w 應存在');
+  assert(typeof window.GV.rotMask === 'function' && typeof window.GV.setRot === 'function', 'T367 GV.rotMask/setRot 應存在');
+  assert(typeof window.GV.rot === 'function', 'T367 GV.rot 應存在');
+  assert(/id=\"bRot\"/.test(html), 'T367 HUD 應有旋轉按鈕 #bRot');
+  assert(/function isoW2V/.test(html), 'T367 應有 isoW2V（實體等距座標）');
+  assert(/viewRotEff\(\)/.test(html) && /window\.__noRot/.test(html), 'T367 應有 viewRotEff 與 __noRot');
+  const n = 72;
+  for (const r of [0, 1, 2, 3]) {
+    window.GV.setRot(r);
+    assert(window.GV.rot() === r, 'T367 setRot(' + r + ') 應生效');
+    for (let y = 0; y < n; y += 9)
+      for (let x = 0; x < n; x += 9) {
+        const v = window.GV.w2v(x, y);
+        const w = window.GV.v2w(v[0], v[1]);
+        assert(w[0] === x && w[1] === y, 'T367 w2v∘v2w 恆等 rot=' + r + ' @' + x + ',' + y);
+      }
+    for (let m = 0; m < 16; m++) {
+      let mm = m;
+      for (let k = 0; k < 4; k++) mm = window.GV.rotMask(mm, 1);
+      assert(mm === m, 'T367 rotMask 周期4 應復原 m=' + m);
+    }
+  }
+  window.GV.setRot(0);
+  assert(window.GV.rot() === 0, 'T367 測試結束應回到 rot=0');
+  const i367 = html.indexOf('T367 視角四向旋轉');
+  assert(i367 > 0, 'T367 應有變換層註解');
+  const i367end = html.indexOf('const STREET_POPCOUNT', i367);
+  assert(i367end > i367, 'T367 變換核應止於 STREET_POPCOUNT 之前');
+  const blk367 = html.slice(i367, i367end);
+  assert(!/\bR\s*\(|\bri\s*\(|Math\.random\s*\(/.test(blk367), 'T367 變換核不得消耗 R()/ri()/Math.random');
+}
 /* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
 {
   const at=window.GV.sprAtlas356();
