@@ -2,7 +2,9 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
-2026-07-27 | T364b 中繼點覆核退修：排氣調濃（Codex；v9.8，待 Kimi 複拍） | 僅調 k121 的 draw-time 排氣：低庫存密度地板 `.68`、固定 8 團、上升／半徑放大、深藍灰外緣＋冷白內芯；保留 `fuel>0`／`animOn`／`__noRefineryFx` 與 `visT`／`streetHash`／`sin` 決定性路徑，零 R()/ri()/rand()/Math.random()，不進 `updSmoke()`／`smokes`／`fxParts`。Node 真跑 zoom2：fuel=0 為 0 團，fuel=20／120 各 16 個 ellipse，低庫存同相位重畫完全一致；未開 c/d、版本、master 或部署。 | 驗收:待複拍
+2026-07-27 | T364c/d 城市建設大波 B/C/D（Codex；v9.8，bay/codex 交付） | k124 籃球／k125 網球／k126 遊樂場接公園＋`play` COV與球場冷暖夜燈；k127 固定 76 人社宅（道路＋電＋水才入住，`lv=1`／`we=0`，不改 LAND）；k128 零容量電網中繼；k129 鄰水淡化 +80（root/ref 均可接水）與水網 undo 即時重算；k130–132 決定性抽水／防災／避難 COV；k133 固定提前 7 日雷達預警。舊城不增加 `region.waterCap`，新增判定只用 COV／`streetHash()`，零新增 R()/ri()/rand()/Math.random()，未碰粒子、版本、master 或部署。`verify.py` 真跑 2362 PASS／0 FAIL；127.0.0.1:8126、slot 3 實拍日夜與 atlas。 | 驗收:待 Kimi 非作者覆核
+
+2026-07-27 | T364b 中繼點覆核退修：排氣調濃（Codex；v9.8，Kimi 複拍通過） | 僅調 k121 的 draw-time 排氣：低庫存密度地板 `.68`、固定 8 團、上升／半徑放大、深藍灰外緣＋冷白內芯；保留 `fuel>0`／`animOn`／`__noRefineryFx` 與 `visT`／`streetHash`／`sin` 決定性路徑，零 R()/ri()/rand()/Math.random()，不進 `updSmoke()`／`smokes`／`fxParts`。Node 真跑 zoom2：fuel=0 為 0 團，fuel=20／120 各 16 個 ellipse，低庫存同相位重畫完全一致；未開 c/d、版本、master 或部署。 | 驗收:通過
 
 2026-07-27 | T364a+b 城市建設大波 A 波（Codex；v9.8，中繼交付） | **T364a**：新 sprite metadata 可選 `sc` 縮放管線，13 座後續新樓走 raw 416×440、`sc:.5`，既有 120 座 `SPR.bld` 完全不加 `sc`。**T364b**：k121 煉油廠／k122 鋼鐵廠／k123 造船廠皆 3×3（造船廠需鄰水）；油→fuel→工業／貨運稅、礦→steel→工業稅、船廠耗鋼→港口／貿易收益。**業主否決並作廢**舊卡面「k33/34/105/106 升級費折減」：四者皆自動合併成形、沒有 `upCost()` 真實付費掛點，不能發明收費；改為 `steel>0` 時所有真實 `upCost()` 固定乘 `STEEL_UP_DISCOUNT=.85`。Node 真跑鋼材 0／>0 的 280→238（比值恰 .85）及既有無鋼鐵廠城市值不變。新增素材／draw-time 視覺均零 R()/ri()/rand()/Math.random()，未碰 updSmoke／粒子管線。依中繼點未做 c/d、版本 bump、master 或玩家部署。瀏覽器：127.0.0.1:8126／slot 3，atlas 新舊／夜光與三座實際放置之晝夜場景、console 0 error。 | 驗收:通過
 

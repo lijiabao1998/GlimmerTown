@@ -4136,6 +4136,197 @@ runPwaTests().then(() => {
   }
 
 
+  // ===== T364c/d 社區休閒／城市韌性波 k124-133 =====
+  {
+    const civic364=[
+      [124,'籃球場','basketballCourt',1,'G'],[125,'網球場','tennisCourt',1,'G'],[126,'兒童遊樂場','playground',1,'G'],
+      [127,'社會住宅','socialHousing',2,'R'],[128,'變電所','substation',1,'E'],[129,'海水淡化廠','desalination',2,'W'],
+      [130,'抽水站','pumpStation',1,'W'],[131,'防災中心','disasterCenter',2,'S'],[132,'避難公園','shelterPark',2,'G'],[133,'防災雷達','disasterRadar',2,'S']
+    ];
+    for(const[k,nm,tool,sz,cat]of civic364){
+      assert(html.includes(k+":'"+nm+"'"),'T364c/d KNAME 應含 k'+k);
+      assert(html.includes("id:'"+tool+"'"),'T364c/d TOOLS 應含 '+tool);
+      assert(html.includes(tool+':'),'T364c/d COST 應含 '+tool);
+      assert(window.GV.kcat345(k).cat===cat,'T364c/d k'+k+' 類別應為 '+cat);
+      assert(html.includes('MINI_BLD_PAL['+k+"]='"),'T364c/d 小地圖色必須顯式對齊 k'+k);
+      if(sz===2)assert(html.includes(k+':2'),'T364c/d MSZ 應含 k'+k+' 的 2×2 footprint');
+    }
+    const atlasCivic364=window.GV.sprAtlas356();
+    for(const[k,,,sz]of civic364){
+      const e=atlasCivic364.entries.find(v=>v.fam==='bld'&&v.key===k+'_1_0');
+      const w=sz===2?272:144,h=sz===2?300:224,ax=w/2,ay=sz===2?296:220;
+      assert(e&&e.w===w&&e.h===h&&e.ax===ax&&e.ay===ay&&e.sc===.5&&e.night,
+        'T364c/d k'+k+' 必須是 '+w+'×'+h+' raw／sc=.5／night，實得 '+JSON.stringify(e&&{w:e.w,h:e.h,ax:e.ax,ay:e.ay,sc:e.sc,night:!!e.night}));
+    }
+    const civicArtStart=html.indexOf('T364c/d 社區與防災十座');
+    const civicArtEnd=html.indexOf('R=__savedR;',civicArtStart);
+    const civicArt=html.slice(civicArtStart,civicArtEnd);
+    assert(civicArtStart>0&&civicArtEnd>civicArtStart&&civicArt.includes('parity364cd'),
+      'T364c/d 素材必須位於 buildSprites 絕對尾端且補齊 tail parity');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|updSmoke|smokes\.push|fxParts\.push/.test(civicArt),
+      'T364c/d 尾端素材不得讀共用亂數或接粒子管線');
+    const courtLightStart=html.indexOf('T364c：籃球／網球場沿用 T359 冷暖光錐');
+    const courtLightEnd=html.indexOf('if(nightDepth>0&&SPOT_K359',courtLightStart);
+    const courtLight=html.slice(courtLightStart,courtLightEnd);
+    assert(courtLightStart>0&&courtLightEnd>courtLightStart&&/bd\.k===124\|\|bd\.k===125/.test(courtLight)&&/SPR\.lampConeWarm/.test(courtLight)&&/SPR\.lampConeCool/.test(courtLight)&&/streetHash\(o\.x,o\.y,36491\)/.test(courtLight),
+      'T364c 球場夜間必須複用 T359 冷暖光錐並以 streetHash 決定分色');
+    assert(courtLight.includes('[[.08,.42],[.92,.40]]')&&courtLight.includes('by+s.h*z*fy'),
+      'T364c 球場光錐必須從兩側燈頭（非場中央）起算，避免光柱浮離燈桿');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(courtLight),
+      'T364c 球場光錐不得新增亂數流');
+    const resStart=html.indexOf('function resilience364At');
+    const resEnd=html.indexOf('function hasWaterNear',resStart);
+    const resSrc=html.slice(resStart,resEnd);
+    assert(resStart>0&&resEnd>resStart&&/floodBlocked364/.test(resSrc)&&/disasterBlocked364/.test(resSrc)&&/floodClearChance364/.test(resSrc),
+      'T364d 韌性讀取層必須提供洪水／災損／退水三條窄鉤子');
+    assert(resSrc.includes('const resident=!!(b&&b.k===1)'),
+      'T364c 固定社宅不得併入既有隨機住宅池，避免改動 R()/ri() 共用流');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(resSrc),
+      'T364d 韌性讀取層不得新增亂數流');
+
+    // 十座放置、2×2 ref／存讀、水管由淡化廠「ref 邊」啟動，以及 COV 韌性效果。
+    window.GV.setMapSize(72); window.GV.newWorldSeeded(364); window.GV.weather(0); window.GV.setDiff(3); window.GV.addMoney(999999);
+    const rootsCivic364=[];
+    const putCivic364=(tool,k,sz,p)=>{
+      p=p||findSpot(tool); assert(p,'T364c/d '+tool+' 應找到可建位置');
+      assert(place(tool,p.x,p.y),'T364c/d '+tool+' 應成功建造');
+      const b=tile(p.x,p.y).bld;
+      assert(b&&b.k===k&&!!b.sz===(sz>1)&&(sz===1||b.sz===sz)&&!b.ref,
+        'T364c/d '+tool+' root 應保留正確 k／footprint');
+      if(sz>1)for(let dy=0;dy<sz;dy++)for(let dx=0;dx<sz;dx++)if(dx||dy){
+        const ref=tile(p.x+dx,p.y+dy).bld;
+        assert(ref&&ref.k===k&&ref.ref&&ref.ref[0]===p.x&&ref.ref[1]===p.y,
+          'T364c/d '+tool+' ref('+dx+','+dy+') 應回指 root');
+      }
+      const out={tool,k,sz,x:p.x,y:p.y}; rootsCivic364.push(out); return out;
+    };
+    const desalSpot364=()=>{
+      const n=window.GV.N();
+      for(let y=4;y<n-8;y++)for(let x=4;x<n-8;x++){
+        if(window.GV.canPlaceTool('desalination',x,y)!==null)continue;
+        // (x+2,y) 緊貼右側 ref、卻不鄰 root；可證明 computeWater() 真把 ref 當第二水源種子。
+        if(window.GV.canPlaceTool('wpipe',x+2,y)===null)return{x,y,px:x+2,py:y};
+      }
+      return null;
+    };
+    const nearCivic364=(tool,cx,cy,r)=>{
+      const n=window.GV.N();
+      for(let y=Math.max(2,cy-r);y<=Math.min(n-4,cy+r);y++)for(let x=Math.max(2,cx-r);x<=Math.min(n-4,cx+r);x++)
+        if(window.GV.canPlaceTool(tool,x,y)===null)return{x,y};
+      return null;
+    };
+    const court364=putCivic364('basketballCourt',124,1);
+    const tennis364=putCivic364('tennisCourt',125,1);
+    const play364=putCivic364('playground',126,1);
+    const pumpCivic364=putCivic364('pumpStation',130,1);
+    const subCivic364=putCivic364('substation',128,1);
+    const ds364=desalSpot364(); assert(ds364,'T364d 應找到淡化廠與其 ref 邊水管位置');
+    const desalCivic364=putCivic364('desalination',129,2,ds364);
+    assert(window.GV.placeUndo('wpipe',ds364.px,ds364.py),'T364d 淡化廠 ref 邊水管應可鋪設並記入真 undo 群組');
+    assert(tile(ds364.px,ds364.py).wp===1&&tile(ds364.px,ds364.py).wr,
+      'T364d placeUndo 後 ref 邊水管必須先真通水，不能用 no-op hook 假綠');
+    assert(window.GV.undo(),'T364d 水管施工後應可真實 undo');
+    assert(tile(ds364.px,ds364.py).wp===0&&!tile(ds364.px,ds364.py).wr,
+      'T364d undo 淡化廠 ref 邊水管後 wr 必須立即重算歸零，不可殘到下一 tick');
+    assert(place('wpipe',ds364.px,ds364.py),'T364d undo 後 ref 邊水管應可重新鋪設');
+    const centerCivic364=putCivic364('disasterCenter',131,2);
+    const shelterCivic364=putCivic364('shelterPark',132,2);
+    const homeSpotCivic364=nearCivic364('socialHousing',shelterCivic364.x,shelterCivic364.y,6);
+    const homeCivic364=putCivic364('socialHousing',127,2,homeSpotCivic364);
+    const radarCivic364=putCivic364('disasterRadar',133,2);
+    window.GV.step(1);
+    assert(window.GV.cov('park',court364.x,court364.y)>0&&window.GV.cov('park',tennis364.x,tennis364.y)>0&&window.GV.cov('park',play364.x,play364.y)>0&&window.GV.cov('play',play364.x,play364.y)>0,
+      'T364c 三座社區休閒設施必須真蓋公園覆蓋，遊樂場另有家庭幸福場');
+    assert(html.includes("{name:'遊樂場',val:COV.play[ci]>0?.035:0}"),'T364c 遊樂場必須提供高於一般公園的小額 .035 幸福');
+    assert(window.GV.cov('pump',pumpCivic364.x,pumpCivic364.y)>0&&window.GV.cov('resilience',centerCivic364.x,centerCivic364.y)>0&&window.GV.cov('shelter',shelterCivic364.x,shelterCivic364.y)>0,
+      'T364d 抽水／防災／避難三種覆蓋必須真蓋入 COV');
+    const pumpProbe364=window.GV.resilience364(pumpCivic364.x,pumpCivic364.y);
+    const centerProbe364=window.GV.resilience364(centerCivic364.x,centerCivic364.y);
+    const homeProbe364=window.GV.resilience364(homeCivic364.x,homeCivic364.y);
+    const zonedHomeProbe364=window.GV.resilience364(homeCivic364.x,homeCivic364.y,1);
+    assert(pumpProbe364.pump&&pumpProbe364.floodMul<1&&pumpProbe364.floodClear>=.48,
+      'T364d 抽水站覆蓋必須減洪並加速退水');
+    assert(centerProbe364.center&&centerProbe364.damageMul===.6&&centerProbe364.recovery===.55,
+      'T364d 防災中心覆蓋必須提供固定 .60 減損／.55 恢復');
+    assert(homeProbe364.shelter&&homeProbe364.casualtyMul===1&&zonedHomeProbe364.casualtyMul===.55,
+      'T364d 避難公園必須真保護既有隨機住宅池；固定社宅不加入該池以維持亂數流');
+    assert(tile(homeCivic364.x,homeCivic364.y).bld.lv===1&&tile(homeCivic364.x,homeCivic364.y).bld.we===0&&window.GV.stats().pop===0,
+      'T364c 社會住宅必須固定 Lv1／低所得，且未接電水時不得憑空入住');
+    assert(window.GV.region().waterCap===80&&tile(ds364.px,ds364.py).wr===true,
+      'T364d 淡化廠必須 root-only +80 供水，且 ref 邊水管應真通水');
+    assert(window.GV.region().powerCap===0,'T364d 無電廠時變電所不得憑空發電');
+    const radarInfo364=window.GV.radar364Info();
+    assert(radarInfo364.count===1&&radarInfo364.lead===7&&radarInfo364.summerDoy===93&&radarInfo364.winterDoy===293,
+      'T364d 防災雷達必須登記固定七日預警口徑');
+    const logN364=window.GV.log().length; window.GV.setDay(86); window.GV.step(20);
+    assert(window.GV.log().slice(logN364).some(v=>String(v.m??'').includes('防災雷達預警：7天後入夏')),
+      'T364d 雷達必須在夏季前七日真寫入預警通知');
+    window.GV.save(); assert(window.GV.load(),'T364c/d 十座混合存檔應可讀回');
+    for(const r of rootsCivic364){
+      const b=tile(r.x,r.y).bld; assert(b&&b.k===r.k&&(!r.sz||r.sz===1||b.sz===r.sz),'T364c/d load 後 '+r.tool+' root 應保留');
+      if(r.sz>1)for(let dy=0;dy<r.sz;dy++)for(let dx=0;dx<r.sz;dx++)if(dx||dy){const ref=tile(r.x+dx,r.y+dy).bld;assert(ref&&ref.ref&&ref.ref[0]===r.x&&ref.ref[1]===r.y,'T364c/d load 後 '+r.tool+' ref 應重建');}
+    }
+    assert(place('doze',play364.x,play364.y),'T364c 遊樂場 root 應可拆除');
+    assert(!tile(play364.x,play364.y).bld&&!window.GV.cov('play',play364.x,play364.y),
+      'T364c 遊樂場 doze 後附加幸福場必須對稱歸零');
+    assert(place('doze',shelterCivic364.x+1,shelterCivic364.y+1),'T364d 應可從避難公園 ref 格拆除');
+    for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++)assert(!tile(shelterCivic364.x+dx,shelterCivic364.y+dy).bld,'T364d 避難公園 ref doze 後 footprint 應清空');
+    assert(!window.GV.cov('shelter',shelterCivic364.x,shelterCivic364.y),'T364d 避難公園 doze 後 shelter COV 應對稱歸零');
+
+    // 社宅不是幽靈人口：先無電水，再接既有道路／電網／水網，入住精確恢復 76；舊城不因此新增 region 鍵。
+    window.GV.setMapSize(72); window.GV.newWorldSeeded(36402); window.GV.weather(0); window.GV.setDiff(3); window.GV.addMoney(999999);
+    let socialLine364=null;
+    outerSocial364:for(let y=4;y<window.GV.N()-5;y++)for(let x=4;x<window.GV.N()-6;x++){
+      const need=[['plant',x,y],['road',x+1,y],['socialHousing',x+2,y-1],['water',x,y+2],['wpipe',x+1,y+2],['wpipe',x+2,y+2],['wpipe',x+2,y+1]];
+      if(need.every(([tool,px,py])=>window.GV.canPlaceTool(tool,px,py)===null)){socialLine364={x,y};break outerSocial364;}
+    }
+    assert(socialLine364,'T364c 應找到社宅電水真跑的乾淨走廊');
+    const shx364=socialLine364.x+2,shy364=socialLine364.y-1;
+    assert(place('socialHousing',shx364,shy364),'T364c 社宅應可先在無公用事業的地塊建造');
+    window.GV.step(1);
+    assert(!tile(shx364,shy364).bld.pw&&!tile(shx364,shy364).bld.wa&&window.GV.stats().pop===0,
+      'T364c 社宅無道路電水時不得成為幽靈人口');
+    window.GV.save();
+    assert(!Object.prototype.hasOwnProperty.call(window.GV.inflateSave(window.GV.rawSave()).region||{},'waterCap'),
+      'T364d 無淡化廠的舊城存檔不得因 region probe 平白新增 waterCap 鍵');
+    assert(place('plant',socialLine364.x,socialLine364.y)&&place('road',socialLine364.x+1,socialLine364.y)&&place('water',socialLine364.x,socialLine364.y+2)&&place('wpipe',socialLine364.x+1,socialLine364.y+2)&&place('wpipe',socialLine364.x+2,socialLine364.y+2)&&place('wpipe',socialLine364.x+2,socialLine364.y+1),
+      'T364c 社宅驗收走廊應可接上既有電廠、道路、水塔與水管');
+    window.GV.step(1);
+    assert(tile(shx364,shy364).bld.pw&&tile(shx364,shy364).bld.wa&&window.GV.stats().pop===76,
+      'T364c 社宅接妥道路電水後必須只入住固定 76 人（root-only）');
+
+    // 144×144 實跑：沒有 k128 時 >90 格道路未通電；掛入中繼後同一條道路立即接通，但容量仍是原電廠 50。
+    window.GV.setMapSize(144); window.GV.newWorldSeeded(36401); window.GV.weather(0); window.GV.setDiff(3); window.GV.setSeason(0); window.GV.addMoney(999999);
+    const nPower364=window.GV.N(); let line364=null;
+    for(let y=2;y<nPower364-2&&!line364;y++)for(let px=2;px<nPower364-104&&!line364;px++){
+      for(let sx=px+95;sx<nPower364-2;sx++){
+        const tx=sx+1;
+        if(window.GV.canPlaceTool('plant',px,y-1)===null&&window.GV.canPlaceTool('substation',sx,y-1)===null&&window.GV.canPlaceTool('clinic',tx,y-1)===null){line364={px,y,sx,tx};break;}
+      }
+    }
+    assert(line364,'T364d 144 圖應找到 >90 格的電網中繼驗收走廊');
+    for(let x=line364.px;x<=line364.tx;x++)assert(place('road',x,line364.y),'T364d 中繼驗收道路應可連續鋪設 x='+x);
+    assert(place('plant',line364.px,line364.y-1)&&place('clinic',line364.tx,line364.y-1),'T364d 中繼驗收應能放電廠與遠端診所');
+    window.GV.step(1);
+    assert(!tile(line364.tx,line364.y).rp&&window.GV.region().powerCap===50,
+      'T364d 沒有變電所時，超過 90 格的遠端道路不得通電（容量仍 50）');
+    assert(place('substation',line364.sx,line364.y-1),'T364d 中繼驗收變電所應可建造');
+    window.GV.step(1);
+    assert(tile(line364.tx,line364.y).rp&&window.GV.region().powerCap===50,
+      'T364d 變電所必須重啟遠端道路電網，且不得增加發電容量');
+
+    // 同種子／同建設／同推進，存檔 bytes 必須一致；同時防止日後把防災效果偷接進共用亂數流。
+    const replayCivic364=()=>{
+      window.GV.setMapSize(72); window.GV.newWorldSeeded(36477); window.GV.weather(0); window.GV.setDiff(3); window.GV.addMoney(999999);
+      for(const[, ,tool]of civic364){const p=findSpot(tool); if(!p||!place(tool,p.x,p.y))return null;}
+      window.GV.setDay(86); window.GV.step(20); window.GV.save(); return store[SKEY];
+    };
+    const replayA364=replayCivic364(),replayB364=replayCivic364();
+    assert(replayA364&&replayA364===replayB364,'T364c/d 同種子重播存檔必須逐位元一致');
+    window.GV.setMapSize(72); window.GV.newWorldSeeded(1); // 回到後續既有測試的預設尺寸
+  }
+
+
   // ===== T348 死鎖紓困：修「AI 永零人口」（水域中心地圖） =====
   {
     assert(html.includes('if(!startersN&&roadsN>0&&pop===0&&day>25&&money<COST.geo+150){'),
