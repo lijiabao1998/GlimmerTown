@@ -12,6 +12,7 @@ const childProcess = require('child_process');
 // ---- 最小 DOM / BOM mock（以 test_t38.js 為底，強化 classList/click/keydown/AudioContext）----
 const elMap = new Map();
 const allEls = [];
+let gameEllipseTrace = null; // T364b 中繼退修：只在驗收時記錄實際 world draw 的 ellipse
 function makeEl(tag, id) {
   const listeners = {};
   const children = [];
@@ -53,7 +54,7 @@ function makeEl(tag, id) {
         return {
           save() {}, restore() {}, translate() {}, scale() {}, rotate() {},
           beginPath() {}, closePath() {}, moveTo() {}, lineTo() {}, rect() {}, fillRect() {}, strokeRect() {},
-          arc() {}, arcTo() {}, ellipse() {}, quadraticCurveTo() {}, bezierCurveTo() {},
+          arc() {}, arcTo() {}, ellipse(...args) { if (el.id === 'game' && gameEllipseTrace) gameEllipseTrace.push([args, this.fillStyle]); }, quadraticCurveTo() {}, bezierCurveTo() {},
           fill() {}, stroke() {}, clip() {},
           fillText() {}, strokeText() {}, measureText() { return { width: 10 }; },
           drawImage() {}, putImageData() {}, getImageData() { return { data: new Uint8ClampedArray(4) }; },
@@ -446,6 +447,35 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
     assert(false, 'T363 __noWteFx 下 forceDraw 不應拋錯：' + e.message);
   }
   window.__noWteFx = false;
+}
+/* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
+{
+  const at=window.GV.sprAtlas356();
+  assert(at.entries.every(e=>e.sc===null||typeof e.sc==='number'),
+    'T364a sprAtlas356 的 sc metadata 必須是 null 或 number');
+  const oldScaled=at.entries.filter(e=>e.fam==='bld'&&Number(e.key.split('_')[0])<=120&&e.sc!==null);
+  assert(oldScaled.length===0,'T364a 既有 120 座 SPR.bld 不得出現 sc：'+JSON.stringify(oldScaled.slice(0,3)));
+  const scStart=html.indexOf('T364a sc sprite view');
+  const scEnd=html.indexOf('let bx,by;',scStart);
+  assert(scStart>0&&scEnd>scStart,'T364a sc view 區塊應可擷取');
+  const scBlock=html.slice(scStart,scEnd);
+  assert(/if\(s\.sc!==undefined\)/.test(scBlock),'T364a 僅在 sprite 明示 sc 時建立縮放檢視');
+  assert(/w:raw\.w\*q,h:raw\.h\*q,ax:raw\.ax\*q,ay:raw\.ay\*q/.test(scBlock),
+    'T364a 必須同步縮放 w/h 與 ax/ay，不能只縮本體');
+  assert(/_scSrcW:raw\.w,_scSrcH:raw\.h/.test(scBlock),'T364a 必須保留 2× 原圖尺寸供施工裁切');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(scBlock),
+    'T364a sc view 區塊不得消耗共用亂數');
+  assert(/if\(s\._scSrcW!==undefined\)mg\.drawImage\(s\.img,0,0,s\._scSrcW,s\._scSrcH,0,0,w,h\);else mg\.drawImage\(s\.img,0,0\);/.test(html),
+    'T364a snow／icicle 遮罩必須把 2× 原圖縮到邏輯尺寸，無 sc 保留原式');
+  assert(/if\(s\._scSrcW!==undefined\)g\.drawImage\(s\.img,0,0,s\._scSrcW,s\._scSrcH,0,0,s\.w,s\.h\);else g\.drawImage\(s\.img,0,0\);/.test(html),
+    'T364a wetSkin 必須把 2× 原圖縮到邏輯尺寸，無 sc 保留原式');
+  const riseStart=html.indexOf('if(constrRise){ // T259：樓體「蓋到哪露到哪」');
+  const riseEnd=html.indexOf('if(drawA<1)ctx.globalAlpha=1;',riseStart);
+  const riseBlock=html.slice(riseStart,riseEnd);
+  assert(/if\(s\._scSrcW!==undefined\)/.test(riseBlock)&&/cutSrcY=s\._scSrcH\*\(1-riseF\),cutDrawY=s\.h\*\(1-riseF\)/.test(riseBlock),
+    'T364a 施工切片必須分開使用原圖 source 與縮放後 destination');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(riseBlock),
+    'T364a 施工切片分支不得消耗共用亂數');
 }
 // T353 靜態守衛三：大農場的精細田必須錨在自己的 ax=164（舊值 104 會讓田地左偏 60px、整列懸空）
 assert(/doFarm\('53_1_0',164,/.test(html),
@@ -3935,6 +3965,174 @@ runPwaTests().then(() => {
       }
       if (plain) assert(window.GV.canPlaceTool('gaswell', plain[0], plain[1]) !== null, 'T346 非油田格應拒建天然氣井');
     }
+  }
+
+
+  // ===== T364b A 深加工波 k121-123（中繼點只驗這三座；T364c/d 尚未授權） =====
+  {
+    // 資料表、尾端素材與「不借既有亂數/粒子」契約。
+    for (const [k, name, tool] of [[121, '煉油廠', 'refinery'], [122, '鋼鐵廠', 'steelMill'], [123, '造船廠', 'shipyard']]) {
+      assert(html.includes(k + ":'" + name + "'"), 'T364b KNAME 應含 k' + k);
+      assert(html.includes("id:'" + tool + "'"), 'T364b TOOLS 應含 ' + tool);
+      assert(html.includes(tool + ':'), 'T364b COST 應含 ' + tool);
+      assert(html.includes(k + ':3'), 'T364b MSZ 應含 k' + k + ' 的 3×3 footprint');
+      assert(window.GV.kcat345(k).cat === 'I', 'T364b k' + k + ' 應歸工業類別');
+    }
+    for (const [k, col] of [[121, '#9a6b48'], [122, '#aa7046'], [123, '#3f6d82']]) {
+      assert(html.includes("MINI_BLD_PAL[" + k + "]='" + col + "'"), 'T364b 小地圖色必須顯式對齊 k' + k + '，不可依尾端 push');
+    }
+    for (const tab of ['const SZC=', 'const SZB=']) {
+      const a = html.indexOf(tab), b = html.indexOf('};', a), body = html.slice(a, b);
+      assert(a >= 0 && b > a && [121,122,123].every(k => body.includes(k + ':3')), 'T364b ' + tab + ' 必須含三座 3×3（不可只補 MSZ）');
+    }
+    const atlas364 = window.GV.sprAtlas356();
+    for (const k of [121, 122, 123]) {
+      const e = atlas364.entries.find(v => v.fam === 'bld' && v.key === k + '_1_0');
+      assert(e && e.w === 416 && e.h === 440 && e.ax === 208 && e.ay === 436 && e.sc === .5 && e.night,
+        'T364b k' + k + ' 必須是 416×440 raw／sc=.5／night，實得 ' + JSON.stringify(e && { w:e.w,h:e.h,ax:e.ax,ay:e.ay,sc:e.sc,night:!!e.night }));
+    }
+    const artStart364 = html.indexOf('T364b A 波三座深加工廠');
+    const artEnd364 = html.indexOf('R=__savedR;', artStart364);
+    const art364 = html.slice(artStart364, artEnd364);
+    assert(artStart364 > 0 && artEnd364 > artStart364, 'T364b 素材必須位於 buildSprites 絕對尾端');
+    assert(art364.includes('T364b tail parity') && /hw=32\*3\/\(sp\.sc\?\?1\)/.test(art364),
+      'T364b 尾端素材必須補 T261/T291/T345 對稱後處理，且 raw sc 幾何不得縮成 1×');
+    for (const marker of ['AO base skirt', '冷頂高光', '暖立面', '功能細節']) assert(art364.includes(marker), 'T364b 三座素材必須保留美術規格錨：' + marker);
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|updSmoke|smokes\.push|fxParts\.push/.test(art364),
+      'T364b 尾端素材不得讀共用亂數或接粒子管線');
+    const fxStart364 = html.indexOf('T364b 煉油廠運轉視覺');
+    const fxEnd364 = html.indexOf('if(nightDepth>0&&SPOT_K359', fxStart364);
+    const fx364 = html.slice(fxStart364, fxEnd364);
+    assert(fxStart364 > 0 && /bd\.k===121/.test(fx364) && /age\|0\)>=9/.test(fx364), 'T364b 排氣只應對完工 k121 root 生效');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|updSmoke|smokes\.push|fxParts\.push/.test(fx364),
+      'T364b 排氣不得進共用亂數或粒子管線');
+    assert(/!window\.__noRefineryFx/.test(fx364) && /if\(fuel>0&&animOn\)/.test(fx364),
+      'T364b 中繼退修仍須保留 __noRefineryFx，且 fuel=0 時完全不畫排氣');
+    assert(/const dens=clamp\(fuel\/FUEL_STOCK_CAP,\.68,1\);/.test(fx364) && /for\(let p=0;p<8;p\+\+\)/.test(fx364),
+      'T364b 中繼退修：低燃料可見度地板 .68，排氣固定為 8 團');
+    assert(/rise=ph\*46\*z/.test(fx364) && /rw\*1\.35/.test(fx364) && /rgba\(62,78,89/.test(fx364) && /rgba\(214,225,227/.test(fx364),
+      'T364b 中繼退修：排氣須有放大上升、深色外緣與冷白內芯');
+    assert(!/rise=[^;]*q/.test(fx364) && !/rw=[^;]*q/.test(fx364),
+      'T364b raw sc 僅校正煙囪錨點，不得把世界排氣半徑或上升高度再縮半');
+    const chainStart364 = html.indexOf('T364b A 深加工鏈 BEGIN');
+    const chainEnd364 = html.indexOf('T364b A 深加工鏈 END', chainStart364);
+    const chain364 = html.slice(chainStart364, chainEnd364);
+    assert(chainStart364 > 0 && chainEnd364 > chainStart364, 'T364b 深加工結算區塊應有成對邊界');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|updSmoke|smokes\.push|fxParts\.push/.test(chain364),
+      'T364b 深加工結算不得讀共用亂數或接粒子管線');
+    const placeStart364 = html.indexOf("case 'refinery':case 'steelMill':case 'shipyard':{ // T364b：3×3 深加工廠群");
+    const placeEnd364 = html.indexOf("case 'techpark':case 'centralpark':case 'civiccenter':", placeStart364);
+    const place364src = html.slice(placeStart364, placeEnd364);
+    assert(/if\(\(dx\|\|dy\)&&ct\.tree\)stampPolTree\(sx,sy,-1\)/.test(place364src),
+      'T364b 3×3 ref 格原有樹木必須撤銷 POLTREE，不能留下幽靈減污');
+
+    // 3×3 放置／ref／存讀往返，以及造船廠的鄰水硬條件。
+    window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
+    const roots364 = [];
+    const place364 = (tool, k, p) => {
+      assert(p && place(tool, p.x, p.y), 'T364b ' + tool + ' 應成功建造');
+      const root = tile(p.x, p.y).bld;
+      assert(root && root.k === k && root.sz === 3 && !root.ref, 'T364b ' + tool + ' root 應為 k' + k + '/sz3');
+      for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) if (dx || dy) {
+        const ref = tile(p.x + dx, p.y + dy).bld;
+        assert(ref && ref.k === k && ref.ref && ref.ref[0] === p.x && ref.ref[1] === p.y,
+          'T364b ' + tool + ' ref(' + dx + ',' + dy + ') 應回指 root');
+      }
+      roots364.push({ tool, k, x:p.x, y:p.y });
+    };
+    place364('refinery', 121, findSpot('refinery'));
+    place364('steelMill', 122, findSpot('steelMill'));
+    let ship364 = findSpot('shipyard');
+    assert(ship364, 'T364b 應找到臨水 3×3 造船廠位置');
+    place364('shipyard', 123, ship364);
+    let inland364 = null;
+    for (let y = 4; y < window.GV.N() - 8 && !inland364; y++) for (let x = 4; x < window.GV.N() - 8; x++) {
+      if (window.GV.canPlaceTool('refinery', x, y) === null && window.GV.canPlaceTool('shipyard', x, y) !== null) { inland364 = { x, y }; break; }
+    }
+    assert(inland364, 'T364b 應找到可建 3×3 但不鄰水的內陸位置');
+    assert(window.GV.canPlaceTool('shipyard', inland364.x, inland364.y) !== null, 'T364b 造船廠內陸必須被拒');
+    window.GV.save(); assert(window.GV.load(), 'T364b 含三座新廠的存檔應可讀回');
+    for (const r364 of roots364) {
+      const root = tile(r364.x, r364.y).bld;
+      assert(root && root.k === r364.k && root.sz === 3, 'T364b load 後 ' + r364.tool + ' root 應保留');
+      for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) if (dx || dy) {
+        const ref = tile(r364.x + dx, r364.y + dy).bld;
+        assert(ref && ref.ref && ref.ref[0] === r364.x && ref.ref[1] === r364.y, 'T364b load 後 ref 應重建');
+      }
+    }
+    const doze364 = roots364[0];
+    assert(place('doze', doze364.x + 1, doze364.y + 1), 'T364b 應可從 ref 格拆除 3×3 煉油廠');
+    for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) assert(!tile(doze364.x + dx, doze364.y + dy).bld,
+      'T364b ref 格 doze 後整座煉油廠應清空');
+
+    // 真跑：油→燃料、礦→鋼、耗鋼→港貿；並驗 owner 指定的 upCost 0.85 嚴格比值。
+    window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
+    const baseUp364 = window.GV.chain346().upCost364(5, 1);
+    assert(baseUp364 === 280 && baseUp364 === Math.round(280 * 1 * Math.pow(1.18, 0)), 'T364b 無鋼鐵廠/鋼材時 upCost 位元維持舊公式');
+    let oil364 = null, ore364 = null, n364 = window.GV.N();
+    for (let y = 2; y < n364 - 2 && (!oil364 || !ore364); y++) for (let x = 2; x < n364 - 2; x++) {
+      const t = tile(x, y); if (!t || t.bld || (t.t !== 1 && t.t !== 2)) continue;
+      if (!oil364 && window.GV.resourceAt(x, y) === 1) oil364 = { x, y };
+      if (!ore364 && window.GV.resourceAt(x, y) === 2) ore364 = { x, y };
+    }
+    assert(oil364 && ore364, 'T364b seed9 應同時有可用油田與礦藏');
+    assert(place('oilwell', oil364.x, oil364.y), 'T364b 油田格應可建油井');
+    assert(place('mine', ore364.x, ore364.y), 'T364b 礦藏格應可建礦場');
+    const refineryChain364 = findSpot('refinery');
+    assert(refineryChain364 && place('refinery', refineryChain364.x, refineryChain364.y), 'T364b 鏈條應可建煉油廠');
+    const steelChain364 = findSpot('steelMill');
+    assert(steelChain364 && place('steelMill', steelChain364.x, steelChain364.y), 'T364b 鏈條應可建鋼鐵廠');
+    const shipChain364 = findSpot('shipyard');
+    assert(shipChain364 && place('shipyard', shipChain364.x, shipChain364.y), 'T364b 鏈條應可建造船廠');
+    const port364 = findSpot('port');
+    assert(port364 && place('port', port364.x, port364.y), 'T364b 鏈條應可建港口');
+    for (let d = 0; d < 3; d++) window.GV.step(1);
+    const c364 = window.GV.chain346();
+    assert(c364.fuel > 0 && c364.fuelMade > 0 && c364.fuelTaxMul === 1.10 && c364.freightTaxMul === 1.08,
+      'T364b 油→燃料→工業/貨運稅加成鏈必須真跑');
+    assert(c364.steel > 0 && c364.steelMade > 0 && c364.steelTaxMul === 1.12, 'T364b 礦→鋼→工業稅加成鏈必須真跑');
+    assert(c364.shipUse > 0 && c364.shipTradeTaxMul === 1.15 && c364.shipPortGold > 0, 'T364b 造船廠必須真耗鋼並產生港貿收益');
+    const discounted364 = c364.upCost364(5, 1);
+    assert(discounted364 === 238 && discounted364 / baseUp364 === .85 && discounted364 === baseUp364 * .85,
+      'T364b 鋼材 >0 時 upCost 輸出比值必須恰為 0.85（280→238）');
+    window.GV.save(); assert(window.GV.load(), 'T364b 含鋼材存量的存檔應可讀回');
+    const c364rt = window.GV.chain346();
+    assert(c364rt.steel === c364.steel && c364rt.upCost364(5, 1) === 238,
+      'T364b steel364 存讀後必須保留鋼材與 .85 upCost 效果');
+    assert(isFinite(window.GV.stats().money), 'T364b 深加工鏈不得產生 NaN');
+    for (let d = 0; d < 7; d++) window.GV.step(1); // 越過 age>=9 的完成線，真走 draw-time 運轉分支
+    for (const r364 of [refineryChain364, steelChain364, shipChain364]) { window.GV.lookAt(r364.x, r364.y); window.GV.setVisT(55); window.GV.forceDraw(); window.GV.setVisT(0); window.GV.forceDraw(); }
+
+    // 中繼點退修真跑：同一個已完工煉油廠在 zoom 2／同相位下，fuel=0 零排氣，20／120 都有可見團數，且重畫位元序列不漂移。
+    const loadFuel364 = v => {
+      window.GV.save();
+      const d = window.GV.inflateSave(store[SKEY]);
+      if (v > 0) d.fuel364 = v; else delete d.fuel364;
+      store[SKEY] = JSON.stringify(d);
+      return window.GV.load() && window.GV.chain346().fuel === v;
+    };
+    const traceFuel364 = muted => {
+      gameEllipseTrace = [];
+      window.__noRefineryFx = muted;
+      window.GV.setZoom(2); window.GV.lookAt(refineryChain364.x, refineryChain364.y); window.GV.setVisT(55); window.GV.forceDraw();
+      const out = JSON.parse(JSON.stringify(gameEllipseTrace));
+      gameEllipseTrace = null;
+      return out;
+    };
+    assert(loadFuel364(0), 'T364b 中繼退修應可載入 fuel=0 的舊城狀態');
+    const zeroMuted364 = traceFuel364(true), zeroActive364 = traceFuel364(false);
+    assert(JSON.stringify(zeroActive364) === JSON.stringify(zeroMuted364), 'T364b fuel=0 時不得畫任何 k121 排氣');
+    assert(loadFuel364(20), 'T364b 中繼退修應可載入 fuel=20 低庫存狀態');
+    const lowMuted364 = traceFuel364(true), lowActive364 = traceFuel364(false), lowRepeat364 = traceFuel364(false);
+    const lowPuffs364 = lowActive364.length - lowMuted364.length;
+    assert(JSON.stringify(lowActive364) === JSON.stringify(lowRepeat364) && lowPuffs364 >= 8,
+      'T364b fuel=20／zoom2 必須有決定性且可見的排氣團，實得 ' + lowPuffs364);
+    assert(loadFuel364(120), 'T364b 中繼退修應可載入 fuel=120 滿庫存狀態');
+    const fullMuted364 = traceFuel364(true), fullActive364 = traceFuel364(false);
+    const fullPuffs364 = fullActive364.length - fullMuted364.length;
+    assert(fullPuffs364 >= lowPuffs364 && fullPuffs364 >= 8,
+      'T364b fuel=120／zoom2 排氣團數不得低於低庫存，實得 ' + fullPuffs364 + '／' + lowPuffs364);
+    gameEllipseTrace = null; window.__noRefineryFx = false;
   }
 
 
