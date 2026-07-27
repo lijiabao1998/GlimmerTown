@@ -521,6 +521,21 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(noR368(seg368('T368c 魚躍：鄰岸水格', 'if(!lodMini)for(const c of cars)')), 'T368c 魚躍迴圈零亂數');
   assert(noR368(seg368('T368b 合流升級', "}else{")), 'T368b 直式招牌區塊零亂數');
   assert(noR368(seg368('T368d 櫻花道：春季鄰道路樹格', 'const sway=')), 'T368d 換樹行零亂數');
+  // T368c 退修：魚躍迭代量受 viewport 限制（z=2 日間強制一幀，實掃應遠小於全圖）
+  {
+    window.GV.setZoom(2);
+    window.GV.setVisT(55);
+    window.GV.forceDraw();
+    const scan368 = window.GV.fishScanN();
+    const NN368 = window.GV.N() * window.GV.N();
+    assert(scan368 > 0 && scan368 < NN368 / 4,
+      'T368c 退修：魚躍應只掃可視範圍（實掃 ' + scan368 + '／全圖 ' + NN368 + '）');
+    window.GV.setRot(1); window.GV.forceDraw();
+    const scan368r = window.GV.fishScanN();
+    assert(scan368r > 0 && scan368r < NN368 / 4,
+      'T368c 退修：rot=1 視角下魚躍同受可視範圍限制（實掃 ' + scan368r + '）');
+    window.GV.setRot(0);
+  }
 }
 /* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
 {

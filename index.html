@@ -12514,6 +12514,7 @@ function coastLandAt(x,y){
 // 等地面層資料可能變更之處置 true，逼迫下一幀強制重繪；day 亦入快取鍵，tick() 內的地震/洪水/焦土/
 // 分區生長等直接改 tile 的路徑因必伴隨 day 遞增而自動命中重繪，無需逐一補標記。
 let groundDirty=true,groundCache=null,groundCacheCtx=null,groundCacheKey='',groundCacheGlow=[];
+let fishScanN=0; // T368c 退修：魚躍迴圈每幀實掃格數（viewport 限量證明用，僅測試可讀）
 let groundCacheZ=1; // T108：記錄目前快取實際烘焙時的 cam.z，供縮放動畫期間「快取縮放重貼」換算比例（不參與 gKey，快取鍵結構不變）
 function draw(dt){
   trafClock+=dt||0; // T289：交通時鐘推進（紅綠燈相位）
@@ -13116,15 +13117,33 @@ function draw(dt){
       }
     }
   }
-  /* ===== T368c 魚躍：鄰岸水格稀疏躍魚（水格不進 objs 主迴圈，獨立小迴圈；決定性週期） ===== */
-  if(animOn&&!lodFar&&!window.__noFish&&b>=.6&&!win)for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const t=T(idx(x,y));
-    if(t.t!==0||!t.wm)continue;
-    const h368=streetHash(x,y,3685);if(h368>=.09)continue;
-    const sx=sxOf(x,y),sy=syOf(x,y);if(!vis(sx,sy))continue;
-    const prog=(visT/(6+h368*80)+streetHash(x,y,3686))%1;
-    if(prog>=.3)continue;
-    objs.push({dep:viewDep(x,y)+.005,fish:{prog},sx,sy});
+  /* ===== T368c 魚躍：鄰岸水格稀疏躍魚（水格不進 objs 主迴圈，獨立小迴圈；決定性週期）。
+     退修：先以相機可視範圍限縮迭代域——螢幕四角反推 view 格（sxOf/syOf 逆式）得 view 矩形，
+     clamp 後逐格 v2w 回世界（旋轉相容），再判水／岸／hash／相位；大圖（合法至 1000×1000）
+     不再每幀掃 N×N。fishScanN 記實掃格數供測試斷言 viewport 限量。 ===== */
+  if(animOn&&!lodFar&&!window.__noFish&&b>=.6&&!win){
+    fishScanN=0;
+    let fvx0=1e9,fvx1=-1e9,fvy0=1e9,fvy1=-1e9;
+    for(const[pcx,pcy]of[[0,0],[W,0],[W,H],[0,H]]){
+      const fa=((pcx-ox)/z+32)/32, fb=((pcy-oy)/z)/16;
+      const fvx=(fa+fb)/2, fvy=(fb-fa)/2;
+      if(fvx<fvx0)fvx0=fvx; if(fvx>fvx1)fvx1=fvx;
+      if(fvy<fvy0)fvy0=fvy; if(fvy>fvy1)fvy1=fvy;
+    }
+    const fx0=Math.max(0,Math.floor(fvx0)-2), fx1=Math.min(N-1,Math.ceil(fvx1)+2);
+    const fy0=Math.max(0,Math.floor(fvy0)-2), fy1=Math.min(N-1,Math.ceil(fvy1)+2);
+    for(let vy=fy0;vy<=fy1;vy++)for(let vx=fx0;vx<=fx1;vx++){
+      fishScanN++;
+      const p368=v2w(vx,vy), x=p368[0], y=p368[1];
+      if(!inMap(x,y))continue;
+      const t=T(idx(x,y));
+      if(t.t!==0||!t.wm)continue;
+      const h368=streetHash(x,y,3685);if(h368>=.09)continue;
+      const sx=sxOf(x,y),sy=syOf(x,y);if(!vis(sx,sy))continue;
+      const prog=(visT/(6+h368*80)+streetHash(x,y,3686))%1;
+      if(prog>=.3)continue;
+      objs.push({dep:viewDep(x,y)+.005,fish:{prog},sx,sy});
+    }
   }
   if(!lodMini)for(const c of cars){ // T107：z<0.5 小車不畫個體（updCars 模擬照跑，僅略去繪製）
     const fx=c.x+DIRV[c.d][0]*c.p, fy=c.y+DIRV[c.d][1]*c.p;
@@ -17549,6 +17568,7 @@ window.GV={
   w2v:(x,y)=>w2v(x,y),
   v2w:(x,y)=>v2w(x,y),
   rotMask:(m,r)=>rotMask(m,r),
+  fishScanN:()=>fishScanN, // T368c 退修：魚躍實掃格數（應隨 viewport 而非 N 增長）
 
   lifeShips:()=>lifeShips.length, // T361a：生命感船隊數（k18/k90/k97）
   lifeShipsByKind:()=>{const m={cargo:0,yacht:0,fish:0};for(const s of lifeShips)m[s.kind]=(m[s.kind]||0)+1;return m;},
