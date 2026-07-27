@@ -480,6 +480,21 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(i367end > i367, 'T367 變換核應止於 STREET_POPCOUNT 之前');
   const blk367 = html.slice(i367, i367end);
   assert(!/\bR\s*\(|\bri\s*\(|Math\.random\s*\(/.test(blk367), 'T367 變換核不得消耗 R()/ri()/Math.random');
+  // T367 退修（覆核 5 項）
+  assert(/function camLookWorld/.test(html) && /function initViewRotUI/.test(html), 'T367 退修：camLookWorld／initViewRotUI');
+  assert(/\$\('#bAch'\)\.onclick=\(\)=>\{showAch\(\);sTick\(\);\}/.test(html), 'T367 退修：#bRot 不得巢狀在 bAch.onclick');
+  assert(/initViewRotUI\(\)/.test(html), 'T367 退修：initViewRotUI 頂層呼叫');
+  assert(!/viewDep\(Math\.floor/.test(html), 'T367 退修：dep 不得 floor 量化');
+  assert(/isoW2V\(s\.wx,s\.wy,32\)/.test(html), 'T367 退修：煙繪製須 isoW2V');
+  assert(/isoW2V\(p\.wx,p\.wy,_fo\)/.test(html), 'T367 退修：粒子繪製須 isoW2V');
+  assert(/e\.key==='r'/.test(html), 'T367 退修：快捷鍵 r 旋轉');
+  assert(/const\[vx,vy\]=w2v\(x,y\)/.test(html), 'T367 退修：小地圖跟轉 w2v');
+  assert(/lookAt:\(x,y\)=>\{camLookWorld/.test(html), 'T367 退修：lookAt 經 camLookWorld');
+  // 行為：rot=1 下 lookAt 後 rot 仍 1；setRot 0 回歸
+  window.GV.setRot(1);
+  window.GV.lookAt(16, 16);
+  assert(window.GV.rot() === 1, 'T367 lookAt 不應清 rot');
+  window.GV.setRot(0);
 }
 /* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
 {

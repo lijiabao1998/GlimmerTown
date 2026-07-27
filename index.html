@@ -8296,7 +8296,7 @@ function newWorld(seedOverride){
   editMode=false;customScenario=null; // T135：編輯器模式與自製場景定義成對重置（鐵律7）——開新圖預設離開編輯器；bEditorMode 按鈕會在 begin() 之後另行設回 editMode=true
   rankIdx=0;cityPoints=0; // T133：城市等級成對重置（鐵律7）——新城市回到 Lv.1，下次 tick 起即時重算
   undoStack.length=0;undoGroup=null;
-  cam.x=(best[0]-best[1])*32;cam.y=(best[0]+best[1])*16;cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動
+  camLookWorld(best[0],best[1]);cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動；T367：cam 經 w2v
   recalcAllMasks();
   computeFoam();
   computeElMask();
@@ -12443,6 +12443,10 @@ function loadViewRot(){
   try{const v=+localStorage.getItem(SAVEKEY+'.viewRot'); if(v===0||v===1||v===2||v===3)viewRot=v;}catch(e){}
 }
 function saveViewRot(){try{localStorage.setItem(SAVEKEY+'.viewRot',String(viewRotEff()));}catch(e){}}
+function camLookWorld(x,y){ // T367 退修 P1：相機對準世界格必須先 w2v，否則 rot≠0 時鏡頭偏離
+  const p=w2v(x|0,y|0);
+  cam.x=(p[0]-p[1])*32; cam.y=(p[0]+p[1])*16;
+}
 function setViewRot(r){
   r=(r|0)&3;
   if(window.__noRot)r=0;
@@ -12455,11 +12459,21 @@ function setViewRot(r){
     }
   }catch(e){}
   viewRot=r;
-  const p=w2v(cx,cy);
-  cam.x=(p[0]-p[1])*32; cam.y=(p[0]+p[1])*16;
+  camLookWorld(cx,cy);
   groundDirty=true; saveViewRot();
   try{const b=$('#bRot');if(b)b.textContent='🔄 '+['南','西','北','東'][viewRot];}catch(e){}
   return viewRot;
+}
+function initViewRotUI(){ // T367 退修 P1：頂層初始化（不可塞進 bAch.onclick）
+  try{
+    loadViewRot();
+    const br=$('#bRot');
+    if(br){
+      br.onclick=()=>setViewRot((viewRotEff()+1)&3);
+      br.textContent='🔄 '+['南','西','北','東'][viewRotEff()];
+      if(window.__noRot)br.style.display='none';
+    }
+  }catch(e){}
 }
 const STREET_POPCOUNT=[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4]; // T146：road mask（0-15）位元數查表，供判斷路口(>=3)/端點(<=1)/直行段(===2)
 // T163：離岸距離近似分級（0近岸／已鄰接陸地 1中距 2深海），供深淺水色挑選使用；純讀 tiles 不寫、不消耗
@@ -13054,21 +13068,21 @@ function draw(dt){
   if(!lodMini)for(const c of cars){ // T107：z<0.5 小車不畫個體（updCars 模擬照跑，僅略去繪製）
     const fx=c.x+DIRV[c.d][0]*c.p, fy=c.y+DIRV[c.d][1]*c.p;
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,car:c,wx,wy});
+    objs.push({dep:viewDep(fx,fy)+.01,car:c,wx,wy});
   }
   for(const bs of buses){                                  // 公車（T26）：與小車同深度規則插入 objs
     let fx=bs.x,fy=bs.y;
     const nx=bs.path&&bs.path[bs.pi+1];
     if(nx){fx=bs.x+(nx[0]-bs.x)*bs.p;fy=bs.y+(nx[1]-bs.y)*bs.p;}
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,bus:bs,wx,wy,bd:bs.d});
+    objs.push({dep:viewDep(fx,fy)+.01,bus:bs,wx,wy,bd:bs.d});
   }
   for(const bs of rbuses){                                 // 路線公車（T120）：與一般公車同深度規則插入 objs，複用同一 SPR.bus 繪製分支
     let fx=bs.x,fy=bs.y;
     const nx=bs.path&&bs.path[bs.pi+1];
     if(nx){fx=bs.x+(nx[0]-bs.x)*bs.p;fy=bs.y+(nx[1]-bs.y)*bs.p;}
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,bus:bs,wx,wy,bd:bs.d});
+    objs.push({dep:viewDep(fx,fy)+.01,bus:bs,wx,wy,bd:bs.d});
   }
   for(const tr of trains){ /* T344c：改為每節車廂各自 push，取得獨立 dep ⇒ 每節分別參與遮擋排序
                              （舊版整列共用車頭一個 dep，轉彎時車廂會穿過前景物件）
@@ -13079,18 +13093,18 @@ function draw(dt){
       const back=ci*.62;
       const fx=tr.x+DIRV[tr.d][0]*(tr.p-back), fy=tr.y+DIRV[tr.d][1]*(tr.p-back);
       const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-      objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,train:tr,carIdx:ci,wx,wy,td:tr.d});
+      objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:tr.d});
     }
   }
   for(const sh of cargoShips){                            // 貨船（T64）：同小車/火車位置內插公式，沿水面 t===0 緩動
     const fx=sh.x+DIRV[sh.d][0]*sh.p, fy=sh.y+DIRV[sh.d][1]*sh.p;
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,ship:sh,wx,wy,sd:sh.d});
+    objs.push({dep:viewDep(fx,fy)+.01,ship:sh,wx,wy,sd:sh.d});
   }
   if(!window.__noLife&&SPR.lifeShip)for(const sh of lifeShips){ /* T361a：每艘獨立 dep（T344c 教訓） */
     const fx=sh.x+DIRV[sh.d][0]*sh.p, fy=sh.y+DIRV[sh.d][1]*sh.p;
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.012,lifeShip:sh,wx,wy,sd:sh.d});
+    objs.push({dep:viewDep(fx,fy)+.012,lifeShip:sh,wx,wy,sd:sh.d});
   }
   for(const tc of tramCars){ /* T344c：電車同樣每節獨立 dep（2 節鉸接） */
     const nSeg=(SPR.tramVeh&&!window.__noTrainSpr&&!window.__noTrainCars)?2:1;
@@ -13098,31 +13112,31 @@ function draw(dt){
       const back=ci*.52;
       const fx=tc.x+DIRV[tc.d][0]*(tc.p-back), fy=tc.y+DIRV[tc.d][1]*(tc.p-back);
       const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-      objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,tram:tc,carIdx:ci,wx,wy,trd:tc.d});
+      objs.push({dep:viewDep(fx,fy)+.01,tram:tc,carIdx:ci,wx,wy,trd:tc.d});
     }
   }
   for(const c of ladderTrucks){                           // 消防車（T119）：出勤中，位置公式同小車/火車內插（朝 tx/ty 單軸推進）
     const svcD=c.x!==c.tx?(c.tx>c.x?1:3):(c.y!==c.ty?(c.ty>c.y?2:0):0);
     const fx=c.x+DIRV[svcD][0]*c.p, fy=c.y+DIRV[svcD][1]*c.p;
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,svc:'ladderTruck',svcD,wx,wy});
+    objs.push({dep:viewDep(fx,fy)+.01,svc:'ladderTruck',svcD,wx,wy});
   }
   for(const c of recycleTrucks){                          // 垃圾車（T119）：沿路巡迴，位置公式同上
     const svcD=c.x!==c.tx?(c.tx>c.x?1:3):(c.y!==c.ty?(c.ty>c.y?2:0):0);
     const fx=c.x+DIRV[svcD][0]*c.p, fy=c.y+DIRV[svcD][1]*c.p;
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,svc:'recycleTruck',svcD,wx,wy});
+    objs.push({dep:viewDep(fx,fy)+.01,svc:'recycleTruck',svcD,wx,wy});
   }
   if(SPR.ambulance)for(const c of ambulances){            // T155：救護車補齊繪製（T119 原僅出勤模擬未繪製），複用同一 o.svc 通用繪製分支；SPR.ambulance 缺失（__noVeh）時整段不 push＝零位移（與改動前救護車不可見狀態一致）
     const svcD=c.x!==c.tx?(c.tx>c.x?1:3):(c.y!==c.ty?(c.ty>c.y?2:0):0);
     const fx=c.x+DIRV[svcD][0]*c.p, fy=c.y+DIRV[svcD][1]*c.p;
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.01,svc:'ambulance',svcD,wx,wy});
+    objs.push({dep:viewDep(fx,fy)+.01,svc:'ambulance',svcD,wx,wy});
   }
   if(tornado){                                             // T116：龍捲風漏斗雲，位置隨 tick() 逐日推進（非每幀內插，同深度規則插入 objs）
     const fx=tornado.x, fy=tornado.y;
     const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-    objs.push({dep:viewDep(Math.floor(fx+.001),Math.floor(fy+.001))+.015,torn:true,wx,wy});
+    objs.push({dep:viewDep(fx,fy)+.015,torn:true,wx,wy});
   }
   if(!lodFar)for(const s of smokes)objs.push({dep:s.dep+.02,smoke:s}); // T107：z<1 不畫煙粒個體（updSmoke 模擬照跑）
   if(!lodFar)for(const p of fxParts)objs.push({dep:p.dep,fx:p}); // T159：z<1 不畫塵土/碎屑/火花/落葉/尾氣個體（updFxParts 模擬照跑），比照煙粒同款 LOD 門檻
@@ -13135,7 +13149,7 @@ function draw(dt){
     objs.push({dep:viewDep(sg.x,sg.y)+.02,sig:sg,wx,wy});
   }
   if(!lodFar&&SPR.ped&&!window.__noVeh)for(const c of citizens){if(c.at!==2)continue; // T295b：只畫通勤途中的市民（走在路上）；在家/工作＝室內不畫
-    const _iso=isoW2V((c.fx-c.fy)*32,(c.fx+c.fy)*16+16); const wx=_iso[0],wy=_iso[1];objs.push({dep:viewDep(Math.floor(c.fx+.001),Math.floor(c.fy+.001))+.018,ped:c,wx,wy});}
+    const _iso=isoW2V((c.fx-c.fy)*32,(c.fx+c.fy)*16+16); const wx=_iso[0],wy=_iso[1];objs.push({dep:viewDep(c.fx,c.fy)+.018,ped:c,wx,wy});}
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
   nightSprites.push(...rdecGlow);
@@ -13329,15 +13343,18 @@ function draw(dt){
       const s=o.smoke;
       const k=s.age/s.life;
       const sz=Math.max(z,Math.round((2+k*(s.big?7:4.5))*z)); // T159：電廠蒸汽（big）膨脹較快較大，其餘沿用既有倍率
+      const _iso=isoW2V(s.wx,s.wy,32); // T367 退修 P1：煙的世界 iso 過 view
       ctx.globalAlpha=(1-k)*.5;
       ctx.fillStyle=s.col||'#d7dce2';
-      ctx.fillRect(ox+s.wx*z,oy+s.wy*z,sz,sz);
+      ctx.fillRect(ox+_iso[0]*z,oy+_iso[1]*z,sz,sz);
       ctx.globalAlpha=1;
       continue;
     }
     if(o.fx){ // T159：塵土/碎屑/火花餘燼/落葉/尾氣，統一世界空間粒子渲染（深度已隨 objs 排序）
       const p=o.fx,k=Math.min(1,p.age/p.life);
-      const sx2=ox+p.wx*z, sy2=oy+p.wy*z;
+      const _fo=p.ty==='leaf'?-6:(p.ty==='steam'?0:16); // T367：各粒子 spawn 的 wy 常數偏移
+      const _iso=isoW2V(p.wx,p.wy,_fo);
+      const sx2=ox+_iso[0]*z, sy2=oy+_iso[1]*z;
       if(p.ty==='dust'){
         ctx.globalAlpha=(1-k)*.55;
         ctx.fillStyle='#c9a869';
@@ -15413,6 +15430,7 @@ function drawMini(){
   miniG.fillStyle='#0d1226';miniG.fillRect(0,0,144,144);
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const t=T(idx(x,y));
+    const[vx,vy]=w2v(x,y); // T367c：小地圖跟轉——世界格畫在 view 座標
     let c;
     if(miniView===1){ // T130→T131：地價視圖，冷（藍）→暖（紅）對應 LAND 0→255，128中性落中間色
       const lt=LAND[idx(x,y)]/255;
@@ -15451,13 +15469,14 @@ function drawMini(){
       if(t.bld&&t.bld.k===1&&t.bld.we!==undefined&&t.bld.we!==1)c=shade(c,t.bld.we===2?18:-18); // T125：小地圖住宅色按財富微調明度（貧暗/富亮，中產與缺省沿用原色不變）
       if(t.bld&&t.bld.fire)c='#ff5030';
     }
-    miniG.fillStyle=c;miniG.fillRect(x*MS262,y*MS262,MS262c,MS262c);
+    miniG.fillStyle=c;miniG.fillRect(vx*MS262,vy*MS262,MS262c,MS262c);
   }
-  // 視野框：四個螢幕角反推格座標連線
+  // 視野框：四個螢幕角反推世界格，再 w2v 到小地圖 view 座標
   miniG.strokeStyle='rgba(255,255,255,.85)';miniG.lineWidth=1;miniG.beginPath();
   [[0,0],[cvs.clientWidth,0],[cvs.clientWidth,cvs.clientHeight],[0,cvs.clientHeight]]
     .forEach((p,i)=>{const[tx,ty]=toTile(p[0],p[1]);
-      const mx=clamp(tx,0,N)*MS262,my=clamp(ty,0,N)*MS262;
+      const[mvx,mvy]=w2v(clamp(tx,0,N-1),clamp(ty,0,N-1));
+      const mx=mvx*MS262,my=mvy*MS262;
       i?miniG.lineTo(mx,my):miniG.moveTo(mx,my);});
   miniG.closePath();miniG.stroke();
 }
@@ -15466,7 +15485,9 @@ miniCv.addEventListener('pointerdown',e=>{
   e.stopPropagation();
   const r=miniCv.getBoundingClientRect();
   const tx=(e.clientX-r.left)/r.width*N, ty=(e.clientY-r.top)/r.height*N;
-  cam.x=(tx-ty)*32;cam.y=(tx+ty)*16;clampCam();drawMini();
+  /* T367：小地圖格＝view 空間，點擊先 v2w 再 camLookWorld */
+  const [wx,wy]=v2w(Math.floor(tx),Math.floor(ty));
+  camLookWorld(wx,wy);clampCam();drawMini();
 });
 // T110：小地圖視圖切換鈕（普通 🏭→地價 💰→污染熱度 🗺️→壅堵 🚗→犯罪 🚨→服務覆蓋 🛡️，T131 擴為六段循環）
 $('#miniToggle').addEventListener('click',e=>{
@@ -16071,7 +16092,7 @@ function showStats(){
     if(tp.x===undefined&&!svcKey)return;
     const el=$('#adv'+i);
     if(!el)return;
-    if(tp.x!==undefined)el.addEventListener('click',()=>{cam.x=(tp.x-tp.y)*32;cam.y=(tp.x+tp.y)*16;clampCam();drawMini();hideInfo();});
+    if(tp.x!==undefined)el.addEventListener('click',()=>{camLookWorld(tp.x,tp.y);clampCam();drawMini();hideInfo();}); // T367
     else el.addEventListener('click',()=>{
       if(traceOverlay&&traceOverlay.factor===svcKey)traceOverlay=null;
       else{const tl=traceFactor(svcKey);traceOverlay=(tl&&tl.length)?{factor:svcKey,tiles:tl}:null;}
@@ -16223,7 +16244,7 @@ function showLog(){
       if(hasXY){
         row.title='點擊跳到事件地點';
         // 沿用小地圖點擊跳轉鏡頭的座標換算公式（T06 先例），不改動 drawMini 本體
-        row.addEventListener('click',()=>{cam.x=(it.x-it.y)*32;cam.y=(it.x+it.y)*16;clampCam();drawMini();hideInfo();});
+        row.addEventListener('click',()=>{camLookWorld(it.x,it.y);clampCam();drawMini();hideInfo();}); // T367
       }
       list.appendChild(row);
     }
@@ -16261,9 +16282,8 @@ function showAch(){
   $('#infoBody').innerHTML=body;
   showInfoPanel();
 }
-$('#bAch').onclick=()=>{showAch();
-  try{$('#bRot').onclick=()=>setViewRot((viewRotEff()+1)&3);}catch(e){}
-  try{loadViewRot();const _br=$('#bRot');if(_br)_br.textContent='🔄 '+['南','西','北','東'][viewRotEff()];if(window.__noRot&&_br)_br.style.display='none';}catch(e){}sTick();};
+$('#bAch').onclick=()=>{showAch();sTick();};
+initViewRotUI(); // T367 退修 P1：#bRot 與 loadViewRot 頂層初始化（不塞 bAch）
 /* T322：HUD 指標晶片綁定明細面板（原本純顯示、點了沒反應） */
 for(const[id,which]of[['money','money'],['pop','pop'],['jobs','jobs'],['happy','happy'],['star','star'],['date','date']]){
   const el=$('#'+id);
@@ -16592,6 +16612,7 @@ window.addEventListener('keydown',e=>{
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
   if(e.key==='Escape'){document.querySelectorAll('.tool')[0].click();}
+  if((e.key==='r'||e.key==='R')&&!window.__noRot){e.preventDefault();setViewRot((viewRotEff()+1)&3);} // T367c：旋轉快捷鍵（工具表未占用 r）
 });
 function showHint(key,msg){
   if(hintsOff||hintShown[key])return;
@@ -17252,7 +17273,7 @@ window.GV={
   setVisT:(v)=>{visT=+v||0;return visT;},                       // T149 測試用：直接設定 visT（僅影響渲染晝夜相位，不寫入存檔、不影響 tick()/day 模擬節奏），供光影驗收鎖定精確相位
   forceDraw:()=>{draw(.016);return true;},                      // T149 測試用：同步立即觸發一次 draw()（§11 不變量 7：渲染不改遊戲狀態，重複呼叫安全），供像素回歸在同一輪事件迴圈內連續比對，避開背景模擬（day/車輛/水面幀）跨呼叫真實時間漂移雜訊
   setZoom:(z)=>{cam.z=+z||1;zoomAnim=null;return cam.z;},        // T149 測試用：直接設定 cam.z（沿用既有 zoomStep 寫入同一變數），供驗證 T107 z<0.5 LOD 門檻正確跳過光影
-  lookAt:(x,y)=>{cam.x=(x-y)*32;cam.y=(x+y)*16;zoomAnim=null;return[cam.x,cam.y];}, // T183 測試用：把相機中心對準 tile(x,y)（沿用 newWorld 初始置中同款公式 (x-y)*32/(x+y)*16 寫入既有 cam.x/y），純渲染鏡頭定位不改模擬/存檔，解決既有 GV.center() 只回座標不移鏡頭之驗證痛點
+  lookAt:(x,y)=>{camLookWorld(x,y);zoomAnim=null;return[cam.x,cam.y];}, // T183 測試用：把相機中心對準 tile(x,y)；T367：經 w2v，純渲染鏡頭定位不改模擬/存檔
   upgrade:(x,y)=>{upgradeBld(x,y);const b=inMap(x,y)?T(idx(x,y)).bld:null;return b?(b.ref?T(idx(b.ref[0],b.ref[1])).bld.lv:b.lv):null;}, // T239 測試/腳本用：呼叫真實升級路徑（inspect 面板按鈕同一函式），回傳升級後 root 等級；與 GV.place 同屬玩家操作型鉤子
   inspectAt:(x,y)=>{inspect(x,y);return $('#infoBody')?$('#infoBody').innerHTML:'';}, // T239 測試用：觸發 inspect 面板並回傳 HTML（驗證升級鈕/等級行）
   rainbowTest:(v)=>{weather=0;rainbowT=(v===undefined?9:v);return rainbowT;}, // T248 測試用：設彩虹計時（狀態機轉換 R() 驅動難確定性觸發，直接驗渲染）
