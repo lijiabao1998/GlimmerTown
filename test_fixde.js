@@ -4391,6 +4391,27 @@ runPwaTests().then(() => {
       const seg = html.slice(i0, i1);
       assert(!/\bR\(\)|\bri\(|\brand\(|Math\.random/.test(seg), 'T344a railTrack 不得消耗亂數（鐵律2）');
     }
+    /* ===== T365 機場 k19 素材收邊：跑道順格軸收進 footprint，亂數契約不變 ===== */
+    {
+      const i0 = html.indexOf('// T41 機場 (k=19, 4×4, 272×300)');
+      const i1 = html.indexOf('// T44 輕軌站', i0);
+      const seg = html.slice(i0, i1);
+      assert(i1 > i0 && seg.length > 200, 'T365 機場生成段應可擷取');
+      assert(!seg.includes('fillRect(20,ay-100,232,16)') && !seg.includes('fillRect(80,ay-200,16,120)'),
+        'T365 舊螢幕軸對齊橫／直跑道條應已移除（它們衝出 4×4 菱形）');
+      assert(seg.includes('g.moveTo(26,234);g.lineTo(144,176);g.lineTo(148,186);g.lineTo(30,244)'),
+        'T365 斜跑道 quad 四角應為收進菱形的手算錨點');
+      assert(seg.includes("windows(sg,ng,ax,ay-8,50,30,rand,.7,{w:4,ht:5,gx:6,gy:8,glass:'#3a5060',lit:'#ffe9a0'})"),
+        'T365 航廈 windows 參數必須逐字保留（hw/h/窗格/litP 不變＝rand 消耗恆等；by 不影響消耗數）');
+      assert((seg.match(/,rand,/g) || []).length === 1,
+        'T365 機場段 rand 實參應恰好一次（windows 既有呼叫），不得新增或刪減');
+      assert(!/Math\.random|\bri\s*\(|\bR\s*\(/.test(seg), 'T365 機場段不得碰 R()/ri()/Math.random()');
+      assert(seg.includes('g.setLineDash([])'), 'T365 虛線中線後應重設 setLineDash 以免污染後續描邊');
+      assert((html.match(/SPR\.bld\['19_1_0'\]=\{/g) || []).length === 1,
+        "T365 SPR.bld['19_1_0'] 應只剩 T41 等距重排版一次賦值（T151 手繪十字跑道覆蓋已退役）");
+      assert(!html.includes("const hk='19_1_0'"),
+        'T365 不得再有 T151 尾端覆蓋（const hk=19_1_0）把機場換回手繪十字跑道版');
+    }
   }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
