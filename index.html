@@ -13497,14 +13497,17 @@ function draw(dt){
     if(bd.k===121&&!bd.ref&&(bd.age|0)>=9&&!window.__noRefineryFx&&!lodFar&&!constrRise){
       const q=s.sc??1,tipX=bx+274*q*z,tipY=by+72*q*z;
       if(fuel>0&&animOn){
-        const dens=clamp(fuel/FUEL_STOCK_CAP,.35,1);
-        for(let p=0;p<4;p++){
+        // 中繼點覆核退修：低庫存也要辨識為運轉；深色外緣跨天空／草地，冷白內芯保留蒸汽感。
+        const dens=clamp(fuel/FUEL_STOCK_CAP,.68,1);
+        for(let p=0;p<8;p++){
           const ph=(visT*.28+p*.37+streetHash(o.x,o.y,3641+p))%1;
-          const rise=ph*34*z,wob=Math.sin(visT*1.05+p*1.9+o.y*.25)*1.4*z;
-          const a=.24*(1-ph)*dens*drawA;if(a<=.01)continue;
-          const rw=(4+p*1.7+ph*5)*z;
-          ctx.fillStyle='rgba(218,231,234,'+a.toFixed(3)+')';
-          ctx.beginPath();ctx.ellipse(tipX+wob,tipY-4*z-rise,rw,rw*.42,0,0,6.283);ctx.fill();
+          const rise=ph*46*z,wob=Math.sin(visT*1.05+p*1.9+o.y*.25)*2.2*z;
+          const a=.50*(.48+.52*(1-ph))*dens*drawA;if(a<=.01)continue;
+          const rw=(7+p*1.25+ph*7)*z;
+          ctx.fillStyle='rgba(62,78,89,'+(a*.66).toFixed(3)+')';
+          ctx.beginPath();ctx.ellipse(tipX+wob,tipY-4*z-rise,rw*1.35,rw*.55,0,0,6.283);ctx.fill();
+          ctx.fillStyle='rgba(214,225,227,'+(a*.92).toFixed(3)+')';
+          ctx.beginPath();ctx.ellipse(tipX+wob,tipY-4*z-rise,rw,rw*.40,0,0,6.283);ctx.fill();
         }
       }
       if(nightDepth>0){

@@ -12,6 +12,7 @@ const childProcess = require('child_process');
 // ---- 最小 DOM / BOM mock（以 test_t38.js 為底，強化 classList/click/keydown/AudioContext）----
 const elMap = new Map();
 const allEls = [];
+let gameEllipseTrace = null; // T364b 中繼退修：只在驗收時記錄實際 world draw 的 ellipse
 function makeEl(tag, id) {
   const listeners = {};
   const children = [];
@@ -53,7 +54,7 @@ function makeEl(tag, id) {
         return {
           save() {}, restore() {}, translate() {}, scale() {}, rotate() {},
           beginPath() {}, closePath() {}, moveTo() {}, lineTo() {}, rect() {}, fillRect() {}, strokeRect() {},
-          arc() {}, arcTo() {}, ellipse() {}, quadraticCurveTo() {}, bezierCurveTo() {},
+          arc() {}, arcTo() {}, ellipse(...args) { if (el.id === 'game' && gameEllipseTrace) gameEllipseTrace.push([args, this.fillStyle]); }, quadraticCurveTo() {}, bezierCurveTo() {},
           fill() {}, stroke() {}, clip() {},
           fillText() {}, strokeText() {}, measureText() { return { width: 10 }; },
           drawImage() {}, putImageData() {}, getImageData() { return { data: new Uint8ClampedArray(4) }; },
@@ -4005,6 +4006,14 @@ runPwaTests().then(() => {
     assert(fxStart364 > 0 && /bd\.k===121/.test(fx364) && /age\|0\)>=9/.test(fx364), 'T364b 排氣只應對完工 k121 root 生效');
     assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|updSmoke|smokes\.push|fxParts\.push/.test(fx364),
       'T364b 排氣不得進共用亂數或粒子管線');
+    assert(/!window\.__noRefineryFx/.test(fx364) && /if\(fuel>0&&animOn\)/.test(fx364),
+      'T364b 中繼退修仍須保留 __noRefineryFx，且 fuel=0 時完全不畫排氣');
+    assert(/const dens=clamp\(fuel\/FUEL_STOCK_CAP,\.68,1\);/.test(fx364) && /for\(let p=0;p<8;p\+\+\)/.test(fx364),
+      'T364b 中繼退修：低燃料可見度地板 .68，排氣固定為 8 團');
+    assert(/rise=ph\*46\*z/.test(fx364) && /rw\*1\.35/.test(fx364) && /rgba\(62,78,89/.test(fx364) && /rgba\(214,225,227/.test(fx364),
+      'T364b 中繼退修：排氣須有放大上升、深色外緣與冷白內芯');
+    assert(!/rise=[^;]*q/.test(fx364) && !/rw=[^;]*q/.test(fx364),
+      'T364b raw sc 僅校正煙囪錨點，不得把世界排氣半徑或上升高度再縮半');
     const chainStart364 = html.indexOf('T364b A 深加工鏈 BEGIN');
     const chainEnd364 = html.indexOf('T364b A 深加工鏈 END', chainStart364);
     const chain364 = html.slice(chainStart364, chainEnd364);
@@ -4093,6 +4102,37 @@ runPwaTests().then(() => {
     assert(isFinite(window.GV.stats().money), 'T364b 深加工鏈不得產生 NaN');
     for (let d = 0; d < 7; d++) window.GV.step(1); // 越過 age>=9 的完成線，真走 draw-time 運轉分支
     for (const r364 of [refineryChain364, steelChain364, shipChain364]) { window.GV.lookAt(r364.x, r364.y); window.GV.setVisT(55); window.GV.forceDraw(); window.GV.setVisT(0); window.GV.forceDraw(); }
+
+    // 中繼點退修真跑：同一個已完工煉油廠在 zoom 2／同相位下，fuel=0 零排氣，20／120 都有可見團數，且重畫位元序列不漂移。
+    const loadFuel364 = v => {
+      window.GV.save();
+      const d = window.GV.inflateSave(store[SKEY]);
+      if (v > 0) d.fuel364 = v; else delete d.fuel364;
+      store[SKEY] = JSON.stringify(d);
+      return window.GV.load() && window.GV.chain346().fuel === v;
+    };
+    const traceFuel364 = muted => {
+      gameEllipseTrace = [];
+      window.__noRefineryFx = muted;
+      window.GV.setZoom(2); window.GV.lookAt(refineryChain364.x, refineryChain364.y); window.GV.setVisT(55); window.GV.forceDraw();
+      const out = JSON.parse(JSON.stringify(gameEllipseTrace));
+      gameEllipseTrace = null;
+      return out;
+    };
+    assert(loadFuel364(0), 'T364b 中繼退修應可載入 fuel=0 的舊城狀態');
+    const zeroMuted364 = traceFuel364(true), zeroActive364 = traceFuel364(false);
+    assert(JSON.stringify(zeroActive364) === JSON.stringify(zeroMuted364), 'T364b fuel=0 時不得畫任何 k121 排氣');
+    assert(loadFuel364(20), 'T364b 中繼退修應可載入 fuel=20 低庫存狀態');
+    const lowMuted364 = traceFuel364(true), lowActive364 = traceFuel364(false), lowRepeat364 = traceFuel364(false);
+    const lowPuffs364 = lowActive364.length - lowMuted364.length;
+    assert(JSON.stringify(lowActive364) === JSON.stringify(lowRepeat364) && lowPuffs364 >= 8,
+      'T364b fuel=20／zoom2 必須有決定性且可見的排氣團，實得 ' + lowPuffs364);
+    assert(loadFuel364(120), 'T364b 中繼退修應可載入 fuel=120 滿庫存狀態');
+    const fullMuted364 = traceFuel364(true), fullActive364 = traceFuel364(false);
+    const fullPuffs364 = fullActive364.length - fullMuted364.length;
+    assert(fullPuffs364 >= lowPuffs364 && fullPuffs364 >= 8,
+      'T364b fuel=120／zoom2 排氣團數不得低於低庫存，實得 ' + fullPuffs364 + '／' + lowPuffs364);
+    gameEllipseTrace = null; window.__noRefineryFx = false;
   }
 
 
