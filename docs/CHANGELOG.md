@@ -2,6 +2,8 @@
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
+2026-07-27 | T364 全波覆核通過＋v9.9（Kimi 非作者覆核，a–d 十三建＋精緻化管線） | 覆核親跑非沿用宣稱：verify.py **2362 PASS／0 FAIL**、CRLF=0；cbc43ed diff 逐段審（MSZ/SZC/SZB/兩份 SZM 清冊同步、鐵律14 逐 k 守衛、k128 零容量中繼不計 cap、k129 root 計量 ref 可接水、舊城 `region.waterCap` 位元不增鍵、防災判定全部掛在既有擲骰**之後**且地震嘗試計數改 attempted 保 ri() 消耗數、ballcourt 夜燈 nightSprites 日間 b≥.72 結構性零渲染）；實拍：十建同框日夜（8125 槽外 probe，種子301）＋隔離球場正名（叢集圖「無細節深板」實為變電所/抽水站，球場本體白線燈桿齊全）＋夜間球場光池可辨。**美術判過**。`tools/bump.py 9.9` 雙處同步（卡面規定完整卡完成時由覆核方執行）；隨後交易式 `merge_bay.py codex --deploy` 小步部署。遺留 nit（不擋）：atlas.html 不認 `sc` 欄，新十三建在圖鑑頁以 raw 2× 顯示（純展示）；merge_bay.py 在 GBK 主控台遇 U+FFFD 會炸，需 PYTHONIOENCODING=utf-8（T364b 合併時已記，本輪同）。 | 驗收:通過
+
 2026-07-27 | T364c/d 城市建設大波 B/C/D（Codex；v9.8，bay/codex 交付） | k124 籃球／k125 網球／k126 遊樂場接公園＋`play` COV與球場冷暖夜燈；k127 固定 76 人社宅（道路＋電＋水才入住，`lv=1`／`we=0`，不改 LAND）；k128 零容量電網中繼；k129 鄰水淡化 +80（root/ref 均可接水）與水網 undo 即時重算；k130–132 決定性抽水／防災／避難 COV；k133 固定提前 7 日雷達預警。舊城不增加 `region.waterCap`，新增判定只用 COV／`streetHash()`，零新增 R()/ri()/rand()/Math.random()，未碰粒子、版本、master 或部署。`verify.py` 真跑 2362 PASS／0 FAIL；127.0.0.1:8126、slot 3 實拍日夜與 atlas。 | 驗收:待 Kimi 非作者覆核
 
 2026-07-27 | T364b 中繼點覆核退修：排氣調濃（Codex；v9.8，Kimi 複拍通過） | 僅調 k121 的 draw-time 排氣：低庫存密度地板 `.68`、固定 8 團、上升／半徑放大、深藍灰外緣＋冷白內芯；保留 `fuel>0`／`animOn`／`__noRefineryFx` 與 `visT`／`streetHash`／`sin` 決定性路徑，零 R()/ri()/rand()/Math.random()，不進 `updSmoke()`／`smokes`／`fxParts`。Node 真跑 zoom2：fuel=0 為 0 團，fuel=20／120 各 16 個 ellipse，低庫存同相位重畫完全一致；未開 c/d、版本、master 或部署。 | 驗收:通過
