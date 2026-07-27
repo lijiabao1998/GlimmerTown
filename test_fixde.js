@@ -496,6 +496,28 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(window.GV.rot() === 1, 'T367 lookAt 不應清 rot');
   window.GV.setRot(0);
 }
+/* ===== T368 生活感四件（公園人影／霓虹／魚躍／櫻花道）===== */
+{
+  const at368 = window.GV.sprAtlas356();
+  const famN = f => at368.entries.filter(e => e.fam === f).length;
+  assert(famN('lifeDog') === 2, 'T368 SPR.lifeDog 應為雙幀（實得 ' + famN('lifeDog') + '）');
+  assert(famN('lifeFish') === 2, 'T368 SPR.lifeFish 應為雙幀（實得 ' + famN('lifeFish') + '）');
+  assert(famN('treeSakura') === 10, 'T368 SPR.treeSakura 應為 10 變體（實得 ' + famN('treeSakura') + '）');
+  for (const sw of ['__noParkLife', '__noNeon', '__noFish', '__noSakura'])
+    assert(html.includes(sw), 'T368 應有開關 ' + sw);
+  assert(html.includes("ped:{ptype:'child',hx:ph368}"), 'T368a 遊樂場孩童應複用 SPR.ped.child');
+  assert(html.includes('dog:{hx:ph369}') && html.includes('SPR.lifeDog[fr]'), 'T368a 狗應有 push 與繪製分支');
+  assert(html.includes('fish:{prog}') && html.includes('SPR.lifeFish[Math.floor(visT*6)%2]'), 'T368c 魚躍應有 push 與繪製分支');
+  assert(html.includes("s=SPR.treeSakura[(t.tree-1)%10]"), 'T368d 櫻花換樹應在樹分支');
+  assert(html.includes('nightSprites.push({rect:[nx,ny,nw,nh2]'), 'T368b 霓虹應走 nightSprites rect 通道');
+  const seg368 = (a, b) => { const i0 = html.indexOf(a), i1 = html.indexOf(b, i0); assert(i1 > i0, 'T368 區塊錨應找到：' + a); return html.slice(i0, i1); };
+  const noR368 = s => !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(/.test(s);
+  assert(noR368(seg368('T368 生活感四件（絕對尾端', 'R=__savedR')), 'T368 sprite 區塊零亂數');
+  assert(noR368(seg368('T368a 公園有人', 'T368c 魚躍')), 'T368a 區塊零亂數');
+  assert(noR368(seg368('T368c 魚躍：鄰岸水格', 'if(!lodMini)for(const c of cars)')), 'T368c 魚躍迴圈零亂數');
+  assert(noR368(seg368('T368b 商業霓虹', 'if(nightDepth>0&&SPOT_K359')), 'T368b 霓虹區塊零亂數');
+  assert(noR368(seg368('T368d 櫻花道：春季鄰道路樹格', 'const sway=')), 'T368d 換樹行零亂數');
+}
 /* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
 {
   const at=window.GV.sprAtlas356();

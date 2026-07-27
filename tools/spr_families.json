@@ -1,6 +1,6 @@
 {
- "ver": "9.7",
- "total": 1296,
+ "ver": "10.2",
+ "total": 1323,
  "skipped": 37,
  "families": {
   "grass": 4,
@@ -16,7 +16,7 @@
   "cursor": 1,
   "cursorBad": 1,
   "nopow": 1,
-  "bld": 377,
+  "bld": 390,
   "park": 9,
   "plant": 1,
   "plantVar": 2,
@@ -115,6 +115,9 @@
   "bridgeLamp": 1,
   "spotBeam": 1,
   "lifeShip": 3,
-  "plane": 2
+  "plane": 2,
+  "lifeDog": 2,
+  "lifeFish": 2,
+  "treeSakura": 10
  }
 }
