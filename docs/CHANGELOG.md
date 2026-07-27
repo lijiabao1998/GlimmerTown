@@ -1,3 +1,8 @@
+2026-07-27 | T367 退修五項（v10.1，Grok；覆核實證） | 回應非作者覆核 4×P1＋1×P2。**①#bRot** 自 bAch.onclick 拆出，initViewRotUI() 頂層綁定＋loadViewRot 開機生效。**②相機** 五處（lookAt／newWorld／小地圖／通知／顧問）統一 camLookWorld＝先 w2v 再等距。**③煙／粒子** draw 分支 isoW2V（煙 off=32、leaf=-6、steam=0、其餘 16）。**④dep** 去掉 Math.floor，iewDep(fx,fy) 小數位元回歸 rot=0。**⑤小地圖 w2v 繪製＋點擊 v2w；快捷鍵 
+/R。verify 2715 PASS/0 FAIL。 | 驗收:通過
+
+2026-07-27 | T367 視角四向旋轉（v10.1，Grok；view-space 變換層） | Kimi 出卡提案、業主開工授權、Grok 施工。**核心**：w2v/v2w/rotMask/viewDep/isoW2V；sxOf/syOf 經 w2v；地面道路/鐵軌/泡沫/岸線 sprite 用 rotMask；實體 wx/wy 經 isoW2V；toTile 尾端 v2w；多格建築錨點取 view 最大 dep 角；#bRot 四向＋localStorage 偏好（不進存檔）；GV.rot/setRot/w2v/v2w/rotMask；__noRot 強制 0。**否決**：光源跟轉（v1 固定畫面系 T149）；旋轉入存檔格式。**驗收**：語法 OK；w2v∘v2w／rotMask 周期斷言；verify 全套。瀏覽器四向實拍交非作者覆核。 | 驗收:通過
+
 # CHANGELOG — 每完成一張任務卡追加一行
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
