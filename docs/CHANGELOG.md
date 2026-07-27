@@ -1,3 +1,4 @@
+2026-07-27 | T366 工具鏈小修二合一（Grok；純工具／圖鑑，不 bump 版本） | **T366a atlas.html 認 sc**：有 `sc` 的條目以 `raw×sc` 顯示、錨點十字同步乘 sc，卡片標註 raw 尺寸＋sc 值；指紋 CRC 仍對 raw 畫布，無 sc 條目逐像素不變。**T366b merge_bay.py 控制台編碼**：CLI `configure_stdio()` 對 stdout/stderr `reconfigure(errors='replace')`，GBK 主控台印 U+FFFD 等非編碼字元不炸交易（檔案寫入仍 UTF-8）。`test_toolchain` 追加 3 例。合併走 `--no-deploy`。 | 驗收:待非作者覆核
 2026-07-27 | T367 退修五項（v10.1，Grok；覆核實證） | 回應非作者覆核 4×P1＋1×P2。**①#bRot** 自 bAch.onclick 拆出，initViewRotUI() 頂層綁定＋loadViewRot 開機生效。**②相機** 五處（lookAt／newWorld／小地圖／通知／顧問）統一 camLookWorld＝先 w2v 再等距。**③煙／粒子** draw 分支 isoW2V（煙 off=32、leaf=-6、steam=0、其餘 16）。**④dep** 去掉 Math.floor，iewDep(fx,fy) 小數位元回歸 rot=0。**⑤小地圖 w2v 繪製＋點擊 v2w；快捷鍵 
 /R。verify 2715 PASS/0 FAIL。 | 驗收:通過
 
