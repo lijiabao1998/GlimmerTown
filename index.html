@@ -13083,20 +13083,22 @@ function draw(dt){
     objs.push({dep,x,y,sx,sy,t});
     /* ===== T368a 公園有人：遊樂場孩童／公園晨跑者／遛狗公園狗與主人（draw-time 決定性，零亂數消耗） ===== */
     if(animOn&&!window.__noParkLife){
-      if(t.bld&&t.bld.k===126&&(t.bld.age|0)>=9&&b>=.6){ // 完工遊樂場，日間 2-3 孩童
-        for(let ki=0;ki<3;ki++){
-          const ph368=streetHash(x,y,3682+ki);
-          const bob=Math.round(Math.sin(visT*2.2+ph368*6.283)*1.5);
-          const _iso=isoW2V((x-y)*32+(ph368*44-22),(x+y)*16+16+(ph368*22-11)+bob);
-          objs.push({dep:viewDep(x,y)+.016,ped:{ptype:'child',hx:ph368},wx:_iso[0],wy:_iso[1]});
+      if(SPR.ped){ // T368 退修：__noVeh 時 SPR.ped 不生成（T155 契約），人形層整段短路；狗用自有素材照跑
+        if(t.bld&&t.bld.k===126&&(t.bld.age|0)>=9&&b>=.6){ // 完工遊樂場，日間 2-3 孩童
+          for(let ki=0;ki<3;ki++){
+            const ph368=streetHash(x,y,3682+ki);
+            const bob=Math.round(Math.sin(visT*2.2+ph368*6.283)*1.5);
+            const _iso=isoW2V((x-y)*32+(ph368*44-22),(x+y)*16+16+(ph368*22-11)+bob);
+            objs.push({dep:viewDep(x,y)+.016,ped:{ptype:'child',hx:ph368},wx:_iso[0],wy:_iso[1]});
+          }
         }
-      }
-      if(t.bld&&t.bld.k===4&&ph>=.25&&ph<=.45){ // 晨跑者繞公園（晨間窗口）
-        const jh=streetHash(x,y,3687);
-        if(jh<.5){
-          const ang=visT*.9+jh*6.283;
-          const _iso=isoW2V((x-y)*32+Math.cos(ang)*22,(x+y)*16+16+Math.sin(ang)*11);
-          objs.push({dep:viewDep(x,y)+.017,ped:{ptype:'adult',hx:jh},wx:_iso[0],wy:_iso[1]});
+        if(t.bld&&t.bld.k===4&&ph>=.25&&ph<=.45){ // 晨跑者繞公園（晨間窗口）
+          const jh=streetHash(x,y,3687);
+          if(jh<.5){
+            const ang=visT*.9+jh*6.283;
+            const _iso=isoW2V((x-y)*32+Math.cos(ang)*22,(x+y)*16+16+Math.sin(ang)*11);
+            objs.push({dep:viewDep(x,y)+.017,ped:{ptype:'adult',hx:jh},wx:_iso[0],wy:_iso[1]});
+          }
         }
       }
       if(t.bld&&t.bld.k===92&&b>=.6){ // 遛狗公園：1-2 狗＋1 主人
@@ -13106,9 +13108,11 @@ function draw(dt){
           const _iso=isoW2V((x-y)*32+Math.sin(visT*(.6+ph369*.3)+ph369*6.283)*16,(x+y)*16+16+Math.cos(visT*(.9+ph369*.2)+ph369*4)*8);
           objs.push({dep:viewDep(x,y)+.016,dog:{hx:ph369},wx:_iso[0],wy:_iso[1]});
         }
-        const oh=streetHash(x,y,3691);
-        const _iso2=isoW2V((x-y)*32+Math.sin(visT*.4+oh*6.283)*8,(x+y)*16+16+Math.cos(visT*.5+oh*4)*5);
-        objs.push({dep:viewDep(x,y)+.016,ped:{ptype:'adult',hx:oh},wx:_iso2[0],wy:_iso2[1]});
+        if(SPR.ped){
+          const oh=streetHash(x,y,3691);
+          const _iso2=isoW2V((x-y)*32+Math.sin(visT*.4+oh*6.283)*8,(x+y)*16+16+Math.cos(visT*.5+oh*4)*5);
+          objs.push({dep:viewDep(x,y)+.016,ped:{ptype:'adult',hx:oh},wx:_iso2[0],wy:_iso2[1]});
+        }
       }
     }
   }
@@ -13876,18 +13880,6 @@ function draw(dt){
       const posts=[[.08,.42],[.92,.40]];
       for(const[f,fy]of posts)nightSprites.push({img:cone364.img,x:bx+s.w*z*f-cone364.w*z/2,y:by+s.h*z*fy,w:cone364.w*z,h:cone364.h*z});
     }
-    /* T368b 商業霓虹：k=2 夜間立面招牌（nightSprites 的 rect 通道，T165 既有；
-       型色位置全由 streetHash 決定，外暈＋內芯兩層，零新 sprite、零亂數） */
-    if(bd.k===2&&nightDepth>0&&!lodFar&&!window.__noNeon){
-      const nh=streetHash(o.x,o.y,3681), vert=(bd.lv||1)>=2;
-      const NC368=['rgba(255,90,138,','rgba(74,216,255,','rgba(255,216,74,','rgba(122,255,154,','rgba(200,138,255,'];
-      const nc=NC368[Math.floor(nh*5)%5];
-      const nw=(vert?3:12)*z, nh2=(vert?12:3)*z;
-      const nx=bx+s.ax*z+(vert?(-s.ax*.55+nh*8)*z:(nh*16-8)*z)-nw/2;
-      const ny=by+s.ay*z-s.h*z*(vert?.55:.38)+nh*6*z;
-      nightSprites.push({rect:[nx-2*z,ny-2*z,nw+4*z,nh2+4*z],col:nc+'0.28)'});
-      nightSprites.push({rect:[nx,ny,nw,nh2],col:nc+'0.92)'});
-    }
     if(nightDepth>0&&SPOT_K359[bd.k]&&!window.__noSpot){ /* T359：地標探照燈——玩家「部分地標建築增加往上照的探照燈以突出建築的宏偉效果」。
       畫在建築本體之後（'lighter' 加成）：光束洗上立面＋伸出屋頂線——若畫在本體前（T149/T165 層），亮底會被建築剪影整段蓋掉、只剩頂端最淡處
       （實機血淚：初版畫在本體前，瀏覽器夜景截圖光束完全不可見；Node 繪製呼叫身份測試證明呼叫有發出但座標被遮）。高度＝建築高×1.25，底亮頂消；
@@ -13904,10 +13896,17 @@ function draw(dt){
     if(bd.k===2&&bd.pw&&!lodFar&&!window.__noNeon&&!constrRise){ // T259：施工期無霓虹 // T244 商業霓虹招牌（Opus 親手，夜景多樣化）——供電商業建築夜間亮彩色霓虹招牌：6 色由座標雜湊挑、位置/尺寸隨等級，push 進 nightSprites（暗halo+亮招牌雙 rect，夜燈層 'screen' 疊加＝夜間發光、日間閘不繪）；__noNeon 開關、streetHash 決定性不消耗 R()
       const NEON=['#ff4a8a','#4affd0','#ffd23a','#8a5aff','#ff6a3a','#3affff'];
       const nCol=NEON[Math.floor(streetHash(o.x,o.y,1900)*NEON.length)%NEON.length];
-      const nw2=Math.max(2,(5+(bd.lv||1)*1.5)*z), nh2=Math.max(1,2.5*z);
-      const nx2=bx+s.w*z*(.30+streetHash(o.x,o.y,1901)*.28), ny2=by+s.h*z-(14+streetHash(o.x,o.y,1902)*14)*z; // T261：改「畫布底部往上 14-28px」錨定＝永遠貼店面層（血淚：原「畫布高度 .28-.56 百分比」在高畫布 sprite 上正是透明天空區＝彩色霓虹方塊飄空/散落路面）
-      nightSprites.push({rect:[nx2-2*z,ny2-2*z,nw2+4*z,nh2+4*z],col:shade(nCol,-96)}); // 暗 halo（screen 疊加＝柔光暈）
-      nightSprites.push({rect:[nx2,ny2,nw2,nh2],col:nCol}); // 亮招牌
+      if((bd.lv||1)>=2){ // T368b 合流升級：lv≥2 改直式招牌（每建築仍恰一面；底錨定＝沿用 T261 不飄空教訓，與 lv1 同一守衛組 bd.pw/!constrRise/__noNeon）
+        const nw2=Math.max(1,2.5*z), nh2=(10+streetHash(o.x,o.y,1901)*8)*z;
+        const nx2=bx+s.w*z*(.16+streetHash(o.x,o.y,1902)*.2), ny2=by+s.h*z-(16*z+nh2+streetHash(o.x,o.y,1903)*8*z);
+        nightSprites.push({rect:[nx2-2*z,ny2-2*z,nw2+4*z,nh2+4*z],col:shade(nCol,-96)});
+        nightSprites.push({rect:[nx2,ny2,nw2,nh2],col:nCol});
+      }else{
+        const nw2=Math.max(2,(5+(bd.lv||1)*1.5)*z), nh2=Math.max(1,2.5*z);
+        const nx2=bx+s.w*z*(.30+streetHash(o.x,o.y,1901)*.28), ny2=by+s.h*z-(14+streetHash(o.x,o.y,1902)*14)*z; // T261：改「畫布底部往上 14-28px」錨定＝永遠貼店面層（血淚：原「畫布高度 .28-.56 百分比」在高畫布 sprite 上正是透明天空區＝彩色霓虹方塊飄空/散落路面）
+        nightSprites.push({rect:[nx2-2*z,ny2-2*z,nw2+4*z,nh2+4*z],col:shade(nCol,-96)}); // 暗 halo（screen 疊加＝柔光暈）
+        nightSprites.push({rect:[nx2,ny2,nw2,nh2],col:nCol}); // 亮招牌
+      }
     }
     if(win&&snowLvl>0&&!lodFar&&bd.k!==4&&!window.__noRoofSnow&&!constrRise){ // T259：逐層升起期不疊全幅雪帽（未蓋樓層無屋頂） // T183 冬季屋頂積雪（Opus 親手）——RCI/服務建築本體無冬季雪化變體（見 T161 註記「本卡未新增建築本體冬季雪化」），入冬且積雪(snowLvl>0，沿用 T154 rainDays/SNOW_ACC_DAYS，與地面積雪同步累積/緩降)時於建築本體之上疊「雪帽」：snowCap(s) 以 sprite 剪影為遮罩僅在頂部加白；乘 drawA 使被遮擋/施工中建築的雪同步淡化；非冬/無積雪(snowLvl=0)/公園(k4)/遠景(lodFar) 不繪＝該狀態逐像素零改動，__noRoofSnow 開關供回歸比對；純讀既有 win/snowLvl/drawA 不消耗 R()
       ctx.globalAlpha=Math.min(1,snowLvl*1.08)*drawA;
