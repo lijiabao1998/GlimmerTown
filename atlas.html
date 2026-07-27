@@ -93,16 +93,21 @@ function render(){
       const cell=document.createElement('div');cell.className='cell';
       const c=document.createElement('canvas');
       const src=(night&&e.night)?e.night:e.img;
-      c.width=src.width;c.height=src.height;
+      // T366a：有 sc 的條目以遊戲內尺度顯示（raw×sc）、錨點同步乘 sc；無 sc 逐像素不變
+      const sc=(typeof e.sc==='number'&&e.sc>0)?e.sc:1;
+      const dw=Math.round(src.width*sc), dh=Math.round(src.height*sc);
+      c.width=dw;c.height=dh;
       const g=c.getContext('2d');g.imageSmoothingEnabled=false;
-      g.drawImage(src,0,0);
+      if(sc===1)g.drawImage(src,0,0);else g.drawImage(src,0,0,dw,dh);
       if(anchor&&e.ax!==null){
+        const ax=e.ax*sc, ay=e.ay*sc;
         g.strokeStyle='#ff5577';g.lineWidth=1;
-        g.beginPath();g.moveTo(e.ax-5,e.ay);g.lineTo(e.ax+5,e.ay);g.moveTo(e.ax,e.ay-5);g.lineTo(e.ax,e.ay+5);g.stroke();
-        g.strokeStyle='#ff557788';g.beginPath();g.moveTo(e.ax-8,e.ay);g.lineTo(e.ax+8,e.ay);g.stroke();
+        g.beginPath();g.moveTo(ax-5,ay);g.lineTo(ax+5,ay);g.moveTo(ax,ay-5);g.lineTo(ax,ay+5);g.stroke();
+        g.strokeStyle='#ff557788';g.beginPath();g.moveTo(ax-8,ay);g.lineTo(ax+8,ay);g.stroke();
       }
       const cap=document.createElement('div');cap.className='cap';
-      cap.textContent=e.key+'　'+e.w+'×'+e.h+(e.night?'　🌙':'');
+      // raw 尺寸保留；有 sc 時另標 sc 值（資訊不丟）。指紋仍對 raw 畫布，見 bPins。
+      cap.textContent=e.key+'　'+e.w+'×'+e.h+(e.sc!=null?'　sc:'+e.sc:'')+(e.night?'　🌙':'');
       cell.appendChild(c);cell.appendChild(cap);grid.appendChild(cell);shown++;
     }
     root.appendChild(grid);

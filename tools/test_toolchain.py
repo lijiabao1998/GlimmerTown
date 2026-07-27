@@ -10,6 +10,7 @@ import json
 import io
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -1099,6 +1100,67 @@ class ToolchainRegressionTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
                 merge_bay.verify_deploy_receipt(repo.config)
+
+
+class TestConsoleEncodingT366(unittest.TestCase):
+    """T366b: console encoding must not abort the CLI on non-GBK code points."""
+
+    def test_configure_stdio_sets_errors_replace(self):
+        buf = io.BytesIO()
+        stream = io.TextIOWrapper(buf, encoding='gbk', errors='strict', write_through=True)
+        try:
+            with mock.patch.object(sys, 'stdout', stream), mock.patch.object(
+                sys, 'stderr', stream
+            ):
+                merge_bay.configure_stdio()
+                self.assertEqual(stream.errors, 'replace')
+        finally:
+            stream.detach()
+
+    def test_gbk_console_print_ufffd_does_not_raise(self):
+        """Destructive proof: after configure_stdio, U+FFFD is replaced not raised."""
+        buf = io.BytesIO()
+        stream = io.TextIOWrapper(buf, encoding='gbk', errors='strict', write_through=True)
+        try:
+            # Without replace, encoding U+FFFD as GBK raises UnicodeEncodeError.
+            with self.assertRaises(UnicodeEncodeError):
+                stream.write('\ufffd')
+            stream.reconfigure(errors='strict')  # reset after failed write attempt
+            with mock.patch.object(sys, 'stdout', stream), mock.patch.object(
+                sys, 'stderr', stream
+            ):
+                merge_bay.configure_stdio()
+                # ok()/bad() go through print → stdout; must not abort the transaction.
+                merge_bay.ok('verifier tail \ufffd snowman \u2603')
+                merge_bay.bad('gate red \ufffd')
+            text = buf.getvalue().decode('gbk', errors='replace')
+            self.assertIn('[OK]', text)
+            self.assertIn('[FAIL]', text)
+        finally:
+            try:
+                stream.detach()
+            except Exception:
+                pass
+
+    def test_main_invokes_configure_stdio_before_parse(self):
+        calls = []
+        real_configure = merge_bay.configure_stdio
+
+        def spy():
+            calls.append('configure')
+            real_configure()
+
+        with mock.patch.object(merge_bay, 'configure_stdio', side_effect=spy):
+            with mock.patch.object(
+                merge_bay,
+                'parse_args',
+                side_effect=SystemExit(0),
+            ):
+                try:
+                    merge_bay.main(['--status'])
+                except SystemExit:
+                    pass
+        self.assertEqual(calls, ['configure'])
 
 
 if __name__ == '__main__':

@@ -2158,7 +2158,25 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     return args
 
 
+def configure_stdio() -> None:
+    """CLI: never crash the transaction on console-unencodable characters.
+
+    Windows cp936/GBK consoles raise UnicodeEncodeError on e.g. U+FFFD in
+    verifier output (T364b/c/d hit this).  File writes (journal/receipt) are
+    UTF-8 and unaffected.  POSIX behaviour is unchanged for encodable text.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if not callable(reconfigure):
+            continue
+        try:
+            reconfigure(errors='replace')
+        except (OSError, ValueError, AttributeError, TypeError):
+            pass
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
+    configure_stdio()
     args = parse_args(argv)
     try:
         validate_cli_location(DEFAULT_CONFIG)
