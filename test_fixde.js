@@ -496,6 +496,69 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(window.GV.rot() === 1, 'T367 lookAt 不應清 rot');
   window.GV.setRot(0);
 }
+/* ===== T367b objs 地格 dep 旋轉漏轉（單格 viewDep／多格 max footprint）===== */
+{
+  // 靜態：地格 dep 必須走 viewDep；多格 max 掃描；不得回退舊世界 SE 角字面
+  const iObjs = html.indexOf('const objs=[];');
+  assert(iObjs > 0, 'T367b 應找得到 objs 主迴圈');
+  const iPush = html.indexOf('objs.push({dep,x,y,sx,sy,t});', iObjs);
+  assert(iPush > iObjs, 'T367b 應找得到地格 objs.push');
+  const depBlk = html.slice(iObjs, iPush);
+  assert(/viewDep\(x,y\)\+y\*\.001/.test(depBlk), 'T367b 單格 dep 應為 viewDep(x,y)+y*.001');
+  assert(/viewDep\(x\+dx,y\+dy\)/.test(depBlk) && /d>=md/.test(depBlk), 'T367b 多格應掃 footprint 取 max(viewDep)');
+  assert(/T367b/.test(depBlk), 'T367b 地格 dep 應有任務註解');
+  assert(!/x\+t\.bld\.sz-1/.test(depBlk), 'T367b 不得保留舊世界 SE 角公式 x+sz-1');
+  // 執行：viewDep 與 rot=0 公式恆等；多格 max 在 rot=0 等於 SE 角
+  const vDep = (x, y) => {
+    const p = window.GV.w2v(x, y);
+    return p[0] + p[1];
+  };
+  const maxFoot = (x, y, sz) => {
+    let md = -1;
+    for (let dy = 0; dy < sz; dy++)
+      for (let dx = 0; dx < sz; dx++) {
+        const d = vDep(x + dx, y + dy);
+        if (d >= md) md = d;
+      }
+    return md;
+  };
+  window.GV.setRot(0);
+  for (const [x, y] of [[0, 0], [10, 11], [31, 7], [5, 40]]) {
+    assert(vDep(x, y) === x + y, 'T367b rot=0 viewDep===x+y @' + x + ',' + y);
+    assert(vDep(x, y) + y * 0.001 === x + y + y * 0.001, 'T367b rot=0 單格 dep 尾碼世界 y @' + x + ',' + y);
+  }
+  for (const [x, y, sz] of [[10, 10, 2], [3, 5, 3], [0, 0, 5], [8, 12, 2]]) {
+    const se = (x + sz - 1) + (y + sz - 1);
+    assert(maxFoot(x, y, sz) === se, 'T367b rot=0 多格 max===SE 角 sz=' + sz + ' @' + x + ',' + y);
+    // k9 舊路徑 (x+1)+(y+1) ≡ sz=2 SE
+    if (sz === 2) assert(maxFoot(x, y, 2) === (x + 1) + (y + 1), 'T367b rot=0 k9/2×2 對齊舊 (x+1)+(y+1)');
+  }
+  // rot=1：南北相鄰格 view dep 方向與世界 x+y 相反（卡面 A(10,10)/C(10,11)）
+  window.GV.setRot(1);
+  {
+    const a = vDep(10, 10), c = vDep(10, 11);
+    assert(a > c, 'T367b rot=1 時 (10,10) viewDep 應 > (10,11)（實得 ' + a + '/' + c + '）');
+    assert((10 + 10) < (10 + 11), 'T367b 對照：世界 dep 仍是南格較大');
+    // 2×2／3×3／5×5 max(viewDep) 覆蓋 footprint 全角（rot≠0 時 SE 角未必最大）
+    const root = [20, 20];
+    for (const sz of [2, 3, 5]) {
+      const md = maxFoot(root[0], root[1], sz);
+      let hit = 0;
+      for (let dy = 0; dy < sz; dy++)
+        for (let dx = 0; dx < sz; dx++) {
+          const d = vDep(root[0] + dx, root[1] + dy);
+          assert(md >= d, 'T367b rot=1 max 覆蓋 footprint sz=' + sz);
+          if (d === md) hit++;
+        }
+      assert(hit >= 1, 'T367b rot=1 max 應落在 footprint 內 sz=' + sz);
+      // rot=1 下 SE 角 viewDep 通常不是 max（證明「不是固定 SE」）
+      const seV = vDep(root[0] + sz - 1, root[1] + sz - 1);
+      assert(md !== seV || sz === 1, 'T367b rot=1 多格 max 不應恆等於 SE 角（sz=' + sz + ' md=' + md + ' se=' + seV + '）');
+    }
+  }
+  window.GV.setRot(0);
+  assert(window.GV.rot() === 0, 'T367b 測試結束應回到 rot=0');
+}
 /* ===== T368 生活感四件（公園人影／霓虹／魚躍／櫻花道）===== */
 {
   const at368 = window.GV.sprAtlas356();
