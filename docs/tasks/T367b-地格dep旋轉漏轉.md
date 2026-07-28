@@ -1,8 +1,16 @@
 # T367b — objs 地格 dep 旋轉漏轉（微卡，v10.3）
 
-狀態：**已發卡，待業主指派施工者（出卡者 Kimi 依新規不施工）。**
-發卡：業主（2026-07-28）；出卡文件：Kimi；施工者：待指派（Grok／Codex）
+狀態：**Grok 已認領施工並交付 bay/grok（待 Kimi 非作者覆核＋合併；施工者不自合）。**
+發卡：業主（2026-07-28）；出卡文件：Kimi；施工者：Grok（bay/grok）
 前置：T367（v10.1 四向旋轉）、T368（v10.2）已進 master。
+
+## 施工 claim
+
+```text
+施工者：Grok（bay/grok）
+認領 commit：aabc84b（master HEAD，車位已 ff 同步）
+預計觸碰：index.html（objs 地格 dep）、test_fixde.js、sw.js+GAME_VER（bump 10.3）、docs/CHANGELOG.md、本卡
+```
 
 ## 問題（Kimi 於 T368 施工期讀碼查明，業主已確認屬實）
 
