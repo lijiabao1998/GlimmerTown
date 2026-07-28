@@ -259,6 +259,73 @@ for (const [tool, k, sz] of SV) {
 for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.bld 應生成 ' + k + '_1_0');
 // T291 底部貼合格子：sprFootAudit hook 應存在且回陣列（真實像素溢出驗證於瀏覽器端＝總溢出 0px；harness getImageData 為 stub 故此處為煙霧測試）
 assert(Array.isArray(window.GV.sprFootAudit()), 'T291 sprFootAudit 應回傳陣列（底部貼合格子審計 hook）');
+/* ===== T372 手機 UI 可達性守衛 =====
+   四件各自的守衛。CSS 部分只能做原始碼靜態斷言（harness 無版面引擎），但每條都對應一個
+   已在瀏覽器量到的數字，註解裡寫明是哪個，讓後來的人知道這條在守什麼、壞掉會怎樣。
+   #rci 面板走 GV.chipText 執行期真跑（比照 T327/T330 既有寫法）。 */
+{
+  // 件一：#toolcats 的 shrink-to-fit 修正（576px 下 293→392、6/9→9/9）
+  const tc372 = (html.match(/#toolcats\{[^}]*\}/) || [''])[0];
+  assert(/width:max-content/.test(tc372),
+    'T372 #toolcats 必須有 width:max-content —— 絕對定位只給 left:50% 時 shrink-to-fit 只拿得到視窗一半，' +
+    '拿掉就會退回 293px／9 類只見 6 類');
+
+  // 件二：摺疊／展開
+  assert(/body\.toolsExp #tools\{[^}]*flex-wrap:wrap/.test(html),
+    'T372 展開態必須換行');
+  assert(/body\.toolsExp #tools\{[^}]*width:96vw/.test(html),
+    'T372 展開態必須給 width:96vw —— #tools 犯的是與 #toolcats 同一個 shrink-to-fit 陷阱，' +
+    '少了它 40 個工具會擠成 7 列、2 列上限只露 12 個（比摺疊態的 14 還糟）');
+  assert(/body\.toolsExp #toolcats\{bottom:calc\(10px \+ var\(--tools-exp-h/.test(html),
+    'T372 展開時類別列必須讓位 —— 否則 576×1200 下 #tools 佔 y992-1190、#toolcats 在 y1090 被整條埋住；' +
+    '旗標掛 body 是因為 #toolcats 在 DOM 裡排在 #tools 之前，兄弟選擇器指不到');
+  /* 必須錨定【基礎】#tools 規則：只寫 /#tools\{[^}]*scrollbar-width/ 會被 body.toolsExp #tools{...}
+     滿足（它也含 "#tools{" 子字串），破壞性證明時就會出現「拿掉了卻沒咬」。用 position:absolute
+     區分——只有基礎規則有它。這個洞是本卡逐條破壞性證明當場抓出來的。 */
+  const toolsBase372 = (() => {           // 基礎規則跨多行，要取到收尾大括號才看得到 scrollbar-width
+    const i = html.indexOf('\n#tools{');
+    return i < 0 ? '' : html.slice(i + 1, html.indexOf('}', i) + 1);
+  })();
+  assert(/position:absolute/.test(toolsBase372) && /scrollbar-width:none/.test(toolsBase372),
+    'T372 基礎 #tools 規則必須隱藏捲軸 —— 橫屏摺疊態原本因捲軸佔位高 87px（直版 72px），' +
+    '與釘在 bottom:84 的 #toolcats 重疊 13px（既有缺陷）');
+  assert(/@media \(orientation:portrait\)\{:root\{--tools-exp-h:198px\}\}/.test(html) &&
+         /@media \(orientation:landscape\)\{:root\{--tools-exp-h:136px\}\}/.test(html),
+    'T372 展開上限：直版 3 行(198px)／橫屏 2 行(136px)，業主裁定');
+  assert(/let toolsExpanded=false/.test(html) && /document\.body\.classList\.toggle\('toolsExp',toolsExpanded\)/.test(html),
+    'T372 展開態旗標必須掛在 body 上');
+  assert(/eb\.id='toolsExp'/.test(html) && /bar\.appendChild\(eb\)/.test(html),
+    'T372 展開鈕必須在 buildToolbar 尾端補掛（#tools 每次重建都 innerHTML=\'\'，靜態 DOM 會被清掉）');
+
+  // 件三：#info 橫屏置中，且刻意不用 transform（會與 animation:panelIn 打架）
+  const info372 = (html.match(/@media \(orientation:landscape\) and \(max-width:1029px\)\{[\s\S]{0,220}?\}\s*\}/) || [''])[0];
+  assert(/#info\{[^}]*margin-inline:auto/.test(info372),
+    'T372 橫屏 #info 必須以 margin-inline:auto 置中');
+  assert(!/#info\{[^}]*translateX/.test(info372),
+    'T372 橫屏 #info 不得用 transform 置中 —— #info 的 animation:panelIn 會動 transform，兩者會在 0.2s 動畫期間打架');
+
+  // 件四：#rci 明細面板（執行期真跑）
+  assert(/\['rci','rci'\]/.test(html), 'T372 #rci 必須進入晶片綁定清單');
+  assert(/rci:'🏗️ RCI 需求明細'/.test(html), 'T372 TITLE 表必須有 rci');
+  {
+    const t = window.GV.chipText('rci').replace(/\s+/g, ' ');
+    assert(t.includes('RCI 需求') && t.includes('住宅') && t.includes('商業') && t.includes('工業'),
+      'T372 #rci 面板應含三條需求，實得：' + t.slice(0, 60));
+    assert(!/NaN|undefined|Infinity/.test(t),
+      'T372 #rci 面板不得出現 NaN/undefined/Infinity（空城也不行），實得：' + t.slice(0, 80));
+    // 純讀取：開面板不得改動任何模擬狀態
+    const before372 = JSON.stringify(window.GV.stats());
+    window.GV.chipText('rci');
+    assert(JSON.stringify(window.GV.stats()) === before372,
+      'T372 #rci 面板必須是純讀取，開關前後 GV.stats() 不得改變');
+  }
+  // demWhy 快照必須成對歸零（鐵律7）——newWorld 與 load 都要，否則跨城殘留（同 T369 的 gFlow284）
+  assert(/dem=\{1:\.5,2:0,3:0\};demWhy=\{ok:false\};/.test(html),
+    'T372 demWhy 必須與 dem 在 newWorld 成對歸零');
+  assert(/immWave=0;demWhy=\{ok:false\};/.test(html),
+    'T372 demWhy 必須在 load 的重置叢集歸零（鐵律7；否則讀檔未 tick 前會顯示上一座城的驅動值）');
+}
+
 /* ===== T371b ARCH.md 代碼地圖守衛 =====
    病灶：舊版 ARCH.md 宣稱「約 4235 行，v3.0」，實際是 17701 行 v10.4——落後約 210 張卡，
    而且沒有任何機制會發現。一份行號全錯的架構文件比過期的更糟：它會把人導去錯的地方。
