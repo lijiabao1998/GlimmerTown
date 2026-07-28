@@ -4287,6 +4287,76 @@ runPwaTests().then(() => {
     gameEllipseTrace = null; window.__noRefineryFx = false;
   }
 
+  // ===== T369 工業供應鏈總覽（純讀取統計 UI）=====
+  {
+    const i369 = html.indexOf('T369 工業供應鏈總覽');
+    assert(i369 > 0, 'T369 應有 showStats 區塊註解');
+    const i369end = html.indexOf('if(hotelBeds>0||tourists>0)', i369);
+    assert(i369end > i369, 'T369 區塊應止於旅宿分區之前');
+    const blk369 = html.slice(i369, i369end);
+    assert(/statTab\(rows369\)/.test(blk369) && /kCnt\[49\]/.test(blk369) && /kCnt\[121\]/.test(blk369),
+      'T369 必須走 statTab 且只讀 kCnt 既有計數（不另掃地圖）');
+    assert(/gFlow284\.use/.test(blk369) && /fuelMade/.test(blk369) && /steelUsed/.test(blk369) && /shipPortGold/.test(blk369),
+      'T369 必須直接讀既有流量／倍率變數');
+    assert(/供貨快照（庫存\+本期售出）/.test(blk369) && /非今日產量/.test(blk369),
+      'T369 若顯示 gFlow284.gain 必須標明非今日產量語意');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(blk369),
+      'T369 區塊不得消耗共用亂數');
+    assert(!/function tick\b|saveInflate|load\s*\(|w2v\(|viewDep\(|objs\.push/.test(blk369),
+      'T369 不得伸入 tick／存讀檔／繪製／旋轉錨點');
+    // 空城靜默：新世界無相關建築且存量流量全零 → 不得出現分區標題
+    window.GV.newWorldSeeded(7); window.GV.setDiff(3); window.GV.step(1);
+    elMap.get('bStats').onclick();
+    const empty369 = elMap.get('infoBody').innerHTML;
+    assert(!empty369.includes('工業供應鏈'), 'T369 空城不得顯示工業供應鏈分區');
+    assert(!/NaN|Infinity|undefined/.test(empty369), 'T369 空城統計不得出現 NaN/Infinity/undefined');
+    // 真跑：沿用 T364b 完整鏈順序（先 3×3 廠群再油礦港），面板數字＝同一時刻 GV.goods／chain346
+    window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
+    const ref369 = findSpot('refinery');
+    assert(ref369 && place('refinery', ref369.x, ref369.y), 'T369 真跑應可建煉油廠');
+    const st369 = findSpot('steelMill');
+    assert(st369, 'T369 應找到鋼鐵廠 3×3 空位');
+    assert(place('steelMill', st369.x, st369.y), 'T369 真跑應可建鋼鐵廠 @' + st369.x + ',' + st369.y);
+    const sh369 = findSpot('shipyard');
+    assert(sh369 && place('shipyard', sh369.x, sh369.y), 'T369 真跑應可建造船廠');
+    let oil369 = null, ore369 = null, n369 = window.GV.N();
+    for (let y = 2; y < n369 - 2 && (!oil369 || !ore369); y++)
+      for (let x = 2; x < n369 - 2; x++) {
+        const t = tile(x, y); if (!t || t.bld || (t.t !== 1 && t.t !== 2)) continue;
+        if (!oil369 && window.GV.resourceAt(x, y) === 1) oil369 = { x, y };
+        if (!ore369 && window.GV.resourceAt(x, y) === 2) ore369 = { x, y };
+      }
+    assert(oil369 && place('oilwell', oil369.x, oil369.y), 'T369 真跑應能建油井');
+    assert(ore369 && place('mine', ore369.x, ore369.y), 'T369 真跑應能建礦場');
+    const po369 = findSpot('port');
+    assert(po369 && place('port', po369.x, po369.y), 'T369 真跑應可建港口');
+    for (let d = 0; d < 3; d++) window.GV.step(1);
+    const g369 = window.GV.goods(), c369 = window.GV.chain346();
+    const money369 = window.GV.stats().money;
+    const hist369 = JSON.stringify(window.GV.hist ? window.GV.hist() : null);
+    const save369 = window.GV.rawSave ? window.GV.rawSave() : store[SKEY];
+    elMap.get('bStats').onclick();
+    const panel369 = elMap.get('infoBody').innerHTML;
+    assert(panel369.includes('工業供應鏈'), 'T369 三鏈城市必須顯示工業供應鏈分區');
+    assert(panel369.includes(g369.stock + '/' + g369.cap), 'T369 工業品須與 GV.goods() 一致 ' + g369.stock + '/' + g369.cap);
+    assert(panel369.includes('×' + g369.mul), 'T369 供貨倍率須與 GV.goods().mul 一致');
+    assert(panel369.includes(String(g369.use)), 'T369 本期售出須與 GV.goods().use 一致');
+    assert(panel369.includes(String(c369.fuelMade)) && panel369.includes(String(c369.steelMade)),
+      'T369 本期精煉／冶煉須與 chain346 一致');
+    assert(panel369.includes(String(c369.shipUse)) && panel369.includes('×' + c369.fuelTaxMul),
+      'T369 耗鋼與燃料工業倍率須與 chain346 一致');
+    assert(panel369.includes('×' + c369.steelTaxMul) && panel369.includes('×' + c369.shipTradeTaxMul),
+      'T369 鋼材／貿易倍率須與 chain346 一致');
+    assert(panel369.includes('×' + 0.85) || panel369.includes('×.85'), 'T369 應顯示 STEEL_UP_DISCOUNT 0.85');
+    // 零副作用：再開一次面板前後 money／存檔字串不變
+    elMap.get('bStats').onclick();
+    assert(window.GV.stats().money === money369, 'T369 開統計不得改 money');
+    if (window.GV.rawSave) assert(window.GV.rawSave() === save369, 'T369 開統計不得改存檔字串');
+    else assert(store[SKEY] === save369, 'T369 開統計不得改 store 存檔');
+    const st369b = window.GV.stats();
+    assert(isFinite(st369b.money) && isFinite(st369b.pop), 'T369 後 GV.stats 核心欄位仍有限');
+  }
+
 
   // ===== T364c/d 社區休閒／城市韌性波 k124-133 =====
   {
