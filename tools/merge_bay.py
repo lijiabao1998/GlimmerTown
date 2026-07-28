@@ -4,6 +4,7 @@
 Normal use (from the canonical master worktree only):
 
     python tools/merge_bay.py kimi --deploy
+    python tools/merge_bay.py --publish
     python tools/merge_bay.py --resume kimi
     python tools/merge_bay.py --abort kimi
     python tools/merge_bay.py --status
@@ -1762,6 +1763,37 @@ def verify_deploy_receipt(config: MergeConfig, runner: Runner = run_cmd) -> str:
     return 'match'
 
 
+def deploy_verified_runtime(
+    config: MergeConfig,
+    source_oid: str,
+    source_bytes: Mapping[str, bytes],
+    txn_id: str,
+    runner: Runner = run_cmd,
+) -> None:
+    """Use the one durable deployment route for an already-verified Git OID.
+
+    The caller must have obtained ``source_bytes`` from
+    ``runtime_bytes_at_commit(config, source_oid)`` after it froze and verified
+    that OID.  Keeping the actual target checks, atomic publish, and receipt
+    postcondition here prevents the direct-master and bay-transaction routes
+    from growing separate deployment semantics.
+    """
+    validate_deploy_target(config)
+    assert_deploy_pristine(Path(config.deploy), config)
+    deploy_runtime_atomic(
+        config,
+        source_bytes,
+        txn_id,
+        source_oid,
+        runner=runner,
+    )
+    receipt_status = verify_deploy_receipt(config, runner=runner)
+    if receipt_status != 'match':
+        raise DeployError(
+            'deployment completed without an exact receipt match: ' + receipt_status
+        )
+
+
 def sync_one_bay(
     config: MergeConfig,
     name: str,
@@ -1952,11 +1984,11 @@ def _finish_after_promotion(
         step('deploy runtime with durable journal')
         save_state(state_path, state, 'DEPLOYING')
         try:
-            deploy_runtime_atomic(
+            deploy_verified_runtime(
                 config,
+                merged,
                 immutable_runtime,
                 str(state['txn_id']),
-                merged,
                 runner=runner,
             )
         except DeployCleanupPending as exc:
@@ -2123,6 +2155,75 @@ def start_transaction(
     promote_verified(config, state, state_path, runner=runner)
     ok('master fast-forwarded; no merge was performed in master worktree')
     return _finish_after_promotion(config, state, state_path, runner=runner)
+
+
+def _new_publish_txn_id() -> str:
+    return (
+        'publish-'
+        + time.strftime('%Y%m%d%H%M%S')
+        + '-'
+        + str(os.getpid())
+        + '-'
+        + uuid.uuid4().hex[:8]
+    )
+
+
+def publish_master(
+    config: MergeConfig,
+    runner: Runner = run_cmd,
+) -> int:
+    """Publish the current clean canonical master without a bay transaction.
+
+    This is deliberately the one recovery action allowed to proceed when an
+    old deploy receipt has drifted.  It never treats a bad receipt as green:
+    it replaces the runtime from the current verified master Git blobs and
+    then requires the ordinary receipt verifier to report ``match``.
+    """
+    state_path, _ = state_locations(config, runner=runner)
+    if load_state(state_path) is not None:
+        raise ToolError('an active transaction exists; use --resume or --abort')
+
+    step('publish: freeze clean canonical master')
+    source_oid = validate_master(config, runner=runner, require_clean=True)
+    validate_deploy_target(config)
+    assert_deploy_pristine(Path(config.deploy), config)
+    ok('master=' + source_oid[:12])
+
+    step('publish: verify frozen master with canonical verifier')
+    gate = run_trusted_verifier(config, config.root, runner=runner)
+    passes = verified_pass_count(gate, 'master publish', config.min_pass)
+    if validate_master(config, runner=runner, require_clean=True) != source_oid:
+        raise ToolError('master moved during direct publish verification')
+    ok('master gate green: PASS=%d' % passes)
+
+    # Do not call verify_deploy_receipt here.  A direct publish is the explicit
+    # recovery route for a receipt that accurately reports drift but otherwise
+    # blocks every bay transaction.  A live journal still needs generic,
+    # source-agnostic recovery before a new publish transaction can begin.
+    if (Path(config.deploy) / DEPLOY_JOURNAL).exists():
+        step('publish: recover prior deployment journal')
+        recovered = recover_deployment(config, runner=runner)
+        info('startup deployment recovery: ' + recovered)
+
+    # Recheck every mutable boundary after the verifier/recovery interval.
+    if validate_master(config, runner=runner, require_clean=True) != source_oid:
+        raise ToolError('master moved before direct publish')
+    validate_deploy_target(config)
+    assert_deploy_pristine(Path(config.deploy), config)
+    immutable_runtime = runtime_bytes_at_commit(config, source_oid, runner=runner)
+    if validate_master(config, runner=runner, require_clean=True) != source_oid:
+        raise ToolError('master moved while reading direct publish Git blobs')
+
+    step('publish: deploy exact master runtime with durable journal')
+    deploy_verified_runtime(
+        config,
+        source_oid,
+        immutable_runtime,
+        _new_publish_txn_id(),
+        runner=runner,
+    )
+    ok('index.html + sw.js published byte-identically; receipt=match')
+    return 0
 
 
 def resume_transaction(
@@ -2308,13 +2409,28 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help='explicitly leave player runtime unchanged after promotion',
     )
     parser.set_defaults(deploy_requested=None)
+    parser.add_argument(
+        '--publish',
+        action='store_true',
+        help='verify and publish the current clean canonical master without merging a bay',
+    )
     parser.add_argument('--resume', metavar='BAY', choices=sorted(BAYS))
     parser.add_argument('--abort', metavar='BAY', choices=sorted(BAYS))
     parser.add_argument('--status', action='store_true')
     args = parser.parse_args(argv)
-    actions = int(args.name is not None) + int(args.resume is not None) + int(args.abort is not None) + int(args.status)
+    actions = (
+        int(args.name is not None)
+        + int(args.publish)
+        + int(args.resume is not None)
+        + int(args.abort is not None)
+        + int(args.status)
+    )
     if actions != 1:
-        parser.error('choose exactly one of BAY, --resume BAY, --abort BAY, or --status')
+        parser.error(
+            'choose exactly one of BAY, --publish, --resume BAY, --abort BAY, or --status'
+        )
+    if args.publish and args.deploy_requested is not None:
+        parser.error('--publish cannot be combined with --deploy or --no-deploy')
     if args.name is not None and args.deploy_requested is None:
         parser.error('new BAY transaction requires exactly one of --deploy or --no-deploy')
     if args.name is None and args.deploy_requested is not None:
@@ -2348,6 +2464,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         with TransactionLock(lock_path):
             if args.status:
                 return status_only(DEFAULT_CONFIG)
+            if args.publish:
+                return publish_master(DEFAULT_CONFIG)
             if args.resume:
                 return resume_transaction(DEFAULT_CONFIG, args.resume)
             if args.abort:

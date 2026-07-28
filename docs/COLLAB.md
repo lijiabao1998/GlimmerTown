@@ -148,6 +148,25 @@ cd C:\dev\glimmer-town && python tools/merge_bay.py kimi --deploy
 `C:\dev\glimmer-town` 的 `master` 執行**；車位裡那份副本會拒絕
 運行，避免把施工分支誤認成合併主控台。
 
+### 直寫 master 的發佈與收據復原（T373）
+
+若一張合法的直寫 `master` 卡已改動執行期檔，當班者要從 canonical master 明示發佈：
+
+```bash
+cd C:\dev\glimmer-town && python tools/merge_bay.py --publish
+```
+
+`--publish` 只發佈**當前乾淨 master HEAD**：它不合任何 bay、不推進 master、不建 integration worktree、
+也不回同步車位。它仍會跑 master 內 canonical verifier（PASS 不得低於 `MIN_PASS`）、驗部署目錄身份與
+純淨度、只從 frozen HEAD 的 Git blobs 取 `index.html`／`sw.js`，再走同一條 journal／原子替換／receipt
+寫入路徑。它與 `BAY --deploy/--no-deploy`、`--resume`、`--abort`、`--status` 互斥，且有 active transaction
+時直接拒絕。
+
+這是**唯一**允許在 receipt 已誠實報紅時修復的明示動作：`--publish` 不會在前置階段把舊 receipt 當作
+通行證；它重發已驗證 master，完成後仍必須讓既有 receipt verifier 回 `match`。不要手改 receipt，也不要
+手動複製 runtime。bay 合併／resume 路徑的 receipt 漂移守衛維持 fail-closed，不能拿 `--publish` 繞過一筆
+尚未完成的 bay transaction。
+
 ### 不可變量
 
 - 開始時釘住 `master` 基底 B 與 bay 交接點 S 的完整 OID；後續不拿會移動的分支名代替交易輸入。
