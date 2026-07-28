@@ -115,6 +115,26 @@ git checkout -- <file>  # 復原到自己的 commit
 
 ---
 
+## 六之二、部署目錄衛生（T370，機器守衛）
+
+`安卓探索\glimmer-town` 是**玩家的遊玩目錄**，只能有執行期檔案。這條從 T349 起就是規矩，
+但一直沒有機器在守，於是 T359→T369 連續十張卡把 **66 個 review PNG／probe HTML（19.1 MB）**
+堆了進去。其中 **10 個 probe** 會 `<iframe src="index.html">` 載入同目錄遊戲並執行
+`newWorldSeeded(301); addMoney(...)`，而且 **0/10 設過 slot 3**；配上 `curSlot()` 遇不合法鍵回 **1**
+與 25 秒自動存檔，就是一顆對玩家存檔的未爆彈（實際引爆需要有人從 8123 打開 probe）。
+
+**現在有守衛了**：`merge_bay.py` 的 preflight 會掃描部署目錄，白名單外多出**任何檔案或任何目錄**
+就 fail-closed，交易在動 master 之前就停。目錄比檔案更危險——T349 那次誤導審閱者的殘留 `.git`
+就長在這個位置。
+
+紀律：
+- **實拍與 probe 一律放自己的車位、用自己的埠**（8125／8126／8127），不要放進玩家目錄。
+- 若真有新的執行期資產要進玩家目錄，改 `merge_bay.py` 的 `DEPLOY_ALLOWED`——
+  這是刻意的摩擦，逼人做出「這檔該不該讓玩家看到」的明確決定。
+- 部署步驟自己的 `.glimmer-deploy-*` 暫存檔不算殘留（掃描會跳過前綴）。
+
+---
+
 ## 七、交易式合併流程（T358）
 
 車位施工完成後，由當班者在 `master` 執行**一條命令**：
@@ -123,7 +143,7 @@ git checkout -- <file>  # 復原到自己的 commit
 cd C:\dev\glimmer-town && python tools/merge_bay.py kimi --deploy
 ```
 
-（`codex` 同理；不加 `--deploy` 就只合併不發佈；`--status` 會列各車位 ahead/behind，
+（`codex`／`grok` 同理；**`--deploy` 與 `--no-deploy` 互斥必填**（T358.1 起，缺旗標會被直接擋下）；`--status` 會列各車位 ahead/behind，
 並檢查 active transaction 與部署 receipt，發現漂移會以非零退出。）腳本**只能從
 `C:\dev\glimmer-town` 的 `master` 執行**；車位裡那份副本會拒絕
 運行，避免把施工分支誤認成合併主控台。
@@ -216,7 +236,7 @@ bay 回同步的 clean→`--ff-only` 仍以本文件的**單寫者協議**為前
 | 角色 | 誰能當 | 規則 |
 |---|---|---|
 | **發卡**（卡號＋施工順序） | **只有業主**（或業主指定的一方） | 卡號與順序的唯一發卡源 |
-| **施工**（接卡寫 code） | 四方皆可 | 在自己車位，過第五節閘門 |
+| **施工**（接卡寫 code） | 四方皆可 | 在自己車位，過第三節驗收閘門 |
 | **合併**（執行 `merge_bay.py`） | 四方皆可，**只要不是作者本人** | 從 `C:\dev\glimmer-town` 的 master 執行 |
 
 ### 三條規則

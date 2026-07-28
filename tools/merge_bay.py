@@ -30,7 +30,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Mapping, NamedTuple, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Mapping, NamedTuple, Optional, Sequence, Tuple
 
 
 ROOT = Path(r'C:\dev\glimmer-town')
@@ -48,6 +48,25 @@ DEPLOY_SCHEMA = 2
 STATE_NAME = 'active.json'
 DEPLOY_JOURNAL = '.glimmer-deploy-journal.json'
 DEPLOY_MARKER = '_這是部署目錄請勿在此施工.txt'
+# 部署步驟自己的暫存檔前綴（.bak/.new/journal，見 1217 行的 stem）；殘留掃描要跳過它們，
+# 否則掃描會跟自家的原子替換打架。
+DEPLOY_TRANSIENT_PREFIX = '.glimmer-deploy-'
+# T370：部署目錄必須是「純執行期檔」。RUNTIME 只是【寫入】白名單，從不管目錄裡多出什麼，
+# 於是 T359→T369 連續 10 張卡把 66 個 review PNG／probe HTML（19.1 MB）堆進玩家目錄，
+# 其中 10 個 probe 會 iframe 載入同目錄遊戲並 newWorldSeeded＋addMoney，且 0/10 設 slot 3；
+# 配上 curSlot() 不合法回 1、autosave 25s，就是一顆對玩家存檔的未爆彈。
+# 這裡改成【存在】白名單：多一個檔就紅，逼人做出「這檔該不該進玩家目錄」的明確決定。
+# 歷史前例 T349：部署目錄的殘留 .git 讓外部審閱者得出四項全錯的結論，條目自稱教材級案例。
+DEPLOY_ALLOWED = frozenset(RUNTIME) | {
+    DEPLOY_MARKER,
+    DEPLOY_JOURNAL,
+    'manifest.json',
+    'icon.svg',
+    'icon-v1-192.png',
+    'icon-v1-512.png',
+    'icon-v1-maskable-512.png',
+    'npu_bench.html',
+}
 STATE_PHASES = {
     'PREFLIGHTED',
     'INTEGRATION_READY',
@@ -1109,6 +1128,65 @@ def validate_deploy_target(config: MergeConfig) -> None:
             raise DeployError('runtime target missing or unsafe: ' + str(target))
 
 
+def scan_deploy_residue(
+    deploy: Path,
+    config: Optional[MergeConfig] = None,
+) -> Tuple[List[str], List[str]]:
+    """T370: list anything in the deploy directory outside the existence whitelist.
+
+    Returns (stray_files, stray_dirs).  A stray directory is the more dangerous of
+    the two: T349's misleading leftover `.git` lived in exactly this spot.
+
+    Two things are deliberately NOT strays:
+      * `DEPLOY_TRANSIENT_PREFIX` names -- the deploy step's own .bak/.new/journal
+        working files.  This scan is a preflight check, but the prefix skip keeps
+        it usable mid-transaction without fighting our own staging.
+      * whatever `config.runtime_files` declares, so a caller that legitimately
+        ships an extra runtime asset is not forced to edit a module global.
+    """
+    allowed = set(DEPLOY_ALLOWED)
+    if config is not None:
+        allowed |= set(config.runtime_files)
+        allowed.add(config.deploy_marker)
+    strays: List[str] = []
+    stray_dirs: List[str] = []
+    try:
+        entries = sorted(deploy.iterdir())
+    except OSError as exc:
+        raise DeployError('cannot scan deployment directory: ' + str(exc))
+    for entry in entries:
+        if entry.name.startswith(DEPLOY_TRANSIENT_PREFIX):
+            continue
+        if entry.is_dir() and not entry.is_symlink():
+            stray_dirs.append(entry.name)
+        elif entry.name not in allowed:
+            strays.append(entry.name)
+    return strays, stray_dirs
+
+
+def assert_deploy_pristine(
+    deploy: Path,
+    config: Optional[MergeConfig] = None,
+) -> None:
+    """T370 fail-closed: the player's directory holds runtime files and nothing else."""
+    strays, stray_dirs = scan_deploy_residue(deploy, config)
+    if not strays and not stray_dirs:
+        return
+    parts = []
+    if stray_dirs:
+        parts.append('unexpected directories: ' + ', '.join(stray_dirs[:8]))
+    if strays:
+        head = ', '.join(strays[:8])
+        more = '' if len(strays) <= 8 else ' (+%d more)' % (len(strays) - 8)
+        parts.append('unexpected files (%d): %s%s' % (len(strays), head, more))
+    raise DeployError(
+        'deployment directory is not pristine -- '
+        + '; '.join(parts)
+        + '. Move build/review artefacts out of the player directory, or add the'
+        + ' filename to DEPLOY_ALLOWED if it is genuinely a runtime asset.'
+    )
+
+
 def runtime_bytes_at_commit(
     config: MergeConfig,
     oid: str,
@@ -1904,6 +1982,10 @@ def start_transaction(
     verify_deploy_receipt(config, runner=runner)
     if deploy_requested:
         validate_deploy_target(config)
+        # T370：交易一開始就檢查玩家目錄是否純淨。放在 preflight 而不是 deploy 中途，
+        # 是因為此時尚未產生任何暫存檔，而且要在動 master 之前就把人擋下來。
+        assert_deploy_pristine(Path(config.deploy), config)
+        ok('deployment directory pristine (runtime files only)')
     ensure_integration_slot_free(config, runner=runner)
 
     step('1. freeze canonical master and bay identities')

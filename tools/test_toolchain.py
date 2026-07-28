@@ -1060,6 +1060,91 @@ class ToolchainRegressionTests(unittest.TestCase):
                     '8' * 40,
                 )
 
+    def _pristine_deploy(self, base):
+        """T370 helper: a deploy dir holding exactly the allowed runtime set."""
+        deploy = base / 'deploy'
+        deploy.mkdir()
+        (deploy / 'index.html').write_bytes(b'idx')
+        (deploy / 'sw.js').write_bytes(b'sw')
+        (deploy / merge_bay.DEPLOY_MARKER).write_text('marker\n', encoding='utf-8')
+        return deploy
+
+    def test_deploy_residue_scan_accepts_pristine_directory(self):
+        """T370: the whitelist must not reject a legitimately clean deploy dir."""
+        with tempfile.TemporaryDirectory(prefix='glimmer-residue-clean-') as raw:
+            deploy = self._pristine_deploy(Path(raw))
+            for name in ('manifest.json', 'icon.svg', 'npu_bench.html'):
+                (deploy / name).write_bytes(b'asset')
+            self.assertEqual(merge_bay.scan_deploy_residue(deploy), ([], []))
+            merge_bay.assert_deploy_pristine(deploy)
+
+    def test_deploy_residue_scan_rejects_review_artefacts(self):
+        """T370: review PNG / probe HTML in the player's directory must fail closed.
+
+        Regression for the T359-T369 drift: 66 artefacts (19.1 MB) accumulated in
+        the player directory, including 10 probes that iframe the game and call
+        newWorldSeeded+addMoney with 0/10 setting slot 3 -- with curSlot()
+        defaulting to 1 and a 25s autosave, that is live ordnance over real saves.
+        """
+        with tempfile.TemporaryDirectory(prefix='glimmer-residue-dirty-') as raw:
+            deploy = self._pristine_deploy(Path(raw))
+            (deploy / 't368-review-neon.png').write_bytes(b'png')
+            (deploy / 't367b-probe.html').write_bytes(b'<iframe src="index.html">')
+            strays, stray_dirs = merge_bay.scan_deploy_residue(deploy)
+            self.assertEqual(stray_dirs, [])
+            self.assertEqual(
+                sorted(strays),
+                ['t367b-probe.html', 't368-review-neon.png'],
+            )
+            with self.assertRaisesRegex(merge_bay.DeployError, 'not pristine'):
+                merge_bay.assert_deploy_pristine(deploy)
+
+    def test_deploy_residue_scan_rejects_stray_directory(self):
+        """T370: a leftover directory is the T349 failure mode (misleading .git)."""
+        with tempfile.TemporaryDirectory(prefix='glimmer-residue-dir-') as raw:
+            deploy = self._pristine_deploy(Path(raw))
+            (deploy / '.git').mkdir()
+            strays, stray_dirs = merge_bay.scan_deploy_residue(deploy)
+            self.assertEqual(strays, [])
+            self.assertEqual(stray_dirs, ['.git'])
+            with self.assertRaisesRegex(merge_bay.DeployError, 'unexpected directories'):
+                merge_bay.assert_deploy_pristine(deploy)
+
+    def test_residue_scan_skips_transient_and_honours_config_runtime(self):
+        """T370: skip our own .bak/.new/journal; accept config-declared runtime files."""
+        with tempfile.TemporaryDirectory(prefix='glimmer-residue-gate-') as raw:
+            base = Path(raw)
+            source = base / 'source'
+            source.mkdir()
+            deploy = self._pristine_deploy(base)
+            config = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+            )
+            merge_bay.assert_deploy_pristine(deploy, config)
+            # 部署自家的暫存檔不算殘留（否則掃描會跟原子替換打架）
+            (deploy / (merge_bay.DEPLOY_TRANSIENT_PREFIX + 'x-index.html.bak')).write_bytes(b'b')
+            (deploy / merge_bay.DEPLOY_JOURNAL).write_text('{}', encoding='utf-8')
+            merge_bay.assert_deploy_pristine(deploy, config)
+            # 但 config 宣告的額外執行期檔要被接受
+            extended = merge_bay.MergeConfig(
+                root=source,
+                deploy=deploy,
+                bays={},
+                integration_path=base / 'integration',
+                runtime_files=('index.html', 'sw.js', 'atlas.html'),
+            )
+            (deploy / 'atlas.html').write_bytes(b'atlas')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'not pristine'):
+                merge_bay.assert_deploy_pristine(deploy, config)
+            merge_bay.assert_deploy_pristine(deploy, extended)
+            # 真正的殘留仍要紅
+            (deploy / 't999-review-stray.png').write_bytes(b'png')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'not pristine'):
+                merge_bay.assert_deploy_pristine(deploy, extended)
+
     def test_deploy_receipt_detects_late_onedrive_style_rollback(self):
         with TempRepo() as repo:
             with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
