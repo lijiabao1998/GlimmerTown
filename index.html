@@ -8295,7 +8295,7 @@ function newWorld(seedOverride){
     if(sc>bestScore){bestScore=sc;best=[x,y];}
   }
   money=3000;day=1;msIdx=0;lastGarbT=-999;ach={};achStats={bridges:0,parks:0,plants:0,nI:0,roads:0,svcTypes:0,towers:0,so:0,wi:0,st:0,po:0,ai:0,tr:0,un:0};pop=0;jobs=0;cityHappy=.6;dem={1:.5,2:0,3:0};immWave=0;tvSignal=false;hotelBeds=0;hotelOcc=0;gasSup=0;gasDem=0;gasRatio=1;fertOut=0;cookedOut=0;wageIdx=1;fertReady=false;cookedReady=false;mortPopLast346=0; // T266：垃圾警告節流不入存檔，新圖成對重置；T134：成就快照成對重置（鐵律7）
-  goods=0;gWhCap284=0;svcBudget={police:1,fire:1,health:1,edu:1};cityEvent=null;svcFleet={fire:3,police:2,amb:2}; // T304：車隊成對重置 // T284/T294/T299：成對重置（鐵律7）——服務預算回預設 1.0×、城市事件清空
+  goods=0;gWhCap284=0;gFlow284={gain:0,use:0,mul:1};svcBudget={police:1,fire:1,health:1,edu:1};cityEvent=null;svcFleet={fire:3,police:2,amb:2}; // T304：車隊成對重置 // T284/T294/T299：成對重置（鐵律7）——服務預算回預設 1.0×、城市事件清空 // T369 退修：gFlow284 流量快照必須與 goods 成對歸零（否則新圖／讀檔未 tick 前統計會顯示上一城售出／倍率）
   aiMode=false;aiR=6;try{const bA=$('#bAI');if(bA){bA.style.background='';bA.style.borderColor='';}}catch(e){} // T260：新圖 AI 市長成對重置（鐵律7）
   bailoutDay=-999;loan=null;cars.length=0;smokes.length=0;signalList.length=0;citizens.length=0;metroLines.length=0;districtNamed={};trafClock=0;hintShown={};hintsOff=false;
   fxParts.length=0;confetti.length=0; // T159：粒子特效運行時狀態，開新圖歸零（鐵律7）
@@ -16122,7 +16122,8 @@ function showStats(){
       {k:'💵 工資指數',v:(fin.wageIdx||1).toFixed(2)+'×',u:(fin.wageIdx||1)>1?('消費力 +'+Math.round(Math.min(.15,((fin.wageIdx||1)-1)*.15)*100)+'% 商業稅'):'崗位不足',t:(fin.wageIdx||1)>1?'good':'warn'});
   }
   /* T369 工業供應鏈總覽（純讀取既有 state／倍率；不重算公式、不掃地圖、不寫 state）。
-     無相關來源／加工建築（k49/50/121/122/123）且存量與流量全零時整區隱藏。 */
+     無相關來源／加工建築（k49/50/121/122/123）且存量與流量全零時整區隱藏。
+     文案用短中文鍵／單位，不露出內部變數名（390px 窄視窗可讀）。 */
   let t369Html='';
   {
     const nRel369=(kCnt[49]||0)+(kCnt[50]||0)+(kCnt[121]||0)+(kCnt[122]||0)+(kCnt[123]||0);
@@ -16131,22 +16132,22 @@ function showStats(){
     if(nRel369>0||anyStock369||anyFlow369){
       const rows369=[
         {sec:'🏭 工業供應鏈'},
-        {k:'📦 通用原料',v:String(+supplies.toFixed(1)),u:'supplies',t:supplies>0?'good':'dim'},
-        {k:'📦 工業品',v:goods+'/'+goodsCap283(),u:'',t:goods>0?'good':'dim'},
-        {k:'📦 本期售出',v:String(gFlow284.use|0),u:'gFlow.use',t:(gFlow284.use|0)>0?'good':'dim'},
-        {k:'📦 商業供貨倍率',v:'×'+gFlow284.mul,u:'',t:gFlow284.mul>1?'good':'dim'},
-        {k:'📦 供貨快照（庫存+本期售出）',v:String(gFlow284.gain),u:'非今日產量',t:'dim'},
-        {k:'🛢 燃料庫存',v:String(+fuel.toFixed(1)),u:'fuel',t:fuel>0?'good':'dim'},
-        {k:'🛢 本期精煉',v:String(fuelMade),u:'fuelMade',t:fuelMade>0?'good':'dim'},
-        {k:'🛢 工業稅倍率（燃料）',v:'×'+fuelTaxMul,u:'',t:fuelTaxMul>1?'good':'dim'},
-        {k:'🛢 貨運稅倍率',v:'×'+freightTaxMul,u:'',t:freightTaxMul>1?'good':'dim'},
-        {k:'⛏️ 鋼材庫存',v:String(+steel.toFixed(1)),u:'steel',t:steel>0?'good':'dim'},
-        {k:'⛏️ 本期冶煉',v:String(steelMade),u:'steelMade',t:steelMade>0?'good':'dim'},
-        {k:'⛏️ 本期耗鋼',v:String(steelUsed),u:'steelUsed',t:steelUsed>0?'good':'dim'},
-        {k:'⛏️ 工業稅倍率（鋼材）',v:'×'+steelTaxMul,u:'',t:steelTaxMul>1?'good':'dim'},
-        {k:'⛏️ 升級費折減',v:steel>0?('×'+STEEL_UP_DISCOUNT):'×1',u:steel>0?'鋼材>0 生效':'無鋼材',t:steel>0?'good':'dim'},
-        {k:'🚢 貿易倍率（造船）',v:'×'+shipTradeTaxMul,u:'',t:shipTradeTaxMul>1?'good':'dim'},
-        {k:'🚢 港口收益',v:f(shipPortGold),u:'/日',t:shipPortGold>0?'good':'dim'}];
+        {k:'原料',v:String(+supplies.toFixed(1)),u:'單位',t:supplies>0?'good':'dim'},
+        {k:'工業品',v:goods+'/'+goodsCap283(),u:'庫存/上限',t:goods>0?'good':'dim'},
+        {k:'今日售出',v:String(gFlow284.use|0),u:'單位',t:(gFlow284.use|0)>0?'good':'dim'},
+        {k:'供貨倍率',v:'×'+gFlow284.mul,u:'商業稅',t:gFlow284.mul>1?'good':'dim'},
+        {k:'庫存快照',v:String(gFlow284.gain),u:'含售出前·非產量',t:'dim'},
+        {k:'燃料',v:String(+fuel.toFixed(1)),u:'庫存',t:fuel>0?'good':'dim'},
+        {k:'今日精煉',v:String(fuelMade),u:'單位',t:fuelMade>0?'good':'dim'},
+        {k:'工業倍率',v:'×'+fuelTaxMul,u:'燃料',t:fuelTaxMul>1?'good':'dim'},
+        {k:'貨運倍率',v:'×'+freightTaxMul,u:'',t:freightTaxMul>1?'good':'dim'},
+        {k:'鋼材',v:String(+steel.toFixed(1)),u:'庫存',t:steel>0?'good':'dim'},
+        {k:'今日冶煉',v:String(steelMade),u:'單位',t:steelMade>0?'good':'dim'},
+        {k:'今日耗鋼',v:String(steelUsed),u:'單位',t:steelUsed>0?'good':'dim'},
+        {k:'工業倍率',v:'×'+steelTaxMul,u:'鋼材',t:steelTaxMul>1?'good':'dim'},
+        {k:'升級折扣',v:steel>0?('×'+STEEL_UP_DISCOUNT):'×1',u:steel>0?'有鋼生效':'無鋼',t:steel>0?'good':'dim'},
+        {k:'貿易倍率',v:'×'+shipTradeTaxMul,u:'造船',t:shipTradeTaxMul>1?'good':'dim'},
+        {k:'港口收益',v:f(shipPortGold),u:'/日',t:shipPortGold>0?'good':'dim'}];
       t369Html=statTab(rows369);
     }
   }
@@ -16979,7 +16980,7 @@ function load(slot){
     }
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     fuel=(+d.fuel364)||0;steel=(+d.steel364)||0;fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0; // T364b：舊檔缺欄位＝0；本日快照讀檔後待下一 tick 重算
-    aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0; // T284：工業品還原（舊檔缺＝0）
+    aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0;gFlow284={gain:0,use:0,mul:1}; // T284：工業品還原（舊檔缺＝0）// T369 退修：流量快照不入存檔，讀檔成對歸零、待下一 tick 重算（與 fuelMade 等本日快照同契約）
     svcFleet={fire:3,police:2,amb:2};if(d.sf){for(const k in svcFleet)if(typeof d.sf[k]==='number')svcFleet[k]=Math.max(1,Math.min(40,d.sf[k]|0));} // T304：車隊還原（舊檔缺＝默認）
     metroLines.length=0; // T302：地鐵還原（舊檔缺＝空；nodes→幾何重建，免建設費）
     if(Array.isArray(d.mln))for(const m of d.mln){if(!Array.isArray(m.n)||m.n.length<2)continue;finishMetroLine(m.n,false);const L2=metroLines[metroLines.length-1];L2.trains=Math.max(1,(+m.t)||2);L2.underground=!!m.u;L2.fare=2+Math.round(L2.path.length/30);}

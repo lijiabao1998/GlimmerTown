@@ -4287,7 +4287,7 @@ runPwaTests().then(() => {
     gameEllipseTrace = null; window.__noRefineryFx = false;
   }
 
-  // ===== T369 工業供應鏈總覽（純讀取統計 UI）=====
+  // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');
     assert(i369 > 0, 'T369 應有 showStats 區塊註解');
@@ -4298,25 +4298,38 @@ runPwaTests().then(() => {
       'T369 必須走 statTab 且只讀 kCnt 既有計數（不另掃地圖）');
     assert(/gFlow284\.use/.test(blk369) && /fuelMade/.test(blk369) && /steelUsed/.test(blk369) && /shipPortGold/.test(blk369),
       'T369 必須直接讀既有流量／倍率變數');
-    assert(/供貨快照（庫存\+本期售出）/.test(blk369) && /非今日產量/.test(blk369),
-      'T369 若顯示 gFlow284.gain 必須標明非今日產量語意');
+    assert(/庫存快照/.test(blk369) && /非產量/.test(blk369),
+      'T369 庫存快照必須標明非產量語意');
+    assert(!/u:'supplies'|u:'gFlow\.use'|u:'fuelMade'|u:'steelUsed'/.test(blk369),
+      'T369 退修：單位欄不得露出內部變數名');
+    assert(/gFlow284=\{gain:0,use:0,mul:1\}/.test(html),
+      'T369 退修：gFlow284 成對歸零字面應存在');
+    const nwG = html.indexOf('function newWorld');
+    const ldG = html.indexOf('goods=(+d.gds)');
+    assert(nwG > 0 && html.slice(nwG, nwG + 3500).includes('gFlow284={gain:0,use:0,mul:1}'),
+      'T369 退修：newWorld() 必須重置 gFlow284');
+    assert(ldG > 0 && html.slice(ldG, ldG + 200).includes('gFlow284={gain:0,use:0,mul:1}'),
+      'T369 退修：load() 必須重置 gFlow284');
     assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(blk369),
       'T369 區塊不得消耗共用亂數');
-    assert(!/function tick\b|saveInflate|load\s*\(|w2v\(|viewDep\(|objs\.push/.test(blk369),
-      'T369 不得伸入 tick／存讀檔／繪製／旋轉錨點');
-    // 空城靜默：新世界無相關建築且存量流量全零 → 不得出現分區標題
-    window.GV.newWorldSeeded(7); window.GV.setDiff(3); window.GV.step(1);
+    assert(!/function tick\b|saveInflate|w2v\(|viewDep\(|objs\.push/.test(blk369),
+      'T369 不得伸入 tick／繪製／旋轉錨點');
+    // 空城靜默：新世界無相關建築且存量流量全零 → 不得出現分區（含「不跑 tick」路徑）
+    window.GV.newWorldSeeded(7); window.GV.setDiff(3);
+    elMap.get('bStats').onclick();
+    const emptyNoTick369 = elMap.get('infoBody').innerHTML;
+    assert(!emptyNoTick369.includes('工業供應鏈'), 'T369 空城不跑 tick 不得顯示工業供應鏈');
+    window.GV.step(1);
     elMap.get('bStats').onclick();
     const empty369 = elMap.get('infoBody').innerHTML;
     assert(!empty369.includes('工業供應鏈'), 'T369 空城不得顯示工業供應鏈分區');
     assert(!/NaN|Infinity|undefined/.test(empty369), 'T369 空城統計不得出現 NaN/Infinity/undefined');
-    // 真跑：沿用 T364b 完整鏈順序（先 3×3 廠群再油礦港），面板數字＝同一時刻 GV.goods／chain346
+    // 真跑三鏈 + 購物中心消費工業品 → 非零售出／倍率
     window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
     const ref369 = findSpot('refinery');
     assert(ref369 && place('refinery', ref369.x, ref369.y), 'T369 真跑應可建煉油廠');
     const st369 = findSpot('steelMill');
-    assert(st369, 'T369 應找到鋼鐵廠 3×3 空位');
-    assert(place('steelMill', st369.x, st369.y), 'T369 真跑應可建鋼鐵廠 @' + st369.x + ',' + st369.y);
+    assert(st369 && place('steelMill', st369.x, st369.y), 'T369 真跑應可建鋼鐵廠');
     const sh369 = findSpot('shipyard');
     assert(sh369 && place('shipyard', sh369.x, sh369.y), 'T369 真跑應可建造船廠');
     let oil369 = null, ore369 = null, n369 = window.GV.N();
@@ -4330,31 +4343,81 @@ runPwaTests().then(() => {
     assert(ore369 && place('mine', ore369.x, ore369.y), 'T369 真跑應能建礦場');
     const po369 = findSpot('port');
     assert(po369 && place('port', po369.x, po369.y), 'T369 真跑應可建港口');
-    for (let d = 0; d < 3; d++) window.GV.step(1);
+    const mall369 = findSpot('grandMall');
+    assert(mall369 && place('grandMall', mall369.x, mall369.y), 'T369 真跑應可建購物中心以產生供貨需求');
+    for (let d = 0; d < 14; d++) window.GV.step(1); // 催熟 + 原料→工業品→售出
+    // 若仍無售出：注入工業品庫存再推一日（保證非零 gFlow 案例）
+    if (!(window.GV.goods().use > 0)) {
+      window.GV.save();
+      const dInj = window.GV.inflateSave(store[SKEY]);
+      dInj.gds = 40;
+      store[SKEY] = JSON.stringify(dInj);
+      assert(window.GV.load(), 'T369 注入工業品後 load 應成功');
+      // 退修：load 後、未 tick 前 use/mul 必須已歸零
+      const gPre = window.GV.goods();
+      assert(gPre.use === 0 && gPre.mul === 1, 'T369 load 未 tick 時 gFlow 必須 use=0 mul=1（實得 use=' + gPre.use + ' mul=' + gPre.mul + '）');
+      elMap.get('bStats').onclick();
+      const panelPreTick = elMap.get('infoBody').innerHTML;
+      assert(!panelPreTick.includes('gFlow') && !panelPreTick.includes('supplies') && !panelPreTick.includes('fuelMade'),
+        'T369 面板不得露出內部變數名');
+      window.GV.step(1);
+    }
     const g369 = window.GV.goods(), c369 = window.GV.chain346();
+    assert(g369.use > 0 || g369.mul > 1 || g369.stock > 0,
+      'T369 動態案例應有非零工業品流量或庫存（use=' + g369.use + ' mul=' + g369.mul + ' stock=' + g369.stock + '）');
+    if (g369.use > 0) assert(g369.mul > 1, 'T369 有售出時供貨倍率應 >1（實得 ' + g369.mul + '）');
+    const statsBefore = JSON.stringify(window.GV.stats());
     const money369 = window.GV.stats().money;
-    const hist369 = JSON.stringify(window.GV.hist ? window.GV.hist() : null);
+    const pop369 = window.GV.stats().pop;
+    const day369 = window.GV.stats().day;
     const save369 = window.GV.rawSave ? window.GV.rawSave() : store[SKEY];
     elMap.get('bStats').onclick();
     const panel369 = elMap.get('infoBody').innerHTML;
     assert(panel369.includes('工業供應鏈'), 'T369 三鏈城市必須顯示工業供應鏈分區');
-    assert(panel369.includes(g369.stock + '/' + g369.cap), 'T369 工業品須與 GV.goods() 一致 ' + g369.stock + '/' + g369.cap);
+    assert(panel369.includes(g369.stock + '/' + g369.cap), 'T369 工業品須與 GV.goods() 一致');
     assert(panel369.includes('×' + g369.mul), 'T369 供貨倍率須與 GV.goods().mul 一致');
-    assert(panel369.includes(String(g369.use)), 'T369 本期售出須與 GV.goods().use 一致');
+    assert(panel369.includes(String(g369.use)), 'T369 今日售出須與 GV.goods().use 一致');
     assert(panel369.includes(String(c369.fuelMade)) && panel369.includes(String(c369.steelMade)),
-      'T369 本期精煉／冶煉須與 chain346 一致');
+      'T369 今日精煉／冶煉須與 chain346 一致');
     assert(panel369.includes(String(c369.shipUse)) && panel369.includes('×' + c369.fuelTaxMul),
       'T369 耗鋼與燃料工業倍率須與 chain346 一致');
     assert(panel369.includes('×' + c369.steelTaxMul) && panel369.includes('×' + c369.shipTradeTaxMul),
       'T369 鋼材／貿易倍率須與 chain346 一致');
-    assert(panel369.includes('×' + 0.85) || panel369.includes('×.85'), 'T369 應顯示 STEEL_UP_DISCOUNT 0.85');
-    // 零副作用：再開一次面板前後 money／存檔字串不變
+    assert(panel369.includes('×' + 0.85) || panel369.includes('×.85'), 'T369 應顯示升級折扣 0.85');
+    assert(panel369.includes('今日售出') && panel369.includes('供貨倍率') && panel369.includes('港口收益'),
+      'T369 退修後應使用短中文標籤');
+    assert(!panel369.includes('gFlow') && !panel369.includes('supplies') && !panel369.includes('fuelMade') && !panel369.includes('steelUsed'),
+      'T369 退修：面板不得含內部識別字');
+    // 零副作用：開面板前後 GV.stats() 完整等值 + 存檔字串不變
     elMap.get('bStats').onclick();
-    assert(window.GV.stats().money === money369, 'T369 開統計不得改 money');
+    assert(JSON.stringify(window.GV.stats()) === statsBefore, 'T369 開統計前後 GV.stats() 必須完整等值');
+    assert(window.GV.stats().money === money369 && window.GV.stats().pop === pop369 && window.GV.stats().day === day369,
+      'T369 開統計不得改 money/pop/day');
     if (window.GV.rawSave) assert(window.GV.rawSave() === save369, 'T369 開統計不得改存檔字串');
     else assert(store[SKEY] === save369, 'T369 開統計不得改 store 存檔');
-    const st369b = window.GV.stats();
-    assert(isFinite(st369b.money) && isFinite(st369b.pop), 'T369 後 GV.stats 核心欄位仍有限');
+    // 破壞性：有流量後 newWorld 不跑 tick，不得殘留售出／倍率驅動顯示
+    window.GV.save();
+    const dirtySave = store[SKEY];
+    window.GV.newWorldSeeded(11); window.GV.setDiff(3);
+    const gNw = window.GV.goods();
+    assert(gNw.use === 0 && gNw.mul === 1 && gNw.stock === 0,
+      'T369 newWorld 未 tick 時 goods 流量必須歸零（use=' + gNw.use + ' mul=' + gNw.mul + '）');
+    elMap.get('bStats').onclick();
+    assert(!elMap.get('infoBody').innerHTML.includes('工業供應鏈'),
+      'T369 newWorld 未 tick 不得因殘留 gFlow 誤顯示分區');
+    // 讀檔未 tick：gFlow 歸零；有存檔建築／庫存時可顯示分區，但售出必須為 0、倍率 1
+    store[SKEY] = dirtySave;
+    assert(window.GV.load(), 'T369 讀回三鏈存檔應成功');
+    const gLd = window.GV.goods();
+    assert(gLd.use === 0 && gLd.mul === 1, 'T369 load 未 tick 時 use/mul 必須歸零');
+    elMap.get('bStats').onclick();
+    const panelLd = elMap.get('infoBody').innerHTML;
+    if (panelLd.includes('工業供應鏈')) {
+      assert(panelLd.includes('今日售出') && panelLd.includes('供貨倍率'),
+        'T369 load 未 tick 顯示分區時應含短中文列');
+      // 供貨倍率在 gFlow 歸零後應為 ×1（不得殘留上一城 >1）
+      assert(panelLd.includes('×1'), 'T369 load 未 tick 供貨倍率應為 ×1');
+    }
   }
 
 

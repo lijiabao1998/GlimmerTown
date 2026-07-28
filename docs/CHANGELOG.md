@@ -1,3 +1,5 @@
+2026-07-28 | T369 退修：gFlow284 成對歸零＋短中文 UI（v10.4，Grok） | 非作者 P1：①gFlow284 未在 newWorld/load 歸零→跨城未 tick 殘留售出/倍率；②390px 截字且露出 supplies/gFlow.use 等內部名。**修**：newWorld＋load 成對 gFlow284={gain:0,use:0,mul:1}（業主授權極窄 scope）；面板鍵/單位改短中文、零內部識別字。測試：不跑 tick 新圖/讀檔、GV.stats 完整等值、非零售出/倍率案例。verify 2855 PASS。 | 驗收:待非作者覆核
+
 2026-07-28 | T369 工業供應鏈總覽（v10.4，Grok；純讀取統計 UI） | 統計面板新增「工業供應鏈」分區：通用原料 supplies／工業品 goods+cap／本期售出 gFlow284.use／商業供貨倍率／供貨快照（庫存+本期售出，非今日產量）；原油燃料庫存與本期精煉、工業／貨運倍率；鋼材庫存／冶煉／耗鋼、工業倍率、升級費折減 STEEL_UP_DISCOUNT、造船貿易倍率與港口收益。**無相關建築（k49/50/121-123）且存量流量全零時整區隱藏**。只讀既有 state＋showStats 已計 kCnt，不改 tick／經濟／存檔／繪製。verify 全綠。 | 驗收:待非作者覆核
 
 2026-07-28 | T367b objs 地格 dep 旋轉漏轉（v10.3，Grok；微卡） | T367 實體 dep 已轉 viewDep，地格 objs 主迴圈仍用世界 x+y／SE 角 → rot≠0 南北遮擋反序、地格與實體兩套基準混排。**修法**：單格 viewDep(x,y)+y*.001；多格（k9／sz≥2）掃 footprint 取 max(viewDep)（對齊錨點掃描）；尾碼保留世界 y；**rot=0 逐位元＝舊 SE 角**（硬不變量）。**否決**整迴圈改 view 序（只動 dep 值、diff 最小）。測試：rot=0 公式恆等／rot=1 南北方向／2×2·3×3·5×5 max 覆蓋。實拍交非作者：非對稱密集＋南北相鄰多格、四向各一。 | 驗收:待 Kimi 非作者覆核
