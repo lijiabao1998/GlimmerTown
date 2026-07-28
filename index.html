@@ -16981,6 +16981,9 @@ function load(slot){
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     fuel=(+d.fuel364)||0;steel=(+d.steel364)||0;fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0; // T364b：舊檔缺欄位＝0；本日快照讀檔後待下一 tick 重算
     aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0;gFlow284={gain:0,use:0,mul:1}; // T284：工業品還原（舊檔缺＝0）// T369 退修：流量快照不入存檔，讀檔成對歸零、待下一 tick 重算（與 fuelMade 等本日快照同契約）
+    /* T369.1：gWhCap284 不入存檔，不可跨城殘留；亦不可單純歸零（有倉儲城讀檔未 tick 會暫時錯成 60）。
+       業主授權：從已讀入 d.bl 重建 k64 root 容量，公式對齊 tick 的 120+60*(lv-1)。 */
+    {let _whCap=0;if(Array.isArray(d.bl))for(const rec of d.bl){if(rec&&rec[1]===64)_whCap+=120+(((+rec[2])||1)-1)*60;}gWhCap284=_whCap;}
     svcFleet={fire:3,police:2,amb:2};if(d.sf){for(const k in svcFleet)if(typeof d.sf[k]==='number')svcFleet[k]=Math.max(1,Math.min(40,d.sf[k]|0));} // T304：車隊還原（舊檔缺＝默認）
     metroLines.length=0; // T302：地鐵還原（舊檔缺＝空；nodes→幾何重建，免建設費）
     if(Array.isArray(d.mln))for(const m of d.mln){if(!Array.isArray(m.n)||m.n.length<2)continue;finishMetroLine(m.n,false);const L2=metroLines[metroLines.length-1];L2.trains=Math.max(1,(+m.t)||2);L2.underground=!!m.u;L2.fare=2+Math.round(L2.path.length/30);}

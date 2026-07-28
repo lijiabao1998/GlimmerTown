@@ -1,3 +1,5 @@
+2026-07-28 | T369.1 退修：load 從 d.bl 重建 gWhCap284（v10.4，Grok） | 非作者 P1：讀檔未 tick 時 gWhCap284 跨城殘留→無倉儲城誤顯 40/180。**修**（業主授權）：load 於 goods 還原後從 d.bl 掃 k64 root 重建容量 120+60*(lv-1)（對齊 tick）；newWorld 維持 gWhCap284=0。測試：有倉→無倉／有倉→有倉未 tick cap；GV.hist() 等值。verify 2869 PASS。 | 驗收:待非作者覆核
+
 2026-07-28 | T369 退修：gFlow284 成對歸零＋短中文 UI（v10.4，Grok） | 非作者 P1：①gFlow284 未在 newWorld/load 歸零→跨城未 tick 殘留售出/倍率；②390px 截字且露出 supplies/gFlow.use 等內部名。**修**：newWorld＋load 成對 gFlow284={gain:0,use:0,mul:1}（業主授權極窄 scope）；面板鍵/單位改短中文、零內部識別字。測試：不跑 tick 新圖/讀檔、GV.stats 完整等值、非零售出/倍率案例。verify 2855 PASS。 | 驗收:待非作者覆核
 
 2026-07-28 | T369 工業供應鏈總覽（v10.4，Grok；純讀取統計 UI） | 統計面板新增「工業供應鏈」分區：通用原料 supplies／工業品 goods+cap／本期售出 gFlow284.use／商業供貨倍率／供貨快照（庫存+本期售出，非今日產量）；原油燃料庫存與本期精煉、工業／貨運倍率；鋼材庫存／冶煉／耗鋼、工業倍率、升級費折減 STEEL_UP_DISCOUNT、造船貿易倍率與港口收益。**無相關建築（k49/50/121-123）且存量流量全零時整區隱藏**。只讀既有 state＋showStats 已計 kCnt，不改 tick／經濟／存檔／繪製。verify 全綠。 | 驗收:待非作者覆核

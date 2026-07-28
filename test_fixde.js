@@ -4310,6 +4310,10 @@ runPwaTests().then(() => {
       'T369 退修：newWorld() 必須重置 gFlow284');
     assert(ldG > 0 && html.slice(ldG, ldG + 200).includes('gFlow284={gain:0,use:0,mul:1}'),
       'T369 退修：load() 必須重置 gFlow284');
+    assert(/T369\.1/.test(html) && /rec\[1\]===64/.test(html) && /gWhCap284=_whCap/.test(html),
+      'T369.1：load 必須從 d.bl 重建 k64→gWhCap284');
+    assert(nwG > 0 && /gWhCap284=0/.test(html.slice(nwG, nwG + 3500)),
+      'T369.1：newWorld 必須 gWhCap284=0');
     assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(blk369),
       'T369 區塊不得消耗共用亂數');
     assert(!/function tick\b|saveInflate|w2v\(|viewDep\(|objs\.push/.test(blk369),
@@ -4367,6 +4371,7 @@ runPwaTests().then(() => {
       'T369 動態案例應有非零工業品流量或庫存（use=' + g369.use + ' mul=' + g369.mul + ' stock=' + g369.stock + '）');
     if (g369.use > 0) assert(g369.mul > 1, 'T369 有售出時供貨倍率應 >1（實得 ' + g369.mul + '）');
     const statsBefore = JSON.stringify(window.GV.stats());
+    const histBefore = JSON.stringify(window.GV.hist());
     const money369 = window.GV.stats().money;
     const pop369 = window.GV.stats().pop;
     const day369 = window.GV.stats().day;
@@ -4388,9 +4393,10 @@ runPwaTests().then(() => {
       'T369 退修後應使用短中文標籤');
     assert(!panel369.includes('gFlow') && !panel369.includes('supplies') && !panel369.includes('fuelMade') && !panel369.includes('steelUsed'),
       'T369 退修：面板不得含內部識別字');
-    // 零副作用：開面板前後 GV.stats() 完整等值 + 存檔字串不變
+    // 零副作用：開面板前後 GV.stats()／GV.hist() 完整等值 + 存檔字串不變
     elMap.get('bStats').onclick();
     assert(JSON.stringify(window.GV.stats()) === statsBefore, 'T369 開統計前後 GV.stats() 必須完整等值');
+    assert(JSON.stringify(window.GV.hist()) === histBefore, 'T369 開統計前後 GV.hist() 必須完整等值');
     assert(window.GV.stats().money === money369 && window.GV.stats().pop === pop369 && window.GV.stats().day === day369,
       'T369 開統計不得改 money/pop/day');
     if (window.GV.rawSave) assert(window.GV.rawSave() === save369, 'T369 開統計不得改存檔字串');
@@ -4400,8 +4406,8 @@ runPwaTests().then(() => {
     const dirtySave = store[SKEY];
     window.GV.newWorldSeeded(11); window.GV.setDiff(3);
     const gNw = window.GV.goods();
-    assert(gNw.use === 0 && gNw.mul === 1 && gNw.stock === 0,
-      'T369 newWorld 未 tick 時 goods 流量必須歸零（use=' + gNw.use + ' mul=' + gNw.mul + '）');
+    assert(gNw.use === 0 && gNw.mul === 1 && gNw.stock === 0 && gNw.cap === 60,
+      'T369 newWorld 未 tick 時 goods 流量／容量必須歸零（cap=' + gNw.cap + '）');
     elMap.get('bStats').onclick();
     assert(!elMap.get('infoBody').innerHTML.includes('工業供應鏈'),
       'T369 newWorld 未 tick 不得因殘留 gFlow 誤顯示分區');
@@ -4415,9 +4421,42 @@ runPwaTests().then(() => {
     if (panelLd.includes('工業供應鏈')) {
       assert(panelLd.includes('今日售出') && panelLd.includes('供貨倍率'),
         'T369 load 未 tick 顯示分區時應含短中文列');
-      // 供貨倍率在 gFlow 歸零後應為 ×1（不得殘留上一城 >1）
       assert(panelLd.includes('×1'), 'T369 load 未 tick 供貨倍率應為 ×1');
     }
+    // ===== T369.1 跨存檔 gWhCap284：有倉儲→無倉儲／有倉儲→有倉儲（皆未 tick）=====
+    window.GV.newWorldSeeded(285); window.GV.setDiff(3); window.GV.addMoney(999999);
+    const whA = findSpot('warehouse');
+    assert(whA && place('warehouse', whA.x, whA.y), 'T369.1 應可建倉儲 A');
+    window.GV.step(1);
+    assert(window.GV.goods().cap === 180, 'T369.1 有倉儲 tick 後 cap 應 180（實得 ' + window.GV.goods().cap + '）');
+    window.GV.save();
+    const saveWithWh = store[SKEY];
+    // 無倉儲城 + gds=40，從「有倉儲」狀態讀入 → 未 tick 不得殘留 180
+    window.GV.newWorldSeeded(7); window.GV.setDiff(3); window.GV.addMoney(999999);
+    window.GV.save();
+    const dNoWh = window.GV.inflateSave(store[SKEY]);
+    dNoWh.gds = 40;
+    const saveNoWh = JSON.stringify(dNoWh);
+    // 先載入有倉儲檔製造 gWhCap=180 殘留風險，再立刻載入無倉儲檔
+    store[SKEY] = saveWithWh;
+    assert(window.GV.load(), 'T369.1 載入有倉儲存檔');
+    assert(window.GV.goods().cap === 180, 'T369.1 有倉儲 load 未 tick cap 應 180');
+    store[SKEY] = saveNoWh;
+    assert(window.GV.load(), 'T369.1 載入無倉儲＋gds40 存檔');
+    const gNoWh = window.GV.goods();
+    assert(gNoWh.stock === 40 && gNoWh.cap === 60,
+      'T369.1 有倉儲→無倉儲 load 未 tick 應 40/60（實得 ' + gNoWh.stock + '/' + gNoWh.cap + '）');
+    elMap.get('bStats').onclick();
+    const panelNoWh = elMap.get('infoBody').innerHTML;
+    assert(panelNoWh.includes('40/60'), 'T369.1 統計面板未 tick 應顯示 40/60 而非 40/180');
+    assert(!panelNoWh.includes('40/180'), 'T369.1 不得誤顯 40/180');
+    // 有倉儲→有倉儲：再讀回
+    store[SKEY] = saveWithWh;
+    assert(window.GV.load(), 'T369.1 再載入有倉儲');
+    assert(window.GV.goods().cap === 180, 'T369.1 有倉儲→有倉儲 load 未 tick cap 應仍 180');
+    elMap.get('bStats').onclick();
+    assert(elMap.get('infoBody').innerHTML.includes('/180') || window.GV.goods().cap === 180,
+      'T369.1 有倉儲讀檔後 cap 語意正確');
   }
 
 
