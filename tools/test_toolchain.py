@@ -1145,6 +1145,88 @@ class ToolchainRegressionTests(unittest.TestCase):
             with self.assertRaisesRegex(merge_bay.DeployError, 'not pristine'):
                 merge_bay.assert_deploy_pristine(deploy, extended)
 
+    def test_signoff_must_land_before_merge(self):
+        """T371: 合併時驗收欄必須已經具名，不能還寫「待」或整個缺欄。
+
+        關掉的兩種實際形態：①已覆核但沒回頭收狀態欄（T367b/T364c/d）
+        ②條目根本沒有驗收欄（歷史 23 條）。從倉庫看兩者與「沒覆核」無法區分。
+        """
+        with TempRepo() as repo:
+            cl = repo.root / 'docs'
+            cl.mkdir(exist_ok=True)
+            repo.write(repo.root, 'docs/CHANGELOG.md', '# CHANGELOG\n')
+            repo.commit(repo.root, 'changelog base')
+            repo.git(repo.bay, 'merge', 'master', '--no-edit')
+
+            def bay_entry(text):
+                repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + text + '\n')
+                repo.git(repo.bay, 'add', '-A')
+                repo.git(repo.bay, 'commit', '--amend', '-m', 'bay changelog', check=False)
+
+            repo.write(repo.bay, 'docs/CHANGELOG.md',
+                       '# CHANGELOG\n2026-07-29 | T999 x | y | 驗收:待非作者覆核\n')
+            repo.commit(repo.bay, 'bay changelog pending')
+            with self.assertRaisesRegex(merge_bay.ToolError, 'still pending'):
+                merge_bay.assert_signoff_landed(repo.config, 'kimi')
+
+            bay_entry('2026-07-29 | T999 x | y | 驗收:通過')
+            with self.assertRaisesRegex(merge_bay.ToolError, 'names no reviewer'):
+                merge_bay.assert_signoff_landed(repo.config, 'kimi')
+
+            bay_entry('2026-07-29 | T999 x | y')
+            with self.assertRaisesRegex(merge_bay.ToolError, 'no 驗收 field'):
+                merge_bay.assert_signoff_landed(repo.config, 'kimi')
+
+            bay_entry('2026-07-29 | T999 x | y | 驗收:通過（Kimi 非作者覆核：親跑 42/42）')
+            merge_bay.assert_signoff_landed(repo.config, 'kimi')
+
+    def test_resume_also_enforces_deploy_residue_scan(self):
+        """T370a (Kimi 非作者覆核): --resume 也必須驗部署目錄純淨。
+
+        T370 只把檢查掛在 start 的 preflight，交易開始後才落入的殘留會整個繞過——
+        而那正是實務上最可能發生的時機：有人在等閘門跑完的期間丟了張實拍進玩家目錄。
+        """
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            blocked = []
+
+            def cleanup_crash_runner(args, cwd, timeout):
+                rendered = [str(arg) for arg in args]
+                if (
+                    rendered[:3] == ['git', 'branch', '-d']
+                    and rendered[3].startswith('_merge/')
+                    and not blocked
+                ):
+                    blocked.append(rendered[3])
+                    return merge_bay.CommandResult(9, '', 'injected cleanup interruption')
+                return GateRunner([0, 0, 0])(rendered, Path(cwd), timeout)
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'injected cleanup interruption'):
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    True,
+                    runner=cleanup_crash_runner,
+                )
+            state_path, _ = merge_bay.state_locations(repo.config)
+            self.assertTrue(state_path.exists())
+            state = json.loads(state_path.read_text(encoding='utf-8'))
+            self.assertTrue(state['deploy_requested'])
+
+            # 交易進行中有人把實拍丟進玩家目錄 -> resume 必須紅
+            (repo.deploy / 't999-review-late.png').write_bytes(b'png')
+            with self.assertRaisesRegex(merge_bay.DeployError, 'not pristine'):
+                merge_bay.resume_transaction(repo.config, 'kimi', runner=GateRunner([]))
+            self.assertTrue(state_path.exists(), 'red resume must not discard the transaction')
+
+            # 移走殘留後 resume 應能正常收尾
+            (repo.deploy / 't999-review-late.png').unlink()
+            self.assertEqual(
+                merge_bay.resume_transaction(repo.config, 'kimi', runner=GateRunner([])),
+                0,
+            )
+
     def test_deploy_receipt_detects_late_onedrive_style_rollback(self):
         with TempRepo() as repo:
             with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):

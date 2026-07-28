@@ -1128,6 +1128,81 @@ def validate_deploy_target(config: MergeConfig) -> None:
             raise DeployError('runtime target missing or unsafe: ' + str(target))
 
 
+SIGNOFF_PARTIES = ('Claude', 'Kimi', 'Codex', 'Grok', '業主', 'GPT')
+
+
+def changelog_entries_added_by(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> List[str]:
+    """T371: CHANGELOG lines this bay introduces on top of master."""
+    result = git_result(
+        config.root,
+        'diff',
+        '--no-color',
+        'master...bay/' + name,
+        '--',
+        'docs/CHANGELOG.md',
+        runner=runner,
+    )
+    if result.returncode != 0:
+        raise ToolError('cannot diff CHANGELOG for bay ' + name + ': '
+                        + _command_detail(result))
+    added = []
+    for line in result.stdout.split('\n'):
+        if line.startswith('+') and not line.startswith('+++'):
+            body = line[1:]
+            if re.match(r'^\d{4}-\d{2}-\d{2} \| ', body):
+                added.append(body)
+    return added
+
+
+def assert_signoff_landed(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> None:
+    """T371: a merge is the moment sign-off must already be on record.
+
+    Two real failure modes this closes (both observed):
+      * reviewed but the 驗收 field was never updated (T367b, T364c/d) --
+        from the repo alone that is indistinguishable from "never reviewed";
+      * no 驗收 field at all (23 historical entries).
+
+    Honest boundary: all four parties share one Git identity, so "the reviewer
+    is not the author" is NOT verifiable from Git objects.  Requiring a *name*
+    turns an omission into a false statement of record -- an auditability gain,
+    not a proof.  See docs/COLLAB.md 第八節.
+    """
+    try:
+        added = changelog_entries_added_by(config, name, runner=runner)
+    except ToolError:
+        raise
+    problems = []
+    for entry in added:
+        card = (re.match(r'^\S+ \| (\S+)', entry) or [None, '?'])[1]
+        field = entry.split('驗收:', 1)[1] if '驗收:' in entry else None
+        if field is None:
+            problems.append('%s: no 驗收 field' % card)
+            continue
+        if '待' in field:
+            problems.append('%s: 驗收 still pending (%s)' % (card, field.strip()[:24]))
+            continue
+        if not any(party in field for party in SIGNOFF_PARTIES):
+            problems.append('%s: 驗收 names no reviewer (%s)' % (card, field.strip()[:24]))
+    if problems:
+        raise ToolError(
+            'sign-off has not landed for this merge -- '
+            + '; '.join(problems[:6])
+            + '. A merge is the moment the 驗收 field must already say who reviewed it'
+            + ' (e.g. 驗收:通過（Kimi 非作者覆核：…）).'
+        )
+    if added:
+        ok('sign-off landed on %d incoming CHANGELOG entr%s'
+           % (len(added), 'y' if len(added) == 1 else 'ies'))
+
+
 def scan_deploy_residue(
     deploy: Path,
     config: Optional[MergeConfig] = None,
@@ -1986,6 +2061,7 @@ def start_transaction(
         # 是因為此時尚未產生任何暫存檔，而且要在動 master 之前就把人擋下來。
         assert_deploy_pristine(Path(config.deploy), config)
         ok('deployment directory pristine (runtime files only)')
+    assert_signoff_landed(config, name, runner=runner)
     ensure_integration_slot_free(config, runner=runner)
 
     step('1. freeze canonical master and bay identities')
@@ -2065,6 +2141,12 @@ def resume_transaction(
         )
 
     step('resume: reconcile persisted state with Git reality')
+    # T370a（Kimi 非作者覆核指出）：T370 只把 pristine 檢查掛在 start 的 preflight，
+    # --resume 完全繞過它。窗口雖小（交易開始後才落入的殘留），但那正是實務上最可能發生的
+    # 時機——有人在等閘門跑完的期間丟了張實拍進玩家目錄。resume 也要驗。
+    if state.get('deploy_requested'):
+        assert_deploy_pristine(Path(config.deploy), config)
+        ok('deployment directory pristine (runtime files only)')
     base = str(state['base_master_oid'])
     merged = str(state.get('integration_oid', ''))
     master = validate_master(config, runner=runner, require_clean=True)

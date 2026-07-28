@@ -3,13 +3,35 @@
 任務卡自帶的驗收清單是「這張卡專屬」的；本文件是「不管改了什麼都要過」的回歸測試。
 **兩者都通過才算完成。**
 
+> **T371 校正（重要）**：本文件寫於單人手動驗收時代。現在的**權威閘門是 `python tools/verify.py`**
+> （語法／CRLF=0／版本雙處同步／全套 0 FAIL 且 PASS 不低於災難線／harness 契約／亂數流哨兵，
+> 五道全部 fail-closed）。下面的手動冒煙腳本仍有價值——它驗的是「瀏覽器裡真的跑得動」，
+> 那是 Node harness 的 canvas stub 驗不到的——但它是**補充**，不是替代。
+
+> **⚠️ 埠號更正**：本文件原本寫 `python -m http.server 8123`，那是**玩家的遊玩目錄**。
+> 在該 origin 執行下方冒煙腳本會建出一座測試城，而遊戲每 25 秒自動存檔、
+> `curSlot()` 遇不合法鍵回槽 1 —— 等於覆蓋玩家存檔（鐵律3、COLLAB 第二節明令禁止）。
+> **8123 任何人不得跑測試。**
+
 ## 0. 啟動
 
+用**你自己的驗證埠**，不要用 8123：
+
+| 埠 | 目錄 | 誰用 |
+|---|---|---|
+| 8124 | `C:\dev\glimmer-town` | 當班施工者 |
+| 8125 | `安卓探索ay-kimi` | Kimi |
+| 8126 | `安卓探索ay-codex` | Codex |
+| 8127 | `安卓探索ay-grok` | Grok |
+
 ```
-cd glimmer-town
-python -m http.server 8123
+python -m http.server 8124 --directory C:\dev\glimmer-town
 ```
-瀏覽器開 `http://localhost:8123`，按 F12 開 DevTools。
+瀏覽器開對應埠，按 F12 開 DevTools。**執行任何腳本前先做**：
+
+```js
+localStorage.setItem('glimmerville.v1.slot','3')   // 只用槽 3（鐵律3）
+```
 
 ## 1. 零錯誤
 

@@ -28,6 +28,33 @@ MIN_PASS = 1902
 MIN_SEED_PINS = 2
 DONE_MARKER = 'FIX-D/FIX-E 回歸測試全部通過'
 TEXT_CHECK = ('index.html', 'sw.js', 'test_fixde.js')
+# T371：CRLF 掃描範圍。前三個是執行期契約檔；其餘是 .gitattributes 宣告為 `text eol=lf`
+# 而過去完全沒人在守的區域。backups/ 與 attic/ 在 .gitattributes 標 -text（位元契約），
+# 必須排除，否則會誤殺 T269 釘定的備份。
+CRLF_GLOBS = (
+    'docs/*.md',
+    'docs/tasks/*.md',
+    'tools/*.py',
+    'tools/*.js',
+    'tools/*.json',
+    'README.md',
+    'manifest.json',
+    '.gitattributes',
+)
+
+
+def crlf_scan_targets(root):
+    """T371: every file the LF contract covers, deduped and in stable order."""
+    seen = []
+    for name in TEXT_CHECK:
+        path = root / name
+        if path.is_file():
+            seen.append(path)
+    for pattern in CRLF_GLOBS:
+        for path in sorted(root.glob(pattern)):
+            if path.is_file() and path not in seen:
+                seen.append(path)
+    return seen
 ASSERT_CONTRACT = """function assert(cond, msg) {
   if (!cond) { console.error('FAIL:', msg); process.exit(1); }
   console.log('PASS:', msg);
@@ -229,13 +256,23 @@ def main(argv=None):
         return 1
 
     # 2. CRLF contract.
+    #
+    # T371: the check used to cover only the three runtime contract files, so
+    # working-tree CRLF drift in docs/ and tools/ was completely invisible --
+    # .gitattributes normalises on read, which means `git status` stays clean
+    # while the bytes on disk are CRLF.  Three files (docs/README.md,
+    # docs/ROADMAP.md, docs/THEOTOWN-PARITY.md) had drifted that way unnoticed.
+    # Iron rule 20 says verify CRLF==0 after any git restore/switch; the check
+    # has to cover everything .gitattributes declares as `text eol=lf`, not a
+    # hand-picked trio.
     crlf = []
-    for name in TEXT_CHECK:
-        count = (root / name).read_bytes().count(b'\r\n')
+    for path in crlf_scan_targets(root):
+        count = path.read_bytes().count(b'\r\n')
         if count:
-            crlf.append('%s:%d' % (name, count))
+            crlf.append('%s:%d' % (path.relative_to(root).as_posix(), count))
     if crlf:
-        bad('CRLF present: ' + ', '.join(crlf))
+        bad('CRLF present: ' + ', '.join(crlf[:8])
+            + ('' if len(crlf) <= 8 else ' (+%d more)' % (len(crlf) - 8)))
         failures += 1
     else:
         ok('CRLF=0')

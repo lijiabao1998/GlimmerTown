@@ -259,6 +259,47 @@ for (const [tool, k, sz] of SV) {
 for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.bld 應生成 ' + k + '_1_0');
 // T291 底部貼合格子：sprFootAudit hook 應存在且回陣列（真實像素溢出驗證於瀏覽器端＝總溢出 0px；harness getImageData 為 stub 故此處為煙霧測試）
 assert(Array.isArray(window.GV.sprFootAudit()), 'T291 sprFootAudit 應回傳陣列（底部貼合格子審計 hook）');
+/* ===== T371 CHANGELOG 簽核落點守衛 =====
+   病灶：簽核結果沒有任何機器可讀的落點。實際發生過的兩種形態——
+     ①「已覆核但沒回頭收狀態欄」（T367b、T364c/d：覆核方親跑親合，條目卻仍寫「待覆核」）
+     ②「條目根本沒有驗收欄」（全檔 23 條，含 T352/T353/T355）
+   從倉庫本身看，這兩種與「根本沒覆核」完全無法區分。
+   這條守衛只管【T371 之後】的新條目——歷史 379 條裡有 23 條缺欄、14 條只寫「通過」不具名，
+   追溯強制會誤傷一大片，且多數其實覆核過只是沒記。分界用錨點字串而非行號，避免漂移。
+   「待」字不在此處禁——提交到覆核之間「驗收:待非作者覆核」是合法狀態；
+   禁「待」的位置在 merge_bay.py 的 preflight（合併時才要求簽核已落地）。 */
+{
+  const clPath371 = path.join(__dirname, 'docs', 'CHANGELOG.md');
+  const clText371 = fs.readFileSync(clPath371, 'utf8');
+  const clLines371 = clText371.split(/\r?\n/);
+  const isEntry371 = line => /^\d{4}-\d{2}-\d{2} \| /.test(line);
+  const entries371 = clLines371.filter(isEntry371);
+  assert(entries371.length >= 379,
+    'T371 CHANGELOG 條目數不得減少（現 ' + entries371.length + '，T371 當下 380）');
+
+  // 結構完整性：修過的四處物理斷行不得復發
+  const strays371 = clLines371.filter(line =>
+    line.trim() && !isEntry371(line) &&
+    !line.startsWith('#') && !line.startsWith('格式') &&
+    !line.startsWith('慣例') && !line.startsWith('- ') && !line.startsWith('  '));
+  assert(strays371.length === 0,
+    'T371 CHANGELOG 不得有「非條目開頭的內容行」＝一卡一行被物理斷行切開；殘留：' +
+    JSON.stringify(strays371.slice(0, 2).map(s => s.slice(0, 40))));
+  assert(!/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(clText371),
+    'T371 CHANGELOG 不得含控制字元（曾有 viewDep 的 v 被 0x0B 取代）');
+  assert(clLines371[0].startsWith('# CHANGELOG'),
+    'T371 CHANGELOG 標頭必須在第 1 行（曾被 9 條新條目壓到第 19 行）');
+
+  // 分界之後（含）的條目，必須有驗收欄
+  const cutIdx371 = entries371.findIndex(line => / \| T371 /.test(line));
+  assert(cutIdx371 >= 0, 'T371 應能在 CHANGELOG 找到自己的條目當分界錨點');
+  const governed371 = entries371.slice(0, cutIdx371 + 1);
+  const noField371 = governed371.filter(line => !line.includes('驗收:'));
+  assert(noField371.length === 0,
+    'T371 起每條 CHANGELOG 條目都必須有「驗收:」欄（缺欄的：' +
+    JSON.stringify(noField371.map(l => (l.match(/^\S+ \| (\S+)/) || [])[1])) + '）');
+}
+
 /* ===== T353 錨點一致性守衛（修「農場動畫漂移」）=====
    病灶：doFarm() 的 (ax,ay) 是「田地在畫布上的繪製座標」，T281 的 stages() 卻把它當成精靈錨點
    metadata 寫入 SPR.farmGrow。大農場 base/farmSea=164/242、farmGrow=104/218 ⇒ draw() 用 s.ax/s.ay
