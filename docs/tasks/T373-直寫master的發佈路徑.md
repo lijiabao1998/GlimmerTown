@@ -1,8 +1,14 @@
 # T373 — 直寫 master 的發佈路徑（`--publish`）＋收據復原缺口
 
-狀態：**業主已發卡，指定 Codex 施工（T358 部署管線原作者）。**
+狀態：**施工中：Codex 已依 T362 認領，待非作者覆核＋合併。**
 發卡：業主（2026-07-29）；出卡文件：Claude；施工者：**Codex（bay/codex）**；覆核：非作者（Claude 或 Kimi）
 前置：master `95a2d1c`（v10.5）已含 T372；三車位 `ahead=0 behind=0 clean`；`deploy receipt=match`。
+
+## 施工 claim
+
+- 施工者：**Codex**（`bay/codex`）
+- 認領 commit：**本提交的 `HEAD`**（T362 鎖序後的首筆認領提交）
+- 預計觸碰：`tools/merge_bay.py`、`tools/test_toolchain.py`、`docs/COLLAB.md`、`docs/CHANGELOG.md`、本卡狀態
 
 ## 為什麼指定 Codex
 
