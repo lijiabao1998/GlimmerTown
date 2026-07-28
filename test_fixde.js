@@ -259,6 +259,47 @@ for (const [tool, k, sz] of SV) {
 for (const [, k] of SV) assert(html.includes("SPR.bld['" + k + "_1_0']"), 'SPR.bld 應生成 ' + k + '_1_0');
 // T291 底部貼合格子：sprFootAudit hook 應存在且回陣列（真實像素溢出驗證於瀏覽器端＝總溢出 0px；harness getImageData 為 stub 故此處為煙霧測試）
 assert(Array.isArray(window.GV.sprFootAudit()), 'T291 sprFootAudit 應回傳陣列（底部貼合格子審計 hook）');
+/* ===== T371b ARCH.md 代碼地圖守衛 =====
+   病灶：舊版 ARCH.md 宣稱「約 4235 行，v3.0」，實際是 17701 行 v10.4——落後約 210 張卡，
+   而且沒有任何機制會發現。一份行號全錯的架構文件比過期的更糟：它會把人導去錯的地方。
+   守法分兩種強度，對應文件自己的前提「行號會漂移，定位以 grep 錨點為準」：
+     ①【硬】每個 grep 錨點都必須在 index.html 解析得到——錨點失效＝它指的東西被改名或刪了；
+     ②【硬】文件宣稱的規模與版本不得偏離現實——這正是舊版失效的方式；
+     ③ 行號範圍【不】強制，因為任何一張卡都會讓它漂移，強制只會逼人關掉測試。 */
+{
+  const archPath371b = path.join(__dirname, 'docs', 'ARCH.md');
+  const archText371b = fs.readFileSync(archPath371b, 'utf8');
+  const indexLines371b = html.split(/\r?\n/);
+
+  // ② 宣稱規模／版本
+  const declLines371b = (archText371b.match(/實測檔案\s*([\d,]+)\s*行/) || [])[1];
+  assert(declLines371b, 'T371b ARCH.md 應宣告它測繪時的 index.html 實測行數');
+  const declN371b = parseInt(declLines371b.replace(/,/g, ''), 10);
+  const drift371b = Math.abs(indexLines371b.length - declN371b) / indexLines371b.length;
+  assert(drift371b <= 0.10,
+    'T371b ARCH.md 宣稱的 index.html 行數必須與現實相差 10% 以內（宣稱 ' + declN371b +
+    '，實際 ' + indexLines371b.length + '，偏離 ' + (drift371b * 100).toFixed(1) +
+    '%）；超標＝該重新測繪，舊版就是這樣爛掉的（宣稱 4235 實際 17701）');
+  const gameVer371b = (html.match(/const GAME_VER='([\d.]+)'/) || [])[1];
+  assert(archText371b.includes('v' + gameVer371b),
+    'T371b ARCH.md 必須宣告現行版本 v' + gameVer371b + '（舊版停在 v3.0 沒人發現）');
+
+  // ① 每個 grep 錨點都要解析得到
+  const rowRe371b = /^\|([^|\n]+)\|\s*([0-9][0-9,\-–— ]*)\|\s*`([^`\n]+)`\s*\|/gm;
+  const dead371b = [];
+  let rows371b = 0, m371b;
+  while ((m371b = rowRe371b.exec(archText371b)) !== null) {
+    rows371b++;
+    const anchor = m371b[3];
+    if (!html.includes(anchor)) dead371b.push(m371b[1].trim() + ' :: ' + anchor.slice(0, 40));
+  }
+  assert(rows371b >= 90,
+    'T371b ARCH.md 的分節地圖應有 90 列以上帶 grep 錨點的項目，實得 ' + rows371b);
+  assert(dead371b.length === 0,
+    'T371b ARCH.md 有 ' + dead371b.length + ' 個 grep 錨點在 index.html 查無——' +
+    '被改名或刪掉了，地圖指向錯的地方：' + JSON.stringify(dead371b.slice(0, 3)));
+}
+
 /* ===== T371 CHANGELOG 簽核落點守衛 =====
    病灶：簽核結果沒有任何機器可讀的落點。實際發生過的兩種形態——
      ①「已覆核但沒回頭收狀態欄」（T367b、T364c/d：覆核方親跑親合，條目卻仍寫「待覆核」）

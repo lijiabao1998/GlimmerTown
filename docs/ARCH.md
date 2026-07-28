@@ -1,250 +1,434 @@
-# 架構聖經（ARCH）— 《微光小鎮 Glimmerville》代碼地圖
+# glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-單檔遊戲：`index.html`（約 4235 行，v3.0）。等距像素城市建造模擬，全部美術程式化生成。
+**現況（測繪基準）**：單檔 `index.html`，v10.4，約 17,667 行（實測檔案 17,701 行，行號以本次測繪為準）；卡號已到 **T370**（CHANGELOG 379 條）；測試 `test_fixde.js` 4,574 行、實測 PASS 2,875、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
+
+本文件取代 v3.0 版 ARCH.md（該版停在 4,235 行 / T159，其「7 繪製＝stars waterF DIRSCR daylight() draw(dt) drawCursor」一行已完全過時：draw() 現為單一函式 1,914 行，另有旋轉層、地面快取、粒子池等舊文未載的子系統）。
+
+---
+
+## 0. 如何使用本文件
+
+1. 先查 **§1 檔案分節地圖**，用 grep 錨點跳到目標（**行號會漂移，錨點字串才是定位依據**）。
+2. 讀該子系統節的「動它會踩到什麼」。
+3. 動手前務必掃一次 **§9 跨切面不變量**——七成事故都出在跨切面，不在本地邏輯。
+4. **§10** 是「有規矩但沒機器守著」的清單，等同下一張卡的候選題庫。
+
+三個貫穿全檔的縮寫：`k`＝建築種類編號、`sz`＝多格建築 footprint 邊長、`rot`＝視角旋轉檔位（0 南／1 西／2 北／3 東）。
+
+---
 
 ## 1. 檔案分節地圖
 
-HTML 部分：`<style>`（全部 CSS）→ `<body>`（canvas#game、#hud、#hint、#tools、#toasts、#dragcost、#zoomer、#info、#start 開始畫面）→ 一個大 IIFE `<script>`。
+| 節（含檔內舊編號） | 行號範圍 | grep 錨點 |
+|---|---|---|
+| CSS 主題變數／HUD／工具列／toast | 16-99 | `--shadow-panel:0 10px 28px` |
+| CSS `#info` 面板容器與 `--hud-h` | 100-112, 137-139 | `max-height:max(120px,calc(100vh - 80px` |
+| CSS 標準化數據表（`.stab` / `.dtab`） | 113-135 | `.stab{display:grid;grid-template-columns:auto 1fr auto` |
+| CSS 開始畫面／小地圖／窄螢幕 | 140-210 | `#start .startPrimary{display:flex` |
+| body DOM 骨架（全部靜態節點只有這份） | 213-275 | `<span class="chip" id="money">` |
+| 亂數零號：`mulberry32` / `R` / `ri` | 285-298 | `let R=mulberry32(1);` |
+| 世界尺寸／SAVEKEY | 306-308 | `const MAP_SIZES=` |
+| 價目表 `COST` / `ROAD_COST` / `GAME_VER` | 367-385 | `const COST={road:15,bridge:60,zone:8` |
+| `TOOLS` 153 項 ＋ `TOOL_CATS` | 386-543 | `const TOOLS=[` |
+| 季節與 360 天年 / `foodPriceOf` | 668-679, 749-757 | `const season=()=>{const doy=(day-1)%360;` |
+| §2 繪圖基元：`cv` / `dia` / `railTrack` / `isoBox` / `outlineSprite` | 903-1129 | `function cv(w,h){const c=document.createElement('canvas')` |
+| 紋理流 `spriteTexRand` ＋ `plate()` | 1130-1142 | `const SPRITE_TEX_SEED=0x54455832;` |
+| `HERO_PIX` 手繪點陣表（53 鍵） | 1142-1262 | `const HERO_PIX={` |
+| **`buildSprites()` 全體** | 1265-8046 | `const __savedR=R;R=mulberry32(1);` |
+| ├ 地形／道路／覆蓋層 | 1273-1458 | `/* ---------- 草地 4 變化 ---------- */` |
+| ├ `PARTS` / `DRAFTS` / `mkBld` | 1459-1617 | `const PARTS=` |
+| ├ 服務建築與變體 | 1618-2528 | `/* ---------- 公園 3 變化 ---------- */` |
+| ├ 多格地標長列 | 2529-4050 | `T355 版面重排` |
+| ├ FIX-B 尾端區起點 | 4051 | `/* ===== FIX-B 亂數流對齊：以下 T29/T30/T35/T36` |
+| ├ 加蓋層 pass 群（T277→T345） | 7507-7774 | `const stampRoof=(key)=>{` |
+| └ T364 縮放管線與收尾 | 7864-8046 | `const mkIndustry364=(kind)=>{` |
+| §3 世界生成 `genWorld` / `newWorld` | 8180-8330 | `FIX-K：天氣/災害殘留狀態種子化重置` |
+| §4 `canPlace` / `placeCost` / `doPlace` | 8384-9363 | `function canPlace(toolId,x,y){` |
+| `computePower` | 9387-9425 | `function computePower(){` |
+| `COVR` / `COV` / `covFieldOfK` / `stampCov` | 9446-9482 | `const covFieldOfKBase=covFieldOfK;` |
+| POL / NOISE 場 | 9476-9534 | `function stampPolSrc(x,y,k,sign){` |
+| LAND 場 | 9548-9608 | `function landStaticAt(x,y){` |
+| EDU / `rebuildCov` / `judgeWealth` | 9609-9667 | `function rebuildCov(){` |
+| `computeWater` / `resilience364At` | 9680-9732 | `function computeWater(){` |
+| §5 `aiStep()` AI 市長 | 9825-10339 | `let acts=0;const MAXA=14,RESERVE=poor?50:350;` |
+| `buildTickIndex()` | 10340-10357 | `function buildTickIndex(){` |
+| **`tick()` 全體** | 10358-11363 | `rebuildNoise(tickBld); // T325` |
+| ├ 第一經濟迴圈（計數／幸福） | 10440-10630 | `for(const i88 of tickBld){` |
+| ├ 產業鏈 | 10662-10718 | `/* ===== T364b A 深加工鏈 BEGIN =====` |
+| ├ 災害段 | 10719-10868 | `// T69/T70 災害（可關）` |
+| ├ 生長／升級／合併／火災 | 10882-11071 | `// 生長：收集候選` |
+| ├ **第二經濟迴圈（稅收守衛鏈）** | 11126-11217 | `const civicMul=chN>0?1.03:1;` |
+| └ 維護費／評分／`aiStep` 呼叫 | 11218-11363 | `if(diff!==3)money+=income-upkeep;` |
+| §6 載具與煙／`computeCommute` | 11400-12419 | `function computeCommute(){` |
+| §7 繪製起點：`DIRSCR` / 雨雪 | 11928-11964 | `const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];` |
+| 粒子池 `fxParts` | 11963-12026 | `/* ---------- T159 粒子特效豐富化` |
+| `daylight()` | 12059-12065 | `function daylight(){` |
+| `streetHash` | 12418-12426 | `function streetHash(x,y,salt){` |
+| **T367 旋轉變換層** | 12427-12494 | `/* ===== T367 視角四向旋轉：view-space 變換層` |
+| 地面快取全域 | 12496-12518 | `let groundDirty=true,groundCache=null,` |
+| **`draw()` 全體** | 12519-14432 | `function draw(dt){` |
+| ├ 地面層與 groundCache 重烘 | 12657-12944 | `// ---- 地面層 ----（T96：離屏快取` |
+| ├ `objs` 收集與深度排序 | 13075-13242 | `// ---- 物件層（依深度排序） ----` |
+| ├ 地格分支（建築十餘層加疊） | 13505-14047 | `const t=o.t;` |
+| ├ 天氣後製與晝夜 multiply | 14048-14184 | `// ---- 天氣色調（雨天壓暗` |
+| └ 夜燈層 `nightSprites` | 14217-14229 | `// ---- 夜間燈光（T212` |
+| `drawCursor` / `drawHoverLabel` / `toTile` | 14414-14542 | `function drawHoverLabel(sxOf,syOf,z){` |
+| undo 群組 helper | 14531-14533 | `const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};` |
+| `commitRect` 批次施作 | 14729-14760 | `const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;` |
+| `UP_MAX` / `upCost` / `upgradeBld` | 14762-14779 | `const UP_MAX={9:15,6:10,7:10,11:10,12:10` |
+| `inspect()` 建築檢視面板 | 14781-15064 | `function svcStatTable(x,y,b){` |
+| §10 UI 起點：`buildToolbar` | 15441-15479 | `function buildToolbar(){` |
+| `drawMini` 小地圖 | 15530-15610 | `const MINI_VIEW_NAME=` |
+| `statTab` / `dataTable` / `serviceRefRows` | 15611-15676 | `T319 標準化數據表格產生器` |
+| `toast` / `updHud` / HUD 三鈕 | 15677-15742 | `T311 提示訊息不刷屏` |
+| 存檔槽面板／分享碼 | 15743-15817 | `function showSlots(){` |
+| 地圖／場景編輯器 | 15818-15908 | `function showEditor(){` |
+| 歷史曲線／城市顧問／因果追溯 | 15909-15995 | `function cityAdvisor(){` |
+| `showStats()` 統計面板 | 15996-16367 | `function showStats()` |
+| 通知中心／成就 | 16368-16428 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 16429-16609 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 16610-16715 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 16716-16778 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 16783-16894 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 16899-16900 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `load()` | 16901-17037 | `const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;` |
+| 自動存檔 | 17038-17039 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 17046-17087 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 17096-17203 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 17208-17691 | `window.GV={` |
 
-Script 內以註解分節（搜尋 `=====` 可跳轉）：
+外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
-| 節 | 名稱 | 內容 / 關鍵符號 |
-|----|------|----------------|
-| 0 | 小工具 | `$` `clamp` `lerp` `mulberry32`(種子隨機) `R`/`ri` `makeNoise`(值噪聲) |
-| 1 | 常數與狀態 | `TW=64 TH=32 N=72` `SAVEKEY` `DAYLEN=0.9` `CYCLE=110` `KNAME LVNAME POPS JOBSC JOBSI PLANT_CAP=50 COST TOOLS`；全域狀態 `money day speed pop jobs cityHappy dem msIdx tool muted visT simAcc cam`；`resize()` `T(i)` `idx(x,y)` `inMap` |
-| 2 | 程式化像素美術 | helper：`cv dia speck diaEdge isoBox windows outlineSprite shade plate`；`SPR` 註冊表；`buildSprites()`（全部 sprite）；`drawLogo()` |
-| 3 | 世界生成 | `genWorld(seed)` `computeFoam()` `newWorld()` |
-| 4 | 建造邏輯 | `recalcMask` `recalcAllMasks` `recalcRailMask` `recalcRailMask4`（軌道版，自己＋四鄰） `roadCostAt` `canPlace` `placeCost` `doPlace` |
-| 5 | 模擬 | `hasRoadNear` `computePower`(道路BFS) `countNear` `tick()`(一天) |
-| 6 | 小車與煙 | `cars smokes roadDirs DIRV updCars updSmoke` |
-| 7 | 繪製 | `stars waterF DIRSCR daylight() draw(dt) drawCursor` |
-| 8 | 輸入 | `hover pt rect pointers toTile isRectTool paintTo undoPlace` pointer 事件、`zoomStep clampCam commitRect inspect`；全域 `firstPaint dozeArm longPressT undoStack undoGroup openUndo closeUndo`（v1.2） |
-| 9 | 音效 | `AC initAudio tone sTick sBuild sErr sPop sFanfare` ＋ `sndMode` 三段開關與環境音排程器（T05）；T37 新增 `AudioComposer` 程序化背景音樂（依晝夜/天氣/冬季選 mood，Web Audio 即時合成，crossfade 過渡）與 `NPUComposer` 預留接口；T144 新增 `AmbientBus`（街噪/人聲/機械/鳥鳴四層程序化噪聲/振盪源，增益依 roadLoad/pop/achStats.nI/COV.park 即時指標平滑跟隨，疊加於 BGM 之上不取代） |
-| 10 | UI | `buildToolbar toast updHud showHint checkHints` 鍵盤快捷鍵；`drawMini`（T06 小地圖）、`showStats`（T04）、`showHelp`（T09）、`showSlots/匯出入`（T07）、`undo()`（T10）；`escHtml`（FIX-E 文案逸出） |
-| 11 | 存檔 | `save() load()` `recalcAllRailMasks()`（FIX-D：load 後軌道遮罩全量補算） 槽位化（T07）：鍵 `SAVEKEY+'.s1/.s2/.s3'`、目前槽 `'.slot'`、舊裸鍵自動遷移；覆寫前備份 `<key>_bak`（FIX-D）；自動存檔 25s + visibilitychange |
-| 12 | 主迴圈 | `advance(dt)` `frame(ts)`(rAF) + setInterval(250ms) 後備迴圈 |
-| 13 | 啟動 | `buildSprites buildToolbar resize drawLogo begin()`；`window.GV` 除錯 API |
+---
 
-## 2. 資料模型
+## 2. 資料模型與存檔（§11）
 
-`tiles`＝長度 N*N 的一維陣列，`idx(x,y)=y*N+x`。每格：
+### 它做什麼
+把 N×N 的 `tiles` 陣列與數十個全域壓成單一 JSON 字串塞 localStorage，並在讀檔時把所有衍生場重算回來。
 
-```js
-{
-  t: 0|1|2,        // 地形 0水 1沙 2草
-  tree: 0..4,      // 0無樹；1..4 = 樹變體索引+1
-  gv: 0..3,        // 草地外觀變體
-  road: 0|1, bridge: 0|1,   // bridge 隱含 road=1 且 t===0
-  mask: 0..15,     // 道路連接位罩（見§4 位向約定）
-  zone: 0|1|2|3,   // 分區 0無 1住宅 2商業 3工業
-  deco: 0..3,      // 裝飾 0無 1岩石 2蘆葦 3野花叢（T02；建造時自動清除）
-  bld: null | { k, lv, v, age, pw, h, sick?, sickDays?, death?, deathAge?, crime?, fire?, den? },
-  rp: false,       // 本格道路是否通電（computePower 每天重算）
-  wm: 0..15        // 水岸泡沫位罩（computeFoam 算）
-}
-```
+| 子區 | 行號 | 錨點 |
+|---|---|---|
+| 定長場陣列配置 `allocGrids` | 11632-11646 | `function allocGrids(){` |
+| tile 結構（兩個真相來源） | 8193（genWorld）／16915-16930（load） | `const tile={t,tree:0,gv:ri(4),road:0,` |
+| 槽位與鍵空間 | 16783-16797 | `function slotKey(n){` |
+| RLE 壓縮層 | 16798-16832 | `const RLE_F=['ter','tre','rd','zn',` |
+| `save()` 29 條 per-cell 字串 | 16833-16854 | `ter+=t.t;tre+=t.tree;zn+=t.zone;` |
+| `save()` bl 元組 | 16855-16870 | `const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];` |
+| `save()` 頂層欄位 ＋ `_bak` | 16871-16894 | `const data={v:1,n:N,gameVer:GAME_VER,` |
+| `load()` 驗證與重建 | 16901-17034 | `rebuildCov(); // T294` |
+| `undo()` 主體 | 16717-16740 | `function undo(){` |
+| undo 分組序列化 `closeUndo` | 14533 | `const closeUndo=()=>{` |
 
-`bld.k`：1住宅 2商業 3工業 4公園 5發電廠 6消防局 7學校 8垃圾場（9體育場=2×2 多格，T22）、10水塔 11警察局 12醫院 13診所 14圖書館 15郵局 16墓園；v3.0（T39-T60）追加 17火車站 18港口 19機場(4×4) 20停車場(2×2) 21輕軌站 22農場(2×2) 23牧場(2×2) 24地標(2×2) 25太陽能(2×2) 26風力 27污水廠 28救護站 29回收中心 30高級消防 31監獄(2×2) 32大學(3×3)；v3.5（T127）追加 33住宅摩天樓(2×2)/34商業摩天樓(2×2)——**非放置工具生成，由 tick() 對 2×2 全 lv3 同類分區建築機率合併而成，無 COST/TOOLS/canPlace/doPlace 分支**。`lv` 1..3（k≥4 恆1，33/34 恆 1）。`v`：k≤3 為 0..3，其餘 0..2（33/34 為 0..1，2 變體）；**例外（FIX-D）：k19/20/22/23/25/31/32 為單變體建築，`SPR.bld` 僅生成 `k_1_0`，放置端固定 `v:0`**（渲染兜底 `_0`、load 正規化）。v3.8（T138）追加 35博物館(2×2) 36劇院(2×2) 37水族館(2×2) 38動物園(3×3) 39遊樂園(3×3) 40電影院(1×1) 41圖書總館(2×2)；v3.8（T139）追加 42市政廳(2×2) 43法院(2×2) 44會展中心(3×3) 45研究院(2×2) 46氣象站(1×1) 47植物園(3×3) 48綜合醫院(3×3)（T138/T139 皆沿用既有多格建築 root+ref+MSZ+doze+draw+save/load 通用機制零改動，僅新增資料表項；k40/46 為單格建築，比照 station/ambulance 慣例不入 `MSZ` 表）；v3.9（T140）追加 49油井(1×1) 50礦場(1×1，皆比照 station/cinema 慣例不入 `MSZ` 表，須放在對應資源格上) 51太空研究中心(3×3)——**建築機制相異型別總數達 51**。
-v1.4 批次A 追加：`weather/wxT/flashT`（天氣，不存檔）、`inWinter()`（day 導出季節）、W 系列冬季 sprite、
-`garbage/garbCap/garbRatio`（垃圾，每天重算）、`t.rdec`（路飾，存檔欄位 rc）；GV 追加 weather(w)/flash()/setDay(d)。
-v1.5 追加：`bld.death`/`deathAge`/`sickDays`（死亡機制，存檔標記欄位 dt；FIX-A 追加可選欄位 skd=sickDays、dtd=deathAge 天數字串，上限 9，舊檔缺欄位容錯為 0）、k=16 墓園、`AudioComposer`/`NPUComposer`（T37/T38）。
-T61 追加：**服務覆蓋計數場 `COV`**（第 5 節 countNear 後）＝18 個 Uint8Array(N*N)：park/plant/fire/school/stadium/police/hospital/clinic/library/post/cemetery/bus/rdec＋v3.0（T67）擴 ambulance(r10)/fire2(r12)/prison(r8)/university(r10)/parking(r8)，各為「該格被幾座對應設施覆蓋」的計數（半徑見 `COVR`）。**運行時重建、不入存檔**（COV 純由 tile 導出）。維護只在唯一資料變更點：`doPlace` 放置 `stampCov(+1)`／拆除 `stampCov(-1)`（單體查 `covFieldOfK`、體育場 4 格逐格、其餘多格 k20/31/32 於 root 一次、rdec/bus 各自分支；FIX-D：k28/30 放置端補蓋對齊 doze 單格撤印，缺蓋會 Uint8 下溢 0→255）、`undoPlace` 誤放電廠撤印；`load`/`newWorld`/`undo` 後 `rebuildCov()` 全量重建。tick 內覆蓋判定改讀 `COV.xxx[idx]>0`（或計數），語義與原 `countNear` 完全一致。**工業(k=3)/犯罪(crime) 為 tick 內生長/火災/每日生滅之動態源，仍用 `countNear`**（未蓋印）。`countNear` 保留供其他用途。GV 追加 `cov(f,x,y)`/`rebuildCov()`。
-v3.0（T39-T60／T62-T100）追加：tile 旗標 `rail/railBridge/railMask`（鐵路）、`tram/tramBridge/tramMask`（輕軌）、`dock`（碼頭）、`wp`（水管，T31）、`office`（辦公區）、`oneway/light`（單行道/號誌）、`busLane`（公車道）、`parkMeter`（停車計費）、`levee/flood`（堤防/洪水）、`abandoned`（廢棄）；`GAME_VER='3.0'`（T100），存檔記 `gameVer`（T93）；§4 新增軌道版遮罩 `recalcRailMask(x,y)`（單格）與 `recalcRailMask4(x,y)`（自己＋四鄰，FIX-D 起 rail/tram 放置與拆除統一改用），§11 新增 `recalcAllRailMasks()`（對照道路版 recalcAllMasks，load／undo 後全量補算）。
-v3.2（T106-T115）追加：**污染擴散場 `POL` 家族**（T110，仿 §2 T61 `COV` 家族同款設計）＝`POL/POLBASE/POLTREE` 三個 Uint8Array(N*N)：`POLBASE`＝污染源原始衰減和、`POLTREE`＝樹木減免累計，對外曝光的 `POL` 由 `recomputePol(i)` 衍生（`POLBASE[i]-POLTREE[i]` 夾 0，避免 Uint8 無號下溢）；污染源表 `POL_SRC={3:{r:5,p:30},5:{r:6,p:40},8:{r:5,p:26},19:{r:6,p:34}}`（工業/電廠/垃圾場/機場，半徑內 Chebyshev 距離衰減）；`stampPolSrc`/`stampPolTree` 於 `doPlace`/`doze`/`undoPlace` 成對呼叫（唯二繞過 doPlace 的合法異動點：工業(k=3) tick 內生長新生成/燒毀焦土），`rebuildCov()` 同一次全圖掃描內順帶重建 POL（load/newWorld/undo 自動覆蓋）；住宅幸福公式接入 `-POL[ci]*.006`。GV 追加 `polAt(x,y)`（避開與稅率政策全域 `pol` 撞名）。
-其餘 v3.2 運行時全域（皆「每天重算或事件觸發、不入存檔本體」類，比照既有 `garbage`/`foodPoints` 慣例）：`happyParts`/`happyAgg`（T111，幸福構成明細，`tick()` 每日重算，GV 追加 `happyBreakdown()`）；`hist`（T112，`{d,money,net,pop,happy}` 環形緩衝上限 365 筆，`tick()` 尾端 push，GV 追加 `hist()`）；`log`/`unread`（T114，`toast()` 選填 x/y 座標同步 push `{d,m,c,x?,y?}` 進 log 上限 100 筆，HUD 🔔 按鈕讀 unread，GV 追加 `log()`/`unread()`）；`diff`（T115，難度 0-3＝簡單/標準/困難/沙盒，`DIFF_MONEY`/`DIFF_HAZ` 查表，沙盒經 `placeCost()`/`tick()` 短路免建造費與稅收維護費結算，GV 追加 `diff()`/`setDiff()`）。`hist`/`log`/`unread`/`diff` 四者 `newWorld()` 皆歸零（FIX-N 補齊 hist/log/unread；鐵律7：新全域須同步 newWorld 重置）。
+### 關鍵符號
+`SAVEKEY`（`glimmerville.v1`）、`slotKey/curSlot/setSlot/slotInfo`、`RLE_F/rleEnc/rleDec/saveDeflate/saveInflate`、`MSZ`、`vlen`、`data.v`（恆為 1）、`bl`、`rdepArr`、`SHARE_VER='GVX1:'`、`undoGroup`。
 
-v3.3（T116-T122）追加三種新災害實體（比照 §2 既有天氣/災害「不入存檔本體、newWorld/load 殘留重置」慣例，皆納入 FIX-K/FIX-L 同款重置行）：`tornado`（T116，`{x,y,dx,dy,life}` 或 null，移動實體，逐日沿 `(dx,dy)` 前進 1 格摧毀所到建築/樹木，`SPR.tornado[0..2]` 三幀漏斗雲動畫，不進存檔）；tile 新欄位 `crater`（T117，與既有 `ruin` 互斥，`meteorStrike(cx,cy)` 共用函式供自動觸發與 `GV.meteor` 共用，存檔新增可選欄位 `ctr`＝per-tile 字元串，仿 `rn`/`fl`/`le` 先例）；`riot`（T118，`{cells,days}` 或 null＋受影響住宅同步旗標 `bld.riot=1`，高犯罪住宅簇觸發、住宅停稅＋封路、警局覆蓋機率自然平息，存檔新增可選欄位 `riot`＝`{cells,days}` 最小結構，仿 `loan` 慣例，`load()` 於 tiles/bld 已重建完畢後逐格核對建築仍存在才收錄）。
-v3.3（T119）追加**服務車輛派遣抽象** `updDispatch(arr,dt,speed,cap,sts,cand,onArrive)`（第 6 節「小車與煙」附近，from/target/onArrive 三段式狀態機）：既有 `updAmbulances` 改為建立 `sts`/`sick` 候選池後呼叫該抽象（原始邏輯原樣搬入、位元一致），消防車 `updFireTrucks`（從 k=6/30 服務建築出勤，`onArrive` 撲滅覆蓋內燃燒建築）與垃圾車 `updGarbageTrucks`（從 k=8 出勤，`onArrive` 回傳全圖道路格新目標＝持續巡迴不消失）皆接上同一抽象；新增 `computeGarbLocal()`（比照 `busBFS` 走道路網多源 BFS，算住宅沿路距最近垃圾場距離，路距 >18 疊加垃圾懲罰，`garbLocal` 每日重算不進存檔）。`ladderTrucks`/`recycleTrucks`/`rbuses` 皆「車輛狀態不入存檔」類全域，`newWorld()`/`load()` 既有載具重置行尾端追加清空。
-v3.3（T120）追加 `busRoutes`（固定 3 條、每條最多 8 站，存 tile idx 陣列，存檔可選欄位 `bus_rt`）：路線工具 `busrt` 免費點選公車站建路線，`rbuses`＋`updRouteBuses(dt)` 依站序 ping-pong 往返（複用 `busBFS`），拆站自動剔除（`removeBusStopFromRoutes`），路線覆蓋住宅（半徑3 Chebyshev）折抵 `updCars` 小車生成率。GV 追加 `busRoutes()`/`setBusRoute(r,pts)`/`routeBuses()`/`busRtCovPop()`。
-v3.3（T121）追加地形編輯筆刷 `tdig`/`tland`/`traise`（挖水/填土/抬升削平，`$/格`，TOOLS 新分類 `terra`，1×1/3×3 筆刷）：`computeFoam()`/`computeElMask()` 全圖迴圈內部逐格演算抽成單格函式 `recalcFoamAt(x,y)`/`recalcElMaskAt(x,y)`（結構性重構、僅 `continue`→`return` 語法適配，判斷式與位元運算完全原樣，抽函式前後同種子全圖位罩逐位元組相等已驗證），另提供鄰域版 `recalcFoamNear`/`recalcElMaskNear`（自己＋四鄰，比照既有 `recalcMask`/`recalcMask4` 手法）供筆刷呼叫；`terraCells(x,y)` 共用 helper 列出筆刷涵蓋格供 `canPlace`/`placeCost`/`doPlace` 共用。存檔格式零變更（`t`/`el` 皆既有可選欄位）。
-v3.3（T122）追加**城市法規開關**（非稅收槓桿）：`pol` 政策物件擴四布林 `curfew`（宵禁，犯罪率×0.6、住宅幸福-0.02）/`recycle`（回收宣導，垃圾產量×0.85、每日$8支出）/`tourPromo`（觀光推廣，商業稅觀光子項×1.1、每日$10支出）/`ecoReg`（節能條例，商業稅×0.95、`computePower()` 每電廠供電容量+5）；沿 `pol` 既有整包序列化路徑存檔，`load()` 對 `d.pol` 整包覆寫、舊檔缺四布林時該欄位天然 `undefined`＝falsy＝預設全關，未新增存檔格式判斷分支。四計算點皆 `pol&&pol.xxx` 短路判斷，關閉時係數精確退化為 `×1`/`+0`，全關回歸基準（30 日序列逐值比對）零漂移。
+### 動它會踩到什麼
+- **每格恰好 1 個字元**：29 條 per-cell 字串每格只能寫單一字元。`skd/dtd` 用 `Math.min(9,…)`、`rcl` 用 `String.fromCharCode(48+rc)` 都是為此。**此不變量目前已被 `tre` 破壞**：T150 把樹種擴到 1..10，`tre+=t.tree` 在 tree===10 時寫兩個字元。實測 seed1／72² 新圖有 67 格 tree===10，`tre` 長 5251 而 N²=5184，一次 save→load 後 1365 格樹種錯位（首個錯位 idx=32）。`vlen()` 只驗 `ter` 長度，完全擋不住。同源風險：`dc`(≤9)／`zn`(≤3)／`rcl`(≤5)／`ow`(≤4) 現在還安全。
+- **源字串不得含 `*`**：rleDec 以 `*` 為 token 起點、`,` 為長度分隔。T312 初版用後置格式 `c+'*'+n+';'`，`'01111'` 編成 `'0*4;'` 有歧義＝靜默損壞，現行前置格式才無歧義，**不要「順手改回可讀性較好的後置格式」**。
+- **新增 per-cell 字串必須同步進 `RLE_F`**（16803）。漏加不壞資料但失壓，1000² 時單欄位就 1MB。
+- **存檔格式只准新增可選欄位**；load 端對缺欄位一律容錯。`data.v` 至今恆 1，代表 210 張卡全走這條路線。
+- **`bl` 是位置編碼**：第 6 位 fire（k9 時是 sz）、第 7 位 den、第 8 位 we，前面缺就要補預設佔位（16864-16865）。新增第 9 位不照抄這套寫法，load 端 `rec.length>=7/>=8` 的判斷會整組錯位。
+- **`sz` 不落盤（k9 例外），靠 `MSZ[k]` 反查補回**。缺表項＝ref 格全失、該地可被覆蓋建造（FIX-J）。
+- **ref 格重建是 load 的最後一步**（17021-17031），任何提前跑的重建都必須對 ref 格不敏感；k9 是唯一在 bl 迴圈就先建 ref 的特例（因為 rebuildCov 要對它的 ref 格蓋 stadium）。
+- **五處讀檔入口都要先 `saveInflate`**：16905／16909／16792／15790／15883。
+- **不入存檔的 state 必須在 `newWorld()` 與 `load()` 兩處成對歸零**（鐵律7）。特別是 `weather/wxT/rainDays/quakeRecover`——它們會改變 tick 內 `R()` 的呼叫次數，不歸零就跨分頁模擬分岔（FIX-K/FIX-L）。
+- **`townName` 未消毒**，可由分享碼進來，注入 innerHTML 前必過 `escHtml`（FIX-E）。
+- **T370 未爆彈**：`curSlot()` 對非法值回退槽 1，配 25 秒自動存檔 ＝ 任何在玩家 origin 載入遊戲的探針頁面 25 秒後蓋掉玩家槽 1。
 
-v3.4（T123）追加**住宅財富分級軸**：`bld` 新增欄位 `we`（0貧/1中/2富，僅 k===1 有意義，缺省視為 1 中）；新函式 `judgeWealth(x,y)`（置於 §COV/POL 家族 `rebuildCov()` 之後、`computeWater()` 之前）＝服務覆蓋數（police/school/hospital/park 各 `COV.xxx>0` 記 1 分）－`POL[i]*.05`－`countNear(4,crime)*.4` 加權評分，`score>=2`→2富／`score>0`→1中／其餘→0貧；住宅新建（`cell.bld` 字面量）與升級（`b.lv++` 成功後）皆呼叫 `judgeWealth` 寫入/重判 `b.we`。`WEALTH_NAME=['貧','中','富']`/`WEALTH_ICON=['🏚️','🏠','🏡']`（緊接既有 `DEN_NAME` 之後），`inspect()` 住宅分支新增財富徽記行。GV 新增 `wealthAt(x,y)`（比照 `polAt` 命名慣例，非住宅／越界回 `null`）。
-v3.4（T124）追加**財富分級經濟接入**：新常數 `WEALTH_TAX=[0.6,1,1.5]`/`WEALTH_PEN=[0.5,1,2]`（緊接 `WEALTH_ICON` 之後，貧/中/富）；住宅稅收（tick 經濟段）尾端乘 `WEALTH_TAX[we]`；`happyParts` 空氣污染／犯罪兩項乘 `WEALTH_PEN[we]`（`we` 缺省容錯 1，乘 1 不變）；新增**每 30 天重判存量住宅**區塊（升級迴圈之後、火災段之前）：全城 `b.k===1` 逐格呼叫 `judgeWealth` 與現值比較，`tgt>cur`/`tgt<cur` 各只 `±1`（漸變一次最多一級，非驟升驟降），不消耗 `R()`、走既有 `day` 計時；`showStats` 統計面板新增 `popP/popM/popR` 三累加器（沿用 `pop` 計算口徑）與「🏚️ 貧X%　🏠 中X%　🏡 富X%」占比行。硬性不變量：全城中產（`we` 缺省或顯式 1）時稅收/幸福公式與改動前逐位元一致。
-v3.4（T125）追加**財富分級外觀呈現**（純外觀層，沿用既有 PARTS 部件引擎換色換件，不畫全新建築）：`buildSprites` 絕對尾端（接在 T119 服務車輛區塊之後，遵守 FIX-B 亂數流尾端約定）為 `tasks` 中全部 24 組 k=1 `(lv,v)` 組合各生成貧/富兩套色變，鍵名 `1_lv_v_w0`/`1_lv_v_w2`（共 48 鍵）：富＝牆/屋頂色 `shade(+22/+14)` 提亮＋屋頂加天線（`PARTS.antenna`）與小花圃綠化色塊；貧＝新增 `desat()`（降飽和＋略壓暗）處理牆/屋頂色＋牆面補丁色塊（4 色票）；中產（we===1 或未生成鍵）完全不重繪，沿用既有 `SPR.bld['k_lv_v']` 鍵。新函式 `wealthSpr(baseKey,we)`（緊接 `buildSprites` 之後）：we===0/2 且對應鍵存在才回傳色變版，其餘（含 we===1/undefined/壞值/鍵缺失）一律回退 `SPR.bld[baseKey]`，不拋錯。`draw()` 住宅選鍵分支改呼叫 `wealthSpr`（外層仍保留原 FIX-D `_0` 變體鍵兜底）；`drawMini()` 於既有 `MINI_BLD_PAL` 賦值後對 `we!==undefined&&we!==1` 的住宅用 `shade(c,we===2?18:-18)` 微調小地圖明度。
-v3.5（T126）追加**放置/選中遮擋透明機制**（玩家實測反饋，純繪製層疊加，不改排序/點擊判定/模擬）：`draw()` 物件層排序繪製迴圈之後、逐物件 `drawImage` 迴圈之前新增 `occTargets` 目標列表——工具啟用＋有效 `hover` 時放入游標格錨點；新全域 `selTile`（`{x,y}` 或 `null`，比照 `hover`/`rect` 純 UI 狀態慣例，不進 `newWorld`/`load` 重置，由 `inspect()` 命中真實建築時寫入、`hideInfo()` 清空）有效時放入選中建築格錨點，兩者各自可選、互不依賴；每個目標記錄錨點螢幕座標＋等距 `dep` 值。建築繪製主 `ctx.drawImage(s.img,bx,by,...)` 呼叫前逐目標做「螢幕包圍盒覆蓋錨點且 `o.dep>目標dep`（在其前方）」判定，命中則暫時 `ctx.globalAlpha=.35` 包住該次 `drawImage` 再復原，僅該棟建築降透明。硬性不變量：`occTargets` 為空陣列時迴圈零迭代、`occA` 恆 1、不觸碰 `globalAlpha`，故無工具無選中時逐像素零改動；`drawCursor()`（`draw()` 內絕對最後一次呼叫）呼叫時機不受影響，遮擋建築半透明時游標仍完整可見。
-v3.5（T127）追加**摩天樓合併**（k=33 住宅塔／k=34 商業塔，2×2，沿用 v3.0 多格建築架構 root+ref+sz，非 DRAFTS/mkBld 單格管線——比照機場4×4/大學3×3等既有多格建築皆為 `buildSprites` 內獨立區塊之先例）：`tick()` 升級段後、財富 30 天重判之後、火災段之前新增合併判定區塊——掃 2×2 全 lv3 同類分區建築（`b.k===1||b.k===2`）、四格皆 `pw&&wa&&!fire`、`cityHappy>.55`、對應 `dem[1]/dem[2]>.3`，每格合格 2×2 簇每天 `R()<.02` 機率合併（本輪已合併格以 `Uint8Array` 標記避免相鄰候選重疊消耗）：四格 `bld` 清除、root 置 `{k:33|34,lv:1,v:ri(2),age:0,pw:true,wa:true,h:1,sz:2}`、其餘三格 `{k,ref:[rx,ry]}`；`t.zone` 全程不動（沿用既有值），故拆除後自然「退分區」可再生長。新常數 `TOWER_MULT=1.15`／`TOWER_POP=Math.round(POPS[3]*4*1.15)=248`／`TOWER_JOBS=Math.round(JOBSC[3]*4*1.15)=175`（緊接 `WEALTH_PEN` 之後）：人口/就業計數迴圈新增 `trR`/`trC`（root 計數），`pop=popN+trR*TOWER_POP`、`jobs=...+trC*TOWER_JOBS`；經濟 else-if 鏈新增 `k===33`/`k===34` 顯式分支（防 T61 幽靈稅教訓），稅收＝`TOWER_POP*.12*taxR`／`TOWER_JOBS*.18*taxC`（未疊加商業稅原有路況/公車/郵局/觀光乘數鏈，為簡化設計，已於卡面驗收確認）。`MSZ` 表新增 `33:2,34:2`（tick() 合併生成、無 doPlace 分支，load() 仍需由此表反查補 sz 供 ref 格重建）；`KNAME` 新增 `33:'住宅摩天樓'`/`34:'商業摩天樓'`；`MINI_BLD_PAL` 尾端加 2 色（索引 33/34）；`inspect()` 於既有 k 特判鏈新增 `k===33`/`k===34` 分支（早於 LVNAME 通用 fallback，避免誤入 k≤3 專用邏輯）。多格建築通用機制（doze 從任一格解析 root 整棟清除、draw() 依 `bd.sz>=2` 定位、objs 收集跳過 ref 格、save() 只存 root 5 元素、load() 由 MSZ 反查重建 ref）對 k=33/34 全部原樣適用，未新增任何專用分支。新 sprite：`buildSprites` 絕對尾端（接在 T125 尾端新增之後）為 k=33/34 各生成 2 變體（畫布 136×230、footprint 同既有 2×2 建築 hw=28、牆高 150/168px 落在卡面「140-170px」區間、窗距 gx4/gy5/litP.82「夜窗滿版」、v0 樓頂水塔+天線、v1 樓頂直升機坪+天線，皆含夜間警示燈），鍵名 `33_1_0`/`33_1_1`/`34_1_0`/`34_1_1`，`draw()`/`load()` 既有 `SPR.bld[k+'_'+lv+'_'+v]` 通用 fallback 自動取用、未新增選鍵分支。硬性不變量：合併機率判定的 `R()` 呼叫僅在四格結構性條件（同類 lv3、pw/wa/fire）與 `cityHappy`/`dem` 雙門檻皆通過後才觸發（短路求值），未合併城市（無合格 2×2 簇或城市不快樂）R() 消耗為 0，模擬與改動前位元一致。
-v3.5（T128）追加**建築細節密度提升**（屋頂雜物+立面件，純視覺疊加層，不畫新建築、不新增 `SPR` 鍵）：`buildSprites` 絕對尾端（接在 T127 摩天樓區塊之後）新增 `detailPass()`——遍歷 `tasks`（k=1/2/3 DRAFTS 建築，含 T125 財富色變 `_w0`/`_w2` 鍵）與 T127 摩天樓 4 鍵，在既有已完工 sprite 畫布上直接補畫：屋頂雜物（`acUnit` 空調外機／`ventPipe` 通風管／`storageBox` 儲物箱／`solarPanel` 太陽能小板）、立面件（`balconyRail` 陽台欄杆／`flowerBox` 窗台花箱／`clothesline` 曬衣繩／`signLightbox` 店招燈箱），密度依 `DENS[lv]` 遞增（lv1 少、lv3 密，塔樓比照最密）。安全範圍推導：`roofHalfW(hw,ry)` 沿用 `dia()` 內部展開式算屋頂菱形逐列半寬、`wallCol(cx,by,dx,side)` 沿用 `isoBox` 逐列 `yF` 公式算牆面矩形逐列範圍，皆先扣安全邊距再夾限，保證只疊加在既有非透明區域、不越出建築剪影；細節色一律由該建築 `PAL` 牆/屋頂色 `shade()` 深淺派生。夜光件（店招燈箱／機電指示燈）同步補進 `night` 圖層。`window.__noDetail`（預設 `undefined`＝關）：真時整段跳過 `detailPass()`，其前全部生成序列（含既有 rand/`R()` 消耗次序）零位移；純尾端疊加，未新增 `SPR.xxx` 鍵，`wealthSpr`/`draw()`/`load()` 既有取鍵路徑不變。
-v3.6（T129）追加**道路壅堵模擬**（比照 §2 既有 COV/POL 場家族設計，運行時場、不入存檔）：`roadLoad`＝`Float32Array(N*N)` 衰減式移動平均車流（`tick()` 起手依當日累計 `roadPass`〔`Uint16Array(N*N)`，`updCars` 車輛切格瞬間遞增，純累加不消耗 `R()`〕套公式 `load=load*.85+pass*.15` 更新並歸零 `roadPass`）；新常數 `ROAD_CAP=[1,2,4,8,16]`（依 `rc` 1-5 索引，同 `ROAD_SPEED` 慣例）、`ROAD_JAM_K=1`。三處接線：①`updCars` 速度計算尾端 `speed*=clamp(1-max(0,load-cap)/cap*ROAD_JAM_K,.3,1)`（`load≤cap` 精確恆等 `×1`）；②`draw()` 道路繪製區塊 `!lodFar` 下 `load>cap` 才疊黃→紅暖色菱形（`globalAlpha .16~.5`），不改道路 sprite 本體；③新函式 `congestNear(x,y,r)`（`countNear` 泛型 `pred` 拿不到鄰格 idx，故仿 `stampCov` 手法自查）供 `happyParts` 新增「交通壅堵」項（每格過載道路 -0.03、上限 -0.15）。`newWorld()`/`load()` 既有車輛重置行尾端追加 `roadLoad.fill(0);roadPass.fill(0)`（鐵律7）。硬性不變量：空車城（`roadPass` 恆 0）`load` 恆 0，`speed` 折減恆為 1、`happyParts` 壅堵項恆為 0，經 Node 位元回歸（同種子對照 T129 前後版本，全空地圖與 `pop<45` 有道路兩種情境）逐位元組驗證零漂移。GV 新增 `loadAt(x,y)`/`roadCapAt(x,y)`/`setLoadAt(x,y,v)`（後者供測試快速注入過載，跳過自然車流累積）。T130（地價系統）預留錨點於 `roadLoad` 宣告處註解，本卡未實作接線。
-v3.6（T130）追加**地價場**（統一環境因子的綜合場，比照 §2 既有 COV/POL 家族設計）：`LAND`＝對外曝光值、`LANDBASE`＝靜態基準，皆 `Uint8Array(N*N)`（0-255，128 中性基準），不入存檔。`landStaticAt(x,y)`（置於 `stampPolTree` 之後、`rebuildCov` 之前）＝服務覆蓋（警/消/校/醫/圖/郵各 `COV.xxx>0` 記1分，0~6）＋景觀（`COV.park` 封頂2分）－污染 `POL[i]*1.2`－犯罪 `countNear*10`（犯罪為動態源，比照 `judgeWealth` 用 `countNear`，未蓋印），`clamp(128+...,0,255)`；**景觀項僅取玩家可控的 `COV.park`，不含天然樹木/水岸**——`genWorld` 恆保留 6%-42% 水域（`newWorld` 重試迴圈 `w>.06&&w<.42` 保證），若計入天然地形將無法滿足「空曠新圖 LAND 恆 128」硬性不變量，此設計取捨已於卡面驗收確認。`landCongestAt(x,y)`＝`min(50,congestNear(x,y,2)*12)`（動態壅堵懲罰）；`recomputeLandDynamic()`＝全圖以 `LANDBASE-landCongestAt` 衍生 `LAND`（先夾 0 避免 Uint8 無號下溢，手法同 T110 `POL=POLBASE-POLTREE`），`rebuildCov()` 尾端（`LANDBASE` 全量重建後）與 `tick()` 每日（`roadLoad` 衰減更新後）皆呼叫；`load()` 因既有 `rebuildCov()` 呼叫先於 `roadLoad.fill(0)`（與 `newWorld()` 順序相反），於歸零後補一行 `recomputeLandDynamic()` 確保壅堵項同步（鐵律7，未調動任何既有行順序，僅追加新行）。四處接線：①生長機率（growZones）乘 `landMul=1+(LAND[i]-128)/128*.4`；②`judgeWealth` 加一項 `landTerm=(LAND[i]-128)/128*.5`（附加，不取代既有服務/污染/犯罪項）；③住宅稅收乘 `landTaxMul=1+(LAND[i]-128)/128*.15`；④`drawMini` 新增 `miniView===2` 地價視圖（冷藍 `rgb(42,74,138)`→暖紅 `rgb(216,68,42)` 依 `LAND/255` 線性插值），`miniToggle` 三段循環（🏭一般/🗺️污染/💰地價）。GV 新增 `landAt(x,y)`。硬性不變量：LAND=128 時四處係數精確恆等 `×1`／`+0`（`128-128=0` 整數精確），且「空曠新圖」（無任何玩家操作，genWorld 天然水域/樹木不影響 LAND）30 天經濟序列與改動前逐位元組完全一致（獨立 Node harness 驗證，含全空地圖與有道路無建築兩種情境）。
-v3.6（T131）追加**資訊圖層擴充＋城市顧問**（純資訊層彙總，不改任何模擬公式、不改存檔格式）：**小地圖視圖**由 T110/T130 既有「0一般/1污染/2地價」三段重排擴充為六段循環——`miniView` 0~5 對應「一般/地價/污染熱度/壅堵/犯罪熱點/服務覆蓋」（原污染/地價順序互換以符卡面條列次序，`miniView` 純執行期 UI 狀態、不入存檔，重排不影響任何已存資料）；新常數 `MINI_VIEW_NAME`/`MINI_VIEW_ICON`（緊接 `MINI_BLD_PAL` 之後，兩個 6 元素陣列供按鈕圖示與 `title` 標籤化）；`drawMini()` 新增三段視圖分支：`miniView===3` 壅堵讀 `roadLoad[i]/ROAD_CAP[(t.rc||2)-1]`（沿用 T129 場，比例綠→紅漸層，非道路格用底色）、`miniView===4` 犯罪熱點讀 `countNear(x,y,4,tt=>tt.bld&&tt.bld.k<=3&&tt.bld.crime)`（與 `landStaticAt`/`judgeWealth` 同款既有判定式）紅色深淺分級、`miniView===5` 服務覆蓋讀 `COV.police/fire/fire2/school/hospital/clinic/park` 六欄算 0-5 分紅→綠漸層；`miniToggle` 改 `(miniView+1)%6`、圖示與 `title` 由新常數陣列驅動。**城市顧問**：新函式 `cityAdvisor()`（緊接 `showStats()` 之前，§10 節）單次全圖掃描（O(N²)，僅 `showStats()` 開啟時呼叫，不掛 `tick()`/`draw()`，不加每幀成本）彙總九類候選——五項服務覆蓋缺口（警/消/醫/校/公園，`miss[f]/zoned>.2` 才列入，文案帶「加蓋 XX」建議）、污染熱點（全城 `POL` 最大值所在已分區建築格，`>15` 才列入，帶座標）、犯罪熱點（`countNear(...)>=2` 之全城最高格，帶座標）、壅堵熱點（`roadLoad/cap` 比例最高道路格，`>1` 才列入，帶座標）、RCI 最緊缺類別（`dem[1/2/3]` 取 `>.3` 且最高者）、財政趨勢（`fin.net<0` 才列入）；各自算 `sev`（0-1 嚴重度）後 `sort` 降冪、`slice(0,5)` 取前 3-5 條，索引 0（最嚴重）標紅 `#e05252`；帶座標項標記可點擊，`showStats()` 綁定 `click`→換算 `cam.x/cam.y`（公式與 T06 小地圖跳轉先例相同）+`clampCam()`+`drawMini()`+`hideInfo()` 跳鏡頭；`advHtml` 插入既有樣板「幸福構成」後、「⭐ 評分」前，空清單（無候選或全城健康）回退「✅ 目前沒有待辦建議」空態文案，不崩潰。硬性不變量：`cityAdvisor()`/小地圖視圖擴充皆為只讀展示層，經獨立 Node harness（全空地圖／有道路無建築／自然生長三種情境，同種子對照改動前後）驗證 `GV.stats()`＋全圖 `GV.tile()` 序列化雜湊＋`GV.polAt`/`GV.landAt`/`GV.loadAt` 全圖雜湊逐位元組完全相等，對模擬狀態零副作用。
-v3.7（T132）追加**場景／任務戰役模式**（模式軸，比照既有 T88 挑戰模式/T115 難度慣例擴充為完整關卡框架）：新 `SCENARIOS`（8 條，`{id,icon,name,seed,cash,goal:{type,target,byDay|hold},fail:{type,byDay},bonus,intro,win,lose}`）覆蓋 pop人口/cash資金/star星級/happy幸福維持(連續 hold 天)/debt零負債(破產立即失敗)/disaster災後重建/coverage服務覆蓋率(`scenarioCoverage(field)` 讀 COV 家族) 七種目標型別；新全域 `scenario`（進行中場景 `{id,startDay,hold}`，null＝一般/沙盒/挑戰模式）、`pendingScenario`（選關暫存、不進存檔）、`scDone`（已通關 id 集合，落 localStorage 獨立鍵 `SAVEKEY+'.scDone'`，跨局/跨存檔持久、不隨 `newWorld`/`load` 重置）。開始畫面新增「🎯 戰役」按鈕展開/收合 8 關選單，依前一關 `scDone` 狀態算鎖定/已通關/可選三態；`begin(fresh)` 選關時套用 `pendingScenario` 的 seed/cash，強制標準難度，設定 `scenario`＋開場敘事 toast，`#bNewGame`/T88 挑戰鈕皆補 `pendingScenario=null` 防殘留。`tick()` 新增場景檢查區塊（緊接 T88 挑戰檢查之後，`scenario` 為 null 時整段不進入、零 `R()` 消耗）：`scenarioGoalMet`/`scenarioFailMet`（置於 `meteorStrike` 之後、`tick()` 之前）複用既有全域狀態判定，達標→勝利 toast＋`money+=bonus`＋寫入 `scDone`＋`sFanfare()`；逾期未達標→失敗 toast；兩者皆清空 `scenario`。存檔新增可選欄位 `sc`（`{id,startDay,hold}` 或 null，仿 `loan`/`riot` 最小結構慣例）；`newWorld()`/`load()` 皆將 `scenario` 成對重置為 null（鐵律7），`load()` 讀 `d.sc` 還原。GV 新增 `scenario()`/`startScenario(id)`/`clearScDone()` 測試鉤子。
-v3.7（T133）追加**城市等級階梯**（緊接 T132 `scDone` 宣告之後）：新 `RANKS`（26 級，`{name,threshold[,unlock]}`，門檻嚴格遞增 0~29750，對標 TheoTown 65 級 rank 進度感的壓縮版，4 級掛未來版本解鎖文案）；新全域 `rankIdx`（目前等級 0-based，只升不降的晉升進度，仿 `msIdx`/`bestStar` 慣例）與 `cityPoints`（不進存檔，`tick()` 每日重算）。新函式 `computeCityPoints()`（置於 `scenarioFailMet` 之後、`tick()` 之前）：單次全圖唯讀掃描直接彙總人口（`b.k===1` 依 `POPS`/`DEN_POP` 加總＋`b.k===33` 摩天樓計 `TOWER_POP`）＋幸福（`(cityHappy-.6)*400`，取相對基準差值確保零人口新城市幸福項精確為 0）＋服務覆蓋率（住宅分區格中被警/消/校/醫/公園 5 大服務覆蓋的平均比例 `*800`），不消耗 `R()`、不寫入任何模擬狀態，`tick()`/`load()`/`newWorld()` 皆可安全呼叫。`tick()` 於既有城市評分區塊之後新增等級 while-ratchet（達門檻即晉升，只升不降，不發獎金），toast「🏙️ {鎮名}升至 Lv.{N} {級名}！」（若該級有 `unlock` 掛點文案再追加一行）；`newWorld()` 成對重置 `rankIdx=0;cityPoints=0`（鐵律7）；`save()` 新增可選欄位 `rk:rankIdx`；`load()` 於 `rebuildCov()`/`recomputeLandDynamic()` 之後呼叫 `computeCityPoints()`，`d.rk` 存在則直接還原（保留只升不降的晉升歷史）、缺欄位（舊檔）則由當前城市狀態即時 while 迴圈算出合理等級（不因缺欄位降級為 Lv.1）。**解鎖掛點框架**：`buildToolbar()` 篩選迴圈新增 `if(t.unlockRank&&rankIdx+1<t.unlockRank)continue`——目前全部 TOOLS 條目皆未設 `unlockRank`，判斷恆為 false，既有 34 種建築在任何等級都可放、不 re-lock，純為未來大型建築預留門檻掛點。`showStats()` 新增等級區塊（級名/Lv.數/當級 unlock 文案／進度條）。GV 新增 `rank()`（`{idx,lv,name,unlock,points,next}`）／`cityPoints()`。
-v3.7（T134）追加**成就擴充階層鏈**：`ACHS` 由 8 條擴至 34 條（原 8 條 id/nm/t 逐字未動，僅另建 `ACH_META`（id→`{ic,desc,cat,prog}`）補齊顯示中繼資料，不碰原始行）——新增 3 條銅／銀／金三階鏈（`metro` 人口 1,000/10,000/100,000、`civic` 城市等級 Lv.6/13/26 交叉 T133 `rankIdx`、`svc` 服務設施種類數 6/11/16）與 17 條單一成就（含 7 條 `hidden` 隱藏成就，其中 `saga1`/`saga_all` 交叉 T132 `scDone` 場景戰役通關記錄），共 7 個分類（人口/建設/服務/財政/城市成長/場景戰役/特殊）。`tick()` 成就檢查觸發點擴充讀取指標：`svcTypes`（16 種服務建築存在數，由既有計數變數純衍生，不新增迴圈）、`towers`（`trR+trC`）與既有 `bridges/parks/plants/nI/roads/so/wi/st/po/ai/tr/un`，組成 `achStats` 全域快照（比照 `fin`/`region` 慣例，`tick()` 每日重算、不入存檔、不消耗 `R()`）；`newWorld()`/`load()` 尾端成對重置 `ach`/`achStats`（鐵律7）。新增成就面板 `showAch()`（複用 `#infoBody`/`.row` 樣式，仿 `showStats()`/`showLog()` 先例）：HUD 新增 🏆 按鈕（`#bAch`），分類顯示（`ACH_CAT_ORDER`/`ACH_CAT_NAME`）、雙層 div 進度條、🥉🥈🥇 階層徽記、已解鎖 ✅ 金色高亮，隱藏成就未解鎖時名稱/描述顯示「？？？」／「尚未解鎖的隱藏成就」＋❔ icon。存檔格式零變更（`ach` 仍是既有 id 陣列格式，34 條定義對舊檔天然向後相容）。GV 新增 `achs()`/`achDone()`/`achStats()`/`forceAch(id)`（測試鉤子，僅標記 `ach[id]=1`、不觸碰模擬狀態）。
-v3.7（T135）追加**地圖/場景編輯器＋分享碼**（模式軸，緊接 T132 場景框架之後、複用其判定管線）：新編輯器模式旗標 `editMode`（`newWorld()`/`load()` 尾端成對重置為 false，鐵律7）——進入即設 `diff=3` 直接複用既有 T115 沙盒短路（`placeCost()`/`tick()` 既有 `diff===3` 分支），免費建造＋地形筆刷全開＋不跑經濟皆為既有機制零改動；`editMode` 本身純粹只控制 HUD 新按鈕「🛠 目標」（`#bEditor`）與開始畫面「🛠 編輯器」入口（`#bEditorMode`）的顯示/流程，不參與任何模擬判斷。開始畫面新按鈕點擊即 `diff=3` 後 `begin(true)`（開新圖）再補設 `editMode=true`。**目標設定 UI**：新全域 `editorGoal`（純 UI 草稿，比照 `terraBrush`/`miniView` 慣例不進存檔）＋`showEditor()`（複用 `#infoBody`/`.row`/`.hbtn` 樣式，仿 `showSlots()` 先例）列 6 種目標型別按鈕（複用 T132 `scenarioGoalMet` 既有 pop/cash/star/happy/debt/coverage 詞彙）、起始資金／期限天數設定、匯出／離開按鈕。**序列化**：`importShare()` 拆分為核心 `importShareCode(code)`（不依賴 `prompt()`，供 UI 與 GV 測試鉤子共用）＋沿用既有 base64 路徑，新增可選版本前綴 `SHARE_VER='GVX1:'`——有前綴才解析內含的 `egoal` 目標包（`buildEditorShareData()`/`exportEditorShare()` 匯出時把 `editorGoal` 打包進當前存檔 JSON 的 `egoal` 欄位再整體 base64）；`importShareCode` 匯入時若偵測到 `egoal` 先從物件剔除（`delete d.egoal`）才寫回 `localStorage`（硬性不變量：編輯器產物不侵入常規存檔，`save()`/`load()` 本體零改動），再依 `egoal.goal.type` 是否存在決定要不要額外設定 `scenario={id:'custom',startDay,hold:0,custom:true}` 與新全域 `customScenario`（複製 egoal 的 goal/fail/win/lose/bonus，`newWorld()`/`load()` 尾端成對重置為 null）、套用 `egoal.cash` 為起始資金並強制 `diff=1`；舊版無前綴分享碼與畸形 `egoal` 皆優雅忽略、地圖仍正常匯入，超長碼與非法 base64/JSON 一律 `catch` 後回傳 false＋toast「分享碼無效／過長」不崩潰。**匯入自製場景載入戰役模式執行**：`tick()` 既有 T132 場景檢查區塊改為 `const sc=scenario.custom?customScenario:SCENARIOS.find(...)`（`scenario.custom` 於既有 8 條內建場景恆為 `undefined`，故該三元運算式對內建場景行為與改動前逐位元一致），複用同一 `scenarioGoalMet`/`scenarioFailMet`/勝負 toast 管線；自製場景達標/逾期後同步清空 `scenario`＋`customScenario`，且不寫入官方 `scDone` 通關集合。GV 新增 `editorOn`/`editorEnter`/`editorExit`/`editorGoal`/`editorSetGoal`/`editorExportCode`/`importCode`/`customScenario`（繞過 `prompt()`/剪貼簿，供自動化驗收）。
-v3.8（T136）追加**真四季循環**（世界系統超越，把既有二元冬季擴為春/夏/秋/冬四季）：新函式 `season()`（緊接既有 `inWinter()`/`wSeason` 之後宣告）由 `day` 年內位置導出 0-3（春/夏/秋/冬），算式 `doy=(day-1)%360; doy>=300?3:doy>=200?2:doy>=100?1:0`——`season()===3` 與既有 `inWinter()`（`(day-1)%360>=300`）精確同義，`inWinter()` 本身原樣保留、零改動，既有天氣不觸發閃電／composer 冬季情緒／happyParts「冬季」項等既有冬季路徑繼續沿用不變；新常數 `SEASON_NAME=['春','夏','秋','冬']`/`SEASON_ICON=['🌱','☀️','🍂','❄️']`／三個系統效果乘數表 `FARM_SEASON_MULT=[1,1.15,1.4,0.4]`（農場產量春播基準/夏長/秋收峰/冬歇）、`POWER_SEASON_MULT=[1,0.9,1,0.85]`（電力需求壓力，夏季冷氣/冬季暖氣使有效供電容量打折，春秋基準）、`TOUR_SEASON_MULT=[1,1.3,1.2,0.85]`（觀光夏秋雙高峰）——四表皆以「春＝基準季、乘數精確為 1」設計，確保同種子回歸在春季區間（day 1-100）與 T136 前基準逐位元組完全一致。**系統接線**（`tick()` 起手新增 `const sea=season();` 供全函式共用，不消耗 `R()`）：①供電容量 `const cap=Math.floor(computePower()*POWER_SEASON_MULT[sea]);`（僅影響 tick() 內部 cap 變數，`computePower()` 本身不變、`region.powerCap` 顯示值不受季節影響）；②`foodPoints=Math.round(fa*3*FARM_SEASON_MULT[sea])+ra*2`（牧場 ra 不隨季節變動）；③`tourists=Math.round((la*25+ai*40+st*5)*TOUR_SEASON_MULT[sea])`。**視覺**（`buildSprites` 絕對尾端，接在 T128 detailPass 之後，新增 `tintCanvas(src,w,h,col,a)` helper 以 `source-atop` 合成疊色，只在既有不透明像素上疊色不改剪影、不消耗共用 `rand()` 流）：由已完工的 `SPR.grass`（4 變體）/`SPR.tree`（含 T104 擴充後 7 款）逐張衍生 `SPR.grassS`/`SPR.grassA`（夏／秋地面色，長度 4）與 `SPR.treeS`/`SPR.treeA`（夏／秋樹色調，長度 7），陣列長度與日版/`SPR.grassW`/`SPR.treeW` 一致（冬季鐵律）；`draw()` 地面層選鍵三元鏈（含 `lodFar` 遠景實色分支）與物件層樹木選鍵皆擴充 `win?冬:sea===1?夏:sea===2?秋:(春，與改動前同一分支表達式)`，春季（`sea===0`）像素與亂數流零改動；`AudioComposer.pickMood()` 於既有 `storm`/`rain`/`winter`/`night` 判斷之後（皆不變動）新增 `sea===1?'summer':sea===2?'autumn':'day'`（`MOODS` 新增 `summer`/`autumn` 兩情緒定義），原本恆回 `'day'` 的晴日白晝區間依季細分。HUD `#date` 與 `showStats()` 新增季節圖示/名稱與三係數顯示。**存檔**：season 純由 `day` 導出，未新增任何存檔欄位（若干任務曾用之 `wSeason` 全域維持原意不變）。GV 新增 `season()`（回傳 `{idx,name,icon,farmMult,powerMult,tourMult}`）／`setSeason(s)`（直接跳到該季第一天，回傳形狀同 `season()`，同 `setDay` 屬 sim 鉤子）。
-v3.8（T137）追加**災害擴充 6→10 種**（皆因果觸發，比照 §2 v3.3 T116-118 disastersOn 區塊慣例＋利用 T136 `season()`）：新全域 `plague`（null 或 `{cells,days}`，仿 `riot` 慣例）、`drought`（布林，不進存檔）、`blizzard`（null 或 `{days,type:'snow'|'sand'}`，不進存檔）；`tick()` 既有 `if(disastersOn){...}` 區塊（`riot` 段之後）新增三段：**瘟疫**複用 `riot` 熱點簇掃描手法（`countNear(x,y,3,tt=>tt.bld&&tt.bld.k===1)>=PLAGUE_DENSITY(6)` 且未受 `COV.clinic`/`COV.hospital` 覆蓋才列入候選），命中且 `R()<.02*DIFF_HAZ[diff]` 觸發，健康設施覆蓋每日 `R()<.5` 自然平息（比照警局平息暴亂）、感染格 `b.h` 持續 -0.02；住宅稅收 else-if 分支追加 `&&!b.plague`（產能停擺）；`showStats()` 新增 `plagueBtn`（$150 隔離全部感染格，仿 `riotBtn`）。**乾旱**：夏季（`sea===1`）`R()<.003*DIFF_HAZ[diff]` 觸發，`tick()` 起手 `sea!==1` 即自動解除（季末解除）；接線 `wCap=Math.floor(computeWater()*(drought?.6:1))`（供水上限）、起火機率 `p*=drought?2.5:1`（火險），非乾旱精確恆等 ×1。**暴風雪/沙暴**：冬季（`sea===3`）或夏季（`sea===1`）低機率觸發，型別依季節決定；`draw()` 天氣色調段落之後疊加全屏色（雪白藍/沙土黃 `rgba` 半透明，獨立於既有 `weather` 色調不衝突）；`updCars()` 沿用 T118 `riotBlockedRoad` 車速歸零之後新增 `if(blizzard)speed*=BLIZZARD_SPEED_MULT(.15)`（弱化版車速癱瘓，非全鎖）。**工業洩漏**（獨立 `if(disastersOn){...}` 區塊，置於火災段之後以同時捕捉本日新起火與既有延燒/地震等災害引燃）：新運行時場 `leakDays=new Uint8Array(N*N)`（不進存檔）＋新函式 `startLeak(x,y)`（置於 POL 家族 `stampPolTree` 之後，供 `tick()` 與 `GV.leak` 共用，仿 `stampPolSrc` 加法對稱手法疊加 `LEAK_POL_SPIKE(60)`、`leakDays` 天數倒數期滿撤回，比照隕石坑持續危害樣板改顯式天數版）；工業建築正在燃燒且尚無洩漏時 `R()<.5*DIFF_HAZ[diff]` 觸發，持續 `LEAK_DURATION(6)` 天。GV 新增 `plague()`/`drought()`/`blizzard()`/`leak(x,y)`（皆 `!disastersOn` 短路回 false，`drought` 額外要求當下為夏季，仿 `quake`/`riot` 慣例跳過每日機率骰直接觸發）、`disasters()`（列舉 10 種災害 id＋總數＋開關狀態）、`plagueDays()`/`droughtOn()`/`blizzardAt()`/`leakDaysAt(x,y)`（測試鉤子）；`showStats()` T115 沙盒鈕列新增一行 `sbPlague`/`sbDrought`/`sbBlizzard`/`sbLeak`。**存檔**：`plague` 新增可選欄位（`{cells,days}`，仿 `riot` 存最小結構，`load()` 於 `riot` 還原之後同批還原）；`drought`/`blizzard`/`leakDays` 皆運行時狀態不入存檔，`newWorld()`/`load()` 既有 FIX-K/FIX-L 天氣/災害殘留重置行尾端追加四者成對重置（鐵律7）。本卡未新增建築種類，多格建築架構／`COV`／`MSZ` 皆未觸碰。
-v3.8（T138）追加**文化娛樂建築**（建築型別擴充 上，k=35-41 共 7 種：博物館2×2/劇院2×2/水族館2×2/動物園3×3/遊樂園3×3/電影院1×1/圖書總館2×2，建築機制相異型別 34→41）：全部沿用既有多格建築 root+ref+`MSZ`+doze+draw+save/load 通用機制零改動——`MSZ` 表補 `35:2/36:2/37:2/38:3/39:3/41:2`（k40 電影院 1×1 不入表，比照 station/ambulance 慣例）；`doPlace` 比照 university(3×3)/prison(2×2) 既有寫法逐格填 root+ref。經濟每個新 k 顯式 else-if 空分支（防 T61 幽靈稅）；`COST`/`TOOLS` 新增 7 筆並新增 `TOOL_CATS` 「文化」分類；jobs/upkeep 公式尾端追加 7 項係數。效果分兩類：博物館/劇院/電影院＝`COV` 覆蓋半徑（8/7/6）驅動 `happyParts` 新增三項＋觀光係數（15/12/8）；水族館/動物園/遊樂園＝純觀光強係數（35/45/55，無 `COV` 欄，比照 landmark/station/airport 既有純觀光建築設計）；圖書總館＝`COV` 半徑12 大範圍教育（`glBoost=1.5`，`eduBoost=uniBoost>1?uniBoost:(glBoost>1?glBoost:schoolBoost)`，未放置時精確回退舊行為）。`tourists` 公式尾端追加對應六項（圖書總館不貢獻觀光）。`MINI_BLD_PAL` 陣列 35→42；新 sprite（`35_1_0`…`41_1_0`）於 `buildSprites` 絕對尾端生成（遵守 FIX-B 亂數流尾端約定，皆單變體 `v:0`＋night 夜光層）。
-v3.8（T139）追加**民生科研建築**（建築型別擴充 下，k=42-48 共 7 種：市政廳2×2/法院2×2/會展中心3×3/研究院2×2/氣象站1×1/植物園3×3/綜合醫院3×3，建築機制相異型別 41→**48**，判準12達標）：同 T138 沿用多格建築通用機制零改動——`MSZ` 表補 `42:2/43:2/44:3/45:2/47:3/48:3`（k46 氣象站 1×1 不入表）；新增 `TOOL_CATS`「民生」分類。經濟每個新 k 顯式 else-if 分支（市政廳分支本身為空 no-op，其全城稅收效果改在既有 R/C/I 稅收算式尾端乘 `civicMul`）。**七種效果各自機制相異**：①市政廳＝全城行政加成 `civicMul=chN>0?1.03:1`（不隨數量疊加）；②法院＝`COV` 半徑10，覆蓋內犯罪機率額外 ×0.5，與監獄/宵禁係數串乘不取代；③會展中心＝**非連續型「觀光脈衝」**（區別於既有建築的連續觀光貢獻），`day%CONVENTION_PULSE_DAYS(20)===0` 時一次性 `tourists+=500*cvN*季節係數`；④研究院＝`COV` 半徑8，`instituteBoost(1.4)` **不限 b.k===1**（區別於既有 school/library/university/grandlib 教育加成皆限住宅），使商業/工業也受惠；⑤氣象站＝`COV` 無欄、全城效果，季節轉換前 `WSTATION_LEAD(3)` 天預警 toast（掛 T136 季節/T137 災害）；⑥植物園＝`COV` 半徑10，`happyParts` 新增「植物園」項＋`tourists` 尾端加持續觀光；⑦綜合醫院＝`COV` 半徑**18**（對照既有醫院12/救護站10顯著加大），**比照 T95 教訓刻意壓低效益/成本比**（造價2800為醫院600的4.7倍、維護16為醫院5的3.2倍，確保「單棟大範圍」為便利性選項而非碾壓既有醫療建築的最優解）。`COVR` 新增 `court:10/institute:8/botanical:10/megahosp:18`；`covFieldOfK` 補 `43/45/47/48`；`MINI_BLD_PAL` 陣列 42→49；新 sprite（`42_1_0`…`48_1_0`）於 `buildSprites` 絕對尾端生成。
-v3.9（T140）追加**資源供應鏈**（多段資源鏈：地圖生成油/礦稀缺資源層→開採建築抽取為 supplies 存量→工業消耗原料產 supplies→終局建築消耗 supplies 換大額回饋，對標 TheoTown 油/礦→Supplies→DSA 判準7；k=49-51 共 3 種：油井1×1/礦場1×1/太空研究中心3×3，建築機制相異型別 48→**51**）：新增**地圖稀缺資源層**（比照 §COV/POL/LAND 家族設計，置於 `judgeWealth()` 之後、`computeWater()` 之前）——`RESOURCE`＝`Uint8Array(N*N)`（0無/1油/2礦），由 `genResource(sd)` 依種子以兩個獨立噪聲場（`mulberry32(sd^offset)` 衍生，**不消耗全域 `R()`**，故不影響既有地形/樹木/河流生成序列與位元回歸）門檻鋪設地理集中斑塊（低頻噪聲、非均勻）；`genWorld()` 尾端與 `load()`（讀檔用存檔內 `seed` 重建，因 RESOURCE 本身**不入存檔**、純種子可重建）皆呼叫，`newWorld()` 恆重新生成。`RDEP`＝`Uint16Array(N*N)`，各格累計已開採量（達 `RESOURCE_STOCK(240)` 停產），**因開採歷史無法由種子重建，改走稀疏可選存檔欄位 `rdep`**（僅存 `[i,累計量]` 非零配對，仿 `riot`/`plague` 最小結構慣例，舊檔缺欄位＝全數未耗損）；`newWorld()`/`load()` 皆 `RDEP.fill(0)` 後再視存檔內容還原（鐵律7）。油井/礦場（k=49/50，比照 station/cinema 慣例 1×1、不入 `MSZ` 表）`canPlace` 額外檢查 `RESOURCE[i]` 型別匹配（僅能放在對應資源格）；`tick()` 內於既有人口/就業掃描迴圈（`foodPoints`/`farms` 計數同一遍）新增逐格開採：`RESOURCE[i]` 型別匹配且 `RDEP[i]<RESOURCE_STOCK` 才抽取 `OIL_RATE(3)`/`ORE_RATE(2)` 累加入 `RDEP` 與本日 `suppliesGain`，**不消耗 `R()`**，資源耗盡（`RDEP` 達上限）該格自動停產；`supplies`（全域存量，比照 `foodPoints` 累加樣式但跨日持續累積、非每天重算，存檔可選欄位 `sup`）於 `tick()` 尾端 `+=suppliesGain`。**工業消耗鏈**：`indBldN`（k=3 建築計數，於同一人口迴圈累加）換算需求 `indSupplyDemand=indBldN*INDUSTRY_SUPPLY_UNIT(.6)`，`indSupplyUsed=min(supplies,indSupplyDemand)` 扣減 `supplies` 後得 `indSupplyMul=1+(indSupplyUsed/indSupplyDemand)*INDUSTRY_SUPPLY_BOOST(.3)`（`indSupplyDemand===0` 或未開採任何資源時精確恆等 `×1`），乘入既有工業稅收算式尾端（`else{...JOBSI...*indSupplyMul}`，經濟 else-if 鏈 k=49/50/51 皆顯式空分支防幽靈稅）。太空研究中心（k=51，3×3，比照 convention/megahosp 慣例，無 `COV` 欄）＝**非連續型「資源脈衝」**（比照 T139 會展中心觀光脈衝手法），`mgN>0&&day%MEGAPROJECT_CYCLE_DAYS(24)===0&&supplies>=MEGAPROJECT_SUPPLY_COST(180)` 時一次性扣減供應品、`money+=MEGAPROJECT_REWARD(3500)*mgN`，純由 `day` 導出不消耗 `R()`；`TOOLS` 掛 `unlockRank:22`（對應 `RANKS[21]` 穹頂都會 Lv.22 既有「超級工程」解鎖文案，T133 掛點）。`MINI_BLD_PAL` 陣列 49→52；`MSZ` 表補 `51:3`；`drawMini()`/`miniView` 由六段擴為**七段循環**，新增 `miniView===6`「資源」視圖（讀 `RESOURCE` 直接顯色，不受 `RDEP` 耗損影響，純顯示原始礦藏分布）；新 sprite（`49_1_0`/`50_1_0`/`51_1_0`）於 `buildSprites` 絕對尾端生成（僅用局部 `rand`，不呼叫全域 `R()`/`ri()`）。GV 新增 `resourceAt(x,y)`/`supplies()`/`rdepAt(x,y)`/`resourceStock()`。硬性不變量：`RESOURCE`/`RDEP`/`supplies` 皆為純新增運行時場，未放置任何 k=49-51 建築時 `suppliesGain`/`indSupplyUsed` 恆為 0、`indSupplyMul` 精確恆等 `×1`，經 Node harness（`git stash` 對照前後版本、同種子 90 天含道路/分區/電廠情境）驗證全序列逐值與改動前完全一致。
-v3.9（T141）追加**通勤／就業 agent**（叢集級近似，比照 §COV/POL/LAND 場家族設計與 T119 `computeGarbLocal`／T120 `busBFS` 走道路網尋路先例，判準8「比 TheoTown 更真」深度差異——通勤同時影響壅堵場與財富評分）：新函式 `computeCommute()`（置於 `computeGarbLocal()` 之後、`computeBusRtCovPop()` 之前）每 `COMMUTE_PERIOD(4)` 天重算一次快取（非每 tick 全城 BFS，控制大城效能）：①以全部已完工商業/工業分區建築（`k===2`含辦公區／`k===3`）為多源，沿道路網 BFS 算每一道路格到最近就業區的最短路距 `dist`（含 `prev` 回溯指標，純陣列/佇列運算不消耗 `R()`）；②住宅依 `COMMUTE_CELL(6)×COMMUTE_CELL` 網格分「叢集」，每叢集僅取首個住宅格為代表沿 `prev` 回溯出路徑，快取進 `commuteClusters`（陣列，供 `tick()` 每日複用，非逐棟尋路控成本）；③每格住宅依同一 `dist` 場查最近路口距離，寫入 `commutePenalty`/`commuteUnreach`（路距 `>COMMUTE_FAR(20)` 線性疊加懲罰、封頂 `COMMUTE_PEN_MAX(.18)`；無路可達則固定 `COMMUTE_PEN_UNREACH(.30)`，明顯重於「過長」封頂值，滿足「不可達最重」設計）。`tick()` 每日（不限重算日）沿快取路徑走訪，貢獻 `roadPass`（**與 T129 壅堵場耦合**，同尺度 `COMMUTE_TRIP_W(1)`，即「通勤影響壅堵」的接線點）＋獨立 `commutePass`（供 `commuteLoad` 專屬衰減式移動平均 `load=load*.85+pass*.15`，純觀察用途不回饋 `roadLoad` 避免雙重疊加，供 `GV.commuteLoad`/`commuteAt` 讀取）。`happyParts` 新增「通勤」項（讀 `commutePenalty[ci]`）；`judgeWealth()` 新增 `commuteTerm=-(commutePenalty[i]||0)*3` 附加項（**即「通勤影響財富」的接線點**，不取代既有服務/污染/犯罪/地價項）。新運行時全域 `commuteLoad`/`commutePass`（Float32Array/Uint16Array N*N）、`commutePenalty`（Float32Array N*N）、`commuteUnreach`（Uint8Array N*N）、`commuteClusters`（陣列）——皆不入存檔，`newWorld()`/`load()` 尾端隨 `roadLoad`/`roadPass` 一併成對歸零（鐵律7）。GV 新增 `commuteLoad()`（彙總：叢集數／全城不可達住宅數）、`commuteAt(x,y)`、`commutePenaltyAt(x,y)`、`commuteUnreachAt(x,y)`、`recomputeCommute()`（測試用跳過天數門檻）。硬性不變量：無就業區（`k===2`/`k===3` 皆不存在）時 `computeCommute()` 提前 return，`commutePenalty`/`commuteUnreach`/`commuteClusters` 皆維持全零／空陣列，`happyParts`「通勤」項與 `judgeWealth` `commuteTerm` 精確恆為 0；經 Node 位元回歸（`git show HEAD:index.html` 取 T140 已提交版本為基準，全空地圖 30 天／有道路+住宅+電廠但無就業區 60 天兩情境）驗證與改動前逐位元組完全一致。本卡未新增建築種類、未新增存檔欄位，多格建築架構／`COV`／`MSZ` 皆未觸碰。
-v3.9（T142）追加**教育場**（比照 §COV/POL/LAND 家族設計，LAND rebuildCov 先例；模擬場層數 LAND+congestion+season+resource+EDU 達 5 新層，判準9）：`EDU`＝`Uint8Array(N*N)`，取 0 為基準（純累加不含扣分項，異於 LAND/POL 128 中性基準；無教育建築覆蓋時全城恆為 0，即「中性教育」之根本），置於 `recomputeLandDynamic()`之後、`rebuildCov()`之前，單格分數由 `eduStaticAt(x,y)`＝`COV.school`/`COV.university`/`COV.library` 三家族各自 `>0` 門檻疊加固定權重（`EDU_W_SCHOOL=50`/`EDU_W_UNI=90`/`EDU_W_LIB=35`，大學>學校>圖書館，呼應既有升級加成排序 uniBoost1.8>schoolBoost1.6>libraryBoost1.25）算出，clamp 0-255；於 `rebuildCov()` 尾端隨 COV 同步全量重建（load/newWorld/undo 自動覆蓋，doPlace 不即時更新，與 LAND 同款設計）。**不入存檔**（rebuild 可重建）。接線兩處：①`judgeWealth()` 新增 `eduTerm=(EDU[i]/255)*.6` 附加項（純加項，不取代既有 cov/POL/crime/landTerm/commuteTerm 各項；EDU=0 時精確恆為 0）；②高階工業（k===3 且 lv===3，卡面所稱「高科技工業／工業高階變體」）稅收算式尾端乘 `eduIndMul=1+(EDU[i]/255)*.4`（未達 lv3 或 EDU=0 時精確恆等 ×1）。GV 新增 `eduAt(x,y)`；`showStats()` 新增「🎓 平均教育水平」（住宅格 EDU 平均值，純顯示不影響任何模擬公式）。硬性不變量：中性教育（無教育建築，EDU 恆為 0）時 judgeWealth／工業產出兩處附加項精確恆為中性（`×1`/`+0`），經 Node harness（`git show HEAD` 對照 T141 版本、同種子全空地圖 30 天／道路+住宅+電廠無教育建築 60 天兩種情境）驗證 `money`/`pop`/`jobs`/`happy`/`dem`/`tileHash` 全數逐值相等零漂移；另以孤立單棟住宅／孤立單棟工業建築（存讀檔注入手法直接構造既定 lv，比照 `GV.ignite` 系列鉤子精神）驗證 EDU 覆蓋確實使 judgeWealth 由貧轉中、lv3 工業稅收提升倍率精確符合 `eduIndMul` 公式（lv<3 不受影響）。
-v3.9（T143）追加**可視化因果追溯**（透明度旗艦化，比照 §COV/POL/roadLoad/crime 場家族純讀取設計，不改任何模擬公式、不改存檔格式）：新全域 `traceOverlay`（`{factor,tiles}` 或 `null`，純 UI 狀態比照 `selTile` 慣例，不進 `newWorld`/`load` 重置，`hideInfo()` 或再點同一因子清空）；新純讀取函式 `FACTOR_TRACE`（因子鍵→來源掃描規則對照表）／`traceFactor(factor)`／`svcGapTiles(f)`（緊接 `cityAdvisor()` 之後、`showStats()` 之前）：依因子鍵回傳貢獻來源格——空氣污染／電廠鄰近／工業汙染鄰近三項掃 `POL_SRC` 對應建築 root 格、交通壅堵掃 `roadLoad[i]>ROAD_CAP` 道路格、犯罪掃 `b.crime` 建築格，五種服務覆蓋不足（治安/消防/醫療/教育/綠地）掃住宅分區中對應 `COV.xxx===0` 缺口格（`cityAdvisor()` 本體零改動，僅在 `showStats()` 內以既有 `SVC_NM` 文案比對取得因子鍵，未新增座標依賴）。`showStats()`「幸福構成」（T111 `happyAgg`）負值因子行與「城市顧問」（T131 `cityAdvisor`）五項服務覆蓋不足建議皆新增 `cursor:pointer`＋點擊事件，呼叫 `traceFactor` 設定/清空 `traceOverlay`。`draw()` 於 `drawCursor` 呼叫前新增疊圖區塊，`traceOverlay` 非空時以脈動半透明菱形（`#ff4d6d` 填色＋`#fff3c4` 描邊，複用 `SPR.cursor` 同款菱形頂點手法）逐格高亮來源格，空/`null` 時零迭代、逐像素零改動。GV 新增 `trace(factor)`（依因子鍵掃出來源格並設定 `traceOverlay`，等同面板點擊，回傳 `tiles` 快照，未知/無來源格回傳 `null` 且不改動狀態）／`traceOverlay()`（現況快照）／`clearTrace()`。硬性不變量：純資訊疊圖層，只讀既有 `POL`/`COV`/`roadLoad`/`crime` 場，未新增存檔欄位、未改任何模擬公式；`traceOverlay` 為 `null` 時 `draw()` 該區塊零迭代，經瀏覽器實機像素取樣（開啟前/中/關閉後三態 `getImageData` 比對）確認高亮渲染與清除皆逐位元組回復基準、控制點像素全程不受影響。
-v3.9（T144）追加**環境音動態分層混音**（氛圍勝點，§9 音效節新增「9c」子節，緊接既有鳥鳴/蟲鳴排程器之後、§10 UI 之前）：新 `AmbientBus` 類別（`composer`/`npuComposer` 同層級，const 實例 `ambientBus`）＝四層程序化噪聲/振盪源常駐匯流排——街噪（低通濾波噪聲）／人聲（帶通噪聲＋LFO 群集起伏）／機械（低頻鋸齒＋LFO 脈衝）／鳥鳴（高頻帶通噪聲＋LFO 點綴），各層獨立 `GainNode` 疊加於既有 BGM（`composer.out`）之外、直連 `AC.destination`（**疊加不取代**）。指標讀取（`update()`，純讀取既有全域，不新增迴圈狀態、不消耗 `R()`）：交通密度＝全圖道路格 `roadLoad[i]/ROAD_CAP` 平均比例（T129 既有場）；人聲＝`pop/2600`；機械＝`(achStats.nI||0)/18`（T134 既有每日快取，不重新掃描）；鳥鳴＝`COV.park` 覆蓋格數佔全圖 6% 為滿層，再乘 `daylight().b` 晝夜因子、`weather===2?.2:1` 暴風雨壓低、`inWinter()?.35:1` 冬季壓低（**複用既有 composer.pickMood() 讀取的同一批 weather/daylight/inWinter 訊號**，晝夜/季節/天氣切換時鳥鳴層隨之平滑淡化）。四層目標增益一律以 `linearRampToValueAtTime` 於 `AMBIENT_RAMP=1.3s`（與 `composer._fade` 1.2~1.5s 同量級，複用同款淡出手法）平滑跟隨，指標為 0 時精確線性趨於 0（不用 exponential，可精確抵達 0＝完全靜默）；`update()` 以 `AC.currentTime`（真實時間，與遊戲倍速無關）節流至 ≥0.5s 一次，呼叫點在 `tick()` 內緊接 `composer.update();` 之後一行（**複用既有 composer 情緒切換觸發點**）。開關：`start()`/`stop()` 跟隨既有 `sndMode`（三段音效總開關，`sndMode===2` 才開）——`$('#bSound').onclick`（sndMode 切換）與 `begin()`（頁面載入沿用持久化 `sndMode`）兩處呼叫點皆與 `composer.start()`/`composer.stop()` 同步呼叫 `ambientBus.start()`/`ambientBus.stop()`；`stop()` 對每層先 0.4s 線性淡出增益、450ms 後才 `stop()`/`disconnect()` 實際節點（避免截斷爆音），且 `this.layers` 立即清空，快速連續切換不重疊洩漏。GV 新增 `ambientLevels()`（回傳 `{on,traffic,voice,industry,nature}`，即時讀 `GainNode.gain.value` 正規化回 0-1，非快取值，判準17測試鉤子）。硬性不變量：`AmbientBus` 全程不呼叫 `R()`/`ri()`（僅用 `Math.random()` 產生噪聲緩衝區與 LFO 頻率微擾，比照既有 `sThunder()`/環境音排程器慣例，不影響種子模擬序列）、不寫入任何 `tiles`/`bld`/存檔欄位（純音訊旁路），`newWorld()`/`load()` 皆未觸碰（該卡未新增運行時場，無鐵律7重置需求）；存檔格式零變更。
-v4.0（T145）**判準5-6誠實複審＋急救延遲聯動補全**（XI 波第三卡，比照 §2 既有慣例只增不改舊文）：複審發現 T129（判準5「交通壅堵持久場」）留下的「急救到場延遲與之聯動」一項未落地——T119 服務派遣共用函式 `updDispatch`（`updAmbulances`/`updFireTrucks`/`updGarbageTrucks` 三者共用移動邏輯）原本完全未讀取 `roadLoad`，車速恆為固定常數，壅堵再嚴重也不影響服務車輛到場時間。最小補接：`updDispatch` 迴圈內，服務車輛「所在格若為道路」時比照 T129 折減公式 `speed*=clamp(1-max(0,roadLoad[idx]-cap)/cap*ROAD_JAM_K,.3,1)`（`load≤cap` 時 clamp 內恆為 `×1`，非道路格不受影響，`cap` 依 `ROAD_CAP[(t.rc||2)-1]` 查表，`cap>0` 才生效）；新增派遣物件欄位 `ticks`（`arr.push` 時初始化為 0，每次派遣更新於迴圈頂端遞增，純觀測用途，不影響 `si`/`ti` 目標選擇邏輯本身、不消耗 `R()`）。`updAmbulances`/`updFireTrucks` 的 `onArrive` 回呼內各自無條件記錄本次到場 `c.ticks` 入新運行時全域 `svcSamples`＝`{amb:[],fire:[]}`（陣列各上限20筆環形緩衝，`push`後超長`shift`）；`updGarbageTrucks`（垃圾車巡迴，`onArrive` 恆回傳下一目標繼續出勤）未接線記錄，僅間接受益於同一份速度折減（垃圾車沿路巡迴天然更常經過道路格，壅堵下巡迴速度同步降低，符合「服務車輛」廣義涵蓋、未被本卡排除）。`svcSamples` 不入存檔，`newWorld()`/`load()` 皆隨其他派遣陣列（`ambulances.length=0` 等既有行）同批追加一行歸零（鐵律7）。GV 新增 `svcResponseSample()`（回傳 `{amb:[...],fire:[...]}` 快照，供驗證壅堵前後到場延遲差異，判準17可觀測）／`svcResponseReset()`（測試用清空樣本，供驗收前後對照乾淨起算）。**判準6稽核**（不涉及程式碼改動）：逐一核對 T130 地價場四處接線（`growZones` `landMul`／`judgeWealth` `landTerm`／住宅稅收 `landTaxMul`／`drawMini` `miniView===2` 地價視圖）現版程式碼皆完整存在、未被後續波次覆蓋或誤刪，「接財富＋稅＋圖層」三要素齊全，狀態確認為已完整達成。硬性不變量：`load()`/`newWorld()` 皆未觸碰 `updDispatch`/`updAmbulances`/`updFireTrucks` 本體以外任何行，未新增存檔欄位（`svcSamples` 純運行時觀測），未改變派遣目標選擇之 RNG 呼叫序列。經 Node 位元回歸（`git show HEAD:index.html` 取 T144 已提交版本為基準，同種子含救護站+道路+存讀檔注入生病住宅情境，推進23天）驗證 `GV.stats()` 全欄位在無壅堵情境下改動前後逐值完全相等；瀏覽器實機以 `GV.setLoadAt` 對救護站到生病住宅的直線路徑持續灌注超載，實測到場延遲由基準 146 tick 升至 462 tick（精確符合理論折減公式），且救護車終究必達目標（`ambulancesLeft` 歸零），驗證「壅堵只延遲不阻斷路徑」硬性不變量成立。SURPASS.md 判準5、6狀態由 🔨 升級為 ✅。
-v4.1（T146）追加**街道級細節層**（OMICRON 美術波首卡，地面層視覺密度）：新增 `SPR.roadDeco` 家族＋純函式 `streetHash(x,y,salt)`（緊接 T96 groundCache 註解區塊之前宣告的整數雜湊，不讀寫任何全域狀態、不消耗 `R()`/`ri()`），皆置於 `buildSprites` 絕對尾端（接在 T140 之後）／`draw()` 既有道路繪製區塊尾端（`!lodFar&&t.bus` 之後）。內容六項：①人行道邊石 `curb[16]`（依 `(~mask)&15` 非連接邊貼合鋪面，任意縮放皆畫，視為道路本體一部分不受 LOD 管制）；②斑馬線 `zebra[16]`（路口 popcount≥3／端點 popcount≤1 才挑用）；③車道標線 `lane14`/`lane28`（`rc>=3` 才挑用，沿既有中線座標公式平移 ±7px）；④街道設施小件 `hydrant`/`mailbox`/`bench`/`trash`/`shelter`（沿用 `SPR.rdec` 同款 64×40／ax32 ay36 錨點慣例，候車亭夜光燈條併入 `rdecGlow`→`nightSprites`）；⑤路邊停放車複用既有 `SPR.car`（8 色池挑色＋A/B 挑側，縮小 78%，不新增 sprite）；⑥行人（2px 點，`draw()` 內直接 `fillRect`，比照 `t.wp` 手法不建 SPR 鍵，`visT` 驅動兩幀微動，因僅於 `groundCache` 重繪時取樣一幀，兩次重繪之間沿用同一快取畫布不變）。挑選皆由 `streetHash(x,y,salt)` 決定（種類/是否出現/左右側），密度 `dens=.15+(rc-1)*.025+nearLv*.05`（`nearLv`＝四鄰建築最高 `lv`）依道路等級與鄰近建築等級遞增；`!t.hw&&!t.bridge` 才進入（快速路無人行道概念、橋面 `sy-4*z` 垂直偏移不同會錯位）。LOD 沿用 T107 分級：`!lodMini`（z≥0.5）才畫標線（斑馬線＋車道標線），`!lodFar`（z≥1）才畫街道小件／停放車／行人。全段屬地面層、併入 `groundCache` 重繪路徑，`gKey` 五個組成分量（`ox/oy/z/waterF/win/day/W/H`）未新增任何一項——密度依賴的 `nearLv` 只在 doPlace／tick 建築變動時改變，兩者皆已隨既有機制觸發 `groundDirty`/`day` 遞增使快取自動失效重繪。`window.__noStreet=true` 時 `buildSprites` 內生成區塊與 `draw()` 內繪製區塊皆整段短路；本卡改動經 `git diff` 核實為純新增（0 刪除/0 修改既有行），既有 `SPR.xxx` 鍵與既有繪製序列不受影響。存檔格式零變更（純繪製疊加層，未新增 tile/bld 欄位）。GV 未新增鉤子（純視覺層，座標決定性可由既有 `GV.tile(x,y)` 的 `rc`/`mask` 反推挑選結果，毋須額外 API）。
-v4.1（T147）追加**建築細節層二期**（OMICRON 美術波第二卡，接在 T128 `detailPass()` 之後的二次疊加）：新函式 `detailPass2()`，置於 `buildSprites` 真正的絕對尾端（本卡新增序接在 T146 街道級細節層之後，而非字面插在 T128 區塊中間——若插在中間會位移 T138/T139/T140/T146 內仍消耗 `rand()` 的既有生成，違反 FIX-B），`window.__noDetail2=true` 時整段跳過。內容五類：①風化層——依財富 `we`（貧/中/富）與等級 `lv` 推點數 `WEATHER_N=[5,2,1]`，沿牆面灑污漬/鏽點/苔痕；②商業招牌——`k=2/34` 立面加遮陽棚＋霓虹字條（色由既有 `SIGNC` 派生，同步進 `night` 圖層）；③牆面痕跡——海報/塗鴉小色塊，僅 `k===1` 且 `lv<=2` 且 `we!==2`；④屋頂二期——依 `lv` 遞增件數（`lv1` 零件、`lv2` 一件、`lv3`/塔樓兩件）：富宅菜園綠點陣／商業衛星天線／其餘儲水槽變體；⑤陽台雜物二期——貧宅堆放箱（2件）、中富宅盆栽（1件）。`roofHalfW()`/`wallCol()` 沿用 T128 逐式相同公式（區塊獨立作用域重新宣告）；新增 `wallSafeY(yF,h,frac,mh)` 將 T128 已驗證的安全 margin（`yF-h+4`~`yF-5`）一般化為「可完整容納 mh 列標記且不越出牆面」的通用安全頂端 y 計算（`Math.max(top,bot)` 避免 h 極小時上下界反轉）。遍歷對象與 T128 一致：`tasks`（k=1/2/3 全部 DRAFTS，含 `_w0`/`_w2` 財富色變鍵）與 k=33/34 摩天樓（塔樓固定吃 `we=1,lv=3` 最密處理）；不新增 `SPR` 頂層鍵。經瀏覽器實機（種子化 `Math.random`＋`GV.newWorldSeeded` 重置 `R`，排除 `plate()`/`ri()` 既有非決定性來源後）逐鍵 `checksum` 比對：196 個 `SPR.bld` 鍵中 72 個未觸碰鍵開/關 100% 位元一致、124 個目標鍵（k=1/2/3 全組合 72＋`_w0`/`_w2` 48＋塔樓4）checksum 全數互異；全部 196 鍵逐像素比對 0 violations（day 6200px／night 364px 變動皆落於基準態非透明像素內）。存檔格式零變更。
-v4.1（T148）追加**手繪像素英雄建築**（OMICRON 美術波第三卡，手繪素材混合首例）：新增 `HERO_PIX` 資料表（置於第2節 `plate()` 之後、`const SPR={}` 宣告之前）＋解碼函式 `drawHeroPix(key,g,ng)`——像素資料以調色板索引字串編碼（`pal`＝日間色、`palN`＝夜間發光色，缺省該格不發光）、`rows` 每列一字串逐字元對應一像素、`.`＝透明，`ox/oy`＝資料左上角在該建築畫布內的絕對像素座標，`drawHeroPix` 以原生像素解析度逐格 `fillRect(1,1)` 還原，座標/斜率換算沿用既有 `dia()`/`isoBox()` 同款 `(dx>>1)/((dx+1)>>1)` 公式手算構圖。四鍵像素資料（`24_1_0/1/2`＝地標 2×2 三變體「鐘塔/方尖碑/觀景塔」、`32_1_0`＝大學 3×3、`42_1_0`＝市政廳 2×2、`51_1_0`＝太空研究中心 3×3）皆由本卡逐格原創設計，明文聲明未參考、描摹或轉換任何 TheoTown 或其他既有遊戲之素材，畫風（64×32 基底、2:1 斜率、同調色邏輯）與既有等距像素風一致。生成置於 `buildSprites` 絕對尾端（接在 T147 建築細節層二期之後）：`window.__noHero=true` 時整段跳過，四鍵維持本函式前段（T47/T52/T139/T140）已生成之程序化版本，逐位元組零位移（供除錯/回歸比對）；未跳過時利用 JS 物件字面量同 key 後寫後贏語意，以 `drawHeroPix` 產物精確覆蓋同鍵，footprint／錨點（`w/h/ax/ay`：24/42 為 136×150／ax68 ay148，32/51 為 208×220／ax104 ay218）與替換前完全一致，`doPlace`／`MSZ`／`COV`／小地圖／存讀檔等既有多格建築（root+ref）機制不受影響，放置/多格 ref/doze/小地圖色皆不會錯位。四鍵同步沿用既有管線疊 `outlineSprite` 描邊、`palN` 有值像素同步寫入 `nc` 夜光畫布（`night` 圖層 `'screen'` 合成，供入夜窗燈可見）；本卡未新增建築本體冬季雪化變體（`SPR.bld` 無 `_w` 尾碼版本，冬季環境雪化沿用既有樹木/地面機制，與建築本體無關，入冬 `GV.setDay(310)` 僅需零錯誤即符合硬性不變量）。存檔格式零變更（純繪製替換，未新增 tile/bld 欄位）；GV 未新增鉤子（純美術替換，既有 `GV.tile(x,y).bld.k/v` 已足以驗證建築存在與型別，替換前後 k/v 語意不變）。
+### 已知缺陷（非設計）
+- `ab` 是死欄位：save 寫 `t.abandoned`（tile 層），唯一賦值是 `b.abandoned=1`（bld 層，11092），實測 `ab` 恆全 0＝廢棄狀態不跨存檔，`b.crimeDays` 也一起歸零。
+- 匯入分享碼的長度驗證用當下全域 `N`（15791），load 用存檔內 `d.n`（16906）＝216² 分享碼在 72² 玩家端被判無效，儘管 load 完全支援跨尺寸互讀。
+- `slotInfo` 的人口只算 `POPS[lv]`，忽略 den 倍率與 k33/34/105/127＝槽面板人口顯著低估。
+- 新世界 tile 17 鍵、讀檔後 36 鍵。讀 tile 旗標一律只能用 truthiness，用 `===0` 或 `in` 會在兩種世界給不同答案。
+- `gv` 存讀不對稱（genWorld 用 `ri(4)`、load 用 `i&3`），草地變體圖案必變。純視覺，但做像素回歸時要知道。
 
-v4.1（T149）追加**光影與氛圍**（OMICRON 美術波第四卡，感知品質躍升）：`draw()` 新增三類動態光影層，全部**不烘進 `groundCache`**（每幀重算）、不新增 `SPR` 鍵、不消耗 `R()`/`ri()`。統一開關與強度係數集中算於 `draw()` 起手（`lodFar`/`lodMini` 判定之後）：`fxOn=!window.__noLight&&quality!==0&&!lodMini`（`z<0.5` 沿用 T107 `lodMini`、T97 效能檔低檔 `quality===0` 皆自動關閉）；`nightDepth`（0 日間含正午 `b>=.72`→1 深夜 `b===.34`，沿用既有 `nightSprites` `'screen'` 疊加同款 `b<.72` 門檻，故日間恆為 0）驅動光暈強度；`shadowA`（陰影不透明度，同一門檻下取「昏邊強、深夜弱」鐘形，日間精確為 0）驅動陰影強度；`SHOX=16,SHOY=8` 為陰影固定偏移常數（沿 §4 bit2(x+1,y) 螢幕位移方向半縮，模擬西北光源）。①**路燈／裝飾光源地面光暈**：於地面快取貼上之後、物件層繪製之前，`nightDepth>0&&rdecGlow.length` 時對既有 `rdecGlow`（路燈/公車亭/隕石坑餘燼等既有點光源清單，位置已是螢幕座標）逐一疊 `'lighter'` 合成徑向暖色漸層（`rgba(255,214,150,...)`，半徑 `30*z`），畫在建築之前避免蓋住建築本體。②**建築方向性陰影＋窗燈地面光暈**：於物件層每棟建築 `drawImage` 之前——`shadowA>0` 時取該建築既有 sprite 本體以 `filter:'brightness(0)'` 壓成純黑剪影、垂直壓扁至 `h*z*.32`＋固定偏移模擬躺地投影（不新增 sprite）；`nightDepth>0&&s.night&&(bd.k===5||bd.pw)`（電廠或已供電建築）時疊 `'lighter'` 徑向光暈（`rgba(255,206,130,...)`，半徑 `44*z`，與既有 `nightSprites` 判定同一鍵）。③**日出日落色調**：既有 `dusk` 強度全屏疊色區塊（公式本身完全不變）按 `daylight()` 新回傳鍵 `ph`（太陽高度相位代理值 0..1，`daylight()` 尾端新增，既有 `b`/`dusk` 呼叫端解構不受影響）分流兩檔色相——`ph<.5`（日出前半段）冷藍 `rgba(80,140,255,...)`、`ph>=.5`（日落後半段）沿用既有暖橙 `rgba(255,145,60,...)`，`ph===.5`（正午）`dusk` 恆為 0 不進入本區塊；`window.__noLight=true` 時強制退回單一橙色（改動前行為）。**硬性不變量**：正午/日間無天氣（`nightDepth`/`shadowA` 皆恆為 0、晨昏兩色調分支皆不觸發）時渲染與 T148 版本逐像素一致；三層皆為動態層、`groundCache` 快取鍵結構未新增任何組成分量；未改任何模擬公式與存檔格式。GV 新增測試鉤子：`daylightDbg()`（曝光 `daylight()` 完整回傳 `{b,dusk,ph,d}`）、`setVisT(v)`（直接設定晝夜相位，不寫存檔/不影響 `tick()` 節奏）、`forceDraw()`（同步立即觸發一次 `draw()`，供像素回歸同一事件迴圈內連續比對）、`setZoom(z)`（直接設 `cam.z`，供驗證 `z<0.5` LOD 正確跳過光影）。
+---
 
-v4.1（T150）追加**變體大擴充**（OMICRON 美術波末卡，RCI 8→12／樹 7→10／公園 6→9）：`PAL[1]/[2]/[3]`（第2節建築資料驅動 `DRAFTS`＋部件引擎既有色盤表）各由既有 8 組配色擴至 **12** 組（`walls`/`roof` 陣列同步擴充，新增 v8-11：住宅玫瑰粉/沙卡其/現代炭灰/藍綠系、商業緋紅/靛藍/萊姆/珊瑚系、工業警示橙/深靛/水泥白/森綠系）；`DRAFTS` 每 k（1/2/3）每 lv 新增對應 v8-11 構圖（沿用既有 `PARTS` 部件重組，與既有 8 種明顯區分）。生長/升級取值處 `ri(8)→ri(12)` 逐 k 判斷（`k===1||k===2||k===3` 才擴，其餘 k 仍 `ri(4)` 不變，兩處：分區生長 `cell.bld={...v:ri(12)...}` 與升級 `b.v=ri(12)`）；既有 T101-103/T125 批量迴圈（基礎 sprite 生成、財富色變 `_w0/_w2`）皆加 `t.v<8` 上界避免提早消耗 `rand()` 位移下游序列。新變體基礎 sprite／財富色變（`_w0/_w2`，僅 k=1，獨立作用域重新宣告同款 `desat()` 算法）／`detailPass`／`detailPass2` 對新鍵的覆蓋，全部集中置於 `buildSprites` **絕對尾端**（接在 T148 手繪英雄建築之後），遵守 FIX-B 亂數流尾端約定；`window.__noVar12=true` 時整段跳過＝既有全部鍵（含 T148 及之前）100% 位元一致（零亂數位移硬證明）。樹種 `SPR.tree` 7→**10**（新增 v7 櫻花／v8 棕櫚／v9 紫葉樹，生長/種樹取值處 `1+ri(7)→1+ri(10)`，選鍵索引改 `%10`）、公園 `SPR.park` 6→**9**（新增 v6 涼亭／v7 球場／v8 野餐區，生成取值處 `ri(6)→ri(9)`）；`SPR.treeW`/`SPR.parkW`（冬季版）與 `SPR.treeS`/`SPR.treeA`（T136 四季版）皆於同一尾端區塊同步追加，**長度與日版一致**（冬季/四季陣列長度一致，越界＝崩潰之硬性不變量）。**存檔相容**：`v` 值域擴大但 `bl` 元組序列化格式本身不變（`v` 本就以整數編碼，0-11 與 0-7 同格式），舊檔（`v≤7`）讀入時各索引在擴充後的 `PAL`/`DRAFTS`/`SPR.tree`/`SPR.park` 陣列中依然是合法前綴子集，正常載入不受影響；裝飾 `deco` 仍 ≤9（單字元存檔上限，本卡未觸碰、未突破）。GV 未新增鉤子（既有 `GV.tile(x,y).bld.v` 已足以驗證變體分佈，可長跑後掃描統計 `v` 值域涵蓋 8-11）。
-v4.2（T151）追加**手繪像素英雄建築二期**（PI 美術二波首卡，服務建築手繪化）：沿用 T148 `HERO_PIX`/`drawHeroPix` 管線，新增 8 座服務建築手繪像素資料——消防局(k=6)/學校(k=7)/體育場(k=9,2×2) 僅覆蓋既有 3 變體中的 v0（`SPR.bld['6_1_0']`/`['7_1_0']`/`['9_1_0']`，v1/v2 維持替換前程序化版本不變）；警察局(k=11)/醫院(k=12) 覆蓋單一鍵 `SPR.police`/`SPR.hospital`（沿用該二建築非 k_lv_v 格式之既有單鍵慣例）；博物館(k=35)/劇院(k=36)/機場(k=19,4×4) 各覆蓋唯一鍵。生成置於 `buildSprites` 絕對尾端（接在 T150 變體大擴充之後），像素資料明文聲明未參考、描摹或轉換任何 TheoTown 或其他既有遊戲之素材。footprint/錨點（w/h/ax/ay）與替換前逐位元組一致（6/7/11/12 皆 72×112 ax36 ay110、9/35/36 皆 136×150 ax68 ay148、19 為 272×300 ax136 ay298）；地基 `plate()` 顏色沿用替換前原色，體育場沿用替換前設計不呼叫通用 `plate()`。`window.__noHero2=true` 開關證明零亂數位移：`drawHeroPix` 純讀靜態表 `fillRect`，不呼叫 `rand()`/`R()`/`ri()`；瀏覽器實機以固定種子建置控制組建築（非本卡觸碰鍵）驗證 `__noHero2` 開／關兩種模式下全畫布 checksum 完全相同。存檔格式零變更（純繪製替換，未新增 tile/bld 欄位）；GV 未新增鉤子。
+## 3. 程序化像素美術管線（§2 ＋ `buildSprites`）
 
-v4.2（T152）追加**動畫細節層**：`buildSprites` 絕對尾端（接在 T151 手繪像素英雄建築二期之後）新增 6 組多幀 sprite——`SPR.flag[0..2]`（旗幟，市政廳42/學校7/體育場9 掛點）、`SPR.parkFtn[0..2]`（噴泉水花，疊在公園 v3「噴泉廣場」既有水柱上，冬季結冰版不套用）、`SPR.radar[0..3]`（雷達天線，機場19/氣象站46 掛點）、`SPR.windRotor[0..3]`（風車葉片，既有風力發電26 掛點，疊在原塔頂靜態葉片位置上方）、`SPR.warnBlink[0..1]`（屋頂警示燈，摩天樓33/34 掛點）、`SPR.bird[0..2]`（鳥群，天空層隨機飛過）；生成僅用純數學公式（`Math.sin`/固定係數陣列），不呼叫 `rand()`（局部）／`R()`／`ri()`（全域），零亂數消耗。`draw()` 新增四類動態掛點（皆不烘進 `groundCache`）：①建築掛點動畫（旗幟/噴泉/雷達/風車/警示燈）畫在該建築 `drawImage` 之後、以其 `bx,by`＋畫布相對座標定位；②樹梢搖曳——既有樹 `drawImage` x 座標疊加 `sway=Math.sin(visT*1.3+x*.7+y*1.3)*z`（±1px 級，不新增 sprite）；③水面波光——`groundCache` 貼上之後另一輪全圖迴圈，以 `streetHash(x,y,910)` 決定性挑選稀疏水格疊加白色高光點；④鳥群——screen 空間獨立於 tile 格網，固定索引相位＋visT 驅動。統一開關 `const animOn=!window.__noAnim&&quality!==0&&!lodMini&&!!SPR.flag`（末項防禦性檢查沿用 T146 `SPR.roadDeco&&` 慣例，防止 `__noAnim=true` 時跳過生成、之後又動態改回 false 讀取 undefined 陣列拋錯）；各掛點另受 `lodFar`（z<1）門檻，`lodFar` 時強制 frame 0（靜態首幀，不隨 visT 變化），`lodMini`（z<0.5，已含在 `animOn`）與 `quality===0` 皆整段跳過。幀/位置選取一律 `Math.floor(visT*k)%n` 或固定索引相位決定性公式，全程不消耗 `R()`/`ri()`。`window.__noAnim=true` 時生成與繪製掛點整段跳過，既有渲染 100% 位元不變。GV 未新增鉤子（既有 `setVisT`/`forceDraw`/`setZoom`/`daylightDbg` 已足供像素回歸；`SPR`/`buildSprites`/`draw` 為 IIFE 內部作用域，無法從 `window` 外部直接讀取，驗收改用畫面 checksum 抽樣佐證）。
+### 它做什麼
+啟動時（唯一呼叫點 L17092，**無熱重建入口**）一次性生成全部 sprite。整體結構是「基元 → 資料驅動引擎 → 手寫地標 → 一連串就地加蓋 pass」。
 
-v4.2（T153）追加**地形與自然美術**（PI 美術二波第三卡，接在 T152 動畫細節層之後）：全部新增皆置於 `buildSprites` 絕對尾端，內容五類——①草地紋理疊加 `SPR.natGrassTex`/`natGrassTexS`/`natGrassTexA`/`natGrassTexW`（4 變體×四季＝16 張，長度一致，透明底斑駁色斑沿用既有 `speck()` 手法），`draw()` 依 `streetHash(x,y,811)` 決定性挑選疊在既有草地 base 之上；②自然散佈物 `SPR.natFlower`/`natWeed`（各 4 季變體）＋`SPR.natRock`/`natLog`（季節不變），`streetHash` 依序決定密度(14%)/種類/位置，僅落在空草地（`!t.tree&&!t.bld&&!t.zone&&!t.deco`）；③岸邊漸變帶 `SPR.shoreBlend[16]`＋河床石礫 `SPR.natPebble[16]`，沿用既有 `t.wm` 水岸位罩（仿 `SPR.foam` 手法），`!lodFar` 才畫；④懸崖岩層紋理：既有 `SPR.cliffEdge`（T24，16 mask）原地補畫三道水平岩層線（`diaEdge` 疊色，不消耗 `rand()`），整段包在 `__noNature` 內；全部像素原創構圖，未參考/描摹/轉換 TheoTown 或任何既有遊戲素材。**零位移證明**：`git diff` 核實純新增 92 行、0 刪除/0 修改既有行；瀏覽器 iframe 同事件迴圈雙開比對（`newWorldSeeded`＋`setVisT` 固定同一幀）確認 baseline vs 現版 `__noNature=true` 於 921600 像素全數逐位元組相等（diffCount=0），nature ON vs OFF diffCount=42384（4.6%，落在地面/水岸範圍）。**LOD**：`z<1`（`lodFar`）時草地紋理/散佈物/岸邊漸變皆結構性跳過，僅懸崖岩層線因原生 `SPR.cliffEdge` 繪製本就不受 LOD 管制（沿用既有 `t.em` 不分級慣例）故任意縮放皆可見。**canPlace 零影響**：8 種工具×576 座標抽樣共 4608 次比對，nature ON vs OFF 皆 0 mismatch。存檔格式零變更（純繪製疊加層，未新增 tile/bld 欄位）；未刪改 `window.GV`。
+| 子區 | 行號 | 錨點 |
+|---|---|---|
+| `cv` ＋ snowCap/icicleCap/wetSkin | 903-970 | `function snowCap(` |
+| `dia` / `speck` / `diaEdge` | 972-1004 | `function dia(g,cx,ty,hw,col){` |
+| `isoBox` / `windows` | 1069-1110 | `function isoBox(g,cx,by,hw,h,cL,cR,cTop){` |
+| `outlineSprite` / `shade` | 1111-1129 | `function outlineSprite(c,r,gc,b){` |
+| `HERO_PIX` ＋ `drawHeroPix` | 1142-1262 | `const HERO_PIX={` |
+| 序幕：替身流 ＋ 三條流 | 1265-1272 | `const __savedR=R;R=mulberry32(1);` |
+| `PAL`/`PARTS`/`DRAFTS`/`mkBld` | 1459-1617 | `const DRAFTS=` |
+| T277 道路加蓋 | 7507-7536 | `const CURB='#9aa0a8'` |
+| T278 屋頂雜項加蓋 | 7537-7592 | `const stampRoof=(key)=>{` |
+| T261 夜燈遮罩 ＋ T291 底座裁切 | 7659-7698 | `const clipBase=(s)=>` |
+| T345 色環／徽記 | 7699-7774 | `if(!window.__noBadge){` |
+| T364a `sc` 縮放契約 ＋ parity | 7864-8027 | `const mkIndustry364=(kind)=>{` |
 
-v4.2（T154）追加**天氣視覺升級**（PI 美術二波第四卡，接在 T153 地形與自然美術之後）：雨落地水花＋濕地反光、積雪漸進堆積、閃電全域補光加強、低機率霧天、暴風雪橫向雪流線條。地面反光／積雪強度直接衍生既有 `rainDays`（T57「連續雨天計數」，`tick()` 既有邏輯完全不變、純讀取）換算 `wetLvl=rainDays/RAIN_ACC_DAYS`（非冬）／`snowLvl=rainDays/SNOW_ACC_DAYS`（冬），未新增專屬全域狀態；霧為獨立新增機制（`fog`＝`null`或`{days}`，比照 T137 `blizzard`/`drought` 慣例不進存檔），`tick()` 內以決定性雜湊 `streetHash(day,0,920)<FOG_PROB(.006)` 低機率觸發，不消耗 `R()`/`ri()`。`draw()` 新增：地面反光層／逐格水花點（`streetHash` 決定性挑選，10% 稀疏度）／積雪白色疊加／霧全屏線性漸層／暴風雪橫向雪流線條（純 `visT`+索引位移，不消耗 R()/ri()）／`flashT` 白閃追加 `fxOn&&wxUp` 門檻下暖白疊加（沿用 T149 光影層手法）。統一開關 `wxUp=!window.__noWx&&quality!==0&&!lodMini`（緊接 `animOn` 之後宣告）。**已修正一處實作缺陷**：暴風雪橫向線條初版 `xx` 座標公式對負被除數的 JS `%` 取模處理有誤（把線條全數推到畫面外），改為雙重取模正確落在可見範圍。**零位移驗證**：晴天基準四組情境（正午/lodFar/lodMini/跨季）對 HEAD 基準 diffCount 皆為 0；`__noWx=true` 時雨/雪/霧/暴風雪四種天氣狀態下 diffCount 亦皆為 0。存檔格式零變更（`fog`/`rainDays` 皆純運行時狀態，隨其餘天氣殘留於 `newWorld()`/`load()` 尾端成對歸零，鐵律7）；未刪改 `window.GV`。GV 新增 `fog`/`rainDays` 測試鉤子。
+### 關鍵符號
+`SPR`（110 個頂層鍵）、`dia(g,cx,ty,hw,col)`、`isoBox` 回傳的 `rty`、`spriteTexRand`、函式級 `rand=mulberry32(20260712)`、`SZC`／`SZB`、`maskNight`／`clipBase`／`stampRoof`、`_scView`／`_scSrcW`、`window.__noHero`…（71 個開關）。
 
-v4.2（T155）追加**載具與人物變體**（PI 美術二波末卡，接在 T154 天氣視覺升級之後）：`buildSprites` 絕對尾端 `if(!window.__noVeh){...}` 區塊新增——①廂型車/卡車/機車 3 新型（各 5 色，比照既有 `SPR.car` 陰影/暗側/主色/亮邊/車窗五層 `fillRect` 技法，轎車沿用既有 `SPR.car` 不重繪），彙整 `SPR.vehTypes={arr:[...],dim:[...]}`；②救護車 `SPR.ambulance`（白車身＋紅十字識別）；③行人 3 形態×2 走路幀 `SPR.ped.{adult,child,stroller}`（頭/身/腳三層構圖）。**車型/人物挑選**：`updCars` 新增 `vt=streetHash(x,y,910+d)*4|0` 與同款 `vc`（皆用 `streetHash` 而非 `ri()`，寫入車輛物件後終生不變＝同一輛車連續幀車型不變）；`updShips`/`updTrains` 比照新增 `bt`（貨船/漁船）／`pt`（塗裝），亦僅 `streetHash`、僅賦值一次。**行人**：`draw()` 內 T146 街道細節層點狀行人邏輯重構為 `active=!window.__noVeh&&SPR.ped` 與 `lodFar` 兩兩組合，`window.__noVeh=true` 時 `active` 恆假、精確退化回 T146 原始結構。**服務車補齊繪製**：核對發現 T119 救護車（`ambulances[]`）自建立以來從未接上 `draw()` 繪製分支（僅消防車/垃圾車有），本卡於 `objs` 收集階段補上（複用既有 `o.svc` 通用繪製邏輯，未新增判斷分支）；`SPR.ambulance` 缺失時整段不 `push`＝與改動前「救護車不可見」狀態零位移。**零亂數位移**：三處 spawn 端（`updCars`/`updShips`/`updTrains`）皆先於呼叫 `streetHash` 前判斷 `__noVeh`，關閉時 `vt/vc/bt/pt` 恆 0，回退到與 T154 版本逐字元相同的既有程式碼。存檔格式零變更（`vt`/`vc`/`bt`/`pt` 皆運行時載具物件欄位，`cars`/`cargoShips`/`trains`/`ambulances` 本就不入存檔）；未刪改 `window.GV`；所有新增像素全部原創構圖，未參考/描摹/轉換 TheoTown 或任何既有遊戲之素材。
+### 動它會踩到什麼
+- **`dia` 的第二參數 `ty` 是菱形頂點 y，不是中心 y**。佔用列 `ty..ty+hw-1`、x 佔 `cx-hw..cx+hw-1`。T355 就是把 ty 當中心，讓中央公園整個裝飾層浮在鄰格空中（離線量到上緣溢出 88px）。判斷貼地元素是否在 n×n footprint 內：`|x-ax|/(32n) + |y-(ay-16n)|/(16n) <= 1`。`hw` 必須是偶數（鐵律6）。
+- **亂數流尾端紀律**：三條流分別是全域 R/ri（被 `mulberry32(1)` 替身接管、L8045 還原）、函式級共用 `rand`、隔離的 `spriteTexRand`。實測消耗邊界：`ri()` 止於 4813、`rand()` 止於 6562、`spriteTexRand` 直接引用止於 4506（經 plate 間接到 7248）。在這些行之前插入對應消耗＝位移全部下游。零亂數區塊（純 fillRect／查表／canvas 合成）可自由插入，但仍慣例排尾端以取得「後寫後贏」語意。
+- **`DRAFTS` 展開必須 `tasks.sort((k,lv,v) 升序)`**（1602）；拿掉排序或改比較器＝整條流位移。`mkBld` 迴圈刻意跳過 k=1/2/3 的 v>=4（1617），與尾端 T101/T102/T103/T150 是一對。
+- **畫布與錨點慣例**：1×1＝72×112 ax36 ay110（by=108）；2×2＝136×150 ax68 ay148；3×3＝208×220 ax104 ay218；4×4＝272×280 ax136 ay278；5×5 不統一。任何覆蓋既有鍵的手繪替換必須逐位元沿用被替換者的 w/h/ax/ay。
+- **HERO_PIX 覆蓋＝整張畫布重畫**（T148/T151/T156/T161/T162/T164），所以更早的 detailPass／detailPass2 疊加全數丟失（原始碼明文承認，非缺陷）；排在其後的 T277/T278/T261/T291/T345 才蓋得上去。
+- **鐵律11：不要在畫布頂端加東西**。sprite 頂部多為透明天空，積雪／道具／徽記都必須先 getImageData 逐欄掃「該欄最高不透明像素」求屋頂線。牆面是 HERO_PIX 手繪禁區，**只有屋頂是安全加蓋面**。
+- **鐵律17：夜燈畫布必須被本體 alpha 遮罩**（T261 `destination-in`）。否則 `'screen'` 疊加＋畫家順序會把亮窗印到後面那棟的屋頂上。排在 T261 之後新增的自帶 night sprite 必須自己補做（見 `parity364`）。
+- **加蓋層順序不可任意調換**：T273 → T274 → **T353（必須在 T279 之前，因為 T281 從 farmSea clone）** → T279/T281 → T276/T282 → T277 → T278 → T318 → T261 → T291 → T345 → T359 → T361 → T364b → T364c/d → T368。
+- **時相替身必須被所有加蓋層一併處理**：`farmSea[1..3]`、`farmGrow[0..2][0..1]`、`parkS/parkA/parkW`。只掃 `SPR.bld` 會造成「畫面隨日子閃變」（T291/T345 都是後來被 T353 補上這條迴圈的）。
+- **`farmGrow` 的錨點 metadata 必須抄 base sprite**（7392-7398 的 `bAnchor`）。`doFarm` 傳的 ax/ay 是繪製座標；抄錯會讓大農場每 4 天整棟跳一次（zoom2 實測 120,48 螢幕像素）。
+- **T364a `sc` 契約**：帶 `sc` 的 sprite img 是 2× raw，繪製端建 `_scView` 同步縮 w/h/ax/ay 並保留 `_scSrcW/_scSrcH`。所有幾何一律除以 sc（`u=1/(sp.sc??1)`），snowCap/wetSkin/icicleCap 與施工切片必須走 `_scSrcW` 分支。無 sc 的既有素材必須逐位元不變（測試硬性斷言既有 120 座不得出現 sc）。
+- **`||` vs `??` 的 0 陷阱**：`SZB[k]||1` 與 `s.sc??1` 並存。設定表合法值可能為 0 時一律用 `??`。
+- **T274 區塊與 T229 色表已被位元級測試凍結**（拿 `backups/index.pre-T274.html` 逐位元比對，含「尾端區塊後必須是單一 LF」）。缺色只能像 T353 那樣另開一張表就地加蓋。
+- **git 還原後必查 CRLF**——`git checkout index.html` 會被 autocrlf 換成 CRLF，直接踩爆上述位元測試。
 
-v4.3（T159）追加**粒子與特效豐富化**：全新運行時粒子層，完全不觸碰 `buildSprites`（本卡 `git diff` 全部改動行號 ≥3997，早於 `buildSprites` 函式所在區間 799-3881，故不存在任何亂數位移可能，比 `__noXXX` 開關證明更強——函式區塊本身逐位元組未被觸碰）、不新增任何 `SPR.xxx` 鍵，六型粒子皆以 `fillRect`/`arc` 程式化繪製。**世界空間池 `fxParts`**（`{ty,wx,wy,vx,vy,age,life,dep,...}`，`fxCap()=90×quality係數`，沿用 T97 `smokeCap`/雨雪 cap 同款 `quality===0?.5:quality===2?1.4:1` 縮放公式）：①`spawnDust`——`doPlace` 成功回傳前（非 `doze`）觸發一次性土黃塵點（4-6 點，擴散上浮，life .45-.7s）；②`spawnDebris`——`doze` 分支觸發一次性深灰碎塊（5-8 點，重力噴濺墜地，life .5-.85s）；③`spawnEmber`——`updSmoke` 既有掃描迴圈內 `b.k<=3&&b.fire` 時抽樣（60% 機率）噴 1-2 點橘紅火花上飄（life .5-.9s），夜間（`fxOn&&nightDepth>0`）額外疊 T149 同款 `'lighter'` 徑向漸層發光暈；④`spawnLeaf`——同一 `updSmoke` 迴圈內 `season()===2`（秋）且 `t.tree` 時低機率（1.2%/0.45s/樹）飄落三色（`#c96f2e`/`#d9a441`/`#a8471f`）葉片，左右擺動下墜（life 2-3s），非秋季/冬季自動不觸發（`season()` 純讀取、不消耗亂數）；⑤`spawnExhaust`——`updCars` 迴圈內 `c.vt===2`（T155 卡車型別）以 `Math.random()<dt*1.8` 幀率無關機率於車尾（`d` 反向）噴灰色小煙（life .6-.9s）。世界空間粒子與 `smokes` 同款併入 `objs`（`dep` 排序，`!lodFar` 即 z<1 時整段不畫個體，模擬照跑，比照 T107 慣例）。**煙羽多樣化**（`updSmoke` 既有三煙源改造，`dark` 布林欄位換成 `col`＋`big`）：工業（k=3）依 `lv` 分兩階灰階（lv2 `#c7ccd1`／lv3 `#5b5551`）、電廠（k=5）改白色蒸汽 `#e7edf2` 且 `big=true`（膨脹倍率 7 對比一般 4.5）、暴亂住宅維持深色 `#3a3530`；`draw()` 對應 `ctx.fillStyle=s.col||'#d7dce2'` 防禦回退。**畫面空間彩帶 `confetti`**（獨立陣列，`confettiCap()=160×quality係數`，`quality===0?.4:quality===2?1.3:1`）：`spawnConfetti()` 於 `tick()` 里程碑（`msIdx` 命中，`sFanfare();msIdx++;` 之後）與升星（`cityStar>bestStar`，`bestStar=cityStar;` 之後）各觸發一次 46 片頂部灑落彩帶（6 色，重力+旋轉），`drawConfetti()` 於 `drawRain(z)` 呼叫後、`flashT` 判定前以畫面座標繪製（不隨相機縮放/平移），`!lodMini`（z≥0.5）才畫、`updConfetti` 不受 LOD 影響持續更新。全部取樣一律 `Math.random()`（與模擬用全域種子化 `R()`/`ri()` 完全獨立的另一亂數源），不觸碰任何既有 `R()`/`ri()` 消耗序列。**運行時狀態**：`fxParts`/`confetti` 皆不入存檔，`newWorld()`/`load()` 尾端與既有 `cars.length=0;smokes.length=0` 同段成對歸零（鐵律7）。GV 新增測試鉤子 `fxCount()`/`fxCountByType()`/`fxCap()`/`confettiCount()`/`confettiCap()`/`fxTest(ty,x,y,d)`（直接觸發指定粒子類型，繞過真實觸發條件如 `doPlace`/`fire`/`milestone`，供驗收快速抽樣個別效果）。
+### 已驗證缺口
+- `SZC`（T291 底座裁切清冊，45 鍵）是 `MSZ`（65 鍵）的過期子集，**缺 20 鍵**：k82,83,87,90,91,100,101,105,106,108,109,110,111,112,113,114,115,116,118,119。這 20 座多格建築從未被 `clipBase` 裁過底。
+- `k9`（體育場，2×2）不在 MSZ／SZB／SZC 任何一表，導致 T345 色環 `hw=32*(SZB[9]||1)=32`＝只有應有長度的一半（與 T353 修掉的 k91 同型）。
+- T345 徽記在屋頂線距畫布頂端不足 11px 的 sprite 上會整個消失，只剩色環。
 
-快捷鍵現狀（詳見 §8 全表）：1=檢視、2-6=五級道路（小巷/支路/次幹道/主幹道/快速路）、7=住宅 8=商業 9=工業 0=公園、'-'=拆除、'='=路飾、b=公車站、w=水塔、g=水管、j=警察局、h=醫院、c=診所、l=圖書館、o=郵局、m=墓園（電廠/消防局/學校/垃圾場/體育場/種樹/填草無鍵位；FIX-A：水管 p→g、警察局 P→j、取消大寫 P 綁定）。序列化命名地雷：存檔 `rc`=路飾（0/1）、`rcl`=道路等級（0-5），二者命名相近勿混淆。
-v1.4 批次B 追加：`t.hw` 高速路（rd 存檔值 0-4）、**多格建築架構**（k=9 體育場 2×2：root 含 sz、其餘格 `{k,ref:[rx,ry]}`，
-所有迴圈遇 ref 跳過、doze 全清、bl 只存 root 第 6 位存 sz）、`t.el/t.em` 高地與崖沿位罩（存檔欄位 el）、
-河流生成（下坡走訪挖真水）、地形工具 tree/fill、`hasRoadNear` 增 noHw 參數（生長只認普通路）。
-v1.3 追加：`bld.fire`（0 或已燃天數，≥5 燒毀）、`t.ruin`（焦土 0/1，doze 清除）；`loan` 全域（貸款 {remain,daily}）；
-存檔追加：bl 第 6 元素 fire（僅 >0 時）、`rn` 焦土字串、`ln` 貸款（皆可選欄位）；GV 追加 `ignite(x,y)` 與 stats.fires/ruins。
-服務建築模式（k=6/7 範本）：覆蓋半徑用 `countNear`、不參與電力配額/稅收/生長/火災、經濟段獨立計數與維護費。
-`age` 天數（升級計時）。`pw` 是否供電（k=4/5 恆 true）。`h` 幸福度（僅住宅有意義）。
+---
 
-人口/就業查表：`POPS=[0,8,22,54]`（住宅各級人口）`JOBSC=[0,5,14,38]` `JOBSI=[0,7,20,48]`。
+## 4. 繪製管線與視角旋轉（§7 ＋ T367）
 
-## 3. 遊戲數值（動平衡前先看這）
+### 它做什麼
+`draw(dt)` 單一函式 1,914 行：天空 → 地面（離屏快取）→ 動態疊層 → objs 深度排序繪製 → 全屏後製 → 夜燈 screen → 天氣個體 → 游標。T367 在其上加了一層純視角的 view-space 旋轉。
 
-- 起始資金 3000。`COST={road:15,bridge:60,zone:8,park:60,plant:550,doze:2}`；放置時格上有樹自動加收 doze 費。
-- 稅收（每天、僅通電）：住宅 `pop*0.12`、商業 `jobs*0.18`、工業 `jobs*0.15`。
-- 維護費（每天）：道路 0.02/格、公園 0.5、電廠 4。
-- 需求（每天重算，`workers=pop*0.6`）：
-  `dem[1]=clamp((jobs*1.2+25-workers)/70,-1,1)`
-  `dem[2]=clamp((workers*.45-jobsC)/50,-1,1)`
-  `dem[3]=clamp((workers*.55-jobsI)/55,-1,1)`
-- 生長：每天收集「有分區、無建築、2 格內有通電道路」的候選格，洗牌後最多生成 3 棟，機率 `p=.10+.5*max(0,dem)`（住宅另乘幸福係數）。
-- 升級：`lv<3 && pw && age>14 && dem>.15 &&（住宅另要 h>.45）&& 機率.035/天`。
-- 幸福：基礎 .62 ＋公園(4格內) −工業(3格內)*.09 −電廠(4格內)*.18 −無電.3，夾在 .05~1。
-- 電力：`computePower()` 從每座電廠四鄰道路做 BFS（上限 90 步）標記 `rp`；建築需「2 格內有 rp 道路」且全城供電數 ≤ 電廠數*50。
-- 里程碑 `MILES`：人口 [50,150,400,900,1600,2600] → 獎金。破產保底：資金<20 且入不敷出且距上次>60天 → 送 250。
-- **v3.2（T109）需求模型更新**：上面「需求」三式為 v3.0 基線，T109 起 `tick()` 內改為：住宅 `dem[1]=clamp(jobSurplus*.7+happyAdj*.3,-1,1)`（`jobSurplus` 沿用原 `(jobs*1.2+25-workers)/70` 算式、`happyAdj=(cityHappy-.6)*1.2`）；商業 `dem[2]=clamp((pop/max(1,czone)-3)/6,-1,1)`（`czone`＝全圖商業分區格數，含未建成，`tick()` 內每日重新計數）；工業 `dem[3]=clamp((jobsC*.8-jobsI)/40,-1,1)`（商業貨源缺口）。生長機率式同步改為 `p=.10*(1+dem[z]*.6*hf)`（`hf`＝既有住宅幸福係數，`dem[z]<-.5` 時該類 `p=0` 停長），取代舊 `p=.10+.5*max(0,dem)`；升級式另疊加 T113 多因子門檻：`lv1→2` 需 `COV.police[i]>0`、`lv2→3` 需 `COV.school[i]>0 && POL[i]<POL_LV3_MAX`（`POL_LV3_MAX=15`），純 AND 疊加於原 `dem>.15` 等既有條件，不改動 roll 機率算式本身。`dem` 本身在 v3.0/v3.2 皆不入存檔，`tick()` 每日重算。
-- **v3.3（T122）法規係數表**：`pol.curfew`＝犯罪 roll 乘 `.6`＋住宅幸福 `happyParts` 追加「宵禁」項 `-.02`；`pol.recycle`＝垃圾產量 `(pop*.05+jobsI*.08)*.85`（否則 `*1`）、每日固定支出 `$8`；`pol.tourPromo`＝商業稅觀光子項乘 `1.1`、每日固定支出 `$10`；`pol.ecoReg`＝商業稅額尾端乘 `.95`、`computePower()` 每電廠供電容量 `+5`。四者皆 `pol&&pol.xxx` 短路判斷，關閉時精確退化為原公式（`×1`/`+0`），全關回歸基準零漂移。
-- **v3.4（T124）財富分級係數表**：`we=b.we!==undefined?b.we:1`（住宅財富級，缺省中）；稅收＝`POPS[b.lv]*.12*(pm.taxR||1)*WEALTH_TAX[we]`（`WEALTH_TAX=[0.6,1,1.5]` 貧/中/富）；幸福構成「空氣污染」`-POL[ci]*.006*WEALTH_PEN[we]`、「犯罪」`-crime*.05*WEALTH_PEN[we]`（`WEALTH_PEN=[0.5,1,2]` 貧/中/富，貧民抗污染但稅少、富人多繳稅但敏感）；`WEALTH_TAX[1]===1`、`WEALTH_PEN[1]===1` 精確為浮點 1.0，全城中產時公式與改動前逐位元一致。每 30 天（`day%30===0`）全城住宅重判：`tgt=judgeWealth(x,y)` 與 `cur=we` 比較，`tgt>cur→cur+1`／`tgt<cur→cur-1`（一次最多漸變一級）。
+### 關鍵符號
+`daylight()→{b,dusk,ph,d}`、`streetHash(x,y,salt)`、`w2v/v2w/viewDep/isoW2V/rotMask/camLookWorld/setViewRot`、`sxOf/syOf`、`gKey`、`objs`／`dep`、`nightSprites`、`lodFar/lodMini`、`fxParts`、`visT`。
 
-## 4. 座標系統（動渲染必讀）
+### 動它會踩到什麼
+- **rot=0 必須逐位元回歸**：`w2v/v2w` 在 r===0 直接 return，`viewDep(x,y)===x+y`，多格 max ＝ 舊 SE 角，`rotMask(m,0)===m`。所有既有像素基線與 2,869 條斷言都建立在 rot=0。
+- **旋轉層區塊禁止出現 `R()/ri()/Math.random`**（靜態斷言，且斷言邊界止於 `STREET_POPCOUNT` 之前——在 12427..12495 之間插東西會踩到）。`viewDep` 不得 `Math.floor` 量化（T367 退修 P4）。
+- **旋轉不進存檔格式**：只寫 `localStorage[SAVEKEY+'.viewRot']`。存檔是模擬真相，視角不是。
+- **任何新繪製都必須經 `sxOf/syOf` 或 `isoW2V`**，直接寫 `(x-y)*32` 就是漏轉。注意 `sxOf` 帶 `-32`＝回傳菱形左端點，實體要用 `ox+wx*z`（＝sxOf+32z）。
+- **日間（含正午）逐像素一致**是硬不變量：`nightDepth` 在 b>=.72 恆 0、`shadowA` 在 quality<2 的日間恆 0、`dusk` 正午恆 0、夜燈閘不開＝零繪製。加任何日間可見的新效果都會撞它。
+- **draw() 不得消耗模擬亂數流**。要隨機只有三途：`streetHash(x,y,salt)` 座標決定性、`visT` 決定性相位、或粒子專用的獨立 `Math.random()`。改 streetHash 常數＝全城裝飾一次重排。
+- **「渲染不改狀態」的精確界線**：draw() 確實會寫 `trafClock/waterT/waterF/rainbowT/flashT/meteorTrail.t/groundCache*/signalList/fishScanN`——這些是純視覺運行時值，不入存檔、newWorld/load 成對重置。新增視覺狀態必須同步加進重置行。
+- **LOD 只裁「畫」不裁「算」**（T107）：`lodFar/lodMini` 不得影響 tick／updCars／updSmoke。
+- **`gKey` 必須涵蓋所有影響地面外觀的量**：`ox_oy_z_waterF_win_day_W_H_r{rot}`。反之 `day` 已在鍵內，tick 直改 tile 的路徑**刻意不補 `groundDirty`**——不要「順手」補。`groundDirty` 置真點分散在六處（doPlace 9360／undo 16736／newWorld 8321／load 17034／GV.flood 17605／setViewRot 12480），漏一處＝「改了地圖畫面不變」，且因 day 遞增次日自癒＝間歇性難重現。
+- **多格建築只由 root 繪製**；錨點取 footprint 內 view 最大 dep 的角（rot≠0 時未必是 SE 角）。
+- **夜燈只能走 `nightSprites`**（14217-14229 唯一出口），在別處自行 `'screen'` 會破壞層序。
+- **`'lighter'` 會洗白**：T195 電光／T207 隕石拖尾／T248 彩虹三處都撞過，底下已飽和到 255 或淺藍天時疊上去是變白／看不見，三處都改回 `source-over`。
+- **T359 探照燈必須畫在建築本體之後**，畫在之前會被剪影整段蓋掉、截圖完全不可見（Node mock 只能證明「呼叫有發出」，抓不到這種層序錯誤）。
+- **多分支選鍵必須先設 base 保底**（T298 農場頻閃：`s` 殘留上一棟建築的 sprite，隨 day 輪替交替閃爍）。
+- **每個新視覺層都要有 `window.__noXxx` 開關**——A/B 像素回歸的唯一手段。但驗開關前先 `GV.lookAt` 對準 ＋ `setZoom(2)` ＋ getImageData 確認畫面裡真有那個目標（T160 曾三度誤判）；且建築必須完工（age≥9），A/B diff 全 0 常常是「建築沒長好」而非「效果壞了」。
 
-- **美術像素（art px）**：sprite 內部座標。一格菱形 64 寬 × 32 高，斜率固定 2:1（橫 2px = 縱 1px）。
-- **世界座標（world px）**：tile(x,y) 的菱形**頂點**在 `wx=(x-y)*32`，`wy=(x+y)*16`；底頂點在 `(wx, wy+32)`。
-- **螢幕變換**：`z=cam.z`（裝置像素整數倍率 1..4），`ox=round(W/2-cam.x*z)`；
-  tile 左上角螢幕座標 `sx=ox+((x-y)*32-32)*z`，`sy=oy+((x+y)*16)*z`。
-- **反變換**（滑鼠→格子）`toTile()`：`fx=(wx/32+wy/16)/2`，`fy=(wy/16-wx/32)/2`。
-- **v3.2（T106）縮放階梯更新**：上一條「裝置像素整數倍率 1..4」為 v3.0 基線；T106 起 `cam.z` 改為乘法檔位階梯 `ZOOMS=[0.25,0.35,0.5,0.7,1,1.4,2,2.8,4]`（√2 步進，`zoomIdx(z)` 回傳最近索引），`zoomStep(d,...)` 索引階梯移動（滾輪/±鈕/捏合三處呼叫介面不變）；`z<1`（含 `z<0.5` 更遠檔位）觸發 T107 遠景 LOD（`draw()` 內 `lodFar`/`lodMini` 旗標，只裁「畫」不裁「算」：地面實色菱形取代貼圖、車/煙個體與路面裝飾不畫、`z<0.5` 建築退化為色塊）；`clampCam()` 在 `z<1` 時按 `1/z` 比例放寬邊界，`z≥1` 邊界公式與 v3.0 完全一致。T108 新增換檔緩動全域 `zoomAnim`（`{from,to,t,dur,mx,my,wx,wy}`，null＝未在動畫；`updateZoomAnim(dtReal)` 於 `advance()` 起手呼叫，只認真實時間，動畫期間 `draw()` 地面層改以 `groundCache` 原圖按比例縮放重貼、落檔瞬間精確等於硬切結果）；捏合改連續比例縮放（`pinchBase.d0/z0` 基準）＋單擊/雙指雙擊快捷縮放。`newWorld()`/`load()` 需連帶清空 `zoomAnim`（FIX-M，避免換檔動畫進行中開新圖/讀檔被舊動畫覆寫相機值）。
-- **錨點約定**：每個物件 sprite 記錄 `{ax,ay,w,h}`，(ax,ay) 對應**該格底頂點**。
-  繪製：`drawImage(img, sx+(32-ax)*z, sy+(32-ay)*z, w*z, h*z)`。
-- **位向約定**（road mask / diaEdge edges / foam wm 共用）：
-  bit1=鄰(x,y-1)=畫面右上邊；bit2=(x+1,y)=右下；bit4=(x,y+1)=左下；bit8=(x-1,y)=左上。
+### 目前仍未跟轉的子系統（rot≠0 時會出錯，逐一實測確認）
+| # | 位置 | 症狀 |
+|---|---|---|
+| 1 | 12848-12849 車道標線用裸 `t.mask===(1\|4)/(2\|8)` | 道路轉了、標線沒轉 |
+| 2 | 12925 `SPR.oneway[t.oneway-1]` | 箭頭方向完全沒轉 |
+| 3 | 13020 `SPR.foamWave[frame][t.wm]` 用裸 wm | 與同格靜態泡沫（12771 用 rotMask）自相矛盾 |
+| 4 | 14188 地鐵 overlay 自建裸等距式 `tsx/tsy` | 站體已跟轉、路線圖沒跟＝分裂 |
+| 5 | `fxParts` 的 `dep`（11972 起）是世界 `x+y` | 位置對、深度排序鍵錯 |
+| 6 | 載具 A/B 挑圖與 `DIRSCR` 車燈向量 | rot=1/3 時南北↔東西互換，恰好選反 |
+| 7 | 12641 `horizonY=syOf(0,0)` | rot=1/3 地平線掉到菱形腰線、rot=2 掉到底點，T256 懸浮感復發 |
+| 8 | 12677 懸崖 `x===N-1\|\|y===N-1` | rot=2 時崖壁畫在後緣、近端無崖 |
+| 9 | 13610 `SPR.plaza.path[pd]` | 入口通道用世界方向索引 |
+| 10 | 14285/14305 T361c 季節粒子裸等距式 | 花瓣/落葉/螢火蟲飄在錯誤的格上 |
 
-## 5. 美術管線（新增 sprite 照抄這套流程）
+小地圖（15538-15602）是**已完整跟轉的範本**，修上述任一項可照抄。
 
-helper（第 2 節開頭）：
-- `cv(w,h)` 建離屏 canvas，回 `[canvas, ctx]`。
-- `dia(g,cx,ty,hw,col)` 實心菱形：中心 cx、頂點 y=ty、半寬 hw（**必須偶數**）、高=hw。
-- `diaEdge(g,edges,col,cx=32,ty=0,hw=32)` 菱形描邊（edges 用 §4 位罩）。
-- `speck(...)` 菱形內隨機點綴；`isoBox(g,cx,by,hw,h,cL,cR,cTop)` 等距方塊（含 AO/簷口），回傳屋頂頂點 y；
-- `windows(g,ng,cx,by,hw,h,rand,litP,opts)` 牆面窗（同步把亮窗畫進夜間圖層 ng）；
-- `outlineSprite(c,r,g,b)` 給整張透明 canvas 的實體描 1px 輪廓；`plate(g,ax,ay,col)` 建築地基板。
+---
 
-慣例：
-- 建築畫布 72×112、錨點 ax=36 ay=110；電廠 88×120/44/118；公園 64×56/32/53；樹 40×48/20/45；地形與道路 64×32；橋 64×44（橋面在畫布 y=4，繪製時 `sy-4*z`）；懸崖 64×56。
-- **結構體先畫在獨立 canvas `sc`，`outlineSprite` 描邊後再貼回主畫布**（地基不描邊）。
-- **夜間圖層**：亮的東西（窗、招牌、警示燈）同步畫在 `nc`（夜 canvas），存進 `SPR.xxx.night`；繪製階段收集進 `nightSprites`，天黑時以 `screen` 混合疊加。
-- 煙囪冒煙點存 `smoke:[{dx,dy}]`（相對錨點）；電廠閃燈 `lamp:{dx,dy}`。
-- 註冊：`SPR.bld['k_lv_v']`、`SPR.tree[]`、`SPR.park[]`、`SPR.plant`、`SPR.road[16]`、`SPR.bridge[16]`、`SPR.foam[16]`、`SPR.zone{}`、`SPR.car[]`（8色×A/B朝向）。
-- v3.3 新增（皆置於 `buildSprites` 絕對尾端，遵守 FIX-B 亂數流尾端約定）：`SPR.tornado[0..2]`（T116，龍捲風三幀漏斗雲）、`SPR.crater`（T117，隕石坑扁平菱形焦黑環＋night 餘燼發光層）、`SPR.ladderTruck`/`SPR.recycleTruck`（T119，複製 `SPR.car` 生成邏輯換色，獨立鍵不與環境小車色池共用）。
-- v3.4（T125）新增（同樣置於 `buildSprites` 絕對尾端，接在 T119 服務車輛區塊之後）：`SPR.bld['k_lv_v_w0']`/`['k_lv_v_w2']`（住宅財富貧/富色變，24 組 `(lv,v)` × 2 級＝48 鍵，沿用 `mkBld` 同款 `plate→isoBox→PARTS 迴圈→outlineSprite` 流程只換色盤與收尾裝飾），取用鍵一律經 `wealthSpr(baseKey,we)`（缺鍵/中產/壞值回退 `SPR.bld[baseKey]`）。
+## 5. 模擬 tick（§5）
 
-### 5.1 建築的資料驅動：DRAFTS ＋ 部件引擎（T28）
+### 它做什麼
+`advance(dtReal)` 把真實時間轉成 tick 次數（`DAYLEN`=0.9s，單幀最多追 8 天）；`tick()` 一天內依固定順序跑：索引 → 噪音重建 → 日曆／事件／天氣 → 死亡前置 → **第一經濟迴圈**（計數＋幸福）→ 彙總 → 產業鏈 → 災害 → RCI 需求 → 生長 → 升級 → 垂直合併 → 火災 → 犯罪/廢棄/生病/死亡 → **第二經濟迴圈**（稅收）→ 維護費與落帳 → 挑戰/成就 → 評分 → `aiStep()`。
 
-k=1~3 住宅／商業／工業的 `SPR.bld['k_lv_v']` 不再寫死 if 分支，改由第 2 節內三樣東西合成（k4 公園與 k5~9 服務建築仍各自獨立成塊，不走本表）：
+### 關鍵符號
+`buildTickIndex/tickBld/tickRoad/tickZone`、`happyParts`（50 項固定長度）、`cityHappy`、`dem[1..3]`、`COV/COVR/stampCov/covFieldOfK/rebuildCov`、`POL/POLBASE/POLTREE`、`NOISE/rebuildNoise`、`LAND/LANDBASE/markLandDirty`、`EDU`、`computePower/computeWater`、`season()/FARM_SEASON_MULT`、`streetHash`、`fin`。
 
-- **`PAL`**：牆／屋頂色盤。變體 `v`（0..3）只是 `PAL[k].walls[v]`／`PAL[k].roof[v]` 的索引。
-- **`PARTS`**：部件函數註冊表，每個部件簽名 `(g,ng,c)=>void`。`g`＝結構層（畫完 `outlineSprite` 描邊）、`ng`＝夜燈層、`c`＝ctx＝`{ax,ay,by,hw,h,rty,rty2,wl,rf,v,k,lv,rand,dg(日層 canvas),smoke,d(本行資料)}`。約定：地面裝飾畫在 `c.dg`（不描邊）；夜燈畫進 `ng`；煙點 `c.smoke.push({dx,dy})`；`setbackTop` 把內縮頂點寫回 `c.rty2` 供其後的 `antenna/signBoard` 取用。現有部件：
-  - 屋頂：`pyramidRoof` `flatParapet` `setbackTop` `sawtoothMonitor` `roofBillboard`
-  - 頂飾：`waterTank` `antenna` `aviationLamp` `chimneySmall` `chimneyBrick` `storageTank`
-  - 牆面：`windowsStd` `door` `glassFront` `awning` `signBoard` `rollupDoor` `hazardStripe` `corrugate` `panelLines` `balconyRows`
-  - 地面：`yardDeco` `cratesDeco`
-- **`DRAFTS`**：每行一種外觀 `{k,lv[,v],hw,h,parts:[...],win:{litP,...opts},door?,trim?,vn?}`。主迴圈把每行展開成建造任務（未指定 `v` 者展開 `v=0..vn-1`，`vn` 預設 4；指定 `v` 者只出該變體），**依 (k,lv,v) 升序建造**（＝與舊三層 for 迴圈同序，維持 `rand`／`ri`／`plate` 亂數流對齊，勿破壞），每棟：查表 → `plate` → `isoBox` 得 `rty` → 依 `parts` 順序呼叫部件 → `outlineSprite` → 註冊 `SPR.bld['k_lv_v']`。輸出介面（`{img,night,ax,ay,w,h,smoke}`）與呼叫方完全不變。
+### 動它會踩到什麼
+- **鐵律14 稅收守衛**：新增任何 k，若它會走到第二經濟迴圈（11131-11217），**必須**補一條顯式 `else if(b.k===K);`。否則 fall through 到工業稅兜底，`JOBSI` 只有 4 格，lv≥4 時 `JOBSI[lv]` undefined → income NaN → money NaN → 存檔崩壞。鏈尾三條範圍分支：`b.k>=124&&b.k<=133`（11207）、`LMCFG309[b.k]`（11208）、`b.k>=81&&b.k<=120&&b.k!==105&&b.k!==106`（11209）。**k>=134 沒有任何守衛。** 歷史事故四次：FIX-A（診所/墓園）、T251（大農場 k53，真的 NaN 崩存檔）、T254（k57）、T290（k65）。
+- **鐵律2 亂數流位元契約**：不得改變 `R()/ri()` 的呼叫次數與順序。改機率係數安全，多加一次擲骰或讓某次擲骰被跳過就是破壞。安全手法：用 `streetHash` 做決定性判定（霧/城市事件/移民潮/T364d 防災攔截全走這條），或把新判定掛在既有擲骰**之後**（T364d 的地震還特地把上限從 hit 改成 attempted 以保住 `ri()` 消耗次數）。
+- **`happyParts` 必須是固定長度陣列字面量**（50 項，每項用三元式回 0），**絕不可條件 push**——`happyAggSum` 是按索引對齊累加的。
+- **`cityHappy` 一天內被寫 4 次，最後一次才算數**（10635／10651／10661／10717）。最終值**不含社宅 k127 的 b.h**（10635 那次含，之後三次只統計 k1）。加任何影響全城幸福的東西前先確認插在哪一次重算之前。
+- **COV 是計數場不是布林**，`stampCov(+1)/(-1)` 必須嚴格成對；多減會 0→255 無號下溢。`covFieldOfK` 就是讓 doPlace/doze/rebuildCov 共用同一份映射而自動對稱。特例：巨廈吸收公園要手動 `stampCov('park',…,-1)`；k126 的 `play`、k132 的 `shelter` 是第二個場，三處都要手動維護。
+- **`svcBudget` 改值必須立刻 `rebuildCov()`**——增量對稱性只在 budget 不變時成立。
+- **中性值恆等**：LANDBASE 空圖恆 128（下游 `(LAND-128)/128` 才精確算出 ×1）、EDU 恆 0、POL/NOISE 恆 0、roadLoad 恆 0、commutePenalty 無就業區恆 0、各產業倍率無設施時恆 1、三張季節乘數表春季恆 1。
+- **`tickBld` 是候選超集**：每個遍歷它的迴圈都要 `const b=tiles[i].bld; if(!b)continue;`（火災中途清掉建築）並幾乎必備 `if(b.ref)continue`（多格 ref 格不參與模擬/經濟，否則一棟 3×3 被算 9 棟）；中途新生的建築要當場 `tickBld.push(idx)`。
+- **money 落帳只有一處**：`if(diff!==3)money+=income-upkeep;`（11269，沙盒短路）。新收入 `income+=`、新支出 `upkeep+=`；`fin` 只是報表鏡像，只改 fin 不改 upkeep＝數字對不上（T266）。
+- **產業鏈的流量 vs 庫存**：`fuelMade/steelMade/…/TaxMul` 是本 tick 流量（10668-10672 統一歸零重算），只有 `supplies/fuel/steel/goods` 是跨日庫存。T346 的 gas 鏈效果刻意由**下一日**讀取。T284 血淚：流轉插在「今日開採入帳前」＝讀到 0 整條鏈死寂；**庫存為 0 不代表鏈斷，要看流量**。
+- **第一迴圈與第二迴圈的計數不可重複**——同一建築在兩處都計數會讓維護費翻倍（FIX-A 碑文仍留在 11141-11145）。新建築的計數一律加在第一迴圈。
+- **模擬節奏只由 `DAYLEN` 與 `speed` 控制**（鐵律10）。單幀追 8 天上限是防呆，改掉會讓分頁切回來一次跑上百天。
 
-**加一種建築外觀 = 三步**（弱模型可安全擴充；示範：表尾「花園商場」＝ k2 lv2 第 4 變體）：
-1. **挑部件**：從上面的 `PARTS` 選現有部件組合；真的缺才新增一個 `(g,ng,c)=>void`（座標從 `c` 取，亮元素記得也畫進 `ng`）。
-2. **加一行 `DRAFTS`**：填 `k,lv`（要固定變體再加 `v`）、`hw,h`、`parts:[...]`、視窗參數 `win`，以及部件會讀的自訂欄位（如 `door:{col,knob}`、`trim`）。牆／屋頂色自動由 `PAL[k]` 依 `v` 取；**若新行改變某 (k,lv,v) 的亂數消耗量，其後所有 sprite 的亂數流會位移**——沿用等量的 `windowsStd`／`roofBillboard` 即可保持對齊（花園商場即照此，故除它以外 47/48 鍵位元不變）。
-3. **若是全新 k**：本表只管外觀；種類的其餘接線照 §11 不變量清單（`KNAME`/`COST`/`TOOLS`/快捷鍵/`canPlace`/`doPlace`/`inspect`/小地圖/統計）另補。
+### 效能與歷史
+- T316 之前 tick 有 11 個全圖掃描，648² 空城單 tick 244.5ms。`buildTickIndex` 的「候選超集＋條件實時重驗」設計必須維持——遍歷升序索引才與原 row-major 同集合同序、`R()` 消耗逐位不變。
+- T354 實測 `computePower` 佔全行程 22.4%（tick 1 次＋aiStep 1 次＋每次 doPlace 各 1 次），同期**否決了三個舊假設**：噪音場僅 1.9%、AI wants 表迴圈 0.4%、`recomputeLandDynamic` 0.4%。**要動效能前先量。**
+- T292 LANDBASE 僵屍 bug：增量 `stampCov` 完全不碰 LANDBASE，地價永遠停在 128，拖累生長／稅收／升級三處卻毫無徵兆。任何用增量維護的衍生場都要問「誰在增量路徑上同步它」。
+- T341/T342：塔進化曾結構性凍結（分區沿路生長讓 3×3 環必缺一格路），現改成塔門檻降 Lv2+、巨廈由 3×3 簇直接成形；`mgDone` 即使擲骰失敗也要佔位，否則 2×2 塔掃描會吃碎同一簇。
 
-> **亂數流尾端約定（FIX-B）**：T29-T38 曾在 buildSprites 中段插入生成、位移了下游全部共用 `rand` 流。修復後恢復「淨增內容一律置於全部既有 sprite 之後」的紀律：道路生成抽為 `genRoadLvl(rcI)`，支路 `rc=2`（roadClass[1]，＝ v2.0 基線路面消耗）在原位生成、其餘 `rc=1/3/4`（roadClass[0/2/3]）於尾端；DRAFTS 淨增行 `(1,3,4)` 公寓大樓改由尾端 `mkBld` 單獨建造（主迴圈以 `if` 跳過）；圖書館(T35)/郵局(T36) 兩區塊整段移至尾端。最後共用 `rand` 消耗者為 `grassH`；其後（水塔/警局/醫院/診所/墓園等）皆用 `plate`(Math.random) 或自種子，不吃共用流。像素回歸以基線 6773675 對照，既有 SPR 鍵之確定層（night＋非 plate 全圖）100% 位元一致（plate 日層因 `Math.random()` 點綴本就每次載入不同，非本修改所致）。
+---
 
-## 6. 繪製順序（draw()，每幀）
+## 6. AI 市長／工具與放置（§4 ＋ §5 AI）
 
-天空漸層 → 星星(夜) → **地面層**（全圖掃描＋可視裁切：懸崖→地形→泡沫→道路/橋→分區覆蓋）→ **物件層**（樹/建築/車/煙 依 `dep=x+y` 排序）→ 晝夜 multiply 色調 → 黃昏橙色 → 夜燈 screen 疊加 → 游標/框選。
-`daylight()` 由 `visT` 算出亮度 b（0.34~1）與黃昏量。水面 3 幀每 0.5s 輪換。
-**v3.5（T126）**：物件層建築 `drawImage` 前另有一輪 `occTargets` 遮擋判定（見 §2 v3.5/T126 段落），命中則單棟 `globalAlpha=.35`；純疊加於既有物件層繪製之內，不改變 `dep` 排序本身或其後的晝夜/游標階段。
+### 它做什麼
+`TOOLS`（153 項）＋ `canPlace`／`placeCost`／`doPlace` 是玩家與 AI 共用的建造管線；`aiStep()`（9825-10339）在 tick 尾端跑一次，用純確定性掃描替玩家蓋城。
 
-## 7. 主迴圈與時間
+### 關鍵符號
+`COST`／`ROAD_COST`、`canPlace`（**null＝可建**，非空字串＝錯誤訊息）、`canPlaceMulti`、`placeCost`、`doPlace`、`tryP`／`tryPClear`／`clearable`、`wants`（78 條）、`UP_MAX`／`UP_JOB`／`upCost`／`upgradeBld`、`commitRect`、`undoGroup`。
 
-- `advance(dtReal)`：`visT+=min(dt,2)`；`simAcc+=dt*speed`；每滿 `DAYLEN=0.9s` 跑一次 `tick()`（一天），單次最多補 8 天；再更新車/煙（動畫 dt 上限 .05）。
-- `frame()` rAF 正常驅動；**setInterval(250ms) 後備**：偵測 rAF 停擺（分頁隱藏）超過 400ms 時接手模擬＋低頻補畫。改主迴圈前先理解這個雙軌設計。
-- `speed`：0 暫停 / 1 / 3（HUD 按鈕循環）。
+### 動它會踩到什麼
+- **`doPlace` 是建造/拆除的唯一資料變更點**（扣款、groundDirty、粒子、電網/水網同步、樹污撤印全在 9353-9363）。全檔只有 `undo()` 繞過它直接覆寫 tiles，因此 undo 必須逐項手動補齊這些副作用。
+- **`canPlace` 新增分支必須明確 `return null`**，否則落到 8551 的兜底 `'無法建造'`（8452 上方的原始註解就是這個事故的碑文）。`canPlace` 與 `placeCost` 的 case 清單是**兩份手抄副本**。
+- **工具列顯示價必須等於 `placeCost` 實扣**（鐵律20）。多數 `pr` 寫成 `'$'+COST.x` 自動同步，但 `oneway`（'$20'）與 `light`（'$60'）是字面值、placeCost 也硬編碼，兩處必須同改。**目前無任何測試守這個一致性。**
+- **工具 id 必須與 COST 鍵同名**，唯一例外 `civichall→COST.civicHall`，由 AI 端的 `aiCostOf`（10280）顯式處理。新工具讓 id≠COST 鍵又忘了補＝AI 拿到 undefined 永遠 continue，**不報錯，只是那座建築 AI 永遠不蓋**。
+- **多格 root/ref 契約**：root 存 `{k,lv,v,age,pw,h,sz}`、其餘存 `{k,ref:[rx,ry]}`；覆蓋場只在 root 蓋一次（唯一例外 k9 四格皆蓋 stadium）。處理多格一律先 `t.bld.ref||[x,y]` 解析 root 再讀 sz。
+- **`UP_JOB[k]` 一律用 `??` 不可用 `||`**（鐵律15／T254）：顯式 0（純擴容不加就業）會被 `||6` 誤 fallback 成每級 +6 幽靈就業。
+- **「讓某個 k 變成可升級」這個動作本身就是引信**——進入 `UP_MAX` 就必須確認第二經濟迴圈有它的分支。
+- **doze 的 else-if 鏈順序＝拆除優先序**。T117 隕石坑原本落在 zone 之後，導致「曾劃過分區的格子上的隕石坑永遠剷不掉」，才被提到僅次於 ruin。
+- **鐵律19（AI 旋鈕非單調）**：AI 早期決策是混沌路徑依賴系統。實證一：掃工資→商業稅乘數 k=0/.25/.5/1 得 pop 3155/474/3418/387（**中間值反而最差**）。實證二：為修水域死鎖試過三種預防式改法，每種都把原本健康的種子打壞（seed22 4550→335）。**正解形態三條**：①優先結構性／配置改動而非給錢（T346d zoneBudget 1→4，六種子三勝一負且崩城率不變）；②必須介入時條件要嚴到健康城市永不滿足（T348 五連條件），這樣健康軌跡位元恆等；③驗收一律多種子看崩城率，單種子變好＝運氣。改 AI 前先讀 9921-9935 與 10017-10023 兩段長註解。
+- **AI 全程零 `R()` 消耗**——所有選址都是 row-major 決定性掃描或座標雜湊。
+- **AI 建造必須走 `tryP`／`tryPClear`**（三道閘的唯一收口）。唯一例外是 10127 的都市更新，它繞過了資金閘。
+- **AI 的動作不進 undo 群組**（tryP 直呼 doPlace 而未 openUndo），玩家撤不掉 AI 蓋的東西——這是刻意的。
+- **AI 的節拍常數互相錯開**：服務 day%2、適應性建設 day%2、中庭公園 day%3、公車站 day%10、車隊 day%20、地鐵 day%25、都更 day%30、地標 day%40，路網 %6／%18、水管 %6===3。改任一個都屬於動 AI 旋鈕。
 
-## 8. 輸入模型
+### 已知缺口
+- 放置後的即時電網刷新清單（9355）**不含 T257 新增的 nuclear/hydro/geo**，要等下一次 tick 自癒。
+- `canPlace` 的 1×1 服務群分支（8399-8403）**沒擋 rail/tram**，而多格通用分支擋。補上會改變 AI 的合法點集合＝需多種子驗收。
+- AI 完全不蓋 T364b/c/d 的 13 種建築（k121-133），已 grep 確認這些 id 在 aiStep 全段一次都沒出現。
 
-- 工具 `TOOLS`：pan(檢視/平移)、road、zr/zc/zi(分區)、park、plant、doze。
-- **rect 工具**（zr/zc/zi/park/doze）：按下拉框、放開結算（`commitRect` 先總價後施工）；
-  **paint 工具**（road 五級/wpipe 水管/rdec 路飾）：拖曳連續鋪設，`paintTo` 做 L 型補間防斷路；電廠與所有單體服務建築（水塔/警局/醫院/診所/圖書館/郵局/墓園/消防/學校/垃圾場/體育場/公車站）一律單點放置（FIX-A：pointermove 排除清單）。
-- pan 工具：單指/左鍵拖曳平移；點擊（未移動）＝ `inspect()` 檢視面板。
-- 任意工具：中/右鍵拖曳平移、滾輪縮放；**雙指**＝pinch 縮放＋平移（進入雙指即取消畫線/框選）。
-- 鍵盤（實際全表，FIX-A 同步）：`1`=檢視　`2`=小巷　`3`=支路　`4`=次幹道　`5`=主幹道　`6`=快速路　`7`=住宅　`8`=商業　`9`=工業　`0`=公園　`-`=拆除　`=`=路飾　`b`=公車站　`w`=水塔　`g`=水管　`j`=警察局　`h`=醫院　`c`=診所　`l`=圖書館　`o`=郵局　`m`=墓園；`空白鍵`=速度循環/暫停、`Esc`=回檢視、`Ctrl/Cmd+Z`=撤銷。**命中機制（FIX-E）**：字母/數字鍵 map 到 tool id 後，由可見按鈕 `dataset.tid` 反查再 `click()`——T62 分類篩選會改變可見按鈕集，不再用 TOOLS 全表索引（避免錯位/越界）。
-- **修飾鍵防護（FIX-A）**：keydown 開頭 `if(e.ctrlKey||e.metaKey||e.altKey){if(!((e.ctrlKey||e.metaKey)&&e.key==='z'))return;}`——除 `Ctrl/Cmd+Z` 撤銷外，一切修飾鍵組合一律 return 放行給瀏覽器（Ctrl+P 列印、Ctrl+L 網址列等不再誤觸工具）。無獨立鍵位：電廠/消防局/學校/垃圾場/體育場/種樹/填草。
+---
 
-## 9. 存檔（v1）
+## 7. UI 層（§10）
 
-槽位鍵 `glimmerville.v1.s1/.s2/.s3`（目前槽記在 `.slot`；舊裸鍵啟動時自動遷入 s1），JSON：
-`{v:1, gameVer, seed, money, day, msIdx, cam:{x,y,z}, ter, tre, rd, zn, dc, rn, rc, rcl, wp, el, bs, cm, sk, dt, skd, dtd, bl, ach, nm, ln, star, rl, rb, dk, ow, tl, pm, bln, tr, of, fl, le, ab, pol, region}`
-其中 `gameVer`＝`GAME_VER`（T93，現 '3.0'；僅記錄用，讀檔仍以 `v===1` 為準）；ter/tre/rd/zn/dc 等是長 N*N 的數字字串（rd：0無 1路 2橋 3高速 4高速橋；dc＝deco；rn焦土 rc路飾 rcl道路等級 wp水管 el高地 bs公車站 cm犯罪 sk生病 dt死亡 skd/dtd病亡天數；rl/rb鐵路/鐵路橋 dk碼頭 ow單行 tl號誌 pm停車計費 bln公車道 tr輕軌 of辦公 fl洪水 le堤防 ab廢棄，皆對應 §2 同名 tile 旗標）；`bl=[[i,k,lv,v,age(,sz|fire)(,den)],...]`（多格建築只存 root，k=9 第 6 位存 sz；其餘多格 k=19/20/22-25/31/32/33/34（T127 新增 33/34）**不存 sz**——fire 只發生於 k≤3、第 6 位對這些 k 恆缺，load 依 `MSZ` 表由 k 反查補回 root 的 sz 再重建 ref 格，舊檔天然相容，FIX-J）；
-`ach`＝已解鎖成就 id 陣列；`nm`＝鎮名；`ln`＝貸款 `[remain,daily]`；`star`＝最佳星等；`pol`＝稅率政策物件（T55/T68）、`region`＝區域聯動摘要（T60/T73）。dc 之後所有欄位均為可選欄位（舊檔容錯）。
-v3.2 追加三個可選欄位（皆 §2/§8 所述運行時全域的存檔鏡射，舊檔缺欄位容錯為空/預設值，讀寫對稱於 `save()`/`load()`）：`hi`＝歷史曲線（T112，拆成 `{d0,m,n,p,h}` 並列數字陣列壓縮體積而非逐筆存物件，`d0`＝起始日，`m/n/p/h`＝money/net/pop/happy 四條等長陣列，`load()` 依 `d0` 重建回 `hist` 逐筆物件陣列）；`nl`＝通知日誌（T114，`log` 陣列原樣存入，上限 100 筆，`load()` 還原後 `unread` 歸零＝讀檔視為已讀）；`df`＝難度（T115，0-3＝簡單/標準/困難/沙盒，`load()` 缺欄位或越界視為 1 標準）。
-v3.3 追加三個可選欄位（同樣舊檔缺欄位容錯為空/預設值）：`ctr`＝隕石坑（T117，per-tile 字元串，仿 `rn`/`fl`/`le` 先例，`load()` 缺欄位容錯全 0）；`riot`＝暴亂狀態（T118，`{cells,days}` 最小結構，仿 `loan` 慣例，`load()` 於 tiles/bld 重建完畢後逐格核對建築仍存在才收錄同步 `bld.riot`，缺欄位視為無暴亂）；`bus_rt`＝公車路線（T120，`busRoutes` 陣列原樣存入，`load()` 逐站核對 tiles 仍為公車站才收錄，缺欄位視為三條空路線）。`pol` 既有整包欄位（T122）擴四布林 `curfew`/`recycle`/`tourPromo`/`ecoReg`，走原有 `pol` 整包序列化路徑、未新增判斷分支，舊檔缺四鍵時天然 falsy＝預設全關。
-v3.4（T123）`bl` 元組追加尾端可選第 8 位＝住宅財富 `we`（沿用 sz/fire/den 尾端可選位先例，`e=[i,k,lv,v,age(,sz|fire)(,den)(,we)]`，僅 k===1 且 `we!==undefined&&we!==1`（非預設中產）才落盤，落盤前補齊 fire/den 佔位）；`load()` 對稱 `rec.length>=8?rec[7]:1`（**舊檔缺欄位缺省 1 中，非 0 貧**，避免舊 3.3 存檔全城變貧）。
-v3.7 追加兩個可選欄位（v3.5/v3.6 三波皆不新增存檔欄位，見 §2 對應段落）：`sc`＝進行中場景戰役（T132，`scenario?{id,startDay,hold}:null`，仿 `loan`/`riot` 最小結構慣例，`load()` 缺欄位回一般模式；官方 `scDone` 通關記錄另落 localStorage 獨立鍵，不入本存檔）；`rk`＝城市等級（T133，`rankIdx` 0-based，`load()` 缺欄位時由當前城市狀態即時算出合理等級，不因缺欄位降級為 Lv.1）。T134（成就擴充）存檔格式零變更；T135（編輯器）分享碼走獨立 base64 字串通道，`save()`/`load()` 本體零改動。
-v3.8（T136）季節純由 `day` 導出，存檔格式零變更。v3.8（T137）追加一個可選欄位：`plague`＝瘟疫狀態（`{cells,days}` 最小結構，仿 `riot` 慣例，`load()` 於 `riot` 還原之後同批還原，缺欄位視為無瘟疫）；同卡新增的 `drought`/`blizzard`/`leakDays` 皆運行時狀態，不入存檔本體。v3.8（T138/T139）建築型別擴充（k=35-48）存檔格式零變更——`bl` 元組既有 `sz`/`ref` 機制天然支援新多格建築，`load()` 依 `MSZ` 表反查即可正確重建，未新增任何欄位。v3.9（T140）追加兩個可選欄位：`sup`＝資源供應品全域存量（純量，缺欄位容錯為 0）；`rdep`＝資源耗損（稀疏陣列 `[[i,累計開採量],...]`，僅存非零格，仿 `riot`/`plague` 最小結構慣例，缺欄位視為全數未耗損）；`RESOURCE`（資源型別分布本身）不入存檔，`load()` 以存檔內 `seed` 呼叫 `genResource()` 重建。v3.9（T141）存檔格式零變更——`commuteLoad`/`commutePass`/`commutePenalty`/`commuteUnreach`/`commuteClusters` 皆純運行時場，`newWorld()`/`load()` 隨 `roadLoad`/`roadPass` 一併成對歸零／每 `COMMUTE_PERIOD` 天自然重算，不需落盤。v3.9（T142）存檔格式零變更——`EDU` 比照 `LAND`/`POL` 家族，純由 `rebuildCov()` 全量重建，不入存檔。v3.9（T144）存檔格式零變更——`AmbientBus` 純音訊旁路，不新增運行時場、不寫入任何 tiles/bld/存檔欄位。
-讀檔後重算 mask/foam＋`recalcAllRailMasks()`（FIX-D：rl/tr 還原時 railMask/tramMask 歸零需全量補算）＋rebuildCov；`pop/jobs/pw/h` 由下一次 tick 重算，不存。
-**覆寫保險（FIX-D）**：save／importShare 覆寫主鍵前先把舊值備份到 `<key>_bak`；setItem 失敗 `console.warn` 不再靜默；load 主鍵毀損先嘗試救 `_bak`，importShare 失敗還原舊檔。
-**變更規則見 RULES 第 9 條。** 音效設定另存 `.snd`（0/1/2，舊 `.mute` 自動遷移）。
+### 它做什麼
+CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九個面板共用唯一容器 `#info` / `#infoBody`。
 
-## 10. GV 除錯 API（驗收全靠它）
+### 關鍵符號
+`showInfoPanel()`（唯一顯示入口）、`syncHudH()` / `--hud-h`、`statTab` / `dataTable` / `bindDataTable`、`toast` / `updHud`、`inspect` / `svcStatTable` / `metroStationTable`、`chipPanel`、`showStats` / `cityAdvisor` / `FACTOR_TRACE`、`drawMini` / `MINI_BLD_PAL`、`showSlots` / `importShareCode`、`showEditor`、`camLookWorld`。
 
-```js
-GV.center()            // 螢幕中心的 [x,y] 格座標
-GV.place(tool,x,y)     // 靜默放置，回傳是否成功（tool: 'road'|'zr'|'zc'|'zi'|'park'|'plant'|'doze'）
-GV.tile(x,y)           // 某格資料快照
-GV.setSpeed(3)         // 設模擬速度
-GV.stats()             // {money,pop,jobs,day,buildings,poweredBld,roads,zones,happy,dem,cars}
-```
+### 動它會踩到什麼
+- **顯示面板只准走 `showInfoPanel()`**：全檔 `$('#info').style.display='block'` 必須恰好出現 1 次（892），目前 9 個呼叫點。理由是要先 `syncHudH()` 實測 `#hud` 高度寫進 `--hud-h`，ResizeObserver 是下一幀才回呼、只靠它會在導航欄折行那一幀頂穿。
+- **`#hud` 的 z-index 必須是 30**，`#info` 限高不能寫死（420px 寬時導航欄實高 98px）。這三件事是 T322 的三段修法，缺一不可。
+- **純數據列一律走 `statTab()`／`dataTable()`**（T319 標準化契約），不要自己拼表格。
+- **`chipPanel` 的 pop/jobs 重算式必須逐字鏡像 tick 的累加式**，且因為 tick 順序是「先算 pop 再讓建築生長」，面板必比 HUD 新一個生長步——所以財富分層**必須用最大餘額法歸一到 HUD 的 pop**（16486-16494），保證分層相加＝總人口。
+- **`townName` 注入 innerHTML 前必經 `escHtml()`**。
+- **所有跳鏡頭一律走 `camLookWorld(worldX,worldY)`**，不可直接寫 `cam.x=(x-y)*32`（T367 退修修的就是這五處）。小地圖繪製要 `w2v`、點擊要 `v2w`。
+- **面板內互動控件一律 `addEventListener`，不用內聯 onclick**（`#infoBody` 每次重繪整批重建 DOM）。
+- **UI 偏好全走獨立 localStorage 鍵，永不進存檔格式**：`.snd/.q/.ds/.msz/.viewRot/.slot/.scDone`。
+- **toast 的視覺節流不得影響通知中心**——不管有沒有被擠掉一定 `log.push` 並 `unread++`；被擠掉的舊條必須立刻 `position:absolute` 脫離排版（T311 修前實測 DOM 殘留 18 條）。`#toasts` 的 bottom 必須 ≥118px（T219：玩家截圖實證 toast 壓住水塔/消防局按鈕）。
+- **`MINI_BLD_PAL` 新增條目用顯式索引賦值，不要 push**（這張色表同時被遠景 LOD 色塊複用）。
+- **快捷鍵用 `dataset.tid` 在「可見的」按鈕上反查**（FIX-E），不要改回 TOOLS 全表索引。
 
-## 11. 不變量清單（改壞任何一條＝驗收失敗）
+### 已知缺陷／陷阱
+- **`#bMetro` 的 click 監聽掛在 `showStats()` 內部（16331-16338），但 `#bMetro` 是靜態 HUD 元素**。showStats 每呼叫一次就再 addEventListener 一次，而幾乎所有面板控件都以 showStats() 收尾 ＝ 監聽器累積；同區塊末尾又無條件把它設成 opacity 0.55，與 `metroShow` 實際狀態脫節。**（讀碼推得，未實跑；test_fixde.js 全檔查無 bMetro/metroShow 任何斷言＝測試零覆蓋。）**
+- `buildToolbar()` 15462 的註解已過期（宣稱「全部 TOOLS 皆未設 unlockRank」，實際有 30 項）。等級不足時工具鈕不渲染，快捷鍵也找不到＝「按了沒反應」是設計行為。
+- 開始畫面的災害／畫質／地圖尺寸三顆設定鈕被包在**挑戰按鈕的守衛**裡（`if(startEl&&!$('#bCh1'))`）。
+- 地圖尺寸 UI 與檔位表脫節：`MAP_SIZES` 有 7 檔，`msLbl` 只認 108/144/216，而 307 行註解自陳 216² 是安全上限——UI 讓玩家選得到超過自陳上限的尺寸且無標示。
+- 切到另一個面板**不會**呼叫 `hideInfo()`，所以因果追溯的紅色高亮會留在畫面上。
+- `dtabSort` 是全域單一排序狀態，統計面板（2 欄）與指南速查表（5 欄）共用。
+- `showStats()` 每次重繪都跑一次 `cityAdvisor()` 的 O(N²) 全圖掃描。
+- 小地圖不是每幀重繪（setInterval 2s ＋ 12 個手動呼叫點），改了 tiles 忘了 `drawMini()` 會停留在最多 2 秒前的狀態。
+- `showHelp()` 的分頁分支順序是 0/1/2/4/**else**，新增分頁會掉進 else；16697-16705 整段用 `\uXXXX` 逃逸寫成，grep 中文找不到。
+- Escape 鍵 `querySelectorAll('.tool')[0].click()` **無 null 守衛**，目前安全只因為 pan/doze 在每個分類恆渲染。
 
-1. `dia/diaEdge` 的 hw 恆為偶數；sprite 不得畫出畫布邊界。
-2. 動 road 後 recalcMask 自己＋四鄰；動 rail/tram 後 recalcRailMask4 自己＋四鄰（FIX-D）；動地形後 computeFoam。
-3. `bld.k===4|5` 的 `pw` 恆 true；只有 k≤3 參與電力配額與稅收。
-4. 夜燈只畫在 night canvas；日間主圖不含發光元素。
-5. 讀檔絕不拋錯：任何異常 → 回傳 false → 自動開新圖。
-6. 單檔、零依賴、繁中 UI；`window.GV` 永遠存在。
-7. 模擬邏輯只在 `tick()`；渲染不得改遊戲狀態（`waterF/waterT` 除外）。
-8. 主迴圈雙軌（rAF＋interval 後備）不可退化成單軌。
-9. 建造/拆除的**唯一**資料變更點是 `doPlace()`——撤銷系統的快照掛鉤在那裡，繞過它改 tile＝撤銷壞掉。
-10. 新增建築種類 k 時必須同步：KNAME、COST、TOOLS、keydown 快捷鍵表、canPlace/placeCost/doPlace、
-    SPR.bld['k_1_v']、inspect()、小地圖色表（drawMini 內陣列）、統計面板計數；若涉及模擬狀態標記（如 sick/death），
-    需同時補存檔欄位與 load 還原；多格建築（sz≥2）需同步 `MSZ` 表（FIX-J：load 由 k 反查補 sz，缺表項＝讀檔後 ref 格全失）。
-11. 覆蓋計數場 `COV`（T61）只在 `doPlace` 增減、`rebuildCov` 全量重建（load/newWorld/undo 後）；tick 讀不寫 COV，語義恆等 `countNear`。
-    若新增一種 doPlace 可放置/拆除的覆蓋源設施，須在 `COVR`/`covFieldOfK` 補欄位、doPlace 放置/doze 撤印各補 `stampCov`；tick 內動態生滅的覆蓋源（如工業/犯罪）維持 `countNear` 不蓋印。
-12. **放置/拆除覆蓋蓋印必須對稱（FIX-D）**：doPlace 放置 `stampCov(+1)` 與 doze `stampCov(-1)` 必成對；多格建築體育場(k9) 4 格皆蓋/皆撤，其餘多格（k20/31/32）於 root 蓋/撤一次。缺一邊 → Uint8 下溢 0→255 或與 rebuildCov 語義分歧（教訓：k28/30 放置端漏蓋）。
-13. **新增依賴 `SPR.bld` 變體的 k 須確認變體鍵存在（FIX-D）**：生成端只出 `k_1_0` 的單變體建築，放置端必須固定 `v:0`（渲染有 `_0` 兜底、load 有正規化，但放置端寫錯 v 仍會存進存檔）。
-14. **服務車輛派遣統一走 `updDispatch` 抽象（T119）**：新增「從服務建築出勤、抵達觸發效果」類車輛（消防車/垃圾車/救護車皆已接上），優先複用 `updDispatch(arr,dt,speed,cap,sts,cand,onArrive)` 而非另起一套 from/target 狀態機；`onArrive` 回傳假值＝車輛消失（如救護車），回傳新目標＝持續巡迴（如垃圾車）。車輛狀態一律不入存檔，`newWorld()`/`load()` 既有載具重置行尾端追加清空即可。
+---
+
+## 8. 測試與工具鏈
+
+### 它做什麼
+`test_fixde.js` 用手寫 DOM/BOM mock ＋ `eval(index.html 的 inline script)` 把整個遊戲載進 Node，再以 `window.GV`（194 個鉤子）驅動；`tools/verify.py` 是唯一權威綠燈；`tools/merge_bay.py` 是三個施工車位併回 master 的唯一通道。
+
+### 四類斷言
+| 類型 | 位置 | 手法 |
+|---|---|---|
+| 一般執行期 | 全檔交錯 | `newWorldSeeded(seed)` → place/step → 斷 `stats()`；含釘定種子與逐位元重播 |
+| 原始碼靜態 grep | 258, 303-738, 4164-4783 | `html.includes` / 用兩個錨點切區塊後 `!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/` |
+| 離線幾何重播 | 2194, 2894, 3067, 3328 | `vm.runInNewContext` ＋ 自製 sandbox（T274 那個是真的軟體光柵器） |
+| canvas stub 差分 | 4300-4329 | `gameEllipseTrace` 收 ellipse 呼叫，**必須用 muted/active 差分** |
+
+### 動它會踩到什麼
+- **canvas stub 的 `getImageData()` 恆回 4 bytes**（第 60 行）。所有像素級審計在 Node 端都只是煙霧測試（`sprFootAudit` 260、`sprAboveAudit` 371、`sprMetroAudit` 1382 都明標此事）。真實像素驗證只能在瀏覽器 `atlas.html` / DevTools 做。
+- **`assert()` 實作與收尾契約必須逐字元不變**（205-208 與 4782-4787）——verify.py 拿整段字面做 count==1 比對。完成標記 `FIX-D/FIX-E 回歸測試全部通過` 必須是最後一個非空行，全檔只能有一個 `process.exit(0)`。
+- **`eval(js)` 把遊戲注入模組頂層作用域**，測試與遊戲共用同一 scope。新測試一律用卡號後綴命名區域變數，取通名會遮蔽遊戲函式。
+- **整份檔案共用同一個 window/GV/store，測試順序有狀態耦合**。改了地圖尺寸忘了還原＝後面的 findSpot 全部找不到位置。
+- **`gameEllipseTrace` 用完必須設回 null、`__noXxx` 設回原值**。
+- **`assert` 是 fail-fast**：第一條紅就 exit(1)，後面完全不跑——這也正是 PASS 棘輪能抓到早期斷言被弄壞的原因。
+- **`spr_families.json` 只做 `>=` 比較**：新增素材永不必更新基線，只有刻意刪減才重跑 `gen_spr_baseline.js` 降基線。基線檔停在 ver=10.2/total=1323（遊戲已 v10.4，設計如此不是漂移）。`gen_spr_baseline.js` 必須繼續 eval 借用測試的 mock 頭段——基線與斷言必須用同一把尺。
+- **GV 讀取型鉤子必須零副作用**（T369 斷言開統計面板前後 `stats()/hist()/rawSave()` 完全等值）。
+- **可信驗證器永遠從 canonical master 執行，部署 bytes 永遠從凍結 commit 的 blob 讀**——incoming 程式碼不得驗證自己，也不得決定發佈什麼。
+- **CRLF 掃描必須排除 `backups/` 與 `attic/`**（`.gitattributes` 標 `-text`＝位元契約，誤掃會弄紅 T269 的 SHA-256 與 T274 的逐字比對）。
+
+### verify.py 五道 fail-closed 閘門
+①語法（inline script 必須恰好一段，`node --check` 走 stdin 不建暫存檔）②CRLF==0（實掃 212 檔）③`GAME_VER`＝`APP_VER` 且各恰好一 match ④套件綠＝exit 0 ＋ FAIL 0 ＋ PASS≥`MIN_PASS` ＋ 最後一行是完成標記，四條同時成立 ⑤harness 契約 ＋ 至少 2 條種子哨兵。`--min-pass` 硬性拒絕低於 1902。
+
+### merge_bay.py 的三個核心保證
+- **PASS 兩段棘輪**：`PASS(S)≥PASS(B)` 擋交易發起、`PASS(M)≥PASS(S)` 擋晉升。這才是真正防退化的東西，`MIN_PASS=1902` 只是災難線（實測已 2875）。
+- **preflight 三閘**：部署目錄純淨（T370：`DEPLOY_ALLOWED` 從【寫入】白名單改成【存在】白名單，多一個檔或**任何目錄**就紅）、CHANGELOG 簽核已落地（T371：驗收欄不得含「待」且必須具名六方之一）、部署收據無事後回滾。
+- **18 個交易階段**落在原子寫入的 `active.json`，`--resume` 可從任一階段接續；master 只被 `git merge --ff-only` 到已在隔離 integration worktree 驗過的那個確切 OID。
+
+`tools/test_toolchain.py`（43 例）是對閘門本身的故障注入回歸，全部在拋棄式 git repo 裡跑。
+
+---
+
+## 9. 跨切面不變量
+
+| # | 不變量 | 在哪強制 | 被哪條測試守著 |
+|---|---|---|---|
+| 1 | 三條亂數流互不污染（R/ri、`rand=mulberry32(20260712)`、`spriteTexRand`） | index.html 285-298 / 1130-1142 / 1272 | T272 fresh-VM 指紋 mutation-kill（test 2860-2915）；各卡的區塊零亂數 regex |
+| 2 | 改的是 `R()` 的**次數**不是數值 | 全檔慣例 | 釘定種子 seed301→4153（test 3757）、seed22→4550（test 4722）；verify.py `MIN_SEED_PINS=2` |
+| 3 | 新素材放 `buildSprites` 絕對尾端（FIX-B） | 4051 註解宣告 | 各卡自寫的區塊 regex（無全域守衛） |
+| 4 | `buildSprites` 不得偷吃世界流（`__savedR` ↔ 8045 還原） | 1271 / 8045 | T275 globalRPreserved |
+| 5 | 五份多格尺寸表必須同步 `MSZ` | MSZ 16899 / SZC 7677 / SZB 7703 / SZM 17464 / SZM 17486 | 僅三鍵抽查（test 4177-4180）＋全檔子字串搜尋 |
+| 6 | 每個 k 都要有稅收守衛分支（鐵律14） | tick 11132-11217 | 一條字串斷言（test 4122）＋兩個定點 NaN 冒煙 |
+| 7 | 多格 ref 格不參與經濟（`if(b.ref)continue`） | 11135 | 間接由釘定種子守 |
+| 8 | 讀檔絕不拋錯；存檔格式只准新增可選欄位（鐵律9） | load 全包 try/catch，17036 回 false | 存讀往返測試、_bak 還原測試 |
+| 9 | 多格 root 由 `MSZ[k]` 反查補 sz（FIX-J） | load 16948 | FIX-J 專測（sz 保留＋ref 全數重建） |
+| 10 | 不入存檔的 state 在 `newWorld` 與 `load` 兩處成對歸零（鐵律7） | 8277-8310 / 16957-17034 | T369 gFlow284、T369.1 gWhCap284 各一條 |
+| 11 | COV/POL 蓋印嚴格成對（`covFieldOfK` 單一映射） | 9453 / 9466-9467 | 增量結果 vs `rebuildCov()` 權威值比對（test 1362, 1592） |
+| 12 | CRLF==0（`.gitattributes` 宣告範圍） | `.gitattributes` ＋ verify.py 258-278 | verify.py 閘門②（test_fixde.js 零覆蓋） |
+| 13 | `GAME_VER`＝`APP_VER`，快取名由 APP_VER 派生 | index 383 / sw.js 6-7；只准用 `bump.py` | test 907-912 ＋ verify.py 閘門③ |
+| 14 | 瀏覽器測試只用槽 3 ＋ 自己的埠（8124-8127） | 紀律（`curSlot()` 16836 回退槽1 是成因） | **無** |
+| 15 | 部署目錄只准 9 個名字，多一檔或一目錄即紅 | merge_bay preflight（`scan_deploy_residue`） | test_toolchain 四例 |
+| 16 | PASS 只能升不能降 | merge_bay 兩段棘輪 | test_toolchain 各自的拒絕例 |
+| 17 | rot=0 逐位元回歸；旋轉不進存檔 | 12427-12494 | test 499-560、T367b 地格 dep（test 540-602） |
+| 18 | 日間逐像素一致（b>=.72 零夜間繪製） | daylight() 12059 為單一真相 | 各渲染卡的 A/B 像素回歸（人工，瀏覽器端） |
+| 19 | 單一 index.html、零外部依賴、恰好一個 inline script | 專案憲章 | verify.py 語法檢查假設之 |
+| 20 | 錨定替換段中間一律用 `/* */`（鐵律18） | 紀律 | **無**（已犯三次：T315、T327、T340） |
+
+---
+
+## 10. 有規矩但沒有機器守著的（下一張卡的線索）
+
+按「價值／成本」排序，前五項都是低成本高價值。
+
+1. **五份尺寸表之間沒有任何程式化比對。** 實測 `SZC` 與 `sprFootAudit` 的 `SZM` 相對 MSZ 各缺同樣 20 鍵（k82…k119）。最惡毒的是**守衛與被守物件共用同一個錯誤來源**——`sprFootAudit` 用 `if(!sz||sz<2)continue` 跳過這 20 座，所以審計永遠報乾淨。一條 `for k in MSZ: assert k in SZC and k in SZB` 就能把 T353 那次人工比對變成永久守衛。順帶要決定 k9 是否入表（現在三表皆無，色環只有一半長度）。
+2. **稅收守衛沒有窮舉檢查。** 現況 `KNAME` 的 133 個 k 全數有分支（覆蓋完整），但只有一條字串斷言在守。新增 k134 忘了補分支，套件全綠，直到有人把它升到 lv4 才 NaN 崩存檔。一條 `for k in KNAME: assert 稅鏈有分支` 成本極低。
+3. **`per-cell` 字串「每格 1 字元」沒有守衛，而且已經破了。** `tre` 在 tree===10 時寫兩字元，實測一次存讀後 1365 格樹種錯位。守衛可以是：save 後斷言 29 條字串長度全等於 N²，或存讀往返後逐格比對。同時要修 `tre` 本身（改寫 `String.fromCharCode(48+…)` 或把樹種壓回 0-9）。
+4. **亂數流逐行差異守衛已凍結在 backups 快照上。** T272/T274 比的是快照對快照，測試自己在 3497 行註解承認「live 檔的亂數紀律由後續各卡自行驗證」。今天唯一擋「有人在 buildSprites 中段插入 `rand()` 消耗」的，是各卡自寫的區塊 regex——忘了寫的人不會被咬。可行守衛：對 live 檔的 `buildSprites` 全體做 `R()/ri()/rand()` 呼叫行數與行序的快照比對。
+5. **槽 3 紀律完全沒有機器守。** RULES 鐵律3、COLLAB、VERIFY 都寫了，但沒有任何東西檢查一份 probe 腳本裡有沒有 `setItem('glimmerville.v1.slot','3')`。T370 的目錄掃描只擋「probe 躺在玩家目錄裡」，擋不住有人在 8123 貼 Console 腳本（T371 剛修掉的 docs/VERIFY.md 就是這型事故）。
+6. **sprite 像素在 Node 套件裡根本測不到。** 素材守衛只到「家族計數 ≥ 基線」與中繼資料。真正的像素指紋（CRC32）在 `atlas.html`，但**倉庫裡沒有提交任何指紋基線檔**，也不在任何自動閘門裡。亂數流位移造成的全圖重繪，機器測不出來。
+7. **rot≠0 的十個漏轉點沒有任何守衛**（見 §4 表）。可做的是「rot=1 與 rot=0 的畫面在旋轉後應可疊合」的結構性斷言，或至少對「裸等距式 `(x-y)*32`」做全檔靜態掃描並列白名單。
+8. **`__no*` 開關 76 個，只有 3 個真的被用來做 A/B**（`__noLife`／`__noWteFx`／`__noRefineryFx`）。其餘只被 `html.includes` 斷言「存在」。開關存在但沒人用它做證明。
+9. **工具列顯示價 vs `placeCost` 實扣沒有一致性斷言**（`oneway`／`light` 兩處是字面值硬編碼）。
+10. **鐵律17（SPR 撞名）與鐵律6（`hw` 必為偶數）都沒有機器守。** 實測 `SPR` 有 110 個頂層鍵，4 個被賦值兩次（police/hospital/clinic/waterTower，全是 T151/T162 刻意的「後寫後贏」），但沒有任何測試能區分刻意覆蓋與撞名事故。
+11. **「絕對尾端」的守衛證明不了尾端。** 各卡寫法是 `html.slice(indexOf('T3xx'), indexOf('R=__savedR'))`——只證明在 buildSprites 內、在流還原之前。事實上 T364b 之後又插了 T364c/d 與 T368。
+12. **tail parity 是手抄，沒有結構性守衛。** T261/T291/T345 跑在 7659-7774，之後新增的 `SPR.bld` 鍵必須自己重寫三層（`parity364` 7923、`parity364cd` 8019）。「亂數紀律要求放最尾端」與「視覺紀律要求經過後處理」在結構上互相衝突，目前純靠複製貼上。
+13. **CRLF 仍有 14 檔漏網**：`atlas.html`、`npu_bench.html`、`icon.svg`、`docs/HANDOFF-GPT.txt`、`generate_pwa_icons.py`、`t310_final.py`、`test_t31.js`…`test_t38.js`。目前全為 0（無現行漂移），但 T371「擴到 .gitattributes 宣告範圍的全部」是略微高估的說法。`atlas.html` 尤其值得補——它是還在改的活工具。
+14. **種子哨兵剛好卡在門檻上**（`MIN_SEED_PINS=2`，目前恰好 2 條），零餘裕；而且哨兵是正則數的，把 `=== 4153` 改寫成 `=== POP_EXPECTED` 就合法地繞過了。
+15. **`#bMetro` 的重複監聽（§7）測試零覆蓋。**
+16. **T356 的 `skipped≤60` 是「正規化漏了新形狀」的偵測器**，不是效能指標——加了新 SPR 資料形狀卻沒在 `sprAtlas356` 的 `walk()` 補分支，症狀是 skipped 暴增而非某條斷言直接紅。
+
+---
+
+## 11. 常識校正與維護責任
+
+**幾個容易測錯的常識：**
+- 一年 **360 天**（春 1／夏 101／秋 201／冬 301-360）。`GV.setDay(370)` **不是冬季**，已經繞回春天（T353 驗收時就這樣測錯過一輪）。
+- `GV.tile(x,y)` 回傳 **JSON 深拷貝**，直接改 `.bld.lv` 不持久；要真改必須走 `GV.place`／`GV.upgrade`（T239 血淚）。
+- 驗建築效果前建築必須完工：`GV.place` 剛放的 age=0，要走 9 天分階段施工，且升起期的窗燈／霓虹／雪帽／濕膜被 `constrRise` 閘停用。**A/B diff 全 0 常常是「建築沒長好」而不是「效果壞了」。**
+- 「合成素材測過 ≠ 真的對」：T183 用實心方塊測 snowCap 通過，真建築零像素差（雪落在透明天空區）。
+- 「庫存為 0 ≠ 鏈斷」：T284 是供不應求、日產日銷，加了流量快照才實證鏈是通的。
+- `merge_bay.py` 會跑兩次完整套件（數分鐘），超過工具的 2 分鐘逾時；被砍掉時合併可能已完成第 4 步而 5-7 步沒跑，重跑會誤報「nothing to merge」。一開始就丟背景執行。
+
+---
+
+**行號會隨改動漂移。本文件所有定位以 grep 錨點字串為準；行號只是加速跳轉的參考，發現對不上請以錨點重新定位並在該次卡片內順手校正。**
+
+**本文件的維護責任綁在「改動架構的那張卡」上**：凡是新增／移除子系統、改動任一條 §9 不變量、新增手抄副本（尺寸表／case 清單／parity 區塊）、或關掉 §10 任何一條缺口的卡片，都必須在同一張卡內更新本文件對應段落，並在 CHANGELOG 的驗收欄註明「ARCH.md 已同步」。不更新 ARCH.md 的架構改動，等同把下一個人推回本次測繪的起點。
