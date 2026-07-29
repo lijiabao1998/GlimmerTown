@@ -1,8 +1,27 @@
 # T373 — 直寫 master 的發佈路徑（`--publish`）＋收據復原缺口
 
-狀態：**業主已發卡，指定 Codex 施工（T358 部署管線原作者）。**
+狀態：**施工完成：待 Claude 或 Kimi 非作者覆核＋合併。**
 發卡：業主（2026-07-29）；出卡文件：Claude；施工者：**Codex（bay/codex）**；覆核：非作者（Claude 或 Kimi）
 前置：master `95a2d1c`（v10.5）已含 T372；三車位 `ahead=0 behind=0 clean`；`deploy receipt=match`。
+
+## 施工 claim
+
+- 施工者：**Codex**（`bay/codex`）
+- 認領 commit：`3e738b5`（T362 鎖序後的首筆認領提交）
+- 預計觸碰：`tools/merge_bay.py`、`tools/test_toolchain.py`、`docs/COLLAB.md`、`docs/CHANGELOG.md`、本卡狀態
+
+## Codex 施工交付（待非作者覆核）
+
+- 新增獨立 `--publish`：只發佈當前乾淨 master HEAD，canonical verifier＋`MIN_PASS`、部署目錄衛生、
+  Git blobs、原有 journal／原子替換／receipt 寫入全部照走；不合 bay、不推 master、不建 integration、
+  不回同步車位。
+- receipt 漂移時 `--publish` 不在 preflight 呼叫 receipt verifier，改以已驗證 HEAD 重發並在完成後強制
+  receipt=`match`；原 `start_transaction()` 的 fail-closed receipt 守衛保留且有新增回歸測試。
+- 新增 11 個 tempfile 實彈案例（43→54）：正常／漂移修復／髒 master／active transaction／紅 verifier
+  零寫入（含可恢復 journal）／殘留／旗標互斥／兩個硬殺切點／master 競態／bay 路徑仍 fail-closed。
+- 自驗已親跑：`python -B -m unittest tools.test_toolchain -v` **54/54 OK**（177.429s）；
+  `python tools/verify.py` **2897 PASS / 0 FAIL**、CRLF=0、GAME_VER=APP_VER=10.5。
+- 本卡**沒有**執行真實 `--publish`，沒有發佈 T372，也沒有碰玩家部署目錄。
 
 ## 為什麼指定 Codex
 

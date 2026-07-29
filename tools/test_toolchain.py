@@ -145,6 +145,19 @@ class GateRunner:
 
 
 class ToolchainRegressionTests(unittest.TestCase):
+    @staticmethod
+    def _deploy_tree_bytes(deploy):
+        """Snapshot every regular deployment file for zero-write assertions."""
+        return {
+            path.name: path.read_bytes()
+            for path in sorted(Path(deploy).iterdir(), key=lambda candidate: candidate.name)
+            if path.is_file()
+        }
+
+    @staticmethod
+    def _optional_bytes(path):
+        return path.read_bytes() if path.exists() else None
+
     def test_suite_rejects_nonzero_without_fail_lines(self):
         stdout = ''.join('PASS: case %d\n' % index for index in range(verify.MIN_PASS))
         stdout += verify.DONE_MARKER + '\n'
@@ -1267,6 +1280,273 @@ class ToolchainRegressionTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
                 merge_bay.verify_deploy_receipt(repo.config)
+
+    def test_publish_master_writes_exact_master_bytes_receipt_and_status(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'direct master runtime')
+            bay_before = repo.oid(repo.bay)
+            runner = GateRunner([0])
+
+            self.assertEqual(merge_bay.publish_master(repo.config, runner=runner), 0)
+
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            for name in merge_bay.RUNTIME:
+                self.assertEqual((repo.deploy / name).read_bytes(), expected[name])
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+            with mock.patch('sys.stdout', new=io.StringIO()) as output:
+                self.assertEqual(merge_bay.status_only(repo.config), 0)
+            self.assertIn('deploy receipt=match', output.getvalue())
+            self.assertEqual(repo.oid(repo.root), source_oid)
+            self.assertEqual(repo.oid(repo.bay), bay_before)
+            state_path, _ = merge_bay.state_locations(repo.config)
+            self.assertFalse(state_path.exists())
+            self.assertFalse(repo.integration.exists())
+            self.assertEqual(len(runner.gate_calls), 1)
+            self.assertEqual(Path(runner.gate_calls[0][0][3]), repo.root)
+
+    def test_publish_master_repairs_a_drifted_receipt_with_current_head(self):
+        with TempRepo() as repo:
+            base_bytes = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            for name in merge_bay.RUNTIME:
+                (repo.deploy / name).write_bytes(base_bytes[name])
+            merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'master newer than receipt')
+            current_bytes = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            for name in merge_bay.RUNTIME:
+                (repo.deploy / name).write_bytes(current_bytes[name])
+
+            with self.assertRaisesRegex(merge_bay.DeployError, 'drifted'):
+                merge_bay.verify_deploy_receipt(repo.config)
+            self.assertEqual(
+                merge_bay.publish_master(repo.config, runner=GateRunner([0])),
+                0,
+            )
+            receipt = json.loads(
+                merge_bay.deploy_receipt_path(repo.config).read_text(encoding='utf-8')
+            )
+            self.assertEqual(receipt['source_oid'], source_oid)
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+
+    def test_publish_master_rejects_dirty_master_without_player_write(self):
+        with TempRepo() as repo:
+            repo.write(repo.root, 'dirty.txt', 'uncommitted\n')
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+            receipt_path = merge_bay.deploy_receipt_path(repo.config)
+            receipt_before = self._optional_bytes(receipt_path)
+            runner = GateRunner([])
+
+            with self.assertRaises(merge_bay.ToolError):
+                merge_bay.publish_master(repo.config, runner=runner)
+
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+            self.assertEqual(self._optional_bytes(receipt_path), receipt_before)
+            self.assertEqual(runner.gate_calls, [])
+
+    def test_publish_master_rejects_active_transaction_without_player_write(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            source_oid = repo.commit(repo.bay, 'incoming feature')
+            state_path, _ = merge_bay.state_locations(repo.config)
+            state = merge_bay._new_transaction_state(
+                repo.config,
+                'kimi',
+                repo.base_oid,
+                source_oid,
+                True,
+            )
+            merge_bay.save_state(state_path, state)
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+            runner = GateRunner([])
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'active transaction'):
+                merge_bay.publish_master(repo.config, runner=runner)
+
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+            self.assertEqual(merge_bay.load_state(state_path)['txn_id'], state['txn_id'])
+            self.assertEqual(runner.gate_calls, [])
+
+    def test_publish_master_red_verifier_leaves_recoverable_player_state_untouched(self):
+        with TempRepo() as repo:
+            source = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            merge_bay.prepare_deployment(
+                repo.config,
+                source,
+                'publish-gate-red',
+                repo.base_oid,
+            )
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+            receipt_path = merge_bay.deploy_receipt_path(repo.config)
+            receipt_before = self._optional_bytes(receipt_path)
+            runner = GateRunner([9])
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'master publish verifier'):
+                merge_bay.publish_master(repo.config, runner=runner)
+
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+            self.assertEqual(self._optional_bytes(receipt_path), receipt_before)
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(len(runner.gate_calls), 1)
+            self.assertEqual(Path(runner.gate_calls[0][0][3]), repo.root)
+
+    def test_publish_master_rejects_deploy_residue_before_verifier_or_write(self):
+        with TempRepo() as repo:
+            (repo.deploy / 't999-review.png').write_bytes(b'not a runtime asset')
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+            runner = GateRunner([])
+
+            with self.assertRaisesRegex(merge_bay.DeployError, 'not pristine'):
+                merge_bay.publish_master(repo.config, runner=runner)
+
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+            self.assertEqual(runner.gate_calls, [])
+
+    def test_publish_flag_is_mutually_exclusive_with_every_other_action(self):
+        self.assertTrue(merge_bay.parse_args(['--publish']).publish)
+        for argv in (
+            ['kimi', '--publish'],
+            ['--publish', '--deploy'],
+            ['--publish', '--no-deploy'],
+            ['--publish', '--resume', 'kimi'],
+            ['--publish', '--abort', 'kimi'],
+            ['--publish', '--status'],
+        ):
+            with self.subTest(argv=argv), mock.patch('sys.stderr', new=io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    merge_bay.parse_args(argv)
+            self.assertEqual(caught.exception.code, 2)
+
+    def test_publish_master_hard_kill_leaves_journal_then_next_publish_recovers(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'direct runtime for hard kill')
+            original_write = merge_bay._durable_write
+            calls = []
+
+            def kill_after_journal(path, data, exclusive=True):
+                calls.append(path)
+                if len(calls) == 1:
+                    raise KeyboardInterrupt('injected publish hard kill after journal')
+                return original_write(path, data, exclusive=exclusive)
+
+            with mock.patch.object(
+                merge_bay,
+                '_durable_write',
+                side_effect=kill_after_journal,
+            ):
+                with self.assertRaises(KeyboardInterrupt):
+                    merge_bay.publish_master(repo.config, runner=GateRunner([0]))
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual((repo.deploy / 'index.html').read_bytes(), b'old-index')
+            self.assertEqual((repo.deploy / 'sw.js').read_bytes(), b'old-sw')
+
+            self.assertEqual(
+                merge_bay.publish_master(repo.config, runner=GateRunner([0])),
+                0,
+            )
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            for name in merge_bay.RUNTIME:
+                self.assertEqual((repo.deploy / name).read_bytes(), expected[name])
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+
+    def test_publish_master_hard_kill_after_receipt_reconciles_on_next_publish(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            source_oid = repo.commit(repo.root, 'direct runtime for cleanup kill')
+            original_unlink = Path.unlink
+
+            def kill_before_journal_cleanup(path, *args, **kwargs):
+                if path.name == merge_bay.DEPLOY_JOURNAL:
+                    self.assertTrue(merge_bay.deploy_receipt_path(repo.config).exists())
+                    raise KeyboardInterrupt('injected hard kill before journal cleanup')
+                return original_unlink(path, *args, **kwargs)
+
+            with mock.patch.object(
+                Path,
+                'unlink',
+                new=kill_before_journal_cleanup,
+            ):
+                with self.assertRaises(KeyboardInterrupt):
+                    merge_bay.publish_master(repo.config, runner=GateRunner([0]))
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
+            for name in merge_bay.RUNTIME:
+                self.assertEqual((repo.deploy / name).read_bytes(), expected[name])
+            self.assertTrue((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'journal-active')
+
+            self.assertEqual(
+                merge_bay.publish_master(repo.config, runner=GateRunner([0])),
+                0,
+            )
+            self.assertFalse((repo.deploy / merge_bay.DEPLOY_JOURNAL).exists())
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+
+    def test_publish_master_rejects_a_master_advance_during_verification(self):
+        with TempRepo() as repo:
+            repo.write(
+                repo.root,
+                'index.html',
+                "<script>const GAME_VER='2.0';</script>\n",
+            )
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            repo.commit(repo.root, 'publish source')
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+
+            def advance_master(gate_index):
+                if gate_index == 0:
+                    repo.write(repo.root, 'concurrent.txt', 'other writer\n')
+                    repo.commit(repo.root, 'concurrent master advance')
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'master moved during'):
+                merge_bay.publish_master(
+                    repo.config,
+                    runner=GateRunner([0], on_gate=advance_master),
+                )
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+
+    def test_merge_route_receipt_guard_remains_fail_closed_after_publish_added(self):
+        with TempRepo() as repo:
+            base_bytes = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            for name in merge_bay.RUNTIME:
+                (repo.deploy / name).write_bytes(base_bytes[name])
+            merge_bay.write_deploy_receipt(repo.config, repo.base_oid)
+            (repo.deploy / 'index.html').write_bytes(b'late-onedrive-rollback')
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            state_path, _ = merge_bay.state_locations(repo.config)
+
+            with self.assertRaisesRegex(merge_bay.DeployError, 'drifted'):
+                merge_bay.start_transaction(
+                    repo.config,
+                    'kimi',
+                    False,
+                    runner=GateRunner([]),
+                )
+
+            self.assertFalse(state_path.exists())
 
 
 class TestConsoleEncodingT366(unittest.TestCase):
