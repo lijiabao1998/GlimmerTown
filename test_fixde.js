@@ -862,6 +862,53 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
     window.GV.setRot(0);
   }
 }
+/* ===== T375 旋轉未接補齊第一波（D 自算座標＋A 方向索引，G1-G5）===== */
+{
+  const seg375 = (a, b) => { const i0 = html.indexOf(a), i1 = html.indexOf(b, i0); assert(i1 > i0 && i1 - i0 > 200, 'T375 區塊錨應找到且夠長：' + a); return html.slice(i0, i1); };
+  // G1 靜態負向：D 族三區塊不得再有裸 (x-y)*32/(x+y)*16 定位
+  const d1blk = seg375('T300b 地鐵網 overlay', '夜間燈光（T212');
+  assert(!/\(\(x-y\)\*32\)\*z|\(\(x\+y\)\*16\+16\)\*z/.test(d1blk), 'G1 D1 地鐵 overlay 不得再有裸 tsx/tsy 等距式');
+  assert(d1blk.includes('isoW2V((x-y)*32,(x+y)*16+16)'), 'G1 D1 應改用 isoW2V 並保留格心參數');
+  const d2blk = seg375('streetHash(x,y,1910+seaL)', 'else if(seaL===1&&nightDepth>0)');
+  assert(!/\(x-y\)\*32\+drift|\(x\+y\)\*16-4\+fall/.test(d2blk), 'G1 D2 花瓣/落葉不得再有裸等距式');
+  const d3blk = seg375('else if(seaL===1&&nightDepth>0)', 'if(sea===2&&animOn');
+  assert(!/\(x-y\)\*32\+jx|\(x\+y\)\*16\+jy/.test(d3blk), 'G1 D3 螢火蟲不得再有裸等距式');
+  assert((html.match(/_p375=w2v\(x,y\)/g) || []).length === 2, 'G1 D2/D3 應成對以 w2v 轉格位');
+  // G5 方向旋轉語意（先驗語意，防 G2 字串檢查搶先攔截混淆注入）：索引不得用 rotMask、遮罩不得用 (d+r)&3
+  const owLine375 = html.split('\n').find(l => l.includes('SPR.oneway[') && l.includes('viewRotEff'));
+  assert(owLine375 && !/rotMask\(t\.oneway/.test(owLine375), 'G5 A2 方向索引不得誤用 rotMask（找不到 (d+r)&3 形式也算誤用）');
+  const pzLine375 = html.split('\n').find(l => l.includes('SPR.plaza.path[') && l.includes('viewRotEff'));
+  assert(pzLine375 && !/rotMask\(pd\)/.test(pzLine375), 'G5 A4 方向索引不得誤用 rotMask');
+  const fwLine375 = html.split('\n').find(l => l.includes('SPR.foamWave[frame]'));
+  assert(fwLine375 && fwLine375.includes('rotMask(t.wm)') && !fwLine375.includes('viewRotEff()&3'), 'G5 A3 遮罩不得誤用 (d+r)&3：' + fwLine375);
+  // G2 靜態正向：A 族四處逐一斷言（帶行內容）
+  assert(html.includes('if(rm===(1|4))gc.drawImage(SPR.roadDeco.lane14'), 'G2 A1 標線 lane14 應用旋轉後 rm');
+  assert(html.includes('else if(rm===(2|8))gc.drawImage(SPR.roadDeco.lane28'), 'G2 A1 標線 lane28 應用旋轉後 rm');
+  assert(html.includes('SPR.oneway[((t.oneway-1)+viewRotEff())&3]'), 'G2 A2 單行道箭頭應用 ((t.oneway-1)+viewRotEff())&3');
+  assert(html.includes('SPR.foamWave[frame][rotMask(t.wm)]'), 'G2 A3 浪花應用 rotMask(t.wm)');
+  assert(html.includes('SPR.plaza.path[(pd+viewRotEff())&3]'), 'G2 A4 廣場踏步應用 (pd+viewRotEff())&3');
+  // G3 rot=0 恆等（可算）：D 族修改後算式的常數必須完整保留（改動前值釘字面量）
+  const tsxLine375 = d1blk.split('\n').find(l => l.includes('const tsx='));
+  const tsxIsoCount = tsxLine375 ? (tsxLine375.match(/isoW2V\(\(x-y\)\*32,\(x\+y\)\*16\+16\)/g) || []).length : 0;
+  assert(tsxIsoCount === 2, 'G3 D1 的 tsx/tsy 兩支都必須保留 +32z/+16z 格心參數（實得 ' + tsxIsoCount + ' 處）：' + tsxLine375);
+  assert(d2blk.includes('+drift') && d2blk.includes('-4+fall'), 'G3 D2 的 drift／-4+fall 螢幕偏移必須原樣保留');
+  assert(d3blk.includes('+jx') && d3blk.includes('+jy'), 'G3 D3 的 jx/jy 螢幕抖動必須原樣保留');
+  window.GV.setRot(0);
+  const p375r0 = window.GV.w2v(30, 20);
+  assert(p375r0[0] === 30 && p375r0[1] === 20, 'G3 rot=0 w2v 恆等是 D 族回歸舊值的數學根據');
+  // G4 rot≠0 位置一致：D1 與 13305 站體必須同一基元同一參數形；四向以真 w2v 實算
+  const staBody375 = html.split('\n').find(l => l.includes('isoW2V((st.x-st.y)*32,(st.x+st.y)*16+16)'));
+  assert(!!staBody375, 'G4 應找到站體 isoW2V 呼叫（13305 錨）');
+  assert(tsxIsoCount === 2, 'G4 D1 與站體同基元同參數形（tsx/tsy 各一）⇒ 四向恆重合');
+  for (const r of [0, 1, 2, 3]) {
+    window.GV.setRot(r);
+    const p = window.GV.w2v(30, 20);
+    const iso375 = [(p[0] - p[1]) * 32, (p[0] + p[1]) * 16 + 16];
+    const isoSta = [(p[0] - p[1]) * 32, (p[0] + p[1]) * 16 + 16];
+    assert(iso375[0] === isoSta[0] && iso375[1] === isoSta[1], 'G4 rot=' + r + ' D1≡站體 (' + iso375 + ')');
+  }
+  window.GV.setRot(0);
+}
 /* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
 {
   const at=window.GV.sprAtlas356();
