@@ -1,3 +1,5 @@
+2026-07-29 | T374 大農場四塊作物等角歸位（v10.6，Grok） | 53_1_0 麥/玉/菜/果四塊由軸對齊 fillRect 改 (a,b) 格座標等角平行四邊形田（P374 佈局），躺在 5×5 菱形內；色票全集不變、零 spriteTexRand（L4550 speck 不動）；base 改完 farmSea/farmGrow 自動繼承。守衛：格矩形性／等角斜率／面積與不重疊／沙箱界內／禁舊 fillRect／禁新色。verify 2972 PASS。不自合、不 --publish。 | 驗收:待非作者覆核
+
 # CHANGELOG — 每完成一張任務卡追加一行
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`

@@ -478,6 +478,102 @@ assert(/clipBase\(t\[key\]\)/.test(html) && /if\(SPR\.farmSea\)for\(const si of\
 }
 // T355 上緣溢出審計 hook 應存在（真實像素量測於瀏覽器端：k112 修前 88px → 修後 23px）
 assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳陣列');
+/* ===== T374 大農場 53_1_0 四塊作物等角歸位 =====
+   病灶：四塊 fillRect 軸對齊矩形浮在 5×5 菱形上（麥 96% 出界等）。改 (a,b) 格座標
+   軸對齊矩形＝畫布等角平行四邊形；色票不變、零 spriteTexRand。 */
+{
+  const blk374 = html.slice(html.indexOf("{ // T228 大農場 53_1_0"), html.indexOf("SPR.bld['53_1_0']"));
+  assert(blk374.length > 400, 'T374 應找到 k53 大農場 sprite 區塊');
+  assert(/T374/.test(blk374), 'T374 區塊應帶 T374 註解（防悄悄回退）');
+  assert(!/g\.fillRect\(ax-118,ay-148,52,28\)/.test(blk374),
+    'T374 不得保留舊麥田 fillRect(ax-118,ay-148,52,28)');
+  assert(!/g\.fillRect\(ax-52,ay-164,56,30\)/.test(blk374),
+    'T374 不得保留舊玉米田 fillRect(ax-52,ay-164,56,30)');
+  // 咬法一：解析 P374 四塊 (a0,a1,b0,b1)
+  const mP374 = blk374.match(/const P374=\[(\[[^\]]+\],\[[^\]]+\],\[[^\]]+\],\[[^\]]+\])\]/);
+  assert(mP374, 'T374 應有 const P374 四塊格座標陣列（抓不到＝守衛空過）');
+  const patches374 = [...mP374[1].matchAll(/\[(-?\d+),(-?\d+),(-?\d+),(-?\d+)\]/g)]
+    .map(m => m.slice(1).map(Number));
+  assert(patches374.length === 4, 'T374 P374 應恰有 4 塊，實得 ' + patches374.length);
+  const AX374 = 164, CY374 = 162, HW374 = 160, HH374 = 80;
+  const toXY374 = (a, b) => [AX374 + 2 * (a - b), CY374 + (a + b)];
+  const inFoot374 = (x, y) => Math.abs(x - AX374) / HW374 + Math.abs(y - CY374) / HH374 <= 1.0001;
+  let areaSum374 = 0;
+  const boxes374 = [];
+  for (let i = 0; i < 4; i++) {
+    const [a0, a1, b0, b1] = patches374[i];
+    assert(a1 > a0 && b1 > b0, 'T374 塊' + i + ' 應 a1>a0 且 b1>b0');
+    assert(a1 - a0 >= 6 && b1 - b0 >= 6, 'T374 塊' + i + ' 兩邊長應 ≥6 單位（非退化）');
+    // 四頂點 + 格座標矩形性
+    const corners = [[a0, b0], [a1, b0], [a1, b1], [a0, b1]];
+    const aSet = new Set(corners.map(c => c[0]));
+    const bSet = new Set(corners.map(c => c[1]));
+    assert(aSet.size === 2 && bSet.size === 2,
+      'T374 塊' + i + ' 在 (a,b) 應為軸對齊矩形（|a|集=2,|b|集=2）');
+    for (const [a, b] of corners) {
+      assert(Math.max(Math.abs(a), Math.abs(b)) <= 40,
+        'T374 塊' + i + ' 頂點 max(|a|,|b|) 應 ≤40：' + a + ',' + b);
+      const [x, y] = toXY374(a, b);
+      assert(inFoot374(x, y), 'T374 塊' + i + ' 頂點應在 5×5 菱形內：' + x + ',' + y);
+    }
+    // 咬法二：等角斜率 — 邊 (a 變 b 定) → dx=2*da, dy=da ⇒ |dx|=2|dy| 且 dy≠0
+    const e1 = [toXY374(a1, b0)[0] - toXY374(a0, b0)[0], toXY374(a1, b0)[1] - toXY374(a0, b0)[1]];
+    const e2 = [toXY374(a0, b1)[0] - toXY374(a0, b0)[0], toXY374(a0, b1)[1] - toXY374(a0, b0)[1]];
+    assert(e1[1] !== 0 && Math.abs(e1[0]) === 2 * Math.abs(e1[1]),
+      'T374 塊' + i + ' a 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：' + e1);
+    assert(e2[1] !== 0 && Math.abs(e2[0]) === 2 * Math.abs(e2[1]),
+      'T374 塊' + i + ' b 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：' + e2);
+    // 面積（格單位矩形 → 畫布鞋帶對四頂點）
+    const poly = [toXY374(a0, b0), toXY374(a1, b0), toXY374(a1, b1), toXY374(a0, b1)];
+    let ar = 0;
+    for (let k = 0; k < 4; k++) {
+      const [x1, y1] = poly[k], [x2, y2] = poly[(k + 1) % 4];
+      ar += x1 * y2 - x2 * y1;
+    }
+    ar = Math.abs(ar) / 2;
+    assert(ar >= 80 && ar <= 2800, 'T374 塊' + i + ' 面積應在 [80,2800] px²，實得 ' + ar);
+    areaSum374 += ar;
+    boxes374.push({ a0, a1, b0, b1 });
+  }
+  // 咬法三：合計佔比 + 互不重疊
+  const diaArea374 = 2 * HW374 * HH374; // 菱形面積 2*160*80=25600
+  assert(areaSum374 >= 800 && areaSum374 <= 12000,
+    'T374 四塊合計面積應合理，實得 ' + areaSum374 + ' / 菱形 ' + diaArea374);
+  for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+    const A = boxes374[i], B = boxes374[j];
+    const sep = A.a1 < B.a0 || B.a1 < A.a0 || A.b1 < B.b0 || B.b1 < A.b0;
+    assert(sep, 'T374 塊' + i + ' 與 ' + j + ' 在 (a,b) 應互不重疊');
+  }
+  // 咬法四：沙箱重放 P374 格座標掃描 — 逐點界內（像素數>0 防空過）
+  {
+    let pxN = 0, badPx = 0;
+    for (const [a0, a1, b0, b1] of patches374) {
+      for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) {
+        const [x, y] = toXY374(a, b);
+        pxN++;
+        if (!inFoot374(x, y)) badPx++;
+      }
+    }
+    assert(pxN > 100, 'T374 沙箱重放像素數應 >100（實得 ' + pxN + '，空＝假綠）');
+    assert(badPx === 0, 'T374 沙箱：格座標掃描每一點應在菱形內，出界 ' + badPx);
+  }
+  // 色票：T374 作物段（P374…sg. 建築前）不得引入新 hex
+  {
+    const crop374 = blk374.slice(blk374.indexOf('P374'), blk374.indexOf('sg.fillStyle'));
+    assert(crop374.length > 200, 'T374 應切出作物色票段');
+    const allowed374 = new Set([
+      '#d8b83a', '#b89a28', '#f0d060', '#3f7a34', '#2f5f28', '#e8cc48',
+      '#6b4a30', '#4a8a3a', '#66b04a', '#6b4a2f', '#3d7a3c', '#4f9448', '#d04838'
+    ]);
+    const hexes = [...crop374.matchAll(/#[0-9a-fA-F]{6}/g)].map(m => m[0].toLowerCase());
+    assert(hexes.length >= 8, 'T374 作物段應含多個舊色票，實得 ' + hexes.length);
+    const badHex = [...new Set(hexes)].filter(h => !allowed374.has(h));
+    assert(badHex.length === 0, 'T374 不得引入新色票：' + JSON.stringify(badHex));
+  }
+  // 果樹等角格網
+  assert(/bft\(/.test(blk374) && /a\+=4/.test(blk374) && /b\+=4/.test(blk374),
+    'T374 果園應在等角格網上以 bft 種植（步進 4）');
+}
 /* ===== T356 素材清冊（sprAtlas356）=====
    圖鑑頁與素材指紋的地基：SPR 全家族正規化攤平。Node 端 mock canvas 只回 4 bytes，
    故此處斷中繼資料契約（涵蓋率／尺寸／錨點形狀／巢狀家族），像素指紋於瀏覽器端 atlas.html 驗。
