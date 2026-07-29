@@ -587,9 +587,99 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
     const badHex = [...new Set(hexes)].filter(h => !allowed374.has(h));
     assert(badHex.length === 0, 'T374 不得引入新色票：' + JSON.stringify(badHex));
   }
-  // 果樹等角格網
-  assert(/bft\(/.test(blk374) && /a\+=4/.test(blk374) && /b\+=4/.test(blk374),
-    'T374 果園應在等角格網上以 bft 種植（步進 4）');
+  // 果樹等角格網（T377 後步進可加密，仍須 bft）
+  assert(/bft\(/.test(blk374), 'T374/T377 果園應以 bft 種植');
+}
+/* ===== T377 大農場精修：作物加密 ＋ 穀倉立體化 ===== */
+{
+  const blk377 = html.slice(html.indexOf("{ // T228 大農場 53_1_0"), html.indexOf("SPR.bld['53_1_0']"));
+  assert(blk377.length > 500, 'T377 應找到 k53 大農場區塊');
+  assert(/T377/.test(blk377), 'T377 區塊應帶 T377 註解');
+  // J6 穀倉錨點：必須在 P374 之後、且為建築段字面第一句
+  const iP374 = blk377.indexOf('P374');
+  const iA83 = blk377.indexOf("sg.fillStyle='#a83a2c'");
+  assert(iP374 > 0 && iA83 > iP374, 'T377 J6：sg.fillStyle=\'#a83a2c\' 須在 P374 之後保留');
+  assert(/isoBox\(sg,/.test(blk377), 'T377 穀倉應使用 isoBox(sg,...) 立體化');
+  // J5 零亂數：spriteTexRand 呼叫恰 1 次（speck 那次；排除註解字串）
+  {
+    const callN = (blk377.match(/spriteTexRand\s*[,)]/g) || []).length;
+    assert(callN === 1, 'T377 J5：spriteTexRand 呼叫次數應恰為 1，實得 ' + callN);
+  }
+  // J1 作物色票 ⊆ 13 色（沿用 T374 切段）
+  {
+    const crop377 = blk377.slice(blk377.indexOf('P374'), blk377.indexOf("sg.fillStyle='#a83a2c'"));
+    assert(crop377.length > 200, 'T377 J1：作物段應可切出');
+    const allowed = new Set([
+      '#d8b83a', '#b89a28', '#f0d060', '#3f7a34', '#2f5f28', '#e8cc48',
+      '#6b4a30', '#4a8a3a', '#66b04a', '#6b4a2f', '#3d7a3c', '#4f9448', '#d04838'
+    ]);
+    const hexes = [...crop377.matchAll(/#[0-9a-fA-F]{6}/g)].map(m => m[0].toLowerCase());
+    assert(hexes.length > 0, 'T377 J1：作物段 hex 數應 >0');
+    const bad = [...new Set(hexes)].filter(h => !allowed.has(h));
+    assert(bad.length === 0, 'T377 J1：作物段不得引入新色：' + JSON.stringify(bad));
+  }
+  // J2 建築新色不撞季節表
+  {
+    const bld377 = blk377.slice(blk377.indexOf("sg.fillStyle='#a83a2c'"));
+    assert(bld377.length > 80, 'T377 J2：建築段應可切出');
+    const bldHex = [...bld377.matchAll(/#[0-9a-fA-F]{6}/g)].map(m => m[0].toLowerCase());
+    assert(bldHex.length > 0, 'T377 J2：建築段 hex 數應 >0');
+    // 從 SUM/AUT/WIN 物件字面解析 key（0xRRGGBB）
+    const mapBlk = html.slice(html.indexOf('const SUM={'), html.indexOf('SPR.farmSea='));
+    const seasonKeys = new Set();
+    for (const m of mapBlk.matchAll(/0x([0-9a-fA-F]{6})\s*:/g)) {
+      seasonKeys.add('#' + m[1].toLowerCase());
+    }
+    assert(seasonKeys.size >= 20, 'T377 J2：季節表 key 應解析到足夠數量，實得 ' + seasonKeys.size);
+    const hit = [...new Set(bldHex)].filter(h => seasonKeys.has(h));
+    assert(hit.length === 0, 'T377 J2：建築色不得撞季節表 key：' + JSON.stringify(hit));
+  }
+  // J3 覆蓋率下界 ＋ J4 界內：vm 重放作物段，按 (a,b) 歸入四塊計數
+  {
+    const iT = html.indexOf('/* T374：四塊作物等角歸位');
+    const iSg = html.indexOf("sg.fillStyle='#a83a2c'", iT);
+    assert(iT > 0 && iSg > iT, 'T377 J3/J4：應切出作物重放段');
+    const src = html.slice(iT, iSg);
+    const rects = [];
+    let fs = '#000';
+    const gFake = {
+      set fillStyle(v) { fs = String(v); },
+      get fillStyle() { return fs; },
+      fillRect(x, y, w, h) {
+        const x0 = Math.floor(+x), y0 = Math.floor(+y);
+        const ww = Math.max(1, Math.ceil(+w || 1)), hh = Math.max(1, Math.ceil(+h || 1));
+        for (let dy = 0; dy < hh; dy++) for (let dx = 0; dx < ww; dx++)
+          rects.push({ x: x0 + dx, y: y0 + dy, c: fs });
+      }
+    };
+    vm.runInNewContext(src, { ax: 164, ay: 242, g: gFake, Math }, { filename: 't377-crop.js' });
+    assert(rects.length > 0, 'T377 J3/J4：重放必須錄到 fillRect');
+    const AX = 164, CY = 162;
+    const inFoot = (x, y) => Math.abs(x - AX) / 160 + Math.abs(y - CY) / 80 <= 1.0001;
+    const patches = [[-38, -27, -29, -6], [-24, -6, -38, -27], [-38, -25, 25, 38], [22, 38, -38, -22]];
+    // T374 稀疏基線（卡面釘死）：麥 288／玉 363／菜 232／果 616
+    const baseCov = [288, 363, 232, 616];
+    const counts = [0, 0, 0, 0];
+    let outN = 0;
+    for (const p of rects) {
+      if (!inFoot(p.x, p.y)) { outN++; continue; }
+      const a = (p.y - CY) / 2 + (p.x - AX) / 4;
+      const b = (p.y - CY) / 2 - (p.x - AX) / 4;
+      for (let i = 0; i < 4; i++) {
+        const [a0, a1, b0, b1] = patches[i];
+        // 植株可略伸出田面數 px（穗/冠），歸入最近塊用寬鬆邊界
+        if (a >= a0 - 2 && a <= a1 + 2 && b >= b0 - 2 && b <= b1 + 2) { counts[i]++; break; }
+      }
+    }
+    assert(outN === 0, 'T377 J4：重放上色像素必須全在菱形內，出界 ' + outN);
+    for (let i = 0; i < 4; i++) {
+      assert(counts[i] >= baseCov[i],
+        'T377 J3：塊' + i + ' 覆蓋像素應 ≥ 基線 ' + baseCov[i] + '，實得 ' + counts[i]);
+    }
+    // 果園株數代理：bft 冠色 #3d7a3c 像素數 ≥ 20* (約 6px² 冠) ≈ 120
+    const crown = rects.filter(p => p.c.toLowerCase() === '#3d7a3c').length;
+    assert(crown >= 100, 'T377 果園加密：冠色像素應 ≥100（≈20 株），實得 ' + crown);
+  }
 }
 /* ===== T356 素材清冊（sprAtlas356）=====
    圖鑑頁與素材指紋的地基：SPR 全家族正規化攤平。Node 端 mock canvas 只回 4 bytes，
