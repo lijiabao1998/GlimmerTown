@@ -1,6 +1,6 @@
 # T373 — 直寫 master 的發佈路徑（`--publish`）＋收據復原缺口
 
-狀態：**施工完成：待 Claude 或 Kimi 非作者覆核＋合併。**
+狀態：**已完成、非作者覆核通過（Claude 2026-07-29）、已合併 `9724355`。**
 發卡：業主（2026-07-29）；出卡文件：Claude；施工者：**Codex（bay/codex）**；覆核：非作者（Claude 或 Kimi）
 前置：master `95a2d1c`（v10.5）已含 T372；三車位 `ahead=0 behind=0 clean`；`deploy receipt=match`。
 
