@@ -1,6 +1,5 @@
-2026-07-29 | T374 大農場四塊作物等角歸位（v10.6，Grok） | 53_1_0 麥/玉/菜/果四塊由軸對齊 fillRect 改 (a,b) 格座標等角平行四邊形田（P374 佈局），躺在 5×5 菱形內；色票全集不變、零 spriteTexRand（L4550 speck 不動）；base 改完 farmSea/farmGrow 自動繼承。守衛：格矩形性／等角斜率／面積與不重疊／沙箱界內／禁舊 fillRect／禁新色。verify 2972 PASS。不自合、不 --publish。 | 驗收:待非作者覆核
-
 # CHANGELOG — 每完成一張任務卡追加一行
+
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
@@ -10,6 +9,8 @@
   日期欄是撰寫日，出卡與完工可能跨日，所以全檔尚有 8 處歷史日期倒置屬既有事實，未強制重排。
 - 「驗收:」欄記真跑結果；未跑就明標「未驗證」。
 - 本專案要求記錄**被否決的方案與否決依據**——那是這份檔案最貴的部分。
+
+2026-07-29 | T374 大農場四塊作物等角歸位（v10.6，Grok） | 53_1_0 麥/玉/菜/果四塊由軸對齊 fillRect 改 (a,b) 格座標等角平行四邊形田（P374 佈局），躺在 5×5 菱形內；色票全集不變、零 spriteTexRand（L4550 speck 不動）；base 改完 farmSea/farmGrow 自動繼承。守衛：格矩形性／等角斜率／面積與不重疊／沙箱界內／禁舊 fillRect／禁新色。verify 2972 PASS。不自合、不 --publish。 | 驗收:待非作者覆核
 
 2026-07-29 | T373 直寫 master 的發佈路徑 `--publish`＋收據復原缺口（Codex；純工具鏈、不 bump、不發佈） | **缺口**：直寫 master 的 runtime 卡沒有受支援的發佈入口；receipt 漂移會讓 bay 合併 preflight 永久 fail-closed，而手改 receipt 又違反其 exact Git blob 契約。**修**：新增獨立 `--publish`，只能發佈當前乾淨 canonical master HEAD；先拒 active transaction，跑 master 內 canonical verifier＋`PASS>=MIN_PASS`，重驗 frozen HEAD，若有舊 journal 則在 verifier 綠後 generic recovery，再重驗 target／pristine、只讀 Git blobs，最後重用同一 `deploy_runtime_atomic()`＋receipt 路徑並要求 `receipt=match`。故 receipt 已漂移時可由明示 `--publish` 重發修正，**但 merge `start_transaction()` 的 `verify_deploy_receipt()` 硬擋完全未放寬**。`--publish` 與 BAY/`--deploy`/`--no-deploy`/`--resume`/`--abort`/`--status` 互斥，且不推 master、不碰 bay、不建 integration。**實彈故障注入 43→54**：正常 blobs/receipt/status；漂移 receipt 修復；髒 master；active transaction；紅 verifier 時連可恢復 journal 都零寫入；部署殘留；全部旗標衝突；journal 建立後與 receipt 已寫/journal 未刪的兩個硬殺切點均由下一次 publish 恢復；master verifier 中途前進拒絕；既有 bay receipt 守衛仍紅。**否決**：指定 OID、rollback、把 receipt guard 改警告、手改 receipt、另寫第二套部署流程——皆擴大誤用面或拆掉 fail-closed 契約。**邊界**：本卡只交付工具，未實際 `--publish` T372／未碰玩家目錄。 | 驗收:通過（Claude 非作者覆核 2026-07-29：親跑 test_toolchain 54/54 OK、verify.py ALL GREEN 2897 PASS/0 FAIL；逐項對抗檢查——合併路徑 preflight 仍無條件呼叫 verify_deploy_receipt、MIN_PASS 1902 零改動、該函式本體未改、--publish 與其他旗標雙重互斥；test_toolchain 既有 43 例【0 刪除 0 改斷言】；禁區 index.html/sw.js/test_fixde.js 未觸碰；玩家目錄實查仍 v10.4、receipt=match，確認未順手發佈。**超出卡面要求而值得記的兩點**：①deploy_verified_runtime() 是真正的抽取，車位交易路徑也改為呼叫它，兩條路共用同一段部署序列，非複製兩份；②publish_master() 自行處理 live journal（卡面未要求），先做來源無關的崩潰復原再發佈。另新增三個我沒列的案型：master 於驗證期間前進、硬殺後收據已寫的對帳、以及「加了 publish 之後合併路徑收據守衛仍 fail-closed」的自證）
 

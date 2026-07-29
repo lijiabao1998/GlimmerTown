@@ -544,18 +544,35 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
     const sep = A.a1 < B.a0 || B.a1 < A.a0 || A.b1 < B.b0 || B.b1 < A.b0;
     assert(sep, 'T374 塊' + i + ' 與 ' + j + ' 在 (a,b) 應互不重疊');
   }
-  // 咬法四：沙箱重放 P374 格座標掃描 — 逐點界內（像素數>0 防空過）
+  // 咬法四：vm 重放 index.html 真實繪製碼，攔截 fillRect 逐像素驗界內
+  // （卡面不變量1：每一個上色像素 |x-164|/160+|y-162|/80<=1；不得只重跑測試側 toXY）
   {
-    let pxN = 0, badPx = 0;
-    for (const [a0, a1, b0, b1] of patches374) {
-      for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) {
-        const [x, y] = toXY374(a, b);
-        pxN++;
-        if (!inFoot374(x, y)) badPx++;
+    const iT374 = html.indexOf('/* T374：四塊作物等角歸位');
+    const iSg374 = html.indexOf("sg.fillStyle='#a83a2c'", iT374);
+    assert(iT374 > 0 && iSg374 > iT374, 'T374 應切出可重放段（T374 註解 → 穀倉 sg 前）');
+    const src374 = html.slice(iT374, iSg374);
+    assert(src374.includes('soil374') && src374.includes('P374'), 'T374 重放段應含 soil374/P374');
+    const rects374 = [];
+    let fs374 = '#000000';
+    const gFake374 = {
+      set fillStyle(v) { fs374 = String(v); },
+      get fillStyle() { return fs374; },
+      fillRect(x, y, w, h) {
+        const x0 = Math.floor(+x), y0 = Math.floor(+y);
+        const ww = Math.max(1, Math.ceil(+w || 1)), hh = Math.max(1, Math.ceil(+h || 1));
+        for (let dy = 0; dy < hh; dy++) for (let dx = 0; dx < ww; dx++)
+          rects374.push({ x: x0 + dx, y: y0 + dy, c: fs374 });
       }
+    };
+    vm.runInNewContext(src374, { ax: 164, ay: 242, g: gFake374, Math }, { filename: 't374-crop-replay.js' });
+    assert(rects374.length > 0, 'T374 沙箱重放必須錄到 fillRect（空＝假綠／未執行繪製碼）');
+    const badPix374 = [];
+    for (const p of rects374) {
+      if (!inFoot374(p.x, p.y)) badPix374.push(p);
     }
-    assert(pxN > 100, 'T374 沙箱重放像素數應 >100（實得 ' + pxN + '，空＝假綠）');
-    assert(badPx === 0, 'T374 沙箱：格座標掃描每一點應在菱形內，出界 ' + badPx);
+    assert(badPix374.length === 0,
+      'T374 真實繪製重放：每一上色像素必須在 5×5 菱形內，出界 ' + badPix374.length +
+      ' 例：' + JSON.stringify(badPix374.slice(0, 5)));
   }
   // 色票：T374 作物段（P374…sg. 建築前）不得引入新 hex
   {
