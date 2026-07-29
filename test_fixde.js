@@ -909,6 +909,49 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   }
   window.GV.setRot(0);
 }
+/* ===== T376 B 族載具朝向（H1-H5）===== */
+{
+  const seg376 = (a, b) => { const i0 = html.indexOf(a), i1 = html.indexOf(b, i0); assert(i1 > i0 && i1 - i0 > 150, 'T376 區塊錨應找到：' + a); return html.slice(i0, i1); };
+  const b1 = seg376('if(o.car){', 'if(o.svc){');
+  const b2 = seg376('if(o.svc){', 'if(o.bus){');
+  const b3 = seg376('if(o.bus){', 'if(o.train&&SPR.trainLoco');
+  const b4a = seg376('if(o.train&&SPR.trainLoco', 'if(o.train){');
+  const b4b = seg376('if(o.train){', 'if(o.ship){');
+  const b5a = seg376('if(o.ship){', 'if(o.lifeShip&&SPR.lifeShip)');
+  const b5b = seg376('if(o.lifeShip&&SPR.lifeShip)', 'if(o.tram&&SPR.tramVeh');
+  const b6a = seg376('if(o.tram&&SPR.tramVeh', 'if(o.tram){');
+  const b6b = seg376('if(o.tram){', 'if(o.torn){');
+  const cnt = (s, re) => (s.match(new RegExp(re.source, 'g')) || []).length;
+  // H1 靜態負向（計數式）：八區塊內不得再有生欄位形式
+  for (const [nm, blk] of [['B1', b1], ['B2', b2], ['B3', b3], ['B4a', b4a], ['B4b', b4b], ['B5a', b5a], ['B5b', b5b], ['B6a', b6a], ['B6b', b6b]]) {
+    assert(cnt(blk, /DIRSCR\[o\.[\w.]+\]/) === 0, 'H1 ' + nm + ' 不得再有 DIRSCR[o.欄位] 生索引');
+    assert(cnt(blk, /\(o\.[\w.]+===0\|\|o\.[\w.]+===2\)\?'A':'B'/) === 0, 'H1 ' + nm + ' 不得再有生欄位 A/B 比較');
+  }
+  for (const [nm, blk] of [['B1', b1], ['B2', b2], ['B3', b3], ['B4a', b4a], ['B4b', b4b], ['B6a', b6a], ['B6b', b6b]])
+    assert(cnt(blk, /\(o\.[\w.]+===1\|\|o\.[\w.]+===3\)\?-1:1/) === 0, 'H1 ' + nm + ' 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）');
+  assert(cnt(b5a, /mir=\(o\.sd===1\|\|o\.sd===3\)\?-1:1/) === 1 && cnt(b5b, /mir=\(o\.sd===1\|\|o\.sd===3\)\?-1:1/) === 1,
+    'H1 B5 船的 mir 必須原樣保留（卡面明令不動 13447/13471）');
+  // H2 靜態正向（計數式＋行內容）：六組各一次旋轉後方向宣告
+  assert(cnt(b1, /fd=\(o\.car\.d\+viewRotEff\(\)\)&3/) === 1, 'H2 B1 應有 fd 宣告：' + b1.split('\n').find(l => l.includes('fd=')));
+  assert(cnt(b2, /fd=\(o\.svcD\+viewRotEff\(\)\)&3/) === 1, 'H2 B2 應有 fd 宣告');
+  assert(cnt(b3, /fd=\(o\.bd\+viewRotEff\(\)\)&3/) === 1, 'H2 B3 應有 fd 宣告');
+  assert(cnt(b4a, /tdv=\(o\.td\+viewRotEff\(\)\)&3/) === 1 && cnt(b4b, /tdv=\(o\.td\+viewRotEff\(\)\)&3/) === 1, 'H2 B4 兩路徑各一份 tdv');
+  assert(cnt(b5a, /DIRSCR\[\(o\.sd\+viewRotEff\(\)\)&3\]/) === 1 && cnt(b5b, /DIRSCR\[\(o\.sd\+viewRotEff\(\)\)&3\]/) === 1, 'H2 B5 兩處航行燈皆轉');
+  assert(cnt(b6a, /tv=\(o\.trd\+viewRotEff\(\)\)&3/) === 1 && cnt(b6b, /tv=\(o\.trd\+viewRotEff\(\)\)&3/) === 1, 'H2 B6 兩路徑各一份 tv');
+  // H3 分組完整性（防半修）：各區塊旋轉後形式的用量必達修點數
+  assert(cnt(b1, /\(fd===0\|\|fd===2\)\?'A':'B'/) === 2 && cnt(b1, /DIRSCR\[fd\]/) === 1, 'H3 B1 三修點全走 fd（7/8 與 1/8 兩路徑＋車燈）');
+  assert(cnt(b2, /\(fd===0\|\|fd===2\)\?'A':'B'/) === 1 && cnt(b2, /DIRSCR\[fd\]/) === 1, 'H3 B2 兩修點全走 fd');
+  assert(cnt(b3, /\(fd===0\|\|fd===2\)\?'A':'B'/) === 1 && cnt(b3, /DIRSCR\[fd\]/) === 1, 'H3 B3 兩修點全走 fd');
+  assert(cnt(b4a, /\(tdv===0\|\|tdv===2\)\?'A':'B'/) === 1 && cnt(b4a, /DIRSCR\[tdv\]/) === 1, 'H3 B4 精細路徑 face＋燈');
+  assert(cnt(b4b, /\(tdv===1\|\|tdv===3\)\?-1:1/) === 1 && cnt(b4b, /DIRV\[tdv\]/) === 1 && cnt(b4b, /DIRSCR\[tdv\]/) === 1, 'H3 B4 fallback 鏡射＋位移＋燈（半修必紅）');
+  assert(cnt(b6a, /\(tv===0\|\|tv===2\)\?'A':'B'/) === 1 && cnt(b6a, /DIRSCR\[tv\]/) === 1, 'H3 B6 精細路徑 face＋燈');
+  assert(cnt(b6b, /\(tv===1\|\|tv===3\)\?-1:1/) === 1 && cnt(b6b, /DIRV\[tv\]/) === 1 && cnt(b6b, /DIRSCR\[tv\]/) === 1, 'H3 B6 fallback 鏡射＋位移＋燈');
+  // H4 旋轉語意：方向索引不得誤用 rotMask
+  for (const [nm, blk] of [['B1', b1], ['B2', b2], ['B3', b3], ['B4a', b4a], ['B4b', b4b], ['B5a', b5a], ['B5b', b5b], ['B6a', b6a], ['B6b', b6b]])
+    assert(!/rotMask\(o\./.test(blk), 'H4 ' + nm + ' 方向索引不得誤用 rotMask');
+  // H5 DIRSCR 內容未變（rot=0 恆等的前提）
+  assert(html.includes('const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]]'), 'H5 DIRSCR 四組向量必須逐字不變');
+}
 /* ===== T364a 2× sprite 縮放管線（先立舊素材不變契約；新 A 波素材在 T364b 才加入）===== */
 {
   const at=window.GV.sprAtlas356();
