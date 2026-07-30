@@ -868,6 +868,112 @@ const RANKS=[
 ];
 let rankIdx=0;    // T133：目前城市等級（RANKS 索引，0-based）；只升不降的晉升進度（仿 msIdx/bestStar 慣例），存檔可選欄位 rk
 let cityPoints=0; // T133：目前城市點數（tick() 每日重算，不進存檔）
+/* T343a：科技樹資料層。此段只建立節點／研究進度／存讀檔，不接任何效果或面板。 */
+const TECH343=[
+  {id:'A1',nm:'標準化生產',route:'A',tier:1,cost:400,points:40,pre:[],effect:'工業稅 ×1.04'},
+  {id:'A2',nm:'物流網絡',route:'A',tier:2,cost:900,points:55,pre:['A1'],effect:'公交運量 ×1.12'},
+  {id:'A3',nm:'供應鏈金融',route:'A',tier:3,cost:1500,points:70,pre:['A2'],effect:'商業稅 ×1.04'},
+  {id:'A4a',nm:'重工傾斜',route:'A',tier:4,cost:2400,points:85,pre:['A3'],mutex:'A4b',effect:'工業稅 ×1.08；起火 ×1.10'},
+  {id:'A4b',nm:'綠色轉型',route:'A',tier:4,cost:2400,points:85,pre:['A3'],mutex:'A4a',effect:'起火 ×0.85；工業稅 ×0.98'},
+  {id:'A5',nm:'精益製造',route:'A',tier:5,cost:3600,points:100,pre:[],any:['A4a','A4b'],effect:'升級率 ×1.10'},
+  {id:'A6',nm:'出口擴張',route:'A',tier:6,cost:5200,points:115,pre:['A5'],effect:'商業稅 ×1.05'},
+  {id:'A7',nm:'產業聚落',route:'A',tier:7,cost:7000,points:130,pre:['A6'],effect:'工業需求 +0.10'},
+  {id:'A8',nm:'智慧工廠',route:'A',tier:8,cost:9000,points:150,pre:['A7'],effect:'工業稅 ×1.06'},
+  {id:'B1',nm:'社區自治',route:'B',tier:1,cost:400,points:40,pre:[],effect:'幸福 +0.01'},
+  {id:'B2',nm:'鄰里守望',route:'B',tier:2,cost:900,points:55,pre:['B1'],effect:'犯罪 ×0.92'},
+  {id:'B3',nm:'公共安全網',route:'B',tier:3,cost:1500,points:70,pre:['B2'],effect:'起火 ×0.90'},
+  {id:'B4a',nm:'福利城市',route:'B',tier:4,cost:2400,points:85,pre:['B3'],mutex:'B4b',effect:'幸福 +0.02；政策日費 +$10'},
+  {id:'B4b',nm:'自由市場',route:'B',tier:4,cost:2400,points:85,pre:['B3'],mutex:'B4a',effect:'商業稅 ×1.05；犯罪 ×1.05'},
+  {id:'B5',nm:'市政效率',route:'B',tier:5,cost:3600,points:100,pre:[],any:['B4a','B4b'],effect:'建造費 ×0.95'},
+  {id:'B6',nm:'全民保健',route:'B',tier:6,cost:5200,points:115,pre:['B5'],effect:'幸福 +0.015'},
+  {id:'B7',nm:'治安現代化',route:'B',tier:7,cost:7000,points:130,pre:['B6'],effect:'犯罪 ×0.90'},
+  {id:'B8',nm:'樂活城市',route:'B',tier:8,cost:9000,points:150,pre:['B7'],effect:'幸福 +0.02'},
+  {id:'C1',nm:'公共閱讀',route:'C',tier:1,cost:400,points:40,pre:[],effect:'教育場 ×1.05'},
+  {id:'C2',nm:'教研合作',route:'C',tier:2,cost:900,points:55,pre:['C1'],effect:'升級率 ×1.08'},
+  {id:'C3',nm:'文化補助',route:'C',tier:3,cost:1500,points:70,pre:['C2'],effect:'商業稅 ×1.03'},
+  {id:'C4a',nm:'精英教育',route:'C',tier:4,cost:2400,points:85,pre:['C3'],mutex:'C4b',effect:'教育場 ×1.15；政策日費 +$8'},
+  {id:'C4b',nm:'普及教育',route:'C',tier:4,cost:2400,points:85,pre:['C3'],mutex:'C4a',effect:'教育場 ×1.08；幸福 +0.01'},
+  {id:'C5',nm:'觀光推廣',route:'C',tier:5,cost:3600,points:100,pre:[],any:['C4a','C4b'],effect:'公交運量 ×1.08'},
+  {id:'C6',nm:'學術網絡',route:'C',tier:6,cost:5200,points:115,pre:['C5'],effect:'研究速度 +1'},
+  {id:'C7',nm:'創意城市',route:'C',tier:7,cost:7000,points:130,pre:['C6'],effect:'幸福 +0.015'},
+  {id:'C8',nm:'智庫決策',route:'C',tier:8,cost:9000,points:150,pre:['C7'],effect:'建造費 ×0.95'},
+  {id:'D1',nm:'城市檔案',route:'D',tier:1,cost:400,points:40,pre:[],effect:'城市點數 ×1.05'},
+  {id:'D2',nm:'數據治理',route:'D',tier:2,cost:900,points:55,pre:['D1'],effect:'研究速度 +1'},
+  {id:'D3',nm:'資本市場',route:'D',tier:3,cost:1500,points:70,pre:['D2'],effect:'商業稅 ×1.04'},
+  {id:'D4a',nm:'巨型工程優先',route:'D',tier:4,cost:2400,points:85,pre:['D3'],mutex:'D4b',effect:'建造費 ×0.90'},
+  {id:'D4b',nm:'精明成長',route:'D',tier:4,cost:2400,points:85,pre:['D3'],mutex:'D4a',effect:'城市點數 ×1.10'},
+  {id:'D5',nm:'科研特區',route:'D',tier:5,cost:3600,points:100,pre:['C6'],any:['D4a','D4b'],effect:'研究速度 +2'},
+  {id:'D6',nm:'城市品牌',route:'D',tier:6,cost:5200,points:115,pre:['D5'],effect:'幸福 +0.02'},
+  {id:'D7',nm:'學府之都',route:'D',tier:7,cost:7000,points:130,pre:['D6'],effect:'教育場 ×1.10'},
+  {id:'D8',nm:'微光之巔',route:'D',tier:8,cost:9000,points:150,pre:['D7'],minDone:30,effect:'幸福 +0.03'}
+];
+const TECH343_BY_ID=Object.create(null);for(const n343 of TECH343)TECH343_BY_ID[n343.id]=n343;
+function emptyTech343(){return{act:'',prog:{},done:[]};}
+let tech343=emptyTech343(),techSpeed343=1;
+function hasTech343(id){return tech343.done.indexOf(id)>=0;}
+function canStartTech343(n){
+  if(!n||hasTech343(n.id)||(n.mutex&&(hasTech343(n.mutex)||tech343.act===n.mutex||tech343.prog[n.mutex]>0)))return false;
+  if(n.pre&&n.pre.some(id=>!hasTech343(id)))return false;
+  if(n.any&&n.any.length&&!n.any.some(id=>hasTech343(id)))return false;
+  return !(n.minDone&&tech343.done.length<n.minDone);
+}
+function startTech343(id){
+  const n=TECH343_BY_ID[id];
+  if(!canStartTech343(n))return false;
+  if(tech343.act===id)return true;
+  const fee=(diff===3||tech343.prog[n.id]>0)?0:n.cost;
+  if(money<fee)return false;
+  money-=fee;tech343.act=id;
+  return true;
+}
+function advanceTech343(instituteN,universityN,techParkN,campusN,dataCenterN,megaProjectN){
+  techSpeed343=1+Math.min(7,instituteN+universityN+techParkN*2+campusN*2+dataCenterN+megaProjectN*2);
+  const n=TECH343_BY_ID[tech343.act];
+  if(!n)return;
+  const next=(tech343.prog[n.id]||0)+techSpeed343;
+  if(next<n.points){tech343.prog[n.id]=next;return;}
+  delete tech343.prog[n.id];tech343.done.push(n.id);tech343.act='';
+}
+function techGrant343(id){
+  const n=TECH343_BY_ID[id];
+  if(!n||(n.mutex&&(hasTech343(n.mutex)||tech343.act===n.mutex||tech343.prog[n.mutex]>0)))return false;
+  if(!hasTech343(id))tech343.done.push(id);
+  delete tech343.prog[id];if(tech343.act===id)tech343.act='';
+  return true;
+}
+function techSave343(){
+  const prog={};
+  for(const n of TECH343){const v=tech343.prog[n.id];if(Number.isInteger(v)&&v>0&&v<n.points)prog[n.id]=v;}
+  if(!tech343.act&&!tech343.done.length&&!Object.keys(prog).length)return null;
+  return{act:tech343.act,prog,done:tech343.done.slice()};
+}
+function techLoad343(raw){
+  const zero=emptyTech343();
+  if(raw===undefined)return zero;
+  if(!raw||typeof raw!=='object'||Array.isArray(raw)||typeof raw.act!=='string'||
+     !raw.prog||typeof raw.prog!=='object'||Array.isArray(raw.prog)||!Array.isArray(raw.done))return zero;
+  if(raw.act&&!TECH343_BY_ID[raw.act])return zero;
+  const done=[],seen={};
+  for(const id of raw.done){
+    const n=TECH343_BY_ID[id];
+    if(typeof id!=='string'||!n||seen[id]||(n.mutex&&seen[n.mutex]))return zero;
+    seen[id]=1;done.push(id);
+  }
+  const prog={};
+  for(const id of Object.keys(raw.prog)){
+    const n=TECH343_BY_ID[id],v=raw.prog[id];
+    if(!n||!Number.isInteger(v)||v<=0||v>=n.points||seen[id])return zero;
+    prog[id]=v;
+  }
+  for(const id of Object.keys(prog)){const m=TECH343_BY_ID[id].mutex;if(m&&(seen[m]||prog[m]!==undefined||raw.act===m))return zero;}
+  if(raw.act&&(seen[raw.act]||(TECH343_BY_ID[raw.act].mutex&&
+     (seen[TECH343_BY_ID[raw.act].mutex]||prog[TECH343_BY_ID[raw.act].mutex]!==undefined))))return zero;
+  return{act:raw.act,prog,done};
+}
+function techSnapshot343(){
+  return{act:tech343.act,prog:{...tech343.prog},done:tech343.done.slice(),speed:techSpeed343,
+    nodes:TECH343.map(n=>({...n,pre:n.pre.slice(),any:n.any?n.any.slice():[]}))};
+}
 let quality=1;            // T97 0低1中2高
 let miniView=0;           // T110 小地圖視圖：0一般 1地價 2污染熱度 3壅堵 4犯罪 5服務覆蓋（T131 擴六段循環，不進存檔）
 try{if(localStorage.getItem(SAVEKEY+'.ds')==='0')disastersOn=false;const _qraw=localStorage.getItem(SAVEKEY+'.q');const _q=_qraw===null?-1:+_qraw;if(_q===0||_q===2)quality=_q;}catch(e){}
@@ -8415,6 +8521,7 @@ function newWorld(seedOverride){
   scenario=null; // T132：場景戰役進度成對重置（鐵律7）——開新圖預設回一般模式，begin() 若有 pendingScenario 會在其後另行設回
   editMode=false;customScenario=null; // T135：編輯器模式與自製場景定義成對重置（鐵律7）——開新圖預設離開編輯器；bEditorMode 按鈕會在 begin() 之後另行設回 editMode=true
   rankIdx=0;cityPoints=0; // T133：城市等級成對重置（鐵律7）——新城市回到 Lv.1，下次 tick 起即時重算
+  tech343=emptyTech343();techSpeed343=1; // T343a：科技研究進度／速率跨局成對歸零
   undoStack.length=0;undoGroup=null;
   camLookWorld(best[0],best[1]);cam.z=ZOOMS[zoomIdx(Math.max(1,Math.min(3,Math.round(DPR))))];zoomAnim=null; // T106：目標值不變，就近取階梯值；FIX-M：開新圖清殘留換檔緩動；T367：cam 經 w2v
   recalcAllMasks();
@@ -10731,6 +10838,7 @@ function tick(){
       if(b.k===2)jobsC+=JOBSC[b.lv]*(t.office?1.5:1);else jobsI+=JOBSI[b.lv]; // T79：辦公區商業高就業 ×1.5
     }
   }
+  advanceTech343(inN,un,tpk342,cam342,dtc342,mgN); // T343a：沿用本迴圈既有六個 root 計數，零新增掃城
   pop=popN+trR*TOWER_POP+mgR341*MEGA_POP;jobs=jobsC+jobsI+schools*8+stadiums*20+clinics*4+libraries*4+posts*5+cemeteries*2+bigCemN*8+st*12+gstN*30+scN*40+fpN*25+nkN*30+hyN*12+geN*5+fhqN*20+ghN*4+whN284*8+mallN*70+wteN*12+po*10+ai*40+pa*1+tr*6+fa*3+bigFa*18+ra*2+la*8+so*2+wi*2+se*4+am*5+rc*4+fs2*8+pr*10+un*20+trC*TOWER_JOBS+mgC341*MEGA_JOBS+faN*12+ctN307*4+obN307*10+jobsLm309+mu*12+th*10+aq*14+zo*20+ap*24+ci*6+gl*16+chN*20+crtN*14+cvN*35+inN*22+wsN*8+bgN*18+mhN*28+owN*6+mnN*8+mgN*40+gh330*2+ht330*12+rs330*30+kg330*4+sn330*3+bk330*8+mk330*10+cp330*4+tv330*6+mr330*8+tp336*8+dg336*1+ir336*5+sk336*3+fw340*1+pl340*3+fp340*3+hs340*4+ch340*5+br340*14+wp340*16+vt340*4+sr340*10+cg340*1+cr342*4+hsc342*12+tpk342*45+frt342*10+upc342*12+cpk342*2+cam342*40+mpt342*60+cvc342*18+dtc342*20+gw346*6+fp346*14+kt346*12+ff346*4+upJob;   // T265：焚化發電固定 12 就業；T239：升級服務就業加成；T39-T54 就業；T127：住宅塔人口/商業塔就業＝四格lv3總和×1.15；T138：博物館12/劇院10/水族館14/動物園20/遊樂園24/電影院6/圖書總館16 就業；T139：市政廳20/法院14/會展中心35/研究院22/氣象站8/植物園18/綜合醫院28 就業；T140：油井6/礦場8/太空研究中心40 就業
   jobs+=refineryN*18+steelMillN*22+shipyardN*16; // T364b：三座固定製造就業（不進 RCI 稅）
   jobs+=court364+tennis364+play364+socialHousing364*2+substation364*3+desal364*10+pump364*4+center364*14+shelter364*2+radar364*6; // T364c/d：公共設施與社宅的固定就業
@@ -11456,6 +11564,7 @@ function tick(){
   cityPoints=computeCityPoints();
   while(rankIdx<RANKS.length-1&&cityPoints>=RANKS[rankIdx+1].threshold){
     rankIdx++;
+    buildToolbar(); // T343a：晉升當刻刷新等級門檻工具，不必再點分類
     const rk=RANKS[rankIdx];
     toast(`🏙️ ${townName}升至 Lv.${rankIdx+1} ${rk.name}！`+(rk.unlock?`　解鎖：${rk.unlock}`:''),'gold');
     sFanfare();
@@ -15576,7 +15685,7 @@ function buildToolbar(){
   const bar=$('#tools');bar.innerHTML='';
   for(const t of TOOLS){
     if(t.cat!==toolCat&&t.id!=='pan'&&t.id!=='doze')continue;
-    if(t.unlockRank&&rankIdx+1<t.unlockRank)continue; // T133：等級解鎖掛點——目前全部 TOOLS 皆未設 unlockRank，此判斷恆為 false（既有 34 種建築在任何等級都可放，不 re-lock）；供未來 MU 波新建築設定門檻
+    if(t.unlockRank&&rankIdx+1<t.unlockRank)continue; // T133：等級門檻掛點——現有 31 種工具設有門檻；僅控制工具列顯示，不在建造路徑重鎖
     if(toolCat!=='base'&&(t.id==='pan'||t.id==='doze')&&t.cat==='base'&&toolCat!=='base'){/* pan/doze only in base */}
     const el=document.createElement('button');
     el.className='tool'+(t.id===tool?' sel':'');
@@ -17048,6 +17157,7 @@ function save(){
       rdep:rdepArr.length?rdepArr:null}; // T140：資源耗損（稀疏可選欄位，僅存已開採格；缺欄位＝未耗損。RESOURCE 本身不存，由 seed 經 genResource() 重建）
     if(fuel>0)data.fuel364=fuel; // T364b：零庫存不加欄位，既有城市存檔 bytes 不變
     if(steel>0)data.steel364=steel;
+    {const tq343=techSave343();if(tq343)data.tech343=tq343;} // T343a：零研究狀態不落欄位，舊存檔 bytes 不變
     const key=slotKey(curSlot()),out=JSON.stringify(saveDeflate(data)); // T312：落盤前 RLE 壓縮（讀檔端 saveInflate 透明還原）
     const prev=localStorage.getItem(key);
     if(prev)localStorage.setItem(key+'_bak',prev); // 覆寫前備份：主鍵寫毀或多分頁互蓋時可從 _bak 還原
@@ -17121,6 +17231,7 @@ function load(slot){
     bestStar=d.star||0;score=-1;cityStar=-1;                 // 城市評分（T25）：bestStar 存檔可選欄位，舊檔容錯為 0；分數留待下次 tick 重算
     scenario=(d.sc&&d.sc.id)?{id:d.sc.id,startDay:d.sc.startDay||d.day,hold:d.sc.hold||0}:null; // T132：場景戰役進度（可選欄位，舊檔缺 sc 則回一般模式，鐵律7成對重置）
     editMode=false;customScenario=null; // T135：讀取常規存檔視為離開編輯器、清空自製場景定義（鐵律7；編輯器產物本就不入常規存檔，故無對應欄位可還原）
+    tech343=techLoad343(d.tech343);techSpeed343=1; // T343a：缺欄位／畸形欄位皆整體棄用回零，不影響城市載入
     weather=0;wxT=3+ri(5);flashT=0;rainbowT=0;rainDays=0;wSeason=-1;shakeT=0;quakeRecover=0;tornado=null;drought=false;blizzard=null;leakDays.fill(0);fog=null; // T154：霧（純視覺、不進存檔）隨其餘天氣殘留成對歸零（鐵律7）｜FIX-L：天氣/災害殘留狀態重置（比照 newWorld() 的 FIX-K）——weather/wxT/rainDays/quakeRecover 會改變 tick() 內 R() 消耗次數，不重置則同存檔跨分頁（分頁歷史不同時）讀檔後模擬分岔；wxT 用 ri 於上方 R 重設之後擲骰，天然種子化；T116：龍捲風不進存檔，讀檔強制消散；T137：乾旱/暴風雪/工業洩漏皆運行時狀態，讀檔強制歸零消散
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=ZOOMS[zoomIdx(clamp(d.cam.z||2,ZOOMS[0],4))];zoomAnim=null; // FIX-M：讀檔 z 就近落 T106 階梯（含遠景檔），並清掉殘留換檔緩動
     recalcAllMasks();
@@ -17194,6 +17305,7 @@ function load(slot){
     hintsOff=true;
     undoStack.length=0;undoGroup=null;
     groundDirty=true; // T96：讀檔整批覆寫 tiles，強制下一幀重繪地面層快取
+    buildToolbar(); // T343a：載入高等級城市後立即刷新可見工具
     return true;
   }catch(e){return false;}
 }
@@ -17804,6 +17916,8 @@ window.GV={
   clearScDone:()=>{scDone={};try{localStorage.removeItem(SAVEKEY+'.scDone');}catch(e){}return true;},      // T132 測試用：清空通關記錄（回歸測試用）
   rank:()=>({idx:rankIdx,lv:rankIdx+1,name:RANKS[rankIdx].name,unlock:RANKS[rankIdx].unlock||null,points:cityPoints,next:RANKS[rankIdx+1]?{...RANKS[rankIdx+1]}:null}), // T133 測試用：目前城市等級快照
   cityPoints:()=>cityPoints, // T133 測試用：目前城市點數（tick() 每日重算）
+  tech343:()=>techSnapshot343(), // T343a：科技節點與研究狀態深拷貝快照（唯讀）
+  techGrant:(id)=>techGrant343(id), // T343a：測試用強制完成節點；不扣款、不觸發 UI／效果
   achs:()=>ACHS.map(a=>{const m=Object.assign({},ACH_META[a.id],a);return{id:a.id,nm:m.nm,cat:m.cat,tier:m.tier||null,chain:m.chain||null,hidden:!!m.hidden,done:!!ach[a.id]};}), // T134 測試用：全部成就定義快照（不洩漏隱藏成就達成條件本身，僅回傳中繼資料）
   achDone:()=>Object.keys(ach), // T134 測試用：已解鎖成就 id 陣列（與存檔 ach 欄位同格式）
   achStats:()=>({...achStats}), // T134 測試用：成就檢查用指標快照（tick() 每日重算）
