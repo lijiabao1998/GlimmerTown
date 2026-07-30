@@ -5192,6 +5192,228 @@ runPwaTests().then(() => {
     }
   }
 
+  /* ===== T378 四棟細節升級＋多格地墊歸位 K1–K5 ===== */
+  {
+    console.log('\n-- T378 地墊／細節／夜光守衛 --');
+    // K3：k6 窗燈迴圈與 k7 windows 參數逐字釘（活亂數契約）
+    assert(html.includes('const lit=v>=3?((dx*5+y*3)%7<4):(rand()<.65);'),
+      'T378 K3：k6 窗燈 lit 式必須逐字保留（v0-2 每變體 6 抽全域 rand）');
+    assert(html.includes("windows(sg,ng,ax,by,hw,h,wrand,.5,v===4?{w:4,ht:5,gx:7,gy:9,glass:'#2a3550',lit:'#ffd77a'}:{w:5,ht:6,gx:9,gy:11,glass:'#2a3550',lit:'#ffd77a'})"),
+      'T378 K3：k7 windows(...) 參數必須逐字保留（v0-2 每變體 6 抽）');
+    // K2：spriteTexRand 消費點仍恰 9 個 speck 接點（plate 內部 n=26 不變）
+    const texSites378 = Array.from(html.matchAll(/speck\([^\r\n]*\bspriteTexRand\b[^\r\n]*\)/g));
+    assert(texSites378.length === 9,
+      'T378 K2：speck(...spriteTexRand) 應恰 9 點，實得 ' + texSites378.length);
+    assert(/function plate\(g,ax,ay,col,sz\)/.test(html) &&
+      /speck\(g,ax,ay-hw,hw,\[[^\]]*\],26,spriteTexRand\)/.test(html),
+      'T378 K2：plate 須可選 sz 且 speck n 固定 26（每 plate 恰 78 抽）');
+    // K4：A 部四棟特徵字面
+    assert(html.includes('T378 溫室細節') && html.includes('通風天窗') && html.includes('育苗架'),
+      'T378 K4：k63 應有溫室細節（天窗/育苗架）');
+    assert(html.includes('T378 購物中心細節') && html.includes('卸貨車') && html.includes('廣場燈柱'),
+      'T378 K4：k65 應有購物中心細節（卸貨車/燈柱）');
+    assert(html.includes('T378 消防局細節') && html.includes('消防車身') && html.includes('警戒線'),
+      'T378 K4：k6 應有消防車剪影與警戒線');
+    assert(html.includes('T378 學校細節') && html.includes('斑馬線') && html.includes('籃球架') &&
+      html.includes("sg.fillStyle='#8b95a5';sg.fillRect(ax,rty-9,1,9);      // 旗杆"),
+      'T378 K4：k7 應有斑馬線/籃球架且保留旗杆');
+    assert(html.includes('0x809050:') && !html.includes('0x808f50:'),
+      'T378：WIN353 應為 0x809050（修 0x808f50 錯字）');
+    assert(/doFarm\('22_1_'\+v,68,148,52,26,CCLASS\[v\]\)/.test(html),
+      'T378：k22 doFarm 精細田應放大至 hw52/hh26');
+    assert(/doFarm\('53_1_0',164,222,52,26,'grain'\)/.test(html),
+      'T378：k53 doFarm 參數釘死不得動');
+    // SZC 含 20 補鍵且 121/122/123 仍在字面量本體
+    {
+      const a = html.indexOf('const SZC='), b = html.indexOf('};', a), body = html.slice(a, b);
+      assert(a >= 0 && b > a, 'T378 SZC 字面量應存在');
+      for (const k of [82, 83, 87, 90, 91, 100, 101, 105, 106, 108, 109, 110, 111, 112, 113, 114, 115, 116, 118, 119]) {
+        assert(body.includes(k + ':'), 'T378 SZC 應含 k' + k);
+      }
+      assert([121, 122, 123].every(k => body.includes(k + ':3')),
+        'T378 SZC 字面量仍須含 121/122/123:3（T364b 守衛）');
+    }
+    // K1：MSZ≥2 的最終 SPR.bld 賦值塊須有全腳印地墊（plate 帶 sz≥MSZ，或 dia hw≥32*sz）
+    {
+      const mszM = html.match(/const MSZ=\{([^}]+)\}/);
+      assert(mszM, 'T378 K1：應找到 MSZ');
+      const MSZ = {};
+      for (const pair of mszM[1].matchAll(/(\d+):(\d+)/g)) MSZ[+pair[1]] = +pair[2];
+      for (const m of html.matchAll(/Object\.assign\(MSZ,\{([^}]+)\}/g)) {
+        for (const pair of m[1].matchAll(/(\d+):(\d+)/g)) MSZ[+pair[1]] = +pair[2];
+      }
+      // 切塊＝遍歷【每一個】多格註冊點（非每鍵只取最後一個）
+      // block = 上一註冊點→本註冊點；block<200＝同塊兄弟沿用同塊首鍵判定
+      // 塔樓 T127 用 SPR.bld[d.k+'_1_'+d.v]（非字面量鍵）— 展開為 33/34 × v0/v1 四虛擬註冊點
+      // factory（mkIndustry364）：註冊行只剩呼叫時掃函式定義本體
+      const auditK1 = (src) => {
+        const regs = [];
+        for (const m of src.matchAll(/SPR\.bld\['([^']+)'\]\s*=/g)) {
+          regs.push({ index: m.index, key: m[1], assignAt: m.index });
+        }
+        // 動態鍵：迴圈內一塊多鍵（摩天樓）；源碼一點 → 四虛擬鍵同 index
+        for (const m of src.matchAll(/SPR\.bld\[d\.k\+'_1_'\+d\.v\]\s*=/g)) {
+          for (const k of [33, 34]) {
+            if (!MSZ[k] || MSZ[k] < 2) continue;
+            for (const v of [0, 1]) {
+              regs.push({ index: m.index, key: k + '_1_' + v, assignAt: m.index });
+            }
+          }
+        }
+        regs.sort((a, b) => a.index - b.index || a.key.localeCompare(b.key));
+        const hasFullFoot = (text, sz) => {
+          const needHw = 32 * sz;
+          for (const pm of text.matchAll(/plate\s*\(([^)]*)\)/g)) {
+            const sm = pm[1].match(/,\s*(\d+)\s*$/);
+            if (sm && +sm[1] >= sz) return true;
+          }
+          for (const dm of text.matchAll(/dia\s*\(\s*g\s*,\s*[^,]+,\s*[^,]+,\s*(\d+)/g)) {
+            if (+dm[1] >= needHw) return true;
+          }
+          if (new RegExp('dia\\s*\\([^\\n]{0,60},\\s*' + needHw + '\\s*[,)]').test(text)) return true;
+          return false;
+        };
+        // 只掃 [prev, reg) 繪製段；禁止把 assign 後 180 字併入（會滲下一變體的 plate 造成假綠）
+        const judge = (block, end, sz) => {
+          let ok = hasFullFoot(block, sz);
+          if (!ok) {
+            const assignLine = src.slice(end, Math.min(src.length, end + 180));
+            const fm = assignLine.match(/=\s*([A-Za-z_$][\w$]*)\s*\(/);
+            if (fm) {
+              const defRe = new RegExp('(?:const|let|var)\\s+' + fm[1] + '\\s*=');
+              const defM = defRe.exec(src);
+              if (defM && defM.index < end) ok = hasFullFoot(src.slice(defM.index, end), sz);
+            }
+          }
+          return ok;
+        };
+        let blocks = 0, bad = [];
+        let lastLongOk = null;
+        let prevIndex = 0;
+        for (let i = 0; i < regs.length; i++) {
+          const fullKey = regs[i].key;
+          const km = fullKey.match(/^(\d+)_/);
+          if (!km) continue;
+          const k = +km[1];
+          const sz = MSZ[k];
+          if (!sz || sz < 2) {
+            // 仍推進 prev：1×1 註冊點也是「上一註冊點」邊界
+            prevIndex = regs[i].index;
+            continue;
+          }
+          const end = regs[i].index;
+          // 同 index 虛擬兄弟：block 長度 0，沿用 lastLongOk
+          const start = (i > 0 && regs[i].index === regs[i - 1].index)
+            ? end
+            : prevIndex;
+          const block = src.slice(start, end);
+          let ok;
+          if (block.length < 200 && lastLongOk !== null) {
+            ok = lastLongOk;
+          } else {
+            ok = judge(block, end, sz);
+            lastLongOk = ok;
+          }
+          if (ok) blocks++;
+          else bad.push(fullKey);
+          // 僅在「新位置」推進 prev，避免同 index 四鍵把後續切空
+          if (i + 1 >= regs.length || regs[i + 1].index !== regs[i].index) {
+            prevIndex = regs[i].index;
+          }
+        }
+        return { blocks, bad };
+      };
+      const k1ok = auditK1(html);
+      assert(k1ok.blocks >= 40, 'T378 K1：全腳印地墊註冊點應 ≥40，實得 ' + k1ok.blocks + ' bad=' + JSON.stringify(k1ok.bad.slice(0, 12)));
+      assert(k1ok.bad.length === 0, 'T378 K1：下列多格註冊點地墊不足：' + JSON.stringify(k1ok.bad));
+      // 破壞性證明四案型
+      {
+        // 1) k48：無 hero、早期塊即最終；拿掉 ,3 不得滲鄰居 dia
+        const pin48 = "plate(g,ax,ay,'#9aa0a4',3)";
+        assert(html.includes(pin48), 'T378 K1：k48 plate 錨點應存在');
+        const mut48 = html.replace(pin48, "plate(g,ax,ay,'#9aa0a4')");
+        const r48 = auditK1(mut48);
+        assert(r48.bad.some(x => String(x).startsWith('48_')),
+          'T378 K1：k48 拿掉 plate ,3 必須紅，bad=' + JSON.stringify(r48.bad));
+        // 2) k22 v0：多變體不得只釘最後一個；拿掉 v0 的 ,2 必須紅
+        const pin22 = "plate(g,ax,ay,'#8a9a5a',2);g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉";
+        assert(html.includes(pin22), 'T378 K1：k22 v0 plate 錨點應存在');
+        const mut22 = html.replace(pin22, "plate(g,ax,ay,'#8a9a5a');g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉");
+        const r22 = auditK1(mut22);
+        assert(r22.bad.indexOf('22_1_0') >= 0,
+          'T378 K1：k22 v0 拿掉 plate ,2 必須紅，bad=' + JSON.stringify(r22.bad));
+        // 3) 摩天樓：一塊多鍵；拿掉共用 plate ,2 必須紅（任一同塊鍵）
+        const pinTw = "plate(g,tax,tay,'#8f8a7c',2)";
+        assert(html.includes(pinTw), 'T378 K1：塔樓 plate 錨點應存在');
+        const mutTw = html.replace(pinTw, "plate(g,tax,tay,'#8f8a7c')");
+        const rTw = auditK1(mutTw);
+        assert(rTw.bad.some(x => String(x).startsWith('33_') || String(x).startsWith('34_')),
+          'T378 K1：塔樓拿掉 plate ,2 必須紅，bad=' + JSON.stringify(rTw.bad));
+      }
+      // K1-hero：凡 hero 覆蓋塊 `const hk='K_…'` 且 MSZ[K]≥2，其 plate 必須帶 sz≥MSZ
+      // （後寫後贏＝最終生效；與上列「註冊點之間」一般鍵切塊互補）
+      {
+        const heroBad = [];
+        const hkRe = /const hk\s*=\s*'(\d+)_[^']+'/g;
+        let hm;
+        while ((hm = hkRe.exec(html))) {
+          const k = +hm[1];
+          const sz = MSZ[k];
+          if (!sz || sz < 2) continue;
+          // 取此 hk 宣告後到下一個 hk／大段落結束前的短窗（hero 塊本體）
+          const win = html.slice(hm.index, hm.index + 450);
+          const plates = Array.from(win.matchAll(/plate\s*\(([^)]*)\)/g));
+          if (!plates.length) continue; // 如 k9 體育場不呼叫 plate
+          let ok = false;
+          for (const pm of plates) {
+            const sm = pm[1].match(/,\s*(\d+)\s*$/);
+            if (sm && +sm[1] >= sz) ok = true;
+          }
+          if (!ok) heroBad.push(hm[1] + '→' + plates.map(p => 'plate(' + p[1] + ')').join('|'));
+        }
+        assert(heroBad.length === 0,
+          'T378 K1-hero：多格 hero 覆蓋 plate 缺 sz：' + JSON.stringify(heroBad));
+        // 破壞性證明錨：k20/k25 hero 必須顯式 ,2（覆核退回病例）
+        assert(/const hk='20_1_0'[\s\S]{0,200}plate\(g,hax,hay,'#7a7a6a',2\)/.test(html),
+          'T378 K1-hero：k20_1_0 hero plate 必須 ,2');
+        assert(/const hk='25_1_0'[\s\S]{0,200}plate\(g,hax,hay,'#8a9a7a',2\)/.test(html),
+          'T378 K1-hero：k25_1_0 hero plate 必須 ,2');
+      }
+    }
+    // K5：四棟新增夜光必須有對應日層實體錨（靜態同位證明；mock canvas 無法真像素比對）
+    {
+      // k63：門燈 ng 座標＝日層木門 sg 座標
+      assert(html.includes("sg.fillStyle='#8a6a4a';sg.fillRect(ax+gx+11,ay-36,4,6)") &&
+        html.includes('ng.fillStyle=\'#ffe9a0\';ng.fillRect(ax+gx+11,ay-36,4,3)'),
+        'T378 K5：k63 門燈須壓在日層木門同座標');
+      // k6：車頂警燈 ng 與日層同 tdx 矩形
+      assert(html.includes("ng.fillStyle='#ff6060';ng.fillRect(ax+tdx+10,yF-h+5,2,2)") &&
+        html.includes("sg.fillStyle='#ffd420';sg.fillRect(ax+tdx+10,yF-h+5,2,2)"),
+        'T378 K5：k6 警燈須日夜同座標');
+      // k7：走廊燈帶落在 isoBox 牆高帶（by-h+5，hw 內）
+      assert(html.includes("ng.fillStyle='rgba(255,215,122,.55)';ng.fillRect(ax-hw+6,by-h+5,hw*2-12,2)"),
+        'T378 K5：k7 夜走廊燈帶須在牆體帶 by-h+5');
+      // k65：天窗/店窗夜光皆在既有日層 fillRect 之後、且用已畫店窗座標
+      const i65 = html.indexOf('T378 購物中心細節');
+      const i65e = html.indexOf("SPR.bld['65_1_0']", i65);
+      const blk65 = html.slice(i65, i65e);
+      assert(i65 > 0 && i65e > i65, 'T378 K5：k65 細節塊應可切出');
+      assert((blk65.match(/\bng\.fill/g) || []).length >= 3,
+        'T378 K5：k65 細節應含多處夜光');
+      assert(blk65.includes('shopY+5') && html.includes('shopY+4,16,9'),
+        'T378 K5：k65 櫥窗夜光應對齊日層店窗 band');
+      // 新增夜光段不得單獨引入 Math.random / 全域 rand（零亂數契約）
+      for (const tag of ['T378 溫室細節', 'T378 購物中心細節', 'T378 消防局細節', 'T378 學校細節']) {
+        const i0 = html.indexOf(tag);
+        const i1 = html.indexOf('outlineSprite', i0);
+        const seg = html.slice(i0, i1 > i0 ? i1 : i0 + 800);
+        assert(i0 > 0, 'T378 K5：應找到 ' + tag);
+        assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(|\bspriteTexRand\b/.test(seg),
+          'T378 K5：' + tag + ' 段不得消耗任何亂數流');
+      }
+    }
+  }
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
