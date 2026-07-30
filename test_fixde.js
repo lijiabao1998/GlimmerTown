@@ -5421,7 +5421,9 @@ runPwaTests().then(() => {
         for (const [x0, y0, w, h] of rects) {
           for (let y = y0; y < y0 + h; y++) {
             const t = 1 - Math.abs(y - fcy) / fhh;
-            if (t <= 0) continue;
+            // T380a：field() 在 yy=±hh 時 rh=0 仍畫中心那 1 px（px1(g,ax,cy±hh)），
+            // 原本的 t<=0 把最上/最下那一列整列跳掉 ⇒ 田剛好貼到招牌時少算。
+            if (t < 0) continue;
             const lo = fcx - fhw * t, hi = fcx + fhw * t;
             for (let x = x0; x < x0 + w; x++) if (x >= lo && x <= hi) cover++;
           }
@@ -5429,7 +5431,7 @@ runPwaTests().then(() => {
         return cover;
       };
       let blocks = 0, totalCover = 0, totalBldRects = 0;
-      const per = [];
+      const per = [], perSig = [];
       const regRe = /SPR\.bld\['22_1_(\d+)'\]/g;
       let rm;
       while ((rm = regRe.exec(html))) {
@@ -5441,16 +5443,35 @@ runPwaTests().then(() => {
         const rects = parseSigRects(blk);
         blocks++;
         totalBldRects += rects.length;
+        perSig[v] = rects.length;
         const cover = fieldCover(rects, F22[v]);
         totalCover += cover;
         per.push('v' + v + ':' + cover + '/' + rects.length);
       }
       assert(blocks >= 16, 'T379 L1：應解析到 ≥16 個 k22 變體，實得 ' + blocks);
+      /* ===== T380a：self-check 必須逐變體，不能只看總數 =====
+         T380 交付時 self-check 是「總數 ≥24」（實得 34），但 v5/v7 的招牌用迴圈座標
+         （ax-24+i*12 / ay-54+r*3），而 L1 的 regex 需 x/y 皆字面量 ⇒ 那兩個變體 0 個可見矩形，
+         總數仍過。實測注入「v5 招牌 ay-52→ay-16 搬進田心」＝全綠，L1 沒擋住。
+         斷言訊息當時寫「每變體至少 1 招牌」與實際檢查不符——本卡把它變成真的。 */
+      {
+        const blind = [];
+        for (let v = 0; v < 16; v++) if (!perSig[v]) blind.push('v' + v);
+        assert(blind.length === 0,
+          'T380a L1：每個變體都必須有 ≥1 個 L1 可解析的 //sig 矩形（x/y 皆字面量），'
+          + '否則該變體的招牌不受守衛保護。歸零：' + blind.join(',')
+          + '（修法：加一個字面座標的基床/哨兵矩形，擺在招牌最下緣＝離田最近處，'
+          + '見 v0 的 //sig 基床、v5 的 //sig 棧板、v7 的 //sig 壟框）');
+      }
       // self-check：必須量到建築（防「全刪美術 → 覆蓋 0 假綠」）
       assert(totalBldRects >= 24,
         'T380 L1：建築(//sig)矩形總數應 ≥24（每變體至少 1 招牌），實得 ' + totalBldRects);
-      assert(totalCover <= 60,
-        'T379 L1：k22 精細田蓋掉建築 ' + totalCover + ' px，超過門檻 60：' + per.join(' '));
+      /* T380a：門檻由 ≤60 收到 0。理由是實測——把田從 hw40/hh20 放大到 hw56/hh28
+         （K4 仍過，hh=hw/2 且 hw≥36）＝T378 事故的真實形狀，覆蓋量只有約 30~60px 就被 60 放行。
+         哨兵擺在招牌最下緣，而田菱形的上尖很窄，所以「剛開始吃到」時吃得很少。
+         現況覆蓋 0，收到 0 是免費的，且把「田不得蓋到招牌」變成真正的二值不變量。 */
+      assert(totalCover === 0,
+        'T379/T380a L1：k22 精細田蓋掉招牌建築 ' + totalCover + ' px（門檻 0）：' + per.join(' '));
       // 破壞性：田心塞 //sig 建築 ⇒ 必須紅
       {
         const pin = "SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]}";
@@ -5465,9 +5486,9 @@ runPwaTests().then(() => {
           const b0 = mut.lastIndexOf('cv(', r2.index);
           const blk = mut.slice(b0, r2.index);
           const cover = fieldCover(parseSigRects(blk), F22[v]);
-          if (cover > 60) { mutCover = cover; mutV = v; break; }
+          if (cover > 0) { mutCover = cover; mutV = v; break; }
         }
-        assert(mutV === 0 && mutCover > 60,
+        assert(mutV === 0 && mutCover > 0,
           'T380 L1：把 //sig 建築移進田心必須紅，實得 v' + mutV + ':' + mutCover);
       }
     }
