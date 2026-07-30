@@ -4598,13 +4598,13 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
      g.fillStyle='#66b04a';
      if(in374(xi,yi-2))g.fillRect(xi,yi-2,1,1);
    }
-   // 果園（右翼）：等角格網加密果樹（≥20 株）；每像素界內
+   // 果園（右翼）：步進 3＋奇行 b 錯位（樹距≈6px 留空，≥20 株且輪廓可辨；禁步進 2 糊成綠毯）
    const bft=(tx,ty)=>{
      const put=(xx,yy,c,w,h)=>{g.fillStyle=c;for(let dy=0;dy<h;dy++)for(let dx=0;dx<w;dx++)if(in374(xx+dx,yy+dy))g.fillRect(xx+dx,yy+dy,1,1);};
      put(tx+2,ty+5,'#6b4a2f',2,3);put(tx,ty,'#3d7a3c',6,6);put(tx,ty,'#4f9448',6,2);
      put(tx+1,ty+2,'#d04838',1,1);put(tx+4,ty+3,'#d04838',1,1);
    };
-   for(let a=P374[3][0]+1;a<=P374[3][1]-1;a+=2)for(let b=P374[3][2]+1;b<=P374[3][3]-1;b+=2){
+   for(let ia=0,a=P374[3][0]+1;a<=P374[3][1]-1;a+=3,ia++)for(let b=P374[3][2]+1+(ia&1);b<=P374[3][3]-1;b+=3){
      const[x,y]=xy374(a,b);if(!in374(x,y))continue;bft((x|0)-2,(y|0)-4);
    }
    // T377：大紅穀倉 isoBox 立體化（建築層新色自由；錨點字面保留給 T374 切段）

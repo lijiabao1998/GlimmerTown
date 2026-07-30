@@ -676,9 +676,21 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
       assert(counts[i] >= baseCov[i],
         'T377 J3：塊' + i + ' 覆蓋像素應 ≥ 基線 ' + baseCov[i] + '，實得 ' + counts[i]);
     }
-    // 果園株數代理：bft 冠色 #3d7a3c 像素數 ≥ 20* (約 6px² 冠) ≈ 120
-    const crown = rects.filter(p => p.c.toLowerCase() === '#3d7a3c').length;
-    assert(crown >= 100, 'T377 果園加密：冠色像素應 ≥100（≈20 株），實得 ' + crown);
+    // 果園株數：直接數 bft 呼叫（__tn 注入），≥20；步進 4 破壞性必須紅
+    {
+      const box = { n: 0 };
+      const srcTrees = src.replace(
+        /const bft=\(tx,ty\)=>\{/,
+        'const bft=(tx,ty)=>{__tn.n++;'
+      );
+      assert(srcTrees.includes('__tn.n++'), 'T377 果園：bft 計數注入應成功');
+      const g3 = { set fillStyle(v) {}, get fillStyle() { return '#000'; }, fillRect() {} };
+      vm.runInNewContext(srcTrees, { ax: 164, ay: 242, g: g3, Math, __tn: box }, { filename: 't377-tree-count.js' });
+      assert(box.n >= 20, 'T377 果園株數應 ≥20（直接數 bft 呼叫），實得 ' + box.n);
+      // 靜態：雙軸步進 3（步進 2 糊成綠毯；步進 4 格點 ≤16 株）
+      assert(/a\+=3/.test(src) && /b\+=3/.test(src),
+        'T377 果園迴圈應 a+=3 且 b+=3（步進 3 留空）');
+    }
   }
 }
 /* ===== T356 素材清冊（sprAtlas356）=====
