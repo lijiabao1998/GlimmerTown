@@ -5567,6 +5567,10 @@ runPwaTests().then(() => {
     assert(window.__t343Test.start('B1') === true && window.GV.stats().money === cashB343 - 400 &&
       window.GV.tech343().prog.A1 === 1 && window.GV.tech343().act === 'B1',
     'T343a 切換研究應保留 A1 進度並只啟動 B1');
+    const cashC343 = window.GV.stats().money;
+    assert(window.__t343Test.start('A1') === true && window.GV.stats().money === cashC343 &&
+      window.GV.tech343().prog.A1 === 1 && window.GV.tech343().act === 'A1',
+    'T343a 切回已有正進度的 A1 應保留進度且不重複收啟動費');
 
     window.GV.newWorldSeeded(34302);window.GV.setDiff(3);
     const sandboxCash343 = window.GV.stats().money;
@@ -5632,7 +5636,10 @@ runPwaTests().then(() => {
       ['字串', 'A1'],
       ['數字', 343],
       ['錯物件', {nodes:42}],
-      ['陣列', [null]]
+      ['陣列', [null]],
+      ['互斥雙完成', {act:'',prog:{},done:['A4a','A4b']}],
+      ['互斥完成＋進度', {act:'',prog:{A4b:10},done:['A4a']}],
+      ['互斥完成＋啟動', {act:'A4b',prog:{},done:['A4a']}]
     ];
     for (const [label, bad] of malformed343) {
       const disk = JSON.parse(emptyRaw343);

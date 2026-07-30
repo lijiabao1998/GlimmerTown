@@ -921,7 +921,7 @@ function startTech343(id){
   const n=TECH343_BY_ID[id];
   if(!canStartTech343(n))return false;
   if(tech343.act===id)return true;
-  const fee=diff===3?0:n.cost;
+  const fee=(diff===3||tech343.prog[n.id]>0)?0:n.cost;
   if(money<fee)return false;
   money-=fee;tech343.act=id;
   return true;
