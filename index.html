@@ -7039,7 +7039,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     // 停車場 (k=20,2×2)：單一鍵，原版無 night 畫布，本卡起追加 night 窗燈/警示燈（比照 T161 對 k=29 先例）
     {const hk='20_1_0';const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
      const hax=68,hay=148;
-     plate(g,hax,hay,'#7a7a6a');
+     plate(g,hax,hay,'#7a7a6a',2); // T378：2×2 全腳印（hero 後寫後贏）
      drawHeroPix(hk,sg,ng);
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:136,h:150,smoke:[]};}
@@ -7053,7 +7053,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     // 太陽能 (k=25,2×2)：單一鍵，原版無 night 畫布，本卡起追加 night 警示燈（比照 T161 對 k=29 先例）
     {const hk='25_1_0';const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
      const hax=68,hay=148;
-     plate(g,hax,hay,'#8a9a7a');
+     plate(g,hax,hay,'#8a9a7a',2); // T378：2×2 全腳印（hero 後寫後贏）
      drawHeroPix(hk,sg,ng);
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:136,h:150,smoke:[]};}

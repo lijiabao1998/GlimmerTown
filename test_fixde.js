@@ -5272,6 +5272,35 @@ runPwaTests().then(() => {
       }
       assert(blocks >= 40, 'T378 K1：全腳印地墊塊數應 ≥40，實得 ' + blocks + ' bad=' + JSON.stringify(bad.slice(0, 12)));
       assert(bad.length === 0, 'T378 K1：下列鍵最終賦值塊地墊不足：' + JSON.stringify(bad));
+      // K1-hero：凡 hero 覆蓋塊 `const hk='K_…'` 且 MSZ[K]≥2，其 plate 必須帶 sz≥MSZ
+      // （後寫後贏＝最終生效；舊 K1 只看「最後 SPR.bld 賦值前 10k」會被長塊／多賦值誤導而對 hero 1 格失明）
+      {
+        const heroBad = [];
+        const hkRe = /const hk\s*=\s*'(\d+)_[^']+'/g;
+        let hm;
+        while ((hm = hkRe.exec(html))) {
+          const k = +hm[1];
+          const sz = MSZ[k];
+          if (!sz || sz < 2) continue;
+          // 取此 hk 宣告後到下一個 hk／大段落結束前的短窗（hero 塊本體）
+          const win = html.slice(hm.index, hm.index + 450);
+          const plates = Array.from(win.matchAll(/plate\s*\(([^)]*)\)/g));
+          if (!plates.length) continue; // 如 k9 體育場不呼叫 plate
+          let ok = false;
+          for (const pm of plates) {
+            const sm = pm[1].match(/,\s*(\d+)\s*$/);
+            if (sm && +sm[1] >= sz) ok = true;
+          }
+          if (!ok) heroBad.push(hm[1] + '→' + plates.map(p => 'plate(' + p[1] + ')').join('|'));
+        }
+        assert(heroBad.length === 0,
+          'T378 K1-hero：多格 hero 覆蓋 plate 缺 sz：' + JSON.stringify(heroBad));
+        // 破壞性證明錨：k20/k25 hero 必須顯式 ,2（覆核退回病例）
+        assert(/const hk='20_1_0'[\s\S]{0,200}plate\(g,hax,hay,'#7a7a6a',2\)/.test(html),
+          'T378 K1-hero：k20_1_0 hero plate 必須 ,2');
+        assert(/const hk='25_1_0'[\s\S]{0,200}plate\(g,hax,hay,'#8a9a7a',2\)/.test(html),
+          'T378 K1-hero：k25_1_0 hero plate 必須 ,2');
+      }
     }
     // K5：四棟新增夜光必須有對應日層實體錨（靜態同位證明；mock canvas 無法真像素比對）
     {
