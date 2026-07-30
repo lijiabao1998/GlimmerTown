@@ -5192,6 +5192,121 @@ runPwaTests().then(() => {
     }
   }
 
+  /* ===== T378 四棟細節升級＋多格地墊歸位 K1–K5 ===== */
+  {
+    console.log('\n-- T378 地墊／細節／夜光守衛 --');
+    // K3：k6 窗燈迴圈與 k7 windows 參數逐字釘（活亂數契約）
+    assert(html.includes('const lit=v>=3?((dx*5+y*3)%7<4):(rand()<.65);'),
+      'T378 K3：k6 窗燈 lit 式必須逐字保留（v0-2 每變體 6 抽全域 rand）');
+    assert(html.includes("windows(sg,ng,ax,by,hw,h,wrand,.5,v===4?{w:4,ht:5,gx:7,gy:9,glass:'#2a3550',lit:'#ffd77a'}:{w:5,ht:6,gx:9,gy:11,glass:'#2a3550',lit:'#ffd77a'})"),
+      'T378 K3：k7 windows(...) 參數必須逐字保留（v0-2 每變體 6 抽）');
+    // K2：spriteTexRand 消費點仍恰 9 個 speck 接點（plate 內部 n=26 不變）
+    const texSites378 = Array.from(html.matchAll(/speck\([^\r\n]*\bspriteTexRand\b[^\r\n]*\)/g));
+    assert(texSites378.length === 9,
+      'T378 K2：speck(...spriteTexRand) 應恰 9 點，實得 ' + texSites378.length);
+    assert(/function plate\(g,ax,ay,col,sz\)/.test(html) &&
+      /speck\(g,ax,ay-hw,hw,\[[^\]]*\],26,spriteTexRand\)/.test(html),
+      'T378 K2：plate 須可選 sz 且 speck n 固定 26（每 plate 恰 78 抽）');
+    // K4：A 部四棟特徵字面
+    assert(html.includes('T378 溫室細節') && html.includes('通風天窗') && html.includes('育苗架'),
+      'T378 K4：k63 應有溫室細節（天窗/育苗架）');
+    assert(html.includes('T378 購物中心細節') && html.includes('卸貨車') && html.includes('廣場燈柱'),
+      'T378 K4：k65 應有購物中心細節（卸貨車/燈柱）');
+    assert(html.includes('T378 消防局細節') && html.includes('消防車身') && html.includes('警戒線'),
+      'T378 K4：k6 應有消防車剪影與警戒線');
+    assert(html.includes('T378 學校細節') && html.includes('斑馬線') && html.includes('籃球架') &&
+      html.includes("sg.fillStyle='#8b95a5';sg.fillRect(ax,rty-9,1,9);      // 旗杆"),
+      'T378 K4：k7 應有斑馬線/籃球架且保留旗杆');
+    assert(html.includes('0x809050:') && !html.includes('0x808f50:'),
+      'T378：WIN353 應為 0x809050（修 0x808f50 錯字）');
+    assert(/doFarm\('22_1_'\+v,68,148,52,26,CCLASS\[v\]\)/.test(html),
+      'T378：k22 doFarm 精細田應放大至 hw52/hh26');
+    assert(/doFarm\('53_1_0',164,222,52,26,'grain'\)/.test(html),
+      'T378：k53 doFarm 參數釘死不得動');
+    // SZC 含 20 補鍵且 121/122/123 仍在字面量本體
+    {
+      const a = html.indexOf('const SZC='), b = html.indexOf('};', a), body = html.slice(a, b);
+      assert(a >= 0 && b > a, 'T378 SZC 字面量應存在');
+      for (const k of [82, 83, 87, 90, 91, 100, 101, 105, 106, 108, 109, 110, 111, 112, 113, 114, 115, 116, 118, 119]) {
+        assert(body.includes(k + ':'), 'T378 SZC 應含 k' + k);
+      }
+      assert([121, 122, 123].every(k => body.includes(k + ':3')),
+        'T378 SZC 字面量仍須含 121/122/123:3（T364b 守衛）');
+    }
+    // K1：MSZ≥2 的最終 SPR.bld 賦值塊須有全腳印地墊（plate 帶 sz≥MSZ，或 dia hw≥32*sz）
+    {
+      const mszM = html.match(/const MSZ=\{([^}]+)\}/);
+      assert(mszM, 'T378 K1：應找到 MSZ');
+      const MSZ = {};
+      for (const pair of mszM[1].matchAll(/(\d+):(\d+)/g)) MSZ[+pair[1]] = +pair[2];
+      for (const m of html.matchAll(/Object\.assign\(MSZ,\{([^}]+)\}/g)) {
+        for (const pair of m[1].matchAll(/(\d+):(\d+)/g)) MSZ[+pair[1]] = +pair[2];
+      }
+      let blocks = 0, bad = [];
+      const keys = Object.keys(MSZ).map(Number).filter(k => MSZ[k] >= 2).sort((a, b) => a - b);
+      for (const k of keys) {
+        const re = new RegExp("SPR\\.bld\\['" + k + "_[^']+'\\]\\s*=", 'g');
+        let last = null, m;
+        while ((m = re.exec(html))) last = m;
+        if (!last) continue;
+        // 新代長塊（k65 廣場細節等）可能 >7k；回看 10k 仍只取本鍵最後賦值前段
+        const start = Math.max(0, last.index - 10000);
+        const block = html.slice(start, last.index);
+        const sz = MSZ[k];
+        const needHw = 32 * sz;
+        let ok = false;
+        // plate(... ,sz) 或 plate 後綴 ≥sz
+        for (const pm of block.matchAll(/plate\s*\(([^)]*)\)/g)) {
+          const args = pm[1];
+          const sm = args.match(/,\s*(\d+)\s*$/);
+          if (sm && +sm[1] >= sz) ok = true;
+        }
+        // dia( g , … , hw , …) 空格／換行容忍；hw 取第 4 參（cx,ty,hw）
+        for (const dm of block.matchAll(/dia\s*\(\s*g\s*,\s*[^,]+,\s*[^,]+,\s*(\d+)/g)) {
+          if (+dm[1] >= needHw) ok = true;
+        }
+        // 少數寫法 dia(g,ax,ay-64,64,col) 同上；再掃字面 32*sz 菱形半寬
+        if (new RegExp('dia\\s*\\([^\\n]{0,60},\\s*' + needHw + '\\s*[,)]').test(block)) ok = true;
+        if (ok) blocks++;
+        else bad.push(k);
+      }
+      assert(blocks >= 40, 'T378 K1：全腳印地墊塊數應 ≥40，實得 ' + blocks + ' bad=' + JSON.stringify(bad.slice(0, 12)));
+      assert(bad.length === 0, 'T378 K1：下列鍵最終賦值塊地墊不足：' + JSON.stringify(bad));
+    }
+    // K5：四棟新增夜光必須有對應日層實體錨（靜態同位證明；mock canvas 無法真像素比對）
+    {
+      // k63：門燈 ng 座標＝日層木門 sg 座標
+      assert(html.includes("sg.fillStyle='#8a6a4a';sg.fillRect(ax+gx+11,ay-36,4,6)") &&
+        html.includes('ng.fillStyle=\'#ffe9a0\';ng.fillRect(ax+gx+11,ay-36,4,3)'),
+        'T378 K5：k63 門燈須壓在日層木門同座標');
+      // k6：車頂警燈 ng 與日層同 tdx 矩形
+      assert(html.includes("ng.fillStyle='#ff6060';ng.fillRect(ax+tdx+10,yF-h+5,2,2)") &&
+        html.includes("sg.fillStyle='#ffd420';sg.fillRect(ax+tdx+10,yF-h+5,2,2)"),
+        'T378 K5：k6 警燈須日夜同座標');
+      // k7：走廊燈帶落在 isoBox 牆高帶（by-h+5，hw 內）
+      assert(html.includes("ng.fillStyle='rgba(255,215,122,.55)';ng.fillRect(ax-hw+6,by-h+5,hw*2-12,2)"),
+        'T378 K5：k7 夜走廊燈帶須在牆體帶 by-h+5');
+      // k65：天窗/店窗夜光皆在既有日層 fillRect 之後、且用已畫店窗座標
+      const i65 = html.indexOf('T378 購物中心細節');
+      const i65e = html.indexOf("SPR.bld['65_1_0']", i65);
+      const blk65 = html.slice(i65, i65e);
+      assert(i65 > 0 && i65e > i65, 'T378 K5：k65 細節塊應可切出');
+      assert((blk65.match(/\bng\.fill/g) || []).length >= 3,
+        'T378 K5：k65 細節應含多處夜光');
+      assert(blk65.includes('shopY+5') && html.includes('shopY+4,16,9'),
+        'T378 K5：k65 櫥窗夜光應對齊日層店窗 band');
+      // 新增夜光段不得單獨引入 Math.random / 全域 rand（零亂數契約）
+      for (const tag of ['T378 溫室細節', 'T378 購物中心細節', 'T378 消防局細節', 'T378 學校細節']) {
+        const i0 = html.indexOf(tag);
+        const i1 = html.indexOf('outlineSprite', i0);
+        const seg = html.slice(i0, i1 > i0 ? i1 : i0 + 800);
+        assert(i0 > 0, 'T378 K5：應找到 ' + tag);
+        assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(|\bspriteTexRand\b/.test(seg),
+          'T378 K5：' + tag + ' 段不得消耗任何亂數流');
+      }
+    }
+  }
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {

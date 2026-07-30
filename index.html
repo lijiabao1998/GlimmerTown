@@ -420,7 +420,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='10.9'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='11.0'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -1174,13 +1174,15 @@ function shade(hex,amt){
 const SPRITE_TEX_SEED=0x54455832;
 let spriteTexRand=mulberry32(SPRITE_TEX_SEED);
 function resetSpriteTexRand(){spriteTexRand=mulberry32(SPRITE_TEX_SEED);}
-// 建築地基板
-function plate(g,ax,ay,col){
+// 建築地基板（T378：可選第 5 參 sz，多格全腳印；speck n 固定 26＝每呼叫恰 78 抽 spriteTexRand，與舊 1×1 plate 位元同消耗）
+function plate(g,ax,ay,col,sz){
   col=col||'#9a9484';
-  dia(g,ax,ay-32,32,col);
-  speck(g,ax,ay-32,32,[shade(col,-10),shade(col,8)],26,spriteTexRand);
-  diaEdge(g,6,shade(col,-20),ax,ay-32,32);
-  diaEdge(g,9,shade(col,10),ax,ay-32,32);
+  const s=(sz|0)>=2?(sz|0):1;
+  const hw=32*s;
+  dia(g,ax,ay-hw,hw,col);
+  speck(g,ax,ay-hw,hw,[shade(col,-10),shade(col,8)],26,spriteTexRand);
+  diaEdge(g,6,shade(col,-20),ax,ay-hw,hw);
+  diaEdge(g,9,shade(col,10),ax,ay-hw,hw);
 }
 
 /* ===== T148 手繪像素英雄建築：HERO_PIX 資料表 + drawHeroPix 解碼函式（v4.1，OMICRON 美術波第三卡）。
@@ -1793,6 +1795,15 @@ function buildSprites(){
        const yF=by-((dx+1)>>1);sg.fillRect(ax+dx,yF-ry,1,1);
      }
      if(!singleBay){const dM=(dL+dR)>>1;for(const dx of[dM,dM+1]){const yF=by-((dx+1)>>1);sg.fillStyle=wl[1];sg.fillRect(ax+dx,yF-h+5,1,h-7);}} // 中央分隔（雙車庫，v<3）
+     /* T378 消防局細節：車庫消防車剪影／門楣徽章／門前黃黑警戒線／水帶架（零亂數；v0 夜燈抽數不動） */
+     {const tdx=singleBay?((dL+dR)>>1)-4:((dL+((dL+dR)>>1))>>1)-3;const yF=by-((tdx+1)>>1);
+      sg.fillStyle='#c53a2b';sg.fillRect(ax+tdx,yF-h+8,12,5); // 消防車身
+      sg.fillStyle='#e05252';sg.fillRect(ax+tdx,yF-h+6,12,2);sg.fillStyle='#2a3550';sg.fillRect(ax+tdx+2,yF-h+8,4,3);
+      sg.fillStyle='#1a1a1a';sg.fillRect(ax+tdx+1,yF-h+13,3,2);sg.fillRect(ax+tdx+8,yF-h+13,3,2);
+      sg.fillStyle='#ffd420';sg.fillRect(ax+tdx+10,yF-h+5,2,2);ng.fillStyle='#ff6060';ng.fillRect(ax+tdx+10,yF-h+5,2,2);} // 車頂警燈
+     sg.fillStyle='#e0b83a';sg.fillRect(ax-5,by-h+2,10,3);sg.fillStyle='#c53a2b';sg.fillRect(ax-3,by-h+3,6,1); // 門楣徽章
+     for(let i=0;i<5;i++){sg.fillStyle=(i&1)?'#e0b83a':'#2a2a2a';sg.fillRect(ax-18+i*7,ay-7,5,2);} // 門前警戒線
+     sg.fillStyle='#6a6a70';sg.fillRect(ax-hw+3,by-h+10,3,8);sg.fillStyle='#c53a2b';sg.fillRect(ax-hw+4,by-h+12,2,5); // 水帶架
      if(hasTower){
        const tRty=isoBox(sg,ax+tox,rty+14,8,14,shade(wl[1],-8),shade(wl[0],-8),'#dcd6c7'); // 瞭望塔（v3 左偏 tox）
        diaEdge(sg,15,'#ece7da',ax+tox,tRty,8);
@@ -1824,7 +1835,12 @@ function buildSprites(){
      const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
      if(v===3){const gRty=isoBox(sg,ax+16,by-2,9,11,'#c2ccd2','#aab4bc','#5a8a9c');diaEdge(sg,15,'#e8eef2',ax+16,gRty,9);sg.fillStyle='#bfe8f4';sg.fillRect(ax+11,gRty+3,10,2);} // v3 體育館翼+天窗帶
      windows(sg,ng,ax,by,hw,h,wrand,.5,v===4?{w:4,ht:5,gx:7,gy:9,glass:'#2a3550',lit:'#ffd77a'}:{w:5,ht:6,gx:9,gy:11,glass:'#2a3550',lit:'#ffd77a'});
-     if(v===4){const tRty=isoBox(sg,ax-8,rty+10,6,10,shade(wl[1],-10),shade(wl[0],-10),'#dcd6c7');sg.fillStyle='#f2ecdf';sg.fillRect(ax-10,tRty+3,5,5);sg.fillStyle='#3a3530';sg.fillRect(ax-8,tRty+5,1,2);sg.fillRect(ax-9,tRty+5,3,1);} // v4 鐘塔+鐘面
+     if(v===4){const tRty=isoBox(sg,ax-8,rty+10,6,10,shade(wl[1],-10),shade(wl[0],-10),'#dcd6c7');sg.fillStyle='#f2ecdf';sg.fillRect(ax-10,tRty+3,5,5);sg.fillStyle='#3a3530';sg.fillRect(ax-8,tRty+5,1,2);sg.fillRect(ax-9,tRty+5,3,1);sg.fillStyle='#c53a2b';sg.fillRect(ax-8,tRty+4,1,1);} // v4 鐘塔+鐘面+秒針點
+     /* T378 學校細節：斑馬線／窗台花箱／籃球架／夜走廊燈帶（零亂數；旗杆位保留；windows 參數不動） */
+     for(let i=0;i<5;i++){sg.fillStyle='#e8e8e0';sg.fillRect(ax-14+i*6,ay-7,3,4);} // 門口斑馬線
+     sg.fillStyle='#6a8a40';sg.fillRect(ax-hw+3,by-5,10,2);sg.fillStyle='#e07080';sg.fillRect(ax-hw+4,by-7,2,2);sg.fillRect(ax-hw+8,by-7,2,2); // 窗台花箱
+     sg.fillStyle='#8a6a40';sg.fillRect(ax+18,ay-32,1,14);sg.fillStyle='#e8e0c0';sg.fillRect(ax+16,ay-34,5,2);sg.fillStyle='#e05252';sg.fillRect(ax+17,ay-32,3,1); // 籃球架
+     ng.fillStyle='rgba(255,215,122,.55)';ng.fillRect(ax-hw+6,by-h+5,hw*2-12,2); // 夜走廊燈帶（壓日層牆）
      sg.fillStyle='#8b95a5';sg.fillRect(ax,rty-9,1,9);      // 旗杆
      sg.fillStyle='#e05252';sg.fillRect(ax+1,rty-9,2,3);    // 頂部小紅旗 2×3px
      outlineSprite(sc,26,30,44);
@@ -2856,6 +2872,18 @@ function buildSprites(){
      sg.fillStyle='#8a6a4a';sg.fillRect(ax+gx+11,ay-36,4,6);
    }
    sg.fillStyle='#c6ccd4';sg.fillRect(ax-56,ay-24,8,5);sg.fillStyle='#8f97a2';sg.fillRect(ax-56,ay-20,8,1);
+   /* T378 溫室細節：玻璃反光斜帶／通風天窗／育苗架／門口花盆／門燈（零亂數；夜光壓日層實體） */
+   for(const gx of[-46,6]){
+     for(let i=4;i<22;i+=6){const t2=i/25,arc=Math.round(Math.sin(t2*3.14159)*10);const bx2=ax+gx+i,by2=ay-40-Math.round(i*0.5);sg.fillStyle='rgba(255,255,255,.30)';sg.fillRect(bx2,by2-arc-7,1,Math.max(2,arc+3));}
+     sg.fillStyle='#d0d8de';sg.fillRect(ax+gx+7,ay-54,5,2);sg.fillRect(ax+gx+15,ay-50,5,2); // 通風天窗
+     sg.fillStyle='#c8a060';sg.fillRect(ax+gx+10,ay-30,6,2);sg.fillStyle='#5a9a3a';sg.fillRect(ax+gx+11,ay-32,2,2);sg.fillRect(ax+gx+14,ay-32,2,2); // 門口花盆
+     ng.fillStyle='#ffe9a0';ng.fillRect(ax+gx+11,ay-36,4,3); // 門燈（壓日層木門）
+   }
+   sg.fillStyle='#8a6a4a';sg.fillRect(ax-7,ay-52,14,2);sg.fillRect(ax-7,ay-48,14,2); // 育苗架
+   sg.fillStyle='#6aaa48';for(let i=0;i<5;i++){sg.fillRect(ax-6+i*3,ay-54,2,2);sg.fillRect(ax-6+i*3,ay-50,2,2);}
+   for(const gx of[-46,6]){ // 棚內成熟分色（棋盤相位，零亂數）
+     for(let i=2;i<24;i+=3){const bx2=ax+gx+i,by2=ay-38-Math.round(i*0.5);if(((i+gx)&1)===0){sg.fillStyle='#c07030';sg.fillRect(bx2,by2-4,2,1);}}
+   }
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['63_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
   { // T285 倉儲物流中心 64_1_0（2×2：灰藍大倉+三捲門+月台+棧板堆+叉車；零亂數）
@@ -4090,6 +4118,16 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    ng.fillStyle='#ff8a72';ng.fillRect(ax-34,by-atr.h+6,68,11);
    ng.fillStyle='rgba(190,225,245,.45)';ng.fillRect(atr.x+2,by-atr.h+8,atr.w-6,atr.h-24);
    ng.fillStyle='rgba(255,220,150,.65)';ng.fillRect(ax-30,by-13,60,13);
+   /* T378 購物中心細節：翼頂天窗陣列／廣場燈柱長椅／卸貨車／幕牆反光（只加不移；地面件沿錐形公式） */
+   for(let i=0;i<5;i++){const sx=wingL.x+8+i*11,sy=by-wingL.h-5;sg.fillStyle='#9cc0d4';sg.fillRect(sx,sy,7,3);sg.fillStyle='#c4dce8';sg.fillRect(sx+1,sy+1,5,1);ng.fillStyle='rgba(190,225,245,.40)';ng.fillRect(sx,sy,7,3);}
+   for(let i=0;i<4;i++){const sx=wingR.x+10+i*12,sy=by-wingR.h-5;sg.fillStyle='#9cc0d4';sg.fillRect(sx,sy,7,3);ng.fillStyle='rgba(190,225,245,.40)';ng.fillRect(sx,sy,7,3);}
+   for(const lx of[ax-52,ax+50]){const wy=ay-34,hw3=Math.max(4,(ay-wy)*2-10);if(Math.abs(lx-ax)<hw3/2){sg.fillStyle='#5a5a62';sg.fillRect(lx,wy-10,2,12);sg.fillStyle='#e8d080';sg.fillRect(lx-1,wy-13,4,3);ng.fillStyle='#ffe9a0';ng.fillRect(lx-1,wy-13,4,3);}} // 廣場燈柱（菱形內）
+   sg.fillStyle='#8a6a40';sg.fillRect(ax-18,ay-20,12,2);sg.fillRect(ax+8,ay-20,12,2); // 長椅
+   sg.fillStyle='#4a6a8a';sg.fillRect(bx-22,by-18,18,7);sg.fillStyle='#3a5068';sg.fillRect(bx-22,by-20,18,3);sg.fillStyle='#1a1a1e';sg.fillRect(bx-20,by-11,3,2);sg.fillRect(bx-8,by-11,3,2); // 卸貨車
+   for(let r=0;r<6;r++){sg.fillStyle='rgba(255,255,255,.12)';sg.fillRect(atr.x+4+r*7,by-atr.h+16,3,atr.h-28);} // 幕牆反光豎帶
+   for(let i2b=0,sx3=bx+2;sx3<bx+bw-16;sx3+=22,i2b++){ // 夜櫥窗分色（壓日層店窗）
+     const nc2=['#ffd98a','#a8e8ff','#ffc0e0'][i2b%3];ng.fillStyle=nc2;ng.fillRect(sx3+2,shopY+5,14,6);
+   }
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};}
   /* ===== FIX-B 亂數流對齊：以下 T29/T30/T35/T36 新增內容一律置於全部既有 sprite 之後，
@@ -4334,7 +4372,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // T41 機場 (k=19, 4×4, 272×300)
   {const[c,g]=cv(272,300),[nc,ng]=cv(272,300),[sc,sg]=cv(272,300);
    const ax=136,ay=298;
-   plate(g,ax,ay,'#8a8a7a');
+   plate(g,ax,ay,'#8a8a7a',4);
    /* T365 收邊：舊跑道為螢幕軸對齊橫＋直條（網格式排列），橫條左右、直條上方大幅衝出 4×4 菱形
       （foot 448px／above 98px）。改順格軸 (2,-1) 斜跑道，quad 四角全在菱形內（≥1px 邊距）。 */
    g.fillStyle='#5a5a5a';
@@ -4394,14 +4432,14 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['21_1_4']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // T43 停車場 (k=20, 2×2)
   {const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#7a7a6a');g.fillStyle='#5a5a4a';g.fillRect(ax-30,ay-40,56,30);
+   plate(g,ax,ay,'#7a7a6a',2);g.fillStyle='#5a5a4a';g.fillRect(ax-30,ay-40,56,30);
    g.fillStyle='#e8e0d0';for(let i=0;i<6;i++)g.fillRect(ax-28+i*10,ay-42,2,34);
    for(let i=0;i<6;i++){const cx=ax-24+i*10;g.fillStyle=['#e05252','#5aa0e8','#ffd455'][i%3];g.fillRect(cx,ay-38,6,10);}
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['20_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T232 停車場 v1 立體停車樓（雙層混凝土+坡道+頂層車+P 標）
    const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148,by=ay-2;
-   plate(g,ax,ay,'#7a7a6a');
+   plate(g,ax,ay,'#7a7a6a',2);
    isoBox(sg,ax,by-4,26,12,'#8a8a82','#787870','#9a9a92'); // 下層
    const rty=isoBox(sg,ax,by-20,24,10,'#94948c','#82827a','#a6a69e'); // 上層
    sg.fillStyle='#6a6a62';for(let dx2=-20;dx2<20;dx2+=6){const yF=by-4-((Math.abs(dx2)+1)>>1);sg.fillRect(ax+dx2,yF-7,4,2);} // 下層開口
@@ -4415,7 +4453,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['20_1_1']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
   { // T232 停車場 v2 綠蔭太陽能停車場（樹島+光電棚+車）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#7a7a6a');
+   plate(g,ax,ay,'#7a7a6a',2);
    g.fillStyle='#5a5a4a';g.fillRect(ax-30,ay-42,56,30); // 場地
    g.fillStyle='#e8e0d0';for(let i2=0;i2<6;i2++)g.fillRect(ax-28+i2*10,ay-42,2,28); // 車位線
    sg.fillStyle='#3a4a6a';sg.fillRect(ax-28,ay-52,26,6);sg.fillStyle='#5a7aaa';for(let i2=0;i2<4;i2++)sg.fillRect(ax-26+i2*6,ay-51,4,4); // 太陽能棚
@@ -4427,14 +4465,14 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['20_1_2']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   // T46 農場 (k=22, 2×2)；T226 擴 1→3：v1 金色麥田+紅穀倉、v2 菜畦農場+溫室（零 rand）
   {const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉
+   plate(g,ax,ay,'#8a9a5a',2);g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉
    g.fillStyle='#9a8a4a';g.fillRect(ax-22,ay-32,12,2);
    g.fillStyle='#8ab848';g.fillRect(ax-20,ay-44,20,14);g.fillRect(ax+4,ay-40,10,12); // 田地
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T226 農場 v1 金色麥田
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#a83a2c';g.fillRect(ax-26,ay-30,16,20);g.fillStyle='#7a2a20';g.fillRect(ax-24,ay-32,12,2); // 紅穀倉
    g.fillStyle='#e8e2d4';g.fillRect(ax-20,ay-24,4,6); // 穀倉門
    g.fillStyle='#d8b83a';g.fillRect(ax-18,ay-46,24,15);g.fillRect(ax+8,ay-42,14,13); // 金麥田
@@ -4445,7 +4483,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_1']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T226 農場 v2 菜畦農場+溫室
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#6b4a30';g.fillRect(ax-20,ay-44,22,16); // 深土田
    for(let i=0;i<5;i++){g.fillStyle='#4a8a3a';g.fillRect(ax-19+i*4,ay-43,2,14);g.fillStyle='#66b04a';for(let j=0;j<4;j++)g.fillRect(ax-19+i*4,ay-41+j*3,2,1);} // 菜壟+菜點
    g.fillStyle='#c8dce8';g.fillRect(ax+4,ay-38,18,10);g.fillStyle='#e8f2f8';g.fillRect(ax+4,ay-38,18,2); // 溫室玻璃
@@ -4456,7 +4494,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_2']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T227 農場 v3 玉米田（高稈+黃穗尖）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#3f7a34';g.fillRect(ax-20,ay-46,24,17);g.fillRect(ax+8,ay-42,14,14); // 深綠玉米田
    for(let i=0;i<6;i++){g.fillStyle='#2f5f28';g.fillRect(ax-19+i*4,ay-45,1,15);g.fillStyle='#e8cc48';g.fillRect(ax-19+i*4,ay-46,2,2);} // 稈列+黃穗尖
    for(let i=0;i<4;i++){g.fillStyle='#2f5f28';g.fillRect(ax+9+i*4,ay-41,1,12);g.fillStyle='#e8cc48';g.fillRect(ax+9+i*4,ay-42,2,2);}
@@ -4466,7 +4504,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_3']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T227 農場 v4 南瓜田（藤蔓+橙南瓜）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#5a7a3c';g.fillRect(ax-20,ay-46,26,17);g.fillRect(ax+8,ay-40,14,12); // 藤蔓田
    g.fillStyle='#476330';for(let i=0;i<7;i++)g.fillRect(ax-19+i*4,ay-38-((i*3)%7),3,1); // 藤蔓紋
    const PK=[[-17,-43],[-11,-40],[-5,-44],[-1,-37],[-14,-33],[-7,-31],[10,-38],[15,-34],[18,-39]];
@@ -4476,7 +4514,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_4']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T227 農場 v5 果園（果樹列+紅果點）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    const tree=(tx,ty)=>{g.fillStyle='#6b4a2f';g.fillRect(tx+2,ty+5,2,3);g.fillStyle='#3d7a3c';g.fillRect(tx,ty,6,6);g.fillStyle='#4f9448';g.fillRect(tx,ty,6,2);g.fillStyle='#d04838';g.fillRect(tx+1,ty+2,1,1);g.fillRect(tx+4,ty+3,1,1);g.fillStyle='#e86858';g.fillRect(tx+3,ty+1,1,1);}; // 果樹+紅果
    for(let r=0;r<2;r++)for(let i2=0;i2<4;i2++)tree(ax-20+i2*9,ay-46+r*10);
    for(let i2=0;i2<3;i2++)tree(ax+7+i2*8,ay-40);
@@ -4486,7 +4524,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_5']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T235 農場 v6 番茄園（支架+紅果）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#3f7a34';g.fillRect(ax-20,ay-46,26,17);g.fillRect(ax+8,ay-40,14,12); // 綠叢田
    g.fillStyle='#8a6a3a';for(let i=0;i<6;i++)g.fillRect(ax-18+i*5,ay-46,1,15); // 支架
    const TM=[[-17,-42],[-12,-38],[-7,-44],[-2,-36],[-15,-33],[-5,-31],[10,-38],[15,-33],[18,-39],[12,-30]];
@@ -4496,7 +4534,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_6']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T235 農場 v7 草莓田（低壟+紅莓+白花）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#4a8a3a';for(let r2=0;r2<4;r2++){g.fillRect(ax-20,ay-46+r2*4,26,2);}g.fillRect(ax+8,ay-40,14,2);g.fillRect(ax+8,ay-35,14,2);g.fillRect(ax+8,ay-30,14,2); // 低壟
    const SB=[[-17,-45],[-9,-41],[-3,-45],[-14,-37],[-6,-33],[2,-37],[10,-39],[16,-35],[13,-30]];
    for(const[px,py] of SB){g.fillStyle='#e03848';g.fillRect(ax+px,ay+py,2,2);} // 紅莓
@@ -4506,7 +4544,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_7']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T235 農場 v8 葡萄園（棚架列+紫串）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    for(let r2=0;r2<3;r2++){const ry2=ay-44+r2*7;
      g.fillStyle='#6b4a2f';g.fillRect(ax-20,ry2,1,6);g.fillRect(ax+2,ry2,1,6);g.fillRect(ax+22,ry2,1,6); // 棚柱
      g.fillStyle='#4a7a3c';g.fillRect(ax-20,ry2,43,2); // 藤葉帶
@@ -4517,7 +4555,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_8']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T235 農場 v9 向日葵田（高稈+大黃頭）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#3f6f30';g.fillRect(ax-20,ay-44,26,15);g.fillRect(ax+8,ay-40,14,12); // 稈田底
    const SF=[[-17,-45],[-10,-42],[-3,-46],[-14,-35],[-6,-32],[3,-38],[10,-41],[16,-36],[13,-30],[19,-42]];
    for(const[px,py] of SF){g.fillStyle='#f0c030';g.fillRect(ax+px-1,ay+py-1,4,4);g.fillStyle='#6b4a20';g.fillRect(ax+px,ay+py,2,2);} // 黃瓣+褐心
@@ -4526,7 +4564,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_9']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T235 農場 v10 稻田（水田+秧苗列+田埂）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#5a8aa0';g.fillRect(ax-20,ay-46,26,17);g.fillRect(ax+8,ay-40,14,12); // 水面
    g.fillStyle='#8a7a50';g.fillRect(ax-21,ay-47,28,1);g.fillRect(ax-21,ay-29,28,1);g.fillRect(ax-21,ay-47,1,19);g.fillRect(ax+6,ay-47,1,19); // 田埂
    g.fillStyle='#58a848';for(let r2=0;r2<5;r2++)for(let i=0;i<8;i++)g.fillRect(ax-18+i*3,ay-44+r2*3,1,2); // 秧苗點列
@@ -4536,7 +4574,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['22_1_10']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T235 農場 v11 高麗菜田（藍綠大球列）
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a5a');
+   plate(g,ax,ay,'#8a9a5a',2);
    g.fillStyle='#6b4a30';g.fillRect(ax-20,ay-46,26,17);g.fillRect(ax+8,ay-40,14,12); // 土田
    for(let r2=0;r2<3;r2++)for(let i=0;i<5;i++){const bx2=ax-17+i*5,by2=ay-43+r2*5;
      g.fillStyle='#7ab88a';g.fillRect(bx2,by2,3,3);g.fillStyle='#98d0a4';g.fillRect(bx2,by2,2,1);} // 高麗菜球
@@ -4636,13 +4674,13 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
      SPR.farmSea[3][fk]={img:remap(b0.img,b0.w,b0.h,WIN),ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};}}
   // T46 牧場 (k=23, 2×2)；T230 擴 1→3：v1 羊牧場、v2 馬場（零 rand）
   {const[c,g]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#7a9a4a');g.fillStyle='#b09870';g.fillRect(ax-20,ay-20,12,8); // 牛棚
+   plate(g,ax,ay,'#7a9a4a',2);g.fillStyle='#b09870';g.fillRect(ax-20,ay-20,12,8); // 牛棚
    g.fillStyle='#8a6040';g.fillRect(ax-18,ay-22,8,2);
    for(let i=0;i<4;i++){g.fillStyle='#4a3020';g.fillRect(ax-14+i*6,ay-24,3,2);} // 牛
    SPR.bld['23_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T230 牧場 v1 羊牧場：白羊群+木柵欄+淺色羊舍
    const[c,g]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#7a9a4a');
+   plate(g,ax,ay,'#7a9a4a',2);
    g.fillStyle='#c9b896';g.fillRect(ax-24,ay-22,14,9);g.fillStyle='#9a7a50';g.fillRect(ax-22,ay-24,10,2); // 羊舍
    g.fillStyle='#8a6a40';for(let i=0;i<6;i++){g.fillRect(ax-16+i*8,ay-42,1,4);}g.fillRect(ax-16,ay-40,41,1); // 木柵欄
    const SH=[[-10,-36],[-2,-33],[6,-37],[12,-32],[2,-28],[-6,-27],[16,-38]];
@@ -4650,7 +4688,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['23_1_1']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T230 牧場 v2 馬場：橢圓訓練圈欄+馬+馬廄
    const[c,g]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#7a9a4a');
+   plate(g,ax,ay,'#7a9a4a',2);
    g.fillStyle='#8a6a40'; // 橢圓訓練圈（點狀欄杆）
    for(let a2=0;a2<16;a2++){const ang=a2/16*6.283;g.fillRect(ax+Math.round(Math.cos(ang)*22),ay-32+Math.round(Math.sin(ang)*11),2,3);}
    g.fillStyle='#7a5a34';g.fillRect(ax-6,ay-33,12,1); // 圈內橫杆
@@ -4674,7 +4712,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    SPR.bld['24_1_'+v]={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
   // T48 太陽能 (k=25, 2×2) + 風力 (k=26)
   {const[c,g]=cv(136,150);const ax=68,ay=148;
-   plate(g,ax,ay,'#8a9a7a');g.fillStyle='#3a4a6a';g.fillRect(ax-28,ay-42,52,28); // 面板陣列
+   plate(g,ax,ay,'#8a9a7a',2);g.fillStyle='#3a4a6a';g.fillRect(ax-28,ay-42,52,28); // 面板陣列
    g.fillStyle='#5a7aaa';for(let i=0;i<8;i++)g.fillRect(ax-26+i*7,ay-40,5,24);
    SPR.bld['25_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   for(let v=0;v<3;v++){const[c,g]=cv(64,112),[sc,sg]=cv(64,112);
@@ -4777,7 +4815,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // T53 監獄 (k=31, 2×2)
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2;
-   plate(g,ax,ay,'#7a7a6a');
+   plate(g,ax,ay,'#7a7a6a',2);
    isoBox(sg,ax,by,30,28,'#909090','#808080','#707070');
    sg.fillStyle='#606060';sg.fillRect(ax-20,by-20,3,28);sg.fillRect(ax+17,by-20,3,28); // 高牆
    sg.fillStyle='#808080';sg.fillRect(ax-4,by-32,6,10); // 瞭望塔
@@ -4787,7 +4825,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // T54 大學 (k=32, 3×3)
   {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
    const ax=104,ay=218,by=ay-2;
-   plate(g,ax,ay,'#9a9484');
+   plate(g,ax,ay,'#9a9484',3);
    const rty=isoBox(sg,ax,by,46,40,'#d8c8a0','#b8a880','#988860');
    windows(sg,ng,ax,by,46,40,rand,.6,{w:5,ht:6,gx:8,gy:10,glass:'#3a4a5a',lit:'#ffe9c0'});
    sg.fillStyle='#e8d8b0';sg.fillRect(ax-3,rty-8,6,14); // 鐘塔
@@ -5238,7 +5276,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     ];
     for(const d of TWDEF){
       const[c,g]=cv(TWX,TWY),[nc,ng]=cv(TWX,TWY),[sc,sg]=cv(TWX,TWY);
-      plate(g,tax,tay,'#8f8a7c');
+      plate(g,tax,tay,'#8f8a7c',2);
       const rty=isoBox(sg,tax,tby,thw,d.h,d.wl,d.wr,d.rf);
       windows(sg,ng,tax,tby,thw,d.h,rand,.82,{w:3,ht:4,gx:4,gy:5,glass:d.glass,lit:'#ffe9a0'}); // 夜窗滿版：窄格距＋高亮燈比例
       if(d.roofType==='tank'){ // 樓頂水塔
@@ -5414,7 +5452,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 博物館 (k=35, 2×2)：石牆列柱＋三角楣飾
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2,hw=30,h=26;
-   plate(g,ax,ay,'#9a9484');
+   plate(g,ax,ay,'#9a9484',2);
    const rty=isoBox(sg,ax,by,hw,h,'#e4dcc4','#c8bc9c','#a89c7c');
    sg.fillStyle='#d8cca8';sg.fillRect(ax-14,rty-2,28,4); // 楣飾
    sg.fillStyle='#c0b48c';for(let i=0;i<5;i++)sg.fillRect(ax-12+i*6,rty+2,3,10); // 列柱
@@ -5426,7 +5464,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 劇院 (k=36, 2×2)：暗紅牆＋燈泡遮篷
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2,hw=28,h=24;
-   plate(g,ax,ay,'#8a7a6a');
+   plate(g,ax,ay,'#8a7a6a',2);
    isoBox(sg,ax,by,hw,h,'#a8506a','#8a3a52','#6a2a3e');
    sg.fillStyle='#2a2224';sg.fillRect(ax-16,by-16,32,12); // 遮篷
    sg.fillStyle='#e0b850';sg.fillRect(ax-16,by-16,32,2);
@@ -5437,7 +5475,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 水族館 (k=37, 2×2)：藍調牆＋大玻璃缸窗
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2,hw=28,h=22;
-   plate(g,ax,ay,'#7a9294');
+   plate(g,ax,ay,'#7a9294',2);
    isoBox(sg,ax,by,hw,h,'#3a7a9a','#2a6080','#1e4a64');
    sg.fillStyle='#7ecbe0';sg.fillRect(ax-18,by-18,36,10); // 玻璃缸窗
    sg.fillStyle='rgba(255,255,255,.35)';sg.fillRect(ax-18,by-18,36,2);
@@ -5449,7 +5487,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 動物園 (k=38, 3×3)：入口大門＋草地圍場＋長頸鹿剪影
   {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
    const ax=104,ay=218,by=ay-2;
-   plate(g,ax,ay,'#8aa060');
+   plate(g,ax,ay,'#8aa060',3);
    g.fillStyle='#6f9a48';g.fillRect(ax-52,ay-26,36,18);g.fillRect(ax+16,ay-28,36,18); // 草地圍場
    g.fillStyle='#8a6a3a';for(let i=0;i<5;i++)g.fillRect(ax-50+i*8,ay-28,2,12);
    for(let i=0;i<5;i++)g.fillRect(ax+18+i*8,ay-30,2,12);
@@ -5463,7 +5501,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 遊樂園 (k=39, 3×3)：摩天輪＋彩色帳篷攤位
   {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
    const ax=104,ay=218,by=ay-2;
-   plate(g,ax,ay,'#9a8a6a');
+   plate(g,ax,ay,'#9a8a6a',3);
    const wx=ax,wy=by-70,wr=30;
    sg.fillStyle='#7a828a';sg.fillRect(wx-20,wy,3,by-wy);sg.fillRect(wx+17,wy,3,by-wy); // 支架
    sg.fillStyle='#c8ccd0';
@@ -5493,7 +5531,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 圖書總館 (k=41, 2×2)：石牆列柱＋小穹頂
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2,hw=30,h=28;
-   plate(g,ax,ay,'#9a9484');
+   plate(g,ax,ay,'#9a9484',2);
    const rty=isoBox(sg,ax,by,hw,h,'#c8b898','#a89876','#886e50');
    sg.fillStyle='#d8c8a0';sg.fillRect(ax-4,rty-10,8,12); // 穹頂基座
    sg.fillStyle='#e8d8b0';sg.fillRect(ax-3,rty-14,6,6);sg.fillRect(ax-2,rty-16,4,3); // 穹頂
@@ -5510,7 +5548,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 市政廳 (k=42, 2×2)：金石列柱＋旗桿＋鐘面
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2,hw=30,h=26;
-   plate(g,ax,ay,'#9a9484');
+   plate(g,ax,ay,'#9a9484',2);
    const rty=isoBox(sg,ax,by,hw,h,'#e0c888','#c4a868','#a08850');
    sg.fillStyle='#d0b060';sg.fillRect(ax-16,rty-3,32,4); // 楣飾
    sg.fillStyle='#b89850';for(let i=0;i<5;i++)sg.fillRect(ax-12+i*6,rty+2,3,10); // 列柱
@@ -5527,7 +5565,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 法院 (k=43, 2×2)：藍灰石牆列柱＋天平標誌
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2,hw=30,h=26;
-   plate(g,ax,ay,'#8a8a92');
+   plate(g,ax,ay,'#8a8a92',2);
    const rty=isoBox(sg,ax,by,hw,h,'#8898b0','#6a7a94','#4e5e78');
    sg.fillStyle='#a0aec0';sg.fillRect(ax-16,rty-3,32,4); // 楣飾
    sg.fillStyle='#788aa0';for(let i=0;i<5;i++)sg.fillRect(ax-12+i*6,rty+2,3,10); // 列柱
@@ -5542,7 +5580,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 會展中心 (k=44, 3×3)：大片玻璃帷幕＋入口遮篷＋展覽布條
   {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
    const ax=104,ay=218,by=ay-2,hw=46,h=34;
-   plate(g,ax,ay,'#8a8f96');
+   plate(g,ax,ay,'#8a8f96',3);
    const rty=isoBox(sg,ax,by,hw,h,'#c8d0d8','#a8b4bc','#8894a0');
    sg.fillStyle='#5ab8b0';sg.fillRect(ax-30,rty-2,60,20); // 大片玻璃帷幕
    sg.fillStyle='rgba(255,255,255,.3)';sg.fillRect(ax-30,rty-2,60,3);
@@ -5556,7 +5594,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 研究院 (k=45, 2×2)：藍灰科研牆＋碟形天線
   {const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
    const ax=68,ay=148,by=ay-2,hw=28,h=30;
-   plate(g,ax,ay,'#8a9294');
+   plate(g,ax,ay,'#8a9294',2);
    const rty=isoBox(sg,ax,by,hw,h,'#a8c0c8','#88a4ac','#6c8890');
    windows(sg,ng,ax,by,hw,h,rand,.5,{w:3,ht:5,gx:7,gy:8,glass:'#2a5a68',lit:'#7ce0f0'});
    sg.fillStyle='#c0c8cc';sg.fillRect(ax-3,rty-14,6,12); // 天線基座
@@ -5581,7 +5619,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 植物園 (k=47, 3×3)：玻璃溫室穹頂＋花圃草坪
   {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
    const ax=104,ay=218,by=ay-2;
-   plate(g,ax,ay,'#7a9a5a');
+   plate(g,ax,ay,'#7a9a5a',3);
    g.fillStyle='#6f9a48';g.fillRect(ax-56,ay-24,40,16);g.fillRect(ax+18,ay-26,40,16); // 草坪花圃
    g.fillStyle='#c85a7a';for(let i=0;i<4;i++)g.fillRect(ax-52+i*9,ay-26,3,3); // 花叢
    g.fillStyle='#e8d040';for(let i=0;i<4;i++)g.fillRect(ax+20+i*9,ay-28,3,3);
@@ -5597,7 +5635,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 綜合醫院 (k=48, 3×3)：白牆大樓＋大型紅十字＋屋頂直升機停機坪
   {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
    const ax=104,ay=218,by=ay-2,hw=44,h=40;
-   plate(g,ax,ay,'#9aa0a4');
+   plate(g,ax,ay,'#9aa0a4',3);
    const rty=isoBox(sg,ax,by,hw,h,'#eef0f2','#d0d6da','#b0b8bc');
    windows(sg,ng,ax,by,hw,h,rand,.4,{w:4,ht:6,gx:8,gy:9,glass:'#3a4a5a',lit:'#ffe9c0'});
    sg.fillStyle='#e05252';sg.fillRect(ax-3,rty-16,6,16);sg.fillRect(ax-9,rty-11,18,6); // 紅十字
@@ -5642,7 +5680,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   // 太空研究中心 (k=51, 3×3)：控制中心圓頂主樓＋發射塔架＋火箭
   {const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
    const ax=104,ay=218,by=ay-2,hw=40,h=32;
-   plate(g,ax,ay,'#8a8f96');
+   plate(g,ax,ay,'#8a8f96',3);
    const rty=isoBox(sg,ax,by,hw,h,'#d0d4d8','#a8b0b8','#848c94'); // 控制中心主樓
    sg.fillStyle='#5a7ab0';sg.fillRect(ax-6,rty-14,12,14); // 圓頂基座
    sg.fillStyle='#7098c8';sg.fillRect(ax-5,rty-19,10,6); // 圓頂
@@ -5919,7 +5957,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       const hk='24_1_'+v;
       const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
       const hax=68,hay=148;
-      plate(g,hax,hay,'#9a9484');
+      plate(g,hax,hay,'#9a9484',2);
       drawHeroPix(hk,sg,ng);
       outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
       SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:136,h:150,smoke:[]};
@@ -5927,21 +5965,21 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     // 大學 (k=32, 3x3)
     {const hk='32_1_0';const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
      const hax=104,hay=218;
-     plate(g,hax,hay,'#9a9484');
+     plate(g,hax,hay,'#9a9484',3);
      drawHeroPix(hk,sg,ng);
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:208,h:220,smoke:[]};}
     // 市政廳 (k=42, 2x2)
     {const hk='42_1_0';const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
      const hax=68,hay=148;
-     plate(g,hax,hay,'#9a9484');
+     plate(g,hax,hay,'#9a9484',2);
      drawHeroPix(hk,sg,ng);
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:136,h:150,smoke:[]};}
     // 太空研究中心 (k=51, 3x3)
     {const hk='51_1_0';const[c,g]=cv(208,220),[nc,ng]=cv(208,220),[sc,sg]=cv(208,220);
      const hax=104,hay=218;
-     plate(g,hax,hay,'#8a8f96');
+     plate(g,hax,hay,'#8a8f96',3);
      drawHeroPix(hk,sg,ng);
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:208,h:220,smoke:[]};}
@@ -6440,14 +6478,14 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     // 博物館 (k=35,2×2)
     {const hk='35_1_0';const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
      const hax=68,hay=148;
-     plate(g,hax,hay,'#9a9484');
+     plate(g,hax,hay,'#9a9484',2);
      drawHeroPix(hk,sg,ng);
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:136,h:150,smoke:[]};}
     // 劇院 (k=36,2×2)
     {const hk='36_1_0';const[c,g]=cv(136,150),[nc,ng]=cv(136,150),[sc,sg]=cv(136,150);
      const hax=68,hay=148;
-     plate(g,hax,hay,'#8a7a6a');
+     plate(g,hax,hay,'#8a7a6a',2);
      drawHeroPix(hk,sg,ng);
      outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
      SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:136,h:150,smoke:[]};}
@@ -6456,7 +6494,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     // 本鍵回退由前方 T41 區塊的等距重排版（順格軸斜跑道）提供最終 sprite。日後若要手繪回歸，
     // 須以等距構圖重畫，另立美術卡。下方 plate 刻意保留：本塊原先消耗的 26 次 spriteTexRand
     // 必須原位補償，否則下游全部紋理點綴位移（鐵律2）；畫布即棄，不賦值任何鍵。
-    {const[c2,g2]=cv(272,300);plate(g2,136,298,'#8a8a7a');}
+    {const[c2,g2]=cv(272,300);plate(g2,136,298,'#8a8a7a',4);}
   }
   /* ===== T152 動畫細節層：新增 6 組多幀 sprite（旗幟3／噴泉水花3／雷達4／風車葉片4／屋頂警示燈2／鳥群3），
      置於 buildSprites 絕對尾端（接在 T151 手繪像素英雄建築二期之後）。皆為本卡原創像素構圖（未參考、描摹
@@ -7229,7 +7267,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   /* ===== T273 牧場變體擴充 START（buildSprites 絕對尾端；豬場／家禽場，零模擬亂數） ===== */
   { // v3 豬場：紅頂豬舍、泥地雙欄、粉紅豬群與飼料槽
     const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#7a9a4a');
+    plate(g,ax,ay,'#7a9a4a',2);
     g.fillStyle='#7b573d';g.fillRect(ax-20,ay-45,43,17); // 泥地活動欄
     g.fillStyle='#92704f';g.fillRect(ax-18,ay-43,39,3);
     g.fillStyle='#8a6a40';
@@ -7249,7 +7287,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   }
   { // v4 家禽場：白色雞舍、圍網草坪、雞群與紅色飼料筒
     const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#7a9a4a');
+    plate(g,ax,ay,'#7a9a4a',2);
     g.fillStyle='#5d8b45';g.fillRect(ax-20,ay-45,43,18); // 放養草坪
     g.fillStyle='#9a7a50';
     for(let i=0;i<7;i++)g.fillRect(ax-20+i*7,ay-47,1,22);
@@ -7273,7 +7311,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   /* ===== T274 農場作物變體擴充 START（buildSprites 絕對尾端；胡蘿蔔／西瓜／棉花／薰衣草＋四季局部 remap） ===== */
   { // v12 胡蘿蔔田：深土高壟、密集橙根與收成箱
     const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
+    plate(g,ax,ay,'#8a9a5a',2);
     g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,27,18);g.fillRect(ax+9,ay-40,14,12);
     for(let r2=0;r2<4;r2++){
       const ry=ay-44+r2*4;
@@ -7301,7 +7339,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   }
   { // v13 西瓜田：低藤網、深綠條紋瓜與灌溉桶
     const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
+    plate(g,ax,ay,'#8a9a5a',2);
     g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,27,18);g.fillRect(ax+9,ay-40,14,12);
     g.fillStyle='#315f39';
     for(let r2=0;r2<4;r2++)g.fillRect(ax-19,ay-44+r2*5,25,1);
@@ -7321,7 +7359,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   }
   { // v14 棉花田：橄欖稈、三色白棉鈴與棉包
     const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
+    plate(g,ax,ay,'#8a9a5a',2);
     g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,27,18);g.fillRect(ax+9,ay-40,14,12);
     g.fillStyle='#536f35';
     for(let i2=0;i2<6;i2++)g.fillRect(ax-17+i2*5,ay-45,1,16);
@@ -7340,7 +7378,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   }
   { // v15 薰衣草田：平行雙色紫花帶與兩只蜂箱
     const[c,g]=cv(136,150);const ax=68,ay=148;
-    plate(g,ax,ay,'#8a9a5a');
+    plate(g,ax,ay,'#8a9a5a',2);
     g.fillStyle='#65452f';g.fillRect(ax-20,ay-46,43,18);
     for(let r2=0;r2<4;r2++){
       const ry=ay-45+r2*5;
@@ -7397,7 +7435,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     const SUM353={0x98d0a4:0x8ad898};
     const AUT353={0x6b4a30:0x7a5a34,0x7ab88a:0xa8b06a,0x98d0a4:0xc4cc88};
     const WIN353={0x8a9a5a:0xe0e8ee,0x7e8e50:0xd6dfe8,0x96a662:0xeaf1f6,0x6e7e44:0xccd6e0,0x9aaa66:0xf0f5f9,
-                  0x808f50:0xd8e1e9,0x92a262:0xe6eef4,0x768646:0xd0dae3,0x94a464:0xe8f0f5};
+                  0x809050:0xd8e1e9,0x92a262:0xe6eef4,0x768646:0xd0dae3,0x94a464:0xe8f0f5};
     const K353=[];for(let v=0;v<16;v++)K353.push('22_1_'+v);K353.push('53_1_0');
     for(const key of K353){
       if(SPR.farmSea&&SPR.farmSea[1])patch353(SPR.farmSea[1][key],SUM353);
@@ -7503,7 +7541,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       for(const si of[1,2,3]){const ss=SPR.farmSea&&SPR.farmSea[si]&&SPR.farmSea[si][key];
         if(ss){const g=ss.img.getContext('2d');field(g,ax,ay,hw,hh,si);if(si!==3)stages(ss.img,si);plantGrid(g,ax,ay,hw,hh,cls,si);}}
     };
-    for(let v=0;v<16;v++)doFarm('22_1_'+v,68,148,30,15,CCLASS[v]);
+    for(let v=0;v<16;v++)doFarm('22_1_'+v,68,148,52,26,CCLASS[v]); // T378：2×2 地墊歸位後精細田等比放大
     /* T353 大農場田地歸位：舊值 (104,218) 讓田地中心落在畫布 (104,202)，而 5×5 的 footprint 中心是
        (164,162)（＝ax, ay-16*sz）——左偏 60px、下偏 40px，左緣整整 32px 在地塊外，y=221..228 共 8 列
        整列懸空。k22 的慣例是 cy = footprint 中心 +16（＝最前一格的中心），照同一慣例 k53 應是 cy=178；
@@ -7769,7 +7807,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
        清除下緣以下的溢出像素，img/night 兩層同步＝底座嚴格貼合等距格子（TheoTown 式），建築高度（菱形上方）不受影響。
        純幾何遮罩、零亂數、不位移任何生成序（比照上方 maskNight destination-in 手法）。 ===== */
     {
-      const SZC={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,63:2,64:2,62:2,65:4,66:2,68:2,121:3,122:3,123:3};
+      const SZC={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,63:2,64:2,62:2,65:4,66:2,68:2,82:2,83:3,87:2,90:2,91:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2,118:2,119:2,121:3,122:3,123:3}; // T378：補 20 鍵對齊 MSZ
       Object.assign(SZC,{127:2,129:2,131:2,132:2,133:2}); // T364c/d：T291 多格底座裁切清冊同步 MSZ
       const clipBase=(s)=>{if(!s||!s.img)return;const{ax,ay,w,h}=s;
         for(const cvEl of[s.img,s.night]){if(!cvEl)continue;
@@ -17615,7 +17653,7 @@ window.GV={
     });
   },
   sprFootAudit:()=>{ // T291 測試用：量每個多格建築 sprite「底部超出 footprint 菱形」的不透明像素（T291 底部貼合後應全 0）
-    const SZM={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,63:2,64:2,62:2,65:4,66:2,68:2,121:3,122:3,123:3,127:2,129:2,131:2,132:2,133:2};
+    const SZM={19:4,20:2,22:2,23:2,24:2,25:2,31:2,32:3,33:2,34:2,35:2,36:2,37:2,38:3,39:3,41:2,42:2,43:2,44:3,45:2,47:3,48:3,51:3,53:5,54:3,55:3,56:3,57:3,58:3,59:2,61:3,63:2,64:2,62:2,65:4,66:2,68:2,82:2,83:3,87:2,90:2,91:2,100:2,101:2,105:3,106:3,108:2,109:3,110:2,111:2,112:3,113:4,114:5,115:3,116:2,118:2,119:2,121:3,122:3,123:3,127:2,129:2,131:2,132:2,133:2}; // T378：補 20 鍵
     const out=[];
     for(const key in SPR.bld){
       const m=key.match(/^(\d+)_1_0$/);if(!m)continue;const sz=SZM[+m[1]];if(!sz||sz<2)continue;
