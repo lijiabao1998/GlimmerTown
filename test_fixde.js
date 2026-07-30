@@ -5526,6 +5526,47 @@ runPwaTests().then(() => {
     }
   }
 
+  // ===== T381 EDU 教育場髒快取修復：doPlace/doze 增量路徑即時刷新（不再等 load/預算變更才腐化重生） =====
+  {
+    window.GV.newWorldSeeded(301);
+    window.GV.setDiff(1);
+    const n381 = window.GV.N();
+    // 找一塊能放學校的陸地（t=1/2 陸地、無建物/路/樹/分區；doPlace 自帶完整檢查）
+    let sx381 = -1, sy381 = -1;
+    for (let y = 4; y < n381 - 4 && sx381 < 0; y++) for (let x = 4; x < n381 - 4; x++) {
+      const t = window.GV.tile(x, y);
+      if (t && (t.t === 1 || t.t === 2) && !t.bld && !t.road && !t.zone && !t.tree) {
+        if (window.GV.place('school', x, y)) { sx381 = x; sy381 = y; break; }
+      }
+    }
+    assert(sx381 >= 0, 'T381 應能在陸地放置學校');
+    assert(window.GV.cov('school', sx381, sy381) > 0, 'T381 放置後 COV.school 立即非 0（既有增量行為）');
+    assert(window.GV.eduAt(sx381, sy381) > 0, 'T381 建校後不 load、EDU 立即非 0（髒快取修復核心驗收）');
+    // 增量 ≡ 全量：快照全圖 EDU → rebuildCov → 逐格位元一致
+    const snap381 = new Uint8Array(n381 * n381);
+    for (let y = 0, k = 0; y < n381; y++) for (let x = 0; x < n381; x++, k++) snap381[k] = window.GV.eduAt(x, y);
+    window.GV.rebuildCov();
+    let diff381 = 0;
+    for (let y = 0, k = 0; y < n381; y++) for (let x = 0; x < n381; x++, k++) if (window.GV.eduAt(x, y) !== snap381[k]) diff381++;
+    assert(diff381 === 0, 'T381 增量刷新須與 rebuildCov 全量重建逐格位元一致，差異格=' + diff381);
+    // 疊加：學校近旁放圖書館 → 學校格 EDU=50+35=85；拆校對稱回 35；全拆歸 0
+    let lx381 = -1, ly381 = -1;
+    for (let dy = -2; dy <= 2 && lx381 < 0; dy++) for (let dx = -2; dx <= 2; dx++) {
+      if (!dx && !dy) continue;
+      const x = sx381 + dx, y = sy381 + dy;
+      const t = window.GV.tile(x, y);
+      if (t && (t.t === 1 || t.t === 2) && !t.bld && !t.road && !t.zone && !t.tree) {
+        if (window.GV.place('library', x, y)) { lx381 = x; ly381 = y; break; }
+      }
+    }
+    assert(lx381 >= 0, 'T381 學校近旁應能放圖書館');
+    assert(window.GV.eduAt(sx381, sy381) === 85, 'T381 school+library 疊加格 EDU 應為 50+35=85（營養午餐未開），實得 ' + window.GV.eduAt(sx381, sy381));
+    assert(window.GV.place('doze', sx381, sy381), 'T381 應能拆除學校');
+    assert(window.GV.eduAt(sx381, sy381) === 35, 'T381 拆校後疊加格對稱回 35（僅剩圖書館），實得 ' + window.GV.eduAt(sx381, sy381));
+    assert(window.GV.place('doze', lx381, ly381), 'T381 應能拆除圖書館');
+    assert(window.GV.eduAt(sx381, sy381) === 0, 'T381 全拆後 EDU 對稱歸 0，實得 ' + window.GV.eduAt(sx381, sy381));
+  }
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {

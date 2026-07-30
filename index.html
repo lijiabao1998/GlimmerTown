@@ -9568,12 +9568,13 @@ function setSvcBudget(cat,delta){ // T294：調整某類服務預算 ±，即刻
 // Chebyshev 半徑 r 方框逐格 ±delta（邊界裁剪），支持重疊計數
 const covFieldOfKBase=covFieldOfK;
 covFieldOfK=(k)=>({124:'park',125:'park',126:'park',130:'pump',131:'resilience',132:'park'}[k]??covFieldOfKBase(k));
+const EDU_COV_FIELDS={school:1,university:1,library:1,highsch:1,campus:1}; // T381：eduStaticAt 讀取的五個教育覆蓋場（grandlib/institute 屬 edu 預算但不進 EDU，維持既有語義）
 function stampCov(field,x,y,r,delta){
   const cat=SVC_BUDGET_CAT[field];if(cat)r=Math.max(1,Math.round(r*svcBudget[cat])); // T294：預算縮放覆蓋半徑（budget=1 時 round(r×1)=r 精確恆等，不破壞既有覆蓋/測試）
-  const a=COV[field];
+  const a=COV[field],eduF=EDU_COV_FIELDS[field]; // T381：EDU 髒快取修復——增量蓋/撤印後同框重算，否則玩家要等 load/預算變更才吃到教育效果
   for(let dy=-r;dy<=r;dy++){const ny=y+dy;if(ny<0||ny>=N)continue;
-    for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;a[idx(nx,ny)]+=delta;}}
-}
+    for(let dx=-r;dx<=r;dx++){const nx=x+dx;if(nx<0||nx>=N)continue;const i=idx(nx,ny);a[i]+=delta;if(eduF)EDU[i]=eduStaticAt(nx,ny);}}
+} // T381：eduStaticAt 是該格五場計數的純函數，方框外 EDU 不受本次蓋印影響 ⇒ 同框重算即與 rebuildCov 全量位元恆等；EDU/eduStaticAt 宣告在後、所有 stampCov 呼叫皆發生於腳本載入完成後（newWorld/doPlace），無 TDZ 風險
 /* T110 污染擴散場：中心強、半徑 4-6 遞減；樹格對鄰域 −2 減免。POL 為對外曝光之最終值
    （供住宅幸福 −POL[i] 係數／小地圖熱度視圖／inspect 讀取）；POLBASE=污染源原始衰減和、
    POLTREE=樹木減免累計（皆 Uint8 內部量），POL 由兩者相減衍生重算——避免 Uint8Array 無號下溢
@@ -17383,6 +17384,7 @@ window.GV={
   radar364Info:()=>{let count=0;for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k===133)count++;}return {count,lead:RADAR_LEAD,summerDoy:100-RADAR_LEAD,winterDoy:300-RADAR_LEAD};},
   rebuildCov:()=>{rebuildCov();return true;}, // T61：手動重建覆蓋場（對照測試用）
   noiseAt:(x,y)=>NOISE[idx(x,y)], // T325 測試用
+  eduAt:(x,y)=>EDU[idx(x,y)], // T381 測試用（教育場增量刷新驗收）
   hotel330:()=>({beds:hotelBeds,occ:hotelOcc,tourists,lodge:(fin&&fin.lodgeRev)||0}), // T334 測試用
   chain346:()=>({gasSup,gasDem,gasRatio,fertOut,cookedOut,wageIdx,fertReady,cookedReady,mortPop:mortPopLast346,bankInt:(fin&&fin.bankInt)||0,
     fuel,steel,fuelMade,steelMade,shipUse:steelUsed,fuelTaxMul,freightTaxMul,steelTaxMul,shipTradeTaxMul,shipPortGold,
