@@ -5219,8 +5219,10 @@ runPwaTests().then(() => {
       'T378 K4：k7 應有斑馬線/籃球架且保留旗杆');
     assert(html.includes('0x809050:') && !html.includes('0x808f50:'),
       'T378：WIN353 應為 0x809050（修 0x808f50 錯字）');
-    assert(/doFarm\('22_1_'\+v,68,148,52,26,CCLASS\[v\]\)/.test(html),
-      'T378：k22 doFarm 精細田應放大至 hw52/hh26');
+    // T379 回歸修復：T378 的 52/26 把 k22 自帶建築蓋掉 57~100%（實測 v10.9 穀倉 113px → v11.0 0px），
+    // 回復 30/15。本行斷言由 T379 明示授權修改（原釘 52/26）。覆蓋量由 L1 守衛把關。
+    assert(/doFarm\('22_1_'\+v,68,148,30,15,CCLASS\[v\]\)/.test(html),
+      'T379：k22 doFarm 精細田須為 hw30/hh15（52/26 會蓋掉自帶穀倉/溫室，見 L1）');
     assert(/doFarm\('53_1_0',164,222,52,26,'grain'\)/.test(html),
       'T378：k53 doFarm 參數釘死不得動');
     // SZC 含 20 補鍵且 121/122/123 仍在字面量本體
@@ -5379,6 +5381,49 @@ runPwaTests().then(() => {
         assert(/const hk='25_1_0'[\s\S]{0,200}plate\(g,hax,hay,'#8a9a7a',2\)/.test(html),
           'T378 K1-hero：k25_1_0 hero plate 必須 ,2');
       }
+    }
+    /* ===== T379 L1：k22 精細田不得蓋掉農場自帶建築 =====
+       T378 把 doFarm 從 30/15 放大到 52/26，而精細田在自帶建築【之後】畫 ⇒ 16 變體的
+       穀倉/溫室/乾草捆被蓋 57~100%（實測 v10.9 穀倉 113px → v11.0 0px）。
+       Node 端 canvas 是樁量不到像素，故改算幾何：解析田尺寸與各變體建築矩形，逐列求交集面積。
+       基線（實測 30/15）＝2289px，門檻 2400 留 5% 餘裕。 */
+    {
+      const fm = html.match(/doFarm\('22_1_'\+v,(\d+),(\d+),(\d+),(\d+),/);
+      assert(fm, 'T379 L1：應解析到 k22 doFarm 呼叫');
+      const fax = +fm[1], fay = +fm[2], fhw = +fm[3], fhh = +fm[4];
+      const fcx = fax, fcy = fay - 16;               // field() 內部 cy=ay-16
+      let blocks = 0, totalCover = 0;
+      const per = [];
+      const regRe = /SPR\.bld\['22_1_(\d+)'\]/g;
+      let rm;
+      while ((rm = regRe.exec(html))) {
+        // 區塊界定＝往前找最近的 cv( 宣告（每個精靈塊都以它開頭）。
+        // 不可用「上一個註冊點」當左界：v0 之前沒有 k22 註冊、v12 與 v11 隔了整個 T274 段，
+        // 窗口會滲進數千行別人的 fillRect（實測 v0 誤報 3984、v12 誤報 2717）。
+        const bs = html.lastIndexOf('cv(', rm.index);
+        if (bs < 0) continue;
+        const blk = html.slice(bs, rm.index);
+        const rects = [];
+        for (const mm of blk.matchAll(/fillRect\(ax([+-]\d+),ay([+-]\d+),(\d+),(\d+)\)/g)) {
+          rects.push([fax + +mm[1], fay + +mm[2], +mm[3], +mm[4]]);
+        }
+        if (!rects.length) continue;
+        blocks++;
+        let cover = 0;
+        for (const [x0, y0, w, h] of rects) {
+          for (let y = y0; y < y0 + h; y++) {
+            const t = 1 - Math.abs(y - fcy) / fhh;
+            if (t <= 0) continue;
+            const lo = fcx - fhw * t, hi = fcx + fhw * t;
+            for (let x = x0; x < x0 + w; x++) if (x >= lo && x <= hi) cover++;
+          }
+        }
+        totalCover += cover;
+        per.push('v' + rm[1] + ':' + cover);
+      }
+      assert(blocks >= 16, 'T379 L1：應解析到 ≥16 個 k22 變體建築塊，實得 ' + blocks);
+      assert(totalCover <= 2400,
+        'T379 L1：k22 精細田蓋掉自帶建築 ' + totalCover + ' px，超過門檻 2400（基線 2289）：' + per.join(' '));
     }
     // K5：四棟新增夜光必須有對應日層實體錨（靜態同位證明；mock canvas 無法真像素比對）
     {
