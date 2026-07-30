@@ -5219,10 +5219,21 @@ runPwaTests().then(() => {
       'T378 K4：k7 應有斑馬線/籃球架且保留旗杆');
     assert(html.includes('0x809050:') && !html.includes('0x808f50:'),
       'T378：WIN353 應為 0x809050（修 0x808f50 錯字）');
-    // T379 回歸修復：T378 的 52/26 把 k22 自帶建築蓋掉 57~100%（實測 v10.9 穀倉 113px → v11.0 0px），
-    // 回復 30/15。本行斷言由 T379 明示授權修改（原釘 52/26）。覆蓋量由 L1 守衛把關。
-    assert(/doFarm\('22_1_'\+v,68,148,30,15,CCLASS\[v\]\)/.test(html),
-      'T379：k22 doFarm 精細田須為 hw30/hh15（52/26 會蓋掉自帶穀倉/溫室，見 L1）');
+    // T380：k22 改 F22 逐變體表（明示授權改寫 T379 的 30/15 字面釘）
+    assert(/const F22\s*=\s*\[/.test(html) &&
+      /doFarm\('22_1_'\+v,f\[0\],f\[1\],f\[2\],f\[3\],CCLASS\[v\]\)/.test(html),
+      'T380：k22 應以 F22 表驅動 doFarm');
+    {
+      const fm22 = html.match(/const F22\s*=\s*\[([\s\S]*?)\];/);
+      assert(fm22, 'T380 K4：應解析到 F22 表');
+      const rows = [...fm22[1].matchAll(/\[(\d+),(\d+),(\d+),(\d+)\]/g)];
+      assert(rows.length === 16, 'T380 K4：F22 應有 16 筆，實得 ' + rows.length);
+      for (const r of rows) {
+        const hw = +r[3], hh = +r[4];
+        assert(hh === hw / 2, 'T380 K4：F22 每筆 hh 必須 = hw/2，實得 ' + hw + '/' + hh);
+        assert(hw >= 36, 'T380 K4：F22 每筆 hw 應 ≥36，實得 ' + hw);
+      }
+    }
     assert(/doFarm\('53_1_0',164,222,52,26,'grain'\)/.test(html),
       'T378：k53 doFarm 參數釘死不得動');
     // SZC 含 20 補鍵且 121/122/123 仍在字面量本體
@@ -5337,13 +5348,16 @@ runPwaTests().then(() => {
         const r48 = auditK1(mut48);
         assert(r48.bad.some(x => String(x).startsWith('48_')),
           'T378 K1：k48 拿掉 plate ,3 必須紅，bad=' + JSON.stringify(r48.bad));
-        // 2) k22 v0：多變體不得只釘最後一個；拿掉 v0 的 ,2 必須紅
-        const pin22 = "plate(g,ax,ay,'#8a9a5a',2);g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉";
-        assert(html.includes(pin22), 'T378 K1：k22 v0 plate 錨點應存在');
-        const mut22 = html.replace(pin22, "plate(g,ax,ay,'#8a9a5a');g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉");
-        const r22 = auditK1(mut22);
-        assert(r22.bad.indexOf('22_1_0') >= 0,
-          'T378 K1：k22 v0 拿掉 plate ,2 必須紅，bad=' + JSON.stringify(r22.bad));
+        // 2) k22：每塊恰好一個 plate(...,2)（T380 改構圖後不再釘穀倉字面）
+        {
+          const plates22 = (html.match(/plate\(g,ax,ay,'#8a9a5a',2\)/g) || []).length;
+          assert(plates22 === 16, 'T380/K1：k22 應恰 16 個 plate(...,2)，實得 ' + plates22);
+          // 拿掉第一個 ,2 ⇒ 22_1_0 必須紅
+          const mut22 = html.replace("plate(g,ax,ay,'#8a9a5a',2)", "plate(g,ax,ay,'#8a9a5a')");
+          const r22 = auditK1(mut22);
+          assert(r22.bad.indexOf('22_1_0') >= 0,
+            'T378 K1：k22 v0 拿掉 plate ,2 必須紅，bad=' + JSON.stringify(r22.bad));
+        }
         // 3) 摩天樓：一塊多鍵；拿掉共用 plate ,2 必須紅（任一同塊鍵）
         const pinTw = "plate(g,tax,tay,'#8f8a7c',2)";
         assert(html.includes(pinTw), 'T378 K1：塔樓 plate 錨點應存在');
@@ -5382,33 +5396,27 @@ runPwaTests().then(() => {
           'T378 K1-hero：k25_1_0 hero plate 必須 ,2');
       }
     }
-    /* ===== T379 L1：k22 精細田不得蓋掉農場自帶建築 =====
-       T378 把 doFarm 從 30/15 放大到 52/26，而精細田在自帶建築【之後】畫 ⇒ 16 變體的
-       穀倉/溫室/乾草捆被蓋 57~100%（實測 v10.9 穀倉 113px → v11.0 0px）。
-       Node 端 canvas 是樁量不到像素，故改算幾何：解析田尺寸與各變體建築矩形，逐列求交集面積。
-       基線（實測 30/15）＝2289px，門檻 2400 留 5% 餘裕。 */
+    /* ===== T379/T380 L1：k22 精細田不得蓋掉【建築】招牌 =====
+       只計 //sig 標註的建築矩形（小屋/穀倉/溫室/桶/箱…）；粗田/作物/田埂不計。
+       錨固定 SAX/SAY=68,148；田參數讀 F22；切塊＝往前最近 cv(。 */
     {
-      const fm = html.match(/doFarm\('22_1_'\+v,(\d+),(\d+),(\d+),(\d+),/);
-      assert(fm, 'T379 L1：應解析到 k22 doFarm 呼叫');
-      const fax = +fm[1], fay = +fm[2], fhw = +fm[3], fhh = +fm[4];
-      const fcx = fax, fcy = fay - 16;               // field() 內部 cy=ay-16
-      let blocks = 0, totalCover = 0;
-      const per = [];
-      const regRe = /SPR\.bld\['22_1_(\d+)'\]/g;
-      let rm;
-      while ((rm = regRe.exec(html))) {
-        // 區塊界定＝往前找最近的 cv( 宣告（每個精靈塊都以它開頭）。
-        // 不可用「上一個註冊點」當左界：v0 之前沒有 k22 註冊、v12 與 v11 隔了整個 T274 段，
-        // 窗口會滲進數千行別人的 fillRect（實測 v0 誤報 3984、v12 誤報 2717）。
-        const bs = html.lastIndexOf('cv(', rm.index);
-        if (bs < 0) continue;
-        const blk = html.slice(bs, rm.index);
+      const fm22 = html.match(/const F22\s*=\s*\[([\s\S]*?)\];/);
+      assert(fm22, 'T379 L1：應解析到 F22 表');
+      const F22 = [...fm22[1].matchAll(/\[(\d+),(\d+),(\d+),(\d+)\]/g)].map(r =>
+        [+r[1], +r[2], +r[3], +r[4]]);
+      assert(F22.length === 16, 'T379 L1：F22 應 16 筆，實得 ' + F22.length);
+      const SAX = 68, SAY = 148;
+      // 只取 //sig 建築；for 迴圈一行多實例仍算 1 個字面矩形（靜態）
+      const parseSigRects = (blk) => {
         const rects = [];
-        for (const mm of blk.matchAll(/fillRect\(ax([+-]\d+),ay([+-]\d+),(\d+),(\d+)\)/g)) {
-          rects.push([fax + +mm[1], fay + +mm[2], +mm[3], +mm[4]]);
+        for (const mm of blk.matchAll(
+          /fillRect\(ax([+-]\d+),ay([+-]\d+),(\d+),(\d+)\)\s*;?\s*\/\/sig/g)) {
+          rects.push([SAX + +mm[1], SAY + +mm[2], +mm[3], +mm[4]]);
         }
-        if (!rects.length) continue;
-        blocks++;
+        return rects;
+      };
+      const fieldCover = (rects, f) => {
+        const fcx = f[0], fcy = f[1] - 16, fhw = f[2], fhh = f[3];
         let cover = 0;
         for (const [x0, y0, w, h] of rects) {
           for (let y = y0; y < y0 + h; y++) {
@@ -5418,12 +5426,50 @@ runPwaTests().then(() => {
             for (let x = x0; x < x0 + w; x++) if (x >= lo && x <= hi) cover++;
           }
         }
+        return cover;
+      };
+      let blocks = 0, totalCover = 0, totalBldRects = 0;
+      const per = [];
+      const regRe = /SPR\.bld\['22_1_(\d+)'\]/g;
+      let rm;
+      while ((rm = regRe.exec(html))) {
+        const v = +rm[1];
+        if (v < 0 || v > 15) continue;
+        const bs = html.lastIndexOf('cv(', rm.index);
+        if (bs < 0) continue;
+        const blk = html.slice(bs, rm.index);
+        const rects = parseSigRects(blk);
+        blocks++;
+        totalBldRects += rects.length;
+        const cover = fieldCover(rects, F22[v]);
         totalCover += cover;
-        per.push('v' + rm[1] + ':' + cover);
+        per.push('v' + v + ':' + cover + '/' + rects.length);
       }
-      assert(blocks >= 16, 'T379 L1：應解析到 ≥16 個 k22 變體建築塊，實得 ' + blocks);
-      assert(totalCover <= 2400,
-        'T379 L1：k22 精細田蓋掉自帶建築 ' + totalCover + ' px，超過門檻 2400（基線 2289）：' + per.join(' '));
+      assert(blocks >= 16, 'T379 L1：應解析到 ≥16 個 k22 變體，實得 ' + blocks);
+      // self-check：必須量到建築（防「全刪美術 → 覆蓋 0 假綠」）
+      assert(totalBldRects >= 24,
+        'T380 L1：建築(//sig)矩形總數應 ≥24（每變體至少 1 招牌），實得 ' + totalBldRects);
+      assert(totalCover <= 60,
+        'T379 L1：k22 精細田蓋掉建築 ' + totalCover + ' px，超過門檻 60：' + per.join(' '));
+      // 破壞性：田心塞 //sig 建築 ⇒ 必須紅
+      {
+        const pin = "SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]}";
+        const inject = "g.fillStyle='#6a7a3a';g.fillRect(ax-10,ay-30,20,20); //sig L1 mutant\n   " + pin;
+        assert(html.includes(pin), 'T380 L1：v0 註冊錨應存在');
+        const mut = html.replace(pin, inject);
+        let mutCover = 0, mutV = -1;
+        const reg2 = /SPR\.bld\['22_1_(\d+)'\]/g;
+        let r2;
+        while ((r2 = reg2.exec(mut))) {
+          const v = +r2[1];
+          const b0 = mut.lastIndexOf('cv(', r2.index);
+          const blk = mut.slice(b0, r2.index);
+          const cover = fieldCover(parseSigRects(blk), F22[v]);
+          if (cover > 60) { mutCover = cover; mutV = v; break; }
+        }
+        assert(mutV === 0 && mutCover > 60,
+          'T380 L1：把 //sig 建築移進田心必須紅，實得 v' + mutV + ':' + mutCover);
+      }
     }
     // K5：四棟新增夜光必須有對應日層實體錨（靜態同位證明；mock canvas 無法真像素比對）
     {
