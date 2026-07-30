@@ -4463,66 +4463,112 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    for(const[tx2,ty2] of[[ax+18,ay-34],[ax+8,ay-18]]){sg.fillStyle='#6b4a2f';sg.fillRect(tx2+2,ty2+6,2,4);sg.fillStyle='#3d7a3c';sg.fillRect(tx2,ty2,7,7);sg.fillStyle='#4f9448';sg.fillRect(tx2,ty2,7,2);} // 樹島
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['20_1_2']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  // T46 農場 (k=22, 2×2)；T380：變體塊只留 plate＋極簡招牌，作物全交給 doFarm/plantGrid，建築交給 T276 農莊套件
-  // （T378 放大田蓋建築 → T379 縮回 → 本卡美術讓位後田才能真正放大）
-  { // T46 原版 v0（T380：plate only）
+  // T46 農場 (k=22, 2×2)；T380 退修：plate＋上緣自由區(y≤105)各 1 件招牌（//sig 畫在 sg）；作物交給 doFarm
+  { // v0 招牌：綠穀倉床
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#5a6a34';sg.fillRect(ax-28,ay-54,52,10); //sig 基床
+   sg.fillStyle='#6a7a3a';sg.fillRect(ax-22,ay-52,18,8); //sig 穀倉
+   sg.fillStyle='#9a8a4a';sg.fillRect(ax-21,ay-54,16,3); //sig 頂
+   sg.fillStyle='#e8e2d4';sg.fillRect(ax-16,ay-48,5,4); //sig 門
+   for(let i=0;i<5;i++){sg.fillStyle='#8ab848';sg.fillRect(ax+2+i*4,ay-50,2,4);} //sig 側草
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T226 金色麥田 v1（T380：plate only）
+  { // v1 招牌：紅穀倉＋金頂
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#7a3a28';sg.fillRect(ax-28,ay-54,52,10); //sig 基床
+   sg.fillStyle='#a83a2c';sg.fillRect(ax-20,ay-52,20,8); //sig 紅穀倉
+   sg.fillStyle='#7a2a20';sg.fillRect(ax-19,ay-55,18,3); //sig 頂
+   sg.fillStyle='#e8e2d4';sg.fillRect(ax-14,ay-48,5,4); //sig 門
+   sg.fillStyle='#d8b83a';for(let i=0;i<6;i++)sg.fillRect(ax+6+i*3,ay-51,2,5); //sig 金麥簇
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_1']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T226 菜畦+溫室 v2（T380：plate only）
+  { // v2 招牌：寬溫室
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#c8dce8';sg.fillRect(ax-26,ay-54,48,10); //sig 溫室玻璃
+   sg.fillStyle='#e8f2f8';sg.fillRect(ax-26,ay-54,48,2); //sig 頂亮
+   sg.fillStyle='#8a94a0';sg.fillRect(ax-26,ay-44,48,1); //sig 底框
+   for(let i=0;i<6;i++)sg.fillRect(ax-22+i*8,ay-54,1,10); //sig 立框
+   sg.fillStyle='#4a8a3a';for(let i=0;i<8;i++)sg.fillRect(ax-24+i*6,ay-50,3,2); //sig 內菜
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_2']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T227 玉米 v3（T380：plate only）
+  { // v3 招牌：雙筒倉
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#7a6a4a';sg.fillRect(ax-28,ay-52,20,8); //sig 基
+   for(const ox of[-18,8]){sg.fillStyle='#8a6a3a';sg.fillRect(ax+ox,ay-56,8,12); //sig 筒
+     sg.fillStyle='#b5533e';sg.fillRect(ax+ox-1,ay-58,10,3);} //sig 蓋
+   sg.fillStyle='#c9974e';sg.fillRect(ax-4,ay-48,8,4); //sig 連接廊
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_3']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T227 南瓜 v4（T380：plate only）
+  { // v4 招牌：南瓜車列
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#5a7a3c';sg.fillRect(ax-28,ay-52,50,8); //sig 藤床
+   for(let i=0;i<7;i++){sg.fillStyle='#e08028';sg.fillRect(ax-24+i*7,ay-50,5,5); //sig 南瓜
+     sg.fillStyle='#3f5f2c';sg.fillRect(ax-22+i*7,ay-52,2,2);} //sig 梗
+   sg.fillStyle='#8a6a3a';sg.fillRect(ax+18,ay-48,8,4); //sig 車
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_4']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T227 果園 v5（T380：plate only）
+  { // v5 招牌：果箱排
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   for(let i=0;i<4;i++){sg.fillStyle='#c9974e';sg.fillRect(ax-24+i*12,ay-52,10,8); //sig 箱
+     sg.fillStyle='#a8763a';sg.fillRect(ax-24+i*12,ay-50,10,1);sg.fillRect(ax-20+i*12,ay-52,1,8); //sig 板
+     sg.fillStyle='#d04838';sg.fillRect(ax-22+i*12,ay-54,3,3);} //sig 果
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_5']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T235 番茄 v6（T380：plate only）
+  { // v6 招牌：番茄架床
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#3f7a34';sg.fillRect(ax-28,ay-54,52,10); //sig 綠床
+   sg.fillStyle='#8a6a3a';for(let i=0;i<9;i++)sg.fillRect(ax-26+i*6,ay-56,1,12); //sig 支架
+   sg.fillStyle='#e04838';for(let i=0;i<12;i++)sg.fillRect(ax-24+(i%6)*8,ay-52+((i/6)|0)*4,3,3); //sig 果
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_6']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T235 草莓 v7（T380：plate only）
+  { // v7 招牌：草莓壟
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#4a8a3a';for(let r=0;r<3;r++)sg.fillRect(ax-26,ay-54+r*3,48,2); //sig 壟
+   sg.fillStyle='#e03848';for(let i=0;i<14;i++)sg.fillRect(ax-24+(i%7)*7,ay-53+((i/7)|0)*5,3,3); //sig 莓
+   sg.fillStyle='#ffffff';for(let i=0;i<6;i++)sg.fillRect(ax-20+i*8,ay-55,1,1); //sig 花
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_7']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T235 葡萄 v8（T380：plate only）
+  { // v8 招牌：酒桶排
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#5a4a30';sg.fillRect(ax-28,ay-50,52,6); //sig 木台
+   for(let i=0;i<5;i++){sg.fillStyle='#8a5a2c';sg.fillRect(ax-24+i*10,ay-56,8,10); //sig 桶
+     sg.fillStyle='#a8703a';sg.fillRect(ax-24+i*10,ay-56,8,2);sg.fillRect(ax-24+i*10,ay-51,8,1);} //sig 箍
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_8']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T235 向日葵 v9（T380：plate only）
+  { // v9 招牌：向日葵列
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#3f6f30';sg.fillRect(ax-28,ay-50,52,6); //sig 稈床
+   for(let i=0;i<8;i++){sg.fillStyle='#3f8a34';sg.fillRect(ax-24+i*6,ay-56,2,8); //sig 稈
+     sg.fillStyle='#f0c030';sg.fillRect(ax-26+i*6,ay-58,6,5); //sig 花盤
+     sg.fillStyle='#6b4a20';sg.fillRect(ax-24+i*6,ay-56,2,2);} //sig 心
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_9']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T235 稻田 v10（T380：plate only）
+  { // v10 招牌：田埂框
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#5a8aa0';sg.fillRect(ax-26,ay-54,48,10); //sig 水田面
+   sg.fillStyle='#8a7a50';sg.fillRect(ax-28,ay-56,52,2);sg.fillRect(ax-28,ay-44,52,2); //sig 橫埂
+   sg.fillRect(ax-28,ay-56,2,14);sg.fillRect(ax+22,ay-56,2,14); //sig 縱埂
+   sg.fillStyle='#58a848';for(let i=0;i<10;i++)sg.fillRect(ax-24+i*5,ay-52,1,4); //sig 秧
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_10']={img:c,ax,ay,w:136,h:150,smoke:[]};}
-  { // T235 高麗菜 v11（T380：plate only）
+  { // v11 招牌：高麗菜箱床
    const[c,g]=cv(136,150),[sc,sg]=cv(136,150);const ax=68,ay=148;
    plate(g,ax,ay,'#8a9a5a',2);
+   sg.fillStyle='#6b4a30';sg.fillRect(ax-28,ay-54,52,10); //sig 土床
+   for(let i=0;i<10;i++){sg.fillStyle='#7ab88a';sg.fillRect(ax-26+i*5,ay-52,4,4); //sig 菜球
+     sg.fillStyle='#98d0a4';sg.fillRect(ax-26+i*5,ay-52,3,1);} //sig 高光
+   sg.fillStyle='#8a6a3a';sg.fillRect(ax+16,ay-48,10,5); //sig 箱
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['22_1_11']={img:c,ax,ay,w:136,h:150,smoke:[]};}
   { // T228 大農場 53_1_0（5×5=25 格，玩家指令「更大的地塊」）：四作物 patch＋大紅穀倉＋雙筒倉＋農舍＋拖拉機＋乾草捆
@@ -7261,8 +7307,9 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g.fillStyle='#e36f24';for(let i=0;i<7;i++)g.fillRect(ax-17+i*3,ay-47,2,2);
     g.fillStyle='#f39a38';for(let i=0;i<7;i++)g.fillRect(ax-16+i*3,ay-46,1,1);
     g.fillStyle='#e36f24';g.fillRect(ax-16,ay-43,2,2); // probe (52,105)=(ax-16,ay-43)
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6);g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1);
-    g.fillStyle='#c9974e';g.fillRect(ax+16,ay-50,8,4);
+    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6); //sig 小屋
+    g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1); //sig 頂
+    g.fillStyle='#c9974e';g.fillRect(ax+16,ay-50,8,4); //sig 收成箱
     for(let i=0;i<6;i++){g.fillStyle='#3e7339';g.fillRect(ax+8+i*2,ay-48,1,4);}
     SPR.bld['22_1_12']={img:c,ax,ay,w:136,h:150,smoke:[]};
   }
@@ -7274,8 +7321,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g.fillStyle='#27613c';for(let i=0;i<5;i++)g.fillRect(ax-16+i*5,ay-47,4,3);
     g.fillStyle='#6d9a49';for(let i=0;i<5;i++)g.fillRect(ax-15+i*5,ay-46,1,3);
     g.fillStyle='#27613c';g.fillRect(ax-16,ay-43,3,2); // probe (52,105)
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6);g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1);
-    g.fillStyle='#4c7890';g.fillRect(ax+16,ay-50,6,5);g.fillStyle='#7eb0c4';g.fillRect(ax+17,ay-49,4,1);
+    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6); //sig 小屋
+    g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1); //sig 頂
+    g.fillStyle='#4c7890';g.fillRect(ax+16,ay-50,6,5); //sig 水桶
+    g.fillStyle='#7eb0c4';g.fillRect(ax+17,ay-49,4,1); //sig 水面
     for(let i=0;i<5;i++){g.fillStyle='#315f39';g.fillRect(ax+6+i*2,ay-48,1,3);}
     g.fillStyle='#6d9a49';g.fillRect(ax+14,ay-46,2,2);g.fillStyle='#27613c';g.fillRect(ax+18,ay-45,2,2);
     SPR.bld['22_1_13']={img:c,ax,ay,w:136,h:150,smoke:[]};
@@ -7288,8 +7337,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g.fillStyle='#d8d2c1';for(let i=0;i<6;i++)g.fillRect(ax-17+i*4,ay-47,3,2);
     g.fillStyle='#f5f0e3';for(let i=0;i<6;i++)g.fillRect(ax-16+i*4,ay-48,2,2);
     g.fillStyle='#f5f0e3';g.fillRect(ax-16,ay-44,2,2); // probe (52,104)≈
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6);g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1);
-    g.fillStyle='#eee0c2';g.fillRect(ax+14,ay-50,10,5);g.fillStyle='#9b7448';g.fillRect(ax+18,ay-50,1,5);
+    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6); //sig 小屋
+    g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1); //sig 頂
+    g.fillStyle='#eee0c2';g.fillRect(ax+14,ay-50,10,5); //sig 棉包
+    g.fillStyle='#9b7448';g.fillRect(ax+18,ay-50,1,5); //sig 綁帶
     for(let i=0;i<5;i++){g.fillStyle='#536f35';g.fillRect(ax+6+i*2,ay-48,1,4);}
     SPR.bld['22_1_14']={img:c,ax,ay,w:136,h:150,smoke:[]};
   }
@@ -7301,8 +7352,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g.fillStyle='#6d54a6';for(let r=0;r<3;r++)g.fillRect(ax-16,ay-48+r*2,32,1);
     g.fillStyle='#9b7acb';for(let i=0;i<8;i++)g.fillRect(ax-14+i*4,ay-48,2,2);
     g.fillStyle='#6d54a6';g.fillRect(ax-18,ay-44,3,2); // probe (50,104)=(ax-18,ay-44)
-    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6);g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1);
-    for(const hx of[14,22]){g.fillStyle='#d9a63c';g.fillRect(ax+hx,ay-52,5,6);g.fillStyle='#6a4a2f';g.fillRect(ax+hx,ay-50,5,1);}
+    g.fillStyle='#6a7a3a';g.fillRect(ax-28,ay-52,8,6); //sig 小屋
+    g.fillStyle='#9a8a4a';g.fillRect(ax-27,ay-53,6,1); //sig 頂
+    for(const hx of[14,22]){g.fillStyle='#d9a63c';g.fillRect(ax+hx,ay-52,5,6); //sig 蜂箱
+      g.fillStyle='#6a4a2f';g.fillRect(ax+hx,ay-50,5,1);} //sig 箱縫
     for(let i=0;i<4;i++){g.fillStyle='#9b7acb';g.fillRect(ax+8+i*2,ay-47,1,2);}
     g.fillStyle='#496842';g.fillRect(ax+4,ay-46,3,2);g.fillStyle='#9b7acb';g.fillRect(ax+10,ay-45,2,2);g.fillStyle='#6d54a6';g.fillRect(ax+20,ay-46,2,2);
     SPR.bld['22_1_15']={img:c,ax,ay,w:136,h:150,smoke:[]};

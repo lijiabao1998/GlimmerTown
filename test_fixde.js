@@ -5396,33 +5396,27 @@ runPwaTests().then(() => {
           'T378 K1-hero：k25_1_0 hero plate 必須 ,2');
       }
     }
-    /* ===== T379/T380 L1：k22 精細田不得蓋掉變體自帶美術 =====
-       T380 收緊門檻 ≤60（目標 0）；田參數逐變體讀 F22；建築座標固定精靈錨 (68,148)。
-       區塊界定＝往前找最近 cv(（不可用上一註冊點，v12 會滲數千行）。 */
+    /* ===== T379/T380 L1：k22 精細田不得蓋掉【建築】招牌 =====
+       只計 //sig 標註的建築矩形（小屋/穀倉/溫室/桶/箱…）；粗田/作物/田埂不計。
+       錨固定 SAX/SAY=68,148；田參數讀 F22；切塊＝往前最近 cv(。 */
     {
       const fm22 = html.match(/const F22\s*=\s*\[([\s\S]*?)\];/);
       assert(fm22, 'T379 L1：應解析到 F22 表');
       const F22 = [...fm22[1].matchAll(/\[(\d+),(\d+),(\d+),(\d+)\]/g)].map(r =>
         [+r[1], +r[2], +r[3], +r[4]]);
       assert(F22.length === 16, 'T379 L1：F22 應 16 筆，實得 ' + F22.length);
-      const SAX = 68, SAY = 148; // 變體 fillRect 永遠相對精靈錨，不是 doFarm 的 ay
-      let blocks = 0, totalCover = 0;
-      const per = [];
-      const regRe = /SPR\.bld\['22_1_(\d+)'\]/g;
-      let rm;
-      while ((rm = regRe.exec(html))) {
-        const v = +rm[1];
-        if (v < 0 || v > 15) continue;
-        const bs = html.lastIndexOf('cv(', rm.index);
-        if (bs < 0) continue;
-        const blk = html.slice(bs, rm.index);
+      const SAX = 68, SAY = 148;
+      // 只取 //sig 建築；for 迴圈一行多實例仍算 1 個字面矩形（靜態）
+      const parseSigRects = (blk) => {
         const rects = [];
-        for (const mm of blk.matchAll(/fillRect\(ax([+-]\d+),ay([+-]\d+),(\d+),(\d+)\)/g)) {
+        for (const mm of blk.matchAll(
+          /fillRect\(ax([+-]\d+),ay([+-]\d+),(\d+),(\d+)\)\s*;?\s*\/\/sig/g)) {
           rects.push([SAX + +mm[1], SAY + +mm[2], +mm[3], +mm[4]]);
         }
-        blocks++;
-        const [, fay, fhw, fhh] = F22[v];
-        const fcx = F22[v][0], fcy = fay - 16;
+        return rects;
+      };
+      const fieldCover = (rects, f) => {
+        const fcx = f[0], fcy = f[1] - 16, fhw = f[2], fhh = f[3];
         let cover = 0;
         for (const [x0, y0, w, h] of rects) {
           for (let y = y0; y < y0 + h; y++) {
@@ -5432,21 +5426,37 @@ runPwaTests().then(() => {
             for (let x = x0; x < x0 + w; x++) if (x >= lo && x <= hi) cover++;
           }
         }
+        return cover;
+      };
+      let blocks = 0, totalCover = 0, totalBldRects = 0;
+      const per = [];
+      const regRe = /SPR\.bld\['22_1_(\d+)'\]/g;
+      let rm;
+      while ((rm = regRe.exec(html))) {
+        const v = +rm[1];
+        if (v < 0 || v > 15) continue;
+        const bs = html.lastIndexOf('cv(', rm.index);
+        if (bs < 0) continue;
+        const blk = html.slice(bs, rm.index);
+        const rects = parseSigRects(blk);
+        blocks++;
+        totalBldRects += rects.length;
+        const cover = fieldCover(rects, F22[v]);
         totalCover += cover;
-        per.push('v' + v + ':' + cover);
+        per.push('v' + v + ':' + cover + '/' + rects.length);
       }
       assert(blocks >= 16, 'T379 L1：應解析到 ≥16 個 k22 變體，實得 ' + blocks);
+      // self-check：必須量到建築（防「全刪美術 → 覆蓋 0 假綠」）
+      assert(totalBldRects >= 24,
+        'T380 L1：建築(//sig)矩形總數應 ≥24（每變體至少 1 招牌），實得 ' + totalBldRects);
       assert(totalCover <= 60,
-        'T379 L1：k22 精細田蓋掉自帶美術 ' + totalCover + ' px，超過門檻 60（T380 目標 0）：' + per.join(' '));
-      // 破壞性：若某變體塞進田心 fillRect，L1 必須紅且指名變體
+        'T379 L1：k22 精細田蓋掉建築 ' + totalCover + ' px，超過門檻 60：' + per.join(' '));
+      // 破壞性：田心塞 //sig 建築 ⇒ 必須紅
       {
         const pin = "SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]}";
-        const inject = "g.fillStyle='#6a7a3a';g.fillRect(ax-10,ay-30,20,20); // T380 L1 mutant\n   " + pin;
+        const inject = "g.fillStyle='#6a7a3a';g.fillRect(ax-10,ay-30,20,20); //sig L1 mutant\n   " + pin;
         assert(html.includes(pin), 'T380 L1：v0 註冊錨應存在');
         const mut = html.replace(pin, inject);
-        // re-run geometry on mutant for v0 only
-        const bs = mut.lastIndexOf('cv(', mut.indexOf(pin) >= 0 ? mut.indexOf("22_1_0") : 0);
-        // simpler: total cover on mutant with same F22
         let mutCover = 0, mutV = -1;
         const reg2 = /SPR\.bld\['22_1_(\d+)'\]/g;
         let r2;
@@ -5454,22 +5464,11 @@ runPwaTests().then(() => {
           const v = +r2[1];
           const b0 = mut.lastIndexOf('cv(', r2.index);
           const blk = mut.slice(b0, r2.index);
-          const [, fay, fhw, fhh] = F22[v];
-          const fcx = F22[v][0], fcy = fay - 16;
-          let cover = 0;
-          for (const mm of blk.matchAll(/fillRect\(ax([+-]\d+),ay([+-]\d+),(\d+),(\d+)\)/g)) {
-            const x0 = SAX + +mm[1], y0 = SAY + +mm[2], w = +mm[3], h = +mm[4];
-            for (let y = y0; y < y0 + h; y++) {
-              const t = 1 - Math.abs(y - fcy) / fhh;
-              if (t <= 0) continue;
-              const lo = fcx - fhw * t, hi = fcx + fhw * t;
-              for (let x = x0; x < x0 + w; x++) if (x >= lo && x <= hi) cover++;
-            }
-          }
+          const cover = fieldCover(parseSigRects(blk), F22[v]);
           if (cover > 60) { mutCover = cover; mutV = v; break; }
         }
         assert(mutV === 0 && mutCover > 60,
-          'T380 L1：把建築移進田心必須紅（v0 覆蓋>60），實得 v' + mutV + ':' + mutCover);
+          'T380 L1：把 //sig 建築移進田心必須紅，實得 v' + mutV + ':' + mutCover);
       }
     }
     // K5：四棟新增夜光必須有對應日層實體錨（靜態同位證明；mock canvas 無法真像素比對）
