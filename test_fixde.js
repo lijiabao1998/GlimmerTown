@@ -5242,38 +5242,73 @@ runPwaTests().then(() => {
       for (const m of html.matchAll(/Object\.assign\(MSZ,\{([^}]+)\}/g)) {
         for (const pair of m[1].matchAll(/(\d+):(\d+)/g)) MSZ[+pair[1]] = +pair[2];
       }
-      let blocks = 0, bad = [];
-      const keys = Object.keys(MSZ).map(Number).filter(k => MSZ[k] >= 2).sort((a, b) => a - b);
-      for (const k of keys) {
-        const re = new RegExp("SPR\\.bld\\['" + k + "_[^']+'\\]\\s*=", 'g');
-        let last = null, m;
-        while ((m = re.exec(html))) last = m;
-        if (!last) continue;
-        // 新代長塊（k65 廣場細節等）可能 >7k；回看 10k 仍只取本鍵最後賦值前段
-        const start = Math.max(0, last.index - 10000);
-        const block = html.slice(start, last.index);
-        const sz = MSZ[k];
-        const needHw = 32 * sz;
-        let ok = false;
-        // plate(... ,sz) 或 plate 後綴 ≥sz
-        for (const pm of block.matchAll(/plate\s*\(([^)]*)\)/g)) {
-          const args = pm[1];
-          const sm = args.match(/,\s*(\d+)\s*$/);
-          if (sm && +sm[1] >= sz) ok = true;
+      // 切塊＝「上一個 SPR.bld[...]= 到本鍵註冊點之間」（逐塊順序，零滲漏鄰居 dia/plate）
+      // 禁止固定字元回看窗：10k 窗曾把 k47 的 dia(...,96) 滲進 k48 而假綠
+      // 共用 factory（如 T364b mkIndustry364）：註冊行只剩呼叫時，再掃該函式定義本體（非鄰居塊）
+      const auditK1 = (src) => {
+        const regs = Array.from(src.matchAll(/SPR\.bld\['([^']+)'\]\s*=/g));
+        const hasFullFoot = (text, sz) => {
+          const needHw = 32 * sz;
+          for (const pm of text.matchAll(/plate\s*\(([^)]*)\)/g)) {
+            const sm = pm[1].match(/,\s*(\d+)\s*$/);
+            if (sm && +sm[1] >= sz) return true;
+          }
+          for (const dm of text.matchAll(/dia\s*\(\s*g\s*,\s*[^,]+,\s*[^,]+,\s*(\d+)/g)) {
+            if (+dm[1] >= needHw) return true;
+          }
+          if (new RegExp('dia\\s*\\([^\\n]{0,60},\\s*' + needHw + '\\s*[,)]').test(text)) return true;
+          return false;
+        };
+        let blocks = 0, bad = [];
+        const keys = Object.keys(MSZ).map(Number).filter(k => MSZ[k] >= 2).sort((a, b) => a - b);
+        for (const k of keys) {
+          let lastI = -1;
+          for (let i = 0; i < regs.length; i++) {
+            const mk = regs[i][1].match(/^(\d+)_/);
+            if (mk && +mk[1] === k) lastI = i;
+          }
+          if (lastI < 0) continue;
+          const start = lastI === 0 ? 0 : regs[lastI - 1].index;
+          const end = regs[lastI].index;
+          let block = src.slice(start, end);
+          // 註冊行本身（可能是 SPR.bld['k']=mkFoo(...)）
+          const assignEnd = Math.min(src.length, end + 160);
+          const assignLine = src.slice(end, assignEnd);
+          block += assignLine;
+          const sz = MSZ[k];
+          let ok = hasFullFoot(block, sz);
+          if (!ok) {
+            const fm = assignLine.match(/=\s*([A-Za-z_$][\w$]*)\s*\(/);
+            if (fm) {
+              const fname = fm[1];
+              const defRe = new RegExp('(?:const|let|var)\\s+' + fname + '\\s*=');
+              const defM = defRe.exec(src);
+              if (defM && defM.index < end) {
+                // 函式本體：定義處起到本註冊點（含共用 factory 一次定義、多鍵呼叫）
+                const fbody = src.slice(defM.index, end);
+                ok = hasFullFoot(fbody, sz);
+              }
+            }
+          }
+          if (ok) blocks++;
+          else bad.push(k);
         }
-        // dia( g , … , hw , …) 空格／換行容忍；hw 取第 4 參（cx,ty,hw）
-        for (const dm of block.matchAll(/dia\s*\(\s*g\s*,\s*[^,]+,\s*[^,]+,\s*(\d+)/g)) {
-          if (+dm[1] >= needHw) ok = true;
-        }
-        // 少數寫法 dia(g,ax,ay-64,64,col) 同上；再掃字面 32*sz 菱形半寬
-        if (new RegExp('dia\\s*\\([^\\n]{0,60},\\s*' + needHw + '\\s*[,)]').test(block)) ok = true;
-        if (ok) blocks++;
-        else bad.push(k);
+        return { blocks, bad };
+      };
+      const k1ok = auditK1(html);
+      assert(k1ok.blocks >= 40, 'T378 K1：全腳印地墊塊數應 ≥40，實得 ' + k1ok.blocks + ' bad=' + JSON.stringify(k1ok.bad.slice(0, 12)));
+      assert(k1ok.bad.length === 0, 'T378 K1：下列鍵最終賦值塊地墊不足：' + JSON.stringify(k1ok.bad));
+      // 破壞性證明（k48 案型）：無 hero、早期塊即最終；拿掉 plate ,3 不得再靠鄰居 k47 的 dia 96 假綠
+      {
+        const pin48 = "plate(g,ax,ay,'#9aa0a4',3)";
+        assert(html.includes(pin48), 'T378 K1：k48 全腳印 plate 錨點應存在');
+        const mut48 = html.replace(pin48, "plate(g,ax,ay,'#9aa0a4')");
+        const k1mut = auditK1(mut48);
+        assert(k1mut.bad.indexOf(48) >= 0,
+          'T378 K1：k48 拿掉 plate ,3 必須紅（不得滲鄰居 dia），bad=' + JSON.stringify(k1mut.bad));
       }
-      assert(blocks >= 40, 'T378 K1：全腳印地墊塊數應 ≥40，實得 ' + blocks + ' bad=' + JSON.stringify(bad.slice(0, 12)));
-      assert(bad.length === 0, 'T378 K1：下列鍵最終賦值塊地墊不足：' + JSON.stringify(bad));
       // K1-hero：凡 hero 覆蓋塊 `const hk='K_…'` 且 MSZ[K]≥2，其 plate 必須帶 sz≥MSZ
-      // （後寫後贏＝最終生效；舊 K1 只看「最後 SPR.bld 賦值前 10k」會被長塊／多賦值誤導而對 hero 1 格失明）
+      // （後寫後贏＝最終生效；與上列「註冊點之間」一般鍵切塊互補）
       {
         const heroBad = [];
         const hkRe = /const hk\s*=\s*'(\d+)_[^']+'/g;
