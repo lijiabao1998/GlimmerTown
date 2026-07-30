@@ -5242,11 +5242,25 @@ runPwaTests().then(() => {
       for (const m of html.matchAll(/Object\.assign\(MSZ,\{([^}]+)\}/g)) {
         for (const pair of m[1].matchAll(/(\d+):(\d+)/g)) MSZ[+pair[1]] = +pair[2];
       }
-      // 切塊＝「上一個 SPR.bld[...]= 到本鍵註冊點之間」（逐塊順序，零滲漏鄰居 dia/plate）
-      // 禁止固定字元回看窗：10k 窗曾把 k47 的 dia(...,96) 滲進 k48 而假綠
-      // 共用 factory（如 T364b mkIndustry364）：註冊行只剩呼叫時，再掃該函式定義本體（非鄰居塊）
+      // 切塊＝遍歷【每一個】多格註冊點（非每鍵只取最後一個）
+      // block = 上一註冊點→本註冊點；block<200＝同塊兄弟沿用同塊首鍵判定
+      // 塔樓 T127 用 SPR.bld[d.k+'_1_'+d.v]（非字面量鍵）— 展開為 33/34 × v0/v1 四虛擬註冊點
+      // factory（mkIndustry364）：註冊行只剩呼叫時掃函式定義本體
       const auditK1 = (src) => {
-        const regs = Array.from(src.matchAll(/SPR\.bld\['([^']+)'\]\s*=/g));
+        const regs = [];
+        for (const m of src.matchAll(/SPR\.bld\['([^']+)'\]\s*=/g)) {
+          regs.push({ index: m.index, key: m[1], assignAt: m.index });
+        }
+        // 動態鍵：迴圈內一塊多鍵（摩天樓）；源碼一點 → 四虛擬鍵同 index
+        for (const m of src.matchAll(/SPR\.bld\[d\.k\+'_1_'\+d\.v\]\s*=/g)) {
+          for (const k of [33, 34]) {
+            if (!MSZ[k] || MSZ[k] < 2) continue;
+            for (const v of [0, 1]) {
+              regs.push({ index: m.index, key: k + '_1_' + v, assignAt: m.index });
+            }
+          }
+        }
+        regs.sort((a, b) => a.index - b.index || a.key.localeCompare(b.key));
         const hasFullFoot = (text, sz) => {
           const needHw = 32 * sz;
           for (const pm of text.matchAll(/plate\s*\(([^)]*)\)/g)) {
@@ -5259,53 +5273,82 @@ runPwaTests().then(() => {
           if (new RegExp('dia\\s*\\([^\\n]{0,60},\\s*' + needHw + '\\s*[,)]').test(text)) return true;
           return false;
         };
-        let blocks = 0, bad = [];
-        const keys = Object.keys(MSZ).map(Number).filter(k => MSZ[k] >= 2).sort((a, b) => a - b);
-        for (const k of keys) {
-          let lastI = -1;
-          for (let i = 0; i < regs.length; i++) {
-            const mk = regs[i][1].match(/^(\d+)_/);
-            if (mk && +mk[1] === k) lastI = i;
-          }
-          if (lastI < 0) continue;
-          const start = lastI === 0 ? 0 : regs[lastI - 1].index;
-          const end = regs[lastI].index;
-          let block = src.slice(start, end);
-          // 註冊行本身（可能是 SPR.bld['k']=mkFoo(...)）
-          const assignEnd = Math.min(src.length, end + 160);
-          const assignLine = src.slice(end, assignEnd);
-          block += assignLine;
-          const sz = MSZ[k];
+        // 只掃 [prev, reg) 繪製段；禁止把 assign 後 180 字併入（會滲下一變體的 plate 造成假綠）
+        const judge = (block, end, sz) => {
           let ok = hasFullFoot(block, sz);
           if (!ok) {
+            const assignLine = src.slice(end, Math.min(src.length, end + 180));
             const fm = assignLine.match(/=\s*([A-Za-z_$][\w$]*)\s*\(/);
             if (fm) {
-              const fname = fm[1];
-              const defRe = new RegExp('(?:const|let|var)\\s+' + fname + '\\s*=');
+              const defRe = new RegExp('(?:const|let|var)\\s+' + fm[1] + '\\s*=');
               const defM = defRe.exec(src);
-              if (defM && defM.index < end) {
-                // 函式本體：定義處起到本註冊點（含共用 factory 一次定義、多鍵呼叫）
-                const fbody = src.slice(defM.index, end);
-                ok = hasFullFoot(fbody, sz);
-              }
+              if (defM && defM.index < end) ok = hasFullFoot(src.slice(defM.index, end), sz);
             }
           }
+          return ok;
+        };
+        let blocks = 0, bad = [];
+        let lastLongOk = null;
+        let prevIndex = 0;
+        for (let i = 0; i < regs.length; i++) {
+          const fullKey = regs[i].key;
+          const km = fullKey.match(/^(\d+)_/);
+          if (!km) continue;
+          const k = +km[1];
+          const sz = MSZ[k];
+          if (!sz || sz < 2) {
+            // 仍推進 prev：1×1 註冊點也是「上一註冊點」邊界
+            prevIndex = regs[i].index;
+            continue;
+          }
+          const end = regs[i].index;
+          // 同 index 虛擬兄弟：block 長度 0，沿用 lastLongOk
+          const start = (i > 0 && regs[i].index === regs[i - 1].index)
+            ? end
+            : prevIndex;
+          const block = src.slice(start, end);
+          let ok;
+          if (block.length < 200 && lastLongOk !== null) {
+            ok = lastLongOk;
+          } else {
+            ok = judge(block, end, sz);
+            lastLongOk = ok;
+          }
           if (ok) blocks++;
-          else bad.push(k);
+          else bad.push(fullKey);
+          // 僅在「新位置」推進 prev，避免同 index 四鍵把後續切空
+          if (i + 1 >= regs.length || regs[i + 1].index !== regs[i].index) {
+            prevIndex = regs[i].index;
+          }
         }
         return { blocks, bad };
       };
       const k1ok = auditK1(html);
-      assert(k1ok.blocks >= 40, 'T378 K1：全腳印地墊塊數應 ≥40，實得 ' + k1ok.blocks + ' bad=' + JSON.stringify(k1ok.bad.slice(0, 12)));
-      assert(k1ok.bad.length === 0, 'T378 K1：下列鍵最終賦值塊地墊不足：' + JSON.stringify(k1ok.bad));
-      // 破壞性證明（k48 案型）：無 hero、早期塊即最終；拿掉 plate ,3 不得再靠鄰居 k47 的 dia 96 假綠
+      assert(k1ok.blocks >= 40, 'T378 K1：全腳印地墊註冊點應 ≥40，實得 ' + k1ok.blocks + ' bad=' + JSON.stringify(k1ok.bad.slice(0, 12)));
+      assert(k1ok.bad.length === 0, 'T378 K1：下列多格註冊點地墊不足：' + JSON.stringify(k1ok.bad));
+      // 破壞性證明四案型
       {
+        // 1) k48：無 hero、早期塊即最終；拿掉 ,3 不得滲鄰居 dia
         const pin48 = "plate(g,ax,ay,'#9aa0a4',3)";
-        assert(html.includes(pin48), 'T378 K1：k48 全腳印 plate 錨點應存在');
+        assert(html.includes(pin48), 'T378 K1：k48 plate 錨點應存在');
         const mut48 = html.replace(pin48, "plate(g,ax,ay,'#9aa0a4')");
-        const k1mut = auditK1(mut48);
-        assert(k1mut.bad.indexOf(48) >= 0,
-          'T378 K1：k48 拿掉 plate ,3 必須紅（不得滲鄰居 dia），bad=' + JSON.stringify(k1mut.bad));
+        const r48 = auditK1(mut48);
+        assert(r48.bad.some(x => String(x).startsWith('48_')),
+          'T378 K1：k48 拿掉 plate ,3 必須紅，bad=' + JSON.stringify(r48.bad));
+        // 2) k22 v0：多變體不得只釘最後一個；拿掉 v0 的 ,2 必須紅
+        const pin22 = "plate(g,ax,ay,'#8a9a5a',2);g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉";
+        assert(html.includes(pin22), 'T378 K1：k22 v0 plate 錨點應存在');
+        const mut22 = html.replace(pin22, "plate(g,ax,ay,'#8a9a5a');g.fillStyle='#6a7a3a';g.fillRect(ax-24,ay-30,16,20); // 穀倉");
+        const r22 = auditK1(mut22);
+        assert(r22.bad.indexOf('22_1_0') >= 0,
+          'T378 K1：k22 v0 拿掉 plate ,2 必須紅，bad=' + JSON.stringify(r22.bad));
+        // 3) 摩天樓：一塊多鍵；拿掉共用 plate ,2 必須紅（任一同塊鍵）
+        const pinTw = "plate(g,tax,tay,'#8f8a7c',2)";
+        assert(html.includes(pinTw), 'T378 K1：塔樓 plate 錨點應存在');
+        const mutTw = html.replace(pinTw, "plate(g,tax,tay,'#8f8a7c')");
+        const rTw = auditK1(mutTw);
+        assert(rTw.bad.some(x => String(x).startsWith('33_') || String(x).startsWith('34_')),
+          'T378 K1：塔樓拿掉 plate ,2 必須紅，bad=' + JSON.stringify(rTw.bad));
       }
       // K1-hero：凡 hero 覆蓋塊 `const hk='K_…'` 且 MSZ[K]≥2，其 plate 必須帶 sz≥MSZ
       // （後寫後贏＝最終生效；與上列「註冊點之間」一般鍵切塊互補）
