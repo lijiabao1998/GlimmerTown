@@ -6014,6 +6014,17 @@ runPwaTests().then(() => {
       'T381 顯示側兩點（需求卡/晶片抽樣）必須用即時 eduStaticAt');
     assert(!/EDU_COV_FIELDS/.test(html), 'T381 stampCov 不得含 EDU 增量寫入（被鐵律19 否決的版本）');
   }
+  // ===== T343d 樹圖清晰度：後備存儲＝CSS寬×DPR、繪製/命中恆在邏輯 640×420 =====
+  {
+    assert(html.includes('function techScale343(cv)') && html.includes('clamp(w*dpr/TECH_VIEW343.w,1,3)'),
+      'T343d 應存在 techScale343（CSS寬×DPR，上限 3×）——玩家回報 v11.5 樹圖模糊的根因是固定 640 被 CSS 拉伸');
+    assert(html.includes('if(g.setTransform)g.setTransform(q343,0,0,q343,0,0)'),
+      'T343d 繪製必須經 setTransform 放大，邏輯座標不得改');
+    assert(html.includes('*TECH_VIEW343.w/(r.width||TECH_VIEW343.w)'),
+      'T343d techPoint343 必須映射到邏輯 640×420（與後備解析度脫鉤，否則高 DPR 下點選錯位）');
+    assert(!html.includes('cv.width!==640'),
+      'T343d 不得殘留固定 640 後備尺寸');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
