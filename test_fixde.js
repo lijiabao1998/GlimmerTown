@@ -199,18 +199,119 @@ while (true) {
   js += html.slice(s + 8, e) + '\n';
   i = e + 9;
 }
-const t343IifeEnd = js.lastIndexOf('})();');
+let t343IifeEnd = js.lastIndexOf('})();');
 if (t343IifeEnd < 0) throw new Error('T343a harness 找不到主 IIFE 尾端');
+const inject343 = (needle, replacement, label) => {
+  const hits = js.split(needle).length - 1;
+  if (hits !== 1) throw new Error('T343c probe 錨點失準 ' + label + ' hits=' + hits);
+  const before = js;
+  js = js.replace(needle, replacement);
+  if (js === before) throw new Error('T343c probe 注入未改變源碼 ' + label);
+};
+inject343(
+  "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1);\n    if(R()<p){",
+  "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1);\n    window.__t343Probe.fire=p;\n    if(R()<p){",
+  'fire'
+);
+inject343(
+  "R()<.001*(b.k===2?2:1)*b.lv*(pol&&pol.curfew?.6:1)*(pol&&pol.nightMarket?1.15:1)*(pol&&pol.parkNight?1.05:1)*((COV.court&&COV.court[i]>0)?.5:1)*tq('B2',.92,1)*tq('B4b',1.05,1)*tq('B7',.90,1)",
+  "R()<(window.__t343Probe.crime=.001*(b.k===2?2:1)*b.lv*(pol&&pol.curfew?.6:1)*(pol&&pol.nightMarket?1.15:1)*(pol&&pol.parkNight?1.05:1)*((COV.court&&COV.court[i]>0)?.5:1)*tq('B2',.92,1)*tq('B4b',1.05,1)*tq('B7',.90,1))",
+  'crime'
+);
+inject343(
+  "R()<.035*eduBoost*libraryBoost*instituteBoost*landUpMul*tq('A5',1.10,1)*tq('C2',1.08,1)",
+  "R()<(window.__t343Probe.upgrade=.035*eduBoost*libraryBoost*instituteBoost*landUpMul*tq('A5',1.10,1)*tq('C2',1.08,1))",
+  'upgrade'
+);
+inject343(
+  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1));",
+  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1));",
+  'transit'
+);
+t343IifeEnd = js.lastIndexOf('})();'); // 上方 probe 插入會改字串長度，注入點必須重新定位
+const t343Harness = `
+window.__t343Probe={};
+function __t343Base(id){
+  newWorld(34343);diff=3;weather=0;wxT=99;pol=null;window.__t343Probe={};
+  if(id&&(!window.GV||!window.GV.techGrant(id)))throw new Error('T343c fixture GV.techGrant 失敗 '+id);
+}
+function __t343Bld(k,lv,x,y){
+  const i=idx(x,y);tiles[i].bld={k,lv,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;
+}
+function __t343ProbeValue(kind){
+  const v=window.__t343Probe[kind];
+  if(!Number.isFinite(v))throw new Error('T343c probe 未命中或非有限數 '+kind+'='+v);
+  return v;
+}
+function __t343TickCase(kind,id){
+  __t343Base(id);
+  const oldR=R,oldRoad=hasRoadNear,oldPower=computePower,oldWater=computeWater,oldDis=disastersOn;
+  R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;
+  let target=-1;
+  try{
+    if(kind==='taxI'||kind==='fire')target=__t343Bld(3,1,10,10);
+    else if(kind==='taxC'||kind==='crime')target=__t343Bld(2,1,10,10);
+    else if(kind==='happy')target=__t343Bld(1,1,10,10);
+    else if(kind==='upgrade'){target=__t343Bld(2,1,10,10);tiles[target].bld.age=20;COV.police[target]=1;__t343Bld(1,1,12,10);}
+    else if(kind==='demand'){__t343Bld(2,1,10,10);__t343Bld(3,1,12,10);}
+    tick();
+    if(kind==='taxI')return fin.taxI;
+    if(kind==='taxC')return fin.taxC;
+    if(kind==='fire')return __t343ProbeValue('fire');
+    if(kind==='crime')return __t343ProbeValue('crime');
+    if(kind==='happy')return tiles[target].bld.h;
+    if(kind==='upgrade')return __t343ProbeValue('upgrade');
+    if(kind==='demand')return dem[3];
+    if(kind==='policy')return fin.upReg;
+    throw new Error('T343c 未知 tick fixture '+kind);
+  }finally{R=oldR;hasRoadNear=oldRoad;computePower=oldPower;computeWater=oldWater;disastersOn=oldDis;}
+}
+function __t343TransitCase(id){
+  __t343Base(id);
+  const cx=10,cy=10,stop=idx(cx,cy),cells=[];
+  tiles[stop].bus=1;busRoutes=[{stops:[stop]},{stops:[]},{stops:[]}];
+  for(let y=cy-3;y<=cy+3;y++)for(let x=cx-3;x<=cx+3;x++)if(x!==cx||y!==cy)cells.push([x,y]);
+  for(let j=0;j<37;j++){const lv=j<8?2:j<10?3:1;__t343Bld(1,lv,cells[j][0],cells[j][1]);}
+  computeBusRtCovPop();
+  return __t343ProbeValue('transit');
+}
+function __t343EffectCase(kind,id){
+  if(['taxI','taxC','fire','crime','happy','upgrade','demand','policy'].includes(kind))return __t343TickCase(kind,id);
+  __t343Base(id);
+  if(kind==='transit')return __t343TransitCase(id);
+  if(kind==='cost'){diff=1;let i=0;while(i<N*N&&tiles[i].tree)i++;return placeCost('road',i%N,(i/N)|0);}
+  if(kind==='points'){cityHappy=.85;return computeCityPoints();}
+  if(kind==='edu120'||kind==='edu125'){
+    const i=idx(10,10);
+    if(kind==='edu125'){COV.university[i]=1;COV.library[i]=1;}else COV.campus[i]=1;
+    return eduStaticAt(10,10);
+  }
+  if(kind==='speed'){advanceTech343(0,0,0,0,0,0);return techSpeed343;}
+  throw new Error('T343c 未知 effect fixture '+kind);
+}
+function __t343EduRefresh(id,natural){
+  __t343Base('');
+  const i=idx(10,10);tiles[i].bld={k:113,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,sz:4};
+  rebuildCov();const before=EDU[i];
+  if(natural){const n=TECH343_BY_ID[id];tech343.act=id;tech343.prog[id]=n.points-1;advanceTech343(0,0,0,0,0,0);}
+  else techGrant343(id);
+  return{before,after:EDU[i],done:hasTech343(id)};
+}
+`;
 js = js.slice(0, t343IifeEnd) +
+  t343Harness +
   'window.__t343Test={start:startTech343,toolbar:buildToolbar,city:showStats,panel:showTechPanel343,' +
   'select:(id)=>techSelect343(id,false),draw:drawTechTree343,focus:techFocus343,' +
   'hit:(x,y)=>techHit343(x,y),' +
   'visible:(id)=>{const cv=$("#techTree343"),n=TECH343_BY_ID[id];if(!cv||!n||!techFocus343(id))return false;' +
   'const p=techRect343(n),x=p.x+techPan343.x,y=p.y+techPan343.y;return x-p.w/2>=0&&x+p.w/2<=cv.width&&y-p.h/2>=0&&y+p.h/2<=cv.height;},' +
   'click:()=>{const b=$("#techStart343");return b&&b.onclick?b.onclick():false;},' +
-  'detail:()=>$("#techDetail343").innerHTML,startDisabled:()=>!!$("#techStart343").disabled,' +
-  'view:()=>({sel:techSel343,x:techPan343.x,y:techPan343.y})};\n' +
+  'detail:()=>$("#techDetail343").innerHTML,summary:()=>$("#infoBody").innerHTML,startDisabled:()=>!!$("#techStart343").disabled,' +
+  'view:()=>({sel:techSel343,x:techPan343.x,y:techPan343.y}),' +
+  'effect:__t343EffectCase,eduRefresh:__t343EduRefresh,' +
+  'guide:()=>{guideTab=5;showHelp();return $("#infoBody").innerHTML;}};\n' +
   js.slice(t343IifeEnd); // T343a：只在 Node harness 的 IIFE 內匯出；正式 GV API 不增面
+window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生的首輪 tick
 eval(js);
 
 // ---- 測試輔助 ----
@@ -5688,9 +5789,9 @@ runPwaTests().then(() => {
     assert(codeStart343 > 0 && codeEnd343 > codeStart343 &&
       !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(code343),
     'T343a 資料層不得消耗任何共用或素材亂數流');
-    assert(code343.includes('techSpeed343=1+Math.min(7,instituteN+universityN+techParkN*2+campusN*2+dataCenterN+megaProjectN*2)') &&
+    assert(code343.includes("techSpeed343=1+Math.min(7,instituteN+universityN+techParkN*2+campusN*2+dataCenterN+megaProjectN*2)+tq('C6',1,0)+tq('D2',1,0)+tq('D5',2,0)") &&
       html.includes('advanceTech343(inN,un,tpk342,cam342,dtc342,mgN)'),
-    'T343a 研究速度應精確為 1+min(7,研究院+大學+科技園×2+大學城×2+數據中心+太空中心×2)，並只吃既有計數');
+    'T343a/c 研究速度應精確為 1+min(7,研究院+大學+科技園×2+大學城×2+數據中心+太空中心×2)+C6+D2+D5，並只吃既有計數與 tq');
     assert(atlasSig343() === atlasBefore343,
     'T343a 研究／存讀檔／grant 全流程不得改動任何 atlas 中繼指紋');
   }
@@ -5764,6 +5865,9 @@ runPwaTests().then(() => {
     assert(!window.__t343Test.startDisabled() && window.__t343Test.click() === true &&
       window.GV.stats().money === sandboxCash343b && window.GV.tech343().act === 'A1',
     'T343b 啟動按鈕須走 T343a startTech343，沙盒成功啟動且零扣款');
+    assert(window.__t343Test.summary().includes('當前研究') &&
+      window.__t343Test.summary().includes('標準化生產'),
+    'T343c 啟動研究後須整體重繪面板，頂部「當前研究」立即顯示標準化生產');
     window.GV.step(1);
     assert(window.__t343Test.draw().progress === 1 && window.__t343Test.detail().includes('研究中'),
     'T343b 推進一天後 canvas 應畫進度條，詳情同步顯示研究中');
@@ -5779,6 +5883,103 @@ runPwaTests().then(() => {
 
     assert(atlasSig343b() === atlasBefore343b,
     'T343b 面板開關／拖曳／選取／啟動不得改動任何 atlas 中繼指紋');
+  }
+
+  console.log('\n-- T343c 36 節點效果接線／精確 delta／零科技恆等 --');
+  {
+    const atlasSig343c = () => JSON.stringify(window.GV.sprAtlas356().entries.map(e =>
+      [e.fam, e.key, e.w, e.h, e.ax, e.ay, e.sc, !!e.night]));
+    const atlasBefore343c = atlasSig343c();
+    const specs343c = [
+      ['A1',[['taxI','mul',1.04]]],
+      ['A2',[['transit','mul',1.12]]],
+      ['A3',[['taxC','mul',1.04]]],
+      ['A4a',[['taxI','mul',1.08],['fire','mul',1.10]]],
+      ['A4b',[['fire','mul',.85],['taxI','mul',.98]]],
+      ['A5',[['upgrade','mul',1.10]]],
+      ['A6',[['taxC','mul',1.05]]],
+      ['A7',[['demand','addf',.10]]],
+      ['A8',[['taxI','mul',1.06]]],
+      ['B1',[['happy','addf',.01]]],
+      ['B2',[['crime','mul',.92]]],
+      ['B3',[['fire','mul',.90]]],
+      ['B4a',[['happy','addf',.02],['policy','addi',10]]],
+      ['B4b',[['taxC','mul',1.05],['crime','mul',1.05]]],
+      ['B5',[['cost','mul',.95]]],
+      ['B6',[['happy','addf',.015]]],
+      ['B7',[['crime','mul',.90]]],
+      ['B8',[['happy','addf',.02]]],
+      ['C1',[['edu120','mul',1.05]]],
+      ['C2',[['upgrade','mul',1.08]]],
+      ['C3',[['taxC','mul',1.03]]],
+      ['C4a',[['edu120','mul',1.15],['policy','addi',8]]],
+      ['C4b',[['edu125','mul',1.08],['happy','addf',.01]]],
+      ['C5',[['transit','mul',1.08]]],
+      ['C6',[['speed','addi',1]]],
+      ['C7',[['happy','addf',.015]]],
+      ['C8',[['cost','mul',.95]]],
+      ['D1',[['points','mul',1.05]]],
+      ['D2',[['speed','addi',1]]],
+      ['D3',[['taxC','mul',1.04]]],
+      ['D4a',[['cost','mul',.90]]],
+      ['D4b',[['points','mul',1.10]]],
+      ['D5',[['speed','addi',2]]],
+      ['D6',[['happy','addf',.02]]],
+      ['D7',[['edu120','mul',1.10]]],
+      ['D8',[['happy','addf',.03]]]
+    ];
+    assert(specs343c.length === 36 && new Set(specs343c.map(s => s[0])).size === 36,
+      'T343c delta 表必須逐節點覆蓋 36/36，不得以家族抽樣代替');
+    assert(html.includes("const tq=(id,on,off)=>(tech343&&tech343.done.includes(id))?on:off;") &&
+      !html.includes('T343c 才接線') && html.includes("])+'<div class=\"row\">效果：'"),
+      'T343c 必須採卡面集中 tq helper，面板不得再宣稱效果尚未接線');
+
+    const base343c = Object.create(null);
+    const baseline343c = kind => Object.prototype.hasOwnProperty.call(base343c, kind)
+      ? base343c[kind] : (base343c[kind] = window.__t343Test.effect(kind, ''));
+    const familyChecks343c = [
+      ['fire',[['A4a',1.10],['A4b',.85],['B3',.90]]],
+      ['crime',[['B2',.92],['B4b',1.05],['B7',.90]]],
+      ['transit',[['A2',1.12],['C5',1.08]]],
+      ['upgrade',[['A5',1.10],['C2',1.08]]]
+    ];
+    for (const [kind, checks] of familyChecks343c) {
+      const before = baseline343c(kind), got = [];
+      let ok = Number.isFinite(before) && before > 0;
+      for (const [id, expected] of checks) {
+        const after = window.__t343Test.effect(kind, id), ratio = after / before;
+        ok = ok && Number.isFinite(after) && Math.abs(ratio - expected) <= 1e-9;
+        got.push(id + ':' + before + '→' + after + ' (×' + ratio + ')');
+      }
+      assert(ok, 'T343c ' + kind + ' 家族 probe 必須命中真公式且逐節點比值精確（容差 ≤1e-9）：' + got.join('；'));
+    }
+    for (const [id, checks] of specs343c) {
+      const got = [];
+      let ok = true;
+      for (const [kind, op, expected] of checks) {
+        const before = baseline343c(kind), after = window.__t343Test.effect(kind, id);
+        const delta = op === 'mul' ? after / before : after - before;
+        const pass = op === 'addi' ? delta === expected : Math.abs(delta - expected) <= 1e-9;
+        ok = ok && pass;
+        got.push(kind + ':' + before + '→' + after + ' (' + (op === 'mul' ? '×' : '+') + delta + ')');
+      }
+      assert(ok, 'T343c ' + id + ' 每項真公式 delta 應精確等於卡面（IEEE-754 連乘／小數加法容差 ≤1e-9）：' + got.join('；'));
+    }
+
+    for (const [id, mul] of [['C1',1.05],['C4a',1.15],['C4b',1.08],['D7',1.10]]) {
+      const r = window.__t343Test.eduRefresh(id, false);
+      assert(r.done && r.before === 120 && r.after === Math.round(120 * mul),
+        'T343c ' + id + ' 經 GV.techGrant 完成時必須立即 rebuildCov，EDU ' + r.before + '→' + r.after);
+    }
+    const naturalEdu343c = window.__t343Test.eduRefresh('C1', true);
+    assert(naturalEdu343c.done && naturalEdu343c.before === 120 && naturalEdu343c.after === 126,
+      'T343c 自然研究完成 C1 亦須立即 rebuildCov，不能只照顧測試 grant');
+    const guide343c = window.__t343Test.guide();
+    assert(guide343c.includes('科技樹：研究與取捨') && guide343c.includes('研究院／大學／數據中心') &&
+      guide343c.includes('紅色 ⊗ 二選一') && guide343c.includes('會帶科技進度'),
+      'T343c 指南須寫清研究點來源、互斥永久語意與分享碼攜帶科技進度');
+    assert(atlasSig343c() === atlasBefore343c,
+      'T343c 36 節點效果、grant 與 EDU 重建不得改動任何 atlas 中繼指紋');
   }
 
   // ===== T381 EDU 髒快取裁決版：顯示側即時、模擬側位元恆等（鐵律19 多種子否決全面即時化） =====
