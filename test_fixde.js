@@ -204,6 +204,7 @@ if (t343IifeEnd < 0) throw new Error('T343a harness 找不到主 IIFE 尾端');
 js = js.slice(0, t343IifeEnd) +
   'window.__t343Test={start:startTech343,toolbar:buildToolbar,city:showStats,panel:showTechPanel343,' +
   'select:(id)=>techSelect343(id,false),draw:drawTechTree343,focus:techFocus343,' +
+  'hit:(x,y)=>techHit343(x,y),' +
   'visible:(id)=>{const cv=$("#techTree343"),n=TECH343_BY_ID[id];if(!cv||!n||!techFocus343(id))return false;' +
   'const p=techRect343(n),x=p.x+techPan343.x,y=p.y+techPan343.y;return x-p.w/2>=0&&x+p.w/2<=cv.width&&y-p.h/2>=0&&y+p.h/2<=cv.height;},' +
   'click:()=>{const b=$("#techStart343");return b&&b.onclick?b.onclick():false;},' +
@@ -5724,6 +5725,12 @@ runPwaTests().then(() => {
     const unreachable343b = window.GV.tech343().nodes.filter(n => !window.__t343Test.visible(n.id)).map(n => n.id);
     assert(unreachable343b.length === 0,
     'T343b 定位／平移邊界應讓 36 節點全部可進入 canvas 視口，不可達：'+JSON.stringify(unreachable343b));
+    window.__t343Test.focus('B4a');
+    const hitPan343b = window.__t343Test.view();
+    const hitNode343b = window.__t343Test.hit(327 + hitPan343b.x, 349 + hitPan343b.y);
+    const hitGap343b = window.__t343Test.hit(395 + hitPan343b.x, 393 + hitPan343b.y);
+    assert(hitNode343b === 'B4a' && hitGap343b === '',
+    'T343b hit-test 應命中 B4a 中心並拒絕節點間空白，實得 node='+hitNode343b+' gap='+hitGap343b);
     const cv343b = elMap.get('techTree343'),panBefore343b = window.__t343Test.view();
     cv343b.onpointerdown({pointerId:343,clientX:200,clientY:180,preventDefault(){}});
     cv343b.onpointermove({pointerId:343,clientX:240,clientY:180,preventDefault(){}});
