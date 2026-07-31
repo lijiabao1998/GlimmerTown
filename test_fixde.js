@@ -5688,6 +5688,38 @@ runPwaTests().then(() => {
     'T343a 研究／存讀檔／grant 全流程不得改動任何 atlas 中繼指紋');
   }
 
+  // ===== T381 EDU 髒快取裁決版：顯示側即時、模擬側位元恆等（鐵律19 多種子否決全面即時化） =====
+  {
+    window.GV.newWorldSeeded(301);
+    window.GV.setDiff(1);
+    const n381 = window.GV.N();
+    let sx381 = -1, sy381 = -1;
+    for (let y = 4; y < n381 - 4 && sx381 < 0; y++) for (let x = 4; x < n381 - 4; x++) {
+      const t = window.GV.tile(x, y);
+      if (t && (t.t === 1 || t.t === 2) && !t.bld && !t.road && !t.zone && !t.tree) {
+        if (window.GV.place('school', x, y)) { sx381 = x; sy381 = y; break; }
+      }
+    }
+    assert(sx381 >= 0, 'T381 應能在陸地放置學校');
+    assert(window.GV.cov('school', sx381, sy381) > 0, 'T381 放置後 COV.school 立即非 0（既有增量行為）');
+    // 分離斷言：顯示側即時非 0，模擬快取維持 0（＝模擬路徑未被動到）
+    assert(window.GV.eduLiveAt(sx381, sy381) > 0, 'T381 建校後不 load、顯示側 eduLiveAt 立即非 0');
+    assert(window.GV.eduAt(sx381, sy381) === 0, 'T381 模擬快取 EDU 建校當下應仍為 0（裁決：模擬側不即時化，見卡面 12 種子表）');
+    // 公式同一性：rebuildCov 後快取＝即時值（同一 eduStaticAt）
+    window.GV.rebuildCov();
+    assert(window.GV.eduAt(sx381, sy381) === window.GV.eduLiveAt(sx381, sy381) && window.GV.eduAt(sx381, sy381) > 0,
+      'T381 rebuildCov 後快取應與即時值逐位一致（同一 eduStaticAt 公式）');
+    // 拆除對稱：顯示側即時歸 0
+    assert(window.GV.place('doze', sx381, sy381), 'T381 應能拆除學校');
+    assert(window.GV.eduLiveAt(sx381, sy381) === 0, 'T381 拆校後顯示側即時歸 0，實得 ' + window.GV.eduLiveAt(sx381, sy381));
+    // 靜態守衛：模擬側四讀點必須仍吃 EDU[ 快取；顯示側兩點必須用 eduStaticAt
+    assert(/const eduTerm=\(EDU\[i\]\/255\)/.test(html) && /aiEduSum\+=EDU\[i2\]/.test(html) &&
+           /eduSumT342\+=EDU\[ci\]/.test(html) && /1\+\(EDU\[i\]\/255\)\*\.4:1/.test(html),
+      'T381 模擬側四讀點（eduTerm/aiEduSum/eduSumT342/eduIndMul）必須維持吃 EDU 快取——改動即破壞 12 種子校準，須先過鐵律19 崩城率驗收');
+    assert(/needEd=clamp\(eduStaticAt\(x,y\)\/160/.test(html) && /ne\+=clamp\(eduStaticAt\(ni%N,\(ni\/N\)\|0\)\/160/.test(html),
+      'T381 顯示側兩點（需求卡/晶片抽樣）必須用即時 eduStaticAt');
+    assert(!/EDU_COV_FIELDS/.test(html), 'T381 stampCov 不得含 EDU 增量寫入（被鐵律19 否決的版本）');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
