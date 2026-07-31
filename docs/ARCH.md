@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.4，約 17,774 行（實測檔案 17,774 行＝T380 施工當時；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T380**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.5，約 18,163 行（實測檔案 18,163 行＝T343c 施工當時；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T380**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -33,6 +33,7 @@
 | 價目表 `COST` / `ROAD_COST` / `GAME_VER` | 367-385 | `const COST={road:15,bridge:60,zone:8` |
 | `TOOLS` 153 項 ＋ `TOOL_CATS` | 386-543 | `const TOOLS=[` |
 | 季節與 360 天年 / `foodPriceOf` | 668-679, 749-757 | `const season=()=>{const doy=(day-1)%360;` |
+| T343 科技樹（36 節點／研究狀態／集中 `tq` 效果） | 882-990, 16255-16409 | `const TECH343=[` |
 | §2 繪圖基元：`cv` / `dia` / `railTrack` / `isoBox` / `outlineSprite` | 903-1129 | `function cv(w,h){const c=document.createElement('canvas')` |
 | 紋理流 `spriteTexRand` ＋ `plate()` | 1130-1142 | `const SPRITE_TEX_SEED=0x54455832;` |
 | `HERO_PIX` 手繪點陣表（53 鍵） | 1142-1262 | `const HERO_PIX={` |
