@@ -84,8 +84,8 @@ function makeEl(tag, id) {
   return el;
 }
 
-const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date'];
-ids.forEach(id => makeEl('div', id));
+const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343'];
+ids.forEach(id => makeEl(id==='techTree343'?'canvas':'div', id));
 makeEl('canvas', 'game');
 makeEl('canvas', 'logo');
 makeEl('canvas', 'mini');
@@ -202,7 +202,13 @@ while (true) {
 const t343IifeEnd = js.lastIndexOf('})();');
 if (t343IifeEnd < 0) throw new Error('T343a harness 找不到主 IIFE 尾端');
 js = js.slice(0, t343IifeEnd) +
-  'window.__t343Test={start:startTech343,toolbar:buildToolbar};\n' +
+  'window.__t343Test={start:startTech343,toolbar:buildToolbar,city:showStats,panel:showTechPanel343,' +
+  'select:(id)=>techSelect343(id,false),draw:drawTechTree343,focus:techFocus343,' +
+  'visible:(id)=>{const cv=$("#techTree343"),n=TECH343_BY_ID[id];if(!cv||!n||!techFocus343(id))return false;' +
+  'const p=techRect343(n),x=p.x+techPan343.x,y=p.y+techPan343.y;return x-p.w/2>=0&&x+p.w/2<=cv.width&&y-p.h/2>=0&&y+p.h/2<=cv.height;},' +
+  'click:()=>{const b=$("#techStart343");return b&&b.onclick?b.onclick():false;},' +
+  'detail:()=>$("#techDetail343").innerHTML,startDisabled:()=>!!$("#techStart343").disabled,' +
+  'view:()=>({sel:techSel343,x:techPan343.x,y:techPan343.y})};\n' +
   js.slice(t343IifeEnd); // T343a：只在 Node harness 的 IIFE 內匯出；正式 GV API 不增面
 eval(js);
 
@@ -5686,6 +5692,86 @@ runPwaTests().then(() => {
     'T343a 研究速度應精確為 1+min(7,研究院+大學+科技園×2+大學城×2+數據中心+太空中心×2)，並只吃既有計數');
     assert(atlasSig343() === atlasBefore343,
     'T343a 研究／存讀檔／grant 全流程不得改動任何 atlas 中繼指紋');
+  }
+
+  console.log('\n-- T343b 科技樹面板／互動／窄屏可達性 --');
+  {
+    const atlasSig343b = () => JSON.stringify(window.GV.sprAtlas356().entries.map(e =>
+      [e.fam, e.key, e.w, e.h, e.ax, e.ay, e.sc, !!e.night]));
+    const atlasBefore343b = atlasSig343b();
+    const statsBefore343b = JSON.stringify(window.GV.stats());
+
+    window.__t343Test.city();
+    assert(elMap.get('infoBody').innerHTML.includes('statsTech343') &&
+      elMap.get('infoBody').innerHTML.includes('📊 城市'),
+    'T343b 城市統計頁應新增科技樹 tab 入口');
+    elMap.get('statsTech343').click();
+    const panel343b = elMap.get('infoBody').innerHTML;
+    assert(panel343b.includes('techTree343') && panel343b.includes('techDetail343') &&
+      panel343b.includes('拖曳樹圖平移'),
+    'T343b 科技 tab 應在 #infoBody 內生成 canvas、詳情與拖曳提示');
+    assert(JSON.stringify(window.GV.stats()) === statsBefore343b,
+    'T343b 開啟城市統計與科技面板前後 GV.stats() 必須逐位不變');
+    assert(!/NaN|undefined|Infinity/.test(panel343b + window.__t343Test.detail()),
+    'T343b 空城科技面板不得出現 NaN／undefined／Infinity');
+
+    const ids343b = ['statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343'];
+    assert(ids343b.every(id => ids.includes(id) && elMap.get(id)),
+    'T343b 六個新 DOM id 必須同卡註冊進 Node ids 白名單');
+    const draw343b = window.__t343Test.draw();
+    assert(draw343b.boxes === 36 && draw343b.edges === 37 && draw343b.mutex === 4,
+    'T343b canvas 應真畫 36 節點、37 條前置連線與 4 組互斥標記，實得 '+JSON.stringify(draw343b));
+    const unreachable343b = window.GV.tech343().nodes.filter(n => !window.__t343Test.visible(n.id)).map(n => n.id);
+    assert(unreachable343b.length === 0,
+    'T343b 定位／平移邊界應讓 36 節點全部可進入 canvas 視口，不可達：'+JSON.stringify(unreachable343b));
+    const cv343b = elMap.get('techTree343'),panBefore343b = window.__t343Test.view();
+    cv343b.onpointerdown({pointerId:343,clientX:200,clientY:180,preventDefault(){}});
+    cv343b.onpointermove({pointerId:343,clientX:240,clientY:180,preventDefault(){}});
+    cv343b.onpointerup({pointerId:343,clientX:240,clientY:180,preventDefault(){}});
+    assert(window.__t343Test.view().x !== panBefore343b.x,
+    'T343b pointer 拖曳應真改變樹圖平移量');
+
+    const codeStart343b = html.indexOf('/* ===== T343b 科技樹面板');
+    const codeEnd343b = html.indexOf('function showStats()', codeStart343b);
+    const code343b = html.slice(codeStart343b, codeEnd343b);
+    assert(codeStart343b > html.indexOf('\n#tools{') && codeEnd343b > codeStart343b &&
+      !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(code343b),
+    'T343b UI 區塊必須位於既有工具列 CSS 之後，且不得引入任何亂數 token');
+    assert((html.match(/\$\('#info'\)\.style\.display='block'/g) || []).length === 1 &&
+      /function showTechPanel343\(\)[\s\S]*?showInfoPanel\(\)/.test(code343b),
+    'T343b 科技面板必須復用 showInfoPanel()，不得新增第二個直接 display=block');
+
+    window.GV.newWorldSeeded(34321);window.GV.setDiff(1);window.GV.addMoney(5000);
+    window.__t343Test.panel();window.__t343Test.select('A2');
+    const lockedCash343b = window.GV.stats().money;
+    assert(window.__t343Test.startDisabled() && window.__t343Test.click() === false &&
+      window.GV.stats().money === lockedCash343b && window.__t343Test.detail().includes('前置未滿足'),
+    'T343b 前置未滿足節點按鈕須禁用，強制觸發亦失敗且不扣款');
+
+    window.GV.newWorldSeeded(34322);window.GV.setDiff(3);
+    window.__t343Test.panel();window.__t343Test.select('A1');
+    const sandboxCash343b = window.GV.stats().money, sandboxDetail343b = window.__t343Test.detail();
+    assert(sandboxDetail343b.includes('啟動費') && sandboxDetail343b.includes('$0') &&
+      sandboxDetail343b.includes('沙盒免費'),
+    'T343b 沙盒節點詳情須把啟動費顯示為 $0');
+    assert(!window.__t343Test.startDisabled() && window.__t343Test.click() === true &&
+      window.GV.stats().money === sandboxCash343b && window.GV.tech343().act === 'A1',
+    'T343b 啟動按鈕須走 T343a startTech343，沙盒成功啟動且零扣款');
+    window.GV.step(1);
+    assert(window.__t343Test.draw().progress === 1 && window.__t343Test.detail().includes('研究中'),
+    'T343b 推進一天後 canvas 應畫進度條，詳情同步顯示研究中');
+
+    window.GV.newWorldSeeded(34323);window.GV.setDiff(1);window.GV.addMoney(5000);
+    assert(window.GV.techGrant('A4a'), 'T343b 互斥 UI 測試應先完成 A4a');
+    window.__t343Test.panel();window.__t343Test.select('A4b');
+    const mutexCash343b = window.GV.stats().money;
+    assert(window.__t343Test.startDisabled() && window.__t343Test.detail().includes('永久封鎖') &&
+      window.__t343Test.click() === false && window.GV.stats().money === mutexCash343b &&
+      !window.GV.tech343().done.includes('A4b'),
+    'T343b 互斥另一側須永久禁用，強制觸發仍失敗且不扣款');
+
+    assert(atlasSig343b() === atlasBefore343b,
+    'T343b 面板開關／拖曳／選取／啟動不得改動任何 atlas 中繼指紋');
   }
 
   // ===== T381 EDU 髒快取裁決版：顯示側即時、模擬側位元恆等（鐵律19 多種子否決全面即時化） =====
