@@ -199,6 +199,11 @@ while (true) {
   js += html.slice(s + 8, e) + '\n';
   i = e + 9;
 }
+const t343IifeEnd = js.lastIndexOf('})();');
+if (t343IifeEnd < 0) throw new Error('T343a harness 找不到主 IIFE 尾端');
+js = js.slice(0, t343IifeEnd) +
+  'window.__t343Test={start:startTech343,toolbar:buildToolbar};\n' +
+  js.slice(t343IifeEnd); // T343a：只在 Node harness 的 IIFE 內匯出；正式 GV API 不增面
 eval(js);
 
 // ---- 測試輔助 ----
@@ -5526,12 +5531,168 @@ runPwaTests().then(() => {
     }
   }
 
-  // ===== T381 EDU 教育場髒快取修復：doPlace/doze 增量路徑即時刷新（不再等 load/預算變更才腐化重生） =====
+  console.log('\n-- T343a 科技樹資料層／存讀檔／工具列刷新 --');
+  {
+    const tech0 = window.GV.tech343();
+    const atlasSig343 = () => JSON.stringify(window.GV.sprAtlas356().entries.map(e =>
+      [e.fam, e.key, e.w, e.h, e.ax, e.ay, e.sc, !!e.night]));
+    const atlasBefore343 = atlasSig343();
+    assert(tech0 && tech0.nodes.length === 36 &&
+      ['A','B','C','D'].every(r => tech0.nodes.filter(n => n.route === r).length === 9),
+    'T343a TECH343 應為四路各 9 節點（共 36）');
+    assert(tech0.nodes.filter(n => n.mutex).length === 8 &&
+      tech0.nodes.every(n => [400,900,1500,2400,3600,5200,7000,9000][n.tier - 1] === n.cost &&
+        [40,55,70,85,100,115,130,150][n.tier - 1] === n.points),
+    'T343a 四組互斥對與八階費用／研究點應逐項符合卡面');
+    const d5 = tech0.nodes.find(n => n.id === 'D5'), d8 = tech0.nodes.find(n => n.id === 'D8');
+    assert(d5.pre.includes('C6') && JSON.stringify(d5.any) === JSON.stringify(['D4a','D4b']) &&
+      d8.pre.includes('D7') && d8.minDone === 30,
+    'T343a D5 跨線前置與 D8 done≥30 頂石門檻應入資料表');
+    tech0.done.push('A1');tech0.nodes[0].nm = 'mutant';
+    assert(window.GV.tech343().done.length === 0 && window.GV.tech343().nodes[0].nm === '標準化生產',
+    'T343a GV.tech343 應回傳深拷貝，外部不得改寫內部狀態／節點');
+
+    window.GV.newWorldSeeded(34301);window.GV.setDiff(1);window.GV.addMoney(10000);
+    const cashA343 = window.GV.stats().money;
+    assert(window.__t343Test.start('A2') === false && window.GV.stats().money === cashA343,
+    'T343a 前置未滿足不得啟動、不得扣款');
+    assert(window.__t343Test.start('A1') === true && window.GV.stats().money === cashA343 - 400,
+    'T343a 標準難度啟動 A1 應恰扣 $400');
+    assert(window.__t343Test.start('A1') === true && window.GV.stats().money === cashA343 - 400,
+    'T343a 重點同一研究不得重複扣款');
+    window.GV.step(1);
+    const afterOne343 = window.GV.tech343(), cashB343 = window.GV.stats().money;
+    assert(afterOne343.act === 'A1' && afterOne343.prog.A1 === 1 && afterOne343.speed === 1,
+    'T343a 無研究建築時每日速度應為 1');
+    assert(window.__t343Test.start('B1') === true && window.GV.stats().money === cashB343 - 400 &&
+      window.GV.tech343().prog.A1 === 1 && window.GV.tech343().act === 'B1',
+    'T343a 切換研究應保留 A1 進度並只啟動 B1');
+    const cashC343 = window.GV.stats().money;
+    assert(window.__t343Test.start('A1') === true && window.GV.stats().money === cashC343 &&
+      window.GV.tech343().prog.A1 === 1 && window.GV.tech343().act === 'A1',
+    'T343a 切回已有正進度的 A1 應保留進度且不重複收啟動費');
+
+    window.GV.newWorldSeeded(34302);window.GV.setDiff(3);
+    const sandboxCash343 = window.GV.stats().money;
+    assert(window.__t343Test.start('A1') && window.GV.stats().money === sandboxCash343,
+    'T343a 沙盒啟動研究應免費');
+    window.GV.step(1);
+    const institute343 = findSpot('institute');
+    assert(institute343 && place('institute', institute343.x, institute343.y),
+    'T343a 應可放置研究院驗速度（不經工具列門檻）');
+    window.GV.step(1);
+    assert(window.GV.tech343().speed === 2 && window.GV.tech343().prog.A1 === 3,
+    'T343a 一座研究院應使速度 1→2，且沿用第一經濟迴圈計數');
+    window.GV.step(19);
+    assert(window.GV.tech343().act === '' && window.GV.tech343().done.includes('A1') &&
+      !Object.prototype.hasOwnProperty.call(window.GV.tech343().prog, 'A1'),
+    'T343a 研究點達門檻應完成、清 active 與該節點進度');
+
+    window.GV.newWorldSeeded(34303);window.GV.setDiff(3);
+    assert(['A1','A2','A3'].every(id => window.GV.techGrant(id)) &&
+      window.__t343Test.start('A4a') && window.__t343Test.start('A4b') === false,
+    'T343a 互斥對一側一經選定，另一側應立即拒絕');
+    window.GV.step(1);
+    assert(window.__t343Test.start('B1') && window.__t343Test.start('A4b') === false &&
+      window.GV.techGrant('A4a') && window.GV.techGrant('A4b') === false &&
+      window.__t343Test.start('A5') === true,
+    'T343a 切走後保留的互斥進度仍應永久鎖另一側；grant 亦不得繞過');
+    window.GV.newWorldSeeded(34304);window.GV.setDiff(3);
+    assert(window.GV.techGrant('D4a') && window.__t343Test.start('D5') === false &&
+      window.GV.techGrant('C6') && window.__t343Test.start('D5') === true,
+    'T343a D5 必須同時具備 D4 任一側與跨線 C6');
+
+    window.GV.newWorldSeeded(34305);window.GV.setDiff(3);
+    assert(window.__t343Test.start('A1'), 'T343a 合法存檔前應啟動 A1');
+    window.GV.step(1);
+    assert(window.GV.techGrant('D1'), 'T343a 合法存檔前應 grant D1');
+    window.GV.save();
+    const validRaw343 = store[SKEY], validDisk343 = JSON.parse(validRaw343);
+    assert(validDisk343.tech343 && validDisk343.tech343.act === 'A1' &&
+      validDisk343.tech343.prog.A1 === 1 && JSON.stringify(validDisk343.tech343.done) === '["D1"]',
+    'T343a 非零研究狀態應以單一可選 tech343 欄位落盤');
+    window.GV.newWorldSeeded(99);
+    assert(window.GV.tech343().act === '' && window.GV.tech343().done.length === 0,
+    'T343a newWorld 應成對清空研究進度');
+    store[SKEY] = validRaw343;
+    assert(window.GV.load() === true && window.GV.tech343().act === 'A1' &&
+      window.GV.tech343().prog.A1 === 1 && window.GV.tech343().done[0] === 'D1',
+    'T343a 合法研究存檔應完整往返');
+
+    window.GV.newWorldSeeded(34306);window.GV.setDiff(1);window.GV.save();
+    const emptyRaw343 = store[SKEY];
+    assert(!Object.prototype.hasOwnProperty.call(JSON.parse(emptyRaw343), 'tech343'),
+    'T343a 零研究狀態不得落 tech343 欄位');
+    window.GV.newWorldSeeded(34306);window.GV.setDiff(1);window.GV.save();
+    assert(store[SKEY] === emptyRaw343,
+    'T343a 同種子零研究城市重建後存檔 bytes 應逐位相同');
+    store[SKEY] = emptyRaw343;
+    assert(window.GV.load() === true, 'T343a 畸形欄 A/B 前應先完成無科技欄 control load');
+    window.GV.save();
+    const controlRoundtrip343 = store[SKEY];
+
+    const malformed343 = [
+      ['缺欄位', undefined],
+      ['字串', 'A1'],
+      ['數字', 343],
+      ['錯物件', {nodes:42}],
+      ['陣列', [null]],
+      ['互斥雙完成', {act:'',prog:{},done:['A4a','A4b']}],
+      ['互斥完成＋進度', {act:'',prog:{A4b:10},done:['A4a']}],
+      ['互斥完成＋啟動', {act:'A4b',prog:{},done:['A4a']}]
+    ];
+    for (const [label, bad] of malformed343) {
+      const disk = JSON.parse(emptyRaw343);
+      if (bad === undefined) delete disk.tech343; else disk.tech343 = bad;
+      store[SKEY] = JSON.stringify(disk);
+      assert(window.GV.techGrant('A1'), 'T343a ' + label + ' 案前應先造跨城殘留');
+      assert(window.GV.load() === true, 'T343a ' + label + ' 科技欄不得拖垮城市 load');
+      const s = window.GV.tech343();
+      assert(s.act === '' && s.done.length === 0 && Object.keys(s.prog).length === 0,
+        'T343a ' + label + ' 科技欄應整體棄用回零');
+      window.GV.save();
+      assert(store[SKEY] === controlRoundtrip343,
+        'T343a ' + label + ' 載入後城市存檔 bytes 應與無科技欄 control 完全相同');
+    }
+
+    window.__t343Test.toolbar();
+    const megaBtn343 = elMap.get('toolcats').children.find(b => b.textContent === '大型');
+    assert(megaBtn343, 'T343a 工具分類應找到「大型」');
+    megaBtn343.click();
+    const lowTools343 = document.querySelectorAll('.tool').length;
+    const highDisk343 = JSON.parse(emptyRaw343);highDisk343.rk = 25;store[SKEY] = JSON.stringify(highDisk343);
+    assert(window.GV.load() === true, 'T343a 高等級存檔應載入');
+    const toolDefStart343 = html.indexOf('const TOOLS=[');
+    const toolDef343 = html.slice(toolDefStart343, html.indexOf('];', toolDefStart343));
+    const highExpected343 = (toolDef343.match(/cat:'mega'/g) || []).length + 2;
+    const highTools343 = document.querySelectorAll('.tool').length;
+    assert(lowTools343 < highExpected343 && highTools343 === highExpected343,
+    'T343a load 後不點任何按鈕，大型工具可見數應立即由 ' + lowTools343 + ' 升至 ' + highExpected343);
+    const rankLoop343 = html.slice(html.indexOf('while(rankIdx<RANKS.length-1'),
+      html.indexOf('// 紓困保底', html.indexOf('while(rankIdx<RANKS.length-1')));
+    assert(rankLoop343.includes('rankIdx++;') && rankLoop343.includes('buildToolbar();'),
+    'T343a 每次城市晉升也必須立即重建工具列');
+    assert((html.match(/unlockRank:/g) || []).length === 31 &&
+      !html.includes('目前全部 TOOLS 皆未設'),
+    'T343a 等級門檻既有 31 條，過期「全部未設」註釋必須移除');
+    const codeStart343 = html.indexOf('/* T343a：科技樹資料層');
+    const codeEnd343 = html.indexOf('let quality=', codeStart343);
+    const code343 = html.slice(codeStart343, codeEnd343);
+    assert(codeStart343 > 0 && codeEnd343 > codeStart343 &&
+      !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(code343),
+    'T343a 資料層不得消耗任何共用或素材亂數流');
+    assert(code343.includes('techSpeed343=1+Math.min(7,instituteN+universityN+techParkN*2+campusN*2+dataCenterN+megaProjectN*2)') &&
+      html.includes('advanceTech343(inN,un,tpk342,cam342,dtc342,mgN)'),
+    'T343a 研究速度應精確為 1+min(7,研究院+大學+科技園×2+大學城×2+數據中心+太空中心×2)，並只吃既有計數');
+    assert(atlasSig343() === atlasBefore343,
+    'T343a 研究／存讀檔／grant 全流程不得改動任何 atlas 中繼指紋');
+  }
+
+  // ===== T381 EDU 髒快取裁決版：顯示側即時、模擬側位元恆等（鐵律19 多種子否決全面即時化） =====
   {
     window.GV.newWorldSeeded(301);
     window.GV.setDiff(1);
     const n381 = window.GV.N();
-    // 找一塊能放學校的陸地（t=1/2 陸地、無建物/路/樹/分區；doPlace 自帶完整檢查）
     let sx381 = -1, sy381 = -1;
     for (let y = 4; y < n381 - 4 && sx381 < 0; y++) for (let x = 4; x < n381 - 4; x++) {
       const t = window.GV.tile(x, y);
@@ -5541,32 +5702,24 @@ runPwaTests().then(() => {
     }
     assert(sx381 >= 0, 'T381 應能在陸地放置學校');
     assert(window.GV.cov('school', sx381, sy381) > 0, 'T381 放置後 COV.school 立即非 0（既有增量行為）');
-    assert(window.GV.eduAt(sx381, sy381) > 0, 'T381 建校後不 load、EDU 立即非 0（髒快取修復核心驗收）');
-    // 增量 ≡ 全量：快照全圖 EDU → rebuildCov → 逐格位元一致
-    const snap381 = new Uint8Array(n381 * n381);
-    for (let y = 0, k = 0; y < n381; y++) for (let x = 0; x < n381; x++, k++) snap381[k] = window.GV.eduAt(x, y);
+    // 分離斷言：顯示側即時非 0，模擬快取維持 0（＝模擬路徑未被動到）
+    assert(window.GV.eduLiveAt(sx381, sy381) > 0, 'T381 建校後不 load、顯示側 eduLiveAt 立即非 0');
+    assert(window.GV.eduAt(sx381, sy381) === 0, 'T381 模擬快取 EDU 建校當下應仍為 0（裁決：模擬側不即時化，見卡面 12 種子表）');
+    // 公式同一性：rebuildCov 後快取＝即時值（同一 eduStaticAt）
     window.GV.rebuildCov();
-    let diff381 = 0;
-    for (let y = 0, k = 0; y < n381; y++) for (let x = 0; x < n381; x++, k++) if (window.GV.eduAt(x, y) !== snap381[k]) diff381++;
-    assert(diff381 === 0, 'T381 增量刷新須與 rebuildCov 全量重建逐格位元一致，差異格=' + diff381);
-    // 疊加：學校近旁放圖書館 → 學校格 EDU=50+35=85；拆校對稱回 35；全拆歸 0
-    let lx381 = -1, ly381 = -1;
-    for (let dy = -2; dy <= 2 && lx381 < 0; dy++) for (let dx = -2; dx <= 2; dx++) {
-      if (!dx && !dy) continue;
-      const x = sx381 + dx, y = sy381 + dy;
-      const t = window.GV.tile(x, y);
-      if (t && (t.t === 1 || t.t === 2) && !t.bld && !t.road && !t.zone && !t.tree) {
-        if (window.GV.place('library', x, y)) { lx381 = x; ly381 = y; break; }
-      }
-    }
-    assert(lx381 >= 0, 'T381 學校近旁應能放圖書館');
-    assert(window.GV.eduAt(sx381, sy381) === 85, 'T381 school+library 疊加格 EDU 應為 50+35=85（營養午餐未開），實得 ' + window.GV.eduAt(sx381, sy381));
+    assert(window.GV.eduAt(sx381, sy381) === window.GV.eduLiveAt(sx381, sy381) && window.GV.eduAt(sx381, sy381) > 0,
+      'T381 rebuildCov 後快取應與即時值逐位一致（同一 eduStaticAt 公式）');
+    // 拆除對稱：顯示側即時歸 0
     assert(window.GV.place('doze', sx381, sy381), 'T381 應能拆除學校');
-    assert(window.GV.eduAt(sx381, sy381) === 35, 'T381 拆校後疊加格對稱回 35（僅剩圖書館），實得 ' + window.GV.eduAt(sx381, sy381));
-    assert(window.GV.place('doze', lx381, ly381), 'T381 應能拆除圖書館');
-    assert(window.GV.eduAt(sx381, sy381) === 0, 'T381 全拆後 EDU 對稱歸 0，實得 ' + window.GV.eduAt(sx381, sy381));
+    assert(window.GV.eduLiveAt(sx381, sy381) === 0, 'T381 拆校後顯示側即時歸 0，實得 ' + window.GV.eduLiveAt(sx381, sy381));
+    // 靜態守衛：模擬側四讀點必須仍吃 EDU[ 快取；顯示側兩點必須用 eduStaticAt
+    assert(/const eduTerm=\(EDU\[i\]\/255\)/.test(html) && /aiEduSum\+=EDU\[i2\]/.test(html) &&
+           /eduSumT342\+=EDU\[ci\]/.test(html) && /1\+\(EDU\[i\]\/255\)\*\.4:1/.test(html),
+      'T381 模擬側四讀點（eduTerm/aiEduSum/eduSumT342/eduIndMul）必須維持吃 EDU 快取——改動即破壞 12 種子校準，須先過鐵律19 崩城率驗收');
+    assert(/needEd=clamp\(eduStaticAt\(x,y\)\/160/.test(html) && /ne\+=clamp\(eduStaticAt\(ni%N,\(ni\/N\)\|0\)\/160/.test(html),
+      'T381 顯示側兩點（需求卡/晶片抽樣）必須用即時 eduStaticAt');
+    assert(!/EDU_COV_FIELDS/.test(html), 'T381 stampCov 不得含 EDU 增量寫入（被鐵律19 否決的版本）');
   }
-
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
