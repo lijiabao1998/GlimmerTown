@@ -173,6 +173,17 @@ table.dtab td.n{text-align:right;font-variant-numeric:tabular-nums}
 table.dtab tr:hover td{background:#1b2334}
 .dtwrap{max-height:46vh;overflow:auto;border:1px solid #2a3448;border-radius:4px}
 .gsec{margin:9px 0 3px;font-size:12px;color:#ffd977;font-weight:700}
+/* T343b：統計面板內科技樹分頁。只在科技 canvas 存在時放寬 #info，其他檢視面板尺寸不變。 */
+#info:has(#techTree343){width:min(680px,92vw);max-width:92vw}
+.techTabs343{display:flex;gap:5px;margin:2px 20px 8px 0}
+.techTabs343 .hbtn{flex:1;min-height:30px}
+.techTabs343 .on{border-color:#ffd977;background:#2a3358;color:#fff1b8}
+#techTree343{display:block;width:100%;height:min(48vh,420px);min-height:300px;
+  background:#0d1426;border:1px solid #344462;border-radius:6px;touch-action:none;cursor:grab}
+#techDetail343{margin-top:6px;padding:6px 8px;background:#121a2d;border:1px solid #2a3854;border-radius:6px}
+#techDetail343 .hbtn{width:100%;margin-top:4px;min-height:32px}
+#techDetail343 .hbtn:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:520px){#techTree343{height:46vh;min-height:270px}.techTabs343{margin-right:14px}}
 
 #info .x{position:absolute;top:4px;right:8px;color:var(--text-dim);cursor:pointer;font-size:15px;transition:color var(--ease)}
 #info .x:hover{color:var(--text)}
@@ -16235,6 +16246,161 @@ const FACTOR_TRACE={ // 鍵名對齊 happyRows（T111）/cityAdvisor（T131）�
   '綠地覆蓋不足':()=>svcGapTiles('park')
 };
 function traceFactor(factor){const fn=FACTOR_TRACE[factor];return fn?fn():null;}
+/* ===== T343b 科技樹面板：純 UI，讀 T343a 狀態並呼叫既有 startTech343；零效果掛點／零新模擬狀態。 ===== */
+const TECH_ROUTE_META343={
+  A:{x:135,ic:'🏭',nm:'產業',c:'#e39a55'},B:{x:395,ic:'🏘️',nm:'民生',c:'#7fd88b'},
+  C:{x:655,ic:'🎓',nm:'文教',c:'#71b8f2'},D:{x:915,ic:'🔭',nm:'遠望',c:'#bd91ef'}
+};
+const TECH_WORLD343={w:1070,h:750,nw:124,nh:58};
+let techSel343='A1',techPan343={x:18,y:18,init:false},techDrag343=null;
+function statsTabs343(active){
+  return '<div class="techTabs343" role="tablist" aria-label="統計分頁">'+
+    '<button class="hbtn'+(active==='city'?' on':'')+'" id="statsCity343" role="tab" aria-selected="'+(active==='city')+'">📊 城市</button>'+
+    '<button class="hbtn'+(active==='tech'?' on':'')+'" id="statsTech343" role="tab" aria-selected="'+(active==='tech')+'">🔬 科技樹</button></div>';
+}
+function bindStatsTabs343(){
+  const city=$('#statsCity343'),tech=$('#statsTech343');
+  if(city)city.onclick=()=>{showStats();sTick();};
+  if(tech)tech.onclick=()=>{showTechPanel343();sTick();};
+}
+function techRect343(n){
+  const m=TECH_ROUTE_META343[n.route],split=n.tier===4?(n.id.endsWith('a')?-68:68):0;
+  return{x:m.x+split,y:85+(n.tier-1)*88,w:TECH_WORLD343.nw,h:TECH_WORLD343.nh};
+}
+function techUiState343(n){
+  const progress=tech343.prog[n.id]||0,done=hasTech343(n.id),active=tech343.act===n.id;
+  const mutex=!!(n.mutex&&(hasTech343(n.mutex)||tech343.act===n.mutex||tech343.prog[n.mutex]>0));
+  const can=canStartTech343(n),fee=(diff===3||progress>0)?0:n.cost;
+  let status=done?'已完成':active?'研究中':mutex?'互斥封鎖':!can?'前置未滿足':money<fee?'資金不足':progress>0?'可繼續研究':'可啟動';
+  return{progress,done,active,mutex,can,fee,status,actionable:!done&&!active&&can&&money>=fee};
+}
+function techPrereq343(n){
+  const parts=[];
+  if(n.pre&&n.pre.length)parts.push(n.pre.join('＋'));
+  if(n.any&&n.any.length)parts.push('（'+n.any.join(' 或 ')+'）');
+  if(n.minDone)parts.push('完成節點 ≥ '+n.minDone);
+  return parts.length?parts.join(' ＋ '):'無';
+}
+function techClampPan343(cv){
+  const edge=18,minX=Math.min(edge,cv.width-TECH_WORLD343.w-edge),minY=Math.min(edge,cv.height-TECH_WORLD343.h-edge);
+  techPan343.x=clamp(techPan343.x,minX,edge);techPan343.y=clamp(techPan343.y,minY,edge);
+}
+function drawTechTree343(){
+  const cv=$('#techTree343');if(!cv||!cv.getContext)return{boxes:0,edges:0,mutex:0,progress:0};
+  if(cv.width!==640)cv.width=640;if(cv.height!==420)cv.height=420;
+  techClampPan343(cv);
+  const g=cv.getContext('2d');if(!g)return{boxes:0,edges:0,mutex:0,progress:0};
+  const meta={boxes:0,edges:0,mutex:0,progress:0};
+  g.clearRect(0,0,cv.width,cv.height);g.fillStyle='#0d1426';g.fillRect(0,0,cv.width,cv.height);
+  g.save();g.translate(techPan343.x,techPan343.y);
+  for(const r of Object.keys(TECH_ROUTE_META343)){
+    const m=TECH_ROUTE_META343[r];g.fillStyle=m.c;g.font='700 15px sans-serif';g.textAlign='center';
+    g.fillText(m.ic+' '+r+' '+m.nm,m.x,26);
+    g.strokeStyle='rgba(120,145,185,.14)';g.lineWidth=1;g.beginPath();g.moveTo(m.x,42);g.lineTo(m.x,TECH_WORLD343.h-12);g.stroke();
+  }
+  const link=(from,to,color,dash)=>{
+    if(!from||!to)return;const a=techRect343(from),b=techRect343(to);
+    g.strokeStyle=color;g.lineWidth=2;g.setLineDash(dash||[]);g.beginPath();
+    g.moveTo(a.x,a.y+a.h/2);g.lineTo(a.x,(a.y+b.y)/2);g.lineTo(b.x,(a.y+b.y)/2);g.lineTo(b.x,b.y-b.h/2);g.stroke();
+    g.setLineDash([]);meta.edges++;
+  };
+  for(const n of TECH343){
+    for(const id of n.pre||[])link(TECH343_BY_ID[id],n,'#536784');
+    for(const id of n.any||[])link(TECH343_BY_ID[id],n,'#5aaed6',[5,4]);
+  }
+  for(const n of TECH343){
+    if(!n.mutex||n.id>n.mutex)continue;
+    const a=techRect343(n),b=techRect343(TECH343_BY_ID[n.mutex]);
+    g.strokeStyle='#d86565';g.lineWidth=2;g.setLineDash([3,3]);g.beginPath();g.moveTo(a.x+a.w/2,a.y);g.lineTo(b.x-b.w/2,b.y);g.stroke();g.setLineDash([]);
+    g.fillStyle='#ff8a72';g.font='700 15px sans-serif';g.textAlign='center';g.fillText('⊗',(a.x+b.x)/2,a.y+5);meta.mutex++;
+  }
+  for(const n of TECH343){
+    const p=techRect343(n),s=techUiState343(n),sel=n.id===techSel343;
+    g.fillStyle=s.done?'#244b39':s.active?'#183f62':s.mutex?'#282c38':s.can?'#18243a':'#151b29';
+    g.strokeStyle=sel?'#ffd977':s.done?'#71d58a':s.active?'#5ec8ff':s.mutex?'#8a5360':'#465777';
+    g.lineWidth=sel?3:1.5;g.fillRect(p.x-p.w/2,p.y-p.h/2,p.w,p.h);g.strokeRect(p.x-p.w/2,p.y-p.h/2,p.w,p.h);
+    g.textAlign='left';g.fillStyle='#9eb0ca';g.font='10px sans-serif';g.fillText(n.id+' · T'+n.tier,p.x-p.w/2+7,p.y-p.h/2+12);
+    g.fillStyle=s.done?'#a8edb7':'#eef3ff';g.font='700 11px sans-serif';g.fillText(TECH_ROUTE_META343[n.route].ic+' '+n.nm,p.x-p.w/2+7,p.y+3);
+    g.fillStyle=s.done?'#87d99a':s.active?'#78d1ff':s.mutex?'#d08088':'#8fa0bc';g.font='9px sans-serif';
+    g.fillText(s.done?'✓ 完成':s.active?'▶ '+s.progress+'/'+n.points:s.mutex?'⊗ 已封鎖':s.progress>0?'↺ '+s.progress+'/'+n.points:s.status,p.x-p.w/2+7,p.y+p.h/2-7);
+    if(s.progress>0&&!s.done){
+      const bw=p.w-12;g.fillStyle='#202b42';g.fillRect(p.x-p.w/2+6,p.y+p.h/2-4,bw,3);
+      g.fillStyle='#5ec8ff';g.fillRect(p.x-p.w/2+6,p.y+p.h/2-4,bw*clamp(s.progress/n.points,0,1),3);meta.progress++;
+    }
+    meta.boxes++;
+  }
+  g.restore();return meta;
+}
+function updateTechDetail343(){
+  const d=$('#techDetail343'),n=TECH343_BY_ID[techSel343];if(!d||!n)return;
+  const s=techUiState343(n),mutex=n.mutex?('⊗ '+n.mutex):'無';
+  d.innerHTML=statTab([
+    {sec:TECH_ROUTE_META343[n.route].ic+' '+n.id+' '+n.nm},
+    {k:'狀態',v:s.status,u:s.active?'每日 '+techSpeed343+' 點':'' ,t:s.done?'good':s.mutex?'bad':s.active?'warn':''},
+    {k:'進度',v:s.done?n.points+'/'+n.points:s.progress+'/'+n.points,u:'研究點'},
+    {bar:s.done?1:s.progress/n.points},
+    {k:'前置',v:techPrereq343(n),u:''},
+    {k:'互斥',v:mutex,u:''},
+    {k:'啟動費',v:'$'+s.fee,u:diff===3?'沙盒免費':s.progress>0?'已有進度免重收':''}
+  ])+'<div class="row">預定效果：'+escHtml(n.effect)+'（T343c 才接線）</div>'+
+    '<button class="hbtn" id="techStart343">'+(s.done?'✓ 已完成':s.active?'▶ 研究中':s.mutex?'⊗ 永久封鎖':!s.can?'🔒 前置未滿足':money<s.fee?'💰 資金不足':'開始研究 $'+s.fee)+'</button>';
+  const b=$('#techStart343');if(!b)return;
+  b.disabled=!s.actionable;
+  b.onclick=()=>{
+    const ok=startTech343(n.id);
+    if(ok){updHud();toast('🔬 已開始研究：'+n.nm,'gold');updateTechDetail343();drawTechTree343();sTick();}
+    else toast('目前無法啟動 '+n.nm,'bad');
+    return ok;
+  };
+}
+function techSelect343(id,focus){
+  if(!TECH343_BY_ID[id])return false;techSel343=id;
+  if(focus)techFocus343(id);else{updateTechDetail343();drawTechTree343();}
+  return true;
+}
+function techHit343(sx,sy){
+  const x=sx-techPan343.x,y=sy-techPan343.y;
+  for(let i=TECH343.length-1;i>=0;i--){const n=TECH343[i],p=techRect343(n);
+    if(x>=p.x-p.w/2&&x<=p.x+p.w/2&&y>=p.y-p.h/2&&y<=p.y+p.h/2)return n.id;}
+  return '';
+}
+function techFocus343(id){
+  const cv=$('#techTree343'),n=TECH343_BY_ID[id];if(!cv||!n)return false;
+  if(cv.width!==640)cv.width=640;if(cv.height!==420)cv.height=420;
+  const p=techRect343(n);techPan343.x=cv.width/2-p.x;techPan343.y=cv.height/2-p.y;techPan343.init=true;techClampPan343(cv);
+  updateTechDetail343();drawTechTree343();return true;
+}
+function techPoint343(cv,e){
+  const r=cv.getBoundingClientRect?cv.getBoundingClientRect():{left:0,top:0,width:cv.width,height:cv.height};
+  return{x:(e.clientX-r.left)*cv.width/(r.width||cv.width),y:(e.clientY-r.top)*cv.height/(r.height||cv.height)};
+}
+function bindTechCanvas343(){
+  const cv=$('#techTree343');if(!cv)return;
+  cv.onpointerdown=e=>{const p=techPoint343(cv,e);techDrag343={id:e.pointerId,sx:p.x,sy:p.y,lx:p.x,ly:p.y,moved:false};
+    if(cv.setPointerCapture)cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing';if(e.preventDefault)e.preventDefault();};
+  cv.onpointermove=e=>{if(!techDrag343||e.pointerId!==techDrag343.id)return;const p=techPoint343(cv,e),dx=p.x-techDrag343.lx,dy=p.y-techDrag343.ly;
+    if(Math.abs(p.x-techDrag343.sx)+Math.abs(p.y-techDrag343.sy)>5)techDrag343.moved=true;
+    techPan343.x+=dx;techPan343.y+=dy;techDrag343.lx=p.x;techDrag343.ly=p.y;techClampPan343(cv);drawTechTree343();if(e.preventDefault)e.preventDefault();};
+  const end=e=>{if(!techDrag343||e.pointerId!==techDrag343.id)return;const p=techPoint343(cv,e),wasMove=techDrag343.moved;techDrag343=null;
+    if(cv.releasePointerCapture)try{cv.releasePointerCapture(e.pointerId);}catch(_e){}cv.style.cursor='grab';
+    if(!wasMove){const id=techHit343(p.x,p.y);if(id)techSelect343(id,false);}if(e.preventDefault)e.preventDefault();};
+  cv.onpointerup=end;cv.onpointercancel=end;
+}
+function showTechPanel343(){
+  const active=tech343.act?TECH343_BY_ID[tech343.act]:null;
+  $('#infoBody').innerHTML='<h3>🔬 科技樹</h3>'+statsTabs343('tech')+
+    statTab([{sec:'研究總覽'},{k:'已完成',v:tech343.done.length+'/36',u:'節點'},
+      {k:'當前研究',v:active?active.nm:'無',u:active?((tech343.prog[active.id]||0)+'/'+active.points):''},
+      {k:'每日速度',v:techSpeed343,u:'點／日'}])+
+    '<div class="row" style="font-size:11px">拖曳樹圖平移；點節點查看前置、互斥、費用與進度。虛線＝任一前置，紅色 ⊗＝二選一。</div>'+
+    '<div class="row"><button class="hbtn" id="techHome343">⌖ 定位所選節點</button></div>'+
+    '<canvas id="techTree343" width="640" height="420" aria-label="36 節點科技樹"></canvas><div id="techDetail343"></div>';
+  showInfoPanel();$('#info').scrollTop=0;bindStatsTabs343();bindTechCanvas343();
+  const home=$('#techHome343');if(home)home.onclick=()=>{techFocus343(techSel343);sTick();};
+  if(!TECH343_BY_ID[techSel343])techSel343='A1';
+  updateTechDetail343();
+  if(!techPan343.init)techFocus343(techSel343);else drawTechTree343();
+}
 function showStats(){
   // T68 政策快捷（稅率倍率）
   if(pol==null)pol={taxR:1,taxC:1,taxI:1,curfew:false,recycle:false,tourPromo:false,ecoReg:false,freeTransit:false,schoolLunch:false,smokeDetect:false,indSubsidy:false,nightMarket:false,parkNight:false,insurance:false}; // T327：六條新政策（舊檔缺欄位得 undefined＝falsy，效果處全三元式天然容錯）
@@ -16437,6 +16603,7 @@ function showStats(){
     {k:'🏫 教育',v:scoreParts.edu.toFixed(1),u:''}]);
   $('#infoBody').innerHTML=
     `<h3>📊 ${escHtml(townName)}</h3>
+     ${statsTabs343('city')}
      ${diff===3?'<div class="row" style="color:#ffd977">🧪 沙盒模式：建造免費・無維護費・可手動觸發災害</div>':''}
      ${statTab(finRows)}
      ${t369Html}
@@ -16462,6 +16629,7 @@ function showStats(){
      ${plague?`<div class="row" style="color:#ffb84d">🦠 疫情蔓延中（${plague.cells.length} 戶感染）<button class="hbtn" id="plagueBtn">💉 隔離 $150</button></div>`:''}
      <div class="row">${loan?`🏦 貸款還款中：剩 ${loan.remain} 天，每天 -$${loan.daily}`:((kCnt[86]||0)>0?`<button class="hbtn" id="bLoan">🏦 銀行貸款 $5000（40天每天還$150）</button>`:`<button class="hbtn" id="bLoan">🏦 貸款 $2000（20天每天還$120）</button>`)}</div>`;
   showInfoPanel();
+  bindStatsTabs343();
   if(bldRows.length)bindDataTable('dtBld',showStats); // T323：建築統計表頭排序→重繪整面板
   happySorted.forEach((p,pi)=>{ // T143：幸福構成負向因子點擊→因果追溯疊圖（設 traceOverlay，draw() 對應繪製；再點同一因子清空）
     if(!(p.val<0&&FACTOR_TRACE[p.name]))return;
