@@ -16354,7 +16354,7 @@ function updateTechDetail343(){
   b.disabled=!s.actionable;
   b.onclick=()=>{
     const ok=startTech343(n.id);
-    if(ok){updHud();toast('🔬 已開始研究：'+n.nm,'gold');updateTechDetail343();drawTechTree343();sTick();}
+    if(ok){updHud();toast('🔬 已開始研究：'+n.nm,'gold');showTechPanel343();sTick();}
     else toast('目前無法啟動 '+n.nm,'bad');
     return ok;
   };

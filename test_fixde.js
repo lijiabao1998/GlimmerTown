@@ -204,7 +204,9 @@ if (t343IifeEnd < 0) throw new Error('T343a harness 找不到主 IIFE 尾端');
 const inject343 = (needle, replacement, label) => {
   const hits = js.split(needle).length - 1;
   if (hits !== 1) throw new Error('T343c probe 錨點失準 ' + label + ' hits=' + hits);
+  const before = js;
   js = js.replace(needle, replacement);
+  if (js === before) throw new Error('T343c probe 注入未改變源碼 ' + label);
 };
 inject343(
   "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1);\n    if(R()<p){",
@@ -236,6 +238,11 @@ function __t343Base(id){
 function __t343Bld(k,lv,x,y){
   const i=idx(x,y);tiles[i].bld={k,lv,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;
 }
+function __t343ProbeValue(kind){
+  const v=window.__t343Probe[kind];
+  if(!Number.isFinite(v))throw new Error('T343c probe 未命中或非有限數 '+kind+'='+v);
+  return v;
+}
 function __t343TickCase(kind,id){
   __t343Base(id);
   const oldR=R,oldRoad=hasRoadNear,oldPower=computePower,oldWater=computeWater,oldDis=disastersOn;
@@ -250,10 +257,10 @@ function __t343TickCase(kind,id){
     tick();
     if(kind==='taxI')return fin.taxI;
     if(kind==='taxC')return fin.taxC;
-    if(kind==='fire')return window.__t343Probe.fire;
-    if(kind==='crime')return window.__t343Probe.crime;
+    if(kind==='fire')return __t343ProbeValue('fire');
+    if(kind==='crime')return __t343ProbeValue('crime');
     if(kind==='happy')return tiles[target].bld.h;
-    if(kind==='upgrade')return window.__t343Probe.upgrade;
+    if(kind==='upgrade')return __t343ProbeValue('upgrade');
     if(kind==='demand')return dem[3];
     if(kind==='policy')return fin.upReg;
     throw new Error('T343c 未知 tick fixture '+kind);
@@ -266,7 +273,7 @@ function __t343TransitCase(id){
   for(let y=cy-3;y<=cy+3;y++)for(let x=cx-3;x<=cx+3;x++)if(x!==cx||y!==cy)cells.push([x,y]);
   for(let j=0;j<37;j++){const lv=j<8?2:j<10?3:1;__t343Bld(1,lv,cells[j][0],cells[j][1]);}
   computeBusRtCovPop();
-  return window.__t343Probe.transit;
+  return __t343ProbeValue('transit');
 }
 function __t343EffectCase(kind,id){
   if(['taxI','taxC','fire','crime','happy','upgrade','demand','policy'].includes(kind))return __t343TickCase(kind,id);
@@ -299,7 +306,7 @@ js = js.slice(0, t343IifeEnd) +
   'visible:(id)=>{const cv=$("#techTree343"),n=TECH343_BY_ID[id];if(!cv||!n||!techFocus343(id))return false;' +
   'const p=techRect343(n),x=p.x+techPan343.x,y=p.y+techPan343.y;return x-p.w/2>=0&&x+p.w/2<=cv.width&&y-p.h/2>=0&&y+p.h/2<=cv.height;},' +
   'click:()=>{const b=$("#techStart343");return b&&b.onclick?b.onclick():false;},' +
-  'detail:()=>$("#techDetail343").innerHTML,startDisabled:()=>!!$("#techStart343").disabled,' +
+  'detail:()=>$("#techDetail343").innerHTML,summary:()=>$("#infoBody").innerHTML,startDisabled:()=>!!$("#techStart343").disabled,' +
   'view:()=>({sel:techSel343,x:techPan343.x,y:techPan343.y}),' +
   'effect:__t343EffectCase,eduRefresh:__t343EduRefresh,' +
   'guide:()=>{guideTab=5;showHelp();return $("#infoBody").innerHTML;}};\n' +
@@ -5858,6 +5865,9 @@ runPwaTests().then(() => {
     assert(!window.__t343Test.startDisabled() && window.__t343Test.click() === true &&
       window.GV.stats().money === sandboxCash343b && window.GV.tech343().act === 'A1',
     'T343b 啟動按鈕須走 T343a startTech343，沙盒成功啟動且零扣款');
+    assert(window.__t343Test.summary().includes('當前研究') &&
+      window.__t343Test.summary().includes('標準化生產'),
+    'T343c 啟動研究後須整體重繪面板，頂部「當前研究」立即顯示標準化生產');
     window.GV.step(1);
     assert(window.__t343Test.draw().progress === 1 && window.__t343Test.detail().includes('研究中'),
     'T343b 推進一天後 canvas 應畫進度條，詳情同步顯示研究中');
@@ -5927,6 +5937,22 @@ runPwaTests().then(() => {
     const base343c = Object.create(null);
     const baseline343c = kind => Object.prototype.hasOwnProperty.call(base343c, kind)
       ? base343c[kind] : (base343c[kind] = window.__t343Test.effect(kind, ''));
+    const familyChecks343c = [
+      ['fire',[['A4a',1.10],['A4b',.85],['B3',.90]]],
+      ['crime',[['B2',.92],['B4b',1.05],['B7',.90]]],
+      ['transit',[['A2',1.12],['C5',1.08]]],
+      ['upgrade',[['A5',1.10],['C2',1.08]]]
+    ];
+    for (const [kind, checks] of familyChecks343c) {
+      const before = baseline343c(kind), got = [];
+      let ok = Number.isFinite(before) && before > 0;
+      for (const [id, expected] of checks) {
+        const after = window.__t343Test.effect(kind, id), ratio = after / before;
+        ok = ok && Number.isFinite(after) && Math.abs(ratio - expected) <= 1e-9;
+        got.push(id + ':' + before + '→' + after + ' (×' + ratio + ')');
+      }
+      assert(ok, 'T343c ' + kind + ' 家族 probe 必須命中真公式且逐節點比值精確（容差 ≤1e-9）：' + got.join('；'));
+    }
     for (const [id, checks] of specs343c) {
       const got = [];
       let ok = true;
