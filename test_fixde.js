@@ -6486,6 +6486,20 @@ runPwaTests().then(() => {
     assert(html.includes("if(d.tre&&d.tre.length>N*N)d.tre=repairTre390(d.tre,d.ter||'',N);"),
       'T390 load 端救援觸發行在場');
   }
+  // ===== T391 服務容量顯示收官：垃圾/消防/警察（T387a 模式；業主 loop R12） =====
+  {
+    window.GV.newWorldSeeded(151);window.GV.weather(0);window.GV.step(1);
+    const fs391=window.GV.flowStat();
+    assert(fs391.svc&&fs391.svc.garb&&fs391.svc.fire&&fs391.svc.police,'T391 svc 三族節在場');
+    assert(Number.isFinite(fs391.svc.garb.ratio)&&fs391.svc.fire.trucks>=0&&fs391.svc.police.cars>=0,'T391 三族數字有限');
+    window.__t384Bld(6,10,10);window.__t384Bld(11,14,10); // 消防局+警察局
+    window.__t386Tick();
+    const fs392=window.GV.flowStat();
+    assert(fs392.svc.fire.stations===1&&fs392.svc.police.stations===1,'T391 消防/警察站計數入快照，實得 '+fs392.svc.fire.stations+'/'+fs392.svc.police.stations);
+    const ph391=window.GV.flowPanel384();
+    assert(ph391.includes('垃圾 產/處理')&&ph391.includes('消防 站/總局/車')&&ph391.includes('警察 局/派出所/車')&&!/NaN|undefined|Infinity/.test(ph391),
+      'T391 面板三族列零壞值');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
