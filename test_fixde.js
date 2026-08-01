@@ -329,6 +329,7 @@ window.__t385St=function(v){cms385.st=v;}; // T385 測試橋：改接單日（�
 window.__t385Steel=function(v){steel=v;}; // T385 測試橋：直設鋼庫存
 window.__t385Load=function(raw){return cmsLoad385(raw);}; // T385 測試橋：驗型單元測試
 window.__t385Diff=function(v){diff=v;}; // T385 測試橋：切難度（沙盒 dim 案）
+window.__t385Pop=function(v){pop=v;}; // T386b 測試橋：直設人口（pop 門檻案；下一 tick 會重算）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
   const oldR=R,oldRoad=hasRoadNear,oldPower=computePower,oldWater=computeWater,oldDis=disastersOn;
@@ -6250,12 +6251,15 @@ runPwaTests().then(() => {
     assert(window.GV.commPanel385().includes('沙盒模式無委託'),'T385 沙盒 dim 列');
     window.__t385Diff(1);window.__t385Rank(0);
     assert(window.GV.commPanel385().includes('等級 3 解鎖'),'T385 低等級 dim 列');
-    window.__t385Rank(4);
+    window.__t385Rank(4);window.__t385Pop(100); // T386b pop 門檻補課後，三選一態需 pop>50
     const ph385=window.GV.commPanel385();
     assert(ph385.includes('三選一')&&!/NaN|undefined|Infinity/.test(ph385),'T385 三選一面板零壞值');
     const tb385=document.querySelector('#statsComm385'),ab385=document.querySelector('#bCommAcc385_0');
     assert(tb385&&typeof tb385.onclick==='function'&&ab385&&typeof ab385.onclick==='function',
       'T385 tab 與接受鈕綁定存在（白名單 id＝mock 陷阱守衛）');
+    window.__t385Pop(0);
+    assert(window.GV.cmsAccept385(0)===false,'T386b pop 門檻：pop≤50 時接受必拒（T385 卡面宣稱補課）');
+    window.__t385Pop(100); // 過 pop 門檻後再點
     ab385.onclick();
     const c5=window.GV.cms385();
     assert(c5.act!==''&&c5.st>=1,'T385 接受鈕真的接單（act 就位/st 記日）');
@@ -6263,6 +6267,37 @@ runPwaTests().then(() => {
     assert(ph386.includes('進行中')&&ph386.includes('放棄委託')&&!/NaN|undefined/.test(ph386),'T385 進行中面板含進度與放棄鈕');
     window.GV.cmsDrop385();
     assert(window.GV.cms385().act===''&&window.GV.cms385().n===1,'T385 放棄=過期同語義（n+1 換輪）');
+  }
+  // ===== T386b 外貿合約 v1（stock 期末驗收型；業主 loop R5） =====
+  {
+    window.GV.newWorldSeeded(111);window.GV.weather(0);
+    window.__t385Rank(6);
+    const of386=window.GV.cmsOffers385();
+    assert(of386.length===3&&new Set(of386).size===3,'T386b 池擴至 11 條後三選一仍滿額互異：'+of386.join(','));
+    // stock 完成案：庫存 100、到期日驗收 60 → 成
+    window.__t385Steel(100);window.__t385Force('ct_steel60');window.__t385St(-119);
+    const m386=window.GV.stats().money;
+    window.GV.step(1);
+    const c386=window.GV.cms385();
+    assert(c386.act===''&&c386.done.includes('ct_steel60'),'T386b stock 到期驗收達標→完成入 done');
+    assert(window.GV.stats().money>m386+3000,'T386b 合約獎金 $3200 入帳（扣日常收支後仍淨增 >3000）');
+    assert(window.GV.chain346().steel===100,'T386b 純讀機器證明：驗收不扣庫存（無鋼廠/船廠城，steel 恆 100）');
+    // stock 過期案：庫存 20 到期 → 過期零副作用
+    window.__t385Steel(20);window.__t385Force('ct_fuel80');window.__t385St(-119);
+    window.GV.step(1);
+    const c387=window.GV.cms385();
+    assert(c387.act===''&&!c387.done.includes('ct_fuel80'),'T386b stock 到期未達標→過期不入 done（失敗不毀城）');
+    // 期中不誤判：庫存已達標但未到期 → 不得提前完成
+    window.__t385Steel(100);window.__t385Force('ct_steel60');
+    window.GV.step(1);
+    assert(window.GV.cms385().act==='ct_steel60','T386b stock 期中達標不得提前完成（期末驗收語義）');
+    window.GV.cmsDrop385();
+    // 面板 stock 呈現
+    window.__t385Steel(45);window.__t385Force('ct_steel60');
+    const ph386=window.GV.commPanel385();
+    assert(ph386.includes('期末驗收')&&ph386.includes('45 / 60')&&!/NaN|undefined|Infinity/.test(ph386),
+      'T386b 進行中面板顯示庫存/目標（期末驗收）且零壞值');
+    window.GV.cmsDrop385();
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
