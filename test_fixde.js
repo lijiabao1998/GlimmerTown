@@ -6434,6 +6434,19 @@ runPwaTests().then(() => {
     window.GV.setRot(0);
     assert(window.GV.rot()===0,'T388 區塊尾 rot 歸零（全套件其後假設 rot=0）');
   }
+  // ===== T389 旋轉收口 C 族（粒子深度鍵；業主 loop R10；旋轉全收官） =====
+  {
+    assert(!/dep=x\+y/.test(html),'T389 G1 七 spawn 點不得殘留世界空間深度鍵 dep=x+y');
+    const vd389=(html.match(/dep=viewDep\(x,y\)\+\.\d+; \/\/ T389/g)||[]).length;
+    assert(vd389===7,'T389 G2 粒子 spawn 深度鍵 viewDep 化應恰 7 處（dust/debris/ember/leaf/petal/steam/exhaust；14192 既有 view 行不計），實得 '+vd389);
+    assert(html.includes('function viewDep(x,y){const p=w2v(x,y);return p[0]+p[1];}'),
+      'T389 G3 viewDep 定義釘（r=0 時 w2v=identity ⇒ viewDep≡x+y=舊 dep 構造性恆等）');
+    window.GV.setRot(0);
+    const N389=window.GV.N();
+    let ok389=true;
+    for(const [x,y] of [[0,0],[10,7],[N389-1,N389-1],[35,2]]){const p=window.GV.w2v(x,y);if(p[0]+p[1]!==x+y)ok389=false;}
+    assert(ok389,'T389 G3 rot=0 抽點 viewDep 值恆等 x+y（舊 dep 值逐位回歸）');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
