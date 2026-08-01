@@ -6349,6 +6349,26 @@ runPwaTests().then(() => {
     window.__t386Set('');window.GV.save();
     assert(!/spec386/.test(JSON.stringify(window.GV.inflateSave(window.GV.rawSave()))),'T386a 零狀態存檔零新鍵');
   }
+  // ===== T387a 醫療容量顯示層（業主 loop R7） =====
+  {
+    window.GV.newWorldSeeded(131);window.GV.weather(0);
+    window.__t384Bld(1,15,15); // 無醫療覆蓋住宅
+    assert(window.GV.igniteSick(15,15)===true,'T387a igniteSick 造病成功');
+    window.__t386Tick(); // stub tick：R=.999999 ⇒ 不癒/不再感染/不轉死
+    const fs387=window.GV.flowStat();
+    assert(fs387.med&&fs387.med.sick===1,'T387a 同時病患計數=1（stub tick 後仍病），實得 '+(fs387.med&&fs387.med.sick));
+    assert(fs387.med.cap===0,'T387a 無醫療建築容量=0');
+    window.__t384Bld(13,20,15);window.__t384Bld(48,25,15); // 診所+綜合醫院
+    window.__t386Tick();
+    const fs388=window.GV.flowStat();
+    assert(fs388.med.cap===34,'T387a 容量=診所4+綜合醫院30=34，實得 '+fs388.med.cap);
+    const ph387=window.GV.flowPanel384();
+    assert(ph387.includes('服務容量（醫療）')&&ph387.includes('醫療覆蓋率')&&!/NaN|undefined|Infinity/.test(ph387),
+      'T387a 流向面板含醫療容量節與覆蓋率且零壞值');
+    const st387=JSON.stringify(window.GV.stats());
+    window.GV.flowPanel384();
+    assert(JSON.stringify(window.GV.stats())===st387,'T387a 面板純讀（含 lazy 覆蓋率）');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
