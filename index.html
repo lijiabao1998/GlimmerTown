@@ -1777,6 +1777,21 @@ function buildSprites(){
     const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
     const ctx={ax,ay,by,hw,h,rty,wl,rf,v,k,lv,rand,dg:g,smoke,d};
     for(const p of d.parts)PARTS[p](sg,ng,ctx);
+    /* T382 批9：RCI 部件繪製之後零亂數加層（不重排 parts、不碰 windows 參數／窗帶幾何） */
+    {const rty2=ctx.rty2||rty;
+     sg.fillStyle='#b8b0a0';for(let i=0;i<3;i++)sg.fillRect(ax-8+i*6,ay-4,4,1); // 門前地磚
+     if(k===1){sg.fillStyle='#6a5a48';sg.fillRect(ax+2,by-2,8,2); // 門檻
+       if(lv>=2){sg.fillStyle='#8a8a92';sg.fillRect(ax-1,rty+2,2,3);} // 頂小件
+       ng.fillStyle='rgba(255,220,140,.35)';ng.fillRect(ax-4,by-h+2,8,2);}
+     if(k===2){sg.fillStyle='#c8c0b0';sg.fillRect(ax-10,by-2,16,1); // 店前步道
+       sg.fillStyle='#e8d080';sg.fillRect(ax-12,by-4,2,2);sg.fillRect(ax+10,by-4,2,2); // 門側燈座
+       ng.fillStyle='rgba(255,200,120,.4)';ng.fillRect(ax-8,by-h+4,12,2);}
+     if(k===3){sg.fillStyle='#e8d080';for(let i=0;i<3;i++)sg.fillRect(ax-12+i*10,by-2,6,1); // 安全線
+       sg.fillStyle='#6a6a72';sg.fillRect(ax+hw-6,by-h+4,3,4); // 設備箱
+       if(lv>=2){sg.fillStyle='#4a4a52';sg.fillRect(ax-hw+4,rty+3,4,3);}}
+     sg.fillStyle=shade(rf,-12);sg.fillRect(ax-2,rty+1,4,1); // 簷口短線
+     if(rty2!==rty){sg.fillStyle=shade(rf,-8);sg.fillRect(ax-1,rty2+1,2,1);}
+    }
     outlineSprite(sc,26,30,44);
     g.drawImage(sc,0,0);
     SPR.bld[k+'_'+lv+'_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke};
@@ -7564,6 +7579,11 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       const hax=36,hay=110;
       plate(g,hax,hay,hk[0]==='3'?'#8f8a7c':'#9a9484');
       drawHeroPix(hk,sg,ng);
+      /* T382 批9：RCI hero 後寫加蓋（活圖；不改 HERO_PIX 表）——門前地磚／夜廊／工業安全線 */
+      sg.fillStyle='#b8b0a0';for(let i=0;i<3;i++)sg.fillRect(hax-8+i*6,hay-6,4,1);
+      if(hk[0]==='1'){sg.fillStyle='#6a5a48';sg.fillRect(hax+2,hay-8,8,2);ng.fillStyle='rgba(255,220,140,.4)';ng.fillRect(hax-4,hay-28,8,3);}
+      if(hk[0]==='2'){sg.fillStyle='#e8d080';sg.fillRect(hax-12,hay-10,2,2);sg.fillRect(hax+10,hay-10,2,2);ng.fillStyle='rgba(255,200,120,.45)';ng.fillRect(hax-8,hay-26,16,3);}
+      if(hk[0]==='3'){sg.fillStyle='#e8d080';for(let i=0;i<3;i++)sg.fillRect(hax-12+i*10,hay-8,6,1);sg.fillStyle='#6a6a72';sg.fillRect(hax+14,hay-24,4,5);}
       outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
       SPR.bld[hk]={img:c,night:nc,ax:hax,ay:hay,w:72,h:112,smoke:[]};
     }
@@ -8909,7 +8929,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   /* ===== T382 全局美術極細化加蓋 pass（插在 T368 之後、世界流還原之前；本區零共用亂數流消耗） =====
      用途：hero 死圖鍵與需尾端疊加的細節，後寫覆蓋。本批僅占位標記；細節優先寫入各活圖塊。 ===== */
   if(!window.__noT382){
-    // 批次記錄：B1-B7 見卡；B8 服務族 v1+ 與 hero 後寫加蓋（見各塊 T382 註解）
+    // 批次記錄：B1-B8 見卡；B9 RCI mkBld 後加層＋hero 九鍵後寫加蓋
   }
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
