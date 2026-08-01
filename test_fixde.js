@@ -84,7 +84,7 @@ function makeEl(tag, id) {
   return el;
 }
 
-const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343','statsFlow384','bFlowOverlay384'];
+const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343','statsFlow384','bFlowOverlay384','statsComm385','bCommAcc385_0','bCommAcc385_1','bCommAcc385_2','bCommDrop385'];
 ids.forEach(id => makeEl(id==='techTree343'?'canvas':'div', id));
 makeEl('canvas', 'game');
 makeEl('canvas', 'logo');
@@ -323,6 +323,12 @@ js = js.slice(0, t343IifeEnd) +
 const t383IifeEnd = js.lastIndexOf('})();');
 js = js.slice(0, t383IifeEnd) + `
 window.__t384Bld=function(k,x,y){const i=idx(x,y);tiles[i].bld={k,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;}; // T384b：尾端測試造境橋（__t343Bld 在 IIFE 內搆不到）
+window.__t385Rank=function(v){rankIdx=v;}; // T385 測試橋：直設等級（正式路徑走 cityPoints）
+window.__t385Force=function(id){cms385.act=id;cms385.st=day;cms385.acc=0;cms385.hold=0;}; // T385 測試橋：強制接單
+window.__t385St=function(v){cms385.st=v;}; // T385 測試橋：改接單日（過期案免長跑）
+window.__t385Steel=function(v){steel=v;}; // T385 測試橋：直設鋼庫存
+window.__t385Load=function(raw){return cmsLoad385(raw);}; // T385 測試橋：驗型單元測試
+window.__t385Diff=function(v){diff=v;}; // T385 測試橋：切難度（沙盒 dim 案）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
   const oldR=R,oldRoad=hasRoadNear,oldPower=computePower,oldWater=computeWater,oldDis=disastersOn;
@@ -6171,6 +6177,92 @@ runPwaTests().then(() => {
     const st384b=JSON.stringify(window.GV.stats());
     window.GV.flowPanel384();window.GV.drawFlowOverlay384();
     assert(JSON.stringify(window.GV.stats())===st384b,'T384b 面板/overlay 全程純讀（GV.stats 前後全等）');
+  }
+  // ===== T385 市長委託三選一（業主 loop R4） =====
+  { // 靜態：錨塊唯一＋禁亂數（streetHash 同式純函式合法，R/ri/rand/Math.random 禁）
+    const b385=html.indexOf('/* ===== T385 cms BEGIN'),e385=html.indexOf('/* ===== T385 cms END');
+    assert(b385>=0&&e385>b385&&html.indexOf('/* ===== T385 cms BEGIN',b385+1)===-1,'T385 錨塊存在且唯一');
+    const seg385=html.slice(b385,e385);
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(seg385),'T385 委託結算段零亂數消耗（鐵律2）');
+    assert(!/income\s*\+=/.test(seg385),'T385 獎勵不得走 income+=（污染 fin/hist；只准一次性 money+=）');
+  }
+  { // 鐵律7 兩處字串釘＋undo 不觸
+    const nw385=html.split('cms385=emptyCms385();').length-1;
+    assert(nw385>=2,'T385 newWorld 成對歸零應在場（emptyCms385 呼叫≥2：宣告+newWorld），實得 '+nw385);
+    assert(html.includes('cms385=cmsLoad385(d.cms385);'),'T385 load 側驗型還原必須在場（鐵律7）');
+    const us=html.indexOf('function undo()');const ue=html.indexOf('\nfunction',us+10);
+    assert(us>=0&&!/cms385/.test(html.slice(us,ue)),'T385 undo() 不得觸碰委託狀態（T343 決策4）');
+  }
+  { // 決定性抽選＋門檻＋功能鏈＋過期＋存讀＋驗型＋UI
+    window.GV.newWorldSeeded(99);window.GV.weather(0);
+    window.__t385Rank(4); // Lv.5：五型皆有可選
+    const o1=window.GV.cmsOffers385(),o2=window.GV.cmsOffers385();
+    assert(o1.length===3&&new Set(o1).size===3&&JSON.stringify(o1)===JSON.stringify(o2),
+      'T385 三選一決定性：同 seed 同輪次恆同三條且互異，實得 '+o1.join(','));
+    // 零接單純度：步進三日 cms385 仍全零
+    window.GV.step(3);
+    assert(JSON.stringify(window.GV.cms385())===JSON.stringify({act:'',st:0,acc:0,hold:0,n:0,done:[]}),
+      'T385 零接單城市委託狀態恆零（位元恆等紅線的狀態面）');
+    // 功能鏈 1：tech 型完成
+    const m0=window.GV.stats().money;
+    window.__t385Force('techC6');window.GV.techGrant('C6');window.GV.step(1);
+    const c1=window.GV.cms385();
+    assert(c1.act===''&&c1.done.includes('techC6')&&c1.n===1,'T385 tech 型委託完成：done 收錄/act 清空/輪次+1');
+    assert(window.GV.stats().money>m0,'T385 完成發獎：money 淨增（一次性 +$1800 減日常收支後仍應高於前值）');
+    // 功能鏈 2：acc 型（鋼）——造船廠+鋼庫存→steelUsed 每日 1
+    window.__t384Bld(123,30,10);window.__t385Steel(100);window.__t385Force('steel40');
+    window.GV.step(45);
+    const c2=window.GV.cms385();
+    assert(c2.done.includes('steel40')&&c2.act==='','T385 acc 型（造船用鋼40）45 天內完成，實得 done='+c2.done.join(','));
+    // 重複完成防護（測試抓到的真 bug 回歸案）：再力接已完成的 techC6→立即再完成→done 不得重複
+    window.__t385Force('techC6');window.GV.step(1);
+    const c3=window.GV.cms385();
+    assert(c3.done.filter(x=>x==='techC6').length===1,'T385 重複完成不重記 done（重複項會讓下次 load 驗型整欄棄用＝進度蒸發）');
+    assert(JSON.stringify(window.__t385Load(c3))!==JSON.stringify({act:'',st:0,acc:0,hold:0,n:0,done:[]}),'T385 重複完成後的狀態必須能通過驗型（非整欄棄用）');
+    // 過期案：hold 型在荒城不可達（運量 0<400）+接單日回撥→到期
+    window.__t385Force('transit400');window.__t385St(-200);
+    window.GV.step(1);
+    const c4=window.GV.cms385();
+    assert(c4.act==='','T385 過期：act 清空（失敗不毀城，零城市副作用）');
+    assert(!c4.done.includes('transit400'),'T385 過期不入 done');
+    // 存讀往返＋零新鍵
+    const snap=window.GV.cms385();
+    window.GV.save();
+    const sv385=window.GV.inflateSave(window.GV.rawSave());
+    assert(sv385.cms385&&sv385.cms385.n===snap.n&&JSON.stringify(sv385.cms385.done)===JSON.stringify(snap.done),
+      'T385 有進度存檔：cms385 欄位往返一致');
+    assert(JSON.stringify(window.__t385Load(sv385.cms385))===JSON.stringify(window.__t385Load(JSON.parse(JSON.stringify(sv385.cms385)))),
+      'T385 驗型冪等');
+    // 驗型八畸形→整欄棄用回零
+    const Z385=JSON.stringify({act:'',st:0,acc:0,hold:0,n:0,done:[]});
+    const bads=[[1,'非物件'],[[1,2],'陣列'],[{act:'nope'},'act 非白名單'],[{act:'steel40',st:0},'act 有值 st<1'],
+      [{st:-1},'負數'],[{acc:1.5},'浮點'],[{done:['steel40','steel40'],act:''},'done 重複'],
+      [{act:'steel40',st:5,done:['steel40']},'act∈done 語意非法']];
+    for(const [raw,label] of bads)
+      assert(JSON.stringify(window.__t385Load(raw))===Z385,'T385 驗型畸形整欄棄用：'+label);
+    assert(JSON.stringify(window.__t385Load(undefined))===Z385,'T385 舊檔缺欄位=零狀態（合法）');
+    // 零狀態不落盤
+    window.GV.newWorldSeeded(101);window.GV.weather(0);window.GV.step(1);window.GV.save();
+    assert(!/cms385/.test(JSON.stringify(window.GV.inflateSave(window.GV.rawSave()))),
+      'T385 零委託城市存檔零新鍵（bytes 不變承諾）');
+    // UI：沙盒/低等級 dim＋綁定真實性＋面板零壞值
+    window.__t385Diff(3);
+    assert(window.GV.commPanel385().includes('沙盒模式無委託'),'T385 沙盒 dim 列');
+    window.__t385Diff(1);window.__t385Rank(0);
+    assert(window.GV.commPanel385().includes('等級 3 解鎖'),'T385 低等級 dim 列');
+    window.__t385Rank(4);
+    const ph385=window.GV.commPanel385();
+    assert(ph385.includes('三選一')&&!/NaN|undefined|Infinity/.test(ph385),'T385 三選一面板零壞值');
+    const tb385=document.querySelector('#statsComm385'),ab385=document.querySelector('#bCommAcc385_0');
+    assert(tb385&&typeof tb385.onclick==='function'&&ab385&&typeof ab385.onclick==='function',
+      'T385 tab 與接受鈕綁定存在（白名單 id＝mock 陷阱守衛）');
+    ab385.onclick();
+    const c5=window.GV.cms385();
+    assert(c5.act!==''&&c5.st>=1,'T385 接受鈕真的接單（act 就位/st 記日）');
+    const ph386=window.GV.commPanel385();
+    assert(ph386.includes('進行中')&&ph386.includes('放棄委託')&&!/NaN|undefined/.test(ph386),'T385 進行中面板含進度與放棄鈕');
+    window.GV.cmsDrop385();
+    assert(window.GV.cms385().act===''&&window.GV.cms385().n===1,'T385 放棄=過期同語義（n+1 換輪）');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);

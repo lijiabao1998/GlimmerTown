@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.9，約 19,015 行（實測檔案 19,015 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T384b**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.10，約 19,129 行（實測檔案 19,129 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T385**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -237,7 +237,7 @@
 `advance(dtReal)` 把真實時間轉成 tick 次數（`DAYLEN`=0.9s，單幀最多追 8 天）；`tick()` 一天內依固定順序跑：索引 → 噪音重建 → 日曆／事件／天氣 → 死亡前置 → **第一經濟迴圈**（計數＋幸福）→ 彙總 → 產業鏈 → 災害 → RCI 需求 → 生長 → 升級 → 垂直合併 → 火災 → 犯罪/廢棄/生病/死亡 → **第二經濟迴圈**（稅收）→ 維護費與落帳 → 挑戰/成就 → 評分 → `aiStep()`。
 
 ### 關鍵符號
-`buildTickIndex/tickBld/tickRoad/tickZone`、`happyParts`（50 項固定長度）、`cityHappy`、`dem[1..3]`、`COV/COVR/stampCov/covFieldOfK/rebuildCov`、`POL/POLBASE/POLTREE`、`NOISE/rebuildNoise`、`LAND/LANDBASE/markLandDirty`、`EDU`、`computePower/computeWater`、`season()/FARM_SEASON_MULT`、`streetHash`、`fin`、`flowStat384`（T384 tick 尾流向快照：學 demWhy 成對歸零＋ok:false，不學 fin 的無歸零殘值；僅面板/測試可讀，禁止餵回模擬）。
+`buildTickIndex/tickBld/tickRoad/tickZone`、`happyParts`（50 項固定長度）、`cityHappy`、`dem[1..3]`、`COV/COVR/stampCov/covFieldOfK/rebuildCov`、`POL/POLBASE/POLTREE`、`NOISE/rebuildNoise`、`LAND/LANDBASE/markLandDirty`、`EDU`、`computePower/computeWater`、`season()/FARM_SEASON_MULT`、`streetHash`、`fin`、`flowStat384`、`cms385`（T385 市長委託：CMS385 池九條、seed+輪次純函式雜湊三選一零 R() 消耗、可選存檔欄 cms385 svcFleet 驗型、零接單城位元恆等；沙盒不出委託）（T384 tick 尾流向快照：學 demWhy 成對歸零＋ok:false，不學 fin 的無歸零殘值；僅面板/測試可讀，禁止餵回模擬）。
 
 ### 動它會踩到什麼
 - **鐵律14 稅收守衛**：新增任何 k，若它會走到第二經濟迴圈（11131-11217），**必須**補一條顯式 `else if(b.k===K);`。否則 fall through 到工業稅兜底，`JOBSI` 只有 4 格，lv≥4 時 `JOBSI[lv]` undefined → income NaN → money NaN → 存檔崩壞。鏈尾三條範圍分支：`b.k>=124&&b.k<=133`（11207）、`LMCFG309[b.k]`（11208）、`b.k>=81&&b.k<=120&&b.k!==105&&b.k!==106`（11209）。**k>=134 沒有任何守衛。** 歷史事故四次：FIX-A（診所/墓園）、T251（大農場 k53，真的 NaN 崩存檔）、T254（k57）、T290（k65）。
@@ -376,7 +376,7 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 | 7 | 多格 ref 格不參與經濟（`if(b.ref)continue`） | 11135 | 間接由釘定種子守 |
 | 8 | 讀檔絕不拋錯；存檔格式只准新增可選欄位（鐵律9） | load 全包 try/catch，17036 回 false | 存讀往返測試、_bak 還原測試 |
 | 9 | 多格 root 由 `MSZ[k]` 反查補 sz（FIX-J） | load 16948 | FIX-J 專測（sz 保留＋ref 全數重建） |
-| 10 | 不入存檔的 state 在 `newWorld` 與 `load` 兩處成對歸零（鐵律7） | 8277-8310 / 16957-17034 | T369 gFlow284、T369.1 gWhCap284、**T384 flowStat384/gMade384（兩處字串斷言）** |
+| 10 | 不入存檔的 state 在 `newWorld` 與 `load` 兩處成對歸零（鐵律7） | 8277-8310 / 16957-17034 | T369 gFlow284、T369.1 gWhCap284、**T384 flowStat384/gMade384、T385 cms385（字串斷言）** |
 | 11 | COV/POL 蓋印嚴格成對（`covFieldOfK` 單一映射） | 9453 / 9466-9467 | 增量結果 vs `rebuildCov()` 權威值比對（test 1362, 1592） |
 | 12 | CRLF==0（`.gitattributes` 宣告範圍） | `.gitattributes` ＋ verify.py 258-278 | verify.py 閘門②（test_fixde.js 零覆蓋） |
 | 13 | `GAME_VER`＝`APP_VER`，快取名由 APP_VER 派生 | index 383 / sw.js 6-7；只准用 `bump.py` | test 907-912 ＋ verify.py 閘門③ |
