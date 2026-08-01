@@ -6105,6 +6105,44 @@ runPwaTests().then(() => {
     assert(t383toks.length===T383_RNG_TOTAL,'T383c buildSprites 亂數 token 總數應為 '+T383_RNG_TOTAL+'，實得 '+t383toks.length+'（合法改動＝同卡更新基線並記 delta）');
     assert(t383crc(t383toks.join('|'))===T383_RNG_CRC,'T383c token 行序 CRC 漂移＝buildSprites 亂數消耗序被動過（中段插入/刪除/換序；合法改動＝同卡更新基線並記 delta）');
   }
+  // ===== T384a 流向圖層資料聚合層（tick 尾快照+lazy 純讀 GV；業主 loop R2） =====
+  { // 靜態：快照段唯一錨＋禁亂數（比 T367 範本多擋 streetHash）
+    const b384=html.indexOf('/* ===== T384 flowStat BEGIN'),e384=html.indexOf('/* ===== T384 flowStat END');
+    assert(b384>=0&&e384>b384,'T384 快照段 BEGIN/END 錨應存在且有序');
+    assert(html.indexOf('/* ===== T384 flowStat BEGIN',b384+1)===-1,'T384 BEGIN 錨全檔唯一');
+    const seg384=html.slice(b384,e384);
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|streetHash\s*\(/.test(seg384),
+      'T384 快照段零亂數消耗（tick 寫快照＝純抄已算值，多一次擲骰=位元契約破壞）');
+  }
+  { // 鐵律7：宣告/newWorld/load 三處歸零字串釘（demWhy 463-467 同款）
+    const zc384=html.split('flowStat384={ok:false}').length-1;
+    assert(zc384===3,'T384 flowStat384={ok:false} 應恰 3 處（宣告+newWorld+load 成對歸零＝鐵律7），實得 '+zc384);
+    const gz384=html.split('gMade384=0').length-1;
+    assert(gz384>=3,'T384 gMade384 歸零應覆蓋宣告+newWorld+load（≥3 處），實得 '+gz384);
+  }
+  { // 功能＋跨源一致（獨立真值來源＝4161/4224 教訓）＋lazy 純讀＋存檔零新鍵
+    window.GV.newWorldSeeded(77);window.GV.weather(0);
+    assert(window.GV.flowStat().ok===false,'T384 新城未 tick 前 flowStat.ok 必須 false（demWhy 同款空窗語義）');
+    window.GV.step(1);
+    const fs384=window.GV.flowStat();
+    assert(fs384.ok===true&&fs384.day>=1,'T384 tick 後 flowStat.ok=true 且 day 就緒');
+    const leaves384=[];(function w384(o){for(const k in o){const v=o[k];if(v&&typeof v==='object')w384(v);else if(typeof v==='number')leaves384.push(v);}})(fs384);
+    assert(leaves384.length>=35&&leaves384.every(Number.isFinite),'T384 快照數字葉全部有限（實得 '+leaves384.length+' 葉）');
+    assert(fs384.goods.stock===Math.round(window.GV.goods().stock),'T384 跨源一致：goods.stock 對 GV.goods()');
+    assert(fs384.gas.ratio===+window.GV.chain346().gasRatio.toFixed(3),'T384 跨源一致：gas.ratio 對 GV.chain346()');
+    assert(fs384.fuel.stock===window.GV.chain346().fuel&&fs384.steel.stock===window.GV.chain346().steel,
+      'T384 跨源一致：fuel/steel 庫存對 GV.chain346()');
+    const st384=JSON.stringify(window.GV.stats());
+    const nodes384=window.GV.flowNodes384(),roads384=window.GV.flowRoads384();
+    assert(Array.isArray(nodes384)&&roads384&&Array.isArray(roads384.byClass)&&Array.isArray(roads384.jamTop)&&Array.isArray(roads384.corridorTop),
+      'T384 lazy 讀取（flowNodes384/flowRoads384）形狀正確');
+    assert(JSON.stringify(window.GV.stats())===st384,'T384 lazy 讀取必須純讀（GV.stats 前後全等＝T372 先例）');
+    window.GV.save();
+    assert(!/flowStat|gMade384/.test(JSON.stringify(window.GV.inflateSave(window.GV.rawSave()))),
+      'T384 快照不得落入存檔（零新鍵探針＝T364d waterCap 同款）');
+    window.GV.step(1);
+    assert(window.GV.flowStat().day===fs384.day+1,'T384 快照每日重寫（day 遞增）');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
