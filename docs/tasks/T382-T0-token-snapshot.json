@@ -1,0 +1,16 @@
+{
+  "HEAD": "f7b76b665f0d829e323d4782c0adeae4126c0791",
+  "GAME_VER": "11.6",
+  "index_lines": 18167,
+  "tokens": {
+    "R(": 183,
+    "ri(": 169,
+    "rand(": 40,
+    "spriteTexRand": 17,
+    "Math.random": 95,
+    "plate(": 138,
+    "windows(": 37,
+    "speck(": 54
+  },
+  "note": "T0 freeze at claim; baseline metrics from T382-基線指標.json (master v11.6)"
+}
