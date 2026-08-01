@@ -3797,7 +3797,15 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
  sg.fillStyle='#e05252'; sg.beginPath(); sg.arc(30,86,8,Math.PI,0); sg.fill(); // 陽傘
  sg.fillStyle='#f0f0ea'; sg.beginPath(); sg.moveTo(30,78); sg.lineTo(30,94); sg.stroke();
  sg.fillStyle='#8a8a92'; sg.fillRect(29,86,2,10);
+ /* T382：水上樂園細化（零亂數）——第二陽傘、躺椅、水花柱、售票亭、夜池燈 */
+ sg.fillStyle='#3a8ad8'; sg.beginPath(); sg.arc(88,100,7,Math.PI,0); sg.fill();
+ sg.fillStyle='#8a8a92'; sg.fillRect(87,100,2,8);
+ for(const lx of[[22,98],[38,102],[48,96]]){sg.fillStyle='#e8e0c8';sg.fillRect(lx[0],lx[1],7,2);sg.fillStyle='#c8b898';sg.fillRect(lx[0],lx[1]+2,7,1);} // 躺椅
+ sg.fillStyle='#ffffff'; for(let i2=0;i2<5;i2++){sg.fillRect(48+i2*4,100-i2,2,2);sg.fillRect(70+i2*3,96,1,3);} // 水花
+ sg.fillStyle='#d8c48a'; sg.fillRect(100,112,14,10); sg.fillStyle='#c0453a'; sg.fillRect(100,110,14,3); // 售票亭
+ sg.fillStyle='#ffe9b0'; sg.fillRect(104,114,4,4); ng.fillStyle='#ffd98a'; ng.fillRect(104,114,4,4);
  ng.fillStyle='#66d9ec'; ng.beginPath(); ng.ellipse(60,108,34,17,0,0,2*Math.PI); ng.fill();
+ ng.fillStyle='rgba(255,220,120,.55)'; ng.fillRect(26,84,8,4); ng.fillRect(84,96,8,4); // 傘下夜暖
  outlineSprite(s,58,70,86); g.drawImage(s,0,0);
  SPR.bld['101_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
 { // 寵物醫院 102_1_0：白舍綠十字＋腳印招牌
@@ -4050,6 +4058,18 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    sg.beginPath(); sg.moveTo(-4,0); sg.lineTo(-18,-16); sg.lineTo(-8,-16); sg.closePath(); sg.fill();
    sg.restore();
  }
+ /* T382：國際機場細化（零亂數）——廊橋、停機坪車、副跑道標線、貨機庫、航站窗帶、滑行道燈 */
+ sg.fillStyle='#a8acb4'; sg.fillRect(168,118,28,4); sg.fillRect(194,118,4,14); // 廊橋
+ sg.fillStyle='#c0402e'; sg.fillRect(140,200,10,5); sg.fillStyle='#3a6ea5'; sg.fillRect(155,206,9,4); // 地勤車
+ sg.fillStyle='#151515'; sg.fillRect(141,205,2,2); sg.fillRect(147,205,2,2); sg.fillRect(156,210,2,2); sg.fillRect(161,210,2,2);
+ sg.strokeStyle='#e8e8e0'; sg.lineWidth=1; sg.setLineDash([4,5]);
+ sg.beginPath(); sg.moveTo(80,250); sg.lineTo(200,180); sg.stroke(); sg.setLineDash([]); // 副標線
+ sg.fillStyle='#8a909a'; sg.fillRect(70,150,36,22); sg.fillStyle='#6a7078'; sg.fillRect(70,150,36,3); // 機庫
+ sg.fillStyle='#5a6070'; for(let i2=0;i2<3;i2++)sg.fillRect(74+i2*10,154,8,16);
+ ng.fillStyle='#ffe9a8'; ng.fillRect(74,154,8,4); ng.fillRect(84,154,8,4); ng.fillRect(94,154,8,4);
+ sg.fillStyle='#7fb0d8'; for(let i2=0;i2<8;i2++)sg.fillRect(132+i2*12,96,8,6); // 航廈窗帶日
+ ng.fillStyle='#ffd98a'; for(let i2=0;i2<8;i2++)ng.fillRect(132+i2*12,96,8,6);
+ for(let i2=0;i2<12;i2++){const lx=70+i2*14,ly=230-i2*7;sg.fillStyle='#e8d080';sg.fillRect(lx,ly,2,2);ng.fillStyle='#ffe9a0';ng.fillRect(lx,ly,2,2);} // 滑行道燈
  outlineSprite(s,54,54,64); g.drawImage(s,0,0);
  SPR.bld['114_1_0']={img:c,night:nc,ax,ay,w:328,h:300,smoke:[]};}
 { // 市民中心 115_1_0 (3×3)：圓形大廳＋環廊＋旗陣廣場
@@ -4932,6 +4952,14 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    sg.fillStyle='#606060';sg.fillRect(ax-20,by-20,3,28);sg.fillRect(ax+17,by-20,3,28); // 高牆
    sg.fillStyle='#808080';sg.fillRect(ax-4,by-32,6,10); // 瞭望塔
    windows(sg,ng,ax,by,30,28,rand,.2,{w:2,ht:3,gx:8,gy:10,glass:'#2a2a2a'});
+   /* T382：監獄細化（零亂數；windows 參數不動）——鐵絲、放風場、探照燈、門崗 */
+   sg.fillStyle='#4a4a4a';for(let i=0;i<6;i++){sg.fillRect(ax-19+i*6,by-22,4,1);sg.fillRect(ax-19+i*6,by+6,4,1);} // 牆頂鐵絲影
+   sg.fillStyle='#5a6a4a';sg.fillRect(ax-12,by-8,24,10); // 放風場
+   sg.fillStyle='#3a3a3a';for(let i=0;i<5;i++)sg.fillRect(ax-12+i*5,by-8,1,10); // 鐵欄
+   sg.fillStyle='#c8c8c0';sg.fillRect(ax-2,by-36,4,3); // 探照燈座
+   ng.fillStyle='#fff8c0';ng.fillRect(ax-3,by-38,6,4);
+   ng.fillStyle='rgba(255,250,200,.25)';ng.beginPath();ng.moveTo(ax,by-36);ng.lineTo(ax-14,by-10);ng.lineTo(ax+14,by-10);ng.closePath();ng.fill(); // 光錐
+   sg.fillStyle='#6a6a6a';sg.fillRect(ax-6,by+2,12,6);sg.fillStyle='#2a2a2a';sg.fillRect(ax-3,by+3,6,4); // 門崗
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['31_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
   // T54 大學 (k=32, 3×3)
@@ -5625,6 +5653,16 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
      ng.fillStyle=cabCols[a%4];ng.fillRect(cx-2,cy-2,4,4);}
    sg.fillStyle='#e05252';sg.fillRect(ax-64,by-16,20,14);sg.fillStyle='#fff';sg.fillRect(ax-64,by-16,20,3); // 攤位
    sg.fillStyle='#5aa0e8';sg.fillRect(ax+44,by-14,20,12);sg.fillStyle='#fff';sg.fillRect(ax+44,by-14,20,3);
+   /* T382：遊樂園細化（零亂數）——雲霄飛車軌、旋轉木馬、售票亭、氣球柱、地面彩磚 */
+   sg.strokeStyle='#6a7080';sg.lineWidth=2;
+   sg.beginPath();sg.moveTo(ax-50,by-40);sg.lineTo(ax-30,by-70);sg.lineTo(ax-10,by-50);sg.lineTo(ax+10,by-80);sg.lineTo(ax+30,by-45);sg.stroke(); // 飛車軌
+   sg.fillStyle='#c0453a';sg.fillRect(ax-32,by-72,6,4); // 車廂
+   sg.fillStyle='#e8b040';sg.beginPath();sg.arc(ax+50,by-28,10,0,Math.PI*2);sg.fill(); // 木馬台
+   sg.fillStyle='#e05252';for(let i=0;i<6;i++){const a=i/6*Math.PI*2;sg.fillRect(ax+50+Math.round(Math.cos(a)*7)-1,by-28+Math.round(Math.sin(a)*5)-1,2,3);}
+   sg.fillStyle='#3a3a42';sg.fillRect(ax-8,by-12,16,10);sg.fillStyle='#ffd455';sg.fillRect(ax-8,by-14,16,3); // 售票
+   ng.fillStyle='#ffd98a';ng.fillRect(ax-6,by-10,4,4);
+   for(const bx of[ax-55,ax+55]){sg.fillStyle='#e05252';sg.fillRect(bx,by-30,2,18);sg.fillStyle='#5aa0e8';sg.beginPath();sg.arc(bx+1,by-32,4,0,Math.PI*2);sg.fill();ng.fillStyle='#ff8a8a';ng.beginPath();ng.arc(bx+1,by-32,4,0,Math.PI*2);ng.fill();} // 氣球柱
+   sg.fillStyle='#d8a0c0';for(let i=0;i<8;i++)sg.fillRect(ax-40+i*10,by-4,4,2); // 彩磚
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['39_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   // 電影院 (k=40, 1×1)：深紫牆＋燈泡遮篷＋直立招牌
@@ -5701,6 +5739,14 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    sg.fillStyle='#2a2e34';sg.fillRect(ax-24,by-24,48,10); // 入口遮篷
    sg.fillStyle='#e05a5a';sg.fillRect(ax-20,by-24,40,3); // 展覽布條
    ng.fillStyle='#ff8a8a';ng.fillRect(ax-20,by-24,40,3);
+   /* T382：會展中心細化（零亂數）——HVAC、旗陣、廣場地磚、廂型卸貨車、門柱燈 */
+   sg.fillStyle='#8a909a';sg.fillRect(ax-36,rty-10,10,6);sg.fillRect(ax+26,rty-10,10,6); // HVAC
+   sg.fillStyle='#6a7078';sg.fillRect(ax-34,rty-8,3,3);sg.fillRect(ax+28,rty-8,3,3);
+   for(let i=0;i<4;i++){sg.fillStyle='#e8e8e0';sg.fillRect(ax-40+i*8,by-8,1,12);sg.fillStyle=['#e05252','#5aa0e8','#ffd455','#58c470'][i];sg.fillRect(ax-40+i*8,by-14,5,4);} // 旗
+   sg.fillStyle='#c2beb2';for(let i=0;i<6;i++)sg.fillRect(ax-28+i*10,by-2,6,2); // 廣場磚
+   sg.fillStyle='#4a6a8a';sg.fillRect(ax+34,by-18,16,8);sg.fillStyle='#1a1a1e';sg.fillRect(ax+36,by-10,3,2);sg.fillRect(ax+44,by-10,3,2); // 卸貨車
+   sg.fillStyle='#8b95a5';sg.fillRect(ax-22,by-28,2,6);sg.fillRect(ax+20,by-28,2,6);
+   ng.fillStyle='#ffe9a0';ng.fillRect(ax-23,by-30,4,3);ng.fillRect(ax+19,by-30,4,3); // 門柱燈
    outlineSprite(sc,26,30,44);g.drawImage(sc,0,0);
    SPR.bld['44_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   // 研究院 (k=45, 2×2)：藍灰科研牆＋碟形天線
@@ -8265,6 +8311,11 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     // T368d 櫻花樹：由 SPR.tree 十變體 source-atop 染粉（T204 parkS 同款 tint，零亂數）
     const tintSk=(src,w,h,col,a)=>{const[c,g]=cv(w,h);g.drawImage(src,0,0);g.globalCompositeOperation='source-atop';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,w,h);g.globalAlpha=1;g.globalCompositeOperation='source-over';return c;};
     SPR.treeSakura=SPR.tree.map(t2=>({img:tintSk(t2.img,t2.w,t2.h,'#f2a8c8',.45),night:t2.night?tintSk(t2.night,t2.w,t2.h,'#e898b8',.45):null,ax:t2.ax,ay:t2.ay,w:t2.w,h:t2.h}));
+  }
+  /* ===== T382 全局美術極細化加蓋 pass（插在 T368 之後、世界流還原之前；本區零共用亂數流消耗） =====
+     用途：hero 死圖鍵與需尾端疊加的細節，後寫覆蓋。本批僅占位標記；細節優先寫入各活圖塊。 ===== */
+  if(!window.__noT382){
+    // 批次記錄：B1 已在 k101/k114/k31/k39/k44 原塊加零亂數細節（見各塊 T382 註解）
   }
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
