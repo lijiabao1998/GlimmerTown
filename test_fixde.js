@@ -6403,6 +6403,37 @@ runPwaTests().then(() => {
     const ph388=window.GV.flowPanel384();
     assert(ph388.includes('今日治癒 / 滯留')&&!/NaN|undefined|Infinity/.test(ph388),'T387b 面板治癒/滯留列零壞值');
   }
+  // ===== T388 旋轉收口 E 族（horizonY＋外緣懸崖；業主 loop R9；T375 G1-G5 型） =====
+  { // G1 負向＋G2 正向釘
+    const se388=html.indexOf('__noSeaEdge');
+    const seSeg388=html.slice(se388,se388+2000);
+    assert(!seSeg388.includes('syOf(0,0)'),'T388 G1 seaEdge 段不得再有 syOf(0,0)（rot≠0 病灶式）');
+    assert(html.includes('const horizonY=Math.max(0,Math.round(oy+6*z));'),'T388 G2 地平線=oy 旋轉不變量式在場');
+    assert(html.includes('const vp388=w2v(x,y);if(vp388[0]===N-1||vp388[1]===N-1)gc.drawImage(SPR.cliff'),
+      'T388 G2 外緣懸崖 view 判邊式在場');
+    assert(!/if\(x===N-1\|\|y===N-1\)gc\.drawImage\(SPR\.cliff/.test(html),'T388 G1 懸崖裸世界判邊式不得殘留');
+  }
+  { // G3/G4 幾何：四檔位頂點不變量＋懸崖集合等價；尾端歸零（T367 尾規）
+    for(let r388=0;r388<4;r388++){
+      window.GV.setRot(r388);
+      const N388=window.GV.N();
+      const corners=[[0,0],[N388-1,0],[0,N388-1],[N388-1,N388-1]].map(c=>window.GV.w2v(c[0],c[1]));
+      assert(Math.min(...corners.map(p=>p[0]+p[1]))===0,
+        'T388 G4 rot='+r388+' 世界四角經 w2v 的 min(vx+vy)=0（鑽石頂點旋轉不變量）');
+      let edge388=0,mism388=0;
+      for(let x=0;x<N388;x++)for(let y=0;y<N388;y++){
+        if(x>0&&y>0&&x<N388-1&&y<N388-1)continue;
+        const p=window.GV.w2v(x,y);
+        const sel=(p[0]===N388-1||p[1]===N388-1);
+        if(sel)edge388++;
+        if(r388===0&&sel!==(x===N388-1||y===N388-1))mism388++;
+      }
+      if(r388===0)assert(mism388===0,'T388 G3 rot=0 懸崖新舊條件全邊格等價（失配 '+mism388+'）');
+      assert(edge388===2*N388-1,'T388 G4 rot='+r388+' 懸崖選中格數恆 2N-1，實得 '+edge388);
+    }
+    window.GV.setRot(0);
+    assert(window.GV.rot()===0,'T388 區塊尾 rot 歸零（全套件其後假設 rot=0）');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
