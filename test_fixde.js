@@ -84,7 +84,7 @@ function makeEl(tag, id) {
   return el;
 }
 
-const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343'];
+const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343','statsFlow384','bFlowOverlay384'];
 ids.forEach(id => makeEl(id==='techTree343'?'canvas':'div', id));
 makeEl('canvas', 'game');
 makeEl('canvas', 'logo');
@@ -322,6 +322,7 @@ js = js.slice(0, t343IifeEnd) +
 // tick 一次收 fallback 成員後全數還原；只在 Node harness 存在，正式 GV API 不增面）
 const t383IifeEnd = js.lastIndexOf('})();');
 js = js.slice(0, t383IifeEnd) + `
+window.__t384Bld=function(k,x,y){const i=idx(x,y);tiles[i].bld={k,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;}; // T384b：尾端測試造境橋（__t343Bld 在 IIFE 內搆不到）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
   const oldR=R,oldRoad=hasRoadNear,oldPower=computePower,oldWater=computeWater,oldDis=disastersOn;
@@ -6142,6 +6143,34 @@ runPwaTests().then(() => {
       'T384 快照不得落入存檔（零新鍵探針＝T364d waterCap 同款）');
     window.GV.step(1);
     assert(window.GV.flowStat().day===fs384.day+1,'T384 快照每日重寫（day 遞增）');
+  }
+  // ===== T384b 流向圖層 UI（第三 tab＋主畫布 overlay；業主 loop R3） =====
+  {
+    window.GV.newWorldSeeded(88);window.GV.weather(0);
+    const ph0=window.GV.flowPanel384();
+    assert(ph0.includes('尚無資料')&&!/NaN|undefined|Infinity/.test(ph0),
+      'T384b 未結算開面板顯示「尚無資料」且禁 NaN/undefined/Infinity（demWhy 空窗語義）');
+    window.__t384Bld(49,10,10);window.__t384Bld(121,14,10);window.__t384Bld(64,18,10);window.__t384Bld(18,22,10);
+    window.GV.step(1);
+    const ph1=window.GV.flowPanel384();
+    assert(ph1.includes('今日產銷')&&ph1.includes('通勤')&&ph1.includes('鏈條節點')&&!/NaN|undefined|Infinity/.test(ph1),
+      'T384b 有資料面板含 產銷/通勤/節點 三區且零壞值');
+    const tabBtn=document.querySelector('#statsFlow384');
+    assert(tabBtn&&typeof tabBtn.onclick==='function',
+      'T384b #statsFlow384 tab 綁定存在（唯白名單 id 綁得住＝mock 陷阱守衛）');
+    assert(window.GV.drawFlowOverlay384()===null,'T384b 預設關閉 overlay 回 null（零迭代＝逐像素恆等）');
+    const ob=document.querySelector('#bFlowOverlay384');
+    assert(ob&&typeof ob.onclick==='function','T384b #bFlowOverlay384 開關綁定存在');
+    ob.onclick();
+    const meta384=window.GV.drawFlowOverlay384();
+    assert(meta384&&meta384.nodes>=4,
+      'T384b overlay 開啟後 meta.nodes≥4（k49/121/64/18 各一），實得 '+(meta384&&meta384.nodes));
+    window.__noFlow384=true;
+    assert(window.GV.drawFlowOverlay384()===null,'T384b __noFlow384 逃生閥短路（像素回歸紅線）');
+    window.__noFlow384=false;window.GV.setFlowShow384(false);
+    const st384b=JSON.stringify(window.GV.stats());
+    window.GV.flowPanel384();window.GV.drawFlowOverlay384();
+    assert(JSON.stringify(window.GV.stats())===st384b,'T384b 面板/overlay 全程純讀（GV.stats 前後全等）');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
