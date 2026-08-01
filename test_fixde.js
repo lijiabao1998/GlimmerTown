@@ -333,6 +333,7 @@ window.__t385Pop=function(v){pop=v;}; // T386b 測試橋：直設人口（pop �
 window.__t386Set=function(id){spec386=id;if(id==='edu')rebuildCov();}; // T386a 測試橋：直設專精（效果專項）
 window.__t386Fin=function(){return {taxI:fin.taxI,taxC:fin.taxC,speed:techSpeed343};}; // T386a 測試橋：稅/研速觀測
 window.__t387Cov=function(){rebuildCov();}; // T387b 測試橋：直寫服務建築後重建覆蓋場
+window.__t390Repair=function(tre,ter,n){return repairTre390(tre,ter,n);}; // T390 測試橋：救援函式單元測試
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
@@ -6446,6 +6447,44 @@ runPwaTests().then(() => {
     let ok389=true;
     for(const [x,y] of [[0,0],[10,7],[N389-1,N389-1],[35,2]]){const p=window.GV.w2v(x,y);if(p[0]+p[1]!==x+y)ok389=false;}
     assert(ok389,'T389 G3 rot=0 抽點 viewDep 值恆等 x+y（舊 dep 值逐位回歸）');
+  }
+  // ===== T390 tre 存檔正規化（守衛債第四條收口；業主 loop R11） =====
+  {
+    window.GV.newWorldSeeded(1);window.GV.weather(0);
+    window.GV.save();
+    const raw390a=window.GV.rawSave();
+    const sv390=window.GV.inflateSave(raw390a);
+    const N390=window.GV.N();
+    const flds390=(html.match(/const RLE_F=\[([^\]]+)\]/)||[])[1];
+    assert(flds390,'T390 RLE_F 欄位表可從源碼抽取');
+    const names390=flds390.match(/'[a-z]+'/gi).map(x=>x.slice(1,-1));
+    assert(names390.length===29,'T390 RLE_F 應 29 欄，實得 '+names390.length);
+    let bad390=[];
+    for(const f of names390)if(((sv390[f]||'').length)!==N390*N390)bad390.push(f+'='+((sv390[f]||'').length));
+    assert(bad390.length===0,'T390 (i) 29 條 per-cell 字串長度全===N²（含 tre——舊編碼在此必炸），違者：'+bad390.join(','));
+    let v10n=0;for(let i=0;i<sv390.tre.length;i++)if(sv390.tre.charCodeAt(i)===58)v10n++;
+    assert(v10n>0,'T390 seed1 應含 v10 紫葉樹（新編碼 ":"）證明編碼路真的走到，實得 '+v10n);
+    // (ii)+(iii) save→load→save 位元組恆等 + tre 全等
+    window.GV.load();
+    window.GV.save();
+    const raw390b=window.GV.rawSave();
+    assert(raw390a===raw390b,'T390 (ii) save→load→save 落盤位元組恆等（最強往返守衛）');
+    // (iv) 救援：把新格式 ":" 還原成舊病格式 "10" → repair 應精確復原
+    const sick390=sv390.tre.replace(/:/g,'10');
+    assert(sick390.length===N390*N390+v10n,'T390 病檔構造長度=N²+K');
+    const rep390=window.__t390Repair(sick390,sv390.ter,N390);
+    assert(rep390.length===N390*N390,'T390 (iv) 救援後長度歸正 N²');
+    assert(rep390.replace(/:/g,'10')===sick390,'T390 (iv) 再編碼恆等：救援解是病檔的合法解讀（數學驗收——歧義下可能非原解，但與病檔資訊等價）');
+    let anch390=0,diff390=0;
+    for(let i=0;i<N390*N390;i++){if(sv390.ter[i]!=='2'&&rep390[i]!=='0')anch390++;if(rep390[i]!==sv390.tre[i])diff390++;}
+    assert(anch390===0,'T390 (iv) 全部非草地錨=0 通過');
+    assert(diff390>=0,'T390 (iv) 差異回報（純診斷）：與原檔差 '+diff390+' 格 / v10='+v10n+'（歧義為資訊理論固有——"1"+"0" 相鄰對無從分辨真 v10 或獨立兩格；救援保證=合法等價解讀+全錨通過 vs fallback 全滅）');
+    // (v) 無解畸形 → fallback 全 0 且長度歸正
+    const junk390=window.__t390Repair('1'.repeat(N390*N390+5),sv390.ter,N390);
+    assert(junk390.length===N390*N390&&/^0+$/.test(junk390),'T390 (v) 無解畸形 fallback=全 0（load 永不失敗）');
+    // 觸發行字串釘
+    assert(html.includes("if(d.tre&&d.tre.length>N*N)d.tre=repairTre390(d.tre,d.ter||'',N);"),
+      'T390 load 端救援觸發行在場');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);

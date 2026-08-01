@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.16，約 19,191 行（實測檔案 19,191 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T389**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.17，約 19,228 行（實測檔案 19,228 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T390**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -115,7 +115,7 @@
 | tile 結構（兩個真相來源） | 8193（genWorld）／16915-16930（load） | `const tile={t,tree:0,gv:ri(4),road:0,` |
 | 槽位與鍵空間 | 16783-16797 | `function slotKey(n){` |
 | RLE 壓縮層 | 16798-16832 | `const RLE_F=['ter','tre','rd','zn',` |
-| `save()` 29 條 per-cell 字串 | 16833-16854 | `ter+=t.t;tre+=t.tree;zn+=t.zone;` |
+| `save()` 29 條 per-cell 字串 | 16833-16854 | `ter+=t.t;tre+=String.fromCharCode(48+t.tree);zn+=t.zone;` |
 | `save()` bl 元組 | 16855-16870 | `const e=[i,t.bld.k,t.bld.lv,t.bld.v,t.bld.age];` |
 | `save()` 頂層欄位 ＋ `_bak` | 16871-16894 | `const data={v:1,n:N,gameVer:GAME_VER,` |
 | `load()` 驗證與重建 | 16901-17034 | `rebuildCov(); // T294` |
@@ -126,7 +126,7 @@
 `SAVEKEY`（`glimmerville.v1`）、`slotKey/curSlot/setSlot/slotInfo`、`RLE_F/rleEnc/rleDec/saveDeflate/saveInflate`、`MSZ`、`vlen`、`data.v`（恆為 1）、`bl`、`rdepArr`、`SHARE_VER='GVX1:'`、`undoGroup`。
 
 ### 動它會踩到什麼
-- **每格恰好 1 個字元**：29 條 per-cell 字串每格只能寫單一字元。`skd/dtd` 用 `Math.min(9,…)`、`rcl` 用 `String.fromCharCode(48+rc)` 都是為此。**此不變量目前已被 `tre` 破壞**：T150 把樹種擴到 1..10，`tre+=t.tree` 在 tree===10 時寫兩個字元。實測 seed1／72² 新圖有 67 格 tree===10，`tre` 長 5251 而 N²=5184，一次 save→load 後 1365 格樹種錯位（首個錯位 idx=32）。`vlen()` 只驗 `ter` 長度，完全擋不住。同源風險：`dc`(≤9)／`zn`(≤3)／`rcl`(≤5)／`ow`(≤4) 現在還安全。
+- **每格恰好 1 個字元**：29 條 per-cell 字串每格只能寫單一字元。`skd/dtd` 用 `Math.min(9,…)`、`rcl` 用 `String.fromCharCode(48+rc)` 都是為此。**此不變量曾被 `tre` 破壞、已由 T390 修復**（編碼改字元碼 t=10→':'、load 端 DP 救援帶病舊檔、29 條長度+往返位元恆等守衛入 suite）。歷史病灶記錄：T150 把樹種擴到 1..10，`tre+=t.tree` 在 tree===10 時寫兩個字元。實測 seed1／72² 新圖有 67 格 tree===10，`tre` 長 5251 而 N²=5184，一次 save→load 後 1365 格樹種錯位（首個錯位 idx=32）。`vlen()` 只驗 `ter` 長度，完全擋不住。同源風險：`dc`(≤9)／`zn`(≤3)／`rcl`(≤5)／`ow`(≤4) 現在還安全。
 - **源字串不得含 `*`**：rleDec 以 `*` 為 token 起點、`,` 為長度分隔。T312 初版用後置格式 `c+'*'+n+';'`，`'01111'` 編成 `'0*4;'` 有歧義＝靜默損壞，現行前置格式才無歧義，**不要「順手改回可讀性較好的後置格式」**。
 - **新增 per-cell 字串必須同步進 `RLE_F`**（16803）。漏加不壞資料但失壓，1000² 時單欄位就 1MB。
 - **存檔格式只准新增可選欄位**；load 端對缺欄位一律容錯。`data.v` 至今恆 1，代表 210 張卡全走這條路線。
@@ -396,7 +396,7 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 
 1. ~~五份尺寸表沒有程式化比對~~ **已收口（T383a，2026-08-02）**：全鍵集合比對（份數 1/1/1/2＋miss/extra/wrong 逐鍵點名）。註：出卡偵查發現本條原宣稱的「缺 20 鍵」早被 T378 補齊，守衛以嚴格相等起步。**殘餘**：k9 不入表（T383a 凍結斷言）＋其色環減半視覺債（8698 `||1`）待另卡裁決入表與否。
 2. ~~稅收守衛沒有窮舉檢查~~ **已收口（T383b）**：執行期窮舉——KNAME 133 鍵各合成一棟、stub 亂數/道路/電水後 tick 一次，工業稅 fallback 裝 sink 記錄器（`else{const eduIndMul=` 錨點），除 k3 外任何 k 落入即紅並點名。新增 k134 忘補鏈當場咬，不必等 lv4 NaN。
-3. **`per-cell` 字串「每格 1 字元」沒有守衛，而且已經破了。** `tre` 在 tree===10 時寫兩字元，實測一次存讀後 1365 格樹種錯位。守衛可以是：save 後斷言 29 條字串長度全等於 N²，或存讀往返後逐格比對。同時要修 `tre` 本身（改寫 `String.fromCharCode(48+…)` 或把樹種壓回 0-9）。
+3. ~~per-cell 字串守衛~~ **已收口（T390）**：編碼修+DP 救援+雙守衛（29 條長度===N²、save→load→save 位元組恆等）。原文記錄： `tre` 在 tree===10 時寫兩字元，實測一次存讀後 1365 格樹種錯位。守衛可以是：save 後斷言 29 條字串長度全等於 N²，或存讀往返後逐格比對。同時要修 `tre` 本身（改寫 `String.fromCharCode(48+…)` 或把樹種壓回 0-9）。
 4. ~~亂數流守衛凍結在 backups 快照上~~ **已收口（T383c）**：live `buildSprites`（錨點 `function buildSprites(){` ↔ `\nfunction wealthSpr(`）剝註解（六態狀態機＋行數 canary）後對 R/ri/rand呼叫/rand裸引用/spriteTexRand 五類 token 做總數＋行序 CRC 快照（基線 118 / 0x103ef29c，master 87bb1e7 實測）。中段插入/刪除/換序消耗當場紅；純註解編輯免疫（T359「註解不得含 rand(」紀律對本守衛不再必要，但區塊 regex 各卡守衛仍在，紀律照舊）。合法改動＝施工卡同卡更新兩常數並記 delta（PASS 棘輪同款慣例）。T272/T274 快照對快照守衛原樣保留。
 5. **槽 3 紀律完全沒有機器守。** RULES 鐵律3、COLLAB、VERIFY 都寫了，但沒有任何東西檢查一份 probe 腳本裡有沒有 `setItem('glimmerville.v1.slot','3')`。T370 的目錄掃描只擋「probe 躺在玩家目錄裡」，擋不住有人在 8123 貼 Console 腳本（T371 剛修掉的 docs/VERIFY.md 就是這型事故）。
 6. **sprite 像素在 Node 套件裡根本測不到。** 素材守衛只到「家族計數 ≥ 基線」與中繼資料。真正的像素指紋（CRC32）在 `atlas.html`，但**倉庫裡沒有提交任何指紋基線檔**，也不在任何自動閘門裡。亂數流位移造成的全圖重繪，機器測不出來。
