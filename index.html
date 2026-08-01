@@ -2274,6 +2274,13 @@ function buildSprites(){
        ng.fillStyle='rgba(255,240,190,.55)';ng.fillRect(tx-4,ty2-22,9,7);
        ng.fillStyle='#fff6d8';ng.fillRect(tx-2,ty2-20,5,4);
      }
+     /* T382：體育場細化（零共用流；局部 rd 不動）——記分板、入口、外牆廣告帶、地坪線、售票亭 */
+     sg.fillStyle='#2a2e36';sg.fillRect(cx-10,rty-8,20,6);sg.fillStyle='#3a9a5a';sg.fillRect(cx-8,rty-6,7,3);sg.fillStyle='#c85030';sg.fillRect(cx+1,rty-6,7,3); // 記分板
+     sg.fillStyle='#4a4e56';sg.fillRect(cx-6,by-8,12,6);sg.fillStyle='#e8ecf2';sg.fillRect(cx-4,by-6,8,3); // 入口
+     sg.fillStyle=band[0];sg.fillRect(cx-50,rty+20,12,4);sg.fillRect(cx+38,rty+20,12,4); // 外牆廣告
+     sg.fillStyle='#a8aaa0';for(let i=0;i<5;i++)sg.fillRect(cx-20+i*8,by-2,5,1); // 地坪
+     sg.fillStyle='#3a3e46';sg.fillRect(cx+22,by-14,10,8);sg.fillStyle='#e8c84f';sg.fillRect(cx+24,by-12,6,3); // 售票
+     ng.fillStyle='#ffe9a0';ng.fillRect(cx-8,rty-6,16,3);ng.fillRect(cx+24,by-12,6,3);
      outlineSprite(sc,26,30,44);
      g.drawImage(sc,0,0);
      SPR.bld['9_1_'+v]={img:c,night:nc,ax:68,ay:148,w:136,h:150,smoke:[]};
@@ -2758,6 +2765,11 @@ function buildSprites(){
      sg.fillStyle='#3f5f3c';sg.fillRect(cx2-1,cy2-18,2,3);}
    sg.fillStyle='#8a8a8a';sg.fillRect(ax-8,ay-12,3,10);sg.fillRect(ax+5,ay-12,3,10);sg.fillStyle='#6a6a6a';sg.fillRect(ax-8,ay-14,16,3); // 入口石門拱
    ng.globalAlpha=.4;ng.fillStyle='#ffcc70';for(const[lx2,ly2] of[[ax-52,ay-58],[ax+44,ay-58],[ax-20,ay-30],[ax+16,ay-34]])ng.fillRect(lx2,ly2,6,6);ng.globalAlpha=1; // 燭光點
+   /* T382：大墓園細化（零亂數）——花圈、更多小碑、鐵柵門紋、燈柱 */
+   sg.fillStyle='#c85a7a';sg.fillRect(ax-6,ay-70,4,3);sg.fillRect(ax+4,ay-68,4,3); // 花圈
+   for(const[gx2,gy2]of[[ax-30,ay-20],[ax+28,ay-22],[ax-50,ay-36],[ax+48,ay-38]]){sg.fillStyle='#9aa59a';sg.fillRect(gx2,gy2,3,5);}
+   sg.fillStyle='#5a5a5a';sg.fillRect(ax-6,ay-10,2,6);sg.fillRect(ax+4,ay-10,2,6);
+   sg.fillStyle='#8a8a8a';sg.fillRect(ax-60,ay-60,2,12);sg.fillRect(ax+58,ay-60,2,12);ng.fillStyle='#ffe9a0';ng.fillRect(ax-61,ay-62,4,3);ng.fillRect(ax+57,ay-62,4,3);
    outlineSprite(s,26,30,40);g.drawImage(s,0,0);
    SPR.bld['54_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   { // T234 中央車站 55_1_0（3×3，玩家指令「火車站更多更大拼接」）：紅磚大廳+拱形玻璃頂+雙鐘塔+雙月台雨棚+軌道
@@ -2785,6 +2797,11 @@ function buildSprites(){
    for(let wx2=14;wx2<=54;wx2+=8){sg.fillStyle='#2a3550';sg.fillRect(ax+wx2,ay-56,4,6); // 大廳窗列（決定性夜燈）
      if((wx2*3)%5<3){ng.fillStyle='#ffd77a';ng.fillRect(ax+wx2,ay-56,4,6);}}
    ng.fillStyle='#ffa040';for(let i2=0;i2<6;i2++){ng.fillRect(ax-80+i2*12,ay-40,3,2);ng.fillRect(ax-80+i2*12,ay-10,3,2);} // 月台夜燈
+   /* T382：中央車站細化（零亂數）——車廂剪影、月台線、行李車、指示牌 */
+   sg.fillStyle='#5aa0e8';sg.fillRect(ax-70,ay-48,28,8);sg.fillStyle='#3a3a42';sg.fillRect(ax-68,ay-40,3,2);sg.fillRect(ax-48,ay-40,3,2); // 車廂
+   sg.fillStyle='#f0ece0';for(let i2=0;i2<8;i2++)sg.fillRect(ax-80+i2*8,ay-42,4,1);
+   sg.fillStyle='#8a6a42';sg.fillRect(ax-20,ay-20,8,6);sg.fillStyle='#3a3a42';sg.beginPath();sg.arc(ax-18,ay-14,2,0,2*Math.PI);sg.fill();sg.beginPath();sg.arc(ax-14,ay-14,2,0,2*Math.PI);sg.fill();
+   sg.fillStyle='#e05252';sg.fillRect(ax+20,ay-60,6,8);sg.fillStyle='#f0f0ea';sg.fillRect(ax+21,ay-58,4,4);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['55_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   { // T241 體育園區 56_1_0（3×3=9 格，多場館綜合：主體育場+泳池+球場+跑道+泛光燈+步道）
@@ -2820,6 +2837,11 @@ function buildSprites(){
    ng.fillStyle='#bfe0f0';ng.fillRect(pcx-16,pcy+3,32,14); // 泳池夜光
    // 步道小樹
    for(const[tx,ty] of[[ax-6,ay-58],[ax+6,ay-40],[ax-4,ay-24]]){sg.fillStyle='#6b4a2f';sg.fillRect(tx+2,ty+4,2,3);sg.fillStyle='#3d7a3c';sg.fillRect(tx,ty,6,6);sg.fillStyle='#4f9448';sg.fillRect(tx,ty,6,2);}
+   /* T382：體育園區細化（零亂數）——長椅、圍網、入口牌、更多樹 */
+   sg.fillStyle='#8a6a42';sg.fillRect(ax-20,ay-50,10,3);sg.fillRect(ax+14,ay-36,10,3);
+   sg.fillStyle='#c8c8c8';for(let i=0;i<4;i++)sg.fillRect(bcx-18,bcy+i*3,1,2);
+   sg.fillStyle='#3a5a7a';sg.fillRect(ax-8,ay-16,16,5);sg.fillStyle='#e8f0f4';sg.fillRect(ax-6,ay-14,12,2);
+   for(const[tx,ty] of[[ax+12,ay-70],[ax-50,ay-20]]){sg.fillStyle='#6b4a2f';sg.fillRect(tx,ty,2,4);sg.fillStyle='#3d7a3c';sg.fillRect(tx-2,ty-4,6,5);}
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['56_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   { // T254 食品加工廠 57_1_0（3×3=9 格，農場加工鏈：三料倉+磚紅加工廠房+鋸齒天窗+輸送帶+裝卸卡車）；速記用 Math.random 不觸全域 R() 流
@@ -2852,6 +2874,11 @@ function buildSprites(){
    // 夜光：天窗+門口
    ng.fillStyle='#ffe9a8';for(let sx=-34;sx<34;sx+=12)ng.fillRect(fhx+sx,fhy-30,10,2);
    ng.fillStyle='rgba(255,220,150,.5)';ng.fillRect(fhx-9,fhy-2,18,8);
+   /* T382：食品加工廠細化（零亂數）——棧板、圍欄、煙囪小口、地標線 */
+   for(const[px2,py2]of[[ax-50,ay-18],[ax-40,ay-14],[ax+40,ay-16]]){sg.fillStyle='#b08a5a';sg.fillRect(px2,py2,8,4);}
+   sg.fillStyle='#6a6a72';for(let i=0;i<8;i++)sg.fillRect(ax-60+i*16,ay-8,2,6);
+   sg.fillStyle='#8a8a92';sg.fillRect(ax+36,ay-50,4,12); // 小煙囪（無 smoke 錨）
+   sg.fillStyle='#c8c0b0';for(let i=0;i<6;i++)sg.fillRect(ax-50+i*18,ay-28,10,1);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['57_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   { // T286 核電廠 58_1_0 重繪（玩家「不及格」重考；TheoTown 級雙面調光影）：雙曲面冷卻塔×2（左亮右暗四階
@@ -2935,6 +2962,11 @@ function buildSprites(){
    }
    sg.fillStyle='#b06a4a';sg.fillRect(ax-46,ay-22,24,14);sg.fillStyle='#c47e5c';sg.fillRect(ax-46,ay-22,24,3);sg.fillStyle='#9cc8e0';sg.fillRect(ax-40,ay-16,6,5);ng.fillStyle='#ffe9a8';ng.fillRect(ax-40,ay-16,6,5); // 機房+夜窗
    sg.fillStyle='#eef4f8';sg.fillRect(ax-16,ay-12,32,5);sg.fillStyle='#cfe6f2';sg.fillRect(ax-20,ay-8,40,4); // 壩下白花水
+   /* T382：水力發電細化（零亂數）——圍欄、警示標、機房門、更多水花 */
+   sg.fillStyle='#6a6a72';for(let i=0;i<6;i++)sg.fillRect(ax-40+i*14,ay-6,2,5);
+   sg.fillStyle='#ffd420';sg.fillRect(ax+20,ay-28,4,4);sg.fillStyle='#20242c';sg.fillRect(ax+24,ay-28,4,4);
+   sg.fillStyle='#5a3a24';sg.fillRect(ax-40,ay-18,6,8);
+   sg.fillStyle='#ffffff';sg.fillRect(ax-6,ay-18,3,2);sg.fillRect(ax+4,ay-14,3,2);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['59_1_0']={img:c,night:nc,ax:68,ay:148,w:136,h:150,smoke:[]};}
   { // T257 地熱發電 60_1_0（1×1：井管+蒸汽+小汽輪機房）；零 rand
@@ -2946,6 +2978,10 @@ function buildSprites(){
    sg.fillStyle='#7aa890';sg.fillRect(ax+2,ay-30,22,16);sg.fillStyle='#8fbca4';sg.fillRect(ax+2,ay-30,22,3);sg.fillStyle='#5a8a70';sg.fillRect(ax+20,ay-30,4,16); // 綠機房
    sg.fillStyle='#9cc8e0';sg.fillRect(ax+7,ay-24,5,5);ng.fillStyle='#ffe9a8';ng.fillRect(ax+7,ay-24,5,5); // 夜窗
    sg.fillStyle='#8f959d';sg.fillRect(ax-12,ay-32,14,3); // 水平導管（井→機房）
+   /* T382：地熱發電細化（零亂數）——閥門、圍欄、地裂紋 */
+   sg.fillStyle='#d84838';sg.fillRect(ax-10,ay-56,3,3);
+   sg.fillStyle='#6a6a72';for(let i=0;i<4;i++)sg.fillRect(ax-14+i*10,ay-12,2,4);
+   sg.fillStyle='#7a6a52';sg.fillRect(ax-8,ay-8,6,1);sg.fillRect(ax+4,ay-6,5,1);
    outlineSprite(s,26,30,34);g.drawImage(s,0,0);
    SPR.bld['60_1_0']={img:c,night:nc,ax:32,ay:110,w:64,h:112,smoke:[]};}
   { // T257 消防總局 61_1_0（3×3：紅白主樓+三車庫+訓練塔+停機坪）；零 rand
@@ -2971,6 +3007,11 @@ function buildSprites(){
      sg.fillStyle='#f2f2ee';sg.fillRect(hx2-6,hy2-8,3,10);sg.fillRect(hx2+3,hy2-8,3,10);sg.fillRect(hx2-4,hy2-4,8,2); // H
    }
    sg.fillStyle='#f2f2ee';sg.fillRect(ax-14,ay-80,4,8);sg.fillStyle='#e04040';sg.fillRect(ax-14,ay-82,4,3); // 屋頂警鈴柱
+   /* T382：消防總局細化（零亂數）——水帶架、路錐、門牌、地標線 */
+   sg.fillStyle='#e8a020';sg.fillRect(ax+40,ay-40,6,10); // 水帶架
+   sg.fillStyle='#e05252';sg.fillRect(ax-60,ay-16,3,5);sg.fillStyle='#ffb35a';sg.fillRect(ax-61,ay-18,5,2);
+   sg.fillStyle='#f2f2ee';sg.fillRect(ax-10,ay-76,20,4);sg.fillStyle='#e04040';sg.fillRect(ax-8,ay-75,16,2);
+   sg.fillStyle='#c8c0b0';for(let i=0;i<5;i++)sg.fillRect(ax-40+i*16,ay-36,10,1);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['61_1_0']={img:c,night:nc,ax,ay,w:208,h:220,smoke:[]};}
   { // T280 溫室 63_1_0（2×2：白框玻璃拱棚×2＋內部作物列＋門＋蓄水箱；零亂數不消耗任何流；夜間植物生長燈粉光）
@@ -3017,6 +3058,11 @@ function buildSprites(){
    sg.fillStyle='#2f6fc0';sg.fillRect(ax-38,ay-80,20,7);sg.fillStyle='#ffffff';sg.fillRect(ax-36,ay-78,16,3); // 招牌
    for(const[px2,py2]of[[ax+40,ay-30],[ax+48,ay-26],[ax+44,ay-22]]){sg.fillStyle='#b08a5a';sg.fillRect(px2,py2,8,4);sg.fillStyle='#8a6a40';sg.fillRect(px2,py2+1,8,1);sg.fillRect(px2,py2+3,8,1);} // 棧板堆
    sg.fillStyle='#e0a83a';sg.fillRect(ax-52,ay-26,7,5);sg.fillStyle='#26282c';sg.fillRect(ax-51,ay-21,2,2);sg.fillRect(ax-47,ay-21,2,2);sg.fillStyle='#6a7078';sg.fillRect(ax-45,ay-29,1,4);sg.fillRect(ax-44,ay-27,3,1); // 叉車
+   /* T382：倉儲物流細化（零亂數）——更多棧板、安全線、監視器、側門 */
+   for(const[px2,py2]of[[ax-50,ay-18],[ax+36,ay-34]]){sg.fillStyle='#b08a5a';sg.fillRect(px2,py2,7,3);}
+   sg.fillStyle='#e8d080';for(let i=0;i<4;i++)sg.fillRect(ax-36+i*18,ay-38,12,1);
+   sg.fillStyle='#3a3a42';sg.fillRect(ax+28,ay-76,3,3);ng.fillStyle='#5aff8a';ng.fillRect(ax+28,ay-76,2,2);
+   sg.fillStyle='#4a505c';sg.fillRect(ax-44,ay-50,6,8);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['64_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
   { // T296 信仰中心 66_1_0（2×2：石造禮拜堂+中央尖塔金頂+側圓頂+玫瑰彩窗+拱門台階；中性多元、不特指任何宗教；零亂數）
@@ -3048,6 +3094,11 @@ function buildSprites(){
    sg.fillStyle='#5a4632';for(let r=0;r<3;r++)sg.fillRect(ax-24+r,ay-27-r,10-r*2,1);sg.fillStyle='#5a4632';sg.fillRect(ax-24,ay-26,10,10);
    sg.fillStyle='#3a2a1c';sg.fillRect(ax-21,ay-22,4,6);ng.fillStyle='#ffe9c0';ng.fillRect(ax-20,ay-24,2,3);
    sg.fillStyle='#c8c0b0';sg.fillRect(ax-28,ay-16,18,2);sg.fillStyle='#b0a898';sg.fillRect(ax-30,ay-14,22,2);
+   /* T382：信仰中心細化（零亂數）——庭院路徑、燈柱、側窗、綠籬 */
+   sg.fillStyle='#c8c0b0';sg.fillRect(ax-8,ay-12,16,2);sg.fillRect(ax-2,ay-20,4,10);
+   sg.fillStyle='#8a8a92';sg.fillRect(ax-36,ay-30,2,12);sg.fillRect(ax+8,ay-28,2,10);ng.fillStyle='#ffe9a0';ng.fillRect(ax-37,ay-32,4,3);ng.fillRect(ax+7,ay-30,4,3);
+   sg.fillStyle='#7fb0d8';sg.fillRect(ax-34,ay-42,4,5);sg.fillRect(ax-8,ay-42,4,5);
+   sg.fillStyle='#4e9a4e';sg.fillRect(ax-40,ay-18,6,4);sg.fillRect(ax+4,ay-16,6,4);
    outlineSprite(s,26,30,44);g.drawImage(s,0,0);
    SPR.bld['66_1_0']={img:c,night:nc,ax,ay,w:136,h:150,smoke:[]};}
 { // 钟楼 67_1_0 (1×1)
@@ -8552,7 +8603,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   /* ===== T382 全局美術極細化加蓋 pass（插在 T368 之後、世界流還原之前；本區零共用亂數流消耗） =====
      用途：hero 死圖鍵與需尾端疊加的細節，後寫覆蓋。本批僅占位標記；細節優先寫入各活圖塊。 ===== */
   if(!window.__noT382){
-    // 批次記錄：B1-B3 見卡；B4 k40-43/45-51 文化民生科研（見各塊 T382 註解）
+    // 批次記錄：B1-B4 見卡；B5 k9 十五場地+k54-61/64/66 工業地標（見各塊 T382 註解）
   }
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
