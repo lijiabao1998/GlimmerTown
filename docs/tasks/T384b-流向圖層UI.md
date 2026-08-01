@@ -1,6 +1,6 @@
 # T384b — 流向圖層 UI:統計第三 tab＋主畫布 overlay
 
-狀態:**已出卡,待施工(自主 loop R3)。**
+狀態:**已完成(v11.9,bay/kimi)。自審通過;真瀏覽器 8125 槽3 實拍通過;PASS 3365→3373。**
 發卡:業主 loop 直令(GPT 順位 1 第二階段;資料層 T384a 已隨 v11.8 上線)。
 出卡+施工+自審:Claude(業主 loop 授權)。
 前置:master `2fcab82`(v11.8,PASS 3365);UI 先例行號皆 T384 偵查第三路實測(v11.7 基準,
@@ -77,4 +77,25 @@ drawFlowOverlay384/GV 兩鉤子+bump)、`sw.js`(bump 同步)、`test_fixde.js`(i
 
 ---
 
-## 施工記錄(施工後填)
+## 施工記錄(Claude,2026-08-02)
+
+### 施工中抓到的真雷(出卡偵查沒抓到,自查抓到)
+1. **`ox/oy/z/lodMini` 是 render 函式區域變數**(13598/13600/13629),overlay 函式在模組層定義
+   直接引用=開啟第一幀 ReferenceError(預設關時被短路遮住,更陰)。修法=視圖參數顯式傳入
+   `drawFlowOverlay384(ox,oy,z,lodMini)`,Node 斷言路徑用單位視圖預設。
+2. dataTable 欄位格式是 `[{h,n}]` 物件不是字串陣列(簽名註釋在 16652)。
+3. `__t343Bld` 在 IIFE 內,尾端測試塊搆不到——加 `__t384Bld` 尾端注入橋。
+
+### 閘門
+PASS **3365→3373 / 0 FAIL**;verify **ALL GREEN**(11.9);工具鏈未動;兩釘原值。
+
+### 破壞性三案(紅源逐案驗明)
+| 案 | 注入 | 結果 |
+|---|---|---|
+| d1 | test 白名單刪 statsFlow384/bFlowOverlay384 | 紅於綁定斷言(mock 陷阱守衛生效) |
+| d2 | index 刪 `window.__noFlow384` 逃生閥條件 | 紅於逃生閥斷言(像素回歸紅線) |
+| d3 | 基線原樣 | 綠(正確) |
+
+### 真瀏覽器(8125,槽3紀律)
+新城空窗=「尚無資料」;5 日後面板三分頁實拍(產銷/深加工/燃氣糧食/通勤/節點全區塊,
+零壞值,燃氣比例條渲染);overlay 開啟+forceDraw 真跑;console 0 error。實拍未入 worktree。

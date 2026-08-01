@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.8，約 18,937 行（實測檔案 18,937 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T384a**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.9，約 19,015 行（實測檔案 19,015 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T384b**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -294,7 +294,7 @@
 ## 7. UI 層（§10）
 
 ### 它做什麼
-CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九個面板共用唯一容器 `#info` / `#infoBody`。
+CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九個面板共用唯一容器 `#info` / `#infoBody`。統計面板 tab 列（statsTabs343）現有三顆：城市/科技樹/**流向（T384b，showFlowPanel384＝純消費 T384a 聚合層）**；主畫布另有 T384b 流向 overlay（flowShow384 三件套：預設關/不入存檔/`__noFlow384` 逃生閥，draw 於地鐵層後夜燈前，isoW2V 旋轉相容，視圖參數顯式傳入）。
 
 ### 關鍵符號
 `showInfoPanel()`（唯一顯示入口）、`syncHudH()` / `--hud-h`、`statTab` / `dataTable` / `bindDataTable`、`toast` / `updHud`、`inspect` / `svcStatTable` / `metroStationTable`、`chipPanel`、`showStats` / `cityAdvisor` / `FACTOR_TRACE`、`drawMini` / `MINI_BLD_PAL`、`showSlots` / `importShareCode`、`showEditor`、`camLookWorld`。
