@@ -84,7 +84,7 @@ function makeEl(tag, id) {
   return el;
 }
 
-const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343','statsFlow384','bFlowOverlay384','statsComm385','bCommAcc385_0','bCommAcc385_1','bCommAcc385_2','bCommDrop385'];
+const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343','statsFlow384','bFlowOverlay384','statsComm385','bCommAcc385_0','bCommAcc385_1','bCommAcc385_2','bCommDrop385','bSpecPick386_0','bSpecPick386_1','bSpecPick386_2','bSpecPick386_3'];
 ids.forEach(id => makeEl(id==='techTree343'?'canvas':'div', id));
 makeEl('canvas', 'game');
 makeEl('canvas', 'logo');
@@ -209,8 +209,8 @@ const inject343 = (needle, replacement, label) => {
   if (js === before) throw new Error('T343c probe 注入未改變源碼 ' + label);
 };
 inject343(
-  "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1);\n    if(R()<p){",
-  "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1);\n    window.__t343Probe.fire=p;\n    if(R()<p){",
+  "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1)*sq('ind',1.08,1)*sq('green',.90,1);\n    if(R()<p){",
+  "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1)*sq('ind',1.08,1)*sq('green',.90,1);\n    window.__t343Probe.fire=p;\n    if(R()<p){",
   'fire'
 );
 inject343(
@@ -224,8 +224,8 @@ inject343(
   'upgrade'
 );
 inject343(
-  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1));",
-  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1));",
+  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
+  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
   'transit'
 );
 // T383b：稅收窮舉守衛的 sink 記錄器——漏守衛的 k 必然落入工業稅 fallback（鐵律14 的 NaN 落點），
@@ -330,6 +330,9 @@ window.__t385Steel=function(v){steel=v;}; // T385 測試橋：直設鋼庫存
 window.__t385Load=function(raw){return cmsLoad385(raw);}; // T385 測試橋：驗型單元測試
 window.__t385Diff=function(v){diff=v;}; // T385 測試橋：切難度（沙盒 dim 案）
 window.__t385Pop=function(v){pop=v;}; // T386b 測試橋：直設人口（pop 門檻案；下一 tick 會重算）
+window.__t386Set=function(id){spec386=id;if(id==='edu')rebuildCov();}; // T386a 測試橋：直設專精（效果專項）
+window.__t386Fin=function(){return {taxI:fin.taxI,taxC:fin.taxC,speed:techSpeed343};}; // T386a 測試橋：稅/研速觀測
+window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
   const oldR=R,oldRoad=hasRoadNear,oldPower=computePower,oldWater=computeWater,oldDis=disastersOn;
@@ -6298,6 +6301,53 @@ runPwaTests().then(() => {
     assert(ph386.includes('期末驗收')&&ph386.includes('45 / 60')&&!/NaN|undefined|Infinity/.test(ph386),
       'T386b 進行中面板顯示庫存/目標（期末驗收）且零壞值');
     window.GV.cmsDrop385();
+  }
+  // ===== T386a 城市專精四方向（業主 loop R6） =====
+  { // 靜態：sq(' 呼叫數 count pin（防靜默刪效果點）＋四向效果行字串釘
+    const sqN=(html.match(/sq\('/g)||[]).length;
+    assert(sqN===12,'T386a sq(\' 效果呼叫應恰 12 個（四向各 2 正 1 負），實得 '+sqN+'（合法增刪=同卡更新本 pin）');
+    assert(html.includes("*sq('hub',1.12,1))")&&html.includes("*sq('hub',1.03,1);income+=v2;taxC")&&
+           html.includes("*sq('ind',1.06,1)*sq('green',.92,1);income+=v2;taxI")&&html.includes("*sq('green',1.15,1))"),
+      'T386a 運量/商稅/工稅/觀光四效果行字串釘在場');
+    assert(html.includes("spec386=(typeof d.spec386==='string'&&SPEC386[d.spec386])?d.spec386:''"),
+      'T386a load 側白名單驗型在場（鐵律7）');
+    assert(html.split("spec386='';").length-1>=1,'T386a newWorld 成對歸零在場');
+  }
+  { // 功能：門檻/兩擊/永久/效果/存讀
+    window.GV.newWorldSeeded(123);window.GV.weather(0);
+    assert(window.GV.specPick386(0)===false,'T386a 低等級拒選');
+    window.__t385Rank(6);window.__t385Diff(3);
+    assert(window.GV.specPick386(0)===false,'T386a 沙盒拒選');
+    window.__t385Diff(1);
+    // 兩擊（UI 路徑）：rank 夠、未選 → 面板出四鈕
+    window.__t385Pop(100);
+    const pc386=window.GV.commPanel385();
+    assert(pc386.includes('城市方向')&&pc386.includes('四選一'),'T386a 面板含城市方向四選一區');
+    const sb386=document.querySelector('#bSpecPick386_0');
+    assert(sb386&&typeof sb386.onclick==='function','T386a 選擇鈕綁定存在（白名單）');
+    sb386.onclick(); // 第一擊=武裝
+    assert(window.GV.spec386()===''&&window.GV.commPanel385().includes('⚠️ 確認'),'T386a 第一擊只武裝不生效');
+    document.querySelector('#bSpecPick386_0').onclick(); // 第二擊=生效（重繪後重取）
+    assert(window.GV.spec386()==='ind','T386a 第二擊選定 ind');
+    assert(window.GV.specPick386(1)===false,'T386a 永久性：已選再選必拒');
+    // 效果專項：同 seed 兩世界對照（設定 spec 零亂數消耗＝流完全相同，同日 taxI 比值精確 1.06）
+    window.GV.newWorldSeeded(124);window.GV.weather(0);
+    window.__t384Bld(3,10,10);window.__t386Tick();window.__t386Tick();
+    const f0386=window.__t386Fin();
+    assert(f0386.taxI>0,'T386a 對照城 A：工業稅為正（stub tick 免電網）');
+    window.GV.newWorldSeeded(124);window.GV.weather(0);
+    window.__t384Bld(3,10,10);window.__t386Set('ind');window.__t386Tick();window.__t386Tick();
+    const f2386=window.__t386Fin();
+    assert(Math.abs(f2386.taxI/f0386.taxI-1.06)<1e-6,'T386a ind 工業稅 ×1.06（同 seed 同日 stub 對照），比值 '+(f2386.taxI/f0386.taxI));
+    // edu 研究速度 +1（speed 每 tick 重算，來源計數不變）
+    window.__t386Set('');window.__t386Tick();const s0386=window.__t386Fin().speed;
+    window.__t386Set('edu');window.__t386Tick();
+    assert(window.__t386Fin().speed===s0386+1,'T386a edu 研究速度 +1');
+    // 存讀：有值落欄、零值零鍵
+    window.GV.save();
+    assert(window.GV.inflateSave(window.GV.rawSave()).spec386==='edu','T386a 存檔欄位往返');
+    window.__t386Set('');window.GV.save();
+    assert(!/spec386/.test(JSON.stringify(window.GV.inflateSave(window.GV.rawSave()))),'T386a 零狀態存檔零新鍵');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);

@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.11，約 19,137 行（實測檔案 19,137 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T386b**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.12，約 19,183 行（實測檔案 19,183 行＝T382 總覆核退修後重測繪；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T386a**（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 3,000+、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -237,7 +237,7 @@
 `advance(dtReal)` 把真實時間轉成 tick 次數（`DAYLEN`=0.9s，單幀最多追 8 天）；`tick()` 一天內依固定順序跑：索引 → 噪音重建 → 日曆／事件／天氣 → 死亡前置 → **第一經濟迴圈**（計數＋幸福）→ 彙總 → 產業鏈 → 災害 → RCI 需求 → 生長 → 升級 → 垂直合併 → 火災 → 犯罪/廢棄/生病/死亡 → **第二經濟迴圈**（稅收）→ 維護費與落帳 → 挑戰/成就 → 評分 → `aiStep()`。
 
 ### 關鍵符號
-`buildTickIndex/tickBld/tickRoad/tickZone`、`happyParts`（50 項固定長度）、`cityHappy`、`dem[1..3]`、`COV/COVR/stampCov/covFieldOfK/rebuildCov`、`POL/POLBASE/POLTREE`、`NOISE/rebuildNoise`、`LAND/LANDBASE/markLandDirty`、`EDU`、`computePower/computeWater`、`season()/FARM_SEASON_MULT`、`streetHash`、`fin`、`flowStat384`、`cms385`（T385 市長委託：CMS385 池九條、seed+輪次純函式雜湊三選一零 R() 消耗、可選存檔欄 cms385 svcFleet 驗型、零接單城位元恆等；沙盒不出委託；T386b 外貿合約=池加 stock 期末驗收型（到期日驗 steel/fuel 庫存，純讀零模擬寫入，扣庫存方案否決記卡））（T384 tick 尾流向快照：學 demWhy 成對歸零＋ok:false，不學 fin 的無歸零殘值；僅面板/測試可讀，禁止餵回模擬）。
+`buildTickIndex/tickBld/tickRoad/tickZone`、`happyParts`（50 項固定長度）、`cityHappy`、`dem[1..3]`、`COV/COVR/stampCov/covFieldOfK/rebuildCov`、`POL/POLBASE/POLTREE`、`NOISE/rebuildNoise`、`LAND/LANDBASE/markLandDirty`、`EDU`、`computePower/computeWater`、`season()/FARM_SEASON_MULT`、`streetHash`、`fin`、`flowStat384`、`cms385`（T385 市長委託：CMS385 池九條、seed+輪次純函式雜湊三選一零 R() 消耗、可選存檔欄 cms385 svcFleet 驗型、零接單城位元恆等；沙盒不出委託；T386b 外貿合約=池加 stock 期末驗收型（到期日驗 steel/fuel 庫存，純讀零模擬寫入，扣庫存方案否決記卡）；T386a 城市專精 spec386（四方向永久單選、sq() 12 效果呼叫掛既有白名單點、未選位元恆等、Lv.6/非沙盒、兩擊確認））（T384 tick 尾流向快照：學 demWhy 成對歸零＋ok:false，不學 fin 的無歸零殘值；僅面板/測試可讀，禁止餵回模擬）。
 
 ### 動它會踩到什麼
 - **鐵律14 稅收守衛**：新增任何 k，若它會走到第二經濟迴圈（11131-11217），**必須**補一條顯式 `else if(b.k===K);`。否則 fall through 到工業稅兜底，`JOBSI` 只有 4 格，lv≥4 時 `JOBSI[lv]` undefined → income NaN → money NaN → 存檔崩壞。鏈尾三條範圍分支：`b.k>=124&&b.k<=133`（11207）、`LMCFG309[b.k]`（11208）、`b.k>=81&&b.k<=120&&b.k!==105&&b.k!==106`（11209）。**k>=134 沒有任何守衛。** 歷史事故四次：FIX-A（診所/墓園）、T251（大農場 k53，真的 NaN 崩存檔）、T254（k57）、T290（k65）。
