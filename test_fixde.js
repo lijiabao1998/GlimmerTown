@@ -228,6 +228,13 @@ inject343(
   "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1));",
   'transit'
 );
+// T383b：稅收窮舉守衛的 sink 記錄器——漏守衛的 k 必然落入工業稅 fallback（鐵律14 的 NaN 落點），
+// 在唯一落點裝閘控記錄器（__taxFbk 未設時零行為差），式樣無關（等值/範圍/查表/未來 switch 都免疫）。
+inject343(
+  "else{const eduIndMul=b.lv===3",
+  "else{if(window.__taxFbk)window.__taxFbk.push(b.k);const eduIndMul=b.lv===3",
+  't383taxFbk'
+);
 t343IifeEnd = js.lastIndexOf('})();'); // 上方 probe 插入會改字串長度，注入點必須重新定位
 const t343Harness = `
 window.__t343Probe={};
@@ -311,6 +318,27 @@ js = js.slice(0, t343IifeEnd) +
   'effect:__t343EffectCase,eduRefresh:__t343EduRefresh,' +
   'guide:()=>{guideTab=5;showHelp();return $("#infoBody").innerHTML;}};\n' +
   js.slice(t343IifeEnd); // T343a：只在 Node harness 的 IIFE 內匯出；正式 GV API 不增面
+// T383b：稅收窮舉造境（仿 __t343TickCase：固定種子＋stub 亂數/道路/電水/災害，直寫 133 鍵各一棟，
+// tick 一次收 fallback 成員後全數還原；只在 Node harness 存在，正式 GV API 不增面）
+const t383IifeEnd = js.lastIndexOf('})();');
+js = js.slice(0, t383IifeEnd) + `
+window.__t383TaxCase=function(){
+  newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
+  const oldR=R,oldRoad=hasRoadNear,oldPower=computePower,oldWater=computeWater,oldDis=disastersOn;
+  R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;
+  try{
+    const ks=Object.keys(KNAME).map(Number);
+    let n=0;
+    for(const k of ks){const i=idx(2+(n%30),2+((n/30)|0));tiles[i].bld={k,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;n++;}
+    window.__taxFbk=[];
+    tick();
+    const bad=[...new Set(window.__taxFbk)].filter(k=>k!==3).sort((a,b)=>a-b);
+    return {kn:ks.length,bad,money};
+  }finally{
+    R=oldR;hasRoadNear=oldRoad;computePower=oldPower;computeWater=oldWater;disastersOn=oldDis;window.__taxFbk=null;
+  }
+};
+` + js.slice(t383IifeEnd);
 window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生的首輪 tick
 eval(js);
 
@@ -6024,6 +6052,58 @@ runPwaTests().then(() => {
       'T343d techPoint343 必須映射到邏輯 640×420（與後備解析度脫鉤，否則高 DPR 下點選錯位）');
     assert(!html.includes('cv.width!==640'),
       'T343d 不得殘留固定 640 後備尺寸');
+  }
+  // ===== T383 守衛債三條（ARCH §10.1/10.2/10.4 機器化；業主 loop 直令 2026-08-02） =====
+  { // T383a 五份多格尺寸表全鍵同步（§9 不變量5 機器化；規避 sprFootAudit 缺鍵自動漏檢的共因失效）
+    const t383pairs=(body,into)=>{for(const p of body.matchAll(/(\d+):(\d+)/g))into[+p[1]]=+p[2];return into;};
+    const t383lits=(name)=>[...html.matchAll(new RegExp('const '+name+'=\\{([^}]+)\\}','g'))].map(m=>t383pairs(m[1],{}));
+    const t383asg=(name,t)=>{for(const m of html.matchAll(new RegExp('Object\\.assign\\('+name+',\\{([^}]+)\\}','g')))t383pairs(m[1],t);return t;};
+    const mszL=t383lits('MSZ'),szcL=t383lits('SZC'),szbL=t383lits('SZB'),szmL=t383lits('SZM');
+    assert(mszL.length===1&&szcL.length===1&&szbL.length===1&&szmL.length===2,
+      'T383a 尺寸表份數應為 MSZ/SZC/SZB 各 1＋SZM 2（共五份字面量），實得 '+[mszL.length,szcL.length,szbL.length,szmL.length].join('/'));
+    const MSZt=t383asg('MSZ',mszL[0]);
+    const t383reps={SZC:t383asg('SZC',szcL[0]),SZB:t383asg('SZB',szbL[0]),'SZM(foot)':szmL[0],'SZM(above)':szmL[1]};
+    const mszKeys=Object.keys(MSZt).map(Number).sort((a,b)=>a-b);
+    assert(mszKeys.length>=65,'T383a MSZ 鍵數棘輪：不得低於 65（只准增不准減），實得 '+mszKeys.length);
+    assert(!(9 in MSZt),'T383a k9 設計上不入表（體育場沿用存檔第 6 位 sz，見 MSZ 註解）；若決定入表須五表齊補並同卡改本斷言');
+    for(const nm in t383reps){const t=t383reps[nm];
+      const miss=mszKeys.filter(k=>!(k in t)),extra=Object.keys(t).map(Number).filter(k=>!(k in MSZt)),
+        wrong=mszKeys.filter(k=>(k in t)&&t[k]!==MSZt[k]);
+      assert(miss.length===0,'T383a '+nm+' 缺 MSZ 的鍵（新多格建築必須五表齊備）：k'+miss.join(',k'));
+      assert(extra.length===0,'T383a '+nm+' 多出 MSZ 沒有的鍵：k'+extra.join(',k'));
+      assert(wrong.length===0,'T383a '+nm+' 尺寸值與 MSZ 不一致：'+wrong.map(k=>'k'+k+'('+t[k]+'≠'+MSZt[k]+')').join(','));
+    }
+  }
+  { // T383b KNAME 稅收分支執行期窮舉（鐵律14）：漏守衛的 k 必落工業稅 fallback（JOBSI 只有 lv0-3，升 lv4 即 NaN）；
+    // sink 記錄器見檔頭 inject343('t383taxFbk')，造境見 __t383TaxCase 尾端注入。式樣無關，新增 k134 忘補鏈當場點名。
+    const t383r=window.__t383TaxCase();
+    assert(t383r.kn>=133,'T383b KNAME 鍵數不得少於 133，實得 '+t383r.kn);
+    assert(t383r.bad.length===0,'T383b 稅收窮舉：k'+t383r.bad.join(',k')+' 落入工業稅 fallback＝漏守衛分支（新增 k 未補稅鏈，lv≥4 將 NaN）');
+    assert(Number.isFinite(t383r.money),'T383b 全 k 合成城 tick 後 money 必須有限，實得 '+t383r.money);
+  }
+  { // T383c live buildSprites 亂數 token 順序快照（§10.4）：T272/T274 只凍結 backups 快照對快照，live 檔首度有守。
+    // 必須剝註解——實測 RAW 229 token 有 111 個只活在 FIX-B 樣板註解裡；剝後 T359「註解不得含 rand(」紀律對本守衛免疫。
+    const t383s0=html.indexOf('function buildSprites(){'),t383e0=html.indexOf('\nfunction wealthSpr(',t383s0);
+    assert(t383s0>=0&&t383e0>t383s0,'T383c 應可界定 live buildSprites 區段（錨點漂移＝同卡修錨）');
+    const t383seg=html.slice(t383s0,t383e0);
+    const t383strip=(s)=>{let o='',st=0;for(let i=0;i<s.length;i++){const c=s[i],d=s[i+1];
+      if(st===0){if(c==='/'&&d==='/'){st=1;o+=' ';i++;}else if(c==='/'&&d==='*'){st=2;o+=' ';i++;}
+        else if(c==="'"){st=3;o+=c;}else if(c==='"'){st=4;o+=c;}else if(c==='`'){st=5;o+=c;}else o+=c;}
+      else if(st===1){if(c==='\n'){st=0;o+=c;}else o+=' ';}
+      else if(st===2){if(c==='*'&&d==='/'){st=0;o+=' ';i++;}else o+=(c==='\n'?c:' ');}
+      else{const q=st===3?"'":st===4?'"':'`';if(c==='\\'){o+=c+(d||'');i++;}else if(c===q){st=0;o+=c;}else o+=c;}}
+      return o;};
+    const t383st=t383strip(t383seg);
+    assert(t383st.split('\n').length===t383seg.split('\n').length,'T383c 剝註解不得改變行數（狀態機 canary；誤入字串態會在此或總數斷言大聲死）');
+    const t383toks=[];
+    for(const ln of t383st.split('\n'))for(const m of ln.matchAll(/\bR\s*\(|\bri\s*\(|\brand\s*\(|\brand\b(?!\s*\()|\bspriteTexRand\b/g)){
+      const t=m[0];t383toks.push(t[0]==='R'?'R':t.startsWith('ri')?'ri':t.startsWith('spriteTexRand')?'stx':t.trimEnd().endsWith('(')?'randC':'randX');}
+    const t383crc=(str)=>{let c=~0;for(let i=0;i<str.length;i++){c^=str.charCodeAt(i)&255;for(let j=0;j<8;j++)c=(c>>>1)^(0xEDB88320&-(c&1));}return ~c>>>0;};
+    // 基線＝T383 施工當日以本抽取器實測 master 87bb1e7（randX62/ri28/randC20/stx8）；
+    // 合法改動（尾端新增消耗局部 rand 等）＝施工卡「同卡」更新兩常數並在卡面記 delta 來源（PASS 棘輪同款慣例）。
+    const T383_RNG_TOTAL=118,T383_RNG_CRC=0x103ef29c;
+    assert(t383toks.length===T383_RNG_TOTAL,'T383c buildSprites 亂數 token 總數應為 '+T383_RNG_TOTAL+'，實得 '+t383toks.length+'（合法改動＝同卡更新基線並記 delta）');
+    assert(t383crc(t383toks.join('|'))===T383_RNG_CRC,'T383c token 行序 CRC 漂移＝buildSprites 亂數消耗序被動過（中段插入/刪除/換序；合法改動＝同卡更新基線並記 delta）');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
