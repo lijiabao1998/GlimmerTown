@@ -332,6 +332,7 @@ window.__t385Diff=function(v){diff=v;}; // T385 測試橋：切難度（沙盒 d
 window.__t385Pop=function(v){pop=v;}; // T386b 測試橋：直設人口（pop 門檻案；下一 tick 會重算）
 window.__t386Set=function(id){spec386=id;if(id==='edu')rebuildCov();}; // T386a 測試橋：直設專精（效果專項）
 window.__t386Fin=function(){return {taxI:fin.taxI,taxC:fin.taxC,speed:techSpeed343};}; // T386a 測試橋：稅/研速觀測
+window.__t387Cov=function(){rebuildCov();}; // T387b 測試橋：直寫服務建築後重建覆蓋場
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
@@ -6368,6 +6369,39 @@ runPwaTests().then(() => {
     const st387=JSON.stringify(window.GV.stats());
     window.GV.flowPanel384();
     assert(JSON.stringify(window.GV.stats())===st387,'T387a 面板純讀（含 lazy 覆蓋率）');
+  }
+  // ===== T387b 醫療容量效果接線（業主 loop R8） =====
+  { // 靜態：診所骰「擲後遮蔽」結構釘（消耗序恆等的字面證明）
+    assert(html.includes("else if(clinic&&R()<.5){if(medCured387<medCap387){b.sick=0;medCured387++;}else medQueued387++;}"),
+      'T387b 診所骰必須照擲、結果被床位遮蔽（R() 消耗序恆等）');
+    assert(html.includes("if(hospital){if(medCured387<medCap387){b.sick=0;medCured387++;}else medQueued387++;}"),
+      'T387b 醫院分支床位門檻在場（原無 R 改後仍無 R）');
+  }
+  { // 功能：恆等案（cap 充足）＋超載案（救護站 cap6 vs 病 7）
+    window.GV.newWorldSeeded(141);window.GV.weather(0);
+    window.__t384Bld(28,20,20); // 救護站（醫院級，半徑10，cap+6）
+    window.__t387Cov(); // 直寫後重建覆蓋場（治癒判定要 COV）
+    window.__t386Tick(); // 建立昨日快照 cap=6
+    assert(window.GV.flowStat().med.cap===6,'T387b 快照 cap=6（救護站）');
+    for(let i=0;i<7;i++)window.__t384Bld(1,13+i,20); // 半徑內 7 宅（13..19，避開救護站所在的 (20,20)——第一版 14+6=20 直寫蓋掉救護站，測試自雷記卡）
+    for(let i=0;i<7;i++)window.GV.igniteSick(13+i,20);
+    window.__t386Tick();
+    const m387=window.GV.flowStat().med;
+    assert(m387.cured===6&&m387.queued===1&&m387.sick===1,
+      'T387b 超載：cap6 治 6 滯留 1（cured/queued/sick 實得 '+m387.cured+'/'+m387.queued+'/'+m387.sick+'）');
+    window.__t386Tick(); // 次日：床位釋出，滯留者獲治
+    const m388=window.GV.flowStat().med;
+    assert(m388.sick===0&&m388.cured===1,'T387b 滯留者次日獲治（排隊語義），實得 sick='+m388.sick+' cured='+m388.cured+' queued='+m388.queued+' cap='+m388.cap);
+    // 恆等案：cap 充足＝行為同舊版
+    window.GV.newWorldSeeded(142);window.GV.weather(0);
+    window.__t384Bld(28,20,20);window.__t387Cov();window.__t386Tick();
+    window.__t384Bld(1,18,20);window.__t384Bld(1,22,20);
+    window.GV.igniteSick(18,20);window.GV.igniteSick(22,20);
+    window.__t386Tick();
+    const m389=window.GV.flowStat().med;
+    assert(m389.cured===2&&m389.queued===0&&m389.sick===0,'T387b 非超載：全治零滯留（舊行為恆等）');
+    const ph388=window.GV.flowPanel384();
+    assert(ph388.includes('今日治癒 / 滯留')&&!/NaN|undefined|Infinity/.test(ph388),'T387b 面板治癒/滯留列零壞值');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
