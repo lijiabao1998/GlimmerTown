@@ -6878,6 +6878,66 @@ runPwaTests().then(() => {
     assert(seg405.length>20&&!/\bR\(\)|\bri\(|Math\.random/.test(strip405(seg405)),
       'T405 G4 設定段零亂數');
   }
+  /* ===== T406 天際線梯度（TheoTown 觀感對標第二刀） ===== */
+  {
+    // (1) 排名表必須在 tasks 迴圈內建立（不得另抄高度表——抄表必漂移，T345 的 SZB 手抄副本前科）
+    const iSort=html.indexOf('tasks.sort((a,b)=>(a.k-b.k)||(a.lv-b.lv)||(a.v-b.v));');
+    const iMk=html.indexOf('const mkBld=t=>{');
+    assert(iSort>0&&iMk>iSort,'T406 G1 tasks 排序與 mkBld 可定位');
+    const seg406=html.slice(iSort,iMk);
+    assert(/\(VH406\[key\]\|\|\(VH406\[key\]=\[\]\)\)\[t\.v\]=\(t\.d\.h\|\|0\)\+\(t\.d\.hw\|\|0\);/.test(seg406),
+      'T406 G1 樓高必須取自【同一份 tasks 清單】的 d.h+d.hw（與實際建造的 sprite 同源）');
+    // (2) 兩個寫入點都仍求值 ri(12)＝亂數消耗次數/順序零位移（鐵律2）
+    assert(/v:\(kk===1\|\|kk===2\|\|kk===3\)\?pickV406\(kk,1,x,y,ri\(12\)\):ri\(4\)/.test(html),
+      'T406 G2 生成點須為 pickV406(...,ri(12))＝ri(12) 仍求值');
+    assert(/b\.v=\(b\.k===1\|\|b\.k===2\|\|b\.k===3\)\?pickV406\(b\.k,b\.lv,x,y,ri\(12\)\):ri\(4\)/.test(html),
+      'T406 G2 升級點須為 pickV406(...,ri(12))＝ri(12) 仍求值');
+    // (3) picker 零亂數（剝註後檢）＋殘表必回退
+    const strip406=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    const fn406=html.slice(html.indexOf('function pickV406('),html.indexOf('function judgeWealth('));
+    assert(fn406.length>200&&!/\bR\(\)|\bri\(|Math\.random/.test(strip406(fn406)),'T406 G3 pickV406 零亂數');
+    assert(/if\(!rank\|\|rank\.length<2\)return fallback;/.test(fn406),'T406 G3 排名表殘缺須回退擲骰值（絕不拋錯）');
+    // (4) 排名表真跑驗算：每個 (k,lv) 恰 12 變體、rank 為由矮到高的合法排列
+    const vh406=window.GV.vh406();
+    const badR=[];
+    for(const k of [1,2,3])for(const lv of [1,2,3]){
+      const key=k+'_'+lv,vh=vh406.vh[key],rk=vh406.rank[key];
+      if(!vh||!rk){badR.push(key+':MISSING');continue;}
+      if(vh.length!==12||rk.length!==12){badR.push(key+':len'+vh.length+'/'+rk.length);continue;}
+      if([...rk].sort((a,b)=>a-b).join()!=='0,1,2,3,4,5,6,7,8,9,10,11'){badR.push(key+':非合法排列');continue;}
+      for(let i2=1;i2<12;i2++)if(vh[rk[i2]]<vh[rk[i2-1]]){badR.push(key+':未單調@'+i2);break;}
+    }
+    assert(badR.length===0,'T406 G4 九組 (k,lv) 的樓高表須各 12 項且 rank 為由矮到高的合法排列，違者：'+badR.join(','));
+    // (5) 梯度實證：AI 城 300 天後，鄰域密度前 25% 組的「同級高度百分位」須顯著高於後 25%
+    //     （白噪音下兩組應無差異；門檻 15 個百分點，實測三種子 31~33）
+    window.GV.newWorldSeeded(301);window.GV.setDiff(1);window.GV.ai(true);
+    for(let d=0;d<300;d++)window.GV.step(1);
+    window.GV.ai(false);
+    const N406=window.GV.N(),rows406=[],span406={};
+    for(let y=0;y<N406;y++)for(let x=0;x<N406;x++){
+      const b=window.GV.tile(x,y).bld;
+      if(!b||b.ref||b.k>3||b.lv<2)continue;
+      let n=0;
+      for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+        const nx=x+dx,ny=y+dy;
+        if(nx<0||ny<0||nx>=N406||ny>=N406)continue;
+        const nb=window.GV.tile(nx,ny).bld;
+        if(nb&&nb.k<=3)n++;
+      }
+      const key=b.k+'_'+b.lv,a=vh406.vh[key]||[];
+      if(!span406[key]){const hs=a.filter(h=>h>0);span406[key]=[Math.min(...hs),Math.max(...hs)];}
+      const [lo,hi]=span406[key];
+      rows406.push({dens:n,pct:hi>lo?((a[b.v]||0)-lo)/(hi-lo):0});
+    }
+    assert(rows406.length>=80,'T406 G5 lv2+ 樣本應 ≥80（AI 城 300 天），實得 '+rows406.length);
+    rows406.sort((a,b)=>a.dens-b.dens);
+    const q406=Math.floor(rows406.length/4);
+    const mean406=(arr)=>arr.reduce((s,r)=>s+r.pct,0)/arr.length;
+    const pLow=mean406(rows406.slice(0,q406)),pHigh=mean406(rows406.slice(-q406));
+    assert((pHigh-pLow)*100>=15,
+      'T406 G5 梯度實證：高密度組同級高度百分位須高於低密度組 ≥15 個百分點（白噪音＝0），'
+      +'實得低 '+(pLow*100).toFixed(1)+'% 高 '+(pHigh*100).toFixed(1)+'% 差 '+((pHigh-pLow)*100).toFixed(1));
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
