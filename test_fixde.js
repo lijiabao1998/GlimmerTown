@@ -6515,6 +6515,56 @@ runPwaTests().then(() => {
     assert(!/\bR\(|\bri\(/.test(hb393),'T393 showHelp 全體（含新增文案）禁亂數呼叫（純顯示卡紅線）');
     assert((hb393.match(/T393/g)||[]).length>=6,'T393 新增條目來源註釋釘（防後人刪段不留痕），實得 '+(hb393.match(/T393/g)||[]).length);
   }
+  /* ===== T395 跨格連續大田：壟行與株行的等距公度（農業美術三期 R1） =====
+     連續性是純數學命題，不需像素抽樣即可證得更強（T355 先例：從原始碼解析參數做真跑算術）。
+     等距鄰格螢幕偏移：x+1=(+32,+16)、y+1=(-32,+16)。
+     壟相位量 (xx-2*yy) 於兩方向的增量分別為 0 與 -64 ⇒ 週期 P 必須整除 64 才處處連續。
+     株格點基向量 (4s,2s)/(-4s,2s) ⇒ (±32,16) 為其整數組合的條件是 s | 8。 */
+  {
+    const seg395=(a,b)=>{const i=html.indexOf(a),j=html.indexOf(b,i);assert(i>0&&j>i,'T395 區塊可定位：'+a);return html.slice(i,j);};
+    const t279=seg395('/* ===== T279 精細田地層','/* ===== T279 精細田地層 END');
+    // (1) 壟相位週期必須整除 64（跨格公度的充要條件）
+    const per395=[...t279.matchAll(/\(\(\(xx-2\*yy\)%(\d+)\)\+\1\)%\1/g)].map(m=>+m[1]);
+    assert(per395.length>=1,'T395 G1 field 壟相位式可解析，實得 '+per395.length+' 處');
+    per395.forEach(P=>assert(P>0&&64%P===0,
+      'T395 G1 壟週期必須整除 64（y+1 的相位增量 -64 才會 ≡0）；實得週期 '+P+'，64%'+P+'='+(64%P)));
+    // 大農場 base 的第二套犁溝（soil374，含 flip 版：x+1 增量 +64、y+1 增量 0）同樣須整除 64
+    const per374=[...html.matchAll(/\(\(\(xx\+2\*yy\)%(\d+)\)\+\1\)%\1/g)].map(m=>+m[1]);
+    assert(per374.length>=1&&per374.every(P=>64%P===0),
+      'T395 G2 soil374（含 flip）週期須整除 64，實得 '+JSON.stringify(per374));
+    // (2) 株距係數 fsc395 必須只回 8 的因數
+    const fscSrc=(html.match(/const fsc395=\(hw\)=>\{[^\n]*\};/)||[])[0];
+    assert(fscSrc,'T395 G3 fsc395 定義在場');
+    const fsc395T=eval('('+fscSrc.replace(/^const fsc395=/,'').replace(/;$/,'')+')');
+    const svals=[],badS=[];
+    for(let hw=8;hw<=400;hw++){const s=fsc395T(hw);svals.push(s);
+      if(!(Number.isInteger(s)&&s>0&&8%s===0))badS.push(hw+'→'+s);}
+    assert(badS.length===0,'T395 G3 fsc395 對 hw 8..400 必須恆回 8 的正因數，違者：'+badS.slice(0,5).join(','));
+    assert(new Set(svals).size>=2,'T395 G3 fsc395 須真的隨田寬分級（否則大農場行距不合理）');
+    // (3) 基向量形式：cx3=4s / cy3=2s / rx3=-cx3 / ry3=-cy3，且範圍計算取 |ry3|
+    const bv395=(t279.match(/const cx3=4\*sc,cy3=2\*sc,rx3=-cx3,ry3=-cy3;/g)||[]).length;
+    assert(bv395===2,'T395 G4 plantGrid 與 stagePlant 皆須用 (4s,2s)/(-4s,2s) 基向量，實得 '+bv395+' 處');
+    const abs395=(t279.match(/rN=Math\.ceil\(hh\/Math\.abs\(ry3\)\)\+2/g)||[]).length;
+    assert(abs395===2,'T395 G4 ry3 為負，行數上限必須取絕對值（否則迴圈空轉＝作物全消失），實得 '+abs395+' 處');
+    // (4) 真跑算術：對每個合法 s，驗證 (±32,16) 是基向量整數組合，且兩基向量的壟相位皆 ≡0
+    const P395=per395[0],badV=[];
+    for(const s of [1,2,4,8]){
+      const cvec=[4*s,2*s], rvec=[-4*s,2*s];
+      const det=cvec[0]*rvec[1]-cvec[1]*rvec[0];
+      for(const [dx,dy] of [[32,16],[-32,16]]){
+        const cc=(dx*rvec[1]-dy*rvec[0])/det, rr=(cvec[0]*dy-cvec[1]*dx)/det;
+        if(!(Number.isInteger(cc)&&Number.isInteger(rr)))badV.push('s'+s+'('+dx+','+dy+')→c'+cc+'/r'+rr);
+      }
+      if((((cvec[0]-2*cvec[1])%P395)+P395)%P395!==0||(((rvec[0]-2*rvec[1])%P395)+P395)%P395!==0)badV.push('s'+s+'相位≠0');
+    }
+    assert(badV.length===0,'T395 G5 對 s∈{1,2,4,8}：(±32,16) 須為基向量整數組合且兩基向量壟相位 ≡0（株成行於脊上），違者：'+badV.join(','));
+    // (5) 鄰格相位增量真跑驗算（連續性本體）
+    const badD=[[32,16],[-32,16],[64,0],[0,32]].filter(([dx,dy])=>((((dx-2*dy)%P395)+P395)%P395)!==0);
+    assert(badD.length===0,'T395 G6 四種鄰格偏移的壟相位增量須全 ≡0（跨格連續本體），違者：'+JSON.stringify(badD));
+    // (6) 零亂數（美術層鐵律）。註釋須先剝除：T279 原註釋含「不碰 R()」字面量＝守衛自雷（T383 剝除器同款需求）
+    const strip395=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    assert(!/\bR\(\)|\bri\(/.test(strip395(t279)),'T395 G7 T279 田地層【代碼】全體禁模擬亂數（決定性取向只准 streetHash）');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
