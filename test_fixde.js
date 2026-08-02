@@ -353,6 +353,10 @@ window.__t383TaxCase=function(){
 };
 ` + js.slice(t383IifeEnd);
 window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生的首輪 tick
+/* T405：產品端類別標記預設【關】（TheoTown 觀感）。但 harness 若跟著關，T345 徽記加蓋層
+   從此不再被實跑＝覆蓋率靜默退化。故在此顯式開啟，讓套件維持本卡之前的執行路徑；
+   「預設關」本身改由 T405 的原文守衛驗證（產品碼與測試環境各證一半）。 */
+localStorage.setItem('glimmerville.v1.badge', '1');
 eval(js);
 
 // ---- 測試輔助 ----
@@ -6847,6 +6851,32 @@ runPwaTests().then(() => {
       'T404 G1 農牧名單（22 農場/23 牧場/53 大農場/63 溫室）字面在場');
     assert(/const pBig=!pRci&&pSz>=2&&!AGRI404;/.test(html),
       'T404 G1 pBig 須排除農牧（農場曾被當大型公共建築給外擴石板前庭環＝覆蓋鄰地塊，業主實機回報）');
+  }
+  /* ===== T405 類別標記可關（TheoTown 觀感對標第一刀） ===== */
+  {
+    // (1) 設定讀取＋預設關語意（產品碼預設關；harness 於 eval 前顯式開啟以維持 T345 覆蓋）
+    assert(/badgePref=localStorage\.getItem\(SAVEKEY\+'\.badge'\)==='1';/.test(html),
+      'T405 G1 設定讀取須為「僅 \'1\' 為開」＝未設定即關（TheoTown 觀感為預設）');
+    assert(/if\(!badgePref\)window\.__noBadge=true;/.test(html),
+      'T405 G1 未開啟時須設 __noBadge（徽記烘進 sprite，只能在 buildSprites 前決定）');
+    const iRead=html.indexOf("badgePref=localStorage.getItem(SAVEKEY+'.badge')");
+    const iBuild=html.indexOf('buildSprites();');
+    assert(iRead>0&&iBuild>iRead,'T405 G1 設定讀取必須早於 buildSprites() 呼叫，否則旗標無效');
+    // (2) 三處 __noBadge 判斷全在場（T345 本體＋兩個 parity helper＝偵查抓到的逃生閥漏網）
+    assert(/const parity364=\(sp\)=>\{\s*\n\s*if\(window\.__noBadge\)return;/.test(html),
+      'T405 G2 parity364（k121-123 煉油/鋼鐵/造船）須受 __noBadge 控制（原本硬畫，關了仍頂方塊）');
+    assert(/const parity364cd=\(sp,sz,cat\)=>\{\s*\n\s*if\(window\.__noBadge\)return;/.test(html),
+      'T405 G2 parity364cd（k124-133 社區/防災）須受 __noBadge 控制（同款漏網）');
+    assert(html.includes('if(!window.__noBadge){'),'T405 G2 T345 本體加蓋層判斷仍在（與 T345 守衛同源）');
+    // (3) UI 開關在場且切換後 reload（sprite 已烘，不 reload 不生效）
+    assert(/localStorage\.setItem\(SAVEKEY\+'\.badge',badgePref\?'1':'0'\)/.test(html),'T405 G3 開關須持久化');
+    assert(/bg\.onclick=\(\)=>\{[^}]*location\.reload\(\);\}/.test(html),
+      'T405 G3 切換後須 location.reload（徽記烘進 sprite，不重載不生效）');
+    // (4) 新增碼零亂數（鐵律2；註釋剝除後檢）
+    const strip405=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    const seg405=html.slice(html.indexOf('let badgePref=false;'),html.indexOf('let mapSizePref=72;'));
+    assert(seg405.length>20&&!/\bR\(\)|\bri\(|Math\.random/.test(strip405(seg405)),
+      'T405 G4 設定段零亂數');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
