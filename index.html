@@ -8502,11 +8502,16 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       if(streetHash(kh,0,3980)>=.55)return; // ~55% 農戶有
       const sx=ax+Math.round((streetHash(kh,1,3981)-.5)*hw*.6);
       const sy=cy+2+Math.round(streetHash(kh,2,3982)*hh*.4); // 田心下半，遠離招牌帶
-      px1(g,sx,sy,'#5a4326');px1(g,sx,sy-1,'#5a4326');px1(g,sx,sy-2,'#5a4326');px1(g,sx,sy-3,'#5a4326');px1(g,sx,sy-4,'#5a4326'); // 立柱
-      for(let i=-3;i<=3;i++)px1(g,sx+i,sy-3,'#6b5230'); // 橫臂
-      px1(g,sx-1,sy-5,'#d8c07a');px1(g,sx,sy-5,'#d8c07a');px1(g,sx+1,sy-5,'#d8c07a'); // 麥稈頭
-      px1(g,sx,sy-6,'#c8ae66');px1(g,sx-2,sy-5,'#a8904e');px1(g,sx+2,sy-5,'#a8904e'); // 帽頂+帽緣
-      px1(g,sx,sy-4,'#b03a30'); // 紅圍巾
+      /* v2 加大加對比（首版特寫實測：#5a4326 立柱融進 #513a20 暗溝＝保護色，讀作噪點） */
+      for(let i=0;i<6;i++){px1(g,sx,sy-i,'#3f2e1c');px1(g,sx+1,sy-i,'#31241a');} // 2px 深柱
+      for(let i=-4;i<=5;i++)px1(g,sx+i,sy-4,'#3f2e1c'); // 橫臂
+      px1(g,sx-4,sy-3,'#8a3a2e');px1(g,sx+5,sy-3,'#8a3a2e'); // 垂袖尖
+      for(let i=-2;i<=3;i++){px1(g,sx+i,sy-3,'#a04434');px1(g,sx+i,sy-2,'#8a3a2e');} // 褪紅外套
+      px1(g,sx-1,sy-5,'#e8d08a');px1(g,sx,sy-5,'#f0dc9c');px1(g,sx+1,sy-5,'#e8d08a');px1(g,sx+2,sy-5,'#e8d08a'); // 亮麥稈頭
+      px1(g,sx-1,sy-6,'#e8d08a');px1(g,sx,sy-6,'#e8d08a');px1(g,sx+1,sy-6,'#e8d08a');
+      for(let i=-3;i<=4;i++)px1(g,sx+i,sy-7,'#6b4a2a'); // 帽緣
+      px1(g,sx-1,sy-8,'#7a5632');px1(g,sx,sy-8,'#7a5632');px1(g,sx+1,sy-8,'#7a5632');px1(g,sx+2,sy-8,'#7a5632'); // 帽頂
+      px1(g,sx+4,sy-5,'#181818');px1(g,sx+5,sy-5,'#181818');px1(g,sx+5,sy-6,'#282828'); // 臂上烏鴉
     };
     const doFarm=(key,ax,ay,hw,hh,cls)=>{
       /* T353 錨點分離（修「農場動畫漂移」）：ax/ay 是【田地在畫布上的繪製座標】，
