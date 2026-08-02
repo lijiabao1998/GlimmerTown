@@ -6841,6 +6841,13 @@ runPwaTests().then(() => {
       'T402 G4 雙生子恆等（純tick vs tick+幀×30天）：A pop'+A402.pop+'/$'+A402.money+'/h'+A402.happy
       +' vs B pop'+B402.pop+'/$'+B402.money+'/h'+B402.happy+'——幀路徑有 R()/ri() 殘留即分岔');
   }
+  /* ===== T404 農牧退出 T160 廣場前庭環（業主回報線上修） ===== */
+  {
+    assert(/const AGRI404=bd\.k===22\|\|bd\.k===23\|\|bd\.k===53\|\|bd\.k===63;/.test(html),
+      'T404 G1 農牧名單（22 農場/23 牧場/53 大農場/63 溫室）字面在場');
+    assert(/const pBig=!pRci&&pSz>=2&&!AGRI404;/.test(html),
+      'T404 G1 pBig 須排除農牧（農場曾被當大型公共建築給外擴石板前庭環＝覆蓋鄰地塊，業主實機回報）');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
