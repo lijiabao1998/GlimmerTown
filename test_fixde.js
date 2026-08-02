@@ -6565,6 +6565,51 @@ runPwaTests().then(() => {
     const strip395=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
     assert(!/\bR\(\)|\bri\(/.test(strip395(t279)),'T395 G7 T279 田地層【代碼】全體禁模擬亂數（決定性取向只准 streetHash）');
   }
+  /* ===== T397 作物日曆與收割敘事（農業美術三期 R3） ===== */
+  {
+    // (1) farmGrow 三階結構：3 季 × 3 階 × 16 鍵全滿（割茬階真的被烘出來，不是空殼）
+    const fg397=window.GV.sprAtlas356().entries.filter(e=>e.fam==='farmGrow');
+    assert(fg397.length===3*3*16+3*3, 'T397 G1 farmGrow 應為 3 季×3 階×(16 個 k22 + 1 個 k53)=153 張，實得 '+fg397.length);
+    assert(/SPR\.farmGrow=\{0:\{0:\{\},1:\{\},2:\{\}\},1:\{0:\{\},1:\{\},2:\{\}\},2:\{0:\{\},1:\{\},2:\{\}\}\};/.test(html),
+      'T397 G1 farmGrow 宣告須為三階（0 小苗 1 拔節 2 割茬）');
+    assert(/for\(const st of\[0,1,2\]\)/.test(html),'T397 G1 stages 迴圈須產三階');
+    // (2) 週期釘 16 且四段邊界正確
+    const per397=(html.match(/streetHash\(o\.x,o\.y,777\)\*(\d+)\)\)%(\d+)\)\/4\)/)||[]);
+    assert(per397[1]==='16'&&per397[2]==='16','T397 G2 生長週期須為 16（四段各 4 天），實得 '+per397[1]+'/'+per397[2]);
+    // 四段映射：gst 0/1/3 走 farmGrow（3→stage 2），gst 2 走 base/farmSea
+    assert(/const gsIdx397=gst===3\?2:gst;/.test(html),'T397 G2 gst→stage 映射（收割 3 對應 farmGrow 第三階）在場');
+    assert(/if\(gst!==2&&SPR\.farmGrow/.test(html),'T397 G2 成熟段（gst 2）必須走 base/farmSea，其餘走 farmGrow');
+    // (3) 豐收節聯動讀的是 cityEvent 狀態，不是亂數
+    const hv397=(html.match(/const hv397=[^\n]*/)||[])[0]||'';
+    assert(/cityEvent/.test(hv397)&&/harvest/.test(hv397)&&!/\bR\(\)|\bri\(/.test(hv397),
+      'T397 G3 豐收節收割態須讀 cityEvent（決定性狀態），禁模擬亂數');
+    // (4) 割茬繪製本體在場且零亂數（T279 區塊整體零亂數由 T395 G7 覆蓋，此處釘割茬分支存在）
+    const t279b=html.slice(html.indexOf('/* ===== T279 精細田地層'),html.indexOf('/* ===== T279 精細田地層 END'));
+    assert(/if\(st===2\)\{/.test(t279b),'T397 G4 stagePlant 須有割茬分支');
+    assert(/streetHash\(c\+64,r\+64,3970\)/.test(t279b),'T397 G4 草捆取向須由決定性雜湊決定（零亂數）');
+    /* (5) 逐鍵覆蓋：每個農場鍵必須恰好出現 9 次＝3 季×3 階全烘。
+       只看總數 153 會被「某季多烘、某季漏烘」矇混（T380a 的教訓：self-check 必須逐項不能只看總量）。 */
+    // atlas 的 farmGrow key 形如 `<季>.<階>.<鍵>`（遞迴攤平時帶巢狀前綴），可精確驗每個季階組合
+    const combo397={},base397={},badK397=[];
+    for(const e of fg397){
+      const p=e.key.split('.');
+      if(p.length<3){badK397.push(e.key);continue;}
+      combo397[p[0]+'.'+p[1]]=(combo397[p[0]+'.'+p[1]]||0)+1;
+      const bk=p.slice(2).join('.');
+      base397[bk]=(base397[bk]||0)+1;
+    }
+    assert(badK397.length===0,'T397 G5 farmGrow key 須為 季.階.鍵 格式，違者：'+badK397.slice(0,5).join(','));
+    const badC397=Object.keys(combo397).filter(k=>combo397[k]!==17);
+    const badB397=Object.keys(base397).filter(k=>base397[k]!==9);
+    assert(Object.keys(combo397).length===9&&badC397.length===0,
+      'T397 G5 九個季階組合（3 季×3 階）每組須有 17 鍵（16 個 k22＋1 個 k53）；組數='
+      +Object.keys(combo397).length+' 違者：'+badC397.map(k=>k+'×'+combo397[k]).join(','));
+    assert(Object.keys(base397).length===17&&badB397.length===0,
+      'T397 G5 每個農場鍵須橫跨全部 9 個季階組合；鍵數='+Object.keys(base397).length
+      +' 違者：'+badB397.map(k=>k+'×'+base397[k]).join(','));
+    // 每張割茬圖都必須有像素尺寸（防「宣告了第三階但 stages 沒真的畫」）
+    assert(fg397.every(e=>e.w>0&&e.h>0),'T397 G5 farmGrow 全部 entry 須有正尺寸');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
