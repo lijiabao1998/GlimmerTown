@@ -6800,6 +6800,47 @@ runPwaTests().then(() => {
     assert(/cAct385\.src==='happy'\?Math\.round\(cityHappy\*100\)\/100:0;/.test(html),
       'T394b G5 happy 判定須用 2dp 捨入值(面板顯示什麼就按什麼判;原值路徑=44 個邊界日玩家被騙)');
   }
+  /* ===== T402 視覺/載具層亂數流隔離（二期 R4） =====
+     交付=「R() 只被 tick/buildSprites 消耗」：幀路徑 20 處 ri()（含 T402 評估漏掃的
+     updDispatch 共用 helper 2 處）全換 vri（Math.random 系）。
+     邊界誠實聲明：本卡【不是】完全可重現——roadPass 壅堵回饋（T129）與服務車抵達效果
+     （救護治病/消防滅火）是設計使然的幀→模擬耦合，完全決定性需「決定性派遣+固定步長」=後續卡。 */
+  {
+    // (1) vri 定義在場
+    assert(/const vri=n=>Math\.floor\(Math\.random\(\)\*n\);/.test(html),'T402 G1 vri（視覺專用亂數）定義在場');
+    // (2) 全檔 vri 呼叫恰 20 處（18 具名函數＋updDispatch 2）
+    const vriN402=(html.match(/\bvri\(/g)||[]).length-1; // 減去定義行自身的 'vri(' 不出現於定義…定義是 vri=n=>，不含 vri( 呼叫
+    const vriCalls402=(html.match(/[^a-zA-Z_]vri\(/g)||[]).length;
+    assert(vriCalls402===20,'T402 G2 vri() 呼叫恰 20 處，實得 '+vriCalls402);
+    // (3) 幀路徑函數逐一零模擬亂數（剝註後掃；名單含共用 helper=評估漏掃的教訓）
+    const FNS402=['updSmoke','updCars','updTrains','updTrams','updShips','updBuses','updGarbageTrucks',
+      'updDispatch','updAmbulances','updFireTrucks','updPoliceCars','updRouteBuses','updLifeShips',
+      'updRain','updFxParts','updConfetti','updateCitizensMove'];
+    const strip402=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    const bad402=[];
+    for(const fn of FNS402){
+      const a=html.indexOf('function '+fn);
+      if(a<0){bad402.push(fn+':MISSING');continue;}
+      const b=html.indexOf('\nfunction ',a+10);
+      const bd=strip402(html.slice(a,b<0?a+5000:b));
+      const hs=(bd.match(/\bri\(|\bR\(\)/g)||[]).length;
+      if(hs>0)bad402.push(fn+':'+hs);
+    }
+    assert(bad402.length===0,'T402 G3 幀路徑函數【代碼】零 R()/ri()（亂數流隔離本體），違者：'+bad402.join(','));
+    // (4) 雙生子動態守衛：純 tick vs tick+幀（__noVeh 關 roadPass 回饋；30 天=首次服務出勤前的
+    //     乾淨窗口）逐項恆等——未來任何人往幀路徑塞回一個 R()/ri()，這裡當場紅。
+    window.GV.newWorldSeeded(301);window.GV.setDiff(1);window.GV.ai(true);
+    for(let d=0;d<30;d++)window.GV.step(1);
+    const A402=window.GV.stats();
+    window.__noVeh=true;
+    window.GV.newWorldSeeded(301);window.GV.setDiff(1);window.GV.ai(true);window.GV.setSpeed(0);
+    for(let d=0;d<30;d++){window.GV.step(1);window.GV.advanceN(0.05,12);}
+    const B402=window.GV.stats();
+    window.__noVeh=false;window.GV.setSpeed(1);window.GV.ai(false);
+    assert(A402.pop===B402.pop&&A402.money===B402.money&&A402.happy===B402.happy&&A402.buildings===B402.buildings,
+      'T402 G4 雙生子恆等（純tick vs tick+幀×30天）：A pop'+A402.pop+'/$'+A402.money+'/h'+A402.happy
+      +' vs B pop'+B402.pop+'/$'+B402.money+'/h'+B402.happy+'——幀路徑有 R()/ri() 殘留即分岔');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
