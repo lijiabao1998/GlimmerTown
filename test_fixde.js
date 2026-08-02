@@ -6661,6 +6661,28 @@ runPwaTests().then(() => {
     const fDraw401=(html.match(/streetHash\(o\.x,o\.y,777\)\*16\)\)%16\)\/4\)/g)||[]).length;
     assert(fDraw401===1,'T401 G4 draw 端公式仍在（唯一），實得 '+fDraw401);
   }
+  /* ===== T398a 稻草人（農事活動層 v1，農業美術三期 R6） ===== */
+  {
+    const i398=html.indexOf('const scare398=');
+    assert(i398>0,'T398a G1 scare398 定義在場');
+    const blk398=html.slice(i398,html.indexOf('const doFarm=',i398));
+    // (1) 呼叫恰 2 處（base+季節迴圈），且每處後方緊鄰同段代碼內須有 stages 呼叫（先畫後快照=全生長階段常駐）
+    const calls398=(html.match(/scare398\(g,ax,ay-16,hw,hh,key\);/g)||[]).length;
+    assert(calls398===2,'T398a G1 呼叫須恰 2 處（base＋季節迴圈），實得 '+calls398);
+    assert(/scare398\(g,ax,ay-16,hw,hh,key\);stages\(b\.img,0\)/.test(html),
+      'T398a G1 base 側須先稻草人後 stages 快照');
+    // (2) 冬季不畫且 stages 守衛完整（施工自雷：把 si!==3 搶給稻草人讓 stages 裸奔冬季＝開機即炸）
+    assert(/if\(si!==3\)\{scare398\(g,ax,ay-16,hw,hh,key\);stages\(ss\.img,si\);\}/.test(html),
+      'T398a G2 季節側須 if(si!==3){scare398;stages;} 同組守衛（缺一即冬季炸或稻草人上雪田）');
+    // (3) 決定性：scare398 本體禁一切亂數（連 Math.random 也不許——稻草人不許抖動）
+    const strip398=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    assert(!/\bR\(\)|\bri\(|Math\.random/.test(strip398(blk398)),
+      'T398a G3 scare398【代碼】零亂數（含 Math.random；位置/選型全 streetHash）');
+    assert(/streetHash\(kh,0,3980\)>=\.55/.test(blk398),'T398a G3 ~55% 選型門檻在場');
+    // (4) 真跑：烘焙後至少一個 22_1_* base 精靈存在（開機不炸的煙霧測試；像素驗證屬瀏覽器端）
+    assert(!!window.GV.sprAtlas356().entries.find(e=>e.key==='22_1_1'&&e.fam==='bld'),
+      'T398a G4 農場精靈烘焙完成');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
