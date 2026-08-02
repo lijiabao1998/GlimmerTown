@@ -6640,6 +6640,27 @@ runPwaTests().then(() => {
     assert(at400.every(e=>e.w===136&&e.h===150&&e.ax===68&&e.ay===148),
       'T400a G5 加蓋不得改變畫布尺寸或錨點');
   }
+  /* ===== T401 微氣象一期：收割揚塵＋秋末燒茬煙柱（農業美術三期 R5） ===== */
+  {
+    const i401=html.indexOf('/* T401 微氣象一期');
+    assert(i401>0,'T401 G1 分支在場');
+    const j401=html.indexOf('let offs=null,col=null,big=false;',i401);
+    assert(j401>i401,'T401 G1 分支必須位於 offs 路徑之前（獨立 push，不沾 offs 尾端的 ri() 選點）');
+    const blk401=html.slice(i401,j401);
+    assert(/&&!b\.ref&&/.test(blk401),'T401 G1 須含 !b.ref 守衛（防 2×2 錨外三格重噴）');
+    assert(/__noFarmFx401/.test(blk401),'T401 G1 逃生閥在場');
+    // (2) 燒茬硬上限：宣告+判定字面
+    assert(/let burn401=0;/.test(html)&&/burn401<2&&/.test(blk401)&&/burn401\+\+/.test(blk401),
+      'T401 G2 燒茬煙柱須有全圖硬上限 2 的計數器（宣告/判定/遞增三件套）');
+    // (3) 零模擬亂數（註釋剝除後檢）
+    const strip401=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    assert(!/\bR\(\)|\bri\(/.test(strip401(blk401)),'T401 G3 分支【代碼】零 R()/ri()（抖動 Math.random、選址 streetHash）');
+    // (4) gst 公式與 draw 端（T397）逐字一致：週期 16、鹽 777
+    const f401=(blk401.match(/Math\.floor\(\(\(day\+Math\.floor\(streetHash\([a-z.]+,[a-z.]+,777\)\*16\)\)%16\)\/4\)/g)||[]).length;
+    assert(f401===1,'T401 G4 揚塵側 gst 公式須與 draw 端逐字一致（鹽 777/週期 16），實得 '+f401);
+    const fDraw401=(html.match(/streetHash\(o\.x,o\.y,777\)\*16\)\)%16\)\/4\)/g)||[]).length;
+    assert(fDraw401===1,'T401 G4 draw 端公式仍在（唯一），實得 '+fDraw401);
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
