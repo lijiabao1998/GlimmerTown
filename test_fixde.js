@@ -316,7 +316,7 @@ js = js.slice(0, t343IifeEnd) +
   'detail:()=>$("#techDetail343").innerHTML,summary:()=>$("#infoBody").innerHTML,startDisabled:()=>!!$("#techStart343").disabled,' +
   'view:()=>({sel:techSel343,x:techPan343.x,y:techPan343.y}),' +
   'effect:__t343EffectCase,eduRefresh:__t343EduRefresh,' +
-  'guide:()=>{guideTab=5;showHelp();return $("#infoBody").innerHTML;}};\n' +
+  'guide:(gt)=>{guideTab=(gt===undefined?5:gt);showHelp();return $("#infoBody").innerHTML;}};\n' + // T393：帶參版（無參預設 5，既有呼叫不變）
   js.slice(t343IifeEnd); // T343a：只在 Node harness 的 IIFE 內匯出；正式 GV API 不增面
 // T383b：稅收窮舉造境（仿 __t343TickCase：固定種子＋stub 亂數/道路/電水/災害，直寫 133 鍵各一棟，
 // tick 一次收 fallback 成員後全數還原；只在 Node harness 存在，正式 GV API 不增面）
@@ -6499,6 +6499,21 @@ runPwaTests().then(() => {
     const ph391=window.GV.flowPanel384();
     assert(ph391.includes('垃圾 產/處理')&&ph391.includes('消防 站/總局/車')&&ph391.includes('警察 局/派出所/車')&&!/NaN|undefined|Infinity/.test(ph391),
       'T391 面板三族列零壞值');
+  }
+  // ===== T393 指南補全：八個新系統入指南（純顯示；業主 loop 二期 R1） =====
+  {
+    const gtxt393=[];
+    for(let g=0;g<6;g++){const s393=window.__t343Test.guide(g);assert(s393&&s393.length>200,'T393 指南分頁 '+g+' 渲染非空');gtxt393.push(s393);}
+    assert(gtxt393[0].includes('統計分頁')&&gtxt393[0].includes('流向圖層'),'T393 分頁0 新操作條目（統計分頁/流向圖層）在場');
+    assert(gtxt393[1].includes('病床容量')&&gtxt393[1].includes('垃圾負載比')&&gtxt393[1].includes('容量監控'),'T393 分頁1 容量條目三件套在場');
+    assert(gtxt393[2].includes('市長委託')&&gtxt393[2].includes('外貿合約')&&gtxt393[2].includes('城市專精')&&gtxt393[2].includes('工業港城'),'T393 分頁2 委託/合約/專精段在場');
+    assert(!/NaN|undefined/.test(gtxt393[0]+gtxt393[1]+gtxt393[2]),'T393 三分頁零壞值');
+    const hb393s=html.indexOf('function showHelp(');
+    const hb393e=html.indexOf('showInfoPanel();',hb393s);
+    assert(hb393s>0&&hb393e>hb393s,'T393 showHelp 函數邊界可定位');
+    const hb393=html.slice(hb393s,hb393e);
+    assert(!/\bR\(|\bri\(/.test(hb393),'T393 showHelp 全體（含新增文案）禁亂數呼叫（純顯示卡紅線）');
+    assert((hb393.match(/T393/g)||[]).length>=6,'T393 新增條目來源註釋釘（防後人刪段不留痕），實得 '+(hb393.match(/T393/g)||[]).length);
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
