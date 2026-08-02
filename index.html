@@ -8524,9 +8524,11 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
         }
       };
       const b=SPR.bld[key];
-      if(b){const g=b.img.getContext('2d');field(g,ax,ay,hw,hh,0);scare398(g,ax,ay-16,hw,hh,key);stages(b.img,0);plantGrid(g,ax,ay,hw,hh,cls,0);}
+      /* T398a 呼叫序：①快照前一次（讓小苗/拔節/割茬 clone 帶稻草人）②密植後同位再一次
+         （樣張實測：成熟密植會把 5px 稻草人埋掉——真稻草人立在作物之上，故蓋回。同位重繪=決定性冪等） */
+      if(b){const g=b.img.getContext('2d');field(g,ax,ay,hw,hh,0);scare398(g,ax,ay-16,hw,hh,key);stages(b.img,0);plantGrid(g,ax,ay,hw,hh,cls,0);scare398(g,ax,ay-16,hw,hh,key);}
       for(const si of[1,2,3]){const ss=SPR.farmSea&&SPR.farmSea[si]&&SPR.farmSea[si][key];
-        if(ss){const g=ss.img.getContext('2d');field(g,ax,ay,hw,hh,si);if(si!==3){scare398(g,ax,ay-16,hw,hh,key);stages(ss.img,si);}plantGrid(g,ax,ay,hw,hh,cls,si);}}
+        if(ss){const g=ss.img.getContext('2d');field(g,ax,ay,hw,hh,si);if(si!==3){scare398(g,ax,ay-16,hw,hh,key);stages(ss.img,si);}plantGrid(g,ax,ay,hw,hh,cls,si);if(si!==3)scare398(g,ax,ay-16,hw,hh,key);}}
     };
     /* T380：田移到地墊真中心並放大。[ax,ay,hw,hh]；ay 傳 doFarm，田心 cy=ay-16。
        預設 (68,144,40,20)⇒田心(68,128)、hw40＝1.78×面積；變體美術已讓位（plate only）。 */

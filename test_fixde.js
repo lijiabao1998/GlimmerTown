@@ -6667,10 +6667,14 @@ runPwaTests().then(() => {
     assert(i398>0,'T398a G1 scare398 定義在場');
     const blk398=html.slice(i398,html.indexOf('const doFarm=',i398));
     // (1) 呼叫恰 2 處（base+季節迴圈），且每處後方緊鄰同段代碼內須有 stages 呼叫（先畫後快照=全生長階段常駐）
-    const calls398=(html.match(/scare398\(g,ax,ay-16,hw,hh,key\);/g)||[]).length;
-    assert(calls398===2,'T398a G1 呼叫須恰 2 處（base＋季節迴圈），實得 '+calls398);
+    const calls398=(html.match(/scare398\(g,ax,ay-16,hw,hh,key\);?/g)||[]).length;
+    assert(calls398===4,'T398a G1 呼叫須恰 4 處（base 快照前+密植後、季節迴圈同款；密植後蓋回=成熟田不埋人），實得 '+calls398);
     assert(/scare398\(g,ax,ay-16,hw,hh,key\);stages\(b\.img,0\)/.test(html),
       'T398a G1 base 側須先稻草人後 stages 快照');
+    assert(/plantGrid\(g,ax,ay,hw,hh,cls,0\);scare398\(g,ax,ay-16,hw,hh,key\)/.test(html),
+      'T398a G1 base 側密植後須同位重繪（成熟田稻草人立於作物之上）');
+    assert(/plantGrid\(g,ax,ay,hw,hh,cls,si\);if\(si!==3\)scare398\(g,ax,ay-16,hw,hh,key\)/.test(html),
+      'T398a G1 季節側密植後同位重繪且守冬');
     // (2) 冬季不畫且 stages 守衛完整（施工自雷：把 si!==3 搶給稻草人讓 stages 裸奔冬季＝開機即炸）
     assert(/if\(si!==3\)\{scare398\(g,ax,ay-16,hw,hh,key\);stages\(ss\.img,si\);\}/.test(html),
       'T398a G2 季節側須 if(si!==3){scare398;stages;} 同組守衛（缺一即冬季炸或稻草人上雪田）');
