@@ -6673,8 +6673,8 @@ runPwaTests().then(() => {
       'T398a G1 base 側須先稻草人後 stages 快照');
     assert(/plantGrid\(g,ax,ay,hw,hh,cls,0\);scare398\(g,ax,ay-16,hw,hh,key\)/.test(html),
       'T398a G1 base 側密植後須同位重繪（成熟田稻草人立於作物之上）');
-    assert(/plantGrid\(g,ax,ay,hw,hh,cls,si\);if\(si!==3\)scare398\(g,ax,ay-16,hw,hh,key\)/.test(html),
-      'T398a G1 季節側密植後同位重繪且守冬');
+    assert(/plantGrid\(g,ax,ay,hw,hh,cls,si\);if\(si!==3\)\{?scare398\(g,ax,ay-16,hw,hh,key\)/.test(html),
+      'T398a G1 季節側密植後同位重繪且守冬（T399 後可帶大括號包 egret）');
     // (2) 冬季不畫且 stages 守衛完整（施工自雷：把 si!==3 搶給稻草人讓 stages 裸奔冬季＝開機即炸）
     assert(/if\(si!==3\)\{scare398\(g,ax,ay-16,hw,hh,key\);stages\(ss\.img,si\);\}/.test(html),
       'T398a G2 季節側須 if(si!==3){scare398;stages;} 同組守衛（缺一即冬季炸或稻草人上雪田）');
@@ -6686,6 +6686,33 @@ runPwaTests().then(() => {
     // (4) 真跑：烘焙後至少一個 22_1_* base 精靈存在（開機不炸的煙霧測試；像素驗證屬瀏覽器端）
     assert(!!window.GV.sprAtlas356().entries.find(e=>e.key==='22_1_1'&&e.fam==='bld'),
       'T398a G4 農場精靈烘焙完成');
+  }
+  /* ===== T399 水田家族（農業美術三期 R7） ===== */
+  {
+    const strip399=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    // (1) paddy 替代分支：rice 且非冬才替代；field() 本體不動（T395 G1 另行守著）
+    assert(/const fld399=\(g,si\)=>\{if\(cls==='rice'&&si!==3\)paddy399\(g,ax,ay,hw,hh,si\);else field\(g,ax,ay,hw,hh,si\);\};/.test(html),
+      'T399 G1 fld399 分支須為「rice 且非冬 → paddy399，否則原 field」（冬季放水休耕走雪田管線）');
+    const fldCalls399=(html.match(/fld399\(g,(0|si)\);/g)||[]).length;
+    assert(fldCalls399===2,'T399 G1 doFarm 兩處田面繪製都須經 fld399 分派，實得 '+fldCalls399);
+    // (2) paddy399 本體：水面+田字內十字堤，零亂數
+    const ip399=html.indexOf('const paddy399=');
+    assert(ip399>0,'T399 G2 paddy399 定義在場');
+    const pBlk399=html.slice(ip399,html.indexOf('const egret399=',ip399));
+    assert(!/\bR\(\)|\bri\(|Math\.random/.test(strip399(pBlk399)),'T399 G2 paddy399 零亂數（漣漪 streetHash）');
+    assert(/const yy2=Math\.round\(t2\/2\);/.test(pBlk399),'T399 G2 內十字堤（田字四格）在場');
+    // (3) 白鷺：rice 限定、plantGrid 之後（立於稻秧之上；T398a 埋人教訓）
+    const egretCalls399=(html.match(/if\(cls==='rice'\)egret399\(g,ax,ay-16,hw,hh,key\);/g)||[]).length;
+    assert(egretCalls399===2,'T399 G3 白鷺呼叫恰 2 處（base+季節迴圈）且 rice 限定，實得 '+egretCalls399);
+    assert(/scare398\(g,ax,ay-16,hw,hh,key\);if\(cls==='rice'\)egret399/.test(html),
+      'T399 G3 白鷺須在密植與稻草人之後（不被作物埋）');
+    const eBlk399=html.slice(html.indexOf('const egret399='),html.indexOf('const doFarm='));
+    assert(!/\bR\(\)|\bri\(|Math\.random/.test(strip399(eBlk399)),'T399 G3 egret399 零亂數');
+    // (4) 螢火蟲擴充：ref 解引用+准入四選一
+    assert(/const rb399=t\.bld&&\(t\.bld\.ref\?T\(idx\(t\.bld\.ref\[0\],t\.bld\.ref\[1\]\)\)\.bld:t\.bld\);/.test(html),
+      'T399 G4 螢火蟲准入須做 ref 解引用（2×2 農場四格同權）');
+    assert(/if\(t\.t!==0&&!nearPark&&!t\.tree&&!isPaddy399\)continue;/.test(html),
+      'T399 G4 准入條件＝水/公園/樹/水稻田 四選一');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
