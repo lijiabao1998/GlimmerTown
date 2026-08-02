@@ -6610,6 +6610,36 @@ runPwaTests().then(() => {
     // 每張割茬圖都必須有像素尺寸（防「宣告了第三階但 stages 沒真的畫」）
     assert(fg397.every(e=>e.w>0&&e.h>0),'T397 G5 farmGrow 全部 entry 須有正尺寸');
   }
+  /* ===== T400a 牧場生命感·靜態層（農業美術三期 R4） ===== */
+  {
+    const s400=html.indexOf('/* ===== T400a 牧場生命感·靜態層');
+    const e400=html.indexOf('/* ===== T400a 牧場生命感·靜態層 END');
+    assert(s400>0&&e400>s400,'T400a G1 區塊可定位');
+    const blk400=html.slice(s400,e400);
+    // (1) 位置：必須在 T273 END 之後（落在 T273 區塊內會觸紅其三條不變量——施工時真踩過）
+    const t273e=html.indexOf('/* ===== T273 牧場變體擴充 END ===== */');
+    assert(t273e>0&&s400>t273e,'T400a G1 本層須位於 T273 區塊之外（之後），否則破壞 T273 的賦值/plate/亂數不變量');
+    // (2) 只加蓋、不新增精靈鍵（新增鍵會逃過既有的錨點與底座裁切守衛）
+    assert(!/SPR\.bld\[[^\]]*\]\s*=/.test(blk400),'T400a G2 本層只准在既有精靈上加蓋，不得賦值任何 SPR.bld 鍵');
+    assert(/SPR\.bld\['23_1_'\+v\]/.test(blk400),'T400a G2 須逐一取用五個既有牧場鍵');
+    // (3) 零亂數（美術層鐵律）：註釋先剝除，防 T395 同款自雷
+    const strip400=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    assert(!/\bR\(\)|\bri\(|Math\.random|spriteTexRand/.test(strip400(blk400)),
+      'T400a G3 本層【代碼】零亂數（取向一律 streetHash）');
+    const sh400=(blk400.match(/streetHash\(/g)||[]).length;
+    assert(sh400>=8,'T400a G3 決定性雜湊呼叫數應 ≥8（斑/徑/泥地各自取向），實得 '+sh400);
+    // (4) 不得溢出地墊：所有落筆前須過 inPlate400 不等式（否則痕跡會畫到鄰格）
+    assert(/const inPlate400=\(x,y\)=>Math\.abs\(x-68\)\/64\+Math\.abs\(y-116\)\/32<=\.97;/.test(blk400),
+      'T400a G4 地墊不等式須為 footprint 菱形且留邊（.97）');
+    // 四個落筆點各須一道保護：啃食斑／踩踏動線／水槽總判定／泥地
+    const guardN=(blk400.match(/inPlate400\(/g)||[]).length;
+    assert(guardN>=4,'T400a G4 每個繪製點都須先過 inPlate400（啃食斑/動線/水槽/泥地），實得 '+guardN+' 處');
+    // (5) 真跑：五張牧場精靈仍在、尺寸未變（加蓋不得改畫布）
+    const at400=window.GV.sprAtlas356().entries.filter(e=>/^23_1_[0-4]$/.test(e.key));
+    assert(at400.length===5,'T400a G5 五個牧場變體仍在，實得 '+at400.length);
+    assert(at400.every(e=>e.w===136&&e.h===150&&e.ax===68&&e.ay===148),
+      'T400a G5 加蓋不得改變畫布尺寸或錨點');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
