@@ -5585,7 +5585,7 @@ runPwaTests().then(() => {
         return cover;
       };
       let blocks = 0, totalCover = 0, totalBldRects = 0;
-      const per = [], perSig = [];
+      const per = [], perSig = [], sigByV396 = [];
       const regRe = /SPR\.bld\['22_1_(\d+)'\]/g;
       let rm;
       while ((rm = regRe.exec(html))) {
@@ -5601,6 +5601,7 @@ runPwaTests().then(() => {
         const cover = fieldCover(rects, F22[v]);
         totalCover += cover;
         per.push('v' + v + ':' + cover + '/' + rects.length);
+        sigByV396[v] = rects; // T396-A：供下方「表逐筆一致」比對
       }
       assert(blocks >= 16, 'T379 L1：應解析到 ≥16 個 k22 變體，實得 ' + blocks);
       /* ===== T380a：self-check 必須逐變體，不能只看總數 =====
@@ -5623,9 +5624,27 @@ runPwaTests().then(() => {
       /* T380a：門檻由 ≤60 收到 0。理由是實測——把田從 hw40/hh20 放大到 hw56/hh28
          （K4 仍過，hh=hw/2 且 hw≥36）＝T378 事故的真實形狀，覆蓋量只有約 30~60px 就被 60 放行。
          哨兵擺在招牌最下緣，而田菱形的上尖很窄，所以「剛開始吃到」時吃得很少。
-         現況覆蓋 0，收到 0 是免費的，且把「田不得蓋到招牌」變成真正的二值不變量。 */
-      assert(totalCover === 0,
-        'T379/T380a L1：k22 精細田蓋掉招牌建築 ' + totalCover + ' px（門檻 0）：' + per.join(' '));
+         現況覆蓋 0，收到 0 是免費的，且把「田不得蓋到招牌」變成真正的二值不變量。
+         ===== T396-A 遮罩感知升級 =====
+         田放大到鋪滿（hw64）後幾何覆蓋必然 >0，但 px1 的 SIG396 閘保證那些像素【永不落筆】。
+         「田不得蓋到招牌」的不變量由幾何迴避升級為像素級：totalCover===0 或
+         （SIG396 表與源碼解析逐筆一致 且 px1 閘字面在場）二者必居其一。表漂移/閘拆除即紅。 */
+      const sigTblM396 = html.match(/const SIG396=\[[\s\S]*?\];/);
+      let maskOk396 = false;
+      if (sigTblM396 && /const px1=\(g,x,y,c\)=>\{for\(let i9=0;i9<curSig396\.length;i9\+\+\)\{const r9=curSig396\[i9\];if\(x>=r9\[0\]&&x<r9\[0\]\+r9\[2\]&&y>=r9\[1\]&&y<r9\[1\]\+r9\[3\]\)return;\}/.test(html)
+          && /curSig396=\(key\.slice\(0,5\)==='22_1_'\)\?\(SIG396\[\+key\.slice\(5\)\]\|\|\[\]\):\[\];/.test(html)) {
+        const tbl396 = eval(sigTblM396[0].replace(/^const SIG396=/, '(').replace(/;$/, ')'));
+        const bad396 = [];
+        for (let v = 0; v < 16; v++) {
+          if (JSON.stringify(tbl396[v] || []) !== JSON.stringify(sigByV396[v] || [])) bad396.push('v' + v);
+        }
+        assert(bad396.length === 0,
+          'T396-A：SIG396 表必須與源碼 //sig 解析逐筆一致（單一真相來源；改美術者順手改表），違者：' + bad396.join(','));
+        maskOk396 = true;
+      }
+      assert(totalCover === 0 || maskOk396,
+        'T379/T380a/T396-A：k22 田幾何覆蓋招牌 ' + totalCover + ' px 且【無有效 SIG396 像素閘】——'
+        + '要嘛田不碰招牌帶（totalCover 0），要嘛 px1 閘+表逐筆一致（像素級保證）：' + per.join(' '));
       // 破壞性：田心塞 //sig 建築 ⇒ 必須紅
       {
         const pin = "SPR.bld['22_1_0']={img:c,ax,ay,w:136,h:150,smoke:[]}";
@@ -6734,7 +6753,13 @@ runPwaTests().then(() => {
     assert((bBlk403.match(/__noFarmLife403/g)||[]).length===2,'T403b G2 逃生閥兩分支各一');
     assert(/bd\.k===53&&gst403>=2/.test(bBlk403),'T403b G2 拖拉機限大農場成熟/割茬期');
     assert(/bd\.k===22&&gst403<=1&&streetHash\(o\.x,o\.y,4035\)<\.3/.test(bBlk403),'T403b G2 灑水器限生長期 30% 農戶');
-    assert(/bd\.v===4/.test(bBlk403)&&/nightDepth>0/.test(bBlk403),'T403c G3 雞群（v4）與畜舍夜燈分支在場');
+    assert(/bd\.v===4/.test(bBlk403),'T403c G3 雞群（v4）分支在場');
+    assert(/const DOOR403=\[\[52,130,4,6\],\[49,129,4,6\],\[46,131,4,6\],\[45,128,5,8\],\[45,129,6,8\]\]/.test(bBlk403),
+      'T403c G3 穀倉門座標表五變體在場（取自烘焙碼畜舍座標）');
+    assert(/nightDepth<\.5/.test(bBlk403)&&/門開＝深色門洞|#241a12/.test(bBlk403)&&/#7a5230/.test(bBlk403),
+      'T403c G3 門晝開（深門洞）夜閉（門板+門縫暖光）雙態在場');
+    assert(/streetHash\(o\.x,o\.y,4040\)<\.4/.test(bBlk403)&&/#c8a860/.test(bBlk403),
+      'T403e G3 農夫點綴（40% 農戶+草帽小人）在場');
     assert(/animOn&&!lodFar/.test(bBlk403),'T403b/c 節流（animOn/lodFar）在場');
     // (d) 田面晨霧：獨立層、ref 解引用、w2v、逃生閥、強度峰態式
     const id403=html.indexOf('/* ===== T403d 田面晨霧');
