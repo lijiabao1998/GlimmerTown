@@ -6337,7 +6337,7 @@ runPwaTests().then(() => {
   { // 功能：門檻/兩擊/永久/效果/存讀
     window.GV.newWorldSeeded(123);window.GV.weather(0);
     assert(window.GV.specPick386(0)===false,'T386a 低等級拒選');
-    window.__t385Rank(6);window.__t385Diff(3);
+    window.__t385Rank(8);window.__t385Diff(3); // T394b：門檻 Lv6→Lv9，夾具跟隨（rankIdx 8=Lv9）
     assert(window.GV.specPick386(0)===false,'T386a 沙盒拒選');
     window.__t385Diff(1);
     // 兩擊（UI 路徑）：rank 夠、未選 → 面板出四鈕
@@ -6771,6 +6771,34 @@ runPwaTests().then(() => {
     assert(/const _p403=w2v\(x3,y3\);/.test(dBlk403),'T403d G4 格位先過 w2v（T375 硬性）');
     assert(!/\bR\(\)|\bri\(|Math\.random/.test(strip403(dBlk403)),'T403d G4 零亂數');
     assert(!/\bfog\b/.test(strip403(dBlk403)),'T403d G4 不得觸碰既有 fog 變數（同名遮蔽地雷）');
+  }
+  /* ===== T394b 平衡調參（二期 R3；T394a 報告建議 1-4） ===== */
+  {
+    // (1) 專精門檻 Lv9,且【門檻與文案數字必須一致】=改門檻者順手改文案(三處同源)
+    const gate394=(html.match(/spec386\|\|diff===3\|\|rankIdx\+1<(\d+)\)return false;/)||[])[1];
+    assert(gate394==='9','T394b G1 specPick386 門檻須為 Lv9,實得 <'+gate394);
+    // 專精相關文案恰 2 處(面板+指南)且數字=門檻;「城市等級 3 解鎖」是委託解鎖文案,別家功能不糾察
+    const specTxt394=(html.match(new RegExp('城市等級 '+gate394+' 解鎖','g'))||[]).length;
+    assert(specTxt394===2,'T394b G1 「城市等級 '+gate394+' 解鎖」文案須恰 2 處(面板+指南),實得 '+specTxt394);
+    assert(!/城市等級 6 解鎖/.test(html),'T394b G1 舊 Lv6 專精文案須清零(改門檻者順手改文案)');
+    // (2) edu 費規模化:公式在場+界 [6,40] 真跑驗算+基線零影響(sq 未選恆 0 由 T386a 位元恆等紅線守)
+    const feeM394=(html.match(/const eduFee394=Math\.min\(40,Math\.max\(6,Math\.round\(pop\/100\)\)\)/)||[])[0];
+    assert(feeM394,'T394b G2 eduFee394 公式(min40/max6/pop百分之一)在場');
+    assert(/sq\('edu',eduFee394,0\)/.test(html),'T394b G2 upReg 須引用 eduFee394(固定 12 已廢)');
+    const fee394=(p)=>Math.min(40,Math.max(6,Math.round(p/100)));
+    assert(fee394(0)===6&&fee394(800)===8&&fee394(4000)===40&&fee394(99999)===40,'T394b G2 費用界驗算 [6,40]');
+    // (3) happy80 目標 .78 + 值-文案同步(兩條 happy 池目皆驗)
+    for(const em of html.matchAll(/\{id:'happy(\d+)',[^}]*nm:'幸福 (\d+)%[^']*'[^}]*target:\.(\d+),/g)){
+      assert(em[2]===em[3],'T394b G3 happy'+em[1]+' 值-文案須同步:nm '+em[2]+'% vs target .'+em[3]);
+    }
+    assert(/\{id:'happy80',[^}]*target:\.78,/.test(html),'T394b G3 happy80 目標須為 .78(觀測天花板 .75 下沿)');
+    // (4) transit400 目標 1200 + 值-文案同步
+    const tm394=html.match(/\{id:'transit400',[^}]*nm:'公共運量 (\d+)[^']*'[^}]*target:(\d+),/);
+    assert(tm394&&tm394[1]===tm394[2]&&tm394[2]==='1200',
+      'T394b G4 transit400 目標須 1200 且值-文案同步,實得 nm='+(tm394&&tm394[1])+' target='+(tm394&&tm394[2]));
+    // (5) happy 判定與面板同源(2dp 捨入)
+    assert(/cAct385\.src==='happy'\?Math\.round\(cityHappy\*100\)\/100:0;/.test(html),
+      'T394b G5 happy 判定須用 2dp 捨入值(面板顯示什麼就按什麼判;原值路徑=44 個邊界日玩家被騙)');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
