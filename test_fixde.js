@@ -6659,7 +6659,7 @@ runPwaTests().then(() => {
     const f401=(blk401.match(/Math\.floor\(\(\(day\+Math\.floor\(streetHash\([a-z.]+,[a-z.]+,777\)\*16\)\)%16\)\/4\)/g)||[]).length;
     assert(f401===1,'T401 G4 揚塵側 gst 公式須與 draw 端逐字一致（鹽 777/週期 16），實得 '+f401);
     const fDraw401=(html.match(/streetHash\(o\.x,o\.y,777\)\*16\)\)%16\)\/4\)/g)||[]).length;
-    assert(fDraw401===1,'T401 G4 draw 端公式仍在（唯一），實得 '+fDraw401);
+    assert(fDraw401===2,'T401 G4 draw 端公式恰 2 處（T397 選圖＋T403b 拖拉機，逐字同款），實得 '+fDraw401);
   }
   /* ===== T398a 稻草人（農事活動層 v1，農業美術三期 R6） ===== */
   {
@@ -6713,6 +6713,39 @@ runPwaTests().then(() => {
       'T399 G4 螢火蟲准入須做 ref 解引用（2×2 農場四格同權）');
     assert(/if\(t\.t!==0&&!nearPark&&!t\.tree&&!isPaddy399\)continue;/.test(html),
       'T399 G4 准入條件＝水/公園/樹/水稻田 四選一');
+  }
+  /* ===== T403 農業美術動態收官波次（三期 R8）：a 草緣/b 拖拉機+灑水器/c 牧場動態/d 田面晨霧 ===== */
+  {
+    const strip403=(t)=>t.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+    // (a) 草叢越界：呼叫恰 2 處、冬季不撒、零亂數
+    const ga403=html.indexOf('const grass403=');
+    assert(ga403>0,'T403a G1 grass403 定義在場');
+    const gBlk403=html.slice(ga403,html.indexOf('if(b){const g=b.img',ga403));
+    assert(/if\(si===3\)return;/.test(gBlk403),'T403a G1 冬季雪地不撒草');
+    assert(!/\bR\(\)|\bri\(|Math\.random/.test(strip403(gBlk403)),'T403a G1 grass403 零亂數');
+    const gCalls403=(html.match(/grass403\(g,(0|si)\);/g)||[]).length;
+    assert(gCalls403===2,'T403a G1 呼叫恰 2 處（base+季節迴圈），實得 '+gCalls403);
+    // (b/c) 動態 overlay：區塊在場、零 Math.random（同 visT 重繪恆等）、逃生閥
+    const ib403=html.indexOf('/* ===== T403b/c 農事與牧場動態');
+    assert(ib403>0,'T403b G2 動態區塊在場');
+    const bBlk403=html.slice(ib403,html.indexOf('__noScaffold',ib403));
+    assert(!/\bR\(\)|\bri\(|Math\.random/.test(strip403(bBlk403)),
+      'T403b G2 動態 overlay【代碼】零亂數（只准 visT+streetHash＝同 visT 重繪恆等）');
+    assert((bBlk403.match(/__noFarmLife403/g)||[]).length===2,'T403b G2 逃生閥兩分支各一');
+    assert(/bd\.k===53&&gst403>=2/.test(bBlk403),'T403b G2 拖拉機限大農場成熟/割茬期');
+    assert(/bd\.k===22&&gst403<=1&&streetHash\(o\.x,o\.y,4035\)<\.3/.test(bBlk403),'T403b G2 灑水器限生長期 30% 農戶');
+    assert(/bd\.v===4/.test(bBlk403)&&/nightDepth>0/.test(bBlk403),'T403c G3 雞群（v4）與畜舍夜燈分支在場');
+    assert(/animOn&&!lodFar/.test(bBlk403),'T403b/c 節流（animOn/lodFar）在場');
+    // (d) 田面晨霧：獨立層、ref 解引用、w2v、逃生閥、強度峰態式
+    const id403=html.indexOf('/* ===== T403d 田面晨霧');
+    assert(id403>0,'T403d G4 晨霧區塊在場');
+    const dBlk403=html.slice(id403,html.indexOf('// T182 晨霧（Opus 親手）',id403));
+    assert(/__noFieldMist403/.test(dBlk403),'T403d G4 逃生閥在場');
+    assert(/clamp\(1-Math\.abs\(ph-\.25\)\/\.09,0,1\)/.test(dBlk403),'T403d G4 強度峰態式（日出最濃）同 T182 形');
+    assert(/t3\.bld\.ref\?T\(idx\(t3\.bld\.ref\[0\],t3\.bld\.ref\[1\]\)\)\.bld/.test(dBlk403),'T403d G4 ref 解引用');
+    assert(/const _p403=w2v\(x3,y3\);/.test(dBlk403),'T403d G4 格位先過 w2v（T375 硬性）');
+    assert(!/\bR\(\)|\bri\(|Math\.random/.test(strip403(dBlk403)),'T403d G4 零亂數');
+    assert(!/\bfog\b/.test(strip403(dBlk403)),'T403d G4 不得觸碰既有 fog 變數（同名遮蔽地雷）');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
