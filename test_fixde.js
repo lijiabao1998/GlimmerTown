@@ -337,6 +337,8 @@ window.__t390Repair=function(tre,ter,n){return repairTre390(tre,ter,n);}; // T39
 window.__t410Pol=function(dt){updPoliceCars(dt);return policeCars.length;}; // T410 測試橋：幀路徑警車派遣單步（回傳在途車數；vri 系不碰 R()）
 window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=window.__t411Rold;}}; // T411 測試橋：量測期間凍結 R 機率路徑（比照 __t386Tick 的 stub 慣例）——G3 量的是純車輛物理，tick 的診所擲骰/病亡轉化/犯罪點火/火勢蔓延全部惰性化，量測不受未來 R 流位移影響
 window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;}; // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
+window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd)};}; // T413a 測試橋：亮度梯度重建/讀值/雙註冊口/雙派發
+window.__t413R=function(){let c=0;const o=R;R=function(){c++;return o();};try{nightTierDirty413=true;rebuildNightTier413();}finally{R=o;}return c;}; // T413a 測試橋：重建期間 R() 實際消耗計數——文本掃描看不穿 helper 間接層（覆核繞過①c），行為計數看得穿
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
@@ -7276,6 +7278,71 @@ runPwaTests().then(() => {
     elMap.get('crimeBtn').click();
     const g5=window.GV.tile(20,20).bld;
     assert(g5.crime===0&&(g5.crimeDays||0)===0,'T412 G5 點擊「處理犯罪」須清到【真實建築】且歸零倒數（綁定換拷貝=toast 照跳犯罪照舊），實得 crime='+g5.crime+' days='+(g5.crimeDays||0));
+  }
+  // ===== T413a 夜之城骨架（收口/亮度梯度/批次註冊口；骨架零像素） =====
+  { // G1 靜態：全部釘在去註解文本（T411 鐵訓）
+    const bare413=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(bare413.includes('if(nightDepth>0&&!window.__noNightCity){drawNightCity413(nightDepth);}'),
+      'T413a G1 收口閘門行原文釘——日間 nightDepth===0 短路=「日間逐像素一致」硬性不變量由構造繼承；__noNightCity 逃生閥一刀全關');
+    assert(bare413.includes('const NIGHT413=[];'),'T413a G1 批次註冊口在場（T413b 唯一進場通道）');
+    assert(bare413.includes('function urbanDens406(x,y){'),'T413a G1 密度函式抽出在場（T408 先例，第二呼叫者=夜之城）');
+    assert(bare413.includes('return clamp((n-5)/38,0,1);'),'T413a G1 密度正規化式原文釘（T407 實測標定，不得漂移）');
+    assert(bare413.includes('const dens=urbanDens406(x,y);'),'T413a G1 pickV406 改呼叫抽出函式（同式同序純重構）');
+    assert(!bare413.includes('const dens=clamp((n-5)/38,0,1);'),'T413a G1 舊內聯式絕跡（雙份公式=漂移溫床）');
+    assert((bare413.match(/nightTierDirty413=true;/g)||[]).length===3,
+      'T413a G1 置髒恰 3 處（宣告初值+newWorld+load 成對，鐵律7 對稱；多一處=有人亂置髒/少一處=某端漏配對），實得 '+((bare413.match(/nightTierDirty413=true;/g)||[]).length));
+    /* T413a 加固（對抗性覆核③④⑤補洞）：層序雙收口+呼叫點恰等+骨架期 push 絕跡 */
+    assert(bare413.includes('if(nightDepth>0&&!window.__noNightCity){drawNightCityTop413(nightDepth);}'),
+      'T413a G1b 頂層派發閘門行原文釘（建築物件層之後——光束/頻閃/立面霓虹畫在建築之上，前段畫的會被建築蓋掉=覆核③）');
+    assert(bare413.includes('const NIGHT413T=[];'),'T413a G1b 頂層註冊口在場');
+    assert((bare413.match(/drawNightCity413\(/g)||[]).length===2&&(bare413.match(/drawNightCityTop413\(/g)||[]).length===2,
+      'T413a G1b 兩派發器呼叫點各恰 2 處（定義+閘門；多出=有人開了不帶逃生閥的旁路=覆核繞過④a），實得 '
+      +((bare413.match(/drawNightCity413\(/g)||[]).length)+'/'+((bare413.match(/drawNightCityTop413\(/g)||[]).length));
+    assert((bare413.match(/NIGHT413\.push|NIGHT413T\.push/g)||[]).length===0,
+      'T413a G1b 骨架期產品碼 push 絕跡（含事件處理器內的惰性注入=覆核繞過③b；T413b 各批入場時本釘改為恰等批數）');
+  }
+  { // G2b 行為：重建期間 R() 實際消耗恆 0——文本掃描看不穿 helper 間接層（覆核繞過①c），計數器看得穿
+    window.GV.newWorldSeeded(431);window.GV.weather(0);
+    window.__t384Bld(1,20,20);
+    assert(window.__t413R()===0,'T413a G2b rebuildNightTier413 全呼叫鏈零 R() 消耗（夜幀渲染吃模擬亂數流=鐵律2 本體破壞，掛機看不看夜景會改變城市未來），實得 '+window.__t413R());
+  }
+  { // G5 靜態：tick 體內零 nightTier413/NIGHT413 引用——「tick 不讀 draw 快取」紅線的機器化（覆核繞過②）
+    const tickAt413=html.indexOf('function tick(){');
+    const tickEnd413=html.indexOf('\nfunction ',tickAt413+10);
+    const tickBody413=html.slice(tickAt413,tickEnd413>0?tickEnd413:tickAt413+200000);
+    assert(!/nightTier413|NIGHT413/.test(tickBody413),
+      'T413a G5 tick 體內禁讀夜之城快取/註冊口（模擬依賴渲染史=存檔不含 tier ⇒ save/load 不可重現）');
+  }
+  { // G2 三新函式零亂數（鐵律2；drawNightCity413/rebuildNightTier413/urbanDens406 皆幀路徑）
+    for(const fn of ['function urbanDens406(x,y){','function rebuildNightTier413(){','function drawNightCity413(nd){']){
+      const at=html.indexOf(fn);
+      assert(at>0,'T413a G2 函式在場：'+fn);
+      const end=html.indexOf('\nfunction ',at+10);
+      const body=html.slice(at,end>0?end:at+2000).replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+      assert(!/\bR\(\)|\bri\(/.test(body),'T413a G2 '+fn+' 零 R()/ri()');
+    }
+  }
+  { // G3 行為：亮度分檔正確（密集簇=3 檔/孤宅=1 檔/空地=0 檔）
+    window.GV.newWorldSeeded(430);window.GV.weather(0);
+    for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++)window.__t384Bld(1,30+dx,30+dy); // 7×7 全滿 n=49 ⇒ d=1
+    window.__t384Bld(1,60,60); // 孤宅 n=1 ⇒ d=0
+    const t413=window.__t413();
+    t413.rebuild();
+    assert(t413.tier(30,30)===3,'T413a G3 密集簇中心=3 檔（市中心最亮），實得 '+t413.tier(30,30));
+    assert(t413.tier(60,60)===1,'T413a G3 孤宅=1 檔（郊區也有一盞燈），實得 '+t413.tier(60,60));
+    assert(t413.tier(50,50)===0,'T413a G3 空地=0 檔（界內無建築格；初版誤用 (80,80) 出了 72 圖界=undefined 教訓），實得 '+t413.tier(50,50));
+  }
+  { // G4 行為：註冊口派發真的被呼叫＋骨架期恆空（零像素不變量）
+    const t413b=window.__t413();
+    assert(t413b.reg.length===0&&t413b.regT.length===0,'T413a G4 骨架期雙註冊口恆空=日夜幀皆與 master 逐像素恆等（T413b 才准 push），實得 '+t413b.reg.length+'/'+t413b.regT.length);
+    let got413=-1,gotTop413=-1;
+    t413b.reg.push((nd)=>{got413=nd;});
+    t413b.regT.push((nd)=>{gotTop413=nd;});
+    t413b.call(.55);
+    t413b.callTop(.66);
+    t413b.reg.pop();t413b.regT.pop();
+    assert(got413===.55&&gotTop413===.66,'T413a G4 雙派發器須以 nightDepth 各自呼叫註冊繪製器，實得 '+got413+'/'+gotTop413);
+    assert(t413b.reg.length===0&&t413b.regT.length===0,'T413a G4 探針清理後雙口恢復空（不污染後續測試）');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
