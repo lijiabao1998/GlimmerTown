@@ -13902,7 +13902,8 @@ let groundCacheZ=1; // T108：記錄目前快取實際烘焙時的 cam.z，供�
    draw 側單向讀模擬（面板純讀鐵律同源），不入存檔；newWorld/load 成對置髒（鐵律7 對稱慣例）。
    三函式零 R()/ri()（鐵律2）。 */
 let nightTier413=null,nightTierDay413=-1,nightTierDirty413=true;
-const NIGHT413=[]; // T413b 批次註冊口：每批 push 一個 (nd)=>{...} 繪製器（nd=nightDepth 0..1）
+const NIGHT413=[];  // T413b 批次註冊口【地面層】：路燈光暈/水面夜反射——畫在建築物件層之前（rdecGlow 同層）
+const NIGHT413T=[]; // T413b 批次註冊口【頂層】：光束/頻閃/立面霓虹——畫在建築物件層之後（覆核③補洞：前段畫的會被建築蓋掉；T359 探照燈層序先例）
 function rebuildNightTier413(){
   if(!nightTier413||nightTier413.length!==N*N)nightTier413=new Uint8Array(N*N);
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
@@ -13913,9 +13914,16 @@ function rebuildNightTier413(){
   }
   nightTierDirty413=false;
 }
-function drawNightCity413(nd){
+function ensureNightTier413(){
   if(nightTierDirty413||nightTierDay413!==day||!nightTier413||nightTier413.length!==N*N){rebuildNightTier413();nightTierDay413=day;}
+}
+function drawNightCity413(nd){
+  ensureNightTier413();
   for(const f of NIGHT413)f(nd);
+}
+function drawNightCityTop413(nd){
+  ensureNightTier413();
+  for(const f of NIGHT413T)f(nd);
 }
 function draw(dt){
   trafClock+=dt||0; // T289：交通時鐘推進（紅綠燈相位）
@@ -15524,6 +15532,7 @@ function draw(dt){
       ctx.fillRect(o.sx+24*z,o.sy+(-54+bob)*z,10*z,2*z);
     }
   }
+  if(nightDepth>0&&!window.__noNightCity){drawNightCityTop413(nightDepth);} /* T413a 補洞（覆核③）：頂層派發點——建築物件層【之後】、天氣色調之前。光束/頻閃/立面霓虹畫在建築之上（T359 探照燈同層序），地面光暈/水面反射走前段 NIGHT413。 */
   // ---- 天氣色調（雨天壓暗，晝夜 multiply 之前疊加；T17）----
   if(weather){
     ctx.fillStyle=win?'rgba(200,210,230,.14)':weather===2?'rgba(70,90,120,.3)':'rgba(70,90,120,.18)'; // 冬季雪天色調（T18）
