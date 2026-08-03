@@ -6887,6 +6887,7 @@ runPwaTests().then(() => {
     const seg406=html.slice(iSort,iMk);
     assert(/\(VH406\[key\]\|\|\(VH406\[key\]=\[\]\)\)\[t\.v\]=\(t\.d\.h\|\|0\)\+\(t\.d\.hw\|\|0\);/.test(seg406),
       'T406 G1 樓高必須取自【同一份 tasks 清單】的 d.h+d.hw（與實際建造的 sprite 同源）');
+    assert(/rankV406\(\);/.test(seg406),'T406 G1 tasks 段須成表（rankV406 冪等，塔在 TWDEF 後再呼叫一次）');
     // (2) 兩個寫入點都仍求值 ri(12)＝亂數消耗次數/順序零位移（鐵律2）
     assert(/v:\(kk===1\|\|kk===2\|\|kk===3\)\?pickV406\(kk,1,x,y,ri\(12\)\):ri\(4\)/.test(html),
       'T406 G2 生成點須為 pickV406(...,ri(12))＝ri(12) 仍求值');
@@ -6922,7 +6923,7 @@ runPwaTests().then(() => {
         const nx=x+dx,ny=y+dy;
         if(nx<0||ny<0||nx>=N406||ny>=N406)continue;
         const nb=window.GV.tile(nx,ny).bld;
-        if(nb&&nb.k<=3)n++;
+        if(nb&&(nb.k<=3||nb.k===33||nb.k===34||nb.k===105||nb.k===106))n++; // T407：與 pickV406 同口徑（都市織理）
       }
       const key=b.k+'_'+b.lv,a=vh406.vh[key]||[];
       if(!span406[key]){const hs=a.filter(h=>h>0);span406[key]=[Math.min(...hs),Math.max(...hs)];}
@@ -6937,6 +6938,53 @@ runPwaTests().then(() => {
     assert((pHigh-pLow)*100>=15,
       'T406 G5 梯度實證：高密度組同級高度百分位須高於低密度組 ≥15 個百分點（白噪音＝0），'
       +'實得低 '+(pLow*100).toFixed(1)+'% 高 '+(pHigh*100).toFixed(1)+'% 差 '+((pHigh-pLow)*100).toFixed(1));
+  }
+  /* ===== T407 塔高梯度（TheoTown 觀感對標第三刀） ===== */
+  {
+    // (1) 塔高必須在 TWDEF 建造迴圈內記錄（與 RCI 同手法：與實際建造同源，不另抄表）
+    const iTw=html.indexOf('for(const d of TWDEF){');
+    const iTwEnd=html.indexOf('rankV406(); /* T407',iTw);
+    assert(iTw>0&&iTwEnd>iTw,'T407 G1 TWDEF 迴圈與其後的成表呼叫可定位');
+    assert(/\(VH406\[d\.k\+'_1'\]\|\|\(VH406\[d\.k\+'_1'\]=\[\]\)\)\[d\.v\]=d\.h\+thw;/.test(html.slice(iTw,iTwEnd)),
+      'T407 G1 塔高須取自 TWDEF 迴圈內的 d.h+thw');
+    // (2) 合併點仍求值 ri(2)＝亂數消耗零位移
+    assert(/v:pickV406\(tk,1,x,y,ri\(2\)\)/.test(html),'T407 G2 塔合併點須為 pickV406(...,ri(2))＝ri(2) 仍求值');
+    /* (2b) 都市織理口徑必須含摩天樓與巨廈——這是本卡抓到的真 bug 的不變量：
+       口徑只數 k<=3 時【塔自己不算數】，市中心塔叢反被判低密度，首測塔高梯度直接反向（193→190px）。
+       方向性斷言(G4)對此不夠敏感（窄口徑仍給出 3px 正向差），故在原文層直接釘死。 */
+    assert(/const URBAN406=\(k\)=>k<=3\|\|k===33\|\|k===34\|\|k===105\|\|k===106;/.test(html),
+      'T407 G2b 都市織理口徑須含 k33/34 摩天樓與 k105/106 巨廈（否則塔自己不算數＝梯度反向）');
+    // (3) 塔排名表恰 2 項且單調（真跑）
+    const vh407=window.GV.vh406();
+    for(const key of ['33_1','34_1']){
+      const vh=vh407.vh[key],rk=vh407.rank[key];
+      assert(vh&&rk&&vh.length===2&&rk.length===2,'T407 G3 '+key+' 樓高表須恰 2 項，實得 '+(vh?vh.length:'MISSING'));
+      assert(vh[rk[0]]<vh[rk[1]],'T407 G3 '+key+' rank 須由矮到高，實得 '+JSON.stringify(vh)+' rank '+JSON.stringify(rk));
+    }
+    // (4) 梯度實證：800 天 AI 城的塔，鄰域密度上半 vs 下半的平均高度須有正向差
+    window.GV.newWorldSeeded(301);window.GV.setDiff(1);window.GV.ai(true);
+    for(let d=0;d<800;d++)window.GV.step(1);
+    window.GV.ai(false);
+    const N407=window.GV.N(),tw407=[];
+    for(let y=0;y<N407;y++)for(let x=0;x<N407;x++){
+      const b=window.GV.tile(x,y).bld;
+      if(!b||b.ref||(b.k!==33&&b.k!==34))continue;
+      let n=0;
+      for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+        const nx=x+dx,ny=y+dy;
+        if(nx<0||ny<0||nx>=N407||ny>=N407)continue;
+        const nb=window.GV.tile(nx,ny).bld;
+        if(nb&&(nb.k<=3||nb.k===33||nb.k===34||nb.k===105||nb.k===106))n++; // 同 pickV406 口徑
+      }
+      tw407.push({dens:n,h:(vh407.vh[b.k+'_1']||[])[b.v]||0});
+    }
+    assert(tw407.length>=8,'T407 G4 800 天應長出 ≥8 座塔，實得 '+tw407.length);
+    tw407.sort((a,b)=>a.dens-b.dens);
+    const half=Math.floor(tw407.length/2);
+    const mh=(arr)=>arr.reduce((s,r)=>s+r.h,0)/arr.length;
+    const hLo=mh(tw407.slice(0,half)),hHi=mh(tw407.slice(-half));
+    assert(hHi>hLo,'T407 G4 塔高梯度：高密度側平均塔高須高於低密度側（白噪音下無差），'
+      +'實得低 '+hLo.toFixed(1)+'px 高 '+hHi.toFixed(1)+'px（塔數 '+tw407.length+'）');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
