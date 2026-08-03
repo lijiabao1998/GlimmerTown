@@ -336,6 +336,7 @@ window.__t387Cov=function(){rebuildCov();}; // T387b 測試橋：直寫服務建
 window.__t390Repair=function(tre,ter,n){return repairTre390(tre,ter,n);}; // T390 測試橋：救援函式單元測試
 window.__t410Pol=function(dt){updPoliceCars(dt);return policeCars.length;}; // T410 測試橋：幀路徑警車派遣單步（回傳在途車數；vri 系不碰 R()）
 window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=window.__t411Rold;}}; // T411 測試橋：量測期間凍結 R 機率路徑（比照 __t386Tick 的 stub 慣例）——G3 量的是純車輛物理，tick 的診所擲骰/病亡轉化/犯罪點火/火勢蔓延全部惰性化，量測不受未來 R 流位移影響
+window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;}; // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
@@ -6483,7 +6484,7 @@ runPwaTests().then(() => {
     const flds390=(html.match(/const RLE_F=\[([^\]]+)\]/)||[])[1];
     assert(flds390,'T390 RLE_F 欄位表可從源碼抽取');
     const names390=flds390.match(/'[a-z]+'/gi).map(x=>x.slice(1,-1));
-    assert(names390.length===29,'T390 RLE_F 應 29 欄，實得 '+names390.length);
+    assert(names390.length===30,'T390 RLE_F 應 30 欄（T412 增 cmd 犯罪天數通道），實得 '+names390.length);
     let bad390=[];
     for(const f of names390)if(((sv390[f]||'').length)!==N390*N390)bad390.push(f+'='+((sv390[f]||'').length));
     assert(bad390.length===0,'T390 (i) 29 條 per-cell 字串長度全===N²（含 tre——舊編碼在此必炸），違者：'+bad390.join(','));
@@ -7210,6 +7211,52 @@ runPwaTests().then(() => {
     window.GV.advanceN(.05,120);
     assert(window.GV.tile(12,10).bld.crime===1,'T411 G4 setSpeed(NaN) 須夾為 0＝服務車凍結（未修版=NaN<1 恆假守門穿透，每幀 1 格極速清案）');
     window.GV.setSpeed(1);
+  }
+  // ===== T412 犯罪生命週期存讀補全（第三波小 bug 包；純正確性） =====
+  { // G1 靜態：全部釘在去註解文本（T411 鐵訓）
+    const bare412=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(bare412.includes("'ab','ctr','cmd']"),'T412 G1 cmd 須入 RLE_F 壓縮名單（缺=僅體積退化，仍釘死防漂移）');
+    assert(bare412.includes("cmd+=String.fromCharCode(48+(t.bld&&t.bld.crime?Math.min(15,t.bld.crimeDays||0):0));"),
+      'T412 G1 cmd 出檔行原文釘（上限 15=廢棄門檻，唯一消費者是 >=15 判定）');
+    assert(bare412.includes("ab+=(t.bld&&!t.bld.ref&&t.bld.abandoned)?1:0;"),
+      'T412 G1 ab 出檔須讀建築層（原讀 t.abandoned 死欄位=存檔永遠 0）');
+    assert(!bare412.includes('ab+=t.abandoned?1:0;'),'T412 G1 舊錯層出檔式絕跡');
+    assert(bare412.includes("if(d.cmd)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&b.crime){const v=d.cmd.charCodeAt(i)-48;if(v>0)b.crimeDays=v;}}"),
+      'T412 G1 cmd 入檔應用迴圈原文釘（依賴 cm 迴圈先還原 crime 旗）');
+    assert(bare412.includes("if(d.ab)for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&b.k<=3&&+d.ab[i])b.abandoned=1;}"),
+      'T412 G1 ab 入檔須還原到建築層（原還原到 t.abandoned=廢棄讀檔復活）');
+    assert(bare412.includes('bb.crime=0;bb.crimeDays=0;markLandDirty(x,y,4);'),
+      'T412 G1 crimeBtn 須歸零倒數（原只清旗=玩家親手處理比等警車虧）');
+    assert(bare412.includes('{b.crime=0;b.crimeDays=0;return true;}'),
+      'T412 G1 GV.clearCrime 須歸零倒數（三清案路徑同語義）');
+  }
+  { // G2 行為 往返案：crimeDays 與 abandoned 存讀恆真（紅源=修前歸 0/復活）
+    window.GV.newWorldSeeded(425);window.GV.weather(0);
+    window.__t384Bld(1,20,20);window.GV.igniteCrime(20,20);window.__t412Set(20,20,'crimeDays',7);
+    window.__t384Bld(1,25,20);window.__t412Set(25,20,'abandoned',1);
+    window.__t384Bld(1,30,20);window.GV.igniteCrime(30,20);window.__t412Set(30,20,'crimeDays',22);
+    window.GV.save();
+    assert(window.GV.load()===true,'T412 G2 save→load 成功');
+    const b7=window.GV.tile(20,20).bld,b22=window.GV.tile(30,20).bld,bab=window.GV.tile(25,20).bld;
+    assert(b7.crime===1&&b7.crimeDays===7,'T412 G2 crimeDays=7 往返恆真（修前=歸 0＝存讀檔洗白 15 天倒數），實得 crime='+b7.crime+' days='+b7.crimeDays);
+    assert(b22.crime===1&&b22.crimeDays===15,'T412 G2 crimeDays=22 往返夾 15（上限=廢棄門檻，>=15 語義精確保留），實得 '+b22.crimeDays);
+    assert(bab.abandoned===1,'T412 G2 abandoned 往返恆真（修前=復活照常繳稅），實得 '+bab.abandoned);
+  }
+  { // G3 行為 舊檔容錯案：剝掉 cmd/ab 通道 → load 不拋、缺省與修前行為等價
+    const raw412=JSON.parse(store[SKEY]);
+    delete raw412.cmd;delete raw412.ab;
+    store[SKEY]=JSON.stringify(raw412);
+    assert(window.GV.load()===true,'T412 G3 舊格式（無 cmd/ab）load 不拋');
+    const o7=window.GV.tile(20,20).bld,oab=window.GV.tile(25,20).bld;
+    assert(o7.crime===1&&(o7.crimeDays||0)===0,'T412 G3 舊檔缺 cmd＝crime 旗還原而倒數缺省 0（與修前等價），實得 days='+(o7.crimeDays||0));
+    assert(!oab.abandoned,'T412 G3 舊檔缺 ab＝不還原廢棄（遺失資料救不回，無回歸）');
+  }
+  { // G4 行為 對齊案：手動清案與警車到場同語義
+    window.GV.newWorldSeeded(426);window.GV.weather(0);
+    window.__t384Bld(1,20,20);window.GV.igniteCrime(20,20);window.__t412Set(20,20,'crimeDays',9);
+    assert(window.GV.clearCrime(20,20)===true,'T412 G4 clearCrime 成功');
+    const g4=window.GV.tile(20,20).bld;
+    assert(g4.crime===0&&g4.crimeDays===0,'T412 G4 手動清案須連帶歸零倒數（修前殘留 9 天=下次犯罪直接繼承倒數），實得 crime='+g4.crime+' days='+g4.crimeDays);
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
