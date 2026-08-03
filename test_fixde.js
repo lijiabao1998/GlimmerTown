@@ -7143,6 +7143,44 @@ runPwaTests().then(() => {
     for(let f=0;f<40;f++)cars414=window.__t410Pol(.5);
     assert(window.GV.tile(30,30).bld.crime===1&&cars414===0,'T410 無警局＝不出車（犯罪維持，玩家仍可手動處理）');
   }
+  // ===== T411 服務車輛遊戲時間縮放（服務效果接線第二波之二） =====
+  { // G1 靜態：定義行+呼叫行兩端釘（T410 鐵訓）＋舊式絕跡＋縮放集不得擴散
+    assert(html.includes('const dtSvc411=dtA*speed;'),'T411 G1 dtSvc411 定義行原文釘（遊戲時間縮放本體）');
+    assert(html.includes('updAmbulances(dtSvc411);updFireTrucks(dtSvc411);updGarbageTrucks(dtA);updPoliceCars(dtSvc411);'),
+      'T411 G1 呼叫行原文釘——三家派遣車隊吃 dtSvc411、垃圾車維持 dtA（縮放集兩端封死）');
+    for(const bad of ['updAmbulances(dtA)','updFireTrucks(dtA)','updPoliceCars(dtA)']){
+      assert(!html.includes(bad),'T411 G1 舊式絕跡：'+bad+'（真實時間制回歸=5× 速服務層再凍結）');
+    }
+    assert(html.includes('updCars(dtA);'),'T411 G1 視覺車隊仍吃 dtA（車流壅堵回饋 T129 屬另卡，縮放不得擴散）');
+  }
+  { // G2 行為 凍結案：speed=0 時服務車凍結＝暫停不再有模擬副作用（紅源=舊碼會在暫停中清案）
+    window.GV.newWorldSeeded(417);window.GV.weather(0);
+    window.__t384Bld(11,10,10);window.__t384Bld(1,12,10);
+    window.__t387Cov();
+    assert(window.GV.igniteCrime(12,10),'T411 G2 近距犯罪佈置成功');
+    window.GV.setSpeed(0);
+    window.GV.advanceN(.05,120);
+    assert(window.GV.tile(12,10).bld.crime===1,'T411 G2 暫停（speed=0）中服務車須凍結＝犯罪不得被清（舊制暫停有模擬副作用）');
+    window.GV.setSpeed(1);
+    window.GV.advanceN(.05,200);
+    assert(window.GV.tile(12,10).bld.crime===0,'T411 G2 恢復 1× 速後車須照常到場清案（凍結不是壞死）');
+  }
+  { // G3 行為 縮放案：同距離 5× 速到場幀數須 < 1× 速的 1/3（理論 1/5）
+    const clearFrames411=(seed,sp)=>{
+      window.GV.newWorldSeeded(seed);window.GV.weather(0);
+      window.__t384Bld(11,10,10);window.__t384Bld(1,40,10); // 路距 30
+      window.__t387Cov();
+      window.GV.igniteCrime(40,10);
+      window.GV.setSpeed(sp);
+      let f=0;
+      for(;f<600;f++){window.GV.advanceN(.05,1);if(!window.GV.tile(40,10).bld.crime)break;}
+      window.GV.setSpeed(1);
+      return f;
+    };
+    const f1=clearFrames411(418,1),f5=clearFrames411(419,5);
+    assert(f1<600&&f5<600,'T411 G3 兩檔皆須在 600 幀內到場，實得 1×='+f1+' 5×='+f5);
+    assert(f5<f1/3,'T411 G3 5× 速到場幀數須 <1× 的 1/3（遊戲時間恆定＝每遊戲日車輛秒不隨速度縮水），實得 1×='+f1+' 5×='+f5);
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
