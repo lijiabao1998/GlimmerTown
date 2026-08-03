@@ -19331,7 +19331,7 @@ window.GV={
   commutePenaltyAt:(x,y)=>inMap(x,y)?+commutePenalty[idx(x,y)].toFixed(4):null, // T141：測試用——該格住宅通勤懲罰快取值（happyParts「通勤」項/judgeWealth 附加項讀取的同一份數值）
   commuteUnreachAt:(x,y)=>inMap(x,y)?!!commuteUnreach[idx(x,y)]:null, // T141：測試用——該格住宅是否被判定通勤不可達（孤島）
   recomputeCommute:()=>{computeCommute();return true;}, // T141：測試用——手動觸發叢集快取重算（跳過 COMMUTE_PERIOD 天數門檻）
-  setSpeed:s=>{speed=s;},
+  setSpeed:s=>{speed=Number.isFinite(+s)?clamp(+s,0,5):0;}, /* T411：域驗證（對抗性覆核 B1/B2）——NaN 會令 dtSvc411=NaN，updDispatch 的 if(c.p<1)continue 守門穿透＝服務車每幀 1 格極速衝刺而日曆凍結；>7.69 每幀進帳>1 囤積信用，setSpeed(0) 後靠餘額繼續移動＝打破暫停凍結不變量。UI 域 {0,1,2,3,5} 不受影響。 */
   setDay:d=>{day=d;return day;},                                // 設模擬天數（T18 測試用；季節由 day 導出）
   season:()=>({idx:season(),name:SEASON_NAME[season()],icon:SEASON_ICON[season()],farmMult:FARM_SEASON_MULT[season()],powerMult:POWER_SEASON_MULT[season()],tourMult:TOUR_SEASON_MULT[season()]}), // T136 測試用：目前季節快照（0春/1夏/2秋/3冬）
   setSeason:(s)=>{s=clamp(s|0,0,3);day=[1,101,201,301][s];return{idx:season(),name:SEASON_NAME[season()],icon:SEASON_ICON[season()],farmMult:FARM_SEASON_MULT[season()],powerMult:POWER_SEASON_MULT[season()],tourMult:TOUR_SEASON_MULT[season()]};}, // T136 測試用：直接跳到指定季節第一天（同 setDay 屬 sim 鉤子，季節純由 day 導出不需額外欄位），回傳形狀與 GV.season() 一致
