@@ -334,6 +334,7 @@ window.__t386Set=function(id){spec386=id;if(id==='edu')rebuildCov();}; // T386a 
 window.__t386Fin=function(){return {taxI:fin.taxI,taxC:fin.taxC,speed:techSpeed343};}; // T386a 測試橋：稅/研速觀測
 window.__t387Cov=function(){rebuildCov();}; // T387b 測試橋：直寫服務建築後重建覆蓋場
 window.__t390Repair=function(tre,ter,n){return repairTre390(tre,ter,n);}; // T390 測試橋：救援函式單元測試
+window.__t410Pol=function(dt){updPoliceCars(dt);return policeCars.length;}; // T410 測試橋：幀路徑警車派遣單步（回傳在途車數；vri 系不碰 R()）
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
@@ -6993,25 +6994,41 @@ runPwaTests().then(() => {
     assert(tickAt409>0&&gcAt409>tickAt409,'T409 G1 tick／computeGarbLocal 可定位');
     const decl409='let fireN409=0,fireSvc409=0,crimeN409=0,crimeSvc409=0,fs2n409=0;';
     assert(html.split(decl409).length-1===1,'T409 G1 計數器宣告須恰一處（宣告即區域，重複＝有人搬成全域）');
-    for(const nm of ['fireN409','fireSvc409','crimeN409','crimeSvc409','fs2n409','garbPen409','garbFar409']){
+    /* T410 加固（對抗性覆核繞過 #2 的補洞）：出現次數由「≥2」改為恰等——原斷言放行「遞增行之後、快照讀取之前」
+       的第二次改寫（如夾限 crimeSvc409=9），面板即可說謊而全套件仍綠。恰等=宣告/遞增/快照各一，多一次必紅。 */
+    const CNT409={fireN409:3,fireSvc409:3,crimeN409:3,crimeSvc409:3,fs2n409:3,garbPen409:3,garbFar409:2};
+    for(const nm in CNT409){
       let p=-1,n=0;
       while((p=html.indexOf(nm,p+1))>=0){n++;assert(p>tickAt409&&p<gcAt409,'T409 G1 '+nm+' 須只出現在 tick 區域內（實得位元位置 '+p+'）');}
-      assert(n>=2,'T409 G1 '+nm+' 須宣告＋使用各至少一次，實得 '+n);
+      assert(n===CNT409[nm],'T409 G1/T410 加固 '+nm+' 出現次數須恰為 '+CNT409[nm]+'（宣告/遞增/快照各一；多出=有人二次改寫＝面板可說謊），實得 '+n);
     }
     assert(html.includes('let far409=0;')&&html.includes('return far409;'),
       'T409 G1 computeGarbLocal 的距離懲罰計數須為函式區域＋回傳（不得升級為全域）');
   }
   { // G2 逐字守衛：可出勤判定必須與派遣端候選過濾式一字不差——面板數字說的必須是「車真的收得到的案件」
     const fireCond409='COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)||(COV.fireHQ&&COV.fireHQ[i]>0)';
-    const polCond409='COV.police[i]>0||(COV.police2&&COV.police2[i]>0)';
+    /* polCond409 已隨 T410 退場：警察派遣與 tick 計數皆無過濾，唯一殘留的覆蓋條件是犯罪生成段的布林免疫行（下方原文釘） */
     assert(html.includes('if(b&&b.k<=3&&b.fire&&('+fireCond409+'))fires.push(i);'),
       'T409 G2 updFireTrucks 候選過濾式錨點（漂移須連帶紅）');
-    assert(html.includes('if(b&&b.k<=3&&b.crime&&('+polCond409+'))crimes.push(i);'),
-      'T409 G2 updPoliceCars 候選過濾式錨點（漂移須連帶紅）');
+    /* T410 同步：警察派遣候選移除覆蓋過濾（覆蓋內不發生犯罪＝原過濾為死碼），逐字契約隨之更新——
+       派遣端與 tick 計數端必須「同無過濾」，任何一端加回條件即紅。 */
+    assert(html.includes('if(b&&b.k<=3&&b.crime)crimes.push(i);'),
+      'T410 updPoliceCars 候選須無覆蓋過濾（全域應對）');
+    assert(!html.includes('b.crime&&(COV.police[i]>0||(COV.police2&&COV.police2[i]>0)))crimes.push'),
+      'T410 舊覆蓋過濾候選式須絕跡（加回=派遣死碼復發）');
+    assert(html.includes('if(COV.police[i]>0||COV.police2[i]>0)continue;'),
+      'T410 犯罪生成段布林免疫行原文在場（本卡只動派遣不動預防；T343c 另釘機率式）');
+    /* T410 加固（對抗性覆核繞過 #1 的補洞）：候選行與 updDispatch 呼叫行【兩端都釘】——
+       只釘候選行時，可在其後夾一層 crimes.filter(距離門檻) 再把副本餵給 updDispatch，
+       字串守衛全綠、行為測（採樣距離僅 2/40）也抓不到 >40 的門檻＝面板與派遣脫鉤。 */
+    assert(html.includes('updDispatch(policeCars,dt,2.4,svcFleet.police,sts,crimes,c=>{'),
+      'T410 加固 警察派遣呼叫行原文釘——crimes 須原樣直達 updDispatch（中間夾過濾副本=面板說謊）');
+    assert(html.includes('updDispatch(ladderTrucks,dt,2.6,svcFleet.fire,sts,fires,c=>{'),
+      'T410 加固 消防派遣呼叫行原文釘（同款夾層攻擊防護）');
     assert(html.includes('if(b.k<=3&&b.fire){fireN409++;if('+fireCond409+')fireSvc409++;}'),
       'T409 G2 消防可出勤判定須與派遣端逐字一致');
-    assert(html.includes('if(b.k<=3&&b.crime){crimeN409++;if('+polCond409+')crimeSvc409++;}'),
-      'T409 G2 警察可出勤判定須與派遣端逐字一致');
+    assert(html.includes('if(b.k<=3&&b.crime){crimeN409++;crimeSvc409++;}'),
+      'T409 G2/T410 警察可出勤判定須與派遣端同步（皆無過濾；派遣端加回條件時本斷言與上方絕跡斷言連帶紅）');
   }
   { // G3 容量同構：cap 必須等於 updDispatch 實際能派出的上限 min(車隊, 站點數)
     assert(html.includes('const target=sts.length&&cand.length?Math.min(cap,sts.length):0;'),'T409 G3 updDispatch 容量式錨點');
@@ -7054,7 +7071,7 @@ runPwaTests().then(() => {
     assert(window.GV.igniteCrime(12,10)&&window.GV.igniteCrime(30,30),'T409 G5 兩處犯罪佈置成功');
     window.__t386Tick();
     const p409=window.GV.flowStat().svc.police;
-    assert(p409.open===2&&p409.svc===1,'T409 G5 犯罪 2 件其中 1 件可出勤，實得 open='+p409.open+' svc='+p409.svc);
+    assert(p409.open===2&&p409.svc===2,'T409 G5/T410 犯罪 2 件全部可出勤（T410 移除派遣覆蓋過濾 ⇒ svc≡open），實得 open='+p409.open+' svc='+p409.svc);
     assert(p409.cap===1,'T409 G5 警察出勤上限＝min(車隊2, 局1)=1，實得 '+p409.cap);
     // 功能案（垃圾）：無垃圾場＝超載＋全城吃距離懲罰，兩條隱形扣分都要能被讀出來
     window.GV.newWorldSeeded(411);window.GV.weather(0);
@@ -7067,9 +7084,64 @@ runPwaTests().then(() => {
   { // G6 面板：三列在場、零壞值，且消防總局的誤導文案已改（原「車隊可於面板購置」讓玩家以為總局能出車）
     const ph409=window.GV.flowPanel384();
     assert(ph409.includes('垃圾 幸福扣分'),'T409 G6 垃圾隱形扣分列在場（原本只改 b.h、繞過 happyParts＝面板查無此項）');
-    assert(ph409.includes('消防 出勤上限 / 可出勤火場')&&ph409.includes('警察 出勤上限 / 可出勤案件'),'T409 G6 消防／警察可出勤列在場');
+    assert(ph409.includes('消防 出勤上限 / 可出勤火場')&&ph409.includes('警察 出勤上限 / 未處理案件'),'T409 G6 消防可出勤列＋警察排隊語義列在場（T410 改文案）');
+    assert(!ph409.includes('覆蓋外')||ph409.indexOf('覆蓋外')===ph409.lastIndexOf('覆蓋外'),'T410 「覆蓋外無人受理」死文案須退場（僅剩消防列一處合法「覆蓋外」）');
     assert(ph409.includes('總局只擴覆蓋半徑，不出車'),'T409 G6 消防總局不出車的說明在場');
     assert(!/NaN|undefined|Infinity/.test(ph409),'T409 G6 面板零壞值');
+  }
+  // ===== T410 警察派遣修復：警車出勤至覆蓋外犯罪（服務效果接線第二波之一） =====
+  { // 功能案：覆蓋外犯罪+警局在場 → 迭代幀更新 → 車到場清案（舊過濾下 crimes 恆空＝永不清，此即紅源行為差）
+    window.GV.newWorldSeeded(412);window.GV.weather(0);
+    window.__t384Bld(11,10,10);   // 警察局（覆蓋半徑 10）
+    window.__t384Bld(1,30,30);    // 住宅：距離 (20,20)＝路距 40 格，遠在覆蓋外
+    window.__t387Cov();
+    assert(window.GV.igniteCrime(30,30),'T410 覆蓋外犯罪佈置成功');
+    let cleared410=-1,cars410=0;
+    for(let f=0;f<200;f++){cars410=window.__t410Pol(.5);if(!window.GV.tile(30,30).bld.crime){cleared410=f;break;}}
+    assert(cleared410>=0,'T410 警車須能出勤至覆蓋外犯罪並到場清案（舊候選過濾下永不出車），實得 200 幀內未清');
+    assert(cleared410>=30,'T410 到場需要真實移動時間（40 格 Manhattan，非瞬移），實得第 '+cleared410+' 幀清案');
+    assert(window.GV.tile(30,30).bld.crimeDays===0,'T410 到場須連帶歸零 crimeDays（廢棄倒數解除）');
+    assert(window.__t410Pol(.5)===0,'T410 到場後車輛除役（arr 清空，無殭屍車）');
+  }
+  { // 覆蓋內殘案（舊行為的唯一活路徑）仍可出勤＝新候選為嚴格超集，無行為丟失
+    window.GV.newWorldSeeded(413);window.GV.weather(0);
+    window.__t384Bld(1,12,10);    // 先有犯罪
+    window.__t387Cov();
+    assert(window.GV.igniteCrime(12,10),'T410 犯罪佈置成功');
+    window.__t384Bld(11,10,10);   // 後蓋警局＝覆蓋追上（T409 量測中 4/23 的那類殘案）
+    window.__t387Cov();
+    let cleared413=false;
+    for(let f=0;f<60;f++){window.__t410Pol(.5);if(!window.GV.tile(12,10).bld.crime){cleared413=true;break;}}
+    assert(cleared413,'T410 覆蓋內殘案仍可出勤（新候選為舊候選嚴格超集）');
+  }
+  { // T410 加固 遠距案（對抗性覆核繞過 #1 的行為級補洞）：原功能案只採樣距離 {2,40}，任何 >40 的
+    // 距離門檻過濾（偽裝「出勤半徑」）全數放行。補路距 110 案＝把「全域應對」測到接近地圖對角。
+    window.GV.newWorldSeeded(415);window.GV.weather(0);
+    window.__t384Bld(11,10,10);
+    window.__t384Bld(1,65,65);    // Manhattan 110
+    window.__t387Cov();
+    assert(window.GV.igniteCrime(65,65),'T410 遠距犯罪佈置成功');
+    let cleared415=false;
+    for(let f=0;f<300;f++){window.__t410Pol(.5);if(!window.GV.tile(65,65).bld.crime){cleared415=true;break;}}
+    assert(cleared415,'T410 加固 路距 110 的覆蓋外犯罪也須到場清案（任何距離門檻式夾層過濾在此現形）');
+  }
+  { // T410 加固 多案一致性（對抗性覆核繞過 #2 的行為級補洞）：原 G5 只驗 open=2/svc=2，夾限 9 抓不到。
+    window.GV.newWorldSeeded(416);window.GV.weather(0);
+    window.__t384Bld(11,10,10);
+    for(let i=0;i<12;i++)window.__t384Bld(1,30+i,30);
+    window.__t387Cov();
+    for(let i=0;i<12;i++)assert(window.GV.igniteCrime(30+i,30),'T410 多案佈置 '+i);
+    window.__t386Tick();
+    const pm410=window.GV.flowStat().svc.police;
+    assert(pm410.open===12&&pm410.svc===12,'T410 加固 12 件積案須 open=svc=12 逐件對齊（任何夾限/折扣在此現形），實得 open='+pm410.open+' svc='+pm410.svc);
+  }
+  { // 無站不出車：站點清單為空時 target=0（updDispatch 原式守衛已在 T409 G3 釘 min(cap,sts.length)）
+    window.GV.newWorldSeeded(414);window.GV.weather(0);
+    window.__t384Bld(1,30,30);window.__t387Cov();
+    window.GV.igniteCrime(30,30);
+    let cars414=0;
+    for(let f=0;f<40;f++)cars414=window.__t410Pol(.5);
+    assert(window.GV.tile(30,30).bld.crime===1&&cars414===0,'T410 無警局＝不出車（犯罪維持，玩家仍可手動處理）');
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
