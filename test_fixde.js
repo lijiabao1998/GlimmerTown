@@ -7235,12 +7235,20 @@ runPwaTests().then(() => {
     window.__t384Bld(1,20,20);window.GV.igniteCrime(20,20);window.__t412Set(20,20,'crimeDays',7);
     window.__t384Bld(1,25,20);window.__t412Set(25,20,'abandoned',1);
     window.__t384Bld(1,30,20);window.GV.igniteCrime(30,20);window.__t412Set(30,20,'crimeDays',22);
+    /* T412 加固（對抗性覆核繞過 #3 補洞）：犯罪+廢棄【同存】樓——tick 廢棄化（12394）不清 crime 旗，
+       同存正是犯罪致廢棄樓的常態；只測「無犯罪的廢棄」＝笛卡兒積角落漏測，讀檔抹同存態的改動全綠滑過。 */
+    window.__t384Bld(1,35,20);window.GV.igniteCrime(35,20);window.__t412Set(35,20,'crimeDays',15);window.__t412Set(35,20,'abandoned',1);
     window.GV.save();
+    /* T412 加固（覆核繞過 #1 補洞）：save() 必須是快照不是遷移——自動存檔每 25 秒一次，
+       若出檔後歸零活狀態，倒數永遠到不了 15＝機制死亡而往返案照綠（load 從 cmd 還原）。 */
+    {const lv=window.GV.tile(20,20).bld;
+     assert(lv.crime===1&&lv.crimeDays===7,'T412 G2b save() 不得破壞活狀態（出檔=快照非遷移；自動存檔 25 秒一次，save 即歸零=廢棄倒數永達不到 15），實得 days='+lv.crimeDays);}
     assert(window.GV.load()===true,'T412 G2 save→load 成功');
-    const b7=window.GV.tile(20,20).bld,b22=window.GV.tile(30,20).bld,bab=window.GV.tile(25,20).bld;
+    const b7=window.GV.tile(20,20).bld,b22=window.GV.tile(30,20).bld,bab=window.GV.tile(25,20).bld,bco=window.GV.tile(35,20).bld;
     assert(b7.crime===1&&b7.crimeDays===7,'T412 G2 crimeDays=7 往返恆真（修前=歸 0＝存讀檔洗白 15 天倒數），實得 crime='+b7.crime+' days='+b7.crimeDays);
     assert(b22.crime===1&&b22.crimeDays===15,'T412 G2 crimeDays=22 往返夾 15（上限=廢棄門檻，>=15 語義精確保留），實得 '+b22.crimeDays);
     assert(bab.abandoned===1,'T412 G2 abandoned 往返恆真（修前=復活照常繳稅），實得 '+bab.abandoned);
+    assert(bco.crime===1&&bco.crimeDays===15&&bco.abandoned===1,'T412 G2c 犯罪+廢棄同存樓三欄往返全真（讀檔抹同存態=犯罪懲罰重載即消失），實得 crime='+bco.crime+' days='+bco.crimeDays+' ab='+bco.abandoned);
   }
   { // G3 行為 舊檔容錯案：剝掉 cmd/ab 通道 → load 不拋、缺省與修前行為等價
     const raw412=JSON.parse(store[SKEY]);
@@ -7257,6 +7265,17 @@ runPwaTests().then(() => {
     assert(window.GV.clearCrime(20,20)===true,'T412 G4 clearCrime 成功');
     const g4=window.GV.tile(20,20).bld;
     assert(g4.crime===0&&g4.crimeDays===0,'T412 G4 手動清案須連帶歸零倒數（修前殘留 9 天=下次犯罪直接繼承倒數），實得 crime='+g4.crime+' days='+g4.crimeDays);
+  }
+  { // G5 行為 crimeBtn DOM 路徑（對抗性覆核繞過 #2 補洞）：G1 釘文只驗「行在場」，
+    // 把處理器的綁定換成淺拷貝（{...bld}）＝突變寫進丟棄的拷貝，釘文原封而玩家點按整路斷。
+    // 走真 DOM 路徑打到真實建築才算數（覆核懷疑者的探針原樣收編，乾淨版已驗綠/攻擊版已驗紅）。
+    window.GV.newWorldSeeded(427);window.GV.weather(0);
+    window.__t384Bld(1,20,20);window.GV.igniteCrime(20,20);window.__t412Set(20,20,'crimeDays',9);
+    makeEl('button','crimeBtn'); // 預註冊使 inspect 面板的 $('#crimeBtn') 命中同一元素
+    window.GV.inspectAt(20,20);
+    elMap.get('crimeBtn').click();
+    const g5=window.GV.tile(20,20).bld;
+    assert(g5.crime===0&&(g5.crimeDays||0)===0,'T412 G5 點擊「處理犯罪」須清到【真實建築】且歸零倒數（綁定換拷貝=toast 照跳犯罪照舊），實得 crime='+g5.crime+' days='+(g5.crimeDays||0));
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
