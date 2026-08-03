@@ -6994,10 +6994,13 @@ runPwaTests().then(() => {
     assert(tickAt409>0&&gcAt409>tickAt409,'T409 G1 tick／computeGarbLocal 可定位');
     const decl409='let fireN409=0,fireSvc409=0,crimeN409=0,crimeSvc409=0,fs2n409=0;';
     assert(html.split(decl409).length-1===1,'T409 G1 計數器宣告須恰一處（宣告即區域，重複＝有人搬成全域）');
-    for(const nm of ['fireN409','fireSvc409','crimeN409','crimeSvc409','fs2n409','garbPen409','garbFar409']){
+    /* T410 加固（對抗性覆核繞過 #2 的補洞）：出現次數由「≥2」改為恰等——原斷言放行「遞增行之後、快照讀取之前」
+       的第二次改寫（如夾限 crimeSvc409=9），面板即可說謊而全套件仍綠。恰等=宣告/遞增/快照各一，多一次必紅。 */
+    const CNT409={fireN409:3,fireSvc409:3,crimeN409:3,crimeSvc409:3,fs2n409:3,garbPen409:3,garbFar409:2};
+    for(const nm in CNT409){
       let p=-1,n=0;
       while((p=html.indexOf(nm,p+1))>=0){n++;assert(p>tickAt409&&p<gcAt409,'T409 G1 '+nm+' 須只出現在 tick 區域內（實得位元位置 '+p+'）');}
-      assert(n>=2,'T409 G1 '+nm+' 須宣告＋使用各至少一次，實得 '+n);
+      assert(n===CNT409[nm],'T409 G1/T410 加固 '+nm+' 出現次數須恰為 '+CNT409[nm]+'（宣告/遞增/快照各一；多出=有人二次改寫＝面板可說謊），實得 '+n);
     }
     assert(html.includes('let far409=0;')&&html.includes('return far409;'),
       'T409 G1 computeGarbLocal 的距離懲罰計數須為函式區域＋回傳（不得升級為全域）');
@@ -7015,6 +7018,13 @@ runPwaTests().then(() => {
       'T410 舊覆蓋過濾候選式須絕跡（加回=派遣死碼復發）');
     assert(html.includes('if(COV.police[i]>0||COV.police2[i]>0)continue;'),
       'T410 犯罪生成段布林免疫行原文在場（本卡只動派遣不動預防；T343c 另釘機率式）');
+    /* T410 加固（對抗性覆核繞過 #1 的補洞）：候選行與 updDispatch 呼叫行【兩端都釘】——
+       只釘候選行時，可在其後夾一層 crimes.filter(距離門檻) 再把副本餵給 updDispatch，
+       字串守衛全綠、行為測（採樣距離僅 2/40）也抓不到 >40 的門檻＝面板與派遣脫鉤。 */
+    assert(html.includes('updDispatch(policeCars,dt,2.4,svcFleet.police,sts,crimes,c=>{'),
+      'T410 加固 警察派遣呼叫行原文釘——crimes 須原樣直達 updDispatch（中間夾過濾副本=面板說謊）');
+    assert(html.includes('updDispatch(ladderTrucks,dt,2.6,svcFleet.fire,sts,fires,c=>{'),
+      'T410 加固 消防派遣呼叫行原文釘（同款夾層攻擊防護）');
     assert(html.includes('if(b.k<=3&&b.fire){fireN409++;if('+fireCond409+')fireSvc409++;}'),
       'T409 G2 消防可出勤判定須與派遣端逐字一致');
     assert(html.includes('if(b.k<=3&&b.crime){crimeN409++;crimeSvc409++;}'),
@@ -7103,6 +7113,27 @@ runPwaTests().then(() => {
     let cleared413=false;
     for(let f=0;f<60;f++){window.__t410Pol(.5);if(!window.GV.tile(12,10).bld.crime){cleared413=true;break;}}
     assert(cleared413,'T410 覆蓋內殘案仍可出勤（新候選為舊候選嚴格超集）');
+  }
+  { // T410 加固 遠距案（對抗性覆核繞過 #1 的行為級補洞）：原功能案只採樣距離 {2,40}，任何 >40 的
+    // 距離門檻過濾（偽裝「出勤半徑」）全數放行。補路距 110 案＝把「全域應對」測到接近地圖對角。
+    window.GV.newWorldSeeded(415);window.GV.weather(0);
+    window.__t384Bld(11,10,10);
+    window.__t384Bld(1,65,65);    // Manhattan 110
+    window.__t387Cov();
+    assert(window.GV.igniteCrime(65,65),'T410 遠距犯罪佈置成功');
+    let cleared415=false;
+    for(let f=0;f<300;f++){window.__t410Pol(.5);if(!window.GV.tile(65,65).bld.crime){cleared415=true;break;}}
+    assert(cleared415,'T410 加固 路距 110 的覆蓋外犯罪也須到場清案（任何距離門檻式夾層過濾在此現形）');
+  }
+  { // T410 加固 多案一致性（對抗性覆核繞過 #2 的行為級補洞）：原 G5 只驗 open=2/svc=2，夾限 9 抓不到。
+    window.GV.newWorldSeeded(416);window.GV.weather(0);
+    window.__t384Bld(11,10,10);
+    for(let i=0;i<12;i++)window.__t384Bld(1,30+i,30);
+    window.__t387Cov();
+    for(let i=0;i<12;i++)assert(window.GV.igniteCrime(30+i,30),'T410 多案佈置 '+i);
+    window.__t386Tick();
+    const pm410=window.GV.flowStat().svc.police;
+    assert(pm410.open===12&&pm410.svc===12,'T410 加固 12 件積案須 open=svc=12 逐件對齊（任何夾限/折扣在此現形），實得 open='+pm410.open+' svc='+pm410.svc);
   }
   { // 無站不出車：站點清單為空時 target=0（updDispatch 原式守衛已在 T409 G3 釘 min(cap,sts.length)）
     window.GV.newWorldSeeded(414);window.GV.weather(0);
