@@ -6986,6 +6986,91 @@ runPwaTests().then(() => {
     assert(hHi>hLo,'T407 G4 塔高梯度：高密度側平均塔高須高於低密度側（白噪音下無差），'
       +'實得低 '+hLo.toFixed(1)+'px 高 '+hHi.toFixed(1)+'px（塔數 '+tw407.length+'）');
   }
+  // ===== T409 服務可觀測性補齊：消防/警察可出勤量＋垃圾隱形扣分（第一波，零模擬影響） =====
+  { // G1 靜態：三組計數器必須是 tick／computeGarbLocal 的區域變數（不進存檔＝鐵律7 免疫，零成對歸零面）
+    const tickAt409=html.indexOf('function tick(){');
+    const gcAt409=html.indexOf('function computeGarbLocal(){');
+    assert(tickAt409>0&&gcAt409>tickAt409,'T409 G1 tick／computeGarbLocal 可定位');
+    const decl409='let fireN409=0,fireSvc409=0,crimeN409=0,crimeSvc409=0,fs2n409=0;';
+    assert(html.split(decl409).length-1===1,'T409 G1 計數器宣告須恰一處（宣告即區域，重複＝有人搬成全域）');
+    for(const nm of ['fireN409','fireSvc409','crimeN409','crimeSvc409','fs2n409','garbPen409','garbFar409']){
+      let p=-1,n=0;
+      while((p=html.indexOf(nm,p+1))>=0){n++;assert(p>tickAt409&&p<gcAt409,'T409 G1 '+nm+' 須只出現在 tick 區域內（實得位元位置 '+p+'）');}
+      assert(n>=2,'T409 G1 '+nm+' 須宣告＋使用各至少一次，實得 '+n);
+    }
+    assert(html.includes('let far409=0;')&&html.includes('return far409;'),
+      'T409 G1 computeGarbLocal 的距離懲罰計數須為函式區域＋回傳（不得升級為全域）');
+  }
+  { // G2 逐字守衛：可出勤判定必須與派遣端候選過濾式一字不差——面板數字說的必須是「車真的收得到的案件」
+    const fireCond409='COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)||(COV.fireHQ&&COV.fireHQ[i]>0)';
+    const polCond409='COV.police[i]>0||(COV.police2&&COV.police2[i]>0)';
+    assert(html.includes('if(b&&b.k<=3&&b.fire&&('+fireCond409+'))fires.push(i);'),
+      'T409 G2 updFireTrucks 候選過濾式錨點（漂移須連帶紅）');
+    assert(html.includes('if(b&&b.k<=3&&b.crime&&('+polCond409+'))crimes.push(i);'),
+      'T409 G2 updPoliceCars 候選過濾式錨點（漂移須連帶紅）');
+    assert(html.includes('if(b.k<=3&&b.fire){fireN409++;if('+fireCond409+')fireSvc409++;}'),
+      'T409 G2 消防可出勤判定須與派遣端逐字一致');
+    assert(html.includes('if(b.k<=3&&b.crime){crimeN409++;if('+polCond409+')crimeSvc409++;}'),
+      'T409 G2 警察可出勤判定須與派遣端逐字一致');
+  }
+  { // G3 容量同構：cap 必須等於 updDispatch 實際能派出的上限 min(車隊, 站點數)
+    assert(html.includes('const target=sts.length&&cand.length?Math.min(cap,sts.length):0;'),'T409 G3 updDispatch 容量式錨點');
+    assert(html.includes('const sts=listBldK(6).concat(listBldK(30));'),'T409 G3 消防站點清單錨點（k6+k30，**不含** k61 總局）');
+    assert(html.includes('const sts=listBldK(11).concat(listBldK(52));'),'T409 G3 警察站點清單錨點（k11+k52）');
+    assert(html.includes('cap:Math.min(svcFleet.fire,fireStations+fs2n409)'),'T409 G3 消防容量＝min(車隊, k6+k30)');
+    assert(html.includes('cap:Math.min(svcFleet.police,policeStations+policeBoxes)'),'T409 G3 警察容量＝min(車隊, k11+k52)');
+    assert(html.includes('else if(b.k===30)fs2n409++;'),'T409 G3 k30 須在【已濾 ref 的經濟迴圈】內計數（首迴圈 fs2 未濾 ref，不可充當站點數）');
+    assert(!html.includes('Math.min(svcFleet.fire,fireStations+fs2)'),'T409 G3 禁用未濾 ref 的 fs2 當消防站點數');
+  }
+  { // G4 新增碼零亂數（鐵律2：本卡不得動 R() 消耗序，兩釘恆等是主證明）
+    const lines409=[
+      'if(b.k<=3&&b.fire){fireN409++;',
+      'if(b.k<=3&&b.crime){crimeN409++;',
+      'const garbFar409=computeGarbLocal();',
+      'cap:Math.min(svcFleet.fire,fireStations+fs2n409)'
+    ];
+    for(const L of lines409){
+      const at=html.indexOf(L);
+      assert(at>0,'T409 G4 錨點在場：'+L);
+      const seg=html.slice(at,html.indexOf('\n',at)).replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/,'');
+      assert(!/\bR\(\)|\bri\(/.test(seg),'T409 G4 新增行禁用 R()/ri()：'+L);
+    }
+  }
+  { // G5 功能案（火）：一場在消防覆蓋內、一場外 ⇒ open=2 / svc=1；差值＝永遠等不到消防車的火場
+    window.GV.newWorldSeeded(409);window.GV.weather(0);
+    window.__t384Bld(6,10,10);                       // 消防局（半徑9）
+    window.__t384Bld(1,12,10);window.__t384Bld(1,30,30); // 覆蓋內／覆蓋外住宅
+    window.__t387Cov();
+    assert(window.GV.ignite(12,10)&&window.GV.ignite(30,30),'T409 G5 兩處點火成功');
+    window.__t386Tick();
+    const f409=window.GV.flowStat().svc.fire;
+    assert(f409.open===2&&f409.svc===1,'T409 G5 火場 2 場其中 1 場可出勤，實得 open='+f409.open+' svc='+f409.svc);
+    assert(f409.cap===1,'T409 G5 消防出勤上限＝min(車隊3, 站1)=1，實得 '+f409.cap);
+    // 功能案（犯罪）：同款配置
+    window.GV.newWorldSeeded(410);window.GV.weather(0);
+    window.__t384Bld(11,10,10);
+    window.__t384Bld(1,12,10);window.__t384Bld(1,30,30);
+    window.__t387Cov();
+    assert(window.GV.igniteCrime(12,10)&&window.GV.igniteCrime(30,30),'T409 G5 兩處犯罪佈置成功');
+    window.__t386Tick();
+    const p409=window.GV.flowStat().svc.police;
+    assert(p409.open===2&&p409.svc===1,'T409 G5 犯罪 2 件其中 1 件可出勤，實得 open='+p409.open+' svc='+p409.svc);
+    assert(p409.cap===1,'T409 G5 警察出勤上限＝min(車隊2, 局1)=1，實得 '+p409.cap);
+    // 功能案（垃圾）：無垃圾場＝超載＋全城吃距離懲罰，兩條隱形扣分都要能被讀出來
+    window.GV.newWorldSeeded(411);window.GV.weather(0);
+    for(let i=0;i<6;i++)window.__t384Bld(1,10+i,10);
+    window.__t386Tick();
+    const g409=window.GV.flowStat().svc.garb;
+    assert(g409.ratio>1&&g409.pen>0,'T409 G5 無處理容量＝超載且逐戶扣分>0，實得 ratio='+g409.ratio+' pen='+g409.pen);
+    assert(g409.far>=6,'T409 G5 無垃圾場時住宅全吃距離懲罰 −0.045，實得 far='+g409.far);
+  }
+  { // G6 面板：三列在場、零壞值，且消防總局的誤導文案已改（原「車隊可於面板購置」讓玩家以為總局能出車）
+    const ph409=window.GV.flowPanel384();
+    assert(ph409.includes('垃圾 幸福扣分'),'T409 G6 垃圾隱形扣分列在場（原本只改 b.h、繞過 happyParts＝面板查無此項）');
+    assert(ph409.includes('消防 出勤上限 / 可出勤火場')&&ph409.includes('警察 出勤上限 / 可出勤案件'),'T409 G6 消防／警察可出勤列在場');
+    assert(ph409.includes('總局只擴覆蓋半徑，不出車'),'T409 G6 消防總局不出車的說明在場');
+    assert(!/NaN|undefined|Infinity/.test(ph409),'T409 G6 面板零壞值');
+  }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
