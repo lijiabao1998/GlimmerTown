@@ -335,6 +335,7 @@ window.__t386Fin=function(){return {taxI:fin.taxI,taxC:fin.taxC,speed:techSpeed3
 window.__t387Cov=function(){rebuildCov();}; // T387b 測試橋：直寫服務建築後重建覆蓋場
 window.__t390Repair=function(tre,ter,n){return repairTre390(tre,ter,n);}; // T390 測試橋：救援函式單元測試
 window.__t410Pol=function(dt){updPoliceCars(dt);return policeCars.length;}; // T410 測試橋：幀路徑警車派遣單步（回傳在途車數；vri 系不碰 R()）
+window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=window.__t411Rold;}}; // T411 測試橋：量測期間凍結 R 機率路徑（比照 __t386Tick 的 stub 慣例）——G3 量的是純車輛物理，tick 的診所擲骰/病亡轉化/犯罪點火/火勢蔓延全部惰性化，量測不受未來 R 流位移影響
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
@@ -7142,6 +7143,73 @@ runPwaTests().then(() => {
     let cars414=0;
     for(let f=0;f<40;f++)cars414=window.__t410Pol(.5);
     assert(window.GV.tile(30,30).bld.crime===1&&cars414===0,'T410 無警局＝不出車（犯罪維持，玩家仍可手動處理）');
+  }
+  // ===== T411 服務車輛遊戲時間縮放（服務效果接線第二波之二） =====
+  { // G1 靜態：定義行+呼叫行兩端釘（T410 鐵訓）＋舊式絕跡＋縮放集不得擴散
+    /* T411 加固（對抗性覆核 M3c 補洞）：字串釘一律做在【去註解文本】上——html.includes() 分不清
+       註解與活碼，把釘文原樣塞進註解、活碼改別的式子即可走私通過。bare411=剝 註解後的純碼。 */
+    const bare411=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(bare411.includes('const dtSvc411=dtA*speed;'),'T411 G1 dtSvc411 定義行原文釘【活碼層】（遊戲時間縮放本體；塞註解不算）');
+    assert(bare411.includes('updAmbulances(dtSvc411);updFireTrucks(dtSvc411);updGarbageTrucks(dtA);updPoliceCars(dtSvc411);'),
+      'T411 G1 呼叫行原文釘【活碼層】——三家派遣車隊吃 dtSvc411、垃圾車維持 dtA（縮放集兩端封死）');
+    for(const bad of ['updAmbulances(dtA)','updFireTrucks(dtA)','updPoliceCars(dtA)']){
+      assert(!bare411.includes(bad),'T411 G1 舊式絕跡：'+bad+'（真實時間制回歸=5× 速服務層再凍結）');
+    }
+    assert(bare411.includes('updCars(dtA);'),'T411 G1 視覺車隊仍吃 dtA（車流壅堵回饋 T129 屬另卡，縮放不得擴散）');
+    assert(bare411.includes('setSpeed:s=>{speed=Number.isFinite(+s)?clamp(+s,0,5):0;}'),
+      'T411 G1 setSpeed 域驗證釘（覆核 B1/B2：NaN=極速衝刺守門穿透、>7.69=囤積信用打破暫停凍結）');
+  }
+  { // G2 行為 凍結案：speed=0 時服務車凍結＝暫停不再有模擬副作用（紅源=舊碼會在暫停中清案）
+    window.GV.newWorldSeeded(417);window.GV.weather(0);
+    window.__t384Bld(11,10,10);window.__t384Bld(1,12,10);
+    window.__t387Cov();
+    assert(window.GV.igniteCrime(12,10),'T411 G2 近距犯罪佈置成功');
+    window.GV.setSpeed(0);
+    window.GV.advanceN(.05,120);
+    assert(window.GV.tile(12,10).bld.crime===1,'T411 G2 暫停（speed=0）中服務車須凍結＝犯罪不得被清（舊制暫停有模擬副作用）');
+    window.GV.setSpeed(1);
+    window.GV.advanceN(.05,200);
+    assert(window.GV.tile(12,10).bld.crime===0,'T411 G2 恢復 1× 速後車須照常到場清案（凍結不是壞死）');
+  }
+  { // G3 行為 縮放案（T411 加固：對抗性覆核 M4b/M4c/M1b 補洞）——
+    // ①三車隊逐一量測：原版只打警車，在消防/救護【函式體內】夾 dt 即可讓三分之二車隊縮放歸零而全綠；
+    // ②門檻 1/3→1/4：updDispatch 夾 dt≤.16（3.2×）曾以 78<83 擦邊滑過；帧數決定性（單站單案 vri 恆 0），門檻可收緊。
+    /* T411 加固二版：初版救護案把病宅放進 k28 覆蓋圈（COVR.ambulance=10）——k28 覆蓋算進 hospital 分支
+       ＝【首個 tick 就治好】，量到的是天長幀數的縮放（恆真廢測，函式體夾 dt 照樣綠）。
+       修法：①病宅移出覆蓋圈（距 14>10；救護候選本就無覆蓋要求）；②整段量測掛 __t411R 樁
+       ＝tick 機率路徑全惰性（診所擲骰/病亡轉化/犯罪點火），清案唯一路徑=車輛到場，語義由構造保證。 */
+    const fleetFrames411=(seed,sp,kind)=>{
+      window.GV.newWorldSeeded(seed);window.GV.weather(0);
+      if(kind==='police'){window.__t384Bld(11,10,10);window.__t384Bld(1,40,10);window.__t387Cov();window.GV.igniteCrime(40,10);} // 路距 30
+      else if(kind==='fire'){window.__t384Bld(6,10,10);window.__t384Bld(1,16,10);window.__t387Cov();window.GV.ignite(16,10);}   // 路距 6（消防候選須在覆蓋內＝半徑 9；短距亦避開燒毀時限）
+      else{window.__t384Bld(28,10,10);window.__t384Bld(1,24,10);window.__t387Cov();window.GV.igniteSick(24,10);}                // 救護路距 14＝覆蓋圈（半徑10）外：tick 的 hospital 次日必治分支搆不到，只有救護車能治
+      const tx=kind==='police'?40:kind==='fire'?16:24;
+      const done=()=>{const b=window.GV.tile(tx,10).bld;return b?(kind==='police'?!b.crime:kind==='fire'?!b.fire:!b.sick):false;};
+      window.__t411R(true);
+      window.GV.setSpeed(sp);
+      let f=0;
+      for(;f<600;f++){window.GV.advanceN(.05,1);if(done())break;}
+      window.GV.setSpeed(1);
+      window.__t411R(false);
+      assert(window.GV.tile(tx,10).bld,'T411 G3 '+kind+' 目標建築須存活至測畢（燒毀/湮滅=量測無效）');
+      return f;
+    };
+    let seed411=418;
+    for(const kind of ['police','fire','amb']){
+      const f1=fleetFrames411(seed411++,1,kind),f5=fleetFrames411(seed411++,5,kind);
+      assert(f1<600&&f5<600,'T411 G3 '+kind+' 兩檔皆須在 600 幀內到場，實得 1×='+f1+' 5×='+f5);
+      assert(f5<f1/4,'T411 G3 '+kind+' 5× 速到場幀數須 <1× 的 1/4（理論 1/5；每車隊獨立量測＝函式體內夾 dt 無所遁形），實得 1×='+f1+' 5×='+f5);
+    }
+  }
+  { // G4 行為 NaN 案（覆核 B1 補洞的行為證明）：setSpeed(NaN) 須落地為 0＝凍結，而非極速衝刺清案
+    window.GV.newWorldSeeded(424);window.GV.weather(0);
+    window.__t384Bld(11,10,10);window.__t384Bld(1,12,10);
+    window.__t387Cov();
+    window.GV.igniteCrime(12,10);
+    window.GV.setSpeed(NaN);
+    window.GV.advanceN(.05,120);
+    assert(window.GV.tile(12,10).bld.crime===1,'T411 G4 setSpeed(NaN) 須夾為 0＝服務車凍結（未修版=NaN<1 恆假守門穿透，每幀 1 格極速清案）');
+    window.GV.setSpeed(1);
   }
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
