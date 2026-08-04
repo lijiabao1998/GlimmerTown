@@ -9369,19 +9369,22 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       return null;
     };
     let bakeCount413=0;
+    const bakeByKind413={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};
+    const tally413=(kind)=>{bakeCount413++;if(bakeByKind413[kind]!=null)bakeByKind413[kind]++;};
     for(const key in SPR.bld){
       const m=/^(\d+)_(\d+)_(\d+)$/.exec(key);if(!m)continue;
       const kk=+m[1],lv=+m[2],kind=kindOf(kk);if(!kind)continue;
-      bakeOne(SPR.bld[key],kind,lv,kk*17+lv*3+(+m[3]),kk);bakeCount413++;
+      bakeOne(SPR.bld[key],kind,lv,kk*17+lv*3+(+m[3]),kk);tally413(kind);
     }
-    if(SPR.police){bakeOne(SPR.police,'P',1,1101,11);bakeCount413++;}
-    if(SPR.hospital){bakeOne(SPR.hospital,'H',1,1201,12);bakeCount413++;}
-    if(SPR.clinic){bakeOne(SPR.clinic,'H',1,1301,13);bakeCount413++;}
-    if(SPR.policeVar)for(let vi=1;vi<=4;vi++)if(SPR.policeVar[vi]){bakeOne(SPR.policeVar[vi],'P',1,1101+vi,11);bakeCount413++;}
-    if(SPR.hospitalVar)for(let vi=1;vi<=4;vi++)if(SPR.hospitalVar[vi]){bakeOne(SPR.hospitalVar[vi],'H',1,1201+vi,12);bakeCount413++;}
-    if(SPR.clinicVar)for(let vi=1;vi<=4;vi++)if(SPR.clinicVar[vi]){bakeOne(SPR.clinicVar[vi],'H',1,1301+vi,13);bakeCount413++;}
-    window.__t413BakeCount=bakeCount413; /* 測試：烘焙命中數>0 行為釘（非註解錨） */
-  }else{window.__t413BakeCount=0;}
+    if(SPR.police){bakeOne(SPR.police,'P',1,1101,11);tally413('P');}
+    if(SPR.hospital){bakeOne(SPR.hospital,'H',1,1201,12);tally413('H');}
+    if(SPR.clinic){bakeOne(SPR.clinic,'H',1,1301,13);tally413('H');}
+    if(SPR.policeVar)for(let vi=1;vi<=4;vi++)if(SPR.policeVar[vi]){bakeOne(SPR.policeVar[vi],'P',1,1101+vi,11);tally413('P');}
+    if(SPR.hospitalVar)for(let vi=1;vi<=4;vi++)if(SPR.hospitalVar[vi]){bakeOne(SPR.hospitalVar[vi],'H',1,1201+vi,12);tally413('H');}
+    if(SPR.clinicVar)for(let vi=1;vi<=4;vi++)if(SPR.clinicVar[vi]){bakeOne(SPR.clinicVar[vi],'H',1,1301+vi,13);tally413('H');}
+    window.__t413BakeCount=bakeCount413; /* 測試：總烘焙命中 */
+    window.__t413BakeByKind=bakeByKind413; /* T413b 第三輪 B5：分族計數（跳過 P/H/F/D 會讓該族=0 紅） */
+  }else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}
 
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
@@ -14017,13 +14020,15 @@ function drawNightCityTop413(nd){
    C1：路燈 tier 取鄰近建築格 max（路/建築互斥 ⇒ 路格本身 tier 恆 0）。
    C8：無 no-op 佔件。禁 urbanDens406。投影 cam.z。 ===== */
 function _tier413(i){return nightTier413?nightTier413[i]|0:0;}
-function _visNight413(sx,sy){return sx>-40&&sy>-40&&sx<W+40&&sy<H+40;}
+/* T413b 第三輪：vis pad 隨 z（燈暈 38z、光束外伸 ~65z；比照 draw 內 pad=160*z 量級，取 max(40,80*z)） */
+function _visNight413(sx,sy){const pad=Math.max(40,80*_z413());return sx>-pad&&sy>-pad&&sx<W+pad&&sy<H+pad;}
 function _z413(){return cam.z;}
 function _lodMini413(){return cam.z<.5;}
-function _sx413(x,y){const z2=cam.z,ox=Math.round(W/2-cam.x*z2),p=w2v(x,y);return ox+((p[0]-p[1])*32-32)*z2;}
-function _sy413(x,y){const z2=cam.z,oy=Math.round(H/2-cam.y*z2),p=w2v(x,y);return oy+((p[0]+p[1])*16)*z2;}
+/* T413b 第三輪：與 draw() 同款震屏偏移（shakeT/visT 模組層）——地震/隕石時燈跟建築走 */
+function _sx413(x,y){const z2=cam.z,shakeAmp=shakeT>0?shakeT*14*z2:0,shakeX=shakeAmp?Math.sin(visT*47)*shakeAmp:0,ox=Math.round(W/2-cam.x*z2+shakeX),p=w2v(x,y);return ox+((p[0]-p[1])*32-32)*z2;}
+function _sy413(x,y){const z2=cam.z,shakeAmp=shakeT>0?shakeT*14*z2:0,shakeY=shakeAmp?Math.sin(visT*61+1.3)*shakeAmp*.6:0,oy=Math.round(H/2-cam.y*z2+shakeY),p=w2v(x,y);return oy+((p[0]+p[1])*16)*z2;}
 function _viewRange413(){
-  const z2=cam.z,ox=Math.round(W/2-cam.x*z2),oy=Math.round(H/2-cam.y*z2);
+  const z2=cam.z,shakeAmp=shakeT>0?shakeT*14*z2:0,shakeX=shakeAmp?Math.sin(visT*47)*shakeAmp:0,shakeY=shakeAmp?Math.sin(visT*61+1.3)*shakeAmp*.6:0,ox=Math.round(W/2-cam.x*z2+shakeX),oy=Math.round(H/2-cam.y*z2+shakeY);
   let fvx0=1e9,fvx1=-1e9,fvy0=1e9,fvy1=-1e9;
   for(const[pcx,pcy]of[[0,0],[W,0],[W,H],[0,H]]){
     const fa=((pcx-ox)/z2+32)/32,fb=((pcy-oy)/z2)/16;

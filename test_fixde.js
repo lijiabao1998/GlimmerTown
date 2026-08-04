@@ -337,7 +337,9 @@ window.__t390Repair=function(tre,ter,n){return repairTre390(tre,ter,n);}; // T39
 window.__t410Pol=function(dt){updPoliceCars(dt);return policeCars.length;}; // T410 測試橋：幀路徑警車派遣單步（回傳在途車數；vri 系不碰 R()）
 window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=window.__t411Rold;}}; // T411 測試橋：量測期間凍結 R 機率路徑（比照 __t386Tick 的 stub 慣例）——G3 量的是純車輛物理，tick 的診所擲骰/病亡轉化/犯罪點火/火勢蔓延全部惰性化，量測不受未來 R 流位移影響
 window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;}; // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
-window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0})};}; // T413a/b 測試橋
+window.__t413ForceRoad=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.road=1;t.rc=t.rc||2;t.zone=0;t.bld=null;return true;}; // T413b B4 造境：直寫路旗
+window.__t413ForceWater=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.t=0;t.bld=null;t.road=0;return true;}; // T413b B4 造境：直寫水格
+window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,bakeByKind:()=>({...(window.__t413BakeByKind||{})}),strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0}),sx:(x,y)=>_sx413(x,y),sy:(x,y)=>_sy413(x,y),visPad:()=>Math.max(40,80*_z413()),setShake:(v)=>{shakeT=+v||0;return shakeT;},getShake:()=>shakeT};}; // T413a/b 測試橋（第三輪：分族 bake + strokes + shake/pad）
 window.__t413R=function(){let c=0;const o=R;R=function(){c++;return o();};try{nightTierDirty413=true;rebuildNightTier413();}finally{R=o;}return c;}; // T413a 測試橋：重建期間 R() 實際消耗計數——文本掃描看不穿 helper 間接層（覆核繞過①c），行為計數看得穿
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
@@ -7389,6 +7391,13 @@ runPwaTests().then(() => {
     assert(bakeBody.length>200&&bakeBody.length<5000,'T413b 烘焙區塊邊界合理，len='+bakeBody.length);
     assert(!/\bR\(\)|\bri\(|Math\.random|\bvri\(/.test(bakeBody),'T413b 烘焙碼零亂數');
     assert((window.__t413BakeCount|0)>50,'T413b 烘焙行為：命中數>50（刪整段烘焙會紅），實得 '+(window.__t413BakeCount|0));
+    /* B5：分族計數——跳過 P/H/F/D 服務族時該族=0 必紅（不能只靠總數>50） */
+    const bk=window.__t413BakeByKind||{};
+    for(const k of['R','C','I','P','H','F','D']){
+      assert((bk[k]|0)>0,'T413b B5 分族 bake '+k+'>0（跳過該族會紅），實得 '+(bk[k]|0));
+    }
+    assert(bareX.includes('__t413BakeByKind')&&bareX.includes('tally413'),
+      'T413b B5 分族計數活碼錨（tally413/__t413BakeByKind）');
     /* C2：烘焙在 parity364（121/122/123 建立）之後——以源碼序證明，非 headless 像素 */
     const i121=html.indexOf("SPR.bld['121_1_0']");
     const iBake=html.indexOf('const bakeOne=');
@@ -7407,21 +7416,44 @@ runPwaTests().then(() => {
       assert(body.includes('_tier413')||body.includes('_roadTier413'),'T413b '+fn+' 讀 tier 真相源');
     }
   }
-  { // 行為：派發會畫 + 實掃遠小於 N²
-    window.GV.newWorldSeeded(432);window.GV.weather(0);window.GV.setVisT(10);
-    for(let i=0;i<8;i++)window.__t384Bld(1,20+i,20);
-    // 鋪幾格路
-    for(let i=0;i<6;i++){const tl=window.GV.tile(18+i,22);/* 無直接 set road hook 時靠 place */}
+  { // B4：五件各 strokes>0——真 place 造境 + setVisT 夜間 + call/callTop（tiles 不在本 scope，走 place/橋）
+    window.GV.newWorldSeeded(433);window.GV.weather(0);window.GV.setVisT(8);
+    window.GV.addMoney(50000000);
+    // 集中造境 + 直寫路/水（place 可因地形拒；Force* 橋保證旗標）
+    const CX=28,CY=28;
+    let roads=0;
+    for(let i=0;i<14;i++){
+      const x=CX-6+i,y=CY;
+      place('road',x,y);
+      if(window.__t413ForceRoad(x,y))roads++;
+      window.__t413ForceRoad(x,y+1);roads++;
+    }
+    assert(roads>=8,'T413b B4 造境：至少 8 格路旗，實得 '+roads);
+    window.__t413ForceWater(CX,CY+3);
+    window.__t384Bld(1,CX+1,CY+3);
+    window.__t413ForceRoad(CX,CY+4);
+    window.__t384Bld(69,CX-2,CY-2); // 燈塔
+    for(let i=0;i<8;i++){
+      window.__t384Bld(2,CX-3+i,CY-4);window.__t412Set(CX-3+i,CY-4,'lv',3);
+      window.__t384Bld(3,CX-3+i,CY+2);
+    }
+    if(window.GV.setZoom)window.GV.setZoom(1);
+    if(window.GV.lookAt)window.GV.lookAt(CX,CY);
     const t413=window.__t413();
     t413.rebuild();
-    t413.call(0.7);t413.callTop(0.7);
+    t413.call(0.85);t413.callTop(0.85);
+    const st=t413.strokes();
+    assert(st.lamp>0,'T413b B4 路燈 strokes>0（繪製器 no-op 會紅），實得 '+st.lamp);
+    assert(st.water>0,'T413b B4 水面反射 strokes>0，實得 '+st.water);
+    assert(st.land>0,'T413b B4 地標 strokes>0，實得 '+st.land);
+    assert(st.neon>0,'T413b B4 商業霓虹 strokes>0，實得 '+st.neon);
+    assert(st.ind>0,'T413b B4 工業航障 strokes>0，實得 '+st.ind);
     const sc=t413.scan();
-    const mapN=(window.GV&&window.GV.mapSize)?window.GV.mapSize():72;
+    const mapN=72;
     const n2=mapN*mapN*5;
     assert(sc>0&&sc<n2*0.5,'T413b 實掃格數須>0 且遠小於 5×N²（可視域），實得 '+sc+' vs cap '+(n2*0.5));
-    assert(typeof t413.roadTier==='function','T413b roadTier 橋在場');
   }
-  { // A1 文字：nightCity 疊加條件含 nightDepth>0；winA 調檔亦綁 nightDepth
+  { // A1 文字 + 第三輪 shake/pad 釘
     const bareX=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
     assert(bareX.includes('if(nightDepth>0&&!window.__noNightCity&&nightTier413)'),
       'T413b A1：winA413 僅 nightDepth>0');
@@ -7429,10 +7461,34 @@ runPwaTests().then(() => {
       'T413b A1：nightCity 僅 nightDepth>0 進 nightSprites');
     assert(bareX.includes('_lodMini413')&&!/function drawNightLamps413[\s\S]{0,200}_lodFar413/.test(bareX),
       'T413b A4：繪製器以 lodMini 為界非 lodFar 早退');
+    /* 3a 震屏：_sx413/_sy413 須含 shakeT 與 sin(visT*47) / sin(visT*61 */
+    const sxAt=bareX.indexOf('function _sx413');
+    const sxBody=bareX.slice(sxAt,sxAt+280);
+    assert(sxBody.includes('shakeT')&&sxBody.includes('visT*47'),
+      'T413b 3a：_sx413 須含 shakeT 與 visT*47 震屏（與 draw ox 同款）');
+    const syAt=bareX.indexOf('function _sy413');
+    const syBody=bareX.slice(syAt,syAt+280);
+    assert(syBody.includes('shakeT')&&syBody.includes('visT*61'),
+      'T413b 3a：_sy413 須含 shakeT 與 visT*61 震屏');
+    /* 3b vis pad 隨 z */
+    const vpAt=bareX.indexOf('function _visNight413');
+    const vpBody=bareX.slice(vpAt,vpAt+200);
+    assert(vpBody.includes('_z413')&&(vpBody.includes('80*')||vpBody.includes('80 *')),
+      'T413b 3b：_visNight413 pad 須隨 z（80*z 量級）');
+    /* 行為：shake 改變投影（經橋設 shakeT，不直觸模組綁定） */
+    const t413=window.__t413();
+    const oShake=t413.getShake();t413.setShake(0);
+    const x0=t413.sx(20,20),y0=t413.sy(20,20);
+    t413.setShake(0.5);
+    const x1=t413.sx(20,20),y1=t413.sy(20,20);
+    t413.setShake(oShake);
+    assert(x0!==x1||y0!==y1,'T413b 3a 行為：shakeT>0 時投影須位移，靜='+x0+','+y0+' 震='+x1+','+y1);
+    assert(t413.visPad()>=40,'T413b 3b 行為：visPad≥40，實得 '+t413.visPad());
   }
-  { // 破壞性紅源文案釘（實跑 red 在 verify 外；此處釘住會咬的錨點仍在）
+  { // 破壞性紅源文案釘（會咬的錨點）
     const bareX=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
-    assert(bareX.includes('__t413BakeCount'),'T413b 紅源可咬：烘焙計數行為錨');
+    assert(bareX.includes('__t413BakeCount'),'T413b 紅源可咬：烘焙總計數');
+    assert(bareX.includes('__t413BakeByKind'),'T413b 紅源可咬：分族 bake 計數');
     assert(bareX.includes('__t413LampStrokes'),'T413b 紅源可咬：路燈落筆計數');
     assert(bareX.includes('nightScanN413'),'T413b 紅源可咬：實掃計數');
   }
