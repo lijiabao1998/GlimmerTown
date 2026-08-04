@@ -7298,8 +7298,15 @@ runPwaTests().then(() => {
     assert((bare413.match(/drawNightCity413\(/g)||[]).length===2&&(bare413.match(/drawNightCityTop413\(/g)||[]).length===2,
       'T413a G1b 兩派發器呼叫點各恰 2 處（定義+閘門；多出=有人開了不帶逃生閥的旁路=覆核繞過④a），實得 '
       +((bare413.match(/drawNightCity413\(/g)||[]).length)+'/'+((bare413.match(/drawNightCityTop413\(/g)||[]).length));
-    assert((bare413.match(/NIGHT413\.push|NIGHT413T\.push/g)||[]).length===0,
-      'T413a G1b 骨架期產品碼 push 絕跡（含事件處理器內的惰性注入=覆核繞過③b；T413b 各批入場時本釘改為恰等批數）');
+    /* T413b 跟版：push 恰等批數（地面 2：路燈/水面反射；頂層 4：地標/商業霓虹/工業航障/中心性讀取契約） */
+    assert((bare413.match(/NIGHT413\.push\(/g)||[]).length===2,
+      'T413b G1b NIGHT413.push 恰 2（路燈+水面反射），實得 '+((bare413.match(/NIGHT413\.push\(/g)||[]).length));
+    assert((bare413.match(/NIGHT413T\.push\(/g)||[]).length===4,
+      'T413b G1b NIGHT413T.push 恰 4（地標+商業霓虹+工業航障+tier 讀取），實得 '+((bare413.match(/NIGHT413T\.push\(/g)||[]).length));
+    assert(bare413.includes('drawNightLamps413')&&bare413.includes('drawNightWaterReflect413'),
+      'T413b G1b 地面層件名在場（路燈/水面反射）');
+    assert(bare413.includes('drawNightLandmarks413')&&bare413.includes('drawNightCommNeon413')&&bare413.includes('drawNightIndAvia413')&&bare413.includes('drawNightTierRead413'),
+      'T413b G1b 頂層件名在場（地標/霓虹/航障/tier）');
   }
   { // G2b 行為：重建期間 R() 實際消耗恆 0——文本掃描看不穿 helper 間接層（覆核繞過①c），計數器看得穿
     window.GV.newWorldSeeded(431);window.GV.weather(0);
@@ -7332,9 +7339,9 @@ runPwaTests().then(() => {
     assert(t413.tier(60,60)===1,'T413a G3 孤宅=1 檔（郊區也有一盞燈），實得 '+t413.tier(60,60));
     assert(t413.tier(50,50)===0,'T413a G3 空地=0 檔（界內無建築格；初版誤用 (80,80) 出了 72 圖界=undefined 教訓），實得 '+t413.tier(50,50));
   }
-  { // G4 行為：註冊口派發真的被呼叫＋骨架期恆空（零像素不變量）
+  { // G4 行為：註冊口派發真的被呼叫；T413b 後口非空（恰 2/4）
     const t413b=window.__t413();
-    assert(t413b.reg.length===0&&t413b.regT.length===0,'T413a G4 骨架期雙註冊口恆空=日夜幀皆與 master 逐像素恆等（T413b 才准 push），實得 '+t413b.reg.length+'/'+t413b.regT.length);
+    assert(t413b.reg.length===2&&t413b.regT.length===4,'T413b G4 雙註冊口恰等批數（地面2/頂層4），實得 '+t413b.reg.length+'/'+t413b.regT.length);
     let got413=-1,gotTop413=-1;
     t413b.reg.push((nd)=>{got413=nd;});
     t413b.regT.push((nd)=>{gotTop413=nd;});
@@ -7342,8 +7349,48 @@ runPwaTests().then(() => {
     t413b.callTop(.66);
     t413b.reg.pop();t413b.regT.pop();
     assert(got413===.55&&gotTop413===.66,'T413a G4 雙派發器須以 nightDepth 各自呼叫註冊繪製器，實得 '+got413+'/'+gotTop413);
-    assert(t413b.reg.length===0&&t413b.regT.length===0,'T413a G4 探針清理後雙口恢復空（不污染後續測試）');
+    assert(t413b.reg.length===2&&t413b.regT.length===4,'T413b G4 探針清理後恢復恰等批數，實得 '+t413b.reg.length+'/'+t413b.regT.length);
   }
+  // ===== T413b 夜之城九件族相 =====
+  { // 設定鈕＋預設開＋讀取早於 buildSprites
+    const bareB=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(bareB.includes("SAVEKEY+'.nightcity'"),'T413b 設定：localStorage 鍵 .nightcity 在場');
+    assert(bareB.includes('bNightCity')||bareB.includes('夜景'),'T413b 設定：夜景鈕在場');
+    assert(bareB.includes('nightCityPref=true'),'T413b 設定：預設開');
+    assert(html.indexOf('nightCityPref')<html.indexOf('function buildSprites(){'),
+      'T413b 設定：讀取早於 buildSprites（烘焙層依賴）');
+  }
+  { // 烘焙碼零亂數＋件名釘
+    const bakeAt=html.indexOf('T413b 夜之城烘焙層');
+    assert(bakeAt>0,'T413b 烘焙層區塊在場');
+    const bakeEnd=html.indexOf('const maskNight=',bakeAt);
+    const bakeBody=html.slice(bakeAt,bakeEnd>0?bakeEnd:bakeAt+8000).replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(!/\bR\(\)|\bri\(|Math\.random|\bvri\(/.test(bakeBody),'T413b 烘焙碼零亂數（R/ri/Math.random/vri）');
+    assert(html.includes("kind==='R'")&&html.includes("kind==='C'")&&html.includes("kind==='I'"),'T413b 住宅/商業/工業分族烘焙在場');
+  }
+  { // overlay 繪製器零亂數
+    for(const fn of ['function drawNightLamps413(nd){','function drawNightWaterReflect413(nd){','function drawNightLandmarks413(nd){','function drawNightCommNeon413(nd){','function drawNightIndAvia413(nd){']){
+      const at=html.indexOf(fn);
+      assert(at>0,'T413b 繪製器在場：'+fn);
+      const end=html.indexOf('\nfunction ',at+10);
+      const body=html.slice(at,end>0?end:at+4000).replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+      assert(!/\bR\(\)|\bri\(|Math\.random|\bvri\(/.test(body),'T413b '+fn+' 零亂數');
+      assert(body.includes('nightTier413')||body.includes('_tier413'),'T413b '+fn+' 須讀 nightTier413（禁自算密度）');
+    }
+  }
+  { // 行為：註冊口批數
+    const t413=window.__t413();
+    assert(t413.reg.length===2,'T413b 地面註冊恰 2');
+    assert(t413.regT.length===4,'T413b 頂層 4 件');
+  }
+  { // 破壞性案文字釘：日間閘/禁自算
+    const bareX=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(!/function drawNightLamps413[\s\S]{0,800}urbanDens406\(/.test(bareX),
+      'T413b 禁自算密度：路燈繪製器不得直接 urbanDens406（單一真相源 nightTier413）');
+    assert(bareX.includes('if(nightDepth>0&&!window.__noNightCity){drawNightCity413(nightDepth);}'),
+      'T413b 日間恆等閘仍在（nightDepth===0 短路）');
+  }
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
