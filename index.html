@@ -8907,69 +8907,19 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
      本體「透明天空區」（windows() 網格超出立面／變體高度差），nightSprites 'screen' 疊加＋畫家順序＝亮窗
      疊在「後面那棟」的屋頂上（截圖屋頂碎黃窗的真兇）。通殺修法：每張 night 畫布 ∩ 本體不透明區
      （destination-in），亮窗只可能落在自家牆面。純 canvas 合成、不消耗 R()＝零亂數位移。 ===== */
-  /* ===== T413b 夜之城烘焙層（窗燈/霓虹/工業冷光/服務燈語）——零亂數（禁模擬抽籤與幀亂數），決定性=鍵字串雜湊；
-     僅 nightCityPref 開啟時加蓋；關閉走 reload 卸層。加蓋後仍過 maskNight 裁進本體。
-     中心性密度在 draw 端讀 nightTier413 調 alpha，禁止自算密度。 ===== */
-  if(nightCityPref&&!window.__noNightCity){
-    const h413=(a,b,s)=>{let h=((a*374761393)^(b*668265263)^(s*2246822519))|0;h=Math.imul(h^(h>>>15),2246822519);h=Math.imul(h^(h>>>13),3266489917);return ((h>>>0)/4294967296);};
-    const bakeOne=(s,kind,lv,seedK)=>{
-      if(!s||!s.night||!s.img)return;
-      const ng=s.night.getContext('2d'), w=s.w|0, h=s.h|0, ax=s.ax|0, ay=s.ay|0;
-      let id; try{id=s.img.getContext('2d').getImageData(0,0,w,h);}catch(e){return;}
-      const d=id.data;
-      // kind: R 住宅暖 / C 商業霓虹 / I 工業冷 / S 服務 / H 醫院 / P 警局 / F 消防 / D 學校(稀疏早熄)
-      const cols={R:['#ffd89a','#ffe7b8','#ffc878'],C:['#ff5ac8','#5ad4ff','#ffd45f','#a070ff'],I:['#c8e8ff','#9ad0f0','#e8f4ff'],S:['#ffe9b0'],H:['#ff6060','#ffffff'],P:['#6090ff','#ffffff'],F:['#ff4040','#ffd0a0'],D:['#ffe0a0']};
-      const pal=cols[kind]||cols.R;
-      const dens0=kind==='R'?(0.10+Math.min(4,lv|0)*0.05):kind==='C'?(0.08+Math.min(4,lv|0)*0.04):kind==='I'?0.07:kind==='D'?0.04:0.09;
-      const step=kind==='C'?2:3;
-      const y0=Math.max(4,ay-Math.min(h-4, Math.floor(h*0.72)));
-      const y1=Math.max(y0+4, ay-8);
-      for(let py=y0;py<y1;py+=step){
-        for(let px=Math.max(2,ax-Math.floor(w*0.38));px<Math.min(w-2,ax+Math.floor(w*0.38));px+=step){
-          const thr=dens0*(kind==='C'&&lv>=3?1.35:1);
-          if(h413(px+seedK,py,4130+seedK)>thr)continue;
-          const o=(py*w+px)*4; if((d[o+3]|0)<40)continue; // 只落在本體不透明區
-          const ci=Math.floor(h413(px,py,4131+seedK)*pal.length)%pal.length;
-          ng.fillStyle=pal[ci];
-          const sz=kind==='C'&&lv>=3?3:2;
-          ng.fillRect(px,py,sz,sz);
-          if(kind==='C'&&lv>=3&&h413(px,py,4132)<0.25){ng.fillStyle=pal[(ci+1)%pal.length];ng.fillRect(px-1,py-4,sz+2,2);} // 大招牌橫條
-          if(kind==='I'&&h413(px,py,4133)<0.08){ng.fillStyle='#ff4040';ng.fillRect(ax-1,Math.max(2,ay-Math.min(h-6, Math.floor(h*0.85))),2,2);} // 煙囪航障備點（靜態）
-          if(kind==='H'&&h413(px,py,4134)<0.12){ng.fillStyle='#ff3030';ng.fillRect(ax-2,ay-Math.floor(h*0.55),5,2);ng.fillRect(ax,ay-Math.floor(h*0.55)-2,1,6);} // 紅十字
-          if(kind==='P'&&h413(px,py,4135)<0.15){ng.fillStyle='#4080ff';ng.fillRect(ax-2,ay-Math.floor(h*0.5),4,3);}
-          if(kind==='F'&&h413(px,py,4136)<0.15){ng.fillStyle='#ff3030';ng.fillRect(ax-2,ay-Math.floor(h*0.48),4,3);}
-        }
-      }
-    };
-    const kindOf=(k)=>{
-      if(k===1||k===33||k===105)return 'R';
-      if(k===2||k===34||k===65||k===86||k===91||k===103||k===106||k===110||k===116)return 'C';
-      if(k===3||k===49||k===50||k===57||k===64||k===100||k===118||k===121||k===122||k===123)return 'I';
-      if(k===11||k===52)return 'P';
-      if(k===12||k===13||k===28||k===48||k===102)return 'H';
-      if(k===6||k===30||k===61||k===95)return 'F';
-      if(k===7||k===14||k===32||k===41||k===84||k===85||k===108||k===109)return 'D';
-      if(k===42||k===43||k===15||k===16||k===31)return 'S';
-      return null;
-    };
-    for(const key in SPR.bld){
-      const m=/^(\d+)_(\d+)_(\d+)$/.exec(key); if(!m)continue;
-      const kk=+m[1], lv=+m[2], kind=kindOf(kk); if(!kind)continue;
-      bakeOne(SPR.bld[key], kind, lv, kk*17+lv*3+(+m[3]));
-    }
-    if(SPR.police)bakeOne(SPR.police,'P',1,1101);
-    if(SPR.hospital)bakeOne(SPR.hospital,'H',1,1201);
-    if(SPR.clinic)bakeOne(SPR.clinic,'H',1,1301);
-  }
-
   {
-    const maskNight=(s)=>{if(!s||!s.night||!s.img)return;
-      const mg=s.night.getContext('2d');
-      mg.save();mg.globalCompositeOperation='destination-in';mg.drawImage(s.img,0,0);mg.restore();};
+    const maskNight=(s)=>{if(!s||!s.img)return;
+      const maskOne=(cvEl)=>{if(!cvEl)return;const mg=cvEl.getContext('2d');mg.save();mg.globalCompositeOperation='destination-in';mg.drawImage(s.img,0,0);mg.restore();};
+      maskOne(s.night);maskOne(s.nightCity); /* T413b：加料層 nightCity 同步裁進本體 */
+    };
     for(const k in SPR.bld)maskNight(SPR.bld[k]);
     if(SPR.plant)maskNight(SPR.plant);
     if(SPR.plantVar)for(const pv of SPR.plantVar)maskNight(pv);
     if(SPR.waterTower)maskNight(SPR.waterTower);
+    if(SPR.police)maskNight(SPR.police);if(SPR.hospital)maskNight(SPR.hospital);if(SPR.clinic)maskNight(SPR.clinic);
+    if(SPR.policeVar)for(const pv of SPR.policeVar)if(pv)maskNight(pv);
+    if(SPR.hospitalVar)for(const pv of SPR.hospitalVar)if(pv)maskNight(pv);
+    if(SPR.clinicVar)for(const pv of SPR.clinicVar)if(pv)maskNight(pv);
     /* ===== T291 底部貼合格子（玩家「大型購物中心和其它建築底部不能超出格子，照搬 TheoTown 顯示效果、素材原創」）：
        多格建築 sprite 常把地面裝飾（停車場/廣場/田畦/月台）畫成寬矩形，於 footprint 菱形底頂點附近溢出到鄰格。
        此處以 footprint 菱形下緣（自底頂點 (ax,ay) 兩側斜率 ±0.5 的線 y=ay-|px-ax|*0.5）為界，destination-out
@@ -9360,6 +9310,79 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   if(!window.__noT382){
     // 批次記錄：B1-B9 見卡；退修：hero 地標/大學/市政/太空＋塔樓/水族/動物園/焚化/溫室/132-133
   }
+  /* ===== T413b 夜之城烘焙（buildSprites 真尾端：parity364 之後；寫 s.nightCity 不碰 s.night）=====
+     A1：加料獨立層，僅 nightDepth>0 時疊加 ⇒ 白天暴雨幀與 master 位元可恆等。
+     A3：quality===0 不烘焙。C2：121/122/123 已建。C3：policeVar/hospitalVar/clinicVar。
+     C4：kind 經 kcatOf。C6：商業分族色相。決定性=streetHash（與卡面一致）。 ===== */
+  if(nightCityPref&&!window.__noNightCity&&quality!==0){
+    const bakeOne=(s,kind,lv,seedK,kNum)=>{
+      if(!s||!s.img)return;
+      const w=s.w|0,h=s.h|0,ax=s.ax|0,ay=s.ay|0;
+      if(!s.nightCity){const c=document.createElement('canvas');c.width=w;c.height=h;s.nightCity=c;}
+      else{const g0=s.nightCity.getContext('2d');g0.clearRect(0,0,w,h);}
+      const ng=s.nightCity.getContext('2d');
+      let id;try{id=s.img.getContext('2d').getImageData(0,0,w,h);}catch(e){return;}
+      const d=id.data;
+      let pal;
+      if(kind==='C'){
+        if(kNum===86)pal=['#ffd45f','#ffe080','#ffc040'];
+        else if(kNum===87)pal=['#ff6a3a','#ff9a50','#ffc070'];
+        else if(kNum===81||kNum===82||kNum===83||kNum===98)pal=['#a070ff','#d0a0ff','#c080ff'];
+        else pal=['#ff5ac8','#5ad4ff','#ffd45f','#a070ff'];
+      }else{
+        const cols={R:['#ffd89a','#ffe7b8','#ffc878'],I:['#c8e8ff','#9ad0f0','#e8f4ff'],S:['#ffe9b0'],H:['#ff6060','#ffffff'],P:['#6090ff','#ffffff'],F:['#ff4040','#ffd0a0'],D:['#ffe0a0']};
+        pal=cols[kind]||cols.R;
+      }
+      const dens0=kind==='R'?(0.10+Math.min(4,lv|0)*0.05):kind==='C'?(0.08+Math.min(4,lv|0)*0.04):kind==='I'?0.07:kind==='D'?0.06:0.09;
+      const step=kind==='C'?2:3;
+      const y0=Math.max(4,ay-Math.min(h-4,Math.floor(h*0.72)));
+      const y1=Math.max(y0+4,ay-8);
+      for(let py=y0;py<y1;py+=step){
+        for(let px=Math.max(2,ax-Math.floor(w*0.38));px<Math.min(w-2,ax+Math.floor(w*0.38));px+=step){
+          const thr=dens0*(kind==='C'&&lv>=3?1.35:1);
+          if(streetHash(px+seedK,py,4130+seedK)>thr)continue;
+          const o=(py*w+px)*4;if((d[o+3]|0)<40)continue;
+          const ci=Math.floor(streetHash(px,py,4131+seedK)*pal.length)%pal.length;
+          ng.fillStyle=pal[ci];
+          const sz=kind==='C'&&lv>=3?3:2;
+          ng.fillRect(px,py,sz,sz);
+          if(kind==='C'&&lv>=3&&streetHash(px,py,4132)<0.25){ng.fillStyle=pal[(ci+1)%pal.length];ng.fillRect(px-1,py-4,sz+2,2);}
+          if(kind==='I'&&streetHash(px,py,4133)<0.08){ng.fillStyle='#ff4040';ng.fillRect(ax-1,Math.max(2,ay-Math.min(h-6,Math.floor(h*0.85))),2,2);}
+          if(kind==='H'&&streetHash(px,py,4134)<0.12){ng.fillStyle='#ff3030';ng.fillRect(ax-2,ay-Math.floor(h*0.55),5,2);ng.fillRect(ax,ay-Math.floor(h*0.55)-2,1,6);}
+          if(kind==='P'&&streetHash(px,py,4135)<0.15){ng.fillStyle='#4080ff';ng.fillRect(ax-2,ay-Math.floor(h*0.5),4,3);}
+          if(kind==='F'&&streetHash(px,py,4136)<0.15){ng.fillStyle='#ff3030';ng.fillRect(ax-2,ay-Math.floor(h*0.48),4,3);}
+        }
+      }
+      ng.save();ng.globalCompositeOperation='destination-in';ng.drawImage(s.img,0,0);ng.restore();
+    };
+    const kindOf=(k)=>{
+      const c=kcatOf(k);
+      if(c==='R')return 'R';
+      if(c==='C')return 'C';
+      if(c==='I')return 'I';
+      if(c==='H')return 'H';
+      if(c==='D')return 'D';
+      if(k===6||k===30||k===61||k===95)return 'F';
+      if(k===11||k===52)return 'P';
+      if(k===81||k===82||k===83||k===98||k===87)return 'C';
+      if(c==='S')return 'S';
+      return null;
+    };
+    let bakeCount413=0;
+    for(const key in SPR.bld){
+      const m=/^(\d+)_(\d+)_(\d+)$/.exec(key);if(!m)continue;
+      const kk=+m[1],lv=+m[2],kind=kindOf(kk);if(!kind)continue;
+      bakeOne(SPR.bld[key],kind,lv,kk*17+lv*3+(+m[3]),kk);bakeCount413++;
+    }
+    if(SPR.police){bakeOne(SPR.police,'P',1,1101,11);bakeCount413++;}
+    if(SPR.hospital){bakeOne(SPR.hospital,'H',1,1201,12);bakeCount413++;}
+    if(SPR.clinic){bakeOne(SPR.clinic,'H',1,1301,13);bakeCount413++;}
+    if(SPR.policeVar)for(let vi=1;vi<=4;vi++)if(SPR.policeVar[vi]){bakeOne(SPR.policeVar[vi],'P',1,1101+vi,11);bakeCount413++;}
+    if(SPR.hospitalVar)for(let vi=1;vi<=4;vi++)if(SPR.hospitalVar[vi]){bakeOne(SPR.hospitalVar[vi],'H',1,1201+vi,12);bakeCount413++;}
+    if(SPR.clinicVar)for(let vi=1;vi<=4;vi++)if(SPR.clinicVar[vi]){bakeOne(SPR.clinicVar[vi],'H',1,1301+vi,13);bakeCount413++;}
+    window.__t413BakeCount=bakeCount413; /* 測試：烘焙命中數>0 行為釘（非註解錨） */
+  }else{window.__t413BakeCount=0;}
+
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
 /* T125：依財富級選住宅 sprite 鍵，缺鍵／we 非 0|2（含防禦性壞值如 9）一律回退中產基礎鍵，不拋錯 */
@@ -13977,164 +14000,204 @@ function rebuildNightTier413(){
 function ensureNightTier413(){
   if(nightTierDirty413||nightTierDay413!==day||!nightTier413||nightTier413.length!==N*N){rebuildNightTier413();nightTierDay413=day;}
 }
+let nightScanN413=0; /* T413b：本幀五繪製器合計實掃格數（測試用） */
 function drawNightCity413(nd){
   ensureNightTier413();
+  nightScanN413=0;window.__t413LampStrokes=0;window.__t413WaterStrokes=0;
   for(const f of NIGHT413)f(nd);
 }
 function drawNightCityTop413(nd){
   ensureNightTier413();
+  window.__t413LandStrokes=0;window.__t413NeonStrokes=0;window.__t413IndStrokes=0;
   for(const f of NIGHT413T)f(nd);
 }
-/* ===== T413b 九件族相 · overlay 註冊（地面 NIGHT413 / 頂層 NIGHT413T）=====
-   鐵約：禁 R()/ri()/Math.random/vri；禁寫模擬；合成 screen/lighter；密度只讀 nightTier413；
-   可視域迭代；日間 nightDepth 閘在收口。投影用 cam.z（draw 區域 z/sxOf 不可見）。 ===== */
+/* ===== T413b 九件族相 · overlay（退修版）=====
+   A2：可視域迭代（T368c 同款）+ nightScanN413 實掃上限釘。
+   A4：僅 lodMini(z<.5) 早退，z∈[0.5,1) 仍畫。
+   C1：路燈 tier 取鄰近建築格 max（路/建築互斥 ⇒ 路格本身 tier 恆 0）。
+   C8：無 no-op 佔件。禁 urbanDens406。投影 cam.z。 ===== */
 function _tier413(i){return nightTier413?nightTier413[i]|0:0;}
 function _visNight413(sx,sy){return sx>-40&&sy>-40&&sx<W+40&&sy<H+40;}
 function _z413(){return cam.z;}
-function _lodFar413(){return cam.z<1;}
 function _lodMini413(){return cam.z<.5;}
 function _sx413(x,y){const z2=cam.z,ox=Math.round(W/2-cam.x*z2),p=w2v(x,y);return ox+((p[0]-p[1])*32-32)*z2;}
 function _sy413(x,y){const z2=cam.z,oy=Math.round(H/2-cam.y*z2),p=w2v(x,y);return oy+((p[0]+p[1])*16)*z2;}
-/* 6 路燈家族（地面） */
+function _viewRange413(){
+  const z2=cam.z,ox=Math.round(W/2-cam.x*z2),oy=Math.round(H/2-cam.y*z2);
+  let fvx0=1e9,fvx1=-1e9,fvy0=1e9,fvy1=-1e9;
+  for(const[pcx,pcy]of[[0,0],[W,0],[W,H],[0,H]]){
+    const fa=((pcx-ox)/z2+32)/32,fb=((pcy-oy)/z2)/16;
+    const fvx=(fa+fb)/2,fvy=(fb-fa)/2;
+    if(fvx<fvx0)fvx0=fvx;if(fvx>fvx1)fvx1=fvx;if(fvy<fvy0)fvy0=fvy;if(fvy>fvy1)fvy1=fvy;
+  }
+  return [Math.max(0,Math.floor(fvx0)-2),Math.min(N-1,Math.ceil(fvx1)+2),Math.max(0,Math.floor(fvy0)-2),Math.min(N-1,Math.ceil(fvy1)+2)];
+}
+function _roadTier413(x,y){
+  let m=0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    if(!dx&&!dy)continue;
+    const x2=x+dx,y2=y+dy;if(!inMap(x2,y2))continue;
+    const b=tiles[idx(x2,y2)].bld;if(b&&!b.ref)m=Math.max(m,_tier413(idx(x2,y2)));
+  }
+  return m;
+}
 function drawNightLamps413(nd){
-  if(window.__noNightCity||!nd||_lodFar413()||_lodMini413())return;
+  if(window.__noNightCity||!nd||_lodMini413())return;
   ensureNightTier413();
-  const z2=_z413();
+  const z2=_z413(),[fx0,fx1,fy0,fy1]=_viewRange413();
+  let strokes=0;
   ctx.save();ctx.globalCompositeOperation='lighter';
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const i=idx(x,y),t=tiles[i]; if(!t.road||t.bridge)continue;
-    const rc=t.rc||2, thr=rc>=5?0.55:rc>=3?0.38:0.22;
+  for(let vy=fy0;vy<=fy1;vy++)for(let vx=fx0;vx<=fx1;vx++){
+    nightScanN413++;
+    const p=v2w(vx,vy),x=p[0],y=p[1];if(!inMap(x,y))continue;
+    const i=idx(x,y),tt=tiles[i];if(!tt.road||tt.bridge)continue;
+    const rc=tt.rc||2,thr=rc>=5?0.55:rc>=3?0.38:0.22;
     if(streetHash(x,y,41360)>thr)continue;
-    const tier=_tier413(i);
-    const mul=0.45+0.18*Math.min(3,Math.max(1,tier||1));
-    const sx=_sx413(x,y)+32*z2, sy=_sy413(x,y)+16*z2;
+    const tier=_roadTier413(x,y);
+    const mul=0.45+0.18*Math.min(3,Math.max(0,tier));
+    const sx=_sx413(x,y)+32*z2,sy=_sy413(x,y)+16*z2;
     if(!_visNight413(sx,sy))continue;
     const warm=rc<=2;
     const col=warm?('rgba(255,200,120,'+(0.16*nd*mul).toFixed(3)+')'):('rgba(200,220,255,'+(0.14*nd*mul).toFixed(3)+')');
     const gr=(rc>=4?38:26)*z2;
     const g=ctx.createRadialGradient(sx,sy,0,sx,sy,gr);
     g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,sy,gr,0,6.283);ctx.fill();
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,sy,gr,0,6.283);ctx.fill();strokes++;
   }
   ctx.restore();
+  window.__t413LampStrokes=strokes;
 }
-/* 8 水面夜反射（地面） */
 function drawNightWaterReflect413(nd){
-  if(window.__noNightCity||!nd||_lodFar413())return;
+  if(window.__noNightCity||!nd||_lodMini413())return;
   ensureNightTier413();
-  const z2=_z413();
+  const z2=_z413(),[fx0,fx1,fy0,fy1]=_viewRange413();
+  let strokes=0;
   ctx.save();ctx.globalCompositeOperation='lighter';
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const i=idx(x,y),t=tiles[i]; if(t.t!==0)continue;
+  for(let vy=fy0;vy<=fy1;vy++)for(let vx=fx0;vx<=fx1;vx++){
+    nightScanN413++;
+    const p=v2w(vx,vy),x=p[0],y=p[1];if(!inMap(x,y))continue;
+    const i=idx(x,y),tt=tiles[i];if(tt.t!==0)continue;
     if(streetHash(x,y,41380)>0.14)continue;
-    let near=false, tierM=0;
-    for(let dy=-1;dy<=1&&!near;dy++)for(let dx=-1;dx<=1;dx++){
-      const x2=x+dx,y2=y+dy; if(!inMap(x2,y2))continue;
+    let near=false,tierM=0;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      const x2=x+dx,y2=y+dy;if(!inMap(x2,y2))continue;
       const t2=tiles[idx(x2,y2)];
       if(t2.road||(t2.bld&&!t2.bld.ref)){near=true;tierM=Math.max(tierM,_tier413(idx(x2,y2)));}
     }
     if(!near)continue;
-    const sx=_sx413(x,y)+(14+streetHash(x,y,41381)*36)*z2, sy=_sy413(x,y)+(8+streetHash(x,y,41382)*14)*z2;
+    const sx=_sx413(x,y)+(14+streetHash(x,y,41381)*36)*z2,sy=_sy413(x,y)+(8+streetHash(x,y,41382)*14)*z2;
     if(!_visNight413(sx,sy))continue;
     const tw=Math.sin(visT*1.7+streetHash(x,y,41383)*40)*.5+.5;
     if(tw<.4)continue;
     const a=(0.10+0.06*tierM)*nd*((tw-.4)/.6);
     ctx.fillStyle='rgba(255,230,180,'+a.toFixed(3)+')';
-    ctx.fillRect(sx,sy,Math.max(1,2*z2),Math.max(1,z2));
+    ctx.fillRect(sx,sy,Math.max(1,2*z2),Math.max(1,z2));strokes++;
   }
   ctx.restore();
+  window.__t413WaterStrokes=strokes;
 }
-/* 5 地標夜間身份（頂層） */
 function drawNightLandmarks413(nd){
-  if(window.__noNightCity||!nd||_lodFar413())return;
+  if(window.__noNightCity||!nd||_lodMini413())return;
   ensureNightTier413();
-  const z2=_z413();
+  const z2=_z413(),[fx0,fx1,fy0,fy1]=_viewRange413();
+  let strokes=0;
   ctx.save();ctx.globalCompositeOperation='lighter';
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const i=idx(x,y),b=tiles[i].bld; if(!b||b.ref)continue;
-    const k=b.k|0; if(k!==69&&k!==76&&k!==89)continue;
-    const sx=_sx413(x,y)+32*z2, sy=_sy413(x,y)+32*z2;
+  for(let vy=fy0;vy<=fy1;vy++)for(let vx=fx0;vx<=fx1;vx++){
+    nightScanN413++;
+    const p=v2w(vx,vy),x=p[0],y=p[1];if(!inMap(x,y))continue;
+    const i=idx(x,y),b=tiles[i].bld;if(!b||b.ref)continue;
+    const k=b.k|0;if(k!==69&&k!==76&&k!==89)continue;
+    const sx=_sx413(x,y)+32*z2,sy=_sy413(x,y)+32*z2;
     if(!_visNight413(sx,sy))continue;
-    const tier=_tier413(i), mul=0.55+0.15*tier;
+    const tier=_tier413(i),mul=0.55+0.15*tier;
     if(k===69){
       const ang=visT*0.7+streetHash(x,y,41350)*6.28;
-      const len=55*z2, bx=sx, by=sy-40*z2;
-      const ex=bx+Math.cos(ang)*len, ey=by+Math.sin(ang)*len*0.45;
+      const len=55*z2,bx=sx,by=sy-40*z2;
+      const ex=bx+Math.cos(ang)*len,ey=by+Math.sin(ang)*len*0.45;
       const g=ctx.createLinearGradient(bx,by,ex,ey);
       g.addColorStop(0,'rgba(255,245,200,'+(0.55*nd*mul).toFixed(3)+')');
       g.addColorStop(1,'rgba(255,245,200,0)');
       ctx.strokeStyle=g;ctx.lineWidth=Math.max(2,3*z2);ctx.lineCap='round';
       ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(ex,ey);ctx.stroke();
       ctx.fillStyle='rgba(255,240,180,'+(0.7*nd*mul).toFixed(3)+')';
-      ctx.beginPath();ctx.arc(bx,by,Math.max(2,3*z2),0,6.283);ctx.fill();
+      ctx.beginPath();ctx.arc(bx,by,Math.max(2,3*z2),0,6.283);ctx.fill();strokes++;
     }else if(k===89){
       const blink=(Math.sin(visT*2.2+streetHash(x,y,41351)*6)>.2)?1:0.15;
       ctx.fillStyle='rgba(255,60,60,'+(0.85*nd*mul*blink).toFixed(3)+')';
       ctx.fillRect(sx-z2,sy-58*z2,Math.max(2,2*z2),Math.max(2,2*z2));
       ctx.fillStyle='rgba(255,220,120,'+(0.5*nd*mul*blink).toFixed(3)+')';
-      ctx.fillRect(sx-2*z2,sy-48*z2,Math.max(2,4*z2),Math.max(1,z2));
+      ctx.fillRect(sx-2*z2,sy-48*z2,Math.max(2,4*z2),Math.max(1,z2));strokes++;
     }else if(k===76){
-      const nL=8, r=14*z2, cx=sx, cy=sy-28*z2;
+      const nL=8,r=14*z2,cx=sx,cy=sy-28*z2;
       for(let j=0;j<nL;j++){
         const a=visT*0.9+j*(6.283/nL);
-        const px=cx+Math.cos(a)*r, py=cy+Math.sin(a)*r*0.55;
+        const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r*0.55;
         const col=j%3===0?'255,120,160':j%3===1?'120,200,255':'255,220,100';
         ctx.fillStyle='rgba('+col+','+(0.65*nd*mul).toFixed(3)+')';
         ctx.fillRect(px,py,Math.max(1,2*z2),Math.max(1,2*z2));
       }
+      strokes++;
     }
   }
   ctx.restore();
+  window.__t413LandStrokes=strokes;
 }
-/* 2 商業霓虹閃爍（頂層） */
 function drawNightCommNeon413(nd){
-  if(window.__noNightCity||!nd||_lodFar413())return;
+  if(window.__noNightCity||!nd||_lodMini413())return;
   ensureNightTier413();
-  const z2=_z413();
+  const z2=_z413(),[fx0,fx1,fy0,fy1]=_viewRange413();
+  let strokes=0;
   ctx.save();ctx.globalCompositeOperation='lighter';
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const i=idx(x,y),b=tiles[i].bld; if(!b||b.ref)continue;
-    const k=b.k|0; if(!(k===2||k===34||k===65||k===86||k===106))continue;
-    if((b.lv||1)<3&&k===2)continue;
+  for(let vy=fy0;vy<=fy1;vy++)for(let vx=fx0;vx<=fx1;vx++){
+    nightScanN413++;
+    const p=v2w(vx,vy),x=p[0],y=p[1];if(!inMap(x,y))continue;
+    const i=idx(x,y),b=tiles[i].bld;if(!b||b.ref)continue;
+    const k=b.k|0;
+    if(!(k===2||k===34||k===65||k===86||k===87||k===81||k===82||k===83||k===106||k===98))continue;
+    if(k===2&&(b.lv||1)<3)continue;
     if(streetHash(x,y,41370)>0.55)continue;
-    const sx=_sx413(x,y)+32*z2, sy=_sy413(x,y)+10*z2;
+    const sx=_sx413(x,y)+32*z2,sy=_sy413(x,y)+10*z2;
     if(!_visNight413(sx,sy))continue;
-    const tier=_tier413(i), blink=0.45+0.55*((Math.sin(visT*3.1+streetHash(x,y,41371)*9)*.5+.5));
-    const cols=[[255,90,200],[90,210,255],[255,210,80],[160,100,255]];
-    const ci=Math.floor(streetHash(x,y,41372)*cols.length)%cols.length;
-    const c=cols[ci], a=0.35*nd*(0.5+0.15*tier)*blink;
+    const tier=_tier413(i),blink=0.45+0.55*((Math.sin(visT*3.1+streetHash(x,y,41371)*9)*.5+.5));
+    let c;
+    if(k===86)c=[255,212,95];
+    else if(k===87)c=[255,106,58];
+    else if(k===81||k===82||k===83||k===98)c=[160,112,255];
+    else{const cols=[[255,90,200],[90,210,255],[255,210,80],[160,100,255]];c=cols[Math.floor(streetHash(x,y,41372)*cols.length)%cols.length];}
+    const a=0.35*nd*(0.5+0.15*tier)*blink;
     ctx.fillStyle='rgba('+c[0]+','+c[1]+','+c[2]+','+a.toFixed(3)+')';
-    ctx.fillRect(sx-6*z2,sy-20*z2,Math.max(2,12*z2),Math.max(1,3*z2));
+    ctx.fillRect(sx-6*z2,sy-20*z2,Math.max(2,12*z2),Math.max(1,3*z2));strokes++;
   }
   ctx.restore();
+  window.__t413NeonStrokes=strokes;
 }
-/* 3 工業航障燈慢頻閃（頂層） */
 function drawNightIndAvia413(nd){
-  if(window.__noNightCity||!nd||_lodFar413())return;
+  if(window.__noNightCity||!nd||_lodMini413())return;
   ensureNightTier413();
-  const z2=_z413();
+  const z2=_z413(),[fx0,fx1,fy0,fy1]=_viewRange413();
+  let strokes=0;
   ctx.save();ctx.globalCompositeOperation='lighter';
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    const i=idx(x,y),b=tiles[i].bld; if(!b||b.ref)continue;
-    const k=b.k|0; if(!(k===3||k===62||k===58||k===57||k===121||k===122||k===123))continue;
+  for(let vy=fy0;vy<=fy1;vy++)for(let vx=fx0;vx<=fx1;vx++){
+    nightScanN413++;
+    const p=v2w(vx,vy),x=p[0],y=p[1];if(!inMap(x,y))continue;
+    const i=idx(x,y),b=tiles[i].bld;if(!b||b.ref)continue;
+    const k=b.k|0;if(!(k===3||k===62||k===58||k===57||k===121||k===122||k===123))continue;
     if(streetHash(x,y,41375)>0.4)continue;
-    const sx=_sx413(x,y)+32*z2, sy=_sy413(x,y)-20*z2;
+    const sx=_sx413(x,y)+32*z2,sy=_sy413(x,y)-20*z2;
     if(!_visNight413(sx,sy))continue;
     const blink=(Math.sin(visT*1.1+streetHash(x,y,41376)*6)>.35)?1:0.12;
     const tier=_tier413(i);
     ctx.fillStyle='rgba(255,48,48,'+(0.75*nd*blink*(0.5+0.12*tier)).toFixed(3)+')';
-    ctx.fillRect(sx-z2,sy-30*z2,Math.max(2,2*z2),Math.max(2,2*z2));
+    ctx.fillRect(sx-z2,sy-30*z2,Math.max(2,2*z2),Math.max(2,2*z2));strokes++;
   }
   ctx.restore();
+  window.__t413IndStrokes=strokes;
 }
-/* 7 中心性讀取契約在場 */
-function drawNightTierRead413(nd){ if(nd)ensureNightTier413(); }
 NIGHT413.push(drawNightLamps413);          // 地面：路燈光暈
 NIGHT413.push(drawNightWaterReflect413);   // 地面：水面夜反射
 NIGHT413T.push(drawNightLandmarks413);     // 頂層：地標身份
 NIGHT413T.push(drawNightCommNeon413);      // 頂層：商業霓虹閃爍
 NIGHT413T.push(drawNightIndAvia413);       // 頂層：工業航障
-NIGHT413T.push(drawNightTierRead413);      // 頂層：中心性檔位讀取契約在場
 function draw(dt){
   trafClock+=dt||0; // T289：交通時鐘推進（紅綠燈相位）
   const {b,dusk,ph,d}=daylight(); // T149：新增解構 ph/d（既有 b/dusk 用途不變）
@@ -15555,9 +15618,15 @@ function draw(dt){
       }
       ctx.restore();ctx.globalAlpha=1;
     }
-    if(s.night&&!lodFar&&(bd.pw||bd.k>=5)&&!window.__noWinLit&&!constrRise){ // T259/T212 窗燈；T413b：alpha 依 nightTier413 分檔（禁自算密度）
-      let winA413=1; if(!window.__noNightCity&&nightTier413){const tr=_tier413(idx(o.x,o.y));winA413=tr<=0?0.4:tr===1?0.62:tr===2?0.85:1;}
+    if(s.night&&!lodFar&&(bd.pw||bd.k>=5)&&!window.__noWinLit&&!constrRise){ // T259/T212 窗燈；T413b 退修：A1 僅 nightDepth>0 調 alpha／疊 nightCity
+      let winA413=1;
+      if(nightDepth>0&&!window.__noNightCity&&nightTier413){
+        const tr=_tier413(idx(o.x,o.y));winA413=tr<=0?0.4:tr===1?0.62:tr===2?0.85:1;
+        /* C7 學校早熄：深夜 nightDepth 高時壓暗教育族 */
+        if(kcatOf(bd.k)==='D'&&nightDepth>0.55)winA413*=0.22;
+      }
       nightSprites.push({img:s.night,x:bx,y:by,w:s.w*z,h:s.h*z,a:winA413});
+      if(nightDepth>0&&!window.__noNightCity&&s.nightCity)nightSprites.push({img:s.nightCity,x:bx,y:by,w:s.w*z,h:s.h*z,a:winA413});
     }
     if(bd.k===2&&bd.pw&&!lodFar&&!window.__noNeon&&!constrRise){ // T259：施工期無霓虹 // T244 商業霓虹招牌（Opus 親手，夜景多樣化）——供電商業建築夜間亮彩色霓虹招牌：6 色由座標雜湊挑、位置/尺寸隨等級，push 進 nightSprites（暗halo+亮招牌雙 rect，夜燈層 'screen' 疊加＝夜間發光、日間閘不繪）；__noNeon 開關、streetHash 決定性不消耗 R()
       const NEON=['#ff4a8a','#4affd0','#ffd23a','#8a5aff','#ff6a3a','#3affff'];
