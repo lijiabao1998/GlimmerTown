@@ -7251,6 +7251,69 @@ runPwaTests().then(() => {
     const ff416=loneFar416(800);
     assert(ff416>maxF416*1.5,'T416 G2b 跨城案幀數須顯著高於就近案（遠 25 格 > 近 5 格×1.5），實得 loneFar='+ff416+' vs nearMax='+maxF416);
   }
+  { // T416 退修 G3 行為：兩站三案同批補兩車→兩車目標必不同（幀數斷言：新版案C 84 幀直達 vs 舊版白跑後 ~210 幀）
+    const framesC416=(seed)=>{
+      window.GV.newWorldSeeded(seed);window.GV.weather(0);
+      window.__t384Bld(11,10,10);window.__t384Bld(11,40,10); // 近站 (10,10)｜遠站 (40,10)
+      window.__t384Bld(1,15,10);window.__t384Bld(1,15,20);window.__t384Bld(1,50,10); // 三案：A (15,10) 近5｜B (15,20) 近15｜C (50,10) 近10
+      window.__t387Cov();
+      window.GV.igniteCrime(15,10);window.GV.igniteCrime(15,20);window.GV.igniteCrime(50,10);
+      window.__t411R(true);
+      window.GV.setSpeed(1);
+      let f=0;
+      for(;f<400;f++){window.GV.advanceN(.05,1);const bC=window.GV.tile(50,10).bld;if(bC&&!bC.crime)break;} // 案C 被清幀數
+      window.GV.setSpeed(1);window.__t411R(false);
+      return f;
+    };
+    let maxC416=0;
+    for(let s=0;s<5;s++){const f=framesC416(920+s);if(f>maxC416)maxC416=f;}
+    assert(maxC416<150,
+      'T416 退修 G3 兩車目標必不同：案C（次遠）須被第二車直達服務（新版 ~84 幀 vs 舊版兩車同派案B→車隊補位後 ~210 幀），實得 max='+maxC416);
+  }
+  { // T416 退修 G4 行為：已有一車在途→新車不得再鎖定同案（幀數斷言：新版案B ~144 幀 vs 舊版白跑後 ~252 幀）
+    const framesB416=(seed)=>{
+      window.GV.newWorldSeeded(seed);window.GV.weather(0);
+      window.__t384Bld(11,10,10);window.__t384Bld(11,40,10); // 近站 (10,10)｜遠站 (40,10)
+      window.__t384Bld(1,10,30);window.__t384Bld(1,50,10); // 案A (10,30) 近20｜案B (50,10) 近10
+      window.__t387Cov();
+      window.GV.igniteCrime(10,30);
+      window.__t411R(true);
+      window.GV.setSpeed(1);
+      for(let f=0;f<60;f++)window.GV.advanceN(.05,1); // 60 幀：車1 在途案A（20 格未完）
+      window.GV.igniteCrime(50,10); // 途中案B 出現
+      let f=0;
+      for(;f<400;f++){window.GV.advanceN(.05,1);const bB=window.GV.tile(50,10).bld;if(bB&&!bB.crime)break;} // 案B 被清幀數
+      window.GV.setSpeed(1);window.__t411R(false);
+      return f;
+    };
+    let maxB416=0;
+    for(let s=0;s<5;s++){const f=framesB416(930+s);if(f>maxB416)maxB416=f;}
+    assert(maxB416<200,
+      'T416 退修 G4 在途目標須被排除：案B（後發案）須被新車直達服務（新版 ~144 幀 vs 舊版新車重鎖案A→白跑後 ~252 幀），實得 max='+maxB416);
+  }
+  { // T416 退修 G5 壓力案：cand×sts=N=216 最壞情形（18 案×12 站）——大量案不崩潰、車隊輪流服務全部案件
+    window.GV.newWorldSeeded(950);window.GV.weather(0);
+    for(let s=0;s<12;s++)window.__t384Bld(11,5+(s%4)*6,5+Math.floor(s/4)*6); // 12 站網格
+    const cases=[];
+    let ci=0;
+    for(let y=10;y<40&&ci<18;y+=6)for(let x=10;x<40&&ci<18;x+=6){
+      window.__t384Bld(1,x,y);window.GV.igniteCrime(x,y);cases.push([x,y]);ci++;
+    }
+    window.__t387Cov();
+    window.__t411R(true);
+    window.GV.setSpeed(1);
+    let f=0;
+    for(;f<3000;f++){
+      window.GV.advanceN(.05,1);
+      let alive=0;
+      for(const[x,y]of cases){const b=window.GV.tile(x,y).bld;if(b&&b.crime)alive++;}
+      if(alive===0)break;
+    }
+    window.GV.setSpeed(1);window.__t411R(false);
+    let aliveN=0;
+    for(const[x,y]of cases){const b=window.GV.tile(x,y).bld;if(b&&b.crime)aliveN++;}
+    assert(aliveN===0,'T416 退修 G5 壓力案（18 案×12 站）：全部案件須被服務（大量案車隊輪流、無遺漏），實得殘留='+aliveN+' 幀數='+f);
+  }
   { // G4 行為 NaN 案（覆核 B1 補洞的行為證明）：setSpeed(NaN) 須落地為 0＝凍結，而非極速衝刺清案
     window.GV.newWorldSeeded(424);window.GV.weather(0);
     window.__t384Bld(11,10,10);window.__t384Bld(1,12,10);

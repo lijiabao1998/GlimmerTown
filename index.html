@@ -13688,14 +13688,19 @@ function updDispatch(arr,dt,speed,cap,sts,cand,onArrive){
     let si,ti;
     if(isCruise){si=sts[vri(sts.length)];ti=cand[vri(cand.length)];} // T416 巡遊型：現行隨機站×隨機路面格（覆蓋均勻）
     else{ /* T416 就近派遣（dispatch 型）：最遠案優先（max-min 公平無餓死）配最近站（Manhattan 度量＝與車實際步進一致） */
-      let bi=0,bd=-1,bs=sts[0];
+      const inflight=new Set(); /* T416 退修：本批已配對＋車隊在途目標（tile index），防止同案重複派車 */
+      for(const c of arr)inflight.add(c.tx+c.ty*N);
+      let bi=-1,bd=-1,bs=sts[0];
       for(let j=0;j<cand.length;j++){
+        if(inflight.has(cand[j]))continue;
         const cx=cand[j]%N,cy=(cand[j]/N)|0;
         let md=1e9,ms=sts[0];
         for(const sii of sts){const d=Math.abs(cx-(sii%N))+Math.abs(cy-((sii/N)|0));if(d<md){md=d;ms=sii;}}
         if(md>bd){bd=md;bi=j;bs=ms;}
       }
+      if(bi<0)break; // 所有候選案皆已在途/已配對：無可用案，停止補車（不重複派）
       si=bs;ti=cand[bi];
+      inflight.add(cand[bi]); // 本批消耗該案（配對後移除，同案不再被下一車鎖定）
     }
     arr.push({x:si%N,y:(si/N)|0,p:0,tx:ti%N,ty:(ti/N)|0,ticks:0}); // T145：ticks 純觀測計數（到場所需更新次數），未動 si/ti 選擇邏輯本身，RNG 消耗序列不變
   }
