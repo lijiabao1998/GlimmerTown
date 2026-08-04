@@ -1,6 +1,6 @@
 # 多 AI 協作規約（T351）
 
-四方（Claude / Kimi / Codex / Grok）都可施工。以下是**唯一**一份權威說明；任何與此衝突的舊副本一律作廢。
+五方（Claude / Kimi / Codex / Grok / DeepSeek）都可施工。以下是**唯一**一份權威說明；任何與此衝突的舊副本一律作廢。
 
 ---
 
@@ -12,6 +12,7 @@
 | `安卓探索\bay-kimi` | Kimi 的施工車位（git worktree，分支 `bay/kimi`） | Kimi 專屬 |
 | `安卓探索\bay-codex` | Codex 的施工車位（git worktree，分支 `bay/codex`） | Codex 專屬 |
 | `安卓探索\bay-grok` | Grok 的施工車位（git worktree，分支 `bay/grok`） | Grok 專屬 |
+| `安卓探索\bay-deepseek` | DeepSeek 的施工車位（git worktree，分支 `bay/deepseek`） | DeepSeek 專屬 |
 | `安卓探索\glimmer-town` | **玩家遊玩目錄（部署目標）**，只放執行期檔案 | 只由合併後的部署步驟寫 |
 
 **車位＝真 git worktree**，共用 `C:\dev\glimmer-town` 的物件庫與 config。所以在車位裡：
@@ -39,6 +40,7 @@ grep -o "GAME_VER='[0-9.]*'" index.html
 | 8125 | `安卓探索\bay-kimi` | Kimi 驗證 |
 | 8126 | `安卓探索\bay-codex` | Codex 驗證 |
 | 8127 | `安卓探索\bay-grok` | Grok 驗證 |
+| 8128 | `安卓探索\bay-deepseek` | DeepSeek 驗證 |
 
 瀏覽器端測試前必做：`localStorage.setItem('glimmerville.v1.slot','3')` — **只用槽 3，絕不碰 s1/s2**（鐵律3）。
 
@@ -102,7 +104,7 @@ CHANGELOG 是否記了「被否決的方案與否決依據」（本專案要求�
 
 ## 六、OneDrive 風險提醒
 
-三個車位在 OneDrive 同步範圍內。本專案曾因 OneDrive 毫秒級回退 `index.html` 而搬到 `C:\dev`。
+四個車位在 OneDrive 同步範圍內。本專案曾因 OneDrive 毫秒級回退 `index.html` 而搬到 `C:\dev`。
 車位是 git worktree，所以回退**可偵測可復原**：
 
 ```bash
@@ -128,7 +130,7 @@ git checkout -- <file>  # 復原到自己的 commit
 就長在這個位置。
 
 紀律：
-- **實拍與 probe 一律放自己的車位、用自己的埠**（8125／8126／8127），不要放進玩家目錄。
+- **實拍與 probe 一律放自己的車位、用自己的埠**（8125／8126／8127／8128），不要放進玩家目錄。
 - 若真有新的執行期資產要進玩家目錄，改 `merge_bay.py` 的 `DEPLOY_ALLOWED`——
   這是刻意的摩擦，逼人做出「這檔該不該讓玩家看到」的明確決定。
 - 部署步驟自己的 `.glimmer-deploy-*` 暫存檔不算殘留（掃描會跳過前綴）。
@@ -143,7 +145,7 @@ git checkout -- <file>  # 復原到自己的 commit
 cd C:\dev\glimmer-town && python tools/merge_bay.py kimi --deploy
 ```
 
-（`codex`／`grok` 同理；**`--deploy` 與 `--no-deploy` 互斥必填**（T358.1 起，缺旗標會被直接擋下）；`--status` 會列各車位 ahead/behind，
+（`codex`／`grok`／`deepseek` 同理；**`--deploy` 與 `--no-deploy` 互斥必填**（T358.1 起，缺旗標會被直接擋下）；`--status` 會列各車位 ahead/behind，
 並檢查 active transaction 與部署 receipt，發現漂移會以非零退出。）腳本**只能從
 `C:\dev\glimmer-town` 的 `master` 執行**；車位裡那份副本會拒絕
 運行，避免把施工分支誤認成合併主控台。
@@ -255,8 +257,8 @@ bay 回同步的 clean→`--ff-only` 仍以本文件的**單寫者協議**為前
 | 角色 | 誰能當 | 規則 |
 |---|---|---|
 | **發卡**（卡號＋施工順序） | **只有業主**（或業主指定的一方） | 卡號與順序的唯一發卡源 |
-| **施工**（接卡寫 code） | 四方皆可 | 在自己車位，過第三節驗收閘門 |
-| **合併**（執行 `merge_bay.py`） | 四方皆可，**只要不是作者本人** | 從 `C:\dev\glimmer-town` 的 master 執行 |
+| **施工**（接卡寫 code） | 五方皆可 | 在自己車位，過第三節驗收閘門 |
+| **合併**（執行 `merge_bay.py`） | 五方皆可，**只要不是作者本人** | 從 `C:\dev\glimmer-town` 的 master 執行 |
 
 ### 三條規則
 

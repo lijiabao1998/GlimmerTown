@@ -40,6 +40,7 @@ BAYS = {
     'kimi': Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-kimi'),
     'codex': Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-codex'),
     'grok': Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-grok'),
+    'deepseek': Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\bay-deepseek'),
 }
 INTEGRATION = Path(r'C:\dev\glimmer-town-integration')
 RUNTIME = ('index.html', 'sw.js')
@@ -1129,7 +1130,7 @@ def validate_deploy_target(config: MergeConfig) -> None:
             raise DeployError('runtime target missing or unsafe: ' + str(target))
 
 
-SIGNOFF_PARTIES = ('Claude', 'Kimi', 'Codex', 'Grok', '業主', 'GPT')
+SIGNOFF_PARTIES = ('Claude', 'Kimi', 'Codex', 'Grok', 'DeepSeek', '業主', 'GPT')
 
 
 def changelog_entries_added_by(
