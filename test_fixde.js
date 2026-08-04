@@ -7206,6 +7206,51 @@ runPwaTests().then(() => {
       assert(f5<f1/4,'T411 G3 '+kind+' 5× 速到場幀數須 <1× 的 1/4（理論 1/5；每車隊獨立量測＝函式體內夾 dt 無所遁形），實得 1×='+f1+' 5×='+f5);
     }
   }
+  /* ===== T416 就近站派遣（DeepSeek 能力測試卡；updDispatch 內站點選擇就近化，dispatch 型） ===== */
+  { // G1 靜態：去註解原文釘（T411 鐵訓）——巡遊型分派（垃圾車保 vri）+ dispatch 型就近 max-min 演算法
+    const bare416=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(bare416.includes('const isCruise=arr===recycleTrucks'),
+      'T416 G1 巡遊型分派行原文釘（垃圾/回收=巡遊，cand=路面空間非案，就近語義不成立；此分支保 vri）');
+    assert(bare416.includes('if(isCruise){si=sts[vri(sts.length)];ti=cand[vri(cand.length)];}'),
+      'T416 G1 巡遊分支使用行原文釘（if(isCruise) 不得被改死——改 if(false)=垃圾車誤走就近=覆蓋破壞，破壞性案2 咬這條）');
+    assert(bare416.includes('if(md>bd){bd=md;bi=j;bs=ms;}'),
+      'T416 G1 就近 max-min 演算法原文釘（最遠案優先配最近站——地板由最遠案決定，最遠優先=直接壓低地板）');
+    assert(!bare416.includes('const si=sts[vri(sts.length)],ti=cand[vri(cand.length)];'),
+      'T416 G1 舊隨機站×隨機案整行絕跡（dispatch 分支不得回歸隨機）');
+  }
+  { // G2 行為：同案雙站（近站 5 格/遠站 25 格）→ 車必從近站出；隨機挑選下兩站都可能（30 種子 max 統計，全近機率 0.02%）
+    const nearFrames416=(seed)=>{
+      window.GV.newWorldSeeded(seed);window.GV.weather(0);
+      window.__t384Bld(11,10,10);window.__t384Bld(11,40,10);window.__t384Bld(1,15,10); // 近站 (10,10) 距案 5｜遠站 (40,10) 距案 25｜案格須有住宅
+      window.__t387Cov();
+      window.GV.igniteCrime(15,10);
+      window.__t411R(true); // 凍結 tick 機率路徑：清案唯一路徑=車輛到場
+      window.GV.setSpeed(1);
+      let f=0;
+      for(;f<600;f++){window.GV.advanceN(.05,1);if(!window.GV.tile(15,10).bld.crime)break;}
+      window.GV.setSpeed(1);window.__t411R(false);
+      return f;
+    };
+    let maxF416=0;
+    for(let s=0;s<30;s++){const f=nearFrames416(700+s);if(f>maxF416)maxF416=f;}
+    assert(maxF416<100,
+      'T416 G2 就近派遣：同案雙站車必從近站出（近 5 格≈42 幀 vs 遠 25 格≈209 幀；隨機挑站 30 種子 max 統計全近機率 0.02%），實得 max='+maxF416);
+    /* G2b 對照：單站時就近=唯一站，幀數與 T411 G3 同量級（同距離幀數不變）——遠站單站必須顯著大於近站 */
+    const loneFar416=(seed)=>{
+      window.GV.newWorldSeeded(seed);window.GV.weather(0);
+      window.__t384Bld(11,40,10);window.__t384Bld(1,15,10); // 只有遠站 (40,10)；案格須有住宅
+      window.__t387Cov();
+      window.GV.igniteCrime(15,10);
+      window.__t411R(true);
+      window.GV.setSpeed(1);
+      let f=0;
+      for(;f<600;f++){window.GV.advanceN(.05,1);if(!window.GV.tile(15,10).bld.crime)break;}
+      window.GV.setSpeed(1);window.__t411R(false);
+      return f;
+    };
+    const ff416=loneFar416(800);
+    assert(ff416>maxF416*1.5,'T416 G2b 跨城案幀數須顯著高於就近案（遠 25 格 > 近 5 格×1.5），實得 loneFar='+ff416+' vs nearMax='+maxF416);
+  }
   { // G4 行為 NaN 案（覆核 B1 補洞的行為證明）：setSpeed(NaN) 須落地為 0＝凍結，而非極速衝刺清案
     window.GV.newWorldSeeded(424);window.GV.weather(0);
     window.__t384Bld(11,10,10);window.__t384Bld(1,12,10);
