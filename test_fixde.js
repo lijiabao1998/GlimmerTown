@@ -7403,6 +7403,11 @@ runPwaTests().then(() => {
     const iBake=html.indexOf('const bakeOne=');
     assert(i121>0&&iBake>i121,'T413b C2：bakeOne 在 121_1_0 賦值之後（真尾端），i121='+i121+' iBake='+iBake);
     assert(html.includes("SPR.bld['122_1_0']")&&html.includes("SPR.bld['123_1_0']"),'T413b C2：122/123 鍵在場');
+    /* T415 守衛跟版：三旋鈕收斂（dens0 原文釘 + 1.35 絕跡 + step=3）——全部釘在去註解文本（T411 鐵訓） */
+    assert(bakeBody.includes("const dens0=kind==='R'?(0.10+Math.min(4,lv|0)*0.025):kind==='C'?(0.08+Math.min(4,lv|0)*0.02):kind==='I'?0.07:kind==='D'?0.06:0.09;"),
+      'T415 dens0 收斂後公式原文釘（R 斜率 0.05→0.025/C 斜率 0.04→0.02，高 lv 下修約 40-50%；塞註解不算）');
+    assert(!bakeBody.includes('1.35:1'),'T415 lv3+ 商業 1.35 加成絕跡（高樓特寫不得連片彩紙屑；塞註解不算）');
+    assert(bakeBody.includes('const step=3;'),'T415 商業採樣 step 統一 3 原文釘（2→3 單刀砍約 55% 點數；塞註解不算）');
   }
   { // overlay：零亂數 + 禁 urbanDens406 全函式體 + 可視域
     for(const fn of ['function drawNightLamps413(nd){','function drawNightWaterReflect413(nd){','function drawNightLandmarks413(nd){','function drawNightCommNeon413(nd){','function drawNightIndAvia413(nd){']){
