@@ -323,6 +323,9 @@ js = js.slice(0, t343IifeEnd) +
 const t383IifeEnd = js.lastIndexOf('})();');
 js = js.slice(0, t383IifeEnd) + `
 window.__t384Bld=function(k,x,y){const i=idx(x,y);tiles[i].bld={k,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;}; // T384b：尾端測試造境橋（__t343Bld 在 IIFE 內搆不到）
+window.__t416Fleet=function(which){const a=which==='fire'?ladderTrucks:which==='amb'?ambulances:policeCars;return a.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty}));}; // T416 二輪退修：直讀車隊每車的目標格（直接斷言新車 tx/ty，不用寬鬆幀數猜測）
+window.__t416FleetSet=function(which,n){if(which==='fire')svcFleet.fire=n;else if(which==='amb')svcFleet.amb=n;else svcFleet.police=n;}; // T416 二輪退修：直設車隊規模（壓力案造境用；比照 svcFleet 存檔可選欄位 sf 的合法值域 1-40）
+window.__t416Occ=function(x,y){return !!tiles[idx(x,y)].bld;}; // T416 二輪退修：檢查格是否已佔（壓力案造境用，測試 scope 搆不到 tiles）
 window.__t385Rank=function(v){rankIdx=v;}; // T385 測試橋：直設等級（正式路徑走 cityPoints）
 window.__t385Force=function(id){cms385.act=id;cms385.st=day;cms385.acc=0;cms385.hold=0;}; // T385 測試橋：強制接單
 window.__t385St=function(v){cms385.st=v;}; // T385 測試橋：改接單日（過期案免長跑）
@@ -7213,8 +7216,12 @@ runPwaTests().then(() => {
       'T416 G1 巡遊型分派行原文釘（垃圾/回收=巡遊，cand=路面空間非案，就近語義不成立；此分支保 vri）');
     assert(bare416.includes('if(isCruise){si=sts[vri(sts.length)];ti=cand[vri(cand.length)];}'),
       'T416 G1 巡遊分支使用行原文釘（if(isCruise) 不得被改死——改 if(false)=垃圾車誤走就近=覆蓋破壞，破壞性案2 咬這條）');
-    assert(bare416.includes('if(md>bd){bd=md;bi=j;bs=ms;}'),
-      'T416 G1 就近 max-min 演算法原文釘（最遠案優先配最近站——地板由最遠案決定，最遠優先=直接壓低地板）');
+    assert(bare416.includes('s.sort((a,b)=>b[2]-a[2]);'),
+      'T416 G1 就近 max-min 排序原文釘（最遠案優先配最近站——地板由最遠案決定，最遠優先=直接壓低地板；二輪退修改預計算+排序，錨在此行）');
+    assert(bare416.includes('while(si2<scored.length&&inflight.has(scored[si2][0]))si2++;'),
+      'T416 G1 在途/已配對排除行原文釘（同案最多一車；二輪退修錨點）');
+    assert(bare416.includes('inflight.add(ti);si2++;'),
+      'T416 G1 配對後消耗行原文釘（同批後續車不得再鎖同案；二輪退修錨點）');
     assert(!bare416.includes('const si=sts[vri(sts.length)],ti=cand[vri(cand.length)];'),
       'T416 G1 舊隨機站×隨機案整行絕跡（dispatch 分支不得回歸隨機）');
   }
@@ -7270,49 +7277,51 @@ runPwaTests().then(() => {
     assert(maxC416<150,
       'T416 退修 G3 兩車目標必不同：案C（次遠）須被第二車直達服務（新版 ~84 幀 vs 舊版兩車同派案B→車隊補位後 ~210 幀），實得 max='+maxC416);
   }
-  { // T416 退修 G4 行為：已有一車在途→新車不得再鎖定同案（幀數斷言：新版案B ~144 幀 vs 舊版白跑後 ~252 幀）
-    const framesB416=(seed)=>{
-      window.GV.newWorldSeeded(seed);window.GV.weather(0);
-      window.__t384Bld(11,10,10);window.__t384Bld(11,40,10); // 近站 (10,10)｜遠站 (40,10)
-      window.__t384Bld(1,10,30);window.__t384Bld(1,50,10); // 案A (10,30) 近20｜案B (50,10) 近10
-      window.__t387Cov();
-      window.GV.igniteCrime(10,30);
-      window.__t411R(true);
-      window.GV.setSpeed(1);
-      for(let f=0;f<60;f++)window.GV.advanceN(.05,1); // 60 幀：車1 在途案A（20 格未完）
-      window.GV.igniteCrime(50,10); // 途中案B 出現
-      let f=0;
-      for(;f<400;f++){window.GV.advanceN(.05,1);const bB=window.GV.tile(50,10).bld;if(bB&&!bB.crime)break;} // 案B 被清幀數
-      window.GV.setSpeed(1);window.__t411R(false);
-      return f;
-    };
-    let maxB416=0;
-    for(let s=0;s<5;s++){const f=framesB416(930+s);if(f>maxB416)maxB416=f;}
-    assert(maxB416<200,
-      'T416 退修 G4 在途目標須被排除：案B（後發案）須被新車直達服務（新版 ~144 幀 vs 舊版新車重鎖案A→白跑後 ~252 幀），實得 max='+maxB416);
+  { // T416 二輪退修 G4 行為（直接斷言）：已有一車在途→新車 tx/ty 必須指向後發案（非幀數猜測）
+    window.GV.newWorldSeeded(940);window.GV.weather(0);
+    window.__t384Bld(11,10,10);window.__t384Bld(11,40,10); // 近站 (10,10)｜遠站 (40,10)
+    window.__t384Bld(1,10,30);window.__t384Bld(1,50,10); // 案A (10,30) 近20｜案B (50,10) 近10
+    window.__t387Cov();
+    window.GV.igniteCrime(10,30);
+    window.__t411R(true);
+    window.GV.setSpeed(1);
+    for(let f=0;f<60;f++)window.GV.advanceN(.05,1); // 60 幀：車1 在途案A（20 格未完）
+    const f1=window.__t416Fleet('police');
+    const car1=f1.find(c=>c.tx===10&&c.ty===30);
+    assert(car1,'T416 二輪退修 G4 車1 應在途案A (10,30)，實得 '+JSON.stringify(f1));
+    window.GV.igniteCrime(50,10); // 途中案B 出現
+    for(let f=0;f<5;f++)window.GV.advanceN(.05,1); // 5 幀內補車
+    window.GV.setSpeed(1);window.__t411R(false);
+    const f2=window.__t416Fleet('police');
+    const car2=f2.find(c=>c.tx===50&&c.ty===10);
+    assert(car2,
+      'T416 二輪退修 G4 新車 tx/ty 必須指向後發案B (50,10)（在途案A 須被排除；舊版新車重鎖案A→無車指向案B），實得 '+JSON.stringify(f2));
+    assert(f2.filter(c=>c.tx===10&&c.ty===30).length<=1,
+      'T416 二輪退修 G4 在途案A 不得被第二車鎖定（同案最多一車），實得 '+JSON.stringify(f2));
   }
-  { // T416 退修 G5 壓力案：cand×sts=N=216 最壞情形（18 案×12 站）——大量案不崩潰、車隊輪流服務全部案件
-    window.GV.newWorldSeeded(950);window.GV.weather(0);
-    for(let s=0;s<12;s++)window.__t384Bld(11,5+(s%4)*6,5+Math.floor(s/4)*6); // 12 站網格
+  { // T416 二輪退修 G5 壓力案：大量案×站×車（100 站／1000 案／40 車上限）——單次派遣效能預算 + 全目標不重複
+    const t0=Date.now();
+    window.GV.newWorldSeeded(951);window.GV.weather(0);
+    for(let s=0;s<100;s++)window.__t384Bld(11,1+(s%10)*7,1+Math.floor(s/10)*7); // 100 站網格
+    window.__t416FleetSet('police',100); // 100 車（運行時 svcFleet 可超存檔夾 40 上限；與覆核方 100 車量測同量級）
     const cases=[];
-    let ci=0;
-    for(let y=10;y<40&&ci<18;y+=6)for(let x=10;x<40&&ci<18;x+=6){
-      window.__t384Bld(1,x,y);window.GV.igniteCrime(x,y);cases.push([x,y]);ci++;
+    for(let i=0;i<1000;i++){
+      const x=3+((i%30)*2),y=3+Math.floor(i/30)*2; // 案網格 x/y∈{3,5,...,61}（步長 2，與站網格步長 7 錯開）
+      if(window.__t416Occ(x,y))continue; // 跳過與站重疊格（站網格 1+7a 與案網格 3+2c 交點極少）
+      window.__t384Bld(1,x,y);window.GV.igniteCrime(x,y);cases.push([x,y]);
     }
     window.__t387Cov();
     window.__t411R(true);
     window.GV.setSpeed(1);
-    let f=0;
-    for(;f<3000;f++){
-      window.GV.advanceN(.05,1);
-      let alive=0;
-      for(const[x,y]of cases){const b=window.GV.tile(x,y).bld;if(b&&b.crime)alive++;}
-      if(alive===0)break;
-    }
+    window.GV.advanceN(.05,1); // 一幀：觸發 while 補車（target=min(40,100)=40）
+    const t1=Date.now();
     window.GV.setSpeed(1);window.__t411R(false);
-    let aliveN=0;
-    for(const[x,y]of cases){const b=window.GV.tile(x,y).bld;if(b&&b.crime)aliveN++;}
-    assert(aliveN===0,'T416 退修 G5 壓力案（18 案×12 站）：全部案件須被服務（大量案車隊輪流、無遺漏），實得殘留='+aliveN+' 幀數='+f);
+    const fAll=window.__t416Fleet('police');
+    assert(fAll.length===100,'T416 二輪退修 G5 壓力案：一幀後車隊應補滿 100（target=min(svcFleet,站數)），實得 '+fAll.length);
+    assert(t1-t0<2000,'T416 二輪退修 G5 壓力案：單次派遣（100 站/1000 案/100 車）須在 2s 內完成（預計算+排序，非補車數×案×站），實得 '+(t1-t0)+'ms');
+    const targets=new Set(fAll.map(c=>c.tx+c.ty*N));
+    assert(targets.size===fAll.length,
+      'T416 二輪退修 G5 壓力案：同批補車目標不得重複（配對後消耗），實得 '+targets.size+'/'+fAll.length);
   }
   { // G4 行為 NaN 案（覆核 B1 補洞的行為證明）：setSpeed(NaN) 須落地為 0＝凍結，而非極速衝刺清案
     window.GV.newWorldSeeded(424);window.GV.weather(0);

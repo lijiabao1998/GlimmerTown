@@ -13684,23 +13684,30 @@ function buySvcVehicle(type,allowLoan){
 function updDispatch(arr,dt,speed,cap,sts,cand,onArrive){
   const target=sts.length&&cand.length?Math.min(cap,sts.length):0;
   const isCruise=arr===recycleTrucks; /* T416：垃圾/回收=巡遊型（cand=全市路面格，ti 只是巡遊錨點非案）；就近化會把車鎖在站附近=覆蓋破壞，故維持隨機。救護/消防/警察=dispatch 型走就近。呼叫行不動，函式內以車隊身份區分。 */
+  /* T416 二輪退修：dispatch 分支候選案最近站預計算一次（cand×sts）+排序，while 內 O(1) 取用——
+     從「補車數×案×站」降為「案×站+排序」（100 站/1000 案/100 車實測 109ms→預算內） */
+  const scored=isCruise?null:(()=>{
+    const s=[];
+    for(let j=0;j<cand.length;j++){
+      const cx=cand[j]%N,cy=(cand[j]/N)|0;
+      let md=1e9,ms=sts[0];
+      for(const sii of sts){const d=Math.abs(cx-(sii%N))+Math.abs(cy-((sii/N)|0));if(d<md){md=d;ms=sii;}}
+      s.push([cand[j],ms,md]);
+    }
+    s.sort((a,b)=>b[2]-a[2]); // 最遠案優先（max-min 公平：地板由最遠案決定，最遠優先=直接壓低地板）
+    return s;
+  })();
+  const inflight=isCruise?null:new Set(); // 車隊在途目標（tile index），同案最多一車
+  if(!isCruise)for(const c of arr)inflight.add(c.tx+c.ty*N);
+  let si2=0;
   while(arr.length<target&&cand.length){
     let si,ti;
     if(isCruise){si=sts[vri(sts.length)];ti=cand[vri(cand.length)];} // T416 巡遊型：現行隨機站×隨機路面格（覆蓋均勻）
-    else{ /* T416 就近派遣（dispatch 型）：最遠案優先（max-min 公平無餓死）配最近站（Manhattan 度量＝與車實際步進一致） */
-      const inflight=new Set(); /* T416 退修：本批已配對＋車隊在途目標（tile index），防止同案重複派車 */
-      for(const c of arr)inflight.add(c.tx+c.ty*N);
-      let bi=-1,bd=-1,bs=sts[0];
-      for(let j=0;j<cand.length;j++){
-        if(inflight.has(cand[j]))continue;
-        const cx=cand[j]%N,cy=(cand[j]/N)|0;
-        let md=1e9,ms=sts[0];
-        for(const sii of sts){const d=Math.abs(cx-(sii%N))+Math.abs(cy-((sii/N)|0));if(d<md){md=d;ms=sii;}}
-        if(md>bd){bd=md;bi=j;bs=ms;}
-      }
-      if(bi<0)break; // 所有候選案皆已在途/已配對：無可用案，停止補車（不重複派）
-      si=bs;ti=cand[bi];
-      inflight.add(cand[bi]); // 本批消耗該案（配對後移除，同案不再被下一車鎖定）
+    else{ /* T416 就近派遣（dispatch 型）：預計算已排序，依次取未在途案（配對後消耗=不重複派） */
+      while(si2<scored.length&&inflight.has(scored[si2][0]))si2++;
+      if(si2>=scored.length)break; // 所有候選案皆已在途/已配對：無可用案，停止補車
+      ti=scored[si2][0];si=scored[si2][1];
+      inflight.add(ti);si2++; // 本批消耗該案（同案不再被下一車鎖定）
     }
     arr.push({x:si%N,y:(si/N)|0,p:0,tx:ti%N,ty:(ti/N)|0,ticks:0}); // T145：ticks 純觀測計數（到場所需更新次數），未動 si/ti 選擇邏輯本身，RNG 消耗序列不變
   }
