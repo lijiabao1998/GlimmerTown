@@ -13694,7 +13694,7 @@ function updDispatch(arr,dt,speed,cap,sts,cand,onArrive){
       for(const sii of sts){const d=Math.abs(cx-(sii%N))+Math.abs(cy-((sii/N)|0));if(d<md){md=d;ms=sii;}}
       s.push([cand[j],ms,md]);
     }
-    s.sort((a,b)=>b[2]-a[2]); // 最遠案優先（max-min 公平：地板由最遠案決定，最遠優先=直接壓低地板）
+    s.sort((a,b)=>a[2]-b[2]); // T416 三輪覆核：最近案優先（greedy 吞吐）——車隊容量受限時稀缺車派給最近案=每車最快清完=單位時間清案數最大；四臂 800 天：seed301 -48% 達標/seed22 廢棄日 2187→11 救回整城（max-min 公平性換吞吐，佇列才是壽命地板大頭）
     return s;
   })();
   const inflight=isCruise?null:new Set(); // 車隊在途目標（tile index），同案最多一車

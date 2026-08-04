@@ -7216,8 +7216,8 @@ runPwaTests().then(() => {
       'T416 G1 巡遊型分派行原文釘（垃圾/回收=巡遊，cand=路面空間非案，就近語義不成立；此分支保 vri）');
     assert(bare416.includes('if(isCruise){si=sts[vri(sts.length)];ti=cand[vri(cand.length)];}'),
       'T416 G1 巡遊分支使用行原文釘（if(isCruise) 不得被改死——改 if(false)=垃圾車誤走就近=覆蓋破壞，破壞性案2 咬這條）');
-    assert(bare416.includes('s.sort((a,b)=>b[2]-a[2]);'),
-      'T416 G1 就近 max-min 排序原文釘（最遠案優先配最近站——地板由最遠案決定，最遠優先=直接壓低地板；二輪退修改預計算+排序，錨在此行）');
+    assert(bare416.includes('s.sort((a,b)=>a[2]-b[2]);'),
+      'T416 G1 就近 greedy 排序原文釘（最近案優先——四臂 800 天 seed301 -48% 達標/seed22 廢棄日 2187→11；三輪覆核改 max-min→greedy，錨在此行）');
     assert(bare416.includes('while(si2<scored.length&&inflight.has(scored[si2][0]))si2++;'),
       'T416 G1 在途/已配對排除行原文釘（同案最多一車；二輪退修錨點）');
     assert(bare416.includes('inflight.add(ti);si2++;'),
