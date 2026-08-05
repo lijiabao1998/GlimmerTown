@@ -322,6 +322,8 @@ js = js.slice(0, t343IifeEnd) +
 // tick 一次收 fallback 成員後全數還原；只在 Node harness 存在，正式 GV API 不增面）
 const t383IifeEnd = js.lastIndexOf('})();');
 js = js.slice(0, t383IifeEnd) + `
+var __t416Scan416=0; // T416 五輪退修 A4：scored 建構實掃 cand×sts 次數計數器（updDispatch scored 迴圈內自增；僅 harness 存在，正式 GV API 不增面）
+window.__t416ScanN=function(){return __t416Scan416|0;}; // T416 五輪退修 A4：讀掃描筆數（比照 T368c fishScanN 模式：計數決定性，非計時）
 window.__t384Bld=function(k,x,y){const i=idx(x,y);tiles[i].bld={k,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;}; // T384b：尾端測試造境橋（__t343Bld 在 IIFE 內搆不到）
 window.__t416Fleet=function(which){const a=which==='fire'?ladderTrucks:which==='amb'?ambulances:policeCars;return a.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty}));}; // T416 二輪退修：直讀車隊每車的目標格（直接斷言新車 tx/ty，不用寬鬆幀數猜測）
 window.__t416FleetSet=function(which,n){if(which==='fire')svcFleet.fire=n;else if(which==='amb')svcFleet.amb=n;else svcFleet.police=n;}; // T416 二輪退修：直設車隊規模（壓力案造境用；比照 svcFleet 存檔可選欄位 sf 的合法值域 1-40）
@@ -363,6 +365,14 @@ window.__t383TaxCase=function(){
 };
 ` + js.slice(t383IifeEnd);
 window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生的首輪 tick
+{ // T416 五輪退修 A4：計數釘注入——scored 建構迴圈內自增（hits 必須恰 1，錨點失配 fail-closed；比照 inject343 先例）
+  const needle416='for(const sii of sts){const d=Math.abs(cx-';
+  const hits416=js.split(needle416).length-1;
+  if(hits416!==1)throw new Error('T416 五輪 A4 計數釘錨點失準 hits='+hits416);
+  const before416=js;
+  js=js.replace(needle416,'for(const sii of sts){__t416Scan416++;const d=Math.abs(cx-');
+  if(js===before416)throw new Error('T416 五輪 A4 計數釘注入未改變源碼');
+}
 /* T405：產品端類別標記預設【關】（TheoTown 觀感）。但 harness 若跟著關，T345 徽記加蓋層
    從此不再被實跑＝覆蓋率靜默退化。故在此顯式開啟，讓套件維持本卡之前的執行路徑；
    「預設關」本身改由 T405 的原文守衛驗證（產品碼與測試環境各證一半）。 */
@@ -7313,13 +7323,14 @@ runPwaTests().then(() => {
     window.__t387Cov();
     window.__t411R(true);
     window.GV.setSpeed(1);
-    const t0=Date.now(); // T416 四輪退修 A4：t0 移到造境完成後、advanceN 前（原在 newWorldSeeded 前=量到 100 站+1000 案造境成本，門檻無鑑別力）
+    const sc0=window.__t416ScanN(); // T416 五輪退修 A4：計數釘取代計時釘——記 advanceN 前掃描筆數（計數決定性，非計時；時間門檻被「純成本迴圈」穿透過）
     window.GV.advanceN(.05,1); // 一幀：觸發 while 補車（target=min(100,100)=100）
-    const t1=Date.now();
+    const scans416=window.__t416ScanN()-sc0;
     window.GV.setSpeed(1);window.__t411R(false);
     const fAll=window.__t416Fleet('police');
     assert(fAll.length===100,'T416 二輪退修 G5 壓力案：一幀後車隊應補滿 100（target=min(svcFleet,站數)），實得 '+fAll.length);
-    assert(t1-t0<150,'T416 四輪退修 A4 派遣效能釘：advanceN 單幀（100 站/1000 案/100 車，造境已排除）須 <150ms——while 內重跑 O(補車數×案×站) 實測 240ms 紅；預計算+排序實測 ~25ms（門檻 6 倍餘裕），實得 '+(t1-t0)+'ms');
+    assert(scans416===caseList416.length*stList416.length,
+      'T416 五輪退修 A4 掃描筆數釘：scored 預計算每幀恰一次全掃（cand×sts 筆；while 內重算/純成本迴圈→補車數倍→紅；站/案掃描限縮→筆數變少→紅），實得 '+scans416+' vs 預期 '+caseList416.length*stList416.length);
     const targets=new Set(fAll.map(c=>c.tx+c.ty*N));
     assert(targets.size===fAll.length,
       'T416 二輪退修 G5 壓力案：同批補車目標不得重複（配對後消耗），實得 '+targets.size+'/'+fAll.length);
@@ -7387,6 +7398,28 @@ runPwaTests().then(() => {
     assert(rc.length===1,'T416 四輪退修 A3 垃圾車應補 1 台（target=min(3,1)=1），實得 '+rc.length);
     assert(!(rc[0].tx===30&&rc[0].ty===30),
       'T416 四輪退修 A3 垃圾車巡遊行為釘：初派目標不得是最近路面格 (30,30)（isCruise 改死→誤走就近=覆蓋破壞→紅；巡遊=隨機路面格，種子 963 固定），實得 '+JSON.stringify(rc));
+  }
+  { // T416 五輪退修 N1 全序行為釘：部分反轉（前兩名維持最近案＋index 2 之後整段反轉成 max-min）——5 案 md=2/8/20/35/60、4 站 4 車
+    // 反面維度：前 k 名維持的變體全部被「目標集合==最近四案」咬（反轉點 r≤3 時第 4 台必拿非最近案）；任何非單調排序被「距離序列非遞減」咬；案掃描序與 md 序錯開（E 在掃描序第 3）→ cand 限縮也咬
+    window.GV.newWorldSeeded(964);window.GV.weather(0);
+    window.__t384Bld(11,10,10);window.__t384Bld(11,70,10);window.__t384Bld(11,10,70);window.__t384Bld(11,70,70); // 站1-4（四角）
+    window.__t384Bld(1,12,10);window.__t384Bld(1,62,10);window.__t384Bld(1,10,50);window.__t384Bld(1,53,52);window.__t384Bld(1,40,40); // 案A(12,10) md2｜案B(62,10) md8｜案C(10,50) md20｜案D(53,52) md35｜案E(40,40) md60
+    window.__t416FleetSet('police',4); // target=min(4,4)=4 → 補四台
+    window.__t387Cov();
+    window.GV.igniteCrime(12,10);window.GV.igniteCrime(62,10);window.GV.igniteCrime(10,50);window.GV.igniteCrime(53,52);window.GV.igniteCrime(40,40);
+    window.__t411R(true);
+    window.GV.setSpeed(1);
+    window.GV.advanceN(.05,1);
+    window.GV.setSpeed(1);window.__t411R(false);
+    const fn1=window.__t416Fleet('police');
+    const stN1=[[10,10],[70,10],[10,70],[70,70]];
+    const mdN1=[];
+    for(const c of fn1){let md=1e9;for(const st of stN1){const d=Math.abs(c.tx-st[0])+Math.abs(c.ty-st[1]);if(d<md)md=d;}mdN1.push(md);}
+    const setN1=new Set(fn1.map(c=>c.tx+c.ty*N));
+    assert(setN1.size===4&&setN1.has(12+10*N)&&setN1.has(62+10*N)&&setN1.has(10+50*N)&&setN1.has(53+52*N)&&!setN1.has(40+40*N),
+      'T416 五輪退修 N1 全序行為釘（集合）：四台目標必須恰為最近四案 A(md2)/B(md8)/C(md20)/D(md35)，不得含最遠案 E(md60)（splice(2) 後反轉→E 頂掉 D→紅），實得 '+JSON.stringify(fn1));
+    assert(mdN1.every((v,i)=>i===0||v>=mdN1[i-1]),
+      'T416 五輪退修 N1 全序行為釘（順序）：四台目標距離序列須單調非遞減（greedy 全序，補車序=排序序；任何反轉點→序列回跌→紅），實得 '+JSON.stringify(mdN1));
   }
   { // G4 行為 NaN 案（覆核 B1 補洞的行為證明）：setSpeed(NaN) 須落地為 0＝凍結，而非極速衝刺清案
     window.GV.newWorldSeeded(424);window.GV.weather(0);
