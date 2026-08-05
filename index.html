@@ -8854,10 +8854,21 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       if(window.__noRoofProps417)return; // T417 逃生閥：A/B 對照（真值時整塊不畫）
       const s=SPR.bld[key];if(!s||!s.img)return;
       const g=s.img.getContext('2d');
-      const scanH417=Math.min(s.h,64); // T417 二輪退修 B7：窄帶早停——屋頂線＝該欄最高不透明像素＝建築頂部（任何欄頂部必在 64px 內）；全幅讀取 1,949,424px→~1.0M（像素量增量 +96%→~+3%，C7 紅線 ≤+50% 保住）
-      let id;try{id=g.getImageData(0,0,s.w,scanH417);}catch(e){return;}
+      const scanHt=Math.min(s.h,64); // T417 三輪退修 A：兩階段掃描第一段——屋頂線在建築頂部（多數鍵 <64px 內）；
+      // 矮建築畫在統一高度畫布的下方（1_1_2 屋頂線 y=71、8_1_1 y=77、61_1_0 y=120），第一段掃不到的欄第二段補讀全幅
+      let id;try{id=g.getImageData(0,0,s.w,scanHt);}catch(e){return;}
       const d=id.data,roof=new Int16Array(s.w).fill(-1);
-      for(let x=0;x<s.w;x++)for(let y=0;y<scanH417;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}
+      for(let x=0;x<s.w;x++)for(let y=0;y<scanHt;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}
+      { // 第二階段：仍有 -1 的欄（屋頂線在 64px 以下）補讀下半部——多數鍵只付 64px，矮建築才付全幅
+        let needMore417=false;
+        for(let x=0;x<s.w;x++)if(roof[x]<0){needMore417=true;break;}
+        if(needMore417&&scanHt<s.h){
+          let id2=null;try{id2=g.getImageData(0,0,s.w,s.h);}catch(e){}
+          if(id2){const d2=id2.data;
+            for(let x=0;x<s.w;x++){if(roof[x]>=0)continue;for(let y=scanHt;y<s.h;y++){if(d2[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}}
+          }
+        }
+      }
       s._roofLine417=roof.slice(); // T417 二輪退修 B6：屋面雪線快取（snowCap/icicleCap 用它當雪線——屋頂道具不再把雪線頂高、旁圈雪變薄）
       const runs=[];let st=-1;
       for(let x=1;x<s.w;x++){
@@ -8894,12 +8905,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       /* T417 覆核退修 A2：平坦段≠屋頂——基座地台/懸空招牌/雨遮也是平坦段（塔樓 33/34 最長段就是地台）。
          閘：①屋頂線須高於該欄地面前緣（一層樓門檻隨 sprite 高度縮放；二輪退修 A2：固定 20px 誤殺
          lv1 矮房真屋頂，3_1_1 屋頂線 y=78 vs 門檻 78 差 0px）；②距 sprite 最高點 minTop ≤30px——
-         minTop 取「≥3 欄平坦區域」的最高點（二輪退修 A2：細長煙囪/鐘塔把全圖 minTop 拉到 2~41
-         誤殺真廠房屋頂）。 */
+         minTop 取「最寬平坦段」的段內最高點（三輪退修 B：原「任何 ≥3 欄平坦區」被鐘塔頂小平台
+         拉到 minTop=45，42_1_0 主屋頂 y=114 被 45+30=75 擋掉、flagpole 三輪死美術；最寬段=主屋頂）。 */
       let minTop417=1e9;
-      for(let x=1;x<s.w-1;x++){
-        if(roof[x]>=0&&roof[x-1]>=0&&roof[x+1]>=0&&Math.abs(roof[x]-roof[x-1])<=1&&Math.abs(roof[x]-roof[x+1])<=1&&roof[x]<minTop417)minTop417=roof[x];
-      }
+      if(runs.length){const[mr0,mr1]=runs[0];for(let x=mr0;x<mr1;x++)if(roof[x]>=0&&roof[x]<minTop417)minTop417=roof[x];}
       if(minTop417>=1e9)for(let x=0;x<s.w;x++)if(roof[x]>=0&&roof[x]<minTop417)minTop417=roof[x]; // 退化：全圖 min
       const thrB417=Math.max(12,Math.min(20,Math.round(s.h*0.12))); // 閘B 門檻：一層樓隨 sprite 高度縮放（h≈96-167→12-20px）
       const runsRoof=runs.filter(([a,b])=>{ // A2 屋頂閘（runs 是 const，過濾結果存新變數）

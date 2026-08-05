@@ -207,7 +207,7 @@ if (t343IifeEnd < 0) throw new Error('T343a harness 找不到主 IIFE 尾端');
   const needleBoot = "(()=>{ 'use strict';";
   const hitsBoot = js.split(needleBoot).length - 1;
   if (hitsBoot !== 1) throw new Error('T417 台帳計數器錨點失準 hits=' + hitsBoot);
-  js = js.replace(needleBoot, needleBoot + '\nvar __t417N417=0,__t417Seg417=0,__t417Try417=0,__t417Keys417={},__t417Kinds417=[],__t417Pos417=[],__t417Py417=[],__t417GID417=0,__t417Px417=0;');
+  js = js.replace(needleBoot, needleBoot + '\nvar __t417N417=0,__t417Seg417=0,__t417Try417=0,__t417Keys417={},__t417Kinds417=[],__t417Pos417=[],__t417Py417=[],__t417GID417=0,__t417Px1=0,__t417Px2=0;');
 }
 const inject343 = (needle, replacement, label) => {
   const hits = js.split(needle).length - 1;
@@ -335,7 +335,7 @@ window.__t416ScanN=function(){return __t416Scan416|0;}; // T416 五輪退修 A4�
 /* __t417N417/__t417Seg417/__t417Keys417/__t417Kinds417/__t417Pos417/__t417Py417/__t417GID417：宣告已移到 js 最前
    （主 IIFE 開頭，見 t343IifeEnd 前的注入塊）——原在此處 var 宣告＝開機烘焙之後才賦 0，烘焙期 ++ 對提升未初始化的
    undefined→NaN，C7 決定性計數失真。此處只餘閉包引用，勿重宣告。 */
-window.__t417Reset=function(){__t417N417=0;__t417Seg417=0;__t417Try417=0;__t417Keys417={};__t417Kinds417=[];__t417Pos417=[];__t417Py417=[];__t417GID417=0;__t417Px417=0;}; // T417：重置台帳
+window.__t417Reset=function(){__t417N417=0;__t417Seg417=0;__t417Try417=0;__t417Keys417={};__t417Kinds417=[];__t417Pos417=[];__t417Py417=[];__t417GID417=0;__t417Px1=0;__t417Px2=0;}; // T417：重置台帳
 window.__t417Read=function(){return{n:__t417N417,seg:__t417Seg417,try:__t417Try417,keys:Object.assign({},__t417Keys417),kinds:__t417Kinds417.slice(),pos:__t417Pos417.slice(),py:__t417Py417.slice()};}; // T417：讀台帳（覆核退修 A1：px/py 供落點行為釘；二輪退修：try=密度公式嘗試件數，與落筆數分離）
 window.__t417ParseColor=function(v){const m=/^#([0-9a-f]{6})$/i.exec(String(v));if(m){const n=parseInt(m[1],16);return[(n>>16)&255,(n>>8)&255,n&255,255];}const r=/^rgba?[(]([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)(?:[ ,]+([0-9.]+))?[)]$/i.exec(String(v));if(r){const a=r[4]===undefined?255:Math.round(parseFloat(r[4])*255);return[+r[1],+r[2],+r[3],a];}return[0,0,0,255];}; // T417 覆核退修 A1：真像素 canvas 顏色解析（T274 台架同款）——二輪退修 RL-5：支援 rgba()——全字符類 regex（模板串會剝未知轉義，d 寫法在 eval 前已壞成 d）
 const __t417OpsMap=new WeakMap(),__t417PixMap=new WeakMap(); // 二輪退修 RL-2：ops/像素不掛 ctx/canvas 屬性（產品拿得到 g.__ops/g.__pixels 判別真假→紅）
@@ -411,9 +411,9 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
     js=js.replace(needle,replacement);
     if(js===before)throw new Error('T417 注入未改變源碼 '+label);
   };
-  // ① 剖面 override：測試端可注入合成屋頂剖面（headless getImageData 空像素⇒掃描失效，卡面坑③；B7 窄帶早停後掃描迴圈為 y<scanH417）
-  inj417('for(let x=0;x<s.w;x++)for(let y=0;y<scanH417;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}',
-    'for(let x=0;x<s.w;x++)for(let y=0;y<scanH417;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}if(window.__t417Profile417)for(let x=0;x<s.w;x++){if(window.__t417Profile417[x]!==undefined)roof[x]=window.__t417Profile417[x];}',
+  // ① 剖面 override：測試端可注入合成屋頂剖面（headless getImageData 空像素⇒掃描失效，卡面坑③；B7 窄帶早停後掃描迴圈為 y<scanHt）
+  inj417('for(let x=0;x<s.w;x++)for(let y=0;y<scanHt;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}',
+    'for(let x=0;x<s.w;x++)for(let y=0;y<scanHt;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}if(window.__t417Profile417)for(let x=0;x<s.w;x++){if(window.__t417Profile417[x]!==undefined)roof[x]=window.__t417Profile417[x];}',
     'T417 剖面 override');
   // ② key 計數（有段才記；runs 空=窄段不落筆也不記 key；錨點含 h0 行以區分 A2 閘後的重複 return）
   inj417('      if(!runs.length)return;\n      const h0=kh(key);',
@@ -459,18 +459,24 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
     'T417 工業落管尾');
   // ⑥ 測試橋：真像素合成 sprite（覆核退修 A1：h 參數化覆蓋真實值域 32/48/112/220）＋famOf 暴露（M2 族別逐鍵對照釘用）
   inj417('for(const kk of roofKeys417)stampRoof(kk);',
-    'for(const kk of roofKeys417)stampRoof(kk); window.__t417BootGID417=__t417GID417; window.__t417BootKeys417=roofKeys417.length; window.__t417BootPx417=__t417Px417; window.__t417Stamp=stampRoof; window.__t417Fam=key=>famOf417(key); window.__t417IndKeys=()=>Object.keys(SPR.bld).filter(k=>k.charAt(0)===\'3\'&&k.charAt(1)===\'_\'&&(+k.split(\'_\')[2]||0)<12); window.__t417BandOf345=bandOf345; window.__t417P417B=()=>P417B; window.__t417Props=()=>props; window.__t417FeedReal=function(key){const s0=SPR.bld[key];if(!s0||!s0.img)return null;const w=s0.w||32,h=s0.h||112;const bak=s0.img;s0.img=window.__t417Canvas(w,h)[0];const prof=new Array(w).fill(20);window.__t417Profile417=prof;window.__t417Stamp(key);window.__t417Profile417=null;s0.img=bak;return s0;}; window.__t417BBox=function(){const out={};for(const k in props){const[cn,cx]=window.__t417Canvas(40,40);props[k](cx,20,39);const px=window.__t417Snap(cx);let lo=99,hi=-99,top=99;for(let y=0;y<40;y++)for(let x=0;x<40;x++){if(px[(y*40+x)*4+3]>0){if(x<lo)lo=x;if(x+1>hi)hi=x+1;if(y<top)top=y;}}if(lo<=hi)out[k]=[lo-20,hi-20,39-top];}return out;}; window.__t417Feed=function(key,profile,h,o){const w=profile.length,hh=h||112,opt=o||{};SPR.bld[key]=SPR.bld[key]||{};const synth417=(+key.split(\'_\')[2]||0)>=12;if(synth417)SPR.bld[key].img=window.__t417Canvas(w,hh)[0];else SPR.bld[key].img=SPR.bld[key].img||cv(w,32)[0];if(synth417){SPR.bld[key].w=w;SPR.bld[key].h=hh;SPR.bld[key].ax=(opt.ax!==undefined)?opt.ax:Math.floor(w/2);SPR.bld[key].ay=(opt.ay!==undefined)?opt.ay:(hh-2);}window.__t417Profile417=profile;window.__t417Stamp(key);window.__t417Profile417=null;return SPR.bld[key];}; window.__t417CoveredKeys=function(){return roofKeys417.slice();};',
+    'for(const kk of roofKeys417)stampRoof(kk); window.__t417BootGID417=__t417GID417; window.__t417BootKeys417=roofKeys417.length; window.__t417BootPx1=__t417Px1;window.__t417BootPx2=__t417Px2; window.__t417Stamp=stampRoof; window.__t417Fam=key=>famOf417(key); window.__t417IndKeys=()=>Object.keys(SPR.bld).filter(k=>k.charAt(0)===\'3\'&&k.charAt(1)===\'_\'&&(+k.split(\'_\')[2]||0)<12); window.__t417BandOf345=bandOf345; window.__t417P417B=()=>P417B; window.__t417Props=()=>props; window.__t417FeedReal=function(key){const s0=SPR.bld[key];if(!s0||!s0.img)return null;const w=s0.w||32,h=s0.h||112;const bak=s0.img;s0.img=window.__t417Canvas(w,h)[0];const prof=new Array(w).fill(20);window.__t417Profile417=prof;window.__t417Stamp(key);window.__t417Profile417=null;s0.img=bak;return s0;}; window.__t417FeedScan=function(key,roofY,segL,segR,towerTop){const s0=SPR.bld[key];if(!s0||!s0.img)return null;const w=s0.w||64,h=s0.h||112;const bak=s0.img;s0.img=window.__t417Canvas(w,h)[0];const cx2=s0.img.getContext("2d");const ax0=Math.floor(w/2);const sl=segL!==undefined?segL:0,sr=segR!==undefined?segR:w;cx2.fillStyle="#8a6f5f";cx2.fillRect(sl,roofY,sr-sl,h-roofY);if(towerTop!==undefined)cx2.fillRect(ax0-4,towerTop,8,roofY-towerTop);window.__t417Profile417=null;window.__t417Stamp(key);s0.img=bak;return s0;}; window.__t417ScanResult=function(key){const sp=SPR.bld[key];return sp&&sp._roofLine417?sp._roofLine417:null;}; window.__t417BBox=function(){const out={};for(const k in props){const[cn,cx]=window.__t417Canvas(40,40);props[k](cx,20,39);const px=window.__t417Snap(cx);let lo=99,hi=-99,top=99;for(let y=0;y<40;y++)for(let x=0;x<40;x++){if(px[(y*40+x)*4+3]>0){if(x<lo)lo=x;if(x+1>hi)hi=x+1;if(y<top)top=y;}}if(lo<=hi)out[k]=[lo-20,hi-20,39-top];}return out;}; window.__t417Feed=function(key,profile,h,o){const w=profile.length,hh=h||112,opt=o||{};SPR.bld[key]=SPR.bld[key]||{};const synth417=(+key.split(\'_\')[2]||0)>=12;if(synth417)SPR.bld[key].img=window.__t417Canvas(w,hh)[0];else SPR.bld[key].img=SPR.bld[key].img||cv(w,32)[0];if(synth417){SPR.bld[key].w=w;SPR.bld[key].h=hh;SPR.bld[key].ax=(opt.ax!==undefined)?opt.ax:Math.floor(w/2);SPR.bld[key].ay=(opt.ay!==undefined)?opt.ay:(hh-2);}window.__t417Profile417=profile;window.__t417Stamp(key);window.__t417Profile417=null;return SPR.bld[key];}; window.__t417CoveredKeys=function(){return roofKeys417.slice();};',
     'T417 測試橋');
-  // ⑦ 決定性計數：getImageData 呼叫次數（C7：headless 掛鐘無鑑別力→計數決定性；真實增量四項見卡面；B7：窄帶早停後仍每鍵恰一次）
-  inj417('      let id;try{id=g.getImageData(0,0,s.w,scanH417);}catch(e){return;}',
-    '      let id;try{id=g.getImageData(0,0,s.w,scanH417);__t417GID417++;__t417Px417+=s.w*scanH417;}catch(e){return;}',
+  // ⑦ 決定性計數：getImageData 呼叫次數（C7：headless 掛鐘無鑑別力→計數決定性；真實增量四項見卡面；
+  // 三輪退修 A：兩階段掃描——第一段每鍵恰一次（GID 語義），第二段補讀只計像素量（Px 語義））
+  inj417('      let id;try{id=g.getImageData(0,0,s.w,scanHt);}catch(e){return;}',
+    '      let id;try{id=g.getImageData(0,0,s.w,scanHt);__t417GID417++;__t417Px1+=s.w*scanHt;}catch(e){return;}',
     'T417 getImageData 計數');
+  inj417('          let id2=null;try{id2=g.getImageData(0,0,s.w,s.h);}catch(e){}',
+    '          let id2=null;try{id2=g.getImageData(0,0,s.w,s.h);__t417Px2+=s.w*s.h;}catch(e){}',
+    'T417 補讀計數');
 }
 /* T405：產品端類別標記預設【關】（TheoTown 觀感）。但 harness 若跟著關，T345 徽記加蓋層
    從此不再被實跑＝覆蓋率靜默退化。故在此顯式開啟，讓套件維持本卡之前的執行路徑；
    「預設關」本身改由 T405 的原文守衛驗證（產品碼與測試環境各證一半）。 */
 localStorage.setItem('glimmerville.v1.badge', '1');
 eval(js);
+
+
 
 
 // ---- 測試輔助 ----
@@ -7479,6 +7485,8 @@ runPwaTests().then(() => {
   }
   { // T416 四輪退修 A3 行為：垃圾車巡遊型不得誤走就近——初派目標必須是隨機路面格，不是最近路面格
     // 反面維度：isCruise 被 `&&false` 改死→dispatch 分支→目標=最近路面格 (30,30)→紅；同時 vri 消耗 2→0（流位移，B5 聲明）
+    // T417 三輪退修：vri 依賴 Math.random——stub 固定值（原「1/30 機率性 FAIL」違反決定性契約，偶發已實證兩次）
+    const __mrA3=Math.random;Math.random=()=>0.37;
     window.GV.newWorldSeeded(963);window.GV.weather(0);
     window.__t384Bld(8,10,10); // 垃圾場 (10,10)（k8）
     window.__t413ForceRoad(30,30); // 最近路面格 (30,30) 距 40（唯一最近；壞實作目標必為此格）
@@ -7489,6 +7497,7 @@ runPwaTests().then(() => {
     window.GV.advanceN(.05,1); // 一幀：垃圾車補 1 台（cap=3、sts=1 → target=1）
     window.GV.setSpeed(1);window.__t411R(false);
     const rc=window.GV.svcTrucks().recycle;
+    Math.random=__mrA3;
     assert(rc.length===1,'T416 四輪退修 A3 垃圾車應補 1 台（target=min(3,1)=1），實得 '+rc.length);
     assert(!(rc[0].tx===30&&rc[0].ty===30),
       'T416 四輪退修 A3 垃圾車巡遊行為釘：初派目標不得是最近路面格 (30,30)（isCruise 改死→誤走就近=覆蓋破壞→紅；巡遊=隨機路面格，種子 963 固定），實得 '+JSON.stringify(rc));
@@ -7739,14 +7748,40 @@ runPwaTests().then(() => {
     for(const kk of['11_1_0','12_1_0','52_1_0'])
       assert(!ck.includes(kk),'T417 M3 幽靈鍵：'+kk+' 不應在清單（SPR.bld 無此鍵，B1 死美術→紅），實得 '+JSON.stringify(ck));
   }
-  { // T417 開機決定性計數（C7：headless 掛鐘假數字→計數決定性；真實增量四項見卡面；B7 窄帶早停後像素量）
+  { // T417 開機決定性計數（C7：headless 掛鐘假數字→計數決定性；三輪退修 A：兩階段掃描拆分 Px1/Px2）
     const bootGID=window.__t417BootGID417|0;
     const bootKeys=window.__t417BootKeys417|0;
-    const bootPx=window.__t417BootPx417|0;
+    const bootPx1=window.__t417BootPx1|0;
+    const bootPx2=window.__t417BootPx2|0;
     const ckLen=window.__t417CoveredKeys().length;
     assert(bootKeys===ckLen,'T417 開機計數：開機快照鍵數 '+bootKeys+' == 覆蓋鍵數 '+ckLen+'（同一 roofKeys417 來源）');
-    assert(bootGID===bootKeys,'T417 開機計數：開機 getImageData 呼叫次數 '+bootGID+' == 開機鍵數 '+bootKeys+'（每鍵恰一次窄帶讀取，C7 決定性紅線；烘焙退化/提前 return→紅）');
-    assert(bootPx>=900000&&bootPx<=1150000,'T417 開機計數：開機像素量 '+bootPx+'（scanH=min(h,64) 窄帶實得 1,022,976 vs master 全幅 996,032 = +2.7%；退化全幅 1,949,424→紅），C7 紅線「掃描像素訪問 ≤+50%」保住');
+    assert(bootGID===bootKeys,'T417 開機計數：第一階段 getImageData 呼叫次數 '+bootGID+' == 開機鍵數 '+bootKeys+'（每鍵恰一次窄帶讀取，C7 決定性紅線；烘焙退化/提前 return→紅）');
+    assert(bootPx1>=800000&&bootPx1<=1150000,'T417 開機計數：第一階段像素量 '+bootPx1+'（實得 1,022,976；期望由 master 推導：master 全幅 996,032×(bay 鍵 210/master 鍵 112)=1,867,560——第一段遠低於推導值＝兩階段優化真實有效；退化全幅第一段→紅）');
+    assert(bootPx2>0,'T417 開機計數：第二階段補讀存在（'+bootPx2+'px；headless mock 像素空→全鍵補讀是環境假象，真實 Chrome 僅屋頂線 >64px 的矮建築補讀——正確性由掃描階段釘保證）');
+  }
+  { // T417 三輪退修 A-2：掃描階段釘（第六條指紋收口）——不走 profile override，量畫布畫已知剪影讓產品自己掃，
+    // 斷言 roof 抓到 y=71/77/120 深位置（屋頂線在 64px 以下——單階段窄帶必掃丟→紅；掃描高度/alpha 閾值/迴圈範圍缺陷全現形）
+    const scanCases417=[['1_1_2',71],['8_1_1',77],['61_1_0',120]];
+    for(const[key,roofY]of scanCases417){
+      window.__t417Reset();
+      window.__t417FeedScan(key,roofY);
+      const rS=window.__t417Read();
+      const line=window.__t417ScanResult(key);
+      assert(line!==null,'T417 掃描釘 '+key+'：stampRoof 應快取 _roofLine417（掃描階段輸出，無 override）');
+      const missS=line?line.filter(y=>y<0).length:-1;
+      assert(missS===0,'T417 掃描釘 '+key+'：掃不到不透明像素的欄數 === 0（屋頂線 y='+roofY+' 深於 64px；單階段窄帶→全欄 -1→紅），實得 '+missS+' 欄');
+      assert(line[10]===roofY,'T417 掃描釘 '+key+'：段中央欄 roof 抓到 y='+roofY+'（兩階段補讀下半部；抓到 '+line[10]+'→紅）');
+      assert(rS.n>=1,'T417 掃描釘 '+key+'：深屋頂線剪影必落筆（掃描成功→有段→道具），實得 '+JSON.stringify(rS));
+    }
+    // ③ flagpole/dryingTower 真實鍵落筆（三輪退修 B：閘 A minTop 改最寬段後 42_1_0/30_1_0 主屋頂通過）
+    const towerCases=[['42_1_0',114,'M','flagpole',40,96,45],['30_1_0',85,'F','dryingTower',20,52,30]];
+    for(const[key,roofY,fam,excl,segL,segR,towerTop]of towerCases){
+      window.__t417Reset();
+      window.__t417FeedScan(key,roofY,segL,segR,towerTop);
+      const rT=window.__t417Read();
+      assert(rT.n>=1,'T417 掃描釘 '+key+'（'+fam+' 族）：塔頂小平台不誤殺主屋頂——剪影屋頂線 y='+roofY+' 必落筆（minTop 取最寬平坦段；取任何 ≥3 欄→鐘塔頂 45+30 擋 114→紅），實得 '+JSON.stringify(rT));
+      assert(rT.kinds.includes(excl),'T417 掃描釘 '+key+'：專屬道具 '+excl+' 在真實鍵落筆（三輪都是 0 的死美術→紅），實得 '+JSON.stringify(rT.kinds));
+    }
   }
   { // T417 二輪退修 A1 真實鍵行為釘（RL-1/RL-3/RL-4 一次封死）：真實鍵（v<12）真尺寸真 ax/ay 換量畫布必落筆——
     // key 判別（v<12 return）、h 白名單（!== 型）、ay 白名單（!==110 型）短路在真實鍵路徑全紅；
