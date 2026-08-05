@@ -8809,19 +8809,21 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       helipadH:(g,x,y)=>{g.fillStyle='#c8c8d0';g.fillRect(x,y-2,10,2);g.fillStyle='#e05252';g.fillRect(x+4,y-2,2,1);g.fillRect(x+5,y-2,1,1);},
       dryingTower:(g,x,y)=>{g.fillStyle='#8a4a3a';g.fillRect(x,y-6,4,6);g.fillStyle='#a86050';g.fillRect(x,y-6,4,1);g.fillRect(x+1,y-5,1,1);g.fillRect(x+3,y-5,1,1);g.fillStyle='#e05252';g.fillRect(x+1,y-6,1,1);},
       schoolTank:(g,x,y)=>{g.fillStyle='#6a7a8c';g.fillRect(x,y-5,5,4);g.fillStyle='#8a9ab0';g.fillRect(x,y-5,5,1);g.fillStyle='#5a4a3a';g.fillRect(x+4,y-5,1,4);g.fillStyle='#4a5a6c';g.fillRect(x+2,y-3,1,1);},
-      flagpole:(g,x,y)=>{g.fillStyle='#4a4e56';g.fillRect(x+2,y-5,1,5);g.fillStyle='#c23c28';g.fillRect(x+3,y-5,3,2);g.fillStyle='#e8e8ec';g.fillRect(x+3,y-4,3,1);},
-      policeLight:(g,x,y)=>{g.fillStyle='#3a3e46';g.fillRect(x,y-3,4,3);g.fillStyle='#3a6ac8';g.fillRect(x,y-3,2,2);g.fillStyle='#e05252';g.fillRect(x+2,y-3,2,2);}
+      flagpole:(g,x,y)=>{g.fillStyle='#4a4e56';g.fillRect(x+2,y-5,1,5);g.fillStyle='#c23c28';g.fillRect(x+3,y-5,3,2);g.fillStyle='#e8e8ec';g.fillRect(x+3,y-4,3,1);}
     };
-    const kinds=['ac','vent','ant','tank'];
-    /* T417 分族選型表：族別 → 道具池（決定性 kh 位元選型；全部道具 ≤6px 高＝冬季雪帽覆蓋無尖刺） */
+    /* T417 覆核退修 C5：道具寬/高宣告表（落點右緣/重疊/守衛對帳用；實碼 max 值：ant=7、tank=5、clothesline=2——
+       與 props 函式定義同源，測試端 regex 掃描對帳防手抄漂移） */
+    const P417W={ac:5,vent:4,ant:5,tank:5,waterTank:4,clothesline:6,garden:6,solar:6,shed:6,stairbox:5,hvac:6,signFrame:6,billboard:8,parapet:6,helipad:10,helipadH:10,dryingTower:4,schoolTank:5,flagpole:6};
+    const P417H={ac:3,vent:5,ant:7,tank:5,waterTank:5,clothesline:2,garden:3,solar:2,shed:4,stairbox:5,hvac:4,signFrame:5,billboard:5,parapet:3,helipad:2,helipadH:2,dryingTower:6,schoolTank:5,flagpole:5};
+    /* T417 分族選型表：族別 → 道具池（決定性 kh 位元選型；高度 ≤7px＝snowCap cap≥12（h≥112）完全覆蓋＝冬季無尖刺） */
     const FAM_KINDS={
       R:['ac','vent','ant','tank','waterTank','clothesline','garden','solar','shed','stairbox'],
       C:['ac','vent','ant','hvac','signFrame','billboard','parapet','helipad'],
       H:['ac','vent','tank','helipadH'],
       F:['ac','vent','dryingTower'],
-      P:['ac','vent','tank','policeLight'],
       S:['ac','vent','schoolTank'],
-      M:['ac','vent','parapet','flagpole']
+      M:['ac','vent','parapet','flagpole'],
+      W:['ac','vent','tank'] // T417 覆核退修 B3：垃圾場 k8 專屬族（原落 default R 拿住宅套件）
     };
     const famOf417=(key)=>{const k=+key.split('_')[0];
       if(k===1||k===33||k===105)return'R';
@@ -8829,8 +8831,8 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       if(k===3)return'I';
       if(k===12||k===28||k===48)return'H';
       if(k===6||k===30||k===61)return'F';
-      if(k===11||k===52)return'P';
       if(k===7)return'S';
+      if(k===8)return'W';
       if(k===42)return'M';
       return'R';
     };
@@ -8851,7 +8853,18 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       if(!runs.length)return;
       const h0=kh(key);
       runs.sort((a,b)=>(b[1]-b[0])-(a[1]-a[0]));
-      const[r0,r1]=runs[0],rw=r1-r0;
+      /* T417 覆核退修 A2：平坦段≠屋頂——基座地台/懸空招牌/雨遮也是平坦段（塔樓 33/34 最長段就是地台）。
+         閘：①屋頂線須高於該欄地面前緣 20px（groundY=ay-|x-ax|×0.5，20px≈一層樓保守門檻）；②距 sprite
+         最高不透明像素 minTop ≤30px（懸空招牌/腰帶平台距塔頂過遠）。確切門檻以樣張迭代定案。 */
+      let minTop417=1e9;
+      for(let x=0;x<s.w;x++)if(roof[x]>=0&&roof[x]<minTop417)minTop417=roof[x];
+      if(minTop417>=1e9)return;
+      const runsRoof=runs.filter(([a,b])=>{ // A2 屋頂閘（runs 是 const，過濾結果存新變數）
+        const t=roof[Math.min(a+3,s.w-1)];
+        return t>=0&&t<minTop417+30&&t<s.ay-Math.abs(a+3-s.ax)*0.5-20;
+      });
+      if(!runsRoof.length)return;
+      const[r0,r1]=runsRoof[0],rw=r1-r0;
       const isInd=key.charAt(0)==='3'&&key.charAt(1)==='_'; // T288：工業鍵 '3_lv_v'
       if(isInd){ // T288 工業專屬屋頂組（玩家「工業建築更多美術細節」）：紅白環帶煙囪+風扇箱+天窗玻璃帶+側壁落管
         const ry0=roof[Math.min(r0+3,s.w-1)];
@@ -8869,29 +8882,57 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
           g.fillStyle='#6a7078';g.fillRect(lastX,ly,1,10);g.fillRect(lastX-1,ly+9,2,1); }
         return;
       }
-      /* T417 屋頂層擴容：多段利用（每段各配道具，不只 runs[0]）＋密度由段長決定（n=clamp(rw/8,1,5)，rw≥40=5 上限）＋
-         分族選型（住宅/商業/服務市政各自套件池）＋直升機坪 lv3+ 段中央。全部決定性（kh 位元），零亂數。 */
+      /* T417 屋頂層擴容（覆核退修版）：多段利用（每段各配道具）＋密度 clamp(段寬/8,1,5)＋分族選型＋
+         直升機坪（C 族 lv3+／H 族無 lv 分級放行）段中央。落點 A2-e 去相關：每件獨立雜湊 kh(key+'_'+si+'_'+i)、
+         段內選型抽後移除（不重複）、已用區間表避讓、右緣不越界（px ≤ r1-寬）、避讓 T345 徽記中央帶。零亂數。 */
       const fam=famOf417(key),lv=lvOf417(key);
-      const pool=FAM_KINDS[fam]||FAM_KINDS.R;
-      for(let si=0;si<runs.length;si++){
-        const[r0,r1]=runs[si],rw=r1-r0;
-        const n=Math.max(1,Math.min(5,Math.floor((rw+1)/8))); // 密度：段寬 8-15→1、16-23→2、24-31→3、32-39→4、≥40→5（rw=r1-r0=段寬-1，故 (rw+1)/8）
-        const h1=kh(key+'_'+si); // 段間決定性差異（每段獨立選型）
-        for(let i=0;i<n;i++){
-          let kindName=pool[(h1>>>(i*4))%pool.length]; // T417：>>> 無符號右移（kh 值可 ≥2^31，>> 帶符號=負餘數=pool[負]=undefined；原 T278 的 >> 潛在 bug 因 headless 零覆蓋從未被觸發）
+      const poolBase=FAM_KINDS[fam]||FAM_KINDS.R;
+      for(let si=0;si<runsRoof.length;si++){
+        const[r0,r1]=runsRoof[si],rw=r1-r0;
+        const n=Math.max(1,Math.min(5,Math.floor((rw+1)/8))); // 密度：段寬 8-15→1、16-23→2、24-31→3、32-39→4、≥40→5
+        const pool=poolBase.slice(); // 段內選型去重（抽後移除）
+        const used=[]; // 已用像素區間 [x0,x1)
+        for(let i=0;i<n&&pool.length;i++){
+          const h1=kh(key+'_'+si+'_'+i); // A2-e：每件獨立雜湊（原 kh(key+'_'+si) 五位同源右移→群聚）
+          let kindName=pool[(h1>>>(i*4))%pool.length];
+          pool.splice(pool.indexOf(kindName),1);
           const isPad=kindName==='helipad'||kindName==='helipadH';
-          if(isPad&&(lv<3||rw<20))kindName='ac'; // 直升機坪 lv3+ 且段夠寬（坪 10px）
-          if(kindName==='tank'&&rw<16)kindName='ac'; // 窄段不擺水塔（既有語義保留）
+          if(isPad&&(rw<20||(lv<3&&fam!=='H')))continue; // 坪：段寬≥20 且（C 族 lv3+ 或 H 族旗艦無 lv 分級放行）
+          if(kindName==='tank'&&rw<16)kindName='ac'; // 窄段不擺水塔（換 ac 保留額度，continue 會吞掉該件）
+          let w417=P417W[kindName]||4;
+          const maxPx=r1-w417-1;
+          if(maxPx<r0+3)continue;
+          let px=r0+3+((h1>>>(i*5+3))%Math.max(1,maxPx-r0-2)); // [r0+3, r1-w417-1] 內
+          if(px<0)px=r0+3;
+          if(px+w417>s.ax-4&&px<s.ax+4){ // 中央帶 [ax-4,ax+4]（A2-g 徽記被頂高）：優先換位到帶外（kh 決定左右），兩側皆無空間才矮化為 ac（高 3px，徽記頂高 ≤3px）
+            const pl=s.ax-4-w417,pr=s.ax+4;
+            const hasL=pl>=r0+3,hasR=pr+w417<=r1;
+            if(hasL||hasR)px=(hasL&&hasR)?(((h1>>>(i*5+15))&1)?pl:pr):(hasL?pl:pr);
+            else if((P417H[kindName]||4)>3){kindName='ac';w417=P417W.ac;}
+          }
+          if(px+w417>r1)continue; // 右緣不越界：px+w417 ≤ r1（原 maxPx+1 太嚴——w417>段寬/2 時誤殺）
+          let coll=false;
+          for(const u of used)if(px<u[1]&&px+w417>u[0]){coll=true;break;}
+          if(coll){ // 重疊右移到第一個空位（決定性；右移 1 格仍撞=跳過會吞道具額度）
+            let moved417=false;
+            for(let px2=px+1;px2+w417<=r1;px2++){
+              let ok2=true;
+              for(const u of used)if(px2<u[1]&&px2+w417>u[0]){ok2=false;break;}
+              if(ok2){px=px2;moved417=true;break;}
+            }
+            if(!moved417)continue;
+          }
+          used.push([px,px+w417]);
           const kind=props[kindName];
-          const px=isPad?r0+Math.floor(rw/2)-5:r0+3+Math.floor(((h1>>>(i*5+3))%97)/97*(rw-8)); // 直升機坪取段中央
           kind(g,px,roof[Math.min(px,s.w-1)]+1);
         }
       }
     };
-    for(const k of[1,2,3])for(let lv=1;lv<=4;lv++)for(let v=0;v<12;v++)stampRoof(k+'_'+lv+'_'+v); // T417：lv≤4（RCI 任務 lv 實測僅 1-3，lv4 鍵不存在=安全 no-op 保險）
-    for(const kk of['33_1_0','33_1_1','34_1_0','34_1_1','105_1_0','106_1_0', // T417：巨廈 k105/106 補全（塔樓 33/34 沿用既有四鍵）
-      '6_1_0','6_1_1','6_1_2','6_1_3','6_1_4','7_1_0','7_1_1','7_1_2','7_1_3','7_1_4', // T417：服務市政覆蓋（消防局/學校 5 變體，屋頂首次被掃）
-      '8_1_0','8_1_1','8_1_2','11_1_0','12_1_0','28_1_0','28_1_3','28_1_4','30_1_0','42_1_0','48_1_0','61_1_0','52_1_0'])stampRoof(kk); // T417：垃圾場/警察/醫院(無鍵 no-op 保險)/救護站/高級消防/市政廳/綜合醫院/消防總局/派出所
+    /* T417 覆核退修 B2：覆蓋清單自動產生——白名單 k 過濾 SPR.bld 既有鍵（幽靈鍵/漏抄從源頭消失；
+       28_1_1/2、30_1_1/2 自動全含；11/12/52 無鍵自動不在；未來加鍵自動覆蓋） */
+    const ROOF_K417=new Set([1,2,3,6,7,8,11,12,28,30,33,34,42,48,52,61,105,106]);
+    const roofKeys417=Object.keys(SPR.bld).filter(kk=>ROOF_K417.has(+kk.split('_')[0]));
+    for(const kk of roofKeys417)stampRoof(kk);
   }
   /* ===== T278 屋頂雜項加蓋 END ===== */
   { /* T318 地鐵站站體（玩家「地鐵美術要讓人看到，這是地鐵站有顯著區別」）：三級站體各一張，
