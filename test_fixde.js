@@ -207,7 +207,7 @@ if (t343IifeEnd < 0) throw new Error('T343a harness 找不到主 IIFE 尾端');
   const needleBoot = "(()=>{ 'use strict';";
   const hitsBoot = js.split(needleBoot).length - 1;
   if (hitsBoot !== 1) throw new Error('T417 台帳計數器錨點失準 hits=' + hitsBoot);
-  js = js.replace(needleBoot, needleBoot + '\nvar __t417N417=0,__t417Seg417=0,__t417Keys417={},__t417Kinds417=[],__t417Pos417=[],__t417Py417=[],__t417GID417=0;');
+  js = js.replace(needleBoot, needleBoot + '\nvar __t417N417=0,__t417Seg417=0,__t417Try417=0,__t417Keys417={},__t417Kinds417=[],__t417Pos417=[],__t417Py417=[],__t417GID417=0,__t417Px417=0;');
 }
 const inject343 = (needle, replacement, label) => {
   const hits = js.split(needle).length - 1;
@@ -335,11 +335,24 @@ window.__t416ScanN=function(){return __t416Scan416|0;}; // T416 五輪退修 A4�
 /* __t417N417/__t417Seg417/__t417Keys417/__t417Kinds417/__t417Pos417/__t417Py417/__t417GID417：宣告已移到 js 最前
    （主 IIFE 開頭，見 t343IifeEnd 前的注入塊）——原在此處 var 宣告＝開機烘焙之後才賦 0，烘焙期 ++ 對提升未初始化的
    undefined→NaN，C7 決定性計數失真。此處只餘閉包引用，勿重宣告。 */
-window.__t417Reset=function(){__t417N417=0;__t417Seg417=0;__t417Keys417={};__t417Kinds417=[];__t417Pos417=[];__t417Py417=[];__t417GID417=0;}; // T417：重置台帳
-window.__t417Read=function(){return{n:__t417N417,seg:__t417Seg417,keys:Object.assign({},__t417Keys417),kinds:__t417Kinds417.slice(),pos:__t417Pos417.slice(),py:__t417Py417.slice()};}; // T417：讀台帳（覆核退修 A1：px/py 供落點行為釘）
-window.__t417ParseColor=function(v){const m=/^#([0-9a-f]{6})$/i.exec(String(v));if(!m)return[0,0,0,255];const n=parseInt(m[1],16);return[(n>>16)&255,(n>>8)&255,n&255,255];}; // T417 覆核退修 A1：真像素 canvas 顏色解析（T274 台架同款）
-window.__t417Canvas=function(w,h){const pixels=new Uint8ClampedArray(w*h*4),ops=[];let fillStyle='#000000';const canvas={width:w,height:h,__pixels:pixels,__ops:ops};const ctx={__ops:ops,fillRect(x,y,rw,rh){ops.push(['fillRect',fillStyle,x,y,rw,rh]);const rgba=window.__t417ParseColor(fillStyle);const x0=Math.max(0,Math.floor(x)),y0=Math.max(0,Math.floor(y)),x1=Math.min(w,Math.ceil(x+rw)),y1=Math.min(h,Math.ceil(y+rh));for(let py2=y0;py2<y1;py2++)for(let px2=x0;px2<x1;px2++){const at=(py2*w+px2)*4;pixels[at]=rgba[0];pixels[at+1]=rgba[1];pixels[at+2]=rgba[2];pixels[at+3]=rgba[3];}},getImageData(x,y,rw,rh){if(x!==0||y!==0||rw!==w||rh!==h)throw new Error('T417 pixel canvas expects full-canvas getImageData');return{data:new Uint8ClampedArray(pixels),width:w,height:h};},putImageData(img,dx,dy){if(dx!==0||dy!==0||img.data.length!==pixels.length)throw new Error('T417 pixel canvas expects full-canvas putImageData');pixels.set(img.data);ops.push(['putImageData',dx,dy,img.data.length]);}};Object.defineProperty(ctx,'fillStyle',{get(){return fillStyle;},set(v){fillStyle=String(v);}});canvas.getContext=()=>ctx;return[canvas,ctx];}; // T417 覆核退修 A1：真像素 canvas 工廠（T274 台架模式；fillRect 寫 Uint8ClampedArray＋ops 記錄＝落筆可量）
-window.__t417DrawCheck=function(kind,g,px,py,kindName){const b=g.__ops?g.__ops.length:-1;kind(g,px,py);const a=g.__ops?g.__ops.length:-1;if(a!==b){__t417N417++;__t417Kinds417.push(kindName);__t417Pos417.push(px);__t417Py417.push(py);}}; // T417 覆核退修 A1：落筆計數代理——畫布 ops 前後比對，只有真的畫了才計（no-op/短路/px=0 全被咬）
+window.__t417Reset=function(){__t417N417=0;__t417Seg417=0;__t417Try417=0;__t417Keys417={};__t417Kinds417=[];__t417Pos417=[];__t417Py417=[];__t417GID417=0;__t417Px417=0;}; // T417：重置台帳
+window.__t417Read=function(){return{n:__t417N417,seg:__t417Seg417,try:__t417Try417,keys:Object.assign({},__t417Keys417),kinds:__t417Kinds417.slice(),pos:__t417Pos417.slice(),py:__t417Py417.slice()};}; // T417：讀台帳（覆核退修 A1：px/py 供落點行為釘；二輪退修：try=密度公式嘗試件數，與落筆數分離）
+window.__t417ParseColor=function(v){const m=/^#([0-9a-f]{6})$/i.exec(String(v));if(m){const n=parseInt(m[1],16);return[(n>>16)&255,(n>>8)&255,n&255,255];}const r=/^rgba?[(]([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)(?:[ ,]+([0-9.]+))?[)]$/i.exec(String(v));if(r){const a=r[4]===undefined?255:Math.round(parseFloat(r[4])*255);return[+r[1],+r[2],+r[3],a];}return[0,0,0,255];}; // T417 覆核退修 A1：真像素 canvas 顏色解析（T274 台架同款）——二輪退修 RL-5：支援 rgba()——全字符類 regex（模板串會剝未知轉義，d 寫法在 eval 前已壞成 d）
+const __t417OpsMap=new WeakMap(),__t417PixMap=new WeakMap(); // 二輪退修 RL-2：ops/像素不掛 ctx/canvas 屬性（產品拿得到 g.__ops/g.__pixels 判別真假→紅）
+window.__t417Canvas=function(w,h){const pixels=new Uint8ClampedArray(w*h*4),ops=[];let fillStyle='#000000';const canvas={width:w,height:h};const ctx={fillRect(x,y,rw,rh){ // RL-5：解析 alpha——a===0 或完全裁到畫布外→不寫像素也不記 ops（透明色不再偽裝成有效落筆）
+    const rgba=window.__t417ParseColor(fillStyle);
+    const x0=Math.max(0,Math.floor(x)),y0=Math.max(0,Math.floor(y)),x1=Math.min(w,Math.ceil(x+rw)),y1=Math.min(h,Math.ceil(y+rh));
+    if(!(rgba[3]>0&&x1>x0&&y1>y0))return;
+    for(let py2=y0;py2<y1;py2++)for(let px2=x0;px2<x1;px2++){const at=(py2*w+px2)*4;pixels[at]=rgba[0];pixels[at+1]=rgba[1];pixels[at+2]=rgba[2];pixels[at+3]=rgba[3];}
+    ops.push(['fillRect',fillStyle,x,y,rw,rh]);
+  },getImageData(x,y,rw,rh){ // B7：任意子區域（stampRoof 窄帶早停 scanH=min(h,96)；越界填 0）
+    const out=new Uint8ClampedArray(rw*rh*4);
+    for(let py2=0;py2<rh;py2++)for(let px2=0;px2<rw;px2++){const sx=x+px2,sy=y+py2;if(sx<0||sy<0||sx>=w||sy>=h)continue;const at=(sy*w+sx)*4,oat=(py2*rw+px2)*4;out[oat]=pixels[at];out[oat+1]=pixels[at+1];out[oat+2]=pixels[at+2];out[oat+3]=pixels[at+3];}
+    return{data:out,width:rw,height:rh};
+  },putImageData(img,dx,dy){if(dx!==0||dy!==0||img.data.length!==pixels.length)throw new Error('T417 pixel canvas expects full-canvas putImageData');pixels.set(img.data);ops.push(['putImageData',dx,dy,img.data.length]);},canvas};Object.defineProperty(ctx,'fillStyle',{get(){return fillStyle;},set(v){fillStyle=String(v);}});ctx.canvas=canvas;canvas.getContext=()=>ctx;__t417OpsMap.set(ctx,ops);__t417PixMap.set(canvas,pixels);return[canvas,ctx];}; // T417 覆核退修 A1：真像素 canvas 工廠（T274 台架模式；fillRect 寫 Uint8ClampedArray＋ops 記錄＝落筆可量）——二輪退修 RL-2/RL-5：WeakMap 存 ops/pixels、fillRect 解析 alpha
+window.__t417Snap=function(g){const cnv=g&&g.canvas,p=cnv?__t417PixMap.get(cnv):null;return p?p.slice():null;}; // 二輪退修：像素快照（DrawCheck/T288 共用）
+window.__t417Diff=function(g,s){if(!g||!s)return false;const cnv=g.canvas,p=cnv?__t417PixMap.get(cnv):null;if(!p)return false;for(let i=3;i<p.length;i+=4)if(s[i]!==p[i])return true;return false;}; // 二輪退修 RL-5：真像素差（alpha 通道）——同底色/全透明/畫布外一律零差
+window.__t417DrawCheck=function(kind,g,px,py,kindName){const snap=window.__t417Snap(g);kind(g,px,py);if(window.__t417Diff(g,snap)){__t417N417++;__t417Kinds417.push(kindName);__t417Pos417.push(px);__t417Py417.push(py);}}; // T417 覆核退修 A1：落筆計數代理——二輪退修 RL-5：真像素差比對（原 ops 長度比對被「全隱形 fillStyle」繞過），只有像素真的變了才計
 window.__t417Profile417=null; // T417：合成屋頂剖面（每欄屋頂線 y；headless getImageData 空像素→測試端 override）
 window.__t384Bld=function(k,x,y){const i=idx(x,y);tiles[i].bld={k,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;}; // T384b：尾端測試造境橋（__t343Bld 在 IIFE 內搆不到）
 window.__t416Fleet=function(which){const a=which==='fire'?ladderTrucks:which==='amb'?ambulances:policeCars;return a.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty}));}; // T416 二輪退修：直讀車隊每車的目標格（直接斷言新車 tx/ty，不用寬鬆幀數猜測）
@@ -398,9 +411,9 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
     js=js.replace(needle,replacement);
     if(js===before)throw new Error('T417 注入未改變源碼 '+label);
   };
-  // ① 剖面 override：測試端可注入合成屋頂剖面（headless getImageData 空像素⇒掃描失效，卡面坑③）
-  inj417('for(let x=0;x<s.w;x++)for(let y=0;y<s.h;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}',
-    'for(let x=0;x<s.w;x++)for(let y=0;y<s.h;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}if(window.__t417Profile417)for(let x=0;x<s.w;x++){if(window.__t417Profile417[x]!==undefined)roof[x]=window.__t417Profile417[x];}',
+  // ① 剖面 override：測試端可注入合成屋頂剖面（headless getImageData 空像素⇒掃描失效，卡面坑③；B7 窄帶早停後掃描迴圈為 y<scanH417）
+  inj417('for(let x=0;x<s.w;x++)for(let y=0;y<scanH417;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}',
+    'for(let x=0;x<s.w;x++)for(let y=0;y<scanH417;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}if(window.__t417Profile417)for(let x=0;x<s.w;x++){if(window.__t417Profile417[x]!==undefined)roof[x]=window.__t417Profile417[x];}',
     'T417 剖面 override');
   // ② key 計數（有段才記；runs 空=窄段不落筆也不記 key；錨點含 h0 行以區分 A2 閘後的重複 return）
   inj417('      if(!runs.length)return;\n      const h0=kh(key);',
@@ -410,42 +423,47 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
   inj417('      for(let si=0;si<runsRoof.length;si++){',
     '      for(let si=0;si<runsRoof.length;si++){__t417Seg417++;',
     'T417 段計數');
-  // ④ 覆核退修 A1：kind 落筆行設為注入錨點——包 DrawCheck 計數代理（落筆前後畫布 ops 比對；插短路/改 no-op 一律零計數或 hits≠1 fail-closed）
+  // ③b 嘗試件數（二輪退修：密度公式輸出與落筆數分離——帶預佔/碰撞後落筆少於公式值，上限鑑別力靠 try；
+  // 錨點用 pool 行（min(5) 移除型突變不破壞注入，try=6 由行為斷言咬））
+  inj417('        const pool=poolBase.slice(); // 段內選型去重（抽後移除）',
+    '        __t417Try417+=n;const pool=poolBase.slice(); // 段內選型去重（抽後移除）',
+    'T417 嘗試件數');
+  // ④ 覆核退修 A1：kind 落筆行設為注入錨點——包 DrawCheck 計數代理（二輪退修 RL-5：真像素差比對；插短路/改 no-op/全隱形 一律零計數或 hits≠1 fail-closed）
   inj417('          kind(g,px,roof[Math.min(px,s.w-1)]+1);',
     '          window.__t417DrawCheck(kind,g,px,roof[Math.min(px,s.w-1)]+1,kindName);',
     'T417 kind 錨點');
-  // ⑤ 工業 T288 組四塊：ops 差異計數（覆核退修 A1：量畫布不是量圈數）
+  // ⑤ 工業 T288 組四塊：真像素差計數（二輪退修 RL-5：__ops 已移 WeakMap，改 Snap/Diff 像素比對）
   inj417('{ const cx2=r0+3+((h0>>>2)%Math.max(1,rw-14)); const cy2=roof[Math.min(cx2,s.w-1)]; // 環帶煙囪',
-    '{ const _o417=(g.__ops?g.__ops.length:0); const cx2=r0+3+((h0>>>2)%Math.max(1,rw-14)); const cy2=roof[Math.min(cx2,s.w-1)]; // 環帶煙囪',
+    '{ const _o417=window.__t417Snap(g); const cx2=r0+3+((h0>>>2)%Math.max(1,rw-14)); const cy2=roof[Math.min(cx2,s.w-1)]; // 環帶煙囪',
     'T417 工業煙囪首');
   inj417('g.fillStyle=\'#6a7078\';g.fillRect(cx2+3,cy2-10,1,10); }',
-    'g.fillStyle=\'#6a7078\';g.fillRect(cx2+3,cy2-10,1,10); if((g.__ops?g.__ops.length:0)!==_o417){__t417N417++;__t417Kinds417.push(\'ind\');} }',
+    'g.fillStyle=\'#6a7078\';g.fillRect(cx2+3,cy2-10,1,10); if(window.__t417Diff(g,_o417)){__t417N417++;__t417Kinds417.push(\'ind\');} }',
     'T417 工業煙囪尾');
   inj417('if(rw>=18){ const fx2=r0+Math.max(8,((h0>>>7)%Math.max(1,rw-10))); const fy2=roof[Math.min(fx2,s.w-1)]; // 風扇箱',
-    'if(rw>=18){ const _o417=(g.__ops?g.__ops.length:0); const fx2=r0+Math.max(8,((h0>>>7)%Math.max(1,rw-10))); const fy2=roof[Math.min(fx2,s.w-1)]; // 風扇箱',
+    'if(rw>=18){ const _o417=window.__t417Snap(g); const fx2=r0+Math.max(8,((h0>>>7)%Math.max(1,rw-10))); const fy2=roof[Math.min(fx2,s.w-1)]; // 風扇箱',
     'T417 工業風扇首');
   inj417('g.fillStyle=\'#4a4e56\';g.fillRect(fx2+2,fy2-3,2,2);g.fillStyle=\'#8f959d\';g.fillRect(fx2+2,fy2-3,1,1); }',
-    'g.fillStyle=\'#4a4e56\';g.fillRect(fx2+2,fy2-3,2,2);g.fillStyle=\'#8f959d\';g.fillRect(fx2+2,fy2-3,1,1); if((g.__ops?g.__ops.length:0)!==_o417){__t417N417++;__t417Kinds417.push(\'ind\');} }',
+    'g.fillStyle=\'#4a4e56\';g.fillRect(fx2+2,fy2-3,2,2);g.fillStyle=\'#8f959d\';g.fillRect(fx2+2,fy2-3,1,1); if(window.__t417Diff(g,_o417)){__t417N417++;__t417Kinds417.push(\'ind\');} }',
     'T417 工業風扇尾');
   inj417('if(rw>=24){ const sx3=r0+4+((h0>>>11)%Math.max(1,rw-16)); const sy3=roof[Math.min(sx3,s.w-1)]; // 天窗玻璃帶',
-    'if(rw>=24){ const _o417=(g.__ops?g.__ops.length:0); const sx3=r0+4+((h0>>>11)%Math.max(1,rw-16)); const sy3=roof[Math.min(sx3,s.w-1)]; // 天窗玻璃帶',
+    'if(rw>=24){ const _o417=window.__t417Snap(g); const sx3=r0+4+((h0>>>11)%Math.max(1,rw-16)); const sy3=roof[Math.min(sx3,s.w-1)]; // 天窗玻璃帶',
     'T417 工業天窗首');
   inj417('g.fillStyle=\'#9cc8e0\';g.fillRect(sx3+1,sy3-2,3,1);g.fillRect(sx3+6,sy3-2,3,1); }',
-    'g.fillStyle=\'#9cc8e0\';g.fillRect(sx3+1,sy3-2,3,1);g.fillRect(sx3+6,sy3-2,3,1); if((g.__ops?g.__ops.length:0)!==_o417){__t417N417++;__t417Kinds417.push(\'ind\');} }',
+    'g.fillStyle=\'#9cc8e0\';g.fillRect(sx3+1,sy3-2,3,1);g.fillRect(sx3+6,sy3-2,3,1); if(window.__t417Diff(g,_o417)){__t417N417++;__t417Kinds417.push(\'ind\');} }',
     'T417 工業天窗尾');
   inj417('{ const lastX=r1-2, ly=roof[Math.min(lastX,s.w-1)]; // 側壁落管（沿右緣屋頂線落下 10px）',
-    '{ const _o417=(g.__ops?g.__ops.length:0); const lastX=r1-2, ly=roof[Math.min(lastX,s.w-1)]; // 側壁落管（沿右緣屋頂線落下 10px）',
+    '{ const _o417=window.__t417Snap(g); const lastX=r1-2, ly=roof[Math.min(lastX,s.w-1)]; // 側壁落管（沿右緣屋頂線落下 10px）',
     'T417 工業落管首');
   inj417('g.fillStyle=\'#6a7078\';g.fillRect(lastX,ly,1,10);g.fillRect(lastX-1,ly+9,2,1); }',
-    'g.fillStyle=\'#6a7078\';g.fillRect(lastX,ly,1,10);g.fillRect(lastX-1,ly+9,2,1); if((g.__ops?g.__ops.length:0)!==_o417){__t417N417++;__t417Kinds417.push(\'ind\');} }',
+    'g.fillStyle=\'#6a7078\';g.fillRect(lastX,ly,1,10);g.fillRect(lastX-1,ly+9,2,1); if(window.__t417Diff(g,_o417)){__t417N417++;__t417Kinds417.push(\'ind\');} }',
     'T417 工業落管尾');
   // ⑥ 測試橋：真像素合成 sprite（覆核退修 A1：h 參數化覆蓋真實值域 32/48/112/220）＋famOf 暴露（M2 族別逐鍵對照釘用）
   inj417('for(const kk of roofKeys417)stampRoof(kk);',
-    'for(const kk of roofKeys417)stampRoof(kk); window.__t417BootGID417=__t417GID417; window.__t417BootKeys417=roofKeys417.length; window.__t417Stamp=stampRoof; window.__t417Fam=key=>famOf417(key); window.__t417Feed=function(key,profile,h){const w=profile.length,hh=h||112;SPR.bld[key]=SPR.bld[key]||{};const synth417=(+key.split(\'_\')[2]||0)>=12;if(synth417)SPR.bld[key].img=window.__t417Canvas(w,hh)[0];else SPR.bld[key].img=SPR.bld[key].img||cv(w,32)[0];if(synth417){SPR.bld[key].w=w;SPR.bld[key].h=hh;SPR.bld[key].ax=Math.floor(w/2);SPR.bld[key].ay=110;}window.__t417Profile417=profile;window.__t417Stamp(key);window.__t417Profile417=null;return SPR.bld[key];}; window.__t417CoveredKeys=function(){return roofKeys417.slice();};',
+    'for(const kk of roofKeys417)stampRoof(kk); window.__t417BootGID417=__t417GID417; window.__t417BootKeys417=roofKeys417.length; window.__t417BootPx417=__t417Px417; window.__t417Stamp=stampRoof; window.__t417Fam=key=>famOf417(key); window.__t417IndKeys=()=>Object.keys(SPR.bld).filter(k=>k.charAt(0)===\'3\'&&k.charAt(1)===\'_\'&&(+k.split(\'_\')[2]||0)<12); window.__t417BandOf345=bandOf345; window.__t417P417B=()=>P417B; window.__t417Props=()=>props; window.__t417FeedReal=function(key){const s0=SPR.bld[key];if(!s0||!s0.img)return null;const w=s0.w||32,h=s0.h||112;const bak=s0.img;s0.img=window.__t417Canvas(w,h)[0];const prof=new Array(w).fill(20);window.__t417Profile417=prof;window.__t417Stamp(key);window.__t417Profile417=null;s0.img=bak;return s0;}; window.__t417BBox=function(){const out={};for(const k in props){const[cn,cx]=window.__t417Canvas(40,40);props[k](cx,20,39);const px=window.__t417Snap(cx);let lo=99,hi=-99,top=99;for(let y=0;y<40;y++)for(let x=0;x<40;x++){if(px[(y*40+x)*4+3]>0){if(x<lo)lo=x;if(x+1>hi)hi=x+1;if(y<top)top=y;}}if(lo<=hi)out[k]=[lo-20,hi-20,39-top];}return out;}; window.__t417Feed=function(key,profile,h,o){const w=profile.length,hh=h||112,opt=o||{};SPR.bld[key]=SPR.bld[key]||{};const synth417=(+key.split(\'_\')[2]||0)>=12;if(synth417)SPR.bld[key].img=window.__t417Canvas(w,hh)[0];else SPR.bld[key].img=SPR.bld[key].img||cv(w,32)[0];if(synth417){SPR.bld[key].w=w;SPR.bld[key].h=hh;SPR.bld[key].ax=(opt.ax!==undefined)?opt.ax:Math.floor(w/2);SPR.bld[key].ay=(opt.ay!==undefined)?opt.ay:(hh-2);}window.__t417Profile417=profile;window.__t417Stamp(key);window.__t417Profile417=null;return SPR.bld[key];}; window.__t417CoveredKeys=function(){return roofKeys417.slice();};',
     'T417 測試橋');
-  // ⑦ 決定性計數：getImageData 呼叫次數（C7：headless 掛鐘無鑑別力→計數決定性；真實增量四項見卡面）
-  inj417('      let id;try{id=g.getImageData(0,0,s.w,s.h);}catch(e){return;}',
-    '      let id;try{id=g.getImageData(0,0,s.w,s.h);__t417GID417++;}catch(e){return;}',
+  // ⑦ 決定性計數：getImageData 呼叫次數（C7：headless 掛鐘無鑑別力→計數決定性；真實增量四項見卡面；B7：窄帶早停後仍每鍵恰一次）
+  inj417('      let id;try{id=g.getImageData(0,0,s.w,scanH417);}catch(e){return;}',
+    '      let id;try{id=g.getImageData(0,0,s.w,scanH417);__t417GID417++;__t417Px417+=s.w*scanH417;}catch(e){return;}',
     'T417 getImageData 計數');
 }
 /* T405：產品端類別標記預設【關】（TheoTown 觀感）。但 harness 若跟著關，T345 徽記加蓋層
@@ -453,6 +471,7 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
    「預設關」本身改由 T405 的原文守衛驗證（產品碼與測試環境各證一半）。 */
 localStorage.setItem('glimmerville.v1.badge', '1');
 eval(js);
+
 
 // ---- 測試輔助 ----
 function assert(cond, msg) {
@@ -7529,9 +7548,10 @@ runPwaTests().then(() => {
     }
     // A1 尺寸四檔：合成 sprite 覆蓋真實值域（32/48/112/220），每檔族別×段數案必落筆（s.h 條件退化在任一檔被咬）
     for(const hh of[32,48,112,220]){
-      window.__t417Reset();window.__t417Feed('1_1_99',flat417(30),hh);
+      const profA1=new Array(30).fill(hh-32); // 真實比例剖面：段左端離地恆 24px（ay=hh-2、地面前緣斜坡 |3-ax|×0.5=6；閘 B 縮放門檻 h=32→12px、h=220→20px 全放行）
+      window.__t417Reset();window.__t417Feed('1_1_99',profA1,hh);
       assert(window.__t417Read().n>=1,'T417 A1 尺寸檔 h='+hh+'：R 族單段必真像素落筆（合成 sprite 覆蓋真實值域；if(s.h>32) 型短路在此檔紅），實得 '+window.__t417Read().n);
-      window.__t417Reset();window.__t417Feed('2_3_99',flat417(40),hh);
+      window.__t417Reset();window.__t417Feed('2_3_99',profA1,hh);
       assert(window.__t417Read().n>=1,'T417 A1 尺寸檔 h='+hh+'：C 族 lv3 段必落筆（每檔族別×段數案），實得 '+window.__t417Read().n);
     }
     // 維度 2 lv＋直升機坪門檻（F6 真釘）：lv1 鍵 i=0 抽中 helipad → 無坪；rw<20 同構；lv3 坪落地；lv4 落筆
@@ -7559,7 +7579,7 @@ runPwaTests().then(() => {
     // 維度 3 平坦段：單段/多段/窄段不落筆/超寬＋A2 屋頂閘（高台+地面台座→地面段不落筆）
     window.__t417Reset();window.__t417Feed('1_1_99',flat417(30));
     assert(window.__t417Read().seg===1,'T417 維度3 單段：30px 單平台 seg=1，實得 '+window.__t417Read().seg);
-    const multi417=[];for(let i=0;i<20;i++)multi417.push(20);for(let i=0;i<8;i++)multi417.push(30);for(let i=0;i<14;i++)multi417.push(20); // 段A 20px＋凹陷 8px＋段B 14px
+    const multi417=[];for(let i=0;i<20;i++)multi417.push(20);for(let i=0;i<20;i++)multi417.push(30+(i%2)*3);for(let i=0;i<14;i++)multi417.push(20); // 段A 20px＋鋸齒凹陷 20px（30/33 交替不成段、覆蓋徽記帶 [26,34]，二輪退修 B2：帶當 used 預佔後段須帶外才能測密度）＋段B 14px
     window.__t417Reset();window.__t417Feed('1_1_99',multi417);
     const rM=window.__t417Read();
     assert(rM.seg===2,'T417 維度3 多段：兩平台皆落筆 seg=2，實得 '+rM.seg);
@@ -7567,19 +7587,21 @@ runPwaTests().then(() => {
     window.__t417Reset();window.__t417Feed('1_1_99',flat417(8));
     const rN=window.__t417Read();
     assert(rN.n===0&&rN.seg===0&&!rN.keys['1_1_99'],'T417 維度3 窄段：8px 平台不落筆不記 key（runs ≥10px 過濾），實得 '+JSON.stringify(rN));
-    window.__t417Reset();window.__t417Feed('1_1_99',flat417(48));
-    assert(window.__t417Read().n===5,'T417 維度3 超寬：48px 段道具數=5，實得 '+window.__t417Read().n);
+    window.__t417Reset();window.__t417Feed('1_1_99',flat417(48),112,{ax:2}); // ax=2：徽記帶 [0,6) 移到段左端，帶外空間 42px——密度公式上限案 try=5 穩定、min(5) 移除→try=6 紅（案 1 鑑別力）
+    const rW=window.__t417Read();
+    assert(rW.try===5&&rW.n===3,'T417 維度3 超寬：48px 段密度公式嘗試件數=5（落筆 3：帶外空間+碰撞右移的決定性結果，入卡聲明），實得 try='+rW.try+' n='+rW.n);
     const ground417=[];for(let i=0;i<20;i++)ground417.push(20);for(let i=0;i<10;i++)ground417.push(98);for(let i=0;i<20;i++)ground417.push(98); // 高台 20px＋貼地台座（y=98≈ay-12）
     window.__t417Reset();window.__t417Feed('1_1_99',ground417);
     const rG=window.__t417Read();
     assert(rG.seg===1&&rG.py.every(py=>py<60),'T417 A2 屋頂閘：地面台座段不得落筆（高台 y=20 唯一通過；t<minTop+30 且 t<地面前緣-20；拿掉閘→seg=2 紅），實得 '+JSON.stringify(rG));
-    // 維度 4 道具數：0(窄)/1(rw12)/中(rw24)/上限(rw64 仍 5)
+    // 維度 4 道具數（二輪退修 B2：徽記帶當 used 預佔後，單段案的道具數受帶內不可用空間影響——預期按帶外空間重算）
     window.__t417Reset();window.__t417Feed('1_1_99',flat417(12));
-    assert(window.__t417Read().n===1,'T417 維度4 道具數 1：rw=12→1，實得 '+window.__t417Read().n);
+    assert(window.__t417Read().n===0,'T417 維度4 道具數窄：rw=12 段整段在徽記帶 [2,10) 內→0 件（徽記優先；帶預佔吃光 12px，入卡聲明），實得 '+window.__t417Read().n);
     window.__t417Reset();window.__t417Feed('1_1_99',flat417(24));
-    assert(window.__t417Read().n>=2&&window.__t417Read().n<=3,'T417 維度4 道具數中：rw=24 段 n∈[2,3]（密度公式 3；徽記帶避讓壓縮 1 格=物理空間不足，入卡聲明），實得 '+window.__t417Read().n);
+    assert(window.__t417Read().n>=1&&window.__t417Read().n<=3,'T417 維度4 道具數中：rw=24 段 n∈[1,3]（密度公式 3；帶 [8,16) 預佔後帶外 [3,8)+[16,21) 物理空間不足壓縮，入卡聲明），實得 '+window.__t417Read().n);
     window.__t417Reset();window.__t417Feed('1_1_99',flat417(64));
-    assert(window.__t417Read().n===5,'T417 維度4 上限：rw=64→仍 5（上限真的是上限），實得 '+window.__t417Read().n);
+    const rW64=window.__t417Read();
+    assert(rW64.try===5&&rW64.n===5,'T417 維度4 上限：rw=64→密度公式嘗試=5 且落筆=5（上限真的是上限；min(5) 移除→try=6 紅），實得 try='+rW64.try+' n='+rW64.n);
     // 維度 5 變體：合成鍵 v12/v13（真實鍵 v<12 不覆蓋開機 sprite）皆落筆且決定性差異
     window.__t417Reset();window.__t417Feed('1_1_12',flat417(30));
     const rV0=window.__t417Read();
@@ -7595,24 +7617,54 @@ runPwaTests().then(() => {
     window.__noRoofProps417=false;
     window.__t417Reset();window.__t417Feed('1_1_99',flat417(30));
     assert(window.__t417Read().n>=1,'T417 維度6 逃生閥關：false 時正常落筆');
-    // 落點行為釘（A2-e/f + 中央帶避讓）：同段任兩件像素區間不相交、右緣不越段、不跨徽記中央帶 [ax-4,ax+4]
-    const W417v={ac:5,vent:4,ant:5,tank:5,waterTank:4,clothesline:6,garden:6,solar:6,shed:6,stairbox:5,hvac:6,signFrame:6,billboard:8,parapet:6,helipad:10,helipadH:10,dryingTower:4,schoolTank:5,flagpole:6};
-    const H417v={ac:3,vent:5,ant:7,tank:5,waterTank:5,clothesline:2,garden:3,solar:2,shed:4,stairbox:5,hvac:4,signFrame:5,billboard:5,parapet:3,helipad:2,helipadH:2,dryingTower:6,schoolTank:5,flagpole:5};
+    // 落點行為釘（二輪退修 B1/B2）：bbox 從「執行 props 量測」取（不再手抄 W417v），
+    // 區間用 [px+lo,px+hi)；帶用 bandOf345 動態值（k2 1×1→band 4）；帶當 used 預佔後帶內天然 0 件
+    const B417v=window.__t417BBox();
+    const bandC417=window.__t417BandOf345?window.__t417BandOf345(2):4;
     window.__t417Reset();window.__t417Feed('2_3_99',flat417(64));
     const rP=window.__t417Read();
     let ov417=0,badEdge=0,badBand=0;
     for(let i=0;i<rP.pos.length;i++){
-      const wi=W417v[rP.kinds[i]]||4;
-      if(rP.pos[i]+wi>64)badEdge++;
-      if(rP.pos[i]<32+4&&rP.pos[i]+wi>32-4&&(H417v[rP.kinds[i]]||4)>3)badBand++; // 矮化道具（≤3px）允許在帶內（徽記頂高 ≤3px，A2-g N=3）
+      const bi=B417v[rP.kinds[i]]||[0,4,4],loi=bi[0],hii=bi[1];
+      if(rP.pos[i]+hii>64)badEdge++;
+      if(rP.pos[i]+hii>32-bandC417&&rP.pos[i]+loi<32+bandC417&&(bi[2]||4)>3)badBand++; // 高道具不得與帶相交（矮化 ≤3px 允許）
       for(let j=i+1;j<rP.pos.length;j++){
-        const wj=W417v[rP.kinds[j]]||4;
-        if(rP.pos[i]<rP.pos[j]+wj&&rP.pos[j]<rP.pos[i]+wi)ov417++;
+        const bj=B417v[rP.kinds[j]]||[0,4,4];
+        if(rP.pos[i]+loi<rP.pos[j]+bj[1]&&rP.pos[j]+bj[0]<rP.pos[i]+hii)ov417++;
       }
     }
-    assert(ov417===0,'T417 落點釘：同段任兩件像素區間不得相交（A2-e 群聚→重疊→紅），實得 '+ov417+' 對重疊，pos='+JSON.stringify(rP.pos));
-    assert(badEdge===0,'T417 落點釘：道具右緣不得越出平坦段（A2-f billboard 衝出段外→紅），實得 '+badEdge+' 件越界');
-    assert(badBand===0,'T417 落點釘：高道具（>3px）不得跨 T345 徽記中央帶 [ax-4,ax+4]（A2-g 徽記錨點被頂高→紅；矮化 ≤3px 允許），實得 '+badBand+' 件');
+    assert(ov417===0,'T417 落點釘：同段任兩件像素區間不得相交（B1：bbox [px+lo,px+hi) 實碼模型；ant/vent 左偏漏出→紅），實得 '+ov417+' 對重疊，pos='+JSON.stringify(rP.pos));
+    assert(badEdge===0,'T417 落點釘：道具右緣 px+hi 不得越出平坦段（B1 右緣模型），實得 '+badEdge+' 件越界');
+    assert(badBand===0,'T417 落點釘：高道具（>3px）不得與 T345 徽記帶相交（B2：帶當 used 預佔；右移不重檢帶→紅），實得 '+badBand+' 件');
+    // 掃描矩陣（二輪退修 B2 ③：落點三釘跨每族 × lv1-4 × 寬 12/16/20/24/32/40/48/64——不能只有單一 fixture）
+    const widths417=[12,16,20,24,32,40,48,64];
+    const famTplM417={'R':'1','C':'2','H':'48','F':'6','S':'7','M':'42','W':'8'};
+    const BBoxM417=window.__t417BBox();
+    let ovM417=0,edgeM417=0,bandM417=0,totalM417=0;
+    for(const fam of Object.keys(famTplM417)){
+      const k=famTplM417[fam];
+      for(let lv=1;lv<=4;lv++){
+        for(const w of widths417){
+          const profM=new Array(w).fill(20);
+          const axM=Math.floor(w/2),bandMv=window.__t417BandOf345(+k);
+          window.__t417Reset();window.__t417Feed(k+'_'+lv+'_99',profM,112,{ax:axM,ay:110});
+          const rM2=window.__t417Read();
+          for(let i=0;i<rM2.pos.length;i++){
+            const bbM=BBoxM417[rM2.kinds[i]]||[0,4,4];
+            totalM417++;
+            if(rM2.pos[i]+bbM[1]>w)edgeM417++;
+            if(rM2.pos[i]+bbM[1]>axM-bandMv&&rM2.pos[i]+bbM[0]<axM+bandMv&&(bbM[2]||4)>3)bandM417++;
+            for(let j=i+1;j<rM2.pos.length;j++){
+              const bjM=BBoxM417[rM2.kinds[j]]||[0,4,4];
+              if(rM2.pos[i]+bbM[0]<rM2.pos[j]+bjM[1]&&rM2.pos[j]+bjM[0]<rM2.pos[i]+bbM[1])ovM417++;
+            }
+          }
+        }
+      }
+    }
+    assert(ovM417===0,'T417 掃描矩陣落點：7 族×lv1-4×8 寬 '+totalM417+' 件零重疊（B1 bbox 模型），實得 '+ovM417+' 對');
+    assert(edgeM417===0,'T417 掃描矩陣落點：右緣零越界，實得 '+edgeM417+' 件');
+    assert(bandM417===0,'T417 掃描矩陣落點：徽記帶內高道具零件（B2 帶預佔），實得 '+bandM417+' 件');
   }
   { // T417 維度 7 季節（冬季雪帽交互）：高度表 ≤7px（C2 更正：cap≥12 覆蓋 ≤7px；ant 實碼 7px）＋C5 對帳（regex 從產品碼掃 vs 宣告）
     const H417={ac:3,vent:5,ant:7,tank:5,waterTank:5,clothesline:2,garden:3,solar:2,shed:4,stairbox:5,hvac:4,signFrame:5,billboard:5,parapet:3,helipad:2,helipadH:2,dryingTower:6,schoolTank:5,flagpole:5};
@@ -7624,21 +7676,17 @@ runPwaTests().then(() => {
       const r=window.__t417Read();
       for(const k of r.kinds){if(k==='ind')continue;if(H417[k]===undefined||H417[k]>7)assert(false,'T417 維度7 '+key+' 落筆道具 '+k+' 高度 '+H417[k]+' 須 ≤7px 且在表中');}
     }
-    // C5：從產品碼掃 props 定義的 max y-(\d+) 與 x 跨度，對帳宣告表（手抄漂移→紅）
-    const propsSrc417=html.slice(html.indexOf('const props={'),html.indexOf('};',html.indexOf('const props={'))).replace(/\/\*[\s\S]*?\*\//g,''); // 剝離區塊註解：T417 套件註解夾在道具間，regex 跨不過
+    // C5 對帳（二輪退修 B4：改「執行 props 量真實 bbox」——regex fail-open（誘餌矩形+真美術畫在 y-(2*15) 表達式偏移
+    // 全繞過）；bbox 執行量測為唯一真相，與產品 P417B 宣告逐項對帳，手抄漂移/誘餌→紅）
+    const BBox417=window.__t417BBox();
+    const P417Bdecl417=window.__t417P417B();
     for(const name of Object.keys(H417)){
-      const fnM=propsSrc417.match(new RegExp('(?:^|[,\\{])\\s*'+name+':\\(g,x,y\\)=>\\{([^}]*)\\}'));
-      assert(fnM,'T417 C5 對帳：props 應含 '+name+' 定義');
-      const body=fnM[1];
-      const hs=[...body.matchAll(/y-(\d+)/g)].map(m=>+m[1]);
-      const hMax=hs.length?Math.max(...hs):0;
-      assert(hMax===H417[name],'T417 C5 對帳：'+name+' 宣告高度 '+H417[name]+' 須等於實碼 max y-('+hMax+')（C5 手抄漂移→紅）');
-      const spans=[...body.matchAll(/fillRect\(x([+-]\d+)?,y[+-]\d+,(\d+),/g)].map(m=>{
-        const a=m[1]?+m[1]:0,w=+m[2];return[a,a+w];
-      });
-      if(spans.length){const lo=Math.min(...spans.map(s=>s[0])),hi=Math.max(...spans.map(s=>s[1]));
-        assert(W417c5[name]===Math.max(hi,hi-lo),'T417 C5 對帳：'+name+' 宣告寬度 '+W417c5[name]+' 須等於 max(實碼右緣 '+hi+', 總跨度 '+(hi-lo)+')（落點右緣計算 px+W；vent 左偏 -1 跨度 4/右緣 3、flagpole 左 2px 空白跨度 4/右緣 6——單一度量必誤報）');}
+      assert(BBox417[name],'T417 C5 對帳：props 執行量測應含 '+name+'（fail-closed：無此道具→紅）');
+      const bb=BBox417[name],decl=P417Bdecl417[name];
+      assert(bb[2]===H417[name],'T417 C5 對帳：'+name+' 執行 bbox 高度 '+bb[2]+' 須等於宣告 '+H417[name]+'（誘餌矩形+真美術偏移→bbox 高度被誘餌騙→紅）');
+      assert(JSON.stringify(bb)===JSON.stringify(decl),'T417 C5 對帳：'+name+' 執行 bbox '+JSON.stringify(bb)+' 須等於產品宣告 '+JSON.stringify(decl)+'（P417B 手抄漂移→紅）');
     }
+    const WBox417={};for(const k of Object.keys(BBox417))WBox417[k]=BBox417[k][1]-BBox417[k][0]; // 執行寬度（供維度7 行為側用）
   }
   { // T417 覆蓋擴容：自動清單（B2 漏抄/幽靈鍵從源頭消失）＋M3 鍵集合＋m2/A1 靜態釘
     const bare417=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
@@ -7654,12 +7702,36 @@ runPwaTests().then(() => {
       'T417 多段 G1：多段利用迴圈原文釘（A2 閘後 runsRoof）');
     assert(bare417.includes('const runsRoof=runs.filter'),
       'T417 A2 屋頂閘 G1：段過濾原文釘（基座地台/懸空招牌/雨遮不得當屋頂）');
-    // m2 決定性紅線：stampRoof 烘焙期禁 Date/performance（卡面「零亂數＋決定性」，m2 突變 Date.now()%5 穿透）
-    const srBlock417=bare417.slice(bare417.indexOf('const stampRoof'),bare417.indexOf('const ROOF_K417'));
-    assert(!srBlock417.includes('Date.')&&!srBlock417.includes('performance.'),
-      'T417 m2 靜態釘：stampRoof 體內禁 Date/performance（決定性紅線；Date.now()%5 摻尾巴→紅）');
-    assert(!/s\.h\s*[<>]=?\s*\d/.test(srBlock417)&&!/s\.w\s*[<>]=?\s*\d/.test(srBlock417),
-      'T417 A1 靜態釘：stampRoof 不得以 s.h/s.w 數值比較短路（if(s.h>32)continue 型退化→紅）');
+    // B5 夜燈遮罩（二輪退修）：stampRoof 記 _roofTop417、bakeOne 採樣跳過、maskNight destination-out 補刀——亮窗不得落在屋頂道具上（T261 舊漏光復活→紅）
+    assert(bare417.includes('if(!s._roofTop417)s._roofTop417=new Int16Array(s.w).fill(1e4);'),
+      'T417 B5 靜態釘：stampRoof 落筆須寫入夜燈遮罩 _roofTop417（道具區亮窗→紅）');
+    assert(bare417.includes('if(s._roofTop417&&py>=s._roofTop417[px])continue;'),
+      'T417 B5 靜態釘：bakeOne 採樣須跳過屋頂道具遮罩欄（nightCity 亮點畫在道具上→紅）');
+    assert(bare417.includes('globalCompositeOperation=\'destination-out\';for(let mx=0;mx<s.w;mx++){if(s._roofTop417[mx]<1e4)'),
+      'T417 B5 靜態釘：maskNight 須 destination-out 道具遮罩欄（T261 38px 舊漏光復活→紅）');
+    // B6 冬季雪線（二輪退修）：stampRoof 快取 _roofLine417、snowCap/icicleCap 改用屋面雪線＋道具薄雪——雪線不再被道具頂高破碎
+    assert(bare417.includes('s._roofLine417=roof.slice();'),
+      'T417 B6 靜態釘：stampRoof 須快取屋面雪線 _roofLine417（雪線被道具頂高→紅）');
+    assert(bare417.includes('if(s._roofLine417)top=s._roofLine417[x];'),
+      'T417 B6 靜態釘：snowCap 須以 _roofLine417 當屋面雪線（屋頂道具各自頂雪+旁圈變薄→紅）');
+    assert(bare417.includes('if(s._roofTop417&&s._roofTop417[x]<1e4&&s._roofTop417[x]<top)top=s._roofTop417[x];'),
+      'T417 B6 靜態釘：snowCap 道具欄雪帽起點須上移道具頂（道具補薄雪）');
+    // m2 決定性紅線（二輪退修 B3：取樣區擴到整個 T278/T417 塊——原只切 stampRoof 體內，kh/props/P417B/FAM_KINDS
+    // 全宣告在 stampRoof 之前，FAM_KINDS 池順序摻 Date.now()&1 全綠穿透；現在 const kh= 到 T278 END 全禁）
+    const srBlock417=bare417.slice(bare417.indexOf('const kh=s=>{let h=0'),bare417.indexOf('for(const kk of roofKeys417)stampRoof(kk);')+40);
+    assert(!srBlock417.includes('Math.random')&&!srBlock417.includes('new Date')&&!srBlock417.includes('performance.')&&!srBlock417.includes('Date.now'),
+      'T417 m2 靜態釘：T278/T417 整塊禁 Math.random/new Date/performance（決定性紅線；FAM_KINDS 池順序摻 Date.now()&1→紅）');
+    assert(!/s\.(h|w)\s*(<|>|<=|>=|===|!==|==|!=)\s*[\d.]/.test(srBlock417)&&!/[\d.]+\s*(<|>|<=|>=|===|!==|==|!=)\s*s\.(h|w)/.test(srBlock417)&&!/s\.(h|w)\s*in\b/.test(srBlock417)&&!/Object\.(values|keys|entries)\([^)]*s\.(h|w)/.test(srBlock417),
+      'T417 A1 靜態釘：stampRoof 不得以 s.h/s.w 任何比較或相等式短路（RL-1：原 regex 只認 <>/=——if(s.h!==32&&...) 型等式白名單→紅；含 in/Object.values 間接）');
+    // m2 行為釘（B3）：stub Date.now 兩個相差 1 的值，同一鍵兩次烘焙台帳須逐欄位相同（掛鐘奇偶皆綠=不是碰運氣）
+    const flatM2=(w)=>new Array(w).fill(20); // 塊級作用域：前區塊的 flat417 不可見
+    const dn0=Date.now;
+    Date.now=()=>1234567;
+    window.__t417Reset();window.__t417Feed('1_1_99',flatM2(30));const rD1=JSON.stringify(window.__t417Read());
+    Date.now=()=>1234568;
+    window.__t417Reset();window.__t417Feed('1_1_99',flatM2(30));const rD2=JSON.stringify(window.__t417Read());
+    Date.now=dn0;
+    assert(rD1===rD2,'T417 m2 行為釘：Date.now 相差 1 的兩值同鍵兩烘台帳須相同（選型摻掛鐘→兩次不同→紅），實得 '+rD1+' vs '+rD2);
     // M3 覆蓋鍵集合：含已知真實鍵樣本（含 B2 補的四鍵）＋不含幽靈鍵（B1：11/12/52 無鍵）
     const ck=window.__t417CoveredKeys();
     for(const kk of['1_1_0','1_3_11','2_1_0','3_2_5','6_1_0','6_1_4','7_1_0','7_1_4','8_1_0','28_1_0','28_1_1','28_1_2','28_1_3','28_1_4','30_1_0','30_1_1','30_1_2','33_1_0','34_1_1','42_1_0','48_1_0','61_1_0','105_1_0','106_1_0'])
@@ -7667,12 +7739,55 @@ runPwaTests().then(() => {
     for(const kk of['11_1_0','12_1_0','52_1_0'])
       assert(!ck.includes(kk),'T417 M3 幽靈鍵：'+kk+' 不應在清單（SPR.bld 無此鍵，B1 死美術→紅），實得 '+JSON.stringify(ck));
   }
-  { // T417 開機決定性計數（C7：headless 掛鐘假數字→計數決定性；真實增量四項見卡面）
+  { // T417 開機決定性計數（C7：headless 掛鐘假數字→計數決定性；真實增量四項見卡面；B7 窄帶早停後像素量）
     const bootGID=window.__t417BootGID417|0;
     const bootKeys=window.__t417BootKeys417|0;
+    const bootPx=window.__t417BootPx417|0;
     const ckLen=window.__t417CoveredKeys().length;
     assert(bootKeys===ckLen,'T417 開機計數：開機快照鍵數 '+bootKeys+' == 覆蓋鍵數 '+ckLen+'（同一 roofKeys417 來源）');
-    assert(bootGID===bootKeys,'T417 開機計數：開機 getImageData 呼叫次數 '+bootGID+' == 開機鍵數 '+bootKeys+'（每鍵恰一次全幅讀取，C7 決定性紅線；烘焙退化/提前 return→紅）');
+    assert(bootGID===bootKeys,'T417 開機計數：開機 getImageData 呼叫次數 '+bootGID+' == 開機鍵數 '+bootKeys+'（每鍵恰一次窄帶讀取，C7 決定性紅線；烘焙退化/提前 return→紅）');
+    assert(bootPx>=900000&&bootPx<=1150000,'T417 開機計數：開機像素量 '+bootPx+'（scanH=min(h,64) 窄帶實得 1,022,976 vs master 全幅 996,032 = +2.7%；退化全幅 1,949,424→紅），C7 紅線「掃描像素訪問 ≤+50%」保住');
+  }
+  { // T417 二輪退修 A1 真實鍵行為釘（RL-1/RL-3/RL-4 一次封死）：真實鍵（v<12）真尺寸真 ax/ay 換量畫布必落筆——
+    // key 判別（v<12 return）、h 白名單（!== 型）、ay 白名單（!==110 型）短路在真實鍵路徑全紅；
+    // 尾端還原 img（RL-3 修法）；族別可達性（每族至少一真實鍵落筆，42_1_0 不再死美術）
+    const realKeys417=window.__t417CoveredKeys().filter(kk=>(+kk.split('_')[2]||0)<12);
+    assert(realKeys417.length>=10,'T417 A1 真實鍵樣本：覆蓋清單真實鍵（v<12）≥10 個，實得 '+realKeys417.length);
+    const realFam417={'1':'R','2':'C','3':'I(T288)','6':'F','7':'S','8':'W','42':'M','48':'H','28':'H','61':'F'};
+    for(const[prefix,fam]of Object.entries(realFam417)){
+      const key=realKeys417.find(kk=>kk.startsWith(prefix+'_'));
+      assert(key,'T417 A1 真實鍵釘：'+fam+' 族（k'+prefix+'）應有真實鍵樣本（v<12）');
+      window.__t417Reset();
+      window.__t417FeedReal(key);
+      const r=window.__t417Read();
+      assert(r.n>=1&&r.keys[key]>=1,'T417 A1 真實鍵釘 '+fam+'：'+key+'（真實鍵 v<12、真尺寸真 ax/ay）換量畫布必落筆（RL-1 key/h/ay 判別短路在此路徑紅），實得 '+JSON.stringify(r));
+    }
+  }
+  { // T417 二輪退修 A2：T288 工業組鍵數恰等 36 且每鍵必落筆（isInd 移閘前——上輪閘誤殺 8 工業鍵 36→28、3_1_1 紅白煙囪消失的回歸釘）
+    const indKeys417=window.__t417IndKeys();
+    assert(indKeys417.length===36,'T417 T288 工業鍵數：k3 在 SPR.bld 的鍵數應恰 36（master/R1 真實 Chrome 基準；閘誤殺 T288→少→紅），實得 '+indKeys417.length);
+    for(const key of indKeys417){
+      window.__t417Reset();
+      window.__t417FeedReal(key);
+      const r=window.__t417Read();
+      assert(r.n>=1,'T417 T288 每鍵必落筆：'+key+'（isInd 分支在屋頂閘前；閘擋 T288→零落筆→紅），實得 '+JSON.stringify(r));
+    }
+  }
+  { // T417 二輪退修 A2：族別可達性——每族至少一真實鍵落筆＋專屬道具在真實鍵集落筆 ≥1（42_1_0 零落筆→flagpole 死美術的回歸釘）
+    const realKeys417=window.__t417CoveredKeys().filter(kk=>(+kk.split('_')[2]||0)<12);
+    const exclReal417={'R':['waterTank','clothesline','garden','solar','shed','stairbox'],'C':['hvac','signFrame','billboard','parapet','helipad'],'H':['helipadH'],'F':['dryingTower'],'S':['schoolTank'],'M':['flagpole'],'W':[]};
+    const famHitReal417={};
+    for(const key of realKeys417){
+      window.__t417Reset();
+      window.__t417FeedReal(key);
+      const r=window.__t417Read();
+      const fam=window.__t417Fam(key);
+      if(r.n>=1){famHitReal417[fam]=true;for(const k of r.kinds){const i=(exclReal417[fam]||[]).indexOf(k);if(i>=0)exclReal417[fam].splice(i,1);}}
+    }
+    for(const fam of Object.keys(exclReal417)){
+      assert(famHitReal417[fam],'T417 族別可達性 '+fam+'：至少一真實鍵（v<12）落筆（死美術→紅），實得 '+JSON.stringify(famHitReal417));
+      assert(!(exclReal417[fam]||[]).length,'T417 族別可達性 '+fam+'：專屬道具 '+JSON.stringify(exclReal417[fam])+' 應在真實鍵集落筆 ≥1（上輪 P 族同型死美術→紅）');
+    }
   }
   { // G4 行為 NaN 案（覆核 B1 補洞的行為證明）：setSpeed(NaN) 須落地為 0＝凍結，而非極速衝刺清案
     window.GV.newWorldSeeded(424);window.GV.weather(0);
