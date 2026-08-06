@@ -5052,8 +5052,17 @@ runPwaTests().then(() => {
       'T418 視覺釘：lifeShips 貨輪生成上限必須綁 shipCount（tick→draw 單向讀，不新增 vri 呼叫點）');
     assert(bare418.includes('if(shipCount>0)data.shipCount=shipCount;'),
       'T418 存檔釘：shipCount 僅非零落盤（T364b fuel364 慣例，既有城市 bytes 不變）');
-    assert(!/R\s*\(|ri\s*\(|Math\.random/.test(bare418.slice(bare418.indexOf('T418 深加工閉環：fuel 流化/鋼加速/船實體'),bare418.indexOf('upCost364:(k,lv)=>upCost(k,lv)}'))),
-      'T418 新機制區塊不得消耗共用亂數（零亂數紅線）');
+    // T418 覆核退修：零亂數守衛縮到三段掛點精確切片（原切片從常量區到 chain346 涵蓋大量既有亂數＝假紅風險），
+    // 且 \b 以 JS 字面量書寫（原 python 轉義寫成 U+0008 退格字元＝永不匹配假綠）
+    const noR418=(seg)=>!/\bR\s*\(|\bri\s*\(|Math\.random/.test(seg);
+    assert(noR418(html.slice(html.indexOf('T418 交付①：貨運中心'),html.indexOf('T364b A 深加工鏈 END'))),
+      'T418 零亂數（段1 深加工鏈/fuel 流化/船兌換）：注入 R() 必紅');
+    assert(noR418(html.slice(html.indexOf('T418 交付②：鋼材→建造加速'),html.indexOf('cap418--;')+8)),
+      'T418 零亂數（段2 鋼加速）：注入 R() 必紅');
+    assert(noR418(html.slice(html.indexOf('cargo:Math.min(2,hubs.cargo.length,shipCount)'),html.indexOf('}; // T418：貨輪生成上限綁 shipCount')+40)),
+      'T418 零亂數（段3 lifeShips want 行）：注入 R() 必紅');
+    assert(noR418(html.slice(html.indexOf('fuelExport418=tp336>0'),html.indexOf('const fuelExportGold418=fuelExport418>0')+45)),
+      'T418 零亂數（段4 fuel 出口）：注入 R() 必紅');
   }
   {
     // ① fuel 流化：無貨運惰性 → 有貨運耗油＋供油率乘數 → 有貿易站盈餘出口；cap 時 fuelMade=0 語義不破
@@ -5085,14 +5094,16 @@ runPwaTests().then(() => {
     for(let d=0;d<3;d++)window.GV.step(1);
     c418=window.GV.chain346();
     assert(c418.fuelExport>0&&c418.fuelExport<=4,'T418 盈餘經貿易站出口（≤4/日），實得 '+c418.fuelExport);
-    // cap 語義：無貨運無貿易站長期積累頂 cap 後 fuelMade=0（既有語義不破）
+    // cap 語義：真蓋油井＋煉油廠（覆核：原案漏蓋油井 fuel 恆 0 假綠）——無貨運無貿易站 60 天精確頂 cap=120 後 fuelMade=0
     window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
-    const oil2=null,rf2=findSpot('refinery');
+    let oilCap=null;for(let y=2;y<window.GV.N()-2&&!oilCap;y++)for(let x=2;x<window.GV.N()-2;x++){const t=tile(x,y);if(t&&!t.bld&&(t.t===1||t.t===2)&&window.GV.resourceAt(x,y)===1){oilCap={x,y};break;}}
+    assert(oilCap&&place('oilwell',oilCap.x,oilCap.y),'T418 cap 案應可建油井（覆核：漏蓋油井=假綠）');
+    const rf2=findSpot('refinery');
     assert(rf2&&place('refinery',rf2.x,rf2.y),'T418 cap 案應可建煉油廠');
     for(let d=0;d<60;d++)window.GV.step(1);
     const cCap=window.GV.chain346();
-    assert(cCap.fuel<=120&&cCap.fuelMade===0&&cCap.fuelUse===0,
-      'T418 cap 語義：無貨運無貿易站 fuel 頂 120 後 fuelMade=0（既有語義不破），實得 fuel='+cCap.fuel+' made='+cCap.fuelMade);
+    assert(cCap.fuel===120&&cCap.fuelMade===0&&cCap.fuelUse===0,
+      'T418 cap 語義：有油井無貨運無貿易站 fuel 精確 ===120 後 fuelMade=0（既有語義不破），實得 fuel='+cCap.fuel+' made='+cCap.fuelMade);
   }
   {
     // ② 鋼材→建造加速：無鋼 9 天基準 → 有鋼額外 +1/日 → 上限=steelMade 真的上限 → tickBld 序決定性搶鋼
@@ -5119,8 +5130,9 @@ runPwaTests().then(() => {
     assert(sm418&&place('steelMill',sm418.x,sm418.y),'T418 應可建鋼鐵廠');
     for(let d=0;d<3;d++)window.GV.step(1);
     const ages418=bldPos418.map(([x,y])=>{const bb=tile(x,y).bld;return bb?bb.age:-1;});
-    assert(ages418[0]>=ages418[5]&&ages418[0]>agesBase[0]&&ages418[5]>=agesBase[5]&&ages418.every(a=>Number.isInteger(a)),
-      'T418 鋼加速：tickBld 序先到先吃（第一棟 age 最大）且全體不低於無鋼基準且恆整數（坑②），實得 '+ages418.join(','));
+    // T418 覆核退修：正向 delta——有鋼 3 天增量必須 > 主循環 3（刪掉加速核心 b.age++ 必紅，原「>agesBase」被主循環自身增長掩蓋）
+    assert(ages418[0]-agesBase[0]>3&&ages418[0]>=ages418[5]&&ages418[5]>=agesBase[5]&&ages418.every(a=>Number.isInteger(a)),
+      'T418 鋼加速：正向 delta（有鋼 3 天增量 '+(ages418[0]-agesBase[0])+' > 主循環 3）＋tickBld 序先到先吃＋恆整數（坑②），實得 '+ages418.join(','));
   }
   {
     // ②b 上限真的是上限（受控空城 seed7 無 AI 干擾）：1 礦+1 廠+8 公園——單 tick 內加速棟數 ≤ 當日 steelMade
@@ -5181,16 +5193,60 @@ runPwaTests().then(() => {
     assert(cB.shipCount<=2,'T418 上限真的是上限：1 港口=2 船，實得 '+cB.shipCount);
     assert(isFinite(cB.shipProgress)&&isFinite(cB.shipDaily)&&isFinite(cB.fuelUse)&&isFinite(cB.fuelExport),
       'T418 chain346 擴欄不得出現 NaN/Infinity');
-    const cB4=cB.shipCount;
+    const cB4=cB.shipCount,pB4=cB.shipProgress;
     window.GV.save();assert(window.GV.load(),'T418 含船狀態存檔應可讀回');
     const cBrt=window.GV.chain346();
-    assert(cBrt.shipCount===cB4,'T418 存讀往返恆等：shipCount 保存後應逐字一致（實得 '+cBrt.shipCount+' vs '+cB4+'）');
+    assert(cBrt.shipCount===cB4&&cBrt.shipProgress===pB4,
+      'T418 存讀往返恆等：shipCount/shipProgress 保存後應逐字一致（實得 '+cBrt.shipCount+'/'+cBrt.shipProgress+' vs '+cB4+'/'+pB4+'）');
+    // T418 覆核退修：舊檔剝欄容錯——手動剝 shipCount/shipProgress 欄 → load → 0（T412 慣例）
+    window.GV.save();
+    const rawS=window.GV.rawSave?window.GV.rawSave():store[SKEY];
+    const dSt=window.GV.inflateSave(rawS);
+    delete dSt.shipCount;delete dSt.shipProgress;
+    store[SKEY]=JSON.stringify(dSt);
+    assert(window.GV.load(),'T418 舊檔剝欄 load 應成功');
+    const cSt=window.GV.chain346();
+    assert(cSt.shipCount===0&&cSt.shipProgress===0,'T418 舊檔剝欄：缺 shipCount/shipProgress 欄位→0（實得 '+cSt.shipCount+'/'+cSt.shipProgress+'）');
     window.GV.step(1); // load 後首 tick 重建 flowStat384 快照
     const fs418=window.GV.flowStat();
     assert(isFinite(fs418.ship.count)&&isFinite(fs418.ship.progress)&&isFinite(fs418.fuel.use)&&isFinite(fs418.fuel.export),
       'T418 面板 flowStat 擴欄不得出現 NaN/Infinity/undefined，實得 '+JSON.stringify({sc:fs418.ship&&fs418.ship.count,sp:fs418.ship&&fs418.ship.progress,fu:fs418.fuel&&fs418.fuel.use}));
   }
 
+
+  { // T418 覆核退修：①船完整兌換行為案（同日 60 鋼→2 艘＋進度 0，單次兌換破壞必紅）②load 每日快照歸零案
+    window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
+    let oreR=null;for(let y=2;y<window.GV.N()-2&&!oreR;y++)for(let x=2;x<window.GV.N()-2;x++){const t=tile(x,y);if(t&&!t.bld&&t.t===2&&window.GV.resourceAt(x,y)===2){oreR={x,y};break;}}
+    assert(oreR&&place('mine',oreR.x,oreR.y),'T418 兌換案應可建礦場');
+    const smR=findSpot('steelMill');assert(smR&&place('steelMill',smR.x,smR.y),'T418 兌換案應可建鋼鐵廠');
+    const syR1=findSpot('shipyard');assert(syR1&&place('shipyard',syR1.x,syR1.y),'T418 兌換案應可建第一座船廠');
+    const syR2=findSpot('shipyard');assert(syR2&&place('shipyard',syR2.x,syR2.y),'T418 兌換案應可建第二座船廠');
+    const ptR=findSpot('port');assert(ptR&&place('port',ptR.x,ptR.y),'T418 兌換案應可建港口');
+    for(let d=0;d<5;d++)window.GV.step(1); // 鋼庫存累積
+    window.GV.save();
+    const rawR=window.GV.rawSave?window.GV.rawSave():store[SKEY];
+    const dR=window.GV.inflateSave(rawR);
+    dR.shipProgress=58;dR.steel364=100; // 注入：進度 58＋庫存 100 → 2 船廠當日耗 2 鋼 → 58+2=60 → 完整兌換 2 艘＋進度 0
+    store[SKEY]=JSON.stringify(dR);
+    assert(window.GV.load(),'T418 兌換案注入 load 應成功');
+    const cPreR=window.GV.chain346();
+    const c0=cPreR.shipCount;
+    window.GV.step(1);
+    const cR=window.GV.chain346();
+    assert(cR.shipCount-c0===2&&cR.shipProgress===0,
+      'T418 船完整兌換：同日 60 鋼=2 艘＋進度 0（單次兌換破壞→1 艘＋30→紅），實得 +'+(cR.shipCount-c0)+' 艘 progress='+cR.shipProgress);
+    // ② load 歸零：有船城市（shipDaily=12）存檔 → newWorld 空城 → load → 未 tick 時 shipDaily/fuelUse/fuelExport 必須 0（覆核阻塞點）
+    const cD=window.GV.chain346();
+    assert(cD.shipDaily===12,'T418 歸零案前置：1 港 2 船 shipDaily 應為 12，實得 '+cD.shipDaily);
+    window.GV.save();
+    const rawD=window.GV.rawSave?window.GV.rawSave():store[SKEY];
+    window.GV.newWorldSeeded(7); window.GV.setDiff(3);
+    store[SKEY]=rawD;
+    assert(window.GV.load(),'T418 歸零案 load 應成功');
+    const cZ=window.GV.chain346();
+    assert(cZ.shipDaily===0&&cZ.fuelUse===0&&cZ.fuelExport===0,
+      'T418 load 每日快照歸零：有船城市載入後未 tick shipDaily/fuelUse/fuelExport 必須 0（實得 '+cZ.shipDaily+'/'+cZ.fuelUse+'/'+cZ.fuelExport+'）');
+  }
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');

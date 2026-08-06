@@ -11989,7 +11989,7 @@ function tick(){
   let owN=0,mnN=0,mgN=0,indBldN=0,suppliesGain=0; // T140：owN油井/mnN礦場/mgN太空研究中心（root）計數；indBldN=工業建築計數（供資源消耗鏈用，獨立於既有 nI/jobsI，不限電力）；suppliesGain=本日開採彙總
   /* T364b：全是本 tick 的可觀測流量；庫存 fuel/steel 才跨日。 */
   let refineryN=0,steelMillN=0,shipyardN=0,oilGain=0,oreGain=0;
-  fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0;shipDailyGold418=0;
+  fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0;shipDailyGold418=0;fuelUse418=0;fuelExport418=0; // T418：本日快照 load 成對歸零（覆核：從有船城市載入空城未 tick 時 shipDaily/fuelUse/fuelExport 不得殘留）
   let happyAggSum=null; // T111：幸福構成累加器（沿用既有 happySum/happyN 迴圈，逐建築累加各項後於迴圈尾除以 happyN）
   let court364=0,tennis364=0,play364=0,socialHousing364=0,substation364=0,desal364=0,pump364=0,center364=0,shelter364=0,radar364=0;
   const grown=[];
@@ -12232,8 +12232,8 @@ function tick(){
   freightTaxMul=1+(FUEL_FREIGHT_TAX_MUL-1)*(frt342>0?fuelUse418/(frt342*FREIGHT_FUEL_USE):0);
   /* T418 交付③：船變實體——steelUsed 累積→shipProgress，滿 SHIP_STEEL→shipCount+1（上限=港口×2，無港不造）；
      shipCount/shipProgress 跨日入存檔；每日貿易收入 shipDailyGold418 併入 income（與 shipTradeTaxMul 並存）。 */
-  if(steelUsed>0&&po>0){shipProgress+=steelUsed;if(shipProgress>=SHIP_STEEL){shipProgress-=SHIP_STEEL;shipCount++;}}
-  if(shipCount>po*SHIP_PORT_CAP)shipCount=po*SHIP_PORT_CAP;
+  if(steelUsed>0&&po>0){shipProgress+=steelUsed;if(shipProgress>=SHIP_STEEL){shipCount+=Math.floor(shipProgress/SHIP_STEEL);shipProgress%=SHIP_STEEL;}} // T418 覆核退修：每 30 鋼完整兌換（70 鋼=2 艘＋進度 10，而非 1 艘＋40）；progress 恆 <30
+  if(shipCount>po*SHIP_PORT_CAP)shipCount=po*SHIP_PORT_CAP; // 上限截斷（多餘船丟棄；progress 已餘 <30 不受影響）
   shipDailyGold418=shipCount*SHIP_DAILY_GOLD;
   fuelTaxMul=fuel>0?FUEL_INDUSTRY_TAX_MUL:1;
   steelTaxMul=steel>0?STEEL_INDUSTRY_TAX_MUL:1;
