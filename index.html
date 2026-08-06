@@ -9546,6 +9546,31 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     window.__t413BakeCount=bakeCount413; /* 測試：總烘焙命中 */
     window.__t413BakeByKind=bakeByKind413; /* T413b 第三輪 B5：分族計數（跳過 P/H/F/D 會讓該族=0 紅） */
   }else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}
+  /* ===== T419 ART-LOOP R01 pass：k25 太陽能板場 靜態加蓋（白名單 ART_LOOP_KEYS=['25_1_0']）=====
+     原問題：z2 上 25_1_0 是「灰底＋8 條藍板」——與工廠灰頂難區分、無板陣結構感。
+     z2 可見目標：光伏板陣列結構（板間分割暗縫＋板面反光高光＋板下厚度陰影＋支架斜撐＋
+     兩側圍欄＋變電箱黃警示）＝「材質／用途辨識」層次。日間靜態像素、零亂數、
+     不改 w/h/ax/ay/sc/night/metadata；色票由既有家族（#3a4a6a/#5a7aaa/#8a9a7a）衍生。 ===== */
+  {const sp419=SPR.bld['25_1_0'];if(sp419&&sp419.img){
+    window.__t419Drawn=(window.__t419Drawn||[]);window.__t419Drawn.push('25_1_0'); // T419 機器軌橋：白名單落筆記錄（headless 無真像素，以 drawn 集合代 CRC 差分；真實 CRC 於瀏覽器端覆核）
+    const g419=sp419.img.getContext('2d');
+    g419.fillStyle='#2c3852'; // 板間分割暗縫（既有板距 2px 內補 1px 縫）
+    for(let i=1;i<8;i++)g419.fillRect(sp419.ax-26+i*7-1,sp419.ay-40,1,24);
+    g419.fillStyle='#7a9ac4'; // 板面反光高光（左上緣 1px 亮線＝光伏斜射反光）
+    for(let i=0;i<8;i++){g419.fillRect(sp419.ax-26+i*7,sp419.ay-40,5,1);g419.fillRect(sp419.ax-26+i*7,sp419.ay-40,1,20);}
+    g419.fillStyle='#2c3852'; // 板下緣厚度陰影
+    g419.fillRect(sp419.ax-28,sp419.ay-16,52,2);
+    g419.fillStyle='#5a5a52'; // 支架斜撐（3 組：立柱＋斜柱）
+    for(let i=0;i<3;i++){const sx=sp419.ax-24+i*24;g419.fillRect(sx,sp419.ay-14,1,12);g419.fillRect(sx+6,sp419.ay-12,1,10);}
+    g419.fillStyle='#6a6a5a'; // 兩側圍欄（立柱＋橫杆）
+    g419.fillRect(sp419.ax-31,sp419.ay-40,1,26);g419.fillRect(sp419.ax+30,sp419.ay-40,1,26);
+    g419.fillRect(sp419.ax-31,sp419.ay-37,62,1);
+    g419.fillStyle='#4a4a42'; // 變電箱（左前/右前小箱）
+    g419.fillRect(sp419.ax-24,sp419.ay-12,5,8);g419.fillRect(sp419.ax+18,sp419.ay-12,5,8);
+    g419.fillStyle='#e8b830'; // 黃警示
+    g419.fillRect(sp419.ax-23,sp419.ay-9,3,2);g419.fillRect(sp419.ax+19,sp419.ay-9,3,2);
+  }}
+  /* ===== T419 ART-LOOP R01 pass END ===== */
 
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
