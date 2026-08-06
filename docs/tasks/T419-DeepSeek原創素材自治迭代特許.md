@@ -139,6 +139,15 @@ DeepSeek 不得自行跑這條命令、不得自行 `--publish`。合併與部�
 | R00 | 當前 master 清冊（`docs/tasks/T419-R00-manifest.json`） | 不施工 | 套件 PASS 4273／兩釘 4153/4550／verify ALL GREEN | index.html 1,843,518 B（1.76 MiB，<2.5 MiB 黃線）；PWA shell sw.js 3881/manifest 748/icon 581-1688；atlas entries 1374／families 116／skipped 37；persistent canvas 1781 張／18,487,119 px（<33M／<2800）；buildSprites 5× p50 165ms／max 274ms；固定城 saveSize 11,799 | d1f2865 |
 
 R00 附註：img/night 逐鍵 CRC 於 Node mock 無真實像素——需真實瀏覽器 atlas.html 匯出，記為**未驗證**（覆核端採樣）；sprFootAudit headless smoke ok（真實像素於瀏覽器端）。
+| R02 | k26 風力塔架（`ART_LOOP_KEYS=['26_1_0','26_1_1','26_1_2']`）：原問題=z2 上「細塔柱＋兩小葉片」結構弱；加蓋=桁架橫撐 3 條＋塔身右側暗＋基座墩＋輪轂葉根（日間靜態像素，色票由 #b0b8c0/#d0d8e0 衍生） | z2 發電設施結構感（風力塔桁架） | 套件 PASS 4278→**4283**（+5 R02 守衛）/verify ALL GREEN/兩釘恆等；drawnR2 集合恰等白名單；metadata 恒等（w64/h112/ax32/ay110）；破壞性三案全紅（拿掉 R02/改錯 key 27_1_x/亂數 token R()）＋尺寸案同型（R01 cv 破壞已紅，R02 metadata 斷言同構——headless atlas w 源於 canvas width，SPR 賦值 w 非源，已註明） | index.html +30 行；26 三鍵加蓋約 +300 px | 待 commit |
 | R01 | k25 太陽能板場（`ART_LOOP_KEYS=['25_1_0']`）：原問題=z2 上「灰底＋8 條藍板」與工廠灰頂難區分；加蓋=板間分割暗縫＋板面反光高光＋板下厚度陰影＋支架斜撐 3 組＋兩側圍欄＋變電箱黃警示（日間靜態像素，色票由 #3a4a6a/#5a7aaa/#8a9a7a 衍生） | z2 板陣結構感／用途辨識（光伏＝發電設施） | 套件 PASS 4273→**4278**（+5 T419 守衛）/verify ALL GREEN/兩釘 4153/4550；drawn 集合恰等白名單；metadata 恒等（w136/h150/ax68/ay148/有 night 鍵）；破壞性四案全紅（拿掉 pass/改錯 key 24_1_0/亂數 token R()/真尺寸 cv140） | index.html +44 行（pass 區塊）；canvas 總像素 18,487,119+（25_1_0 加蓋約 +1,600 px）；buildSprites 未重測（本輪 pass 為填充式，同機成本差 <1% 待覆核重測） | 待 commit |
 
 R01 附註：樣張 after 已拍（`%TEMP%/t419_r01_25_1_0.png`，atlas 篩選 25_1_0 日間）；**before 未拍**（R00 階段遺漏，卡面第 6 節「先截 before」——覆核者可用 master 版本對比）；非白名單 bld/* CRC 恒等於瀏覽器端覆核（headless 無真像素）。
+
+## ART-RUN-01 收束
+
+- 完成：ART-R00（盤點）＋ART-R01（k25 太陽能）＋ART-R02（k26 風力）——三筆獨立 commit（45ce6b5/0762de8/本筆 release tail）。
+- **STOP: AWAIT_REVIEW（ART-RUN-01 兩輪完成，按卡面第 7 節停給非作者覆核）**。
+- release tail：bump v11.45（GAME_VER/APP_VER 同步）＋ARCH（20,232 行/PASS 4283）＋CHANGELOG（驗收:未驗證，無「待」字）。
+- 樣張：%TEMP%/t419_r01_25_1_0.png、t419_r02_26_1_0.png（after；before 未拍已入帳）。
+- 覆核後若業主未結束本卡，下一 ART-RUN 從新 master 重新起算六小時。

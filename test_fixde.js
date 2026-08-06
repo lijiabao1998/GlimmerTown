@@ -5374,9 +5374,9 @@ runPwaTests().then(() => {
     const iBake419=html.lastIndexOf('__t413BakeByKind',iB419);
     assert(iB419>0&&iE419>iB419&&iBake419>0&&iBake419<iB419&&iR419>iE419,
       'T419 R01 pass 須位於 T413b 烘焙完整結束後、R=__savedR 之前（卡面第 2 節）');
-    // ② pass 區塊零亂數＋禁基元（精確切片， 字面量）
+    // ② pass 區塊零亂數＋禁基元（精確切片，\b 字面量）
     const seg419=html.slice(iB419,iE419);
-    assert(!/R\s*\(|ri\s*\(|Math\.random|spriteTexRand|speck|plate|windows|dia|isoBox|outlineSprite/.test(seg419),
+    assert(!/\bR\s*\(|\bri\s*\(|Math\.random|spriteTexRand|\bspeck\b|\bplate\b|\bwindows\b|\bdia\b|\bisoBox\b|\boutlineSprite\b/.test(seg419),
       'T419 R01 pass 不得消耗亂數／禁基元（卡面第 4 節）');
     // ③ 白名單機器軌：drawn 集合恰等 ART_LOOP_KEYS=['25_1_0']（headless 以 drawn 橋代 CRC 差分）
     const drawn419=(window.__t419Drawn||[]).slice();
@@ -5389,6 +5389,26 @@ runPwaTests().then(() => {
     // ⑤ pass 只改日間 img（不碰 night 烘焙路徑：R01 無 night 鍵）
     const seg419code=seg419.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
     assert(!seg419code.includes('night'),'T419 R01 pass 正文不得碰 night/nightCity（卡面第 3 節；註釋可說明禁區）');
+  }
+
+  { // ===== T419 ART-LOOP R02 守衛（k26 風力塔架；獨立 drawnR2 橋不擾 R01） =====
+    const iB2=html.indexOf('/* ===== T419 ART-LOOP R02 pass');
+    const iE2=html.indexOf('T419 ART-LOOP R02 pass END');
+    const iR2=html.indexOf('R=__savedR;',iB2);
+    const iR1end=html.indexOf('T419 ART-LOOP R01 pass END');
+    assert(iB2>0&&iE2>iB2&&iR1end>0&&iR1end<iB2&&iR2>iE2,
+      'T419 R02 pass 須位於 R01 END 之後、R=__savedR 之前（卡面第 2 節）');
+    const segR2=html.slice(iB2,iE2);
+    assert(!/\bR\s*\(|\bri\s*\(|Math\.random|spriteTexRand|\bspeck\b|\bplate\b|\bwindows\b|\bdia\b|\bisoBox\b|\boutlineSprite\b/.test(segR2),
+      'T419 R02 pass 不得消耗亂數／禁基元（卡面第 4 節）');
+    const drawnR2=(window.__t419DrawnR2||[]).slice();
+    assert(JSON.stringify(drawnR2)===JSON.stringify(['26_1_0','26_1_1','26_1_2']),
+      'T419 R02 白名單：pass 只可落筆 26_1_0/1/2，實得 '+JSON.stringify(drawnR2));
+    const sp26=window.GV.sprAtlas356().entries.find(e=>e.key==='26_1_0');
+    assert(sp26&&sp26.w===64&&sp26.h===112&&sp26.ax===32&&sp26.ay===110,
+      'T419 R02 metadata 恆等：26_1_0 對齊 R00 manifest（w64/h112/ax32/ay110）');
+    const segR2code=segR2.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(!segR2code.includes('night'),'T419 R02 pass 正文不得碰 night/nightCity（卡面第 3 節）');
   }
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
