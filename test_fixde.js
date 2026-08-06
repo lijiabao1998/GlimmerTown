@@ -5235,17 +5235,27 @@ runPwaTests().then(() => {
     const cR=window.GV.chain346();
     assert(cR.shipCount-c0===2&&cR.shipProgress===0,
       'T418 船完整兌換：同日 60 鋼=2 艘＋進度 0（單次兌換破壞→1 艘＋30→紅），實得 +'+(cR.shipCount-c0)+' 艘 progress='+cR.shipProgress);
-    // ② load 歸零：有船城市（shipDaily=12）存檔 → newWorld 空城 → load → 未 tick 時 shipDaily/fuelUse/fuelExport 必須 0（覆核阻塞點）
+    // ② load 歸零（T418 二輪覆核：原案先 newWorld 由它先行清零=假綠）——
+    //    A 城跑出非零快照（shipDaily=12）→ 不經 newWorld 直接 load B 存檔 → 未 tick 三欄皆 0
+    //    先造 B 城空存檔（rawB），再回 A 城狀態直接 load rawB：shipDaily 殘留 12 若未在 load() 歸零即紅
+    window.GV.newWorldSeeded(7); window.GV.setDiff(3);
+    window.GV.step(1);
+    window.GV.save();
+    const rawB=window.GV.rawSave?window.GV.rawSave():store[SKEY];
+    window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
+    let oreD=null;for(let y=2;y<window.GV.N()-2&&!oreD;y++)for(let x=2;x<window.GV.N()-2;x++){const t=tile(x,y);if(t&&!t.bld&&t.t===2&&window.GV.resourceAt(x,y)===2){oreD={x,y};break;}}
+    place('mine',oreD.x,oreD.y);
+    const smD=findSpot('steelMill');place('steelMill',smD.x,smD.y);
+    const syD=findSpot('shipyard');place('shipyard',syD.x,syD.y);
+    const ptD=findSpot('port');place('port',ptD.x,ptD.y);
+    for(let d=0;d<80;d++)window.GV.step(1);
     const cD=window.GV.chain346();
     assert(cD.shipDaily===12,'T418 歸零案前置：1 港 2 船 shipDaily 應為 12，實得 '+cD.shipDaily);
-    window.GV.save();
-    const rawD=window.GV.rawSave?window.GV.rawSave():store[SKEY];
-    window.GV.newWorldSeeded(7); window.GV.setDiff(3);
-    store[SKEY]=rawD;
-    assert(window.GV.load(),'T418 歸零案 load 應成功');
+    store[SKEY]=rawB;
+    assert(window.GV.load(),'T418 歸零案：不經 newWorld 直接 load B 存檔應成功');
     const cZ=window.GV.chain346();
     assert(cZ.shipDaily===0&&cZ.fuelUse===0&&cZ.fuelExport===0,
-      'T418 load 每日快照歸零：有船城市載入後未 tick shipDaily/fuelUse/fuelExport 必須 0（實得 '+cZ.shipDaily+'/'+cZ.fuelUse+'/'+cZ.fuelExport+'）');
+      'T418 load 每日快照歸零：A 城非零快照直接 load B 存檔後未 tick 三欄必須 0（實得 '+cZ.shipDaily+'/'+cZ.fuelUse+'/'+cZ.fuelExport+'）');
   }
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {

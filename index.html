@@ -19428,6 +19428,7 @@ function load(slot){
     }
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     fuel=(+d.fuel364)||0;steel=(+d.steel364)||0;fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0; // T364b：舊檔缺欄位＝0；本日快照讀檔後待下一 tick 重算
+    fuelUse418=0;fuelExport418=0;shipDailyGold418=0; // T418 覆核退修：load() 讀檔群每日快照三欄明確歸零——不得依賴 newWorld 先行清零（A 城非零快照直接 load B 存檔未 tick 時 shipDaily 殘留案）
     shipCount=(+d.shipCount)||0;shipProgress=(+d.shipProgress)||0; // T418：船跨日狀態舊檔缺欄位＝0（T412 剝欄容錯慣例）
     aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0;gFlow284={gain:0,use:0,mul:1}; // T284：工業品還原（舊檔缺＝0）// T369 退修：流量快照不入存檔，讀檔成對歸零、待下一 tick 重算（與 fuelMade 等本日快照同契約）
     /* T369.1：gWhCap284 不入存檔，不可跨城殘留；亦不可單純歸零（有倉儲城讀檔未 tick 會暫時錯成 60）。
