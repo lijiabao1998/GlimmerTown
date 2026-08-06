@@ -9491,7 +9491,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       const y1=Math.max(y0+4,ay-8);
       for(let py=y0;py<y1;py+=step){
         for(let px=Math.max(2,ax-Math.floor(w*0.38));px<Math.min(w-2,ax+Math.floor(w*0.38));px+=step){
-          if(s._roofTop417&&py>=s._roofTop417[px])continue; // T417 二輪退修 B5：屋頂道具區不點夜燈
+          if(s._roofTop417&&py>=s._roofTop417[px]&&s._roofBot417&&py<=s._roofBot417[px])continue; // T417 五輪退修 A1：只跳過屋頂道具 [top,bottom]，不抹掉其下整面牆燈
           const thr=dens0; // T415：移除 lv3+ 商業 1.35 加成（高樓收斂，繁華感靠商業燈語與霓虹保留）
           if(streetHash(px+seedK,py,4130+seedK)>thr)continue;
           const o=(py*w+px)*4;if((d[o+3]|0)<40)continue;
