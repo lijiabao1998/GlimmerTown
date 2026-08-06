@@ -5366,49 +5366,43 @@ runPwaTests().then(() => {
     assert(ageA418===9&&ageB418===5,'T418a A1 工期兩臂（同種子同日）：有鋼 4 天 age===9（完工）vs 無鋼 age===5（刪 b.age++ 或 cap418 歸零→左臂掉到 5→紅），實得 '+ageA418+'/'+ageB418);
   }
 
-  { // ===== T419 ART-LOOP R01 守衛（k25 太陽能板場） =====
+  { // ===== T419 ART-LOOP 靜態加蓋 pass 守衛（k25 太陽能板場＋k26 風力塔架；單一受管區） =====
     // ① pass 位置契約：T413b 烘焙完整結束後、R=__savedR 之前（卡面第 2 節硬白名單）
-    const iB419=html.indexOf('/* ===== T419 ART-LOOP R01 pass');
-    const iE419=html.indexOf('T419 ART-LOOP R01 pass END');
+    const iB419=html.indexOf('/* ===== T419 ART-LOOP 靜態加蓋 pass');
+    const iE419=html.indexOf('T419 ART-LOOP 靜態加蓋 pass END');
     const iR419=html.indexOf('R=__savedR;',iB419);
     const iBake419=html.lastIndexOf('__t413BakeByKind',iB419);
     assert(iB419>0&&iE419>iB419&&iBake419>0&&iBake419<iB419&&iR419>iE419,
-      'T419 R01 pass 須位於 T413b 烘焙完整結束後、R=__savedR 之前（卡面第 2 節）');
+      'T419 pass 須位於 T413b 烘焙完整結束後、R=__savedR 之前（卡面第 2 節）');
     // ② pass 區塊零亂數＋禁基元（精確切片，\b 字面量）
     const seg419=html.slice(iB419,iE419);
     assert(!/\bR\s*\(|\bri\s*\(|Math\.random|spriteTexRand|\bspeck\b|\bplate\b|\bwindows\b|\bdia\b|\bisoBox\b|\boutlineSprite\b/.test(seg419),
-      'T419 R01 pass 不得消耗亂數／禁基元（卡面第 4 節）');
-    // ③ 白名單機器軌：drawn 集合恰等 ART_LOOP_KEYS=['25_1_0']（headless 以 drawn 橋代 CRC 差分）
+      'T419 pass 不得消耗亂數／禁基元（卡面第 4 節）');
+    // ③ KEY 單源（覆核退修）：lookup 與 drawn 橋必須共用同一 key 變數——
+    //    硬寫 lookup（SPR.bld[\'25_1_0\']）或硬寫 bridge（push(\'25_1_0\')）都紅；
+    //    改錯真正 lookup（如 24_1_0）時 bridge 同源追著變 → drawn 集合偏離白名單 → ③白名單紅
+    assert(/const hk419='25_1_0'/.test(seg419)&&/SPR\.bld\[hk419\]/.test(seg419)&&/\.push\(hk419\)/.test(seg419),
+      'T419 KEY 單源：k25 必須 const hk419→lookup(hk419)→push(hk419) 單源鏈（硬寫任一環即紅）');
+    assert(!/SPR\.bld\[\s*'25_1_0'\]/.test(seg419)&&!/\.push\(\s*'25_1_0'\)/.test(seg419),
+      'T419 KEY 單源：k25 禁硬寫字面量 lookup/bridge（改錯真正 lookup 而保留硬寫 bridge 的假綠通道已關）');
+    assert(/const hk26='26_1_'\s*\+v26/.test(seg419)&&/SPR\.bld\[hk26\]/.test(seg419)&&/\.push\(hk26\)/.test(seg419),
+      'T419 KEY 單源：k26 必須 const hk26→lookup(hk26)→push(hk26) 單源鏈（硬寫任一環即紅）');
+    assert(!/SPR\.bld\[\s*'26_1_'/.test(seg419)&&!/\.push\(\s*'26_1_'/.test(seg419),
+      'T419 KEY 單源：k26 禁硬寫字面量 lookup/bridge（R02 同型假綠通道已關）');
+    // ④ 白名單機器軌：drawn 集合恰等 ART_LOOP_KEYS（headless 以 drawn 橋代 CRC 差分）
     const drawn419=(window.__t419Drawn||[]).slice();
-    assert(JSON.stringify(drawn419)===JSON.stringify(['25_1_0']),
-      'T419 R01 白名單：pass 只可落筆 25_1_0，實得 '+JSON.stringify(drawn419));
-    // ④ metadata 恆等（vs R00 manifest：25_1_0=136×150/ax68/ay148/無 night）
+    assert(JSON.stringify(drawn419)===JSON.stringify(['25_1_0','26_1_0','26_1_1','26_1_2']),
+      'T419 白名單：pass 只可落筆 25_1_0＋26_1_0/1/2，實得 '+JSON.stringify(drawn419));
+    // ⑤ metadata 恆等（vs R00 manifest：25_1_0=136×150/ax68/ay148；26_1_0=64×112/ax32/ay110）
     const sp419=window.GV.sprAtlas356().entries.find(e=>e.key==='25_1_0');
     assert(sp419&&sp419.w===136&&sp419.h===150&&sp419.ax===68&&sp419.ay===148&&sp419.night!==null,
-      'T419 R01 metadata 恆等：25_1_0 對齊 R00 manifest（w136/h150/ax68/ay148/有 night 鍵——8004 重畫版；pass 只畫日間 img）');
-    // ⑤ pass 只改日間 img（不碰 night 烘焙路徑：R01 無 night 鍵）
-    const seg419code=seg419.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
-    assert(!seg419code.includes('night'),'T419 R01 pass 正文不得碰 night/nightCity（卡面第 3 節；註釋可說明禁區）');
-  }
-
-  { // ===== T419 ART-LOOP R02 守衛（k26 風力塔架；獨立 drawnR2 橋不擾 R01） =====
-    const iB2=html.indexOf('/* ===== T419 ART-LOOP R02 pass');
-    const iE2=html.indexOf('T419 ART-LOOP R02 pass END');
-    const iR2=html.indexOf('R=__savedR;',iB2);
-    const iR1end=html.indexOf('T419 ART-LOOP R01 pass END');
-    assert(iB2>0&&iE2>iB2&&iR1end>0&&iR1end<iB2&&iR2>iE2,
-      'T419 R02 pass 須位於 R01 END 之後、R=__savedR 之前（卡面第 2 節）');
-    const segR2=html.slice(iB2,iE2);
-    assert(!/\bR\s*\(|\bri\s*\(|Math\.random|spriteTexRand|\bspeck\b|\bplate\b|\bwindows\b|\bdia\b|\bisoBox\b|\boutlineSprite\b/.test(segR2),
-      'T419 R02 pass 不得消耗亂數／禁基元（卡面第 4 節）');
-    const drawnR2=(window.__t419DrawnR2||[]).slice();
-    assert(JSON.stringify(drawnR2)===JSON.stringify(['26_1_0','26_1_1','26_1_2']),
-      'T419 R02 白名單：pass 只可落筆 26_1_0/1/2，實得 '+JSON.stringify(drawnR2));
+      'T419 k25 metadata 恆等：25_1_0 對齊 R00 manifest（w136/h150/ax68/ay148/有 night 鍵——8004 重畫版；pass 只畫日間 img）');
     const sp26=window.GV.sprAtlas356().entries.find(e=>e.key==='26_1_0');
     assert(sp26&&sp26.w===64&&sp26.h===112&&sp26.ax===32&&sp26.ay===110,
-      'T419 R02 metadata 恆等：26_1_0 對齊 R00 manifest（w64/h112/ax32/ay110）');
-    const segR2code=segR2.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
-    assert(!segR2code.includes('night'),'T419 R02 pass 正文不得碰 night/nightCity（卡面第 3 節）');
+      'T419 k26 metadata 恆等：26_1_0 對齊 R00 manifest（w64/h112/ax32/ay110）');
+    // ⑥ pass 只改日間 img（不碰 night 烘焙路徑：R01 無 night 鍵）
+    const seg419code=seg419.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(!seg419code.includes('night'),'T419 pass 正文不得碰 night/nightCity（卡面第 3 節；註釋可說明禁區）');
   }
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {

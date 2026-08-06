@@ -124,30 +124,37 @@ DeepSeek 不得自行跑這條命令、不得自行 `--publish`。合併與部�
 
 ## 發卡／施工 claim（第 8 節正式流程填寫）
 
-- 發卡 commit：`b62e785`（Codex）
+- 發卡 commit：`b62e785`（Codex，純文件；仍待非作者合併者合入 master——覆核方 P1-①）
 - 施工者：DeepSeek
 - base OID：`95a46b8`（master，T418a 已合併）
 - ART-RUN-01 起算（Asia/Taipei）：2026-08-06 23:35
-- R00 manifest commit：本卡第一筆施工 commit
+- R00 manifest commit：`45ce6b5`（本卡第一筆施工 commit；原帳誤寫 d1f2865 為 amend 前 OID，已修正）
 - 預計白名單（R01）：見 R01 帳本行
-- 目前狀態：已認領；ART-R00 完成
+- 目前狀態：覆核退修整理完成，待二輪覆核（STOP: AWAIT_REVIEW_R2）
 
 ## 每輪帳本
 
 | 輪次 | 目標與鍵 | 可見改善（z2） | 機器／樣張 | 資源值 | commit／狀態 |
 |---|---|---|---|---|---|
-| R00 | 當前 master 清冊（`docs/tasks/T419-R00-manifest.json`） | 不施工 | 套件 PASS 4273／兩釘 4153/4550／verify ALL GREEN | index.html 1,843,518 B（1.76 MiB，<2.5 MiB 黃線）；PWA shell sw.js 3881/manifest 748/icon 581-1688；atlas entries 1374／families 116／skipped 37；persistent canvas 1781 張／18,487,119 px（<33M／<2800）；buildSprites 5× p50 165ms／max 274ms；固定城 saveSize 11,799 | d1f2865 |
+| R00 | 當前 master 清冊（`docs/tasks/T419-R00-manifest.json`） | 不施工 | 套件 PASS 4273／兩釘 4153/4550／verify ALL GREEN | index.html 1,843,518 B（1.76 MiB，<2.5 MiB 黃線）；PWA shell sw.js 3881/manifest 748/icon 581-1688；atlas entries 1374／families 116／skipped 37；persistent canvas 1781 張／18,487,119 px（<33M／<2800）；buildSprites 5× p50 165ms／max 274ms；固定城 saveSize 11,799 | `45ce6b5`（claim＋R00；commit 號已修正） |
 
-R00 附註：img/night 逐鍵 CRC 於 Node mock 無真實像素——需真實瀏覽器 atlas.html 匯出，記為**未驗證**（覆核端採樣）；sprFootAudit headless smoke ok（真實像素於瀏覽器端）。
-| R02 | k26 風力塔架（`ART_LOOP_KEYS=['26_1_0','26_1_1','26_1_2']`）：原問題=z2 上「細塔柱＋兩小葉片」結構弱；加蓋=桁架橫撐 3 條＋塔身右側暗＋基座墩＋輪轂葉根（日間靜態像素，色票由 #b0b8c0/#d0d8e0 衍生） | z2 發電設施結構感（風力塔桁架） | 套件 PASS 4278→**4283**（+5 R02 守衛）/verify ALL GREEN/兩釘恆等；drawnR2 集合恰等白名單；metadata 恒等（w64/h112/ax32/ay110）；破壞性三案全紅（拿掉 R02/改錯 key 27_1_x/亂數 token R()）＋尺寸案同型（R01 cv 破壞已紅，R02 metadata 斷言同構——headless atlas w 源於 canvas width，SPR 賦值 w 非源，已註明） | index.html +30 行；26 三鍵加蓋約 +300 px | 待 commit |
-| R01 | k25 太陽能板場（`ART_LOOP_KEYS=['25_1_0']`）：原問題=z2 上「灰底＋8 條藍板」與工廠灰頂難區分；加蓋=板間分割暗縫＋板面反光高光＋板下厚度陰影＋支架斜撐 3 組＋兩側圍欄＋變電箱黃警示（日間靜態像素，色票由 #3a4a6a/#5a7aaa/#8a9a7a 衍生） | z2 板陣結構感／用途辨識（光伏＝發電設施） | 套件 PASS 4273→**4278**（+5 T419 守衛）/verify ALL GREEN/兩釘 4153/4550；drawn 集合恰等白名單；metadata 恒等（w136/h150/ax68/ay148/有 night 鍵）；破壞性四案全紅（拿掉 pass/改錯 key 24_1_0/亂數 token R()/真尺寸 cv140） | index.html +44 行（pass 區塊）；canvas 總像素 18,487,119+（25_1_0 加蓋約 +1,600 px）；buildSprites 未重測（本輪 pass 為填充式，同機成本差 <1% 待覆核重測） | 待 commit |
+R00 附註：img/night 逐鍵 CRC 已於真實瀏覽器補測完成（覆核退修 P1-②），結論見 `docs/tasks/T419-R00-crc-review.md`：非白名單 1371 鍵 CRC 全數恆等、白名單 4 鍵僅日間 img 變／night 不變。
+| R02 | k26 風力塔架（`ART_LOOP_KEYS=['26_1_0','26_1_1','26_1_2']`）：原問題=z2 上「細塔柱＋兩小葉片」結構弱；加蓋=桁架橫撐 3 條＋塔身右側暗＋基座墩＋輪轂葉根（日間靜態像素，色票由 #b0b8c0/#d0d8e0 衍生） | z2 發電設施結構感（風力塔桁架） | 套件 PASS 4278→**4283**（+5 T419 守衛）/verify ALL GREEN/兩釘恆等；drawn 集合恰等白名單；metadata 恒等（w64/h112/ax32/ay110） | index.html +30 行；26 三鍵加蓋約 +300 px | **已隨 R01 合併為單一受管區**（覆核退修收口：卡面第 2 節只准一個 T419 pass）；commit 見退修帳 |
+| R01 | k25 太陽能板場（`ART_LOOP_KEYS=['25_1_0']`）：原問題=z2 上「灰底＋8 條藍板」與工廠灰頂難區分；加蓋=板間分割暗縫＋板面反光高光＋板下厚度陰影＋支架斜撐 3 組＋兩側圍欄＋變電箱黃警示（日間靜態像素，色票由 #3a4a6a/#5a7aaa/#8a9a7a 衍生） | z2 板陣結構感／用途辨識（光伏＝發電設施） | 套件 PASS 4273→**4283**/verify ALL GREEN/兩釘 4153/4550；drawn 集合恰等白名單（k25＋k26 四鍵）；metadata 恒等（w136/h150/ax68/ay148/有 night 鍵）；破壞性七案全紅（M1-M7 見退修帳） | index.html +44 行（合併後單一受管區 39 行）；canvas 總像素 17,479,505（base/after 同法恆等）；buildSprites 5× p50 104ms／max 156ms（同法重測） | **待 commit**（覆核退修整理後，R02 已併入單一受管區） |
 
 R01 附註：樣張 after 已拍（`%TEMP%/t419_r01_25_1_0.png`，atlas 篩選 25_1_0 日間）；**before 未拍**（R00 階段遺漏，卡面第 6 節「先截 before」——覆核者可用 master 版本對比）；非白名單 bld/* CRC 恒等於瀏覽器端覆核（headless 無真像素）。
 
-## ART-RUN-01 收束
+## ART-RUN-01 收束（原）＋覆核退修整理（2026-08-07）
 
-- 完成：ART-R00（盤點）＋ART-R01（k25 太陽能）＋ART-R02（k26 風力）——三筆獨立 commit（45ce6b5/0762de8/本筆 release tail）。
-- **STOP: AWAIT_REVIEW（ART-RUN-01 兩輪完成，按卡面第 7 節停給非作者覆核）**。
-- release tail：bump v11.45（GAME_VER/APP_VER 同步）＋ARCH（20,232 行/PASS 4283）＋CHANGELOG（驗收:未驗證，無「待」字）。
-- 樣張：%TEMP%/t419_r01_25_1_0.png、t419_r02_26_1_0.png（after；before 未拍已入帳）。
-- 覆核後若業主未結束本卡，下一 ART-RUN 從新 master 重新起算六小時。
+原收束：完成 ART-R00（盤點）＋ART-R01（k25 太陽能）＋ART-R02（k26 風力）——45ce6b5/0762de8/release tail；STOP: AWAIT_REVIEW。覆核方四 P1＋三收口，以下為退修整理：
+
+**P1-① 發卡鏈**：b62e785（純文件發卡）仍只在 bay/codex——由非作者合併者先行合入 master，DeepSeek 再以新 master 重整分支。本批次不直接跑 `merge_bay.py deepseek --deploy`。
+**P1-② R00 CRC 補全**：真實瀏覽器逐鍵 CRC/足印比對完成，結論入 `docs/tasks/T419-R00-crc-review.md`（非白名單 1371 鍵全數恆等；白名單 4 鍵僅日間 img 變）。
+**P1-③ 白名單守衛假綠修復**：drawn 橋改為與實際 lookup key 同源（`const hk419/hk26` 單源鏈：lookup→push 同一變數）；守衛新增「KEY 單源」四斷言（單源鏈存在＋禁硬寫字面量 lookup/bridge）。破壞性七案全紅（M1-M7：改錯 k25/k26 真正 lookup、改常數值、硬寫 bridge、拿掉 pass——每案首行 FAIL 逐字匹配）。
+**P1-④ 硬容量驗收**：buildSprites 5× 同法重測（after p50 104ms/max 156ms vs base p50 102ms/max 151ms，增量 <5%）；容量帳（canvas 1202 張/17,479,505 px、atlas 1374/116/37、bytes 1,846,704 全數 base/after 恆等）；固定城三配方 raw-save 逐字節比對：除 gameVer 版本號（11.44→11.45 合法 bump）外**全部恆等**——詳見 crc-review。
+**收口①雙 pass 合併**：R01/R02 合併為單一 `T419 ART-LOOP 靜態加蓋 pass` 受管區（卡面第 2 節「單一 pass」）。
+**收口②R02 獨立 commit**：R02 原被塞進 release tail（bf63dda 違規）——發卡鏈正規化後以新 master 重整分支時拆出獨立 commit。
+**收口③帳本/樣張**：R00 commit 號修正（d1f2865→45ce6b5）；樣張補齊：before（master 版）遊戲內日間 z2/z3＋atlas 鍵圖、after 遊戲內 z2/z3，全部存 `%TEMP%/t419_{before,after}_{z2,z3}_game.png`、`t419_{before,after}_25_1_0_atlas.png`、`t419_{before,after}_26_1_0_atlas.png`。
+- 版本仍 v11.45（退修不 bump；下一 release tail 視二輪覆核結果而定）。
+- 樣張：見上；R01 原遺漏 before 已補拍（master 版遊戲內）。
+- **STOP: AWAIT_REVIEW_R2（覆核退修整理完成；不自合、不 publish，交回非作者二輪覆核）**。
