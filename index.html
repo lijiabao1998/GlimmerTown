@@ -8794,7 +8794,8 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   const bandOf345=(k)=>Math.max(2,Math.min(8,(32*(SZB[k]||1))>>3)); // T417 二輪退修 B2：徽記中央帶半寬與 T345 同源（1×1→4、SZ≥2→8）
   /* ===== T278 RCI 屋頂雜項加蓋（TheoTown 級屋頂密度）：snowCap 同款「逐欄掃最高不透明像素」找屋頂線，
      取平坦段(高差≤1 連續≥10px)擺道具——冷氣機/通風管/天線/小水塔。牆面是 HERO_PIX 手繪禁區（鐵律11），
-     屋頂為安全加蓋面。sprite 鍵字串 hash 決定性選型零亂數；每圖最多 2 道具。 ===== */
+     屋頂為安全加蓋面。sprite 鍵字串 hash 決定性選型零亂數。 ===== */
+  /* T417 四輪退修 C2：密度上限已於交付①解除（clamp(段寬/8,1,5)），「每圖最多 2 道具」為過時前提，已刪 */
   {
     const kh=s=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;};
     const props={
@@ -8803,7 +8804,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       ant:(g,x,y)=>{g.fillStyle='#4a4e56';g.fillRect(x,y-6,1,6);g.fillRect(x-2,y-5,5,1);g.fillStyle='#c23c28';g.fillRect(x,y-7,1,1);},
       tank:(g,x,y)=>{g.fillStyle='#7a5c3a';g.fillRect(x,y-5,5,4);g.fillStyle='#93714a';g.fillRect(x,y-5,5,1);g.fillStyle='#5c4126';g.fillRect(x+4,y-5,1,4);g.fillRect(x,y-1,1,1);g.fillRect(x+4,y-1,1,1);},
       /* T417 屋頂層擴容：住宅套件（水塔/曬衣繩/小菜圃/太陽能板/加蓋鐵皮屋/樓梯間出入口）——
-         全部 ≤6px 高：snowCap/icicleCap 掃「逐欄最高不透明像素」，12px 雪帽完全覆蓋 ≤6px 道具＝冬季無尖刺、冰柱不掛道具 */
+         全部 ≤7px 高（C2 更正：ant 實碼 7px）：snowCap cap=max(3,round(h*0.11)) 實測 12/17/24/25，被掃鍵 h≥112 ⇒ cap≥12 完全覆蓋 ≤7px 道具＝冬季無尖刺、冰柱不掛道具 */
       waterTank:(g,x,y)=>{g.fillStyle='#6a7a8c';g.fillRect(x,y-5,4,5);g.fillStyle='#8a9ab0';g.fillRect(x,y-5,4,1);g.fillStyle='#4a5a6c';g.fillRect(x+3,y-5,1,5);g.fillRect(x+1,y-3,1,1);},
       clothesline:(g,x,y)=>{g.fillStyle='#4a4e56';g.fillRect(x,y-2,6,1);g.fillStyle='#d8d8e0';g.fillRect(x+1,y-2,1,2);g.fillStyle='#6aa0c8';g.fillRect(x+4,y-2,1,2);},
       garden:(g,x,y)=>{g.fillStyle='#7a5c3a';g.fillRect(x,y-3,6,3);g.fillStyle='#5a8a3c';g.fillRect(x+1,y-3,1,2);g.fillRect(x+3,y-2,1,2);g.fillRect(x+5,y-3,1,1);},
@@ -8854,21 +8855,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       if(window.__noRoofProps417)return; // T417 逃生閥：A/B 對照（真值時整塊不畫）
       const s=SPR.bld[key];if(!s||!s.img)return;
       const g=s.img.getContext('2d');
-      const scanHt=Math.min(s.h,64); // T417 三輪退修 A：兩階段掃描第一段——屋頂線在建築頂部（多數鍵 <64px 內）；
-      // 矮建築畫在統一高度畫布的下方（1_1_2 屋頂線 y=71、8_1_1 y=77、61_1_0 y=120），第一段掃不到的欄第二段補讀全幅
+      const scanHt=Math.min(s.h,(s.ay|0)+1); // T417 四輪退修 A2：單次讀取——屋頂線＝該欄最高不透明像素，必在 ay 之上（實測最深 y=195 < ay；三輪的兩階段補讀因 iso 透明邊欄永遠 -1 而 210/210 全鍵補讀、且第二段全幅重讀前 64px 白付＝比單段全幅更貴 52.5%）
       let id;try{id=g.getImageData(0,0,s.w,scanHt);}catch(e){return;}
       const d=id.data,roof=new Int16Array(s.w).fill(-1);
       for(let x=0;x<s.w;x++)for(let y=0;y<scanHt;y++){if(d[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}
-      { // 第二階段：仍有 -1 的欄（屋頂線在 64px 以下）補讀下半部——多數鍵只付 64px，矮建築才付全幅
-        let needMore417=false;
-        for(let x=0;x<s.w;x++)if(roof[x]<0){needMore417=true;break;}
-        if(needMore417&&scanHt<s.h){
-          let id2=null;try{id2=g.getImageData(0,0,s.w,s.h);}catch(e){}
-          if(id2){const d2=id2.data;
-            for(let x=0;x<s.w;x++){if(roof[x]>=0)continue;for(let y=scanHt;y<s.h;y++){if(d2[(y*s.w+x)*4+3]>60){roof[x]=y;break;}}}
-          }
-        }
-      }
       s._roofLine417=roof.slice(); // T417 二輪退修 B6：屋面雪線快取（snowCap/icicleCap 用它當雪線——屋頂道具不再把雪線頂高、旁圈雪變薄）
       const runs=[];let st=-1;
       for(let x=1;x<s.w;x++){
@@ -8897,23 +8887,36 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
           g.fillStyle='#5a6470';g.fillRect(sx3,sy3-2,10,2);g.fillStyle='#9cc8e0';g.fillRect(sx3+1,sy3-2,3,1);g.fillRect(sx3+6,sy3-2,3,1); }
         { const lastX=r1-2, ly=roof[Math.min(lastX,s.w-1)]; // 側壁落管（沿右緣屋頂線落下 10px）
           g.fillStyle='#6a7078';g.fillRect(lastX,ly,1,10);g.fillRect(lastX-1,ly+9,2,1); }
-        /* T417 二輪退修 B5：T288 工業組夜燈遮罩（煙囪/風扇箱/天窗/落管區，屋頂線以上 12px） */
+        /* T417 二輪退修 B5＋四輪退修 B2：T288 夜燈/雪帽遮罩——逐欄記各道具實際頂部（煙囪頂 cy2-10、
+           風扇頂 fy2-4、天窗頂 sy3-2、落管頂 ly），不再整段「屋頂線−12」——整段同一 y 讓雪帽落在透明天空
+           被丟掉（工業雪帽掉 32%、3_1_1 五欄冬季無雪）；snowCap 從道具實際頂部起算才落在道具上 */
         if(!s._roofTop417)s._roofTop417=new Int16Array(s.w).fill(1e4);
-        {const ryI=roof[Math.min(r0+3,s.w-1)]-12;for(let mx=r0;mx<r1;mx++)if(mx>=0&&mx<s.w&&ryI<s._roofTop417[mx])s._roofTop417[mx]=ryI;}
+        if(!s._roofBot417)s._roofBot417=new Int16Array(s.w).fill(-1);
+        {const recT=(mx0,mx1,ty,by)=>{for(let mx=mx0;mx<mx1;mx++){if(mx<0||mx>=s.w)continue;if(ty<s._roofTop417[mx])s._roofTop417[mx]=ty;if(by>s._roofBot417[mx])s._roofBot417[mx]=by;}};
+         {const cx2=r0+3+((h0>>>2)%Math.max(1,rw-14));const cy2=roof[Math.min(cx2,s.w-1)];recT(cx2,cx2+4,cy2-10,cy2+1);}
+         if(rw>=18){const fx2=r0+Math.max(8,((h0>>>7)%Math.max(1,rw-10)));const fy2=roof[Math.min(fx2,s.w-1)];recT(fx2,fx2+6,fy2-4,fy2+1);}
+         if(rw>=24){const sx3=r0+4+((h0>>>11)%Math.max(1,rw-16));const sy3=roof[Math.min(sx3,s.w-1)];recT(sx3,sx3+10,sy3-2,sy3+1);}
+         {const lastX=r1-2,ly=roof[Math.min(lastX,s.w-1)];recT(lastX-1,lastX+1,ly,ly+10);}}
         return;
       }
       /* T417 覆核退修 A2：平坦段≠屋頂——基座地台/懸空招牌/雨遮也是平坦段（塔樓 33/34 最長段就是地台）。
          閘：①屋頂線須高於該欄地面前緣（一層樓門檻隨 sprite 高度縮放；二輪退修 A2：固定 20px 誤殺
          lv1 矮房真屋頂，3_1_1 屋頂線 y=78 vs 門檻 78 差 0px）；②距 sprite 最高點 minTop ≤30px——
          minTop 取「最寬平坦段」的段內最高點（三輪退修 B：原「任何 ≥3 欄平坦區」被鐘塔頂小平台
-         拉到 minTop=45，42_1_0 主屋頂 y=114 被 45+30=75 擋掉、flagpole 三輪死美術；最寬段=主屋頂）。 */
-      let minTop417=1e9;
-      if(runs.length){const[mr0,mr1]=runs[0];for(let x=mr0;x<mr1;x++)if(roof[x]>=0&&roof[x]<minTop417)minTop417=roof[x];}
-      if(minTop417>=1e9)for(let x=0;x<s.w;x++)if(roof[x]>=0&&roof[x]<minTop417)minTop417=roof[x]; // 退化：全圖 min
+         拉到 minTop=45，42_1_0 主屋頂 y=114 被 45+30=75 擋掉、flagpole 三輪死美術；最寬段=主屋頂）。
+         四輪退修 B1：minTop 改「所有通過閘 B 的段中最高者」——最寬段是自我指涉（塔樓最寬段就是地台，
+         用地台量地台⇒閘 A 形同虛設、33/34 四鍵 12 件烙在地面鋪面上）；先閘 B 篩離地段再定基準。 */
       const thrB417=Math.max(12,Math.min(20,Math.round(s.h*0.12))); // 閘B 門檻：一層樓隨 sprite 高度縮放（h≈96-167→12-20px）
-      const runsRoof=runs.filter(([a,b])=>{ // A2 屋頂閘（runs 是 const，過濾結果存新變數）
+      const runsB417=runs.filter(([a,b])=>{ // 先過閘 B（離地門檻）：屋頂線高於該欄地面前緣一層樓
         const t=roof[Math.min(a+3,s.w-1)];
-        return t>=0&&t<minTop417+30&&t<s.ay-Math.abs(a+3-s.ax)*0.5-thrB417;
+        return t>=0&&t<s.ay-Math.abs(a+3-s.ax)*0.5-thrB417;
+      });
+      let minTop417=1e9;
+      if(runsB417.length){const[mr0,mr1]=runsB417[0];for(let x=mr0;x<mr1;x++)if(roof[x]>=0&&roof[x]<minTop417)minTop417=roof[x];}
+      if(minTop417>=1e9)for(let x=0;x<s.w;x++)if(roof[x]>=0&&roof[x]<minTop417)minTop417=roof[x]; // 退化：全圖 min
+      const runsRoof=runsB417.filter(([a,b])=>{ // 閘 A（距頂門檻）：minTop 基於已過閘 B 的段——塔樓地台被閘 B 擋掉不進基準
+        const t=roof[Math.min(a+3,s.w-1)];
+        return t<minTop417+30;
       });
       if(!runsRoof.length)return;
       /* T417 屋頂層擴容（二輪退修版）：多段利用（每段各配道具）＋密度 clamp(段寬/8,1,5)＋分族選型＋
@@ -8923,10 +8926,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       const fam=famOf417(key),lv=lvOf417(key);
       const band417=bandOf345(+key.split('_')[0]); // B2：徽記保護帶半寬（1×1→4、SZ≥2→8，與 T345 同源）
       const poolBase=FAM_KINDS[fam]||FAM_KINDS.R;
+      const pool=poolBase.slice(); // T417 四輪退修 B4：選型池提到 si 迴圈外——跨段不去重⇒同一屋頂重複同款（28_1_4 兩座醫院直升機坪）；key 級去重，同鍵同款 ≤1
       for(let si=0;si<runsRoof.length;si++){
         const[r0,r1]=runsRoof[si],rw=r1-r0;
         const n=Math.max(1,Math.min(5,Math.floor((rw+1)/8))); // 密度：段寬 8-15→1、16-23→2、24-31→3、32-39→4、≥40→5
-        const pool=poolBase.slice(); // 段內選型去重（抽後移除）
         const used=[]; // 已用像素區間 [x0,x1)
         { // B2：徽記中央帶當 used 初始佔位——帶在段內就預佔，右移天然繞過，避讓與去重疊共用一把尺
           const bL=Math.max(r0,Math.max(0,s.ax-band417)),bR=Math.min(r1,s.ax+band417);
@@ -8964,12 +8967,18 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
             if(!moved417)continue;
           }
           used.push([px+lo417,px+hi417]);
+          const py417=roof[Math.min(px,s.w-1)]+1;
+          if(py417-b417[2]<0){ // T417 四輪退修 C3：屋頂線貼齊畫布上緣（2_3_0 ant 7px 只剩 2px 被裁）——矮化 ac（3px）仍不足才跳過
+            if(b417[2]>3){kindName='ac';b417=P417B.ac;lo417=b417[0];hi417=b417[1];}
+            if(py417-b417[2]<0)continue;
+          }
           const kind=props[kindName];
-          kind(g,px,roof[Math.min(px,s.w-1)]+1);
+          kind(g,px,py417);
           /* T417 二輪退修 B5：道具外接框寫入夜燈遮罩（nightCity/night 亮窗不得落在屋頂道具上；每欄記道具頂部 y） */
           if(!s._roofTop417)s._roofTop417=new Int16Array(s.w).fill(1e4);
-          {const ry417=roof[Math.min(px,s.w-1)]-b417[2];
-           for(let mx=px+lo417;mx<px+hi417;mx++){if(mx<0||mx>=s.w)continue;if(ry417<s._roofTop417[mx])s._roofTop417[mx]=ry417;}}
+          if(!s._roofBot417)s._roofBot417=new Int16Array(s.w).fill(-1);
+          {const ry417=py417-b417[2];
+           for(let mx=px+lo417;mx<px+hi417;mx++){if(mx<0||mx>=s.w)continue;if(ry417<s._roofTop417[mx])s._roofTop417[mx]=ry417;if(py417>s._roofBot417[mx])s._roofBot417[mx]=py417;}}
         }
       }
     };
@@ -9054,9 +9063,9 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     const maskNight=(s)=>{if(!s||!s.img)return;
       const maskOne=(cvEl)=>{if(!cvEl)return;const mg=cvEl.getContext('2d');mg.save();mg.globalCompositeOperation='destination-in';mg.drawImage(s.img,0,0);mg.restore();};
       maskOne(s.night);maskOne(s.nightCity); /* T413b：加料層 nightCity 同步裁進本體 */
-      /* T417 二輪退修 B5：night 亮窗不得落在屋頂道具上——destination-out 道具遮罩欄（T261 修的「亮窗飄在
-         別人屋頂上」被道具重現：道具在屋頂線上成為不透明區，destination-in 保留其上的亮窗） */
-      if(s._roofTop417)for(const cvEl of[s.night,s.nightCity]){if(!cvEl)continue;const ng3=cvEl.getContext('2d');ng3.save();ng3.globalCompositeOperation='destination-out';for(let mx=0;mx<s.w;mx++){if(s._roofTop417[mx]<1e4)ng3.fillRect(mx,0,1,s.h);}ng3.restore();}
+      /* T417 四輪退修 A3：夜燈遮罩只抹道具佔的列（[top,bottom]），不再整欄從頂抹到底——
+         整欄抹光讓窗燈掉 22-46%、13 工業鍵夜間全黑、5,248 欄黑豎條；顯式 fillStyle 不依賴殘留狀態 */
+      if(s._roofTop417)for(const cvEl of[s.night,s.nightCity]){if(!cvEl)continue;const ng3=cvEl.getContext('2d');ng3.save();ng3.globalCompositeOperation='destination-out';ng3.fillStyle='#000';for(let mx=0;mx<s.w;mx++){if(s._roofTop417[mx]<1e4){const bt=(s._roofBot417&&s._roofBot417[mx]>=0)?s._roofBot417[mx]:s.h;ng3.fillRect(mx,s._roofTop417[mx],1,bt-s._roofTop417[mx]+1);}}ng3.restore();}
     };
     for(const k in SPR.bld)maskNight(SPR.bld[k]);
     if(SPR.plant)maskNight(SPR.plant);
@@ -9498,8 +9507,8 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
         }
       }
       ng.save();ng.globalCompositeOperation='destination-in';ng.drawImage(s.img,0,0);ng.restore();
-      /* T417 二輪退修 B5：destination-out 道具遮罩欄（採樣網格 step 3 的 2px 亮點可能跨入遮罩欄） */
-      if(s._roofTop417){ng.save();ng.globalCompositeOperation='destination-out';for(let mx=0;mx<w;mx++){if(s._roofTop417[mx]<1e4)ng.fillRect(mx,0,1,h);}ng.restore();}
+      /* T417 二輪退修 B5＋四輪退修 A3：destination-out 道具外接框（只抹 [top,bottom] 列，不整欄抹光；顯式 fillStyle） */
+      if(s._roofTop417){ng.save();ng.globalCompositeOperation='destination-out';ng.fillStyle='#000';for(let mx=0;mx<w;mx++){if(s._roofTop417[mx]<1e4){const bt=(s._roofBot417&&s._roofBot417[mx]>=0)?s._roofBot417[mx]:h;ng.fillRect(mx,s._roofTop417[mx],1,bt-s._roofTop417[mx]+1);}}ng.restore();}
     };
     const kindOf=(k)=>{
       const c=kcatOf(k);
