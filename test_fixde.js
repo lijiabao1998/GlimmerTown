@@ -5243,14 +5243,21 @@ runPwaTests().then(() => {
     window.GV.save();
     const rawB=window.GV.rawSave?window.GV.rawSave():store[SKEY];
     window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
-    let oreD=null;for(let y=2;y<window.GV.N()-2&&!oreD;y++)for(let x=2;x<window.GV.N()-2;x++){const t=tile(x,y);if(t&&!t.bld&&t.t===2&&window.GV.resourceAt(x,y)===2){oreD={x,y};break;}}
-    place('mine',oreD.x,oreD.y);
-    const smD=findSpot('steelMill');place('steelMill',smD.x,smD.y);
-    const syD=findSpot('shipyard');place('shipyard',syD.x,syD.y);
-    const ptD=findSpot('port');place('port',ptD.x,ptD.y);
+    // A 城全鏈造境（三欄皆須非零——覆核：原案缺油路設施 fuelUse/fuelExport 恆 0=單欄刪除假綠）：
+    // 油井+煉油廠→fuel 產出；貨運站→fuelUse>0；貿易站→fuelExport>0；礦+鋼廠+船廠+港→shipDaily=12
+    let oilD=null,oreD=null;for(let y=2;y<window.GV.N()-2&&(!oilD||!oreD);y++)for(let x=2;x<window.GV.N()-2;x++){const t=tile(x,y);if(t&&!t.bld&&(t.t===1||t.t===2)){if(!oilD&&window.GV.resourceAt(x,y)===1)oilD={x,y};if(!oreD&&window.GV.resourceAt(x,y)===2)oreD={x,y};}}
+    assert(oilD&&place('oilwell',oilD.x,oilD.y),'T418 歸零案 A 城應可建油井');
+    assert(oreD&&place('mine',oreD.x,oreD.y),'T418 歸零案 A 城應可建礦場');
+    const rfD=findSpot('refinery');assert(rfD&&place('refinery',rfD.x,rfD.y),'T418 歸零案 A 城應可建煉油廠');
+    const smD=findSpot('steelMill');assert(smD&&place('steelMill',smD.x,smD.y),'T418 歸零案 A 城應可建鋼鐵廠');
+    const syD=findSpot('shipyard');assert(syD&&place('shipyard',syD.x,syD.y),'T418 歸零案 A 城應可建船廠');
+    const ptD=findSpot('port');assert(ptD&&place('port',ptD.x,ptD.y),'T418 歸零案 A 城應可建港口');
+    const frD=findSpot('freight');assert(frD&&place('freight',frD.x,frD.y),'T418 歸零案 A 城應可建貨運站');
+    const trD=findSpot('tradepost');assert(trD&&place('tradepost',trD.x,trD.y),'T418 歸零案 A 城應可建貿易站');
     for(let d=0;d<80;d++)window.GV.step(1);
     const cD=window.GV.chain346();
-    assert(cD.shipDaily===12,'T418 歸零案前置：1 港 2 船 shipDaily 應為 12，實得 '+cD.shipDaily);
+    assert(cD.fuelUse>0&&cD.fuelExport>0&&cD.shipDaily===12,
+      'T418 歸零案前置：A 城三欄皆非零（fuelUse='+cD.fuelUse+' fuelExport='+cD.fuelExport+' shipDaily='+cD.shipDaily+'）——單欄刪除突變各自可咬');
     store[SKEY]=rawB;
     assert(window.GV.load(),'T418 歸零案：不經 newWorld 直接 load B 存檔應成功');
     const cZ=window.GV.chain346();
