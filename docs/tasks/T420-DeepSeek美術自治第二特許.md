@@ -218,22 +218,54 @@ T291 `clipBase`（不得改它，只能在 pass 內自夾擠）。
 
 ### 硬資源停止線（破線＝立即 `STOP: LIMIT` 並交回）
 
+**先分清楚哪幾條會動。** 覆核方實測：本施工面（只在既有畫布上 `fillRect`）**數學上不可能移動**
+canvas 張數／canvas 總像素／atlas entries／raw-save bytes 這四類——T419 的 BASE 與 AFTER
+這四類**全部逐位相同**。以 T419 實測速率（4 鍵／+3,186 B／+55 rect／+1,143 落筆 px／
++0 canvas／+0 entry／+0 存檔位元 每 6h 窗口）外推 15 小時（≈2.5 個窗口）：
+index.html → 約 1,854,669 B（20 MiB 線 8.85%、**2.5 MiB 黃線 70.8%**），其餘全部不動。
+⇒ **15 小時內唯一真的會撞的是 timebox。**
+
+所以第 7 節分兩張表，**逐輪覆核注意力放 (A)，(B) 只需一條恆等守衛**：
+
+#### (A) 會動的線（每輪逐項報值）
+
+| 指標 | 現值 | 線 | 已用 |
+|---|---:|---|---:|
+| index.html UTF-8 bytes | 1,843,518 B | ≤ 20 MiB；**2.5 MiB 黃線升格為停止線候選** | 70.3% 的黃線 |
+| 每輪落筆像素預算 | T419 全 pass 1,143 px（k25 37 rect/744 px、k26 18 rect/399 px） | 每輪 ≤ 3,000 落筆 px（超過須帳本說明） | — |
+| 足印溢出（`sprFootAudit below`，真實瀏覽器） | 逐鍵記為本輪 base | **恆等，不得新增任何 below** | — |
+| 開機 `fillRect` 總數（決定性，取代掛鐘） | 931,526（BASE） | ≤ R00 × 1.15 | 0.0059% 的成長空間已用 |
+
+#### (B) 本施工面凍結的線（只需一條恆等守衛，不佔覆核注意力）
+
 | 指標 | 現值（master，T419 美術退回後） | 硬線 | 已用 |
 |---|---:|---|---:|
-| index.html UTF-8 bytes | 1,843,518 B（1.76 MiB） | ≤ 20 MiB；> 2.5 MiB 需業主追認 | **70.3%** 的黃線 |
-| 畫布台帳 · 相異 canvas 張數 | `sprAtlas356` 可達 **1,756**（img 1,349＋night 407）**＋ T413b `nightCity` 203 張**（不在清冊可達範圍）⇒ **≥1,959** | ≤ 2,800 | **≥70%** |
-| 畫布台帳 · 總像素 | 18,484,199 ＋ nightCity 3,161,248 ⇒ **≥21,645,447** | ≤ 33,000,000 | **≥66%** |
-| atlas entries / families / skipped | 1,374 / 116 / 37 | entries ≤ 1,500；三數必須恆等 | 91.6% |
-| `sprFootAudit below`（**真實瀏覽器**） | 逐鍵記錄為本輪 base（Node 值無效，見下） | **不得新增任何 below** |
-| 固定城 raw-save | seed312／seed301／seed22 三配方 | 除合法版本號欄位外**逐字節恆等** |
-| 兩釘 | seed301 4153 ／ seed22 4550 | 位元恆等 |
-| PASS | 4,296 | 只升不降 |
-| CRLF | 0 | 恆為 0 |
+| 畫布台帳 · 相異 canvas 張數 | `sprAtlas356` 可達 **1,756**（img 1,349＋night 407）**＋ T413b `nightCity` 203 張**（清冊不可達）⇒ **1,959** | ≤ 2,800 | **70%** |
+| 畫布台帳 · 總像素 | 18,484,199 ＋ nightCity 3,161,248 ⇒ **21,645,447** | ≤ 33,000,000 | **66%** |
+| atlas entries / families / skipped | 1,374 / 116 / 37 | entries ≤ 1,500；三數必須恆等 | **91.6%**（第二期解凍後的第一撞線項） |
+| 固定城 raw-save | 三配方（見下方具名配方） | **除 `gameVer`/`ver` 兩處版本欄外逐位元相同** | — |
+| 兩釘 | seed301 4153 ／ seed22 4550 | 位元恆等 | — |
+| PASS | 4,296 | 只升不降 | — |
+| CRLF | 0 | 恆為 0 | — |
+
+**固定城三配方（寫下來才能複測；T419 的 `saveSize` 在文件裡有四個互斥的值）**：
+`seed312` ＝ `newWorldSeeded(312)+addMoney(9000)+place police+step(2)+save`（test_fixde.js:2157-2165 同款）；
+`seed301`／`seed22` ＝ `newWorldSeeded(s)+setDiff(1)+ai(true)+step×400+save`（test_fixde.js:4459-4466／5793-5798 同款）。
+覆核方實測 `GV.rawSave()` 長度 **5,746 / 53,509 / 43,768 B**、`GV.saveSize()` **5,696 / 49,921 / 40,424**；
+T419 文件裡的 5678/12191/11343、11,799、5,494 **全部作廢**。本卡請把三配方寫成具名函式再引用。
 
 **「畫布台帳」定義（寫死，不准各自量法）**：`GV.sprAtlas356()` 可達的**相異** canvas 物件，
 `img` 與 `night` 各算一張、同一物件只算一次；總像素＝Σ `w×h`。
 清冊本身 skipped 37 鍵，`groundCache`／粒子池等非 SPR 畫布不在此帳內。
 `docs/tools/art_diff.html` 已把這個定義寫進 `canvasCensus()`，兩個模式都會印。
+
+**`nightCity` 目前完全沒有指紋在守（本卡必補的第 8 條）**：`atlas.html` 的 `bPins` 只對 `e.img`
+與 `e.night` 算 CRC，而 `sprAtlas356()` 的 `push()` 根本不帶 `nightCity`
+⇒ T419 卡面第 7 節那句「`nightCity` 不屬可變白名單」**沒有任何工具在量測**。
+本輪風險低（T413b 在 pass 之前完整結束、`nightCity` 已凍結），但**沒有紅源**。
+最小修法：`sprAtlas356()` 的 push 多帶一個 `nightCity` 唯讀欄（不改既有 `w/h/ax/ay/sc` 語意、不改 entries 數），
+`atlas.html` 的 `bPins` 迴圈補 `if(e.nightCity)PINS[id].push(crcOf(e.nightCity).toString(16))`，
+R00 指紋基線同步補這一列。
 
 **nightCity 不在清冊可達範圍**：T413b 烘的 `s.nightCity` 畫布（203 張／3,161,248 px，
 與 `window.__t413BakeCount` 交叉確認）`sprAtlas356()` 不會回傳，所以工具的 `canvasCensus()` 系統性少算。
