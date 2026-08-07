@@ -354,6 +354,7 @@ window.__t417Snap=function(g){const cnv=g&&g.canvas,p=cnv?__t417PixMap.get(cnv):
 window.__t417Diff=function(g,s){if(!g||!s)return false;const cnv=g.canvas,p=cnv?__t417PixMap.get(cnv):null;if(!p)return false;for(let i=3;i<p.length;i+=4)if(s[i]!==p[i])return true;return false;}; // 二輪退修 RL-5：真像素差（alpha 通道）——同底色/全透明/畫布外一律零差
 window.__t417DrawCheck=function(kind,g,px,py,kindName){const snap=window.__t417Snap(g);kind(g,px,py);if(window.__t417Diff(g,snap)){__t417N417++;__t417Kinds417.push(kindName);__t417Pos417.push(px);__t417Py417.push(py);}}; // T417 覆核退修 A1：落筆計數代理——二輪退修 RL-5：真像素差比對（原 ops 長度比對被「全隱形 fillStyle」繞過），只有像素真的變了才計
 window.__t417Profile417=null; // T417：合成屋頂剖面（每欄屋頂線 y；headless getImageData 空像素→測試端 override）
+window.__t418bSetSteel=function(v){steel=v;}; // T418b 測試橋：直設鋼庫存（滿倉臂/庫存臂造境；harness 注入零污染）
 window.__t384Bld=function(k,x,y){const i=idx(x,y);tiles[i].bld={k,lv:1,v:0,age:1,pw:true,wa:true,h:.62,fire:0,we:1};tiles[i].zone=0;return i;}; // T384b：尾端測試造境橋（__t343Bld 在 IIFE 內搆不到）
 window.__t416Fleet=function(which){const a=which==='fire'?ladderTrucks:which==='amb'?ambulances:policeCars;return a.map(c=>({x:c.x,y:c.y,tx:c.tx,ty:c.ty}));}; // T416 二輪退修：直讀車隊每車的目標格（直接斷言新車 tx/ty，不用寬鬆幀數猜測）
 window.__t416FleetSet=function(which,n){if(which==='fire')svcFleet.fire=n;else if(which==='amb')svcFleet.amb=n;else svcFleet.police=n;}; // T416 二輪退修：直設車隊規模（壓力案造境用；比照 svcFleet 存檔可選欄位 sf 的合法值域 1-40）
@@ -5045,8 +5046,8 @@ runPwaTests().then(() => {
     const bare418=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
     assert(bare418.includes('fuelUse418=frt342>0?Math.min(fuel,frt342*FREIGHT_FUEL_USE):0;'),
       'T418 惰性閘釘：貨運耗油必須 frt342>0 才執行（無貨運=零耗油零副作用）');
-    assert(bare418.includes('if(steelMillN>0&&steelMade>0){'),
-      'T418 惰性閘釘：鋼加速必須鋼鐵廠存在且當日有產出才執行（兩釘軌跡恆等）');
+    assert(bare418.includes('if(steelMillN>0){'),
+      'T418 惰性閘釘（T418b SK-3 跟版）：鋼加速必須鋼鐵廠存在才執行（兩釘軌跡 millN=0 恆等；額度改鋼廠吞吐＋庫存出料，滿倉不停擺）');
     assert(bare418.includes('if(steelUsed>0&&po>0){shipProgress+=steelUsed;'),
       'T418 惰性閘釘：造船進度必須耗鋼且無港不造');
     assert(bare418.includes('cargo:Math.min(2,hubs.cargo.length,1+shipCount)'),
@@ -5129,11 +5130,14 @@ runPwaTests().then(() => {
     assert(ore2&&place('mine',ore2.x,ore2.y),'T418 應可建礦場');
     const sm418=findSpot('steelMill');
     assert(sm418&&place('steelMill',sm418.x,sm418.y),'T418 應可建鋼鐵廠');
-    for(let d=0;d<3;d++)window.GV.step(1);
+    let cuSum418g=0;
+    for(let d=0;d<3;d++){window.GV.step(1);cuSum418g+=window.GV.chain346().constrUse;}
     const ages418=bldPos418.map(([x,y])=>{const bb=tile(x,y).bld;return bb?bb.age:-1;});
-    // T418 覆核退修：正向 delta——有鋼 3 天增量必須 > 主循環 3（刪掉加速核心 b.age++ 必紅，原「>agesBase」被主循環自身增長掩蓋）
-    assert(ages418[0]-agesBase[0]>3&&ages418[0]>=ages418[5]&&ages418[5]>=agesBase[5]&&ages418.every(a=>Number.isInteger(a)),
-      'T418 鋼加速：正向 delta（有鋼 3 天增量 '+(ages418[0]-agesBase[0])+' > 主循環 3）＋tickBld 序先到先吃＋恆整數（坑②），實得 '+ages418.join(','));
+    // T418 覆核退修＋T418b F1 跟版：正向 delta 改用 constrUse 直接指標（原「ages418[0] 必為最大」依賴
+    // 「恆自 index 0 起掃」＝ F1 退修後輪轉序讓受益者每日輪替，第 0 棟不再必然最大；改斷言總加速量與總增量）
+    const sumB418=agesBase.reduce((p,q)=>p+q,0),sumA418=ages418.reduce((p,q)=>p+q,0);
+    assert(cuSum418g===6&&sumA418-sumB418>18&&ages418.every(a=>Number.isInteger(a)),
+      'T418 鋼加速：3 日總耗鋼恰 6（＝鋼廠日吞吐 2×3；刪 b.age++／額度歸零→cu 0→紅）＋六公園總 age 增量 >18（主循環 18 之外真有加速；F1 退修後部分額度由礦場/鋼廠自身施工吃掉＝故用下界不寫死）＋恆整數（坑②），實得 cu='+cuSum418g+' sumΔ='+(sumA418-sumB418)+' ages='+ages418.join(','));
   }
   {
     // ②b 上限真的是上限（受控空城 seed7 無 AI 干擾）：1 礦+1 廠+8 公園——單 tick 內加速棟數 ≤ 當日 steelMade
@@ -5281,14 +5285,14 @@ runPwaTests().then(() => {
     assert(bare418a.includes('Math.min(2,hubs.cargo.length,1+shipCount)'),
       'T418a P6 貨輪保底原文釘：港口民用航運基線 1 艘（A2 裁決：舊城歸零→紅）');
     const find418=(kind)=>{const n=window.GV.N();for(let y=2;y<n-2;y++)for(let x=2;x<n-2;x++)if(window.GV.resourceAt(x,y)===kind)return[x,y];return null;};
-    const put418=(k,x,y,done)=>{window.__t384Bld(k,x,y);if(done)window.__t412Set(x,y,'age',9);};
+    const put418=(k,x,y,done)=>{window.__t384Bld(k,x,y);if(done)window.__t412Set(x,y,'age',9);}; // T418b SK-8 布局契約：3×3 建築間距 ≥4 格（load 依 MSZ 重建 ref 蓋章，2 格間距=讀檔非法城會互蓋）
     // --- F2 冷凍全鏈（seed913，零人口零稅收＝Δmoney 為常數式）＋F5 滿供/上限 ---
     window.GV.newWorldSeeded(913);window.GV.setDiff(1);
     const oil913=find418(1),ore913=find418(2);
     assert(oil913&&ore913,'T418a F2 前置：seed913 應有油/礦資源格');
     put418(49,oil913[0],oil913[1],true);put418(50,ore913[0],ore913[1],true);
-    put418(121,10,10,true);put418(122,12,10,true);put418(123,14,10,true);
-    put418(18,16,10,true);put418(110,18,10,true);put418(91,20,10,true);
+    put418(121,10,10,true);put418(122,14,10,true);put418(123,18,10,true);
+    put418(18,22,10,true);put418(110,26,10,true);put418(91,30,10,true);
     for(let d=1;d<=64;d++)window.GV.step(1);
     let m418=window.GV.stats().money;
     for(let d=65;d<=67;d++){
@@ -5300,48 +5304,48 @@ runPwaTests().then(() => {
       assert(c.fuelExport===1,'T418a F5 出口恰等（帶貨運保留）：盈餘 1 油/日全出，實得 '+c.fuelExport);
       m418=m2;
     }
-    // --- F5a 首船邊界（seed917）：第 29 個耗鋼日 0 船、第 30 日 1 船 ---
+    // --- F5a 首船邊界（seed917）---
     window.GV.newWorldSeeded(917);window.GV.setDiff(1);
     const ore917=find418(2);
-    put418(50,ore917[0],ore917[1],true);put418(122,10,10,true);put418(123,12,10,true);put418(18,14,10,true);
+    put418(50,ore917[0],ore917[1],true);put418(122,10,10,true);put418(123,14,10,true);put418(18,18,10,true);
     for(let d=1;d<=29;d++)window.GV.step(1);
     let c418=window.GV.chain346();
     assert(c418.shipCount===0&&c418.shipProgress===29,'T418a F5 首船邊界 d29：count 0/prog 29（SHIP_STEEL 漂移→紅），實得 '+c418.shipCount+'/'+c418.shipProgress);
     window.GV.step(1);c418=window.GV.chain346();
     assert(c418.shipCount===1&&c418.shipProgress===0,'T418a F5 首船邊界 d30：count 1/prog 0，實得 '+c418.shipCount+'/'+c418.shipProgress);
-    // --- F5b 雙港跑滿（seed919）：2 港上限恰 4 ---
+    // --- F5b 雙港跑滿（seed919）---
     window.GV.newWorldSeeded(919);window.GV.setDiff(1);
     const ore919=find418(2);
     put418(50,ore919[0],ore919[1],true);put418(122,10,10,true);
-    put418(123,12,10,true);put418(123,14,10,true);put418(18,16,10,true);put418(18,18,10,true);
+    put418(123,14,10,true);put418(123,18,10,true);put418(18,22,10,true);put418(18,26,10,true);
     for(let d=1;d<=100;d++)window.GV.step(1);
     c418=window.GV.chain346();
     assert(c418.shipCount===4,'T418a F5 雙港跑滿：2 港上限恰 4（SHIP_PORT_CAP 下修→紅），實得 '+c418.shipCount);
-    // --- F5c 出口恰等（seed923）：大盈餘 1 貿易站 export===4 ---
+    // --- F5c 出口恰等（seed923）---
     window.GV.newWorldSeeded(923);window.GV.setDiff(1);
     {const n923=window.GV.N();const oils923=[];
      for(let y=2;y<n923-2&&oils923.length<2;y++)for(let x=2;x<n923-2&&oils923.length<2;x++)if(window.GV.resourceAt(x,y)===1)oils923.push([x,y]);
      assert(oils923.length===2,'T418a F5c 前置：seed923 應有兩油格');
      for(const[x,y]of oils923)put418(49,x,y,true);}
-    put418(121,10,10,true);put418(121,12,10,true);put418(91,20,10,true);
+    put418(121,10,10,true);put418(121,14,10,true);put418(91,20,10,true);
     for(let d=1;d<=3;d++)window.GV.step(1);
     c418=window.GV.chain346();
     assert(c418.fuelExport===4,'T418a F5 出口恰等：大盈餘 1 貿易站 export===4（FUEL_EXPORT_RATE 下修→紅），實得 '+c418.fuelExport);
-    // --- F4 半供恰等（seed929）：需 6 供 3 → 比例式中段 ---
+    // --- F4 半供恰等（seed929）---
     window.GV.newWorldSeeded(929);window.GV.setDiff(1);
     const oil929=find418(1);
     put418(49,oil929[0],oil929[1],true);put418(121,10,10,true);
-    put418(110,14,10,true);put418(110,16,10,true);put418(110,18,10,true);
+    put418(110,14,10,true);put418(110,18,10,true);put418(110,22,10,true);
     for(let d=1;d<=3;d++)window.GV.step(1);
     c418=window.GV.chain346();
     assert(c418.freightTaxMul===1+(1.08-1)*(3/6),'T418a F4 半供恰等：需 6 供 3 → mul 恰 1+(1.08−1)×0.5（比例式退回純開關→紅），實得 '+c418.freightTaxMul);
-    // --- F3 守恆恆等式（seed931，全鏈＋四棟施工樓＝造船/施工競爭同庫存）---
+    // --- F3 守恆恆等式（seed931，全鏈＋四棟施工樓＝造船/施工競爭）---
     window.GV.newWorldSeeded(931);window.GV.setDiff(1);
     const oil931=find418(1),ore931=find418(2);
     put418(49,oil931[0],oil931[1],true);put418(50,ore931[0],ore931[1],true);
-    put418(121,10,10,true);put418(122,12,10,true);put418(123,14,10,true);put418(18,16,10,true);
-    put418(110,18,10,true);put418(91,20,10,true);
-    for(let i=0;i<4;i++)window.__t384Bld(1,24+i*2,20);
+    put418(121,10,10,true);put418(122,14,10,true);put418(123,18,10,true);put418(18,22,10,true);
+    put418(110,26,10,true);put418(91,30,10,true);
+    for(let i=0;i<4;i++)window.__t384Bld(1,36+i*2,20);
     let pc418=window.GV.chain346();let cSum418=0;
     for(let d=1;d<=6;d++){
       window.GV.step(1);const cc=window.GV.chain346();
@@ -5365,45 +5369,124 @@ runPwaTests().then(() => {
     const ageB418=window.GV.tile(20,20).bld.age;
     assert(ageA418===9&&ageB418===5,'T418a A1 工期兩臂（同種子同日）：有鋼 4 天 age===9（完工）vs 無鋼 age===5（刪 b.age++ 或 cap418 歸零→左臂掉到 5→紅），實得 '+ageA418+'/'+ageB418);
   }
-
-  { // ===== T419 ART-LOOP 靜態加蓋 pass 守衛（k25 太陽能板場＋k26 風力塔架；單一受管區） =====
-    // ① pass 位置契約：T413b 烘焙完整結束後、R=__savedR 之前（卡面第 2 節硬白名單）
-    const iB419=html.indexOf('/* ===== T419 ART-LOOP 靜態加蓋 pass');
-    const iE419=html.indexOf('T419 ART-LOOP 靜態加蓋 pass END');
-    const iR419=html.indexOf('R=__savedR;',iB419);
-    const iBake419=html.lastIndexOf('__t413BakeByKind',iB419);
-    assert(iB419>0&&iE419>iB419&&iBake419>0&&iBake419<iB419&&iR419>iE419,
-      'T419 pass 須位於 T413b 烘焙完整結束後、R=__savedR 之前（卡面第 2 節）');
-    // ② pass 區塊零亂數＋禁基元（精確切片，\b 字面量）
-    const seg419=html.slice(iB419,iE419);
-    assert(!/\bR\s*\(|\bri\s*\(|Math\.random|spriteTexRand|\bspeck\b|\bplate\b|\bwindows\b|\bdia\b|\bisoBox\b|\boutlineSprite\b/.test(seg419),
-      'T419 pass 不得消耗亂數／禁基元（卡面第 4 節）');
-    // ③ KEY 單源（覆核退修）：lookup 與 drawn 橋必須共用同一 key 變數——
-    //    硬寫 lookup（SPR.bld[\'25_1_0\']）或硬寫 bridge（push(\'25_1_0\')）都紅；
-    //    改錯真正 lookup（如 24_1_0）時 bridge 同源追著變 → drawn 集合偏離白名單 → ③白名單紅
-    assert(/const hk419='25_1_0'/.test(seg419)&&/SPR\.bld\[hk419\]/.test(seg419)&&/\.push\(hk419\)/.test(seg419),
-      'T419 KEY 單源：k25 必須 const hk419→lookup(hk419)→push(hk419) 單源鏈（硬寫任一環即紅）');
-    assert(!/SPR\.bld\[\s*'25_1_0'\]/.test(seg419)&&!/\.push\(\s*'25_1_0'\)/.test(seg419),
-      'T419 KEY 單源：k25 禁硬寫字面量 lookup/bridge（改錯真正 lookup 而保留硬寫 bridge 的假綠通道已關）');
-    assert(/const hk26='26_1_'\s*\+v26/.test(seg419)&&/SPR\.bld\[hk26\]/.test(seg419)&&/\.push\(hk26\)/.test(seg419),
-      'T419 KEY 單源：k26 必須 const hk26→lookup(hk26)→push(hk26) 單源鏈（硬寫任一環即紅）');
-    assert(!/SPR\.bld\[\s*'26_1_'/.test(seg419)&&!/\.push\(\s*'26_1_'/.test(seg419),
-      'T419 KEY 單源：k26 禁硬寫字面量 lookup/bridge（R02 同型假綠通道已關）');
-    // ④ 白名單機器軌：drawn 集合恰等 ART_LOOP_KEYS（headless 以 drawn 橋代 CRC 差分）
-    const drawn419=(window.__t419Drawn||[]).slice();
-    assert(JSON.stringify(drawn419)===JSON.stringify(['25_1_0','26_1_0','26_1_1','26_1_2']),
-      'T419 白名單：pass 只可落筆 25_1_0＋26_1_0/1/2，實得 '+JSON.stringify(drawn419));
-    // ⑤ metadata 恆等（vs R00 manifest：25_1_0=136×150/ax68/ay148；26_1_0=64×112/ax32/ay110）
-    const sp419=window.GV.sprAtlas356().entries.find(e=>e.key==='25_1_0');
-    assert(sp419&&sp419.w===136&&sp419.h===150&&sp419.ax===68&&sp419.ay===148&&sp419.night!==null,
-      'T419 k25 metadata 恆等：25_1_0 對齊 R00 manifest（w136/h150/ax68/ay148/有 night 鍵——8004 重畫版；pass 只畫日間 img）');
-    const sp26=window.GV.sprAtlas356().entries.find(e=>e.key==='26_1_0');
-    assert(sp26&&sp26.w===64&&sp26.h===112&&sp26.ax===32&&sp26.ay===110,
-      'T419 k26 metadata 恆等：26_1_0 對齊 R00 manifest（w64/h112/ax32/ay110）');
-    // ⑥ pass 只改日間 img（不碰 night 烘焙路徑：R01 無 night 鍵）
-    const seg419code=seg419.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
-    assert(!seg419code.includes('night'),'T419 pass 正文不得碰 night/nightCity（卡面第 3 節；註釋可說明禁區）');
+  // ===== T418b 深加工對帳：SK-1~SK-8 落地守衛 =====
+  {
+    const bareB=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    assert(bareB.includes('return steelDisc418?base*STEEL_UP_DISCOUNT:base;'),
+      'T418b SK-1 原文釘：upCost 折扣讀本日快照（改回活庫存→面板/選單再度矛盾→紅）');
+    assert(bareB.includes('steelDisc418=steel>0;'),
+      'T418b SK-1 原文釘：快照與 steelTaxMul 同時點取值（造船後、施工前）');
+    assert(bareB.includes("{k:'升級折扣',v:steelDisc418?"),
+      'T418b SK-1 原文釘：T369 折扣列讀同一快照（面板/選單口徑一致）');
+    assert(bareB.includes('let cap418=Math.min(steelMillN*STEEL_MILL_RATE,steel);'),
+      'T418b SK-3 原文釘：額度=鋼廠吞吐、料源=庫存（退回「額度=當日產量」→滿倉停擺→紅）');
+    assert(bareB.includes('const nE418=el418.length,offE418=nE418?day%nE418:0;')&&bareB.includes('tiles[el418[(j418+offE418)%nE418]].bld'),
+      'T418b SK-4＋F1 原文釘：輪轉基數＝施工中合格子集（退回 day%tickBld.length 全建築基數→大城每日只爬 1 格＝北端特權換名不換實→紅）');
+    assert(bareB.includes('steel:{made:steelMade,used:steelUsed,stock:steel,mul:steelTaxMul,constr:constrSteelUse418}'),
+      'T418b SK-2 原文釘：flowStat 鋼帳含施工欄');
+    assert(bareB.includes("k:'鋼材 產/船用/施工/存'")&&bareB.includes("k:'施工耗鋼'"),
+      'T418b SK-2 原文釘：資源面板鋼帳四段＋T369 施工耗鋼列（鋼不再憑空消失）');
+    assert(!bareB.includes('fuel364:fuel'),
+      'T418b SK-6 絕跡釘：fin 364/418 鏡像 15 欄已整組刪除（零讀者的跨城殘留欄不得復活）');
+    const findB=(kind)=>{const n=window.GV.N();for(let y=2;y<n-2;y++)for(let x=2;x<n-2;x++)if(window.GV.resourceAt(x,y)===kind)return[x,y];return null;};
+    const putB=(k,x,y,done)=>{window.__t384Bld(k,x,y);if(done)window.__t412Set(x,y,'age',9);};
+    // --- B1 upCost 兩臂（seed942 同種子同日）：面板說生效就真打折 ---
+    window.GV.newWorldSeeded(942);window.GV.setDiff(1);
+    const oreB1=findB(2);
+    assert(oreB1,'T418b B1 前置：seed942 應有礦格');
+    putB(50,oreB1[0],oreB1[1],true);putB(122,10,10,true);
+    window.__t384Bld(1,20,20);window.__t384Bld(1,22,20);
+    for(let d=1;d<=2;d++)window.GV.step(1);
+    let cB=window.GV.chain346();
+    assert(cB.steel===0&&cB.constrUse===2&&cB.upCost364(9,1)===382.5,
+      'T418b B1 折扣臂：施工把日終庫存吃到 0，快照口徑下升級費仍 382.5（=450×0.85；改回讀活庫存→450→紅），實得 steel='+cB.steel+' cu='+cB.constrUse+' up='+cB.upCost364(9,1));
+    window.GV.newWorldSeeded(942);window.GV.setDiff(1);
+    for(let d=1;d<=2;d++)window.GV.step(1);
+    cB=window.GV.chain346();
+    assert(cB.upCost364(9,1)===450,'T418b B1 無鋼臂：同種子同日無鋼廠升級費原價 450，實得 '+cB.upCost364(9,1));
+    // --- B1b SKB-1：load 推導方向（折扣態不得跨城殘留為真）---
+    window.GV.newWorldSeeded(957);window.GV.setDiff(1);
+    window.GV.save();const rawNoSteel=window.GV.rawSave();
+    window.GV.newWorldSeeded(942);window.GV.setDiff(1);
+    const oreB1b=findB(2);
+    putB(50,oreB1b[0],oreB1b[1],true);putB(122,10,10,true);
+    window.GV.step(1);
+    assert(window.GV.chain346().upCost364(9,1)===382.5,'T418b B1b 前置：A 城有鋼折扣態為真');
+    store[SKEY]=rawNoSteel;
+    assert(window.GV.load(),'T418b B1b：直接 load 無鋼 B 檔應成功');
+    assert(window.GV.chain346().upCost364(9,1)===450,
+      'T418b B1b load 推導方向：從有鋼城直接載入無鋼存檔，未 tick 前折扣態必須為假（450；load 端改 steelDisc418=true 或殘留前城快照→382.5→紅），實得 '+window.GV.chain346().upCost364(9,1));
+    // --- B2 滿倉臂（seed942＋直設庫存 120）：SK-3 滿倉不停擺 ---
+    window.GV.newWorldSeeded(942);window.GV.setDiff(1);
+    const oreB2=findB(2);
+    putB(50,oreB2[0],oreB2[1],true);putB(122,10,10,true);
+    window.__t384Bld(1,20,20);
+    window.__t418bSetSteel(120);
+    window.GV.step(1);cB=window.GV.chain346();
+    assert(cB.steelMade===0&&cB.constrUse===1&&cB.steel===119&&window.GV.tile(20,20).bld.age===3,
+      'T418b B2 滿倉臂 d1：cap 頂滿 made 0 但施工照樣從庫存出料（cu 1/steel 119/age 3；退回「額度=當日產量」→停擺→紅），實得 '+cB.steelMade+'/'+cB.constrUse+'/'+cB.steel+'/'+window.GV.tile(20,20).bld.age);
+    window.GV.step(1);cB=window.GV.chain346();
+    assert(cB.steelMade===1&&cB.constrUse===1&&cB.steel===119&&window.GV.tile(20,20).bld.age===5,
+      'T418b B2 滿倉臂 d2：消耗騰出 1 格產能（made 1/cu 1/steel 119/age 5），實得 '+cB.steelMade+'/'+cB.constrUse+'/'+cB.steel+'/'+window.GV.tile(20,20).bld.age);
+    const fsB=window.GV.flowStat();
+    assert(fsB.steel.constr===1,'T418b SK-2 行為：flowStat 施工欄===當日 constrUse（面板帳平），實得 '+fsB.steel.constr);
+    // --- B3 輪轉分配（seed942，12 棟兩排 8 日）：不再恆偏北 ---
+    window.GV.newWorldSeeded(942);window.GV.setDiff(1);
+    const oreB3=findB(2);
+    putB(50,oreB3[0],oreB3[1],true);putB(122,10,10,true);
+    const homesB3=[];
+    for(let i=0;i<6;i++){window.__t384Bld(1,20+i*2,20);homesB3.push([20+i*2,20]);}
+    for(let i=0;i<6;i++){window.__t384Bld(1,20+i*2,40);homesB3.push([20+i*2,40]);}
+    for(let d=1;d<=8;d++)window.GV.step(1);
+    const agesB3=homesB3.map(([x,y])=>window.GV.tile(x,y).bld.age).join(',');
+    assert(agesB3==='10,10,10,11,11,11,11,10,10,9,9,10',
+      'T418b B3 輪轉分配（F1 退修後：輪轉基數＝施工中合格子集）：8 日 12 棟兩排 age 陣列恰等——南排 y=40 也吃到加速；退回恆自 0 起掃→北排獨吞（實測 13,13,11,11,10,10,9,9,9,9,9,9）→紅，實得 '+agesB3);
+    // --- B3b 大城公平性（F1 退修的核心證明）：167 根建築城，南端必須拿到加速鋼 ---
+    let sdB3=4180;for(;sdB3<4260;sdB3++){window.GV.newWorldSeeded(sdB3);window.GV.setDiff(1);if(findB(2))break;}
+    const oreB3b=findB(2);
+    assert(oreB3b,'T418b B3b 前置：應找到有礦種子');
+    putB(50,oreB3b[0],oreB3b[1],true);putB(122,6,6,true);putB(122,10,6,true);
+    window.__t418bSetSteel(120);
+    const northB3=[],southB3=[];
+    for(let i=0;i<15;i++){window.__t384Bld(1,20+i*2,20);northB3.push([20+i*2,20]);}
+    for(let i=0;i<15;i++){window.__t384Bld(1,20+i*2,60);southB3.push([20+i*2,60]);}
+    for(let i=0;i<60;i++){const x=20+(i%30)*2;window.__t384Bld(1,x,40);window.__t412Set(x,40,'age',9);}
+    for(let d=1;d<=12;d++)window.GV.step(1);
+    const naB3=northB3.map(([x,y])=>window.GV.tile(x,y).bld.age),saB3=southB3.map(([x,y])=>window.GV.tile(x,y).bld.age);
+    const maxS=Math.max.apply(null,saB3),minS=Math.min.apply(null,saB3);
+    assert(maxS>13&&minS>=13,
+      'T418b B3b 大城公平性：167 根建築城 12 日後南端（y=60）必須拿到加速鋼（純自然=13；SK-4 初版 day%tickBld.length 每日只爬 1 格→南端恆 13 零加速，與恆北序逐位相同→紅），實得 south min/max '+minS+'/'+maxS+' north avg '+(naB3.reduce((p,q)=>p+q,0)/15).toFixed(2));
+    // --- B4 造船競爭兩臂（seed943）：全滅臂＋庫存臂（SK-7 邊界釘死） ---
+    window.GV.newWorldSeeded(943);window.GV.setDiff(1);
+    let oreB4=findB(2);
+    putB(50,oreB4[0],oreB4[1],true);putB(122,10,10,true);
+    putB(123,14,10,true);putB(123,18,10,true);putB(18,22,10,true);
+    window.__t384Bld(1,30,20);
+    let cuB4=0;
+    for(let d=1;d<=4;d++){window.GV.step(1);cuB4+=window.GV.chain346().constrUse;}
+    assert(cuB4===0&&window.GV.tile(30,20).bld.age===5,
+      'T418b B4 全滅臂：雙造船廠吃光日產（shipyardN≥steelMade）＋零庫存→施工加速全停（cu 0/age 5＝實效邊界入檔），實得 '+cuB4+'/'+window.GV.tile(30,20).bld.age);
+    window.GV.newWorldSeeded(943);window.GV.setDiff(1);
+    oreB4=findB(2);
+    putB(50,oreB4[0],oreB4[1],true);putB(122,10,10,true);
+    putB(123,14,10,true);putB(123,18,10,true);putB(18,22,10,true);
+    window.__t384Bld(1,30,20);
+    window.__t418bSetSteel(50);
+    cuB4=0;
+    for(let d=1;d<=4;d++){window.GV.step(1);cuB4+=window.GV.chain346().constrUse;}
+    assert(cuB4===4&&window.GV.tile(30,20).bld.age===9&&window.GV.chain346().steel===46,
+      'T418b B4 庫存臂：庫存 50 下競爭仍可加速（cu 4/age 9/steel 46＝SK-3 庫存出料的正面證明），實得 '+cuB4+'/'+window.GV.tile(30,20).bld.age+'/'+window.GV.chain346().steel);
+    // --- B5 往返位元恆等（seed953，4 格合法布局；SK-8 契約的機器面） ---
+    window.GV.newWorldSeeded(953);window.GV.setDiff(1);
+    const oilB5=findB(1),oreB5=findB(2);
+    putB(49,oilB5[0],oilB5[1],true);putB(50,oreB5[0],oreB5[1],true);
+    putB(121,10,10,true);putB(122,14,10,true);putB(123,18,10,true);putB(18,22,10,true);
+    for(let d=1;d<=35;d++)window.GV.step(1);
+    window.GV.save();const rawA5=window.GV.rawSave();
+    window.GV.load();window.GV.save();const rawB5=window.GV.rawSave();
+    assert(rawA5===rawB5,'T418b B5 往返位元恆等：4 格合法布局鏈城 save→load→save 逐位一致（2 格間距=讀檔非法城會互蓋樓，SK-8 布局契約），len '+rawA5.length+'/'+rawB5.length);
   }
+
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');

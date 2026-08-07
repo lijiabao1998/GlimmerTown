@@ -924,7 +924,7 @@ let region={};            // 區域聯動摘要（T60）
 let fuel=0,steel=0;       // T364b：深加工跨日存量；存檔欄位僅非零時落盤，舊城市缺欄位＝0
 let shipCount=0,shipProgress=0; // T418：船實體跨日狀態（steelUsed 累積→下水）；存檔僅非零落盤，舊檔缺欄位＝0
 let fuelMade=0,steelMade=0,steelUsed=0,fuelTaxMul=1,freightTaxMul=1,steelTaxMul=1,shipTradeTaxMul=1,shipPortGold=0; // T364b：本日快照，GV.chain346 可觀測；newWorld/load 成對歸零
-let fuelUse418=0,fuelExport418=0,shipDailyGold418=0,constrSteelUse418=0; // T418/T418a：本日快照（貨運耗油/貿易站出口油/船隊日收入/施工耗鋼）；成對歸零
+let fuelUse418=0,fuelExport418=0,shipDailyGold418=0,constrSteelUse418=0,steelDisc418=false; // T418/T418a/T418b：本日快照（貨運耗油/出口油/船隊收入/施工耗鋼/升級折扣態）；成對歸零
 let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
 let scenario=null;        // T132：目前進行中的場景戰役 {id,startDay,hold}（null＝一般/沙盒/挑戰模式，零評估開銷）；存檔可選欄位 sc
@@ -9546,45 +9546,6 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     window.__t413BakeCount=bakeCount413; /* 測試：總烘焙命中 */
     window.__t413BakeByKind=bakeByKind413; /* T413b 第三輪 B5：分族計數（跳過 P/H/F/D 會讓該族=0 紅） */
   }else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}
-  /* ===== T419 ART-LOOP 靜態加蓋 pass：k25 太陽能板場＋k26 風力發電塔架（白名單 ART_LOOP_KEYS=['25_1_0','26_1_0','26_1_1','26_1_2']）=====
-     原問題：25_1_0 是「灰底＋8 條藍板」與工廠灰頂難區分；26 是「細塔柱＋兩小葉片」結構弱。
-     z2 可見目標：光伏板陣列（板間分割暗縫＋板面反光高光＋板下厚度陰影＋支架斜撐＋兩側圍欄＋
-     變電箱黃警示）；風力塔桁架（桁架橫撐＋塔身明暗＋基座墩＋輪轂葉根）＝「發電設施」用途辨識層次。
-     日間靜態像素、零亂數、不改 w/h/ax/ay/sc/night/metadata；色票由既有家族
-     （#3a4a6a/#5a7aaa/#8a9a7a、#b0b8c0/#d0d8e0）衍生。
-     KEY 單源（覆核退修）：lookup 與 drawn 橋共用同一 key 變數——改錯真正 lookup 即改錯 drawn → 白名單必紅。 ===== */
-  {const hk419='25_1_0';const sp419=SPR.bld[hk419];if(sp419&&sp419.img){
-    window.__t419Drawn=(window.__t419Drawn||[]);window.__t419Drawn.push(hk419); // T419 機器軌橋：與 lookup 同源（headless 以 drawn 集合代 CRC 差分；真實 CRC 於瀏覽器端覆核）
-    const g419=sp419.img.getContext('2d');
-    g419.fillStyle='#2c3852'; // 板間分割暗縫（既有板距 2px 內補 1px 縫）
-    for(let i=1;i<8;i++)g419.fillRect(sp419.ax-26+i*7-1,sp419.ay-40,1,24);
-    g419.fillStyle='#7a9ac4'; // 板面反光高光（左上緣 1px 亮線＝光伏斜射反光）
-    for(let i=0;i<8;i++){g419.fillRect(sp419.ax-26+i*7,sp419.ay-40,5,1);g419.fillRect(sp419.ax-26+i*7,sp419.ay-40,1,20);}
-    g419.fillStyle='#2c3852'; // 板下緣厚度陰影
-    g419.fillRect(sp419.ax-28,sp419.ay-16,52,2);
-    g419.fillStyle='#5a5a52'; // 支架斜撐（3 組：立柱＋斜柱）
-    for(let i=0;i<3;i++){const sx=sp419.ax-24+i*24;g419.fillRect(sx,sp419.ay-14,1,12);g419.fillRect(sx+6,sp419.ay-12,1,10);}
-    g419.fillStyle='#6a6a5a'; // 兩側圍欄（立柱＋橫杆）
-    g419.fillRect(sp419.ax-31,sp419.ay-40,1,26);g419.fillRect(sp419.ax+30,sp419.ay-40,1,26);
-    g419.fillRect(sp419.ax-31,sp419.ay-37,62,1);
-    g419.fillStyle='#4a4a42'; // 變電箱（左前/右前小箱）
-    g419.fillRect(sp419.ax-24,sp419.ay-12,5,8);g419.fillRect(sp419.ax+18,sp419.ay-12,5,8);
-    g419.fillStyle='#e8b830'; // 黃警示
-    g419.fillRect(sp419.ax-23,sp419.ay-9,3,2);g419.fillRect(sp419.ax+19,sp419.ay-9,3,2);
-  }}
-  {for(const v26 of[0,1,2]){const hk26='26_1_'+v26;const sp26=SPR.bld[hk26];if(sp26&&sp26.img){
-    window.__t419Drawn=(window.__t419Drawn||[]);window.__t419Drawn.push(hk26); // T419 機器軌橋（k26；與 lookup 同源）
-    const g26=sp26.img.getContext('2d');
-    g26.fillStyle='#98a0a8'; // 桁架橫撐（3 條）
-    g26.fillRect(sp26.ax-3,sp26.ay-58,7,1);g26.fillRect(sp26.ax-3,sp26.ay-44,7,1);g26.fillRect(sp26.ax-3,sp26.ay-30,7,1);
-    g26.fillStyle='#8a929a'; // 塔身右側暗（體積感）
-    g26.fillRect(sp26.ax,sp26.ay-70,1,60);
-    g26.fillStyle='#a8b0b8'; // 基座墩
-    g26.fillRect(sp26.ax-4,sp26.ay-10,9,3);
-    g26.fillStyle='#c8d0d8'; // 輪轂／葉根
-    g26.fillRect(sp26.ax-2,sp26.ay-77,5,5);
-  }}}
-  /* ===== T419 ART-LOOP 靜態加蓋 pass END ===== */
 
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
@@ -9848,7 +9809,7 @@ function newWorld(seedOverride){
   RDEP.fill(0);supplies=0; // T140：資源耗損場與供應品存量成對歸零（RESOURCE 本身已由上方 genWorld→genResource 依新種子重建，鐵律7）
   trains.length=0;cargoShips.length=0;lifeShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;policeCars.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車；T361a：生命感船隊
   fuel=0;steel=0;fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0; // T364b：新世界不可攜帶庫存/快照（鐵律7）
-  shipCount=0;shipProgress=0;fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0; // T418/T418a：船/快照鐵律7 成對歸零
+  shipCount=0;shipProgress=0;fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0;steelDisc418=false; // T418/T418a/T418b：船/快照鐵律7 成對歸零
   svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本開新圖歸零（鐵律7）
   meteorTrail=null;shakeT=0;flashT=0; // T207：開新圖清視覺計時器（鐵律7，防前一局隕石拖尾/震屏/閃電殘留）
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
@@ -12028,7 +11989,7 @@ function tick(){
   let owN=0,mnN=0,mgN=0,indBldN=0,suppliesGain=0; // T140：owN油井/mnN礦場/mgN太空研究中心（root）計數；indBldN=工業建築計數（供資源消耗鏈用，獨立於既有 nI/jobsI，不限電力）；suppliesGain=本日開採彙總
   /* T364b：全是本 tick 的可觀測流量；庫存 fuel/steel 才跨日。 */
   let refineryN=0,steelMillN=0,shipyardN=0,oilGain=0,oreGain=0;
-  fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0;shipDailyGold418=0;fuelUse418=0;fuelExport418=0;constrSteelUse418=0; // T418：本日快照 load 成對歸零（覆核：從有船城市載入空城未 tick 時 shipDaily/fuelUse/fuelExport 不得殘留）
+  fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0;shipDailyGold418=0;fuelUse418=0;fuelExport418=0;constrSteelUse418=0;steelDisc418=false; // T418：本日快照 load 成對歸零（覆核：從有船城市載入空城未 tick 時 shipDaily/fuelUse/fuelExport 不得殘留）
   let happyAggSum=null; // T111：幸福構成累加器（沿用既有 happySum/happyN 迴圈，逐建築累加各項後於迴圈尾除以 happyN）
   let court364=0,tennis364=0,play364=0,socialHousing364=0,substation364=0,desal364=0,pump364=0,center364=0,shelter364=0,radar364=0;
   const grown=[];
@@ -12275,7 +12236,7 @@ function tick(){
   if(shipCount>po*SHIP_PORT_CAP)shipCount=po*SHIP_PORT_CAP; // 上限截斷（多餘船丟棄；progress 已餘 <30 不受影響）
   shipDailyGold418=shipCount*SHIP_DAILY_GOLD;
   fuelTaxMul=fuel>0?FUEL_INDUSTRY_TAX_MUL:1;
-  steelTaxMul=steel>0?STEEL_INDUSTRY_TAX_MUL:1;
+  steelTaxMul=steel>0?STEEL_INDUSTRY_TAX_MUL:1;steelDisc418=steel>0; // T418b SK-1：升級折扣快照與稅乘數同時點（造船後、施工前）——upCost/面板讀它，施工吃庫存不再吃掉折扣
   shipTradeTaxMul=steelUsed>0?SHIPYARD_TRADE_TAX_MUL:1;
   shipPortGold=steelUsed>0?Math.round(po*steelUsed*SHIPYARD_PORT_GOLD*sq('ind',1.25,1)):0;
   /* ===== T364b A 深加工鏈 END ===== */
@@ -12538,17 +12499,22 @@ function tick(){
   }
   /* T418 交付②＋T418a A1 裁決（真分流）：施工中建築（age<9）每日耗鋼 1/座 → 當日 age 額外 +1。
      T418a 更正：原「額度制不碰庫存」是雙重計帳（當日產出全額入庫又全額當加速額度，鋼沒有流向工地）
-     ——改真分流：每加速一棟即 steel--（額度 cap418=steelMade 與庫存 steel 雙重下界）。
+     ——改真分流：每加速一棟即 steel--（額度與庫存雙重下界；額度定義見下方 SK-3）。
      結算順序（入卡聲明）：造船先（T364b 段）、施工後，兩者競爭同一庫存；
      steelTaxMul 快照時點=造船結算後、施工消耗前（入卡聲明）。
      守恆帳（守衛恆等式）：steel[d]=steel[d-1]+made−shipUse−constrUse。
-     tickBld 序先到先吃（決定性）；純算術零亂數；steelMade=0 整段惰性（兩釘軌跡恆等）。 */
-  if(steelMillN>0&&steelMade>0){
-    let cap418=steelMade;
-    for(const i of tickBld){
-      const b=tiles[i].bld;
-      if(!b||b.ref||b.age>=9)continue; // 只加速施工中（age 0-8）；完工/ref 格不耗鋼
-      if(cap418<=0||steel<=0)break;     // 額度或庫存耗盡→停（決定性：tickBld 序）
+     分配=「施工中合格子集」輪轉（T418b SK-4＋F1 退修：SK-4 初版 off=day%tickBld.length 每日只爬 1 格，
+     大城 n≥167 時服務窗永遠停在偏移點後第一批工地＝北端特權換名不換實，實測與恆北序逐位相同；
+     改在合格子集上輪轉＝施工樓真正輪流吃）；額度=鋼廠日吞吐、料源=庫存（SK-3，滿倉不停擺）。
+     day 導出零亂數；millN=0 整段惰性（兩釘軌跡恆等）。 */
+  if(steelMillN>0){
+    let cap418=Math.min(steelMillN*STEEL_MILL_RATE,steel); // T418b SK-3：額度=鋼廠日吞吐、料源=庫存（含當日入庫）
+    const el418=[];
+    for(const i of tickBld){const b=tiles[i].bld;if(b&&!b.ref&&b.age<9)el418.push(i);} // 合格子集＝施工中根格（完工/ref 不耗鋼）
+    const nE418=el418.length,offE418=nE418?day%nE418:0; // T418b F1：輪轉基數=合格子集長度（大城也輪得完）
+    for(let j418=0;j418<nE418;j418++){
+      if(cap418<=0||steel<=0)break;     // 額度或庫存耗盡→停（決定性：輪轉序）
+      const b=tiles[el418[(j418+offE418)%nE418]].bld;
       b.age++;cap418--;steel--;constrSteelUse418++; // T418a A1：鋼真的流向工地
     }
   }
@@ -12898,8 +12864,7 @@ function tick(){
   const transitRev=(pol&&pol.freeTransit)?0:Math.round(transitRidership*.03);income+=transitRev; // T327：免費公交＝票務歸零（換幸福與運量） // T293：公共運輸票務收入（日客運量×票價 0.03）
   if(cityEvent){income=Math.round(income*CITY_EVENTS[cityEvent.i].tax);} // T299：城市事件稅收加成（旅遊/繁榮 +25~30%；無事件 ×1）
   fin={taxR,taxC,taxI,farmGold,ranchGold,procGold,lodgeRev,mktGold,tradeGold,brewGold,techGold,dcGold,gasGold,cookGold,bankInt,gasSup,gasDem,fertOut,cookedOut,wageIdx,transitRev,metroRev,metroAds,metroCost,upR:roadUpkeep,upP:parks*.5,upE:plants*4+wteN*10,upPol:policeStations*4+policeBoxes*1.5,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep}; // T266：只補 k62 已存在於 upkeep 的 $10 報表鏡像，不重複扣款
-  Object.assign(fin,{fuel364:fuel,steel364:steel,fuelMade364:fuelMade,steelMade364:steelMade,shipUse364:steelUsed,shipPortGold364:shipPortGold,freightTaxMul364:freightTaxMul,steelTaxMul364:steelTaxMul,shipTradeTaxMul364:shipTradeTaxMul,
-    fuelUse364:fuelUse418,fuelExport364:fuelExport418,shipCount364:shipCount,shipProgress364:shipProgress,shipDaily364:shipDailyGold418,constrUse364:constrSteelUse418}); // T418：流化/船實體快照
+  // T418b SK-6：fin 364/418 鏡像 15 欄整組刪除（全碼零讀者＋newWorld/load 不歸零＝跨城殘留的上膛之槍；觀測面由 chain346 全權承擔）
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   syncWaterCap364(wCap); // T364d：有淡化廠才公開容量，舊城 region 位元不增鍵
@@ -13001,7 +12966,7 @@ function tick(){
     goods:{made:gMade384,sold:gUse284,need:gNeed284,stock:Math.round(goods),cap:goodsCap283(),mul:+goodsMul284.toFixed(3)},
     ind:{demand:+indSupplyDemand.toFixed(1),used:+indSupplyUsed.toFixed(1),mul:+indSupplyMul.toFixed(3)},
     fuel:{made:fuelMade,stock:fuel,mul:fuelTaxMul,use:fuelUse418,export:fuelExport418},
-    steel:{made:steelMade,used:steelUsed,stock:steel,mul:steelTaxMul},
+    steel:{made:steelMade,used:steelUsed,stock:steel,mul:steelTaxMul,constr:constrSteelUse418}, // T418b SK-2
     ship:{gold:shipPortGold,mul:shipTradeTaxMul,ports:(region&&region.ports)||0,count:shipCount,progress:shipProgress,daily:shipDailyGold418},
     gas:{sup:gasSup,dem:gasDem,ratio:+gasRatio.toFixed(3),fert:fertOut,cooked:cookedOut},
     food:{points:foodPoints,surplus:foodSurplus,gold:tradeGold,price:+foodPrice.toFixed(2)},
@@ -16825,7 +16790,7 @@ function commitRect(){
 const UP_MAX={9:15,6:10,7:10,11:10,12:10,13:10,14:10,15:10,10:10,5:10,16:10,28:10,29:10,30:10,17:10,18:10,21:10,54:10,55:10,53:8,56:15,22:8,23:8,25:10,26:10,57:10,58:10,59:10,60:10,61:10,62:10,63:8,64:10,65:8}; // T290：購物中心擴店 8 級；T285：倉儲容量升級；T280：溫室擴建 8 級；T265：焚化發電機組可升至10級；T257：核電/水力/地熱亦可升級擴容、消防總局可升級；T251：農場 k22 灌溉升級（8 級）；大農場 k53 亦升級；T252：牧場 k23 牧養升級（8 級）；T253：太陽能 k25/風力 k26 亦可升級擴容；T254：食品加工廠 k57 可升級加工容量（10 級）
 const UP_JOB={9:15,54:8,55:12,53:3,17:8,18:8,56:18,22:1,23:1,5:0,25:0,26:0,57:0,58:0,59:0,60:0,62:0,63:1,64:0,65:20}; // T290：購物中心每級 +20 零售就業；T285：倉儲升級純擴容；T280：溫室升級主給食物金幣就業+1；T265：焚化發電升級只擴容，不加就業；每級加成就業（大型建築較高，其餘預設6）；T257：三新電源亦純擴容(k58/59/60:0)，消防總局走預設6；T251：農場升級主要給金幣/食物，就業加成小(k22:1/k53:3)；T252：牧場同農場(k23:1)；T253：電廠/太陽能/風力升級＝純擴容不加就業(k5/k25/k26:0)；T254：食品加工廠升級＝純加工容量不加就業(k57:0)
 const STEEL_UP_DISCOUNT=.85; // T364b 業主裁決：鋼材存量 >0 時，所有真實 upCost() 升級費固定 ×0.85
-function upCost(k,lv){const base=Math.round((k===9?450:k>=53?600:280)*lv*Math.pow(1.18,lv-1));return steel>0?base*STEEL_UP_DISCOUNT:base;} // 僅此公式點掛鋼材折減；k33/34/105/106 無付費升級路徑，明確不另造
+function upCost(k,lv){const base=Math.round((k===9?450:k>=53?600:280)*lv*Math.pow(1.18,lv-1));return steelDisc418?base*STEEL_UP_DISCOUNT:base;} // 僅此公式點掛鋼材折減（T418b SK-1：讀本日快照與 steelTaxMul 同口徑，面板說生效就真打折）；k33/34/105/106 無付費升級路徑，明確不另造
 function upgradeBld(x,y){
   if(!inMap(x,y))return;let t=T(idx(x,y)),b=t.bld;
   if(b&&b.ref)return upgradeBld(b.ref[0],b.ref[1]);
@@ -18169,7 +18134,7 @@ function showFlowPanel384(){
       {bar:fs.goods.cap>0?fs.goods.stock/fs.goods.cap:0},
       {sec:'深加工鏈'},
       {k:'燃料 產/存',v:fs.fuel.made+' / '+fs.fuel.stock,u:'工業稅 ×'+fs.fuel.mul,t:fs.fuel.made>0?'good':'dim'},
-      {k:'鋼材 產/用/存',v:fs.steel.made+' / '+fs.steel.used+' / '+fs.steel.stock,u:'工業稅 ×'+fs.steel.mul,t:fs.steel.made>0?'good':'dim'},
+      {k:'鋼材 產/船用/施工/存',v:fs.steel.made+' / '+fs.steel.used+' / '+((fs.steel.constr|0))+' / '+fs.steel.stock,u:'工業稅 ×'+fs.steel.mul,t:fs.steel.made>0?'good':'dim'}, // T418b SK-2：鋼帳四段，不再憑空消失
       {k:'造船出口',v:'$'+fs.ship.gold,u:'港口 '+fs.ship.ports+'｜貿易 ×'+fs.ship.mul,t:fs.ship.gold>0?'good':'dim'},
       {sec:'燃氣／糧食'},
       {k:'燃氣 供/需',v:fs.gas.sup+' / '+fs.gas.dem,u:'化肥 '+fs.gas.fert+'／熟食 '+fs.gas.cooked,t:fs.gas.ratio<1?'warn':'good'},
@@ -18527,9 +18492,10 @@ function showStats(){
         {k:'貨運倍率',v:'×'+freightTaxMul,u:'',t:freightTaxMul>1?'good':'dim'},
         {k:'鋼材',v:String(+steel.toFixed(1)),u:'庫存',t:steel>0?'good':'dim'},
         {k:'今日冶煉',v:String(steelMade),u:'單位',t:steelMade>0?'good':'dim'},
-        {k:'今日耗鋼',v:String(steelUsed),u:'單位',t:steelUsed>0?'good':'dim'},
+        {k:'造船耗鋼',v:String(steelUsed),u:'單位',t:steelUsed>0?'good':'dim'},
+        {k:'施工耗鋼',v:String(constrSteelUse418),u:'單位',t:constrSteelUse418>0?'good':'dim'}, // T418b SK-2：鋼→工地可見
         {k:'工業倍率',v:'×'+steelTaxMul,u:'鋼材',t:steelTaxMul>1?'good':'dim'},
-        {k:'升級折扣',v:steel>0?('×'+STEEL_UP_DISCOUNT):'×1',u:steel>0?'有鋼生效':'無鋼',t:steel>0?'good':'dim'},
+        {k:'升級折扣',v:steelDisc418?('×'+STEEL_UP_DISCOUNT):'×1',u:steelDisc418?'本日快照生效':'無鋼',t:steelDisc418?'good':'dim'}, // T418b SK-1：與 upCost 同口徑
         {k:'貿易倍率',v:'×'+shipTradeTaxMul,u:'造船',t:shipTradeTaxMul>1?'good':'dim'},
         {k:'港口收益',v:f(shipPortGold),u:'/日',t:shipPortGold>0?'good':'dim'}];
       t369Html=statTab(rows369);
@@ -19468,7 +19434,7 @@ function load(slot){
     }
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     fuel=(+d.fuel364)||0;steel=(+d.steel364)||0;fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0; // T364b：舊檔缺欄位＝0；本日快照讀檔後待下一 tick 重算
-    fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0; // T418/T418a 覆核退修：load() 讀檔群每日快照四欄明確歸零——不得依賴 newWorld 先行清零（A 城非零快照直接 load B 存檔未 tick 時 shipDaily 殘留案）
+    fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0;steelDisc418=steel>0; // T418/T418a/T418b：load() 每日快照四欄歸零；折扣快照由本檔已載庫存推導（零跨城殘留＋T364b「折扣跨存讀」守衛零放寬——讀檔後立刻升級不收原價）——不得依賴 newWorld 先行清零（A 城非零快照直接 load B 存檔未 tick 時 shipDaily 殘留案）
     shipCount=(+d.shipCount)||0;shipProgress=(+d.shipProgress)||0; // T418：船跨日狀態舊檔缺欄位＝0（T412 剝欄容錯慣例）
     aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0;gFlow284={gain:0,use:0,mul:1}; // T284：工業品還原（舊檔缺＝0）// T369 退修：流量快照不入存檔，讀檔成對歸零、待下一 tick 重算（與 fuelMade 等本日快照同契約）
     /* T369.1：gWhCap284 不入存檔，不可跨城殘留；亦不可單純歸零（有倉儲城讀檔未 tick 會暫時錯成 60）。
