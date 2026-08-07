@@ -394,6 +394,7 @@ window.__t383TaxCase=function(){
     R=oldR;hasRoadNear=oldRoad;computePower=oldPower;computeWater=oldWater;disastersOn=oldDis;window.__taxFbk=null;
   }
 };
+window.__t420SPR=SPR; // T420 測試橋：直讀 SPR 全鍵 record（G2 metadata 直讀釘——sprAtlas356 的 w/h 是 img.width 推導，看不到 record 原值；harness 注入零污染）
 ` + js.slice(t383IifeEnd);
 window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生的首輪 tick
 { // T416 五輪退修 A4：計數釘注入——scored 建構迴圈內自增（hits 必須恰 1，錨點失配 fail-closed；比照 inject343 先例）
@@ -5485,6 +5486,41 @@ runPwaTests().then(() => {
     window.GV.save();const rawA5=window.GV.rawSave();
     window.GV.load();window.GV.save();const rawB5=window.GV.rawSave();
     assert(rawA5===rawB5,'T418b B5 往返位元恆等：4 格合法布局鏈城 save→load→save 逐位一致（2 格間距=讀檔非法城會互蓋樓，SK-8 布局契約），len '+rawA5.length+'/'+rawB5.length);
+  }
+
+  { // ===== T420 ART-LOOP 守衛（六條：位置/metadata/落筆觀測/前置C/計數+幾何/指紋+亂數+分檔位） =====
+    // 共同前置：pass 受管區切片（卡面第 2 節：單一 BEGIN/END）
+    const b420=html.indexOf('/* ===== T420 ART-LOOP 靜態加蓋 pass');
+    const e420=html.indexOf('T420 ART-LOOP 靜態加蓋 pass END');
+    const bakeEnd420='}else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}';
+    const iBakeEnd420=html.indexOf(bakeEnd420);
+    const iR420=html.indexOf('R=__savedR;',b420);
+    const seg420=html.slice(b420,e420);
+    // G1 位置釘：完整 else 字面（T419 用 lastIndexOf('__t413BakeByKind') 被「搬進 else」騙過——改用整段 else 字面結束）
+    assert(b420>0&&iBakeEnd420>0&&iBakeEnd420<b420&&iR420>e420,
+      'T420 G1 位置：pass 必須位於 T413b else 分支完整字面（含 BakeCount=0 重設群）之後、R=__savedR 之前（搬進 else/搬到 R 之後皆紅）');
+    // G1b 分支無關行為釘：quality=0（不烘夜之城）重跑，落筆偵測結果不變（靜態加蓋無畫質分支理由）
+    assert(!/(quality|lod|dpr)/.test(seg420),'T420 G1b 分檔位：pass 正文不得出現 quality/lod/dpr（卡面第 5 節守衛 5 原文前哨）');
+    // G2 metadata 直讀 record（T419 讀 sprAtlas356 的 w/h 是 img.width 推導——看不到 record；直讀 SPR.bld[key]）
+    const m420={};
+    for(const k of Object.keys(window.__t420SPR.bld)){const s=window.__t420SPR.bld[k];if(s&&typeof s.w==='number')m420[k]={w:s.w,h:s.h,ax:s.ax,ay:s.ay,sc:s.sc};}
+    assert(Object.keys(m420).length>100,'T420 G2 metadata 直讀：SPR.bld 全鍵 record 可直讀（w/h/ax/ay/sc 原值）');
+    // G3 落筆觀測式（T274/T417 真像素跑檯）：對白名單鍵重放 pass，斷言 ops 與不透明像素增量 ≥ 實測下界；
+    //   並對禁鍵清單做 CRC 恆等釘（T419 的「只 push 不畫」與「畫了不 push」皆被此咬死）
+    //   註：R00 階段 pass 為空骨架——下界常數隨 R01 實測填入（卡面第 5 節：常數與 delta 來源同卡更新）
+    const wl420=[]; // R01 填白名單鍵
+    assert(Array.isArray(wl420),'T420 G3 落筆觀測：白名單鍵清單就緒（R01 填；T417 真像素跑檯重放 pass 斷 ops≥下界）');
+    // G4 前置 C 機器版：pass 前後各取一次 getImageData，斷言「原色像素數 ≤16 的顏色被覆蓋數恰 0（或恰等帳本申報）」
+    //   （T419 蓋掉 10 項重點細節零紅的破口；R01 填禁覆蓋色清單）
+    const accent420={}; // R01 填 {key:[color,...]}
+    assert(typeof accent420==='object','T420 G4 前置C 機器版：重點細節色清單就緒（R01 填；≤16px 原色覆蓋數恰 0 或恰等申報）');
+    // G5 落筆計數釘＋幾何釘：__t420Ink 恰等帳本常數；切受管區正則抽每個 fillRect 字面量斷畫布內＋菱形條件
+    const ink420=window.__t420Ink;
+    assert(ink420&&typeof ink420.rects==='number'&&typeof ink420.px==='number',
+      'T420 G5 計數：pass 內必須有賦值型 __t420Ink={rects,px}（T419 座標軸 +4000 / 尺寸 ×3 全綠的破口）');
+    // G6 兩次 build 指紋相同＋亂數計數＋分檔位（T419 的 Date.now/別名 R 全綠破口；R01 實作時啟用真像素比對）
+    assert(ink420.rects===0&&ink420.px===0,
+      'T420 G6 空骨架恆等：R00 空 pass 不得落筆（rects/px 恰 0；R01 落筆後改斷言恰等帳本常數）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====

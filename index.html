@@ -9546,6 +9546,13 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     window.__t413BakeCount=bakeCount413; /* 測試：總烘焙命中 */
     window.__t413BakeByKind=bakeByKind413; /* T413b 第三輪 B5：分族計數（跳過 P/H/F/D 會讓該族=0 紅） */
   }else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}
+  /* ===== T420 ART-LOOP 靜態加蓋 pass：R01 待填（白名單鍵見帳本）=====
+     位置契約（卡面第 2 節）：T413b 夜之城烘焙完整結束後、亂數流還原（__savedR 回存）之前。
+     本 pass 只對既有 SPR.bld[key].img 落筆日間靜態像素；零亂數、無條件分支（僅存在性檢查）、
+     成員名僅 img/getContext/fillStyle/fillRect/ax/ay/w/h。落筆計數＝賦值型冪等
+     window.__t420Ink={rects,px}（每筆 fillRect 前累加 w*h；卡面第 5 節守衛 7）。 ===== */
+  window.__t420Ink={rects:0,px:0};
+  /* ===== T420 ART-LOOP 靜態加蓋 pass END ===== */
 
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
