@@ -12499,19 +12499,22 @@ function tick(){
   }
   /* T418 交付②＋T418a A1 裁決（真分流）：施工中建築（age<9）每日耗鋼 1/座 → 當日 age 額外 +1。
      T418a 更正：原「額度制不碰庫存」是雙重計帳（當日產出全額入庫又全額當加速額度，鋼沒有流向工地）
-     ——改真分流：每加速一棟即 steel--（額度 cap418=steelMade 與庫存 steel 雙重下界）。
+     ——改真分流：每加速一棟即 steel--（額度與庫存雙重下界；額度定義見下方 SK-3）。
      結算順序（入卡聲明）：造船先（T364b 段）、施工後，兩者競爭同一庫存；
      steelTaxMul 快照時點=造船結算後、施工消耗前（入卡聲明）。
      守恆帳（守衛恆等式）：steel[d]=steel[d-1]+made−shipUse−constrUse。
-     tickBld 序先到先吃（決定性）；純算術零亂數；steelMade=0 整段惰性（兩釘軌跡恆等）。 */
+     分配=「施工中合格子集」輪轉（T418b SK-4＋F1 退修：SK-4 初版 off=day%tickBld.length 每日只爬 1 格，
+     大城 n≥167 時服務窗永遠停在偏移點後第一批工地＝北端特權換名不換實，實測與恆北序逐位相同；
+     改在合格子集上輪轉＝施工樓真正輪流吃）；額度=鋼廠日吞吐、料源=庫存（SK-3，滿倉不停擺）。
+     day 導出零亂數；millN=0 整段惰性（兩釘軌跡恆等）。 */
   if(steelMillN>0){
-    let cap418=Math.min(steelMillN*STEEL_MILL_RATE,steel); // T418b SK-3：額度=鋼廠日吞吐、料源=庫存（含當日入庫）——滿倉不再停擺（原「額度=當日產量」在庫存頂 cap 時 steelMade=0=功能全關）；millN=0 惰性（兩釘軌跡恆等）
-    const nT418=tickBld.length,off418=nT418?day%nT418:0; // T418b SK-4：起點輪轉（day 導出，零亂數）——原恆自 index 0 起掃=地圖北端固定特權，南半城永遠陪跑
-    for(let j418=0;j418<nT418;j418++){
-      const i=tickBld[(j418+off418)%nT418];
-      const b=tiles[i].bld;
-      if(!b||b.ref||b.age>=9)continue; // 只加速施工中（age 0-8）；完工/ref 格不耗鋼
+    let cap418=Math.min(steelMillN*STEEL_MILL_RATE,steel); // T418b SK-3：額度=鋼廠日吞吐、料源=庫存（含當日入庫）
+    const el418=[];
+    for(const i of tickBld){const b=tiles[i].bld;if(b&&!b.ref&&b.age<9)el418.push(i);} // 合格子集＝施工中根格（完工/ref 不耗鋼）
+    const nE418=el418.length,offE418=nE418?day%nE418:0; // T418b F1：輪轉基數=合格子集長度（大城也輪得完）
+    for(let j418=0;j418<nE418;j418++){
       if(cap418<=0||steel<=0)break;     // 額度或庫存耗盡→停（決定性：輪轉序）
+      const b=tiles[el418[(j418+offE418)%nE418]].bld;
       b.age++;cap418--;steel--;constrSteelUse418++; // T418a A1：鋼真的流向工地
     }
   }

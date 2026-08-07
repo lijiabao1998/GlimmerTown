@@ -5130,11 +5130,14 @@ runPwaTests().then(() => {
     assert(ore2&&place('mine',ore2.x,ore2.y),'T418 應可建礦場');
     const sm418=findSpot('steelMill');
     assert(sm418&&place('steelMill',sm418.x,sm418.y),'T418 應可建鋼鐵廠');
-    for(let d=0;d<3;d++)window.GV.step(1);
+    let cuSum418g=0;
+    for(let d=0;d<3;d++){window.GV.step(1);cuSum418g+=window.GV.chain346().constrUse;}
     const ages418=bldPos418.map(([x,y])=>{const bb=tile(x,y).bld;return bb?bb.age:-1;});
-    // T418 覆核退修：正向 delta——有鋼 3 天增量必須 > 主循環 3（刪掉加速核心 b.age++ 必紅，原「>agesBase」被主循環自身增長掩蓋）
-    assert(ages418[0]-agesBase[0]>3&&ages418[0]>=ages418[5]&&ages418[5]>=agesBase[5]&&ages418.every(a=>Number.isInteger(a)),
-      'T418 鋼加速：正向 delta（有鋼 3 天增量 '+(ages418[0]-agesBase[0])+' > 主循環 3）＋tickBld 序先到先吃＋恆整數（坑②），實得 '+ages418.join(','));
+    // T418 覆核退修＋T418b F1 跟版：正向 delta 改用 constrUse 直接指標（原「ages418[0] 必為最大」依賴
+    // 「恆自 index 0 起掃」＝ F1 退修後輪轉序讓受益者每日輪替，第 0 棟不再必然最大；改斷言總加速量與總增量）
+    const sumB418=agesBase.reduce((p,q)=>p+q,0),sumA418=ages418.reduce((p,q)=>p+q,0);
+    assert(cuSum418g===6&&sumA418-sumB418>18&&ages418.every(a=>Number.isInteger(a)),
+      'T418 鋼加速：3 日總耗鋼恰 6（＝鋼廠日吞吐 2×3；刪 b.age++／額度歸零→cu 0→紅）＋六公園總 age 增量 >18（主循環 18 之外真有加速；F1 退修後部分額度由礦場/鋼廠自身施工吃掉＝故用下界不寫死）＋恆整數（坑②），實得 cu='+cuSum418g+' sumΔ='+(sumA418-sumB418)+' ages='+ages418.join(','));
   }
   {
     // ②b 上限真的是上限（受控空城 seed7 無 AI 干擾）：1 礦+1 廠+8 公園——單 tick 內加速棟數 ≤ 當日 steelMade
@@ -5377,8 +5380,8 @@ runPwaTests().then(() => {
       'T418b SK-1 原文釘：T369 折扣列讀同一快照（面板/選單口徑一致）');
     assert(bareB.includes('let cap418=Math.min(steelMillN*STEEL_MILL_RATE,steel);'),
       'T418b SK-3 原文釘：額度=鋼廠吞吐、料源=庫存（退回「額度=當日產量」→滿倉停擺→紅）');
-    assert(bareB.includes('const i=tickBld[(j418+off418)%nT418];'),
-      'T418b SK-4 原文釘：加速起點輪轉（退回恆自 0 起掃→地圖北端固定特權→紅）');
+    assert(bareB.includes('const nE418=el418.length,offE418=nE418?day%nE418:0;')&&bareB.includes('tiles[el418[(j418+offE418)%nE418]].bld'),
+      'T418b SK-4＋F1 原文釘：輪轉基數＝施工中合格子集（退回 day%tickBld.length 全建築基數→大城每日只爬 1 格＝北端特權換名不換實→紅）');
     assert(bareB.includes('steel:{made:steelMade,used:steelUsed,stock:steel,mul:steelTaxMul,constr:constrSteelUse418}'),
       'T418b SK-2 原文釘：flowStat 鋼帳含施工欄');
     assert(bareB.includes("k:'鋼材 產/船用/施工/存'")&&bareB.includes("k:'施工耗鋼'"),
@@ -5401,6 +5404,18 @@ runPwaTests().then(() => {
     for(let d=1;d<=2;d++)window.GV.step(1);
     cB=window.GV.chain346();
     assert(cB.upCost364(9,1)===450,'T418b B1 無鋼臂：同種子同日無鋼廠升級費原價 450，實得 '+cB.upCost364(9,1));
+    // --- B1b SKB-1：load 推導方向（折扣態不得跨城殘留為真）---
+    window.GV.newWorldSeeded(957);window.GV.setDiff(1);
+    window.GV.save();const rawNoSteel=window.GV.rawSave();
+    window.GV.newWorldSeeded(942);window.GV.setDiff(1);
+    const oreB1b=findB(2);
+    putB(50,oreB1b[0],oreB1b[1],true);putB(122,10,10,true);
+    window.GV.step(1);
+    assert(window.GV.chain346().upCost364(9,1)===382.5,'T418b B1b 前置：A 城有鋼折扣態為真');
+    store[SKEY]=rawNoSteel;
+    assert(window.GV.load(),'T418b B1b：直接 load 無鋼 B 檔應成功');
+    assert(window.GV.chain346().upCost364(9,1)===450,
+      'T418b B1b load 推導方向：從有鋼城直接載入無鋼存檔，未 tick 前折扣態必須為假（450；load 端改 steelDisc418=true 或殘留前城快照→382.5→紅），實得 '+window.GV.chain346().upCost364(9,1));
     // --- B2 滿倉臂（seed942＋直設庫存 120）：SK-3 滿倉不停擺 ---
     window.GV.newWorldSeeded(942);window.GV.setDiff(1);
     const oreB2=findB(2);
@@ -5424,8 +5439,23 @@ runPwaTests().then(() => {
     for(let i=0;i<6;i++){window.__t384Bld(1,20+i*2,40);homesB3.push([20+i*2,40]);}
     for(let d=1;d<=8;d++)window.GV.step(1);
     const agesB3=homesB3.map(([x,y])=>window.GV.tile(x,y).bld.age).join(',');
-    assert(agesB3==='9,10,11,11,11,11,11,10,10,10,9,9',
-      'T418b B3 輪轉分配：8 日 12 棟兩排 age 陣列恰等（南排 y=40 也吃到加速；退回恆自 0 起掃→北排獨吞 [17,17,9...]→紅），實得 '+agesB3);
+    assert(agesB3==='10,10,10,11,11,11,11,10,10,9,9,10',
+      'T418b B3 輪轉分配（F1 退修後：輪轉基數＝施工中合格子集）：8 日 12 棟兩排 age 陣列恰等——南排 y=40 也吃到加速；退回恆自 0 起掃→北排獨吞（實測 13,13,11,11,10,10,9,9,9,9,9,9）→紅，實得 '+agesB3);
+    // --- B3b 大城公平性（F1 退修的核心證明）：167 根建築城，南端必須拿到加速鋼 ---
+    let sdB3=4180;for(;sdB3<4260;sdB3++){window.GV.newWorldSeeded(sdB3);window.GV.setDiff(1);if(findB(2))break;}
+    const oreB3b=findB(2);
+    assert(oreB3b,'T418b B3b 前置：應找到有礦種子');
+    putB(50,oreB3b[0],oreB3b[1],true);putB(122,6,6,true);putB(122,10,6,true);
+    window.__t418bSetSteel(120);
+    const northB3=[],southB3=[];
+    for(let i=0;i<15;i++){window.__t384Bld(1,20+i*2,20);northB3.push([20+i*2,20]);}
+    for(let i=0;i<15;i++){window.__t384Bld(1,20+i*2,60);southB3.push([20+i*2,60]);}
+    for(let i=0;i<60;i++){const x=20+(i%30)*2;window.__t384Bld(1,x,40);window.__t412Set(x,40,'age',9);}
+    for(let d=1;d<=12;d++)window.GV.step(1);
+    const naB3=northB3.map(([x,y])=>window.GV.tile(x,y).bld.age),saB3=southB3.map(([x,y])=>window.GV.tile(x,y).bld.age);
+    const maxS=Math.max.apply(null,saB3),minS=Math.min.apply(null,saB3);
+    assert(maxS>13&&minS>=13,
+      'T418b B3b 大城公平性：167 根建築城 12 日後南端（y=60）必須拿到加速鋼（純自然=13；SK-4 初版 day%tickBld.length 每日只爬 1 格→南端恆 13 零加速，與恆北序逐位相同→紅），實得 south min/max '+minS+'/'+maxS+' north avg '+(naB3.reduce((p,q)=>p+q,0)/15).toFixed(2));
     // --- B4 造船競爭兩臂（seed943）：全滅臂＋庫存臂（SK-7 邊界釘死） ---
     window.GV.newWorldSeeded(943);window.GV.setDiff(1);
     let oreB4=findB(2);
