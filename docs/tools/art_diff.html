@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>微光小鎮 — 美術加蓋覆核台（T420）</title>
+<style>
+body{background:#141a26;color:#dce4f2;font:12px/1.55 Consolas,"Microsoft YaHei",monospace;margin:0;padding:12px}
+h1{font-size:16px;color:#7fd4ff;margin:2px 0 8px}
+.hint{color:#7a8699;margin-bottom:10px}
+#out{white-space:pre-wrap}
+canvas{image-rendering:pixelated;display:block;border:1px solid #2a3448;margin:8px 0;max-width:100%}
+.ok{color:#7be08a}.bad{color:#ff8a72}.warn{color:#ffd45f}.hd{color:#ffd45f;margin-top:8px}
+iframe{position:absolute;left:-9999px;width:64px;height:64px}
+</style>
+</head>
+<body>
+<h1>美術加蓋覆核台 <span class="hint" id="mode"></span></h1>
+<div class="hint">
+用法（兩個模式，都可用 <code>--dump-dom</code> 無頭取字）：<br>
+① 量測模式（動手前的硬前置 A）：<code>art_diff.html?a=/base/index.html&amp;geom=1&amp;keys=25_1_0,26_1_0</code>
+　印出每個鍵的 w/h/ax/ay、完整色票、<b>重點細節色（≤16 px）座標</b>、主色逐列 run（判斷等角走向）。<br>
+② 對照模式（每輪必交的證據）：<code>art_diff.html?a=/base/index.html&amp;b=/after/index.html&amp;keys=25_1_0,26_1_0</code>
+　印出鍵集／metadata／逐鍵 img+night CRC 差分、白名單外改動、像素帳（變更／剪影溢出／覆蓋既有像素完整原色分佈），
+　並對「覆蓋 ≤16 px 重點細節色」直接判紅；下方輸出 5× 對照條（左 a／中 b／右 紅=新增不透明、黃=改動）。<br>
+兩個 URL 必須同源（自架靜態站把兩個版本掛在同一埠的兩個路徑下），否則跨源畫布會被污染而讀不到像素。
+</div>
+<div id="out">booting…</div>
+<canvas id="strip"></canvas>
+<div id="frames"></div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.search);
+const A = Q.get('a') || '/base/index.html';
+const B = Q.get('b') || '';
+const GEOM = Q.get('geom') === '1' || !B;
+const KEYS = (Q.get('keys') || '25_1_0').split(',').map(s => s.trim()).filter(Boolean);
+const SC = Math.max(1, Math.min(20, parseInt(Q.get('sc') || '5', 10) || 5));
+const ACCENT = Math.max(1, parseInt(Q.get('accent') || '16', 10) || 16);
+document.getElementById('mode').textContent = GEOM ? '· 量測模式' : '· 對照模式';
+
+const O = document.getElementById('out');
+const LINES = [];
+const P = (m, c) => { LINES.push(m); const d = document.createElement('div'); if (c) d.className = c; d.textContent = m; O.appendChild(d); };
+
+/* CRC32（與 atlas.html T356 同一實作，指紋可互相比對） */
+const CT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c; } return t; })();
+const crc32 = u8 => { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CT[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+const px = cvs => cvs.getContext('2d').getImageData(0, 0, cvs.width, cvs.height).data;
+const crcOf = cvs => { const d = px(cvs); return crc32(new Uint8Array(d.buffer, d.byteOffset, d.byteLength)).toString(16); };
+const hex = (r, g, b) => '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+
+function frame(src) {
+  return new Promise(res => {
+    const f = document.createElement('iframe');
+    f.src = src;
+    document.getElementById('frames').appendChild(f);
+    const tick = () => { const w = f.contentWindow; if (w && w.GV && w.GV.sprAtlas356) return res(w); setTimeout(tick, 250); };
+    tick();
+  });
+}
+
+function census(cvs) {
+  const d = px(cvs), w = cvs.width, h = cvs.height;
+  const pal = {}, pos = {};
+  let n = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4;
+    if (d[i + 3] === 0) continue;
+    n++;
+    const c = hex(d[i], d[i + 1], d[i + 2]);
+    pal[c] = (pal[c] || 0) + 1;
+    (pos[c] = pos[c] || []).push([x, y]);
+  }
+  return { pal, pos, opaque: n, w, h, d };
+}
+
+function runs(d, w, h, colour) {
+  const rows = [];
+  for (let y = 0; y < h; y++) {
+    const r = []; let s = -1;
+    for (let x = 0; x <= w; x++) {
+      const i = (y * w + x) * 4;
+      const on = x < w && d[i + 3] !== 0 && hex(d[i], d[i + 1], d[i + 2]) === colour;
+      if (on && s < 0) s = x; else if (!on && s >= 0) { r.push(s + '-' + (x - 1)); s = -1; }
+    }
+    if (r.length) rows.push('y' + y + ':' + r.join(','));
+  }
+  return rows;
+}
+
+function entryMap(w) {
+  const r = w.GV.sprAtlas356();
+  return { meta: r, map: new Map(r.entries.map(e => [e.fam + '/' + e.key, e])) };
+}
+
+/* 畫布台帳（定義寫死在這裡，避免不同人不同量法）：
+   統計 sprAtlas356 可達的**相異** canvas 物件（img 與 night 各算一張，同一物件只算一次），
+   回 {count, totalPx=Σ w×h}。注意清冊本身 skipped 若干鍵（見 meta.skipped），
+   groundCache／粒子池等非 SPR 畫布不在此帳內——引用這組數字時要一併引用這個定義。 */
+function canvasCensus(m) {
+  const seen = new Set(), seenImg = new Set();
+  let count = 0, totalPx = 0, imgCount = 0, imgPx = 0;
+  for (const e of m.meta.entries) {
+    if (e.img && !seenImg.has(e.img)) { seenImg.add(e.img); imgCount++; imgPx += e.img.width * e.img.height; }
+    for (const c of [e.img, e.night]) {
+      if (!c || seen.has(c)) continue;
+      seen.add(c); count++; totalPx += c.width * c.height;
+    }
+  }
+  return { count, totalPx, imgCount, imgPx };
+}
+
+async function main() {
+  const wa = await frame(A);
+  const a = entryMap(wa);
+  O.textContent = '';
+  const ca = canvasCensus(a);
+  P('a=' + A + '  entries=' + a.meta.entries.length + ' families=' + a.meta.families + ' skipped=' + a.meta.skipped
+    + '  畫布台帳：相異 canvas ' + ca.count + ' 張 / ' + ca.totalPx.toLocaleString('en-US') + ' px'
+    + '（其中 img ' + ca.imgCount + ' 張 / ' + ca.imgPx.toLocaleString('en-US') + ' px，night ' + (ca.count - ca.imgCount) + ' 張）');
+
+  if (GEOM) {
+    for (const key of KEYS) {
+      const e = a.map.get('bld/' + key);
+      if (!e) { P('MISSING bld/' + key, 'bad'); continue; }
+      const c = census(e.img);
+      const ent = Object.entries(c.pal).sort((x, y) => y[1] - x[1]);
+      P('');
+      P('=== ' + key + '  w' + c.w + ' h' + c.h + ' ax' + e.ax + ' ay' + e.ay + (e.sc != null ? ' sc' + e.sc : '') + (e.night ? ' 有night' : ' 無night') + '  不透明=' + c.opaque + ' px  色數=' + ent.length, 'hd');
+      P('  完整色票（原色×像素數）：');
+      P('    ' + ent.map(t => t[0] + '×' + t[1]).join('  '));
+      const acc = ent.filter(t => t[1] <= ACCENT);
+      P('  ★ 重點細節色（≤' + ACCENT + ' px，禁止未申報覆蓋）：' + (acc.length ? '' : '（無）'), 'warn');
+      for (const [col, n] of acc) {
+        const p = c.pos[col];
+        P('    ' + col + ' ×' + n + '  絕對px=[' + p.map(q => q[0] + ',' + q[1]).join(' ') + ']  相對ax/ay=[' + p.map(q => (q[0] - e.ax) + ',' + (q[1] - e.ay)).join(' ') + ']');
+      }
+      P('  主色逐列 run（沿 (dx=2,dy=±1) 移動＝等角面；螢幕垂直/水平線＝可疑）：');
+      for (const [col] of ent.filter(t => t[1] >= 40).slice(0, 4)) P('    [' + col + '] ' + runs(c.d, c.w, c.h, col).join('  '));
+    }
+    P('');
+    P('—— 量測完成 ——', 'ok');
+    return;
+  }
+
+  const wb = await frame(B);
+  const b = entryMap(wb);
+  const cb = canvasCensus(b);
+  P('b=' + B + '  entries=' + b.meta.entries.length + ' families=' + b.meta.families + ' skipped=' + b.meta.skipped
+    + '  畫布台帳：相異 canvas ' + cb.count + ' 張 / ' + cb.totalPx.toLocaleString('en-US') + ' px');
+  const same = a.meta.entries.length === b.meta.entries.length && a.meta.families === b.meta.families && a.meta.skipped === b.meta.skipped;
+  P('清冊三數恆等：' + (same ? 'YES' : 'NO'), same ? 'ok' : 'bad');
+  const csame = ca.count === cb.count && ca.totalPx === cb.totalPx;
+  P('畫布台帳恆等：' + (csame ? 'YES' : 'NO（張數 ' + ca.count + '→' + cb.count + '／像素 ' + ca.totalPx + '→' + cb.totalPx + '）'), csame ? 'ok' : 'bad');
+
+  const added = [...b.map.keys()].filter(k => !a.map.has(k));
+  const removed = [...a.map.keys()].filter(k => !b.map.has(k));
+  P('鍵集：added=' + added.length + ' removed=' + removed.length + (added.length + removed.length ? ' ← ' + added.concat(removed).slice(0, 10).join(',') : ''), added.length + removed.length ? 'bad' : 'ok');
+
+  const metaDiff = [], imgChanged = [], nightChanged = [];
+  for (const [k, e] of b.map) {
+    const o = a.map.get(k); if (!o) continue;
+    if (o.w !== e.w || o.h !== e.h || o.ax !== e.ax || o.ay !== e.ay || (o.sc || 1) !== (e.sc || 1) || (!!o.night) !== (!!e.night)) metaDiff.push(k);
+    if (crcOf(o.img) !== crcOf(e.img)) imgChanged.push(k);
+    if (o.night && e.night && crcOf(o.night) !== crcOf(e.night)) nightChanged.push(k);
+  }
+  P('metadata(w/h/ax/ay/sc/有無night) 不同：' + metaDiff.length + (metaDiff.length ? ' ← ' + metaDiff.slice(0, 10).join(',') : ''), metaDiff.length ? 'bad' : 'ok');
+  P('img CRC 改變（' + imgChanged.length + '）：' + (imgChanged.join(', ') || '（無）'), 'warn');
+  P('night CRC 改變（' + nightChanged.length + '）：' + (nightChanged.join(', ') || '（無）'), nightChanged.length ? 'bad' : 'ok');
+  const wl = KEYS.map(k => 'bld/' + k);
+  const outside = imgChanged.filter(k => !wl.includes(k));
+  P('白名單外 img 改變：' + outside.length + (outside.length ? ' ← ' + outside.join(',') : '  ← 恰等白名單 ' + wl.length + ' 鍵'), outside.length ? 'bad' : 'ok');
+
+  let violations = 0;
+  for (const key of KEYS) {
+    const o = a.map.get('bld/' + key), e = b.map.get('bld/' + key);
+    if (!o || !e) { P('MISSING bld/' + key, 'bad'); continue; }
+    const ca = census(o.img), cb = census(e.img);
+    const da = ca.d, db = cb.d, w = ca.w, h = ca.h;
+    let chg = 0, newOp = 0, lostOp = 0, over = 0;
+    const opal = {};
+    for (let i = 0; i < da.length; i += 4) {
+      const alphaA = da[i + 3], alphaB = db[i + 3];
+      const diff = da[i] !== db[i] || da[i + 1] !== db[i + 1] || da[i + 2] !== db[i + 2] || alphaA !== alphaB;
+      if (diff) chg++;
+      if (alphaA === 0 && alphaB !== 0) newOp++;
+      if (alphaA !== 0 && alphaB === 0) lostOp++;
+      if (alphaA !== 0 && (da[i] !== db[i] || da[i + 1] !== db[i + 1] || da[i + 2] !== db[i + 2])) {
+        over++;
+        const c = hex(da[i], da[i + 1], da[i + 2]);
+        opal[c] = (opal[c] || 0) + 1;
+      }
+    }
+    const ent = Object.entries(opal).sort((x, y) => y[1] - x[1]);
+    const bad = ent.filter(t => (ca.pal[t[0]] || 0) <= ACCENT);
+    P('');
+    P('=== ' + key + '  ' + w + '×' + h + '  變更像素=' + chg + '  新增不透明(剪影溢出)=' + newOp + '  失去不透明=' + lostOp + '  覆蓋既有不透明=' + over, 'hd');
+    P('  被覆蓋的原色（完整）：' + (ent.map(t => t[0] + '×' + t[1]).join(' ') || '（無）'));
+    if (bad.length) {
+      violations += bad.length;
+      P('  ✘ 違反「重點細節不得覆蓋」：' + bad.map(t => t[0] + ' 被蓋 ' + t[1] + ' px（該鍵原本僅 ' + ca.pal[t[0]] + ' px）').join('； '), 'bad');
+    } else {
+      P('  ✔ 未覆蓋任何 ≤' + ACCENT + ' px 的重點細節色', 'ok');
+    }
+  }
+  P('');
+  P(violations ? '判定：退修（' + violations + ' 項重點細節被覆蓋）' : '判定：重點細節檢查通過（其餘仍需人眼樣張定奪）', violations ? 'bad' : 'ok');
+
+  /* 5× 對照條：左 a／中 b／右 差異遮罩 */
+  const cells = KEYS.map(k => ({ k, o: a.map.get('bld/' + k), e: b.map.get('bld/' + k) })).filter(c => c.o && c.e);
+  const pad = 10, lab = 18;
+  let W = 0, H = pad;
+  for (const c of cells) { W = Math.max(W, c.e.img.width * SC * 3 + pad * 4); H += lab + c.e.img.height * SC + pad; }
+  const cv = document.getElementById('strip');
+  cv.width = W || 1; cv.height = H;
+  const g = cv.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  g.fillStyle = '#141a26'; g.fillRect(0, 0, cv.width, cv.height);
+  let y = pad;
+  for (const c of cells) {
+    const w = c.e.img.width, h = c.e.img.height;
+    g.fillStyle = '#ffd45f'; g.font = '12px Consolas';
+    g.fillText(c.k + '  ' + w + '×' + h + '   左:a  中:b  右:紅=新增不透明 黃=改動', pad, y + 12);
+    const yy = y + lab;
+    g.drawImage(c.o.img, pad, yy, w * SC, h * SC);
+    g.drawImage(c.e.img, pad * 2 + w * SC, yy, w * SC, h * SC);
+    const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = h;
+    const tg = tmp.getContext('2d'), im = tg.createImageData(w, h);
+    const da = px(c.o.img), db = px(c.e.img);
+    for (let i = 0; i < da.length; i += 4) {
+      const diff = da[i] !== db[i] || da[i + 1] !== db[i + 1] || da[i + 2] !== db[i + 2] || da[i + 3] !== db[i + 3];
+      if (da[i + 3] === 0 && db[i + 3] !== 0) { im.data[i] = 255; im.data[i + 1] = 40; im.data[i + 2] = 40; im.data[i + 3] = 255; }
+      else if (diff) { im.data[i] = 255; im.data[i + 1] = 212; im.data[i + 2] = 95; im.data[i + 3] = 255; }
+      else if (db[i + 3] !== 0) { im.data[i] = 40; im.data[i + 1] = 48; im.data[i + 2] = 64; im.data[i + 3] = 255; }
+    }
+    tg.putImageData(im, 0, 0);
+    g.drawImage(tmp, pad * 3 + w * SC * 2, yy, w * SC, h * SC);
+    y = yy + h * SC + pad;
+  }
+  window.ART_DIFF = { added, removed, metaDiff, imgChanged, nightChanged, outside, violations, text: LINES.join('\n') };
+  P('—— 對照完成；window.ART_DIFF 有 JSON，對照條可右鍵另存 ——', 'ok');
+}
+main();
+</script>
+</body>
+</html>
