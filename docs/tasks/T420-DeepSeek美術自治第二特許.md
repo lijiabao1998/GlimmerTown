@@ -148,7 +148,7 @@ T419 的機器證據全綠、樣張也拍了，卻仍然是退步——**因為�
 1. **樣張（人眼軌）**：同機同 DPR 的 `before` / `after` 對照——
    ① atlas 鍵圖 **≥10× 最近鄰放大**；② 遊戲內 **z2** 實景（**畫面裡必須真的有那棟建築**，
    不得選著建造工具讓紅色預覽框壓住目標——T419 的 `after_z2` 畫面中根本沒有目標建築）。
-   **before 必須在落筆之前先拍。** 樣張存 `C:\dev\t420-shots\`（**非** `%TEMP%`，那會被磁碟清理清空），
+   **before 必須在落筆之前先拍。** 樣張存 `C:/dev/t420-shots/`（**非** `%TEMP%`，那會被磁碟清理清空），
    帳本記每個檔的 **sha256 前 12 碼與像素尺寸**（比照 `C:\dev\t375-shots` 與 `C:\dev\t419-shots` 前例）。**不入倉。**
 2. **像素帳**：變更像素數 ／ 新增不透明（剪影溢出）／ 失去不透明 ／
    **被覆蓋的既有原色完整分佈** ／ bbox 前後 ／ `onHero / onPlate / offSilhouette` 分類 ／ `sprFootAudit below`。
@@ -500,7 +500,7 @@ T419 那條寫「驗收:未驗證（…）」被擋的理由是**後者**；把�
 
 ## R01 證據（四件，缺一即退修）
 
-1. **樣張**（C:\dev	420-shots\，sha256 前 12 碼，不入倉）：
+1. **樣張**（C:/dev/t420-shots/，sha256 前 12 碼，不入倉）：
    - before：`R01_before_z2_game.png`（master 版遊戲內 z2，sha256 38515b75e7d8）、`R01_26_1_1_before_atlas.png`（42b901ca1ebc）、`R01_26_1_2_before_atlas.png`（fbccc6525f06）
    - after：`R01_after_z2_game.png`（遊戲內 z2，風力已放置 money 3000→2377，sha256 b7cda5eb58a5）、`R01_after_z3_game.png`（z3 特寫 d5efd3375598）、`R01_26_1_1_after_atlas.png`（c0fea511425f）、`R01_26_1_2_after_atlas.png`
 2. **像素帳**（真實瀏覽器 art_diff 對照模式，a=base master／b=after）：每鍵**變更 45px**＝新增不透明 8（節點帶兩側伸出）＋覆蓋既有 37（#b0b8c0×12 塔柱、#1a1e2c×11 描邊、#8a9a7a×14/13 底盤）；**失去不透明 0**；`onHero=0`（26_1_1/26_1_2 非 HERO_PIX 鍵）；footprint：單格 plate 內無溢出（sz=1 非 SZM 表，前置 E 視覺不出格）。
@@ -520,8 +520,15 @@ T419 那條寫「驗收:未驗證（…）」被擋的理由是**後者**；把�
 
 ## R03 證據（四件）
 
-1. **樣張**（C:\dev	420-shots\）：before `R03_29_1_1_before_atlas.png`、after 對照條 `R03_29_1_1_after_atlas.png`（sha256 056653dfbb9a）。
+1. **樣張**（C:/dev/t420-shots/）：before `R03_29_1_1_before_atlas.png`、after 對照條 `R03_29_1_1_after_atlas.png`（sha256 056653dfbb9a）。
 2. **像素帳**（真實瀏覽器 art_diff 對照）：每鍵變更 24px＝新增不透明 2＋覆蓋既有 22（#86786a×5/#786a5c×5/#9a8a7a×4/#8a7a6a×3/#1a1e28×2/#767666×2/#8a8a7a×1）；**失去不透明 0**；onHero=0（非 HERO_PIX）；footprint 不出格（sz=1）。
 3. **白名單指紋**：清冊/台帳/鍵集/metadata 全恆等；img CRC 改變恰 4 鍵（26_1_1/2＋29_1_1/2 白名單）、night 0。
 4. **決定性計數**：`__t420Ink={rects:18,px:138}`（R01 8+90＋R03 10+48）；守衛七案全紅（M1-M7：M6 蓋紅桶燈→G4／M7 蓋豎管→G4，首行 FAIL 逐字具名 T420）。
 - 前置 C：art_diff「✔ 未覆蓋任何 ≤16px 重點細節色」＋守衛 G4 按鍵座標交集同證（紅桶燈 51-53,101 與中心豎管 x36 零覆蓋）。
+
+## ART-RUN-01 收束
+
+- **STOP: AWAIT_REVIEW（ART-RUN-01 三輪完成：R01 26_1_1/2 桁架節點帶＋塔基墩／R02 k25 不動結論／R03 29_1_1/2 桶底陰影；機器綠＋四件證據齊，交非作者覆核）**。
+- 版號仍 v11.45（卡面第 10 節：版號跟合併序、不預先 bump；覆核通過後才 bump）。
+- 樣張全部存 C:\dev	420-shots\（sha256 前 12 碼入帳，不入倉）。
+- 不自合、不 publish。
