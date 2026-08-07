@@ -9546,12 +9546,24 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     window.__t413BakeCount=bakeCount413; /* 測試：總烘焙命中 */
     window.__t413BakeByKind=bakeByKind413; /* T413b 第三輪 B5：分族計數（跳過 P/H/F/D 會讓該族=0 紅） */
   }else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}
-  /* ===== T420 ART-LOOP 靜態加蓋 pass：R01 待填（白名單鍵見帳本）=====
-     位置契約（卡面第 2 節）：T413b 夜之城烘焙完整結束後、亂數流還原（__savedR 回存）之前。
-     本 pass 只對既有 SPR.bld[key].img 落筆日間靜態像素；零亂數、無條件分支（僅存在性檢查）、
-     成員名僅 img/getContext/fillStyle/fillRect/ax/ay/w/h。落筆計數＝賦值型冪等
-     window.__t420Ink={rects,px}（每筆 fillRect 前累加 w*h；卡面第 5 節守衛 7）。 ===== */
+  /* ===== T420 ART-LOOP 靜態加蓋 pass：R01＝26_1_1/26_1_2 風力塔桁架（白名單 ['26_1_1','26_1_2']）=====
+     原問題（T419 覆核 §2.6）：2/3 的風機是 v1/v2＝T48 程序化版——塔柱只有 3 px 寬（x30..32, y44..99）、
+     無 night、9 色，與 26_1_0 的 HERO_PIX 錐體塔（寬 5-8px）觀感落差大。
+     z2 可見目標：桁架結構感——塔柱水平節點帶 3 條（與 26_1_0 法蘭環 pitch=16 的 y=54/70/86 對齊）＋
+     塔基墩（塔底 y=99 加寬）。塔柱是垂直細長構件，水平節點帶＝法蘭環同型（前置 B：垂直構件上的
+     水平節律，與 26_1_0 的 K 法蘭環同一語彙）。日間靜態像素、零亂數、不改 w/h/ax/ay/sc/night/metadata。
+     色票由既有家族 #a8b0b8（燈笠/立足 同族）與 #98a0a8（既有 2 處）衍生；航警燈 #e05252×4（31,34..35,32）零覆蓋。
+     KEY 單源：lookup 與計數同變數；落筆計數 __t420Ink 累加（卡面第 5 節守衛 7）。 ===== */
   window.__t420Ink={rects:0,px:0};
+  for(const v26b of[1,2]){const hk26b='26_1_'+v26b;const sp26b=SPR.bld[hk26b];if(sp26b&&sp26b.img){
+    const g26b=sp26b.img.getContext('2d');
+    g26b.fillStyle='#a8b0b8'; // 桁架節點帶 ×3（y54/70/86，與 26_1_0 法蘭環 pitch=16 對齊；塔柱兩側各伸 1px）
+    g26b.fillRect(sp26b.ax-4,sp26b.ay-56,9,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=9*1;
+    g26b.fillRect(sp26b.ax-4,sp26b.ay-40,9,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=9*1;
+    g26b.fillRect(sp26b.ax-4,sp26b.ay-24,9,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=9*1;
+    g26b.fillStyle='#98a0a8'; // 塔基墩（塔底 y99 加寬至 x28..35；同族暗一階）
+    g26b.fillRect(sp26b.ax-4,sp26b.ay-11,9,2);window.__t420Ink.rects+=1;window.__t420Ink.px+=9*2;
+  }}
   /* ===== T420 ART-LOOP 靜態加蓋 pass END ===== */
 
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
