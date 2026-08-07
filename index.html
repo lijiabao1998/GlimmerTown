@@ -9564,6 +9564,21 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g26b.fillStyle='#98a0a8'; // 塔基墩（塔底 y99 加寬至 x28..35；同族暗一階）
     g26b.fillRect(sp26b.ax-4,sp26b.ay-11,9,2);window.__t420Ink.rects+=1;window.__t420Ink.px+=9*2;
   }}
+  /* ===== T420 R03 段：29_1_1/29_1_2 回收棚 四桶底陰影（白名單 ['29_1_1','29_1_2']）=====
+     原問題：v1/v2 四色回收桶（藍/黃/綠/紅）直接落在 plate 地面上，z2 讀成「浮在棚前的色點」。
+     z2 可見目標：桶底 1px 暗影＝著地感（色 #6a5a48＝門檻/窗臺同族，全倉 2 處）。
+     桶幾何：藍 x=ax-12..-7、黃 x=ax-4..+1、綠 x=ax+4..+9、紅 x=ax+12..+17（y=ay-16..ay-9，8px 高）
+     陰影落 y=ay-8（桶底下方 1px），避開 x=ax+0 中心豎管（#675b4f×13 重點細節）與紅桶燈（y=ay-9）。
+     等角走向：桶排水平、陰影為桶底垂直投影（前置 B：垂直構件落地交代）。 ===== */
+  for(const v29b of[1,2]){const hk29b='29_1_'+v29b;const sp29b=SPR.bld[hk29b];if(sp29b&&sp29b.img){
+    const g29b=sp29b.img.getContext('2d');
+    g29b.fillStyle='#6a5a48'; // 桶底陰影 ×4（y=ay-8；黃桶拆兩段避 x=ax 豎管）
+    g29b.fillRect(sp29b.ax-12,sp29b.ay-8,6,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=6*1;
+    g29b.fillRect(sp29b.ax-4,sp29b.ay-8,4,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=4*1;
+    g29b.fillRect(sp29b.ax+1,sp29b.ay-8,2,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=2*1;
+    g29b.fillRect(sp29b.ax+4,sp29b.ay-8,6,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=6*1;
+    g29b.fillRect(sp29b.ax+12,sp29b.ay-8,6,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=6*1;
+  }}
   /* ===== T420 ART-LOOP 靜態加蓋 pass END ===== */
 
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
