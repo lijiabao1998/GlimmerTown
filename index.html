@@ -432,7 +432,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.44'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='11.45'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -924,7 +924,7 @@ let region={};            // 區域聯動摘要（T60）
 let fuel=0,steel=0;       // T364b：深加工跨日存量；存檔欄位僅非零時落盤，舊城市缺欄位＝0
 let shipCount=0,shipProgress=0; // T418：船實體跨日狀態（steelUsed 累積→下水）；存檔僅非零落盤，舊檔缺欄位＝0
 let fuelMade=0,steelMade=0,steelUsed=0,fuelTaxMul=1,freightTaxMul=1,steelTaxMul=1,shipTradeTaxMul=1,shipPortGold=0; // T364b：本日快照，GV.chain346 可觀測；newWorld/load 成對歸零
-let fuelUse418=0,fuelExport418=0,shipDailyGold418=0,constrSteelUse418=0; // T418/T418a：本日快照（貨運耗油/貿易站出口油/船隊日收入/施工耗鋼）；成對歸零
+let fuelUse418=0,fuelExport418=0,shipDailyGold418=0,constrSteelUse418=0,steelDisc418=false; // T418/T418a/T418b：本日快照（貨運耗油/出口油/船隊收入/施工耗鋼/升級折扣態）；成對歸零
 let disastersOn=true;     // T92 災害開關
 let challenge=null;       // T88 挑戰
 let scenario=null;        // T132：目前進行中的場景戰役 {id,startDay,hold}（null＝一般/沙盒/挑戰模式，零評估開銷）；存檔可選欄位 sc
@@ -9809,7 +9809,7 @@ function newWorld(seedOverride){
   RDEP.fill(0);supplies=0; // T140：資源耗損場與供應品存量成對歸零（RESOURCE 本身已由上方 genWorld→genResource 依新種子重建，鐵律7）
   trains.length=0;cargoShips.length=0;lifeShips.length=0;tramCars.length=0;buses.length=0;ambulances.length=0;ladderTrucks.length=0;recycleTrucks.length=0;policeCars.length=0;pol=null;region={}; // FIX-G：開新圖清空運行時載具陣列（對齊 load()，防前一局列車/電車/貨船/公車殘留至新圖）；FIX-H：補清救護車與 pol/region（防前一局稅率政策/區域摘要帶入新圖）；T119：補清消防車/垃圾車；T361a：生命感船隊
   fuel=0;steel=0;fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0; // T364b：新世界不可攜帶庫存/快照（鐵律7）
-  shipCount=0;shipProgress=0;fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0; // T418/T418a：船/快照鐵律7 成對歸零
+  shipCount=0;shipProgress=0;fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0;steelDisc418=false; // T418/T418a/T418b：船/快照鐵律7 成對歸零
   svcSamples={amb:[],fire:[]}; // T145：服務車輛到場 tick 樣本開新圖歸零（鐵律7）
   meteorTrail=null;shakeT=0;flashT=0; // T207：開新圖清視覺計時器（鐵律7，防前一局隕石拖尾/震屏/閃電殘留）
   rbuses.length=0;busRoutes=[{stops:[]},{stops:[]},{stops:[]}];busRtEdit=0; // T120：補清路線公車與路線設定（防前一局路線殘留至新圖）
@@ -11989,7 +11989,7 @@ function tick(){
   let owN=0,mnN=0,mgN=0,indBldN=0,suppliesGain=0; // T140：owN油井/mnN礦場/mgN太空研究中心（root）計數；indBldN=工業建築計數（供資源消耗鏈用，獨立於既有 nI/jobsI，不限電力）；suppliesGain=本日開採彙總
   /* T364b：全是本 tick 的可觀測流量；庫存 fuel/steel 才跨日。 */
   let refineryN=0,steelMillN=0,shipyardN=0,oilGain=0,oreGain=0;
-  fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0;shipDailyGold418=0;fuelUse418=0;fuelExport418=0;constrSteelUse418=0; // T418：本日快照 load 成對歸零（覆核：從有船城市載入空城未 tick 時 shipDaily/fuelUse/fuelExport 不得殘留）
+  fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0;shipDailyGold418=0;fuelUse418=0;fuelExport418=0;constrSteelUse418=0;steelDisc418=false; // T418：本日快照 load 成對歸零（覆核：從有船城市載入空城未 tick 時 shipDaily/fuelUse/fuelExport 不得殘留）
   let happyAggSum=null; // T111：幸福構成累加器（沿用既有 happySum/happyN 迴圈，逐建築累加各項後於迴圈尾除以 happyN）
   let court364=0,tennis364=0,play364=0,socialHousing364=0,substation364=0,desal364=0,pump364=0,center364=0,shelter364=0,radar364=0;
   const grown=[];
@@ -12236,7 +12236,7 @@ function tick(){
   if(shipCount>po*SHIP_PORT_CAP)shipCount=po*SHIP_PORT_CAP; // 上限截斷（多餘船丟棄；progress 已餘 <30 不受影響）
   shipDailyGold418=shipCount*SHIP_DAILY_GOLD;
   fuelTaxMul=fuel>0?FUEL_INDUSTRY_TAX_MUL:1;
-  steelTaxMul=steel>0?STEEL_INDUSTRY_TAX_MUL:1;
+  steelTaxMul=steel>0?STEEL_INDUSTRY_TAX_MUL:1;steelDisc418=steel>0; // T418b SK-1：升級折扣快照與稅乘數同時點（造船後、施工前）——upCost/面板讀它，施工吃庫存不再吃掉折扣
   shipTradeTaxMul=steelUsed>0?SHIPYARD_TRADE_TAX_MUL:1;
   shipPortGold=steelUsed>0?Math.round(po*steelUsed*SHIPYARD_PORT_GOLD*sq('ind',1.25,1)):0;
   /* ===== T364b A 深加工鏈 END ===== */
@@ -12499,17 +12499,22 @@ function tick(){
   }
   /* T418 交付②＋T418a A1 裁決（真分流）：施工中建築（age<9）每日耗鋼 1/座 → 當日 age 額外 +1。
      T418a 更正：原「額度制不碰庫存」是雙重計帳（當日產出全額入庫又全額當加速額度，鋼沒有流向工地）
-     ——改真分流：每加速一棟即 steel--（額度 cap418=steelMade 與庫存 steel 雙重下界）。
+     ——改真分流：每加速一棟即 steel--（額度與庫存雙重下界；額度定義見下方 SK-3）。
      結算順序（入卡聲明）：造船先（T364b 段）、施工後，兩者競爭同一庫存；
      steelTaxMul 快照時點=造船結算後、施工消耗前（入卡聲明）。
      守恆帳（守衛恆等式）：steel[d]=steel[d-1]+made−shipUse−constrUse。
-     tickBld 序先到先吃（決定性）；純算術零亂數；steelMade=0 整段惰性（兩釘軌跡恆等）。 */
-  if(steelMillN>0&&steelMade>0){
-    let cap418=steelMade;
-    for(const i of tickBld){
-      const b=tiles[i].bld;
-      if(!b||b.ref||b.age>=9)continue; // 只加速施工中（age 0-8）；完工/ref 格不耗鋼
-      if(cap418<=0||steel<=0)break;     // 額度或庫存耗盡→停（決定性：tickBld 序）
+     分配=「施工中合格子集」輪轉（T418b SK-4＋F1 退修：SK-4 初版 off=day%tickBld.length 每日只爬 1 格，
+     大城 n≥167 時服務窗永遠停在偏移點後第一批工地＝北端特權換名不換實，實測與恆北序逐位相同；
+     改在合格子集上輪轉＝施工樓真正輪流吃）；額度=鋼廠日吞吐、料源=庫存（SK-3，滿倉不停擺）。
+     day 導出零亂數；millN=0 整段惰性（兩釘軌跡恆等）。 */
+  if(steelMillN>0){
+    let cap418=Math.min(steelMillN*STEEL_MILL_RATE,steel); // T418b SK-3：額度=鋼廠日吞吐、料源=庫存（含當日入庫）
+    const el418=[];
+    for(const i of tickBld){const b=tiles[i].bld;if(b&&!b.ref&&b.age<9)el418.push(i);} // 合格子集＝施工中根格（完工/ref 不耗鋼）
+    const nE418=el418.length,offE418=nE418?day%nE418:0; // T418b F1：輪轉基數=合格子集長度（大城也輪得完）
+    for(let j418=0;j418<nE418;j418++){
+      if(cap418<=0||steel<=0)break;     // 額度或庫存耗盡→停（決定性：輪轉序）
+      const b=tiles[el418[(j418+offE418)%nE418]].bld;
       b.age++;cap418--;steel--;constrSteelUse418++; // T418a A1：鋼真的流向工地
     }
   }
@@ -12859,8 +12864,7 @@ function tick(){
   const transitRev=(pol&&pol.freeTransit)?0:Math.round(transitRidership*.03);income+=transitRev; // T327：免費公交＝票務歸零（換幸福與運量） // T293：公共運輸票務收入（日客運量×票價 0.03）
   if(cityEvent){income=Math.round(income*CITY_EVENTS[cityEvent.i].tax);} // T299：城市事件稅收加成（旅遊/繁榮 +25~30%；無事件 ×1）
   fin={taxR,taxC,taxI,farmGold,ranchGold,procGold,lodgeRev,mktGold,tradeGold,brewGold,techGold,dcGold,gasGold,cookGold,bankInt,gasSup,gasDem,fertOut,cookedOut,wageIdx,transitRev,metroRev,metroAds,metroCost,upR:roadUpkeep,upP:parks*.5,upE:plants*4+wteN*10,upPol:policeStations*4+policeBoxes*1.5,upH:hospitals*5,upC:clinics*2.5,upL:libraries*2,upPo:posts*3,upCe:cemeteries*2,upW:waterTowers*3,upReg,net:income-upkeep}; // T266：只補 k62 已存在於 upkeep 的 $10 報表鏡像，不重複扣款
-  Object.assign(fin,{fuel364:fuel,steel364:steel,fuelMade364:fuelMade,steelMade364:steelMade,shipUse364:steelUsed,shipPortGold364:shipPortGold,freightTaxMul364:freightTaxMul,steelTaxMul364:steelTaxMul,shipTradeTaxMul364:shipTradeTaxMul,
-    fuelUse364:fuelUse418,fuelExport364:fuelExport418,shipCount364:shipCount,shipProgress364:shipProgress,shipDaily364:shipDailyGold418,constrUse364:constrSteelUse418}); // T418：流化/船實體快照
+  // T418b SK-6：fin 364/418 鏡像 15 欄整組刪除（全碼零讀者＋newWorld/load 不歸零＝跨城殘留的上膛之槍；觀測面由 chain346 全權承擔）
   if(diff!==3)money+=income-upkeep; // T115：沙盒短路——忽略稅收與維護費結算，money 恆不變（免費建造下數字無意義）
   region={stations:st,ports:po,airports:ai,powerCap:computePower(),food:foodPoints,tourists,ver:GAME_VER};
   syncWaterCap364(wCap); // T364d：有淡化廠才公開容量，舊城 region 位元不增鍵
@@ -12962,7 +12966,7 @@ function tick(){
     goods:{made:gMade384,sold:gUse284,need:gNeed284,stock:Math.round(goods),cap:goodsCap283(),mul:+goodsMul284.toFixed(3)},
     ind:{demand:+indSupplyDemand.toFixed(1),used:+indSupplyUsed.toFixed(1),mul:+indSupplyMul.toFixed(3)},
     fuel:{made:fuelMade,stock:fuel,mul:fuelTaxMul,use:fuelUse418,export:fuelExport418},
-    steel:{made:steelMade,used:steelUsed,stock:steel,mul:steelTaxMul},
+    steel:{made:steelMade,used:steelUsed,stock:steel,mul:steelTaxMul,constr:constrSteelUse418}, // T418b SK-2
     ship:{gold:shipPortGold,mul:shipTradeTaxMul,ports:(region&&region.ports)||0,count:shipCount,progress:shipProgress,daily:shipDailyGold418},
     gas:{sup:gasSup,dem:gasDem,ratio:+gasRatio.toFixed(3),fert:fertOut,cooked:cookedOut},
     food:{points:foodPoints,surplus:foodSurplus,gold:tradeGold,price:+foodPrice.toFixed(2)},
@@ -16786,7 +16790,7 @@ function commitRect(){
 const UP_MAX={9:15,6:10,7:10,11:10,12:10,13:10,14:10,15:10,10:10,5:10,16:10,28:10,29:10,30:10,17:10,18:10,21:10,54:10,55:10,53:8,56:15,22:8,23:8,25:10,26:10,57:10,58:10,59:10,60:10,61:10,62:10,63:8,64:10,65:8}; // T290：購物中心擴店 8 級；T285：倉儲容量升級；T280：溫室擴建 8 級；T265：焚化發電機組可升至10級；T257：核電/水力/地熱亦可升級擴容、消防總局可升級；T251：農場 k22 灌溉升級（8 級）；大農場 k53 亦升級；T252：牧場 k23 牧養升級（8 級）；T253：太陽能 k25/風力 k26 亦可升級擴容；T254：食品加工廠 k57 可升級加工容量（10 級）
 const UP_JOB={9:15,54:8,55:12,53:3,17:8,18:8,56:18,22:1,23:1,5:0,25:0,26:0,57:0,58:0,59:0,60:0,62:0,63:1,64:0,65:20}; // T290：購物中心每級 +20 零售就業；T285：倉儲升級純擴容；T280：溫室升級主給食物金幣就業+1；T265：焚化發電升級只擴容，不加就業；每級加成就業（大型建築較高，其餘預設6）；T257：三新電源亦純擴容(k58/59/60:0)，消防總局走預設6；T251：農場升級主要給金幣/食物，就業加成小(k22:1/k53:3)；T252：牧場同農場(k23:1)；T253：電廠/太陽能/風力升級＝純擴容不加就業(k5/k25/k26:0)；T254：食品加工廠升級＝純加工容量不加就業(k57:0)
 const STEEL_UP_DISCOUNT=.85; // T364b 業主裁決：鋼材存量 >0 時，所有真實 upCost() 升級費固定 ×0.85
-function upCost(k,lv){const base=Math.round((k===9?450:k>=53?600:280)*lv*Math.pow(1.18,lv-1));return steel>0?base*STEEL_UP_DISCOUNT:base;} // 僅此公式點掛鋼材折減；k33/34/105/106 無付費升級路徑，明確不另造
+function upCost(k,lv){const base=Math.round((k===9?450:k>=53?600:280)*lv*Math.pow(1.18,lv-1));return steelDisc418?base*STEEL_UP_DISCOUNT:base;} // 僅此公式點掛鋼材折減（T418b SK-1：讀本日快照與 steelTaxMul 同口徑，面板說生效就真打折）；k33/34/105/106 無付費升級路徑，明確不另造
 function upgradeBld(x,y){
   if(!inMap(x,y))return;let t=T(idx(x,y)),b=t.bld;
   if(b&&b.ref)return upgradeBld(b.ref[0],b.ref[1]);
@@ -18130,7 +18134,7 @@ function showFlowPanel384(){
       {bar:fs.goods.cap>0?fs.goods.stock/fs.goods.cap:0},
       {sec:'深加工鏈'},
       {k:'燃料 產/存',v:fs.fuel.made+' / '+fs.fuel.stock,u:'工業稅 ×'+fs.fuel.mul,t:fs.fuel.made>0?'good':'dim'},
-      {k:'鋼材 產/用/存',v:fs.steel.made+' / '+fs.steel.used+' / '+fs.steel.stock,u:'工業稅 ×'+fs.steel.mul,t:fs.steel.made>0?'good':'dim'},
+      {k:'鋼材 產/船用/施工/存',v:fs.steel.made+' / '+fs.steel.used+' / '+((fs.steel.constr|0))+' / '+fs.steel.stock,u:'工業稅 ×'+fs.steel.mul,t:fs.steel.made>0?'good':'dim'}, // T418b SK-2：鋼帳四段，不再憑空消失
       {k:'造船出口',v:'$'+fs.ship.gold,u:'港口 '+fs.ship.ports+'｜貿易 ×'+fs.ship.mul,t:fs.ship.gold>0?'good':'dim'},
       {sec:'燃氣／糧食'},
       {k:'燃氣 供/需',v:fs.gas.sup+' / '+fs.gas.dem,u:'化肥 '+fs.gas.fert+'／熟食 '+fs.gas.cooked,t:fs.gas.ratio<1?'warn':'good'},
@@ -18488,9 +18492,10 @@ function showStats(){
         {k:'貨運倍率',v:'×'+freightTaxMul,u:'',t:freightTaxMul>1?'good':'dim'},
         {k:'鋼材',v:String(+steel.toFixed(1)),u:'庫存',t:steel>0?'good':'dim'},
         {k:'今日冶煉',v:String(steelMade),u:'單位',t:steelMade>0?'good':'dim'},
-        {k:'今日耗鋼',v:String(steelUsed),u:'單位',t:steelUsed>0?'good':'dim'},
+        {k:'造船耗鋼',v:String(steelUsed),u:'單位',t:steelUsed>0?'good':'dim'},
+        {k:'施工耗鋼',v:String(constrSteelUse418),u:'單位',t:constrSteelUse418>0?'good':'dim'}, // T418b SK-2：鋼→工地可見
         {k:'工業倍率',v:'×'+steelTaxMul,u:'鋼材',t:steelTaxMul>1?'good':'dim'},
-        {k:'升級折扣',v:steel>0?('×'+STEEL_UP_DISCOUNT):'×1',u:steel>0?'有鋼生效':'無鋼',t:steel>0?'good':'dim'},
+        {k:'升級折扣',v:steelDisc418?('×'+STEEL_UP_DISCOUNT):'×1',u:steelDisc418?'本日快照生效':'無鋼',t:steelDisc418?'good':'dim'}, // T418b SK-1：與 upCost 同口徑
         {k:'貿易倍率',v:'×'+shipTradeTaxMul,u:'造船',t:shipTradeTaxMul>1?'good':'dim'},
         {k:'港口收益',v:f(shipPortGold),u:'/日',t:shipPortGold>0?'good':'dim'}];
       t369Html=statTab(rows369);
@@ -19429,7 +19434,7 @@ function load(slot){
     }
     supplies=(+d.sup)||0; // T140：資源供應品全域存量（可選欄位，舊檔缺 sup 容錯為 0）
     fuel=(+d.fuel364)||0;steel=(+d.steel364)||0;fuelMade=0;steelMade=0;steelUsed=0;fuelTaxMul=1;freightTaxMul=1;steelTaxMul=1;shipTradeTaxMul=1;shipPortGold=0; // T364b：舊檔缺欄位＝0；本日快照讀檔後待下一 tick 重算
-    fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0; // T418/T418a 覆核退修：load() 讀檔群每日快照四欄明確歸零——不得依賴 newWorld 先行清零（A 城非零快照直接 load B 存檔未 tick 時 shipDaily 殘留案）
+    fuelUse418=0;fuelExport418=0;shipDailyGold418=0;constrSteelUse418=0;steelDisc418=steel>0; // T418/T418a/T418b：load() 每日快照四欄歸零；折扣快照由本檔已載庫存推導（零跨城殘留＋T364b「折扣跨存讀」守衛零放寬——讀檔後立刻升級不收原價）——不得依賴 newWorld 先行清零（A 城非零快照直接 load B 存檔未 tick 時 shipDaily 殘留案）
     shipCount=(+d.shipCount)||0;shipProgress=(+d.shipProgress)||0; // T418：船跨日狀態舊檔缺欄位＝0（T412 剝欄容錯慣例）
     aiMode=!!d.aim;aiR=(+d.aiR)||6;goods=(+d.gds)||0;gFlow284={gain:0,use:0,mul:1}; // T284：工業品還原（舊檔缺＝0）// T369 退修：流量快照不入存檔，讀檔成對歸零、待下一 tick 重算（與 fuelMade 等本日快照同契約）
     /* T369.1：gWhCap284 不入存檔，不可跨城殘留；亦不可單純歸零（有倉儲城讀檔未 tick 會暫時錯成 60）。
