@@ -473,7 +473,7 @@ STOP: AWAIT_REVIEW
 | fillRect Δ | **+172／+2,194**（BASE 927,303／5,199,515） |
 | index.html | **1,861,922 B**（2.5 MiB 黃線仍有餘） |
 | PASS | **4,324** exit 0 ALL GREEN（python tools/verify.py 親跑） |
-| GAME_VER | **11.46 未 bump** |
+| GAME_VER | **11.47（GPT 非作者 release tail）** |
 | T420 ink | 18／138 未稀釋 |
 | BEL | **0** |
 
@@ -519,5 +519,11 @@ STOP: AWAIT_REVIEW
 - ROOF_K417／HERO_PIX／禁鍵全族
 - 60_1_0 仍碎燈風險後排
 
-不自合、不 publish。版號跟合併序。
+作者 Grok 未自合、未 publish；以下由非作者覆核方收束。
 
+### 非作者最終裁定與 release tail（GPT，2026-08-08）
+
+- **裁定：通過。** 業主明示本批共 15 輪合批；R05 的兩鍵撤回不算落筆，最終為 28 鍵。
+- 官方閘門（release tail 前）親跑 `PASS=4324 / exit 0 / ALL GREEN / CRLF=0`；release tail 後須再跑同一閘門，PASS 不得下降。
+- 真實瀏覽器全鍵 `art_diff`、修正版晴日 z2 完工樣張、G5 四案突變證明均通過；兩次樣張假證據（時間／天氣未鎖、`GV.tile()` clone 假改 age）已在本卡補證節如實入帳。
+- release tail：`GAME_VER/APP_VER=11.47`，`index.html=1,861,922 B / 20,406 個 LF`，ARCH／CHANGELOG／本卡同步；玩家發佈只准由 canonical `merge_bay.py grok --deploy` 的既有交易式路徑執行。
