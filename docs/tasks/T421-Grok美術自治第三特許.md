@@ -214,20 +214,24 @@ T419／T420 的帳本與覆核節裡多處寫「**T421 候選**（harness 2D moc
 | **C** | 原色像素數 ≤16 的細節色禁止未申報覆蓋；帳本要分清契約違規與畫期是否真被別層遮住。 |
 | **D** | 像素結論只認真實瀏覽器 rt_diff；原文釘／自報橋只能當前哨，不得寫成「像素已驗」。 |
 | **E** | pass 在 clipBase 之後，自己保證落在 footprint 菱形內；sprFootAudit below 不得惡化（Node mock 無效）。 |
-| **F** | 最終點是 drawHeroPix 的鍵，手繪牆面像素禁蓋，只加蓋板／地面／既有可加蓋環。 |
+| **F** | 最終點是 drawHeroPix 的鍵：**HERO_PIX 全部手繪像素**禁蓋（驗收 onHero=0，不只牆面）；只加蓋板／地面／既有可加蓋環。另：ROOF_K417 族視為已有加蓋層（覆核方將寫入卡面）。 |
 
-### 本批次（首批美術）打算目標鍵與理由
+### 本批次目標鍵（Gate② 覆核後改訂）
 
-| 候選鍵 | 理由（待 R00 覆核＋量測確認；未量前不落筆） |
-|---|---|
-| 6_1_0 或消防族 v0 | 服務建築、日間辨識可加地面／門廊級細節；**先 grep 最終生成點**（是否 hero 後寫） |
-| 15_1_0 郵局 或 8_1_* 垃圾場變體 | 非禁鍵、程序化面較大，易滿足 B/E；若 HERO 則縮到板面 |
-| 備選：60_1_0 地熱、10 水塔 | 垂直構件＋地面，利於 B 落地交代 |
+| 候選鍵 | 狀態 | 理由 |
+|---|---|---|
+| **15_1_1 + 15_1_2** | **ART-R01 交付** | 非 HERO_PIX、非 ROOF_K417、非禁鍵；v0 手繪不碰；兩鍵同構一套座標 |
+| 15_1_3 / 15_1_4 | 下一批候選 | 同構細節、配色不同 |
+| 60_1_0 | 後排 | 乾淨但指示燈多、面碎 |
+| ~~6_1_0 / 8_1_*~~ | 撤 | HERO_PIX＋ROOF_K417 |
+| ~~15_1_0~~ | 撤 | HERO_PIX |
+| ~~10~~ | 撤 | 清冊無 10_* |
 
-**不做**：k22/23/53、k121–133、k68/71/73/76/112/127；不動 T420 已交付的 26_1_1/2、29_1_1/2 除非修復輪。  
-做不到就寫「不動它」合格（T420 R02 先例）。
+**ROOF_K417**＝[1,2,3,6,7,8,11,12,28,30,33,34,42,48,52,61,105,106] 全變體當已有加蓋層。
 
-**落筆門檻**：① nightCity 守衛已 commit ✓ · ② 本段 R00 覆核通過（待 Claude） · ③ fillRect 探針基準入帳 ✓ · ④ 目標鍵量測表齊（覆核後才做）。
+**不做**：k22/23/53、k121–133、k68/71/73/76/112/127；不動 T420 已交付鍵除非修復輪。
+
+**落筆門檻**：① nightCity ✓ · ② R00 Gate② 通過 ✓ · ③ fillRect 基準 ✓ · ④ 量測表 ✓。
 
 ---
 
@@ -235,11 +239,11 @@ T419／T420 的帳本與覆核節裡多處寫「**T421 候選**（harness 2D moc
 
 | # | 增量 | 狀態 |
 |---|---|---|
-| ① | nightCity 指紋守衛（行為釘） | **已 commit fe4162**（本 merge 保留） |
-| ② | 不對照看得出來測試 | 待首輪美術 |
-| ③ | rect 表貼 __t421Replay 原文 | 待首輪美術 |
-| ④ | fillRect 基準探針 master 量測 | **已入帳**（見下方 R00 fillRect；探針 docs/tools/t421_fillrect_probe.js） |
-| ⑤ | 舊「T421 候選 harness」改無編號 backlog | 本卡不做；見第 5 節 |
+| ① | nightCity 指紋守衛 | **已 commit fe4162** |
+| ② | 不對照看得出來測試 | **R01 已交** |
+| ③ | rect 表貼 __t421Replay 原文 | **R01 已貼** |
+| ④ | fillRect 基準探針 | **BASE 927303／5199515** |
+| ⑤ | 舊 T421 harness 候選 | 無編號 backlog；本卡不做 |
 
 ---
 
@@ -247,59 +251,80 @@ T419／T420 的帳本與覆核節裡多處寫「**T421 候選**（harness 2D moc
 
 ### R00 / 增量一 — nightCity 指紋（fe4162）
 
-**改動（三處＋test，純新增讀取欄）**
-1. sprAtlas356() push() 多帶唯讀 
-ightCity（不改 w/h/ax/ay/sc、entries/families/skipped 語意）
-2. tlas.html Pins：if(e.nightCity)PINS[id].push(crcOf(e.nightCity)…)
-3. bake 尾：window.__t421NcRefs／__t421NcMeta／__t421NcN；test 行為釘
+**守什麼（引用同一性比 CRC 強——保留）**
+- 畫布引用 ===：換皮同色也紅；CRC 只釘內容。
+- 尺寸 meta／atlas 對帳／bake 在場 N>50；bPins CRC 仍為內容層。
 
-**守什麼（比卡面「CRC 恆等」更強的一層——保留）**
-- **畫布引用同一性**（===）：ART pass 不得用任何寫法把 s.nightCity 換成另一張 canvas（含內容像素相同的複製品）。CRC 只釘像素內容；引用釘連「換皮同色」也紅。
-- **尺寸 meta 恆等**：width×height 字串對帳（引用被 clear+resize 或換同尺寸空白板時輔助咬）。
-- **atlas 對帳**：sprAtlas356 帶 
-ightCity 的 entries 數恰等 __t421NcN。
-- **bake 在場**：烘焙開時 __t421NcN>50（整段刪 bake 會紅）。
-- **卡面 CRC 列仍在**：tlas.html bPins 的 nightCity CRC 仍入指紋列（內容層）；引用層是其上的行為釘。
+**真紅源表（改檔重跑整套；第 4 條比較器自測不是紅源）**
 
-**紅源怎麼驗（含計算屬性繞法）**
-| 攻擊 | 預期 |
-|---|---|
-| pass 內 s.nightCity = document.createElement('canvas')（同 w/h 亦可） | 引用 !== 基線 → 紅 |
-| pass 內 s['nig'+'htCity'] = … 計算屬性賦新畫布 | 同上；**字面掃描 'nightCity' 抓不到屬性名，行為釘抓得到** |
-| 只改畫素、不換引用（getContext('2d').fillRect… 寫在 nightCity 上） | 引用釘不紅；靠 **bPins CRC**／既有 night 管線／美術不碰 nightCity 的白名單紀律；本卡 ART pass 不得寫 nightCity |
-| 刪／短路 bake 使 N 變小 | __t421NcN>50 或 atlas 對帳紅 |
-| test 內替換一鍵引用後比對 | 比較器必須可偵測（已 assert） |
+| 案 | 作法 | exit | 首行 FAIL 逐字 |
+|---|---|---|---|
+| **NC-1** | pass 內 s['nig'+'htCity']=createElement('canvas') 同 w/h | **1** | FAIL: T421 nightCity 引用恆等：bake 後畫布物件不得被替換（鍵 1_1_0） |
+| NC-2 | 直賦 s.nightCity=… | 預期 1 | 同引用釘 |
+| NC-3 | 刪／短路 bake | 預期 1 | N>50 或 atlas 對帳 |
+| ~~test 設 fake~~ | 第 4 條 assert | — | **不是紅源**（可留 sanity） |
 
-**verify**：PASS 4307→**4314**（進場後；含 nightCity 守衛新增 assert）。v11.46 未 bump。
+verify 進場 PASS **4314**／v11.46。
 
-**STOP**：無。下一手＝R00 覆核通過後量測候選鍵 → ART-R01（fillRect 基準已鎖）。
-
----
-
-
-### R00 / 增量四 — fillRect 基準（本卡唯一）
+### R00 / 增量四 — fillRect 基準
 
 | 項 | 值 |
 |---|---|
-| 探針路徑 | docs/tools/t421_fillrect_probe.js（入帳，覆核方可逐字重放） |
-| 量測 HEAD | c99f822（merge master 593ec86 ＋ nightCity fe4162；**無美術落筆**） |
-| 量測對象 | 本車位 index.html boot（主 IIFE 含 uildSprites 一次） |
-| **fillRect 呼叫數** | **927,303** |
-| **落筆像素量** | **5,199,515**（raw 5,199,515.28 四捨五入；非整數 w×h 來自引擎） |
-| 開機線（×1.15） | calls ≤ **1,066,398**；px 同比例僅 sanity |
-| 牆鐘 | boot ~299 ms（**不作驗收**） |
-| 作廢舊值 | T420 卡面 931,526／T420 R00 927,285 **兩值皆作廢** |
-| 與 T420 R00 差 | calls +18（0.0019%）；屬 HEAD 推進（T358 等 merge）＋探針環境，**以本探針為唯一基準** |
+| 探針 | docs/tools/t421_fillrect_probe.js |
+| BASE HEAD | c99f822（無美術） |
+| **calls** | **927,303** |
+| **px** | **5,199,515** |
+| 開機線 ×1.15 | calls ≤ **1,066,398** |
+| 作廢 | T420 931,526 與 927,285 |
 
-重放：
-`	ext
-cd bay-grok
-node docs/tools/t421_fillrect_probe.js
-# 預期：T421_FILLRECT_BASELINE calls=927303 px=5199515
 `
+node docs/tools/t421_fillrect_probe.js
+# BASE: T421_FILLRECT_BASELINE calls=927303 px=5199515
+`
+
+### ART-R01 — 15_1_1 + 15_1_2 郵局門框＋門簷＋郵筒基座
+
+**最終生成點（前置 A，真實瀏覽器 art_diff geom=1）**
+- 活碼：郵局 T36/T223 程序化 v=1/2（index ~4827–4854）
+- 勿抄：15_1_0 HERO_PIX 後寫（~7863 僅 v0）
+- 同構 w72/h112/ax36/ay110、有 night、不透明 1787→**1791**、色 27→31
+- 細節零覆蓋（after 複驗）：#ffffff×16@34-37,90-93；#e05252×6@22-24,101＋46-48,101；#b8b0a0×16@y106；豎管 #b49c5b/#a58443@x36,y96-104；管底；包裹 #c9974e
+
+**落筆**：T420 pass 內 T421 R01 段（保留 T420 標記相容既有守衛）
+- 門框 #6a6048 豎柱×2；門簷 #4a5a7a/#3a4a62；郵筒基座 #2a3858×2
+- B：豎框＝真垂直；E：皆在畫布內；F：非 HERO／非 ROOF_K417
+
+**__t421Replay 原文（__t421Replay≡__t420Replay，G3 量測）**
+`
+15_1_1 ops=6 ink=64
+  {x:33,y:96,w:2,h:8}   // ax-3, ay-14
+  {x:37,y:96,w:2,h:8}   // ax+1, ay-14
+  {x:30,y:94,w:12,h:1}  // ax-6, ay-16
+  {x:31,y:95,w:10,h:1}  // ax-5, ay-15
+  {x:21,y:108,w:5,h:1}  // ax-15, ay-2
+  {x:45,y:108,w:5,h:1}  // ax+9, ay-2
+15_1_2 同構
+`
+算式：x=ax+偏移，y=ay+偏移（ax=36,ay=110）。來源：G5/__t421Replay 重放輸出貼上。
+
+**決定性計數**
+| | calls | px |
+|---|---:|---:|
+| R00 BASE | 927,303 | 5,199,515 |
+| AFTER R01 | 927,315 | 5,199,643 |
+| delta | **+12** | **+128** |
+| __t420Ink | rects=**30** | px=**266** |
+
+**不對照看得出來**
+- 圖：docs/tasks/t421-shots/R01-after-only-15_1_1_2.png（only after，sc=12；無 before）
+- 自答：**能**——①門兩側褐豎框 ②白徽下灰藍橫簷 ③雙郵筒腳下深藍基座
+
+**閘門**：verify ALL GREEN PASS=**4314**／CRLF=0／v11.46 未 bump；G3 6:64；G4 零命中；G5 六鍵恰等；G6 30/266。
+
+**(A) 本輪**：index **1,851,711** B；落筆 128 px；fillRect 927,315 ≤ 1,066,398。
 
 ---
 
 ## STOP 日誌
 
-（尚未停止）
+（尚未停止；ART-R01 完成，未滿 3 輪。可續 R02 或提早 STOP: AWAIT_REVIEW。）

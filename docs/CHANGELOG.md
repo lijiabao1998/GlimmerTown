@@ -10,6 +10,8 @@
 - 「驗收:」欄記真跑結果；未跑就明標「未驗證」。
 - 本專案要求記錄**被否決的方案與否決依據**——那是這份檔案最貴的部分。
 
+2026-08-08 | T421 ART-R01：15_1_1/15_1_2 郵局門框＋門簷＋郵筒基座（Grok bay/grok・8127） | 非 HERO_PIX／非 ROOF_K417；最終生成點＝T36/T223 程序化 v1/v2（非 15_1_0 HERO）；6 rects/鍵、ink 64×2；`__t420Ink` 18+138→**30/266**；fillRect delta +12/+128；G5 rect 恰等＋G4 細節零覆蓋（白徽/紅頂/地線/豎管）；after-only 圖 `docs/tasks/t421-shots/R01-after-only-15_1_1_2.png` 自答「能」；nightCity 真紅源 NC-1 exit 1。 | 驗收:自審綠（Grok）；**待 Claude 覆核合併**。閘門 PASS=4314 ALL GREEN／v11.46 未 bump。不自合、不 publish。
+
 2026-08-08 | T421 R00 增量四：fillRect 基準探針入帳（Grok bay/grok・8127） | 探針 `docs/tools/t421_fillrect_probe.js`（mock fillRect 計數版，不動 test_fixde 主線）；量於 `c99f822`（無美術落筆）→ **calls=927,303／px=5,199,515**＝本卡唯一基準；開機線 ×1.15 → calls≤1,066,398。T420 931,526 與 927,285 作廢。帳本見 T421 卡 R00 增量四。 | 驗收:通過（自審；Grok）。不自合、不 publish。
 
 2026-08-08 | T421 增量一：nightCity 指紋守衛（Grok bay/grok・8127；ART-LOOP 第三特許，美術落筆前） | T420 守衛債：`sprAtlas356` push 帶唯讀 `nightCity`（不改 entries/w/h 語意）；`atlas.html` bPins 加 nightCity CRC 列；bake 尾 `__t421NcRefs/__t421NcMeta/__t421NcN` 行為基線；test 行為釘（atlas 對帳／**畫布引用同一性 `===`（比 CRC 更強：換皮同色也紅）**／尺寸 meta／bake 開時 N>50）。紅源含 `'nig'+'htCity'` 計算屬性繞法（字面掃描不可替代）。 | 驗收:通過（自審；Grok）。閘門：verify ALL GREEN／PASS=4314／v11.46 未預先 bump。不自合、不 publish。

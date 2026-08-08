@@ -5576,56 +5576,70 @@ runPwaTests().then(() => {
     assert(m420['26_1_1'].w===64&&m420['26_1_1'].h===112&&m420['26_1_1'].ax===32&&m420['26_1_1'].ay===110&&(m420['26_1_1'].sc===null||m420['26_1_1'].sc===undefined)
       &&m420['26_1_2'].w===64&&m420['26_1_2'].h===112&&m420['26_1_2'].ax===32&&m420['26_1_2'].ay===110&&(m420['26_1_2'].sc===null||m420['26_1_2'].sc===undefined)
       &&m420['29_1_1'].w===72&&m420['29_1_1'].h===112&&m420['29_1_1'].ax===36&&m420['29_1_1'].ay===110&&(m420['29_1_1'].sc===null||m420['29_1_1'].sc===undefined)
-      &&m420['29_1_2'].w===72&&m420['29_1_2'].h===112&&m420['29_1_2'].ax===36&&m420['29_1_2'].ay===110&&(m420['29_1_2'].sc===null||m420['29_1_2'].sc===undefined),
-      'T420 G2 metadata 恆等：26_1_1/2（w64/h112/ax32/ay110）與 29_1_1/2（w72/h112/ax36/ay110）record 原值恰等量測；改 record 欄位即紅');
+      &&m420['29_1_2'].w===72&&m420['29_1_2'].h===112&&m420['29_1_2'].ax===36&&m420['29_1_2'].ay===110&&(m420['29_1_2'].sc===null||m420['29_1_2'].sc===undefined)
+      &&m420['15_1_1'].w===72&&m420['15_1_1'].h===112&&m420['15_1_1'].ax===36&&m420['15_1_1'].ay===110&&(m420['15_1_1'].sc===null||m420['15_1_1'].sc===undefined)
+      &&m420['15_1_2'].w===72&&m420['15_1_2'].h===112&&m420['15_1_2'].ax===36&&m420['15_1_2'].ay===110&&(m420['15_1_2'].sc===null||m420['15_1_2'].sc===undefined),
+      'T420/T421 G2 metadata 恆等：26_1_1/2（w64/h112/ax32/ay110）＋29_1_1/2＋15_1_1/2（w72/h112/ax36/ay110）record 原值恰等量測；改 record 欄位即紅');
     // G3 落筆觀測式（T417 真像素跑檯）：對白名單鍵重放 pass，斷言 ops 與不透明像素增量 ≥ 實測下界
-    const wl420=['26_1_1','26_1_2','29_1_1','29_1_2'];
+    // T421 R01 增 15_1_1/15_1_2；__t421Replay 別名同 __t420Replay（受管區仍 T420 標記，單一 pass）
+    const wl420=['26_1_1','26_1_2','29_1_1','29_1_2','15_1_1','15_1_2'];
     const replay420=window.__t420Replay;
+    window.__t421Replay=replay420; // T421 帳本用名
     assert(typeof replay420==='function','T420 G3 前置：__t420Replay 重放橋存在（harness 注入）');
     const rp420=replay420(wl420);
     assert(rp420['26_1_1'].ops>=4&&rp420['26_1_2'].ops>=4&&rp420['26_1_1'].ink>=45&&rp420['26_1_2'].ink>=45
-      &&rp420['29_1_1'].ops>=5&&rp420['29_1_2'].ops>=5&&rp420['29_1_1'].ink>=24&&rp420['29_1_2'].ink>=24,
-      'T420 G3 落筆觀測（只是下界，主斷言在 G5 rect 逐筆恰等）：T417 真像素重放白名單鍵，每鍵 ops/ink ≥ 帳本下界（26_1_1/2 ops≥4/ink≥45；29_1_1/2 ops≥5/ink≥24；刪 fillRect 或只 push 不畫皆紅），實得 '+JSON.stringify({a:rp420['26_1_1'].ops+':'+rp420['26_1_1'].ink,b:rp420['26_1_2'].ops+':'+rp420['26_1_2'].ink,c:rp420['29_1_1'].ops+':'+rp420['29_1_1'].ink,d:rp420['29_1_2'].ops+':'+rp420['29_1_2'].ink}));
+      &&rp420['29_1_1'].ops>=5&&rp420['29_1_2'].ops>=5&&rp420['29_1_1'].ink>=24&&rp420['29_1_2'].ink>=24
+      &&rp420['15_1_1'].ops>=6&&rp420['15_1_2'].ops>=6&&rp420['15_1_1'].ink>=64&&rp420['15_1_2'].ink>=64,
+      'T420/T421 G3 落筆觀測（只是下界，主斷言在 G5 rect 逐筆恰等）：白名單鍵 ops/ink ≥ 帳本下界（26 ops≥4/ink≥45；29 ops≥5/ink≥24；15 ops≥6/ink≥64），實得 '+JSON.stringify({a:rp420['26_1_1'].ops+':'+rp420['26_1_1'].ink,b:rp420['26_1_2'].ops+':'+rp420['26_1_2'].ink,c:rp420['29_1_1'].ops+':'+rp420['29_1_1'].ink,d:rp420['29_1_2'].ops+':'+rp420['29_1_2'].ink,e:rp420['15_1_1'].ops+':'+rp420['15_1_1'].ink,f:rp420['15_1_2'].ops+':'+rp420['15_1_2'].ink}));
     // G4 前置 C 機器版（座標交集法）：白名單鍵的 ≤16px 重點細節座標零覆蓋（按鍵各自斷）
     //   26_1_1/26_1_2：航警燈 #e05252×4（31,34)(32,34)(31,35)(32,35）
     //   29_1_1/29_1_2：紅桶燈 #e05252×4（51,101)(52,101)(53,101）＋中心豎管 #675b4f×13（x=36,y92-104）
+    //   15_1_1/15_1_2：白徽 #ffffff×16（34-37,90-93）；紅郵筒頂 #e05252×6（22-24,101／46-48,101）；
+    //     地線 #b8b0a0×16（y106 四段）；中心豎管 #b49c5b/#a58443（x36,y96-104）；管底 #9c874f/#8f723a（x36,y105-107）
     const beacon420={};
     beacon420['26_1_1']=['31,34','32,34','31,35','32,35'];
     beacon420['26_1_2']=['31,34','32,34','31,35','32,35'];
     beacon420['29_1_1']=['51,101','52,101','53,101'];
     beacon420['29_1_2']=['51,101','52,101','53,101'];
     for(let y2=92;y2<=104;y2++){beacon420['29_1_1'].push('36,'+y2);beacon420['29_1_2'].push('36,'+y2);}
+    beacon420['15_1_1']=[];beacon420['15_1_2']=[];
+    for(let y2=90;y2<=93;y2++)for(let x2=34;x2<=37;x2++){beacon420['15_1_1'].push(x2+','+y2);beacon420['15_1_2'].push(x2+','+y2);}
+    for(const x2 of[22,23,24,46,47,48]){beacon420['15_1_1'].push(x2+',101');beacon420['15_1_2'].push(x2+',101');}
+    for(const x2 of[26,27,28,29,32,33,34,35,38,39,40,41,44,45,46,47]){beacon420['15_1_1'].push(x2+',106');beacon420['15_1_2'].push(x2+',106');}
+    for(let y2=96;y2<=107;y2++){beacon420['15_1_1'].push('36,'+y2);beacon420['15_1_2'].push('36,'+y2);}
     let beaconHit420=false;
     let beaconDetail420='';
     for(const k of wl420)for(const r of rp420[k].rects){
       for(let y2=r.y;y2<r.y+r.h;y2++)for(let x2=r.x;x2<r.x+r.w;x2++)if(beacon420[k].includes(x2+','+y2)){beaconHit420=true;beaconDetail420+=k+'@'+x2+','+y2+' ';}
     }
-    assert(!beaconHit420,'T420 G4 前置C 機器版：pass 落筆不得覆蓋重點細節座標（命中 '+beaconDetail420+'；26_1_1/2 航警燈 31-32,34-35；29_1_1/2 紅桶燈 51-53,101 與中心豎管 x36）');
+    assert(!beaconHit420,'T420/T421 G4 前置C 機器版：pass 落筆不得覆蓋重點細節座標（命中 '+beaconDetail420+'）');
     // G5 落筆釘（覆核退修 F1：改讀 __t420Replay 的真實 rects——座標/尺寸/少多筆逐筆恰等帳本 rect 表）＋幾何釘
-    //   rect 表（R01/R03 實測，來源同卡帳本；比照 PASS 棘輪慣例：常數與 delta 來源寫在帳本）
+    //   rect 表：T420 R01/R03 ＋ T421 R01（15_1_1/2 由 __t421Replay 量測貼上，見 T421 帳本算式）
     const rectTable420={
       '26_1_1':[{x:28,y:54,w:9,h:1},{x:28,y:70,w:9,h:1},{x:28,y:86,w:9,h:1},{x:28,y:99,w:9,h:2}],
       '26_1_2':[{x:28,y:54,w:9,h:1},{x:28,y:70,w:9,h:1},{x:28,y:86,w:9,h:1},{x:28,y:99,w:9,h:2}],
       '29_1_1':[{x:24,y:102,w:6,h:1},{x:32,y:102,w:4,h:1},{x:37,y:102,w:2,h:1},{x:40,y:102,w:6,h:1},{x:48,y:102,w:6,h:1}],
       '29_1_2':[{x:24,y:102,w:6,h:1},{x:32,y:102,w:4,h:1},{x:37,y:102,w:2,h:1},{x:40,y:102,w:6,h:1},{x:48,y:102,w:6,h:1}],
+      '15_1_1':[{x:33,y:96,w:2,h:8},{x:37,y:96,w:2,h:8},{x:30,y:94,w:12,h:1},{x:31,y:95,w:10,h:1},{x:21,y:108,w:5,h:1},{x:45,y:108,w:5,h:1}],
+      '15_1_2':[{x:33,y:96,w:2,h:8},{x:37,y:96,w:2,h:8},{x:30,y:94,w:12,h:1},{x:31,y:95,w:10,h:1},{x:21,y:108,w:5,h:1},{x:45,y:108,w:5,h:1}],
     };
     let rectOk420=true,rectMsg420='';
     for(const k of wl420){
       const got=rp420[k].rects.map(r=>r.x+','+r.y+','+r.w+','+r.h).sort();
       const want=rectTable420[k].map(r=>r.x+','+r.y+','+r.w+','+r.h).sort();
-      if(got.length!==want.length){rectOk420=false;rectMsg420=k+' 筆數 '+got.length+'≠'+want.length;break;}
+      if(got.length!==want.length){rectOk420=false;rectMsg420=k+' 筆數 '+got.length+'≠'+want.length+' got='+got.join('|');break;}
       for(let ri=0;ri<want.length;ri++)if(got[ri]!==want[ri]){rectOk420=false;rectMsg420=k+' 第'+ri+'筆 '+got[ri]+'≠'+want[ri];break;}
     }
-    assert(rectOk420,'T420 G5 落筆：每鍵 rect 集合逐筆恰等帳本 rect 表（座標差 1px／尺寸差 1px／少一筆／多一筆即紅；覆核 F1 實測 ay-56→ay-52 與 9,1→27,3 皆綠的破口已關）'+rectMsg420);
+    assert(rectOk420,'T420/T421 G5 落筆：每鍵 rect 集合逐筆恰等帳本 rect 表（座標差 1px／尺寸差 1px／少一筆／多一筆即紅）'+rectMsg420);
     const ink420=window.__t420Ink;
-    assert(ink420&&ink420.rects===18&&ink420.px===138,
-      'T420 G5 計數（第二層）：__t420Ink 恰等帳本常數 rects=18／px=138（R01 8+90＋R03 10+48；主斷言在上方 rect 逐筆恰等，此為手寫字面量第二層）');
+    assert(ink420&&ink420.rects===30&&ink420.px===266,
+      'T420/T421 G5 計數（第二層）：__t420Ink 恰等帳本常數 rects=30／px=266（T420 18+138 ＋ T421 R01 12+128；主斷言在上方 rect 逐筆恰等）');
     const rects420=[...seg420.matchAll(/fillRect\(([^)]*)\)/g)].map(m=>m[1].split(',').map(s=>s.trim()));
     let geomOk420=true,geomMsg420='';
     for(const r of rects420){
       if(r.length<4){geomOk420=false;geomMsg420='非四參數: '+r.join(',');break;}
-      const xm=r[0].match(/sp26b\.ax([+-]\d+)/)||r[0].match(/sp29b\.ax([+-]\d+)/);
-      const ym=r[1].match(/sp26b\.ay([+-]\d+)/)||r[1].match(/sp29b\.ay([+-]\d+)/);
+      const xm=r[0].match(/sp26b\.ax([+-]\d+)/)||r[0].match(/sp29b\.ax([+-]\d+)/)||r[0].match(/sp15b\.ax([+-]\d+)/);
+      const ym=r[1].match(/sp26b\.ay([+-]\d+)/)||r[1].match(/sp29b\.ay([+-]\d+)/)||r[1].match(/sp15b\.ay([+-]\d+)/);
       if(!xm||!ym){geomOk420=false;geomMsg420='座標非 ax/ay 式: '+r.join(',');break;}
       const xOff=+xm[1],yOff=+ym[1];
       const w=+r[2],h=+r[3];
@@ -5634,10 +5648,10 @@ runPwaTests().then(() => {
       const wv=r[0].includes('sp26b')?64:72,hv=112;
       if(axv+xOff<0||axv+xOff+w>wv||ayv+yOff<0||ayv+yOff+h>hv){geomOk420=false;geomMsg420='超出畫布: '+r.join(',');break;}
     }
-    assert(geomOk420,'T420 G5 幾何：pass 每個 fillRect 落在 [0,w)×[0,h) 內（整組平移出界即紅）'+geomMsg420);
+    assert(geomOk420,'T420/T421 G5 幾何：pass 每個 fillRect 落在 [0,w)×[0,h) 內（整組平移出界即紅）'+geomMsg420);
     // G6 落筆恆等：恰等帳本常數（空骨架 0 或多畫皆紅）
-    assert(ink420.rects===18&&ink420.px===138,
-      'T420 G6 落筆恆等：R01+R03 落筆恰等帳本常數 rects=18／px=138（空骨架 0 或 多畫即紅，實得 '+JSON.stringify(ink420)+'）');
+    assert(ink420.rects===30&&ink420.px===266,
+      'T420/T421 G6 落筆恆等：R01+R03+T421R01 落筆恰等帳本常數 rects=30／px=266（空骨架 0 或 多畫即紅，實得 '+JSON.stringify(ink420)+'）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
