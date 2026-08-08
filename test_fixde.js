@@ -8963,9 +8963,17 @@ runPwaTests().then(() => {
     assert(s.cand>=4&&s.drawn>=4&&s.legacy===0,'T422 G3 z=.35 深夜須走類型化遠景燈（候選/命中/legacy），實得 '+JSON.stringify(s));
     assert(s.R>=1&&s.C>=1&&s.I>=1&&s.L>=1,'T422 G3 完整 draw 四族皆命中，實得 '+JSON.stringify(s));
     assert(s.drawn===s.R+s.C+s.I+s.L&&s.drawn+s.legacy===s.cand,'T422 G3 每候選恰一筆類型化或 legacy rect，實得 '+JSON.stringify(s));
-    const wantCols=[window.__t422().spec(1,28,30,2).col,window.__t422().spec(2,29,30,2).col,window.__t422().spec(3,30,30,2).col,window.__t422().spec(24,31,30,2).col];
+    const ks422=[1,2,3,24],xy422=[[28,30],[29,30],[30,30],[31,30]];
+    const wantCols=ks422.map((k,i)=>window.__t422().spec(k,xy422[i][0],xy422[i][1],2).col);
     assert(wantCols.every(c=>screen.some(o=>o.col===c)),
       'T422 G3 最終 screen 合成須真落筆四族色（不可 helper／counter 綠而正式 push 回 generic），實得 '+JSON.stringify(screen));
+    window.__noFarNight422=true;const legacyNight422=window.__t422Screen();delete window.__noFarNight422;
+    for(let i=0;i<ks422.length;i++){
+      const rel=window.__t422().spec(ks422[i],xy422[i][0],xy422[i][1],2).rect;
+      const hits=screen.filter(o=>o.col===wantCols[i]);
+      assert(hits.length===1&&legacyNight422.some(g=>g.rect[2]===2&&g.rect[3]===2&&hits[0].rect[0]===g.rect[0]+rel[0]&&hits[0].rect[1]===g.rect[1]+rel[1]&&hits[0].rect[2]===rel[2]&&hits[0].rect[3]===rel[3]),
+        'T422 G3 '+['R','C','I','L'][i]+' 最終落筆幾何須與同幀 2px legacy 基準＋helper 相對 rect 精確一致，實得 '+JSON.stringify(hits));
+    }
     window.GV.setZoom(.5);window.GV.forceDraw();s=window.__t422().stats();
     assert(s.cand===0&&s.drawn===0&&s.legacy===0,'T422 G3 z=.5 回近景，T422 零候選／零繪製，實得 '+JSON.stringify(s));
     window.GV.setZoom(.35);window.GV.setVisT(55);screen=window.__t422Screen();s=window.__t422().stats();
