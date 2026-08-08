@@ -9589,24 +9589,42 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   }}
   /* ===== T420 ART-LOOP 靜態加蓋 pass END ===== */
 
-  /* ===== T421 ART-LOOP 靜態加蓋 pass：R01+R02 郵局門框＋門簷＋郵筒基座 =====
-     白名單 ['15_1_1','15_1_2','15_1_3','15_1_4']。最終生成點：T36/T223 程序化 v=1..4（~4827-4854），非 15_1_0 HERO。
-     R01 退修：避 (31,94)(40,95)=#161d2f、(38,99) 細節色（v1/v2/v4 同構；v3 細節 y 位移但同 rect 仍零覆蓋）。
-     前置 B：門簷＝轉角門廊／近角正對觀者立面門楣額枋（允許近似螢幕水平）；門框＝真垂直。
-     零亂數、不改 w/h/ax/ay/sc/night/metadata/nightCity。落筆計數 __t421Ink（與 T420 分離）。 ===== */
+  /* ===== T421 ART-LOOP 靜態加蓋 pass：服務建築門廊語彙（郵局／圖書館）=====
+     白名單：15_1_1..4（R01-R02）＋14_1_1..2（R03 圖書館）。29_1_3 桶位與 T420 v1/v2 不同＝本輪不動。
+     非 HERO／非 ROOF_K417／非禁鍵。最終生成點：T35/T36/T223 程序化 v≥1（非 *_1_0 HERO 後寫）。
+     前置 B：門簷＝轉角門廊額枋（近似水平已申報）；門框＝真垂直。
+     零亂數、不改 w/h/ax/ay/sc/night/metadata/nightCity。__t421Ink 與 T420 分離。 ===== */
   window.__t421Ink={rects:0,px:0};
+  /* --- 郵局 15_1_1..4：門框＋門簷＋郵筒基座（R01 退修座標） --- */
   for(const v15b of[1,2,3,4]){const hk15b='15_1_'+v15b;const sp15b=SPR.bld[hk15b];if(sp15b&&sp15b.img){
     const g15b=sp15b.img.getContext('2d');
-    g15b.fillStyle='#6a6048'; // 門框：左 x=ax-3..-2；右僅 x=ax+1（寬1，避 x38 細節）
+    g15b.fillStyle='#6a6048';
     g15b.fillRect(sp15b.ax-3,sp15b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
     g15b.fillRect(sp15b.ax+1,sp15b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
-    g15b.fillStyle='#4a5a7a'; // 門簷上沿：x=ax-4..+3＝32..39 @y=ay-16，避 (31,94) 族
+    g15b.fillStyle='#4a5a7a';
     g15b.fillRect(sp15b.ax-4,sp15b.ay-16,8,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=8*1;
-    g15b.fillStyle='#3a4a62'; // 門簷下沿：x=ax-4..+2＝32..38 @y=ay-15，避 (40,95) 族
+    g15b.fillStyle='#3a4a62';
     g15b.fillRect(sp15b.ax-4,sp15b.ay-15,7,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=7*1;
-    g15b.fillStyle='#2a3858'; // 郵筒基座 ×2（y=ay-2，避 y106 地線）
+    g15b.fillStyle='#2a3858';
     g15b.fillRect(sp15b.ax-15,sp15b.ay-2,5,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=5*1;
     g15b.fillRect(sp15b.ax+9,sp15b.ay-2,5,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=5*1;
+  }}
+  /* --- R03 圖書館 14_1_1/14_1_2：同門廊語彙＋書堆著地板（非 HERO 14_1_0；最終點 ~4800 程序化）
+     避：豎管 x36 y90-104；書堆 #c85a48/#5aa0e8 @22-28,100-104；#161d2f@31,94/40,95；階 #6a6a6a@y108-109；地線 y106 --- */
+  for(const v14b of[1,2]){const hk14b='14_1_'+v14b;const sp14b=SPR.bld[hk14b];if(sp14b&&sp14b.img){
+    const g14b=sp14b.img.getContext('2d');
+    g14b.fillStyle='#5a4a38'; // 門框（磚牆暗一階；避 x=ax 豎管）
+    g14b.fillRect(sp14b.ax-3,sp14b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g14b.fillRect(sp14b.ax+1,sp14b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g14b.fillStyle='#6a5a48'; // 門簷左右分片（中空避 x=ax 豎管 @y94-95）
+    g14b.fillRect(sp14b.ax-4,sp14b.ay-16,3,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=3*1;
+    g14b.fillRect(sp14b.ax+1,sp14b.ay-16,3,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=3*1;
+    g14b.fillStyle='#4a3a28';
+    g14b.fillRect(sp14b.ax-4,sp14b.ay-15,3,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=3*1;
+    g14b.fillRect(sp14b.ax+1,sp14b.ay-15,2,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*1;
+    g14b.fillStyle='#3a2a1a'; // 書堆著地板 ×2（紅/藍書堆下方 y=ay-5；避管底 36,105）
+    g14b.fillRect(sp14b.ax-15,sp14b.ay-5,4,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=4*1;
+    g14b.fillRect(sp14b.ax-11,sp14b.ay-5,4,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=4*1;
   }}
   /* ===== T421 ART-LOOP 靜態加蓋 pass END ===== */
 

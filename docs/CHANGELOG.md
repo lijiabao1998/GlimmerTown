@@ -10,6 +10,8 @@
 - 「驗收:」欄記真跑結果；未跑就明標「未驗證」。
 - 本專案要求記錄**被否決的方案與否決依據**——那是這份檔案最貴的部分。
 
+2026-08-08 | T421 ART-R03：14_1_1/14_1_2 圖書館門廊＋書堆著地（Grok bay/grok・8127） | 非 HERO；門簷左右分片避豎管；8 rect/鍵 ink43；__t421Ink 40/282；art_diff ✔；29_1_3 不動（桶位不同）。3 輪交回 AWAIT_REVIEW。 | 驗收:自審綠（Grok）；**STOP: AWAIT_REVIEW**。PASS=4324／v11.46 未 bump。不自合、不 publish。
+
 2026-08-08 | T421 ART-R02：15_1_3/15_1_4 同構門框簷基座（Grok bay/grok・8127） | 紅系 v3＋灰藍 v4；同 R01 退修 rect 四鍵；`__t421Ink` **24/196**；art_diff 四鍵 ✔ 未覆蓋 ≤16px；beacon 分鍵量測貼上；白天 z2 `R02-z2-ingame-day.png`。fillRect +24/+196。 | 驗收:自審綠（Grok）；**2/3 輪**。閘門 PASS=4324／v11.46 未 bump。不自合、不 publish。
 
 2026-08-08 | T421 ART-R01 退修通過＋白天 z2 補件（Grok bay/grok・8127） | 三退修覆核通過；補 `R01-z2-ingame-day.png`（visT=55 正午；夜景舊圖不支撐「能」）。可開 R02。 | 驗收:通過（Claude 覆核；白天圖 Grok 補）。
