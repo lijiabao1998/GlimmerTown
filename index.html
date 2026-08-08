@@ -9590,7 +9590,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
   /* ===== T420 ART-LOOP 靜態加蓋 pass END ===== */
 
   /* ===== T421 ART-LOOP 靜態加蓋 pass：服務建築門廊語彙（郵局／圖書館）=====
-     白名單：15_1_1..4（R01-R02）＋14_1_1..2（R03 圖書館）。29_1_3 桶位與 T420 v1/v2 不同＝本輪不動。
+     白名單：15/14/16/17/21/18/27/20/29 變體 R01–R15（見帳本）。
      非 HERO／非 ROOF_K417／非禁鍵。最終生成點：T35/T36/T223 程序化 v≥1（非 *_1_0 HERO 後寫）。
      前置 B：門簷＝轉角門廊額枋（近似水平已申報）；門框＝真垂直。
      零亂數、不改 w/h/ax/ay/sc/night/metadata/nightCity。__t421Ink 與 T420 分離。 ===== */
@@ -9625,6 +9625,146 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g14b.fillStyle='#3a2a1a'; // 書堆著地板 ×2（紅/藍書堆下方 y=ay-5；避管底 36,105）
     g14b.fillRect(sp14b.ax-15,sp14b.ay-5,4,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=4*1;
     g14b.fillRect(sp14b.ax-11,sp14b.ay-5,4,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=4*1;
+  }}
+  /* --- R04 14_1_3,14_1_4 --- */
+  for(const v14b of[3,4]){const hk14b='14_1_'+v14b;const sp14b=SPR.bld[hk14b];if(sp14b&&sp14b.img){
+    const g14b=sp14b.img.getContext('2d');
+    g14b.fillStyle='#5a4a38';
+    g14b.fillRect(sp14b.ax-3,sp14b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g14b.fillRect(sp14b.ax+1,sp14b.ay-16,2,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*6;
+    g14b.fillRect(sp14b.ax+3,sp14b.ay-16,1,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*6;
+    g14b.fillStyle='#6a5a48';
+    g14b.fillRect(sp14b.ax-10,sp14b.ay-16,8,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=8*1;
+    g14b.fillRect(sp14b.ax-10,sp14b.ay-17,8,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=8*1;
+    g14b.fillRect(sp14b.ax+2,sp14b.ay-6,8,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=8*1;
+  }}
+  /* --- R05 16_1_1,16_1_2 --- */
+  for(const v16b of[1,2]){const hk16b='16_1_'+v16b;const sp16b=SPR.bld[hk16b];if(sp16b&&sp16b.img){
+    const g16b=sp16b.img.getContext('2d');
+    g16b.fillStyle='#5a4a38';
+    g16b.fillRect(sp16b.ax+1,sp16b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g16b.fillRect(sp16b.ax-4,sp16b.ay-18,2,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*6;
+    g16b.fillRect(sp16b.ax+3,sp16b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g16b.fillStyle='#6a5a48';
+    g16b.fillRect(sp16b.ax-6,sp16b.ay-5,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+    g16b.fillRect(sp16b.ax-6,sp16b.ay-3,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+    g16b.fillRect(sp16b.ax-6,sp16b.ay-20,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+  }}
+  /* --- R06 16_1_3,16_1_4 --- */
+  for(const v16b of[3,4]){const hk16b='16_1_'+v16b;const sp16b=SPR.bld[hk16b];if(sp16b&&sp16b.img){
+    const g16b=sp16b.img.getContext('2d');
+    g16b.fillStyle='#5a4a38';
+    g16b.fillRect(sp16b.ax-3,sp16b.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g16b.fillRect(sp16b.ax-5,sp16b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g16b.fillRect(sp16b.ax+1,sp16b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g16b.fillRect(sp16b.ax-3,sp16b.ay-18,2,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*6;
+    g16b.fillRect(sp16b.ax+3,sp16b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g16b.fillStyle='#6a5a48';
+    g16b.fillRect(sp16b.ax+2,sp16b.ay-16,8,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=8*1;
+  }}
+  /* --- R07 17_1_1,17_1_2 --- */
+  for(const v17b of[1,2]){const hk17b='17_1_'+v17b;const sp17b=SPR.bld[hk17b];if(sp17b&&sp17b.img){
+    const g17b=sp17b.img.getContext('2d');
+    g17b.fillStyle='#5a4a38';
+    g17b.fillRect(sp17b.ax-4,sp17b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g17b.fillRect(sp17b.ax+1,sp17b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g17b.fillRect(sp17b.ax+3,sp17b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g17b.fillStyle='#6a5a48';
+    g17b.fillRect(sp17b.ax-6,sp17b.ay-16,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+    g17b.fillRect(sp17b.ax-6,sp17b.ay-15,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+    g17b.fillRect(sp17b.ax-6,sp17b.ay-18,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+  }}
+  /* --- R08 17_1_3,17_1_4 --- */
+  for(const v17b of[3,4]){const hk17b='17_1_'+v17b;const sp17b=SPR.bld[hk17b];if(sp17b&&sp17b.img){
+    const g17b=sp17b.img.getContext('2d');
+    g17b.fillStyle='#5a4a38';
+    g17b.fillRect(sp17b.ax-3,sp17b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g17b.fillRect(sp17b.ax-5,sp17b.ay-8,2,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*6;
+    g17b.fillRect(sp17b.ax+1,sp17b.ay-16,2,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*6;
+    g17b.fillRect(sp17b.ax+1,sp17b.ay-10,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g17b.fillRect(sp17b.ax+3,sp17b.ay-16,1,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*6;
+    g17b.fillStyle='#6a5a48';
+    g17b.fillRect(sp17b.ax-6,sp17b.ay-2,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+  }}
+  /* --- R09 21_1_1,21_1_2 --- */
+  for(const v21b of[1,2]){const hk21b='21_1_'+v21b;const sp21b=SPR.bld[hk21b];if(sp21b&&sp21b.img){
+    const g21b=sp21b.img.getContext('2d');
+    g21b.fillStyle='#5a4a38';
+    g21b.fillRect(sp21b.ax-4,sp21b.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g21b.fillRect(sp21b.ax-3,sp21b.ay-16,2,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*6;
+    g21b.fillRect(sp21b.ax+1,sp21b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g21b.fillRect(sp21b.ax+3,sp21b.ay-10,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g21b.fillStyle='#6a5a48';
+    g21b.fillRect(sp21b.ax-6,sp21b.ay-2,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+    g21b.fillRect(sp21b.ax-6,sp21b.ay-20,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+  }}
+  /* --- R10 21_1_3,21_1_4 --- */
+  for(const v21b of[3,4]){const hk21b='21_1_'+v21b;const sp21b=SPR.bld[hk21b];if(sp21b&&sp21b.img){
+    const g21b=sp21b.img.getContext('2d');
+    g21b.fillStyle='#5a4a38';
+    g21b.fillRect(sp21b.ax-4,sp21b.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g21b.fillRect(sp21b.ax+1,sp21b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g21b.fillRect(sp21b.ax-3,sp21b.ay-16,2,6);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*6;
+    g21b.fillRect(sp21b.ax+3,sp21b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g21b.fillStyle='#6a5a48';
+    g21b.fillRect(sp21b.ax-6,sp21b.ay-17,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+    g21b.fillRect(sp21b.ax-6,sp21b.ay-2,12,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=12*1;
+  }}
+
+  /* --- R11 18_1_1,18_1_2 w88h120 --- */
+  for(const vR11 of[1,2]){const hkR11='18_1_'+vR11;const spR11=SPR.bld[hkR11];if(spR11&&spR11.img){
+    const gR11=spR11.img.getContext('2d');
+    gR11.fillStyle='#5a4a38';
+    gR11.fillRect(spR11.ax-4,spR11.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR11.fillRect(spR11.ax+1,spR11.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR11.fillRect(spR11.ax+4,spR11.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR11.fillRect(spR11.ax-8,spR11.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR11.fillRect(spR11.ax-3,spR11.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR11.fillRect(spR11.ax+1,spR11.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+  }}
+  /* --- R12 18_1_3,18_1_4 w88h120 --- */
+  for(const vR12 of[3,4]){const hkR12='18_1_'+vR12;const spR12=SPR.bld[hkR12];if(spR12&&spR12.img){
+    const gR12=spR12.img.getContext('2d');
+    gR12.fillStyle='#5a4a38';
+    gR12.fillRect(spR12.ax+4,spR12.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR12.fillRect(spR12.ax-4,spR12.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR12.fillRect(spR12.ax+1,spR12.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR12.fillRect(spR12.ax-6,spR12.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR12.fillRect(spR12.ax-8,spR12.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR12.fillRect(spR12.ax+1,spR12.ay-22,1,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*10;
+  }}
+  /* --- R13 27_1_1,27_1_2 w88h120 --- */
+  for(const vR13 of[1,2]){const hkR13='27_1_'+vR13;const spR13=SPR.bld[hkR13];if(spR13&&spR13.img){
+    const gR13=spR13.img.getContext('2d');
+    gR13.fillStyle='#5a4a38';
+    gR13.fillRect(spR13.ax-3,spR13.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR13.fillRect(spR13.ax-8,spR13.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR13.fillRect(spR13.ax-4,spR13.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR13.fillRect(spR13.ax+1,spR13.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR13.fillRect(spR13.ax-6,spR13.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    gR13.fillRect(spR13.ax+4,spR13.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+  }}
+  /* --- R14 20_1_1,20_1_2 w136h150 --- */
+  for(const vR14 of[1,2]){const hkR14='20_1_'+vR14;const spR14=SPR.bld[hkR14];if(spR14&&spR14.img){
+    const gR14=spR14.img.getContext('2d');
+    gR14.fillStyle='#5a4a38';
+    gR14.fillRect(spR14.ax-4,spR14.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR14.fillRect(spR14.ax+1,spR14.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR14.fillRect(spR14.ax-6,spR14.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR14.fillRect(spR14.ax+4,spR14.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR14.fillRect(spR14.ax-8,spR14.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR14.fillRect(spR14.ax-4,spR14.ay-10,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+  }}
+  /* --- R15 29_1_3,29_1_4 w72h112 --- */
+  for(const vR15 of[3,4]){const hkR15='29_1_'+vR15;const spR15=SPR.bld[hkR15];if(spR15&&spR15.img){
+    const gR15=spR15.img.getContext('2d');
+    gR15.fillStyle='#5a4a38';
+    gR15.fillRect(spR15.ax-3,spR15.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR15.fillRect(spR15.ax+1,spR15.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR15.fillRect(spR15.ax-6,spR15.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR15.fillRect(spR15.ax+4,spR15.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR15.fillRect(spR15.ax-8,spR15.ay-22,2,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*10;
+    gR15.fillRect(spR15.ax+3,spR15.ay-22,1,10);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*10;
   }}
   /* ===== T421 ART-LOOP 靜態加蓋 pass END ===== */
 
