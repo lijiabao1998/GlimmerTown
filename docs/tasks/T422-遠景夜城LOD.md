@@ -212,7 +212,7 @@ for(const nsp of nightSprites){
 
 ### 正式閘門
 
-- `python tools/verify.py`：PASS=4368／FAIL=0／exit 0／ALL GREEN／CRLF=0；版本維持 11.47。
+- `python tools/verify.py`：PASS=4372／FAIL=0／exit 0／ALL GREEN／CRLF=0；版本維持 11.47。
 - `node test_fixde.js`：exit 0；兩條種子釘 4153／4550 原樣。
 - `python -B -m unittest tools.test_toolchain`：54 tests／exit 0／OK。
 - `git diff --check`、`test_fixde.js`／`sw.js`／index inline syntax 全綠。
@@ -227,8 +227,11 @@ for(const nsp of nightSprites){
 | M4 | helper 插入 `R();Math.random();` | 1；`純樣式函式零 R/ri/vri/Math.random` |
 | M5 | 正式 push 退回 generic、保留 helper／計數 | 1；`正式輸出必須 push ... fl422` |
 | M6 | helper 前預先捕獲 `R` alias，再間接呼叫 | 1；`只准呼叫白名單純函式` |
+| M7 | helper 回傳後把正式 rect 改成 200×200 越界 | 1；`R 最終落筆幾何須與同幀 2px legacy 基準＋helper 相對 rect 精確一致` |
 
-M5、M6 在初版守衛上均可全綠，是實際重放出的假綠洞；補網後重新重放才轉紅，沒有以文字宣稱代替實彈。
+M5、M6 在初版守衛上均可全綠；非作者只讀審計再證明 M7 在第二版仍可全綠。最終補網不是只看
+helper 自報：四族最終 screen rect 必須逐筆等於「同幀 2px legacy 基準＋helper 相對幾何」，三洞重放
+才全部轉紅，沒有以文字宣稱代替實彈。
 
 ### 真瀏覽器 QA（`127.0.0.1:8126`、槽 3、隔離 Chrome／SW blocked）
 
