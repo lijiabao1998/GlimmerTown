@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><title>T421 z2 in-game</title>
+<html lang="zh-Hant"><head><meta charset="utf-8"><title>T421 z2 daytime in-game</title>
 <style>
-html,body{margin:0;background:#0a1020;height:100%;overflow:hidden}
+html,body{margin:0;background:#87b5e0;height:100%;overflow:hidden}
 iframe{border:0;width:100vw;height:100vh;display:block}
 #hud{position:fixed;left:8px;top:8px;z-index:9;background:rgba(0,0,0,.75);color:#9fe;padding:6px 10px;font:12px monospace;white-space:pre;max-width:80vw}
 </style>
@@ -10,11 +10,14 @@ iframe{border:0;width:100vw;height:100vh;display:block}
 <iframe id="g" src="/index.html"></iframe>
 <script>
 'use strict';
+// T421：必須白天 z2（加蓋只改日間 img；夜間 screen 疊加會洗掉門框細節）
+// 正午：ph=0.5 ⇒ visT = 0.5 * CYCLE(110) = 55（見 daylight()）
+const NOON_VIST = 55;
 const H=document.getElementById('hud');
 const f=document.getElementById('g');
 function wait(cb){
   const w=f.contentWindow;
-  if(w&&w.GV&&w.GV.place&&w.GV.setZoom&&w.GV.lookAt){cb(w);return;}
+  if(w&&w.GV&&w.GV.place&&w.GV.setZoom&&w.GV.lookAt&&w.GV.setVisT){cb(w);return;}
   setTimeout(()=>wait(cb),400);
 }
 function run(w){
@@ -22,55 +25,45 @@ function run(w){
     const d=w.document;
     try{const bn=d.getElementById('bNewGame'); if(bn) bn.click();}catch(e){}
     const st=d.getElementById('start'); if(st) st.style.display='none';
-    w.__noLight=true;
     w.__noNightCity=true;
     w.GV.newWorldSeeded(20260701);
     if(w.GV.setDay) w.GV.setDay(30);
     if(w.GV.setSeason) w.GV.setSeason(0);
+    // lock noon before any draw
+    w.GV.setVisT(NOON_VIST);
     const N=w.GV.N();
-    // scan land tiles (not water t===0?)
     const land=[];
     for(let y=0;y<N;y++)for(let x=0;x<N;x++){
       const t=w.GV.tile(x,y);
-      if(!t) continue;
-      // prefer empty land: no bld, not pure water if t field exists
-      if(t.bld) continue;
-      if(t.t===0) continue; // water
+      if(!t||t.bld||t.t===0) continue;
       land.push({x,y});
     }
-    // place roads on a few land cells then posts on free land
     const found=[];
-    for(let i=0;i<land.length && found.length<2;i++){
+    for(let i=0;i<land.length && found.length<8;i++){
       const {x,y}=land[i];
-      // try post directly
-      const ok=w.GV.place('post',x,y);
-      const t=w.GV.tile(x,y);
-      if(t&&t.bld&&t.bld.k===15){
-        if(t.bld.v===1 && !found.some(p=>p.v===1)) found.push({x,y,v:1});
-        else if(t.bld.v===2 && !found.some(p=>p.v===2)) found.push({x,y,v:2});
-        else if(found.length<2 && !found.some(p=>p.x===x&&p.y===y)) found.push({x,y,v:t.bld.v});
-      }
-    }
-    // if still missing v1/v2, keep placing more
-    for(let i=0;i<land.length && (found.filter(p=>p.v===1).length===0 || found.filter(p=>p.v===2).length===0);i++){
-      const {x,y}=land[i];
-      if(w.GV.tile(x,y).bld) continue;
       w.GV.place('post',x,y);
       const t=w.GV.tile(x,y);
       if(t&&t.bld&&t.bld.k===15){
         if(t.bld.v===1 && !found.some(p=>p.v===1)) found.push({x,y,v:1});
-        if(t.bld.v===2 && !found.some(p=>p.v===2)) found.push({x,y,v:2});
+        else if(t.bld.v===2 && !found.some(p=>p.v===2)) found.push({x,y,v:2});
+        else if(t.bld.v===3 && !found.some(p=>p.v===3)) found.push({x,y,v:3});
+        else if(t.bld.v===4 && !found.some(p=>p.v===4)) found.push({x,y,v:4});
+        else if(found.length<2) found.push({x,y,v:t.bld.v});
       }
     }
     const focus=found.find(p=>p.v===1)||found.find(p=>p.v===2)||found[0]||{x:(N/2)|0,y:(N/2)|0};
     w.GV.setZoom(2);
     w.GV.lookAt(focus.x, focus.y);
+    // re-lock noon every frame (rAF would otherwise advance visT)
     let n=0;
     const tick=()=>{
+      w.GV.setVisT(NOON_VIST);
       if(typeof w.draw==='function') w.draw();
-      if(++n<40) w.requestAnimationFrame(tick);
+      if(++n<50) w.requestAnimationFrame(tick);
       else {
-        H.textContent='READY z=2 focus='+JSON.stringify(focus)+' posts='+JSON.stringify(found.slice(0,6))+' landN='+land.length;
+        w.GV.setVisT(NOON_VIST);
+        if(typeof w.draw==='function') w.draw();
+        H.textContent='READY DAY z=2 visT='+NOON_VIST+' focus='+JSON.stringify(focus)+' posts='+JSON.stringify(found.slice(0,8));
         H.dataset.ready='1';
         window.__t421Z2Ready=true;
       }

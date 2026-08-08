@@ -10,7 +10,9 @@
 - 「驗收:」欄記真跑結果；未跑就明標「未驗證」。
 - 本專案要求記錄**被否決的方案與否決依據**——那是這份檔案最貴的部分。
 
-2026-08-08 | T421 ART-R01 退修：15_1_1/15_1_2 獨立受管區＋前置 C 復歸（Grok bay/grok・8127） | **三退修**：①前置 D 實跑 art_diff 對照 ✔ 未覆蓋 ≤16px 細節（初版誤蓋 #161d2f×2+#f4dea2×1 已改 rect）②G4 beacon 從量測全量貼上 ③T421 自建 pass／`__t421Ink`12/98／`__t421Replay`，T420 還原 18/138。前置 B 申報門簷＝轉角門廊額枋。遊戲內 z2 圖 `t421-shots/R01-z2-ingame.png`。紅源四案 exit1 具名 T421。 | 驗收:自審綠（Grok）；**STOP: AWAIT_REVIEW**。閘門 PASS 升／v11.46 未 bump。不自合、不 publish。
+2026-08-08 | T421 ART-R02：15_1_3/15_1_4 同構門框簷基座（Grok bay/grok・8127） | 紅系 v3＋灰藍 v4；同 R01 退修 rect 四鍵；`__t421Ink` **24/196**；art_diff 四鍵 ✔ 未覆蓋 ≤16px；beacon 分鍵量測貼上；白天 z2 `R02-z2-ingame-day.png`。fillRect +24/+196。 | 驗收:自審綠（Grok）；**2/3 輪**。閘門 PASS=4324／v11.46 未 bump。不自合、不 publish。
+
+2026-08-08 | T421 ART-R01 退修通過＋白天 z2 補件（Grok bay/grok・8127） | 三退修覆核通過；補 `R01-z2-ingame-day.png`（visT=55 正午；夜景舊圖不支撐「能」）。可開 R02。 | 驗收:通過（Claude 覆核；白天圖 Grok 補）。
 
 2026-08-08 | T421 R00 增量四：fillRect 基準探針入帳（Grok bay/grok・8127） | 探針 `docs/tools/t421_fillrect_probe.js`（mock fillRect 計數版，不動 test_fixde 主線）；量於 `c99f822`（無美術落筆）→ **calls=927,303／px=5,199,515**＝本卡唯一基準；開機線 ×1.15 → calls≤1,066,398。T420 931,526 與 927,285 作廢。帳本見 T421 卡 R00 增量四。 | 驗收:通過（自審；Grok）。不自合、不 publish。
 
