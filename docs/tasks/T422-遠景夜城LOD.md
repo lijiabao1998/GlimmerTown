@@ -4,7 +4,7 @@
 - **施工**：Codex（`bay/codex`，驗證埠 8126）
 - **覆核＋合併**：非 Codex 方；Codex 不自合、不 publish
 - **線別**：桌面線
-- **狀態**：CLAIMED；卡面與施工認領已落地，產品碼尚未施工
+- **狀態**：`STOP: AWAIT_REVIEW`；作者施工與自測已閉合，非作者簽核／release tail／合併／部署均未執行
 
 ## Claim
 
@@ -186,3 +186,75 @@ for(const nsp of nightSprites){
 
 非作者覆核通過後，才可完成 release tail 並從 canonical master 執行
 `python tools/merge_bay.py codex --deploy`。
+
+## 九、施工閉環（Codex，2026-08-08）
+
+### 產品落地
+
+- 產品 commit：`bed551d`。
+- T107 `lodMini` 既有可見 root 迴圈內，原本一筆 generic 夜燈 rect 改為一筆
+  `fl422`：住宅暖黃、商業粉／青／金、工業／能源／水務冷藍，其餘公共／交通／地標白金。
+- 每個候選仍恰一筆 `nightSprites.push`、最終仍恰一筆 `screen` 合成；沒有新增掃描、draw call、
+  sprite、DOM、存檔欄或模擬狀態。
+- 晴日、白天暴雨、`quality=0`、`__noNightCity`、`__noFarNight422` 全走改動前 generic rect；
+  `z>=.5` 不進 T422。
+- 商業三色只讀 `streetHash(x,y,4220)`；整段零 `R/ri/vri/Math.random`，不推進模擬亂數流。
+
+### 守衛補強與對抗性修正
+
+- Node 不是只看 helper 自報：`__t422Screen` 攔截最終 `screen` 合成的真 `fillRect`，確認四族色實際落筆；
+  同時釘 `nightSprites.push(fl422)`，防正式輸出退回 generic、計數器卻假綠。
+- `farNightRect422` 的直接呼叫收成純函式白名單；再以同 seed 的「不 draw／draw 後下一顆 R」
+  雙生子驗證亂數流恆等。這是施工中覆核抓到的真缺口：只包住當下 `R` 的 wrapper 看不穿
+  預先捕獲 alias，故不能作唯一證據。
+- 幾何覆蓋 `blkSz=2/3/4`，四族 4px 幾何互異，商業三色均可達；候選、類型化與 legacy
+  三帳滿足 `drawn+legacy===cand`。
+
+### 正式閘門
+
+- `python tools/verify.py`：PASS=4368／FAIL=0／exit 0／ALL GREEN／CRLF=0；版本維持 11.47。
+- `node test_fixde.js`：exit 0；兩條種子釘 4153／4550 原樣。
+- `python -B -m unittest tools.test_toolchain`：54 tests／exit 0／OK。
+- `git diff --check`、`test_fixde.js`／`sw.js`／index inline syntax 全綠。
+
+### 破壞性實彈（全部只在記憶體攔截 `readFileSync`，工作樹零改動）
+
+| 案 | 突變 | exit／首個紅點 |
+|---|---|---|
+| M1 | `lodMini` 門檻改 `<.25` | 1；`T107 lodMini 受管切片可定位` |
+| M2 | 四族強制 `cat='S'` | 1；`類型真相讀 kcatOf` |
+| M3 | 正式分支重複 push | 1；`恰一筆 nightSprites.push，實得 2` |
+| M4 | helper 插入 `R();Math.random();` | 1；`純樣式函式零 R/ri/vri/Math.random` |
+| M5 | 正式 push 退回 generic、保留 helper／計數 | 1；`正式輸出必須 push ... fl422` |
+| M6 | helper 前預先捕獲 `R` alias，再間接呼叫 | 1；`只准呼叫白名單純函式` |
+
+M5、M6 在初版守衛上均可全綠，是實際重放出的假綠洞；補網後重新重放才轉紅，沒有以文字宣稱代替實彈。
+
+### 真瀏覽器 QA（`127.0.0.1:8126`、槽 3、隔離 Chrome／SW blocked）
+
+- 造境：seed 422、205 座已供電 root（R49／C68／I55／L33），speed=0、weather=0、深夜、z=.35；
+  先丟棄兩幀 lazy/cache 暖機再量。
+- 960×600：on CRC=`c5548f2c`，重畫仍 `c5548f2c`，off=`e1d64b09`；改變 2453 px，
+  bbox=`[265,192,716,424]`，差異只落在城區建築。
+- 四旋轉 on/off 均有局部差：rot0/1/2/3 分別 2453／2445／2457／2422 px；燈點跟建築走，
+  無漂移或裁切。
+- 390×844：on=`506b4eab`，重畫同值，off=`5d02efe8`，改變 2391 px；窄視口可用。
+- 晴日 z=.35、白天暴雨 z=.35、深夜 z=.5、深夜 z=1 的 on/off 各自逐像素相同。
+- 同場景 3 秒：on 117.79 FPS、off 118.46 FPS；無可重現回退。page error=0；僅有
+  QA `getImageData` 讀回效能提示與測試刻意阻擋 Service Worker 的提示，無 T422 產品錯誤。
+- 作者肉眼自答：不看 before，住宅是稀疏暖點、商業是粉青金短招牌、工業是冷藍底緣燈、
+  公共／地標是白金中心點，四種語言可辨。
+- 實拍（不進玩家目錄）：
+  `C:\Users\Leon1\AppData\Local\Temp\t422-night-r0-960.png`、
+  `t422-night-r1-960.png`、`t422-night-r2-960.png`、`t422-night-r3-960.png`、
+  `t422-night-mobile-390.png`。
+
+應用內 Browser 先按規約嘗試，但 Canvas 截圖連續 timeout；依瀏覽器排障規約改用同機本地 Chrome
+headless、隔離 context、阻擋 SW 後完成像素驗證。這是驗證工具限制，不是把未驗證寫成通過。
+
+## 十、作者交回
+
+- 狀態：`STOP: AWAIT_REVIEW`。
+- 版本不 bump；`sw.js`、ARCH、master、玩家部署均未動。
+- 作者 Codex 不自合、不 publish。非作者須重跑正式閘門、至少一輪真瀏覽器 on/off 與人眼檢查，
+  通過後才准做 v11.48（若無插隊）release tail 與 `--deploy`。
