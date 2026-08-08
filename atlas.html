@@ -127,6 +127,7 @@ $('#bPins').onclick=()=>{
     const id=e.fam+'/'+e.key;
     PINS[id]=[crcOf(e.img).toString(16)];
     if(e.night)PINS[id].push(crcOf(e.night).toString(16));
+    if(e.nightCity)PINS[id].push(crcOf(e.nightCity).toString(16)); // T421：nightCity 進指紋列
     n++;
   }
   PINS.__meta={ver:$('#ver').textContent,count:n,at:new Date().toISOString()};

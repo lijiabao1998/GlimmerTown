@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><title>T421 multi-round z2 day</title>
+<style>
+html,body{margin:0;background:#87b5e0;height:100%;overflow:hidden}
+iframe{border:0;width:100vw;height:100vh;display:block}
+#hud{position:fixed;left:8px;top:8px;z-index:9;background:rgba(0,0,0,.75);color:#9fe;padding:6px 10px;font:12px monospace;white-space:pre;max-width:90vw}
+</style>
+</head><body>
+<div id="hud">boot…</div>
+<iframe id="g" src="/index.html"></iframe>
+<script>
+'use strict';
+// ?round=R05 … R15
+const params=new URLSearchParams(location.search);
+const ROUND=(params.get('round')||'R05').toUpperCase();
+// tool id → k（與 doPlace case 一致）
+const MAP={
+  R05:{tool:'cemetery',k:16,label:'graveyard 16 (R05 withdrawn; still show family)'},
+  R06:{tool:'cemetery',k:16,label:'graveyard 16_1_3/4 family'},
+  R07:{tool:'station',k:17,label:'station 17_1_1/2'},
+  R08:{tool:'station',k:17,label:'station 17_1_3/4'},
+  R09:{tool:'tramStation',k:21,label:'lightrail 21_1_1/2'},
+  R10:{tool:'tramStation',k:21,label:'lightrail 21_1_3/4'},
+  R11:{tool:'port',k:18,label:'port 18_1_1/2'},
+  R12:{tool:'port',k:18,label:'port 18_1_3/4'},
+  R13:{tool:'sewage',k:27,label:'sewage 27_1_1/2'},
+  R14:{tool:'parking',k:20,label:'parking 20_1_1/2'},
+  R15:{tool:'recycling',k:29,label:'recycle 29_1_3/4'},
+};
+const NOON_VIST=55;
+const H=document.getElementById('hud');
+const f=document.getElementById('g');
+const spec=MAP[ROUND]||MAP.R05;
+function wait(cb){
+  const w=f.contentWindow;
+  if(w&&w.GV&&w.GV.place&&w.GV.setZoom&&w.GV.lookAt&&w.GV.setVisT){cb(w);return;}
+  setTimeout(()=>wait(cb),400);
+}
+function run(w){
+  try{
+    const d=w.document;
+    try{const bn=d.getElementById('bNewGame'); if(bn) bn.click();}catch(e){}
+    const st=d.getElementById('start'); if(st) st.style.display='none';
+    w.__noNightCity=true;
+    w.GV.newWorldSeeded(20260701+spec.k*17);
+    // Reviewer fix: keep the capture deterministic and genuinely daytime.
+    // The old probe stopped locking visual time after READY, so the live loop
+    // advanced several captures into night/storm despite the HUD saying visT=55.
+    w.GV.setSpeed(0);
+    w.GV.weather(0);
+    if(w.GV.setDay) w.GV.setDay(40);
+    if(w.GV.setSeason) w.GV.setSeason(0);
+    // 錢夠建
+    try{ if(w.GV.setMoney) w.GV.setMoney(999999); else if(w.money!==undefined) w.money=999999; }catch(e){}
+    w.GV.setVisT(NOON_VIST);
+    const N=w.GV.N();
+    const land=[];
+    for(let y=2;y<N-2;y++)for(let x=2;x<N-2;x++){
+      const t=w.GV.tile(x,y);
+      if(!t||t.bld||t.t===0) continue;
+      land.push({x,y});
+    }
+    const found=[];
+    for(let i=0;i<land.length && found.length<4;i++){
+      const {x,y}=land[i];
+      try{ w.GV.place(spec.tool,x,y); }catch(e){}
+      const t=w.GV.tile(x,y);
+      if(t&&t.bld&&t.bld.k===spec.k){
+        found.push({x,y,v:t.bld.v|0,k:t.bld.k});
+      }
+    }
+    // Use the real tick path to finish age=0 placements. GV.tile() is a clone,
+    // so mutating its returned bld would be a false fix and leave scaffolds up.
+    if(found.length) w.GV.step(9);
+    w.GV.setDay(40);
+    w.GV.weather(0);
+    if(found.length===0){
+      for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+        const t=w.GV.tile(x,y);
+        if(t&&t.bld&&t.bld.k===spec.k) found.push({x,y,v:t.bld.v|0,k:t.bld.k});
+      }
+    }
+    const focus=found[0]||{x:(N/2)|0,y:(N/2)|0};
+    w.GV.setZoom(2);
+    w.GV.lookAt(focus.x, focus.y);
+    let n=0;
+    const tick=()=>{
+      w.GV.setSpeed(0);
+      w.GV.weather(0);
+      w.GV.setVisT(NOON_VIST);
+      if(typeof w.draw==='function') w.draw();
+      if(++n===70) {
+        w.GV.setVisT(NOON_VIST);
+        if(typeof w.draw==='function') w.draw();
+        const dl=w.GV.daylightDbg();
+        H.textContent='READY '+ROUND+' DAY z=2 visT='+NOON_VIST+' b='+dl.b+' ph='+dl.ph+' d='+dl.d+' '+spec.label+'\nfocus='+JSON.stringify(focus)+'\nfound='+JSON.stringify(found.slice(0,8));
+        H.dataset.ready='1';
+        H.dataset.round=ROUND;
+        window.__t421Z2Ready=true;
+        window.__t421Z2Round=ROUND;
+      }
+      // Keep the lock alive until the external screenshot is actually taken.
+      w.requestAnimationFrame(tick);
+    };
+    w.requestAnimationFrame(tick);
+  }catch(e){
+    H.textContent='ERR '+e+'\n'+(e.stack||'');
+  }
+}
+f.onload=()=>wait(run);
+</script>
+</body></html>
