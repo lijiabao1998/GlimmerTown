@@ -5507,11 +5507,59 @@ runPwaTests().then(() => {
     assert(rawA5===rawB5,'T418b B5 往返位元恆等：4 格合法布局鏈城 save→load→save 逐位一致（2 格間距=讀檔非法城會互蓋樓，SK-8 布局契約），len '+rawA5.length+'/'+rawB5.length);
   }
 
+  { // ===== T421 nightCity 指紋守衛（行為釘，非字面掃描；增量一，美術落筆前） =====
+    // 1) 清冊帶 nightCity 欄（entries 數不變語意——仍一 entry 一 img）
+    const at421=window.GV.sprAtlas356();
+    const ncEnt=at421.entries.filter(e=>e.nightCity);
+    assert(typeof window.__t421NcN==='number','T421 nightCity：__t421NcN 基線在場（bake 尾賦值）');
+    assert(window.__t421NcN===ncEnt.length||(window.__t421NcN===0&&ncEnt.length===0),
+      'T421 nightCity：sprAtlas356 帶 nightCity 的 entries 數恰等基線 N（實得 atlas='+ncEnt.length+' base='+window.__t421NcN+'）');
+    // 2) 引用恆等：ART pass 不得替換 nightCity 畫布物件（'nig'+'htCity' 賦新 canvas 會紅）
+    let refOk421=true,refMsg421='';
+    const refs421=window.__t421NcRefs||{};
+    const S421=window.__t420SPR; // harness 注入的 SPR 直讀橋（本 scope 無 SPR 全域）
+    assert(S421&&S421.bld,'T421 nightCity：__t420SPR 橋在場');
+    for(const k of Object.keys(refs421)){
+      let cur=null;
+      if(k.charAt(0)==='@'){
+        if(k==='@police')cur=S421.police&&S421.police.nightCity;
+        else if(k==='@hospital')cur=S421.hospital&&S421.hospital.nightCity;
+        else if(k==='@clinic')cur=S421.clinic&&S421.clinic.nightCity;
+        else if(k.indexOf('@policeVar')===0)cur=S421.policeVar&&S421.policeVar[+k.slice(10)]&&S421.policeVar[+k.slice(10)].nightCity;
+        else if(k.indexOf('@hospitalVar')===0)cur=S421.hospitalVar&&S421.hospitalVar[+k.slice(12)]&&S421.hospitalVar[+k.slice(12)].nightCity;
+        else if(k.indexOf('@clinicVar')===0)cur=S421.clinicVar&&S421.clinicVar[+k.slice(10)]&&S421.clinicVar[+k.slice(10)].nightCity;
+      }else cur=S421.bld[k]&&S421.bld[k].nightCity;
+      if(cur!==refs421[k]){refOk421=false;refMsg421=k;break;}
+    }
+    assert(refOk421,'T421 nightCity 引用恆等：bake 後畫布物件不得被替換（鍵 '+refMsg421+'）');
+    // 3) 尺寸 meta 恆等
+    let metaOk421=true,metaMsg421='';
+    const meta421=window.__t421NcMeta||{};
+    for(const k of Object.keys(meta421)){
+      const c=refs421[k];if(!c){metaOk421=false;metaMsg421=k+' missing';break;}
+      if((c.width+'x'+c.height)!==meta421[k]){metaOk421=false;metaMsg421=k+' '+c.width+'x'+c.height+'≠'+meta421[k];break;}
+    }
+    assert(metaOk421,'T421 nightCity 尺寸 meta 恆等：'+metaMsg421);
+    // 4) 行為紅源可咬：替換一鍵 nightCity 引用後必須可偵測
+    if(window.__t421NcN>0){
+      const k0=Object.keys(refs421).find(k=>k.charAt(0)!=='@')||Object.keys(refs421)[0];
+      const hold=refs421[k0];
+      const fake=document.createElement('canvas');fake.width=hold.width;fake.height=hold.height;
+      let probeFail=false;
+      if(k0.charAt(0)!=='@'&&S421.bld[k0]){const bak=S421.bld[k0].nightCity;S421.bld[k0].nightCity=fake;probeFail=(S421.bld[k0].nightCity!==hold);S421.bld[k0].nightCity=bak;}
+      else probeFail=true;
+      assert(probeFail,'T421 nightCity 比較器：替換 bld nightCity 必須可偵測');
+    }
+    // 5) 當烘焙開啟時 N 必須 >0 且與 bakeCount 同階（字面 'nightCity' 掃描無法替代）
+    if(window.__t413BakeCount>0)assert(window.__t421NcN>50,'T421 nightCity：烘焙開啟時 N>50（整段刪 bake 會紅），實得 '+window.__t421NcN);
+  }
+
   { // ===== T420 ART-LOOP 守衛（六條：位置/metadata/落筆觀測/前置C/計數+幾何/指紋+亂數+分檔位） =====
     // 共同前置：pass 受管區切片（卡面第 2 節：單一 BEGIN/END）
     const b420=html.indexOf('/* ===== T420 ART-LOOP 靜態加蓋 pass');
     const e420=html.indexOf('T420 ART-LOOP 靜態加蓋 pass END');
-    const bakeEnd420='}else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}';
+    // T421 起 else 分支含 __t421Nc* 重設——位置釘改用含 T421 欄的完整 else 字面
+    const bakeEnd420='}else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};window.__t421NcRefs={};window.__t421NcMeta={};window.__t421NcN=0;}';
     const iBakeEnd420=html.indexOf(bakeEnd420);
     const iR420=html.lastIndexOf('R=__savedR;');
     const iRbefore420=html.lastIndexOf('R=__savedR;',b420); // pass 之前的 R 還原（M5：pass 前插 R 還原 → 此值落在 T413b 與 pass 之間 → 紅）

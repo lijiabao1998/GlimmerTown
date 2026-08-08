@@ -9545,7 +9545,15 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     if(SPR.clinicVar)for(let vi=1;vi<=4;vi++)if(SPR.clinicVar[vi]){bakeOne(SPR.clinicVar[vi],'H',1,1301+vi,13);tally413('H');}
     window.__t413BakeCount=bakeCount413; /* 測試：總烘焙命中 */
     window.__t413BakeByKind=bakeByKind413; /* T413b 第三輪 B5：分族計數（跳過 P/H/F/D 會讓該族=0 紅） */
-  }else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}
+    /* T421：nightCity 指紋基線（行為釘用）——鍵→畫布引用＋尺寸；pass 不得替換引用或改尺寸 */
+    {const refs={},meta={};let n=0;
+      for(const k in SPR.bld){const s=SPR.bld[k];if(!s||!s.nightCity)continue;n++;refs[k]=s.nightCity;meta[k]=s.nightCity.width+'x'+s.nightCity.height;}
+      for(const s of[SPR.police,SPR.hospital,SPR.clinic]){if(s&&s.nightCity){const kk='@'+(s===SPR.police?'police':s===SPR.hospital?'hospital':'clinic');n++;refs[kk]=s.nightCity;meta[kk]=s.nightCity.width+'x'+s.nightCity.height;}}
+      if(SPR.policeVar)for(let vi=1;vi<=4;vi++)if(SPR.policeVar[vi]&&SPR.policeVar[vi].nightCity){const kk='@policeVar'+vi;n++;refs[kk]=SPR.policeVar[vi].nightCity;meta[kk]=SPR.policeVar[vi].nightCity.width+'x'+SPR.policeVar[vi].nightCity.height;}
+      if(SPR.hospitalVar)for(let vi=1;vi<=4;vi++)if(SPR.hospitalVar[vi]&&SPR.hospitalVar[vi].nightCity){const kk='@hospitalVar'+vi;n++;refs[kk]=SPR.hospitalVar[vi].nightCity;meta[kk]=SPR.hospitalVar[vi].nightCity.width+'x'+SPR.hospitalVar[vi].nightCity.height;}
+      if(SPR.clinicVar)for(let vi=1;vi<=4;vi++)if(SPR.clinicVar[vi]&&SPR.clinicVar[vi].nightCity){const kk='@clinicVar'+vi;n++;refs[kk]=SPR.clinicVar[vi].nightCity;meta[kk]=SPR.clinicVar[vi].nightCity.width+'x'+SPR.clinicVar[vi].nightCity.height;}
+      window.__t421NcRefs=refs;window.__t421NcMeta=meta;window.__t421NcN=n;}
+  }else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};window.__t421NcRefs={};window.__t421NcMeta={};window.__t421NcN=0;}
   /* ===== T420 ART-LOOP 靜態加蓋 pass：R01＝26_1_1/26_1_2 風力塔桁架（白名單 ['26_1_1','26_1_2']）=====
      原問題（T419 覆核 §2.6）：2/3 的風機是 v1/v2＝T48 程序化版——塔柱只有 3 px 寬（x30..32, y44..99）、
      無 night、9 色，與 26_1_0 的 HERO_PIX 錐體塔（寬 5-8px）觀感落差大。
@@ -19845,16 +19853,17 @@ window.GV={
     非 sprite 成員（字串包／函式／null）略過並計入 skipped，讓清冊涵蓋率本身可被斷言。 */
     const out=[];let skipped=0;
     const isCvs=o=>o&&typeof o.width==='number'&&typeof o.getContext==='function';
-    const push=(fam,key,img,night,ax,ay,sc)=>{
+    const push=(fam,key,img,night,ax,ay,sc,nightCity)=>{
       if(!isCvs(img)){skipped++;return;}
       out.push({fam,key,img,night:(night&&isCvs(night))?night:null,
+        nightCity:(nightCity&&isCvs(nightCity))?nightCity:null, // T421：夜之城加料層進清冊（唯讀欄，不改 entries 計數語意）
         w:img.width,h:img.height,ax:(typeof ax==='number')?ax:null,ay:(typeof ay==='number')?ay:null,
         sc:(typeof sc==='number')?sc:null}); // T364a：atlas 保留可選縮放 metadata；atlas.html 忽略此欄，既有行為不變
     };
     const walk=(fam,key,v)=>{
       if(isCvs(v)){push(fam,key,v);return;}
       if(!v||typeof v!=='object'){skipped++;return;}
-      if(v.img!==undefined){push(fam,key,v.img,v.night,v.ax,v.ay,v.sc);return;}
+      if(v.img!==undefined){push(fam,key,v.img,v.night,v.ax,v.ay,v.sc,v.nightCity);return;}
       if(v.A!==undefined){push(fam,key+'.A',v.A,v.NA||null,v.ax,v.ay,v.sc);if(v.B!==undefined)push(fam,key+'.B',v.B,v.NB||null,v.ax,v.ay,v.sc);return;}
       if(Array.isArray(v)){for(let i=0;i<v.length;i++)walk(fam,(key?key+'.':'')+i,v[i]);return;}
       let any=false;
