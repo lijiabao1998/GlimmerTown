@@ -227,7 +227,7 @@ T419／T420 的帳本與覆核節裡多處寫「**T421 候選**（harness 2D moc
 **不做**：k22/23/53、k121–133、k68/71/73/76/112/127；不動 T420 已交付的 26_1_1/2、29_1_1/2 除非修復輪。  
 做不到就寫「不動它」合格（T420 R02 先例）。
 
-**落筆門檻**：① nightCity 守衛已 commit ✓ · ② 本段 R00 覆核通過 · ③ fillRect 探針基準入帳 · ④ 目標鍵量測表齊。
+**落筆門檻**：① nightCity 守衛已 commit ✓ · ② 本段 R00 覆核通過（待 Claude） · ③ fillRect 探針基準入帳 ✓ · ④ 目標鍵量測表齊（覆核後才做）。
 
 ---
 
@@ -238,7 +238,7 @@ T419／T420 的帳本與覆核節裡多處寫「**T421 候選**（harness 2D moc
 | ① | nightCity 指紋守衛（行為釘） | **已 commit fe4162**（本 merge 保留） |
 | ② | 不對照看得出來測試 | 待首輪美術 |
 | ③ | rect 表貼 __t421Replay 原文 | 待首輪美術 |
-| ④ | fillRect 基準探針 master 量測 | **下一手**（T420 931,526／927,285 作廢） |
+| ④ | fillRect 基準探針 master 量測 | **已入帳**（見下方 R00 fillRect；探針 docs/tools/t421_fillrect_probe.js） |
 | ⑤ | 舊「T421 候選 harness」改無編號 backlog | 本卡不做；見第 5 節 |
 
 ---
@@ -272,7 +272,31 @@ ightCity 的 entries 數恰等 __t421NcN。
 
 **verify**：PASS 4307→**4314**（進場後；含 nightCity 守衛新增 assert）。v11.46 未 bump。
 
-**STOP**：無。下一手＝fillRect 探針基準 → R00 覆核通過後量測候選鍵 → ART-R01。
+**STOP**：無。下一手＝R00 覆核通過後量測候選鍵 → ART-R01（fillRect 基準已鎖）。
+
+---
+
+
+### R00 / 增量四 — fillRect 基準（本卡唯一）
+
+| 項 | 值 |
+|---|---|
+| 探針路徑 | docs/tools/t421_fillrect_probe.js（入帳，覆核方可逐字重放） |
+| 量測 HEAD | c99f822（merge master 593ec86 ＋ nightCity fe4162；**無美術落筆**） |
+| 量測對象 | 本車位 index.html boot（主 IIFE 含 uildSprites 一次） |
+| **fillRect 呼叫數** | **927,303** |
+| **落筆像素量** | **5,199,515**（raw 5,199,515.28 四捨五入；非整數 w×h 來自引擎） |
+| 開機線（×1.15） | calls ≤ **1,066,398**；px 同比例僅 sanity |
+| 牆鐘 | boot ~299 ms（**不作驗收**） |
+| 作廢舊值 | T420 卡面 931,526／T420 R00 927,285 **兩值皆作廢** |
+| 與 T420 R00 差 | calls +18（0.0019%）；屬 HEAD 推進（T358 等 merge）＋探針環境，**以本探針為唯一基準** |
+
+重放：
+`	ext
+cd bay-grok
+node docs/tools/t421_fillrect_probe.js
+# 預期：T421_FILLRECT_BASELINE calls=927303 px=5199515
+`
 
 ---
 
