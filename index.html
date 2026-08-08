@@ -14634,6 +14634,24 @@ NIGHT413.push(drawNightWaterReflect413);   // 地面：水面夜反射
 NIGHT413T.push(drawNightLandmarks413);     // 頂層：地標身份
 NIGHT413T.push(drawNightCommNeon413);      // 頂層：商業霓虹閃爍
 NIGHT413T.push(drawNightIndAvia413);       // 頂層：工業航障
+/* ===== T422 遠景夜城 LOD：只替換 T107 mini 建築既有的一筆夜燈 rect。
+   類型化色與幾何不增 draw call；街區密度由可見 root 數自然形成，不讀 nightTier、不重掃地圖。
+   __noFarNight422=true 時由呼叫端走原 generic rect，供逐像素 A/B 回退。 ===== */
+const FAR_NIGHT_C422=['#ff72c6','#65dfff','#ffd45f'];
+let farNightCandN422=0,farNightDrawN422=0,farNightLegacyN422=0,farNightR422=0,farNightC422=0,farNightI422=0,farNightL422=0;
+function farNightRect422(bd,x,y,blkX,blkY,blkSz){
+  const cat=kcatOf(bd.k|0),sz=Math.max(1,Math.round(blkSz));
+  let fam='L',col='#fff1bd',w=sz>=4?2:1,h=w,dx=Math.floor((sz-w)/2),dy=Math.floor((sz-h)/2);
+  if(cat==='R'){
+    fam='R';col='#ffd08a';w=sz>=4?2:1;h=1;dx=Math.floor((sz-w)/2);dy=Math.floor((sz-h)/2);
+  }else if(cat==='C'){
+    fam='C';col=FAR_NIGHT_C422[Math.floor(streetHash(x,y,4220)*FAR_NIGHT_C422.length)%FAR_NIGHT_C422.length];
+    w=sz>=3?sz-1:sz;h=1;dx=Math.floor((sz-w)/2);dy=Math.max(0,sz-2);
+  }else if(cat==='I'||cat==='E'||cat==='W'){
+    fam='I';col='#a9d7ff';w=sz>=3?2:1;h=1;dx=Math.floor((sz-w)/2);dy=Math.max(0,sz-1);
+  }
+  return{rect:[blkX+dx,blkY+dy,w,h],col,fam};
+}
 function draw(dt){
   trafClock+=dt||0; // T289：交通時鐘推進（紅綠燈相位）
   const {b,dusk,ph,d}=daylight(); // T149：新增解構 ph/d（既有 b/dusk 用途不變）
@@ -15360,6 +15378,7 @@ function draw(dt){
     const _iso=isoW2V((c.fx-c.fy)*32,(c.fx+c.fy)*16+16); const wx=_iso[0],wy=_iso[1];objs.push({dep:viewDep(c.fx,c.fy)+.018,ped:c,wx,wy});}
   objs.sort((a,b2)=>a.dep-b2.dep);
   const nightSprites=[];
+  farNightCandN422=0;farNightDrawN422=0;farNightLegacyN422=0;farNightR422=0;farNightC422=0;farNightI422=0;farNightL422=0;
   nightSprites.push(...rdecGlow);
   const bob=Math.sin(visT*5)*2;
   // T126：前方建築遮擋游標/選中物半透明——僅工具啟用＋有效 hover，或已選中建築時才有目標（空陣列時下方迴圈零額外開銷、渲染與改動前逐像素一致）
@@ -15761,7 +15780,15 @@ function draw(dt){
       const blkX=o.sx+32*z-blkSz/2, blkY=o.sy+16*z-blkSz/2;
       ctx.fillStyle=MINI_BLD_PAL[bd.k]||'#aaa';
       ctx.fillRect(blkX,blkY,blkSz,blkSz);
-      if(bd.k===5||bd.pw)nightSprites.push({rect:[blkX,blkY,blkSz,blkSz]});
+      if(bd.k===5||bd.pw){
+        farNightCandN422++;
+        let fl422;
+        if(b<.72&&!window.__noNightCity&&!window.__noFarNight422&&quality!==0){
+          fl422=farNightRect422(bd,o.x,o.y,blkX,blkY,blkSz);farNightDrawN422++;
+          if(fl422.fam==='R')farNightR422++;else if(fl422.fam==='C')farNightC422++;else if(fl422.fam==='I')farNightI422++;else farNightL422++;
+        }else{farNightLegacyN422++;fl422={rect:[blkX,blkY,blkSz,blkSz]};}
+        nightSprites.push(fl422);
+      }
       continue;
     }
     let s;
