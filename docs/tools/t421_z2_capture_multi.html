@@ -43,6 +43,11 @@ function run(w){
     const st=d.getElementById('start'); if(st) st.style.display='none';
     w.__noNightCity=true;
     w.GV.newWorldSeeded(20260701+spec.k*17);
+    // Reviewer fix: keep the capture deterministic and genuinely daytime.
+    // The old probe stopped locking visual time after READY, so the live loop
+    // advanced several captures into night/storm despite the HUD saying visT=55.
+    w.GV.setSpeed(0);
+    w.GV.weather(0);
     if(w.GV.setDay) w.GV.setDay(40);
     if(w.GV.setSeason) w.GV.setSeason(0);
     // 錢夠建
@@ -64,6 +69,11 @@ function run(w){
         found.push({x,y,v:t.bld.v|0,k:t.bld.k});
       }
     }
+    // Use the real tick path to finish age=0 placements. GV.tile() is a clone,
+    // so mutating its returned bld would be a false fix and leave scaffolds up.
+    if(found.length) w.GV.step(9);
+    w.GV.setDay(40);
+    w.GV.weather(0);
     if(found.length===0){
       for(let y=0;y<N;y++)for(let x=0;x<N;x++){
         const t=w.GV.tile(x,y);
@@ -75,18 +85,22 @@ function run(w){
     w.GV.lookAt(focus.x, focus.y);
     let n=0;
     const tick=()=>{
+      w.GV.setSpeed(0);
+      w.GV.weather(0);
       w.GV.setVisT(NOON_VIST);
       if(typeof w.draw==='function') w.draw();
-      if(++n<70) w.requestAnimationFrame(tick);
-      else {
+      if(++n===70) {
         w.GV.setVisT(NOON_VIST);
         if(typeof w.draw==='function') w.draw();
-        H.textContent='READY '+ROUND+' DAY z=2 visT='+NOON_VIST+' '+spec.label+'\nfocus='+JSON.stringify(focus)+'\nfound='+JSON.stringify(found.slice(0,8));
+        const dl=w.GV.daylightDbg();
+        H.textContent='READY '+ROUND+' DAY z=2 visT='+NOON_VIST+' b='+dl.b+' ph='+dl.ph+' d='+dl.d+' '+spec.label+'\nfocus='+JSON.stringify(focus)+'\nfound='+JSON.stringify(found.slice(0,8));
         H.dataset.ready='1';
         H.dataset.round=ROUND;
         window.__t421Z2Ready=true;
         window.__t421Z2Round=ROUND;
       }
+      // Keep the lock alive until the external screenshot is actually taken.
+      w.requestAnimationFrame(tick);
     };
     w.requestAnimationFrame(tick);
   }catch(e){
