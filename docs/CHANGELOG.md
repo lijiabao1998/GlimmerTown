@@ -10,7 +10,7 @@
 - 「驗收:」欄記真跑結果；未跑就明標「未驗證」。
 - 本專案要求記錄**被否決的方案與否決依據**——那是這份檔案最貴的部分。
 
-2026-08-08 | T421 ART-R01：15_1_1/15_1_2 郵局門框＋門簷＋郵筒基座（Grok bay/grok・8127） | 非 HERO_PIX／非 ROOF_K417；最終生成點＝T36/T223 程序化 v1/v2（非 15_1_0 HERO）；6 rects/鍵、ink 64×2；`__t420Ink` 18+138→**30/266**；fillRect delta +12/+128；G5 rect 恰等＋G4 細節零覆蓋（白徽/紅頂/地線/豎管）；after-only 圖 `docs/tasks/t421-shots/R01-after-only-15_1_1_2.png` 自答「能」；nightCity 真紅源 NC-1 exit 1。 | 驗收:自審綠（Grok）；**待 Claude 覆核合併**。閘門 PASS=4314 ALL GREEN／v11.46 未 bump。不自合、不 publish。
+2026-08-08 | T421 ART-R01 退修：15_1_1/15_1_2 獨立受管區＋前置 C 復歸（Grok bay/grok・8127） | **三退修**：①前置 D 實跑 art_diff 對照 ✔ 未覆蓋 ≤16px 細節（初版誤蓋 #161d2f×2+#f4dea2×1 已改 rect）②G4 beacon 從量測全量貼上 ③T421 自建 pass／`__t421Ink`12/98／`__t421Replay`，T420 還原 18/138。前置 B 申報門簷＝轉角門廊額枋。遊戲內 z2 圖 `t421-shots/R01-z2-ingame.png`。紅源四案 exit1 具名 T421。 | 驗收:自審綠（Grok）；**STOP: AWAIT_REVIEW**。閘門 PASS 升／v11.46 未 bump。不自合、不 publish。
 
 2026-08-08 | T421 R00 增量四：fillRect 基準探針入帳（Grok bay/grok・8127） | 探針 `docs/tools/t421_fillrect_probe.js`（mock fillRect 計數版，不動 test_fixde 主線）；量於 `c99f822`（無美術落筆）→ **calls=927,303／px=5,199,515**＝本卡唯一基準；開機線 ×1.15 → calls≤1,066,398。T420 931,526 與 927,285 作廢。帳本見 T421 卡 R00 增量四。 | 驗收:通過（自審；Grok）。不自合、不 publish。
 

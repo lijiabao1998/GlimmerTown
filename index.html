@@ -9587,27 +9587,29 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g29b.fillRect(sp29b.ax+4,sp29b.ay-8,6,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=6*1;
     g29b.fillRect(sp29b.ax+12,sp29b.ay-8,6,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=6*1;
   }}
-  /* ===== T421 R01 段：15_1_1/15_1_2 郵局門框＋門簷＋郵筒基座（白名單 ['15_1_1','15_1_2']）=====
-     最終生成點（前置 A）：index.html 郵局 T36/T223 程序化迴圈 v=1/2（~4827-4854）——**不是** 15_1_0 的 HERO_PIX（7863 僅覆 v0）。
-     兩鍵同構 w72/h112/ax36/ay110、有 night、不透明 1787、27 色；重點細節座標兩鍵相同，差別僅牆/屋頂配色。
-     z2 可見目標：①門兩側豎框（真垂直構件，前置 B 允許）②門上方橫簷（白徽下方、豎管上方）③雙郵筒落地基座。
-     零覆蓋重點細節：#ffffff×16@34-37,90-93；#e05252×6@22-24,101 與 46-48,101；#b8b0a0×16@y106；
-     中心豎管 #b49c5b/#a58443×9@x36,y96-104；包裹 #c9974e；#9c874f/#8f723a@x36,y105-107。
-     非 HERO_PIX、非 ROOF_K417、非禁鍵。日間靜態、零亂數、不改 w/h/ax/ay/sc/night/metadata/nightCity。 ===== */
+  /* ===== T420 ART-LOOP 靜態加蓋 pass END ===== */
+
+  /* ===== T421 ART-LOOP 靜態加蓋 pass：R01 退修＝15_1_1/15_1_2 郵局門框＋門簷＋郵筒基座 =====
+     白名單 ['15_1_1','15_1_2']。最終生成點：T36/T223 程序化 v=1/2（~4827-4854），非 15_1_0 HERO_PIX。
+     退修：避開 ≤16px 細節 (31,94)(40,95)=#161d2f、(38,99)=#f4dea2/#e6c88b（R01 初版門簷/右柱誤蓋）。
+     前置 B 申報：門簷為【轉角門廊／近角正對觀者立面】的門楣上緣——白徽跨 ax 近角，簷線讀成門廊額枋，
+     故允許近似螢幕水平線（卡面「正對觀者的立面上緣可近似水平、用前須帳本說明面向」）；門框＝真垂直構件。
+     零亂數、不改 w/h/ax/ay/sc/night/metadata/nightCity。落筆計數 __t421Ink（與 T420 分離）。 ===== */
+  window.__t421Ink={rects:0,px:0};
   for(const v15b of[1,2]){const hk15b='15_1_'+v15b;const sp15b=SPR.bld[hk15b];if(sp15b&&sp15b.img){
     const g15b=sp15b.img.getContext('2d');
-    g15b.fillStyle='#6a6048'; // 門框豎柱 ×2（x=ax-3..-2／ax+1..+2，y=ay-14..ay-7；避開 x=ax 中心豎管）
-    g15b.fillRect(sp15b.ax-3,sp15b.ay-14,2,8);window.__t420Ink.rects+=1;window.__t420Ink.px+=2*8;
-    g15b.fillRect(sp15b.ax+1,sp15b.ay-14,2,8);window.__t420Ink.rects+=1;window.__t420Ink.px+=2*8;
-    g15b.fillStyle='#4a5a7a'; // 門簷上沿（y=ay-16；白徽 y=ay-20..-17 下方）
-    g15b.fillRect(sp15b.ax-6,sp15b.ay-16,12,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=12*1;
-    g15b.fillStyle='#3a4a62'; // 門簷下沿暗一階
-    g15b.fillRect(sp15b.ax-5,sp15b.ay-15,10,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=10*1;
-    g15b.fillStyle='#2a3858'; // 郵筒基座 ×2（筒身 y=ay-8..ay-3、紅頂 y=ay-9；基座 y=ay-2，避 y106 地線）
-    g15b.fillRect(sp15b.ax-15,sp15b.ay-2,5,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=5*1;
-    g15b.fillRect(sp15b.ax+9,sp15b.ay-2,5,1);window.__t420Ink.rects+=1;window.__t420Ink.px+=5*1;
+    g15b.fillStyle='#6a6048'; // 門框：左 x=ax-3..-2；右僅 x=ax+1（寬1，避 (38,99) 細節）
+    g15b.fillRect(sp15b.ax-3,sp15b.ay-14,2,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=2*8;
+    g15b.fillRect(sp15b.ax+1,sp15b.ay-14,1,8);window.__t421Ink.rects+=1;window.__t421Ink.px+=1*8;
+    g15b.fillStyle='#4a5a7a'; // 門簷上沿：x=ax-4..+3＝32..39 @y=ay-16，避 (31,94)
+    g15b.fillRect(sp15b.ax-4,sp15b.ay-16,8,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=8*1;
+    g15b.fillStyle='#3a4a62'; // 門簷下沿：x=ax-4..+2＝32..38 @y=ay-15，避 (40,95)
+    g15b.fillRect(sp15b.ax-4,sp15b.ay-15,7,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=7*1;
+    g15b.fillStyle='#2a3858'; // 郵筒基座 ×2（y=ay-2，避 y106 地線與 (37,108) 細節）
+    g15b.fillRect(sp15b.ax-15,sp15b.ay-2,5,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=5*1;
+    g15b.fillRect(sp15b.ax+9,sp15b.ay-2,5,1);window.__t421Ink.rects+=1;window.__t421Ink.px+=5*1;
   }}
-  /* ===== T420 ART-LOOP 靜態加蓋 pass END ===== */
+  /* ===== T421 ART-LOOP 靜態加蓋 pass END ===== */
 
   R=__savedR; // T275：還原呼叫前世界亂數流（生成期消耗全部落在替身流上＝globalRPreserved）
 }
