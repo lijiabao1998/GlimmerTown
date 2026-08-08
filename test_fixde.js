@@ -394,6 +394,26 @@ window.__t383TaxCase=function(){
     R=oldR;hasRoadNear=oldRoad;computePower=oldPower;computeWater=oldWater;disastersOn=oldDis;window.__taxFbk=null;
   }
 };
+window.__t420SPR=SPR; // T420 測試橋：直讀 SPR 全鍵 record（G2 metadata 直讀釘——sprAtlas356 的 w/h 是 img.width 推導，看不到 record 原值；harness 注入零污染）
+window.__t420Replay=function(keys){ // T420 G3/G4 真像素重放橋：白名單鍵 img 換 T417 真像素 canvas，重放 pass 段（剝註釋正文），回傳逐鍵 ops/ink/色票/rects
+  const htmlTxt=require('fs').readFileSync(require('path').join(__dirname,'index.html'),'utf8');
+  const bs=htmlTxt.indexOf('/* ===== T420 ART-LOOP 靜態加蓋 pass');
+  const be0=htmlTxt.indexOf('T420 ART-LOOP 靜態加蓋 pass END');
+  const be=htmlTxt.indexOf('*/',be0)+2;
+  const body=htmlTxt.slice(bs,be).split('/*').map(function(p){var e=p.indexOf('*/');return e>=0?p.slice(e+2):p;}).join('').split('//').map(function(p){var n=p.indexOf(String.fromCharCode(10));return n>=0?p.slice(n):p;}).join('');
+  const bak={};
+  for(const k of keys){const s=SPR.bld[k];if(!s)continue;bak[k]=s.img;const[cnv]=window.__t417Canvas(s.w,s.h);s.img=cnv;}
+  window.__t420Ink={rects:0,px:0};
+  const fn=new Function('SPR','window',body);
+  fn(SPR,window);
+  const out={};
+  for(const k of keys){const s=SPR.bld[k];if(!s)continue;const g=s.img.getContext('2d');const pix=window.__t417Snap(g);const ops=(typeof __t417OpsMap!=='undefined'?__t417OpsMap:window.__t417OpsMap).get(g)||[];
+    let ink=0;const pal={};const rects=[];
+    for(const o of ops){if(o[0]!=='fillRect')continue;rects.push({x:Math.floor(o[2]),y:Math.floor(o[3]),w:Math.ceil(o[4]),h:Math.ceil(o[5])});}
+    for(let i=0;i<pix.length;i+=4){if(pix[i+3]>0){ink++;const c='#'+[pix[i],pix[i+1],pix[i+2]].map(v=>v.toString(16).padStart(2,'0')).join('');pal[c]=(pal[c]||0)+1;}}
+    out[k]={ops:rects.length,ink,pal,rects};s.img=bak[k];}
+  return out;
+}; // T420 G3/G4：pass 段真像素重放（零污染——重放後還原原 img；只重放受管區正文，不重跑整場 buildSprites）
 ` + js.slice(t383IifeEnd);
 window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生的首輪 tick
 { // T416 五輪退修 A4：計數釘注入——scored 建構迴圈內自增（hits 必須恰 1，錨點失配 fail-closed；比照 inject343 先例）
@@ -5485,6 +5505,91 @@ runPwaTests().then(() => {
     window.GV.save();const rawA5=window.GV.rawSave();
     window.GV.load();window.GV.save();const rawB5=window.GV.rawSave();
     assert(rawA5===rawB5,'T418b B5 往返位元恆等：4 格合法布局鏈城 save→load→save 逐位一致（2 格間距=讀檔非法城會互蓋樓，SK-8 布局契約），len '+rawA5.length+'/'+rawB5.length);
+  }
+
+  { // ===== T420 ART-LOOP 守衛（六條：位置/metadata/落筆觀測/前置C/計數+幾何/指紋+亂數+分檔位） =====
+    // 共同前置：pass 受管區切片（卡面第 2 節：單一 BEGIN/END）
+    const b420=html.indexOf('/* ===== T420 ART-LOOP 靜態加蓋 pass');
+    const e420=html.indexOf('T420 ART-LOOP 靜態加蓋 pass END');
+    const bakeEnd420='}else{window.__t413BakeCount=0;window.__t413BakeByKind={R:0,C:0,I:0,P:0,H:0,F:0,D:0,S:0};}';
+    const iBakeEnd420=html.indexOf(bakeEnd420);
+    const iR420=html.lastIndexOf('R=__savedR;');
+    const iRbefore420=html.lastIndexOf('R=__savedR;',b420); // pass 之前的 R 還原（M5：pass 前插 R 還原 → 此值落在 T413b 與 pass 之間 → 紅）
+    const seg420=html.slice(b420,e420);
+    // G1 位置釘：完整 else 字面（T419 用 lastIndexOf('__t413BakeByKind') 被「搬進 else」騙過——改用整段 else 字面結束）
+    assert(b420>0&&iBakeEnd420>0&&iBakeEnd420<b420&&iR420>e420&&iRbefore420<=iBakeEnd420,
+      'T420 G1 位置：pass 必須位於 T413b else 分支完整字面（含 BakeCount=0 重設群）之後、R=__savedR 之前，且 T413b 與 pass 之間不得插入 R 還原（搬進 else/搬到 R 之後/中間插還原皆紅）');
+    // G1b 分支無關行為釘：quality=0（不烘夜之城）重跑，落筆偵測結果不變（靜態加蓋無畫質分支理由）
+    assert(!/(quality|lod|dpr)/.test(seg420),'T420 G1b 分檔位：pass 正文不得出現 quality/lod/dpr（卡面第 5 節守衛 5 原文前哨）');
+    // G2 metadata 直讀 record（T419 讀 sprAtlas356 的 w/h 是 img.width 推導——看不到 record；直讀 SPR.bld[key]）
+    const m420={};
+    for(const k of Object.keys(window.__t420SPR.bld)){const s=window.__t420SPR.bld[k];if(s&&typeof s.w==='number')m420[k]={w:s.w,h:s.h,ax:s.ax,ay:s.ay,sc:s.sc};}
+    assert(Object.keys(m420).length>100,'T420 G2 metadata 直讀：SPR.bld 全鍵 record 可直讀（w/h/ax/ay/sc 原值）');
+    assert(m420['26_1_1'].w===64&&m420['26_1_1'].h===112&&m420['26_1_1'].ax===32&&m420['26_1_1'].ay===110&&(m420['26_1_1'].sc===null||m420['26_1_1'].sc===undefined)
+      &&m420['26_1_2'].w===64&&m420['26_1_2'].h===112&&m420['26_1_2'].ax===32&&m420['26_1_2'].ay===110&&(m420['26_1_2'].sc===null||m420['26_1_2'].sc===undefined)
+      &&m420['29_1_1'].w===72&&m420['29_1_1'].h===112&&m420['29_1_1'].ax===36&&m420['29_1_1'].ay===110&&(m420['29_1_1'].sc===null||m420['29_1_1'].sc===undefined)
+      &&m420['29_1_2'].w===72&&m420['29_1_2'].h===112&&m420['29_1_2'].ax===36&&m420['29_1_2'].ay===110&&(m420['29_1_2'].sc===null||m420['29_1_2'].sc===undefined),
+      'T420 G2 metadata 恆等：26_1_1/2（w64/h112/ax32/ay110）與 29_1_1/2（w72/h112/ax36/ay110）record 原值恰等量測；改 record 欄位即紅');
+    // G3 落筆觀測式（T417 真像素跑檯）：對白名單鍵重放 pass，斷言 ops 與不透明像素增量 ≥ 實測下界
+    const wl420=['26_1_1','26_1_2','29_1_1','29_1_2'];
+    const replay420=window.__t420Replay;
+    assert(typeof replay420==='function','T420 G3 前置：__t420Replay 重放橋存在（harness 注入）');
+    const rp420=replay420(wl420);
+    assert(rp420['26_1_1'].ops>=4&&rp420['26_1_2'].ops>=4&&rp420['26_1_1'].ink>=45&&rp420['26_1_2'].ink>=45
+      &&rp420['29_1_1'].ops>=5&&rp420['29_1_2'].ops>=5&&rp420['29_1_1'].ink>=24&&rp420['29_1_2'].ink>=24,
+      'T420 G3 落筆觀測（只是下界，主斷言在 G5 rect 逐筆恰等）：T417 真像素重放白名單鍵，每鍵 ops/ink ≥ 帳本下界（26_1_1/2 ops≥4/ink≥45；29_1_1/2 ops≥5/ink≥24；刪 fillRect 或只 push 不畫皆紅），實得 '+JSON.stringify({a:rp420['26_1_1'].ops+':'+rp420['26_1_1'].ink,b:rp420['26_1_2'].ops+':'+rp420['26_1_2'].ink,c:rp420['29_1_1'].ops+':'+rp420['29_1_1'].ink,d:rp420['29_1_2'].ops+':'+rp420['29_1_2'].ink}));
+    // G4 前置 C 機器版（座標交集法）：白名單鍵的 ≤16px 重點細節座標零覆蓋（按鍵各自斷）
+    //   26_1_1/26_1_2：航警燈 #e05252×4（31,34)(32,34)(31,35)(32,35）
+    //   29_1_1/29_1_2：紅桶燈 #e05252×4（51,101)(52,101)(53,101）＋中心豎管 #675b4f×13（x=36,y92-104）
+    const beacon420={};
+    beacon420['26_1_1']=['31,34','32,34','31,35','32,35'];
+    beacon420['26_1_2']=['31,34','32,34','31,35','32,35'];
+    beacon420['29_1_1']=['51,101','52,101','53,101'];
+    beacon420['29_1_2']=['51,101','52,101','53,101'];
+    for(let y2=92;y2<=104;y2++){beacon420['29_1_1'].push('36,'+y2);beacon420['29_1_2'].push('36,'+y2);}
+    let beaconHit420=false;
+    let beaconDetail420='';
+    for(const k of wl420)for(const r of rp420[k].rects){
+      for(let y2=r.y;y2<r.y+r.h;y2++)for(let x2=r.x;x2<r.x+r.w;x2++)if(beacon420[k].includes(x2+','+y2)){beaconHit420=true;beaconDetail420+=k+'@'+x2+','+y2+' ';}
+    }
+    assert(!beaconHit420,'T420 G4 前置C 機器版：pass 落筆不得覆蓋重點細節座標（命中 '+beaconDetail420+'；26_1_1/2 航警燈 31-32,34-35；29_1_1/2 紅桶燈 51-53,101 與中心豎管 x36）');
+    // G5 落筆釘（覆核退修 F1：改讀 __t420Replay 的真實 rects——座標/尺寸/少多筆逐筆恰等帳本 rect 表）＋幾何釘
+    //   rect 表（R01/R03 實測，來源同卡帳本；比照 PASS 棘輪慣例：常數與 delta 來源寫在帳本）
+    const rectTable420={
+      '26_1_1':[{x:28,y:54,w:9,h:1},{x:28,y:70,w:9,h:1},{x:28,y:86,w:9,h:1},{x:28,y:99,w:9,h:2}],
+      '26_1_2':[{x:28,y:54,w:9,h:1},{x:28,y:70,w:9,h:1},{x:28,y:86,w:9,h:1},{x:28,y:99,w:9,h:2}],
+      '29_1_1':[{x:24,y:102,w:6,h:1},{x:32,y:102,w:4,h:1},{x:37,y:102,w:2,h:1},{x:40,y:102,w:6,h:1},{x:48,y:102,w:6,h:1}],
+      '29_1_2':[{x:24,y:102,w:6,h:1},{x:32,y:102,w:4,h:1},{x:37,y:102,w:2,h:1},{x:40,y:102,w:6,h:1},{x:48,y:102,w:6,h:1}],
+    };
+    let rectOk420=true,rectMsg420='';
+    for(const k of wl420){
+      const got=rp420[k].rects.map(r=>r.x+','+r.y+','+r.w+','+r.h).sort();
+      const want=rectTable420[k].map(r=>r.x+','+r.y+','+r.w+','+r.h).sort();
+      if(got.length!==want.length){rectOk420=false;rectMsg420=k+' 筆數 '+got.length+'≠'+want.length;break;}
+      for(let ri=0;ri<want.length;ri++)if(got[ri]!==want[ri]){rectOk420=false;rectMsg420=k+' 第'+ri+'筆 '+got[ri]+'≠'+want[ri];break;}
+    }
+    assert(rectOk420,'T420 G5 落筆：每鍵 rect 集合逐筆恰等帳本 rect 表（座標差 1px／尺寸差 1px／少一筆／多一筆即紅；覆核 F1 實測 ay-56→ay-52 與 9,1→27,3 皆綠的破口已關）'+rectMsg420);
+    const ink420=window.__t420Ink;
+    assert(ink420&&ink420.rects===18&&ink420.px===138,
+      'T420 G5 計數（第二層）：__t420Ink 恰等帳本常數 rects=18／px=138（R01 8+90＋R03 10+48；主斷言在上方 rect 逐筆恰等，此為手寫字面量第二層）');
+    const rects420=[...seg420.matchAll(/fillRect\(([^)]*)\)/g)].map(m=>m[1].split(',').map(s=>s.trim()));
+    let geomOk420=true,geomMsg420='';
+    for(const r of rects420){
+      if(r.length<4){geomOk420=false;geomMsg420='非四參數: '+r.join(',');break;}
+      const xm=r[0].match(/sp26b\.ax([+-]\d+)/)||r[0].match(/sp29b\.ax([+-]\d+)/);
+      const ym=r[1].match(/sp26b\.ay([+-]\d+)/)||r[1].match(/sp29b\.ay([+-]\d+)/);
+      if(!xm||!ym){geomOk420=false;geomMsg420='座標非 ax/ay 式: '+r.join(',');break;}
+      const xOff=+xm[1],yOff=+ym[1];
+      const w=+r[2],h=+r[3];
+      if(!(w>0&&h>0)){geomOk420=false;geomMsg420='尺寸非正: '+r.join(',');break;}
+      const axv=r[0].includes('sp26b')?32:36,ayv=110;
+      const wv=r[0].includes('sp26b')?64:72,hv=112;
+      if(axv+xOff<0||axv+xOff+w>wv||ayv+yOff<0||ayv+yOff+h>hv){geomOk420=false;geomMsg420='超出畫布: '+r.join(',');break;}
+    }
+    assert(geomOk420,'T420 G5 幾何：pass 每個 fillRect 落在 [0,w)×[0,h) 內（整組平移出界即紅）'+geomMsg420);
+    // G6 落筆恆等：恰等帳本常數（空骨架 0 或多畫皆紅）
+    assert(ink420.rects===18&&ink420.px===138,
+      'T420 G6 落筆恆等：R01+R03 落筆恰等帳本常數 rects=18／px=138（空骨架 0 或 多畫即紅，實得 '+JSON.stringify(ink420)+'）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
