@@ -2,9 +2,9 @@
 
 - **發卡**：Codex（業主於 2026-08-08 明示指定 Codex 出卡；卡號／順序為 T422，接 T421）
 - **施工**：Codex（`bay/codex`，驗證埠 8126）
-- **覆核＋合併**：非 Codex 方；Codex 不自合、不 publish
+- **最終放行**：業主；release tail、合併與部署由 Codex 代行（業主於 2026-08-09 本輪明示授權；單次角色例外，不作作者自合的一般先例）
 - **線別**：桌面線
-- **狀態**：`STOP: AWAIT_REVIEW`；作者施工與自測已閉合，非作者簽核／release tail／合併／部署均未執行
+- **狀態**：`RELEASE_READY`；獨立瀏覽器覆核、v11.48 release tail 與正式閘門均通過，尚未合併／部署
 
 ## Claim
 
@@ -261,3 +261,19 @@ headless、隔離 context、阻擋 SW 後完成像素驗證。這是驗證工具
 - 版本不 bump；`sw.js`、ARCH、master、玩家部署均未動。
 - 作者 Codex 不自合、不 publish。非作者須重跑正式閘門、至少一輪真瀏覽器 on/off 與人眼檢查，
   通過後才准做 v11.48（若無插隊）release tail 與 `--deploy`。
+
+## 十一、業主最終放行與 release tail（Codex 代行，2026-08-09）
+
+- 業主於本輪明示「你合併吧」，並說明 Kimi 月上限、Claude 至下週二才刷新；因此 §八、Claim
+  與 §十的「Codex 不自合」保留為原始交回規則及當時事實，但本輪獲業主單次明示例外。
+- 此例外不冒充非作者覆核，也不改寫退修歷史。技術放行仍依兩輪退修、七案破壞性測試、
+  canonical verifier、工具鏈與獨立瀏覽器重跑；不能只沿用作者前次宣稱。
+- 獨立瀏覽器重跑（Chrome 151、SW blocked、8126／槽 3）：桌面 960×600 深夜 on/off
+  `32345c15/88f65db3`、repeat=`32345c15`、差 1,324 px；手機 390×844 on/off
+  `ccf2c27d/44079828`、repeat=`ccf2c27d`、差 978 px。兩視口晴日與 z=.5 on/off 均 0 px；
+  四族肉眼可辨，page error／console error 均 0。玩家 8123 與其存檔未碰。
+- release tail：`GAME_VER／APP_VER=11.48`；`index.html=1,863,649 B／20,433 LF`；
+  ARCH、CHANGELOG 與本卡同步，產品邏輯與測試本體不再改動。
+- release tail 後正式閘門：`python tools/verify.py` → PASS=4372／FAIL=0／exit 0／ALL GREEN／
+  CRLF=0／版本 11.48；`python -B -m unittest tools.test_toolchain` → 54 tests／exit 0／OK。
+- 合併與玩家發佈只准走 canonical `python tools/merge_bay.py codex --deploy`；不得手工複製。
