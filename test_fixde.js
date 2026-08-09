@@ -377,6 +377,11 @@ window.__t413ForceRoad=function(x,y){if(!inMap(x,y))return false;const t=tiles[i
 window.__t413ForceWater=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.t=0;t.bld=null;t.road=0;return true;}; // T413b B4 造境：直寫水格
 window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,bakeByKind:()=>({...(window.__t413BakeByKind||{})}),strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0}),sx:(x,y)=>_sx413(x,y),sy:(x,y)=>_sy413(x,y),visPad:()=>Math.max(40,80*_z413()),setShake:(v)=>{shakeT=+v||0;return shakeT;},getShake:()=>shakeT};}; // T413a/b 測試橋（第三輪：分族 bake + strokes + shake/pad）
 window.__t413R=function(){let c=0;const o=R;R=function(){c++;return o();};try{nightTierDirty413=true;rebuildNightTier413();}finally{R=o;}return c;}; // T413a 測試橋：重建期間 R() 實際消耗計數——文本掃描看不穿 helper 間接層（覆核繞過①c），行為計數看得穿
+window.__t422=function(){return{spec:(k,x,y,s)=>farNightRect422({k},x,y,0,0,s),palette:()=>FAR_NIGHT_C422.slice(),stats:()=>({cand:farNightCandN422,drawn:farNightDrawN422,legacy:farNightLegacyN422,R:farNightR422,C:farNightC422,I:farNightI422,L:farNightL422})};}; // T422 測試橋：純樣式與完整 draw 接線計數（不進正式 GV）
+window.__t422Screen=function(){const out=[],of=ctx.fillRect;ctx.fillRect=function(...a){if(ctx.globalCompositeOperation==='screen')out.push({col:String(ctx.fillStyle),rect:a.map(Number)});return of.apply(ctx,a);};try{draw(.016);}finally{ctx.fillRect=of;}return out;}; // T422：觀察最終 screen 合成真落筆，防 helper／計數器與 nightSprites 正式輸出脫鉤假綠
+window.__t422Quality=function(q){const old=quality;quality=q;return old;}; // T422：低畫質 legacy 回退行為造境
+window.__t422RandDraw=function(){let r=0,m=0;const oR=R,oM=Math.random;R=function(){r++;return oR();};Math.random=function(){m++;return oM();};try{draw(.016);}finally{R=oR;Math.random=oM;}return{r,m};}; // T422：完整 forceDraw 路徑零亂數消耗
+window.__t422RngTwin=function(){const old=R;try{R=mulberry32(422422);const control=R();R=mulberry32(422422);draw(.016);const after=R();return{control,after};}finally{R=old;}}; // T422：同 seed 的不 draw／draw 後下一顆 R 必須恆等，直呼或動態 alias 都不可位移模擬流
 window.__t386Tick=function(){const oR=R,oRd=hasRoadNear,oP=computePower,oW=computeWater,oD=disastersOn;R=()=>.999999;hasRoadNear=()=>true;computePower=()=>9999;computeWater=()=>9999;disastersOn=false;try{tick();}finally{R=oR;hasRoadNear=oRd;computePower=oP;computeWater=oW;disastersOn=oD;}}; // T386a 測試橋：stub tick（__t343TickCase 同款——直寫建築免電網）
 window.__t383TaxCase=function(){
   newWorld(38383);diff=1;weather=0;wxT=99;pol=null;
@@ -8893,6 +8898,104 @@ runPwaTests().then(() => {
     assert(bareX.includes('__t413BakeByKind'),'T413b 紅源可咬：分族 bake 計數');
     assert(bareX.includes('__t413LampStrokes'),'T413b 紅源可咬：路燈落筆計數');
     assert(bareX.includes('nightScanN413'),'T413b 紅源可咬：實掃計數');
+  }
+
+  // ===== T422 遠景夜城 LOD：原位類型化既有 mini 夜燈，零新增掃描／draw call =====
+  { // G1 靜態：唯一掛點、回退、複雜度與零亂數
+    const bare422=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+    const fnAt=bare422.indexOf('function farNightRect422(bd,x,y,blkX,blkY,blkSz){');
+    const fnEnd=bare422.indexOf('\nfunction draw(',fnAt);
+    assert(fnAt>0&&fnEnd>fnAt,'T422 G1 純樣式函式在場且位於 draw 前');
+    const fnBody=bare422.slice(fnAt,fnEnd);
+    assert(fnBody.includes('kcatOf')&&fnBody.includes('streetHash(x,y,4220)'),
+      'T422 G1 類型真相讀 kcatOf，商業色只用座標雜湊決定');
+    assert(!/\bR\s*\(|\bri\s*\(|\bvri\s*\(|Math\.random|Date\.now|performance\.now|crypto/.test(fnBody),
+      'T422 G1 純樣式函式零 R/ri/vri/Math.random/時計/crypto');
+    const fnCalls422=[...fnBody.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]);
+    assert(fnCalls422.every(n=>['farNightRect422','kcatOf','if','streetHash'].includes(n)),
+      'T422 G1 純樣式函式只准呼叫白名單純函式（防預先捕獲亂數 alias），實得 '+fnCalls422.join(','));
+    assert(!/\bfor\s*\(|\bwhile\s*\(/.test(fnBody),'T422 G1 純樣式函式零迴圈（不得另掃地圖／viewport）');
+    assert(!/nightTier413|ensureNightTier413|urbanDens406/.test(fnBody),
+      'T422 G1 不為遠景色塊重建 T413 密度場');
+    const managedAt=bare422.indexOf("const FAR_NIGHT_C422=['#ff72c6','#65dfff','#ffd45f'];");
+    const managedBody=bare422.slice(managedAt,fnEnd);
+    assert(managedAt>0&&managedBody.includes('function farNightRect422'),
+      'T422 G1 商業三色票須為單一常數且受管區可定位');
+    assert(!/=\s*(?:R|ri|vri|Math\.random)\b|\b(?:R|ri|vri)\s*\(|Math\.random\s*\(/.test(managedBody),
+      'T422 G1 受管產品區禁直呼與預先捕獲 R/ri/vri/Math.random alias');
+    const miniAt=bare422.indexOf('if(lodMini){');
+    const miniEnd=bare422.indexOf('\n      continue;',miniAt);
+    assert(miniAt>0&&miniEnd>miniAt,'T422 G1 T107 lodMini 受管切片可定位');
+    const miniBody=bare422.slice(miniAt,miniEnd);
+    assert(miniBody.includes("b<.72&&!window.__noNightCity&&!window.__noFarNight422&&quality!==0"),
+      'T422 G1 接線僅深夜＋夜景開啟＋非低畫質；晴日暴雨走 legacy');
+    assert((miniBody.match(/nightSprites\.push\(/g)||[]).length===1,
+      'T422 G1 每個可見 mini root 仍恰一筆 nightSprites.push（不得增加 draw call），實得 '+((miniBody.match(/nightSprites\.push\(/g)||[]).length));
+    assert(miniBody.includes('nightSprites.push(fl422);'),
+      'T422 G1 正式輸出必須 push helper／legacy 共用的 fl422，不得與計數器脫鉤');
+    assert(miniBody.includes("fl422={rect:[blkX,blkY,blkSz,blkSz]};"),
+      'T422 G1 __noFarNight422／日間／低畫質回退為改動前 generic rect');
+    assert(!/\bfor\s*\(|\bwhile\s*\(/.test(miniBody),'T422 G1 mini 掛點零新增迴圈');
+  }
+  { // G2 純函式：四族可區分、決定性、rect 嚴格包含於原 mini 色塊
+    const t422=window.__t422();
+    const ks=[1,2,3,24],xy=[[20,20],[21,20],[22,20],[23,20]];
+    const specs=ks.map((k,i)=>t422.spec(k,xy[i][0],xy[i][1],4));
+    assert(specs.map(s=>s.fam).join(',')==='R,C,I,L','T422 G2 四族映射須為 R/C/I/L，實得 '+specs.map(s=>s.fam).join(','));
+    assert(new Set(specs.map(s=>s.col)).size===4,'T422 G2 四族色語言須可區分，實得 '+specs.map(s=>s.col).join(','));
+    assert(new Set(specs.map(s=>JSON.stringify(s.rect))).size===4,
+      'T422 G2 4px 四族幾何須各自可辨，實得 '+specs.map(s=>JSON.stringify(s.rect)).join(' / '));
+    assert(JSON.stringify(t422.spec(2,21,20,4))===JSON.stringify(t422.spec(2,21,20,4)),
+      'T422 G2 同類同座標重算逐值決定性');
+    for(const sz of [2,3,4])for(let i=0;i<ks.length;i++){const s=t422.spec(ks[i],xy[i][0],xy[i][1],sz),r=s.rect;assert(r[0]>=0&&r[1]>=0&&r[2]>=1&&r[3]>=1&&r[0]+r[2]<=sz&&r[1]+r[3]<=sz,
+      'T422 G2 '+s.fam+' rect 必須包含於原 '+sz+'×'+sz+' mini 色塊且寬高≥1，實得 '+JSON.stringify(r));}
+    const palette=t422.palette(),seen=new Set();
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++)seen.add(t422.spec(2,x,y,4).col);
+    assert(palette.length===3&&palette.every(c=>seen.has(c)),
+      'T422 G2 商業粉／青／金三色皆須可達，實得 '+[...seen].join(','));
+  }
+  { // G3 完整 draw 接線：夜遠景啟用；日／門檻／逃生閥都回 legacy 或零命中
+    window.GV.newWorldSeeded(422);window.GV.weather(0);window.GV.setSpeed(0);
+    window.__t384Bld(1,28,30);window.__t384Bld(2,29,30);window.__t384Bld(3,30,30);window.__t384Bld(24,31,30);
+    window.GV.lookAt(30,30);window.GV.setZoom(.35);window.GV.setVisT(8);
+    delete window.__noNightCity;delete window.__noFarNight422;
+    let screen=window.__t422Screen(),s=window.__t422().stats();
+    assert(s.cand>=4&&s.drawn>=4&&s.legacy===0,'T422 G3 z=.35 深夜須走類型化遠景燈（候選/命中/legacy），實得 '+JSON.stringify(s));
+    assert(s.R>=1&&s.C>=1&&s.I>=1&&s.L>=1,'T422 G3 完整 draw 四族皆命中，實得 '+JSON.stringify(s));
+    assert(s.drawn===s.R+s.C+s.I+s.L&&s.drawn+s.legacy===s.cand,'T422 G3 每候選恰一筆類型化或 legacy rect，實得 '+JSON.stringify(s));
+    const ks422=[1,2,3,24],xy422=[[28,30],[29,30],[30,30],[31,30]];
+    const wantCols=ks422.map((k,i)=>window.__t422().spec(k,xy422[i][0],xy422[i][1],2).col);
+    assert(wantCols.every(c=>screen.some(o=>o.col===c)),
+      'T422 G3 最終 screen 合成須真落筆四族色（不可 helper／counter 綠而正式 push 回 generic），實得 '+JSON.stringify(screen));
+    window.__noFarNight422=true;const legacyNight422=window.__t422Screen();delete window.__noFarNight422;
+    for(let i=0;i<ks422.length;i++){
+      const rel=window.__t422().spec(ks422[i],xy422[i][0],xy422[i][1],2).rect;
+      const hits=screen.filter(o=>o.col===wantCols[i]);
+      assert(hits.length===1&&legacyNight422.some(g=>g.rect[2]===2&&g.rect[3]===2&&hits[0].rect[0]===g.rect[0]+rel[0]&&hits[0].rect[1]===g.rect[1]+rel[1]&&hits[0].rect[2]===rel[2]&&hits[0].rect[3]===rel[3]),
+        'T422 G3 '+['R','C','I','L'][i]+' 最終落筆幾何須與同幀 2px legacy 基準＋helper 相對 rect 精確一致，實得 '+JSON.stringify(hits));
+    }
+    window.GV.setZoom(.5);window.GV.forceDraw();s=window.__t422().stats();
+    assert(s.cand===0&&s.drawn===0&&s.legacy===0,'T422 G3 z=.5 回近景，T422 零候選／零繪製，實得 '+JSON.stringify(s));
+    window.GV.setZoom(.35);window.GV.setVisT(55);screen=window.__t422Screen();s=window.__t422().stats();
+    assert(s.drawn===0&&s.legacy>=4,'T422 G3 晴日正午不套類型色、保留既有 generic push，實得 '+JSON.stringify(s));
+    window.__noFarNight422=true;const sunnyOff=window.__t422Screen();delete window.__noFarNight422;
+    assert(JSON.stringify(screen)===JSON.stringify(sunnyOff),'T422 G3 晴日 on/off screen 落筆須逐值恆等');
+    window.GV.weather(2);screen=window.__t422Screen();window.__noFarNight422=true;const stormOff=window.__t422Screen();delete window.__noFarNight422;window.GV.weather(0);
+    assert(JSON.stringify(screen)===JSON.stringify(stormOff),'T422 G3 白天暴雨 on/off screen 落筆須逐值恆等');
+    window.GV.setVisT(8);window.__noFarNight422=true;window.GV.forceDraw();s=window.__t422().stats();
+    assert(s.drawn===0&&s.legacy>=4,'T422 G3 __noFarNight422 回退改動前 generic rect，實得 '+JSON.stringify(s));
+    delete window.__noFarNight422;window.__noNightCity=true;window.GV.forceDraw();s=window.__t422().stats();
+    assert(s.drawn===0&&s.legacy>=4,'T422 G3 __noNightCity 不得旁路啟用類型化遠景燈，實得 '+JSON.stringify(s));
+    delete window.__noNightCity;
+    const oldQ422=window.__t422Quality(0);screen=window.__t422Screen();window.__noFarNight422=true;const q0Off=window.__t422Screen();delete window.__noFarNight422;window.__t422Quality(oldQ422);
+    assert(JSON.stringify(screen)===JSON.stringify(q0Off),'T422 G3 quality=0 on/off screen 落筆須逐值恆等');
+  }
+  { // G4 完整 forceDraw 零全域亂數消耗（靜態掃描看不穿 alias，行為計數兜底）
+    window.GV.setZoom(.35);window.GV.setVisT(8);window.GV.weather(0);delete window.__noFarNight422;delete window.__noNightCity;
+    const rr422=window.__t422RandDraw();
+    assert(rr422.r===0&&rr422.m===0,'T422 G4 遠景夜幀不得消耗 R／Math.random（觀看夜景不能改城市未來），實得 '+JSON.stringify(rr422));
+    const twin422=window.__t422RngTwin();
+    assert(twin422.control===twin422.after,'T422 G4 同 seed 不 draw／draw 後下一顆 R 必須恆等，實得 '+JSON.stringify(twin422));
   }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
