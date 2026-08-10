@@ -8,7 +8,7 @@
 <body>
 <h1>大型購物中心 65_1_0 footprint 溢出量測</h1>
 <div id="out">booting…</div>
-<iframe id="f" src="/index.html" style="position:absolute;left:-9999px;width:64px;height:64px"></iframe>
+<iframe id="f" src="/index.html?nocache=425a" style="position:absolute;left:-9999px;width:64px;height:64px"></iframe>
 <script>
 const O = document.getElementById('out');
 const log = (m, c) => { const d = document.createElement('div'); if (c) d.className = c; d.textContent = m; O.appendChild(d); };
@@ -20,15 +20,23 @@ function main() {
   const cvs = e.img, ctx = cvs.getContext('2d');
   const d = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
   const ax = e.ax, ay = e.ay, W = cvs.width, H = cvs.height;
+  const has425a = w.document && w.document.documentElement && w.document.documentElement.innerHTML.includes('T425A 豐富度');
+  log('iframe index.html 含 T425A 標記: ' + has425a, has425a ? 'ok' : 'bad');
   log('65_1_0: ' + W + '×' + H + ' ax=' + ax + ' ay=' + ay);
+  let hasFoun=false,hasNeon=false;
+  for(let py=0;py<H&&(!hasFoun||!hasNeon);py++)for(let px=0;px<W;px++){const o=(py*W+px)*4;if(d[o+3]){const hx='#'+[d[o],d[o+1],d[o+2]].map(v=>v.toString(16).padStart(2,'0')).join('');if(hx==='#c8d0dc')hasFoun=true;if(hx==='#d8a83a')hasNeon=true;}}
+  log('65 img 含噴泉色#c8d0dc: '+hasFoun+' 含牆面廣告金#d8a83a: '+hasNeon, hasFoun&&hasNeon?'ok':'bad');
+  {let fn=0,st='';for(let py=0;py<H;py++)for(let px=0;px<W;px++){const o=(py*W+px)*4;if(d[o+3]){const hx='#'+[d[o],d[o+1],d[o+2]].map(v=>v.toString(16).padStart(2,'0')).join('');if(hx==='#c8d0dc'&&fn<3){st+='('+px+','+py+') ';fn++;}}}log('噴泉色樣本: '+st);}
+  {let ne=0;for(let py=202;py<=235;py++)for(let px=59;px<=62;px++){const o=(py*W+px)*4;if(d[o+3])ne++;}log('側招牌區(59..62,202..235)不透明像素: '+ne+'（T425 版此區為空地→應>0）', ne>0?'ok':'bad');}
   const cy = ay - 64; // 菱形中心行（4×4 半寬128 半高64）
-  let total = 0, outside = 0, above = 0, below = 0;
+  let total = 0, neIn = 0, outside = 0, above = 0, below = 0;
   const samples = [];
   let minX = W, maxX = 0, minY = H, maxY = 0;
   for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
     const o = (py * W + px) * 4;
     if (!d[o + 3]) continue;
     total++;
+    if (px>=59&&px<=62&&py>=202&&py<=235) neIn++;
     if (px < minX) minX = px; if (px > maxX) maxX = px;
     if (py < minY) minY = py; if (py > maxY) maxY = py;
     const inDia = py >= ay - 128 && py <= ay && Math.abs(px - ax) <= 128 * (1 - Math.abs(py - cy) / 64);
@@ -38,7 +46,7 @@ function main() {
       if (samples.length < 15) samples.push([px, py]);
     }
   }
-  log('不透明像素總數: ' + total);
+  log('不透明像素總數: ' + total + '（主循環內側招牌區計數: ' + neIn + '）');
   log('像素包圍盒: x[' + minX + '..' + maxX + '] y[' + minY + '..' + maxY + ']');
   log('footprint 菱形: 頂(' + ax + ',' + (ay - 128) + ') 左右(' + (ax - 128) + ',' + cy + ')/(' + (ax + 128) + ',' + cy + ') 底(' + ax + ',' + ay + ')');
   log('菱形外像素: ' + outside + '（上半 y<' + cy + ': ' + above + '／下半 y>' + cy + ': ' + below + '）', outside ? 'bad' : 'ok');
