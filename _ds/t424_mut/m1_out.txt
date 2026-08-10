@@ -1,0 +1,2983 @@
+
+-- (1) 單變體建築 v=0 / save-load 正規化 --
+PASS: airport 應找到可建位置
+PASS: airport 應成功建造
+PASS: airport (k=19) root 應固定 v=0、sz=4
+PASS: solar 應找到可建位置
+PASS: solar 應成功建造
+PASS: solar (k=25) root 應固定 v=0、sz=2
+PASS: prison 應找到可建位置
+PASS: prison 應成功建造
+PASS: prison (k=31) root 應固定 v=0、sz=2
+PASS: university 應找到可建位置
+PASS: university 應成功建造
+PASS: university (k=32) root 應固定 v=0、sz=3
+PASS: bigFarm 應找到可建位置
+PASS: bigFarm 應成功建造
+PASS: bigFarm (k=53) root 應固定 v=0、sz=5
+PASS: bigCemetery 應找到可建位置
+PASS: bigCemetery 應成功建造
+PASS: bigCemetery (k=54) root 應固定 v=0、sz=3
+PASS: grandStation 應找到可建位置
+PASS: grandStation 應成功建造
+PASS: grandStation (k=55) root 應固定 v=0、sz=3
+PASS: sportsComplex 應找到可建位置
+PASS: sportsComplex 應成功建造
+PASS: sportsComplex (k=56) root 應固定 v=0、sz=3
+PASS: foodPlant 應找到可建位置
+PASS: foodPlant 應成功建造
+PASS: foodPlant (k=57) root 應固定 v=0、sz=3
+PASS: nuclear 應找到可建位置
+PASS: nuclear 應成功建造
+PASS: nuclear (k=58) root 應固定 v=0、sz=3
+PASS: hydro 應找到可建位置
+PASS: hydro 應成功建造
+PASS: hydro (k=59) root 應固定 v=0、sz=2
+PASS: fireHQ 應找到可建位置
+PASS: fireHQ 應成功建造
+PASS: fireHQ (k=61) root 應固定 v=0、sz=3
+PASS: greenhouse 應找到可建位置
+PASS: greenhouse 應成功建造
+PASS: greenhouse (k=63) root 應固定 v=0、sz=2
+PASS: warehouse 應找到可建位置
+PASS: warehouse 應成功建造
+PASS: warehouse (k=64) root 應固定 v=0、sz=2
+PASS: grandMall 應找到可建位置
+PASS: grandMall 應成功建造
+PASS: grandMall (k=65) root 應固定 v=0、sz=4
+PASS: faithCenter 應找到可建位置
+PASS: faithCenter 應成功建造
+PASS: faithCenter (k=66) root 應固定 v=0、sz=2
+PASS: observatory 應找到可建位置
+PASS: observatory 應成功建造
+PASS: observatory (k=68) root 應固定 v=0、sz=2
+PASS: wasteIncinerator 應找到可建位置
+PASS: wasteIncinerator 應成功建造
+PASS: wasteIncinerator (k=62) root 應固定 v=0、sz=2
+PASS: hotel 應找到可建位置
+PASS: hotel 應成功建造
+PASS: hotel (k=82) root 應固定 v=0、sz=2
+PASS: resort 應找到可建位置
+PASS: resort 應成功建造
+PASS: resort (k=83) root 應固定 v=0、sz=3
+PASS: market 應找到可建位置
+PASS: market 應成功建造
+PASS: market (k=87) root 應固定 v=0、sz=2
+PASS: marina 應找到可建位置
+PASS: marina 應成功建造
+PASS: marina (k=90) root 應固定 v=0、sz=2
+PASS: tradepost 應找到可建位置
+PASS: tradepost 應成功建造
+PASS: tradepost (k=91) root 應固定 v=0、sz=2
+PASS: brewery 應找到可建位置
+PASS: brewery 應成功建造
+PASS: brewery (k=100) root 應固定 v=0、sz=2
+PASS: waterpark 應找到可建位置
+PASS: waterpark 應成功建造
+PASS: waterpark (k=101) root 應固定 v=0、sz=2
+PASS: highschool 應找到可建位置
+PASS: highschool 應成功建造
+PASS: highschool (k=108) root 應固定 v=0、sz=2
+PASS: techpark 應找到可建位置
+PASS: techpark 應成功建造
+PASS: techpark (k=109) root 應固定 v=0、sz=3
+PASS: freight 應找到可建位置
+PASS: freight 應成功建造
+PASS: freight (k=110) root 應固定 v=0、sz=2
+PASS: upcycle 應找到可建位置
+PASS: upcycle 應成功建造
+PASS: upcycle (k=111) root 應固定 v=0、sz=2
+PASS: centralpark 應找到可建位置
+PASS: centralpark 應成功建造
+PASS: centralpark (k=112) root 應固定 v=0、sz=3
+PASS: unicampus 應找到可建位置
+PASS: unicampus 應成功建造
+PASS: unicampus (k=113) root 應固定 v=0、sz=4
+PASS: megaport 應找到可建位置
+PASS: megaport 應成功建造
+PASS: megaport (k=114) root 應固定 v=0、sz=5
+PASS: civiccenter 應找到可建位置
+PASS: civiccenter 應成功建造
+PASS: civiccenter (k=115) root 應固定 v=0、sz=3
+PASS: datacenter 應找到可建位置
+PASS: datacenter 應成功建造
+PASS: datacenter (k=116) root 應固定 v=0、sz=2
+PASS: fertplant 應找到可建位置
+PASS: fertplant 應成功建造
+PASS: fertplant (k=118) root 應固定 v=0、sz=2
+PASS: kitchen 應找到可建位置
+PASS: kitchen 應成功建造
+PASS: kitchen (k=119) root 應固定 v=0、sz=2
+PASS: SPR.bld 應生成 19_1_0
+PASS: SPR.bld 應生成 25_1_0
+PASS: SPR.bld 應生成 31_1_0
+PASS: SPR.bld 應生成 32_1_0
+PASS: SPR.bld 應生成 53_1_0
+PASS: SPR.bld 應生成 54_1_0
+PASS: SPR.bld 應生成 55_1_0
+PASS: SPR.bld 應生成 56_1_0
+PASS: SPR.bld 應生成 57_1_0
+PASS: SPR.bld 應生成 58_1_0
+PASS: SPR.bld 應生成 59_1_0
+PASS: SPR.bld 應生成 61_1_0
+PASS: SPR.bld 應生成 63_1_0
+PASS: SPR.bld 應生成 64_1_0
+PASS: SPR.bld 應生成 65_1_0
+PASS: SPR.bld 應生成 66_1_0
+PASS: SPR.bld 應生成 68_1_0
+PASS: SPR.bld 應生成 62_1_0
+PASS: SPR.bld 應生成 82_1_0
+PASS: SPR.bld 應生成 83_1_0
+PASS: SPR.bld 應生成 87_1_0
+PASS: SPR.bld 應生成 90_1_0
+PASS: SPR.bld 應生成 91_1_0
+PASS: SPR.bld 應生成 100_1_0
+PASS: SPR.bld 應生成 101_1_0
+PASS: SPR.bld 應生成 108_1_0
+PASS: SPR.bld 應生成 109_1_0
+PASS: SPR.bld 應生成 110_1_0
+PASS: SPR.bld 應生成 111_1_0
+PASS: SPR.bld 應生成 112_1_0
+PASS: SPR.bld 應生成 113_1_0
+PASS: SPR.bld 應生成 114_1_0
+PASS: SPR.bld 應生成 115_1_0
+PASS: SPR.bld 應生成 116_1_0
+PASS: SPR.bld 應生成 118_1_0
+PASS: SPR.bld 應生成 119_1_0
+PASS: T291 sprFootAudit 應回傳陣列（底部貼合格子審計 hook）
+PASS: T372 #toolcats 必須有 width:max-content —— 絕對定位只給 left:50% 時 shrink-to-fit 只拿得到視窗一半，拿掉就會退回 293px／9 類只見 6 類
+PASS: T372 展開態必須換行
+PASS: T372 展開態必須給 width:96vw —— #tools 犯的是與 #toolcats 同一個 shrink-to-fit 陷阱，少了它 40 個工具會擠成 7 列、2 列上限只露 12 個（比摺疊態的 14 還糟）
+PASS: T372 展開時類別列必須讓位 —— 否則 576×1200 下 #tools 佔 y992-1190、#toolcats 在 y1090 被整條埋住；旗標掛 body 是因為 #toolcats 在 DOM 裡排在 #tools 之前，兄弟選擇器指不到
+PASS: T372 基礎 #tools 規則必須隱藏捲軸 —— 橫屏摺疊態原本因捲軸佔位高 87px（直版 72px），與釘在 bottom:84 的 #toolcats 重疊 13px（既有缺陷）
+PASS: T372 展開上限：直版 3 行(198px)／橫屏 2 行(136px)，業主裁定
+PASS: T372 展開態旗標必須掛在 body 上
+PASS: T372 展開鈕必須在 buildToolbar 尾端補掛（#tools 每次重建都 innerHTML=''，靜態 DOM 會被清掉）
+PASS: T372 橫屏 #info 必須以 margin-inline:auto 置中
+PASS: T372 橫屏 #info 不得用 transform 置中 —— #info 的 animation:panelIn 會動 transform，兩者會在 0.2s 動畫期間打架
+PASS: T372 #rci 必須進入晶片綁定清單
+PASS: T372 TITLE 表必須有 rci
+PASS: T372 #rci 面板應含三條需求，實得： 🏗️ RCI 需求明細 🏗️ RCI 需求 🏠 住宅 50% 🏪 商業 0% 🏭 工業 0% — 尚無資料 
+PASS: T372 #rci 面板不得出現 NaN/undefined/Infinity（空城也不行），實得： 🏗️ RCI 需求明細 🏗️ RCI 需求 🏠 住宅 50% 🏪 商業 0% 🏭 工業 0% — 尚無資料 需先經過一天 
+PASS: T372 #rci 面板必須是純讀取，開關前後 GV.stats() 不得改變
+PASS: T372 demWhy 必須與 dem 在 newWorld 成對歸零
+PASS: T372 demWhy 必須在 load 的重置叢集歸零（鐵律7；否則讀檔未 tick 前會顯示上一座城的驅動值）
+PASS: T371b ARCH.md 應宣告它測繪時的 index.html 實測行數
+PASS: T371b ARCH.md 宣稱的 index.html 行數必須與現實相差 10% 以內（宣稱 20508，實際 20509，偏離 0.0%）；超標＝該重新測繪，舊版就是這樣爛掉的（宣稱 4235 實際 17701）
+PASS: T371b ARCH.md 必須宣告現行版本 v11.49（舊版停在 v3.0 沒人發現）
+PASS: T371b ARCH.md 的分節地圖應有 90 列以上帶 grep 錨點的項目，實得 96
+PASS: T371b ARCH.md 有 0 個 grep 錨點在 index.html 查無——被改名或刪掉了，地圖指向錯的地方：[]
+PASS: T371 CHANGELOG 條目數不得減少（現 448，T371 當下 380）
+PASS: T371 CHANGELOG 不得有「非條目開頭的內容行」＝一卡一行被物理斷行切開；殘留：[]
+PASS: T371 CHANGELOG 不得含控制字元（曾有 viewDep 的 v 被 0x0B 取代）
+PASS: T371 CHANGELOG 標頭必須在第 1 行（曾被 9 條新條目壓到第 19 行）
+PASS: T371 應能在 CHANGELOG 找到自己的條目當分界錨點
+PASS: T371 起每條 CHANGELOG 條目都必須有「驗收:」欄（缺欄的：[]）
+PASS: T353 sprAnchorAudit 應回傳陣列
+PASS: T353 sprAnchorAudit 必須真的比對到變體（pairs>0，否則表為空也會假綠）
+PASS: T353 季節相/生長階段的錨點必須與 base 相同，否則建築會隨日子跳動；不符：[]
+PASS: T353 farmGrow 錨點必須寫 gax/gay（取自 SPR.bld[key]），不可寫 doFarm 的 ax/ay
+PASS: T353 clipBase 必須同時裁切 SPR.farmSea 與 SPR.farmGrow（不能只裁 SPR.bld）
+PASS: T355 應找到 k112 中央公園的 sprite 區塊
+PASS: T355 k112 區塊應帶 T355 重排註解（防悄悄回退成浮空版面）
+PASS: T355 k112 應解析到 5 棵以上的樹，實得 7
+PASS: T355 k112 每棵樹的底部都必須在 3×3 footprint 菱形內，出界：[]
+PASS: T355 k112 應有兩條 X 形步道，實得 2
+PASS: T355 k112 步道端點必須在菱形內：[62,149,146,191]
+PASS: T355 k112 步道端點必須在菱形內：[62,191,146,149]
+PASS: T355 k112 應解析到 4 個以上的橢圓（噴泉＋池塘），實得 5
+PASS: T355 k112 水景橢圓極點必須在菱形內：ellipse(104,170,12,6) 出界 []
+PASS: T355 k112 水景橢圓極點必須在菱形內：ellipse(104,170,8,4) 出界 []
+PASS: T355 k112 水景橢圓極點必須在菱形內：ellipse(156,170,30,15) 出界 []
+PASS: T355 k112 水景橢圓極點必須在菱形內：ellipse(148,166,12,6) 出界 []
+PASS: T355 k112 水景橢圓極點必須在菱形內：ellipse(162,177,10,4) 出界 []
+PASS: T355 k112 應有三畦花圃，實得 3
+PASS: T355 k112 花圃必須在菱形內：[88,196]
+PASS: T355 k112 花圃必須在菱形內：[104,202]
+PASS: T355 k112 花圃必須在菱形內：[120,196]
+PASS: T355 sprAboveAudit 應回傳陣列
+PASS: T374 應找到 k53 大農場 sprite 區塊
+PASS: T374 區塊應帶 T374 註解（防悄悄回退）
+PASS: T374 不得保留舊麥田 fillRect(ax-118,ay-148,52,28)
+PASS: T374 不得保留舊玉米田 fillRect(ax-52,ay-164,56,30)
+PASS: T374 應有 const P374 四塊格座標陣列（抓不到＝守衛空過）
+PASS: T374 P374 應恰有 4 塊，實得 4
+PASS: T374 塊0 應 a1>a0 且 b1>b0
+PASS: T374 塊0 兩邊長應 ≥6 單位（非退化）
+PASS: T374 塊0 在 (a,b) 應為軸對齊矩形（|a|集=2,|b|集=2）
+PASS: T374 塊0 頂點 max(|a|,|b|) 應 ≤40：-38,-29
+PASS: T374 塊0 頂點應在 5×5 菱形內：146,95
+PASS: T374 塊0 頂點 max(|a|,|b|) 應 ≤40：-27,-29
+PASS: T374 塊0 頂點應在 5×5 菱形內：168,106
+PASS: T374 塊0 頂點 max(|a|,|b|) 應 ≤40：-27,-6
+PASS: T374 塊0 頂點應在 5×5 菱形內：122,129
+PASS: T374 塊0 頂點 max(|a|,|b|) 應 ≤40：-38,-6
+PASS: T374 塊0 頂點應在 5×5 菱形內：100,118
+PASS: T374 塊0 a 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：22,11
+PASS: T374 塊0 b 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：-46,23
+PASS: T374 塊0 面積應在 [80,2800] px²，實得 1012
+PASS: T374 塊1 應 a1>a0 且 b1>b0
+PASS: T374 塊1 兩邊長應 ≥6 單位（非退化）
+PASS: T374 塊1 在 (a,b) 應為軸對齊矩形（|a|集=2,|b|集=2）
+PASS: T374 塊1 頂點 max(|a|,|b|) 應 ≤40：-24,-38
+PASS: T374 塊1 頂點應在 5×5 菱形內：192,100
+PASS: T374 塊1 頂點 max(|a|,|b|) 應 ≤40：-6,-38
+PASS: T374 塊1 頂點應在 5×5 菱形內：228,118
+PASS: T374 塊1 頂點 max(|a|,|b|) 應 ≤40：-6,-27
+PASS: T374 塊1 頂點應在 5×5 菱形內：206,129
+PASS: T374 塊1 頂點 max(|a|,|b|) 應 ≤40：-24,-27
+PASS: T374 塊1 頂點應在 5×5 菱形內：170,111
+PASS: T374 塊1 a 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：36,18
+PASS: T374 塊1 b 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：-22,11
+PASS: T374 塊1 面積應在 [80,2800] px²，實得 792
+PASS: T374 塊2 應 a1>a0 且 b1>b0
+PASS: T374 塊2 兩邊長應 ≥6 單位（非退化）
+PASS: T374 塊2 在 (a,b) 應為軸對齊矩形（|a|集=2,|b|集=2）
+PASS: T374 塊2 頂點 max(|a|,|b|) 應 ≤40：-38,25
+PASS: T374 塊2 頂點應在 5×5 菱形內：38,149
+PASS: T374 塊2 頂點 max(|a|,|b|) 應 ≤40：-25,25
+PASS: T374 塊2 頂點應在 5×5 菱形內：64,162
+PASS: T374 塊2 頂點 max(|a|,|b|) 應 ≤40：-25,38
+PASS: T374 塊2 頂點應在 5×5 菱形內：38,175
+PASS: T374 塊2 頂點 max(|a|,|b|) 應 ≤40：-38,38
+PASS: T374 塊2 頂點應在 5×5 菱形內：12,162
+PASS: T374 塊2 a 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：26,13
+PASS: T374 塊2 b 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：-26,13
+PASS: T374 塊2 面積應在 [80,2800] px²，實得 676
+PASS: T374 塊3 應 a1>a0 且 b1>b0
+PASS: T374 塊3 兩邊長應 ≥6 單位（非退化）
+PASS: T374 塊3 在 (a,b) 應為軸對齊矩形（|a|集=2,|b|集=2）
+PASS: T374 塊3 頂點 max(|a|,|b|) 應 ≤40：22,-38
+PASS: T374 塊3 頂點應在 5×5 菱形內：284,146
+PASS: T374 塊3 頂點 max(|a|,|b|) 應 ≤40：38,-38
+PASS: T374 塊3 頂點應在 5×5 菱形內：316,162
+PASS: T374 塊3 頂點 max(|a|,|b|) 應 ≤40：38,-22
+PASS: T374 塊3 頂點應在 5×5 菱形內：284,178
+PASS: T374 塊3 頂點 max(|a|,|b|) 應 ≤40：22,-22
+PASS: T374 塊3 頂點應在 5×5 菱形內：252,162
+PASS: T374 塊3 a 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：32,16
+PASS: T374 塊3 b 向邊必須等角斜率 |dx|=2|dy| 且 dy≠0：-32,16
+PASS: T374 塊3 面積應在 [80,2800] px²，實得 1024
+PASS: T374 四塊合計面積應合理，實得 3504 / 菱形 25600
+PASS: T374 塊0 與 1 在 (a,b) 應互不重疊
+PASS: T374 塊0 與 2 在 (a,b) 應互不重疊
+PASS: T374 塊0 與 3 在 (a,b) 應互不重疊
+PASS: T374 塊1 與 2 在 (a,b) 應互不重疊
+PASS: T374 塊1 與 3 在 (a,b) 應互不重疊
+PASS: T374 塊2 與 3 在 (a,b) 應互不重疊
+PASS: T374 應切出可重放段（T374 註解 → 穀倉 sg 前）
+PASS: T374 重放段應含 soil374/P374
+PASS: T374 沙箱重放必須錄到 fillRect（空＝假綠／未執行繪製碼）
+PASS: T374 真實繪製重放：每一上色像素必須在 5×5 菱形內，出界 0 例：[]
+PASS: T374 應切出作物色票段
+PASS: T374 作物段應含多個舊色票，實得 18
+PASS: T374 不得引入新色票：[]
+PASS: T374/T377 果園應以 bft 種植
+PASS: T377 應找到 k53 大農場區塊
+PASS: T377 區塊應帶 T377 註解
+PASS: T377 J6：sg.fillStyle='#a83a2c' 須在 P374 之後保留
+PASS: T377 穀倉應使用 isoBox(sg,...) 立體化
+PASS: T377 J5：spriteTexRand 呼叫次數應恰為 1，實得 1
+PASS: T377 J1：作物段應可切出
+PASS: T377 J1：作物段 hex 數應 >0
+PASS: T377 J1：作物段不得引入新色：[]
+PASS: T377 J2：建築段應可切出
+PASS: T377 J2：建築段 hex 數應 >0
+PASS: T377 J2：季節表 key 應解析到足夠數量，實得 31
+PASS: T377 J2：建築色不得撞季節表 key：[]
+PASS: T377 J3/J4：應切出作物重放段
+PASS: T377 J3/J4：重放必須錄到 fillRect
+PASS: T377 J4：重放上色像素必須全在菱形內，出界 0
+PASS: T377 J3：塊0 覆蓋像素應 ≥ 基線 288，實得 1055
+PASS: T377 J3：塊1 覆蓋像素應 ≥ 基線 363，實得 1489
+PASS: T377 J3：塊2 覆蓋像素應 ≥ 基線 232，實得 1165
+PASS: T377 J3：塊3 覆蓋像素應 ≥ 基線 616，實得 1400
+PASS: T377 果園：bft 計數注入應成功
+PASS: T377 果園株數應 ≥20（直接數 bft 呼叫），實得 25
+PASS: T377 果園迴圈應 a+=3 且 b+=3（步進 3 留空）
+PASS: T356 sprAtlas356 應回傳 {entries,skipped,families}
+PASS: T356 SPR 家族數應 ≥100（實得 116，驟減＝家族被誤刪）
+PASS: T356 清冊條目應 ≥1200（實得 1374）
+PASS: T356 不可解析成員應維持少量（實得 37；暴增＝正規化漏了新形狀）
+PASS: T356 全部 sprite 尺寸應 >0：[]
+PASS: T356 bld 應 ≥370（實得 390）
+PASS: T356 bld 每張都應有錨點中繼（ax/ay）
+PASS: T356 清冊應涵蓋 k112
+PASS: T356 清冊應涵蓋巢狀家族 farmGrow（遞迴攤平證明）
+PASS: T357 這些家族的素材數低於基線（誤刪？）：
+PASS: T357 素材總數 1374 應 ≥ 基線 1323
+PASS: T357 atlas.html 不得用 innerHTML+= 拼接輸出（注入風險）
+PASS: T357 atlas.html 的 innerHTML 只允許清空（=''）
+PASS: T359 sprite 家族應生成：lampConeWarm
+PASS: T359 sprite 家族應生成：lampConeCool
+PASS: T359 sprite 家族應生成：railWashWarm
+PASS: T359 sprite 家族應生成：railWashCool
+PASS: T359 sprite 家族應生成：bridgeLamp
+PASS: T359 sprite 家族應生成：spotBeam
+PASS: T359 應找到 sprite 區塊
+PASS: T359 sprite 區塊不得消耗 rand()/R()/ri()（零亂數位移）
+PASS: T359 冷暖分色應用 streetHash(x,y,1651)（同格燈溫決定性一致）
+PASS: T359 探照燈應走 SPOT_K359 白名單
+PASS: T359 光暈迴圈應跳過 noHalo 條目（光錐中心在半空）
+PASS: T359 SPOT_K359 應含 k24/67/68 地標
+PASS: T361a SPR.lifeShip.cargo 應生成
+PASS: T361a SPR.lifeShip.yacht 應生成
+PASS: T361a SPR.lifeShip.fish 應生成
+PASS: T361b SPR.plane 應 ≥2 幀
+PASS: T361 應找到 sprite 區塊於 buildSprites 尾端
+PASS: T361 sprite 區塊應非空
+PASS: T361 sprite 區塊不得消耗 rand()/R()/ri()/Math.random()
+PASS: T361a 應有 updLifeShips
+PASS: T361a 應掛入 advance()
+PASS: T361 應提供 __noLife 總開關
+PASS: T361a 應以獨立 dep 推入 objs
+PASS: T361a 應依 k18/k90/k97 生成船種
+PASS: T361b 應在機場 k19／國際機場 k114 存在時繪製飛機
+PASS: T361b 班次應決定性（streetHash phase）
+PASS: T361c 螢火蟲應僅夏夜（nightDepth>0）
+PASS: T361a GV.lifeShips 鉤子應存在
+PASS: T361a GV.lifeShipsByKind 鉤子應存在
+PASS: T361 __noLife 開啟前預設船隊為 0（新圖）
+PASS: T363 應有運轉視覺區塊註解錨
+PASS: T363 應提供 __noWteFx 總開關
+PASS: T363 應僅對完工 k62 root 生效
+PASS: T363 活動排氣應要求 garbage>0 且 animOn
+PASS: T363 區塊應可擷取
+PASS: T363 區塊應非空
+PASS: T363 區塊不得消耗 R()/ri()/rand()/Math.random
+PASS: T363 不得 push 進 smokes/fxParts
+PASS: T363 不得改寫 updSmoke
+PASS: T265/T363：k62 仍應為 smoke:[]（不接入每幀煙霧亂數流）
+PASS: T367 GV.w2v/v2w 應存在
+PASS: T367 GV.rotMask/setRot 應存在
+PASS: T367 GV.rot 應存在
+PASS: T367 HUD 應有旋轉按鈕 #bRot
+PASS: T367 應有 isoW2V（實體等距座標）
+PASS: T367 應有 viewRotEff 與 __noRot
+PASS: T367 setRot(0) 應生效
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,0
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,9
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,18
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,27
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,36
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,45
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,54
+PASS: T367 w2v∘v2w 恆等 rot=0 @0,63
+PASS: T367 w2v∘v2w 恆等 rot=0 @9,63
+PASS: T367 w2v∘v2w 恆等 rot=0 @18,63
+PASS: T367 w2v∘v2w 恆等 rot=0 @27,63
+PASS: T367 w2v∘v2w 恆等 rot=0 @36,63
+PASS: T367 w2v∘v2w 恆等 rot=0 @45,63
+PASS: T367 w2v∘v2w 恆等 rot=0 @54,63
+PASS: T367 w2v∘v2w 恆等 rot=0 @63,63
+PASS: T367 rotMask 周期4 應復原 m=0
+PASS: T367 rotMask 周期4 應復原 m=1
+PASS: T367 rotMask 周期4 應復原 m=2
+PASS: T367 rotMask 周期4 應復原 m=3
+PASS: T367 rotMask 周期4 應復原 m=4
+PASS: T367 rotMask 周期4 應復原 m=5
+PASS: T367 rotMask 周期4 應復原 m=6
+PASS: T367 rotMask 周期4 應復原 m=7
+PASS: T367 rotMask 周期4 應復原 m=8
+PASS: T367 rotMask 周期4 應復原 m=9
+PASS: T367 rotMask 周期4 應復原 m=10
+PASS: T367 rotMask 周期4 應復原 m=11
+PASS: T367 rotMask 周期4 應復原 m=12
+PASS: T367 rotMask 周期4 應復原 m=13
+PASS: T367 rotMask 周期4 應復原 m=14
+PASS: T367 rotMask 周期4 應復原 m=15
+PASS: T367 setRot(1) 應生效
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,0
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,9
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,18
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,27
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,36
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,45
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,54
+PASS: T367 w2v∘v2w 恆等 rot=1 @0,63
+PASS: T367 w2v∘v2w 恆等 rot=1 @9,63
+PASS: T367 w2v∘v2w 恆等 rot=1 @18,63
+PASS: T367 w2v∘v2w 恆等 rot=1 @27,63
+PASS: T367 w2v∘v2w 恆等 rot=1 @36,63
+PASS: T367 w2v∘v2w 恆等 rot=1 @45,63
+PASS: T367 w2v∘v2w 恆等 rot=1 @54,63
+PASS: T367 w2v∘v2w 恆等 rot=1 @63,63
+PASS: T367 rotMask 周期4 應復原 m=0
+PASS: T367 rotMask 周期4 應復原 m=1
+PASS: T367 rotMask 周期4 應復原 m=2
+PASS: T367 rotMask 周期4 應復原 m=3
+PASS: T367 rotMask 周期4 應復原 m=4
+PASS: T367 rotMask 周期4 應復原 m=5
+PASS: T367 rotMask 周期4 應復原 m=6
+PASS: T367 rotMask 周期4 應復原 m=7
+PASS: T367 rotMask 周期4 應復原 m=8
+PASS: T367 rotMask 周期4 應復原 m=9
+PASS: T367 rotMask 周期4 應復原 m=10
+PASS: T367 rotMask 周期4 應復原 m=11
+PASS: T367 rotMask 周期4 應復原 m=12
+PASS: T367 rotMask 周期4 應復原 m=13
+PASS: T367 rotMask 周期4 應復原 m=14
+PASS: T367 rotMask 周期4 應復原 m=15
+PASS: T367 setRot(2) 應生效
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,0
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,9
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,18
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,27
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,36
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,45
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,54
+PASS: T367 w2v∘v2w 恆等 rot=2 @0,63
+PASS: T367 w2v∘v2w 恆等 rot=2 @9,63
+PASS: T367 w2v∘v2w 恆等 rot=2 @18,63
+PASS: T367 w2v∘v2w 恆等 rot=2 @27,63
+PASS: T367 w2v∘v2w 恆等 rot=2 @36,63
+PASS: T367 w2v∘v2w 恆等 rot=2 @45,63
+PASS: T367 w2v∘v2w 恆等 rot=2 @54,63
+PASS: T367 w2v∘v2w 恆等 rot=2 @63,63
+PASS: T367 rotMask 周期4 應復原 m=0
+PASS: T367 rotMask 周期4 應復原 m=1
+PASS: T367 rotMask 周期4 應復原 m=2
+PASS: T367 rotMask 周期4 應復原 m=3
+PASS: T367 rotMask 周期4 應復原 m=4
+PASS: T367 rotMask 周期4 應復原 m=5
+PASS: T367 rotMask 周期4 應復原 m=6
+PASS: T367 rotMask 周期4 應復原 m=7
+PASS: T367 rotMask 周期4 應復原 m=8
+PASS: T367 rotMask 周期4 應復原 m=9
+PASS: T367 rotMask 周期4 應復原 m=10
+PASS: T367 rotMask 周期4 應復原 m=11
+PASS: T367 rotMask 周期4 應復原 m=12
+PASS: T367 rotMask 周期4 應復原 m=13
+PASS: T367 rotMask 周期4 應復原 m=14
+PASS: T367 rotMask 周期4 應復原 m=15
+PASS: T367 setRot(3) 應生效
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,0
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,9
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,18
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,27
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,36
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,45
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,54
+PASS: T367 w2v∘v2w 恆等 rot=3 @0,63
+PASS: T367 w2v∘v2w 恆等 rot=3 @9,63
+PASS: T367 w2v∘v2w 恆等 rot=3 @18,63
+PASS: T367 w2v∘v2w 恆等 rot=3 @27,63
+PASS: T367 w2v∘v2w 恆等 rot=3 @36,63
+PASS: T367 w2v∘v2w 恆等 rot=3 @45,63
+PASS: T367 w2v∘v2w 恆等 rot=3 @54,63
+PASS: T367 w2v∘v2w 恆等 rot=3 @63,63
+PASS: T367 rotMask 周期4 應復原 m=0
+PASS: T367 rotMask 周期4 應復原 m=1
+PASS: T367 rotMask 周期4 應復原 m=2
+PASS: T367 rotMask 周期4 應復原 m=3
+PASS: T367 rotMask 周期4 應復原 m=4
+PASS: T367 rotMask 周期4 應復原 m=5
+PASS: T367 rotMask 周期4 應復原 m=6
+PASS: T367 rotMask 周期4 應復原 m=7
+PASS: T367 rotMask 周期4 應復原 m=8
+PASS: T367 rotMask 周期4 應復原 m=9
+PASS: T367 rotMask 周期4 應復原 m=10
+PASS: T367 rotMask 周期4 應復原 m=11
+PASS: T367 rotMask 周期4 應復原 m=12
+PASS: T367 rotMask 周期4 應復原 m=13
+PASS: T367 rotMask 周期4 應復原 m=14
+PASS: T367 rotMask 周期4 應復原 m=15
+PASS: T367 測試結束應回到 rot=0
+PASS: T367 應有變換層註解
+PASS: T367 變換核應止於 STREET_POPCOUNT 之前
+PASS: T367 變換核不得消耗 R()/ri()/Math.random
+PASS: T367 退修：camLookWorld／initViewRotUI
+PASS: T367 退修：#bRot 不得巢狀在 bAch.onclick
+PASS: T367 退修：initViewRotUI 頂層呼叫
+PASS: T367 退修：dep 不得 floor 量化
+PASS: T367 退修：煙繪製須 isoW2V
+PASS: T367 退修：粒子繪製須 isoW2V
+PASS: T367 退修：快捷鍵 r 旋轉
+PASS: T367 退修：小地圖跟轉 w2v
+PASS: T367 退修：lookAt 經 camLookWorld
+PASS: T367 lookAt 不應清 rot
+PASS: T367b 應找得到 objs 主迴圈
+PASS: T367b 應找得到地格 objs.push
+PASS: T367b 單格 dep 應為 viewDep(x,y)+y*.001
+PASS: T367b 多格應掃 footprint 取 max(viewDep)
+PASS: T367b 地格 dep 應有任務註解
+PASS: T367b 不得保留舊世界 SE 角公式 x+sz-1
+PASS: T367b rot=0 viewDep===x+y @0,0
+PASS: T367b rot=0 單格 dep 尾碼世界 y @0,0
+PASS: T367b rot=0 viewDep===x+y @10,11
+PASS: T367b rot=0 單格 dep 尾碼世界 y @10,11
+PASS: T367b rot=0 viewDep===x+y @31,7
+PASS: T367b rot=0 單格 dep 尾碼世界 y @31,7
+PASS: T367b rot=0 viewDep===x+y @5,40
+PASS: T367b rot=0 單格 dep 尾碼世界 y @5,40
+PASS: T367b rot=0 多格 max===SE 角 sz=2 @10,10
+PASS: T367b rot=0 k9/2×2 對齊舊 (x+1)+(y+1)
+PASS: T367b rot=0 多格 max===SE 角 sz=3 @3,5
+PASS: T367b rot=0 多格 max===SE 角 sz=5 @0,0
+PASS: T367b rot=0 多格 max===SE 角 sz=2 @8,12
+PASS: T367b rot=0 k9/2×2 對齊舊 (x+1)+(y+1)
+PASS: T367b rot=1 時 (10,10) viewDep 應 > (10,11)（實得 71/70）
+PASS: T367b 對照：世界 dep 仍是南格較大
+PASS: T367b rot=1 max 覆蓋 footprint sz=2
+PASS: T367b rot=1 max 覆蓋 footprint sz=2
+PASS: T367b rot=1 max 覆蓋 footprint sz=2
+PASS: T367b rot=1 max 覆蓋 footprint sz=2
+PASS: T367b rot=1 max 應落在 footprint 內 sz=2
+PASS: T367b rot=1 多格 max 不應恆等於 SE 角（sz=2 md=72 se=71）
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 覆蓋 footprint sz=3
+PASS: T367b rot=1 max 應落在 footprint 內 sz=3
+PASS: T367b rot=1 多格 max 不應恆等於 SE 角（sz=3 md=73 se=71）
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 覆蓋 footprint sz=5
+PASS: T367b rot=1 max 應落在 footprint 內 sz=5
+PASS: T367b rot=1 多格 max 不應恆等於 SE 角（sz=5 md=75 se=71）
+PASS: T367b 測試結束應回到 rot=0
+PASS: T368 SPR.lifeDog 應為雙幀（實得 2）
+PASS: T368 SPR.lifeFish 應為雙幀（實得 2）
+PASS: T368 SPR.treeSakura 應為 10 變體（實得 10）
+PASS: T368 應有開關 __noParkLife
+PASS: T368 應有開關 __noNeon
+PASS: T368 應有開關 __noFish
+PASS: T368 應有開關 __noSakura
+PASS: T368a 遊樂場孩童應複用 SPR.ped.child
+PASS: T368a 退修：人形層須有 SPR.ped 守衛（__noVeh 不生成 ped 素材）
+PASS: T368a 狗應有 push 與繪製分支
+PASS: T368c 魚躍應有 push 與繪製分支
+PASS: T368d 櫻花換樹應在樹分支
+PASS: T368b 退修：不得另立第二套霓虹分支（與 T244 重複）
+PASS: T368b 霓虹應只有 T244 合流後單一分支
+PASS: T368b 應在 T244 單一分支內升級直式招牌
+PASS: T368b 霓虹守衛組應為 bd.pw／!constrRise／__noNeon
+PASS: T368 區塊錨應找到：T368 生活感四件（絕對尾端
+PASS: T368 sprite 區塊零亂數
+PASS: T368 區塊錨應找到：T368a 公園有人
+PASS: T368a 區塊零亂數
+PASS: T368 區塊錨應找到：T368c 魚躍：鄰岸水格
+PASS: T368c 魚躍迴圈零亂數
+PASS: T368 區塊錨應找到：T368b 合流升級
+PASS: T368b 直式招牌區塊零亂數
+PASS: T368 區塊錨應找到：T368d 櫻花道：春季鄰道路樹格
+PASS: T368d 換樹行零亂數
+PASS: T368c 退修：魚躍應只掃可視範圍（實掃 484／全圖 5184）
+PASS: T368c 退修：rot=1 視角下魚躍同受可視範圍限制（實掃 484）
+PASS: T375 區塊錨應找到且夠長：T300b 地鐵網 overlay
+PASS: G1 D1 地鐵 overlay 不得再有裸 tsx/tsy 等距式
+PASS: G1 D1 應改用 isoW2V 並保留格心參數
+PASS: T375 區塊錨應找到且夠長：streetHash(x,y,1910+seaL)
+PASS: G1 D2 花瓣/落葉不得再有裸等距式
+PASS: T375 區塊錨應找到且夠長：else if(seaL===1&&nightDepth>0)
+PASS: G1 D3 螢火蟲不得再有裸等距式
+PASS: G1 D2/D3 應成對以 w2v 轉格位
+PASS: G5 A2 方向索引不得誤用 rotMask（找不到 (d+r)&3 形式也算誤用）
+PASS: G5 A4 方向索引不得誤用 rotMask
+PASS: G5 A3 遮罩不得誤用 (d+r)&3：        ctx.drawImage(SPR.foamWave[frame][rotMask(t.wm)],sx,sy,64*z,32*z); // T375 A3：動態浪花與靜態岸線同走 rotMask（wm 是 4-bit 鄰接遮罩）
+PASS: G2 A1 標線 lane14 應用旋轉後 rm
+PASS: G2 A1 標線 lane28 應用旋轉後 rm
+PASS: G2 A2 單行道箭頭應用 ((t.oneway-1)+viewRotEff())&3
+PASS: G2 A3 浪花應用 rotMask(t.wm)
+PASS: G2 A4 廣場踏步應用 (pd+viewRotEff())&3
+PASS: G3 D1 的 tsx/tsy 兩支都必須保留 +32z/+16z 格心參數（實得 2 處）：    const tsx=(x,y)=>{const _i=isoW2V((x-y)*32,(x+y)*16+16);return ox+_i[0]*z;}, tsy=(x,y)=>{const _i=isoW2V((x-y)*32,(x+y)*16+16);return oy+_i[1]*z;}; // T375 D1：地鐵 overlay 與 13305 站體共用 isoW2V（off=16 保留格心偏移）；rot=0 與舊式逐位元相等
+PASS: G3 D2 的 drift／-4+fall 螢幕偏移必須原樣保留
+PASS: G3 D3 的 jx/jy 螢幕抖動必須原樣保留
+PASS: G3 rot=0 w2v 恆等是 D 族回歸舊值的數學根據
+PASS: G4 應找到站體 isoW2V 呼叫（13305 錨）
+PASS: G4 D1 與站體同基元同參數形（tsx/tsy 各一）⇒ 四向恆重合
+PASS: G4 rot=0 D1≡站體 (320,816)
+PASS: G4 rot=1 D1≡站體 (672,1312)
+PASS: G4 rot=2 D1≡站體 (-320,1488)
+PASS: G4 rot=3 D1≡站體 (-672,992)
+PASS: T376 區塊錨應找到：if(o.car){
+PASS: T376 區塊錨應找到：if(o.svc){
+PASS: T376 區塊錨應找到：if(o.bus){
+PASS: T376 區塊錨應找到：if(o.train&&SPR.trainLoco
+PASS: T376 區塊錨應找到：if(o.train){
+PASS: T376 區塊錨應找到：if(o.ship){
+PASS: T376 區塊錨應找到：if(o.lifeShip&&SPR.lifeShip)
+PASS: T376 區塊錨應找到：if(o.tram&&SPR.tramVeh
+PASS: T376 區塊錨應找到：if(o.tram){
+PASS: H1 B1 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B1 不得再有生欄位 A/B 比較
+PASS: H1 B2 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B2 不得再有生欄位 A/B 比較
+PASS: H1 B3 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B3 不得再有生欄位 A/B 比較
+PASS: H1 B4a 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B4a 不得再有生欄位 A/B 比較
+PASS: H1 B4b 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B4b 不得再有生欄位 A/B 比較
+PASS: H1 B5a 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B5a 不得再有生欄位 A/B 比較
+PASS: H1 B5b 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B5b 不得再有生欄位 A/B 比較
+PASS: H1 B6a 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B6a 不得再有生欄位 A/B 比較
+PASS: H1 B6b 不得再有 DIRSCR[o.欄位] 生索引
+PASS: H1 B6b 不得再有生欄位 A/B 比較
+PASS: H1 B1 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）
+PASS: H1 B2 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）
+PASS: H1 B3 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）
+PASS: H1 B4a 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）
+PASS: H1 B4b 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）
+PASS: H1 B6a 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）
+PASS: H1 B6b 不得再有生欄位 mir 比較（B5 船的 mir 依卡面保留，不在此列）
+PASS: H1 B5 船的 mir 必須原樣保留（卡面明令不動 13447/13471）
+PASS: H2 B1 應有 fd 宣告：      const fd=(o.car.d+viewRotEff())&3; // T376 B1：旋轉後方向（7/8 走 vehTypes、1/8 走 SPR.car、車燈共用）
+PASS: H2 B2 應有 fd 宣告
+PASS: H2 B3 應有 fd 宣告
+PASS: H2 B4 兩路徑各一份 tdv
+PASS: H2 B5 兩處航行燈皆轉
+PASS: H2 B6 兩路徑各一份 tv
+PASS: H3 B1 三修點全走 fd（7/8 與 1/8 兩路徑＋車燈）
+PASS: H3 B2 兩修點全走 fd
+PASS: H3 B3 兩修點全走 fd
+PASS: H3 B4 精細路徑 face＋燈
+PASS: H3 B4 fallback 鏡射＋位移＋燈（半修必紅）
+PASS: H3 B6 精細路徑 face＋燈
+PASS: H3 B6 fallback 鏡射＋位移＋燈
+PASS: H4 B1 方向索引不得誤用 rotMask
+PASS: H4 B2 方向索引不得誤用 rotMask
+PASS: H4 B3 方向索引不得誤用 rotMask
+PASS: H4 B4a 方向索引不得誤用 rotMask
+PASS: H4 B4b 方向索引不得誤用 rotMask
+PASS: H4 B5a 方向索引不得誤用 rotMask
+PASS: H4 B5b 方向索引不得誤用 rotMask
+PASS: H4 B6a 方向索引不得誤用 rotMask
+PASS: H4 B6b 方向索引不得誤用 rotMask
+PASS: H5 DIRSCR 四組向量必須逐字不變
+PASS: T364a sprAtlas356 的 sc metadata 必須是 null 或 number
+PASS: T364a 既有 120 座 SPR.bld 不得出現 sc：[]
+PASS: T364a sc view 區塊應可擷取
+PASS: T364a 僅在 sprite 明示 sc 時建立縮放檢視
+PASS: T364a 必須同步縮放 w/h 與 ax/ay，不能只縮本體
+PASS: T364a 必須保留 2× 原圖尺寸供施工裁切
+PASS: T364a sc view 區塊不得消耗共用亂數
+PASS: T364a snow／icicle 遮罩必須把 2× 原圖縮到邏輯尺寸，無 sc 保留原式
+PASS: T364a wetSkin 必須把 2× 原圖縮到邏輯尺寸，無 sc 保留原式
+PASS: T364a 施工切片必須分開使用原圖 source 與縮放後 destination
+PASS: T364a 施工切片分支不得消耗共用亂數
+PASS: T353 doFarm('53_1_0',...) 的 ax 必須是 164（＝SPR.bld['53_1_0'].ax），舊值 104 讓田地落在地塊外
+PASS: farm 應找到可建位置
+PASS: farm 應成功建造
+PASS: farm root v 應為座標決定性 (x*5+y*11)%16=11、sz=2
+PASS: SPR.bld 應生成 22_1_1..22_1_15（T226/227/235/T274 農場 16 作物）
+PASS: parking 應找到可建位置
+PASS: parking 應成功建造
+PASS: parking root v 應為座標決定性 (x*11+y*3)%3=0、sz=2
+PASS: SPR.bld 應生成 20_1_1 / 20_1_2（T232 停車場變體）
+PASS: ranch 應找到可建位置
+PASS: ranch 應成功建造
+PASS: ranch root v 應為座標決定性 (x*7+y*5)%5=3、sz=2
+PASS: SPR.bld 應生成 23_1_1..23_1_4（T230/T273 牧場 5 變體）
+PASS: 存檔 bl 應含單變體建築（實得 36）
+PASS: 竄改後 load 應成功
+PASS: k=19 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=25 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=31 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=32 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=53 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=54 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=55 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=56 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=57 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=58 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=59 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=61 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=63 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=64 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=65 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=66 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=68 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=62 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=82 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=83 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=87 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=90 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=91 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=100 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=101 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=108 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=109 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=110 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=111 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=112 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=113 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=114 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=115 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=116 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=118 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=119 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=22 load 後 v 應為 11（單變體正規化/農場保留）
+PASS: k=20 load 後 v 應為 0（單變體正規化/農場保留）
+PASS: k=23 load 後 v 應為 3（單變體正規化/農場保留）
+PASS: k=19 load 後 root 應保留 sz=4
+PASS: k=19 load 後 ref 格應全數重建（15/15）
+PASS: k=25 load 後 root 應保留 sz=2
+PASS: k=25 load 後 ref 格應全數重建（3/3）
+PASS: k=31 load 後 root 應保留 sz=2
+PASS: k=31 load 後 ref 格應全數重建（3/3）
+PASS: k=32 load 後 root 應保留 sz=3
+PASS: k=32 load 後 ref 格應全數重建（8/8）
+PASS: k=53 load 後 root 應保留 sz=5
+PASS: k=53 load 後 ref 格應全數重建（24/24）
+PASS: k=54 load 後 root 應保留 sz=3
+PASS: k=54 load 後 ref 格應全數重建（8/8）
+PASS: k=55 load 後 root 應保留 sz=3
+PASS: k=55 load 後 ref 格應全數重建（8/8）
+PASS: k=56 load 後 root 應保留 sz=3
+PASS: k=56 load 後 ref 格應全數重建（8/8）
+PASS: k=57 load 後 root 應保留 sz=3
+PASS: k=57 load 後 ref 格應全數重建（8/8）
+PASS: k=58 load 後 root 應保留 sz=3
+PASS: k=58 load 後 ref 格應全數重建（8/8）
+PASS: k=59 load 後 root 應保留 sz=2
+PASS: k=59 load 後 ref 格應全數重建（3/3）
+PASS: k=61 load 後 root 應保留 sz=3
+PASS: k=61 load 後 ref 格應全數重建（8/8）
+PASS: k=63 load 後 root 應保留 sz=2
+PASS: k=63 load 後 ref 格應全數重建（3/3）
+PASS: k=64 load 後 root 應保留 sz=2
+PASS: k=64 load 後 ref 格應全數重建（3/3）
+PASS: k=65 load 後 root 應保留 sz=4
+PASS: k=65 load 後 ref 格應全數重建（15/15）
+PASS: k=66 load 後 root 應保留 sz=2
+PASS: k=66 load 後 ref 格應全數重建（3/3）
+PASS: k=68 load 後 root 應保留 sz=2
+PASS: k=68 load 後 ref 格應全數重建（3/3）
+PASS: k=62 load 後 root 應保留 sz=2
+PASS: k=62 load 後 ref 格應全數重建（3/3）
+PASS: k=82 load 後 root 應保留 sz=2
+PASS: k=82 load 後 ref 格應全數重建（3/3）
+PASS: k=83 load 後 root 應保留 sz=3
+PASS: k=83 load 後 ref 格應全數重建（8/8）
+PASS: k=87 load 後 root 應保留 sz=2
+PASS: k=87 load 後 ref 格應全數重建（3/3）
+PASS: k=90 load 後 root 應保留 sz=2
+PASS: k=90 load 後 ref 格應全數重建（3/3）
+PASS: k=91 load 後 root 應保留 sz=2
+PASS: k=91 load 後 ref 格應全數重建（3/3）
+PASS: k=100 load 後 root 應保留 sz=2
+PASS: k=100 load 後 ref 格應全數重建（3/3）
+PASS: k=101 load 後 root 應保留 sz=2
+PASS: k=101 load 後 ref 格應全數重建（3/3）
+PASS: k=108 load 後 root 應保留 sz=2
+PASS: k=108 load 後 ref 格應全數重建（3/3）
+PASS: k=109 load 後 root 應保留 sz=3
+PASS: k=109 load 後 ref 格應全數重建（8/8）
+PASS: k=110 load 後 root 應保留 sz=2
+PASS: k=110 load 後 ref 格應全數重建（3/3）
+PASS: k=111 load 後 root 應保留 sz=2
+PASS: k=111 load 後 ref 格應全數重建（3/3）
+PASS: k=112 load 後 root 應保留 sz=3
+PASS: k=112 load 後 ref 格應全數重建（8/8）
+PASS: k=113 load 後 root 應保留 sz=4
+PASS: k=113 load 後 ref 格應全數重建（15/15）
+PASS: k=114 load 後 root 應保留 sz=5
+PASS: k=114 load 後 ref 格應全數重建（24/24）
+PASS: k=115 load 後 root 應保留 sz=3
+PASS: k=115 load 後 ref 格應全數重建（8/8）
+PASS: k=116 load 後 root 應保留 sz=2
+PASS: k=116 load 後 ref 格應全數重建（3/3）
+PASS: k=118 load 後 root 應保留 sz=2
+PASS: k=118 load 後 ref 格應全數重建（3/3）
+PASS: k=119 load 後 root 應保留 sz=2
+PASS: k=119 load 後 ref 格應全數重建（3/3）
+PASS: k=22 load 後 root 應保留 sz=2
+PASS: k=22 load 後 ref 格應全數重建（3/3）
+PASS: k=20 load 後 root 應保留 sz=2
+PASS: k=20 load 後 ref 格應全數重建（3/3）
+PASS: k=23 load 後 root 應保留 sz=2
+PASS: k=23 load 後 ref 格應全數重建（3/3）
+
+-- (2) ref 格 doze / 體育場 COV --
+PASS: 農場應成功建造
+PASS: 從 ref 格拆除農場應成功
+PASS: 農場 ref 格 doze 後 (0,0) 應清空
+PASS: 農場 ref 格 doze 後 (1,0) 應清空
+PASS: 農場 ref 格 doze 後 (0,1) 應清空
+PASS: 農場 ref 格 doze 後 (1,1) 應清空
+PASS: 機場應成功建造
+PASS: 從 ref 格拆除機場應成功
+PASS: 機場 ref 格 doze 後 (0,0) 應清空
+PASS: 機場 ref 格 doze 後 (1,0) 應清空
+PASS: 機場 ref 格 doze 後 (2,0) 應清空
+PASS: 機場 ref 格 doze 後 (3,0) 應清空
+PASS: 機場 ref 格 doze 後 (0,1) 應清空
+PASS: 機場 ref 格 doze 後 (1,1) 應清空
+PASS: 機場 ref 格 doze 後 (2,1) 應清空
+PASS: 機場 ref 格 doze 後 (3,1) 應清空
+PASS: 機場 ref 格 doze 後 (0,2) 應清空
+PASS: 機場 ref 格 doze 後 (1,2) 應清空
+PASS: 機場 ref 格 doze 後 (2,2) 應清空
+PASS: 機場 ref 格 doze 後 (3,2) 應清空
+PASS: 機場 ref 格 doze 後 (0,3) 應清空
+PASS: 機場 ref 格 doze 後 (1,3) 應清空
+PASS: 機場 ref 格 doze 後 (2,3) 應清空
+PASS: 機場 ref 格 doze 後 (3,3) 應清空
+PASS: 體育場應成功建造
+PASS: 體育場放置後 COV.stadium 應有值
+PASS: 體育場半徑 10 邊陲格 COV.stadium 應有值
+PASS: 從 ref 格拆除體育場應成功
+PASS: 體育場 doze 後 (0,0) 應清空
+PASS: 體育場 doze 後 (1,0) 應清空
+PASS: 體育場 doze 後 (0,1) 應清空
+PASS: 體育場 doze 後 (1,1) 應清空
+PASS: 體育場拆除後 COV.stadium 應全歸 0（null）
+
+-- (3) wpipe + doze --
+PASS: 應找到全空地鋪水管
+PASS: 水管應成功鋪設
+PASS: 鋪設後 wp 應為 1
+PASS: 純水管格 canPlace doze 應通過
+PASS: 拆除水管應成功
+PASS: 拆除後 wp 應歸 0
+
+-- (4) railMask --
+PASS: 應找到相鄰兩格可鋪鐵路
+PASS: 相鄰兩格鐵路應成功鋪設
+PASS: 左格 railMask 應設東向連通 bit
+PASS: 右格 railMask 應設西向連通 bit
+PASS: save→load 應成功
+PASS: load 後 railMask 應仍正確（recalcAllRailMasks 生效）
+PASS: 拆除左格鐵路應成功
+PASS: 拆除格 rail/railMask 應歸 0
+PASS: 鄰格 railMask 連通 bit 應被清除
+
+-- (5) save _bak / importShare --
+PASS: 第二次 save 主鍵應更新
+PASS: save 覆寫前 _bak 應等於前一次主鍵
+主存檔缺損，嘗試 _bak 備份鍵
+PASS: 主鍵毀損時 load 應從 _bak 還原
+PASS: 從 _bak 還原後金額應與備份相符
+PASS: 應找到匯入分享碼鈕
+PASS: importShare 垃圾碼失敗不應覆蓋槽位
+PASS: importShare 版本不符失敗不應覆蓋槽位
+
+-- (6) COV 對稱撤印（k28/k30/k20/k31/k32） --
+PASS: ambulance 應成功建造
+PASS: ambulance 放置後 COV.ambulance root 應 >0
+PASS: ambulance 拆除應成功
+PASS: ambulance 拆除後 root 應清空
+PASS: ambulance 拆除後 COV.ambulance 應全歸 0（不得 255 下溢；實得 null）
+PASS: fireStation2 應成功建造
+PASS: fireStation2 放置後 COV.fire2 root 應 >0
+PASS: fireStation2 拆除應成功
+PASS: fireStation2 拆除後 root 應清空
+PASS: fireStation2 拆除後 COV.fire2 應全歸 0（不得 255 下溢；實得 null）
+PASS: parking 應成功建造
+PASS: parking 放置後 COV.parking root 應 >0
+PASS: parking 拆除應成功
+PASS: parking 拆除後 root 應清空
+PASS: parking 拆除後 COV.parking 應全歸 0（不得 255 下溢；實得 null）
+PASS: prison 應成功建造
+PASS: prison 放置後 COV.prison root 應 >0
+PASS: prison 從 ref 格 拆除應成功
+PASS: prison 拆除後 root 應清空
+PASS: prison 拆除後 COV.prison 應全歸 0（不得 255 下溢；實得 null）
+PASS: university 應成功建造
+PASS: university 放置後 COV.university root 應 >0
+PASS: university 從 ref 格 拆除應成功
+PASS: university 拆除後 root 應清空
+PASS: university 拆除後 COV.university 應全歸 0（不得 255 下溢；實得 null）
+
+-- (7) undo + recalcAllRailMasks --
+PASS: 指針鋪軌 A 應落在中心格
+PASS: 指針鋪軌 B 應落在 A 東鄰
+PASS: A 應設東向連通 bit
+PASS: undo 後 B 格鐵路應消失（還原放置前快照，rail 為 falsy）
+PASS: undo 後 A 格鐵路應保留
+PASS: undo 後 A 的 railMask 應重算歸 0（undo 內 recalcAllRailMasks 生效）
+PASS: 第二次 undo 後 A 格鐵路應消失（undoGroup 整組還原語義）
+
+-- (8) 快捷鍵反查 / doze 鈕去重 --
+PASS: 應找到分類鈕「基本」
+PASS: 「基本」全部可見鈕應帶 dataset.tid
+PASS: 「基本」應恰一個 doze 鈕（實得 1）
+PASS: 「基本」按 0 不得拋錯
+PASS: 「基本」按 0（工具 park 不可見）應不動作
+PASS: 「基本」按 1 不得拋錯
+PASS: 「基本」按 1 應選中可見工具 pan
+PASS: 「基本」按 2 不得拋錯
+PASS: 「基本」按 2（工具 alley 不可見）應不動作
+PASS: 「基本」按 3 不得拋錯
+PASS: 「基本」按 3（工具 road 不可見）應不動作
+PASS: 「基本」按 4 不得拋錯
+PASS: 「基本」按 4（工具 coll 不可見）應不動作
+PASS: 「基本」按 5 不得拋錯
+PASS: 「基本」按 5（工具 art 不可見）應不動作
+PASS: 「基本」按 6 不得拋錯
+PASS: 「基本」按 6（工具 hwy 不可見）應不動作
+PASS: 「基本」按 7 不得拋錯
+PASS: 「基本」按 7（工具 zr 不可見）應不動作
+PASS: 「基本」按 8 不得拋錯
+PASS: 「基本」按 8（工具 zc 不可見）應不動作
+PASS: 「基本」按 9 不得拋錯
+PASS: 「基本」按 9（工具 zi 不可見）應不動作
+PASS: 「基本」按 - 不得拋錯
+PASS: 「基本」按 - 應選中可見工具 doze
+PASS: 「基本」按 = 不得拋錯
+PASS: 「基本」按 =（工具 rdec 不可見）應不動作
+PASS: 「基本」按 b 不得拋錯
+PASS: 「基本」按 b（工具 bus 不可見）應不動作
+PASS: 「基本」按 w 不得拋錯
+PASS: 「基本」按 w（工具 water 不可見）應不動作
+PASS: 「基本」按 g 不得拋錯
+PASS: 「基本」按 g（工具 wpipe 不可見）應不動作
+PASS: 「基本」按 j 不得拋錯
+PASS: 「基本」按 j（工具 police 不可見）應不動作
+PASS: 「基本」按 h 不得拋錯
+PASS: 「基本」按 h（工具 hospital 不可見）應不動作
+PASS: 「基本」按 c 不得拋錯
+PASS: 「基本」按 c（工具 clinic 不可見）應不動作
+PASS: 「基本」按 l 不得拋錯
+PASS: 「基本」按 l（工具 library 不可見）應不動作
+PASS: 「基本」按 o 不得拋錯
+PASS: 「基本」按 o（工具 post 不可見）應不動作
+PASS: 「基本」按 m 不得拋錯
+PASS: 「基本」按 m（工具 cemetery 不可見）應不動作
+PASS: 應找到分類鈕「道路」
+PASS: 「道路」全部可見鈕應帶 dataset.tid
+PASS: 「道路」應恰一個 doze 鈕（實得 1）
+PASS: 「道路」按 0 不得拋錯
+PASS: 「道路」按 0（工具 park 不可見）應不動作
+PASS: 「道路」按 1 不得拋錯
+PASS: 「道路」按 1 應選中可見工具 pan
+PASS: 「道路」按 2 不得拋錯
+PASS: 「道路」按 2 應選中可見工具 alley
+PASS: 「道路」按 3 不得拋錯
+PASS: 「道路」按 3 應選中可見工具 road
+PASS: 「道路」按 4 不得拋錯
+PASS: 「道路」按 4 應選中可見工具 coll
+PASS: 「道路」按 5 不得拋錯
+PASS: 「道路」按 5 應選中可見工具 art
+PASS: 「道路」按 6 不得拋錯
+PASS: 「道路」按 6 應選中可見工具 hwy
+PASS: 「道路」按 7 不得拋錯
+PASS: 「道路」按 7（工具 zr 不可見）應不動作
+PASS: 「道路」按 8 不得拋錯
+PASS: 「道路」按 8（工具 zc 不可見）應不動作
+PASS: 「道路」按 9 不得拋錯
+PASS: 「道路」按 9（工具 zi 不可見）應不動作
+PASS: 「道路」按 - 不得拋錯
+PASS: 「道路」按 - 應選中可見工具 doze
+PASS: 「道路」按 = 不得拋錯
+PASS: 「道路」按 = 應選中可見工具 rdec
+PASS: 「道路」按 b 不得拋錯
+PASS: 「道路」按 b 應選中可見工具 bus
+PASS: 「道路」按 w 不得拋錯
+PASS: 「道路」按 w（工具 water 不可見）應不動作
+PASS: 「道路」按 g 不得拋錯
+PASS: 「道路」按 g 應選中可見工具 wpipe
+PASS: 「道路」按 j 不得拋錯
+PASS: 「道路」按 j（工具 police 不可見）應不動作
+PASS: 「道路」按 h 不得拋錯
+PASS: 「道路」按 h（工具 hospital 不可見）應不動作
+PASS: 「道路」按 c 不得拋錯
+PASS: 「道路」按 c（工具 clinic 不可見）應不動作
+PASS: 「道路」按 l 不得拋錯
+PASS: 「道路」按 l（工具 library 不可見）應不動作
+PASS: 「道路」按 o 不得拋錯
+PASS: 「道路」按 o（工具 post 不可見）應不動作
+PASS: 「道路」按 m 不得拋錯
+PASS: 「道路」按 m（工具 cemetery 不可見）應不動作
+PASS: 應找到分類鈕「分區」
+PASS: 「分區」全部可見鈕應帶 dataset.tid
+PASS: 「分區」應恰一個 doze 鈕（實得 1）
+PASS: 「分區」按 0 不得拋錯
+PASS: 「分區」按 0（工具 park 不可見）應不動作
+PASS: 「分區」按 1 不得拋錯
+PASS: 「分區」按 1 應選中可見工具 pan
+PASS: 「分區」按 2 不得拋錯
+PASS: 「分區」按 2（工具 alley 不可見）應不動作
+PASS: 「分區」按 3 不得拋錯
+PASS: 「分區」按 3（工具 road 不可見）應不動作
+PASS: 「分區」按 4 不得拋錯
+PASS: 「分區」按 4（工具 coll 不可見）應不動作
+PASS: 「分區」按 5 不得拋錯
+PASS: 「分區」按 5（工具 art 不可見）應不動作
+PASS: 「分區」按 6 不得拋錯
+PASS: 「分區」按 6（工具 hwy 不可見）應不動作
+PASS: 「分區」按 7 不得拋錯
+PASS: 「分區」按 7 應選中可見工具 zr
+PASS: 「分區」按 8 不得拋錯
+PASS: 「分區」按 8 應選中可見工具 zc
+PASS: 「分區」按 9 不得拋錯
+PASS: 「分區」按 9 應選中可見工具 zi
+PASS: 「分區」按 - 不得拋錯
+PASS: 「分區」按 - 應選中可見工具 doze
+PASS: 「分區」按 = 不得拋錯
+PASS: 「分區」按 =（工具 rdec 不可見）應不動作
+PASS: 「分區」按 b 不得拋錯
+PASS: 「分區」按 b（工具 bus 不可見）應不動作
+PASS: 「分區」按 w 不得拋錯
+PASS: 「分區」按 w（工具 water 不可見）應不動作
+PASS: 「分區」按 g 不得拋錯
+PASS: 「分區」按 g（工具 wpipe 不可見）應不動作
+PASS: 「分區」按 j 不得拋錯
+PASS: 「分區」按 j（工具 police 不可見）應不動作
+PASS: 「分區」按 h 不得拋錯
+PASS: 「分區」按 h（工具 hospital 不可見）應不動作
+PASS: 「分區」按 c 不得拋錯
+PASS: 「分區」按 c（工具 clinic 不可見）應不動作
+PASS: 「分區」按 l 不得拋錯
+PASS: 「分區」按 l（工具 library 不可見）應不動作
+PASS: 「分區」按 o 不得拋錯
+PASS: 「分區」按 o（工具 post 不可見）應不動作
+PASS: 「分區」按 m 不得拋錯
+PASS: 「分區」按 m（工具 cemetery 不可見）應不動作
+PASS: 應找到分類鈕「服務」
+PASS: 「服務」全部可見鈕應帶 dataset.tid
+PASS: 「服務」應恰一個 doze 鈕（實得 1）
+PASS: 「服務」按 0 不得拋錯
+PASS: 「服務」按 0 應選中可見工具 park
+PASS: 「服務」按 1 不得拋錯
+PASS: 「服務」按 1 應選中可見工具 pan
+PASS: 「服務」按 2 不得拋錯
+PASS: 「服務」按 2（工具 alley 不可見）應不動作
+PASS: 「服務」按 3 不得拋錯
+PASS: 「服務」按 3（工具 road 不可見）應不動作
+PASS: 「服務」按 4 不得拋錯
+PASS: 「服務」按 4（工具 coll 不可見）應不動作
+PASS: 「服務」按 5 不得拋錯
+PASS: 「服務」按 5（工具 art 不可見）應不動作
+PASS: 「服務」按 6 不得拋錯
+PASS: 「服務」按 6（工具 hwy 不可見）應不動作
+PASS: 「服務」按 7 不得拋錯
+PASS: 「服務」按 7（工具 zr 不可見）應不動作
+PASS: 「服務」按 8 不得拋錯
+PASS: 「服務」按 8（工具 zc 不可見）應不動作
+PASS: 「服務」按 9 不得拋錯
+PASS: 「服務」按 9（工具 zi 不可見）應不動作
+PASS: 「服務」按 - 不得拋錯
+PASS: 「服務」按 - 應選中可見工具 doze
+PASS: 「服務」按 = 不得拋錯
+PASS: 「服務」按 =（工具 rdec 不可見）應不動作
+PASS: 「服務」按 b 不得拋錯
+PASS: 「服務」按 b（工具 bus 不可見）應不動作
+PASS: 「服務」按 w 不得拋錯
+PASS: 「服務」按 w 應選中可見工具 water
+PASS: 「服務」按 g 不得拋錯
+PASS: 「服務」按 g（工具 wpipe 不可見）應不動作
+PASS: 「服務」按 j 不得拋錯
+PASS: 「服務」按 j 應選中可見工具 police
+PASS: 「服務」按 h 不得拋錯
+PASS: 「服務」按 h 應選中可見工具 hospital
+PASS: 「服務」按 c 不得拋錯
+PASS: 「服務」按 c 應選中可見工具 clinic
+PASS: 「服務」按 l 不得拋錯
+PASS: 「服務」按 l 應選中可見工具 library
+PASS: 「服務」按 o 不得拋錯
+PASS: 「服務」按 o 應選中可見工具 post
+PASS: 「服務」按 m 不得拋錯
+PASS: 「服務」按 m 應選中可見工具 cemetery
+PASS: 應找到分類鈕「大型」
+PASS: 「大型」全部可見鈕應帶 dataset.tid
+PASS: 「大型」應恰一個 doze 鈕（實得 1）
+PASS: 「大型」按 0 不得拋錯
+PASS: 「大型」按 0（工具 park 不可見）應不動作
+PASS: 「大型」按 1 不得拋錯
+PASS: 「大型」按 1 應選中可見工具 pan
+PASS: 「大型」按 2 不得拋錯
+PASS: 「大型」按 2（工具 alley 不可見）應不動作
+PASS: 「大型」按 3 不得拋錯
+PASS: 「大型」按 3（工具 road 不可見）應不動作
+PASS: 「大型」按 4 不得拋錯
+PASS: 「大型」按 4（工具 coll 不可見）應不動作
+PASS: 「大型」按 5 不得拋錯
+PASS: 「大型」按 5（工具 art 不可見）應不動作
+PASS: 「大型」按 6 不得拋錯
+PASS: 「大型」按 6（工具 hwy 不可見）應不動作
+PASS: 「大型」按 7 不得拋錯
+PASS: 「大型」按 7（工具 zr 不可見）應不動作
+PASS: 「大型」按 8 不得拋錯
+PASS: 「大型」按 8（工具 zc 不可見）應不動作
+PASS: 「大型」按 9 不得拋錯
+PASS: 「大型」按 9（工具 zi 不可見）應不動作
+PASS: 「大型」按 - 不得拋錯
+PASS: 「大型」按 - 應選中可見工具 doze
+PASS: 「大型」按 = 不得拋錯
+PASS: 「大型」按 =（工具 rdec 不可見）應不動作
+PASS: 「大型」按 b 不得拋錯
+PASS: 「大型」按 b（工具 bus 不可見）應不動作
+PASS: 「大型」按 w 不得拋錯
+PASS: 「大型」按 w（工具 water 不可見）應不動作
+PASS: 「大型」按 g 不得拋錯
+PASS: 「大型」按 g（工具 wpipe 不可見）應不動作
+PASS: 「大型」按 j 不得拋錯
+PASS: 「大型」按 j（工具 police 不可見）應不動作
+PASS: 「大型」按 h 不得拋錯
+PASS: 「大型」按 h（工具 hospital 不可見）應不動作
+PASS: 「大型」按 c 不得拋錯
+PASS: 「大型」按 c（工具 clinic 不可見）應不動作
+PASS: 「大型」按 l 不得拋錯
+PASS: 「大型」按 l（工具 library 不可見）應不動作
+PASS: 「大型」按 o 不得拋錯
+PASS: 「大型」按 o（工具 post 不可見）應不動作
+PASS: 「大型」按 m 不得拋錯
+PASS: 「大型」按 m（工具 cemetery 不可見）應不動作
+
+-- (9) showStats / sw.js / inspect 文案 --
+PASS: 帶惡意鎮名存檔 load 應成功
+PASS: showStats 鎮名應被 escHtml 逸出
+PASS: showStats 不得輸出未逸出的 <img>
+PASS: T349 兩檔都應含版本常數（sw.js APP_VER / index.html GAME_VER）
+PASS: T349 sw.js APP_VER(11.49) 必須等於 index.html GAME_VER(11.49)
+PASS: T349 sw.js 快取名須由 APP_VER 派生，不得再寫死版本
+PASS: sw.js 不得再把 gv-v2 當目前快取
+PASS: inspect 文案應含「供電 15 棟」
+PASS: inspect 文案應含「供電 20 棟」
+PASS: inspect 文案應含「半徑 8 防止犯罪發生」
+PASS: inspect 文案應含「半徑 10 健康覆蓋（效果同醫院）」
+PASS: inspect 文案應含「升級率 ×1.8」
+PASS: inspect 文案應含「全城垃圾容量 +30」
+PASS: inspect 文案應含「半徑 8 內商業 +10% 稅收」
+PASS: inspect 文案應含「大眾運輸節點」
+PASS: inspect 文案應含「鄰工業的住宅 +幸福」
+PASS: inspect 文案應含「遊客提升全城商業稅收」
+PASS: inspect 文案不得含舊誤導字串「供電 30 棟」
+PASS: inspect 文案不得含舊誤導字串「冬季/雨天」
+
+-- (10) T251 農場升級經濟 / k53-56 稅收 NaN 守衛 --
+PASS: bigFarm(T251) 應找到可建位置
+PASS: bigFarm(T251) 應成功建造
+PASS: bigFarm(T251) 應可升到 lv>=5，實際 5
+PASS: bigFarm(k53) 升級 lv5 後 money 不得 NaN（second-loop 稅收守衛）
+PASS: bigCemetery(T251) 應找到可建位置
+PASS: bigCemetery(T251) 應成功建造
+PASS: bigCemetery(T251) 應可升到 lv>=5，實際 5
+PASS: bigCemetery(k54) 升級 lv5 後 money 不得 NaN（second-loop 稅收守衛）
+PASS: grandStation(T251) 應找到可建位置
+PASS: grandStation(T251) 應成功建造
+PASS: grandStation(T251) 應可升到 lv>=5，實際 5
+PASS: grandStation(k55) 升級 lv5 後 money 不得 NaN（second-loop 稅收守衛）
+PASS: sportsComplex(T251) 應找到可建位置
+PASS: sportsComplex(T251) 應成功建造
+PASS: sportsComplex(T251) 應可升到 lv>=5，實際 5
+PASS: sportsComplex(k56) 升級 lv5 後 money 不得 NaN（second-loop 稅收守衛）
+PASS: bigFarm(食物測) 應成功建造
+PASS: bigFarm lv1 春季食物應精確 20，實際 20
+PASS: bigFarm lv5 春季食物應精確 100（lv×20），實際 100
+PASS: bigFarm 灌溉升級後食物應遞增
+PASS: farm(食物測) 應成功建造
+PASS: farm k22 lv1 春季食物應精確 3，實際 3
+PASS: farm k22 lv5 春季食物應精確 15（lv×3），實際 15
+PASS: ranch(T252) 應找到可建位置
+PASS: ranch(T252) 應成功建造
+PASS: ranch lv1 食物應精確 2 且春/冬相等（不隨季節），實際 春2/冬2
+PASS: ranch lv5 食物應精確 10（lv×2）且春/冬相等，實際 春10/冬10
+PASS: ranch(k23) 升級 lv5 後 money 不得 NaN
+PASS: ranch 升級後 save→load 應成功
+PASS: ranch 存讀檔應保留 lv5/sz2，實際 lv=5 sz=2
+PASS: plant(T253) 應找到可建位置
+PASS: plant(T253) 應成功建造
+PASS: plant lv1 powerCap 應為 50，實際 50
+PASS: plant lv3 powerCap 應為 100（50+2×25），實際 100
+PASS: solar(T253) 應成功建造
+PASS: solar lv1 應 +15 容量，實際 +15
+PASS: wind(T253) 應成功建造
+PASS: wind lv1 應 +20 容量，實際 +20
+PASS: plant 升級後 save→load 應成功
+PASS: plant 存讀檔應保留 lv3，實際 lv=3
+PASS: 存讀檔後 powerCap 應維持（機組等級還原），實際 135
+PASS: foodPlant(T254) 應找到可建位置
+PASS: foodPlant(T254) 應成功建造
+PASS: foodPlant 無農場時 net 應 = -14（僅維護，procGold=0 因無食物），實際 25
+PASS: T254 應成功建 3 座大農場，實際 3
+PASS: T254 3 大農場春季食物應 = 60，實際 60
+PASS: foodPlant lv1+3大農場 net 應 = 78（市價×1.14），實際 78
+PASS: foodPlant lv5 net 應 = 96（市價×1.02），實際 96
+PASS: foodPlant 升級 lv5 後 money 不得 NaN
+PASS: foodPlant 升級後 jobs 應只多出 3 大農場的 54（加工廠升級 0 就業），lv1=25 lv5=79
+PASS: foodPlant 升級後 save→load 應成功
+PASS: foodPlant 存讀檔應保留 lv5/sz3，實際 lv=5 sz=3
+PASS: nuclear(T257) 應成功建造
+PASS: nuclear lv1 powerCap 應 250（且單獨可啟動電網），實際 250
+PASS: nuclear lv3 powerCap 應 330（250+2×40），實際 330
+PASS: hydro(T257) 應成功建造
+PASS: hydro lv1 應 +100 容量，實際 430
+PASS: geo(T257) 應成功建造
+PASS: geo lv1 應 +45 容量，實際 475
+PASS: T257 電源建造/升級後 money 不得 NaN
+PASS: fireHQ(T257) 應成功建造
+PASS: fireHQ root 覆蓋應 >0
+PASS: fireHQ +16 邊陲格覆蓋應 >0（半徑16）
+PASS: fireHQ +17 格應 0（半徑邊界精確）
+PASS: fireHQ doze 應成功
+PASS: fireHQ doze 後覆蓋應對稱歸 0
+PASS: fireHQ(NaN測) 應成功建造
+PASS: fireHQ(k61) 升級 lv5 後 money 不得 NaN（鐵律14 守衛）
+PASS: GV.ai(true) 應開啟 AI 市長
+PASS: AI 120 天應修出 ≥20 格路，實際 159
+PASS: AI 120 天應劃出 ≥15 分區/RCI 建築，實際 zones=176 bld=154
+PASS: AI 應自己蓋出電源，實際 4
+PASS: AI 城市應有人口遷入，實際 566
+PASS: AI 模式 120 天 money 不得 NaN
+PASS: aiInfo 應回報 AI 開啟
+PASS: AI 存檔 load 應成功
+PASS: 存讀檔後 AI 開關應還原為開
+PASS: bigFarm(存讀測) 應成功建造
+PASS: bigFarm 應升到 lv6，實際 6
+PASS: bigFarm 升級後 save→load 應成功
+PASS: bigFarm 存讀檔應保留 lv6/sz5，實際 lv=6 sz=5
+
+-- (11) T262 可調地圖規模 --
+PASS: GV.setMapSize(144) 應接受並回傳 144
+PASS: 新世界後 GV.N() 應為 144，實際 144
+PASS: 144 世界的 (120,120)/(143,143) 應為合法格
+PASS: 144 世界 90+ 區域應找到可鋪路格
+PASS: 144 世界舊邊界外鋪路應成功
+PASS: 144 世界舊邊界外蓋農場應成功
+PASS: 144 世界 save→load 應成功
+PASS: load 後 GV.N() 應維持 144，實際 144
+PASS: load 後 144 世界的路應還原
+PASS: load 後 144 世界的農場應還原
+PASS: 144 世界 AI 跑 30 天 money 不得 NaN
+PASS: 切回 72 應成功
+PASS: 回 72 世界 GV.N() 應為 72
+PASS: 非法尺寸 999 應被拒（維持 72）
+
+-- T283 市價 / T284 貨物鏈 --
+PASS: T283 市價應在 [0.6,1.8] 界限內（0.67~1.67）
+PASS: T283 市價應有可觀波動（幅度 1.00）
+PASS: T283 120 天內應出現搶購潮高價（>1.3）
+PASS: T283 存讀應成功
+PASS: T283 市價為純 day 函數＝存讀後同日同價
+PASS: T284 初始工業品 0/60，實際 0/60
+PASS: T284 倉儲應成功建造
+PASS: T284 倉儲後容量應 180（60+120），實際 180
+PASS: T284/285 money 不得 NaN
+
+-- T290 大型購物中心 --
+PASS: T290 購物中心應找到 4×4 可建位置
+PASS: T290 購物中心應成功建造
+PASS: T290 4×4 每格應為 k65
+PASS: T290 root sz 應=4
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 4×4 每格應為 k65
+PASS: T290 應 1 root + 15 ref（實得 1/15）
+PASS: T290 購物中心應增就業（0→70）
+PASS: T290 money 不得 NaN（鐵律14 稅收守衛）
+PASS: T290 升級後 money 不得 NaN
+
+-- T292 地價系統修復 --
+PASS: T292 新圖無服務時地價應接近中性 128，實得 max=128
+PASS: T292 應找到警局可建位置
+PASS: T292 建警局後地價應上升（landDirty 修僵屍：原 LANDBASE 僅 newWorld/load/undo 重建，建服務走增量 stampCov 不碰 LANDBASE），實得 128→136
+PASS: T292 警局覆蓋格地價應≥136（128+服務×8），實得 136
+
+-- T293 公共運輸乘客流 --
+PASS: T293 transit hook 應回傳 {ridership,busPop,railPop,rev}
+PASS: T293 新圖無公交/軌道時客運量/票務應為 0（基線），實得 ridership=0 busPop=0 railPop=0
+
+-- T294 服務預算滑塊 --
+PASS: T294 新圖服務預算應全 1.0×
+PASS: T294 應找到警局位置
+PASS: T294 警局應產生覆蓋，實得 225
+PASS: T294 預算 1.5× 覆蓋應比 1.0× 廣（400>225）
+PASS: T294 預算 0.5× 覆蓋應比 1.0× 窄（100<225）
+PASS: T294 存讀應成功
+PASS: T294 服務預算應存讀保留，實得 fire=1.4
+
+-- T295 抽樣市民 agent --
+PASS: T295 新圖應無抽樣市民，實得 0
+PASS: T295 citizens hook 應回傳陣列
+PASS: T295b advanceN（市民步行更新）後 money 不得 NaN
+
+-- T319-321 標準化表格 --
+PASS: T319 指南應使用標準化表格組件 .stab
+PASS: T319 指南應有分區標頭 .sec
+PASS: T320 指南應有分類標題 .gsec
+PASS: T320 指南應有第 0 個分頁鈕
+PASS: T320 指南應有第 1 個分頁鈕
+PASS: T320 指南應有第 2 個分頁鈕
+PASS: T320 指南應有第 3 個分頁鈕
+PASS: T320 建築速查表應由遊戲數據導出至少 20 列，實得 31
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：公園 → 60
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：消防局 → 400
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：學校 → 350
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：垃圾場 → 300
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：體育場 → 1200
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：水塔 → 400
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：警察局 → 500
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：醫院 → 600
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：診所 → 250
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：圖書館 → 280
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：郵局 → 320
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：墓園 → 350
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：污水廠 → 500
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：救護站 → 550
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：回收中心 → 350
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：高級消防 → 800
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：大學 → 1200
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：博物館 → 1400
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：劇院 → 1100
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：電影院 → 550
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：圖書總館 → 1900
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：法院 → 900
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：研究院 → 1600
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：植物園 → 2200
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：綜合醫院 → 2800
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：派出所 → 250
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：大墓園 → 1400
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：體育園區 → 2600
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：消防總局 → 1600
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：垃圾焚化發電廠 → 1800
+PASS: T320 速查表每列應 5 欄，實得 5
+PASS: T320 速查表造價應為正數：信仰中心 → 1600
+PASS: T321 應找到警局位置
+PASS: T321 服務建築檢視應附標準化數據表
+PASS: T321 服務表應含半徑/服務住宅/所屬地區
+PASS: T321 服務表半徑應隨預算放大而變化（10 → 15）
+PASS: T319-321 後 money 不得 NaN
+
+-- T317/T318 地區與地鐵站命名/美術 --
+PASS: T317 districtAt 應回傳地區名，實得 晨曦新村
+PASS: T317 地區名應穩定（純衍生、同格同名）
+PASS: T317 界外應回 null
+PASS: T317 同地區內不同格應同名
+PASS: T317 無地鐵時站名表應為空
+PASS: T317 圖層開關可關
+PASS: T317 圖層開關可開
+PASS: T318 應有三級站體 sprite
+PASS: T318 tier1 站體應有非零尺寸，實得 56x56
+PASS: T318 tier1 站體審計不得出錯：undefined
+PASS: T318 tier2 站體應有非零尺寸，實得 72x68
+PASS: T318 tier2 站體審計不得出錯：undefined
+PASS: T318 tier3 站體應有非零尺寸，實得 96x86
+PASS: T318 tier3 站體審計不得出錯：undefined
+PASS: T318 站體尺寸應隨等級遞增（小<中<大，視覺可區分）
+PASS: T318 站體高度應隨等級遞增
+PASS: T317/T318 後 money 不得 NaN
+
+-- T315 地價場增量 --
+PASS: T315 應找到警局位置
+PASS: T315 增量地價場應與全量重建逐格等價（不一致 0 格）
+PASS: T315 增量後建警局仍應抬高地價（≥136），實得 136
+PASS: T315 增量地價場後 money 不得 NaN
+
+-- T314 程序化四季音樂 --
+PASS: T314 music hook 應回傳 {on,note,scale}
+PASS: T314 setMusic 應可開啟
+PASS: T314 setMusic 應可關閉
+PASS: T314 音階應跟隨季節 0
+PASS: T314 音階應跟隨季節 1
+PASS: T314 音階應跟隨季節 2
+PASS: T314 音階應跟隨季節 3
+PASS: T314 音樂推進後 money 不得 NaN
+
+-- T312 存檔壓縮 --
+PASS: T312 RLE 往返應無損（len=0）
+PASS: T312 RLE 往返應無損（len=1）
+PASS: T312 RLE 往返應無損（len=5）
+PASS: T312 RLE 往返應無損（len=7）
+PASS: T312 RLE 往返應無損（len=10）
+PASS: T312 RLE 往返應無損（len=50000）
+PASS: T312 RLE 往返應無損（len=1000）
+PASS: T312 RLE 往返應無損（len=9）
+PASS: T312 RLE 500 組模糊測試應全數無損
+PASS: T312 存檔應成功落盤
+PASS: T312 壓縮應至少縮小 2 倍（未壓縮 156410 vs 壓縮 5696）
+PASS: T312 落盤內容應含 RLE 控制字元（確認真的壓縮了）
+PASS: T312 壓縮存檔應能載入
+PASS: T312 壓縮存讀往返後 money/day 應一致
+PASS: T312 存讀後 money 不得 NaN
+
+-- T305 AI 擋路拆遷 --
+PASS: T305 AI 拆遷邏輯 money 不得 NaN
+PASS: T306 都市更新計數 hook 應為非負數
+
+-- T304 服務車隊 --
+PASS: T304 新圖車隊應為默認 fire3/police2/amb2，實得 {"fire":3,"police":2,"amb":2}
+PASS: T304 無警局購警車應 garage-full（車庫=2+站×2）
+PASS: T304 未知車型應 bad-type
+PASS: T304 空城應無出勤警車
+PASS: T304 警車幀更新後 money 不得 NaN
+
+-- T302 地鐵深度系統 --
+PASS: T302 無地鐵時財政應全 0（精確恆等），實得 {"rev":0,"ads":0,"cost":0}
+PASS: T302 無線路購車應回 no-line
+PASS: T302 地鐵經濟後 money 不得 NaN
+
+-- T300 AI 地鐵規劃 --
+PASS: T300 清空後應無地鐵
+PASS: T300 metro hook 應回傳陣列
+PASS: T300 metroPlan 應回傳布林（空城高客流塊不足＝false）
+PASS: T300 地鐵規劃後 money 不得 NaN
+
+-- T299 城市事件系統 --
+PASS: T299 新圖應無城市事件
+PASS: T299 setCityEvent 應觸發指定事件
+PASS: T299 經濟繁榮稅收乘數應為 1.3
+PASS: T299 豐收節食物乘數應為 1.5
+PASS: T299 清除事件後應為 null
+PASS: T299 事件系統 money 不得 NaN
+
+-- T280 溫室恆溫 --
+PASS: greenhouse 應找到可建位置
+PASS: greenhouse 應成功建造
+PASS: 溫室 lv1 食物應恆 6 且冬季不減（春6/冬6）
+PASS: 溫室 lv5 冬季食物應 30（lv×6 恆溫），實際 30
+PASS: 溫室 lv5 money 不得 NaN（鐵律14 守衛）
+
+-- (12) T263 AI 災後維護 --
+PASS: T263 應找到清地
+PASS: T263 應長出 ≥2 棟住宅，實際 15
+PASS: T263A ignite 應成功
+PASS: T263A AI 應自動滅火保樓（fire=0）
+PASS: T263B ignite 應成功
+PASS: T263B 無人管 7 天應燒成廢墟（ruin=1）
+PASS: T263B AI 應自動拆除廢墟（3 天內）
+PASS: T263 money 不得 NaN
+
+-- (13) T265 垃圾焚化發電廠 --
+PASS: T265 應找到 2×2 可建位置
+PASS: T265 應可在 ref 預置一棵樹以驗證逐格撤銷減污
+PASS: T265 ref 樹測試前置應成立
+PASS: T265 應在服務分類
+PASS: 服務分類應有 wasteIncinerator 工具鈕
+PASS: T265 指針驗收前相機中心應對準廠區 root
+PASS: T265 UI 放置應建立 k62/v0/sz2/lv1 root
+PASS: T265 2×2 應建立 3 個 ref 格，實際 3
+PASS: T265 建造後 powerCap 應即時為 60，實際 60
+PASS: T265 污染中心應為 44，實際 44
+PASS: T265 污染 r7 邊界應為 6，實際 6
+PASS: T265 污染 r8 外應為 0，實際 0
+PASS: T265 即時污染與 rebuildCov 結果應一致
+PASS: T265 lv1 應精確提供垃圾容量100／來源1，實際 {"amount":0,"capacity":100,"ratio":0,"sources":1,"lastWarningDay":-999}
+PASS: T265 lv1 就業應精確為 12，實際 12
+PASS: T265 單棟每日維護應精確 -10，實際 -10
+PASS: T265 inspect lv1 應含「垃圾焚化發電廠」
+PASS: T265 inspect lv1 應含「處理容量 100」
+PASS: T265 inspect lv1 應含「供電 60」
+PASS: T265 inspect lv1 應含「就業 12」
+PASS: T265 inspect lv1 應含「維護費 $10」
+PASS: T265 inspect lv1 應含「r7/p44」
+PASS: T265 undo 後 footprint (0,0) 應清空
+PASS: T265 undo 後 footprint (1,0) 應清空
+PASS: T265 undo 後 footprint (0,1) 應清空
+PASS: T265 undo 後 footprint (1,1) 應清空
+PASS: T265 undo 後污染應對稱歸 0
+PASS: T265 undo 後 powerCap 應立即為 0
+PASS: T265 undo 後應可在原位重建
+PASS: T265 重建後 powerCap 應即時回到 60
+PASS: T265 應可由 ref 格升到 Lv5，實際 Lv5
+PASS: T265 Lv5 升級後 powerCap 應即時為 92，實際 92
+PASS: T265 Lv5 垃圾容量應仍固定 100，實際 100
+PASS: T265 Lv5 就業應仍固定 12，實際 12
+PASS: T265 Lv5 save→load 應成功
+PASS: T265 load 應保留 k62/lv5/sz2
+PASS: T265 load 後應精確重建 3 個 ref 格，實際 3
+PASS: T265 應可升到 Lv10，實際 Lv10
+PASS: T265 Lv10 升級後 powerCap 應即時為 132，實際 132
+PASS: T265 Lv10 money 應有限且 jobs 仍為12
+PASS: T265 Lv10 財務面板不得含 NaN/Infinity
+PASS: T265 小地圖 palette 應含 k62 獨立色 #a86a3a
+PASS: T265 night audit 不得回報 k62 本體外亮燈像素
+PASS: T265 應可從任一 ref 格拆除整棟
+PASS: T265 ref doze 後 footprint (0,0) 應清空
+PASS: T265 ref doze 後 footprint (1,0) 應清空
+PASS: T265 ref doze 後 footprint (0,1) 應清空
+PASS: T265 ref doze 後 footprint (1,1) 應清空
+PASS: T265 拆除後 powerCap 應即時為 0
+PASS: T265 拆除後污染應即時歸 0
+PASS: T265 拆除後垃圾容量／就業應歸 0
+PASS: T265 garbLocal 應找到 12×8 清地
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側服務路 row3 應可建
+PASS: T265 住宅另一側服務路 row6 應可建
+PASS: T265 ref 側鄰路的 k62 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 住宅分區 row4 應可建
+PASS: T265 住宅分區 row5 應可建
+PASS: T265 道路只貼下方 ref 時仍應由 k62 啟動電網
+PASS: T265 ref 側路網應長出 ≥2 棟住宅，實際 18
+PASS: T265 garbLocal 應視 ref 側為已連接來源，local=0.05950000137090683 ratio=0.0595
+PASS: T265 垃圾車應由唯一 k62 root 出勤
+
+-- (14) T266 垃圾服務可觀測性 --
+PASS: T266 新圖應將垃圾警告節流重置為 -999
+PASS: T266 空城垃圾應為 0/0
+PASS: T266 空城 guard 不得改變基礎幸福 0.60
+PASS: T266 空城 0/0 不得誤報垃圾堆積
+PASS: T266 應找到 12×8 清地
+PASS: T266 應可建一座 k62 供報表驗收
+PASS: T266 單座 k62 歷史 net 應精確 -10，實際 -10
+PASS: T266 財務面板應把 k62 的既有 $10 維護鏡像到電廠分項（statTab）
+PASS: T266 建築統計表應把單座 k62 精確計為 1 棟
+PASS: T266 2×2 k62 的三個 ref 不得重複計成 4 棟
+PASS: T323 統計面板需含 statTab 與可排序 dataTable
+PASS: T266 開啟統計面板前後 money/net 必須完全不變
+PASS: T266 玩法指南應說明焚化廠的容量／供電／高污染取捨
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 服務路 row3 應可建
+PASS: T266 住宅另一側服務路 row6 應可建
+PASS: T266 應可補普通電廠維持拆除 k62 後的住宅供電
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 住宅分區 row4 應可建
+PASS: T266 住宅分區 row5 應可建
+PASS: T266 應長出 ≥2 棟住宅製造真實垃圾，實際 20
+PASS: T266 應可由 ref 拆除唯一垃圾容量來源
+PASS: T266 真超載應為 amount>0／capacity0／ratio2，實際 {"amount":7,"capacity":0,"ratio":2,"sources":0,"lastWarningDay":64}
+PASS: T266 發出超載警告後 lastWarningDay 應等於當日
+PASS: T266 超載通知應列出垃圾場／回收中心／焚化發電廠
+PASS: T266 城市顧問應顯示垃圾超載與 200% 比率
+PASS: T266 城市顧問應列出三種垃圾處理方案
+PASS: T266 超載世界 save→load 應成功
+PASS: T266 讀檔應重置不入存檔的垃圾警告節流
+PASS: T266 讀取仍超載的存檔後，下一日應重新發出警告並刷新節流日
+PASS: T266 再開新圖仍應重置垃圾警告節流
+PASS: T266 新空城日結仍不得寫入垃圾堆積通知
+
+-- (15) T267 AI 垃圾處理決策 --
+PASS: T267 空城 guard 應先有一格道路，讓 aiStep 不走無路早退
+PASS: T267 有路但垃圾仍為0的空城，AI 單 tick 不得預蓋 k8/k62
+PASS: T267 fixture 存檔應可載入
+PASS: T267 大缺口前置應為垃圾46.08／容量0／net>10，實際 {"gi":{"amount":46.08,"capacity":0,"ratio":2,"sources":0,"lastWarningDay":21},"net":82}
+PASS: T267 prepared save 應可重播
+PASS: T267 大缺口＋健康財務應在單 tick 建恰一座 k62、不建 k8
+PASS: T267 AI k62 的 2×2 footprint 應四鄰直接接路
+PASS: T267 AI k62 的 root 與右下角都不得落在住宅／住宅分區三格內
+PASS: T267 AI k62 應建立 1 root＋3 ref
+PASS: T267 建造當 tick 來源應立即為1；容量沿既有日結時序仍為0
+PASS: T267 次日 AI 應把唯一最低級可升建築 k62 升到 Lv2
+PASS: T267 k62 翌日日結垃圾容量應為100
+PASS: T267 AI 升級 k62 後同日 powerCap 應為 Lv10電廠275＋Lv2焚化68＝343，實際 343
+PASS: T267 prepared save 應可重播
+PASS: T267 同一 prepared save 兩次重播的建築座標／money／垃圾／powerCap 應完全一致
+PASS: T267 prepared save 應可重播
+PASS: T267 道路網 control 應在前三洞被分區預算填壞後，實建第四洞 (55,1)；實際 {"actual":[{"x":55,"y":1,"lv":1,"sz":2,"v":0}],"dumps":[]}
+PASS: T267 prepared save 應可重播
+PASS: T267 control 實際首選 (55,1) 應在 tick 前已可建／直接接路／遠離住宅
+PASS: T267 prepared save 應可重播
+PASS: T267 住宅障礙版只改一格 zone 後，原首選仍可建／貼路，但確實位於住宅三格內；實際 {"canPlace":null,"road":true,"nearRes":true,"root":{"x":55,"y":1,"sz":2},"zone":[55,4]}
+PASS: T267 只加入住宅障礙後，AI 應跳過原首選地點並改建另一座 k62
+PASS: T267 改選後 k62 仍須直接接路，且 root／右下角都不得落在住宅三格內
+PASS: T267 fixture 存檔應可載入
+PASS: T267 action-budget fixture 應保留大缺口＋健康財務
+PASS: T267 prepared save 應可重播
+PASS: T267 垃圾危機應把道路／水管／分區一般動作封頂13，實際 13
+PASS: T267 前段本可耗滿 MAXA 時，保留的第14次施工仍應同 tick 建 k62
+PASS: T267 fixture 存檔應可載入
+PASS: T267 小缺口前置應為垃圾38.4且 net>10，實際 {"gi":{"amount":38.4,"capacity":0,"ratio":2,"sources":0,"lastWarningDay":21},"net":67.6}
+PASS: T267 prepared save 應可重播
+PASS: T267 小缺口即使富裕也應建 k8、不建 k62
+PASS: T267 AI k8 應四鄰直接接路
+PASS: T267 k8 翌日日結容量應為40
+PASS: T267 fixture 存檔應可載入
+PASS: T267 低現金 fixture 仍應保留大缺口與正現金流
+PASS: T267 prepared save 應可重播
+PASS: T267 大缺口但資金不足時應 fallback k8
+PASS: T267 fixture 存檔應可載入
+PASS: T267 空間 fallback 前置仍應為大缺口＋net>10
+PASS: T267 prepared save 應可重播
+PASS: T267 道路網 fixture 在 AI 半徑內不得留任何合法 2×2
+PASS: T267 無合法 2×2 時應在同一 tick fallback k8
+PASS: T267 空間 fallback 的 k8 仍須四鄰直接接路
+PASS: T267 當卡相對 pre-T267 的 R()/ri()/Math.random() 呼叫行應逐行零差異
+
+-- (16) T268 PWA 快取生命週期／離線入口 --
+PASS: T268-T270 install 應開啟目前專屬 glimmerville-shell-v11.49
+PASS: T270 precache 應抓 canonical index／manifest／SVG 與三張 PNG，不重複下載 scope root 或 sw.js
+PASS: T268 install.waitUntil 應等待 skipWaiting 完成
+PASS: T268-T270 activate 應只刪本專屬舊版與精確 legacy gv-v1/v2
+PASS: T268 activate 必須保留目前 cache、其他 gv-* 與無關同源 cache
+PASS: T268 activate.waitUntil 應在舊 cache 清理後等待 clients.claim
+PASS: T268 POST 不得由 Service Worker respondWith 接管
+PASS: T268 跨源 GET 不得由 Service Worker 接管
+PASS: T268 同源但 scope 外 GET 不得由 Service Worker 接管
+PASS: T268 scope 內非 app-shell GET 不得被廣域 cache-first 攔截
+PASS: T268 在線帶 query 導航應回傳 network response
+PASS: T268 成功的 root/index 導航應回寫 canonical index cache key
+PASS: T268 離線 scope root 應回退 canonical index
+PASS: T268 離線 index.html?query 應忽略 query 回退 canonical index
+PASS: T268 manifest start_url 離線時應由同一 canonical index 承接
+PASS: T268 cache.put 拒絕時仍須回傳已成功取得的 network response
+PASS: T268 已知 app-shell 靜態資產可在命名 cache 內忽略 query 命中
+PASS: T268 HTTP 503 應照實回傳且不得污染 canonical app-shell
+PASS: T268 app-shell 遭清除且離線時應回 503 說明，不得裸 Promise rejection
+PASS: T268 當卡 index 註冊提示改動不得新增／移除主亂數呼叫
+PASS: T268 頁面應明示 SW 更新繞過 HTTP cache，且註冊失敗不再靜默吞掉
+PASS: T268 README 應明確區分 LAN HTTP 可玩與 HTTPS PWA 離線安裝
+
+-- (17) T269 PWA Manifest 更新閉環 --
+PASS: T269 manifest 回退備份 SHA-256 應維持開工記錄，不得與現行檔一起漂移
+PASS: T269 manifest start_url 應硬鎖既有 ./index.html 身分入口
+PASS: T269 manifest scope 應顯式為可攜子目錄的 ./
+PASS: T269 可攜子目錄部署不得猜測 origin-root manifest id
+PASS: T269 scope/start_url 在任意深度部署都應留在 manifest 所在應用目錄：https://example.test/glimmer-town/manifest.json
+PASS: T269 缺省 identity 應維持改卡前 resolved start_url：https://example.test/glimmer-town/manifest.json
+PASS: T269 scope/start_url 在任意深度部署都應留在 manifest 所在應用目錄：https://example.test/games/glimmer-town/manifest.json
+PASS: T269 缺省 identity 應維持改卡前 resolved start_url：https://example.test/games/glimmer-town/manifest.json
+PASS: T269 manifest 除 scope 與 T270 icon 陣列外，start_url／名稱／顯示／顏色應逐值不變
+PASS: T269 當卡 index.html 應與 pre-T269 備份位元組完全一致
+PASS: T269/T270 v5 install 應維持完整 app-shell 資產閉包
+PASS: T270 activate 應刪專屬 v3/v4，並保留目前版與 foreign cache
+PASS: T269 在線 manifest query 應接受任意成功 2xx 並回傳 fresh network response
+PASS: T269 在線成功 manifest 應回寫 canonical manifest cache key
+PASS: T269 fetch reject 時 manifest query 應回退 canonical manifest
+PASS: T269 manifest cache.put 拒絕時仍須回傳成功 network response
+PASS: T269 Cache Storage open 拒絕時仍須回傳成功 network manifest
+PASS: T269 離線且 Cache Storage open 拒絕時應回 valid JSON 503，不得裸 rejection
+PASS: T271 manifest 離線 cache.match 拒絕仍應維持 T269 valid JSON 503 語意
+PASS: T269 manifest HTTP 503 應照實返回且不得污染 canonical cache
+PASS: T269 HTTP 503 後再離線仍應得到先前成功快取的 manifest
+PASS: T269 manifest cache 缺失且離線時應回 valid JSON 503 說明
+
+-- (18) T270 Android PWA 圖示資產 --
+PASS: T270 manifest 應精確列出 192/512 any、獨立 512 maskable 與 SVG any
+PASS: T270 不得再讓同一圖示合併宣告 any maskable
+PASS: T270 PNG icon URL 應為無 query 的版本化實體檔名
+PASS: T270 manifest 每個 icon 都應為 scope 內存在的同源本地資產
+PASS: T270 icon-v1-192.png 的真 IHDR 應等於 192x192／8-bit RGB 且無 tRNS 透明
+PASS: T270 icon-v1-512.png 的真 IHDR 應等於 512x512／8-bit RGB 且無 tRNS 透明
+PASS: T270 icon-v1-maskable-512.png 的真 IHDR 應等於 512x512／8-bit RGB 且無 tRNS 透明
+PASS: T270 PNG parser 應實際攔截合法 tRNS 透明與 IEND 後尾隨資料
+PASS: T270 icon-v1-192.png 不得產生 SVG 調色盤外的抗鋸齒／插值色
+PASS: T270 icon-v1-512.png 不得產生 SVG 調色盤外的抗鋸齒／插值色
+PASS: T270 icon-v1-maskable-512.png 不得產生 SVG 調色盤外的抗鋸齒／插值色
+PASS: T270 maskable 非背景前景應全在中心40%安全圈，foreground=42624 escaped=0
+PASS: T270 三張 PNG SHA-256 應與可重現生成記錄一致；改圖時須換 icon 版本化檔名
+PASS: T270 Service Worker install FILES 應閉包 index／manifest／favicon 與全部 manifest icon
+PASS: T270 icon.svg 母版應與 pre-T270 備份位元組完全一致
+PASS: T270 當卡 index.html 應與 pre-T270 備份位元組完全一致
+PASS: T270 生成器應固定輸出三個版本化 RGB 資產，maskable 前景縮至75%
+PASS: T270 生成器 --check 應連跑兩次逐 bytes 重建成功，且不寫入／改時戳
+
+-- (19) T271 PWA 快取讀取故障降級 --
+PASS: T271 app-shell cache 命中應直接回 cached response，network calls 維持0增量
+PASS: T271 app-shell cache miss 應只回退一次真 network fetch
+PASS: T271 app-shell caches.open 拒絕時仍應只呼叫一次 network 並回成功 response
+PASS: T271 app-shell cache.match 拒絕時仍應只呼叫一次 network 並回成功 response
+PASS: T271 靜態 cache 與 network 同時失敗時應保留真 fetch rejection，不偽造文字圖片
+PASS: T271 離線導航遇 caches.open 拒絕應回既定文字 503，不得裸 rejection
+PASS: T271 離線導航遇 cache.match 拒絕應回既定文字 503，不得裸 rejection
+PASS: T271 在線導航遇 canonical cache open 拒絕仍應回 network 200
+PASS: T271 mutant 前置應能精確定位靜態 app-shell 分支
+PASS: T271 修改前 promise-chain mutant 應被故障注入證明會攔死可用 network
+
+-- (20) T272 Sprite 紋理確定化 --
+PASS: T272 pre-index 備份 SHA-256 應維持開工記錄，不得隨 current 漂移
+PASS: T272 完成邊界應由 pre-T273（post-T272）SHA-256 封存
+PASS: T272 應可抽取正式 seed/state/reset 鏈，且 seed 必須維持 0x54455832
+PASS: T272 應可界定完整 buildSprites() 區段
+PASS: T272 應可定位正式 mulberry32()
+PASS: T272 應可定位正式 plate()
+PASS: T272 fresh VM 應執行正式 seed/state/reset 鏈，不得由 sandbox 注入替身
+PASS: T272 應可定位正式 mulberry32()
+PASS: T272 應可定位正式 plate()
+PASS: T272 fresh VM 應執行正式 seed/state/reset 鏈，不得由 sandbox 注入替身
+PASS: T272 正式 seed→reset→plate 鏈在兩個不同 ambient Math.random 的 fresh VM 中應產生相同 fingerprint
+PASS: T272 reset 負向 mutant 應能精確替換正式重設函式
+PASS: T272 應可定位正式 mulberry32()
+PASS: T272 應可定位正式 plate()
+PASS: T272 fresh VM 應執行正式 seed/state/reset 鏈，不得由 sandbox 注入替身
+PASS: T272 應可定位正式 mulberry32()
+PASS: T272 應可定位正式 plate()
+PASS: T272 fresh VM 應執行正式 seed/state/reset 鏈，不得由 sandbox 注入替身
+PASS: T272 reset 若退回 ambient Math.random，fresh VM 行為測試必須殺死 mutant
+PASS: T272 應可定位正式 plate()
+PASS: T272 seed/reset/plate/buildSprites 載入期 ambient Math.random 來源應由9歸零
+PASS: T272 每次 buildSprites() 起手必須重設專屬紋理 PRNG
+PASS: T272 9 個 speck 的顏色／數量／座標／尺寸應逐行不變，只可替換亂數來源
+PASS: T272 相對備份的 R()/ri() 呼叫行應逐行零差異
+PASS: T272 相對備份的既有共用 rand() 消耗行應逐行零差異
+PASS: T272 專屬 seed/state/reset 宣告應精確出現一次
+PASS: T272 buildSprites 起手 reset 差異應精確出現一次
+PASS: T272 精確反向正規化時應只還原9個紋理 RNG 接點
+PASS: T272 post-T272 邊界反向移除允許差異後，必須逐 byte 等於 pre-T272
+PASS: T272 應精確有9個 speck 改接專屬 spriteTexRand
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+PASS: T272 應可定位正式 plate()
+PASS: T272 任一紋理來源退回 ambient Math.random 的 mutant 都必須被攔截
+
+-- (21) T273 牧場變體擴充 3→5 --
+PASS: T273 pre-index 備份 SHA-256 應維持開工記錄
+PASS: T273 完成邊界應由 pre-T274（post-T273）SHA-256 封存
+PASS: T273 正式碼應精確為尾端兩張牧場 sprite＋%5 選型，且不得新增主／ambient 亂數
+PASS: T273 v3/v4 應有足量繪圖操作、固定136×150/68,148 幾何且 fingerprint 互異
+PASS: T273 post-T273 完成邊界應保留唯一正式 marker 區塊
+PASS: T273 尾端 sprite 區塊後應有單一 LF，供 exact rollback
+PASS: T273 exact rollback 應精確定位唯一牧場 %5 行
+PASS: T273 反向移除兩張新 sprite 並還原牧場單行後，必須逐 byte 等於 pre-T273
+PASS: T273 相對 pre-T273 的 R()/ri() 呼叫行應逐行零差異
+PASS: T273 相對 pre-T273 的既有共用 rand() 呼叫行應逐行零差異
+PASS: T273 %5 若退回 %3，source audit 必須殺死 mutant
+PASS: T273 若遺失牧場 v3 sprite 鍵，source audit 必須殺死 mutant
+PASS: T273 若遺失牧場 v4 sprite 鍵，source audit 必須殺死 mutant
+PASS: T273 v3/v4 若退化成兩張相同空底板，繪圖 trace 必須殺死 mutant
+PASS: T273 新 sprite 若被移到 k62 之前，尾端順序 audit 必須殺死 mutant
+PASS: T273 應找到 residue 0 的合法 2×2 牧場位置
+PASS: T273 residue 0 牧場應真實建造成功
+PASS: T273 residue 0 root 應精確為 k23/v0/lv1/sz2
+PASS: T273 residue 0 應建立精確3個 ref 格，實際 3
+PASS: T273 應找到 residue 1 的合法 2×2 牧場位置
+PASS: T273 residue 1 牧場應真實建造成功
+PASS: T273 residue 1 root 應精確為 k23/v1/lv1/sz2
+PASS: T273 residue 1 應建立精確3個 ref 格，實際 3
+PASS: T273 應找到 residue 2 的合法 2×2 牧場位置
+PASS: T273 residue 2 牧場應真實建造成功
+PASS: T273 residue 2 root 應精確為 k23/v2/lv1/sz2
+PASS: T273 residue 2 應建立精確3個 ref 格，實際 3
+PASS: T273 應找到 residue 3 的合法 2×2 牧場位置
+PASS: T273 residue 3 牧場應真實建造成功
+PASS: T273 residue 3 root 應精確為 k23/v3/lv1/sz2
+PASS: T273 residue 3 應建立精確3個 ref 格，實際 3
+PASS: T273 應找到 residue 4 的合法 2×2 牧場位置
+PASS: T273 residue 4 牧場應真實建造成功
+PASS: T273 residue 4 root 應精確為 k23/v4/lv1/sz2
+PASS: T273 residue 4 應建立精確3個 ref 格，實際 3
+PASS: T273 五種牧場同存檔 save→load 應成功
+PASS: T273 load 後牧場 v0 應逐值保留
+PASS: T273 load 後牧場 v1 應逐值保留
+PASS: T273 load 後牧場 v2 應逐值保留
+PASS: T273 load 後牧場 v3 應逐值保留
+PASS: T273 load 後牧場 v4 應逐值保留
+
+-- (22) T274 農場作物變體擴充 12→16 --
+PASS: T274 pre-index 備份 SHA-256 應維持開工記錄
+PASS: T274 正式碼應精確為尾端四張 base＋十二張季節圖＋%16，且不得碰主／ambient 亂數
+PASS: T274 四張 base 應有實質繪圖、固定幾何、互異 fingerprint，且十二張季節圖應真 remap
+PASS: T274 不得修改既有 T229 SUM/AUT/WIN/FKEYS 與 12 作物＋大農場季節管線
+PASS: T274 rollback 快照（pre-T275）內應含完整 T274 區塊
+PASS: T274 尾端區塊後應有單一 LF，供 exact rollback
+PASS: T274 exact rollback 應精確定位唯一農場 %16 行
+PASS: T274 反向移除四 base＋十二季節圖並還原農場單行後，必須逐 byte 等於 pre-T274
+PASS: T274 相對 pre-T274 的 R()/ri() 呼叫行應逐行零差異
+PASS: T274 相對 pre-T274 的既有共用 rand() 呼叫行應逐行零差異
+PASS: T274 %16 若退回 %12，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_12 base，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_12 的三季生成入口，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_13 base，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_13 的三季生成入口，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_14 base，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_14 的三季生成入口，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_15 base，source audit 必須殺死 mutant
+PASS: T274 若遺失 22_1_15 的三季生成入口，source audit 必須殺死 mutant
+PASS: T274 若覆寫既有 22_1_0，assignment whitelist 必須殺死 mutant
+PASS: T274 夏季 map 若退化為 identity，獨立像素期望必須殺死 mutant
+PASS: T274 任一未抽樣單色若錯映射（夏季土色 identity），完整逐像素契約必須殺死 mutant
+PASS: T274 夏／秋 bucket 若對調，獨立像素期望必須殺死 mutant
+PASS: T274 四張圖若退化成空底板且三季共用春圖，pixel trace 必須殺死 mutant
+PASS: T274 新 sprite 若被移到 k62／T273 之前，尾端順序 audit 必須殺死 mutant
+PASS: T274 應找到 residue 0 的合法 2×2 農場位置
+PASS: T274 residue 0 農場應真實建造成功
+PASS: T274 residue 0 root 應精確為 k22/v0/lv1/sz2
+PASS: T274 residue 0 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 1 的合法 2×2 農場位置
+PASS: T274 residue 1 農場應真實建造成功
+PASS: T274 residue 1 root 應精確為 k22/v1/lv1/sz2
+PASS: T274 residue 1 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 2 的合法 2×2 農場位置
+PASS: T274 residue 2 農場應真實建造成功
+PASS: T274 residue 2 root 應精確為 k22/v2/lv1/sz2
+PASS: T274 residue 2 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 3 的合法 2×2 農場位置
+PASS: T274 residue 3 農場應真實建造成功
+PASS: T274 residue 3 root 應精確為 k22/v3/lv1/sz2
+PASS: T274 residue 3 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 4 的合法 2×2 農場位置
+PASS: T274 residue 4 農場應真實建造成功
+PASS: T274 residue 4 root 應精確為 k22/v4/lv1/sz2
+PASS: T274 residue 4 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 5 的合法 2×2 農場位置
+PASS: T274 residue 5 農場應真實建造成功
+PASS: T274 residue 5 root 應精確為 k22/v5/lv1/sz2
+PASS: T274 residue 5 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 6 的合法 2×2 農場位置
+PASS: T274 residue 6 農場應真實建造成功
+PASS: T274 residue 6 root 應精確為 k22/v6/lv1/sz2
+PASS: T274 residue 6 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 7 的合法 2×2 農場位置
+PASS: T274 residue 7 農場應真實建造成功
+PASS: T274 residue 7 root 應精確為 k22/v7/lv1/sz2
+PASS: T274 residue 7 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 8 的合法 2×2 農場位置
+PASS: T274 residue 8 農場應真實建造成功
+PASS: T274 residue 8 root 應精確為 k22/v8/lv1/sz2
+PASS: T274 residue 8 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 9 的合法 2×2 農場位置
+PASS: T274 residue 9 農場應真實建造成功
+PASS: T274 residue 9 root 應精確為 k22/v9/lv1/sz2
+PASS: T274 residue 9 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 10 的合法 2×2 農場位置
+PASS: T274 residue 10 農場應真實建造成功
+PASS: T274 residue 10 root 應精確為 k22/v10/lv1/sz2
+PASS: T274 residue 10 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 11 的合法 2×2 農場位置
+PASS: T274 residue 11 農場應真實建造成功
+PASS: T274 residue 11 root 應精確為 k22/v11/lv1/sz2
+PASS: T274 residue 11 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 12 的合法 2×2 農場位置
+PASS: T274 residue 12 農場應真實建造成功
+PASS: T274 residue 12 root 應精確為 k22/v12/lv1/sz2
+PASS: T274 residue 12 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 13 的合法 2×2 農場位置
+PASS: T274 residue 13 農場應真實建造成功
+PASS: T274 residue 13 root 應精確為 k22/v13/lv1/sz2
+PASS: T274 residue 13 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 14 的合法 2×2 農場位置
+PASS: T274 residue 14 農場應真實建造成功
+PASS: T274 residue 14 root 應精確為 k22/v14/lv1/sz2
+PASS: T274 residue 14 應建立精確3個 ref 格，實際 3
+PASS: T274 應找到 residue 15 的合法 2×2 農場位置
+PASS: T274 residue 15 農場應真實建造成功
+PASS: T274 residue 15 root 應精確為 k22/v15/lv1/sz2
+PASS: T274 residue 15 應建立精確3個 ref 格，實際 3
+PASS: T274 原始存檔 bl 應逐值包含農場 v0..15
+PASS: T274 十六種農場同存檔 save→load 應成功
+PASS: T274 load 後農場 v0 root 應逐值保留
+PASS: T274 load 後農場 v0 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v1 root 應逐值保留
+PASS: T274 load 後農場 v1 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v2 root 應逐值保留
+PASS: T274 load 後農場 v2 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v3 root 應逐值保留
+PASS: T274 load 後農場 v3 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v4 root 應逐值保留
+PASS: T274 load 後農場 v4 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v5 root 應逐值保留
+PASS: T274 load 後農場 v5 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v6 root 應逐值保留
+PASS: T274 load 後農場 v6 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v7 root 應逐值保留
+PASS: T274 load 後農場 v7 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v8 root 應逐值保留
+PASS: T274 load 後農場 v8 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v9 root 應逐值保留
+PASS: T274 load 後農場 v9 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v10 root 應逐值保留
+PASS: T274 load 後農場 v10 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v11 root 應逐值保留
+PASS: T274 load 後農場 v11 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v12 root 應逐值保留
+PASS: T274 load 後農場 v12 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v13 root 應逐值保留
+PASS: T274 load 後農場 v13 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v14 root 應逐值保留
+PASS: T274 load 後農場 v14 應重建精確3個 ref，實際 3
+PASS: T274 load 後農場 v15 root 應逐值保留
+PASS: T274 load 後農場 v15 應重建精確3個 ref，實際 3
+
+-- (13) T276 農莊套件覆蓋層 --
+PASS: T276 區塊應存在且有 END 標記
+PASS: T276 應位於 T274 END 之後、T261 遮罩之前（不動既有生成行＝快照回退零影響）
+PASS: T276 區塊應零亂數（純 fillRect 決定性）
+PASS: T276 應覆蓋 16 作物全變體＋大農場
+PASS: T276 應覆蓋三季節圖且冬季走積雪分支
+PASS: T276 應含穀倉紅/筒倉銀/乾草金三件套色票
+PASS: T322 #info 需以 --hud-h 扣除導航欄實高來限高
+PASS: T322 #info 超出限高需內部滾動（而非向上溢出蓋住導航欄）
+PASS: T322 #hud z-index 需高於 #info(22)，導航欄永在最上層
+PASS: T322 直接設 #info display 只允許出現在 showInfoPanel() 內；其餘入口必須改呼叫它以同步 --hud-h
+PASS: T322 showInfoPanel 需先 syncHudH 再顯示
+PASS: T322 晶片 #money 需綁定 click（原本是純顯示 span，點了沒反應）
+PASS: T322 #money 應開出「財政明細」，實得：<h3>💰 財政明細</h3><div class="stab"><div class="sec" style="gr
+PASS: T322 #money 明細需用 statTab 標準化表格（與其他面板同一套規範）
+PASS: T322 #money 明細不可為空表
+PASS: T322 #money 明細不得出現 undefined/NaN/Infinity：<h3>💰 財政明細</h3><div class="stab"><div class="sec" style="grid-column:1/-1">💰 每日收入</div><div class="k">🏠 住宅稅</div><div
+PASS: T322 晶片 #pop 需綁定 click（原本是純顯示 span，點了沒反應）
+PASS: T322 #pop 應開出「人口明細」，實得：<h3>👥 人口明細</h3><div class="stab"><div class="sec" style="gr
+PASS: T322 #pop 明細需用 statTab 標準化表格（與其他面板同一套規範）
+PASS: T322 #pop 明細不可為空表
+PASS: T322 #pop 明細不得出現 undefined/NaN/Infinity：<h3>👥 人口明細</h3><div class="stab"><div class="sec" style="grid-column:1/-1">👥 人口總覽</div><div class="k">總人口</div><div cl
+PASS: T322 晶片 #jobs 需綁定 click（原本是純顯示 span，點了沒反應）
+PASS: T322 #jobs 應開出「就業明細」，實得：<h3>💼 就業明細</h3><div class="stab"><div class="sec" style="gr
+PASS: T322 #jobs 明細需用 statTab 標準化表格（與其他面板同一套規範）
+PASS: T322 #jobs 明細不可為空表
+PASS: T322 #jobs 明細不得出現 undefined/NaN/Infinity：<h3>💼 就業明細</h3><div class="stab"><div class="sec" style="grid-column:1/-1">💼 就業總覽</div><div class="k">總崗位</div><div cl
+PASS: T322 晶片 #happy 需綁定 click（原本是純顯示 span，點了沒反應）
+PASS: T322 #happy 應開出「幸福明細」，實得：<h3>😊 幸福明細</h3><div class="stab"><div class="sec" style="gr
+PASS: T322 #happy 明細需用 statTab 標準化表格（與其他面板同一套規範）
+PASS: T322 #happy 明細不可為空表
+PASS: T322 #happy 明細不得出現 undefined/NaN/Infinity：<h3>😊 幸福明細</h3><div class="stab"><div class="sec" style="grid-column:1/-1">😊 幸福總計</div><div class="k">城市幸福</div><div c
+PASS: T322 晶片 #star 需綁定 click（原本是純顯示 span，點了沒反應）
+PASS: T322 #star 應開出「評分明細」，實得：<h3>⭐ 評分明細</h3><div class="stab"><div class="sec" style="gri
+PASS: T322 #star 明細需用 statTab 標準化表格（與其他面板同一套規範）
+PASS: T322 #star 明細不可為空表
+PASS: T322 #star 明細不得出現 undefined/NaN/Infinity：<h3>⭐ 評分明細</h3><div class="stab"><div class="sec" style="grid-column:1/-1">⭐ 城市評分</div><div class="k">評分</div><div class
+PASS: T322 晶片 #date 需綁定 click（原本是純顯示 span，點了沒反應）
+PASS: T322 #date 應開出「時間與季節」，實得：<h3>📅 時間與季節</h3><div class="stab"><div class="sec" style="g
+PASS: T322 #date 明細需用 statTab 標準化表格（與其他面板同一套規範）
+PASS: T322 #date 明細不可為空表
+PASS: T322 #date 明細不得出現 undefined/NaN/Infinity：<h3>📅 時間與季節</h3><div class="stab"><div class="sec" style="grid-column:1/-1">📅 時間</div><div class="k">日期</div><div clas
+PASS: T322 seed22 應已長出人口
+PASS: T322 seed22 財富分層加總(711) 必須等於總人口(711)
+PASS: T322 seed22 崗位來源加總(1375) 必須等於總崗位(1375)
+PASS: T322 seed77 應已長出人口
+PASS: T322 seed77 財富分層加總(677) 必須等於總人口(677)
+PASS: T322 seed77 崗位來源加總(1691) 必須等於總崗位(1691)
+PASS: T322 seed301 應已長出人口
+PASS: T322 seed301 財富分層加總(2221) 必須等於總人口(2221)
+PASS: T322 seed301 崗位來源加總(4844) 必須等於總崗位(4844)
+PASS: T322 就業面板需含辦公區 ×1.5（T79）
+PASS: T322 需計入商業塔就業與住宅塔人口（T127；且摩天樓不看供電）
+PASS: T322 人口面板需排除疫病/死亡停擺住宅（鏡像 tick）
+PASS: T322 財政面板需有每日淨收入
+PASS: T322 財政面板現金需與 stats().money 一致
+PASS: T322 syncHudH 應把導航欄實高寫入 --hud-h
+PASS: T324 富裕 AI 城 350 天應蓋出 ≥10 種原本從不蓋的建築，實得 37 種
+PASS: T324 關鍵民生 k=16（墓園/派出所/圖書館/救護站）應至少 1 座
+PASS: T324 關鍵民生 k=52（墓園/派出所/圖書館/救護站）應至少 1 座
+PASS: T324 關鍵民生 k=14（墓園/派出所/圖書館/救護站）應至少 1 座
+PASS: T324 關鍵民生 k=28（墓園/派出所/圖書館/救護站）應至少 1 座
+PASS: T324 k=9 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=12 蓋了 4 座＝狂建（pop=4214）
+PASS: T324 k=14 蓋了 6 座＝狂建（pop=4214）
+PASS: T324 k=15 蓋了 5 座＝狂建（pop=4214）
+PASS: T324 k=16 蓋了 4 座＝狂建（pop=4214）
+PASS: T324 k=17 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=18 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=19 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=20 蓋了 9 座＝狂建（pop=4214）
+PASS: T324 k=23 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=27 蓋了 4 座＝狂建（pop=4214）
+PASS: T324 k=28 蓋了 6 座＝狂建（pop=4214）
+PASS: T324 k=29 蓋了 4 座＝狂建（pop=4214）
+PASS: T324 k=30 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=31 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=32 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=35 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=36 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=37 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=38 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=39 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=40 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=41 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=42 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=43 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=44 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=45 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=46 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=47 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=48 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=49 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=50 蓋了 3 座＝狂建（pop=4214）
+PASS: T324 k=52 蓋了 7 座＝狂建（pop=4214）
+PASS: T324 k=54 蓋了 2 座＝狂建（pop=4214）
+PASS: T324 k=55 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=56 蓋了 1 座＝狂建（pop=4214）
+PASS: T324 k=61 蓋了 2 座＝狂建（pop=4214）
+PASS: T324/T342c seed301 400天 pop 應恆為 4153（T346d zoneBudget 4 窗種子重釘），實得 4153
+PASS: T324 拮据城不得破產
+PASS: T325 需能放置體育場
+PASS: T325 噪音應中心強、距離遞減（26→13）
+PASS: T325 半徑外應為 0
+PASS: T325 拆除後次日噪音歸零
+PASS: T326 immWave 應每日遞減，實得 2
+PASS: T326 newWorld 應重置 immWave（鐵律7）
+PASS: T327 三政策日費應精確 -23（12+6+5），面板節錄： 💰 財政明細   💰 每日收入  🏠 住宅稅  +37.1  /日  🏪 商業稅  +80.4  /日  🏭 工業稅  +43.5  /日  🌾 農產  +3  /日  💸 每日支出 
+PASS: T327 開政策後 money 必須有限
+PASS: T327 免費公交後票務行應消失（=0 不顯示）
+PASS: T327 統計面板需含政策 checkbox #polFreeT
+PASS: T327 統計面板需含政策 checkbox #polLunch
+PASS: T327 統計面板需含政策 checkbox #polSmoke
+PASS: T327 統計面板需含政策 checkbox #polIndS
+PASS: T327 統計面板需含政策 checkbox #polNight
+PASS: T327 統計面板需含政策 checkbox #polParkN
+PASS: T328 需有住宅可檢視
+PASS: T328 需求卡缺「市民需求」
+PASS: T328 需求卡缺「娛樂」
+PASS: T328 需求卡缺「社交」
+PASS: T328 需求卡缺「健康」
+PASS: T328 需求卡缺「教育」
+PASS: T328 需求卡不得含壞值
+PASS: T329 文化建築 7 條需 unlockRank:6
+PASS: T329/T330 小型地標+遊艇碼頭 10 條需 unlockRank:8
+PASS: T329 紀念工程 6 條需 unlockRank:17
+PASS: T329 RANKS 解鎖文案應全部兌現（不得再有「未來版本開放」）
+PASS: T335 SPR.bld 應生成 81_1_0
+PASS: T335 SPR.bld 應生成 82_1_0
+PASS: T335 SPR.bld 應生成 83_1_0
+PASS: T335 SPR.bld 應生成 84_1_0
+PASS: T335 SPR.bld 應生成 85_1_0
+PASS: T335 SPR.bld 應生成 86_1_0
+PASS: T335 SPR.bld 應生成 87_1_0
+PASS: T335 SPR.bld 應生成 88_1_0
+PASS: T335 SPR.bld 應生成 89_1_0
+PASS: T335 SPR.bld 應生成 90_1_0
+PASS: T330 guesthouse 應找到可建位置
+PASS: T330 guesthouse 應成功建造
+PASS: T330 hotel 應找到可建位置
+PASS: T330 hotel 應成功建造
+PASS: T330 resort 應找到可建位置
+PASS: T330 resort 應成功建造
+PASS: T330 compost 應找到可建位置
+PASS: T330 compost 應成功建造
+PASS: T330 bank 應找到可建位置
+PASS: T330 bank 應成功建造
+PASS: T330 tvtower 應找到可建位置
+PASS: T330 tvtower 應成功建造
+PASS: T334 床位應精確 158（8+40+110），實得 158
+PASS: T334 入住=min(遊客,床位)
+PASS: T330 新建築經濟不得產生 NaN（鐵律14）
+PASS: T330 銀行存在時貸款鈕應升級 $5000
+PASS: T334 統計面板應含旅宿與觀光分區
+PASS: T330 遊艇碼頭內陸應被拒（需臨水）
+PASS: T330 電視塔存在時幸福構成應含「電視訊號」
+PASS: T335b AI 富裕城 300 天應蓋出 ≥3 種新樓（wants 輪轉防餓死），實得 16 種
+PASS: T336 SPR.bld 應生成 91_1_0
+PASS: T336 SPR.bld 應生成 92_1_0
+PASS: T336 SPR.bld 應生成 93_1_0
+PASS: T336 SPR.bld 應生成 94_1_0
+PASS: T336 溜冰場需冬季加倍幸福（反制冬季低落）
+PASS: T336 需能放大農場
+PASS: T336 大農場應建成
+PASS: T336 需能放貿易站
+PASS: T336 貿易站應建成
+PASS: T336 貿易經濟不得 NaN
+PASS: T336 有糧食盈餘時財政晶片應含「糧食出口」行，節錄： 💰 財政明細   💰 每日收入  🏠 住宅稅  +0  /日  🏪 商業稅  +0  /日  🏭 工業稅  +0  /日  🌾 農產  +11  /日  📦 糧食出口  +16  /日  💸 每日支出  📊 結算  每日
+PASS: T337 需可建地
+PASS: T337 工業應在 80 天內長出
+PASS: T337 應能點燃工業
+PASS: T337 工業應已燒毀
+PASS: T337 未投保應精確恆等 0，實得 0
+PASS: T337 需可建地
+PASS: T337 工業應在 80 天內長出
+PASS: T337 應能點燃工業
+PASS: T337 工業應已燒毀
+PASS: T337 投保燒毀一戶應精確理賠 +35，實得 35
+PASS: T337 保險18+營養午餐12=法規-30
+PASS: T338 CITY_EVENTS 應 ≥58 條，實得 58
+PASS: T338 缺事件 fireworks
+PASS: T338 缺事件 lanternfest
+PASS: T338 缺事件 streetart
+PASS: T339 幸福晶片應含市民需求聚合
+PASS: T339 缺需求項 娛樂
+PASS: T339 缺需求項 社交
+PASS: T339 缺需求項 健康
+PASS: T339 缺需求項 教育
+PASS: T340 SPR.bld 應生成 95_1_0
+PASS: T340 SPR.bld 應生成 96_1_0
+PASS: T340 SPR.bld 應生成 97_1_0
+PASS: T340 SPR.bld 應生成 98_1_0
+PASS: T340 SPR.bld 應生成 99_1_0
+PASS: T340 SPR.bld 應生成 100_1_0
+PASS: T340 SPR.bld 應生成 101_1_0
+PASS: T340 SPR.bld 應生成 102_1_0
+PASS: T340 SPR.bld 應生成 103_1_0
+PASS: T340 SPR.bld 應生成 104_1_0
+PASS: T340 游泳池需夏季加倍（與溜冰場成對）
+PASS: T340 瞭望塔弱火險 ×0.45
+PASS: T340 guesthouse 應找到位置
+PASS: T340 guesthouse 應建成
+PASS: T340 hostel 應找到位置
+PASS: T340 hostel 應建成
+PASS: T340 bigFarm 應找到位置
+PASS: T340 bigFarm 應建成
+PASS: T340 brewery 應找到位置
+PASS: T340 brewery 應建成
+PASS: T340 cgarden 應找到位置
+PASS: T340 cgarden 應建成
+PASS: T340 民宿8+青旅14=床位22，實得 22
+PASS: T340 入住=min(遊客,床位)（行中註釋殺手迴歸鎖）
+PASS: T340 有糧時財政晶片應含釀酒廠行
+PASS: T340 不得 NaN
+PASS: T341 巨廈/綜合體 sprite 鍵
+PASS: T341 巨廈人口＝九棟 lv3 總和×1.35
+PASS: T341 MSZ 需含 105:3/106:3（鐵律13）
+PASS: T341h 直接成形＋公園吸收規則需存在
+PASS: T341 1200 天內應有機長出摩天樓
+PASS: T341 1200 天內應有機進化出巨廈（鐵律7：乾淨流與髒歷史瀏覽器會分岔，實測乾淨流晚於 450）
+PASS: T341 巨廈 root sz=3＋8 ref 完整
+PASS: T341 巨廈稅收不得 NaN（鐵律14）
+PASS: T341 巨廈存檔應可讀回
+PASS: T341 巨廈 save→load 往返 root sz＋ref 全保留
+PASS: T341 讀檔後首 tick 人口/資金正常
+PASS: T342 SPR.bld 應生成 107_1_0
+PASS: T342 SPR.bld 應生成 108_1_0
+PASS: T342 SPR.bld 應生成 109_1_0
+PASS: T342 SPR.bld 應生成 110_1_0
+PASS: T342 SPR.bld 應生成 111_1_0
+PASS: T342 SPR.bld 應生成 112_1_0
+PASS: T342 SPR.bld 應生成 113_1_0
+PASS: T342 SPR.bld 應生成 114_1_0
+PASS: T342 SPR.bld 應生成 115_1_0
+PASS: T342 SPR.bld 應生成 116_1_0
+PASS: T342 火葬場容量入殯葬閉環
+PASS: T342 高中/大學城入 EDU 場
+PASS: T342 貨運站商業稅乘數
+PASS: T342 科技園產值＝教育閉環
+PASS: T342 資源回收廠應建成
+PASS: T342 再生鏈不得 NaN
+PASS: T345 KCB 類別映射表應存在
+PASS: T345 KCB 應涵蓋 k1..116（缺：）
+PASS: T345 應有 12 個類別，實得 12
+PASS: T345 KCAT 缺類別定義 R
+PASS: T345 KCAT 缺類別定義 C
+PASS: T345 KCAT 缺類別定義 I
+PASS: T345 KCAT 缺類別定義 G
+PASS: T345 KCAT 缺類別定義 E
+PASS: T345 KCAT 缺類別定義 S
+PASS: T345 KCAT 缺類別定義 D
+PASS: T345 KCAT 缺類別定義 W
+PASS: T345 KCAT 缺類別定義 A
+PASS: T345 KCAT 缺類別定義 H
+PASS: T345 KCAT 缺類別定義 T
+PASS: T345 KCAT 缺類別定義 F
+PASS: T345 k=1 應屬類別 R，實得 R
+PASS: T345 k=2 應屬類別 C，實得 C
+PASS: T345 k=3 應屬類別 I，實得 I
+PASS: T345 k=4 應屬類別 G，實得 G
+PASS: T345 k=5 應屬類別 E，實得 E
+PASS: T345 k=11 應屬類別 S，實得 S
+PASS: T345 k=12 應屬類別 H，實得 H
+PASS: T345 k=7 應屬類別 D，實得 D
+PASS: T345 k=17 應屬類別 T，實得 T
+PASS: T345 k=35 應屬類別 A，實得 A
+PASS: T345 k=22 應屬類別 F，實得 F
+PASS: T345 k=8 應屬類別 W，實得 W
+PASS: T345 徽記加蓋層需可由 __noBadge 關閉（A/B 像素驗證用）
+PASS: T345 懸停名稱標籤函式應存在
+PASS: T345 懸停標籤應被 draw 端呼叫
+PASS: T345 加蓋層需涵蓋獨立容器 SPR.park
+PASS: T345 加蓋層需涵蓋獨立容器 SPR.plant
+PASS: T345 加蓋層需涵蓋獨立容器 SPR.waterTower
+PASS: T345 加蓋層需涵蓋獨立容器 SPR.police
+PASS: T345 加蓋層需涵蓋獨立容器 SPR.hospital
+PASS: T345 加蓋層需涵蓋獨立容器 SPR.clinic
+PASS: T345 加蓋層需涵蓋獨立容器 SPR.policeBox
+PASS: T345 加蓋層片段應可擷取
+PASS: T345 徽記加蓋層不得消耗亂數（鐵律2）
+PASS: T345 指南應新增類別圖例分頁
+PASS: T345 圖例分頁分支應存在
+PASS: T346 SPR.bld 應生成 117_1_0
+PASS: T346 SPR.bld 應生成 118_1_0
+PASS: T346 SPR.bld 應生成 119_1_0
+PASS: T346 SPR.bld 應生成 120_1_0
+PASS: KCB 應存在
+PASS: T346 KCB 應涵蓋 k1
+PASS: T346 KCB 應涵蓋 k2
+PASS: T346 KCB 應涵蓋 k3
+PASS: T346 KCB 應涵蓋 k4
+PASS: T346 KCB 應涵蓋 k5
+PASS: T346 KCB 應涵蓋 k6
+PASS: T346 KCB 應涵蓋 k7
+PASS: T346 KCB 應涵蓋 k8
+PASS: T346 KCB 應涵蓋 k9
+PASS: T346 KCB 應涵蓋 k10
+PASS: T346 KCB 應涵蓋 k11
+PASS: T346 KCB 應涵蓋 k12
+PASS: T346 KCB 應涵蓋 k13
+PASS: T346 KCB 應涵蓋 k14
+PASS: T346 KCB 應涵蓋 k15
+PASS: T346 KCB 應涵蓋 k16
+PASS: T346 KCB 應涵蓋 k17
+PASS: T346 KCB 應涵蓋 k18
+PASS: T346 KCB 應涵蓋 k19
+PASS: T346 KCB 應涵蓋 k20
+PASS: T346 KCB 應涵蓋 k21
+PASS: T346 KCB 應涵蓋 k22
+PASS: T346 KCB 應涵蓋 k23
+PASS: T346 KCB 應涵蓋 k24
+PASS: T346 KCB 應涵蓋 k25
+PASS: T346 KCB 應涵蓋 k26
+PASS: T346 KCB 應涵蓋 k27
+PASS: T346 KCB 應涵蓋 k28
+PASS: T346 KCB 應涵蓋 k29
+PASS: T346 KCB 應涵蓋 k30
+PASS: T346 KCB 應涵蓋 k31
+PASS: T346 KCB 應涵蓋 k32
+PASS: T346 KCB 應涵蓋 k33
+PASS: T346 KCB 應涵蓋 k34
+PASS: T346 KCB 應涵蓋 k35
+PASS: T346 KCB 應涵蓋 k36
+PASS: T346 KCB 應涵蓋 k37
+PASS: T346 KCB 應涵蓋 k38
+PASS: T346 KCB 應涵蓋 k39
+PASS: T346 KCB 應涵蓋 k40
+PASS: T346 KCB 應涵蓋 k41
+PASS: T346 KCB 應涵蓋 k42
+PASS: T346 KCB 應涵蓋 k43
+PASS: T346 KCB 應涵蓋 k44
+PASS: T346 KCB 應涵蓋 k45
+PASS: T346 KCB 應涵蓋 k46
+PASS: T346 KCB 應涵蓋 k47
+PASS: T346 KCB 應涵蓋 k48
+PASS: T346 KCB 應涵蓋 k49
+PASS: T346 KCB 應涵蓋 k50
+PASS: T346 KCB 應涵蓋 k51
+PASS: T346 KCB 應涵蓋 k52
+PASS: T346 KCB 應涵蓋 k53
+PASS: T346 KCB 應涵蓋 k54
+PASS: T346 KCB 應涵蓋 k55
+PASS: T346 KCB 應涵蓋 k56
+PASS: T346 KCB 應涵蓋 k57
+PASS: T346 KCB 應涵蓋 k58
+PASS: T346 KCB 應涵蓋 k59
+PASS: T346 KCB 應涵蓋 k60
+PASS: T346 KCB 應涵蓋 k61
+PASS: T346 KCB 應涵蓋 k62
+PASS: T346 KCB 應涵蓋 k63
+PASS: T346 KCB 應涵蓋 k64
+PASS: T346 KCB 應涵蓋 k65
+PASS: T346 KCB 應涵蓋 k66
+PASS: T346 KCB 應涵蓋 k67
+PASS: T346 KCB 應涵蓋 k68
+PASS: T346 KCB 應涵蓋 k69
+PASS: T346 KCB 應涵蓋 k70
+PASS: T346 KCB 應涵蓋 k71
+PASS: T346 KCB 應涵蓋 k72
+PASS: T346 KCB 應涵蓋 k73
+PASS: T346 KCB 應涵蓋 k74
+PASS: T346 KCB 應涵蓋 k75
+PASS: T346 KCB 應涵蓋 k76
+PASS: T346 KCB 應涵蓋 k77
+PASS: T346 KCB 應涵蓋 k78
+PASS: T346 KCB 應涵蓋 k79
+PASS: T346 KCB 應涵蓋 k80
+PASS: T346 KCB 應涵蓋 k81
+PASS: T346 KCB 應涵蓋 k82
+PASS: T346 KCB 應涵蓋 k83
+PASS: T346 KCB 應涵蓋 k84
+PASS: T346 KCB 應涵蓋 k85
+PASS: T346 KCB 應涵蓋 k86
+PASS: T346 KCB 應涵蓋 k87
+PASS: T346 KCB 應涵蓋 k88
+PASS: T346 KCB 應涵蓋 k89
+PASS: T346 KCB 應涵蓋 k90
+PASS: T346 KCB 應涵蓋 k91
+PASS: T346 KCB 應涵蓋 k92
+PASS: T346 KCB 應涵蓋 k93
+PASS: T346 KCB 應涵蓋 k94
+PASS: T346 KCB 應涵蓋 k95
+PASS: T346 KCB 應涵蓋 k96
+PASS: T346 KCB 應涵蓋 k97
+PASS: T346 KCB 應涵蓋 k98
+PASS: T346 KCB 應涵蓋 k99
+PASS: T346 KCB 應涵蓋 k100
+PASS: T346 KCB 應涵蓋 k101
+PASS: T346 KCB 應涵蓋 k102
+PASS: T346 KCB 應涵蓋 k103
+PASS: T346 KCB 應涵蓋 k104
+PASS: T346 KCB 應涵蓋 k105
+PASS: T346 KCB 應涵蓋 k106
+PASS: T346 KCB 應涵蓋 k107
+PASS: T346 KCB 應涵蓋 k108
+PASS: T346 KCB 應涵蓋 k109
+PASS: T346 KCB 應涵蓋 k110
+PASS: T346 KCB 應涵蓋 k111
+PASS: T346 KCB 應涵蓋 k112
+PASS: T346 KCB 應涵蓋 k113
+PASS: T346 KCB 應涵蓋 k114
+PASS: T346 KCB 應涵蓋 k115
+PASS: T346 KCB 應涵蓋 k116
+PASS: T346 KCB 應涵蓋 k117
+PASS: T346 KCB 應涵蓋 k118
+PASS: T346 KCB 應涵蓋 k119
+PASS: T346 KCB 應涵蓋 k120
+PASS: T346 新建築類別歸屬
+PASS: T346 天然氣供給式
+PASS: T346 天然氣需求式（化肥/廚房/食品加工）
+PASS: T346 化肥產出受氣供比例限制
+PASS: T346 化肥覆蓋→農場 ×1.35
+PASS: T346 熟食→住宅幸福
+PASS: T346 工資指數
+PASS: T346d 工資乘數應已撤除（不得再乘商業稅）
+PASS: T346 工資指數應仍在統計面板顯示
+PASS: T346d 攢錢模式分區預算須為 4（貧困陷阱結構性解）
+PASS: T347 紓困急救已撤除（定量實測會壓垮邊際城市：seed22 2572→504）
+PASS: T346 銀行房貸利息
+PASS: T346 稅收守衛需擴至 k120（鐵律14）
+PASS: T346 MSZ 需含 118/119（鐵律13）
+PASS: T346 wants 應含 gaswell
+PASS: T346b gaswell 必須有 fin.net 閘門（AI 進階支出不得擊穿 poor 線）
+PASS: T346 wants 應含 fertplant
+PASS: T346b fertplant 必須有 fin.net 閘門（AI 進階支出不得擊穿 poor 線）
+PASS: T346 wants 應含 kitchen
+PASS: T346b kitchen 必須有 fin.net 閘門（AI 進階支出不得擊穿 poor 線）
+PASS: T346 wants 應含 fishfarm
+PASS: T346b fishfarm 必須有 fin.net 閘門（AI 進階支出不得擊穿 poor 線）
+PASS: T346 油田格應可建天然氣井
+PASS: T346 一座天然氣井應供 8，實得 8
+PASS: T346 需求與供需比應成立
+PASS: T346 有氣有化肥廠應產化肥
+PASS: T346 鏈條經濟不得 NaN（鐵律14）
+PASS: T346 非油田格應拒建天然氣井
+PASS: T364b KNAME 應含 k121
+PASS: T364b TOOLS 應含 refinery
+PASS: T364b COST 應含 refinery
+PASS: T364b MSZ 應含 k121 的 3×3 footprint
+PASS: T364b k121 應歸工業類別
+PASS: T364b KNAME 應含 k122
+PASS: T364b TOOLS 應含 steelMill
+PASS: T364b COST 應含 steelMill
+PASS: T364b MSZ 應含 k122 的 3×3 footprint
+PASS: T364b k122 應歸工業類別
+PASS: T364b KNAME 應含 k123
+PASS: T364b TOOLS 應含 shipyard
+PASS: T364b COST 應含 shipyard
+PASS: T364b MSZ 應含 k123 的 3×3 footprint
+PASS: T364b k123 應歸工業類別
+PASS: T364b 小地圖色必須顯式對齊 k121，不可依尾端 push
+PASS: T364b 小地圖色必須顯式對齊 k122，不可依尾端 push
+PASS: T364b 小地圖色必須顯式對齊 k123，不可依尾端 push
+PASS: T364b const SZC= 必須含三座 3×3（不可只補 MSZ）
+PASS: T364b const SZB= 必須含三座 3×3（不可只補 MSZ）
+PASS: T364b k121 必須是 416×440 raw／sc=.5／night，實得 {"w":416,"h":440,"ax":208,"ay":436,"sc":0.5,"night":true}
+PASS: T364b k122 必須是 416×440 raw／sc=.5／night，實得 {"w":416,"h":440,"ax":208,"ay":436,"sc":0.5,"night":true}
+PASS: T364b k123 必須是 416×440 raw／sc=.5／night，實得 {"w":416,"h":440,"ax":208,"ay":436,"sc":0.5,"night":true}
+PASS: T364b 素材必須位於 buildSprites 絕對尾端
+PASS: T364b 尾端素材必須補 T261/T291/T345 對稱後處理，且 raw sc 幾何不得縮成 1×
+PASS: T364b 三座素材必須保留美術規格錨：AO base skirt
+PASS: T364b 三座素材必須保留美術規格錨：冷頂高光
+PASS: T364b 三座素材必須保留美術規格錨：暖立面
+PASS: T364b 三座素材必須保留美術規格錨：功能細節
+PASS: T364b 尾端素材不得讀共用亂數或接粒子管線
+PASS: T364b 排氣只應對完工 k121 root 生效
+PASS: T364b 排氣不得進共用亂數或粒子管線
+PASS: T364b 中繼退修仍須保留 __noRefineryFx，且 fuel=0 時完全不畫排氣
+PASS: T364b 中繼退修：低燃料可見度地板 .68，排氣固定為 8 團
+PASS: T364b 中繼退修：排氣須有放大上升、深色外緣與冷白內芯
+PASS: T364b raw sc 僅校正煙囪錨點，不得把世界排氣半徑或上升高度再縮半
+PASS: T364b 深加工結算區塊應有成對邊界
+PASS: T364b 深加工結算不得讀共用亂數或接粒子管線
+PASS: T364b 3×3 ref 格原有樹木必須撤銷 POLTREE，不能留下幽靈減污
+PASS: T364b refinery 應成功建造
+PASS: T364b refinery root 應為 k121/sz3
+PASS: T364b refinery ref(1,0) 應回指 root
+PASS: T364b refinery ref(2,0) 應回指 root
+PASS: T364b refinery ref(0,1) 應回指 root
+PASS: T364b refinery ref(1,1) 應回指 root
+PASS: T364b refinery ref(2,1) 應回指 root
+PASS: T364b refinery ref(0,2) 應回指 root
+PASS: T364b refinery ref(1,2) 應回指 root
+PASS: T364b refinery ref(2,2) 應回指 root
+PASS: T364b steelMill 應成功建造
+PASS: T364b steelMill root 應為 k122/sz3
+PASS: T364b steelMill ref(1,0) 應回指 root
+PASS: T364b steelMill ref(2,0) 應回指 root
+PASS: T364b steelMill ref(0,1) 應回指 root
+PASS: T364b steelMill ref(1,1) 應回指 root
+PASS: T364b steelMill ref(2,1) 應回指 root
+PASS: T364b steelMill ref(0,2) 應回指 root
+PASS: T364b steelMill ref(1,2) 應回指 root
+PASS: T364b steelMill ref(2,2) 應回指 root
+PASS: T364b 應找到臨水 3×3 造船廠位置
+PASS: T364b shipyard 應成功建造
+PASS: T364b shipyard root 應為 k123/sz3
+PASS: T364b shipyard ref(1,0) 應回指 root
+PASS: T364b shipyard ref(2,0) 應回指 root
+PASS: T364b shipyard ref(0,1) 應回指 root
+PASS: T364b shipyard ref(1,1) 應回指 root
+PASS: T364b shipyard ref(2,1) 應回指 root
+PASS: T364b shipyard ref(0,2) 應回指 root
+PASS: T364b shipyard ref(1,2) 應回指 root
+PASS: T364b shipyard ref(2,2) 應回指 root
+PASS: T364b 應找到可建 3×3 但不鄰水的內陸位置
+PASS: T364b 造船廠內陸必須被拒
+PASS: T364b 含三座新廠的存檔應可讀回
+PASS: T364b load 後 refinery root 應保留
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 steelMill root 應保留
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 shipyard root 應保留
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b load 後 ref 應重建
+PASS: T364b 應可從 ref 格拆除 3×3 煉油廠
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b ref 格 doze 後整座煉油廠應清空
+PASS: T364b 無鋼鐵廠/鋼材時 upCost 位元維持舊公式
+PASS: T364b seed9 應同時有可用油田與礦藏
+PASS: T364b 油田格應可建油井
+PASS: T364b 礦藏格應可建礦場
+PASS: T364b 鏈條應可建煉油廠
+PASS: T364b 鏈條應可建鋼鐵廠
+PASS: T364b 鏈條應可建造船廠
+PASS: T364b 鏈條應可建港口
+PASS: T364b 油→燃料→工業稅加成鏈必須真跑；貨運加成改 T418 供油率語義（無貨運中心=×1 惰性）
+PASS: T364b 礦→鋼→工業稅加成鏈必須真跑
+PASS: T364b 造船廠必須真耗鋼並產生港貿收益
+PASS: T364b 鋼材 >0 時 upCost 輸出比值必須恰為 0.85（280→238）
+PASS: T364b 含鋼材存量的存檔應可讀回
+PASS: T364b steel364 存讀後必須保留鋼材與 .85 upCost 效果
+PASS: T364b 深加工鏈不得產生 NaN
+PASS: T364b 中繼退修應可載入 fuel=0 的舊城狀態
+PASS: T364b fuel=0 時不得畫任何 k121 排氣
+PASS: T364b 中繼退修應可載入 fuel=20 低庫存狀態
+PASS: T364b fuel=20／zoom2 必須有決定性且可見的排氣團，實得 16
+PASS: T364b 中繼退修應可載入 fuel=120 滿庫存狀態
+PASS: T364b fuel=120／zoom2 排氣團數不得低於低庫存，實得 16／16
+PASS: T418 惰性閘釘：貨運耗油必須 frt342>0 才執行（無貨運=零耗油零副作用）
+PASS: T418 惰性閘釘（T418b SK-3 跟版）：鋼加速必須鋼鐵廠存在才執行（兩釘軌跡 millN=0 恆等；額度改鋼廠吞吐＋庫存出料，滿倉不停擺）
+PASS: T418 惰性閘釘：造船進度必須耗鋼且無港不造
+PASS: T418 視覺釘（T418a A2 跟版）：lifeShips 貨輪＝港口保底 1 艘＋艦隊撐第 2 艘（舊城不歸零；tick→draw 單向讀，不新增 vri 呼叫點）
+PASS: T418 存檔釘：shipCount 僅非零落盤（T364b fuel364 慣例，既有城市 bytes 不變）
+PASS: T418 零亂數（段1 深加工鏈/fuel 流化/船兌換）：注入 R() 必紅
+PASS: T418 零亂數（段2 鋼加速）：注入 R() 必紅
+PASS: T418 零亂數（段3 lifeShips want 行）：注入 R() 必紅
+PASS: T418 零亂數（段4 fuel 出口）：注入 R() 必紅
+PASS: T418 seed9 應有油田與礦藏
+PASS: T418 應可建油井
+PASS: T418 應可建煉油廠
+PASS: T418 無貨運中心/無貿易站：fuel 積累但零耗油、貨運乘數 ×1、零出口（惰性），實得 use=0 mul=1
+PASS: T418 應可建貨運站
+PASS: T418 貨運每日耗油 ∈(0,2] 且供油率→乘數 ∈(1,1.08]，實得 use=2 mul=1.08
+PASS: T418 應可建貿易站
+PASS: T418 盈餘經貿易站出口（≤4/日），實得 3
+PASS: T418 cap 案應可建油井（覆核：漏蓋油井=假綠）
+PASS: T418 cap 案應可建煉油廠
+PASS: T418 cap 語義：有油井無貨運無貿易站 fuel 精確 ===120 後 fuelMade=0（既有語義不破），實得 fuel=120 made=0
+PASS: T418 應有 6 處空地可建公園施工樓
+PASS: T418 應有 6 處空地可建公園施工樓
+PASS: T418 應有 6 處空地可建公園施工樓
+PASS: T418 應有 6 處空地可建公園施工樓
+PASS: T418 應有 6 處空地可建公園施工樓
+PASS: T418 應有 6 處空地可建公園施工樓
+PASS: T418 無鋼鐵廠：施工樓每日 age+1 且恆整數（9 天基準不變；坑② 禁小數），實得 3,3,3,3,3,3
+PASS: T418 應可建礦場
+PASS: T418 應可建鋼鐵廠
+PASS: T418 鋼加速：3 日總耗鋼恰 6（＝鋼廠日吞吐 2×3；刪 b.age++／額度歸零→cu 0→紅）＋六公園總 age 增量 >18（主循環 18 之外真有加速；F1 退修後部分額度由礦場/鋼廠自身施工吃掉＝故用下界不寫死）＋恆整數（坑②），實得 cu=6 sumΔ=21 ages=6,6,6,6,7,8
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有 8 處空地
+PASS: T418 上限案應有礦藏
+PASS: T418 上限案應可建鋼鐵廠
+PASS: T418 上限真的是上限：3 天總加速（含鋼廠自身）6 ≤ 總額度 6（鋼鐵廠產出=每日加速額度）
+PASS: T418 船案應可建礦場
+PASS: T418 船案應可建鋼鐵廠
+PASS: T418 船案應可建船廠
+PASS: T418 0 港不造：船廠耗鋼但無港口不得累積進度/造艦，實得 progress=0
+PASS: T418 船案應可建港口
+PASS: T418 進度跨日累積：30 鋼未滿不造艦，實得 progress=20
+PASS: T418 30 鋼=1 船（階梯），實得 count=1 progress=10
+PASS: T418 上限真的是上限：1 港口=2 船，實得 2
+PASS: T418 chain346 擴欄不得出現 NaN/Infinity
+PASS: T418 含船狀態存檔應可讀回
+PASS: T418 存讀往返恆等：shipCount/shipProgress 保存後應逐字一致（實得 2/0 vs 2/0）
+PASS: T418 舊檔剝欄 load 應成功
+PASS: T418 舊檔剝欄：缺 shipCount/shipProgress 欄位→0（實得 0/0）
+PASS: T418 面板 flowStat 擴欄不得出現 NaN/Infinity/undefined，實得 {"sc":0,"sp":1,"fu":0}
+PASS: T418 兌換案應可建礦場
+PASS: T418 兌換案應可建鋼鐵廠
+PASS: T418 兌換案應可建第一座船廠
+PASS: T418 兌換案應可建第二座船廠
+PASS: T418 兌換案應可建港口
+PASS: T418 兌換案注入 load 應成功
+PASS: T418 船完整兌換：同日 60 鋼=2 艘＋進度 0（單次兌換破壞→1 艘＋30→紅），實得 +2 艘 progress=0
+PASS: T418 歸零案 A 城應可建油井
+PASS: T418 歸零案 A 城應可建礦場
+PASS: T418 歸零案 A 城應可建煉油廠
+PASS: T418 歸零案 A 城應可建鋼鐵廠
+PASS: T418 歸零案 A 城應可建船廠
+PASS: T418 歸零案 A 城應可建港口
+PASS: T418 歸零案 A 城應可建貨運站
+PASS: T418 歸零案 A 城應可建貿易站
+PASS: T418 歸零案前置：A 城三欄皆非零（fuelUse=2 fuelExport=1 shipDaily=12）——單欄刪除突變各自可咬
+PASS: T418 歸零案：不經 newWorld 直接 load B 存檔應成功
+PASS: T418 load 每日快照歸零：A 城非零快照直接 load B 存檔後未 tick 三欄必須 0（實得 0/0/0）
+PASS: T418a P1 常數原文釘：貨運耗油/出口率/出口價（F5 下界漂移→紅）
+PASS: T418a P2 常數原文釘：船三常數（F5 下界漂移→紅）
+PASS: T418a P3 income 原文釘：船隊日收入＋出口金必須入 income（F2 拔行→紅）
+PASS: T418a P4 真分流原文釘：施工加速必須 steel--（A1 裁決：退回雙重計帳→紅）
+PASS: T418a P5 耗油扣減原文釘（F3 拔扣減→白拿乘數＋同油轉賣→紅）
+PASS: T418a P6 貨輪保底原文釘：港口民用航運基線 1 艘（A2 裁決：舊城歸零→紅）
+PASS: T418a F2 前置：seed913 應有油/礦資源格
+PASS: T418a F2 錢包絕對值：冷凍全鏈城 d65 Δmoney 恰 −42（＝船 12＋出口 2＋港貨 5−固定維護 61；income 拔船金/出口金或 SHIP_DAILY_GOLD/FUEL_EXPORT_GOLD 歸零→紅），實得 -42
+PASS: T418a F2 鏡像恆等：shipDaily===shipCount×6，實得 12/2
+PASS: T418a F5 上限：1 港 60 天後恆 2 船，實得 2
+PASS: T418a F5 滿供恰等：1 貨運 fuelUse===2（FREIGHT_FUEL_USE 下修→紅），實得 2
+PASS: T418a F5 出口恰等（帶貨運保留）：盈餘 1 油/日全出，實得 1
+PASS: T418a F2 錢包絕對值：冷凍全鏈城 d66 Δmoney 恰 −42（＝船 12＋出口 2＋港貨 5−固定維護 61；income 拔船金/出口金或 SHIP_DAILY_GOLD/FUEL_EXPORT_GOLD 歸零→紅），實得 -42
+PASS: T418a F2 鏡像恆等：shipDaily===shipCount×6，實得 12/2
+PASS: T418a F5 上限：1 港 60 天後恆 2 船，實得 2
+PASS: T418a F5 滿供恰等：1 貨運 fuelUse===2（FREIGHT_FUEL_USE 下修→紅），實得 2
+PASS: T418a F5 出口恰等（帶貨運保留）：盈餘 1 油/日全出，實得 1
+PASS: T418a F2 錢包絕對值：冷凍全鏈城 d67 Δmoney 恰 −42（＝船 12＋出口 2＋港貨 5−固定維護 61；income 拔船金/出口金或 SHIP_DAILY_GOLD/FUEL_EXPORT_GOLD 歸零→紅），實得 -42
+PASS: T418a F2 鏡像恆等：shipDaily===shipCount×6，實得 12/2
+PASS: T418a F5 上限：1 港 60 天後恆 2 船，實得 2
+PASS: T418a F5 滿供恰等：1 貨運 fuelUse===2（FREIGHT_FUEL_USE 下修→紅），實得 2
+PASS: T418a F5 出口恰等（帶貨運保留）：盈餘 1 油/日全出，實得 1
+PASS: T418a F5 首船邊界 d29：count 0/prog 29（SHIP_STEEL 漂移→紅），實得 0/29
+PASS: T418a F5 首船邊界 d30：count 1/prog 0，實得 1/0
+PASS: T418a F5 雙港跑滿：2 港上限恰 4（SHIP_PORT_CAP 下修→紅），實得 4
+PASS: T418a F5c 前置：seed923 應有兩油格
+PASS: T418a F5 出口恰等：大盈餘 1 貿易站 export===4（FUEL_EXPORT_RATE 下修→紅），實得 4
+PASS: T418a F4 半供恰等：需 6 供 3 → mul 恰 1+(1.08−1)×0.5（比例式退回純開關→紅），實得 1.04
+PASS: T418a F3 fuel 守恆 d1：fuel[d]===fuel[d−1]+made−use−export（拔任一扣減行→永動金礦→紅），實得 1 vs 1
+PASS: T418a F3 steel 守恆 d1：steel[d]===steel[d−1]+made−shipUse−constrUse（A1 拔 steel--→雙重計帳→紅），實得 0 vs 0
+PASS: T418a F3 fuel 守恆 d2：fuel[d]===fuel[d−1]+made−use−export（拔任一扣減行→永動金礦→紅），實得 2 vs 2
+PASS: T418a F3 steel 守恆 d2：steel[d]===steel[d−1]+made−shipUse−constrUse（A1 拔 steel--→雙重計帳→紅），實得 0 vs 0
+PASS: T418a F3 fuel 守恆 d3：fuel[d]===fuel[d−1]+made−use−export（拔任一扣減行→永動金礦→紅），實得 2 vs 2
+PASS: T418a F3 steel 守恆 d3：steel[d]===steel[d−1]+made−shipUse−constrUse（A1 拔 steel--→雙重計帳→紅），實得 0 vs 0
+PASS: T418a F3 fuel 守恆 d4：fuel[d]===fuel[d−1]+made−use−export（拔任一扣減行→永動金礦→紅），實得 2 vs 2
+PASS: T418a F3 steel 守恆 d4：steel[d]===steel[d−1]+made−shipUse−constrUse（A1 拔 steel--→雙重計帳→紅），實得 0 vs 0
+PASS: T418a F3 fuel 守恆 d5：fuel[d]===fuel[d−1]+made−use−export（拔任一扣減行→永動金礦→紅），實得 2 vs 2
+PASS: T418a F3 steel 守恆 d5：steel[d]===steel[d−1]+made−shipUse−constrUse（A1 拔 steel--→雙重計帳→紅），實得 0 vs 0
+PASS: T418a F3 fuel 守恆 d6：fuel[d]===fuel[d−1]+made−use−export（拔任一扣減行→永動金礦→紅），實得 2 vs 2
+PASS: T418a F3 steel 守恆 d6：steel[d]===steel[d−1]+made−shipUse−constrUse（A1 拔 steel--→雙重計帳→紅），實得 0 vs 0
+PASS: T418a A1 競爭案：六日施工耗鋼合計恰 6（造船先吃 1/日、施工吃餘 1/日），實得 6
+PASS: T418a A1 工期兩臂（同種子同日）：有鋼 4 天 age===9（完工）vs 無鋼 age===5（刪 b.age++ 或 cap418 歸零→左臂掉到 5→紅），實得 9/5
+PASS: T418b SK-1 原文釘：upCost 折扣讀本日快照（改回活庫存→面板/選單再度矛盾→紅）
+PASS: T418b SK-1 原文釘：快照與 steelTaxMul 同時點取值（造船後、施工前）
+PASS: T418b SK-1 原文釘：T369 折扣列讀同一快照（面板/選單口徑一致）
+PASS: T418b SK-3 原文釘：額度=鋼廠吞吐、料源=庫存（退回「額度=當日產量」→滿倉停擺→紅）
+PASS: T418b SK-4＋F1 原文釘：輪轉基數＝施工中合格子集（退回 day%tickBld.length 全建築基數→大城每日只爬 1 格＝北端特權換名不換實→紅）
+PASS: T418b SK-2 原文釘：flowStat 鋼帳含施工欄
+PASS: T418b SK-2 原文釘：資源面板鋼帳四段＋T369 施工耗鋼列（鋼不再憑空消失）
+PASS: T418b SK-6 絕跡釘：fin 364/418 鏡像 15 欄已整組刪除（零讀者的跨城殘留欄不得復活）
+PASS: T418b B1 前置：seed942 應有礦格
+PASS: T418b B1 折扣臂：施工把日終庫存吃到 0，快照口徑下升級費仍 382.5（=450×0.85；改回讀活庫存→450→紅），實得 steel=0 cu=2 up=382.5
+PASS: T418b B1 無鋼臂：同種子同日無鋼廠升級費原價 450，實得 450
+PASS: T418b B1b 前置：A 城有鋼折扣態為真
+PASS: T418b B1b：直接 load 無鋼 B 檔應成功
+PASS: T418b B1b load 推導方向：從有鋼城直接載入無鋼存檔，未 tick 前折扣態必須為假（450；load 端改 steelDisc418=true 或殘留前城快照→382.5→紅），實得 450
+PASS: T418b B2 滿倉臂 d1：cap 頂滿 made 0 但施工照樣從庫存出料（cu 1/steel 119/age 3；退回「額度=當日產量」→停擺→紅），實得 0/1/119/3
+PASS: T418b B2 滿倉臂 d2：消耗騰出 1 格產能（made 1/cu 1/steel 119/age 5），實得 1/1/119/5
+PASS: T418b SK-2 行為：flowStat 施工欄===當日 constrUse（面板帳平），實得 1
+PASS: T418b B3 輪轉分配（F1 退修後：輪轉基數＝施工中合格子集）：8 日 12 棟兩排 age 陣列恰等——南排 y=40 也吃到加速；退回恆自 0 起掃→北排獨吞（實測 13,13,11,11,10,10,9,9,9,9,9,9）→紅，實得 10,10,10,11,11,11,11,10,10,9,9,10
+PASS: T418b B3b 前置：應找到有礦種子
+PASS: T418b B3b 大城公平性：167 根建築城 12 日後南端（y=60）必須拿到加速鋼（純自然=13；SK-4 初版 day%tickBld.length 每日只爬 1 格→南端恆 13 零加速，與恆北序逐位相同→紅），實得 south min/max 13/14 north avg 14.53
+PASS: T418b B4 全滅臂：雙造船廠吃光日產（shipyardN≥steelMade）＋零庫存→施工加速全停（cu 0/age 5＝實效邊界入檔），實得 0/5
+PASS: T418b B4 庫存臂：庫存 50 下競爭仍可加速（cu 4/age 9/steel 46＝SK-3 庫存出料的正面證明），實得 4/9/46
+PASS: T418b B5 往返位元恆等：4 格合法布局鏈城 save→load→save 逐位一致（2 格間距=讀檔非法城會互蓋樓，SK-8 布局契約），len 6214/6214
+PASS: T421 nightCity：__t421NcN 基線在場（bake 尾賦值）
+PASS: T421 nightCity：sprAtlas356 帶 nightCity 的 entries 數恰等基線 N（實得 atlas=203 base=203）
+PASS: T421 nightCity：__t420SPR 橋在場
+PASS: T421 nightCity 引用恆等：bake 後畫布物件不得被替換（鍵 ）
+PASS: T421 nightCity 尺寸 meta 恆等：
+PASS: T421 nightCity 比較器：替換 bld nightCity 必須可偵測
+PASS: T421 nightCity：烘焙開啟時 N>50（整段刪 bake 會紅），實得 203
+PASS: T420 G1 位置：pass 必須位於 T413b else 分支完整字面（含 BakeCount=0 重設群）之後、R=__savedR 之前，且 T413b 與 pass 之間不得插入 R 還原（搬進 else/搬到 R 之後/中間插還原皆紅）
+PASS: T420 G1b 分檔位：pass 正文不得出現 quality/lod/dpr（卡面第 5 節守衛 5 原文前哨）
+PASS: T420 G2 metadata 直讀：SPR.bld 全鍵 record 可直讀（w/h/ax/ay/sc 原值）
+PASS: T420 G2 metadata 恆等：26_1_1/2（w64/h112/ax32/ay110）與 29_1_1/2（w72/h112/ax36/ay110）record 原值恰等量測；改 record 欄位即紅
+PASS: T420 G3 前置：__t420Replay 重放橋存在（harness 注入）
+PASS: T420 G3 落筆觀測（只是下界，主斷言在 G5 rect 逐筆恰等）：T417 真像素重放白名單鍵，每鍵 ops/ink ≥ 帳本下界（26_1_1/2 ops≥4/ink≥45；29_1_1/2 ops≥5/ink≥24；刪 fillRect 或只 push 不畫皆紅），實得 {"a":"4:45","b":"4:45","c":"5:24","d":"5:24"}
+PASS: T420 G4 前置C 機器版：pass 落筆不得覆蓋重點細節座標（命中 ；26_1_1/2 航警燈 31-32,34-35；29_1_1/2 紅桶燈 51-53,101 與中心豎管 x36）
+PASS: T420 G5 落筆：每鍵 rect 集合逐筆恰等帳本 rect 表（座標差 1px／尺寸差 1px／少一筆／多一筆即紅；覆核 F1 實測 ay-56→ay-52 與 9,1→27,3 皆綠的破口已關）
+PASS: T420 G5 計數（第二層）：__t420Ink 恰等帳本常數 rects=18／px=138（R01 8+90＋R03 10+48；主斷言在上方 rect 逐筆恰等，此為手寫字面量第二層）
+PASS: T420 G5 幾何：pass 每個 fillRect 落在 [0,w)×[0,h) 內（整組平移出界即紅）
+PASS: T420 G6 落筆恆等：R01+R03 落筆恰等帳本常數 rects=18／px=138（空骨架 0 或 多畫即紅，實得 {"rects":18,"px":138}）
+PASS: T421 G1 位置：pass 必須位於 T420 ART-LOOP END 之後、R=__savedR 之前（不得塞進 T420 受管區）
+PASS: T421 G1b 分檔位：pass 正文不得出現 quality/lod/dpr
+PASS: T421 G2 metadata 恆等：白名單鍵 w/h/ax/ay
+PASS: T421 G3 前置：__t421Replay 重放橋存在
+PASS: T421 G3 落筆觀測 ops/ink，實得 {"14_1_1":"8:43","14_1_2":"8:43","14_1_3":"6:58","14_1_4":"6:58","15_1_1":"6:49","15_1_2":"6:49","15_1_3":"6:49","15_1_4":"6:49","16_1_1":"0:0","16_1_2":"0:0","16_1_3":"6:76","16_1_4":"6:76","17_1_1":"6:76","17_1_2":"6:76","17_1_3":"6:66","17_1_4":"6:66","18_1_1":"6:112","18_1_2":"6:112","18_1_3":"6:94","18_1_4":"6:94","20_1_1":"6:116","20_1_2":"6:116","21_1_1":"6:68","21_1_2":"6:68","21_1_3":"6:76","21_1_4":"6:76","27_1_1":"6:104","27_1_2":"6:104","29_1_3":"6:110","29_1_4":"6:110"}
+PASS: T421 G4 前置C：不得覆蓋 ≤16px 細節（命中 ）
+PASS: T421 G5 落筆：rect 逐筆恰等 
+PASS: T421 G5 計數 rects=172/px=2194（R05 16_1_1/2 退修撤回 −12/−144）
+PASS: T421 G5 幾何：pass 每個 fillRect 落在對應畫布 [0,w)×[0,h) 內（整組平移出界即紅）
+PASS: T421 G6 落筆恆等 rects=172/px=2194 實得 {"rects":172,"px":2194}
+PASS: T423 R01 HUD tween：tween 引擎＋updHud 改寫＋flash CSS 皆存在（刪任一即紅）
+PASS: T423 R01 HUD 數值源：tween 目標必須直接讀模擬變數 money/pop/jobs（改讀假值即紅）
+PASS: T423 R01 HUD tween 寫入：動畫只寫 textContent（顯示層），不碰模擬變數
+PASS: T423 R01 HUD 純顯示：updHud 內不得呼叫 tick（UI 不得觸發模擬）
+PASS: T423 R02 面板頭：panelHead/panelEmpty 輔助函式存在（刪任一即紅）
+PASS: T423 R02 面板樣式：.phead/.empty CSS 存在
+PASS: T423 R02 遷移示範：showSlots 已改用 panelHead（h3 直寫 → 統一頭部）
+PASS: T423 R02 空態：showSlots 已接 panelEmpty（空槽提示）
+PASS: T423 R03 設定網格：.settingsGrid/.sgIc/.sgLb CSS 存在（刪任一即紅）
+PASS: T423 R03 設定卡片：mkSet 輔助函式存在（icon＋label 兩行構造）
+PASS: T423 R03 設定卡片：五鈕（災害/畫質/地圖/類別/夜景）已掛進 settingsGrid
+PASS: T423 R03 設定卡片：夜景鈕 id 與持久化鍵保留（T413b 契約不破）
+PASS: T423 R04 toast 色條：.toast::before 左緣色條存在（分類指示）
+PASS: T423 R04 toast 動效：tin 滑入含 scale（現代化進場）
+PASS: T423 R04 工具 hover：工具 title 含「名稱・分類」提示（刪即紅）
+PASS: T423 R04 工具 hover：catNm 由 TOOL_CATS 即時查表（不硬寫分類）
+PASS: T423 R05 成就面板頭：showAch 已用 phead＋計數徽記（與 panelHead 視覺一致）
+PASS: T423 R05 滾動條：Firefox scrollbar-width/color 同款（跨瀏覽器一致）
+PASS: T423 R06 安全區：HUD 頂部 safe-area-inset-top（瀏海屏）
+PASS: T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）
+PASS: T424 G0 前置：HERO_PIX 表區塊可定位（const HERO_PIX={ … } 段落）
+PASS: T424 G6 鍵集：HERO_PIX 共 57 鍵（白名單 3＋白名單外 54）不增不減，實得 54
+FAIL: T424 G1 幾何：三鍵 w/h/ox/oy 恰等帳本（6_1_0=56,71,8,37／7_1_0=56,64,8,44／11=57,55,9,55；改任一即紅），實得 ["6_1_0"]

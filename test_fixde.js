@@ -5812,6 +5812,41 @@ runPwaTests().then(() => {
       'T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）');
   }
 
+  { // ===== T424 TheoTown 風三鍵美術特化卡：HERO_PIX 三鍵重繪守衛（G1-G6；純讀表＋表驅動像素計數，不依賴重放橋） =====
+    const GEOM424={ '6_1_0':[56,71,8,37], '7_1_0':[56,64,8,44], '11':[57,55,9,55] };
+    const LEDG424={ '6_1_0':[71,16,2,1673,28], '7_1_0':[64,22,4,1521,158], '11':[55,21,5,2393,29] }; // [rows, pal色數, palN數, 日像素, 夜像素]
+    const SHA_OUT424='cfb05e19a786abfce3a6f60d7c9e17f6e83b3be2a320fbc9ad7722d74ea17fa3';
+    const mHero424=html.match(/const HERO_PIX=\{\n([\s\S]*?)\n\};/);
+    assert(!!mHero424,'T424 G0 前置：HERO_PIX 表區塊可定位（const HERO_PIX={ … } 段落）');
+    const heroLines424=mHero424[1].split('\n').filter(l=>l.trim());
+    const wl424=new Set(['6_1_0','7_1_0','11']);
+    let outStr424='', nOut424=0;
+    const g1=[],g2=[],g3=[],g4=[];
+    for(const l of heroLines424){
+      const km=l.match(/^\s*'([^']+)':\{/);
+      if(!km)continue;
+      const k=km[1];
+      if(!wl424.has(k)){ outStr424+=l.trim(); nOut424++; continue; }
+      const d=eval('({'+l.trim().replace(/,$/,'')+'})')[k];
+      const [w,h,ox,oy]=GEOM424[k];
+      if(d.w!==w||d.h!==h||d.ox!==ox||d.oy!==oy)g1.push(k);
+      if(d.rows.length>h||d.rows.some(r=>r.length>w))g2.push(k);
+      if(!Object.keys(d.palN).every(s=>Object.prototype.hasOwnProperty.call(d.pal,s)))g3.push(k);
+      let day=0,night=0;
+      for(const r of d.rows)for(const c of r){if(c==='.')continue;day++;if(c in d.palN)night++;}
+      const [rows,pn,pnn,dayX,nightX]=LEDG424[k];
+      if(d.rows.length!==rows||Object.keys(d.pal).length!==pn||Object.keys(d.palN).length!==pnn||day!==dayX||night!==nightX)
+        g4.push(k+':'+d.rows.length+'/'+Object.keys(d.pal).length+'/'+Object.keys(d.palN).length+'/'+day+'/'+night);
+    }
+    assert(nOut424===54,'T424 G6 鍵集：HERO_PIX 共 57 鍵（白名單 3＋白名單外 54）不增不減，實得 '+nOut424);
+    assert(g1.length===0,'T424 G1 幾何：三鍵 w/h/ox/oy 恰等帳本（6_1_0=56,71,8,37／7_1_0=56,64,8,44／11=57,55,9,55；改任一即紅），實得 '+JSON.stringify(g1));
+    assert(g2.length===0,'T424 G2 界內：每鍵 rows 行數≤h 且每行≤w（超界即紅），實得 '+JSON.stringify(g2));
+    assert(g3.length===0,'T424 G3 夜燈引用：palN 鍵 ⊆ pal 鍵（drawHeroPix 夜間渲染合法性），實得 '+JSON.stringify(g3));
+    assert(g4.length===0,'T424 G4 像素帳：表驅動像素計數恰等帳本（行數/色票數/夜燈數/日像素/夜像素逐值），實得 '+JSON.stringify(g4));
+    const sha424=crypto.createHash('sha256').update(outStr424).digest('hex');
+    assert(sha424===SHA_OUT424,'T424 G5 白名單外：其餘 54 鍵字面量拼接 SHA-256 恰等帳本常量（白名單外任一鍵改動即紅），實得 '+sha424.slice(0,16));
+  }
+
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');
