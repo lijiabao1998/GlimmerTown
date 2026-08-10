@@ -5947,6 +5947,26 @@ runPwaTests().then(() => {
     assert(g5bad.length===0,'T425A G5 地面收斂：購物者小人 y 座標必須在菱形下半（y≥214，T291 保留區；源碼提取實測），實得 '+JSON.stringify(g5bad));
   }
 
+  { // ===== T425B 購物中心風格迭代：TheoTown 三規則（左光源漸層／右落陰影／接地基腳），只動 65 =====
+    // G1b 陰影原文釘：右落陰影必須存在且在 plate 後主體前（底層）
+    assert(/===== T425B 風格（TheoTown 三規則/.test(html),
+      'T425B G1b 風格塊：T425B 註解標記必須存在（刪即紅）');
+    assert(/g\.fillStyle='rgba\(20,24,32,\.25\)'/.test(html)&&/g\.fillRect\(wingL\.x\+3,by-wingL\.h\+1,wingL\.w,wingL\.h-2\)/.test(html),
+      'T425B G1b 陰影：右落陰影（左翼 (wingL.x+3, h-2) 半透明黑）必須畫在 g 底層（超出下緣由 T425 尾部貼合清除）');
+    // G2b 漸層原文釘：三處左光源漸層（createLinearGradient 左亮右暗）
+    const gradL425b=html.match(/createLinearGradient\(/g);
+    assert(gradL425b&&gradL425b.length>=3,'T425B G2b 漸層：65 段至少 3 處 createLinearGradient（左翼/右翼/中庭玻璃，左光源），實得 '+(gradL425b?gradL425b.length:0));
+    assert(/gL\.addColorStop\(0,'#f0e4cc'\);gL\.addColorStop\(1,'#d8c8a8'\)/.test(html),
+      'T425B G2b 漸層：左翼奶油砂岩左亮右暗（#f0e4cc→#d8c8a8）');
+    assert(/gR\.addColorStop\(0,'#e0d0b8'\);gR\.addColorStop\(1,'#bca88e'\)/.test(html),
+      'T425B G2b 漸層：右翼整體更暗（#e0d0b8→#bca88e，襯左翼）');
+    assert(/gA\.addColorStop\(0,'#a8d0e4'\);gA\.addColorStop\(1,'#86b4cc'\)/.test(html),
+      'T425B G2b 漸層：中庭玻璃（#a8d0e4→#86b4cc）');
+    // G3b 基腳釘：接地基腳線
+    assert(/T425B 接地基腳線（TheoTown 落地感/.test(html)&&/sg\.fillRect\(wingL\.x,by-1,wingL\.w,1\)/.test(html),
+      'T425B G3b 基腳：翼底/店窗帶底 1px 深色接觸線必須存在（刪即紅）');
+  }
+
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');

@@ -28,6 +28,7 @@ function main() {
   log('65 img 含噴泉色#c8d0dc: '+hasFoun+' 含牆面廣告金#d8a83a: '+hasNeon, hasFoun&&hasNeon?'ok':'bad');
   {let fn=0,st='';for(let py=0;py<H;py++)for(let px=0;px<W;px++){const o=(py*W+px)*4;if(d[o+3]){const hx='#'+[d[o],d[o+1],d[o+2]].map(v=>v.toString(16).padStart(2,'0')).join('');if(hx==='#c8d0dc'&&fn<3){st+='('+px+','+py+') ';fn++;}}}log('噴泉色樣本: '+st);}
   {let ne=0;for(let py=202;py<=235;py++)for(let px=59;px<=62;px++){const o=(py*W+px)*4;if(d[o+3])ne++;}log('側招牌區(59..62,202..235)不透明像素: '+ne+'（T425 版此區為空地→應>0）', ne>0?'ok':'bad');}
+  {let sh=0;for(let py=193;py<=238;py++)for(let px=127;px<=129;px++){const o=(py*W+px)*4;if(d[o+3]&&(d[o]+d[o+1]+d[o+2])/3<90)sh++;}log('T425B 陰影帶(127..129,193..238)暗色像素: '+sh+'（左翼右落陰影露出帶）', sh>0?'ok':'bad');}
   const cy = ay - 64; // 菱形中心行（4×4 半寬128 半高64）
   let total = 0, neIn = 0, outside = 0, above = 0, below = 0;
   const samples = [];
