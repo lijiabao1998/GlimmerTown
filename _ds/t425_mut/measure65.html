@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>65_1_0 溢出量測（T424 調查）</title>
+<style>body{background:#141a26;color:#dce4f2;font:12px/1.5 Consolas,monospace;padding:12px}pre{white-space:pre-wrap}.bad{color:#ff8a72}.ok{color:#7be08a}</style>
+</head>
+<body>
+<h1>大型購物中心 65_1_0 footprint 溢出量測</h1>
+<div id="out">booting…</div>
+<iframe id="f" src="/index.html" style="position:absolute;left:-9999px;width:64px;height:64px"></iframe>
+<script>
+const O = document.getElementById('out');
+const log = (m, c) => { const d = document.createElement('div'); if (c) d.className = c; d.textContent = m; O.appendChild(d); };
+function main() {
+  const w = document.getElementById('f').contentWindow;
+  const atlas = w.GV.sprAtlas356();
+  const e = atlas.entries.find(x => x.fam === 'bld' && x.key === '65_1_0');
+  if (!e) { log('MISSING 65_1_0', 'bad'); return; }
+  const cvs = e.img, ctx = cvs.getContext('2d');
+  const d = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
+  const ax = e.ax, ay = e.ay, W = cvs.width, H = cvs.height;
+  log('65_1_0: ' + W + '×' + H + ' ax=' + ax + ' ay=' + ay);
+  const cy = ay - 64; // 菱形中心行（4×4 半寬128 半高64）
+  let total = 0, outside = 0, above = 0, below = 0;
+  const samples = [];
+  let minX = W, maxX = 0, minY = H, maxY = 0;
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const o = (py * W + px) * 4;
+    if (!d[o + 3]) continue;
+    total++;
+    if (px < minX) minX = px; if (px > maxX) maxX = px;
+    if (py < minY) minY = py; if (py > maxY) maxY = py;
+    const inDia = py >= ay - 128 && py <= ay && Math.abs(px - ax) <= 128 * (1 - Math.abs(py - cy) / 64);
+    if (!inDia) {
+      outside++;
+      if (py < cy) above++; else below++;
+      if (samples.length < 15) samples.push([px, py]);
+    }
+  }
+  log('不透明像素總數: ' + total);
+  log('像素包圍盒: x[' + minX + '..' + maxX + '] y[' + minY + '..' + maxY + ']');
+  log('footprint 菱形: 頂(' + ax + ',' + (ay - 128) + ') 左右(' + (ax - 128) + ',' + cy + ')/(' + (ax + 128) + ',' + cy + ') 底(' + ax + ',' + ay + ')');
+  log('菱形外像素: ' + outside + '（上半 y<' + cy + ': ' + above + '／下半 y>' + cy + ': ' + below + '）', outside ? 'bad' : 'ok');
+  if (samples.length) log('溢出樣本(px,py): ' + JSON.stringify(samples));
+  // 逐行溢出的水平範圍（上半）
+  const rows = {};
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const o = (py * W + px) * 4;
+    if (!d[o + 3]) continue;
+    const inDia = py >= ay - 128 && py <= ay && Math.abs(px - ax) <= 128 * (1 - Math.abs(py - cy) / 64);
+    if (!inDia) { (rows[py] = rows[py] || { l: W, r: 0 }); if (px < rows[py].l) rows[py].l = px; if (px > rows[py].r) rows[py].r = px; }
+  }
+  const ks = Object.keys(rows).map(Number).sort((a, b) => a - b);
+  log('逐行溢出範圍（y: [左,右]）:');
+  for (const k of ks.slice(0, 90)) log('  y=' + k + ': x[' + rows[k].l + '..' + rows[k].r + ']');
+  const lowKs = ks.filter(k => k > cy);
+  if (lowKs.length) { log('-- 下半溢出行（clipBase 後殘留）--', 'bad'); for (const k of lowKs.slice(0, 30)) log('  y=' + k + ': x[' + rows[k].l + '..' + rows[k].r + ']'); }
+  // 複製 T291 clipBase 對 65 重跑一次，看 579 是否被清
+  const img2 = cvs.getContext('2d').getImageData(0, 0, W, H);
+  const d2 = img2.data;
+  for (let py = 0; py < H; py++) { const rowB = ay - py; const half = rowB > 0 ? rowB * 2 : 0;
+    for (let px = 0; px < W; px++) { if (rowB <= 0 || Math.abs(px - ax) > half) { const o = (py * W + px) * 4; if (d2[o + 3]) d2[o + 3] = 0; } } }
+  let afterClip = 0;
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const o = (py * W + px) * 4;
+    if (!d2[o + 3]) continue;
+    const inDia = py >= ay - 128 && py <= ay && Math.abs(px - ax) <= 128 * (1 - Math.abs(py - cy) / 64);
+    if (!inDia) afterClip++;
+  }
+  log('T291 clipBase 複演後菱形外殘留: ' + afterClip + '（≠0 表示裁切未覆蓋此鍵或裁切幾何與菱形不符）', afterClip ? 'bad' : 'ok');
+  // 寫回實驗：在實際 e.img 上跑 clipBase（改像素後 putImageData），再量 579 是否消失
+  const ctx2 = cvs.getContext('2d');
+  ctx2.putImageData(img2, 0, 0); // img2 已是 clipBase 計算結果（上半未動、下半已清）
+  const d3 = ctx2.getImageData(0, 0, W, H).data;
+  let afterWrite = 0;
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const o = (py * W + px) * 4;
+    if (!d3[o + 3]) continue;
+    const inDia = py >= ay - 128 && py <= ay && Math.abs(px - ax) <= 128 * (1 - Math.abs(py - cy) / 64);
+    if (!inDia) afterWrite++;
+  }
+  log('clipBase 寫回後菱形外: ' + afterWrite + '（=3092 表示下半 579 本可被 T291 清掉→實際 sprite 的 579 是 T291 之後被重畫）', afterWrite <= 3092 ? 'ok' : 'bad');
+  // T425：全域 sprFootAudit／sprAboveAudit
+  if (w.GV.sprFootAudit) {
+    const foot = w.GV.sprFootAudit();
+    const foot65 = foot.filter(x => x.key === '65_1_0');
+    log('sprFootAudit 全域 below>0 鍵數: ' + foot.length + '（T425 色環遮罩後應為 0＝全城跨線根治）', foot.length ? 'bad' : 'ok');
+    if (foot65.length) log('  65: ' + JSON.stringify(foot65[0]), 'bad'); else log('  65: below=0 ✓', 'ok');
+    if (foot.length && foot.length <= 20) for (const f of foot) log('  ' + f.key + ' below=' + f.below + ' max=' + f.belowMax);
+  }
+  if (w.GV.sprAboveAudit) {
+    const above = w.GV.sprAboveAudit();
+    const a65 = above.find(x => x.key === '65_1_0');
+    log('sprAboveAudit 65 maxAbove: ' + (a65 ? a65.maxAbove : 'N/A') + '（T425 新基線：徽記+描邊殘餘）');
+    const top5 = above.slice().sort((a, b) => b.maxAbove - a.maxAbove).slice(0, 5);
+    log('全域 maxAbove 前 5: ' + JSON.stringify(top5));
+  }
+}
+(function wait(){ const w = document.getElementById('f').contentWindow;
+  if (w && w.GV && w.GV.sprAtlas356) main(); else setTimeout(wait, 400); })();
+</script>
+</body>
+</html>
