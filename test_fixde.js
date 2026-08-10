@@ -5953,15 +5953,10 @@ runPwaTests().then(() => {
       'T425B G1b 風格塊：T425B 註解標記必須存在（刪即紅）');
     assert(/g\.fillStyle='rgba\(20,24,32,\.32\)'/.test(html)&&/g\.fillRect\(wingL\.x\+3,by-wingL\.h\+1,wingL\.w,wingL\.h-2\)/.test(html),
       'T425B G1b 陰影：右落陰影（左翼 (wingL.x+3, h-2) 半透明黑）必須畫在 g 底層（超出下緣由 T425 尾部貼合清除）');
-    // G2b 漸層原文釘：三處左光源漸層（createLinearGradient 左亮右暗）
-    const gradL425b=html.match(/createLinearGradient\(/g);
-    assert(gradL425b&&gradL425b.length>=3,'T425B G2b 漸層：65 段至少 3 處 createLinearGradient（左翼/右翼/中庭玻璃，左光源），實得 '+(gradL425b?gradL425b.length:0));
-    assert(/gL.addColorStop\(0,'#dcc7a6'\);gL.addColorStop\(.5,'#d0b898'\);gL.addColorStop\(1,'#c2a888'\)/.test(html),
-      'T425B G2b 漸層：左翼奶油砂岩左亮右暗（#f0e4cc→#d8c8a8）');
-    assert(/gR.addColorStop\(0,'#c8b498'\);gR.addColorStop\(.5,'#b4a084'\);gR.addColorStop\(1,'#a08a72'\)/.test(html),
-      'T425B G2b 漸層：右翼整體更暗（#e0d0b8→#bca88e，襯左翼）');
-    assert(/gA.addColorStop\(0,'#90b8cc'\);gA.addColorStop\(.5,'#7ca4b8'\);gA.addColorStop\(1,'#6890a4'\)/.test(html),
-      'T425B G2b 漸層：中庭玻璃（#a8d0e4→#86b4cc）');
+    // G2b 階梯釘（T425D 取代：翼牆階梯色帶替代連續漸層——面轉折立體感；中庭玻璃保留漸層＝幕牆語義）
+    const seg65d=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert(!/gL\.createLinearGradient|gR\.createLinearGradient/.test(seg65d),
+      'T425B G2b 階梯：翼牆不得再用連續漸層（T425D 改階梯色帶——面轉折立體感；中庭玻璃保留漸層＝幕牆語義）');
     // G3b 基腳釘：接地基腳線
     assert(/T425B 接地基腳線（TheoTown 落地感/.test(html)&&/sg\.fillRect\(wingL\.x,by-1,wingL\.w,1\)/.test(html),
       'T425B G3b 基腳：翼底/店窗帶底 1px 深色接觸線必須存在（刪即紅）');
@@ -5976,18 +5971,44 @@ runPwaTests().then(() => {
       'T425C G1c 色域：65 段不得再含舊灰白廣場色（#b6b2a6/#c2beb2——已暖灰化 #a89e8e/#b4a896），亮度下壓');
     assert(/dia\(g,ax,ay-128,128,'#a89e8e'\)/.test(html),'T425C G1c 色域：廣場鋪面暖灰 #a89e8e（原 #b6b2a6）');
     assert(/g\.fillStyle='#b4a896'/.test(seg65c),'T425C G1c 色域：前庭/地磚暖灰 #b4a896（原 #c2beb2）');
-    // G2c 亮度/陰影釘：翼牆亮端 L≤0.85（#dcc7a6 L≈.78）；陰影 alpha ≥.30
-    assert(/gL\.addColorStop\(0,'#dcc7a6'\)/.test(html),
-      'T425C G2c 亮度：左翼漸層亮端 #dcc7a6（L≈.78，原 #f0e4cc L≈.9——蒼白根源下壓）');
+    // G2c 亮度/陰影釘：翼牆受光面 L≤0.85（#dcc7a6 L≈.78）；陰影 alpha ≥.30
+    assert(/fillStyle='#dcc7a6';sg\.fillRect\(wingL\.x,by-wingL\.h,Math\.ceil\(wingL\.w\/3\),wingL\.h\)/.test(html),
+      'T425C G2c 亮度：左翼受光面 #dcc7a6（L≈.78，原 #f0e4cc L≈.9——蒼白根源下壓）');
     assert(/g\.fillStyle='rgba\(20,24,32,\.32\)'/.test(html),
       'T425C G2c 亮度：陰影加深至 alpha .32（原 .25；TheoTown 教程 20-30% 上限）');
-    // G3c 密度釘：三處漸層各 ≥3 級（多級漸層＝色票密度，原 2 級）
-    assert(/gL\.addColorStop\(0,'#dcc7a6'\);gL\.addColorStop\(\.5,'#d0b898'\);gL\.addColorStop\(1,'#c2a888'\)/.test(html),
-      'T425C G3c 密度：左翼漸層 3 級（含 .5 中點——每 50px→每 ~17px 一色）');
-    assert(/gR\.addColorStop\(0,'#c8b498'\);gR\.addColorStop\(\.5,'#b4a084'\);gR\.addColorStop\(1,'#a08a72'\)/.test(html),
-      'T425C G3c 密度：右翼漸層 3 級');
-    assert(/gA\.addColorStop\(0,'#90b8cc'\);gA\.addColorStop\(\.5,'#7ca4b8'\);gA\.addColorStop\(1,'#6890a4'\)/.test(html),
-      'T425C G3c 密度：中庭玻璃漸層 3 級');
+    // G3c 階梯釘（T425D 取代：階梯三色帶＋過渡線——面轉折）
+    assert(/fillStyle='#dcc7a6';sg\.fillRect\(wingL\.x,by-wingL\.h,Math\.ceil\(wingL\.w\/3\),wingL\.h\)/.test(html),
+      'T425C G3c 階梯：左翼受光面 #dcc7a6（1/3 寬）必須存在');
+    assert(/fillStyle='#b89f82';sg\.fillRect\(wingL\.x\+Math\.ceil\(wingL\.w\*2\/3\),by-wingL\.h,wingL\.w-Math\.ceil\(wingL\.w\*2\/3\),wingL\.h\)/.test(html),
+      'T425C G3c 階梯：左翼背光面 #b89f82（最後 1/3）必須存在');
+    assert(/fillStyle='#967e68';sg\.fillRect\(wingR\.x\+Math\.ceil\(wingR\.w\*2\/3\),by-wingR\.h,wingR\.w-Math\.ceil\(wingR\.w\*2\/3\),wingR\.h\)/.test(html),
+      'T425C G3c 階梯：右翼背光面 #967e68 必須存在');
+  }
+
+  { // ===== T425D 立體感深化：等距箱體體積語言（業主反饋「立體程度不夠」） =====
+    // G1d 階梯色帶釘：三面明暗（受光/主面/背光）＋過渡線
+    assert(/fillStyle='#cdb694';sg\.fillRect\(wingL\.x\+Math\.ceil\(wingL\.w\/3\),by-wingL\.h,Math\.ceil\(wingL\.w\/3\),wingL\.h\)/.test(html),
+      'T425D G1d 階梯：左翼主面 #cdb694（中 1/3）必須存在');
+    assert(/fillStyle='#a08a72';sg\.fillRect\(wingL\.x\+Math\.ceil\(wingL\.w\/3\)-1,by-wingL\.h,1,wingL\.h\)/.test(html),
+      'T425D G1d 階梯：左翼過渡線（受光/主面交界 1px 暗線）必須存在');
+    // G2d 暗側帶釘：翼右暗側帶 ≥6px（右面存在感）
+    assert(/sg\.fillStyle='#a08a72';sg\.fillRect\(wingL\.x\+wingL\.w-8,by-wingL\.h,8,wingL\.h\); \/\/ T425D 暗側帶 8px/.test(html),
+      'T425D G2d 側帶：左翼暗側帶 8px（原 4px——右面存在感）');
+    assert(/sg\.fillStyle='#8a7058';sg\.fillRect\(wingR\.x\+wingR\.w-8,by-wingR\.h,8,wingR\.h\)/.test(html),
+      'T425D G2d 側帶：右翼暗側帶 8px');
+    // G3d 屋頂板釘：翼頂亮面＋屋簷投影
+    assert(/sg\.fillStyle='#f0e4cc';sg\.fillRect\(wingL\.x,by-wingL\.h-6,wingL\.w,3\); \/\/ T425D 屋頂板亮面/.test(html),
+      'T425D G3d 屋頂板：左翼屋頂亮面 3px（屋頂板厚度）');
+    assert(/sg\.fillStyle='rgba\(90,74,58,\.35\)';sg\.fillRect\(wingL\.x,by-wingL\.h,wingL\.w,2\);        \/\/ T425D 屋簷投影線/.test(html),
+      'T425D G3d 屋頂板：翼頂屋簷投影線 2px');
+    // G4d 窗洞釘：窗框亮上暗下（窗洞內凹）
+    assert(/sg\.fillStyle='#f4ecdc';sg\.fillRect\(cx2,by-wingL\.h\+21,9,1\);sg\.fillStyle='#6a5a44';sg\.fillRect\(cx2,by-wingL\.h\+32,9,1\)/.test(html),
+      'T425D G4d 窗洞：左翼窗框亮上暗下（窗洞內凹）');
+    // 中庭側面暗帶＋門框亮上
+    assert(/sg\.fillStyle='#5a7a8a';sg\.fillRect\(atr\.x\+atr\.w-4,by-atr\.h\+3,4,atr\.h-3\); \/\/ T425D 中庭側面暗帶/.test(html),
+      'T425D G4d 中庭：玻璃右緣側面暗帶 4px');
+    assert(/sg\.fillStyle='#d9c68a';sg\.fillRect\(ax-24,by-9,48,1\); \/\/ T425D 門框亮上（內凹）/.test(html),
+      'T425D G4d 門洞：入口門框亮上 1px（內凹）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
