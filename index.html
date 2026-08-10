@@ -130,10 +130,15 @@ body.toolsExp #toolcats{bottom:calc(10px + var(--tools-exp-h,198px) + 8px)}
 #toasts{position:absolute;left:50%;bottom:118px;transform:translateX(-50%);z-index:25;
   display:flex;flex-direction:column-reverse;align-items:center;gap:5px;pointer-events:none} /* T219：78→118px，抬到分類チップ(84-110px)與工具列(10-92px)之上——災害 toast 不再蓋住服務按鈕（玩家截圖實證） */
 .toast{background:rgba(16,22,42,.94);border:1px solid #4a5788;color:#eaf0ff;border-radius:var(--radius-sm);
-  padding:5px 14px;font-size:13px;animation:tin .25s ease-out;white-space:nowrap;box-shadow:var(--shadow-btn)}
+  padding:5px 14px;font-size:13px;animation:tin .25s ease-out;white-space:nowrap;box-shadow:var(--shadow-btn);
+  display:flex;align-items:center;gap:7px}
 .toast.gold{border-color:#c9a84c;color:#ffe9ad}
 .toast.bad{border-color:#a85050;color:#ffc4c4}
-@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+/* T423 R04：toast 現代化——滑入動效（取代舊 tin）+ 左緣色條分類指示 */
+.toast::before{content:'';width:3px;align-self:stretch;border-radius:2px;background:#5ec8ff;flex:0 0 auto}
+.toast.gold::before{background:#c9a84c}
+.toast.bad::before{background:#a85050}
+@keyframes tin{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 /* ---------- 檢視面板 ---------- */
 #info{position:absolute;left:10px;bottom:80px;z-index:22;background:var(--panel-bg);
   border:2px solid var(--panel-border);border-radius:var(--radius-lg);padding:10px 14px;color:var(--text);font-size:13px;
@@ -17750,11 +17755,14 @@ function buildToolbar(){
   const bar=$('#tools');bar.innerHTML='';
   for(const t of TOOLS){
     if(t.cat!==toolCat&&t.id!=='pan'&&t.id!=='doze')continue;
-    if(t.unlockRank&&rankIdx+1<t.unlockRank)continue; // T133：等級門檻掛點——現有 31 種工具設有門檻；僅控制工具列顯示，不在建造路徑重鎖
+    if(t.unlockRank&&rankIdx+1<t.unlockRank)continue; // T133：等級門檻掛點——現有 31 種工具設有門檻；僅控制工具列顯示，不在建造路徑重鎖（T423 評估「顯示但鎖定」會破壞 T343a 可見數契約，保留隱藏語義）
     if(toolCat!=='base'&&(t.id==='pan'||t.id==='doze')&&t.cat==='base'&&toolCat!=='base'){/* pan/doze only in base */}
     const el=document.createElement('button');
     el.className='tool'+(t.id===tool?' sel':'');
     el.dataset.tid=t.id; // FIX-E：快捷鍵由可見按鈕反查工具 id 用
+    /* T423 R04：工具 hover 提示——「名稱 · 分類」＋價格（現代 UI 的發現性；零行為變動） */
+    const catNm=(TOOL_CATS.find(c=>c.id===t.cat)||{}).nm||t.cat;
+    el.title=`${t.nm}・${catNm}${t.pr?'（'+t.pr+'）':''}`;
     el.innerHTML=`<span class="ic">${t.ic}</span><span>${t.nm}</span><span class="pr">${t.pr}</span>`;
     el.onclick=()=>{
       tool=t.id;
