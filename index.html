@@ -43,7 +43,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 /* ---------- 頂部資訊列 ---------- */
 #hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:6px;
   padding:5px 8px;background:rgba(10,14,26,.86);border-bottom:2px solid #2c3450;
-  color:#dfe6f5;font-size:13px;z-index:30;flex-wrap:wrap}  /* T322：z-index 20→30，導航欄永在面板之上 */
+  color:#dfe6f5;font-size:13px;z-index:30;flex-wrap:wrap; /* T322：z-index 20→30，導航欄永在面板之上 */
+  padding-top:max(5px,env(safe-area-inset-top)); /* T423 R06：瀏海屏安全區（iPhone 等） */
+  padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
 .chip{cursor:pointer;display:flex;align-items:center;gap:4px;background:#181f36;border:1px solid var(--panel-border-soft);
   border-radius:var(--radius-xs);padding:2px 8px;white-space:nowrap;line-height:20px;transition:border-color var(--ease),box-shadow var(--ease)}
 .chip:hover{border-color:#5ec8ff;box-shadow:0 0 0 1px rgba(94,200,255,.35)}  /* T322：晶片可點提示 */
@@ -88,7 +90,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 #tools{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;
   padding:6px;padding-right:36px;background:rgba(10,14,26,.88);border:2px solid #2c3450;border-radius:var(--radius-xl);
   box-shadow:var(--shadow-panel);
-  z-index:20;max-width:96vw;overflow-x:auto;scrollbar-width:none}
+  z-index:20;max-width:96vw;overflow-x:auto;scrollbar-width:none;
+  bottom:max(10px,env(safe-area-inset-bottom))} /* T423 R06：底部安全區（iOS 手勢條） */
 /* T372：#tools 隱藏捲軸。原本橫屏摺疊態高 87px（直版 72px），差的 15px 就是橫向捲軸佔位，
    而 #toolcats 釘在 bottom:84 → 兩者重疊 13px（既有缺陷，基準版本量測即如此）。
    #toolcats 早就設了 scrollbar-width:none，這裡補齊；摺疊態回到 72px，重疊歸零。

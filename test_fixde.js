@@ -5805,6 +5805,11 @@ runPwaTests().then(() => {
       'T423 R05 成就面板頭：showAch 已用 phead＋計數徽記（與 panelHead 視覺一致）');
     assert(/#info\{scrollbar-width:thin;scrollbar-color:#2f3c5c #141a2a\}/.test(html),
       'T423 R05 滾動條：Firefox scrollbar-width/color 同款（跨瀏覽器一致）');
+    // T423 R06 守衛：響應式安全區（瀏海屏/手勢條）
+    assert(/padding-top:max\(5px,env\(safe-area-inset-top\)\)/.test(html),
+      'T423 R06 安全區：HUD 頂部 safe-area-inset-top（瀏海屏）');
+    assert(/bottom:max\(10px,env\(safe-area-inset-bottom\)\)/.test(html),
+      'T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
