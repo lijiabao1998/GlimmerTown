@@ -192,6 +192,11 @@ table.dtab tr:hover td{background:#1b2334}
 
 #info .x{position:absolute;top:4px;right:8px;color:var(--text-dim);cursor:pointer;font-size:15px;transition:color var(--ease)}
 #info .x:hover{color:var(--text)}
+/* T423 R02：統一面板頭（panelHead 輔助函式輸出）＋空態樣式 */
+.phead{display:flex;align-items:center;gap:8px;padding:2px 22px 6px 0;border-bottom:1px solid #2a3448;margin-bottom:6px}
+.phead h3{font-size:14px;color:var(--accent);margin:0;flex:1}
+.phead .phBadge{font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase}
+.empty{color:#7f8ca6;font-size:12px;text-align:center;padding:14px 8px;border:1px dashed #2f3c5c;border-radius:var(--radius-sm);margin:6px 0}
 @keyframes panelIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 /* ---------- 拖放成本提示 ---------- */
 #dragcost{position:absolute;z-index:23;display:none;background:rgba(12,17,32,.9);
@@ -1174,6 +1179,17 @@ function syncHudH(){
 // 所有顯示檢視面板的入口統一走這裡：開啟前同步實測導航欄高度。
 // ResizeObserver 是下一幀才回呼，若只靠它，面板在導航欄剛折行的那一幀仍會頂穿。
 function showInfoPanel(){syncHudH();$('#info').style.display='block';}
+/* T423 R02：統一面板頭——標題＋右側徽記；所有 showXxx 面板逐步遷移（h3 直寫 → panelHead） */
+function panelHead(title,badge){
+  const head=document.createElement('div');head.className='phead';
+  const h=document.createElement('h3');h.textContent=title;head.appendChild(h);
+  if(badge){const b=document.createElement('span');b.className='phBadge';b.textContent=badge;head.appendChild(b);}
+  return head;
+}
+/* T423 R02：空態元素——「尚無…」提示（border-dashed 卡），取代裸文字 */
+function panelEmpty(msg){
+  const e=document.createElement('div');e.className='empty';e.textContent=msg;return e;
+}
 // 面板純文字（供測試斷言用）：瀏覽器走 innerText，node 測試樁沒有 innerText，退回剝標籤。
 function infoPlainText(){const e=$('#infoBody');return e.innerText||String(e.innerHTML||'').replace(/<[^>]*>/g,' ');}
 window.addEventListener('resize',resize);
@@ -18056,10 +18072,12 @@ $('#bSave').onclick=()=>{showSlots();sTick();};
 /* 存檔槽面板（重用 #infoBody / .row / .hbtn，事件一律 addEventListener 不用內聯 onclick） */
 function showSlots(){
   const body=$('#infoBody');body.innerHTML='';
-  const h=document.createElement('h3');h.textContent='💾 存檔槽';body.appendChild(h);
+  body.appendChild(panelHead('💾 存檔槽','3 槽'));
   const cur=curSlot();
+  let anySlot=false;
   for(let n=1;n<=3;n++){
     const info=slotInfo(n);
+    if(info)anySlot=true;
     const row=document.createElement('div');row.className='row';
     const lab=document.createElement('span');
     lab.textContent=(info?`槽${n}｜${info.nm}｜人口 ${info.pop}｜第 ${info.day} 天`:`槽${n}｜（空）`)+(n===cur?' ◀':'')+' ';
@@ -18077,6 +18095,7 @@ function showSlots(){
     }
     body.appendChild(row);
   }
+  if(!anySlot)body.appendChild(panelEmpty('尚無存檔——先「開拓新地圖」或存到此'));
   const io=document.createElement('div');io.className='row';
   const bExp=document.createElement('button');bExp.className='hbtn';bExp.textContent='匯出分享碼';
   bExp.addEventListener('click',exportShare);

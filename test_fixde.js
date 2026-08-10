@@ -5772,6 +5772,18 @@ runPwaTests().then(() => {
       'T423 R01 HUD 純顯示：updHud 內不得呼叫 tick（UI 不得觸發模擬）');
   }
 
+  { // ===== T423 R02 守衛：統一面板頭＋空態（面板現代化） =====
+    const iHead423=html.indexOf('function panelHead(title,badge)');
+    const iEmpty423=html.indexOf('function panelEmpty(msg)');
+    assert(iHead423>0&&iEmpty423>0,'T423 R02 面板頭：panelHead/panelEmpty 輔助函式存在（刪任一即紅）');
+    assert(/\.phead\{display:flex/.test(html)&&/\.empty\{color:#7f8ca6/.test(html),
+      'T423 R02 面板樣式：.phead/.empty CSS 存在');
+    assert(html.indexOf("body.appendChild(panelHead('💾 存檔槽'")>iHead423,
+      'T423 R02 遷移示範：showSlots 已改用 panelHead（h3 直寫 → 統一頭部）');
+    assert(html.indexOf("panelEmpty('尚無存檔")>iEmpty423,
+      'T423 R02 空態：showSlots 已接 panelEmpty（空槽提示）');
+  }
+
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');
