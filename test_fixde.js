@@ -5868,7 +5868,10 @@ runPwaTests().then(() => {
     const evalExpr425=(e)=>{ // 常量子串替換（長鍵優先）＋循環變量 \b 邊界極值代入
       let s=e;
       const constKeys=Object.keys(VARS425).filter(k=>!Array.isArray(VARS425[k])).sort((a,b)=>b.length-a.length);
-      for(const k of constKeys)s=s.split(k).join(VARS425[k]);
+      for(const k of constKeys){
+        const esc=k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        s=s.replace(new RegExp('\\b'+esc+'\\b','g'),VARS425[k]);
+      }
       for(const k of Object.keys(VARS425)){
         if(!Array.isArray(VARS425[k]))continue;
         s=s.replace(new RegExp('\\b'+k+'\\b','g'),'CVAR__'+k);
@@ -5910,6 +5913,38 @@ runPwaTests().then(() => {
       'T425 G4 尾部貼合：統一底部貼合 pass 必須存在且在 R=__savedR 之前（T364 波等後生成鍵從未貼合的閉環）');
     assert(/SZC425=\{19:4,20:2/.test(html)&&/for\(const key in SPR\.bld\)\{\s*const m425=key\.match/.test(html),
       'T425 G4 尾部貼合：SZC425 全鍵清冊＋全 SPR.bld 迴圈（不只 65——色環跨線全城歸零）');
+  }
+
+  { // ===== T425A 購物中心美術完善：新元素原文釘（G1 菱形驗算/T425 G1 已覆蓋 212 元素；G2 幾何/T425 G3 已覆蓋） =====
+    // G3 新元素原文釘：噴泉／屋頂花園／垂直霓虹／貨箱堆／購物者小人／旗桿陣——刪任一即紅
+    assert(/sg\.fillStyle='#c8d0dc';sg\.fillRect\(128,262,16,4\)/.test(html),
+      'T425A G3 噴泉：中央噴泉水盤（128,262,16,4）必須存在（T425A 豐富度 A-H）');
+    assert(/sg\.fillStyle='#4f8a44';sg\.fillRect\(wingR\.x\+4,by-wingR\.h\+2,wingR\.w-8,4\)/.test(html),
+      'T425A G3 花園：右翼屋頂花園綠植帶必須存在（TheoTown 附屬物語彙）');
+    assert(/sg\.fillStyle='#c0453a';sg\.fillRect\(59,202,4,33\)/.test(html),
+      'T425A G3 霓虹：左翼側牆垂直霓虹招牌必須存在');
+    assert(/sg\.fillStyle='#b8a582';sg\.fillRect\(80,219,7,6\)/.test(html),
+      'T425A G3 貨箱：裝卸區貨箱堆必須存在（配送區豐富度）');
+    assert(/fillStyle='#20242c';sg\.fillRect\(px2,py2,1,1\)/.test(html),
+      'T425A G3 小人：決定性購物者小人（3px 頭身，TheoTown 比例）必須存在');
+    assert(/for\(const\[fqx,fqc\]of\[\[104,'#e05252'\]/.test(html),
+      'T425A G3 旗桿：三色旗桿陣必須存在');
+    // G4 夜層釘：霓虹／噴泉燈／地燈必須入 ng（夜間豐富度）
+    assert(/ng\.fillStyle='rgba\(255,138,114,\.8\)';ng\.fillRect\(59,202,4,33\)/.test(html),
+      'T425A G4 夜層：側招牌霓虹必須在 ng（夜亮）');
+    assert(/ng\.fillStyle='rgba\(140,200,240,\.6\)';ng\.fillRect\(133,258,6,3\)/.test(html),
+      'T425A G4 夜層：噴泉燈必須在 ng');
+    assert(/ng\.fillStyle='rgba\(255,220,150,\.5\)';ng\.fillRect\(120,262,3,2\);ng\.fillRect\(152,262,3,2\)/.test(html),
+      'T425A G4 夜層：廣場地燈必須在 ng（兩盞）');
+    // G5 地面收斂釘：地面件（噴泉/灌木/旗桿/平台/貨箱/小人）y 起點 ≥ 214（菱形下半＝T291 保留區，不被尾部貼合裁邊）
+    assert(/sg\.fillRect\(128,262,16,4\)/.test(html)&&/sg\.fillRect\(fqx,226,1,16\)/.test(html)&&/sg\.fillRect\(80,226,12,2\)/.test(html),
+      'T425A G5 地面收斂：噴泉(y262)/旗桿(y226)/裝卸平台(y226) 起點在菱形下半（y≥214，貼合語義不變）');
+    const g5bad=[];
+    const mPeople425a=html.match(/\[\[110,240,'#e05252'\],\[118,241,'#3a6ea5'\],\[120,264,'#3a6ea5'\],\[152,264,'#d8c84a'\],\[69,237,'#4a4a52'\]\]\.forEach/);
+    assert(!!mPeople425a,'T425A G5 前置：購物者小人座標列表原文存在（改座標須同步本釘）');
+    const peoCoords425a=[...mPeople425a[0].matchAll(/\[(\d+),(\d+),'#[0-9a-f]{6}'\]/g)].map(m=>[+m[1],+m[2]]);
+    for(const[fx,fy]of peoCoords425a){if(fy<214)g5bad.push([fx,fy]);}
+    assert(g5bad.length===0,'T425A G5 地面收斂：購物者小人 y 座標必須在菱形下半（y≥214，T291 保留區；源碼提取實測），實得 '+JSON.stringify(g5bad));
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
