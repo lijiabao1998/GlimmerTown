@@ -5847,6 +5847,71 @@ runPwaTests().then(() => {
     assert(sha424===SHA_OUT424,'T424 G5 白名單外：其餘 54 鍵字面量拼接 SHA-256 恰等帳本常量（白名單外任一鍵改動即紅），實得 '+sha424.slice(0,16));
   }
 
+  { // ===== T425 footprint 溢出根治：65_1_0 源碼幾何驗算＋T345 遮罩＋尾部統一貼合（比照 T355 源碼解析先例） =====
+    const GEOM425=[272,280,136,278];
+    // G3 幾何釘：w/h/ax/ay 恰等
+    const m65=html.match(/\{ \/\/ T290 大型購物中心 65_1_0[\s\S]*?SPR\.bld\['65_1_0'\]=\{img:c,night:nc,ax,ay,w:272,h:280,smoke:\[\]\};}/);
+    assert(!!m65,'T425 G3 前置：65_1_0 繪製段可定位');
+    assert(/SPR\.bld\['65_1_0'\]=\{img:c,night:nc,ax,ay,w:272,h:280,smoke:\[\]\}/.test(html),
+      'T425 G3 幾何：65_1_0 w/h/ax/ay 恰等 272/280/136/278（改任一即紅）');
+    // G1a 常量定義原文釘（T425 收窄後值——改動須同步驗算器與本釘）
+    assert(/const bw=142,bh=68,bx=ax-72,by=ay-40;/.test(html),'T425 G1a 常量：店窗帶 bw=142/bx=ax-72（T425 收窄值）');
+    assert(/const wingL=\{x:ax-72,w:62,h:46\},wingR=\{x:ax\+8,w:44,h:56\},atr=\{x:ax-8,w:24,h:74\};/.test(html),
+      'T425 G1a 常量：三段體量 T425 收窄值（翼 62/44、中庭 24×74）');
+    // G1b 源碼矩形驗算：解析 65 段全部 fillRect，常量代入＋循環變量極值（min/max）→ 菱形內含（±2px）
+    const VARS425={ax:136,ay:278,by:238,bx:64,bw:142,bh:68,shopY:222,topY:170,
+      'wingL.x':64,'wingL.w':62,'wingL.h':46,'wingR.x':144,'wingR.w':44,'wingR.h':56,
+      'atr.x':128,'atr.w':24,'atr.h':74,'atr.x+3':131,'atr.x+2':130,'atr.w-6':18,'atr.w+6':30,'atr.h-8':66,'atr.h-3':71,
+      'wingL.w-8':54,'wingL.w-4':58,'wingR.w-8':36,'wingR.w-4':40,
+      i:[0,4],r:[0,8],ry:[0,1],i2b:[0,5],i2c:[0,3],
+      st2:[66,208],dxx:[112,152],sx3:[66,190],cx2:[70,176],mx:[136,146],my:[176,218],tx:[96,170],dcx:[104,152],lx:[116,156]};
+    const evalExpr425=(e)=>{ // 常量子串替換（長鍵優先）＋循環變量 \b 邊界極值代入
+      let s=e;
+      const constKeys=Object.keys(VARS425).filter(k=>!Array.isArray(VARS425[k])).sort((a,b)=>b.length-a.length);
+      for(const k of constKeys)s=s.split(k).join(VARS425[k]);
+      for(const k of Object.keys(VARS425)){
+        if(!Array.isArray(VARS425[k]))continue;
+        s=s.replace(new RegExp('\\b'+k+'\\b','g'),'CVAR__'+k);
+      }
+      const res=[];
+      const uniq=[...new Set([...s.matchAll(/CVAR__([A-Za-z0-9_]+)/g)].map(m=>m[1]))];
+      const mk=(vals)=>{let t=s;for(let j=0;j<uniq.length;j++)t=t.split('CVAR__'+uniq[j]).join(vals[j]);return t;};
+      const combos=[];
+      const gen=(idx,cur)=>{if(idx===uniq.length){combos.push(cur.slice());return;}
+        const arr=VARS425[uniq[idx]];for(const vv of[Math.min(...arr),Math.max(...arr)]){cur.push(vv);gen(idx+1,cur);cur.pop();}};
+      gen(0,[]);
+      for(const c of combos){try{res.push(Function('return ('+mk(c)+');')());}catch(e){res.push(NaN);}}
+      return res;
+    };
+    const g1bad=[];
+    for(const fm of m65[0].matchAll(/fillRect\(([^)]+)\)/g)){
+      const parts=fm[1].split(',').map(p=>p.trim());
+      if(parts.length!==4)continue;
+      const xs=evalExpr425(parts[0]),ys=evalExpr425(parts[1]),ws=evalExpr425(parts[2]),hs=evalExpr425(parts[3]);
+      for(let k=0;k<xs.length;k++){
+        const x=xs[k],y=ys[k],w=ws[k],h=hs[k];
+        if(!isFinite(x)||!isFinite(y)||!isFinite(w)||!isFinite(h))continue;
+        for(const py of[y,y+h-1]){
+          if(py<150||py>278){g1bad.push(fm[1].slice(0,50)+' py='+py);break;}
+          const hw=128*(1-Math.abs(py-214)/64);
+          if(Math.abs(x-136)>hw+2||Math.abs((x+w-1)-136)>hw+2){g1bad.push(fm[1].slice(0,60)+' y='+py+' x['+x+'..'+(x+w-1)+'] hw='+hw);break;}
+        }
+      }
+    }
+    assert(g1bad.length===0,'T425 G1 源碼幾何：65 段全部 fillRect（常量代入＋循環極值）四角在 4×4 菱形內（±2px；移出/加寬即紅），實得 '+JSON.stringify(g1bad.slice(0,5)));
+    // G2 T345 色環下緣遮罩原文釘
+    assert(/T425 根治：色環沿下緣描邊/.test(html),'T425 G2 遮罩：T345 色環段必須有 T425 根治註解＋下緣外清除迴圈（刪即紅）');
+    assert(/idc=g2\.getImageData\(0,0,w,h\)/.test(html)&&/rowB=ay-py;const half=rowB>0\?rowB\*2:0/.test(html),
+      'T425 G2 遮罩：色環繪後以 T291 同款幾何（|px-ax|>2*(ay-py)）清除下緣外（destination-out 語意）');
+    // G4 尾部統一貼合 pass 原文釘（必須在 R=__savedR 之前、覆蓋全 SPR.bld sz≥2）
+    const iTail425=html.indexOf('T425 統一底部貼合 pass');
+    const iRestore425=html.indexOf('R=__savedR;');
+    assert(iTail425>0&&iRestore425>0&&iTail425<iRestore425,
+      'T425 G4 尾部貼合：統一底部貼合 pass 必須存在且在 R=__savedR 之前（T364 波等後生成鍵從未貼合的閉環）');
+    assert(/SZC425=\{19:4,20:2/.test(html)&&/for\(const key in SPR\.bld\)\{\s*const m425=key\.match/.test(html),
+      'T425 G4 尾部貼合：SZC425 全鍵清冊＋全 SPR.bld 迴圈（不只 65——色環跨線全城歸零）');
+  }
+
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');

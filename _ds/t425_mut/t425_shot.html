@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>65_1_0 before/after 樣張（T425）</title>
+<style>body{background:#141a26;color:#dce4f2;font:12px Consolas,monospace;padding:12px}canvas{image-rendering:pixelated;display:inline-block;border:1px solid #2a3448;margin:6px}</style>
+</head>
+<body>
+<h1 id="t">65_1_0 樣張</h1>
+<div id="cv"></div>
+<iframe id="f" src="/index.html" style="position:absolute;left:-9999px;width:64px;height:64px"></iframe>
+<script>
+const P = new URLSearchParams(location.search);
+const A = P.get('a') || '/index.html';
+document.getElementById('f').src = A;
+document.getElementById('t').textContent = '65_1_0 樣張 ' + (A.includes('before') ? '【BEFORE】' : '【AFTER】');
+(function wait(){
+  const w = document.getElementById('f').contentWindow;
+  if (w && w.GV && w.GV.sprAtlas356) {
+    const e = w.GV.sprAtlas356().entries.find(x => x.fam === 'bld' && x.key === '65_1_0');
+    if (e) { draw(e); return; }
+  }
+  setTimeout(wait, 400);
+})();
+function draw(e) {
+  const SC = 3;
+  const host = document.getElementById('cv');
+  for (const [nm, cvs] of [['日', e.img], ['夜', e.night]]) {
+    const cv = document.createElement('canvas');
+    cv.width = cvs.width * SC; cv.height = cvs.height * SC;
+    const g = cv.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.drawImage(cvs, 0, 0, cv.width, cv.height);
+    const lab = document.createElement('div');
+    lab.textContent = nm + ' ' + cvs.width + '×' + cvs.height;
+    lab.style.color = '#7fd4ff';
+    host.appendChild(lab); host.appendChild(cv);
+  }
+  window.T425_SHOT_DONE = true;
+}
+</script>
+</body>
+</html>
