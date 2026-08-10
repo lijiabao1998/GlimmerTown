@@ -5758,6 +5758,60 @@ runPwaTests().then(() => {
     assert(ink421.rects===172&&ink421.px===2194,'T421 G6 落筆恆等 rects=172/px=2194 實得 '+JSON.stringify(ink421));
   }
 
+  { // ===== T423 R01 守衛：HUD 數字 tween＋金額 flash（純顯示層現代化） =====
+    const iTween423=html.indexOf('let tweenHud={money:0,pop:0,jobs:0}');
+    const iUpd423=html.indexOf('function updHud(){');
+    const iFlash423=html.indexOf('moneyFlashUp');
+    assert(iTween423>0&&iUpd423>iTween423&&iFlash423>0,
+      'T423 R01 HUD tween：tween 引擎＋updHud 改寫＋flash CSS 皆存在（刪任一即紅）');
+    assert(/tweenHudTarget=\{money:Math\.floor\(money\),pop,jobs\}/.test(html),
+      'T423 R01 HUD 數值源：tween 目標必須直接讀模擬變數 money/pop/jobs（改讀假值即紅）');
+    assert(/textContent=Math\.round\(tweenHud\.money\)\.toLocaleString\(\)/.test(html),
+      'T423 R01 HUD tween 寫入：動畫只寫 textContent（顯示層），不碰模擬變數');
+    assert(!/updHud\(\).*?tick\(\)/s.test(html.slice(iUpd423,iUpd423+600)),
+      'T423 R01 HUD 純顯示：updHud 內不得呼叫 tick（UI 不得觸發模擬）');
+  }
+
+  { // ===== T423 R02 守衛：統一面板頭＋空態（面板現代化） =====
+    const iHead423=html.indexOf('function panelHead(title,badge)');
+    const iEmpty423=html.indexOf('function panelEmpty(msg)');
+    assert(iHead423>0&&iEmpty423>0,'T423 R02 面板頭：panelHead/panelEmpty 輔助函式存在（刪任一即紅）');
+    assert(/\.phead\{display:flex/.test(html)&&/\.empty\{color:#7f8ca6/.test(html),
+      'T423 R02 面板樣式：.phead/.empty CSS 存在');
+    assert(html.indexOf("body.appendChild(panelHead('💾 存檔槽'")>iHead423,
+      'T423 R02 遷移示範：showSlots 已改用 panelHead（h3 直寫 → 統一頭部）');
+    assert(html.indexOf("panelEmpty('尚無存檔")>iEmpty423,
+      'T423 R02 空態：showSlots 已接 panelEmpty（空槽提示）');
+    // T423 R03 守衛：開始畫面設定網格卡片化（icon＋label 兩行）
+    assert(/\.settingsGrid\{display:grid/.test(html)&&/\.sgIc\{font-size:16px\}/.test(html)&&/\.sgLb\{color:var\(--text-dim\)/.test(html),
+      'T423 R03 設定網格：.settingsGrid/.sgIc/.sgLb CSS 存在（刪任一即紅）');
+    assert(/const mkSet=\(ic,label,onclick,id\)=>/.test(html),
+      'T423 R03 設定卡片：mkSet 輔助函式存在（icon＋label 兩行構造）');
+    assert(html.indexOf('grid.appendChild(ds)')>html.indexOf('const mkSet'),
+      'T423 R03 設定卡片：五鈕（災害/畫質/地圖/類別/夜景）已掛進 settingsGrid');
+    assert(/bNightCity/.test(html)&&/SAVEKEY\+'\.nightcity'/.test(html),
+      'T423 R03 設定卡片：夜景鈕 id 與持久化鍵保留（T413b 契約不破）');
+    // T423 R04 守衛：通知反饋＋工具 hover 現代化（純視覺，零行為變動）
+    assert(/\.toast::before\{content:'';width:3px/.test(html),
+      'T423 R04 toast 色條：.toast::before 左緣色條存在（分類指示）');
+    assert(/@keyframes tin\{from\{opacity:0;transform:translateY\(8px\) scale\(\.97\)\}/.test(html),
+      'T423 R04 toast 動效：tin 滑入含 scale（現代化進場）');
+    assert(/el\.title=`\$\{t\.nm\}・\$\{catNm\}/.test(html),
+      'T423 R04 工具 hover：工具 title 含「名稱・分類」提示（刪即紅）');
+    assert(/const catNm=\(TOOL_CATS\.find\(c=>c\.id===t\.cat\)\|\|\{\}\)\.nm/.test(html),
+      'T423 R04 工具 hover：catNm 由 TOOL_CATS 即時查表（不硬寫分類）');
+    // T423 R05 守衛：面板頭推廣（showAch 遷移 phead）＋跨瀏覽器滾動條
+    assert(/<div class="phead"><h3>🏆 成就<\/h3><span class="phBadge">\$\{doneN\}\/\$\{total\}<\/span><\/div>/.test(html),
+      'T423 R05 成就面板頭：showAch 已用 phead＋計數徽記（與 panelHead 視覺一致）');
+    assert(/#info\{scrollbar-width:thin;scrollbar-color:#2f3c5c #141a2a\}/.test(html),
+      'T423 R05 滾動條：Firefox scrollbar-width/color 同款（跨瀏覽器一致）');
+    // T423 R06 守衛：響應式安全區（瀏海屏/手勢條）
+    assert(/padding-top:max\(5px,env\(safe-area-inset-top\)\)/.test(html),
+      'T423 R06 安全區：HUD 頂部 safe-area-inset-top（瀏海屏）');
+    assert(/bottom:max\(10px,env\(safe-area-inset-bottom\)\)/.test(html),
+      'T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）');
+  }
+
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');

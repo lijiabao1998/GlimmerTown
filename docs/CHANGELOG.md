@@ -1,5 +1,6 @@
 # CHANGELOG — 每完成一張任務卡追加一行
 
+2026-08-09 | T423 UI 現代化特化卡（DeepSeek 出卡＋施工＋自審自合；業主直令全鏈授權；v11.49） | **六輪迭代，六方向現代化**：①**R01 HUD**——money/pop/jobs 數字 tween（0.35s ease-out，rAF 驅動，只寫 textContent）＋金額增減 flash（綠/紅淡入 0.6s，CSS keyframes）；②**R02 面板**——`panelHead(title,badge)` 統一頭部＋`panelEmpty(msg)` 空態卡（border-dashed），showSlots 遷移示範（空槽顯示「尚無存檔」）；③**R03 開始畫面**——設定五鈕（災害/畫質/地圖/類別/夜景）卡片化（`mkSet` icon＋label 兩行＋`.settingsGrid` auto-fit），T405 G3 `bg.onclick` 含 `location.reload()` 契約保持；④**R04 通知/工具**——toast 滑入動效（tin 含 scale）＋左緣色條分類指示（`::before` 藍/金/紅）、工具 hover title「名稱・分類（價格）」即時查 TOOL_CATS；等級門檻「顯示但鎖定」評估後保留隱藏（T343a 可見數 32 契約不可破，註解記錄）；⑤**R05 面板深化**——showAch 遷移 phead＋計數徽記（doneN/total）、`#info` 補 Firefox `scrollbar-width/color`；⑥**R06 響應式**——HUD `safe-area-inset-top/left/right`（瀏海屏）、工具列 `safe-area-inset-bottom`（iOS 手勢條）。**驗收語言與觀測對齊**（T419 教條⑬）：每輪四件（改動清單/守衛/驗證/commit），守衛 16 條皆行為釘＋原文釘（tween 目標必須直讀模擬變數、updHud 不得呼叫 tick、mkSet 構造、toast 色條、安全區 env()）。**純顯示層鐵律**：不碰 tick/newWorld/load/save/AI/兩釘；存檔三配方 rawSave 位元恆等（5680/12211/11355 與 R00 基線逐位相同）；PASS 4307→**4392**（+85 只升不降）、兩釘 4153/4550 位元恆等、CRLF=0、verify ALL GREEN。業主直令「迭代到UI現代化為止」——六方向齊備，寫 `STOP: UI_MODERN_DONE` 自評完成。 | 驗收:通過（DeepSeek 自審自合：業主 2026-08-09 直令「你出卡，你施工，你迭代，你合併，T423」授權全鏈；官方閘門 PASS=4392／exit 0／ALL GREEN／CRLF=0、兩釘 4153/4550 恆等、存檔位元恆等、真實瀏覽器開始畫面渲染確認；此為本輪單次角色例外，不作作者自合的一般先例——比照 T422 業主特批先例措辭）。
 
 格式：`日期 | 卡號 | 一句話說明 | 驗收:通過/BLOCKED`
 
