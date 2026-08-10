@@ -5855,15 +5855,16 @@ runPwaTests().then(() => {
     assert(/SPR\.bld\['65_1_0'\]=\{img:c,night:nc,ax,ay,w:272,h:280,smoke:\[\]\}/.test(html),
       'T425 G3 幾何：65_1_0 w/h/ax/ay 恰等 272/280/136/278（改任一即紅）');
     // G1a 常量定義原文釘（T425 收窄後值——改動須同步驗算器與本釘）
-    assert(/const bw=142,bh=68,bx=ax-72,by=ay-40;/.test(html),'T425 G1a 常量：店窗帶 bw=142/bx=ax-72（T425 收窄值）');
-    assert(/const wingL=\{x:ax-72,w:62,h:46\},wingR=\{x:ax\+8,w:44,h:56\},atr=\{x:ax-8,w:24,h:74\};/.test(html),
-      'T425 G1a 常量：三段體量 T425 收窄值（翼 62/44、中庭 24×74）');
+    assert(/const by=ay-40; \/\/ T425E：常量簡化/.test(html),
+      'T425 G1a 常量：65 段常量簡化（箱體化後 bw/bx/wingL/wingR/atr 由 isoBox 參數取代）');
+    assert(/isoBox\(sg,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50'\)/.test(html),
+      'T425 G1a 箱體：主箱 isoBox(ax,ay,96,32)（半寬96 高32，頂面頂 y=150 恰齊 4×4 菱形頂）');
     // G1b 源碼矩形驗算：解析 65 段全部 fillRect，常量代入＋循環變量極值（min/max）→ 菱形內含（±2px）
     const VARS425={ax:136,ay:278,by:238,bx:64,bw:142,bh:68,shopY:222,topY:170,
       'wingL.x':64,'wingL.w':62,'wingL.h':46,'wingR.x':144,'wingR.w':44,'wingR.h':56,
       'atr.x':128,'atr.w':24,'atr.h':74,'atr.x+3':131,'atr.x+2':130,'atr.w-6':18,'atr.w+6':30,'atr.h-8':66,'atr.h-3':71,
       'wingL.w-8':54,'wingL.w-4':58,'wingR.w-8':36,'wingR.w-4':40,
-      i:[0,4],r:[0,8],ry:[0,1],i2b:[0,5],i2c:[0,3],
+      i:[0,4],r:[0,8],ry:[0,1],i2b:[0,5],i2c:[0,1],
       st2:[66,208],dxx:[112,152],sx3:[66,190],cx2:[70,176],mx:[136,146],my:[176,218],tx:[96,170],dcx:[104,152],lx:[116,156]};
     const evalExpr425=(e)=>{ // 常量子串替換（長鍵優先）＋循環變量 \b 邊界極值代入
       let s=e;
@@ -5919,10 +5920,10 @@ runPwaTests().then(() => {
     // G3 新元素原文釘：噴泉／屋頂花園／垂直霓虹／貨箱堆／購物者小人／旗桿陣——刪任一即紅
     assert(/sg.fillStyle='#b8bcc4';sg.fillRect\(128,262,16,4\)/.test(html),
       'T425A G3 噴泉：中央噴泉水盤（128,262,16,4）必須存在（T425A 豐富度 A-H）');
-    assert(/sg\.fillStyle='#4f8a44';sg\.fillRect\(wingR\.x\+4,by-wingR\.h\+2,wingR\.w-8,4\)/.test(html),
-      'T425A G3 花園：右翼屋頂花園綠植帶必須存在（TheoTown 附屬物語彙）');
-    assert(/sg.fillStyle='#b83c2e';sg.fillRect\(59,202,4,33\)/.test(html),
-      'T425A G3 霓虹：左翼側牆垂直霓虹招牌必須存在');
+    assert(/sg\.fillStyle='#4f8a44';sg\.fillRect\(ax-32,170,24,8\)/.test(html),
+      'T425A G3 花園：主箱頂面植栽（箱體化後屋頂綠植帶）必須存在');
+    assert(/isoBox\(sg,ax,174,6,14,'#b83c2e','#8a2a1e','#c0453a'\)/.test(html)&&/ng\.fillStyle='#ff8a72';ng\.fillRect\(ax-1,174,2,14\)/.test(html),
+      'T425A G3 霓虹：招牌塔（細箱＋塔頂霓虹）必須存在（箱體化後側牆霓虹改塔霓虹）');
     assert(/sg\.fillStyle='#b8a582';sg\.fillRect\(80,219,7,6\)/.test(html),
       'T425A G3 貨箱：裝卸區貨箱堆必須存在（配送區豐富度）');
     assert(/fillStyle='#20242c';sg\.fillRect\(px2,py2,1,1\)/.test(html),
@@ -5930,7 +5931,7 @@ runPwaTests().then(() => {
     assert(/for\(const\[fqx,fqc\]of\[\[104,'#e05252'\]/.test(html),
       'T425A G3 旗桿：三色旗桿陣必須存在');
     // G4 夜層釘：霓虹／噴泉燈／地燈必須入 ng（夜間豐富度）
-    assert(/ng\.fillStyle='rgba\(255,138,114,\.8\)';ng\.fillRect\(59,202,4,33\)/.test(html),
+    assert(/ng\.fillStyle='#ff8a72';ng\.fillRect\(ax-1,174,2,14\)/.test(html),
       'T425A G4 夜層：側招牌霓虹必須在 ng（夜亮）');
     assert(/ng\.fillStyle='rgba\(140,200,240,\.6\)';ng\.fillRect\(133,258,6,3\)/.test(html),
       'T425A G4 夜層：噴泉燈必須在 ng');
@@ -5949,17 +5950,17 @@ runPwaTests().then(() => {
 
   { // ===== T425B 購物中心風格迭代：TheoTown 三規則（左光源漸層／右落陰影／接地基腳），只動 65 =====
     // G1b 陰影原文釘：右落陰影必須存在且在 plate 後主體前（底層）
-    assert(/===== T425B 風格（TheoTown 三規則/.test(html),
+    assert(/===== T425E 結構化 2\.5D：多箱體等距組合/.test(html),
       'T425B G1b 風格塊：T425B 註解標記必須存在（刪即紅）');
-    assert(/g\.fillStyle='rgba\(20,24,32,\.32\)'/.test(html)&&/g\.fillRect\(wingL\.x\+3,by-wingL\.h\+1,wingL\.w,wingL\.h-2\)/.test(html),
-      'T425B G1b 陰影：右落陰影（左翼 (wingL.x+3, h-2) 半透明黑）必須畫在 g 底層（超出下緣由 T425 尾部貼合清除）');
+    assert(/T425E：接地由 isoBox 底部 AO（rgba \.13 ×3px）提供/.test(html),
+      'T425B G1b 陰影：接地由 isoBox 底部 AO 提供（與 v1-v4 語彙一致——右落偏移陰影取消）');
     // G2b 階梯釘（T425D 取代：翼牆階梯色帶替代連續漸層——面轉折立體感；中庭玻璃保留漸層＝幕牆語義）
     const seg65d=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
     assert(!/gL\.createLinearGradient|gR\.createLinearGradient/.test(seg65d),
       'T425B G2b 階梯：翼牆不得再用連續漸層（T425D 改階梯色帶——面轉折立體感；中庭玻璃保留漸層＝幕牆語義）');
     // G3b 基腳釘：接地基腳線
-    assert(/T425B 接地基腳線（TheoTown 落地感/.test(html)&&/sg\.fillRect\(wingL\.x,by-1,wingL\.w,1\)/.test(html),
-      'T425B G3b 基腳：翼底/店窗帶底 1px 深色接觸線必須存在（刪即紅）');
+    assert(/T425E：箱體 AO 陰影已提供接地（基腳線隨翼牆刪除）/.test(html),
+      'T425B G3b 基腳：接地由 isoBox AO 提供（基腳線隨翼牆刪除——箱體化語義）');
   }
 
   { // ===== T425C 色票校準：量化對齊 TheoTown 色域（亮度中位 0.41／飽和度 0.40／每 2px 一色） =====
@@ -5972,43 +5973,56 @@ runPwaTests().then(() => {
     assert(/dia\(g,ax,ay-128,128,'#a89e8e'\)/.test(html),'T425C G1c 色域：廣場鋪面暖灰 #a89e8e（原 #b6b2a6）');
     assert(/g\.fillStyle='#b4a896'/.test(seg65c),'T425C G1c 色域：前庭/地磚暖灰 #b4a896（原 #c2beb2）');
     // G2c 亮度/陰影釘：翼牆受光面 L≤0.85（#dcc7a6 L≈.78）；陰影 alpha ≥.30
-    assert(/fillStyle='#dcc7a6';sg\.fillRect\(wingL\.x,by-wingL\.h,Math\.ceil\(wingL\.w\/3\),wingL\.h\)/.test(html),
-      'T425C G2c 亮度：左翼受光面 #dcc7a6（L≈.78，原 #f0e4cc L≈.9——蒼白根源下壓）');
-    assert(/g\.fillStyle='rgba\(20,24,32,\.32\)'/.test(html),
-      'T425C G2c 亮度：陰影加深至 alpha .32（原 .25；TheoTown 教程 20-30% 上限）');
-    // G3c 階梯釘（T425D 取代：階梯三色帶＋過渡線——面轉折）
-    assert(/fillStyle='#dcc7a6';sg\.fillRect\(wingL\.x,by-wingL\.h,Math\.ceil\(wingL\.w\/3\),wingL\.h\)/.test(html),
-      'T425C G3c 階梯：左翼受光面 #dcc7a6（1/3 寬）必須存在');
-    assert(/fillStyle='#b89f82';sg\.fillRect\(wingL\.x\+Math\.ceil\(wingL\.w\*2\/3\),by-wingL\.h,wingL\.w-Math\.ceil\(wingL\.w\*2\/3\),wingL\.h\)/.test(html),
-      'T425C G3c 階梯：左翼背光面 #b89f82（最後 1/3）必須存在');
-    assert(/fillStyle='#967e68';sg\.fillRect\(wingR\.x\+Math\.ceil\(wingR\.w\*2\/3\),by-wingR\.h,wingR\.w-Math\.ceil\(wingR\.w\*2\/3\),wingR\.h\)/.test(html),
-      'T425C G3c 階梯：右翼背光面 #967e68 必須存在');
+    assert(/isoBox\(sg,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50'\)/.test(html),
+      'T425C G2c 亮度：主箱左面 #dcc7a6（受光面 L≈.78——蒼白根源下壓）');
+    assert(/isoBox\(sg,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50'\)/.test(html),
+      'T425C G2c 亮度：主箱左面受光色 #dcc7a6（L≈.78——蒼白根源下壓）');
+    // G3c 箱體結構釘（T425E 取代：多箱體等距組合）
+    assert(/isoBox\(sg,ax-44,ay,40,24,'#cdb694','#a08a72','#7a6a52'\)/.test(html),
+      'T425C G3c 箱體：左翼箱 isoBox(ax-44,ay,40,24)（矮）必須存在');
+    assert(/isoBox\(sg,ax\+44,ay,44,30,'#c8b498','#8a7058','#6e5a44'\)/.test(html),
+      'T425C G3c 箱體：右翼箱 isoBox(ax+44,ay,44,30)（中高）必須存在');
+    assert(/isoBox\(sg,ax,198,24,24,'#90b8cc','#5a7a8a','#7ca4b8'\)/.test(html),
+      'T425C G3c 箱體：中庭玻璃箱 isoBox(ax,198,24,24)（疊主箱頂面）必須存在');
   }
 
-  { // ===== T425D 立體感深化：等距箱體體積語言（業主反饋「立體程度不夠」） =====
-    // G1d 階梯色帶釘：三面明暗（受光/主面/背光）＋過渡線
-    assert(/fillStyle='#cdb694';sg\.fillRect\(wingL\.x\+Math\.ceil\(wingL\.w\/3\),by-wingL\.h,Math\.ceil\(wingL\.w\/3\),wingL\.h\)/.test(html),
-      'T425D G1d 階梯：左翼主面 #cdb694（中 1/3）必須存在');
-    assert(/fillStyle='#a08a72';sg\.fillRect\(wingL\.x\+Math\.ceil\(wingL\.w\/3\)-1,by-wingL\.h,1,wingL\.h\)/.test(html),
-      'T425D G1d 階梯：左翼過渡線（受光/主面交界 1px 暗線）必須存在');
-    // G2d 暗側帶釘：翼右暗側帶 ≥6px（右面存在感）
-    assert(/sg\.fillStyle='#a08a72';sg\.fillRect\(wingL\.x\+wingL\.w-8,by-wingL\.h,8,wingL\.h\); \/\/ T425D 暗側帶 8px/.test(html),
-      'T425D G2d 側帶：左翼暗側帶 8px（原 4px——右面存在感）');
-    assert(/sg\.fillStyle='#8a7058';sg\.fillRect\(wingR\.x\+wingR\.w-8,by-wingR\.h,8,wingR\.h\)/.test(html),
-      'T425D G2d 側帶：右翼暗側帶 8px');
-    // G3d 屋頂板釘：翼頂亮面＋屋簷投影
-    assert(/sg\.fillStyle='#f0e4cc';sg\.fillRect\(wingL\.x,by-wingL\.h-6,wingL\.w,3\); \/\/ T425D 屋頂板亮面/.test(html),
-      'T425D G3d 屋頂板：左翼屋頂亮面 3px（屋頂板厚度）');
-    assert(/sg\.fillStyle='rgba\(90,74,58,\.35\)';sg\.fillRect\(wingL\.x,by-wingL\.h,wingL\.w,2\);        \/\/ T425D 屋簷投影線/.test(html),
-      'T425D G3d 屋頂板：翼頂屋簷投影線 2px');
-    // G4d 窗洞釘：窗框亮上暗下（窗洞內凹）
-    assert(/sg\.fillStyle='#f4ecdc';sg\.fillRect\(cx2,by-wingL\.h\+21,9,1\);sg\.fillStyle='#6a5a44';sg\.fillRect\(cx2,by-wingL\.h\+32,9,1\)/.test(html),
-      'T425D G4d 窗洞：左翼窗框亮上暗下（窗洞內凹）');
-    // 中庭側面暗帶＋門框亮上
-    assert(/sg\.fillStyle='#5a7a8a';sg\.fillRect\(atr\.x\+atr\.w-4,by-atr\.h\+3,4,atr\.h-3\); \/\/ T425D 中庭側面暗帶/.test(html),
-      'T425D G4d 中庭：玻璃右緣側面暗帶 4px');
-    assert(/sg\.fillStyle='#d9c68a';sg\.fillRect\(ax-24,by-9,48,1\); \/\/ T425D 門框亮上（內凹）/.test(html),
-      'T425D G4d 門洞：入口門框亮上 1px（內凹）');
+  { // ===== T425E 結構化 2.5D：多箱體等距組合（業主反饋「結構化的接近 2.5d」；isoBox 語彙與 v1-v4 統一） =====
+    // G1e 箱體結構釘：主體必須由 isoBox 箱體組合構成（≥5 個）
+    const seg65e=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    const boxN65e=(seg65e.match(/isoBox\(sg,/g)||[]).length;
+    assert(boxN65e>=8,'T425E G1e 箱體：65 段至少 8 個 isoBox 箱體（主/左翼/右翼/中庭/天窗×2/招牌塔/雨棚——結構化 2.5D），實得 '+boxN65e);
+    assert(/const detR=\(\(\)=>\{let ws=911\+65\*37/.test(html),
+      'T425E G1e 箱體：局部決定性 PRNG（零全域 rand，T223 先例）必須存在');
+    // G2e 箱體幾何釘：主箱/中庭箱參數（菱形內含由 G3e 驗算）
+    assert(/isoBox\(sg,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50'\)/.test(html),
+      'T425E G2e 幾何：主箱（ax,ay,96,32——半寬96 高32，頂面頂恰齊菱形頂）');
+    // G3e 菱形內含：箱體包圍盒驗算（頂面菱形＋側面，±2px；下半由 T425 尾部貼合）
+    const boxes65e=[[136,278,96,32,'主箱'],[92,278,40,24,'左翼'],[180,278,44,30,'右翼'],[136,198,24,24,'中庭'],[120,180,12,10,'天窗L'],[152,180,12,10,'天窗R'],[136,174,6,14,'招牌塔'],[136,246,30,4,'雨棚']];
+    const g3e=[];
+    for(const[cx2,by2,hw2,h2,nm]of boxes65e){
+      const top2=by2-h2-hw2; // 頂面菱形（isoBox）：頂(cx,top)、左右(cx±hw, top+hw/2)、底(cx, top+hw)
+      const pts2=[[cx2,top2],[cx2-hw2,top2+hw2/2],[cx2+hw2,top2+hw2/2],[cx2,top2+hw2]];
+      for(const[px2,py2]of pts2){
+        if(py2<150||py2>278){g3e.push(nm+'@('+px2+','+py2+')');continue;}
+        const hwD=128*(1-Math.abs(py2-214)/64);
+        if(Math.abs(px2-136)>hwD+2)g3e.push(nm+'@('+px2+','+py2+') hwD='+hwD.toFixed(0));
+      }
+    }
+    assert(g3e.length===0,'T425E G3e 菱形內含：全部箱體頂面菱形在 4×4 footprint 內（±2px；側面下半由 T425 尾部貼合），實得 '+JSON.stringify(g3e));
+    // G4e 地面件保留：噴泉/旗桿/貨箱/小人/地燈（重構不得刪）
+    assert(/sg\.fillRect\(128,262,16,4\)/.test(html)&&/sg\.fillRect\(fqx,226,1,16\)/.test(html)&&/sg\.fillRect\(80,219,7,6\)/.test(html),
+      'T425E G4e 地面件：噴泉/旗桿/貨箱堆保留（箱體化不得刪地面件）');
+    assert(/fillStyle='#20242c';sg\.fillRect\(px2,py2,1,1\)/.test(html),
+      'T425E G4e 地面件：購物者小人保留');
+    // G5e 箱體完整性：天窗/招牌塔/雨棚/翼箱窗（結構化組合全件）
+    assert(/isoBox\(sg,ax-16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4'\)/.test(html),
+      'T425E G5e 箱體：天窗箱左（cx120——y158 半寬僅 16 內移）必須存在');
+    assert(/isoBox\(sg,ax,174,6,14,'#b83c2e','#8a2a1e','#c0453a'\)/.test(html),
+      'T425E G5e 箱體：招牌塔（細高箱，中庭箱頂）必須存在');
+    assert(/isoBox\(sg,ax,246,30,4,'#b83c2e','#8a2a1e','#d8695a'\)/.test(html),
+      'T425E G5e 箱體：入口雨棚薄板（主箱底面前緣）必須存在');
+    assert(/windows\(sg,ng,ax-44,ay,40,24,detR,\.5,\{w:3,ht:4,gx:6,gy:9,glass:'#2a3550',lit:'#ffd77a'\}\)/.test(html),
+      'T425E G5e 箱體：左翼箱窗（windows 日夜雙層）必須存在');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
@@ -6801,8 +6815,8 @@ runPwaTests().then(() => {
       assert(i65 > 0 && i65e > i65, 'T378 K5：k65 細節塊應可切出');
       assert((blk65.match(/\bng\.fill/g) || []).length >= 3,
         'T378 K5：k65 細節應含多處夜光');
-      assert(blk65.includes('shopY+5') && html.includes('shopY+4,16,9'),
-        'T378 K5：k65 櫥窗夜光應對齊日層店窗 band');
+      assert(html.includes('windows(sg,ng,ax,ay,96,32') && html.includes('windows(sg,ng,ax+44,ay,44,30'),
+        'T378 K5：k65 箱體窗日夜對齊（windows 同呼 sg/ng 雙層——T425E 箱體化取代店窗帶）');
       // 新增夜光段不得單獨引入 Math.random / 全域 rand（零亂數契約）
       for (const tag of ['T378 溫室細節', 'T378 購物中心細節', 'T378 消防局細節', 'T378 學校細節']) {
         const i0 = html.indexOf(tag);
