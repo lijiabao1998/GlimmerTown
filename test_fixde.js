@@ -5758,6 +5758,20 @@ runPwaTests().then(() => {
     assert(ink421.rects===172&&ink421.px===2194,'T421 G6 落筆恆等 rects=172/px=2194 實得 '+JSON.stringify(ink421));
   }
 
+  { // ===== T423 R01 守衛：HUD 數字 tween＋金額 flash（純顯示層現代化） =====
+    const iTween423=html.indexOf('let tweenHud={money:0,pop:0,jobs:0}');
+    const iUpd423=html.indexOf('function updHud(){');
+    const iFlash423=html.indexOf('moneyFlashUp');
+    assert(iTween423>0&&iUpd423>iTween423&&iFlash423>0,
+      'T423 R01 HUD tween：tween 引擎＋updHud 改寫＋flash CSS 皆存在（刪任一即紅）');
+    assert(/tweenHudTarget=\{money:Math\.floor\(money\),pop,jobs\}/.test(html),
+      'T423 R01 HUD 數值源：tween 目標必須直接讀模擬變數 money/pop/jobs（改讀假值即紅）');
+    assert(/textContent=Math\.round\(tweenHud\.money\)\.toLocaleString\(\)/.test(html),
+      'T423 R01 HUD tween 寫入：動畫只寫 textContent（顯示層），不碰模擬變數');
+    assert(!/updHud\(\).*?tick\(\)/s.test(html.slice(iUpd423,iUpd423+600)),
+      'T423 R01 HUD 純顯示：updHud 內不得呼叫 tick（UI 不得觸發模擬）');
+  }
+
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
   {
     const i369 = html.indexOf('T369 工業供應鏈總覽');

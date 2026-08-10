@@ -50,6 +50,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 .chip:active{transform:translateY(1px)}
 .chip b{font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
 #money b{color:var(--accent)}
+/* T423 R01：HUD 數字動畫——金額增減 flash（綠/紅淡入淡出）＋數值 tween（updHud 內 rAF 驅動） */
+#money b.flashUp{animation:moneyFlashUp .6s var(--ease)}
+#money b.flashDown{animation:moneyFlashDown .6s var(--ease)}
+@keyframes moneyFlashUp{0%{color:#fff;text-shadow:0 0 8px rgba(123,224,138,.9)}100%{color:var(--accent)}}
+@keyframes moneyFlashDown{0%{color:#ffd0d0;text-shadow:0 0 8px rgba(226,88,92,.9)}100%{color:var(--accent)}}
 #hud .spacer{flex:1}
 .hbtn{background:#232c4a;border:1px solid var(--panel-border);color:var(--text);border-radius:var(--radius-xs);
   padding:2px 9px;font-size:13px;line-height:22px;cursor:pointer;transition:background-color var(--ease),border-color var(--ease),transform var(--ease),box-shadow var(--ease)}
@@ -17986,10 +17991,39 @@ function toast(msg,cls,x,y){
   log.push(le);if(log.length>100)log.shift();
   unread++;updBell();
 }
+/* T423 R01：HUD 數字 tween——顯示值平滑趨近目標（0.35s ease-out；純顯示層，不碰模擬變數）。
+   每幀只寫 textContent；目標值以 updHud 呼叫時的真實變數為準，動畫只延遲「顯示」不延遲「數值」。 */
+let tweenHud={money:0,pop:0,jobs:0},tweenHudTarget={money:0,pop:0,jobs:0},tweenHudRAF=null;
+function tweenHudStart(){
+  const t0=performance.now(),dur=350;
+  const from={money:tweenHud.money,pop:tweenHud.pop,jobs:tweenHud.jobs};
+  const to={money:tweenHudTarget.money,pop:tweenHudTarget.pop,jobs:tweenHudTarget.jobs};
+  const step=(now)=>{
+    const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3); // ease-out cubic
+    tweenHud.money=from.money+(to.money-from.money)*e;
+    tweenHud.pop=from.pop+(to.pop-from.pop)*e;
+    tweenHud.jobs=from.jobs+(to.jobs-from.jobs)*e;
+    $('#money b').textContent=Math.round(tweenHud.money).toLocaleString();
+    $('#pop b').textContent=Math.round(tweenHud.pop).toLocaleString();
+    $('#jobs b').textContent=Math.round(tweenHud.jobs).toLocaleString();
+    if(k<1)tweenHudRAF=requestAnimationFrame(step);
+    else{tweenHudRAF=null;tweenHud.money=to.money;tweenHud.pop=to.pop;tweenHud.jobs=to.jobs;}
+  };
+  if(tweenHudRAF)cancelAnimationFrame(tweenHudRAF);
+  tweenHudRAF=requestAnimationFrame(step);
+}
 function updHud(){
-  $('#money b').textContent=Math.floor(money).toLocaleString();
-  $('#pop b').textContent=pop.toLocaleString();
-  $('#jobs b').textContent=jobs.toLocaleString();
+  const moneyEl=$('#money b');
+  const prevMoney=tweenHudTarget.money;
+  tweenHudTarget={money:Math.floor(money),pop,jobs};
+  tweenHudStart();
+  // 金額增減 flash：只在「有實質變化」且「非初始化（0→0）」時觸發
+  const diffMoney=tweenHudTarget.money-prevMoney;
+  if(prevMoney!==0&&diffMoney!==0){
+    moneyEl.classList.remove('flashUp','flashDown');
+    void moneyEl.offsetWidth; // 重啟動畫
+    moneyEl.classList.add(diffMoney>0?'flashUp':'flashDown');
+  }
   const hEmoji=cityHappy>.7?'😊':cityHappy>.45?'😐':'☹️';
   $('#happy').innerHTML=`${hEmoji} <b>${Math.round(cityHappy*100)}%</b>`;
   $('#star').innerHTML=cityStar<0?'⭐ <b>–</b>':`⭐ <b>${cityStar}</b>`;
