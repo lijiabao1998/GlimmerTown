@@ -5920,8 +5920,8 @@ runPwaTests().then(() => {
     // G3 新元素原文釘：噴泉／屋頂花園／垂直霓虹／貨箱堆／購物者小人／旗桿陣——刪任一即紅
     assert(/sg.fillStyle='#b8bcc4';sg.fillRect\(128,262,16,4\)/.test(html),
       'T425A G3 噴泉：中央噴泉水盤（128,262,16,4）必須存在（T425A 豐富度 A-H）');
-    assert(/sg\.fillStyle='#4f8a44';sg\.fillRect\(ax-32,170,24,8\)/.test(html),
-      'T425A G3 花園：主箱頂面植栽（箱體化後屋頂綠植帶）必須存在');
+    assert(/E 屋頂花園（T425F 刪除——中庭箱\/天窗已佔滿頂面，花園與招牌互斥）/.test(html),
+      'T425A G3 花園：屋頂花園已刪（T425F——頂面被中庭箱/天窗/招牌佔滿）；植栽語義由噴泉側灌木承接');
     assert(/isoBox\(sg,ax,174,6,14,'#b83c2e','#8a2a1e','#c0453a'\)/.test(html)&&/ng\.fillStyle='#ff8a72';ng\.fillRect\(ax-1,174,2,14\)/.test(html),
       'T425A G3 霓虹：招牌塔（細箱＋塔頂霓虹）必須存在（箱體化後側牆霓虹改塔霓虹）');
     assert(/sg\.fillStyle='#b8a582';sg\.fillRect\(80,219,7,6\)/.test(html),
@@ -6023,6 +6023,18 @@ runPwaTests().then(() => {
       'T425E G5e 箱體：入口雨棚薄板（主箱底面前緣）必須存在');
     assert(/windows\(sg,ng,ax-44,ay,40,24,detR,\.5,\{w:3,ht:4,gx:6,gy:9,glass:'#2a3550',lit:'#ffd77a'\}\)/.test(html),
       'T425E G5e 箱體：左翼箱窗（windows 日夜雙層）必須存在');
+  }
+
+  { // ===== T425F 像素質感：淺描邊＋箱體面工藝（業主反饋「角度對了，像素顯示效果不對」） =====
+    // G1f 描邊釘：65 段 outlineSprite 用淺色（TheoTown「避免深色輪廓」）
+    assert(/outlineSprite\(s,176,182,192\);g\.drawImage\(s,0,0\); \/\/ T425F 淺描邊/.test(html),
+      'T425F G1f 描邊：65 段淺描邊 (176,182,192)（原 26,30,44 深黑框＝貼紙感——TheoTown 禁深色輪廓）');
+    // G2f 磚紋釘：主箱左面中央帶水平紋
+    assert(/T425F 主箱左面中央帶磚紋/.test(html)&&/for\(let by2=by-14;by2>by-20;by2-=4\)\{for\(let bx2=ax-16;bx2<ax\+8;bx2\+=6\)\{sg\.fillRect\(bx2,by2-2,4,1\);\}\}/.test(html),
+      'T425F G2f 磚紋：主箱左面中央帶水平紋（y258..266 x120..144——像素材質工藝）');
+    // G3f 招牌釘：右翼箱面 MALL 招牌
+    assert(/T425F 右翼箱面 MALL 招牌/.test(html)&&/sg\.fillStyle='#b83c2e';sg\.fillRect\(ax\+40,220,40,10\)/.test(html),
+      'T425F G3f 招牌：右翼箱面 MALL 橫條（40×10＋雙行白字）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
