@@ -5917,11 +5917,11 @@ runPwaTests().then(() => {
 
   { // ===== T425A 購物中心美術完善：新元素原文釘（G1 菱形驗算/T425 G1 已覆蓋 212 元素；G2 幾何/T425 G3 已覆蓋） =====
     // G3 新元素原文釘：噴泉／屋頂花園／垂直霓虹／貨箱堆／購物者小人／旗桿陣——刪任一即紅
-    assert(/sg\.fillStyle='#c8d0dc';sg\.fillRect\(128,262,16,4\)/.test(html),
+    assert(/sg.fillStyle='#b8bcc4';sg.fillRect\(128,262,16,4\)/.test(html),
       'T425A G3 噴泉：中央噴泉水盤（128,262,16,4）必須存在（T425A 豐富度 A-H）');
     assert(/sg\.fillStyle='#4f8a44';sg\.fillRect\(wingR\.x\+4,by-wingR\.h\+2,wingR\.w-8,4\)/.test(html),
       'T425A G3 花園：右翼屋頂花園綠植帶必須存在（TheoTown 附屬物語彙）');
-    assert(/sg\.fillStyle='#c0453a';sg\.fillRect\(59,202,4,33\)/.test(html),
+    assert(/sg.fillStyle='#b83c2e';sg.fillRect\(59,202,4,33\)/.test(html),
       'T425A G3 霓虹：左翼側牆垂直霓虹招牌必須存在');
     assert(/sg\.fillStyle='#b8a582';sg\.fillRect\(80,219,7,6\)/.test(html),
       'T425A G3 貨箱：裝卸區貨箱堆必須存在（配送區豐富度）');
@@ -5951,20 +5951,43 @@ runPwaTests().then(() => {
     // G1b 陰影原文釘：右落陰影必須存在且在 plate 後主體前（底層）
     assert(/===== T425B 風格（TheoTown 三規則/.test(html),
       'T425B G1b 風格塊：T425B 註解標記必須存在（刪即紅）');
-    assert(/g\.fillStyle='rgba\(20,24,32,\.25\)'/.test(html)&&/g\.fillRect\(wingL\.x\+3,by-wingL\.h\+1,wingL\.w,wingL\.h-2\)/.test(html),
+    assert(/g\.fillStyle='rgba\(20,24,32,\.32\)'/.test(html)&&/g\.fillRect\(wingL\.x\+3,by-wingL\.h\+1,wingL\.w,wingL\.h-2\)/.test(html),
       'T425B G1b 陰影：右落陰影（左翼 (wingL.x+3, h-2) 半透明黑）必須畫在 g 底層（超出下緣由 T425 尾部貼合清除）');
     // G2b 漸層原文釘：三處左光源漸層（createLinearGradient 左亮右暗）
     const gradL425b=html.match(/createLinearGradient\(/g);
     assert(gradL425b&&gradL425b.length>=3,'T425B G2b 漸層：65 段至少 3 處 createLinearGradient（左翼/右翼/中庭玻璃，左光源），實得 '+(gradL425b?gradL425b.length:0));
-    assert(/gL\.addColorStop\(0,'#f0e4cc'\);gL\.addColorStop\(1,'#d8c8a8'\)/.test(html),
+    assert(/gL.addColorStop\(0,'#dcc7a6'\);gL.addColorStop\(.5,'#d0b898'\);gL.addColorStop\(1,'#c2a888'\)/.test(html),
       'T425B G2b 漸層：左翼奶油砂岩左亮右暗（#f0e4cc→#d8c8a8）');
-    assert(/gR\.addColorStop\(0,'#e0d0b8'\);gR\.addColorStop\(1,'#bca88e'\)/.test(html),
+    assert(/gR.addColorStop\(0,'#c8b498'\);gR.addColorStop\(.5,'#b4a084'\);gR.addColorStop\(1,'#a08a72'\)/.test(html),
       'T425B G2b 漸層：右翼整體更暗（#e0d0b8→#bca88e，襯左翼）');
-    assert(/gA\.addColorStop\(0,'#a8d0e4'\);gA\.addColorStop\(1,'#86b4cc'\)/.test(html),
+    assert(/gA.addColorStop\(0,'#90b8cc'\);gA.addColorStop\(.5,'#7ca4b8'\);gA.addColorStop\(1,'#6890a4'\)/.test(html),
       'T425B G2b 漸層：中庭玻璃（#a8d0e4→#86b4cc）');
     // G3b 基腳釘：接地基腳線
     assert(/T425B 接地基腳線（TheoTown 落地感/.test(html)&&/sg\.fillRect\(wingL\.x,by-1,wingL\.w,1\)/.test(html),
       'T425B G3b 基腳：翼底/店窗帶底 1px 深色接觸線必須存在（刪即紅）');
+  }
+
+  { // ===== T425C 色票校準：量化對齊 TheoTown 色域（亮度中位 0.41／飽和度 0.40／每 2px 一色） =====
+    // G1c 廣場暖灰化：舊灰白 #b6b2a6/#c2beb2 不得再出現於 65 段（新暖灰 #a89e8e/#b4a896）
+    const i65c=html.indexOf('{ // T290 大型購物中心 65_1_0');
+    const i65cEnd=html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};");
+    const seg65c=html.slice(i65c,i65cEnd);
+    assert(!/'#b6b2a6'|'#c2beb2'/.test(seg65c),
+      'T425C G1c 色域：65 段不得再含舊灰白廣場色（#b6b2a6/#c2beb2——已暖灰化 #a89e8e/#b4a896），亮度下壓');
+    assert(/dia\(g,ax,ay-128,128,'#a89e8e'\)/.test(html),'T425C G1c 色域：廣場鋪面暖灰 #a89e8e（原 #b6b2a6）');
+    assert(/g\.fillStyle='#b4a896'/.test(seg65c),'T425C G1c 色域：前庭/地磚暖灰 #b4a896（原 #c2beb2）');
+    // G2c 亮度/陰影釘：翼牆亮端 L≤0.85（#dcc7a6 L≈.78）；陰影 alpha ≥.30
+    assert(/gL\.addColorStop\(0,'#dcc7a6'\)/.test(html),
+      'T425C G2c 亮度：左翼漸層亮端 #dcc7a6（L≈.78，原 #f0e4cc L≈.9——蒼白根源下壓）');
+    assert(/g\.fillStyle='rgba\(20,24,32,\.32\)'/.test(html),
+      'T425C G2c 亮度：陰影加深至 alpha .32（原 .25；TheoTown 教程 20-30% 上限）');
+    // G3c 密度釘：三處漸層各 ≥3 級（多級漸層＝色票密度，原 2 級）
+    assert(/gL\.addColorStop\(0,'#dcc7a6'\);gL\.addColorStop\(\.5,'#d0b898'\);gL\.addColorStop\(1,'#c2a888'\)/.test(html),
+      'T425C G3c 密度：左翼漸層 3 級（含 .5 中點——每 50px→每 ~17px 一色）');
+    assert(/gR\.addColorStop\(0,'#c8b498'\);gR\.addColorStop\(\.5,'#b4a084'\);gR\.addColorStop\(1,'#a08a72'\)/.test(html),
+      'T425C G3c 密度：右翼漸層 3 級');
+    assert(/gA\.addColorStop\(0,'#90b8cc'\);gA\.addColorStop\(\.5,'#7ca4b8'\);gA\.addColorStop\(1,'#6890a4'\)/.test(html),
+      'T425C G3c 密度：中庭玻璃漸層 3 級');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
