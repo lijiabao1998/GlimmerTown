@@ -226,6 +226,11 @@ table.dtab tr:hover td{background:#1b2334}
 #start .diffrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:340px}
 #start .diffbtn{min-width:auto;padding:6px 12px;font-size:12px;border-radius:9px}
 #start .diffbtn.sel{border-color:var(--accent);background:#33395e;color:#fff}
+/* T423 R03：開始畫面設定網格——災害/畫質/地圖/類別/夜景 卡片化（icon＋label 垂直排） */
+.settingsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;max-width:420px;margin:2px auto 0}
+.settingsGrid .alt{min-width:0;padding:8px 10px;font-size:12px;border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.35}
+.settingsGrid .alt .sgIc{font-size:16px}
+.settingsGrid .alt .sgLb{color:var(--text-dim);font-size:10px;letter-spacing:.04em}
 /* T132：場景戰役選單（比照 .diffrow/.diffbtn 樣式先例） */
 #start .scmenu{display:none;flex-direction:column;gap:5px;max-width:340px;margin-top:6px;max-height:220px;overflow-y:auto}
 #start .scmenu.show{display:flex}
@@ -19925,25 +19930,29 @@ if(startEl&&!$('#bCh1')){
   moreEl.appendChild(mk('bCh1','🏁 挑戰：人口1000',1500,'pop1k'));
   moreEl.appendChild(mk('bCh2','🏁 挑戰：200天$5k',2000,'day200'));
   moreEl.appendChild(mk('bCh3','🏁 挑戰：三星城市',2500,'star3'));
-  const row=document.createElement('div');row.className='help';row.style.marginTop='8px';
-  const ds=document.createElement('button');ds.className='alt';ds.textContent=disastersOn?'🌪 災害：開':'🌪 災害：關';
-  ds.onclick=()=>{disastersOn=!disastersOn;localStorage.setItem(SAVEKEY+'.ds',disastersOn?'1':'0');ds.textContent=disastersOn?'🌪 災害：開':'🌪 災害：關';sTick();};
-  const QLBL=['🎞️ 畫質：低','🎞️ 畫質：中','🎞️ 畫質：高（日間陰影＋更多特效）']; // T255：效能→畫質，並標明「高」多出日間陰影/更密粒子
-  const q=document.createElement('button');q.className='alt';q.textContent=QLBL[quality];
-  q.onclick=()=>{quality=(quality+1)%3;localStorage.setItem(SAVEKEY+'.q',quality);q.textContent=QLBL[quality];sTick();};
-  const msLbl=(n)=>'🗺️ 地圖：'+n+'×'+n+(n===216?'（超大·9×面積）':n===144?'（大·4×）':n===108?'（中·2.25×）':'（標準）'); // T262
-  const ms=document.createElement('button');ms.className='alt';ms.textContent=msLbl(mapSizePref);
-  ms.onclick=()=>{const i2=(MAP_SIZES.indexOf(mapSizePref)+1)%MAP_SIZES.length;mapSizePref=MAP_SIZES[i2];localStorage.setItem(SAVEKEY+'.msz',mapSizePref);ms.textContent=msLbl(mapSizePref);sTick();}; // T262：循環選尺寸，下次「開拓新地圖」生效（讀檔不受影響）
+  /* T423 R03：設定按鈕卡片化——icon＋label 兩行垂直排，取代裸文字橫排；語義與持久化邏輯零改動 */
+  const mkSet=(ic,label,onclick,id)=>{const b=document.createElement('button');b.className='alt';if(id)b.id=id;
+    const icEl=document.createElement('span');icEl.className='sgIc';icEl.textContent=ic;
+    const lbEl=document.createElement('span');lbEl.className='sgLb';lbEl.textContent=label;
+    b.appendChild(icEl);b.appendChild(lbEl);b.onclick=onclick;return b;};
+  const grid=document.createElement('div');grid.className='settingsGrid';
+  const dsLabel=()=>disastersOn?'災害：開':'災害：關';
+  const ds=mkSet('🌪',dsLabel(),()=>{disastersOn=!disastersOn;localStorage.setItem(SAVEKEY+'.ds',disastersOn?'1':'0');ds.querySelector('.sgLb').textContent=dsLabel();sTick();});
+  const QLBL=['低','中','高']; // T255：效能→畫質（完整描述在 title）
+  const qLabel=()=>'畫質：'+QLBL[quality];
+  const q=mkSet('🎞️',qLabel(),()=>{quality=(quality+1)%3;localStorage.setItem(SAVEKEY+'.q',quality);q.querySelector('.sgLb').textContent=qLabel();q.title=QLBL[quality]==='高'?'日間陰影＋更多特效':'';sTick();});
+  const msLbl=(n)=>'地圖 '+n+'×'+n+(n===216?'（9×）':n===144?'（4×）':n===108?'（2.25×）':''); // T262
+  const ms=mkSet('🗺️',msLbl(mapSizePref),()=>{const i2=(MAP_SIZES.indexOf(mapSizePref)+1)%MAP_SIZES.length;mapSizePref=MAP_SIZES[i2];localStorage.setItem(SAVEKEY+'.msz',mapSizePref);ms.querySelector('.sgLb').textContent=msLbl(mapSizePref);sTick();}); // T262：循環選尺寸，下次「開拓新地圖」生效（讀檔不受影響）
   /* T405 類別標記開關：徽記烘進 sprite（buildSprites 已跑完），故切換後 reload 才生效——
-     開始畫面重載零損失（存檔在 localStorage，未進遊戲無狀態可失）。 */
-  const bgLbl=()=>badgePref?'🏷️ 類別標記：開':'🏷️ 類別標記：關（TheoTown 風）';
-  const bg=document.createElement('button');bg.className='alt';bg.textContent=bgLbl();
-  bg.onclick=()=>{badgePref=!badgePref;localStorage.setItem(SAVEKEY+'.badge',badgePref?'1':'0');bg.textContent=bgLbl();sTick();location.reload();};
+     開始畫面重載零損失（存檔在 localStorage，未進遊戲無狀態可失）。
+     T405 G3 契約：bg.onclick 必須是含 location.reload() 的直接箭頭賦值（原文守衛咬這形態）。 */
+  const bgLbl=()=>badgePref?'類別標記：開':'類別標記：關';
+  const bg=mkSet('🏷️',bgLbl());
+  bg.onclick=()=>{badgePref=!badgePref;localStorage.setItem(SAVEKEY+'.badge',badgePref?'1':'0');bg.querySelector('.sgLb').textContent=bgLbl();sTick();location.reload();};
   /* T413b 夜景開關：overlay 即時 __noNightCity；烘焙層 reload（同 T405） */
-  const ncLbl=()=>nightCityPref?'🌃 夜景：開':'🌃 夜景：關';
-  const nc=document.createElement('button');nc.className='alt';nc.id='bNightCity';nc.textContent=ncLbl();
-  nc.onclick=()=>{nightCityPref=!nightCityPref;localStorage.setItem(SAVEKEY+'.nightcity',nightCityPref?'1':'0');if(!nightCityPref)window.__noNightCity=true;else delete window.__noNightCity;nc.textContent=ncLbl();sTick();location.reload();};
-  row.appendChild(ds);row.appendChild(document.createTextNode(' '));row.appendChild(q);row.appendChild(document.createTextNode(' '));row.appendChild(ms);row.appendChild(document.createTextNode(' '));row.appendChild(bg);row.appendChild(document.createTextNode(' '));row.appendChild(nc);moreEl.appendChild(row);
+  const ncLbl=()=>nightCityPref?'夜景：開':'夜景：關';
+  const nc=mkSet('🌃',ncLbl(),()=>{nightCityPref=!nightCityPref;localStorage.setItem(SAVEKEY+'.nightcity',nightCityPref?'1':'0');if(!nightCityPref)window.__noNightCity=true;else delete window.__noNightCity;nc.querySelector('.sgLb').textContent=ncLbl();sTick();location.reload();},'bNightCity');
+  grid.appendChild(ds);grid.appendChild(q);grid.appendChild(ms);grid.appendChild(bg);grid.appendChild(nc);moreEl.appendChild(grid);
 }
 // T132：場景戰役入口（開始畫面新增「🎯 戰役」按鈕，點擊展開/收合 8 關選單；比照 T88 挑戰按鈕先例以 JS 注入）
 if(startEl&&!$('#bCampaign')){

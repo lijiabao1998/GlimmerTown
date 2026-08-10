@@ -5782,6 +5782,15 @@ runPwaTests().then(() => {
       'T423 R02 遷移示範：showSlots 已改用 panelHead（h3 直寫 → 統一頭部）');
     assert(html.indexOf("panelEmpty('尚無存檔")>iEmpty423,
       'T423 R02 空態：showSlots 已接 panelEmpty（空槽提示）');
+    // T423 R03 守衛：開始畫面設定網格卡片化（icon＋label 兩行）
+    assert(/\.settingsGrid\{display:grid/.test(html)&&/\.sgIc\{font-size:16px\}/.test(html)&&/\.sgLb\{color:var\(--text-dim\)/.test(html),
+      'T423 R03 設定網格：.settingsGrid/.sgIc/.sgLb CSS 存在（刪任一即紅）');
+    assert(/const mkSet=\(ic,label,onclick,id\)=>/.test(html),
+      'T423 R03 設定卡片：mkSet 輔助函式存在（icon＋label 兩行構造）');
+    assert(html.indexOf('grid.appendChild(ds)')>html.indexOf('const mkSet'),
+      'T423 R03 設定卡片：五鈕（災害/畫質/地圖/類別/夜景）已掛進 settingsGrid');
+    assert(/bNightCity/.test(html)&&/SAVEKEY\+'\.nightcity'/.test(html),
+      'T423 R03 設定卡片：夜景鈕 id 與持久化鍵保留（T413b 契約不破）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
