@@ -158,6 +158,7 @@ body.toolsExp #toolcats{bottom:calc(10px + var(--tools-exp-h,198px) + 8px)}
 #info::-webkit-scrollbar{width:8px}
 #info::-webkit-scrollbar-thumb{background:#2f3c5c;border-radius:4px}
 #info::-webkit-scrollbar-track{background:#141a2a}
+#info{scrollbar-width:thin;scrollbar-color:#2f3c5c #141a2a} /* T423 R05：Firefox 滾動條同款（現代化一致） */
 #info h3{font-size:14px;color:var(--accent);margin-bottom:4px}
 #info .row{margin:2px 0;color:#c9d2ea;line-height:1.5}
 /* ===== T319 標準化數據表格（HOI4 風：密集對齊、數值等寬右對齊、分區標頭、色彩編碼增減） =====
@@ -19070,7 +19071,8 @@ function achRow(a){
 }
 function showAch(){
   const total=ACHS.length,doneN=ACHS.filter(a=>ach[a.id]).length;
-  let body=`<h3>🏆 成就　${doneN}/${total}</h3>`;
+  /* T423 R05：成就面板頭統一為 phead 結構（標題＋計數徽記），與 panelHead 視覺一致 */
+  let body=`<div class="phead"><h3>🏆 成就</h3><span class="phBadge">${doneN}/${total}</span></div>`;
   for(const cat of ACH_CAT_ORDER){
     const list=ACHS.filter(a=>Object.assign({},ACH_META[a.id],a).cat===cat);
     if(!list.length)continue;

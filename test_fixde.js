@@ -5800,6 +5800,11 @@ runPwaTests().then(() => {
       'T423 R04 工具 hover：工具 title 含「名稱・分類」提示（刪即紅）');
     assert(/const catNm=\(TOOL_CATS\.find\(c=>c\.id===t\.cat\)\|\|\{\}\)\.nm/.test(html),
       'T423 R04 工具 hover：catNm 由 TOOL_CATS 即時查表（不硬寫分類）');
+    // T423 R05 守衛：面板頭推廣（showAch 遷移 phead）＋跨瀏覽器滾動條
+    assert(/<div class="phead"><h3>🏆 成就<\/h3><span class="phBadge">\$\{doneN\}\/\$\{total\}<\/span><\/div>/.test(html),
+      'T423 R05 成就面板頭：showAch 已用 phead＋計數徽記（與 panelHead 視覺一致）');
+    assert(/#info\{scrollbar-width:thin;scrollbar-color:#2f3c5c #141a2a\}/.test(html),
+      'T423 R05 滾動條：Firefox scrollbar-width/color 同款（跨瀏覽器一致）');
   }
 
   // ===== T369 工業供應鏈總覽（純讀取統計 UI）+ 退修 gFlow 成對歸零／短中文 UI =====
