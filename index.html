@@ -1685,7 +1685,6 @@ function drawHeroPix(key,g,ng){
     }
   }
 }
-
 const SPR={};
 function buildSprites(){
   resetSpriteTexRand();
@@ -1693,8 +1692,234 @@ function buildSprites(){
      生成時消耗全域 R()，熱重建會 ①29 條 sprite 路徑漂移 ②偷吃世界亂數流（probe globalRPreserved:false）。
      修法＝生成期以「同種子替身流」接管 R、結束還原呼叫前狀態：boot 首次生成時 R 本就是 mulberry32(1)
      且零消耗＝替身同種子同序列＝boot 逐像素零漂移；熱重建改為決定性（每次同序）且世界流零消耗。 */
-  const __savedR=R;R=mulberry32(1);
-  const rand=mulberry32(20260712);
+  __savedR=R;R=mulberry32(1);
+  rand=mulberry32(20260712);
+  buildSpritesS1();buildSpritesS2();buildSpritesS3();buildSpritesS4();buildSpritesS5();
+  buildSpritesS6();buildSpritesS7();buildSpritesS8();buildSpritesS9();
+}
+/* ===== T426 拆段：buildSprites 函式級宣告上提（純重構，像素零漂移；S1..S9 依序共用） ===== */
+let __savedR,rand;
+  function dashSeg(g,x,y,sgn){g.fillRect(x,y,2,1);g.fillRect(x+2,y+sgn,2,1);}
+  function dblDashSeg(g,x,y,sgn){g.fillRect(x,y,2,1);g.fillRect(x+2,y+sgn,2,1);g.fillRect(x,y+sgn*2,2,1);g.fillRect(x+2,y+sgn*3,2,1);}
+  const ROAD_BASE=['#5a5d64','#4b4f58','#4b4f58','#454850']; // rc=1~4 路面底色
+  const ROAD_EDGE=['#9a9ea6','#b9bdc5','#b9bdc5','#c5c9d0']; // 受光緣
+  const ROAD_EDGE2=['#6e727a','#878e99','#878e99','#8a8f99']; // 陰影緣
+  const ROAD_LINE=['','#e8c860','#e8c860','#e8c860'];        // 中心線顏色（小巷無線）
+  const genRoadLvl=rcI=>{
+    SPR.roadClass[rcI]=[];SPR.bridgeClass[rcI]=[];
+    for(let m=0;m<16;m++){
+      {const[c,g]=cv(64,32);
+       const base=ROAD_BASE[rcI],edge=ROAD_EDGE[rcI],edge2=ROAD_EDGE2[rcI];
+       dia(g,32,0,32,base);
+       speck(g,32,0,32,['#565b64','#41454d','#50545d'],50,rand);
+       diaEdge(g,(~m)&15,edge);
+       diaEdge(g,(~m)&15,edge2,32,2,28);
+       if(rcI>=1){
+         g.fillStyle=ROAD_LINE[rcI];
+         if(m===(1|4)){for(let k=-3;k<=3;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,16-4*k,-1);}
+         if(m===(2|8)){for(let k=-3;k<=3;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,16+4*k-1,1);}
+       }
+       if(rcI===3&&m===15){g.fillStyle='#3e434c';g.fillRect(30,15,4,2);} // 主幹道中央分隔島
+       SPR.roadClass[rcI].push(c);}
+      {const[c,g]=cv(64,44);
+       const bridgeLand='#7d5c3a',bridgeDark='#5c4126';
+       dia(g,32,4,32,bridgeLand);
+       g.fillStyle='rgba(0,0,0,.16)';
+       for(let yy=8;yy<34;yy+=4){
+         const rr=yy-4,hr=(rr<16?(rr+1):(32-rr))*2-4;
+         if(hr>4)g.fillRect(32-hr+2,yy,hr*2-4,1);
+       }
+       const base=ROAD_BASE[rcI];
+       dia(g,32,8,24,base);
+       if(m&1)dia(g,48,4,16,base);
+       if(m&2)dia(g,48,20,16,base);
+       if(m&4)dia(g,16,20,16,base);
+       if(m&8)dia(g,16,4,16,base);
+       diaEdge(g,(~m)&15,'#96714a',32,4,32);
+       diaEdge(g,(~m)&15,bridgeDark,32,6,28);
+       if(rcI>=1){
+         g.fillStyle=ROAD_LINE[rcI];
+         if(m===(1|4)){for(let k=-2;k<=2;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,20-4*k,-1);}
+         if(m===(2|8)){for(let k=-2;k<=2;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,20+4*k-1,1);}
+       }
+       g.fillStyle=bridgeDark;g.fillRect(12,34,4,9);g.fillRect(48,34,4,9);
+       g.fillStyle='#463321';g.fillRect(12,41,4,2);g.fillRect(48,41,4,2);
+       {const railM=((~m)&15)&(2|4);if(railM){diaEdge(g,railM,'#c2c6ce',32,0,32);diaEdge(g,railM,'#8e929a',32,2,32);}} // T203 橋面側護欄（Opus 親手，審計缺口）：沿甲板前緣側邊(非道路連接邊)畫淺灰雙軌欄杆(抬高於甲板)，純幾何不消耗 rand
+       SPR.bridgeClass[rcI].push(c);}
+    }
+  };
+  const ZC={1:'#58c470',2:'#5aa0e8',3:'#e8b23e'};
+  const PAL={
+    1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb'],['#bcd4ae','#9cb48e'],['#d8d0c0','#b8b0a0'],
+              ['#9db8cf','#7f9bb3'],['#9cb686','#7d9968'],['#c17048','#9a5535'], // T101 新增 v5-7：灰藍/苔綠/赭紅系
+              ['#e0b8c0','#c0919d'],['#d8c896','#b8a878'],['#787c82','#5c6066'],['#7fc4c0','#5fa39f']], // T150 新增 v8-11：玫瑰粉/沙卡其/現代炭灰/藍綠系
+       roof:['#b0563c','#54677a','#617e4b','#8f6f4f','#7a5a4a','#4a5c72','#4f6b3f','#6b3a26','#8a4f5c','#6b5838','#333a42','#3f6f6c']},
+    2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae'],['#f2c4cf','#d0a2ad'],
+              ['#cfe8d6','#a8c7af'],['#e8c9a0','#c49b6e'],['#ddd0ea','#b7a3cc'],['#f2e4a0','#d4bb70'], // T102 新增 v4-7：薄荷/赤陶/薰衣草/暖黃系
+              ['#e05a52','#b8433c'],['#3a4f78','#2c3c5c'],['#c8e070','#a8bc55'],['#f2967a','#d47860']], // T150 新增 v8-11：緋紅/靛藍/萊姆/珊瑚系
+       roof:['#6b7280','#8a6f4f','#4f7d78','#9f5f6f','#4f7a5a','#8a4f30','#5a4a78','#a3792f','#7a2e28','#232e46','#7a8a3e','#a85a44']},
+    3:{walls:[['#b9bec6','#979da8'],['#c9c2b2','#a89f8d'],['#9aa4b2','#7d8795'],['#adb8a4','#8d9884'],
+              ['#b56b52','#8f4f3a'],['#4f7a82','#3a5d64'],['#8f8f87','#71716a'],['#6b5040','#4f3a2e'], // T103 新增 v4-7：鏽紅/鋼青/水泥灰/深棕系
+              ['#e8962e','#c47a1e'],['#2c3550','#1f2740'],['#c8c8c0','#a8a8a0'],['#4a6b45','#385530']], // T150 新增 v8-11：警示橙/深靛/水泥白/森綠系
+       roof:['#7d838d','#8d857a','#6b7480','#79806f','#6b3a26','#365058','#5c5c55','#3a2a20','#8a5716','#161c30','#8a8a80','#2a4022']}};
+  const SIGNC=['#ff8a5f','#ffd45f','#7fe0c8','#ff9fd0','#7fa8ff','#c58fff','#9dff7f','#ff6f6f']; // T102：招牌夜光色由 4 擴至 8
+  const PARTS={
+    windowsStd(g,ng,c){windows(g,ng,c.ax,c.by,c.hw,c.h,c.rand,c.d.win.litP,c.d.win);},
+    pyramidRoof(g,ng,c){for(let i=1;i<=4;i++){const hwi=c.hw-4*i;if(hwi<4)break;dia(g,c.ax,c.by-c.h-hwi-2*i,hwi,i%2?c.rf:shade(c.rf,-14));}},
+    chimneySmall(g,ng,c){g.fillStyle='#5a4638';g.fillRect(c.ax+6,c.by-c.h-17,3,9);g.fillStyle='#494037';g.fillRect(c.ax+5,c.by-c.h-18,5,2);c.smoke.push({dx:7,dy:c.by-c.h-18-c.ay});}, // T185：補炊煙點（純推座標，不畫像素、不消耗 R()）供冬季民居炊煙對齊煙囪頂
+    door(g,ng,c){const o=c.d.door;for(let dx=3;dx<=7;dx++){const yF=c.by-((dx+1)>>1);g.fillStyle=o.col;g.fillRect(c.ax+dx,yF-9,1,8);}if(o.knob){g.fillStyle='#e8c860';g.fillRect(c.ax+6,c.by-((7)>>1)-5,1,1);}},
+    yardDeco(g,ng,c){const G=c.dg;G.fillStyle='#4b8f45';G.fillRect(c.ax-17,c.ay-10,4,3);G.fillStyle='#63ad55';G.fillRect(c.ax-14,c.ay-11,3,2);G.fillStyle='#cbb98e';G.fillRect(c.ax+5,c.ay-8,4,2);G.fillRect(c.ax+9,c.ay-6,4,2);},
+    flatParapet(g,ng,c){diaEdge(g,15,shade(c.rf,-20),c.ax,c.rty,c.hw);},
+    waterTank(g,ng,c){const ax=c.ax,rty=c.rty;if(c.lv===2){g.fillStyle='#b9bec6';g.fillRect(ax-4,rty+10,7,4);g.fillStyle='#8d949e';g.fillRect(ax-4,rty+11,7,1);}else{g.fillStyle='#98a2b0';g.fillRect(ax-7,rty+8,8,7);g.fillStyle='#b7c1cd';g.fillRect(ax-7,rty+7,8,2);g.fillStyle='#6d7684';g.fillRect(ax-7,rty+15,2,2);g.fillRect(ax-1,rty+15,2,2);}},
+    antenna(g,ng,c){g.fillStyle='#8b95a5';if(c.k===2)g.fillRect(c.ax,c.rty2-6,1,7);else g.fillRect(c.ax+5,c.rty+6,1,7);},
+    aviationLamp(g,ng,c){let x,y;if(c.k===2){x=c.ax-1;y=c.rty2-8;}else{x=c.ax+4;y=c.rty+4;}g.fillStyle='#e05252';g.fillRect(x,y,3,2);ng.fillStyle='#ff6060';ng.fillRect(x,y,3,2);},
+    chimneyBrick(g,ng,c){const ax=c.ax,rty=c.rty,ay=c.ay;if(c.lv===3){g.fillStyle='#6a707c';g.fillRect(ax-12,rty-10,4,20);g.fillStyle='#b5533e';g.fillRect(ax-12,rty-10,4,3);g.fillStyle='#565c68';g.fillRect(ax-9,rty-10,1,20);g.fillStyle='#6a707c';g.fillRect(ax-4,rty-4,4,15);g.fillStyle='#b5533e';g.fillRect(ax-4,rty-4,4,2);c.smoke.push({dx:-10,dy:rty-11-ay},{dx:-2,dy:rty-5-ay});}else{g.fillStyle='#8a6f5f';g.fillRect(ax-9,rty-8,4,16);g.fillStyle='#b5533e';g.fillRect(ax-9,rty-8,4,3);g.fillStyle='#6d574a';g.fillRect(ax-6,rty-8,1,16);c.smoke.push({dx:-7,dy:rty-9-ay});}},
+    glassFront(g,ng,c){const ax=c.ax,by=c.by;if(c.lv===1){for(let dx=2;dx<=10;dx++){const yF=by-((dx+1)>>1);g.fillStyle='#a8cbe8';g.fillRect(ax+dx,yF-8,1,6);g.fillStyle='#5c554a';g.fillRect(ax+dx,yF-9,1,1);}ng.fillStyle='rgba(255,235,170,.8)';for(let dx=2;dx<=10;dx++){const yF=by-((dx+1)>>1);ng.fillRect(ax+dx,yF-8,1,6);}}else{for(let dx=2;dx<=8;dx++){const yF=by-((dx+1)>>1);g.fillStyle='#bcd8ee';g.fillRect(ax+dx,yF-10,1,9);}g.fillStyle='#5c554a';g.fillRect(ax+5,by-4-10,1,9);}},
+    awning(g,ng,c){const ax=c.ax,by=c.by,trim=c.d.trim||(c.v===2?'#4f9d94':'#e05252');for(let dx=1;dx<=13;dx++){const yF=by-((dx+1)>>1);g.fillStyle=((dx/3)|0)%2?'#f2f2f2':trim;g.fillRect(ax+dx,yF-12,1,3);g.fillStyle='rgba(0,0,0,.2)';g.fillRect(ax+dx,yF-9,1,1);}},
+    signBoard(g,ng,c){const col=SIGNC[c.v],ax=c.ax;if(c.lv===3){ng.fillStyle=col;ng.fillRect(ax-10,c.rty2+6,8,3);g.fillStyle=col;g.fillRect(ax-10,c.rty2+6,8,3);}else{g.fillStyle=col;g.fillRect(ax-12,c.by-6-c.h+2,8,4);ng.fillStyle=col;ng.fillRect(ax-12,c.by-6-c.h+2,8,4);}},
+    roofBillboard(g,ng,c){const ax=c.ax,rty=c.rty;g.fillStyle='#20242c';g.fillRect(ax-9,rty+4,18,9);for(let i=0;i<24;i++){const col=SIGNC[ri(3)];g.fillStyle=col;ng.fillStyle=col;const px=ax-8+ri(16),py=rty+5+ri(7);g.fillRect(px,py,1,1);ng.fillRect(px,py,1,1);}g.fillStyle='#4a4f58';g.fillRect(ax-2,rty+13,3,3);},
+    setbackTop(g,ng,c){c.rty2=isoBox(g,c.ax,c.rty+c.hw-6,c.hw-12,10,shade(c.wl[1],-10),shade(c.wl[0],-10),shade(c.rf,-8));},
+    rollupDoor(g,ng,c){const ax=c.ax,by=c.by,rty=c.rty;for(let dx=2;dx<=11;dx++){const yF=by-((dx+1)>>1);g.fillStyle='#454a54';g.fillRect(ax+dx,yF-10,1,9);if(dx%2)g.fillStyle='rgba(255,255,255,.08)',g.fillRect(ax+dx,yF-10,1,9);}g.fillStyle='#6a707c';g.fillRect(ax-10,rty+4,3,9);g.fillStyle='#b5533e';g.fillRect(ax-10,rty+4,3,2);},
+    sawtoothMonitor(g,ng,c){const ax=c.ax,rm=isoBox(g,ax,c.rty+c.hw-6,c.hw-16,5,shade(c.wl[1],-14),shade(c.wl[0],-14),'#aebccb');g.fillStyle='rgba(255,255,255,.25)';for(let dx=-8;dx<=8;dx+=4)g.fillRect(ax+dx,rm+4,2,1);},
+    storageTank(g,ng,c){const ax=c.ax,rty=c.rty;g.fillStyle='#aab2bd';g.fillRect(ax+6,rty+6,10,8);g.fillStyle='#c8cfd8';g.fillRect(ax+6,rty+5,10,2);g.fillStyle='#8d95a1';g.fillRect(ax+6,rty+10,10,1);},
+    hazardStripe(g,ng,c){const ax=c.ax,by=c.by;for(let dx=0;dx<c.hw;dx+=4){const yF=by-((dx+1)>>1);g.fillStyle=dx%8?'#20242c':'#ffd420';g.fillRect(ax+dx,yF-2,3,2);}},
+    corrugate(g,ng,c){const ax=c.ax,by=c.by,h=c.h;g.fillStyle='rgba(0,0,0,.06)';for(let dx=2;dx<c.hw;dx+=2){g.fillRect(ax+dx,by-((dx+1)>>1)-h,1,h);g.fillRect(ax-dx,by-(dx>>1)-h,1,h);}},
+    panelLines(g,ng,c){const ax=c.ax,by=c.by,h=c.h;g.fillStyle='rgba(0,0,0,.08)';for(let dx=6;dx<c.hw;dx+=6)g.fillRect(ax-dx,by-(dx>>1)-h,1,h);},
+    balconyRows(g,ng,c){const ax=c.ax,by=c.by,trim=c.d.trim||'#cbd8e0';for(let ry=8;ry<c.h;ry+=8)for(let dx=2;dx<=c.hw-3;dx++){const yF=by-((dx+1)>>1);g.fillStyle=trim;g.fillRect(ax+dx,yF-ry,1,1);}},
+    cratesDeco(g,ng,c){const G=c.dg;G.fillStyle='#a07648';G.fillRect(c.ax-20,c.ay-11,6,4);G.fillStyle='#bf9059';G.fillRect(c.ax-16,c.ay-13,5,3);}
+  };
+  const DRAFTS=[
+    {k:1,lv:1,hw:20,h:14,parts:['windowsStd','pyramidRoof','chimneySmall','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28',knob:1}},
+    {k:1,lv:2,hw:24,h:26,parts:['windowsStd','flatParapet','waterTank','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568'}},
+    {k:1,lv:3,hw:26,h:46,vn:4,parts:['windowsStd','flatParapet','waterTank','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
+    {k:2,lv:1,hw:22,h:16,parts:['glassFront','awning','signBoard','windowsStd'],win:{litP:.6,gx:7,gy:9}},
+    {k:2,lv:2,hw:24,h:32,vn:3,parts:['windowsStd','glassFront','roofBillboard'],win:{litP:.75,w:4,ht:5,gx:6,gy:8}},
+    {k:2,lv:3,hw:26,h:54,parts:['windowsStd','setbackTop','antenna','aviationLamp','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}},
+    {k:3,lv:1,hw:28,h:14,parts:['corrugate','rollupDoor','cratesDeco','windowsStd'],win:{litP:.4,gx:9,gy:9}},
+    {k:3,lv:2,hw:28,h:22,parts:['corrugate','sawtoothMonitor','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}},
+    {k:3,lv:3,hw:28,h:32,parts:['corrugate','chimneyBrick','storageTank','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}},
+    // 示範擴充（T28）：資料驅動加一行＝新外觀。k2 lv2 第 4 變體「花園商場」＝既有部件＋陽台＋綠 trim
+    {k:2,lv:2,v:3,hw:24,h:32,parts:['windowsStd','glassFront','roofBillboard','awning','balconyRows'],win:{litP:.75,w:4,ht:5,gx:6,gy:8},trim:'#5aa563'},
+    // 示範擴充（T30）：高密度 Lv3 住宅「公寓大樓」＝既有部件＋陽台＋淺 trim
+    {k:1,lv:3,v:4,hw:28,h:56,parts:['windowsStd','flatParapet','waterTank','antenna','aviationLamp','balconyRows'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#c9d4e0'},
+    // T101 住宅圖鑑擴充（4→8 變體）：k=1 各 lv 新增 v4-7（lv3 因 v4 已被公寓大樓佔用，從 v5 補；建造置於 buildSprites 尾端，見下方尾端生成區塊）
+    {k:1,lv:1,v:4,hw:20,h:16,parts:['windowsStd','flatParapet','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30',knob:1}},
+    {k:1,lv:1,v:5,hw:20,h:14,parts:['windowsStd','pyramidRoof','chimneySmall','panelLines','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28',knob:1}},
+    {k:1,lv:1,v:6,hw:20,h:17,parts:['windowsStd','flatParapet','balconyRows','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568',knob:1},trim:'#7d9968'},
+    {k:1,lv:1,v:7,hw:22,h:15,parts:['windowsStd','pyramidRoof','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}},
+    {k:1,lv:2,v:4,hw:24,h:28,parts:['windowsStd','flatParapet','waterTank','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a'},trim:'#7f9bb3'},
+    {k:1,lv:2,v:5,hw:24,h:24,parts:['windowsStd','setbackTop','antenna','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568'}},
+    {k:1,lv:2,v:6,hw:24,h:26,parts:['windowsStd','flatParapet','chimneyBrick','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28'}},
+    {k:1,lv:2,v:7,hw:24,h:22,parts:['windowsStd','pyramidRoof','chimneySmall','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30'},trim:'#9a5535'},
+    {k:1,lv:3,v:5,hw:26,h:42,parts:['windowsStd','setbackTop','waterTank','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
+    {k:1,lv:3,v:6,hw:26,h:48,parts:['windowsStd','flatParapet','chimneyBrick','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
+    {k:1,lv:3,v:7,hw:26,h:50,parts:['windowsStd','setbackTop','balconyRows','waterTank','antenna','aviationLamp'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#6f88a3'},
+    // T102 商業圖鑑擴充（4→8 變體）：k=2 各 lv 新增 v4-7（部件重組，皆用現有 PARTS；建造置於 buildSprites 尾端，見下方尾端生成區塊；花園商場 2_2_3 既有行不動）
+    {k:2,lv:1,v:4,hw:22,h:16,parts:['windowsStd','glassFront','awning','yardDeco'],win:{litP:.6,gx:7,gy:9},trim:'#8a5f38'}, // 全落地窗咖啡店
+    {k:2,lv:1,v:5,hw:24,h:18,parts:['windowsStd','glassFront','awning','signBoard'],win:{litP:.65,gx:6,gy:8},trim:'#3f7dc9'}, // awning 條紋變色精品店
+    {k:2,lv:1,v:6,hw:22,h:16,parts:['windowsStd','rollupDoor','signBoard','yardDeco'],win:{litP:.5,gx:7,gy:9}}, // 捲門雜貨店
+    {k:2,lv:1,v:7,hw:20,h:15,parts:['windowsStd','pyramidRoof','door','signBoard'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}}, // 尖頂小店
+    {k:2,lv:2,v:4,hw:24,h:32,parts:['windowsStd','glassFront','roofBillboard','signBoard'],win:{litP:.75,w:4,ht:5,gx:6,gy:8}}, // 大型看板商場
+    {k:2,lv:2,v:5,hw:24,h:30,parts:['windowsStd','signBoard','awning','panelLines'],win:{litP:.6,w:3,ht:5,gx:6,gy:8},trim:'#c9782e'}, // 百貨商店
+    {k:2,lv:2,v:6,hw:26,h:26,parts:['windowsStd','sawtoothMonitor','signBoard','corrugate'],win:{litP:.45,gx:8,gy:9}}, // 大賣場
+    {k:2,lv:2,v:7,hw:24,h:34,parts:['windowsStd','setbackTop','balconyRows','signBoard'],win:{litP:.6,w:3,ht:5,gx:6,gy:8},trim:'#8fb0c9'}, // 退台露台商辦
+    {k:2,lv:3,v:4,hw:26,h:54,parts:['windowsStd','setbackTop','roofBillboard','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 頂樓看板高樓
+    {k:2,lv:3,v:5,hw:26,h:56,parts:['windowsStd','setbackTop','antenna','waterTank','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 天線陣列高樓
+    {k:2,lv:3,v:6,hw:26,h:52,parts:['windowsStd','setbackTop','storageTank','antenna','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 機電水塔高樓
+    {k:2,lv:3,v:7,hw:28,h:50,parts:['windowsStd','flatParapet','balconyRows','antenna','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'},trim:'#c9d4e0'}, // 平頂陽台高樓
+    // T103 工業圖鑑擴充（4→8 變體）：k=3 各 lv 新增 v4-7（部件重組，皆用現有 PARTS；建造置於 buildSprites 尾端，見下方尾端生成區塊）
+    {k:3,lv:1,v:4,hw:26,h:13,parts:['corrugate','rollupDoor','cratesDeco','yardDeco','windowsStd'],win:{litP:.4,gx:8,gy:9}}, // 貨箱堆場小倉庫
+    {k:3,lv:1,v:5,hw:30,h:16,parts:['panelLines','rollupDoor','cratesDeco','windowsStd'],win:{litP:.35,gx:9,gy:10}}, // 面板牆大倉庫
+    {k:3,lv:1,v:6,hw:28,h:15,parts:['corrugate','hazardStripe','rollupDoor','cratesDeco'],win:{litP:.4,gx:9,gy:9}}, // 警示條裝卸區
+    {k:3,lv:1,v:7,hw:24,h:14,parts:['corrugate','pyramidRoof','rollupDoor','cratesDeco'],win:{litP:.4,gx:8,gy:9}}, // 尖頂小工坊
+    {k:3,lv:2,v:4,hw:30,h:24,parts:['panelLines','sawtoothMonitor','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 面板牆鋸齒廠房
+    {k:3,lv:2,v:5,hw:28,h:22,parts:['corrugate','sawtoothMonitor','chimneyBrick','chimneySmall','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 雙煙囪鋸齒廠房
+    {k:3,lv:2,v:6,hw:26,h:20,parts:['hazardStripe','sawtoothMonitor','chimneyBrick','windowsStd'],win:{litP:.4,gx:7,gy:9}}, // 警示條鋸齒廠房
+    {k:3,lv:2,v:7,hw:28,h:23,parts:['corrugate','sawtoothMonitor','storageTank','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 儲罐鋸齒廠房
+    {k:3,lv:3,v:4,hw:28,h:34,parts:['corrugate','chimneyBrick','storageTank','waterTank','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 儲罐陣列重工廠
+    {k:3,lv:3,v:5,hw:30,h:32,parts:['sawtoothMonitor','chimneyBrick','storageTank','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 鋸齒頂重工廠
+    {k:3,lv:3,v:6,hw:28,h:36,parts:['corrugate','chimneyBrick','chimneySmall','storageTank','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 雙煙囪重工廠
+    {k:3,lv:3,v:7,hw:28,h:38,parts:['flatParapet','storageTank','antenna','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 天線儲罐重工廠
+    // T150 住宅圖鑑再擴充（8→12 變體）：k=1 各 lv 新增 v8-11（部件重組，皆用現有 PARTS；建造置於 buildSprites 絕對尾端 T150 區塊）
+    {k:1,lv:1,v:8,hw:20,h:15,parts:['windowsStd','flatParapet','chimneySmall','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#7a4a3a',knob:1}}, // 平頂磚色小屋
+    {k:1,lv:1,v:9,hw:22,h:16,parts:['windowsStd','pyramidRoof','balconyRows','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1},trim:'#9db8cf'}, // 陽台尖頂屋
+    {k:1,lv:1,v:10,hw:20,h:14,parts:['windowsStd','setbackTop','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28',knob:1}}, // 退台小屋
+    {k:1,lv:1,v:11,hw:22,h:17,parts:['windowsStd','pyramidRoof','panelLines','chimneySmall','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568',knob:1}}, // 面板牆尖頂屋
+    {k:1,lv:2,v:8,hw:24,h:24,parts:['windowsStd','pyramidRoof','waterTank','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28'}}, // 尖頂公寓
+    {k:1,lv:2,v:9,hw:24,h:26,parts:['windowsStd','flatParapet','antenna','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a'},trim:'#c17048'}, // 天線陽台公寓
+    {k:1,lv:2,v:10,hw:24,h:22,parts:['windowsStd','setbackTop','chimneyBrick','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568'}}, // 退台磚囪公寓
+    {k:1,lv:2,v:11,hw:26,h:28,parts:['windowsStd','flatParapet','waterTank','balconyRows','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30'},trim:'#bcd4ae'}, // 密集陽台公寓
+    {k:1,lv:3,v:8,hw:26,h:44,parts:['windowsStd','flatParapet','antenna','waterTank'],win:{litP:.55,gx:5,gy:6}}, // 簡約高樓
+    {k:1,lv:3,v:9,hw:28,h:52,parts:['windowsStd','setbackTop','chimneyBrick','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}}, // 退台煙囪高樓
+    {k:1,lv:3,v:10,hw:26,h:46,parts:['windowsStd','pyramidRoof','waterTank','antenna','balconyRows'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#9cb686'}, // 尖頂陽台高樓
+    {k:1,lv:3,v:11,hw:28,h:54,parts:['windowsStd','setbackTop','balconyRows','antenna','aviationLamp','waterTank'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#c17048'}, // 全配置豪華高樓
+    // T150 商業圖鑑再擴充（8→12 變體）：k=2 各 lv 新增 v8-11（不用 signBoard 部件，避免 SIGNC[c.v] 越界 8 色票；建造置於尾端 T150 區塊）
+    {k:2,lv:1,v:8,hw:22,h:16,parts:['windowsStd','glassFront','awning','panelLines'],win:{litP:.65,gx:6,gy:8}}, // 落地玻璃遮陽店
+    {k:2,lv:1,v:9,hw:24,h:18,parts:['windowsStd','rollupDoor','awning','balconyRows'],win:{litP:.5,gx:7,gy:9},trim:'#e05252'}, // 捲門紅遮陽店
+    {k:2,lv:1,v:10,hw:20,h:15,parts:['windowsStd','flatParapet','door','awning'],win:{litP:.6,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}}, // 平頂遮陽小店
+    {k:2,lv:1,v:11,hw:22,h:17,parts:['windowsStd','glassFront','balconyRows','panelLines'],win:{litP:.65,gx:6,gy:8},trim:'#9fd6d0'}, // 玻璃陽台店
+    {k:2,lv:2,v:8,hw:24,h:28,parts:['windowsStd','glassFront','balconyRows','panelLines'],win:{litP:.7,w:4,ht:5,gx:6,gy:8}}, // 玻璃陽台商場
+    {k:2,lv:2,v:9,hw:26,h:30,parts:['windowsStd','roofBillboard','awning','panelLines'],win:{litP:.6,gx:7,gy:9},trim:'#ffd9a0'}, // 看板遮陽商場
+    {k:2,lv:2,v:10,hw:24,h:32,parts:['windowsStd','setbackTop','glassFront','balconyRows'],win:{litP:.7,w:3,ht:5,gx:6,gy:8}}, // 退台玻璃商場
+    {k:2,lv:2,v:11,hw:26,h:26,parts:['windowsStd','sawtoothMonitor','awning','panelLines'],win:{litP:.5,gx:8,gy:9},trim:'#cfe8d6'}, // 鋸齒遮陽商場
+    {k:2,lv:3,v:8,hw:26,h:52,parts:['windowsStd','setbackTop','roofBillboard','antenna'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 看板天線高樓
+    {k:2,lv:3,v:9,hw:28,h:56,parts:['windowsStd','flatParapet','storageTank','antenna','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 儲罐招牌高樓
+    {k:2,lv:3,v:10,hw:26,h:50,parts:['windowsStd','setbackTop','storageTank','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 儲罐商辦高樓
+    {k:2,lv:3,v:11,hw:28,h:54,parts:['windowsStd','flatParapet','balconyRows','antenna','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'},trim:'#f2e4a0'}, // 陽台高樓
+    // T150 工業圖鑑再擴充（8→12 變體）：k=3 各 lv 新增 v8-11（部件重組，皆用現有 PARTS；建造置於尾端 T150 區塊）
+    {k:3,lv:1,v:8,hw:26,h:14,parts:['corrugate','rollupDoor','windowsStd'],win:{litP:.4,gx:9,gy:9}}, // 簡約鐵皮倉庫
+    {k:3,lv:1,v:9,hw:28,h:16,parts:['hazardStripe','rollupDoor','cratesDeco','windowsStd'],win:{litP:.4,gx:8,gy:9}}, // 警示條堆場
+    {k:3,lv:1,v:10,hw:24,h:13,parts:['panelLines','pyramidRoof','rollupDoor'],win:{litP:.35,gx:9,gy:10}}, // 尖頂面板小廠
+    {k:3,lv:1,v:11,hw:30,h:15,parts:['corrugate','sawtoothMonitor','rollupDoor','cratesDeco'],win:{litP:.4,gx:8,gy:9}}, // 鋸齒頂堆場
+    {k:3,lv:2,v:8,hw:28,h:22,parts:['corrugate','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 簡約磚囪廠房
+    {k:3,lv:2,v:9,hw:26,h:20,parts:['panelLines','hazardStripe','chimneySmall','windowsStd'],win:{litP:.4,gx:7,gy:9}}, // 警示面板廠房
+    {k:3,lv:2,v:10,hw:30,h:24,parts:['corrugate','storageTank','sawtoothMonitor','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 儲罐鋸齒廠
+    {k:3,lv:2,v:11,hw:28,h:23,parts:['hazardStripe','chimneyBrick','storageTank','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 警示儲罐廠
+    {k:3,lv:3,v:8,hw:28,h:33,parts:['corrugate','chimneyBrick','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 警示重工廠
+    {k:3,lv:3,v:9,hw:30,h:36,parts:['sawtoothMonitor','storageTank','chimneySmall','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 儲罐鋸齒重廠
+    {k:3,lv:3,v:10,hw:28,h:35,parts:['flatParapet','chimneyBrick','storageTank','antenna','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 天線儲罐重廠
+    {k:3,lv:3,v:11,hw:30,h:38,parts:['corrugate','chimneyBrick','chimneySmall','hazardStripe','storageTank','windowsStd'],win:{litP:.5,gx:8,gy:9}} // 雙囪警示重廠
+  ];
+  const tasks=[];
+  const mkBld=t=>{
+    const k=t.k,lv=t.lv,v=t.v,d=t.d,hw=d.hw,h=d.h;
+    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
+    const ax=36,ay=110,by=ay-2;
+    const wl=PAL[k].walls[v],rf=PAL[k].roof[v];
+    const smoke=[];
+    plate(g,ax,ay,k===3?'#8f8a7c':'#9a9484');
+    const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
+    const ctx={ax,ay,by,hw,h,rty,wl,rf,v,k,lv,rand,dg:g,smoke,d};
+    for(const p of d.parts)PARTS[p](sg,ng,ctx);
+    /* T382 批9：RCI 部件繪製之後零亂數加層（不重排 parts、不碰 windows 參數／窗帶幾何）
+       退修：僅貼地／牆身中段，禁止在 rty 上方加筆（避免 vh 抬高，尤其 3_2_9 +10 事故） */
+    {
+     sg.fillStyle='#b8b0a0';for(let i=0;i<3;i++)sg.fillRect(ax-8+i*6,ay-4,4,1); // 門前地磚
+     if(k===1){sg.fillStyle='#6a5a48';sg.fillRect(ax+2,by-2,8,2); // 門檻
+       ng.fillStyle='rgba(255,220,140,.35)';ng.fillRect(ax-4,by-6,8,2);} // 門廊暖光（貼地）
+     if(k===2){sg.fillStyle='#c8c0b0';sg.fillRect(ax-10,by-2,16,1); // 店前步道
+       sg.fillStyle='#e8d080';sg.fillRect(ax-12,by-4,2,2);sg.fillRect(ax+10,by-4,2,2); // 門側燈座
+       ng.fillStyle='rgba(255,200,120,.4)';ng.fillRect(ax-8,by-6,12,2);}
+     if(k===3){sg.fillStyle='#e8d080';for(let i=0;i<3;i++)sg.fillRect(ax-12+i*10,by-2,6,1); // 安全線
+       sg.fillStyle='#6a6a72';sg.fillRect(ax+hw-8,by-8,4,4); // 設備箱（貼地，不爬牆）
+       sg.fillStyle='#c0402e';sg.fillRect(ax-hw+3,by-6,3,3);} // 警示角塊
+    }
+    outlineSprite(sc,26,30,44);
+    g.drawImage(sc,0,0);
+    SPR.bld[k+'_'+lv+'_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke};
+  };
+  const mt=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
+    g.fillStyle='#3d7a3c';g.fillRect(x-4,y-3,10,9);
+    g.fillStyle='#4b8f45';g.fillRect(x-3,y-4,8,7);
+    g.fillStyle='#63ad55';g.fillRect(x-2,y-3,4,4);};
+  const CARC=['#e05252','#5aa0e8','#ffd45f','#7fe0c8','#e8e8ee','#b184d8','#f2a35f','#88c46a'];
+  const mtW=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
+    g.fillStyle='#3d7a3c';g.fillRect(x-4,y-3,10,9);
+    g.fillStyle='#4b8f45';g.fillRect(x-3,y-4,8,7);
+    g.fillStyle='#eef4f8';g.fillRect(x-3,y-4,8,3);
+    g.fillStyle='#ffffff';g.fillRect(x-3,y-1,8,1);};
+/* ===== T426 S1（buildSprites 拆段，原 L1698-1807） ===== */
+function buildSpritesS1(){
   /* ---------- 草地 4 變化 ---------- */
   SPR.grass=[];
   for(let v=0;v<4;v++){const[c,g]=cv(64,32);
@@ -1805,61 +2030,14 @@ function buildSprites(){
      g.fillStyle='#463321';g.fillRect(x,yE+24,1,3);
    }
    SPR.cliff=c;}
+}
+/* ===== T426 S2（buildSprites 拆段，原 L1808-1883） ===== */
+function buildSpritesS2(){
   /* ---------- 道路 16 種 ＋ 橋 16 種（T29 五級分級：rc=1~4，rc=5 沿用高速 sprite）---------- */
   SPR.roadClass=[];SPR.bridgeClass=[];
-  function dashSeg(g,x,y,sgn){g.fillRect(x,y,2,1);g.fillRect(x+2,y+sgn,2,1);}
-  function dblDashSeg(g,x,y,sgn){g.fillRect(x,y,2,1);g.fillRect(x+2,y+sgn,2,1);g.fillRect(x,y+sgn*2,2,1);g.fillRect(x+2,y+sgn*3,2,1);}
-  const ROAD_BASE=['#5a5d64','#4b4f58','#4b4f58','#454850']; // rc=1~4 路面底色
-  const ROAD_EDGE=['#9a9ea6','#b9bdc5','#b9bdc5','#c5c9d0']; // 受光緣
-  const ROAD_EDGE2=['#6e727a','#878e99','#878e99','#8a8f99']; // 陰影緣
-  const ROAD_LINE=['','#e8c860','#e8c860','#e8c860'];        // 中心線顏色（小巷無線）
-  const genRoadLvl=rcI=>{
-    SPR.roadClass[rcI]=[];SPR.bridgeClass[rcI]=[];
-    for(let m=0;m<16;m++){
-      {const[c,g]=cv(64,32);
-       const base=ROAD_BASE[rcI],edge=ROAD_EDGE[rcI],edge2=ROAD_EDGE2[rcI];
-       dia(g,32,0,32,base);
-       speck(g,32,0,32,['#565b64','#41454d','#50545d'],50,rand);
-       diaEdge(g,(~m)&15,edge);
-       diaEdge(g,(~m)&15,edge2,32,2,28);
-       if(rcI>=1){
-         g.fillStyle=ROAD_LINE[rcI];
-         if(m===(1|4)){for(let k=-3;k<=3;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,16-4*k,-1);}
-         if(m===(2|8)){for(let k=-3;k<=3;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,16+4*k-1,1);}
-       }
-       if(rcI===3&&m===15){g.fillStyle='#3e434c';g.fillRect(30,15,4,2);} // 主幹道中央分隔島
-       SPR.roadClass[rcI].push(c);}
-      {const[c,g]=cv(64,44);
-       const bridgeLand='#7d5c3a',bridgeDark='#5c4126';
-       dia(g,32,4,32,bridgeLand);
-       g.fillStyle='rgba(0,0,0,.16)';
-       for(let yy=8;yy<34;yy+=4){
-         const rr=yy-4,hr=(rr<16?(rr+1):(32-rr))*2-4;
-         if(hr>4)g.fillRect(32-hr+2,yy,hr*2-4,1);
-       }
-       const base=ROAD_BASE[rcI];
-       dia(g,32,8,24,base);
-       if(m&1)dia(g,48,4,16,base);
-       if(m&2)dia(g,48,20,16,base);
-       if(m&4)dia(g,16,20,16,base);
-       if(m&8)dia(g,16,4,16,base);
-       diaEdge(g,(~m)&15,'#96714a',32,4,32);
-       diaEdge(g,(~m)&15,bridgeDark,32,6,28);
-       if(rcI>=1){
-         g.fillStyle=ROAD_LINE[rcI];
-         if(m===(1|4)){for(let k=-2;k<=2;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,20-4*k,-1);}
-         if(m===(2|8)){for(let k=-2;k<=2;k++)(rcI>=2?dblDashSeg:dashSeg)(g,32+8*k-2,20+4*k-1,1);}
-       }
-       g.fillStyle=bridgeDark;g.fillRect(12,34,4,9);g.fillRect(48,34,4,9);
-       g.fillStyle='#463321';g.fillRect(12,41,4,2);g.fillRect(48,41,4,2);
-       {const railM=((~m)&15)&(2|4);if(railM){diaEdge(g,railM,'#c2c6ce',32,0,32);diaEdge(g,railM,'#8e929a',32,2,32);}} // T203 橋面側護欄（Opus 親手，審計缺口）：沿甲板前緣側邊(非道路連接邊)畫淺灰雙軌欄杆(抬高於甲板)，純幾何不消耗 rand
-       SPR.bridgeClass[rcI].push(c);}
-    }
-  };
   for(const rcI of[1])genRoadLvl(rcI); // T29 支路(rc=2)原位生成，保基線 rand 消耗（FIX-B）
   /* ---------- 分區覆蓋層 ---------- */
   SPR.zone={};
-  const ZC={1:'#58c470',2:'#5aa0e8',3:'#e8b23e'};
   for(const z of[1,2,3]){const[c,g]=cv(64,32);
     diaEdge(g,15,ZC[z]);
     diaEdge(g,15,ZC[z],32,2,28);
@@ -1881,145 +2059,16 @@ function buildSprites(){
    outlineSprite(s,60,40,10);
    g.drawImage(s,0,0);
    SPR.nopow=c;}
+}
+/* ===== T426 S3（buildSprites 拆段，原 L1884-2359） ===== */
+function buildSpritesS3(){
   /* ---------- 建築（資料驅動 DRAFTS＋部件引擎，T28；擴充教學見 ARCH.md §5）---------- */
   SPR.bld={};
   // 牆／屋頂色盤：變體 v 由此取色（保留原表）
-  const PAL={
-    1:{walls:[['#efe3c0','#cfc0a0'],['#d98d6a','#b5714f'],['#a9c7d8','#8aa8bb'],['#bcd4ae','#9cb48e'],['#d8d0c0','#b8b0a0'],
-              ['#9db8cf','#7f9bb3'],['#9cb686','#7d9968'],['#c17048','#9a5535'], // T101 新增 v5-7：灰藍/苔綠/赭紅系
-              ['#e0b8c0','#c0919d'],['#d8c896','#b8a878'],['#787c82','#5c6066'],['#7fc4c0','#5fa39f']], // T150 新增 v8-11：玫瑰粉/沙卡其/現代炭灰/藍綠系
-       roof:['#b0563c','#54677a','#617e4b','#8f6f4f','#7a5a4a','#4a5c72','#4f6b3f','#6b3a26','#8a4f5c','#6b5838','#333a42','#3f6f6c']},
-    2:{walls:[['#e8e8ee','#c6c6d0'],['#ffd9a0','#dcb37e'],['#9fd6d0','#7fb5ae'],['#f2c4cf','#d0a2ad'],
-              ['#cfe8d6','#a8c7af'],['#e8c9a0','#c49b6e'],['#ddd0ea','#b7a3cc'],['#f2e4a0','#d4bb70'], // T102 新增 v4-7：薄荷/赤陶/薰衣草/暖黃系
-              ['#e05a52','#b8433c'],['#3a4f78','#2c3c5c'],['#c8e070','#a8bc55'],['#f2967a','#d47860']], // T150 新增 v8-11：緋紅/靛藍/萊姆/珊瑚系
-       roof:['#6b7280','#8a6f4f','#4f7d78','#9f5f6f','#4f7a5a','#8a4f30','#5a4a78','#a3792f','#7a2e28','#232e46','#7a8a3e','#a85a44']},
-    3:{walls:[['#b9bec6','#979da8'],['#c9c2b2','#a89f8d'],['#9aa4b2','#7d8795'],['#adb8a4','#8d9884'],
-              ['#b56b52','#8f4f3a'],['#4f7a82','#3a5d64'],['#8f8f87','#71716a'],['#6b5040','#4f3a2e'], // T103 新增 v4-7：鏽紅/鋼青/水泥灰/深棕系
-              ['#e8962e','#c47a1e'],['#2c3550','#1f2740'],['#c8c8c0','#a8a8a0'],['#4a6b45','#385530']], // T150 新增 v8-11：警示橙/深靛/水泥白/森綠系
-       roof:['#7d838d','#8d857a','#6b7480','#79806f','#6b3a26','#365058','#5c5c55','#3a2a20','#8a5716','#161c30','#8a8a80','#2a4022']}};
-  const SIGNC=['#ff8a5f','#ffd45f','#7fe0c8','#ff9fd0','#7fa8ff','#c58fff','#9dff7f','#ff6f6f']; // T102：招牌夜光色由 4 擴至 8
   // 部件註冊表：每個部件 (g,ng,c)=>void。g＝結構層 sg、ng＝夜間層、c＝ctx
   // ctx＝{ax,ay,by,hw,h,rty,rty2,wl,rf,v,k,lv,rand,dg(日層),smoke,d(本行資料)}
-  const PARTS={
-    windowsStd(g,ng,c){windows(g,ng,c.ax,c.by,c.hw,c.h,c.rand,c.d.win.litP,c.d.win);},
-    pyramidRoof(g,ng,c){for(let i=1;i<=4;i++){const hwi=c.hw-4*i;if(hwi<4)break;dia(g,c.ax,c.by-c.h-hwi-2*i,hwi,i%2?c.rf:shade(c.rf,-14));}},
-    chimneySmall(g,ng,c){g.fillStyle='#5a4638';g.fillRect(c.ax+6,c.by-c.h-17,3,9);g.fillStyle='#494037';g.fillRect(c.ax+5,c.by-c.h-18,5,2);c.smoke.push({dx:7,dy:c.by-c.h-18-c.ay});}, // T185：補炊煙點（純推座標，不畫像素、不消耗 R()）供冬季民居炊煙對齊煙囪頂
-    door(g,ng,c){const o=c.d.door;for(let dx=3;dx<=7;dx++){const yF=c.by-((dx+1)>>1);g.fillStyle=o.col;g.fillRect(c.ax+dx,yF-9,1,8);}if(o.knob){g.fillStyle='#e8c860';g.fillRect(c.ax+6,c.by-((7)>>1)-5,1,1);}},
-    yardDeco(g,ng,c){const G=c.dg;G.fillStyle='#4b8f45';G.fillRect(c.ax-17,c.ay-10,4,3);G.fillStyle='#63ad55';G.fillRect(c.ax-14,c.ay-11,3,2);G.fillStyle='#cbb98e';G.fillRect(c.ax+5,c.ay-8,4,2);G.fillRect(c.ax+9,c.ay-6,4,2);},
-    flatParapet(g,ng,c){diaEdge(g,15,shade(c.rf,-20),c.ax,c.rty,c.hw);},
-    waterTank(g,ng,c){const ax=c.ax,rty=c.rty;if(c.lv===2){g.fillStyle='#b9bec6';g.fillRect(ax-4,rty+10,7,4);g.fillStyle='#8d949e';g.fillRect(ax-4,rty+11,7,1);}else{g.fillStyle='#98a2b0';g.fillRect(ax-7,rty+8,8,7);g.fillStyle='#b7c1cd';g.fillRect(ax-7,rty+7,8,2);g.fillStyle='#6d7684';g.fillRect(ax-7,rty+15,2,2);g.fillRect(ax-1,rty+15,2,2);}},
-    antenna(g,ng,c){g.fillStyle='#8b95a5';if(c.k===2)g.fillRect(c.ax,c.rty2-6,1,7);else g.fillRect(c.ax+5,c.rty+6,1,7);},
-    aviationLamp(g,ng,c){let x,y;if(c.k===2){x=c.ax-1;y=c.rty2-8;}else{x=c.ax+4;y=c.rty+4;}g.fillStyle='#e05252';g.fillRect(x,y,3,2);ng.fillStyle='#ff6060';ng.fillRect(x,y,3,2);},
-    chimneyBrick(g,ng,c){const ax=c.ax,rty=c.rty,ay=c.ay;if(c.lv===3){g.fillStyle='#6a707c';g.fillRect(ax-12,rty-10,4,20);g.fillStyle='#b5533e';g.fillRect(ax-12,rty-10,4,3);g.fillStyle='#565c68';g.fillRect(ax-9,rty-10,1,20);g.fillStyle='#6a707c';g.fillRect(ax-4,rty-4,4,15);g.fillStyle='#b5533e';g.fillRect(ax-4,rty-4,4,2);c.smoke.push({dx:-10,dy:rty-11-ay},{dx:-2,dy:rty-5-ay});}else{g.fillStyle='#8a6f5f';g.fillRect(ax-9,rty-8,4,16);g.fillStyle='#b5533e';g.fillRect(ax-9,rty-8,4,3);g.fillStyle='#6d574a';g.fillRect(ax-6,rty-8,1,16);c.smoke.push({dx:-7,dy:rty-9-ay});}},
-    glassFront(g,ng,c){const ax=c.ax,by=c.by;if(c.lv===1){for(let dx=2;dx<=10;dx++){const yF=by-((dx+1)>>1);g.fillStyle='#a8cbe8';g.fillRect(ax+dx,yF-8,1,6);g.fillStyle='#5c554a';g.fillRect(ax+dx,yF-9,1,1);}ng.fillStyle='rgba(255,235,170,.8)';for(let dx=2;dx<=10;dx++){const yF=by-((dx+1)>>1);ng.fillRect(ax+dx,yF-8,1,6);}}else{for(let dx=2;dx<=8;dx++){const yF=by-((dx+1)>>1);g.fillStyle='#bcd8ee';g.fillRect(ax+dx,yF-10,1,9);}g.fillStyle='#5c554a';g.fillRect(ax+5,by-4-10,1,9);}},
-    awning(g,ng,c){const ax=c.ax,by=c.by,trim=c.d.trim||(c.v===2?'#4f9d94':'#e05252');for(let dx=1;dx<=13;dx++){const yF=by-((dx+1)>>1);g.fillStyle=((dx/3)|0)%2?'#f2f2f2':trim;g.fillRect(ax+dx,yF-12,1,3);g.fillStyle='rgba(0,0,0,.2)';g.fillRect(ax+dx,yF-9,1,1);}},
-    signBoard(g,ng,c){const col=SIGNC[c.v],ax=c.ax;if(c.lv===3){ng.fillStyle=col;ng.fillRect(ax-10,c.rty2+6,8,3);g.fillStyle=col;g.fillRect(ax-10,c.rty2+6,8,3);}else{g.fillStyle=col;g.fillRect(ax-12,c.by-6-c.h+2,8,4);ng.fillStyle=col;ng.fillRect(ax-12,c.by-6-c.h+2,8,4);}},
-    roofBillboard(g,ng,c){const ax=c.ax,rty=c.rty;g.fillStyle='#20242c';g.fillRect(ax-9,rty+4,18,9);for(let i=0;i<24;i++){const col=SIGNC[ri(3)];g.fillStyle=col;ng.fillStyle=col;const px=ax-8+ri(16),py=rty+5+ri(7);g.fillRect(px,py,1,1);ng.fillRect(px,py,1,1);}g.fillStyle='#4a4f58';g.fillRect(ax-2,rty+13,3,3);},
-    setbackTop(g,ng,c){c.rty2=isoBox(g,c.ax,c.rty+c.hw-6,c.hw-12,10,shade(c.wl[1],-10),shade(c.wl[0],-10),shade(c.rf,-8));},
-    rollupDoor(g,ng,c){const ax=c.ax,by=c.by,rty=c.rty;for(let dx=2;dx<=11;dx++){const yF=by-((dx+1)>>1);g.fillStyle='#454a54';g.fillRect(ax+dx,yF-10,1,9);if(dx%2)g.fillStyle='rgba(255,255,255,.08)',g.fillRect(ax+dx,yF-10,1,9);}g.fillStyle='#6a707c';g.fillRect(ax-10,rty+4,3,9);g.fillStyle='#b5533e';g.fillRect(ax-10,rty+4,3,2);},
-    sawtoothMonitor(g,ng,c){const ax=c.ax,rm=isoBox(g,ax,c.rty+c.hw-6,c.hw-16,5,shade(c.wl[1],-14),shade(c.wl[0],-14),'#aebccb');g.fillStyle='rgba(255,255,255,.25)';for(let dx=-8;dx<=8;dx+=4)g.fillRect(ax+dx,rm+4,2,1);},
-    storageTank(g,ng,c){const ax=c.ax,rty=c.rty;g.fillStyle='#aab2bd';g.fillRect(ax+6,rty+6,10,8);g.fillStyle='#c8cfd8';g.fillRect(ax+6,rty+5,10,2);g.fillStyle='#8d95a1';g.fillRect(ax+6,rty+10,10,1);},
-    hazardStripe(g,ng,c){const ax=c.ax,by=c.by;for(let dx=0;dx<c.hw;dx+=4){const yF=by-((dx+1)>>1);g.fillStyle=dx%8?'#20242c':'#ffd420';g.fillRect(ax+dx,yF-2,3,2);}},
-    corrugate(g,ng,c){const ax=c.ax,by=c.by,h=c.h;g.fillStyle='rgba(0,0,0,.06)';for(let dx=2;dx<c.hw;dx+=2){g.fillRect(ax+dx,by-((dx+1)>>1)-h,1,h);g.fillRect(ax-dx,by-(dx>>1)-h,1,h);}},
-    panelLines(g,ng,c){const ax=c.ax,by=c.by,h=c.h;g.fillStyle='rgba(0,0,0,.08)';for(let dx=6;dx<c.hw;dx+=6)g.fillRect(ax-dx,by-(dx>>1)-h,1,h);},
-    balconyRows(g,ng,c){const ax=c.ax,by=c.by,trim=c.d.trim||'#cbd8e0';for(let ry=8;ry<c.h;ry+=8)for(let dx=2;dx<=c.hw-3;dx++){const yF=by-((dx+1)>>1);g.fillStyle=trim;g.fillRect(ax+dx,yF-ry,1,1);}},
-    cratesDeco(g,ng,c){const G=c.dg;G.fillStyle='#a07648';G.fillRect(c.ax-20,c.ay-11,6,4);G.fillStyle='#bf9059';G.fillRect(c.ax-16,c.ay-13,5,3);}
-  };
   // 資料表：每行一種外觀（k,lv 為主鍵；未指定 v 者展開 v=0..vn-1，vn 預設 4）
-  const DRAFTS=[
-    {k:1,lv:1,hw:20,h:14,parts:['windowsStd','pyramidRoof','chimneySmall','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28',knob:1}},
-    {k:1,lv:2,hw:24,h:26,parts:['windowsStd','flatParapet','waterTank','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568'}},
-    {k:1,lv:3,hw:26,h:46,vn:4,parts:['windowsStd','flatParapet','waterTank','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
-    {k:2,lv:1,hw:22,h:16,parts:['glassFront','awning','signBoard','windowsStd'],win:{litP:.6,gx:7,gy:9}},
-    {k:2,lv:2,hw:24,h:32,vn:3,parts:['windowsStd','glassFront','roofBillboard'],win:{litP:.75,w:4,ht:5,gx:6,gy:8}},
-    {k:2,lv:3,hw:26,h:54,parts:['windowsStd','setbackTop','antenna','aviationLamp','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}},
-    {k:3,lv:1,hw:28,h:14,parts:['corrugate','rollupDoor','cratesDeco','windowsStd'],win:{litP:.4,gx:9,gy:9}},
-    {k:3,lv:2,hw:28,h:22,parts:['corrugate','sawtoothMonitor','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}},
-    {k:3,lv:3,hw:28,h:32,parts:['corrugate','chimneyBrick','storageTank','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}},
-    // 示範擴充（T28）：資料驅動加一行＝新外觀。k2 lv2 第 4 變體「花園商場」＝既有部件＋陽台＋綠 trim
-    {k:2,lv:2,v:3,hw:24,h:32,parts:['windowsStd','glassFront','roofBillboard','awning','balconyRows'],win:{litP:.75,w:4,ht:5,gx:6,gy:8},trim:'#5aa563'},
-    // 示範擴充（T30）：高密度 Lv3 住宅「公寓大樓」＝既有部件＋陽台＋淺 trim
-    {k:1,lv:3,v:4,hw:28,h:56,parts:['windowsStd','flatParapet','waterTank','antenna','aviationLamp','balconyRows'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#c9d4e0'},
-    // T101 住宅圖鑑擴充（4→8 變體）：k=1 各 lv 新增 v4-7（lv3 因 v4 已被公寓大樓佔用，從 v5 補；建造置於 buildSprites 尾端，見下方尾端生成區塊）
-    {k:1,lv:1,v:4,hw:20,h:16,parts:['windowsStd','flatParapet','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30',knob:1}},
-    {k:1,lv:1,v:5,hw:20,h:14,parts:['windowsStd','pyramidRoof','chimneySmall','panelLines','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28',knob:1}},
-    {k:1,lv:1,v:6,hw:20,h:17,parts:['windowsStd','flatParapet','balconyRows','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568',knob:1},trim:'#7d9968'},
-    {k:1,lv:1,v:7,hw:22,h:15,parts:['windowsStd','pyramidRoof','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}},
-    {k:1,lv:2,v:4,hw:24,h:28,parts:['windowsStd','flatParapet','waterTank','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a'},trim:'#7f9bb3'},
-    {k:1,lv:2,v:5,hw:24,h:24,parts:['windowsStd','setbackTop','antenna','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568'}},
-    {k:1,lv:2,v:6,hw:24,h:26,parts:['windowsStd','flatParapet','chimneyBrick','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28'}},
-    {k:1,lv:2,v:7,hw:24,h:22,parts:['windowsStd','pyramidRoof','chimneySmall','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30'},trim:'#9a5535'},
-    {k:1,lv:3,v:5,hw:26,h:42,parts:['windowsStd','setbackTop','waterTank','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
-    {k:1,lv:3,v:6,hw:26,h:48,parts:['windowsStd','flatParapet','chimneyBrick','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}},
-    {k:1,lv:3,v:7,hw:26,h:50,parts:['windowsStd','setbackTop','balconyRows','waterTank','antenna','aviationLamp'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#6f88a3'},
-    // T102 商業圖鑑擴充（4→8 變體）：k=2 各 lv 新增 v4-7（部件重組，皆用現有 PARTS；建造置於 buildSprites 尾端，見下方尾端生成區塊；花園商場 2_2_3 既有行不動）
-    {k:2,lv:1,v:4,hw:22,h:16,parts:['windowsStd','glassFront','awning','yardDeco'],win:{litP:.6,gx:7,gy:9},trim:'#8a5f38'}, // 全落地窗咖啡店
-    {k:2,lv:1,v:5,hw:24,h:18,parts:['windowsStd','glassFront','awning','signBoard'],win:{litP:.65,gx:6,gy:8},trim:'#3f7dc9'}, // awning 條紋變色精品店
-    {k:2,lv:1,v:6,hw:22,h:16,parts:['windowsStd','rollupDoor','signBoard','yardDeco'],win:{litP:.5,gx:7,gy:9}}, // 捲門雜貨店
-    {k:2,lv:1,v:7,hw:20,h:15,parts:['windowsStd','pyramidRoof','door','signBoard'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}}, // 尖頂小店
-    {k:2,lv:2,v:4,hw:24,h:32,parts:['windowsStd','glassFront','roofBillboard','signBoard'],win:{litP:.75,w:4,ht:5,gx:6,gy:8}}, // 大型看板商場
-    {k:2,lv:2,v:5,hw:24,h:30,parts:['windowsStd','signBoard','awning','panelLines'],win:{litP:.6,w:3,ht:5,gx:6,gy:8},trim:'#c9782e'}, // 百貨商店
-    {k:2,lv:2,v:6,hw:26,h:26,parts:['windowsStd','sawtoothMonitor','signBoard','corrugate'],win:{litP:.45,gx:8,gy:9}}, // 大賣場
-    {k:2,lv:2,v:7,hw:24,h:34,parts:['windowsStd','setbackTop','balconyRows','signBoard'],win:{litP:.6,w:3,ht:5,gx:6,gy:8},trim:'#8fb0c9'}, // 退台露台商辦
-    {k:2,lv:3,v:4,hw:26,h:54,parts:['windowsStd','setbackTop','roofBillboard','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 頂樓看板高樓
-    {k:2,lv:3,v:5,hw:26,h:56,parts:['windowsStd','setbackTop','antenna','waterTank','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 天線陣列高樓
-    {k:2,lv:3,v:6,hw:26,h:52,parts:['windowsStd','setbackTop','storageTank','antenna','signBoard'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 機電水塔高樓
-    {k:2,lv:3,v:7,hw:28,h:50,parts:['windowsStd','flatParapet','balconyRows','antenna','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'},trim:'#c9d4e0'}, // 平頂陽台高樓
-    // T103 工業圖鑑擴充（4→8 變體）：k=3 各 lv 新增 v4-7（部件重組，皆用現有 PARTS；建造置於 buildSprites 尾端，見下方尾端生成區塊）
-    {k:3,lv:1,v:4,hw:26,h:13,parts:['corrugate','rollupDoor','cratesDeco','yardDeco','windowsStd'],win:{litP:.4,gx:8,gy:9}}, // 貨箱堆場小倉庫
-    {k:3,lv:1,v:5,hw:30,h:16,parts:['panelLines','rollupDoor','cratesDeco','windowsStd'],win:{litP:.35,gx:9,gy:10}}, // 面板牆大倉庫
-    {k:3,lv:1,v:6,hw:28,h:15,parts:['corrugate','hazardStripe','rollupDoor','cratesDeco'],win:{litP:.4,gx:9,gy:9}}, // 警示條裝卸區
-    {k:3,lv:1,v:7,hw:24,h:14,parts:['corrugate','pyramidRoof','rollupDoor','cratesDeco'],win:{litP:.4,gx:8,gy:9}}, // 尖頂小工坊
-    {k:3,lv:2,v:4,hw:30,h:24,parts:['panelLines','sawtoothMonitor','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 面板牆鋸齒廠房
-    {k:3,lv:2,v:5,hw:28,h:22,parts:['corrugate','sawtoothMonitor','chimneyBrick','chimneySmall','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 雙煙囪鋸齒廠房
-    {k:3,lv:2,v:6,hw:26,h:20,parts:['hazardStripe','sawtoothMonitor','chimneyBrick','windowsStd'],win:{litP:.4,gx:7,gy:9}}, // 警示條鋸齒廠房
-    {k:3,lv:2,v:7,hw:28,h:23,parts:['corrugate','sawtoothMonitor','storageTank','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 儲罐鋸齒廠房
-    {k:3,lv:3,v:4,hw:28,h:34,parts:['corrugate','chimneyBrick','storageTank','waterTank','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 儲罐陣列重工廠
-    {k:3,lv:3,v:5,hw:30,h:32,parts:['sawtoothMonitor','chimneyBrick','storageTank','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 鋸齒頂重工廠
-    {k:3,lv:3,v:6,hw:28,h:36,parts:['corrugate','chimneyBrick','chimneySmall','storageTank','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 雙煙囪重工廠
-    {k:3,lv:3,v:7,hw:28,h:38,parts:['flatParapet','storageTank','antenna','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 天線儲罐重工廠
-    // T150 住宅圖鑑再擴充（8→12 變體）：k=1 各 lv 新增 v8-11（部件重組，皆用現有 PARTS；建造置於 buildSprites 絕對尾端 T150 區塊）
-    {k:1,lv:1,v:8,hw:20,h:15,parts:['windowsStd','flatParapet','chimneySmall','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#7a4a3a',knob:1}}, // 平頂磚色小屋
-    {k:1,lv:1,v:9,hw:22,h:16,parts:['windowsStd','pyramidRoof','balconyRows','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a',knob:1},trim:'#9db8cf'}, // 陽台尖頂屋
-    {k:1,lv:1,v:10,hw:20,h:14,parts:['windowsStd','setbackTop','waterTank','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28',knob:1}}, // 退台小屋
-    {k:1,lv:1,v:11,hw:22,h:17,parts:['windowsStd','pyramidRoof','panelLines','chimneySmall','door','yardDeco'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568',knob:1}}, // 面板牆尖頂屋
-    {k:1,lv:2,v:8,hw:24,h:24,parts:['windowsStd','pyramidRoof','waterTank','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#5a3d28'}}, // 尖頂公寓
-    {k:1,lv:2,v:9,hw:24,h:26,parts:['windowsStd','flatParapet','antenna','balconyRows','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#3a3a3a'},trim:'#c17048'}, // 天線陽台公寓
-    {k:1,lv:2,v:10,hw:24,h:22,parts:['windowsStd','setbackTop','chimneyBrick','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#4a5568'}}, // 退台磚囪公寓
-    {k:1,lv:2,v:11,hw:26,h:28,parts:['windowsStd','flatParapet','waterTank','balconyRows','panelLines','door'],win:{litP:.55,gx:6,gy:8},door:{col:'#6b4a30'},trim:'#bcd4ae'}, // 密集陽台公寓
-    {k:1,lv:3,v:8,hw:26,h:44,parts:['windowsStd','flatParapet','antenna','waterTank'],win:{litP:.55,gx:5,gy:6}}, // 簡約高樓
-    {k:1,lv:3,v:9,hw:28,h:52,parts:['windowsStd','setbackTop','chimneyBrick','antenna','aviationLamp'],win:{litP:.55,gx:5,gy:6}}, // 退台煙囪高樓
-    {k:1,lv:3,v:10,hw:26,h:46,parts:['windowsStd','pyramidRoof','waterTank','antenna','balconyRows'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#9cb686'}, // 尖頂陽台高樓
-    {k:1,lv:3,v:11,hw:28,h:54,parts:['windowsStd','setbackTop','balconyRows','antenna','aviationLamp','waterTank'],win:{litP:.55,w:4,ht:5,gx:5,gy:6},trim:'#c17048'}, // 全配置豪華高樓
-    // T150 商業圖鑑再擴充（8→12 變體）：k=2 各 lv 新增 v8-11（不用 signBoard 部件，避免 SIGNC[c.v] 越界 8 色票；建造置於尾端 T150 區塊）
-    {k:2,lv:1,v:8,hw:22,h:16,parts:['windowsStd','glassFront','awning','panelLines'],win:{litP:.65,gx:6,gy:8}}, // 落地玻璃遮陽店
-    {k:2,lv:1,v:9,hw:24,h:18,parts:['windowsStd','rollupDoor','awning','balconyRows'],win:{litP:.5,gx:7,gy:9},trim:'#e05252'}, // 捲門紅遮陽店
-    {k:2,lv:1,v:10,hw:20,h:15,parts:['windowsStd','flatParapet','door','awning'],win:{litP:.6,gx:6,gy:8},door:{col:'#3a3a3a',knob:1}}, // 平頂遮陽小店
-    {k:2,lv:1,v:11,hw:22,h:17,parts:['windowsStd','glassFront','balconyRows','panelLines'],win:{litP:.65,gx:6,gy:8},trim:'#9fd6d0'}, // 玻璃陽台店
-    {k:2,lv:2,v:8,hw:24,h:28,parts:['windowsStd','glassFront','balconyRows','panelLines'],win:{litP:.7,w:4,ht:5,gx:6,gy:8}}, // 玻璃陽台商場
-    {k:2,lv:2,v:9,hw:26,h:30,parts:['windowsStd','roofBillboard','awning','panelLines'],win:{litP:.6,gx:7,gy:9},trim:'#ffd9a0'}, // 看板遮陽商場
-    {k:2,lv:2,v:10,hw:24,h:32,parts:['windowsStd','setbackTop','glassFront','balconyRows'],win:{litP:.7,w:3,ht:5,gx:6,gy:8}}, // 退台玻璃商場
-    {k:2,lv:2,v:11,hw:26,h:26,parts:['windowsStd','sawtoothMonitor','awning','panelLines'],win:{litP:.5,gx:8,gy:9},trim:'#cfe8d6'}, // 鋸齒遮陽商場
-    {k:2,lv:3,v:8,hw:26,h:52,parts:['windowsStd','setbackTop','roofBillboard','antenna'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 看板天線高樓
-    {k:2,lv:3,v:9,hw:28,h:56,parts:['windowsStd','flatParapet','storageTank','antenna','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 儲罐招牌高樓
-    {k:2,lv:3,v:10,hw:26,h:50,parts:['windowsStd','setbackTop','storageTank','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'}}, // 儲罐商辦高樓
-    {k:2,lv:3,v:11,hw:28,h:54,parts:['windowsStd','flatParapet','balconyRows','antenna','aviationLamp'],win:{litP:.55,w:3,ht:5,gx:4,gy:6,glass:'#31435f'},trim:'#f2e4a0'}, // 陽台高樓
-    // T150 工業圖鑑再擴充（8→12 變體）：k=3 各 lv 新增 v8-11（部件重組，皆用現有 PARTS；建造置於尾端 T150 區塊）
-    {k:3,lv:1,v:8,hw:26,h:14,parts:['corrugate','rollupDoor','windowsStd'],win:{litP:.4,gx:9,gy:9}}, // 簡約鐵皮倉庫
-    {k:3,lv:1,v:9,hw:28,h:16,parts:['hazardStripe','rollupDoor','cratesDeco','windowsStd'],win:{litP:.4,gx:8,gy:9}}, // 警示條堆場
-    {k:3,lv:1,v:10,hw:24,h:13,parts:['panelLines','pyramidRoof','rollupDoor'],win:{litP:.35,gx:9,gy:10}}, // 尖頂面板小廠
-    {k:3,lv:1,v:11,hw:30,h:15,parts:['corrugate','sawtoothMonitor','rollupDoor','cratesDeco'],win:{litP:.4,gx:8,gy:9}}, // 鋸齒頂堆場
-    {k:3,lv:2,v:8,hw:28,h:22,parts:['corrugate','chimneyBrick','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 簡約磚囪廠房
-    {k:3,lv:2,v:9,hw:26,h:20,parts:['panelLines','hazardStripe','chimneySmall','windowsStd'],win:{litP:.4,gx:7,gy:9}}, // 警示面板廠房
-    {k:3,lv:2,v:10,hw:30,h:24,parts:['corrugate','storageTank','sawtoothMonitor','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 儲罐鋸齒廠
-    {k:3,lv:2,v:11,hw:28,h:23,parts:['hazardStripe','chimneyBrick','storageTank','windowsStd'],win:{litP:.45,gx:7,gy:9}}, // 警示儲罐廠
-    {k:3,lv:3,v:8,hw:28,h:33,parts:['corrugate','chimneyBrick','hazardStripe','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 警示重工廠
-    {k:3,lv:3,v:9,hw:30,h:36,parts:['sawtoothMonitor','storageTank','chimneySmall','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 儲罐鋸齒重廠
-    {k:3,lv:3,v:10,hw:28,h:35,parts:['flatParapet','chimneyBrick','storageTank','antenna','windowsStd'],win:{litP:.5,gx:8,gy:9}}, // 天線儲罐重廠
-    {k:3,lv:3,v:11,hw:30,h:38,parts:['corrugate','chimneyBrick','chimneySmall','hazardStripe','storageTank','windowsStd'],win:{litP:.5,gx:8,gy:9}} // 雙囪警示重廠
-  ];
   // 展開成建造任務，並依 (k,lv,v) 升序建造＝與重構前逐棟順序一致（保住共用亂數流對齊）
-  const tasks=[];
   for(const d of DRAFTS){
     if(d.v!==undefined)tasks.push({k:d.k,lv:d.lv,v:d.v,d});
     else for(let v=0;v<(d.vn||4);v++)tasks.push({k:d.k,lv:d.lv,v,d});
@@ -2034,40 +2083,9 @@ function buildSprites(){
     (VH406[key]||(VH406[key]=[]))[t.v]=(t.d.h||0)+(t.d.hw||0);
   }
   rankV406(); // RCI 成表（塔在 TWDEF 迴圈後再呼叫一次，涵蓋兩者；本函式冪等）
-  const mkBld=t=>{
-    const k=t.k,lv=t.lv,v=t.v,d=t.d,hw=d.hw,h=d.h;
-    const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
-    const ax=36,ay=110,by=ay-2;
-    const wl=PAL[k].walls[v],rf=PAL[k].roof[v];
-    const smoke=[];
-    plate(g,ax,ay,k===3?'#8f8a7c':'#9a9484');
-    const rty=isoBox(sg,ax,by,hw,h,wl[1],wl[0],rf);
-    const ctx={ax,ay,by,hw,h,rty,wl,rf,v,k,lv,rand,dg:g,smoke,d};
-    for(const p of d.parts)PARTS[p](sg,ng,ctx);
-    /* T382 批9：RCI 部件繪製之後零亂數加層（不重排 parts、不碰 windows 參數／窗帶幾何）
-       退修：僅貼地／牆身中段，禁止在 rty 上方加筆（避免 vh 抬高，尤其 3_2_9 +10 事故） */
-    {
-     sg.fillStyle='#b8b0a0';for(let i=0;i<3;i++)sg.fillRect(ax-8+i*6,ay-4,4,1); // 門前地磚
-     if(k===1){sg.fillStyle='#6a5a48';sg.fillRect(ax+2,by-2,8,2); // 門檻
-       ng.fillStyle='rgba(255,220,140,.35)';ng.fillRect(ax-4,by-6,8,2);} // 門廊暖光（貼地）
-     if(k===2){sg.fillStyle='#c8c0b0';sg.fillRect(ax-10,by-2,16,1); // 店前步道
-       sg.fillStyle='#e8d080';sg.fillRect(ax-12,by-4,2,2);sg.fillRect(ax+10,by-4,2,2); // 門側燈座
-       ng.fillStyle='rgba(255,200,120,.4)';ng.fillRect(ax-8,by-6,12,2);}
-     if(k===3){sg.fillStyle='#e8d080';for(let i=0;i<3;i++)sg.fillRect(ax-12+i*10,by-2,6,1); // 安全線
-       sg.fillStyle='#6a6a72';sg.fillRect(ax+hw-8,by-8,4,4); // 設備箱（貼地，不爬牆）
-       sg.fillStyle='#c0402e';sg.fillRect(ax-hw+3,by-6,3,3);} // 警示角塊
-    }
-    outlineSprite(sc,26,30,44);
-    g.drawImage(sc,0,0);
-    SPR.bld[k+'_'+lv+'_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke};
-  };
   for(const t of tasks)if(!((t.k===1&&t.v>=4)||(t.k===2&&t.v>=4)||(t.k===3&&t.v>=4)))mkBld(t); // T30 淨增行(1,3,4)延後至尾端（FIX-B）；T101 住宅新變體(k=1,v>=4)、T102 商業新變體(k=2,v>=4)、T103 工業新變體(k=3,v>=4)同併入尾端
   /* ---------- 公園 3 變化 ---------- */
   SPR.park=[];
-  const mt=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
-    g.fillStyle='#3d7a3c';g.fillRect(x-4,y-3,10,9);
-    g.fillStyle='#4b8f45';g.fillRect(x-3,y-4,8,7);
-    g.fillStyle='#63ad55';g.fillRect(x-2,y-3,4,4);};
   for(let v=0;v<3;v++){const[c,g]=cv(64,56);
     const ay=53;
     dia(g,32,ay-32,32,'#82c163');
@@ -2290,7 +2308,6 @@ function buildSprites(){
    }}
   /* ---------- 小車（8 色 × 2 朝向） ---------- */
   SPR.car=[];
-  const CARC=['#e05252','#5aa0e8','#ffd45f','#7fe0c8','#e8e8ee','#b184d8','#f2a35f','#88c46a'];
   for(const col of CARC){
     const[a,ag]=cv(12,8);
     ag.fillStyle='rgba(0,0,0,.3)';ag.fillRect(2,6,9,1);
@@ -2357,6 +2374,9 @@ function buildSprites(){
    diaEdge(g,6,'#242320');
    diaEdge(g,9,'#47443f');
    SPR.ruin=c;}
+}
+/* ===== T426 S4（buildSprites 拆段，原 L2360-2444） ===== */
+function buildSpritesS4(){
   /* ---------- 冬季雪皮 sprite（T18；一次性生成，置於全部夏季 sprite 之後→夏季畫面 0 變化） ---------- */
   SPR.grassW=[];
   for(let v=0;v<4;v++){const[c,g]=cv(64,32);
@@ -2414,11 +2434,6 @@ function buildSprites(){
   }
   /* ---------- 冬季公園（雪地／雪樹／結冰池塘） ---------- */
   SPR.parkW=[];
-  const mtW=(g,x,y)=>{g.fillStyle='#6b4a2f';g.fillRect(x,y+5,2,4);
-    g.fillStyle='#3d7a3c';g.fillRect(x-4,y-3,10,9);
-    g.fillStyle='#4b8f45';g.fillRect(x-3,y-4,8,7);
-    g.fillStyle='#eef4f8';g.fillRect(x-3,y-4,8,3);
-    g.fillStyle='#ffffff';g.fillRect(x-3,y-1,8,1);};
   for(let v=0;v<3;v++){const[c,g]=cv(64,56);
     const ay=53;
     dia(g,32,ay-32,32,'#e8eef2');
@@ -2442,6 +2457,9 @@ function buildSprites(){
       }
     }
     SPR.parkW.push({img:c,ax:32,ay:ay,w:64,h:56});}
+}
+/* ===== T426 S5（buildSprites 拆段，原 L2445-2973） ===== */
+function buildSpritesS5(){
   /* ---------- 路飾：路樹＋路燈（T20；置於全部既有 sprite 之後→零擾動） ---------- */
   {const[c,g]=cv(64,40),[s,sg]=cv(64,40);
    sg.fillStyle='#6b4a2f';sg.fillRect(15,18,2,6);          // 樹幹
@@ -2971,6 +2989,9 @@ function buildSprites(){
     ng.fillStyle='#ff6060';ng.fillRect(ax+8,by-50,3,2);ng.fillStyle='#8fd0ff';ng.fillRect(ax-10,by-44,3,2); // 夜燈
     outlineSprite(s,26,30,44);g.drawImage(s,0,0);
     SPR.waterTowerVar[4]={img:c,night:nc,ax:36,ay:110,w:72,h:112,smoke:[]};}
+}
+/* ===== T426 S6（buildSprites 拆段，原 L2974-5017） ===== */
+function buildSpritesS6(){
   /* ---------- 墓園（T38；72×112 小教堂＋墓碑群＋柏樹＋夜間微弱燭光；3 變體）---------- */
   {const WALLS=[['#6b7a6b','#566355'],['#758075','#5f6b5f'],['#657265','#505c50']];
    const ROOFS=['#4a5a4a','#556355','#5a6a5a'];
@@ -5015,6 +5036,9 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
      SPR.bld['15_1_'+v]={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};
    }
   }
+}
+/* ===== T426 S7（buildSprites 拆段，原 L5018-5911） ===== */
+function buildSpritesS7(){
   /* ---------- T39-T60 新建築精靈（尾端生成，亂數流對齊） ---------- */
   // T39 鐵路 sprite（仿道路 16 遮罩）
   /* ═══ T344c 精細火車／電車 sprite（玩家：「像素化的火車…最好是精細的 TheoTown 風格火車動畫」）═══
@@ -5909,6 +5933,9 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
     g.drawImage(s,0,0);
     SPR.treeW.push({img:c,ax:20,ay:45,w:40,h:48});
   }
+}
+/* ===== T426 S8（buildSprites 拆段，原 L5912-9357） ===== */
+function buildSpritesS8(){
   /* ---------- 冬季公園新變體 3 種 ---------- */
   { // 冬季公園 v3 結冰噴泉
     const[c,g]=cv(64,56);const ay=53;
@@ -9355,6 +9382,9 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
       }
     }
   }
+}
+/* ===== T426 S9（buildSprites 拆段，原 L9358-9954） ===== */
+function buildSpritesS9(){
   /* ===== T359 夜景燈光群（buildSprites 絕對尾端，接在 T345 徽記層之後；全程零亂數＝零流位移）：
      玩家指令＋夜景參考照（月台燈在欄杆上洗出一根根垂直光柱）：
      ①路燈光錐 SPR.lampConeWarm/lampConeCool（26×40，頂點對位 streetLamp 燈頭 gx/gy）——

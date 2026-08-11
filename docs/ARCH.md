@@ -38,7 +38,7 @@
 | §2 繪圖基元：`cv` / `dia` / `railTrack` / `isoBox` / `outlineSprite` | 903-1129 | `function cv(w,h){const c=document.createElement('canvas')` |
 | 紋理流 `spriteTexRand` ＋ `plate()` | 1130-1142 | `const SPRITE_TEX_SEED=0x54455832;` |
 | `HERO_PIX` 手繪點陣表（53 鍵） | 1142-1262 | `const HERO_PIX={` |
-| **`buildSprites()` 全體** | 1432-9013 | `const __savedR=R;R=mulberry32(1);` |
+| **`buildSprites()` 全體** | 1432-9013 | `__savedR=R;R=mulberry32(1);` |
 | ├ 地形／道路／覆蓋層 | 1273-1458 | `/* ---------- 草地 4 變化 ---------- */` |
 | ├ `PARTS` / `DRAFTS` / `mkBld` | 1459-1617 | `const PARTS=` |
 | ├ 服務建築與變體 | 1618-2528 | `/* ---------- 公園 3 變化 ---------- */` |
@@ -160,7 +160,7 @@
 | `isoBox` / `windows` | 1069-1110 | `function isoBox(g,cx,by,hw,h,cL,cR,cTop){` |
 | `outlineSprite` / `shade` | 1111-1129 | `function outlineSprite(c,r,gc,b){` |
 | `HERO_PIX` ＋ `drawHeroPix` | 1142-1262 | `const HERO_PIX={` |
-| 序幕：替身流 ＋ 三條流 | 1265-1272 | `const __savedR=R;R=mulberry32(1);` |
+| 序幕：替身流 ＋ 三條流 | 1265-1272 | `__savedR=R;R=mulberry32(1);` |
 | `PAL`/`PARTS`/`DRAFTS`/`mkBld` | 1459-1617 | `const DRAFTS=` |
 | T277 道路加蓋 | 7507-7536 | `const CURB='#9aa0a8'` |
 | T278 屋頂雜項加蓋 | 7537-7592 | `const stampRoof=(key)=>{` |

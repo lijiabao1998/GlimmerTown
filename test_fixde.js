@@ -7451,7 +7451,7 @@ runPwaTests().then(() => {
     const t383crc=(str)=>{let c=~0;for(let i=0;i<str.length;i++){c^=str.charCodeAt(i)&255;for(let j=0;j<8;j++)c=(c>>>1)^(0xEDB88320&-(c&1));}return ~c>>>0;};
     // 基線＝T383 施工當日以本抽取器實測 master 87bb1e7（randX62/ri28/randC20/stx8）；
     // 合法改動（尾端新增消耗局部 rand 等）＝施工卡「同卡」更新兩常數並在卡面記 delta 來源（PASS 棘輪同款慣例）。
-    const T383_RNG_TOTAL=118,T383_RNG_CRC=0x103ef29c;
+    const T383_RNG_TOTAL=119,T383_RNG_CRC=0x6b858c3b; // T426 拆段：`let __savedR,rand;` 上提宣告行 +1 randX token（118→119，記 delta）
     assert(t383toks.length===T383_RNG_TOTAL,'T383c buildSprites 亂數 token 總數應為 '+T383_RNG_TOTAL+'，實得 '+t383toks.length+'（合法改動＝同卡更新基線並記 delta）');
     assert(t383crc(t383toks.join('|'))===T383_RNG_CRC,'T383c token 行序 CRC 漂移＝buildSprites 亂數消耗序被動過（中段插入/刪除/換序；合法改動＝同卡更新基線並記 delta）');
   }
@@ -8197,8 +8197,10 @@ runPwaTests().then(() => {
     // (1) 排名表必須在 tasks 迴圈內建立（不得另抄高度表——抄表必漂移，T345 的 SZB 手抄副本前科）
     const iSort=html.indexOf('tasks.sort((a,b)=>(a.k-b.k)||(a.lv-b.lv)||(a.v-b.v));');
     const iMk=html.indexOf('const mkBld=t=>{');
-    assert(iSort>0&&iMk>iSort,'T406 G1 tasks 排序與 mkBld 可定位');
-    const seg406=html.slice(iSort,iMk);
+    assert(iSort>0&&iMk>0,'T406 G1 tasks 排序與 mkBld 可定位（T426 拆段後 mkBld 上提至總管之後，僅驗存在）');
+    const iSegEnd406=html.indexOf('\n/* ===== T426 S4',iSort);
+    assert(iSegEnd406>iSort,'T406 G1 排名表段應可界定（T426 拆段後以 S4 段標記收尾）');
+    const seg406=html.slice(iSort,iSegEnd406);
     assert(/\(VH406\[key\]\|\|\(VH406\[key\]=\[\]\)\)\[t\.v\]=\(t\.d\.h\|\|0\)\+\(t\.d\.hw\|\|0\);/.test(seg406),
       'T406 G1 樓高必須取自【同一份 tasks 清單】的 d.h+d.hw（與實際建造的 sprite 同源）');
     assert(/rankV406\(\);/.test(seg406),'T406 G1 tasks 段須成表（rankV406 冪等，塔在 TWDEF 後再呼叫一次）');
