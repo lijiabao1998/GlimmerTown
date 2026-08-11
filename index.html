@@ -1474,6 +1474,26 @@ function boxUnit(g,ng,cx,by,hw,h,cL,cR,cTop,opts){
   }
   return rty;
 }
+// T425J R02：購物中心屋頂面板。以等距 u/v 軸分板、收縫與檢修帶取代巨型單色面；buildSprites 一次性、零亂數。
+function mallRoof425J(g,cx,top,hw){
+  const pal=['#967a59','#80674b','#a08360','#745d45'],seam='#5d4b39';
+  for(let y=top+2;y<top+hw-2;y++){
+    const dy=y-top,span=dy<=hw/2?dy*2:(hw-dy)*2;
+    for(let x=cx-span+2;x<=cx+span-2;x++){
+      const dx=x-cx,u=dy*2+dx,v=dy*2-dx,iu=Math.floor(u/10),iv=Math.floor(v/10);
+      g.fillStyle=(u%10===0||v%10===0)?seam:pal[(iu+iv)&3];g.fillRect(x,y,1,1);
+    }
+  }
+  // 兩條淺色維修動線沿等距軸穿過屋頂；後續箱體自然遮蔽，保持正確 z 序。
+  for(let y=top+8;y<top+hw-8;y++){
+    const dy=y-top,span=dy<=hw/2?dy*2:(hw-dy)*2;
+    for(let x=cx-span+3;x<=cx+span-3;x++){
+      const dx=x-cx,u=dy*2+dx,v=dy*2-dx;
+      if((u>=54&&u<=56)||(v>=54&&v<=56)){g.fillStyle='#b7aa8e';g.fillRect(x,y,1,1);}
+    }
+  }
+  diaEdge(g,6,'#65513d',cx,top,hw);diaEdge(g,9,'#b4936b',cx,top,hw);
+}
 // 牆上窗（含窗台與反光，跟著牆斜率排），同步畫到夜間圖層
 function windows(g,ng,cx,by,hw,h,rand,litP,opts){
   const o=Object.assign({w:3,ht:4,gx:5,gy:7,glass:'#26314e',lit:'#ffd77a'},opts||{});
@@ -4834,6 +4854,11 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    //     箱體底全在 4×4 菱形內，側面下半由 T425 尾部貼合貼合＝底部貼合格子） =====
    // T425E：接地由 isoBox 底部 AO（rgba .13 ×3px）提供——與 v1-v4 語彙一致（右落偏移陰影取消）
    boxUnit(sg,ng,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50',{win:{gx:10,ht:5,lit:.55},tex:'brick'}); // T425I 主箱（boxUnit：色階/稜線/窗洞/節奏點/磚紋）
+   mallRoof425J(sg,ax,150,96); // T425J R02 主屋頂：40×40 等距面板／收縫／檢修帶
+   boxUnit(sg,ng,ax-58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'); // T425J HVAC L
+   boxUnit(sg,ng,ax+58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'); // T425J HVAC R
+   boxUnit(sg,ng,ax-68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 L
+   boxUnit(sg,ng,ax+68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 R
    boxUnit(sg,ng,ax-44,ay,40,24,'#cdb694','#a08a72','#7a6a52',{win:{gx:8,ht:4,lit:.5}}); // T425I 左翼箱（窗洞）
    boxUnit(sg,ng,ax+44,ay,44,30,'#c8b498','#8a7058','#6e5a44',{win:{gx:8,ht:4,lit:.5}}); // T425I 右翼箱（窗洞）
    boxUnit(sg,ng,ax,198,24,24,'#90b8cc','#5a7a8a','#7ca4b8');     // 中庭玻璃箱（疊主箱頂面中心，頂 y=150）

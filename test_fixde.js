@@ -6070,6 +6070,29 @@ runPwaTests().then(() => {
       'T425J G3j 零亂數：完整 helper 禁直接呼叫與 alias 捕獲（修復 T425I U+0008／定長切片假綠）');
   }
 
+  { // ===== T425J R02 屋頂系統：面板／收縫／檢修帶／機電 =====
+    const r0=html.indexOf('function mallRoof425J('),r1=html.indexOf('// 牆上窗（含窗台與反光',r0),roofJ=html.slice(r0,r1);
+    assert(r0>0&&r1>r0&&/const pal=\['#967a59','#80674b','#a08360','#745d45'\],seam='#5d4b39'/.test(roofJ),
+      'T425J G4j 屋頂：四面板色＋深收縫的單一 helper 必須存在');
+    assert(/u=dy\*2\+dx,v=dy\*2-dx/.test(roofJ)&&/Math\.floor\(u\/10\)/.test(roofJ)&&/u%10===0\|\|v%10===0/.test(roofJ),
+      'T425J G4j 屋頂：分板必須沿等距 u/v 軸且每 10 單位收縫，不得改成螢幕水平噪點');
+    assert(/u>=54&&u<=56/.test(roofJ)&&/v>=54&&v<=56/.test(roofJ),
+      'T425J G4j 維修：兩條檢修動線須沿 u/v 軸且寬度固定');
+    const seg65j=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert((seg65j.match(/mallRoof425J\(sg,ax,150,96\)/g)||[]).length===1,
+      'T425J G5j 接線：正式 k65 主屋頂恰呼叫一次 mallRoof425J（不重複鋪面）');
+    assert((seg65j.match(/T425J HVAC [LR]/g)||[]).length===2&&(seg65j.match(/T425J 排氣帽 [LR]/g)||[]).length===2,
+      'T425J G5j 機電：HVAC 與排氣帽各左右成對，四件可命名屋頂設備不能被刪');
+    const roofUnits=[[78,212,8,6],[194,212,8,6],[68,200,4,7],[204,200,4,7]],roofBad=[];
+    for(const[cx,by,hw,h]of roofUnits){for(const[x,y]of[[cx,by-h-hw],[cx-hw,by-h-hw/2],[cx+hw,by-h-hw/2],[cx,by-h]]){
+      const span=96-Math.abs(y-198)*2;if(y<150||y>246||Math.abs(x-136)>span+1)roofBad.push([x,y]);
+    }}
+    assert(roofBad.length===0,'T425J G5j 幾何：四件屋頂設備頂面全在主屋頂菱形內，出界 '+JSON.stringify(roofBad));
+    const roofCode=roofJ.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(roofCode)&&!/\b(?:R|ri|rand)\b\s*(?:=|:)/.test(roofCode),
+      'T425J G6j 屋頂零亂數：面板／檢修帶不得消耗或 alias 亂數');
+  }
+
   { // ===== T425F 像素質感：淺描邊＋箱體面工藝（業主反饋「角度對了，像素顯示效果不對」） =====
     // G1f 描邊釘：65 段 outlineSprite 用淺色（TheoTown「避免深色輪廓」）
     assert(/outlineSprite\(s,176,182,192\);g\.drawImage\(s,0,0\); \/\/ T425F 淺描邊/.test(html),
