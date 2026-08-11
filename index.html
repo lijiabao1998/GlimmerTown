@@ -1480,8 +1480,8 @@ function mallRoof425J(g,cx,top,hw){
   for(let y=top+2;y<top+hw-2;y++){
     const dy=y-top,span=dy<=hw/2?dy*2:(hw-dy)*2;
     for(let x=cx-span+2;x<=cx+span-2;x++){
-      const dx=x-cx,u=dy*2+dx,v=dy*2-dx,iu=Math.floor(u/10),iv=Math.floor(v/10);
-      g.fillStyle=(u%10===0||v%10===0)?seam:pal[(iu+iv)&3];g.fillRect(x,y,1,1);
+      const dx=x-cx,u=dy*2+dx,v=dy*2-dx,iu=Math.floor(u/10),iv=Math.floor(v/10),fu=u%10,fv=v%10;
+      g.fillStyle=(fu===0||fv===0)?seam:(fu===5&&fv===5?'#cbb68a':pal[(iu+iv)&3]);g.fillRect(x,y,1,1);
     }
   }
   // 兩條淺色維修動線沿等距軸穿過屋頂；後續箱體自然遮蔽，保持正確 z 序。
@@ -4866,7 +4866,9 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    boxUnit(sg,ng,ax-68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 L
    boxUnit(sg,ng,ax+68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 R
    boxUnit(sg,ng,ax-44,ay,40,24,'#cdb694','#a08a72','#7a6a52',{win:{gx:8,ht:4,lit:.5}}); // T425I 左翼箱（窗洞）
+   mallRoof425J(sg,ax-44,214,40); // T425J R04 左翼屋頂同系分板（非散點）
    boxUnit(sg,ng,ax+44,ay,44,30,'#c8b498','#8a7058','#6e5a44',{win:{gx:8,ht:4,lit:.5}}); // T425I 右翼箱（窗洞）
+   mallRoof425J(sg,ax+44,204,44); // T425J R04 右翼屋頂同系分板（非散點）
    boxUnit(sg,ng,ax,198,24,24,'#90b8cc','#5a7a8a','#7ca4b8');     // 中庭玻璃箱（疊主箱頂面中心，頂 y=150）
    boxUnit(sg,ng,ax-16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4');  // 天窗箱左（cx120——y158 半寬僅16，內移）
    boxUnit(sg,ng,ax+16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4');  // 天窗箱右（cx152）

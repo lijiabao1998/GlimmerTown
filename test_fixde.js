@@ -6120,6 +6120,20 @@ runPwaTests().then(() => {
       'T425J G10j 商場段零亂數：入口／後勤／店窗／前庭不得碰亂數流');
   }
 
+  { // ===== T425J R04 密度收斂：左右翼屋頂同系分板 =====
+    const seg65j4=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert((seg65j4.match(/mallRoof425J\(sg,/g)||[]).length===3,
+      'T425J G11j 屋頂接線：主箱＋左右翼恰三個不同 roof 面，不得漏翼或重畫同一面');
+    assert((seg65j4.match(/mallRoof425J\(sg,ax-44,214,40\)/g)||[]).length===1&&
+      (seg65j4.match(/mallRoof425J\(sg,ax\+44,204,44\)/g)||[]).length===1,
+      'T425J G11j 翼頂幾何：左右翼各自使用既有 boxUnit 的精確 top/hw');
+    assert(/T425J R04 左翼屋頂同系分板/.test(seg65j4)&&/T425J R04 右翼屋頂同系分板/.test(seg65j4),
+      'T425J G11j 意圖：翼頂收斂必須是可命名分板，不是無語義散點');
+    const roofJ4=html.slice(html.indexOf('function mallRoof425J('),html.indexOf('function mallWord425J('));
+    assert(/fu===5&&fv===5\?'#cbb68a'/.test(roofJ4),
+      'T425J G12j 面板扣：每塊屋面板中心只有一顆規律檢修扣，不得以任意散點刷密度');
+  }
+
   { // ===== T425F 像素質感：淺描邊＋箱體面工藝（業主反饋「角度對了，像素顯示效果不對」） =====
     // G1f 描邊釘：65 段 outlineSprite 用淺色（TheoTown「避免深色輪廓」）
     assert(/outlineSprite\(s,176,182,192\);g\.drawImage\(s,0,0\); \/\/ T425F 淺描邊/.test(html),
