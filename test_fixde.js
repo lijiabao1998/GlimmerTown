@@ -7451,7 +7451,7 @@ runPwaTests().then(() => {
     const t383crc=(str)=>{let c=~0;for(let i=0;i<str.length;i++){c^=str.charCodeAt(i)&255;for(let j=0;j<8;j++)c=(c>>>1)^(0xEDB88320&-(c&1));}return ~c>>>0;};
     // 基線＝T383 施工當日以本抽取器實測 master 87bb1e7（randX62/ri28/randC20/stx8）；
     // 合法改動（尾端新增消耗局部 rand 等）＝施工卡「同卡」更新兩常數並在卡面記 delta 來源（PASS 棘輪同款慣例）。
-    const T383_RNG_TOTAL=118,T383_RNG_CRC=0x103ef29c;
+    const T383_RNG_TOTAL=119,T383_RNG_CRC=0x6b858c3b; // T426 拆段：`let __savedR,rand;` 上提宣告行 +1 randX token（118→119，記 delta）
     assert(t383toks.length===T383_RNG_TOTAL,'T383c buildSprites 亂數 token 總數應為 '+T383_RNG_TOTAL+'，實得 '+t383toks.length+'（合法改動＝同卡更新基線並記 delta）');
     assert(t383crc(t383toks.join('|'))===T383_RNG_CRC,'T383c token 行序 CRC 漂移＝buildSprites 亂數消耗序被動過（中段插入/刪除/換序；合法改動＝同卡更新基線並記 delta）');
   }
@@ -8197,8 +8197,10 @@ runPwaTests().then(() => {
     // (1) 排名表必須在 tasks 迴圈內建立（不得另抄高度表——抄表必漂移，T345 的 SZB 手抄副本前科）
     const iSort=html.indexOf('tasks.sort((a,b)=>(a.k-b.k)||(a.lv-b.lv)||(a.v-b.v));');
     const iMk=html.indexOf('const mkBld=t=>{');
-    assert(iSort>0&&iMk>iSort,'T406 G1 tasks 排序與 mkBld 可定位');
-    const seg406=html.slice(iSort,iMk);
+    assert(iSort>0&&iMk>0,'T406 G1 tasks 排序與 mkBld 可定位（T426 拆段後 mkBld 上提至總管之後，僅驗存在）');
+    const iSegEnd406=html.indexOf('\n/* ===== T426 S4',iSort);
+    assert(iSegEnd406>iSort,'T406 G1 排名表段應可界定（T426 拆段後以 S4 段標記收尾）');
+    const seg406=html.slice(iSort,iSegEnd406);
     assert(/\(VH406\[key\]\|\|\(VH406\[key\]=\[\]\)\)\[t\.v\]=\(t\.d\.h\|\|0\)\+\(t\.d\.hw\|\|0\);/.test(seg406),
       'T406 G1 樓高必須取自【同一份 tasks 清單】的 d.h+d.hw（與實際建造的 sprite 同源）');
     assert(/rankV406\(\);/.test(seg406),'T406 G1 tasks 段須成表（rankV406 冪等，塔在 TWDEF 後再呼叫一次）');
@@ -9459,3 +9461,40 @@ runPwaTests().then(() => {
   console.error('FAIL: PWA 回歸測試非預期例外', err && err.stack ? err.stack : err);
   process.exit(1);
 });
+
+/* ===== T426 啟動管線守衛（overlay＋拆段＋async 開機路徑） ===== */
+{ // G1 四階段 DOM 契約：overlay 骨架、階段步進、動畫與 reduced-motion 必須存在
+  assert(html.includes('id="boot426"'),'T426 G1 overlay #boot426 必須存在');
+  assert(html.includes('id="boot426Bar"'),'T426 G1 進度條 #boot426Bar 必須存在');
+  for(const g of ['core','city','life','night'])
+    assert(html.includes('data-b426="'+g+'"'),'T426 G1 四階段 data-b426 必須含 '+g);
+  assert(html.includes('@keyframes boot426Windows'),'T426 G1 場景窗燈動畫 keyframes 必須存在');
+  assert(html.includes('@media (prefers-reduced-motion:reduce)'),'T426 G1 reduced-motion 降級必須存在');
+}
+{ // G2 啟動管線區段零亂數（剝註解後字面掃描；bootstrap426 不得消耗亂數流）
+  const b426=html.indexOf('const BOOT_STEPS426'),e426=html.indexOf('window.__boot426');
+  assert(b426>=0&&e426>b426,'T426 G2 應可界定啟動管線區段');
+  const seg426=html.slice(b426,e426).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/R\s*\(|ri\s*\(|rand\s*\(|Math\.random\s*\(|spriteTexRand/.test(seg426),
+    'T426 G2 啟動管線區段不得消耗 R()/ri()/rand()/Math.random()/spriteTexRand（零亂數位移）');
+}
+{ // G3 拆段契約：S1..S9 定義存在且同步總管依序呼叫
+  for(let i=1;i<=9;i++)assert(html.includes('function buildSpritesS'+i+'(){'),'T426 G3 拆段函式 buildSpritesS'+i+' 必須存在');
+  assert(html.includes('buildSpritesS1();buildSpritesS2();buildSpritesS3();buildSpritesS4();buildSpritesS5();')&&
+    html.includes('buildSpritesS6();buildSpritesS7();buildSpritesS8();buildSpritesS9();'),
+    'T426 G3 同步總管必須依序呼叫 S1..S9');
+}
+{ // G4 開機分支：overlay 存在才 async，否則同步（harness 相容）
+  assert(/document\.getElementById\('boot426'\)\)\{bootstrap426\(\);/.test(html),
+    'T426 G4 開機必須以 overlay 存在與否分流 async/同步路徑');
+}
+{ // G5 檢查點契約：bootstrap426 段界檢查點 ≥9 且含 96/97/99＋觀測橋
+  const b5=html.indexOf('async function bootstrap426(){'),e5=html.indexOf('window.__boot426',b5);
+  assert(b5>=0&&e5>b5,'T426 G5 應可界定 bootstrap426 區段');
+  const seg5=html.slice(b5,e5);
+  const ncp=(seg5.match(/bootCheckpoint426\(/g)||[]).length;
+  assert(ncp>=9,'T426 G5 bootstrap426 段界檢查點應 ≥9（實得 '+ncp+'）');
+  assert(/bootCheckpoint426\(96,/.test(seg5)&&/bootCheckpoint426\(97,/.test(seg5)&&/bootCheckpoint426\(99,/.test(seg5),
+    'T426 G5 檢查點須含 96（夜景烘焙）97（工具列）99（主選單）');
+  assert(html.includes('window.__boot426=()=>({...bootState426});'),'T426 G5 __boot426 觀測橋必須存在');
+}

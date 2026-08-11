@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.61，約 20,668 行（實測檔案 20,668 行＝T425K 購物中心氛圍與立體收斂後 Python 數
+**現況（測繪基準）**：單檔 `index.html`，v11.62，約 20,803 行（實測檔案 20,803 行＝T426 拆段＋啟動管線後 Python 數
 ；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T425K**（k65 低頻大屋面、抬高中庭／投影、兩翼層級與連通入口暖光；玩法／存檔／AI／亂數流恆等）（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 4,498、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
@@ -38,7 +38,7 @@
 | §2 繪圖基元：`cv` / `dia` / `railTrack` / `isoBox` / `outlineSprite` | 903-1129 | `function cv(w,h){const c=document.createElement('canvas')` |
 | 紋理流 `spriteTexRand` ＋ `plate()` | 1130-1142 | `const SPRITE_TEX_SEED=0x54455832;` |
 | `HERO_PIX` 手繪點陣表（53 鍵） | 1142-1262 | `const HERO_PIX={` |
-| **`buildSprites()` 全體** | 1432-9013 | `const __savedR=R;R=mulberry32(1);` |
+| **`buildSprites()` 全體** | 1432-9013 | `__savedR=R;R=mulberry32(1);` |
 | ├ 地形／道路／覆蓋層 | 1273-1458 | `/* ---------- 草地 4 變化 ---------- */` |
 | ├ `PARTS` / `DRAFTS` / `mkBld` | 1459-1617 | `const PARTS=` |
 | ├ 服務建築與變體 | 1618-2528 | `/* ---------- 公園 3 變化 ---------- */` |
@@ -160,7 +160,7 @@
 | `isoBox` / `windows` | 1069-1110 | `function isoBox(g,cx,by,hw,h,cL,cR,cTop){` |
 | `outlineSprite` / `shade` | 1111-1129 | `function outlineSprite(c,r,gc,b){` |
 | `HERO_PIX` ＋ `drawHeroPix` | 1142-1262 | `const HERO_PIX={` |
-| 序幕：替身流 ＋ 三條流 | 1265-1272 | `const __savedR=R;R=mulberry32(1);` |
+| 序幕：替身流 ＋ 三條流 | 1265-1272 | `__savedR=R;R=mulberry32(1);` |
 | `PAL`/`PARTS`/`DRAFTS`/`mkBld` | 1459-1617 | `const DRAFTS=` |
 | T277 道路加蓋 | 7507-7536 | `const CURB='#9aa0a8'` |
 | T278 屋頂雜項加蓋 | 7537-7592 | `const stampRoof=(key)=>{` |
