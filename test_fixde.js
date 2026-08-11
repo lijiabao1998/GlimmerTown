@@ -6049,7 +6049,8 @@ runPwaTests().then(() => {
     const fnI=html.slice(html.indexOf('function boxUnit('),html.indexOf('// 牆上窗（含窗台與反光',html.indexOf('function boxUnit(')));
     const fnICode=fnI.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
     assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(fnICode),'T425I G4i 零 rand：boxUnit 內無 rand/R/ri/Math.random（全決定性）');
-    assert(!/\b(?:R|ri|rand)\b\s*(?:=|:)|Math\.random\s*(?:=|:)/.test(fnICode),'T425I G4i 零 rand alias：boxUnit 不得先捕獲亂數函數再繞過呼叫守衛');
+    assert(!/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(fnICode),
+      'T425I G4i 零 rand alias：boxUnit 不得從左右任一側捕獲亂數函數再繞過呼叫守衛');
   }
 
   { // ===== T425J R01 立面骨架：雙面、多層、壁柱與樓層帶 =====
@@ -6066,7 +6067,7 @@ runPwaTests().then(() => {
       'T425J G2j 夜層：左右窗格各有決定性夜燈，不能只亮單面');
     const fnJCode=fnJ.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
     assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(fnJCode)&&
-      !/\b(?:R|ri|rand)\b\s*(?:=|:)|Math\.random\s*(?:=|:)/.test(fnJCode),
+      !/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(fnJCode),
       'T425J G3j 零亂數：完整 helper 禁直接呼叫與 alias 捕獲（修復 T425I U+0008／定長切片假綠）');
   }
 
@@ -6074,7 +6075,7 @@ runPwaTests().then(() => {
     const r0=html.indexOf('function mallRoof425J('),r1=html.indexOf('// 牆上窗（含窗台與反光',r0),roofJ=html.slice(r0,r1);
     assert(r0>0&&r1>r0&&/const pal=\['#967a59','#80674b','#a08360','#745d45'\],seam='#5d4b39'/.test(roofJ),
       'T425J G4j 屋頂：四面板色＋深收縫的單一 helper 必須存在');
-    assert(/u=dy\*2\+dx,v=dy\*2-dx/.test(roofJ)&&/Math\.floor\(u\/10\)/.test(roofJ)&&/u%10===0\|\|v%10===0/.test(roofJ),
+    assert(/u=dy\*2\+dx,v=dy\*2-dx/.test(roofJ)&&/Math\.floor\(u\/10\)/.test(roofJ)&&/fu===0\|\|fv===0/.test(roofJ),
       'T425J G4j 屋頂：分板必須沿等距 u/v 軸且每 10 單位收縫，不得改成螢幕水平噪點');
     assert(/u>=54&&u<=56/.test(roofJ)&&/v>=54&&v<=56/.test(roofJ),
       'T425J G4j 維修：兩條檢修動線須沿 u/v 軸且寬度固定');
@@ -6083,13 +6084,19 @@ runPwaTests().then(() => {
       'T425J G5j 接線：正式 k65 主屋頂恰呼叫一次 mallRoof425J（不重複鋪面）');
     assert((seg65j.match(/T425J HVAC [LR]/g)||[]).length===2&&(seg65j.match(/T425J 排氣帽 [LR]/g)||[]).length===2,
       'T425J G5j 機電：HVAC 與排氣帽各左右成對，四件可命名屋頂設備不能被刪');
+    assert(/\n   boxUnit\(sg,ng,ax-58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j)&&
+      /\n   boxUnit\(sg,ng,ax\+58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j)&&
+      /\n   boxUnit\(sg,ng,ax-68,200,4,7,'#b8b0a2','#81796e','#d2cabd'\)/.test(seg65j)&&
+      /\n   boxUnit\(sg,ng,ax\+68,200,4,7,'#b8b0a2','#81796e','#d2cabd'\)/.test(seg65j),
+      'T425J G5j 機電活線：四件設備必須是直接執行行，包 if(false) 或改座標都判紅');
     const roofUnits=[[78,212,8,6],[194,212,8,6],[68,200,4,7],[204,200,4,7]],roofBad=[];
     for(const[cx,by,hw,h]of roofUnits){for(const[x,y]of[[cx,by-h-hw],[cx-hw,by-h-hw/2],[cx+hw,by-h-hw/2],[cx,by-h]]){
       const span=96-Math.abs(y-198)*2;if(y<150||y>246||Math.abs(x-136)>span+1)roofBad.push([x,y]);
     }}
     assert(roofBad.length===0,'T425J G5j 幾何：四件屋頂設備頂面全在主屋頂菱形內，出界 '+JSON.stringify(roofBad));
     const roofCode=roofJ.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
-    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(roofCode)&&!/\b(?:R|ri|rand)\b\s*(?:=|:)/.test(roofCode),
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(roofCode)&&
+      !/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(roofCode),
       'T425J G6j 屋頂零亂數：面板／檢修帶不得消耗或 alias 亂數');
   }
 
@@ -6116,7 +6123,8 @@ runPwaTests().then(() => {
     assert(/T425J R03 購物車棚/.test(seg65j3)&&/for\(let x=179;x<196;x\+=4\)/.test(seg65j3),
       'T425J G9j 前庭：購物車棚與消防通道必須存在');
     const seg65jCode=seg65j3.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
-    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(seg65jCode)&&!/\b(?:R|ri|rand)\b\s*(?:=|:)/.test(seg65jCode),
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(seg65jCode)&&
+      !/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(seg65jCode),
       'T425J G10j 商場段零亂數：入口／後勤／店窗／前庭不得碰亂數流');
   }
 
