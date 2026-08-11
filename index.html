@@ -456,7 +456,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.59'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='11.60'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -1438,19 +1438,67 @@ function boxUnit(g,ng,cx,by,hw,h,cL,cR,cTop,opts){
   }
   // ③窗洞內凹（opts.win：gx 間距、ht 窗高、lit 夜燈率）
   if(o.win){
-    const{ht,lit}=o.win;
-    for(let dx=o.win.gx;dx<hw-o.win.gx;dx+=o.win.gx*2){
-      const yF=by-(dx>>1);
-      g.fillStyle=shade(cL,-6);g.fillRect(cx-dx,yF-ht-1,5,ht+2);        // 深底（窗洞）
-      g.fillStyle='#2a3550';g.fillRect(cx-dx+1,yF-ht,3,ht);             // 玻璃
-      g.fillStyle=shade(cL,2);g.fillRect(cx-dx+1,yF-ht,3,1);            // 上亮框
-      g.fillStyle=shade(cL,-4);g.fillRect(cx-dx+1,yF-1,3,1);            // 下暗框
-      // ④dithering：玻璃與底交界棋盤格
-      g.fillStyle=shade(cL,-5);g.fillRect(cx-dx+((dx+yF)&1),yF-ht+1,1,1);
-      if(ng&&(dx%7)<lit*7){ng.fillStyle='#ffd77a';ng.fillRect(cx-dx+1,yF-ht+1,3,ht-1);} // 決定性夜燈（零 rand）
+    const{ht,lit}=o.win,gx=o.win.gx;
+    const rows=Math.max(1,Math.min(3,Math.floor((h-3)/(ht+3))));
+    const bays=[];for(let dx=gx;dx<hw-gx;dx+=gx*2)bays.push(dx);
+    // T425J 立面骨架：雙面樓層帶沿等距斜率行進，不用水平貼紙遮掉體積。
+    for(let row=1;row<rows;row++){
+      const off=row*(ht+3)+1;g.fillStyle=shade(cL,-3);
+      for(let dx=1;dx<=hw;dx++){const yF=by-(dx>>1);g.fillRect(cx-dx,yF-off,1,1);}
+      g.fillStyle=shade(cR,-7);
+      for(let dx=0;dx<hw;dx++){const yF=by-((dx+1)>>1);g.fillRect(cx+dx,yF-off,1,1);}
+    }
+    // T425J 立面骨架：每個窗灣都有縱向壁柱，先畫骨架再嵌窗。
+    for(const dx of bays){
+      let yF=by-(dx>>1);g.fillStyle=shade(cL,1);g.fillRect(cx-dx-1,yF-h+2,1,h-5);
+      yF=by-((dx+1)>>1);g.fillStyle=shade(cR,-1);g.fillRect(cx+dx+4,yF-h+2,1,h-5);
+    }
+    // T425J 雙面窗格：左受光、右背光各自有深框／玻璃／窗台；多層但仍由座標決定。
+    for(let row=0;row<rows;row++)for(const dx of bays){
+      const off=2+row*(ht+3);
+      let yF=by-(dx>>1),yt=yF-off-ht+1;
+      g.fillStyle=shade(cL,-6);g.fillRect(cx-dx,yt-1,5,ht+2);
+      g.fillStyle='#29445c';g.fillRect(cx-dx+1,yt,3,ht);
+      g.fillStyle=shade(cL,2);g.fillRect(cx-dx+1,yt,3,1);
+      g.fillStyle=shade(cL,-4);g.fillRect(cx-dx+1,yt+ht-1,3,1);
+      g.fillStyle=shade(cL,-5);g.fillRect(cx-dx+((dx+row)&1),yt+1,1,1);
+      if(ng&&((dx+row*5)%7)<lit*7){ng.fillStyle='#ffd77a';ng.fillRect(cx-dx+1,yt+1,3,ht-1);}
+      yF=by-((dx+1)>>1);yt=yF-off-ht+1;
+      g.fillStyle=shade(cR,-8);g.fillRect(cx+dx,yt-1,5,ht+2);
+      g.fillStyle='#20384f';g.fillRect(cx+dx+1,yt,3,ht);
+      g.fillStyle=shade(cR,1);g.fillRect(cx+dx+1,yt,3,1);
+      g.fillStyle=shade(cR,-7);g.fillRect(cx+dx+1,yt+ht-1,3,1);
+      g.fillStyle=shade(cR,-6);g.fillRect(cx+dx+3-((dx+row)&1),yt+1,1,1);
+      if(ng&&((dx+row*5+3)%7)<lit*7){ng.fillStyle='#ffc968';ng.fillRect(cx+dx+1,yt+1,3,ht-1);}
     }
   }
   return rty;
+}
+// T425J R02：購物中心屋頂面板。以等距 u/v 軸分板、收縫與檢修帶取代巨型單色面；buildSprites 一次性、零亂數。
+function mallRoof425J(g,cx,top,hw){
+  const pal=['#967a59','#80674b','#a08360','#745d45'],seam='#5d4b39';
+  for(let y=top+2;y<top+hw-2;y++){
+    const dy=y-top,span=dy<=hw/2?dy*2:(hw-dy)*2;
+    for(let x=cx-span+2;x<=cx+span-2;x++){
+      const dx=x-cx,u=dy*2+dx,v=dy*2-dx,iu=Math.floor(u/10),iv=Math.floor(v/10),fu=u%10,fv=v%10;
+      g.fillStyle=(fu===0||fv===0)?seam:(fu===5&&fv===5?'#cbb68a':pal[(iu+iv)&3]);g.fillRect(x,y,1,1);
+    }
+  }
+  // 兩條淺色維修動線沿等距軸穿過屋頂；後續箱體自然遮蔽，保持正確 z 序。
+  for(let y=top+8;y<top+hw-8;y++){
+    const dy=y-top,span=dy<=hw/2?dy*2:(hw-dy)*2;
+    for(let x=cx-span+3;x<=cx+span-3;x++){
+      const dx=x-cx,u=dy*2+dx,v=dy*2-dx;
+      if((u>=54&&u<=56)||(v>=54&&v<=56)){g.fillStyle='#b7aa8e';g.fillRect(x,y,1,1);}
+    }
+  }
+  diaEdge(g,6,'#65513d',cx,top,hw);diaEdge(g,9,'#b4936b',cx,top,hw);
+}
+// T425J R03：3×5 原創 MALL 像素字，避免 Canvas 字型／平台差異；每個點都是可審的導視像素。
+function mallWord425J(g,x,y,col){
+  const glyph=['101111111101101','010101111101101','100100100100111','100100100100111'];
+  g.fillStyle=col;
+  for(let n=0;n<glyph.length;n++)for(let p=0;p<15;p++)if(glyph[n][p]==='1')g.fillRect(x+n*4+(p%3),y+Math.floor(p/3),1,1);
 }
 // 牆上窗（含窗台與反光，跟著牆斜率排），同步畫到夜間圖層
 function windows(g,ng,cx,by,hw,h,rand,litP,opts){
@@ -4812,8 +4860,15 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    //     箱體底全在 4×4 菱形內，側面下半由 T425 尾部貼合貼合＝底部貼合格子） =====
    // T425E：接地由 isoBox 底部 AO（rgba .13 ×3px）提供——與 v1-v4 語彙一致（右落偏移陰影取消）
    boxUnit(sg,ng,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50',{win:{gx:10,ht:5,lit:.55},tex:'brick'}); // T425I 主箱（boxUnit：色階/稜線/窗洞/節奏點/磚紋）
+   mallRoof425J(sg,ax,150,96); // T425J R02 主屋頂：40×40 等距面板／收縫／檢修帶
+   boxUnit(sg,ng,ax-58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'); // T425J HVAC L
+   boxUnit(sg,ng,ax+58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'); // T425J HVAC R
+   boxUnit(sg,ng,ax-68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 L
+   boxUnit(sg,ng,ax+68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 R
    boxUnit(sg,ng,ax-44,ay,40,24,'#cdb694','#a08a72','#7a6a52',{win:{gx:8,ht:4,lit:.5}}); // T425I 左翼箱（窗洞）
+   mallRoof425J(sg,ax-44,214,40); // T425J R04 左翼屋頂同系分板（非散點）
    boxUnit(sg,ng,ax+44,ay,44,30,'#c8b498','#8a7058','#6e5a44',{win:{gx:8,ht:4,lit:.5}}); // T425I 右翼箱（窗洞）
+   mallRoof425J(sg,ax+44,204,44); // T425J R04 右翼屋頂同系分板（非散點）
    boxUnit(sg,ng,ax,198,24,24,'#90b8cc','#5a7a8a','#7ca4b8');     // 中庭玻璃箱（疊主箱頂面中心，頂 y=150）
    boxUnit(sg,ng,ax-16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4');  // 天窗箱左（cx120——y158 半寬僅16，內移）
    boxUnit(sg,ng,ax+16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4');  // 天窗箱右（cx152）
@@ -4832,16 +4887,34 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    sg.fillStyle='#fff8e8';sg.fillRect(130,154,3,3);sg.fillRect(138,154,3,3); // T425E MALL 字（字面量——y154 半寬僅 8，收進頂面）
    // T425F 主箱左面中央帶磚紋（菱形下半中央帶 y258..266 x120..144——像素材質工藝）
    sg.fillStyle='rgba(110,90,60,.3)';for(let by2=by-14;by2>by-20;by2-=4){for(let bx2=ax-16;bx2<ax+8;bx2+=6){sg.fillRect(bx2,by2-2,4,1);}}
-   // T425F 右翼箱面 MALL 招牌（後畫覆蓋＝貼面）
-   sg.fillStyle='#b83c2e';sg.fillRect(ax+40,220,40,10);sg.fillStyle='#fff8e8';sg.fillRect(ax+44,222,32,2);sg.fillRect(ax+44,226,32,2);
+   // T425F 右翼箱面 MALL 招牌；T425J 原雙白條升級為原創 3×5 字（後畫覆蓋＝貼面）
+   sg.fillStyle='#b83c2e';sg.fillRect(ax+40,220,40,10);mallWord425J(sg,ax+52,222,'#fff8e8');
    // 入口門（主箱底面前緣；T425D 門框亮上）
    sg.fillStyle='#3a4a44';sg.fillRect(ax-20,by-8,40,8);
    sg.fillStyle='#d9c68a';sg.fillRect(ax-20,by-8,40,1);
    for(let dxx=ax-20;dxx<ax+20;dxx+=8){sg.fillStyle='#5a7468';sg.fillRect(dxx,by-8,1,8);}
+   // T425J R03 主入口：雙層門框、橫樑、門把與兩側資訊燈箱（與入口夜光同位）。
+   sg.fillStyle='#26383c';sg.fillRect(ax-17,by-7,34,1);sg.fillRect(ax-1,by-7,2,7);
+   sg.fillStyle='#9fc7c3';sg.fillRect(ax-15,by-6,1,5);sg.fillRect(ax+14,by-6,1,5);
+   sg.fillStyle='#e8cf78';sg.fillRect(ax-4,by-4,2,1);sg.fillRect(ax+3,by-4,2,1);
+   sg.fillStyle='#d8a83a';sg.fillRect(ax-26,by-8,4,7);sg.fillRect(ax+22,by-8,4,7);
+   ng.fillStyle='#ffe49a';ng.fillRect(ax-26,by-7,4,5);ng.fillRect(ax+22,by-7,4,5);
    // 夜層：招牌塔霓虹＋中庭柔光＋入口暖暈
    ng.fillStyle='#ff8a72';ng.fillRect(ax-1,174,2,14);ng.fillStyle='#fff2c0';ng.fillRect(ax-1,174,2,3);
    ng.fillStyle='rgba(190,225,245,.45)';ng.fillRect(ax-10,by-30,20,28);
    ng.fillStyle='rgba(255,220,150,.65)';ng.fillRect(ax-22,by-7,44,6);
+   // T425J R03 屋頂機電讀點：HVAC 風扇／排氣帽帽沿／連接短風管。
+   for(const x of[ax-58,ax+58]){sg.fillStyle='#46535a';sg.fillRect(x-3,201,6,3);sg.fillStyle='#9ba7a8';sg.fillRect(x-1,201,2,3);}
+   for(const x of[ax-68,ax+68]){sg.fillStyle='#685f55';sg.fillRect(x-3,191,6,2);sg.fillStyle='#d6cec0';sg.fillRect(x-1,188,2,3);}
+   sg.fillStyle='#7f8d90';sg.fillRect(81,206,18,2);sg.fillRect(173,206,18,2);
+   // T425J R03 左側後勤：捲門／安全斜紋／月台燈／防撞柱；右側四間店窗與窗台。
+   sg.fillStyle='#3c4650';sg.fillRect(58,226,14,11);sg.fillStyle='#7d8990';
+   for(let yy=228;yy<237;yy+=2)sg.fillRect(59,yy,12,1);
+   sg.fillStyle='#d4ac38';for(let xx=59;xx<71;xx+=4)sg.fillRect(xx,235,2,2);
+   sg.fillStyle='#aeb8ba';sg.fillRect(56,224,18,2);sg.fillStyle='#d8d1c2';sg.fillRect(56,238,18,2);
+   sg.fillStyle='#d4593d';sg.fillRect(56,235,2,4);sg.fillRect(73,235,2,4);
+   ng.fillStyle='#ffe7a0';ng.fillRect(62,224,6,2);
+   for(const x of[184,192,200,208]){sg.fillStyle='#28394c';sg.fillRect(x,232,5,7);sg.fillStyle='#6fa0b5';sg.fillRect(x+1,233,3,4);sg.fillStyle='#d6c39e';sg.fillRect(x,239,5,1);ng.fillStyle='#ffd77a';ng.fillRect(x+1,233,3,4);}
    // 前庭/車位/車（sg 箱體之後——前方 z 序）
    sg.fillStyle='#b4a896';for(let i=0;i<5;i++){const wy=ay-40+i*4,hw3=Math.max(4,(ay-wy)*2-10);sg.fillRect(ax-(hw3>>1),wy,hw3,2);}
    for(let i=-2;i<=2;i++){sg.fillStyle='rgba(240,240,232,.42)';sg.fillRect(ax+i*20,ay-30,1,7);}
@@ -4865,6 +4938,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    // L 裝卸平台＋貨箱堆（卸貨車旁）
    sg.fillStyle='#8a7a5e';sg.fillRect(80,226,12,2);
    sg.fillStyle='#b8a582';sg.fillRect(80,219,7,6);sg.fillRect(89,221,7,4);sg.fillStyle='#8a6f50';sg.fillRect(81,221,5,3);sg.fillRect(90,223,5,1);
+   // T425J R03 購物車棚／消防通道：前庭功能物而非散點紋理。
+   sg.fillStyle='#6d7780';sg.fillRect(176,240,22,2);sg.fillRect(176,240,1,8);sg.fillRect(197,240,1,8);
+   sg.fillStyle='#b9c3c7';for(let x=179;x<196;x+=4){sg.fillRect(x,243,3,1);sg.fillRect(x+2,244,1,2);}
+   sg.fillStyle='#c64b36';for(let x=92;x<116;x+=6)sg.fillRect(x,244,4,1);
    // M 購物者小人（TheoTown 比例 3px：頭 1＋身 2；決定性座標零亂數）
    [[110,240,'#e05252'],[118,241,'#3a6ea5'],[120,264,'#3a6ea5'],[152,264,'#d8c84a'],[69,237,'#4a4a52']].forEach(([px2,py2,cc2])=>{sg.fillStyle='#20242c';sg.fillRect(px2,py2,1,1);sg.fillStyle=cc2;sg.fillRect(px2,py2+1,2,2);});
    // N 夜間補充：廣場地燈

@@ -6043,10 +6043,103 @@ runPwaTests().then(() => {
     const seg65i=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
     assert(!/isoBox\(/.test(seg65i),'T425I G2i 遷移：65 段不得再用 isoBox（全 boxUnit 六技法）');
     // G3i 窗洞夜燈釘：決定性夜燈（dx%7<lit*7）
-    assert(/\(dx%7\)<lit\*7/.test(html),'T425I G3i 夜燈：窗洞決定性夜燈（dx%7<lit*7——零 rand）');
+    assert(/\(\(dx\+row\*5\)%7\)<lit\*7/.test(html)&&/\(\(dx\+row\*5\+3\)%7\)<lit\*7/.test(html),
+      'T425I G3i 夜燈：左右窗洞均以 dx/row 決定夜燈（零 rand）');
     // G4i 零 rand：boxUnit 函數內無 rand/R/ri
-    const fnI=html.slice(html.indexOf('function boxUnit('),html.indexOf('function boxUnit(')+1800);
-    assert(!/rand|R\(|ri\(/.test(fnI),'T425I G4i 零 rand：boxUnit 內無 rand/R/ri（全決定性）');
+    const fnI=html.slice(html.indexOf('function boxUnit('),html.indexOf('// 牆上窗（含窗台與反光',html.indexOf('function boxUnit(')));
+    const fnICode=fnI.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(fnICode),'T425I G4i 零 rand：boxUnit 內無 rand/R/ri/Math.random（全決定性）');
+    assert(!/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(fnICode),
+      'T425I G4i 零 rand alias：boxUnit 不得從左右任一側捕獲亂數函數再繞過呼叫守衛');
+  }
+
+  { // ===== T425J R01 立面骨架：雙面、多層、壁柱與樓層帶 =====
+    const f0=html.indexOf('function boxUnit('),f1=html.indexOf('// 牆上窗（含窗台與反光',f0),fnJ=html.slice(f0,f1);
+    assert(f0>0&&f1>f0,'T425J G1j boxUnit 應可完整切片，不能再用固定 1800 字元假綠');
+    assert(/const rows=Math\.max\(1,Math\.min\(3,Math\.floor\(\(h-3\)\/\(ht\+3\)\)\)\)/.test(fnJ),
+      'T425J G1j 多層：窗格列數由牆高/窗高決定且鎖在 1..3 層');
+    assert((fnJ.match(/T425J 立面骨架/g)||[]).length===2&&/for\(let row=1;row<rows;row\+\+\)/.test(fnJ),
+      'T425J G1j 骨架：雙面樓層帶與窗灣壁柱兩組都必須存在');
+    assert(/g\.fillStyle='#29445c';g\.fillRect\(cx-dx\+1,yt,3,ht\)/.test(fnJ)&&
+      /g\.fillStyle='#20384f';g\.fillRect\(cx\+dx\+1,yt,3,ht\)/.test(fnJ),
+      'T425J G2j 雙面：左受光與右背光玻璃都必須真正落到正式 boxUnit');
+    assert(/ng\.fillStyle='#ffd77a'/.test(fnJ)&&/ng\.fillStyle='#ffc968'/.test(fnJ),
+      'T425J G2j 夜層：左右窗格各有決定性夜燈，不能只亮單面');
+    const fnJCode=fnJ.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(fnJCode)&&
+      !/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(fnJCode),
+      'T425J G3j 零亂數：完整 helper 禁直接呼叫與 alias 捕獲（修復 T425I U+0008／定長切片假綠）');
+  }
+
+  { // ===== T425J R02 屋頂系統：面板／收縫／檢修帶／機電 =====
+    const r0=html.indexOf('function mallRoof425J('),r1=html.indexOf('// 牆上窗（含窗台與反光',r0),roofJ=html.slice(r0,r1);
+    assert(r0>0&&r1>r0&&/const pal=\['#967a59','#80674b','#a08360','#745d45'\],seam='#5d4b39'/.test(roofJ),
+      'T425J G4j 屋頂：四面板色＋深收縫的單一 helper 必須存在');
+    assert(/u=dy\*2\+dx,v=dy\*2-dx/.test(roofJ)&&/Math\.floor\(u\/10\)/.test(roofJ)&&/fu===0\|\|fv===0/.test(roofJ),
+      'T425J G4j 屋頂：分板必須沿等距 u/v 軸且每 10 單位收縫，不得改成螢幕水平噪點');
+    assert(/u>=54&&u<=56/.test(roofJ)&&/v>=54&&v<=56/.test(roofJ),
+      'T425J G4j 維修：兩條檢修動線須沿 u/v 軸且寬度固定');
+    const seg65j=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert((seg65j.match(/mallRoof425J\(sg,ax,150,96\)/g)||[]).length===1,
+      'T425J G5j 接線：正式 k65 主屋頂恰呼叫一次 mallRoof425J（不重複鋪面）');
+    assert((seg65j.match(/T425J HVAC [LR]/g)||[]).length===2&&(seg65j.match(/T425J 排氣帽 [LR]/g)||[]).length===2,
+      'T425J G5j 機電：HVAC 與排氣帽各左右成對，四件可命名屋頂設備不能被刪');
+    assert(/\n   boxUnit\(sg,ng,ax-58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j)&&
+      /\n   boxUnit\(sg,ng,ax\+58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j)&&
+      /\n   boxUnit\(sg,ng,ax-68,200,4,7,'#b8b0a2','#81796e','#d2cabd'\)/.test(seg65j)&&
+      /\n   boxUnit\(sg,ng,ax\+68,200,4,7,'#b8b0a2','#81796e','#d2cabd'\)/.test(seg65j),
+      'T425J G5j 機電活線：四件設備必須是直接執行行，包 if(false) 或改座標都判紅');
+    const roofUnits=[[78,212,8,6],[194,212,8,6],[68,200,4,7],[204,200,4,7]],roofBad=[];
+    for(const[cx,by,hw,h]of roofUnits){for(const[x,y]of[[cx,by-h-hw],[cx-hw,by-h-hw/2],[cx+hw,by-h-hw/2],[cx,by-h]]){
+      const span=96-Math.abs(y-198)*2;if(y<150||y>246||Math.abs(x-136)>span+1)roofBad.push([x,y]);
+    }}
+    assert(roofBad.length===0,'T425J G5j 幾何：四件屋頂設備頂面全在主屋頂菱形內，出界 '+JSON.stringify(roofBad));
+    const roofCode=roofJ.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(roofCode)&&
+      !/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(roofCode),
+      'T425J G6j 屋頂零亂數：面板／檢修帶不得消耗或 alias 亂數');
+  }
+
+  { // ===== T425J R03 商場敘事：導視／入口／後勤／店窗／機電讀點 =====
+    const w0=html.indexOf('function mallWord425J('),w1=html.indexOf('// 牆上窗（含窗台與反光',w0),wordJ=html.slice(w0,w1);
+    assert(w0>0&&w1>w0&&/const glyph=\['101111111101101','010101111101101','100100100100111','100100100100111'\]/.test(wordJ),
+      'T425J G7j 導視：M/A/L/L 四個原創 3×5 glyph 必須固定，不依賴平台字型');
+    const seg65j3=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert((seg65j3.match(/mallWord425J\(sg,ax\+52,222,'#fff8e8'\)/g)||[]).length===1&&
+      /sg\.fillStyle='#b83c2e';sg\.fillRect\(ax\+40,220,40,10\)/.test(seg65j3),
+      'T425J G7j 正式招牌：右翼紅底只接一個 MALL 像素字輸出');
+    assert(/T425J R03 主入口/.test(seg65j3)&&/sg\.fillRect\(ax-1,by-7,2,7\)/.test(seg65j3)&&
+      /ng\.fillRect\(ax-26,by-7,4,5\)/.test(seg65j3),
+      'T425J G8j 入口：中央門縫／門把／資訊燈箱與夜層必須同位');
+    assert(/sg\.fillRect\(58,226,14,11\)/.test(seg65j3)&&/for\(let yy=228;yy<237;yy\+=2\)/.test(seg65j3)&&
+      /ng\.fillRect\(62,224,6,2\)/.test(seg65j3),
+      'T425J G8j 後勤：捲門有分片、安全紋、月台燈，不得只留一塊灰矩形');
+    assert((seg65j3.match(/for\(const x of\[184,192,200,208\]\)/g)||[]).length===1&&
+      /ng\.fillRect\(x\+1,233,3,4\)/.test(seg65j3),
+      'T425J G8j 店窗：右翼四間店窗日夜同位');
+    assert(/T425J R03 屋頂機電讀點/.test(seg65j3)&&/for\(const x of\[ax-58,ax\+58\]\)/.test(seg65j3)&&
+      /for\(const x of\[ax-68,ax\+68\]\)/.test(seg65j3),
+      'T425J G9j 機電讀點：HVAC 風扇與排氣帽帽沿必須成對');
+    assert(/T425J R03 購物車棚/.test(seg65j3)&&/for\(let x=179;x<196;x\+=4\)/.test(seg65j3),
+      'T425J G9j 前庭：購物車棚與消防通道必須存在');
+    const seg65jCode=seg65j3.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(seg65jCode)&&
+      !/\b(?:R|ri|rand)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(seg65jCode),
+      'T425J G10j 商場段零亂數：入口／後勤／店窗／前庭不得碰亂數流');
+  }
+
+  { // ===== T425J R04 密度收斂：左右翼屋頂同系分板 =====
+    const seg65j4=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert((seg65j4.match(/mallRoof425J\(sg,/g)||[]).length===3,
+      'T425J G11j 屋頂接線：主箱＋左右翼恰三個不同 roof 面，不得漏翼或重畫同一面');
+    assert((seg65j4.match(/mallRoof425J\(sg,ax-44,214,40\)/g)||[]).length===1&&
+      (seg65j4.match(/mallRoof425J\(sg,ax\+44,204,44\)/g)||[]).length===1,
+      'T425J G11j 翼頂幾何：左右翼各自使用既有 boxUnit 的精確 top/hw');
+    assert(/T425J R04 左翼屋頂同系分板/.test(seg65j4)&&/T425J R04 右翼屋頂同系分板/.test(seg65j4),
+      'T425J G11j 意圖：翼頂收斂必須是可命名分板，不是無語義散點');
+    const roofJ4=html.slice(html.indexOf('function mallRoof425J('),html.indexOf('function mallWord425J('));
+    assert(/fu===5&&fv===5\?'#cbb68a'/.test(roofJ4),
+      'T425J G12j 面板扣：每塊屋面板中心只有一顆規律檢修扣，不得以任意散點刷密度');
   }
 
   { // ===== T425F 像素質感：淺描邊＋箱體面工藝（業主反饋「角度對了，像素顯示效果不對」） =====
