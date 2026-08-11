@@ -9498,3 +9498,44 @@ runPwaTests().then(() => {
     'T426 G5 檢查點須含 96（夜景烘焙）97（工具列）99（主選單）');
   assert(html.includes('window.__boot426=()=>({...bootState426});'),'T426 G5 __boot426 觀測橋必須存在');
 }
+
+/* ===== T427 GPT 美術波移植層守衛（源自移動線 T482 T420-T424/T427-T428/T432） ===== */
+{ // G1 八層函式存在
+  const fns427=['streetStoryRoot420','drawStreetStory420','drawLivedIn421','drawActivityPocket422',
+    'drawNightIdentity423','districtMood424','drawDistrictTexture424','drawStreetEdge427',
+    'drawGroundMemory428','detailAlpha432','detailPermit432','streetPermit432'];
+  for(const f of fns427)assert(html.includes('function '+f+'('),'T427 G1 層函式 '+f+' 必須存在');
+}
+{ // G2 四接線：3 地面層（t.road 內/外、zone 後）＋1 建築層
+  assert(html.includes('if(!lodFar)drawStreetStory420(gc,x,y,sx,sy,z);'),'T427 G2 地面接線 drawStreetStory420 必須在 groundCache 迴圈');
+  assert(html.includes('if(!lodFar&&!t.hw&&!t.bridge)drawStreetEdge427(gc,x,y,sx,sy,z);'),'T427 G2 地面接線 drawStreetEdge427 必須在 t.road 分支外');
+  assert(html.includes('if(!lodFar&&!t.road&&!t.water&&!t.bld&&!t.ruin)drawGroundMemory428(gc,x,y,sx,sy,z);'),'T427 G2 地面接線 drawGroundMemory428 必須在 zone 分支後');
+  assert(html.includes('if(!constrRise&&(bd.age|0)>=9){')&&
+    html.includes('drawDistrictTexture424(ctx,o,bd,s,bx,by,z,drawA);')&&
+    html.includes('drawLivedIn421(ctx,o,bd,s,bx,by,z,drawA);')&&
+    html.includes('drawNightIdentity423(ctx,o,bd,s,bx,by,z,drawA,nightDepth);')&&
+    html.includes('drawActivityPocket422(ctx,o,bd,s,bx,by,z,drawA,nightDepth);'),
+    'T427 G2 建築層接線四層必須在 constrRise else 後依序');
+}
+{ // G3 kill-switch 八個全定義
+  for(const k of ['__noStreetStory420','__noLivedIn421','__noActivity422','__noNightIdentity423',
+    '__noDistrictTexture424','__noStreetEdge427','__noGroundMemory428','__noDetailBudget432'])
+    assert(html.includes(k),'T427 G3 kill-switch '+k+' 必須存在');
+}
+{ // G4 退化橋：T448/T446/T475 未移植桌面，恆等退化保持原碼結構
+  for(const f of ['rhythmActivity448','roadCap475','streetWearStrength446','sanitationGroundBoost446D'])
+    assert(html.includes('const '+f+'=()=>1;'),'T427 G4 退化橋 '+f+' 必須存在（恆等退化）');
+  assert(html.includes('window.__noRhythm448=true;window.__noNetVisual446=true;'),'T427 G4 網絡視覺/節奏開關必須常駐關閉');
+}
+{ // G5 層區塊零亂數（剝註解後字面掃描；draw-time 層不得消耗亂數流）
+  const b427=html.indexOf('const rhythmActivity448=()=>1;'),e427=html.indexOf('\nfunction drawCursor(',b427);
+  assert(b427>=0&&e427>b427,'T427 G5 應可界定移植層區段');
+  const seg427=html.slice(b427,e427).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(seg427),
+    'T427 G5 移植層區段不得消耗 R()/ri()/rand()/Math.random()/spriteTexRand（零亂數位移）');
+}
+{ // G6 觀測橋全存在（實機驗收用計數器）
+  for(const b of ['__t420StoryCount','__t421LivedCount','__t422PocketCount','__t423NightCount',
+    '__t424TextureCount','__t427EdgeCount','__t428GroundCount','__t432Suppressed'])
+    assert(html.includes(b),'T427 G6 觀測橋 '+b+' 必須存在');
+}
