@@ -1438,16 +1438,38 @@ function boxUnit(g,ng,cx,by,hw,h,cL,cR,cTop,opts){
   }
   // ③窗洞內凹（opts.win：gx 間距、ht 窗高、lit 夜燈率）
   if(o.win){
-    const{ht,lit}=o.win;
-    for(let dx=o.win.gx;dx<hw-o.win.gx;dx+=o.win.gx*2){
-      const yF=by-(dx>>1);
-      g.fillStyle=shade(cL,-6);g.fillRect(cx-dx,yF-ht-1,5,ht+2);        // 深底（窗洞）
-      g.fillStyle='#2a3550';g.fillRect(cx-dx+1,yF-ht,3,ht);             // 玻璃
-      g.fillStyle=shade(cL,2);g.fillRect(cx-dx+1,yF-ht,3,1);            // 上亮框
-      g.fillStyle=shade(cL,-4);g.fillRect(cx-dx+1,yF-1,3,1);            // 下暗框
-      // ④dithering：玻璃與底交界棋盤格
-      g.fillStyle=shade(cL,-5);g.fillRect(cx-dx+((dx+yF)&1),yF-ht+1,1,1);
-      if(ng&&(dx%7)<lit*7){ng.fillStyle='#ffd77a';ng.fillRect(cx-dx+1,yF-ht+1,3,ht-1);} // 決定性夜燈（零 rand）
+    const{ht,lit}=o.win,gx=o.win.gx;
+    const rows=Math.max(1,Math.min(3,Math.floor((h-3)/(ht+3))));
+    const bays=[];for(let dx=gx;dx<hw-gx;dx+=gx*2)bays.push(dx);
+    // T425J 立面骨架：雙面樓層帶沿等距斜率行進，不用水平貼紙遮掉體積。
+    for(let row=1;row<rows;row++){
+      const off=row*(ht+3)+1;g.fillStyle=shade(cL,-3);
+      for(let dx=1;dx<=hw;dx++){const yF=by-(dx>>1);g.fillRect(cx-dx,yF-off,1,1);}
+      g.fillStyle=shade(cR,-7);
+      for(let dx=0;dx<hw;dx++){const yF=by-((dx+1)>>1);g.fillRect(cx+dx,yF-off,1,1);}
+    }
+    // T425J 立面骨架：每個窗灣都有縱向壁柱，先畫骨架再嵌窗。
+    for(const dx of bays){
+      let yF=by-(dx>>1);g.fillStyle=shade(cL,1);g.fillRect(cx-dx-1,yF-h+2,1,h-5);
+      yF=by-((dx+1)>>1);g.fillStyle=shade(cR,-1);g.fillRect(cx+dx+4,yF-h+2,1,h-5);
+    }
+    // T425J 雙面窗格：左受光、右背光各自有深框／玻璃／窗台；多層但仍由座標決定。
+    for(let row=0;row<rows;row++)for(const dx of bays){
+      const off=2+row*(ht+3);
+      let yF=by-(dx>>1),yt=yF-off-ht+1;
+      g.fillStyle=shade(cL,-6);g.fillRect(cx-dx,yt-1,5,ht+2);
+      g.fillStyle='#29445c';g.fillRect(cx-dx+1,yt,3,ht);
+      g.fillStyle=shade(cL,2);g.fillRect(cx-dx+1,yt,3,1);
+      g.fillStyle=shade(cL,-4);g.fillRect(cx-dx+1,yt+ht-1,3,1);
+      g.fillStyle=shade(cL,-5);g.fillRect(cx-dx+((dx+row)&1),yt+1,1,1);
+      if(ng&&((dx+row*5)%7)<lit*7){ng.fillStyle='#ffd77a';ng.fillRect(cx-dx+1,yt+1,3,ht-1);}
+      yF=by-((dx+1)>>1);yt=yF-off-ht+1;
+      g.fillStyle=shade(cR,-8);g.fillRect(cx+dx,yt-1,5,ht+2);
+      g.fillStyle='#20384f';g.fillRect(cx+dx+1,yt,3,ht);
+      g.fillStyle=shade(cR,1);g.fillRect(cx+dx+1,yt,3,1);
+      g.fillStyle=shade(cR,-7);g.fillRect(cx+dx+1,yt+ht-1,3,1);
+      g.fillStyle=shade(cR,-6);g.fillRect(cx+dx+3-((dx+row)&1),yt+1,1,1);
+      if(ng&&((dx+row*5+3)%7)<lit*7){ng.fillStyle='#ffc968';ng.fillRect(cx+dx+1,yt+1,3,ht-1);}
     }
   }
   return rty;

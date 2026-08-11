@@ -6043,10 +6043,31 @@ runPwaTests().then(() => {
     const seg65i=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
     assert(!/isoBox\(/.test(seg65i),'T425I G2i 遷移：65 段不得再用 isoBox（全 boxUnit 六技法）');
     // G3i 窗洞夜燈釘：決定性夜燈（dx%7<lit*7）
-    assert(/\(dx%7\)<lit\*7/.test(html),'T425I G3i 夜燈：窗洞決定性夜燈（dx%7<lit*7——零 rand）');
+    assert(/\(\(dx\+row\*5\)%7\)<lit\*7/.test(html)&&/\(\(dx\+row\*5\+3\)%7\)<lit\*7/.test(html),
+      'T425I G3i 夜燈：左右窗洞均以 dx/row 決定夜燈（零 rand）');
     // G4i 零 rand：boxUnit 函數內無 rand/R/ri
-    const fnI=html.slice(html.indexOf('function boxUnit('),html.indexOf('function boxUnit(')+1800);
-    assert(!/rand|R\(|ri\(/.test(fnI),'T425I G4i 零 rand：boxUnit 內無 rand/R/ri（全決定性）');
+    const fnI=html.slice(html.indexOf('function boxUnit('),html.indexOf('// 牆上窗（含窗台與反光',html.indexOf('function boxUnit(')));
+    const fnICode=fnI.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(fnICode),'T425I G4i 零 rand：boxUnit 內無 rand/R/ri/Math.random（全決定性）');
+    assert(!/\b(?:R|ri|rand)\b\s*(?:=|:)|Math\.random\s*(?:=|:)/.test(fnICode),'T425I G4i 零 rand alias：boxUnit 不得先捕獲亂數函數再繞過呼叫守衛');
+  }
+
+  { // ===== T425J R01 立面骨架：雙面、多層、壁柱與樓層帶 =====
+    const f0=html.indexOf('function boxUnit('),f1=html.indexOf('// 牆上窗（含窗台與反光',f0),fnJ=html.slice(f0,f1);
+    assert(f0>0&&f1>f0,'T425J G1j boxUnit 應可完整切片，不能再用固定 1800 字元假綠');
+    assert(/const rows=Math\.max\(1,Math\.min\(3,Math\.floor\(\(h-3\)\/\(ht\+3\)\)\)\)/.test(fnJ),
+      'T425J G1j 多層：窗格列數由牆高/窗高決定且鎖在 1..3 層');
+    assert((fnJ.match(/T425J 立面骨架/g)||[]).length===2&&/for\(let row=1;row<rows;row\+\+\)/.test(fnJ),
+      'T425J G1j 骨架：雙面樓層帶與窗灣壁柱兩組都必須存在');
+    assert(/g\.fillStyle='#29445c';g\.fillRect\(cx-dx\+1,yt,3,ht\)/.test(fnJ)&&
+      /g\.fillStyle='#20384f';g\.fillRect\(cx\+dx\+1,yt,3,ht\)/.test(fnJ),
+      'T425J G2j 雙面：左受光與右背光玻璃都必須真正落到正式 boxUnit');
+    assert(/ng\.fillStyle='#ffd77a'/.test(fnJ)&&/ng\.fillStyle='#ffc968'/.test(fnJ),
+      'T425J G2j 夜層：左右窗格各有決定性夜燈，不能只亮單面');
+    const fnJCode=fnJ.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(fnJCode)&&
+      !/\b(?:R|ri|rand)\b\s*(?:=|:)|Math\.random\s*(?:=|:)/.test(fnJCode),
+      'T425J G3j 零亂數：完整 helper 禁直接呼叫與 alias 捕獲（修復 T425I U+0008／定長切片假綠）');
   }
 
   { // ===== T425F 像素質感：淺描邊＋箱體面工藝（業主反饋「角度對了，像素顯示效果不對」） =====
