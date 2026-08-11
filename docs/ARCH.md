@@ -1,7 +1,7 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.63，約 21,146 行（實測檔案 21,146 行＝T427 GPT 美術波核心層後 Python 數
-；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T427**（k65 低頻大屋面、抬高中庭／投影、兩翼層級與連通入口暖光；玩法／存檔／AI／亂數流恆等）（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 4,563、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.64，約 21225 行（實測檔案 21225 行＝T428 標題畫面版面修復＋桌面現代化後 Python 數
+；**行號會漂移，定位一律以 grep 錨點為準**——「實測檔案 N 行」這個措辭是 T371b 守衛的錨點字串，改寫前先看 test_fixde.js）；卡號已到 **T428**（標題畫面版面根因三修＋桌面 min-width 斷點首見＋像素 logo 整數階梯；玩法／存檔／AI／亂數流恆等）（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 4,582、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -27,7 +27,9 @@
 | CSS 主題變數／HUD／工具列／toast | 16-99 | `--shadow-panel:0 10px 28px` |
 | CSS `#info` 面板容器與 `--hud-h` | 100-112, 137-139 | `max-height:max(120px,calc(100vh - 80px` |
 | CSS 標準化數據表（`.stab` / `.dtab`） | 113-135 | `.stab{display:grid;grid-template-columns:auto 1fr auto` |
-| CSS 開始畫面／小地圖／窄螢幕 | 140-210 | `#start .startPrimary{display:flex` |
+| CSS 開始畫面／小地圖／窄螢幕 | 219-357 | `#start .startPrimary{display:flex` |
+| ├ T428 桌面斷點（全檔**唯一**的 `min-width` 類 @media，共 **4** 個區塊：真斷點 286／R06 矮桌面 305／逃生閥退回 321／逃生閥矮桌面 333） | 286-337 | `@media (min-width:900px){` |
+| ├ T428 像素 logo 整數比例階梯（1× / 0.75× / 0.5×，緊接既有 `max-height:520px` 隱藏規則 349） | 346-348 | `@media (max-height:860px){#logo{width:168px` |
 | body DOM 骨架（全部靜態節點只有這份） | 213-275 | `<span class="chip" id="money">` |
 | 亂數零號：`mulberry32` / `R` / `ri` | 285-298 | `let R=mulberry32(1);` |
 | 世界尺寸／SAVEKEY | 306-308 | `const MAP_SIZES=` |
