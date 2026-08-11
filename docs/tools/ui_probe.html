@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>微光小鎮 — 版面探針（T428 R04）</title>
+<style>
+body{background:#141a26;color:#dce4f2;font:12px/1.55 Consolas,"Microsoft YaHei",monospace;margin:0;padding:12px}
+h1{font-size:16px;color:#7fd4ff;margin:2px 0 8px}
+.hint{color:#7a8699;margin-bottom:10px}
+#out{white-space:pre-wrap}
+.ok{color:#7be08a}.bad{color:#ff8a72}.warn{color:#ffd45f}.hd{color:#ffd45f;margin-top:8px}.inf{color:#8fa3cc}
+iframe{position:absolute;left:-99999px;top:0;border:0}
+</style>
+</head>
+<body>
+<h1>版面探針 <span class="hint">· 標題畫面在多個視窗尺寸下的版面不變量（R04）</span></h1>
+<div class="hint">
+用法：<code>ui_probe.html?a=/index.html&amp;b=/before.html&amp;sizes=1280x720,390x844</code><br>
+無頭取字：<code>chrome --headless=new --disable-gpu --virtual-time-budget=900000 --dump-dom "&lt;URL&gt;"</code><br>
+原理：每個尺寸開一個<b>該尺寸的 iframe</b>（iframe 內的 media query／vh 依 iframe 視窗解析，等同真實視窗），
+等 <code>GV</code> 開機後量 <code>#start</code> 覆蓋層。<b>同源</b>才讀得到 iframe 內的 DOM。<br>
+<b>量的是「視窗尺寸」不是「螢幕尺寸」</b>：1280×720 的螢幕上最大化的桌面瀏覽器可視高約 620px，
+所以驗收清單裡要同時放 1280×620／1440×790 這類真實可視高（覆核者 S1 指出的第 7 條）。<br>
+<b>給 <code>b=</code>（改動前的檔）才驗得了「不得退步」那組條件</b>；沒給就標成 SKIPPED，不會假裝通過。<br>
+<code>b=</code> 有兩種取法：①另存 <code>git show &lt;改動前 commit&gt;:index.html</code>；
+②<b>直接用逃生閥</b>——<code>b=/index.html%3FnoT428=1</code>（`?` 要編碼成 `%3F`）。
+第②種讓 §5 的「關閉時逐值等於 BEFORE」真的在工具鏈內做得出來，不必改檔案；
+前提是逃生閥的每一條退回都忠實（T428 R04/R07 各修過一次失真，見卡面 §11）。
+</div>
+<div id="out">booting…</div>
+<div id="frames"></div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.search);
+const SRC_A = Q.get('a') || '/index.html';
+const SRC_B = Q.get('b') || '';
+const SIZES = (Q.get('sizes') || '1280x720,1280x620,1440x900,1920x1080,390x844,375x667')
+  .split(',').map(s => s.trim().split('x').map(Number)).filter(a => a.length === 2 && a[0] > 0 && a[1] > 0);
+
+/* 絕對下限：沒有這些，「六條不變量全綠」可以靠 transform:scale(.4) 把整頁縮到按不到來達成
+   （覆核者 S1 實測：scale(.4) 在行動端六條全綠）。數字取自 iOS HIG 44px 的務實折扣與既有實測值。 */
+const MIN_PRIMARY_H = 40;   // 主按鈕（開拓新地圖／繼續）高度
+const MIN_BTN_H      = 30;  // 任何可視按鈕高度（改動前難度鈕 39、本卡 43）
+const MIN_HELP_FS    = 11;  // 說明文字字級（現行 12px）
+const MIN_LOGO_W     = 112; // logo 可見時的最小寬（＝0.5× 階梯）
+
+const O = document.getElementById('out');
+const LINES = [];
+const P = (m, c) => { LINES.push(m); const d = document.createElement('div'); if (c) d.className = c; d.textContent = m; O.appendChild(d); };
+const F = (label, ok, text, judged) => {
+  const tag = !judged ? '　（不判・資訊）' : (ok ? '   ✔' : '   ✘');
+  P('  ' + (label + '　　　　　　').slice(0, 14) + text + tag, !judged ? 'inf' : (ok ? 'ok' : 'bad'));
+  return judged ? !!ok : true;
+};
+
+function boot(src, w, h) {
+  return new Promise(res => {
+    const f = document.createElement('iframe');
+    f.style.width = w + 'px'; f.style.height = h + 'px'; f.src = src;
+    document.getElementById('frames').appendChild(f);
+    const tick = () => {
+      const win = f.contentWindow;
+      if (win && win.GV && win.document && win.document.querySelector('#start')) return res({ f, win });
+      setTimeout(tick, 250);
+    };
+    tick();
+  });
+}
+const raf = () => new Promise(r => setTimeout(r, 140));
+
+function measure(win, w) {
+  const D = win.document, S = D.querySelector('#start');
+  const q = s => D.querySelector(s);
+  const vis = e => !!(e && e.getClientRects().length && win.getComputedStyle(e).visibility !== 'hidden');
+  const R = e => { const r = e.getBoundingClientRect(); return {
+    x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height),
+    right: Math.round(r.right), bottom: Math.round(r.bottom) }; };
+
+  const clientW = S.clientWidth, clientH = S.clientHeight;
+  const logo = q('#logo'), logoVis = vis(logo);
+  const logoB = logoVis ? R(logo) : null;
+  const more = q('#startMore'), moreB = more ? R(more) : null;
+  const diff = q('.diffrow');
+  const diffKids = diff ? [...diff.children].filter(vis) : [];
+  const chal = [...S.querySelectorAll('button')].filter(b => vis(b) && /挑戰/.test(b.textContent || ''));
+  const btns = [...S.querySelectorAll('button')].filter(vis);
+  const prim = q('.startPrimary'), primB = prim && vis(prim) ? R(prim) : null;
+  const primBtn = prim ? [...prim.querySelectorAll('button')].filter(vis)[0] : null;
+  const help = q('.help');
+  const inks = [...S.querySelectorAll('button,.diffrow,.settingsGrid,.startMoreLabel')].filter(vis);
+
+  /* 水平溢出用**滾動容器的 clientWidth**當邊界，不是請求的 iframe 寬——
+     有垂直捲軸時兩者差一個捲軸寬（實測 15px），用 w 會漏報壓在捲軸下的元素（覆核者 S3 第 12 條）。 */
+  const overWide = [...S.querySelectorAll('*')].filter(e => {
+    if (!vis(e)) return false;
+    const r = e.getBoundingClientRect();
+    return r.left < -0.5 || r.right > clientW + 0.5;
+  }).map(e => (e.tagName + (e.id ? '#' + e.id : (e.className ? '.' + ((e.className || '') + '').split(' ')[0] : ''))
+    + '[' + Math.round(e.getBoundingClientRect().left) + '→' + Math.round(e.getBoundingClientRect().right) + ']'));
+
+  /* 【為什麼不能用 scrollHeight 做 before/after 比較】
+     改動前 `#start` 是 justify-content:center ＋ overflow-y:auto：內容溢出時被截在**滾動起點之上**，
+     那一段 scrollHeight **算不到**（實測 844×390 截掉 199px、375×667 截掉 145px）。
+     於是「改動前溢出 215、改動後 266」看起來是退步，真相是改動前低報。
+     可比的量是「真內容高＝最低 bottom − 最高 top」（同一尺寸下與置中方式無關）：
+     844×390 788→640、375×667 942→735、390×844 941→826，全部大幅改善。
+     `aboveOrigin` 則直接把「被截在上緣外、滾不回來」的量算出來——那就是本卡要修的東西本身。 */
+  const flowKids = [...S.children].filter(e => vis(e) && win.getComputedStyle(e).position !== 'absolute');
+  const tops = flowKids.map(e => Math.round(e.getBoundingClientRect().top));
+  const bots = flowKids.map(e => Math.round(e.getBoundingClientRect().bottom));
+  const contentH = flowKids.length ? Math.max(...bots) - Math.min(...tops) : 0;
+  const aboveOrigin = flowKids.length ? Math.max(0, -Math.min(...tops)) : 0;
+
+  return {
+    clientW, clientH, contentH, aboveOrigin,
+    overflow: S.scrollHeight - clientH,
+    hScroll: S.scrollWidth - clientW,
+    overWide,
+    logoPresent: !!logo, logoVis, logoY: logoB ? logoB.y : null, logoW: logoB ? logoB.w : null,
+    logoClipped: logoB ? logoB.y < 0 : false,
+    moreW: moreB ? moreB.w : null,
+    useW: moreB ? +(moreB.w / w * 100).toFixed(1) : null,
+    diffRows: diffKids.length ? new Set(diffKids.map(c => Math.round(c.getBoundingClientRect().y))).size : 0,
+    diffCount: diffKids.length,
+    chalCount: chal.length,
+    chalRows: chal.length ? new Set(chal.map(b => Math.round(b.getBoundingClientRect().y))).size : 0,
+    primFound: !!prim, primY: primB ? primB.y : null, primBottom: primB ? primB.bottom : null,
+    primInView: primB ? (primB.y >= 0 && primB.bottom <= clientH) : null,
+    primBtnH: primBtn ? R(primBtn).h : null,
+    minBtnH: btns.length ? Math.min(...btns.map(b => R(b).h)) : null,
+    btnCount: btns.length,
+    helpFS: help ? parseFloat(win.getComputedStyle(help).fontSize) : null,
+    helpLH: help ? win.getComputedStyle(help).lineHeight : null,
+    lowestBottom: inks.length ? Math.max(...inks.map(e => R(e).bottom)) : 0,
+    bottomCut: inks.length ? Math.max(...inks.map(e => R(e).bottom)) > clientH : false,
+  };
+}
+
+/* 展開態：桌面「零溢出」是狀態相依的——解掉 .scmenu 內層滾動後，點一下🎯戰役
+   外層要滾的量可能比改動前更大（覆核者 S3 實測 349/234/80 vs master 243/153/63）。
+   探針從不點任何東西就永遠看不到，故這裡真的去點。 */
+async function expandedMetrics(win) {
+  const D = win.document, S = D.querySelector('#start');
+  const b = D.querySelector('#bCampaign');
+  if (!b) return null;
+  b.click();
+  await raf();
+  const kids = [...S.children].filter(e => e.getClientRects().length
+    && win.getComputedStyle(e).position !== 'absolute');
+  const tops = kids.map(e => Math.round(e.getBoundingClientRect().top));
+  const bots = kids.map(e => Math.round(e.getBoundingClientRect().bottom));
+  return { overflow: S.scrollHeight - S.clientHeight,
+           contentH: kids.length ? Math.max(...bots) - Math.min(...tops) : 0 };
+}
+
+async function snap(src, w, h) {
+  const { f, win } = await boot(src, w, h);
+  await raf();
+  const m = measure(win, w);
+  m.exp = await expandedMetrics(win);
+  f.remove();
+  return m;
+}
+
+async function main() {
+  O.textContent = '';
+  P('a=' + SRC_A + (SRC_B ? '　b=' + SRC_B : '　b=(未給 ⇒ 不得退步那組條件 SKIPPED)')
+    + '　尺寸=' + SIZES.map(s => s.join('x')).join(' '));
+  const rows = [];
+  for (const [w, h] of SIZES) {
+    const desktop = w >= 900;
+    const A = await snap(SRC_A, w, h);
+    const B = SRC_B ? await snap(SRC_B, w, h) : null;
+    let ok = true;
+    P('');
+    P('=== ' + w + 'x' + h + (desktop ? '（桌面）' : '（行動）'), 'hd');
+
+    /* ── 全尺寸硬條件 ── */
+    ok = F('水平溢出', A.hScroll <= 0 && !A.overWide.length,
+      A.hScroll + ' px' + (A.overWide.length ? '　超界：' + A.overWide.join(' ') : ''), true) && ok;
+    ok = F('logo', A.logoPresent && (!A.logoVis || (!A.logoClipped && A.logoW >= MIN_LOGO_W)),
+      (!A.logoPresent ? '元素不存在（不可接受：不變量不能靠刪元素滿足）'
+        : !A.logoVis ? 'display:none（既有 max-height:520px 規則刻意隱藏，可接受）'
+        : 'y=' + A.logoY + ' w=' + A.logoW), true) && ok;
+    ok = F('難度列', A.diffCount >= 4 && A.diffRows === 1,
+      A.diffCount + ' 顆 / ' + A.diffRows + ' 列', true) && ok;
+    ok = F('主按鈕首屏', A.primFound && A.primInView === true,
+      (!A.primFound ? '.startPrimary 不存在（不可接受）'
+        : 'y=' + A.primY + ' bottom=' + A.primBottom + ' / 可視 ' + A.clientH), true) && ok;
+    ok = F('絕對下限', A.primBtnH >= MIN_PRIMARY_H && A.minBtnH >= MIN_BTN_H && A.helpFS >= MIN_HELP_FS,
+      '主鈕 h=' + A.primBtnH + '(≥' + MIN_PRIMARY_H + ')  最小鈕 h=' + A.minBtnH + '(≥' + MIN_BTN_H
+      + ')  help ' + A.helpFS + 'px(≥' + MIN_HELP_FS + ')  ' + A.btnCount + ' 顆鈕', true) && ok;
+
+    /* ── 桌面硬條件 ── */
+    if (desktop) {
+      ok = F('垂直溢出', A.overflow <= 0, A.overflow + ' px', true) && ok;
+      ok = F('底部切掉', !A.bottomCut, (A.bottomCut ? '是（最低 ' + A.lowestBottom + ' > ' + A.clientH + '）' : '否'), true) && ok;
+      ok = F('挑戰列', A.chalRows === 1, A.chalCount + ' 顆 / ' + A.chalRows + ' 列', true) && ok;
+    } else {
+      F('垂直溢出', true, A.overflow + ' px（行動端允許滾動；退步與否見下一行）', false);
+    }
+
+    /* ── 不得退步（需要 b=）：這是卡面「行動端不得退步」與「展開態不得更糟」的唯一機器判準 ── */
+    if (B) {
+      ok = F('內容高不退步', A.contentH <= B.contentH,
+        'after ' + A.contentH + ' ≤ before ' + B.contentH
+        + '（真內容高＝最低bottom−最高top；不用 scrollHeight，見程式註解）', true) && ok;
+      ok = F('上緣不可達', A.aboveOrigin <= 0,
+        'after 被截在滾動起點之上 ' + A.aboveOrigin + ' px / before ' + B.aboveOrigin + ' px'
+        + '（這就是本卡要修的東西本身）', true) && ok;
+      ok = F('展開態不退步', !A.exp || !B.exp || A.exp.contentH <= B.exp.contentH,
+        'after ' + (A.exp && A.exp.contentH) + ' ≤ before ' + (B.exp && B.exp.contentH)
+        + '（點開🎯戰役後的真內容高）', true) && ok;
+      ok = F('觸控不退步', A.minBtnH >= B.minBtnH,
+        'after 最小鈕 h=' + A.minBtnH + ' ≥ before ' + B.minBtnH, true) && ok;
+      ok = F('行距不退步', String(A.helpLH) === 'normal' ? false : (parseFloat(A.helpLH) >= parseFloat(B.helpLH) - 0.51),
+        'after help line-height=' + A.helpLH + ' / before ' + B.helpLH
+        + (String(A.helpLH) === 'normal' ? '（normal＝宣告被丟棄，通常是 clamp 混型）' : ''), true) && ok;
+    } else {
+      for (const k of ['內容高不退步', '上緣不可達', '展開態不退步', '觸控不退步', '行距不退步'])
+        P('  ' + (k + '　　　　　　').slice(0, 14) + 'SKIPPED（未給 b=，無法判定）', 'warn');
+      ok = false;   // 缺證據不算通過
+    }
+
+    /* ── 純資訊（刻意不判） ──
+       「橫向利用率 ≥45%」在兩次放寬後已成恆真式：它量的就是作者自己寫的那條 max-width
+       （覆核者 S3 第 6 條）。與其留一條覆述宣告的假不變量，不如降為資訊，
+       桌面「不是被放大的手機」由「難度列 1 列＋挑戰列 1 列＋零溢出＋零水平溢出」四條非恆真條件承擔。 */
+    F('橫向利用率', true, '#startMore ' + A.moreW + 'px / ' + w + 'px = ' + A.useW + '%', false);
+    F('真內容高', true, 'after ' + A.contentH + (B ? ' / before ' + B.contentH : ''), false);
+    F('原始溢出', true, 'after ' + A.overflow + (B ? ' / before ' + B.overflow
+      + '（before 低報 ' + B.aboveOrigin + 'px，故不用它做判準）' : ''), false);
+    F('展開態溢出', true, 'after ' + (A.exp && A.exp.overflow) + (B ? ' / before ' + (B.exp && B.exp.overflow) : ''), false);
+
+    rows.push({ size: w + 'x' + h, desktop, ok, A, B });
+  }
+
+  const bad = rows.filter(r => !r.ok);
+  P('');
+  P(bad.length ? '判定：不合格（' + bad.length + '/' + rows.length + ' 個尺寸：' + bad.map(r => r.size).join(' ') + '）'
+               : '判定：全部尺寸通過（' + rows.length + ' 個尺寸；觀感仍需人眼樣張定奪）', bad.length ? 'bad' : 'ok');
+  window.UI_PROBE = { rows, bad: bad.map(r => r.size), text: LINES.join('\n') };
+  P('—— 完成；window.UI_PROBE 有 JSON ——', 'ok');
+}
+main();
+</script>
+</body>
+</html>

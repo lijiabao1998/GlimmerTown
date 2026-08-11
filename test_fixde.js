@@ -5816,6 +5816,151 @@ runPwaTests().then(() => {
       'T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）');
   }
 
+  { /* ===== T428 標題畫面版面修復與桌面現代化：守衛（R04 重做版） =====
+       【觀測能力聲明（T419 教條⑬）】Node 端沒有排版引擎，本區**全部是原文前哨／計數釘**，
+       只能驗「拼寫／存在／不存在／所在區塊」，**不能驗版面**。版面證據是
+       `docs/tools/ui_probe.html` 在真實瀏覽器多尺寸的輸出（見卡面 §4 與 §11 帳本）。
+       【R04 為什麼重做】三個獨立懷疑者打穿了第一版：
+         ① G1 用 `slice(indexOf('#start{position:absolute'), indexOf('#start h1{'))`，
+            兩邊界都不穩——在 `#start h1{` 之後任何位置插入 `#start{justify-content:center}` 就假綠；
+            把 h1 選擇器改寫成 `#start > h1{` 就假紅（且訊息會指錯規則）。→ 改成掃**整個 style 區**，
+            要求每一處 `justify-content:center` 都落在 `noT428` 選擇器裡。
+         ② G4 只驗「檔案裡存在 @media (min-width:900px)」，被逃生閥退回區自己餵飽 → 改計數釘（本輪自家紅源打出）。
+         ③ G8 從「開始畫面」註解才開始掃，style 區前 15,050 bytes 沒看 → 改成整個 style 區。
+         ④ G3 訊息把特異度寫成 (1,2,1)，實際是 (1,2,0)，而且它跟既有 `#start .diffbtn.sel` 同分、靠順序取勝。 */
+    const styleA428 = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+    const styleC428 = styleA428.replace(/\/\*[\s\S]*?\*\//g, '');   // 剝註解：本卡註解引用舊寫法當說明，不剝會誤紅
+    assert(styleC428.length > 10000, 'T428 G0【前置】style 區切片必須成功（供 G1/G8/G11 使用）');
+
+    // G1 根因不得複發：整個 style 區裡的 justify-content:center 只准出現在 noT428 退回區
+    const jcSel428 = [];
+    for (let i = styleC428.indexOf('justify-content:center'); i >= 0;
+         i = styleC428.indexOf('justify-content:center', i + 1)) {
+      const ob = styleC428.lastIndexOf('{', i);
+      const ps = Math.max(styleC428.lastIndexOf('}', ob), styleC428.lastIndexOf('{', ob - 1));
+      jcSel428.push(styleC428.slice(ps + 1, ob).replace(/\s+/g, ' ').trim());
+    }
+    /* 只咬「以 #start 容器本身為主體」的規則：`#tools`/`.tool`/`#start .diffrow`/`#boot426` 等
+       用 center 是本來就合法的（它們不是那個既置中又 overflow-y:auto 的滾動容器）。 */
+    const jcBad428 = jcSel428.filter(sel => sel.split(',').some(part => {
+      const t = part.trim().split(/\s+/);
+      return t[t.length - 1] === '#start' && !/noT428/.test(part);
+    }));
+    assert(jcBad428.length === 0 && jcSel428.some(sel => /noT428/.test(sel)),
+      'T428 G1【原文前哨·全區掃描】以 #start 容器本身為主體的規則不得有 `justify-content:center`'
+      + '（只准出現在 html.noT428 退回區）；center ＋ overflow-y:auto 會讓溢出內容被截在滾動起點之上'
+      + '且滾不回來（實測 360×640 logo y=-52、1280×720 logo y=-111）。違規選擇器：' + JSON.stringify(jcBad428));
+    // G2 安全置中改用 CSS 官方解 safe center（並保留 flex-start 當舊瀏覽器 fallback）
+    //    不再用 ::before/::after 墊片——墊片是 flex item，會多吃兩個 gap（實測 360×640 白花 14px）
+    assert(/justify-content:flex-start;justify-content:safe center/.test(styleC428)
+      && !/#start::before/.test(styleC428),
+      'T428 G2【原文前哨】#start 必須「flex-start ＋ safe center」兩段式（舊瀏覽器落貼頂、新瀏覽器放得下才置中），'
+      + '且不得再用 ::before/::after 墊片（會多吃兩個 gap）');
+    // G3 特異度倒掛修復（訊息已按覆核意見改正為 (1,2,0)）
+    assert(/#start \.startMore \.diffbtn\{/.test(styleC428) && !/#start \.diffbtn\{/.test(styleC428),
+      'T428 G3【原文前哨】.diffbtn 必須用 `#start .startMore .diffbtn`（1,2,0）壓過 '
+      + '`#start .startMore button`（1,1,1）；退回 `#start .diffbtn`（1,1,0）'
+      + '會被 `#start .startMore button` 壓掉而讓四顆難度鈕換行成 3+1'
+      + '（注意：(1,2,0) 與既有 `#start .diffbtn.sel` 同分，勝負靠原文順序，不要調換兩者位置）');
+    // G4 桌面斷點計數釘（真斷點 ＋ 逃生閥退回區 ＝ 恰 2；本卡之前全檔 min-width 類為 0）
+    /* G4：原本寫成「@media (min-width:900px){ 恰 2 次」的總數釘，裁決者指出它**靠巧合成立**——
+       本卡自己新增的 `@media (min-width:900px) and (max-height:660px){` 剛好不匹配那個正則才沒把計數推到 4，
+       下一張卡合法新增第三個桌面區塊就會無故變紅，而訊息會叫人去數 900px。
+       改成不依賴總數的內含性檢查：至少一條 min-width 類、且**最後一個** min-width:900px 區塊是逃生閥退回區。 */
+    const mqMin428 = (styleC428.match(/@media \(min-width:/g) || []).length;
+    const mqLast428 = styleC428.lastIndexOf('@media (min-width:900px){');
+    const mqLastBlk428 = mqLast428 > 0 ? styleC428.slice(mqLast428, styleC428.indexOf('\n}', mqLast428)) : '';
+    assert(mqMin428 >= 1 && mqLastBlk428.length > 40 && /html\.noT428/.test(mqLastBlk428),
+      'T428 G4【計數釘】必須有 min-width 類桌面斷點（本卡之前全檔為 0，實得 ' + mqMin428 + ' 條），'
+      + '且**最後一個** @media (min-width:900px){ 區塊必須是 html.noT428 退回區'
+      + '（否則逃生閥在桌面沒有對應退回，A/B 對照失真）');
+    // G5 三欄 grid 必須真的落在第一個 min-width:900px 區塊「之內」
+    const mq428i = styleC428.indexOf('@media (min-width:900px){');
+    const mqBlk428 = mq428i > 0 ? styleC428.slice(mq428i, styleC428.indexOf('\n}', mq428i)) : '';
+    assert(mqBlk428.length > 40 && !/noT428/.test(mqBlk428)
+      && /#start \.startMore\{display:grid/.test(mqBlk428)
+      && /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/.test(mqBlk428),
+      'T428 G5【原文前哨】三欄 grid 必須落在第一個 min-width:900px 區塊「之內」，且該區塊不是逃生閥退回區');
+    // G6 垂直節律自適應
+    assert(/gap:clamp\(6px,1\.15vh,14px\)/.test(styleC428),
+      'T428 G6【原文前哨】#start 垂直節律必須隨視窗高度收放（clamp）；退回固定 14px 會讓矮視窗多花約 60px');
+    // G7 逃生閥：CSS 退回區 ＋ class 掛載 ＋ **真的寫入端**
+    assert(/html\.noT428 #start\{justify-content:center/.test(styleC428)
+      && /window\.__noTitle428&&document\.documentElement&&document\.documentElement\.classList/.test(html),
+      'T428 G7【原文前哨】逃生閥的 CSS 退回區與 class 掛載必須在場');
+    // G8 契約回歸：**整個 style 區**不得出現 bNightCity（原版只掃後 45%）
+    assert(!/bNightCity/.test(styleA428),
+      'T428 G8【原文前哨·全區掃描】style 區不得出現 bNightCity（否則位移 T413b 的「去註解文本第一個 '
+      + 'bNightCity ±字元窗」掃描錨點）');
+    // G9 水平溢出修正（既存問題，BEFORE/AFTER 實測皆 .settingsGrid r=407 > vw=390）
+    assert(/#start \.settingsGrid\{min-width:0;width:100%;max-width:min\(420px,100%\);grid-template-columns:repeat\(auto-fit,minmax\(100px,1fr\)\)\}/.test(styleC428)
+      && /html\.noT428 #start \.settingsGrid\{min-width:auto;width:auto;max-width:420px;grid-template-columns:repeat\(auto-fit,minmax\(120px,1fr\)\)\}/.test(styleC428),
+      'T428 G9【原文前哨】.settingsGrid 必須可收縮到容器寬（min-width:0＋width:100%＋max-width:min(420px,100%)'
+      + '＋minmax 下修 120→100px）；退回 420px 固定上限會在 390 寬機種右緣切掉 17px，「地圖 72×72」鈕要水平滾動才點得到');
+    // G10 桌面跨欄兩顆按鈕居中成膠囊
+    assert(/#start \.startMore>#bEditorMode,#start \.startMore>#bCampaign\{justify-self:center;min-width:240px\}/.test(styleC428)
+      && !/:not\(#bEditorMode\):not\(#bCampaign\)\{width:100%\}/.test(styleC428),
+      'T428 G10【原文前哨】桌面斷點內「編輯器/戰役」必須 justify-self:center 成膠囊（原 stretch 會拉成 1040px 大條）；'
+      + '且不得留 `>button:not(#bEditorMode):not(#bCampaign){width:100%}`——它在 grid 下是死碼，'
+      + '唯一實際作用是讓逃生閥失真（實測 1430×900：BEFORE 挑戰鈕 151px、開逃生閥卻變 320px）');
+    // ── 以下 R04 新增（全部由對抗性覆核打出來） ──
+    // G11 line-height 不得再出現混型 clamp（clamp 三參數必須同型，否則整條宣告被丟棄）
+    assert(/#start \.help\{margin-top:clamp\(2px,1vh,10px\);color:#96a4c9;font-size:12px;line-height:1\.9;/.test(styleC428)
+      && !/line-height:clamp\(/.test(styleC428),
+      'T428 G11【原文前哨】.help 的 line-height 必須**維持改動前的 1.9、且全檔不得出現 line-height:clamp(**。'
+      + '第一版寫 `clamp(1.5,.28vh,1.9)` 混 <number> 與 <length>＝無效宣告、整條被瀏覽器丟棄，'
+      + '行動端實際跑成 line-height:normal（≈14.4px，改動前 22.8px）＝可讀性靜默退步，'
+      + '而且當時「溢出變小」有約 20px 是語法錯誤白賺的（三個懷疑者各自獨立抓到）。'
+      + '第二版換成同型 clamp(18px,2.6vh,22.8px) 仍然比改動前小 ⇒ 正確做法是**不要動它**');
+    // G12 逃生閥必須有真的寫入端（只有讀取端的開關＝正式產物裡永遠不可能為真＝沒有回退路徑）
+    assert(/\/\[\?&\]noT428=1\/\.test\(location\.search\)/.test(html)
+      && /localStorage\.getItem\(SAVEKEY\+'\.noT428'\)==='1'/.test(html),
+      'T428 G12【原文前哨】逃生閥必須有寫入端（URL ?noT428=1 或 localStorage SAVEKEY+".noT428"），'
+      + '比照既有 badgePref/nightCityPref 慣例；只有讀取端的開關撥不動，等於沒有緊急回退路徑');
+    // G13 逃生閥的 h1 退回不得蓋掉既有矮視窗規則
+    assert(/html\.noT428 #start h1\{letter-spacing:10px\}/.test(styleC428)
+      && /@media \(min-height:521px\)\{html\.noT428 #start h1\{font-size:34px\}\}/.test(styleC428)
+      && !/html\.noT428 #start h1\{font-size:34px;letter-spacing:10px\}/.test(styleC428),
+      'T428 G13【原文前哨】逃生閥的 h1 退回必須**拆成兩條**：letter-spacing 無條件 10px，'
+      + 'font-size 才關在 min-height:521px 內。理由：既有 `@media (max-height:520px){#start h1{font-size:26px}}` '
+      + '**只設 font-size、不碰 letter-spacing**。合併寫成一條會在 ≤520px 高（含驗收尺寸 844×390 橫屏）'
+      + '讓 letter-spacing 落回 clamp(5px,1.2vh,10px)≈6.2px，而真 BEFORE 是 10px；'
+      + '無條件寫成一條又會讓 font-size 變 34px（真 BEFORE 26px）。兩邊都錯過一次');
+    // G13b 逃生閥的矮桌面 row-gap 不得寫成 normal（同特異度、原文更後面會壓掉 gap:6px ⇒ 開閥時 row-gap=0）
+    assert(/html\.noT428 #start \.startMore\{row-gap:6px\}/.test(styleC428)
+      && !/row-gap:normal/.test(styleC428),
+      'T428 G13b【原文前哨】逃生閥矮桌面的 row-gap 必須顯式 6px（真 BEFORE 值），不得寫 normal：'
+      + '它與 `html.noT428 #start .startMore{gap:6px;padding-top:12px}` 同特異度且原文更後面，'
+      + 'normal 會把 row-gap 壓成 0，而 1280×620 正是本卡新加的驗收尺寸');
+    // G14 像素 logo 只走整數比例階梯
+    assert(/#logo\{image-rendering:pixelated;width:224px;height:128px;/.test(styleC428)
+      && /@media \(max-height:860px\)\{#logo\{width:168px;height:96px\}\}/.test(styleC428)
+      && /@media \(max-height:700px\)\{#logo\{width:112px;height:64px\}\}/.test(styleC428)
+      && !/#logo\{[^}]*clamp\(/.test(styleC428),
+      'T428 G14【原文前哨】#logo 必須是 224×128 ＋ 0.75×(168×96) ＋ 0.5×(112×64) 三檔整數比例；'
+      + 'canvas backing store 固定 224×128 ＋ image-rendering:pixelated＝最近鄰，'
+      + '非整數縮放（原 vh clamp 實測 0.8518×／0.9606×／0.789×）會不均勻丟像素列＝手繪像素 logo 變形');
+    // G15 桌面 .scmenu 必須保留內層滾動（解掉會把溢出推給外層，展開態比改動前更糟）
+    assert(/#start \.scmenu\{max-width:none\}/.test(styleC428)
+      && !/#start \.scmenu\{[^}]*max-height/.test(mqBlk428),
+      'T428 G15【原文前哨】桌面 .scmenu **只解寬度上限**，不得動 max-height：'
+      + '改成 max-height:none;overflow:visible 會讓點開🎯戰役後外層溢出 349/234/80px（改動前 243/153/63）；'
+      + '改成 min(46vh,420px) 仍是 222 > 153。基礎規則的 220px 內層滾動要原樣留著。'
+      + '這條是「狀態相依的假綠」——探針只量收合態就看不到，故探針已加展開態量測');
+    // G17 矮桌面收攏（1280×620 這類真實可視高；沒有它底部會切 5px）
+    assert(/@media \(min-width:900px\) and \(max-height:660px\)\{\n  #start\{gap:4px;padding:4px 0\}/.test(styleC428)
+      && /@media \(min-width:900px\) and \(max-height:660px\)\{\n  html\.noT428 #start\{gap:14px;padding:16px 0\}/.test(styleC428),
+      'T428 G17【原文前哨】必須有矮桌面收攏斷點（min-width:900px and max-height:660px）＋對應的逃生閥退回：'
+      + '1280×620（＝1280×720 筆電最大化的真實可視高）下真內容高 615 雖 ≤ 620，'
+      + '但 padding(9.9×2)＋7 個 gap(7.13) 會把總高推到 635 而切掉底部 5px；'
+      + 'clamp 在該高度取中間項，調下限無效');
+    // G16 難度鈕行動端觸控尺寸不得比改動前小
+    assert(/#start \.startMore \.diffbtn\{min-width:auto;padding:10px 8px;font-size:13px;border-radius:9px\}/.test(styleC428),
+      'T428 G16【原文前哨】難度鈕必須 padding:10px 8px;font-size:13px（實測 360×640 → 43×67、單列、右緣 324≤360）；'
+      + '第一版寫 6px 12px/12px 讓它縮成 33×72＝比改動前的 39×83 更小的可點目標（行動端退步）');
+  }
+
+
   { // ===== T424 TheoTown 風三鍵美術特化卡：HERO_PIX 三鍵重繪守衛（G1-G6；純讀表＋表驅動像素計數，不依賴重放橋） =====
     const GEOM424={ '6_1_0':[56,71,8,37], '7_1_0':[56,64,8,44], '11':[57,55,9,55] };
     const LEDG424={ '6_1_0':[71,16,2,1673,28], '7_1_0':[64,22,4,1521,158], '11':[55,21,5,2393,29] }; // [rows, pal色數, palN數, 日像素, 夜像素]
