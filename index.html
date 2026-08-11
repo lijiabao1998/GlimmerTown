@@ -218,22 +218,30 @@ table.dtab tr:hover td{background:#1b2334}
 @media (hover:hover) and (pointer:fine){#zoomer button:hover{border-color:var(--panel-border-strong);background:#232c4a}}
 /* ---------- 開始畫面 ---------- */
 #start{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:14px;text-align:center;overflow-y:auto;padding:16px 0; /* T132：新增戰役選單後按鈕列變長，矮視窗需可捲動才不致下方按鈕被裁掉 */
+  justify-content:flex-start;gap:clamp(6px,1.15vh,14px);text-align:center;overflow-y:auto;padding:clamp(8px,1.6vh,16px) 0; /* T132：新增戰役選單後按鈕列變長，矮視窗需可捲動才不致下方按鈕被裁掉 */
+  /* T428 根因修復：原 justify-content:center 與同規則的 overflow-y:auto 互相打架——flex 置中在內容超高時
+     往兩端各溢出一半，而「起始邊那一半不產生可滾動區」（scrollTop 已是 0），於是 #logo 被推到 y<0 且滾不回來
+     （實測 1280×720 溢出 127px／logo y=-111）。改 flex-start＋下方 ::before/::after 的 auto margin 做
+     『安全置中』：放得下時仍置中，放不下時貼頂且全段可滾。純 CSS，不動 DOM。 */
   background:linear-gradient(180deg,#0d1226 0%,#1b2547 55%,#33406e 100%)}
-#start h1{color:#ffe9ad;font-size:34px;letter-spacing:10px;
+#start::before,#start::after{content:'';display:block;flex:0 0 0;min-height:0} /* T428：安全置中墊片 */
+#start::before{margin-top:auto}
+#start::after{margin-bottom:auto}
+#start h1{color:#ffe9ad;font-size:clamp(24px,4vh,34px);letter-spacing:clamp(5px,1.2vh,10px);
   /* T158：像素風描邊（四向硬邊偏移）＋暖光暈，取代單純投影，與新增標題背景呼應 */
   text-shadow:2px 2px 0 #7a5b1e,-2px 2px 0 #7a5b1e,2px -2px 0 #7a5b1e,-2px -2px 0 #7a5b1e,
     0 4px 0 #4a3510,0 0 16px rgba(255,217,119,.6),0 0 32px rgba(255,217,119,.3),0 8px 18px rgba(0,0,0,.5)}
 #start .en{color:#8fa0c8;letter-spacing:6px;font-size:13px;margin-top:-8px;text-shadow:0 1px 3px rgba(0,0,0,.65)} /* T158：新增背景晝間偏亮，補陰影維持文字對比 */
-#start .sub{color:#c9d2ea;font-size:14px;margin:6px 0 10px;text-shadow:0 1px 3px rgba(0,0,0,.65)}
+#start .sub{color:#c9d2ea;font-size:14px;margin:clamp(0px,.7vh,6px) 0 clamp(0px,1.2vh,10px);text-shadow:0 1px 3px rgba(0,0,0,.65)}
 #start button{min-width:210px;padding:12px 22px;font-size:16px;border-radius:var(--radius-xl);cursor:pointer;
   border:2px solid var(--accent-green);background:#2e4a26;color:#dff5cf;transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease),background-color var(--ease);box-shadow:var(--shadow-btn)}
 #start button.alt{border-color:var(--panel-border-strong);background:#1d2745;color:#c9d2ea}
 #start button:active{transform:scale(.97)}
 @media (hover:hover) and (pointer:fine){#start button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.4)}}
-#start .help{margin-top:10px;color:#96a4c9;font-size:12px;line-height:1.9;max-width:340px;text-shadow:0 1px 3px rgba(0,0,0,.65)}
+#start .help{margin-top:clamp(2px,1vh,10px);color:#96a4c9;font-size:12px;line-height:clamp(1.5,.28vh,1.9);max-width:340px;text-shadow:0 1px 3px rgba(0,0,0,.65)}
 #start .diffrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:340px}
-#start .diffbtn{min-width:auto;padding:6px 12px;font-size:12px;border-radius:9px}
+#start .startMore .diffbtn{min-width:auto;padding:6px 12px;font-size:12px;border-radius:9px} /* T428：原為 `#start .diffbtn`（特異度 1,1,0），被下方 `#start .startMore button`（1,1,1）壓掉，
+   四顆難度鈕被迫用 13px/8px16px＝約 342px > 320 才換行成 3+1。提高特異度讓既有意圖生效（約 310px，單列） */
 #start .diffbtn.sel{border-color:var(--accent);background:#33395e;color:#fff}
 /* T423 R03：開始畫面設定網格——災害/畫質/地圖/類別/夜景 卡片化（icon＋label 垂直排） */
 .settingsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;max-width:420px;margin:2px auto 0}
@@ -254,17 +262,53 @@ table.dtab tr:hover td{background:#1b2334}
    .startMore（細分隔線＋縮小字級/留白），與 T157 主題變數（--panel-border-soft/--accent/--shadow-btn/
    --ease 等）統一，不改動任一既有按鈕 id/事件綁定 */
 #start .startPrimary{display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px}
-#start .startPrimary button{width:100%;font-size:17px;padding:14px 22px;
+#start .startPrimary button{width:100%;font-size:clamp(15px,2.1vh,17px);padding:clamp(10px,1.7vh,14px) 22px;
   animation:startGlow 2.6s ease-in-out infinite}
 @keyframes startGlow{0%,100%{box-shadow:0 4px 18px rgba(255,217,119,.18),var(--shadow-btn)}
   50%{box-shadow:0 4px 26px rgba(255,217,119,.42),var(--shadow-btn)}}
 @media (prefers-reduced-motion:reduce){#start .startPrimary button{animation:none}}
-#start .startMore{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px;
-  margin-top:4px;padding-top:12px;border-top:1px solid var(--panel-border-soft)}
+#start .startMore{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,.6vh,6px);width:100%;max-width:320px;
+  margin-top:4px;padding-top:clamp(6px,1.2vh,12px);border-top:1px solid var(--panel-border-soft)}
 #start .startMore button{min-width:auto;padding:8px 16px;font-size:13px}
-.startMoreLabel{font-size:10px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-top:4px;text-shadow:0 1px 3px rgba(0,0,0,.65)}
-#logo{image-rendering:pixelated;width:224px;height:128px;
+.startMoreLabel{font-size:10px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-top:clamp(0px,.4vh,4px);text-shadow:0 1px 3px rgba(0,0,0,.65)}
+#logo{image-rendering:pixelated;width:clamp(154px,26.5vh,224px);height:clamp(88px,15.1vh,128px); /* T428：品牌區隨視窗高度收放（比例 224:128 維持，避免像素 logo 變形） */
   filter:drop-shadow(0 6px 14px rgba(0,0,0,.45)) drop-shadow(0 0 18px rgba(255,217,119,.25))}
+/* ===== T428 桌面斷點：全檔原本 17 條 @media 沒有一條 min-width，行動端尺寸（.startMore max-width:320px）
+   被直接套到桌面，1440 寬只用 22%。此處僅放寬「尺寸約束」與改「排列方向」，不改配色/圓角/陰影/字體。
+   .startMore 在桌面轉 grid（三欄）：標籤/難度列/設定網格/編輯器/戰役/戰役選單跨滿欄，
+   三顆挑戰鈕各佔一欄＝同一列。.settingsGrid 維持 display:grid（T423 原文釘），只改欄數與寬度上限。 ===== */
+@media (min-width:900px){
+  #start{gap:clamp(6px,1.2vh,16px);padding:clamp(8px,1.6vh,24px)}
+  #start .help{max-width:min(620px,86vw);line-height:1.8}
+  #start .startMore{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    max-width:min(1040px,92vw);column-gap:10px;row-gap:8px;align-items:center;justify-items:stretch}
+  #start .startMore>.startMoreLabel,#start .startMore>.diffrow,#start .startMore>.settingsGrid,
+  #start .startMore>#bEditorMode,#start .startMore>#bCampaign,#start .startMore>#scMenu{grid-column:1/-1}
+  #start .startMore>button:not(#bEditorMode):not(#bCampaign){width:100%}
+  #start .diffrow{max-width:none;flex-wrap:nowrap}
+  #start .settingsGrid{max-width:none;grid-template-columns:repeat(5,minmax(0,1fr))}
+  /* 桌面解除 .scmenu 的內層 220px 滾動（原本在 320 窄柱內再開一層滾動＝雙層滾動） */
+  #start .scmenu{max-width:none;max-height:none;overflow:visible}
+}
+/* T428 逃生閥：window.__noTitle428 為真時把上述三項改動逐條退回改動前原文（供 A/B 對照與緊急回退） */
+html.noT428 #start{justify-content:center;gap:14px;padding:16px 0}
+html.noT428 #logo{width:224px;height:128px}
+html.noT428 #start h1{font-size:34px;letter-spacing:10px}
+html.noT428 #start .sub{margin:6px 0 10px}
+html.noT428 #start .help{margin-top:10px;line-height:1.9}
+html.noT428 #start .startMore{gap:6px;padding-top:12px}
+html.noT428 .startMoreLabel{margin-top:4px}
+html.noT428 #start .startPrimary button{font-size:17px;padding:14px 22px}
+html.noT428 #start::before,html.noT428 #start::after{content:none}
+html.noT428 #start .startMore .diffbtn{padding:8px 16px;font-size:13px}
+@media (min-width:900px){
+  html.noT428 #start{gap:14px;padding:16px 0}
+  html.noT428 #start .help{max-width:340px;line-height:1.9}
+  html.noT428 #start .startMore{display:flex;grid-template-columns:none;max-width:320px}
+  html.noT428 #start .diffrow{max-width:340px;flex-wrap:wrap}
+  html.noT428 #start .settingsGrid{max-width:420px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+  html.noT428 #start .scmenu{max-width:340px;max-height:220px;overflow-y:auto}
+}
 #mini{position:absolute;top:48px;right:10px;width:144px;height:144px;z-index:18;
   border:2px solid #2c3450;border-radius:8px;background:#0d1226;
   image-rendering:pixelated;cursor:pointer;display:none}
@@ -20556,6 +20600,8 @@ function setAiMode(on){
 }
 $('#bAI').onclick=()=>setAiMode(!aiMode);
 const startEl=$('#start');
+// T428 逃生閥掛載：harness 的 documentElement 可能無 classList，故逐層可選保護（同 window.ResizeObserver&& 慣例）
+if(window.__noTitle428&&document.documentElement&&document.documentElement.classList)document.documentElement.classList.add('noT428');
 const moreEl=$('#startMore')||startEl; // T158：次級選項分組容器（難度/挑戰/戰役收攏於此，視覺降階），缺容器時退回 startEl 保底
 // T115：難度／沙盒選擇列（#start 按鈕區，仿下方 T88 挑戰按鈕先例以 JS 注入；四鈕，選中高亮，預設標準）
 if(startEl&&!$('#bDiff0')){

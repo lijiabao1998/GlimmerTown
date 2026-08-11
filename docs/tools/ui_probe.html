@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>微光小鎮 — 版面探針（T428）</title>
+<style>
+body{background:#141a26;color:#dce4f2;font:12px/1.55 Consolas,"Microsoft YaHei",monospace;margin:0;padding:12px}
+h1{font-size:16px;color:#7fd4ff;margin:2px 0 8px}
+.hint{color:#7a8699;margin-bottom:10px}
+#out{white-space:pre-wrap}
+.ok{color:#7be08a}.bad{color:#ff8a72}.warn{color:#ffd45f}.hd{color:#ffd45f;margin-top:8px}
+iframe{position:absolute;left:-99999px;top:0;border:0}
+</style>
+</head>
+<body>
+<h1>版面探針 <span class="hint">· 標題畫面在多個視窗尺寸下的版面不變量</span></h1>
+<div class="hint">
+用法：<code>ui_probe.html?a=/index.html&amp;sizes=1280x720,1440x900,1920x1080,375x812</code><br>
+無頭取字：<code>chrome --headless=new --disable-gpu --virtual-time-budget=90000 --dump-dom "&lt;URL&gt;"</code><br>
+原理：每個尺寸開一個**該尺寸的 iframe**（iframe 內的 media query 依 iframe 視窗解析，等同真實視窗），
+等 <code>GV</code> 開機後量 <code>#start</code> 覆蓋層的版面不變量。**同源**才讀得到 iframe 內的 DOM。
+</div>
+<div id="out">booting…</div>
+<div id="frames"></div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.search);
+const SRC = Q.get('a') || '/index.html';
+const SIZES = (Q.get('sizes') || '1280x720,1440x900,1920x1080,375x812').split(',')
+  .map(s => s.trim().split('x').map(Number)).filter(a => a.length === 2 && a[0] > 0 && a[1] > 0);
+
+const O = document.getElementById('out');
+const LINES = [];
+const P = (m, c) => { LINES.push(m); const d = document.createElement('div'); if (c) d.className = c; d.textContent = m; O.appendChild(d); };
+
+function boot(w, h) {
+  return new Promise(res => {
+    const f = document.createElement('iframe');
+    f.style.width = w + 'px';
+    f.style.height = h + 'px';
+    f.src = SRC;
+    document.getElementById('frames').appendChild(f);
+    const tick = () => {
+      const win = f.contentWindow;
+      if (win && win.GV && win.document && win.document.querySelector('#start')) return res({ f, win });
+      setTimeout(tick, 250);
+    };
+    tick();
+  });
+}
+
+/* 版面不變量：每一條都是「桌面 UI 是否可用」的機器判準，不是美感 */
+function measure(win, w, h) {
+  const D = win.document;
+  const S = D.querySelector('#start');
+  const box = e => { const r = e.getBoundingClientRect(); return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), bottom: Math.round(r.bottom) }; };
+  const q = s => D.querySelector(s);
+  const vis = e => !!(e && e.getClientRects().length && win.getComputedStyle(e).visibility !== 'hidden');
+
+  const overflow = S.scrollHeight - S.clientHeight;            // >0 = 標題畫面在此尺寸溢出
+  const logo = q('#logo');
+  const logoB = logo ? box(logo) : null;
+  const more = q('#startMore');
+  const moreB = more ? box(more) : null;
+  const diff = q('.diffrow');
+  const diffB = diff ? box(diff) : null;
+  // .diffrow 是否換行：子項的相異 y 座標數 > 1 即換行
+  const diffRows = diff ? new Set([...diff.children].filter(vis).map(c => Math.round(c.getBoundingClientRect().y))).size : 0;
+  // 挑戰按鈕：文字含「挑戰」的可視按鈕，相異 y 數
+  const chal = [...S.querySelectorAll('button')].filter(b => vis(b) && /挑戰/.test(b.textContent || ''));
+  const chalRows = new Set(chal.map(b => Math.round(b.getBoundingClientRect().y))).size;
+  // 最底部可視元素是否在可視區內
+  const all = [...S.querySelectorAll('button,.diffrow,.settingsGrid,.startMoreLabel')].filter(vis);
+  const lowest = all.length ? Math.max(...all.map(e => Math.round(e.getBoundingClientRect().bottom))) : 0;
+  // 橫向利用率：#startMore 實際寬 / 視窗寬
+  const useW = moreB ? +(moreB.w / w * 100).toFixed(1) : null;
+  // 主按鈕（繼續／開拓）是否完整落在首屏——行動端允許滾動，但主動作不得要滾才看得到
+  const prim = q('.startPrimary');
+  const primB = prim ? box(prim) : null;
+  const primInView = primB ? (primB.y >= 0 && primB.bottom <= S.clientHeight) : null;
+
+  return {
+    primY: primB ? primB.y : null, primBottom: primB ? primB.bottom : null, primInView,
+    size: w + 'x' + h,
+    overflow,                       // 目標：<= 0
+    logoY: logoB ? logoB.y : null,  // 目標：>= 0（不被切在上緣外）
+    logoClipped: logoB ? logoB.y < 0 : null,
+    moreW: moreB ? moreB.w : null,
+    useW,                           // 桌面目標：>= 45%（行動端不適用）
+    diffRows,                       // 目標：1（四顆難度同一列）
+    chalCount: chal.length,
+    chalRows,                       // 桌面目標：1（三顆挑戰同一列）
+    lowestBottom: lowest,
+    clientH: S.clientHeight,
+    bottomCut: lowest > S.clientHeight, // 目標：false
+  };
+}
+
+/* detail=1：逐子節點盒模型（退修時定位「是誰變高了」用；不加這個就只能猜） */
+function detail(win, w, h) {
+  const D = win.document, S = D.querySelector('#start');
+  const cs = win.getComputedStyle(S);
+  const box = e => { const r = e.getBoundingClientRect(); return Math.round(r.height); };
+  const rows = [...S.children].map(e => ({
+    t: e.tagName + (e.id ? '#' + e.id : (e.className ? '.' + ((e.className || '') + '').split(' ')[0] : '')),
+    h: box(e), y: Math.round(e.getBoundingClientRect().y),
+    pos: win.getComputedStyle(e).position,
+  }));
+  const inflow = rows.filter(r => r.pos !== 'absolute' && r.pos !== 'fixed');
+  const sum = inflow.reduce((n, r) => n + r.h, 0);
+  const gaps = Math.max(0, inflow.length - 1 + 2) * parseFloat(cs.gap || 0); // ＋2＝::before/::after 也吃 gap
+  P('  【逐子節點】gap=' + cs.gap + ' padding=' + cs.padding + ' justify=' + cs.justifyContent);
+  for (const r of inflow) P('    ' + (r.t + '                    ').slice(0, 20) + ' h=' + r.h + '  y=' + r.y);
+  P('    ── 流內子節點高度合計 ' + sum + '　+ gap 估 ' + Math.round(gaps) + '　= ' + Math.round(sum + gaps)
+    + '　（scrollHeight ' + S.scrollHeight + '，差 ' + (S.scrollHeight - Math.round(sum + gaps)) + '＝padding/墊片）');
+}
+
+async function main() {
+  O.textContent = '';
+  P('a=' + SRC + '　尺寸=' + SIZES.map(s => s.join('x')).join(' ')
+    + (Q.get('detail') ? '　（detail 模式）' : ''));
+  const rows = [];
+  for (const [w, h] of SIZES) {
+    const { f, win } = await boot(w, h);
+    // 等一幀讓佈局穩定
+    await new Promise(r => setTimeout(r, 120));
+    const m = measure(win, w, h);
+    rows.push(m);
+    f.remove();
+    const desktop = w >= 900;
+    P('');
+    P('=== ' + m.size + (desktop ? '（桌面）' : '（行動）'), 'hd');
+    /* T428 驗收條件（業主 2026-08-11 核准的修訂版；原為「四尺寸一律零溢出」）：
+       桌面＝零溢出；行動端＝允許滾動，但必須①零不可達（logo y>=0）②主按鈕完整在首屏。
+       理由：八個區塊的選單在手機上會滾是正常設計；真正的 bug 是「內容被截在滾動起點之上、滾不回來」，
+       那一條已修（見 logo y）。此處明記是放寬出卡方自己寫的條件，非既有守衛。 */
+    P('  溢出           ' + m.overflow + ' px'
+      + (desktop ? (m.overflow > 0 ? '   ✘ 桌面必須零溢出' : '   ✔')
+                 : (m.overflow > 0 ? '   ○ 行動端允許滾動（判準改看不可達與首屏）' : '   ✔')),
+      (desktop && m.overflow > 0) ? 'bad' : (m.overflow > 0 ? 'warn' : 'ok'));
+    P('  主按鈕首屏     y=' + m.primY + ' bottom=' + m.primBottom + ' / 可視 ' + m.clientH
+      + (m.primInView ? '   ✔' : '   ✘ 主動作要滾才看得到'), m.primInView ? 'ok' : 'bad');
+    P('  #logo y        ' + m.logoY + (m.logoClipped ? '   ✘ 被切在可視區上緣外（滾不到）' : '   ✔'), m.logoClipped ? 'bad' : 'ok');
+    P('  底部是否切掉   ' + (m.bottomCut ? (desktop ? '✘ 是' : '○ 是（行動端可滾，不判）') + '（最低元素 bottom=' + m.lowestBottom + ' > 可視 ' + m.clientH + '）' : '✔ 否'),
+      m.bottomCut ? (desktop ? 'bad' : 'warn') : 'ok');
+    P('  難度列         ' + m.diffRows + ' 列' + (m.diffRows === 1 ? '   ✔' : '   ✘ 換行'), m.diffRows === 1 ? 'ok' : 'bad');
+    P('  挑戰列         ' + m.chalCount + ' 顆 / ' + m.chalRows + ' 列' + (desktop ? (m.chalRows === 1 ? '   ✔' : '   ✘ 桌面應同列') : '   （行動端不判）'), (!desktop || m.chalRows === 1) ? 'ok' : 'bad');
+    P('  橫向利用率     #startMore ' + m.moreW + 'px / ' + w + 'px = ' + m.useW + '%' + (desktop ? (m.useW >= 45 ? '   ✔' : '   ✘ 桌面橫向空間浪費') : '   （行動端不判）'), (!desktop || m.useW >= 45) ? 'ok' : 'bad');
+    if (Q.get('detail')) { const f2 = await boot(w, h); await new Promise(r => setTimeout(r, 120)); detail(f2.win, w, h); f2.f.remove(); }
+  }
+  // 總判定
+  const bad = rows.filter(m => {
+    const desktop = +m.size.split('x')[0] >= 900;
+    // 共同硬條件：零不可達、難度單列、主按鈕首屏
+    if (m.logoClipped || m.diffRows !== 1 || m.primInView === false) return true;
+    // 桌面另加：零溢出、底部不切、挑戰單列、橫向利用率
+    if (desktop && (m.overflow > 0 || m.bottomCut || m.chalRows !== 1 || m.useW < 45)) return true;
+    return false;
+  });
+  P('');
+  P(bad.length ? '判定：不合格（' + bad.length + '/' + rows.length + ' 個尺寸有問題：' + bad.map(m => m.size).join(' ') + '）'
+               : '判定：全部尺寸通過版面不變量（觀感仍需人眼樣張定奪）', bad.length ? 'bad' : 'ok');
+  window.UI_PROBE = { rows, bad: bad.map(m => m.size), text: LINES.join('\n') };
+  P('—— 完成；window.UI_PROBE 有 JSON ——', 'ok');
+}
+main();
+</script>
+</body>
+</html>

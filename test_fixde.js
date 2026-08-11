@@ -5816,6 +5816,48 @@ runPwaTests().then(() => {
       'T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）');
   }
 
+  { /* ===== T428 標題畫面版面修復與桌面現代化：守衛 =====
+       【觀測能力聲明（T419 教條⑬）】Node 端沒有排版引擎，本區**全部是原文前哨**，
+       只能驗「拼寫／存在／不存在」，**不能驗版面**。真正的版面證據是
+       `docs/tools/ui_probe.html` 在真實瀏覽器六個尺寸的輸出（見卡面第 4 節與帳本）。
+       每條斷言訊息都自標前哨身分，避免下一位覆核者把「全綠」誤讀成「版面已驗」。 */
+    // G1 根因不得複發：#start 不可同時是 justify-content:center 與 overflow-y:auto
+    //    （flex 置中＋溢出時起始邊不產生可滾動區 ⇒ 內容被截在滾動起點之上且滾不回來）
+    // 先剝 CSS 註解：本卡註解裡引用了舊寫法當說明，原文釘不剝註解會誤紅（實際踩過一次）
+    const rawSeg428 = html.slice(html.indexOf('#start{position:absolute'), html.indexOf('#start h1{'));
+    const seg428 = rawSeg428.replace(/\/\*[\s\S]*?\*\//g, '');
+    assert(seg428.length > 40 && /justify-content:flex-start/.test(seg428) && !/justify-content:center/.test(seg428),
+      'T428 G1【原文前哨】#start 必須 justify-content:flex-start（改回 center 會讓溢出內容滾不到；'
+      + '實測 BEFORE 1280×720 logo y=-111）——只驗拼寫，版面看 ui_probe');
+    // G2 安全置中墊片（放得下時置中、放不下時貼頂）
+    assert(/#start::before,#start::after\{content:''/.test(html) && /#start::before\{margin-top:auto\}/.test(html)
+      && /#start::after\{margin-bottom:auto\}/.test(html),
+      'T428 G2【原文前哨】安全置中墊片三條（::before/::after ＋ auto margin）必須在場——只驗存在');
+    // G3 特異度倒掛修復：舊選擇器（被 #start .startMore button 壓掉）不得復活
+    assert(/#start \.startMore \.diffbtn\{/.test(html) && !/#start \.diffbtn\{/.test(html),
+      'T428 G3【原文前哨】.diffbtn 必須用 `#start .startMore .diffbtn`（1,2,1）壓過 '
+      + '`#start .startMore button`（1,1,1）；退回 `#start .diffbtn`（1,1,0）會讓四顆難度鈕被迫 13px 而換行成 3+1');
+    // G4 桌面斷點：全檔原本 17 條 @media 沒有一條 min-width
+    const mqMin428 = (html.match(/@media \(min-width:/g) || []).length;
+    assert(mqMin428 >= 1 && /@media \(min-width:900px\)/.test(html),
+      'T428 G4【計數釘】必須至少一條 @media (min-width:…) 桌面斷點（本卡之前全檔為 0），實得 ' + mqMin428);
+    assert(/#start \.startMore\{display:grid/.test(html) && /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/.test(html),
+      'T428 G5【原文前哨】桌面斷點內 .startMore 轉三欄 grid（三顆挑戰鈕各佔一欄＝同列）——只驗拼寫');
+    // G6 垂直節律自適應（gap 固定 14px × 8 個＝112px 是行動端最大單一佔用）
+    assert(/gap:clamp\(6px,1\.15vh,14px\)/.test(html),
+      'T428 G6【原文前哨】#start 垂直節律必須隨視窗高度收放（clamp）；退回固定 14px 會讓行動端內容真高回到約 951px');
+    // G7 逃生閥（T422 慣例：常駐開關＋關閉時走改動前原文）
+    assert(/html\.noT428 #start\{justify-content:center/.test(html)
+      && /window\.__noTitle428&&document\.documentElement&&document\.documentElement\.classList/.test(html),
+      'T428 G7【原文前哨】逃生閥 __noTitle428 的 CSS 回退區與 class 掛載（含 harness 可選保護）必須在場');
+    // G8 契約回歸：本卡差點踩爆的那條——CSS 區不得出現 bNightCity
+    //    （T413b 零亂數釘掃「去註解文本第一個 bNightCity 的 −200/+400 字元窗」，
+    //     一旦 CSS 裡出現該 id，第一次出現就落到 CSS 區，窗口整體位移 ⇒ 假紅/假綠都可能）
+    const cssStart428 = html.indexOf('/* ---------- 開始畫面'), cssEnd428 = html.indexOf('</style>');
+    assert(cssStart428 > 0 && cssEnd428 > cssStart428 && !html.slice(cssStart428, cssEnd428).includes('bNightCity'),
+      'T428 G8【原文前哨】CSS 區不得出現 bNightCity（否則位移 T413b 的 ±字元窗掃描錨點）');
+  }
+
   { // ===== T424 TheoTown 風三鍵美術特化卡：HERO_PIX 三鍵重繪守衛（G1-G6；純讀表＋表驅動像素計數，不依賴重放橋） =====
     const GEOM424={ '6_1_0':[56,71,8,37], '7_1_0':[56,64,8,44], '11':[57,55,9,55] };
     const LEDG424={ '6_1_0':[71,16,2,1673,28], '7_1_0':[64,22,4,1521,158], '11':[55,21,5,2393,29] }; // [rows, pal色數, palN數, 日像素, 夜像素]
