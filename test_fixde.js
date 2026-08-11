@@ -6093,6 +6093,33 @@ runPwaTests().then(() => {
       'T425J G6j 屋頂零亂數：面板／檢修帶不得消耗或 alias 亂數');
   }
 
+  { // ===== T425J R03 商場敘事：導視／入口／後勤／店窗／機電讀點 =====
+    const w0=html.indexOf('function mallWord425J('),w1=html.indexOf('// 牆上窗（含窗台與反光',w0),wordJ=html.slice(w0,w1);
+    assert(w0>0&&w1>w0&&/const glyph=\['101111111101101','010101111101101','100100100100111','100100100100111'\]/.test(wordJ),
+      'T425J G7j 導視：M/A/L/L 四個原創 3×5 glyph 必須固定，不依賴平台字型');
+    const seg65j3=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert((seg65j3.match(/mallWord425J\(sg,ax\+52,222,'#fff8e8'\)/g)||[]).length===1&&
+      /sg\.fillStyle='#b83c2e';sg\.fillRect\(ax\+40,220,40,10\)/.test(seg65j3),
+      'T425J G7j 正式招牌：右翼紅底只接一個 MALL 像素字輸出');
+    assert(/T425J R03 主入口/.test(seg65j3)&&/sg\.fillRect\(ax-1,by-7,2,7\)/.test(seg65j3)&&
+      /ng\.fillRect\(ax-26,by-7,4,5\)/.test(seg65j3),
+      'T425J G8j 入口：中央門縫／門把／資訊燈箱與夜層必須同位');
+    assert(/sg\.fillRect\(58,226,14,11\)/.test(seg65j3)&&/for\(let yy=228;yy<237;yy\+=2\)/.test(seg65j3)&&
+      /ng\.fillRect\(62,224,6,2\)/.test(seg65j3),
+      'T425J G8j 後勤：捲門有分片、安全紋、月台燈，不得只留一塊灰矩形');
+    assert((seg65j3.match(/for\(const x of\[184,192,200,208\]\)/g)||[]).length===1&&
+      /ng\.fillRect\(x\+1,233,3,4\)/.test(seg65j3),
+      'T425J G8j 店窗：右翼四間店窗日夜同位');
+    assert(/T425J R03 屋頂機電讀點/.test(seg65j3)&&/for\(const x of\[ax-58,ax\+58\]\)/.test(seg65j3)&&
+      /for\(const x of\[ax-68,ax\+68\]\)/.test(seg65j3),
+      'T425J G9j 機電讀點：HVAC 風扇與排氣帽帽沿必須成對');
+    assert(/T425J R03 購物車棚/.test(seg65j3)&&/for\(let x=179;x<196;x\+=4\)/.test(seg65j3),
+      'T425J G9j 前庭：購物車棚與消防通道必須存在');
+    const seg65jCode=seg65j3.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand)\s*\(|Math\.random\s*\(/.test(seg65jCode)&&!/\b(?:R|ri|rand)\b\s*(?:=|:)/.test(seg65jCode),
+      'T425J G10j 商場段零亂數：入口／後勤／店窗／前庭不得碰亂數流');
+  }
+
   { // ===== T425F 像素質感：淺描邊＋箱體面工藝（業主反饋「角度對了，像素顯示效果不對」） =====
     // G1f 描邊釘：65 段 outlineSprite 用淺色（TheoTown「避免深色輪廓」）
     assert(/outlineSprite\(s,176,182,192\);g\.drawImage\(s,0,0\); \/\/ T425F 淺描邊/.test(html),

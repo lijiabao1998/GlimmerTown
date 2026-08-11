@@ -1494,6 +1494,12 @@ function mallRoof425J(g,cx,top,hw){
   }
   diaEdge(g,6,'#65513d',cx,top,hw);diaEdge(g,9,'#b4936b',cx,top,hw);
 }
+// T425J R03：3×5 原創 MALL 像素字，避免 Canvas 字型／平台差異；每個點都是可審的導視像素。
+function mallWord425J(g,x,y,col){
+  const glyph=['101111111101101','010101111101101','100100100100111','100100100100111'];
+  g.fillStyle=col;
+  for(let n=0;n<glyph.length;n++)for(let p=0;p<15;p++)if(glyph[n][p]==='1')g.fillRect(x+n*4+(p%3),y+Math.floor(p/3),1,1);
+}
 // 牆上窗（含窗台與反光，跟著牆斜率排），同步畫到夜間圖層
 function windows(g,ng,cx,by,hw,h,rand,litP,opts){
   const o=Object.assign({w:3,ht:4,gx:5,gy:7,glass:'#26314e',lit:'#ffd77a'},opts||{});
@@ -4879,16 +4885,34 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    sg.fillStyle='#fff8e8';sg.fillRect(130,154,3,3);sg.fillRect(138,154,3,3); // T425E MALL 字（字面量——y154 半寬僅 8，收進頂面）
    // T425F 主箱左面中央帶磚紋（菱形下半中央帶 y258..266 x120..144——像素材質工藝）
    sg.fillStyle='rgba(110,90,60,.3)';for(let by2=by-14;by2>by-20;by2-=4){for(let bx2=ax-16;bx2<ax+8;bx2+=6){sg.fillRect(bx2,by2-2,4,1);}}
-   // T425F 右翼箱面 MALL 招牌（後畫覆蓋＝貼面）
-   sg.fillStyle='#b83c2e';sg.fillRect(ax+40,220,40,10);sg.fillStyle='#fff8e8';sg.fillRect(ax+44,222,32,2);sg.fillRect(ax+44,226,32,2);
+   // T425F 右翼箱面 MALL 招牌；T425J 原雙白條升級為原創 3×5 字（後畫覆蓋＝貼面）
+   sg.fillStyle='#b83c2e';sg.fillRect(ax+40,220,40,10);mallWord425J(sg,ax+52,222,'#fff8e8');
    // 入口門（主箱底面前緣；T425D 門框亮上）
    sg.fillStyle='#3a4a44';sg.fillRect(ax-20,by-8,40,8);
    sg.fillStyle='#d9c68a';sg.fillRect(ax-20,by-8,40,1);
    for(let dxx=ax-20;dxx<ax+20;dxx+=8){sg.fillStyle='#5a7468';sg.fillRect(dxx,by-8,1,8);}
+   // T425J R03 主入口：雙層門框、橫樑、門把與兩側資訊燈箱（與入口夜光同位）。
+   sg.fillStyle='#26383c';sg.fillRect(ax-17,by-7,34,1);sg.fillRect(ax-1,by-7,2,7);
+   sg.fillStyle='#9fc7c3';sg.fillRect(ax-15,by-6,1,5);sg.fillRect(ax+14,by-6,1,5);
+   sg.fillStyle='#e8cf78';sg.fillRect(ax-4,by-4,2,1);sg.fillRect(ax+3,by-4,2,1);
+   sg.fillStyle='#d8a83a';sg.fillRect(ax-26,by-8,4,7);sg.fillRect(ax+22,by-8,4,7);
+   ng.fillStyle='#ffe49a';ng.fillRect(ax-26,by-7,4,5);ng.fillRect(ax+22,by-7,4,5);
    // 夜層：招牌塔霓虹＋中庭柔光＋入口暖暈
    ng.fillStyle='#ff8a72';ng.fillRect(ax-1,174,2,14);ng.fillStyle='#fff2c0';ng.fillRect(ax-1,174,2,3);
    ng.fillStyle='rgba(190,225,245,.45)';ng.fillRect(ax-10,by-30,20,28);
    ng.fillStyle='rgba(255,220,150,.65)';ng.fillRect(ax-22,by-7,44,6);
+   // T425J R03 屋頂機電讀點：HVAC 風扇／排氣帽帽沿／連接短風管。
+   for(const x of[ax-58,ax+58]){sg.fillStyle='#46535a';sg.fillRect(x-3,201,6,3);sg.fillStyle='#9ba7a8';sg.fillRect(x-1,201,2,3);}
+   for(const x of[ax-68,ax+68]){sg.fillStyle='#685f55';sg.fillRect(x-3,191,6,2);sg.fillStyle='#d6cec0';sg.fillRect(x-1,188,2,3);}
+   sg.fillStyle='#7f8d90';sg.fillRect(81,206,18,2);sg.fillRect(173,206,18,2);
+   // T425J R03 左側後勤：捲門／安全斜紋／月台燈／防撞柱；右側四間店窗與窗台。
+   sg.fillStyle='#3c4650';sg.fillRect(58,226,14,11);sg.fillStyle='#7d8990';
+   for(let yy=228;yy<237;yy+=2)sg.fillRect(59,yy,12,1);
+   sg.fillStyle='#d4ac38';for(let xx=59;xx<71;xx+=4)sg.fillRect(xx,235,2,2);
+   sg.fillStyle='#aeb8ba';sg.fillRect(56,224,18,2);sg.fillStyle='#d8d1c2';sg.fillRect(56,238,18,2);
+   sg.fillStyle='#d4593d';sg.fillRect(56,235,2,4);sg.fillRect(73,235,2,4);
+   ng.fillStyle='#ffe7a0';ng.fillRect(62,224,6,2);
+   for(const x of[184,192,200,208]){sg.fillStyle='#28394c';sg.fillRect(x,232,5,7);sg.fillStyle='#6fa0b5';sg.fillRect(x+1,233,3,4);sg.fillStyle='#d6c39e';sg.fillRect(x,239,5,1);ng.fillStyle='#ffd77a';ng.fillRect(x+1,233,3,4);}
    // 前庭/車位/車（sg 箱體之後——前方 z 序）
    sg.fillStyle='#b4a896';for(let i=0;i<5;i++){const wy=ay-40+i*4,hw3=Math.max(4,(ay-wy)*2-10);sg.fillRect(ax-(hw3>>1),wy,hw3,2);}
    for(let i=-2;i<=2;i++){sg.fillStyle='rgba(240,240,232,.42)';sg.fillRect(ax+i*20,ay-30,1,7);}
@@ -4912,6 +4936,10 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    // L 裝卸平台＋貨箱堆（卸貨車旁）
    sg.fillStyle='#8a7a5e';sg.fillRect(80,226,12,2);
    sg.fillStyle='#b8a582';sg.fillRect(80,219,7,6);sg.fillRect(89,221,7,4);sg.fillStyle='#8a6f50';sg.fillRect(81,221,5,3);sg.fillRect(90,223,5,1);
+   // T425J R03 購物車棚／消防通道：前庭功能物而非散點紋理。
+   sg.fillStyle='#6d7780';sg.fillRect(176,240,22,2);sg.fillRect(176,240,1,8);sg.fillRect(197,240,1,8);
+   sg.fillStyle='#b9c3c7';for(let x=179;x<196;x+=4){sg.fillRect(x,243,3,1);sg.fillRect(x+2,244,1,2);}
+   sg.fillStyle='#c64b36';for(let x=92;x<116;x+=6)sg.fillRect(x,244,4,1);
    // M 購物者小人（TheoTown 比例 3px：頭 1＋身 2；決定性座標零亂數）
    [[110,240,'#e05252'],[118,241,'#3a6ea5'],[120,264,'#3a6ea5'],[152,264,'#d8c84a'],[69,237,'#4a4a52']].forEach(([px2,py2,cc2])=>{sg.fillStyle='#20242c';sg.fillRect(px2,py2,1,1);sg.fillStyle=cc2;sg.fillRect(px2,py2+1,2,2);});
    // N 夜間補充：廣場地燈
