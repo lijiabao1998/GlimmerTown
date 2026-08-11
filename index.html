@@ -1474,25 +1474,30 @@ function boxUnit(g,ng,cx,by,hw,h,cL,cR,cTop,opts){
   }
   return rty;
 }
-// T425J R02：購物中心屋頂面板。以等距 u/v 軸分板、收縫與檢修帶取代巨型單色面；buildSprites 一次性、零亂數。
-function mallRoof425J(g,cx,top,hw){
-  const pal=['#967a59','#80674b','#a08360','#745d45'],seam='#5d4b39';
+// T425K K1：購物中心低頻屋面。沿等距 u/v 軸保留大分區、收縫與單一檢修脊；buildSprites 一次性、零亂數。
+function mallRoof425K(g,cx,top,hw){
+  const pal=['#92795f','#86705a','#9a8268'],seam='#665444',walk='#b39b79',cell=24;
   for(let y=top+2;y<top+hw-2;y++){
     const dy=y-top,span=dy<=hw/2?dy*2:(hw-dy)*2;
     for(let x=cx-span+2;x<=cx+span-2;x++){
-      const dx=x-cx,u=dy*2+dx,v=dy*2-dx,iu=Math.floor(u/10),iv=Math.floor(v/10),fu=u%10,fv=v%10;
-      g.fillStyle=(fu===0||fv===0)?seam:(fu===5&&fv===5?'#cbb68a':pal[(iu+iv)&3]);g.fillRect(x,y,1,1);
-    }
-  }
-  // 兩條淺色維修動線沿等距軸穿過屋頂；後續箱體自然遮蔽，保持正確 z 序。
-  for(let y=top+8;y<top+hw-8;y++){
-    const dy=y-top,span=dy<=hw/2?dy*2:(hw-dy)*2;
-    for(let x=cx-span+3;x<=cx+span-3;x++){
-      const dx=x-cx,u=dy*2+dx,v=dy*2-dx;
-      if((u>=54&&u<=56)||(v>=54&&v<=56)){g.fillStyle='#b7aa8e';g.fillRect(x,y,1,1);}
+      const dx=x-cx,u=dy*2+dx,v=dy*2-dx,fu=u%cell,fv=v%cell;
+      const zone=(u>=hw?1:0)+(v>=hw?1:0);
+      g.fillStyle=(u>=hw-1&&u<=hw+1)?walk:((fu===0||fv===0)?seam:pal[zone]);g.fillRect(x,y,1,1);
     }
   }
   diaEdge(g,6,'#65513d',cx,top,hw);diaEdge(g,9,'#b4936b',cx,top,hw);
+}
+// T425K K2：抬高中庭向東南投下的階梯陰影；只畫在主屋面、先於中庭落筆。
+function mallCast425K(g,cx,y){
+  for(let n=0;n<10;n++){
+    g.fillStyle=n<4?'rgba(48,39,31,.28)':'rgba(48,39,31,.17)';
+    g.fillRect(cx+12+n*2,y+n,30-n*2,1);
+  }
+}
+// T425K K3：入口暖光由寬到窄形成連續光毯，不以散點堆氣氛。
+function mallGlow425K(g,cx,by){
+  const bands=[[34,by+1,2,'.18'],[27,by+3,3,'.24'],[19,by+6,3,'.30']];
+  for(const[hw,y,h,a]of bands){g.fillStyle='rgba(255,203,116,'+a+')';g.fillRect(cx-hw,y,hw*2,h);}
 }
 // T425J R03：3×5 原創 MALL 像素字，避免 Canvas 字型／平台差異；每個點都是可審的導視像素。
 function mallWord425J(g,x,y,col){
@@ -4851,7 +4856,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    const[c,g]=cv(272,280),[nc,ng]=cv(272,280),[s,sg]=cv(272,280);const ax=136,ay=278;
    dia(g,ax,ay-128,128,'#a89e8e'); // 4×4 廣場鋪面底
    diaEdge(g,6,'#837c6e',ax,ay-128,128);diaEdge(g,9,'#b8ae9c',ax,ay-128,128);
-   const mcarC=['#c0402e','#3a6ea5','#d8c84a','#4a4a52']; // T425E：前庭/車位/車移至 sg（箱體之後覆蓋＝前方 z 序）
+   const mcarC=['#8b493c','#496b7b','#8b493c','#496b7b']; // T425K K3：前庭車色收斂為磚紅／灰藍兩色，不用彩虹散點製造豐富度
    // T303 重畫（玩家「美術突兀」）：冷玻璃大板→暖色三段式體量（左翼低/右翼中高/中庭玻璃僅點綴）＋
    // 底層彩色店面帶（紅/青/金遮陽棚＝呼應全城商業風）＋暖石簷口＋分翼屋頂線。融入暖磚像素城市。
    // T425 重排：全部元素收進 4×4 footprint 菱形（半寬128/半高64 中心 (136,214)，±2px 容差驗算器 _ds/t425_check65.py）
@@ -4860,19 +4865,20 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    //     箱體底全在 4×4 菱形內，側面下半由 T425 尾部貼合貼合＝底部貼合格子） =====
    // T425E：接地由 isoBox 底部 AO（rgba .13 ×3px）提供——與 v1-v4 語彙一致（右落偏移陰影取消）
    boxUnit(sg,ng,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50',{win:{gx:10,ht:5,lit:.55},tex:'brick'}); // T425I 主箱（boxUnit：色階/稜線/窗洞/節奏點/磚紋）
-   mallRoof425J(sg,ax,150,96); // T425J R02 主屋頂：40×40 等距面板／收縫／檢修帶
+   mallRoof425K(sg,ax,150,96); // T425K K1 主屋頂：大分區／24 單位收縫／單一檢修脊
    boxUnit(sg,ng,ax-58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'); // T425J HVAC L
    boxUnit(sg,ng,ax+58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'); // T425J HVAC R
-   boxUnit(sg,ng,ax-68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 L
-   boxUnit(sg,ng,ax+68,200,4,7,'#b8b0a2','#81796e','#d2cabd'); // T425J 排氣帽 R
+   boxUnit(sg,ng,ax-68,200,4,7,'#aeb6b6','#7c888b','#c8ceca'); // T425K K3 排氣帽 L（與 HVAC 共用金屬色）
+   boxUnit(sg,ng,ax+68,200,4,7,'#aeb6b6','#7c888b','#c8ceca'); // T425K K3 排氣帽 R（與 HVAC 共用金屬色）
    boxUnit(sg,ng,ax-44,ay,40,24,'#cdb694','#a08a72','#7a6a52',{win:{gx:8,ht:4,lit:.5}}); // T425I 左翼箱（窗洞）
-   mallRoof425J(sg,ax-44,214,40); // T425J R04 左翼屋頂同系分板（非散點）
+   mallRoof425K(sg,ax-44,214,40); // T425K K1 左翼屋頂同系大分區
    boxUnit(sg,ng,ax+44,ay,44,30,'#c8b498','#8a7058','#6e5a44',{win:{gx:8,ht:4,lit:.5}}); // T425I 右翼箱（窗洞）
-   mallRoof425J(sg,ax+44,204,44); // T425J R04 右翼屋頂同系分板（非散點）
-   boxUnit(sg,ng,ax,198,24,24,'#90b8cc','#5a7a8a','#7ca4b8');     // 中庭玻璃箱（疊主箱頂面中心，頂 y=150）
-   boxUnit(sg,ng,ax-16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4');  // 天窗箱左（cx120——y158 半寬僅16，內移）
-   boxUnit(sg,ng,ax+16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4');  // 天窗箱右（cx152）
-   boxUnit(sg,ng,ax,174,6,14,'#b83c2e','#8a2a1e','#c0453a');      // 招牌塔（細高，中庭箱頂）
+   mallRoof425K(sg,ax+44,204,44); // T425K K1 右翼屋頂同系大分區
+   mallCast425K(sg,ax,178); // T425K K2 中庭東南向投影（先影後樓，主體高度可讀）
+   boxUnit(sg,ng,ax,198,30,30,'#90b8cc','#4d6f80','#84acbf');     // T425K K2 抬高中庭（頂 y=138；加寬減高，讀作中庭而非煙囪）
+   boxUnit(sg,ng,ax-16,180,12,10,'#90b8cc','#4d6f80','#84acbf');  // T425K K3 天窗箱左（與中庭共用玻璃色）
+   boxUnit(sg,ng,ax+16,180,12,10,'#90b8cc','#4d6f80','#84acbf');  // T425K K3 天窗箱右（與中庭共用玻璃色）
+   boxUnit(sg,ng,ax,166,6,26,'#aa4336','#772d25','#c85b4c');      // T425K K2 招牌塔（立於抬高中庭頂，頂 y=134）
    boxUnit(sg,ng,ax,246,30,4,'#b83c2e','#8a2a1e','#d8695a');      // 入口雨棚薄板（主箱底面前緣）
    boxUnit(sg,ng,ax-24,190,16,12,'#cdb694','#a08a72','#8a6f50');  // T425G 次箱 L（主箱頂對稱）
    boxUnit(sg,ng,ax+24,190,16,12,'#cdb694','#a08a72','#8a6f50');  // T425G 次箱 R（主箱頂對稱——棱角規律）
@@ -4900,9 +4906,9 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    sg.fillStyle='#d8a83a';sg.fillRect(ax-26,by-8,4,7);sg.fillRect(ax+22,by-8,4,7);
    ng.fillStyle='#ffe49a';ng.fillRect(ax-26,by-7,4,5);ng.fillRect(ax+22,by-7,4,5);
    // 夜層：招牌塔霓虹＋中庭柔光＋入口暖暈
-   ng.fillStyle='#ff8a72';ng.fillRect(ax-1,174,2,14);ng.fillStyle='#fff2c0';ng.fillRect(ax-1,174,2,3);
-   ng.fillStyle='rgba(190,225,245,.45)';ng.fillRect(ax-10,by-30,20,28);
-   ng.fillStyle='rgba(255,220,150,.65)';ng.fillRect(ax-22,by-7,44,6);
+   ng.fillStyle='#ff8a72';ng.fillRect(ax-1,150,2,14);ng.fillStyle='#fff2c0';ng.fillRect(ax-1,150,2,4);
+   ng.fillStyle='rgba(255,218,164,.34)';ng.fillRect(ax-10,by-30,9,28);ng.fillRect(ax+1,by-30,9,28);
+   ng.fillStyle='rgba(255,220,150,.65)';ng.fillRect(ax-22,by-7,44,6);mallGlow425K(ng,ax,by);
    // T425J R03 屋頂機電讀點：HVAC 風扇／排氣帽帽沿／連接短風管。
    for(const x of[ax-58,ax+58]){sg.fillStyle='#46535a';sg.fillRect(x-3,201,6,3);sg.fillStyle='#9ba7a8';sg.fillRect(x-1,201,2,3);}
    for(const x of[ax-68,ax+68]){sg.fillStyle='#685f55';sg.fillRect(x-3,191,6,2);sg.fillStyle='#d6cec0';sg.fillRect(x-1,188,2,3);}
@@ -4934,7 +4940,7 @@ SPR.bld['77_1_0']={img:c,night:nc,ax,ay,w:72,h:112,smoke:[]};}
    // J 植栽帶（噴泉兩側灌木叢）
    for(const bx3 of[112,152]){sg.fillStyle='#3a6a30';sg.fillRect(bx3,263,8,2);sg.fillStyle='#4f8a44';sg.fillRect(bx3-1,260,10,4);sg.fillStyle='#63a552';sg.fillRect(bx3,259,6,2);}
    // K 旗桿陣（入口兩側＋中央：三桿三色）
-   for(const[fqx,fqc]of[[104,'#e05252'],[132,'#5aa0e8'],[166,'#dbb42c']]){sg.fillStyle='#8b95a5';sg.fillRect(fqx,226,1,16);sg.fillStyle=fqc;sg.fillRect(fqx-2,223,5,3);}
+   for(const[fqx,fqc]of[[104,'#9b4b3f'],[132,'#d8c798'],[166,'#547585']]){sg.fillStyle='#8b95a5';sg.fillRect(fqx,226,1,16);sg.fillStyle=fqc;sg.fillRect(fqx-2,223,5,3);}
    // L 裝卸平台＋貨箱堆（卸貨車旁）
    sg.fillStyle='#8a7a5e';sg.fillRect(80,226,12,2);
    sg.fillStyle='#b8a582';sg.fillRect(80,219,7,6);sg.fillRect(89,221,7,4);sg.fillStyle='#8a6f50';sg.fillRect(81,221,5,3);sg.fillRect(90,223,5,1);

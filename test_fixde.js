@@ -399,6 +399,10 @@ window.__t383TaxCase=function(){
     R=oldR;hasRoadNear=oldRoad;computePower=oldPower;computeWater=oldWater;disastersOn=oldDis;window.__taxFbk=null;
   }
 };
+window.__t425K=function(){ // T425K 測試橋：重放三個決定性 helper；只存在 harness 注入，不污染正式 index/GV。
+  const run=function(fn,args){let fillStyle='',ops=[];const g={fillRect:function(){ops.push({col:fillStyle,rect:Array.from(arguments).map(Number)});}};Object.defineProperty(g,'fillStyle',{get:function(){return fillStyle;},set:function(v){fillStyle=String(v);}});fn.apply(null,[g].concat(args));return ops;};
+  const s=SPR.bld['65_1_0'];return{roof:function(cx,top,hw){return run(mallRoof425K,[cx,top,hw]);},cast:function(cx,y){return run(mallCast425K,[cx,y]);},glow:function(cx,by){return run(mallGlow425K,[cx,by]);},meta:{w:s.w,h:s.h,ax:s.ax,ay:s.ay}};
+};
 window.__t420SPR=SPR; // T420 測試橋：直讀 SPR 全鍵 record（G2 metadata 直讀釘——sprAtlas356 的 w/h 是 img.width 推導，看不到 record 原值；harness 注入零污染）
 window.__t420Replay=function(keys){ // T420 G3/G4 真像素重放橋：白名單鍵 img 換 T417 真像素 canvas，重放 pass 段（剝註釋正文），回傳逐鍵 ops/ink/色票/rects
   const htmlTxt=require('fs').readFileSync(require('path').join(__dirname,'index.html'),'utf8');
@@ -5922,16 +5926,16 @@ runPwaTests().then(() => {
       'T425A G3 噴泉：中央噴泉水盤（128,262,16,4）必須存在（T425A 豐富度 A-H）');
     assert(/E 屋頂花園（T425F 刪除——中庭箱\/天窗已佔滿頂面，花園與招牌互斥）/.test(html),
       'T425A G3 花園：屋頂花園已刪（T425F——頂面被中庭箱/天窗/招牌佔滿）；植栽語義由噴泉側灌木承接');
-    assert(/boxUnit\(sg,ng,ax,174,6,14,'#b83c2e','#8a2a1e','#c0453a'\)/.test(html)&&/ng\.fillStyle='#ff8a72';ng\.fillRect\(ax-1,174,2,14\)/.test(html),
-      'T425A G3 霓虹：招牌塔（細箱＋塔頂霓虹）必須存在（箱體化後側牆霓虹改塔霓虹）');
+    assert(/boxUnit\(sg,ng,ax,166,6,26,'#aa4336','#772d25','#c85b4c'\)/.test(html)&&/ng\.fillStyle='#ff8a72';ng\.fillRect\(ax-1,150,2,14\)/.test(html),
+      'T425A G3 霓虹：T425K 抬高中庭招牌塔（頂 y=134）與同位夜霓虹必須存在');
     assert(/sg\.fillStyle='#b8a582';sg\.fillRect\(80,219,7,6\)/.test(html),
       'T425A G3 貨箱：裝卸區貨箱堆必須存在（配送區豐富度）');
     assert(/fillStyle='#20242c';sg\.fillRect\(px2,py2,1,1\)/.test(html),
       'T425A G3 小人：決定性購物者小人（3px 頭身，TheoTown 比例）必須存在');
-    assert(/for\(const\[fqx,fqc\]of\[\[104,'#e05252'\]/.test(html),
-      'T425A G3 旗桿：三色旗桿陣必須存在');
+    assert(/for\(const\[fqx,fqc\]of\[\[104,'#9b4b3f'\],\[132,'#d8c798'\],\[166,'#547585'\]\]\)/.test(html),
+      'T425A G3 旗桿：T425K 收斂後磚紅／米金／灰藍三色旗桿陣必須存在');
     // G4 夜層釘：霓虹／噴泉燈／地燈必須入 ng（夜間豐富度）
-    assert(/ng\.fillStyle='#ff8a72';ng\.fillRect\(ax-1,174,2,14\)/.test(html),
+    assert(/ng\.fillStyle='#ff8a72';ng\.fillRect\(ax-1,150,2,14\)/.test(html),
       'T425A G4 夜層：側招牌霓虹必須在 ng（夜亮）');
     assert(/ng\.fillStyle='rgba\(140,200,240,\.6\)';ng\.fillRect\(133,258,6,3\)/.test(html),
       'T425A G4 夜層：噴泉燈必須在 ng');
@@ -5982,8 +5986,8 @@ runPwaTests().then(() => {
       'T425C G3c 箱體：左翼箱 isoBox(ax-44,ay,40,24)（矮）必須存在');
     assert(/boxUnit\(sg,ng,ax\+44,ay,44,30,'#c8b498','#8a7058','#6e5a44',\{win:\{gx:8,ht:4,lit:\.5\}\}\)/.test(html),
       'T425C G3c 箱體：右翼箱 isoBox(ax+44,ay,44,30)（中高）必須存在');
-    assert(/boxUnit\(sg,ng,ax,198,24,24,'#90b8cc','#5a7a8a','#7ca4b8'\)/.test(html),
-      'T425C G3c 箱體：中庭玻璃箱 isoBox(ax,198,24,24)（疊主箱頂面）必須存在');
+    assert(/boxUnit\(sg,ng,ax,198,30,30,'#90b8cc','#4d6f80','#84acbf'\)/.test(html),
+      'T425C G3c 箱體：T425K 中庭玻璃箱 boxUnit(ax,198,30,30)（頂 y=138，加寬減高）必須存在');
   }
 
   { // ===== T425E 結構化 2.5D：多箱體等距組合（業主反饋「結構化的接近 2.5d」；isoBox 語彙與 v1-v4 統一） =====
@@ -5997,12 +6001,13 @@ runPwaTests().then(() => {
     assert(/boxUnit\(sg,ng,ax,ay,96,32,'#dcc7a6','#b89f82','#8a6f50',\{win:\{gx:10,ht:5,lit:\.55\},tex:'brick'\}\)/.test(html),
       'T425E G2e 幾何：主箱（ax,ay,96,32——半寬96 高32，頂面頂恰齊菱形頂）');
     // G3e 菱形內含：箱體包圍盒驗算（頂面菱形＋側面，±2px；下半由 T425 尾部貼合）
-    const boxes65e=[[136,278,96,32,'主箱'],[92,278,40,24,'左翼'],[180,278,44,30,'右翼'],[136,198,24,24,'中庭'],[120,180,12,10,'天窗L'],[152,180,12,10,'天窗R'],[136,174,6,14,'招牌塔'],[136,246,30,4,'雨棚'],[112,190,16,12,'次箱L'],[160,190,16,12,'次箱R'],[92,240,16,12,'翼頂L'],[180,240,16,12,'翼頂R'],[136,262,16,4,'台階1'],[136,252,20,4,'台階2']];
+    const boxes65e=[[136,278,96,32,'主箱',0],[92,278,40,24,'左翼',0],[180,278,44,30,'右翼',0],[136,198,30,30,'中庭',1],[120,180,12,10,'天窗L',0],[152,180,12,10,'天窗R',0],[136,166,6,26,'招牌塔',1],[136,246,30,4,'雨棚',0],[112,190,16,12,'次箱L',0],[160,190,16,12,'次箱R',0],[92,240,16,12,'翼頂L',0],[180,240,16,12,'翼頂R',0],[136,262,16,4,'台階1',0],[136,252,20,4,'台階2',0]];
     const g3e=[];
-    for(const[cx2,by2,hw2,h2,nm]of boxes65e){
+    for(const[cx2,by2,hw2,h2,nm,elev]of boxes65e){
       const top2=by2-h2-hw2; // 頂面菱形（isoBox）：頂(cx,top)、左右(cx±hw, top+hw/2)、底(cx, top+hw)
       const pts2=[[cx2,top2],[cx2-hw2,top2+hw2/2],[cx2+hw2,top2+hw2/2],[cx2,top2+hw2]];
       for(const[px2,py2]of pts2){
+        if(elev){if(py2<130||py2>200||Math.abs(px2-136)>30)g3e.push(nm+' elevated@('+px2+','+py2+')');continue;}
         if(py2<150||py2>278){g3e.push(nm+'@('+px2+','+py2+')');continue;}
         const hwD=128*(1-Math.abs(py2-214)/64);
         if(Math.abs(px2-136)>hwD+2)g3e.push(nm+'@('+px2+','+py2+') hwD='+hwD.toFixed(0));
@@ -6015,10 +6020,10 @@ runPwaTests().then(() => {
     assert(/fillStyle='#20242c';sg\.fillRect\(px2,py2,1,1\)/.test(html),
       'T425E G4e 地面件：購物者小人保留');
     // G5e 箱體完整性：天窗/招牌塔/雨棚/翼箱窗（結構化組合全件）
-    assert(/boxUnit\(sg,ng,ax-16,180,12,10,'#9cc0d4','#5a7a8a','#7a95c4'\)/.test(html),
-      'T425E G5e 箱體：天窗箱左（cx120——y158 半寬僅 16 內移）必須存在');
-    assert(/boxUnit\(sg,ng,ax,174,6,14,'#b83c2e','#8a2a1e','#c0453a'\)/.test(html),
-      'T425E G5e 箱體：招牌塔（細高箱，中庭箱頂）必須存在');
+    assert(/boxUnit\(sg,ng,ax-16,180,12,10,'#90b8cc','#4d6f80','#84acbf'\)/.test(html),
+      'T425E G5e 箱體：T425K 天窗箱左與中庭共用玻璃色（減少孤立色票）');
+    assert(/boxUnit\(sg,ng,ax,166,6,26,'#aa4336','#772d25','#c85b4c'\)/.test(html),
+      'T425E G5e 箱體：T425K 招牌塔（頂 y=134，立於抬高中庭）必須存在');
     assert(/boxUnit\(sg,ng,ax,246,30,4,'#b83c2e','#8a2a1e','#d8695a'\)/.test(html),
       'T425E G5e 箱體：入口雨棚薄板（主箱底面前緣）必須存在');
     assert(/boxUnit\(sg,ng,ax-44,ay,40,24,'#cdb694','#a08a72','#7a6a52',\{win:\{gx:8,ht:4,lit:\.5\}\}\)/.test(html),
@@ -6072,22 +6077,22 @@ runPwaTests().then(() => {
   }
 
   { // ===== T425J R02 屋頂系統：面板／收縫／檢修帶／機電 =====
-    const r0=html.indexOf('function mallRoof425J('),r1=html.indexOf('// 牆上窗（含窗台與反光',r0),roofJ=html.slice(r0,r1);
-    assert(r0>0&&r1>r0&&/const pal=\['#967a59','#80674b','#a08360','#745d45'\],seam='#5d4b39'/.test(roofJ),
-      'T425J G4j 屋頂：四面板色＋深收縫的單一 helper 必須存在');
-    assert(/u=dy\*2\+dx,v=dy\*2-dx/.test(roofJ)&&/Math\.floor\(u\/10\)/.test(roofJ)&&/fu===0\|\|fv===0/.test(roofJ),
-      'T425J G4j 屋頂：分板必須沿等距 u/v 軸且每 10 單位收縫，不得改成螢幕水平噪點');
-    assert(/u>=54&&u<=56/.test(roofJ)&&/v>=54&&v<=56/.test(roofJ),
-      'T425J G4j 維修：兩條檢修動線須沿 u/v 軸且寬度固定');
+    const r0=html.indexOf('function mallRoof425K('),r1=html.indexOf('// 牆上窗（含窗台與反光',r0),roofJ=html.slice(r0,r1);
+    assert(r0>0&&r1>r0&&/const pal=\['#92795f','#86705a','#9a8268'\],seam='#665444',walk='#b39b79',cell=24/.test(roofJ),
+      'T425J G4j→T425K 屋頂：三個大面色＋收縫＋檢修脊的單一 helper 必須存在');
+    assert(/u=dy\*2\+dx,v=dy\*2-dx/.test(roofJ)&&/fu=u%cell,fv=v%cell/.test(roofJ)&&/fu===0\|\|fv===0/.test(roofJ),
+      'T425J G4j→T425K 屋頂：分板仍沿等距 u/v 軸，但 cell=24 降低高頻噪點');
+    assert(/u>=hw-1&&u<=hw\+1/.test(roofJ)&&!/v>=hw-1&&v<=hw\+1/.test(roofJ),
+      'T425J G4j→T425K 維修：只保留一條 u 軸檢修脊，不恢復雙十字噪點');
     const seg65j=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
-    assert((seg65j.match(/mallRoof425J\(sg,ax,150,96\)/g)||[]).length===1,
-      'T425J G5j 接線：正式 k65 主屋頂恰呼叫一次 mallRoof425J（不重複鋪面）');
-    assert((seg65j.match(/T425J HVAC [LR]/g)||[]).length===2&&(seg65j.match(/T425J 排氣帽 [LR]/g)||[]).length===2,
+    assert((seg65j.match(/mallRoof425K\(sg,ax,150,96\)/g)||[]).length===1,
+      'T425J G5j→T425K 接線：正式 k65 主屋頂恰呼叫一次 mallRoof425K（不重複鋪面）');
+    assert((seg65j.match(/T425J HVAC [LR]/g)||[]).length===2&&(seg65j.match(/T425K K3 排氣帽 [LR]/g)||[]).length===2,
       'T425J G5j 機電：HVAC 與排氣帽各左右成對，四件可命名屋頂設備不能被刪');
     assert(/\n   boxUnit\(sg,ng,ax-58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j)&&
       /\n   boxUnit\(sg,ng,ax\+58,212,8,6,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j)&&
-      /\n   boxUnit\(sg,ng,ax-68,200,4,7,'#b8b0a2','#81796e','#d2cabd'\)/.test(seg65j)&&
-      /\n   boxUnit\(sg,ng,ax\+68,200,4,7,'#b8b0a2','#81796e','#d2cabd'\)/.test(seg65j),
+      /\n   boxUnit\(sg,ng,ax-68,200,4,7,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j)&&
+      /\n   boxUnit\(sg,ng,ax\+68,200,4,7,'#aeb6b6','#7c888b','#c8ceca'\)/.test(seg65j),
       'T425J G5j 機電活線：四件設備必須是直接執行行，包 if(false) 或改座標都判紅');
     const roofUnits=[[78,212,8,6],[194,212,8,6],[68,200,4,7],[204,200,4,7]],roofBad=[];
     for(const[cx,by,hw,h]of roofUnits){for(const[x,y]of[[cx,by-h-hw],[cx-hw,by-h-hw/2],[cx+hw,by-h-hw/2],[cx,by-h]]){
@@ -6130,16 +6135,52 @@ runPwaTests().then(() => {
 
   { // ===== T425J R04 密度收斂：左右翼屋頂同系分板 =====
     const seg65j4=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
-    assert((seg65j4.match(/mallRoof425J\(sg,/g)||[]).length===3,
+    assert((seg65j4.match(/mallRoof425K\(sg,/g)||[]).length===3,
       'T425J G11j 屋頂接線：主箱＋左右翼恰三個不同 roof 面，不得漏翼或重畫同一面');
-    assert((seg65j4.match(/mallRoof425J\(sg,ax-44,214,40\)/g)||[]).length===1&&
-      (seg65j4.match(/mallRoof425J\(sg,ax\+44,204,44\)/g)||[]).length===1,
+    assert((seg65j4.match(/mallRoof425K\(sg,ax-44,214,40\)/g)||[]).length===1&&
+      (seg65j4.match(/mallRoof425K\(sg,ax\+44,204,44\)/g)||[]).length===1,
       'T425J G11j 翼頂幾何：左右翼各自使用既有 boxUnit 的精確 top/hw');
-    assert(/T425J R04 左翼屋頂同系分板/.test(seg65j4)&&/T425J R04 右翼屋頂同系分板/.test(seg65j4),
+    assert(/T425K K1 左翼屋頂同系大分區/.test(seg65j4)&&/T425K K1 右翼屋頂同系大分區/.test(seg65j4),
       'T425J G11j 意圖：翼頂收斂必須是可命名分板，不是無語義散點');
-    const roofJ4=html.slice(html.indexOf('function mallRoof425J('),html.indexOf('function mallWord425J('));
-    assert(/fu===5&&fv===5\?'#cbb68a'/.test(roofJ4),
-      'T425J G12j 面板扣：每塊屋面板中心只有一顆規律檢修扣，不得以任意散點刷密度');
+    const roofJ4=html.slice(html.indexOf('function mallRoof425K('),html.indexOf('function mallWord425J('));
+    assert(/cell=24/.test(roofJ4)&&!/fu===\d+&&fv===\d+/.test(roofJ4),
+      'T425J G12j→T425K 降噪：24 單位大分區且不再畫每板中心扣點');
+  }
+
+  { // ===== T425K 購物中心氛圍與立體收斂：低頻屋面／抬高中庭／連續暖光 =====
+    const h0k=html.indexOf('function mallRoof425K('),h1k=html.indexOf('// 牆上窗（含窗台與反光',h0k);
+    const helpers425k=html.slice(h0k,h1k),seg425k=html.slice(html.indexOf('{ // T290 大型購物中心 65_1_0'),html.indexOf("SPR.bld['65_1_0']={img:c,night:nc,ax,ay,w:272,h:280,smoke:[]};"));
+    assert(h0k>0&&h1k>h0k&&/function mallCast425K\(/.test(helpers425k)&&/function mallGlow425K\(/.test(helpers425k),
+      'T425K G1 helper：低頻屋面／投影／入口光毯三個決定性 helper 必須在同一可完整切片區');
+    const code425k=(helpers425k+seg425k).replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/.*$/gm,'');
+    assert(!/\b(?:R|ri|rand|vri)\s*\(|Math\.random\s*\(|Date\.now\s*\(|performance\.now\s*\(/.test(code425k)&&
+      !/\b(?:R|ri|rand|vri)\b\s*(?:=|:)|(?:=|:)\s*\b(?:R|ri|rand|vri)\b|Math\.random\s*(?:=|:)|(?:=|:)\s*Math\.random\b/.test(code425k),
+      'T425K G1 零亂數：三 helper＋完整 k65 段禁 R/ri/rand/vri/Math.random、alias 與牆鐘');
+    assert((html.match(/mallRoof425K\(/g)||[]).length===4&&(html.match(/mallCast425K\(/g)||[]).length===2&&(html.match(/mallGlow425K\(/g)||[]).length===2,
+      'T425K G2 白名單接線：roof 定義+三屋面、cast/glow 各定義+一接線；多一處即可能污染別鍵');
+    assert((seg425k.match(/mallRoof425K\(sg,/g)||[]).length===3&&/mallRoof425K\(sg,ax,150,96\)/.test(seg425k)&&
+      /mallRoof425K\(sg,ax-44,214,40\)/.test(seg425k)&&/mallRoof425K\(sg,ax\+44,204,44\)/.test(seg425k),
+      'T425K G2 三屋面：主／左翼／右翼各恰一次，不漏畫也不重複鋪面');
+    const iCast425k=seg425k.indexOf('mallCast425K(sg,ax,178)'),iAtr425k=seg425k.indexOf("boxUnit(sg,ng,ax,198,30,30,'#90b8cc','#4d6f80','#84acbf')");
+    assert(iCast425k>0&&iAtr425k>iCast425k&&198-30-30===138&&138<150,
+      'T425K G3 立體：投影須先於抬高中庭；中庭頂 y=138 明確高於主屋頂 y=150');
+    const api425k=window.__t425K();
+    assert(JSON.stringify(api425k.meta)===JSON.stringify({w:272,h:280,ax:136,ay:278}),
+      'T425K G4 metadata：k65 record 精確維持 272×280／ax136／ay278');
+    const roofOps425k=api425k.roof(136,150,96),roofCols425k=[...new Set(roofOps425k.map(o=>o.col))];
+    assert(roofOps425k.length>5000&&roofCols425k.length===7&&roofCols425k.includes('#b39b79')&&roofCols425k.includes('#665444'),
+      'T425K G5 屋面重放：大面／收縫／單脊／雙邊緣共 7 色且真的大量落筆，實得 '+roofOps425k.length+'/'+roofCols425k.join(','));
+    const castOps425k=api425k.cast(136,178);
+    assert(castOps425k.length===10&&JSON.stringify(castOps425k[0].rect)==='[148,178,30,1]'&&JSON.stringify(castOps425k[9].rect)==='[166,187,12,1]',
+      'T425K G6 投影重放：東南階梯陰影恰 10 列，由 30px 收至 12px（移位／刪列即紅）');
+    const glowOps425k=api425k.glow(136,238);
+    assert(glowOps425k.length===3&&JSON.stringify(glowOps425k.map(o=>o.rect))==='[[102,239,68,2],[109,241,54,3],[117,244,38,3]]',
+      'T425K G7 光毯重放：入口暖光恰三層、由寬到窄且連續，禁止散點化');
+    assert(/const mcarC=\['#8b493c','#496b7b','#8b493c','#496b7b'\]/.test(seg425k)&&
+      /\[\[104,'#9b4b3f'\],\[132,'#d8c798'\],\[166,'#547585'\]\]/.test(seg425k),
+      'T425K G8 色票收斂：車只用磚紅／灰藍兩色；旗面只用磚紅／米金／灰藍三色');
+    const float65k=window.GV.sprNightAudit().filter(r=>r.key==='65_1_0');
+    assert(float65k.length===0,'T425K G9 夜層：k65 夜光不得落在日間透明像素，實得 '+JSON.stringify(float65k));
   }
 
   { // ===== T425F 像素質感：淺描邊＋箱體面工藝（業主反饋「角度對了，像素顯示效果不對」） =====
