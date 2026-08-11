@@ -57,7 +57,18 @@ function measure(win, w, h) {
   const q = s => D.querySelector(s);
   const vis = e => !!(e && e.getClientRects().length && win.getComputedStyle(e).visibility !== 'hidden');
 
-  const overflow = S.scrollHeight - S.clientHeight;            // >0 = 標題畫面在此尺寸溢出
+  const overflow = S.scrollHeight - S.clientHeight;            // >0 = 標題畫面在此尺寸垂直溢出
+  /* 水平軸：第一版探針只量垂直，是**盲點**——1440×900 的樣張全綠，但 390×844 的
+     「地圖 72×72」鈕被切在右緣外（實測 .settingsGrid r=407 > vw=390，需水平滾動才點得到）。
+     水平溢出比垂直嚴重：橫向滾動在觸控上幾乎不會被發現，直接等於「按不到」。
+     這一條在 BEFORE 與 AFTER 都紅過（既存問題，非某一卡引入），修好才轉綠。 */
+  const hScroll = S.scrollWidth - S.clientWidth;               // 目標：0（任何尺寸都不該橫向滾）
+  const overWide = [...S.querySelectorAll('*')].filter(e => {
+    if (!vis(e)) return false;
+    const r = e.getBoundingClientRect();
+    return r.left < -0.5 || r.right > w + 0.5;
+  }).map(e => (e.tagName + (e.id ? '#' + e.id : (e.className ? '.' + ((e.className || '') + '').split(' ')[0] : ''))
+    + '[' + Math.round(e.getBoundingClientRect().left) + '→' + Math.round(e.getBoundingClientRect().right) + ']'));
   const logo = q('#logo');
   const logoB = logo ? box(logo) : null;
   const more = q('#startMore');
@@ -83,6 +94,7 @@ function measure(win, w, h) {
     primY: primB ? primB.y : null, primBottom: primB ? primB.bottom : null, primInView,
     size: w + 'x' + h,
     overflow,                       // 目標：<= 0
+    hScroll, overWide,              // 目標：0 / 空陣列（全尺寸硬條件）
     logoY: logoB ? logoB.y : null,  // 目標：>= 0（不被切在上緣外）
     logoClipped: logoB ? logoB.y < 0 : null,
     moreW: moreB ? moreB.w : null,
@@ -138,6 +150,11 @@ async function main() {
       + (desktop ? (m.overflow > 0 ? '   ✘ 桌面必須零溢出' : '   ✔')
                  : (m.overflow > 0 ? '   ○ 行動端允許滾動（判準改看不可達與首屏）' : '   ✔')),
       (desktop && m.overflow > 0) ? 'bad' : (m.overflow > 0 ? 'warn' : 'ok'));
+    P('  水平溢出       ' + m.hScroll + ' px'
+      + (m.hScroll > 0 || m.overWide.length
+         ? '   ✘ 橫向滾動＝觸控上按不到：' + (m.overWide.join(' ') || '(無單一元素超界)')
+         : '   ✔'),
+      (m.hScroll > 0 || m.overWide.length) ? 'bad' : 'ok');
     P('  主按鈕首屏     y=' + m.primY + ' bottom=' + m.primBottom + ' / 可視 ' + m.clientH
       + (m.primInView ? '   ✔' : '   ✘ 主動作要滾才看得到'), m.primInView ? 'ok' : 'bad');
     P('  #logo y        ' + m.logoY + (m.logoClipped ? '   ✘ 被切在可視區上緣外（滾不到）' : '   ✔'), m.logoClipped ? 'bad' : 'ok');
@@ -145,16 +162,28 @@ async function main() {
       m.bottomCut ? (desktop ? 'bad' : 'warn') : 'ok');
     P('  難度列         ' + m.diffRows + ' 列' + (m.diffRows === 1 ? '   ✔' : '   ✘ 換行'), m.diffRows === 1 ? 'ok' : 'bad');
     P('  挑戰列         ' + m.chalCount + ' 顆 / ' + m.chalRows + ' 列' + (desktop ? (m.chalRows === 1 ? '   ✔' : '   ✘ 桌面應同列') : '   （行動端不判）'), (!desktop || m.chalRows === 1) ? 'ok' : 'bad');
-    P('  橫向利用率     #startMore ' + m.moreW + 'px / ' + w + 'px = ' + m.useW + '%' + (desktop ? (m.useW >= 45 ? '   ✔' : '   ✘ 桌面橫向空間浪費') : '   （行動端不判）'), (!desktop || m.useW >= 45) ? 'ok' : 'bad');
+    /* 橫向利用率判準修訂（出卡方 Claude 自己改的，明記以免被當成既有判準）：
+       原判準「桌面一律 useW >= 45%」在 2560×1440 判紅（1040/2560 = 40.6%），
+       但 1040px 的內容欄上限是**刻意**的——超寬螢幕把按鈕拉到 2400px 反而更難用。
+       這條判準的目的是抓「320px 行動端柱子被直接套到桌面」（改動前 1440 寬只用 22.2%），
+       那個目的用「絕對內容寬」就抓得到，不需要百分比。故改為：
+         桌面通過 = useW >= 45%  或  moreW >= 1000px
+       這是**放寬**，且放寬的是本卡自訂判準、不是既有守衛。 */
+    const useOk = !desktop || m.useW >= 45 || m.moreW >= 1000;
+    P('  橫向利用率     #startMore ' + m.moreW + 'px / ' + w + 'px = ' + m.useW + '%'
+      + (desktop ? (useOk ? (m.useW >= 45 ? '   ✔' : '   ✔（內容欄 ' + m.moreW + 'px ≥ 1000px 上限，超寬螢幕刻意留白）')
+                          : '   ✘ 桌面橫向空間浪費') : '   （行動端不判）'), useOk ? 'ok' : 'bad');
     if (Q.get('detail')) { const f2 = await boot(w, h); await new Promise(r => setTimeout(r, 120)); detail(f2.win, w, h); f2.f.remove(); }
   }
   // 總判定
   const bad = rows.filter(m => {
     const desktop = +m.size.split('x')[0] >= 900;
-    // 共同硬條件：零不可達、難度單列、主按鈕首屏
+    // 共同硬條件：零不可達、零水平溢出、難度單列、主按鈕首屏
     if (m.logoClipped || m.diffRows !== 1 || m.primInView === false) return true;
+    if (m.hScroll > 0 || m.overWide.length) return true;
     // 桌面另加：零溢出、底部不切、挑戰單列、橫向利用率
-    if (desktop && (m.overflow > 0 || m.bottomCut || m.chalRows !== 1 || m.useW < 45)) return true;
+    if (desktop && (m.overflow > 0 || m.bottomCut || m.chalRows !== 1)) return true;
+    if (desktop && m.useW < 45 && m.moreW < 1000) return true;   // 見上方判準修訂註解
     return false;
   });
   P('');

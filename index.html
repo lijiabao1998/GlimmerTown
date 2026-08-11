@@ -270,6 +270,11 @@ table.dtab tr:hover td{background:#1b2334}
 #start .startMore{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,.6vh,6px);width:100%;max-width:320px;
   margin-top:4px;padding-top:clamp(6px,1.2vh,12px);border-top:1px solid var(--panel-border-soft)}
 #start .startMore button{min-width:auto;padding:8px 16px;font-size:13px}
+/* T428：修既存水平溢出（T423 R03 遺留，非本卡引入；BEFORE/AFTER 實測皆 r=407 > vw=390）。
+   .settingsGrid 是 .startMore(max-width:320px) 的 flex 子項，auto-fit 以 min-content 排出
+   3×120px＋gap=372px，在 390 寬機種右緣切掉 17px，「地圖」鈕要水平滾動才點得到。
+   不改 .settingsGrid 本體（`.settingsGrid{display:grid` 是 T423 R03 原文釘），改用高特異度覆寫。 */
+#start .settingsGrid{min-width:0;width:100%;max-width:min(420px,100%);grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
 .startMoreLabel{font-size:10px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-top:clamp(0px,.4vh,4px);text-shadow:0 1px 3px rgba(0,0,0,.65)}
 #logo{image-rendering:pixelated;width:clamp(154px,26.5vh,224px);height:clamp(88px,15.1vh,128px); /* T428：品牌區隨視窗高度收放（比例 224:128 維持，避免像素 logo 變形） */
   filter:drop-shadow(0 6px 14px rgba(0,0,0,.45)) drop-shadow(0 0 18px rgba(255,217,119,.25))}
@@ -285,8 +290,10 @@ table.dtab tr:hover td{background:#1b2334}
   #start .startMore>.startMoreLabel,#start .startMore>.diffrow,#start .startMore>.settingsGrid,
   #start .startMore>#bEditorMode,#start .startMore>#bCampaign,#start .startMore>#scMenu{grid-column:1/-1}
   #start .startMore>button:not(#bEditorMode):not(#bCampaign){width:100%}
+  /* T428：跨欄的兩顆（編輯器/戰役）居中成膠囊，而不是拉成 1040px 大條 */
+  #start .startMore>#bEditorMode,#start .startMore>#bCampaign{justify-self:center;min-width:240px}
   #start .diffrow{max-width:none;flex-wrap:nowrap}
-  #start .settingsGrid{max-width:none;grid-template-columns:repeat(5,minmax(0,1fr))}
+  #start .settingsGrid{width:auto;max-width:none;grid-template-columns:repeat(5,minmax(0,1fr))}
   /* 桌面解除 .scmenu 的內層 220px 滾動（原本在 320 窄柱內再開一層滾動＝雙層滾動） */
   #start .scmenu{max-width:none;max-height:none;overflow:visible}
 }
@@ -301,6 +308,7 @@ html.noT428 .startMoreLabel{margin-top:4px}
 html.noT428 #start .startPrimary button{font-size:17px;padding:14px 22px}
 html.noT428 #start::before,html.noT428 #start::after{content:none}
 html.noT428 #start .startMore .diffbtn{padding:8px 16px;font-size:13px}
+html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
 @media (min-width:900px){
   html.noT428 #start{gap:14px;padding:16px 0}
   html.noT428 #start .help{max-width:340px;line-height:1.9}

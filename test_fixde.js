@@ -5838,11 +5838,22 @@ runPwaTests().then(() => {
       'T428 G3【原文前哨】.diffbtn 必須用 `#start .startMore .diffbtn`（1,2,1）壓過 '
       + '`#start .startMore button`（1,1,1）；退回 `#start .diffbtn`（1,1,0）會讓四顆難度鈕被迫 13px 而換行成 3+1');
     // G4 桌面斷點：全檔原本 17 條 @media 沒有一條 min-width
+    //    ※這條的第一版只驗「檔案裡存在 @media (min-width:900px)」，被自家紅源打穿：
+    //      逃生閥退回區自己也有一個同名斷點，於是把**真**斷點改成 min-width:99999px（永不觸發）時
+    //      套件仍然 exit=0 全綠。改成計數釘（真斷點 ＋ 退回區 ＝ 恰 2）＋ 區塊內含性檢查。
     const mqMin428 = (html.match(/@media \(min-width:/g) || []).length;
-    assert(mqMin428 >= 1 && /@media \(min-width:900px\)/.test(html),
-      'T428 G4【計數釘】必須至少一條 @media (min-width:…) 桌面斷點（本卡之前全檔為 0），實得 ' + mqMin428);
-    assert(/#start \.startMore\{display:grid/.test(html) && /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/.test(html),
-      'T428 G5【原文前哨】桌面斷點內 .startMore 轉三欄 grid（三顆挑戰鈕各佔一欄＝同列）——只驗拼寫');
+    const mq900n428 = (html.match(/@media \(min-width:900px\)\{/g) || []).length;
+    assert(mqMin428 >= 1 && mq900n428 === 2,
+      'T428 G4【計數釘】@media (min-width:900px){ 必須恰 2 次（真桌面斷點 ＋ 逃生閥退回區各一），'
+      + '實得 ' + mq900n428 + '；min-width 類 @media 共 ' + mqMin428 + ' 條（本卡之前全檔為 0）');
+    // G5 三欄 grid 必須真的**落在第一個 min-width:900px 區塊內**，不是「檔案裡某處存在」
+    const mq428i = html.indexOf('@media (min-width:900px){');
+    const mqBlk428 = mq428i > 0 ? html.slice(mq428i, html.indexOf('\n}', mq428i)) : '';
+    assert(mqBlk428.length > 40 && !/html\.noT428/.test(mqBlk428)
+      && /#start \.startMore\{display:grid/.test(mqBlk428)
+      && /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/.test(mqBlk428),
+      'T428 G5【原文前哨】三欄 grid 必須落在第一個 min-width:900px 區塊「之內」，且該區塊不是逃生閥退回區'
+      + '（三顆挑戰鈕各佔一欄＝同一列）——只驗拼寫與所在區塊，版面看 ui_probe');
     // G6 垂直節律自適應（gap 固定 14px × 8 個＝112px 是行動端最大單一佔用）
     assert(/gap:clamp\(6px,1\.15vh,14px\)/.test(html),
       'T428 G6【原文前哨】#start 垂直節律必須隨視窗高度收放（clamp）；退回固定 14px 會讓行動端內容真高回到約 951px');
@@ -5856,6 +5867,15 @@ runPwaTests().then(() => {
     const cssStart428 = html.indexOf('/* ---------- 開始畫面'), cssEnd428 = html.indexOf('</style>');
     assert(cssStart428 > 0 && cssEnd428 > cssStart428 && !html.slice(cssStart428, cssEnd428).includes('bNightCity'),
       'T428 G8【原文前哨】CSS 區不得出現 bNightCity（否則位移 T413b 的 ±字元窗掃描錨點）');
+    // G9 水平溢出修正（既存問題，BEFORE/AFTER 實測皆 .settingsGrid r=407 > vw=390）
+    //    第一版探針只量垂直軸，這條漏網是靠 390×844 人眼樣張看到「地圖」鈕被切才發現的。
+    assert(/#start \.settingsGrid\{min-width:0;width:100%;max-width:min\(420px,100%\);grid-template-columns:repeat\(auto-fit,minmax\(100px,1fr\)\)\}/.test(html)
+      && /html\.noT428 #start \.settingsGrid\{min-width:auto;width:auto;max-width:420px;grid-template-columns:repeat\(auto-fit,minmax\(120px,1fr\)\)\}/.test(html),
+      'T428 G9【原文前哨】.settingsGrid 必須可收縮到容器寬（min-width:0＋width:100%＋max-width:min(420px,100%)＋minmax 下修 120→100px）'
+      + '；退回 420px 固定上限會在 390 寬機種右緣切掉 17px，「地圖 72×72」鈕要水平滾動才點得到');
+    // G10 桌面跨欄兩顆按鈕居中成膠囊（否則 1040px 大條配四字標籤）
+    assert(/#start \.startMore>#bEditorMode,#start \.startMore>#bCampaign\{justify-self:center;min-width:240px\}/.test(html),
+      'T428 G10【原文前哨】桌面斷點內「編輯器/戰役」必須 justify-self:center 成膠囊（原 stretch 會拉成 1040px 大條）');
   }
 
   { // ===== T424 TheoTown 風三鍵美術特化卡：HERO_PIX 三鍵重繪守衛（G1-G6；純讀表＋表驅動像素計數，不依賴重放橋） =====
