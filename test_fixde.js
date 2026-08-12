@@ -9726,3 +9726,34 @@ runPwaTests().then(() => {
     assert(html.includes(b),'T429 G6 觀測橋 '+b+' 必須存在');
   assert(html.includes('if(window.__noWind441){windX441=0;'),'T429 G6 __noWind441 時 windX441≡0（零風即零位移不變式）');
 }
+
+/* ===== T430 City Health Strip 守衛（桌面適配版，概念源自移動線 T461） ===== */
+{ // G1 函式存在＋六格資料源原文釘（真實觀測，不造假）
+  assert(html.includes('function healthStrip430(x,y,b){'),'T430 G1 healthStrip430 必須存在');
+  for(const src of ["state:b.pw?'good':'bad'","state:b.wa?'good':'bad'",
+    "state:garbCap>0?(garbRatio>1?'warn':'good'):'na'",
+    "(COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)||(COV.fireHQ&&COV.fireHQ[i]>0))",
+    "(COV.police[i]>0||COV.police2[i]>0)",
+    "(COV.hospital[i]>0||(COV.clinic&&COV.clinic[i]>0))"])
+    assert(html.includes(src),'T430 G1 資料源釘必須存在：'+src.slice(0,40));
+  // 污水/排水如實 na（桌面無逐棟污水狀態/T454）
+  assert((html.match(/state:'na'/g)||[]).length>=2,'T430 G1 污水/排水兩格必須如實 na');
+}
+{ // G2 接線：inspect 尾部在 innerHTML 賦值前插入
+  assert(html.includes("if(t.bld&&!t.bld.ref&&!window.__noHealthStrip430){window.__t430HealthRead=(window.__t430HealthRead||0)+1;html+=healthStrip430("),
+    'T430 G2 接線必須在 inspect 尾部（innerHTML 前）');
+}
+{ // G3 kill-switch＋觀測橋＋CSS 六格
+  assert(html.includes('__noHealthStrip430'),'T430 G3 kill-switch __noHealthStrip430 必須存在');
+  assert(html.includes('window.__t430HealthRead'),'T430 G3 觀測橋 __t430HealthRead 必須存在');
+  assert(html.includes('.hs430{display:grid;grid-template-columns:repeat(6'),'T430 G3 CSS 六格燈帶必須存在');
+  assert(html.includes('.hs430P.good')&&html.includes('.hs430P.warn')&&html.includes('.hs430P.bad')&&html.includes('.hs430P.na'),
+    'T430 G3 四態樣式 good/warn/bad/na 必須存在');
+}
+{ // G4 區塊零亂數（剝註解後字面掃描）
+  const b430=html.indexOf('function healthStrip430'),e430=html.indexOf('function inspect(x,y){',b430);
+  assert(b430>=0&&e430>b430,'T430 G4 應可界定區塊');
+  const seg430=html.slice(b430,e430).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(seg430),
+    'T430 G4 健康燈區塊不得消耗亂數流');
+}
