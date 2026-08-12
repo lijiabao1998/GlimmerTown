@@ -578,7 +578,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.64'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
+const GAME_VER='11.65'; // T348 修「AI 永零人口」死鎖（水域中心地圖的跨水橋起步）：手術式紓困，健康城市位元恆等。前：T346 產業鏈循環：天然氣井/化肥廠/中央廚房/魚塘（k117-120）＋油田→氣→化肥→農產、生食+氣→熟食→幸福、房貸利息；T346d 攢錢模式分區預算 1→4 破解貧困陷阱。前：T345 建築辯識度：12 類別基座色環＋屋頂徽記（116/116 建築全數上色）＋懸停名稱標籤＋指南類別圖例。前：T342 閉環建築波 k107-116：教育鏈(高中/大學城/科技園/數據中心)、垃圾→商品再生、貨運→商業、殫葬閉環、大體量(中央公園/市民中心/5×5國際機場)；巨廈成形修正(預定地/L1吸收/窗種子)。前：T341 分區垂直進化鏈：Lv2+ 簇→2×2 摩天樓→3×3 巨廈/綜合體（直接成形＋公園吸收）。前：T340 十座新建築 k95-104：瞭望塔/泳池(夏季反制)/釣魚碼頭/青旅/婚禮教堂/釀酒廠/水上樂園/寠物醫院/天際餐廳/社區菜園。前：T337-T339 災害保險政策(理賠$35/戶・保費$18/日)＋城市事件+12(煽火/燈光節/動漫嘉年華…)＋幸福晶片聚合市民四需求＋AI wants 交替評估(civic保底+表尾公平)。前：T336 休閒與貿易：貿易站(糧食盈餘出口)/遛狗公園/溡冰場(冬季反制)/滑板公園。前：T330-T335 十座新建築 k81-90（旅宿鏈/年齡配套/銀行/農貿/堆肥/電視塔/遚艇碼頭）＋旅宿經濟（床位/入住/淡旺季）＋AI wants 輪轉防餓死。前：T323-T329 CS/模擬人生系統波：統計面板 statTab/dataTable 全結構化＋AI 適應性建設（62 種從不蓋→需求驅動 11 族）＋噪音場＋人口學（移民潮/年齡結構）＋政策包六條＋市民需求卡＋里程碑解鎖全兌現。前：T322 HUD 指標晶片明細面板：money/pop/jobs/happy/star/date 六個晶片可點開標準化 statTab 明細（財政收支逐項/財富分層/崗位來源/幸福構成/評分構成/季節效應），分層加總以最大餘額法歸一到 HUD 總數＝逐位相符；並修檢視面板頂穿導航欄（--hud-h 實測導航欄高度限高＋內部滾動，#hud z-index 30）。前：T257-258 電廠家族波封版：核電3×3/水力2×2鄰水/地熱1×1（對齊地球真實電廠＋尺寸階梯，皆電網啟動源+可升級擴容）＋消防總局3×3(fireHQ半徑16三場OR)＋施工細化(圍籬/挖掘機/塔吊水平臂配重滑車吊鉤/鷹架5桿X斜撐平台工人)。前：T251-254 特化經濟波：農場灌溉/牧場牧養/電廠擴容升級＋食品加工廠 k57 加工鏈(food→gold)＝Skylines 式產業鏈；並修 second-loop 稅收守衛 NaN(鐵律14)與 UP_JOB ??修復。前：T215-232 變體時代(11 建築齊 5 變體＋農牧全家＋派出所)
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -14999,6 +14999,7 @@ function farNightRect422(bd,x,y,blkX,blkY,blkSz){
   return{rect:[blkX+dx,blkY+dy,w,h],col,fam};
 }
 function draw(dt){
+  updWind441(); // T429：幀首更新風偏置（更新相各消費端用前幀值，1幀滯後不可見）
   trafClock+=dt||0; // T289：交通時鐘推進（紅綠燈相位）
   const {b,dusk,ph,d}=daylight(); // T149：新增解構 ph/d（既有 b/dusk 用途不變）
   // 天空
@@ -16001,7 +16002,7 @@ function draw(dt){
     if(t.tree){
       let s=(win?SPR.treeW:sea===1?SPR.treeS:sea===2?SPR.treeA:SPR.tree)[(t.tree-1)%10]; // T104：樹種 4→7，&3 遮罩已不敷索引改 %7；T136：夏/秋樹色調（SPR.treeS/treeA，長度 7 與日版一致），春季（sea===0）與改動前同一分支表達式；T150：樹種 7→10，索引改 %10（SPR.treeW/treeS/treeA 同步擴至長度 10）
       if(sea===0&&!win&&SPR.treeSakura&&!window.__noSakura&&hasRoadNear(o.x,o.y,1))s=SPR.treeSakura[(t.tree-1)%10]; // T368d 櫻花道：春季鄰道路樹格換粉冠（非春／非路樹／開關關閉逐像素不變）
-      const sway=(animOn&&!lodFar)?Math.sin(visT*1.3+o.x*.7+o.y*1.3)*z:0; // T152：樹梢搖曳 ±1px（依 visT 正弦＋座標相位偏移，同相位重繪恆等；z<1 或 animOn 關閉時 sway=0＝與改動前逐像素一致）
+      const sway=(animOn&&!lodFar)?Math.sin(visT*1.3+o.x*.7+o.y*1.3)*z+windX441*1.5*z:0; // T429 風場 // T152：樹梢搖曳 ±1px（依 visT 正弦＋座標相位偏移，同相位重繪恆等；z<1 或 animOn 關閉時 sway=0＝與改動前逐像素一致）
       const tsc=window.__noTreeJit?1:(.74+streetHash(o.x,o.y,780)*.5); // T202 樹木大小/樹齡抖動（Opus 親手，審計缺口）——原所有樹同尺寸，加 per-tree 決定性縮放(幼苗0.74↔成樹1.24)，底部錨定(下方基準點不動、往上長)；streetHash 不消耗 R()，__noTreeJit=true 時 tsc=1＝與改動前逐像素一致
       const bpx=o.sx+32*z, bpy=o.sy+32*z;
       ctx.drawImage(s.img,bpx-s.ax*z*tsc+sway,bpy-s.ay*z*tsc,s.w*z*tsc,s.h*z*tsc);
@@ -16011,7 +16012,7 @@ function draw(dt){
         for(let f=0;f<3;f++){ // T221：螢火蟲 2→3
           const ph=streetHash(o.x,o.y,700+f);
           const blink=.35+.65*Math.abs(Math.sin(visT*1.6+ph*6.283));
-          const fx=o.sx+(14+ph*34)*z+Math.sin(visT*.8+ph*10)*6*z;
+          const fx=o.sx+(14+ph*34)*z+Math.sin(visT*.8+ph*10)*6*z+windX441*1.2*z; /* T429 風場 */
           const fy=o.sy+(4+((ph*90)%22))*z+Math.cos(visT*1.05+ph*7)*5*z;
           ctx.globalAlpha=fa*blink*.8;ctx.fillStyle='#d6ff86';
           ctx.beginPath();ctx.arc(fx,fy,1.5*z,0,6.283);ctx.fill();
@@ -16020,7 +16021,7 @@ function draw(dt){
       }
       if(!window.__noBfly&&b>.62&&!lodFar&&(sea===0||sea===1)&&!win&&streetHash(o.x,o.y,758)<.7){ // T221：55%→70% 更多數目 // T188 蝴蝶（Opus 親手）——螢火蟲的日間暖季對偶：春夏(sea0/1)日間(b>.62)部分樹(streetHash 選 55%)旁 1 隻彩翅蝴蝶翩飛（多頻 visT 疊加＝erratic 飛行路徑＋拍翅開合），visT＋座標雜湊決定性（不消耗 R()、同 visT 重繪恆等）；夜間(b<=.62)／秋冬／遠景(lodFar)／未選中樹 不繪＝該狀態零改動
         const BC=['#f4d03f','#ff9f43','#ffd0e0','#ffffff','#a0d8ef'], ph=streetHash(o.x,o.y,760), col=BC[Math.floor(ph*997)%BC.length];
-        const bx=o.sx+(10+ph*40)*z+Math.sin(visT*1.3+ph*10)*10*z+Math.sin(visT*2.7+ph*4)*4*z;
+        const bx=o.sx+(10+ph*40)*z+Math.sin(visT*1.3+ph*10)*10*z+Math.sin(visT*2.7+ph*4)*4*z+windX441*4*z; /* T429 風場 */
         const by=o.sy+(2+((ph*77)%20))*z+Math.cos(visT*1.7+ph*8)*8*z+Math.sin(visT*3.1+ph*6)*3*z;
         const flap=Math.abs(Math.sin(visT*7+ph*6.283)), ww=(.7+flap*1.15)*z;
         ctx.fillStyle=col;
@@ -16357,9 +16358,14 @@ function draw(dt){
     /* ===== T427 GPT 美術波（建築層四層：區域材質/生活痕跡/夜間街區/活動口袋；源自移動線） ===== */
     if(!constrRise&&(bd.age|0)>=9){
       drawDistrictTexture424(ctx,o,bd,s,bx,by,z,drawA);
+      drawFacadeMemory426(ctx,o,bd,s,bx,by,z,drawA); // T429
       drawLivedIn421(ctx,o,bd,s,bx,by,z,drawA);
+      drawRooftop425(ctx,o,bd,s,bx,by,z,drawA); // T429
+      drawMaterialResponse430(ctx,o,bd,s,bx,by,z,drawA,wetLvl,snowLvl,nightDepth); // T429
       drawNightIdentity423(ctx,o,bd,s,bx,by,z,drawA,nightDepth);
+      drawNightMicro431(ctx,o,bd,s,bx,by,z,drawA,nightDepth); // T429
       drawActivityPocket422(ctx,o,bd,s,bx,by,z,drawA,nightDepth);
+      drawMicroLife429(ctx,o,bd,s,bx,by,z,drawA,nightDepth); // T429
     }
     /* ===== T363 垃圾焚化發電廠運轉視覺（k62）：draw-time 決定性排氣＋夜班辨識；
        不接入粒子管線；全程決定性（visT／streetHash／sin），零共用亂數消耗；不寫狀態／存檔。
@@ -17382,6 +17388,225 @@ function streetPermit432(x,y,layer,z,base){
   const rhythm=streetHash(x,y,43250+layer)<.68?1:.22;
   const ok=streetHash(x,y,43260+layer)<clamp(base*cell*lod*rhythm,0,.86);
   if(!ok)window.__t432Suppressed=(window.__t432Suppressed||0)+1;return ok;
+}
+/* ===== T429 美術波上層移植層（源自移動線 T482；T425/T426/T429/T430/T431/T441） =====
+   共同鐵律：僅讀既有 tile/building/weather/visT；不寫模擬狀態、不入 save、不改 economy/AI/tick。
+   位置/款式一律 streetHash 決定性導出；禁 R()/ri()/Math.random()。
+   退化橋：T446D 生活密度與 T448 作息母場未移植桌面——恆等退化保持原碼結構（搬市政網絡波時移除）。
+   T368a 公園有人桌面 T368 已含（遊樂場孩童/晨跑者/遛狗公園）——本卡不重複移植。 ===== */
+const visualWealth446D=(bd)=>((bd&&bd.we)===2?2:(bd&&bd.we)===0?0:1);
+const roofLifeIntensity446=()=>1;
+window.__noRoofLife446=true;
+const rhythmMicro448=()=>1;
+
+/* ---------- T425 屋頂生活考古（桌面移植） ---------- */
+/* ===== T425 GPT Rooftop Archaeology／屋頂生活考古 =====
+   不是再造一棟樓，而是讓屋頂說出用途：住宅水箱/衛星碟/曬衣與屋頂菜箱；商業 HVAC/天窗/服務梯/看板背架；
+   工業與能源則是管橋/排氣/維修平台/警示設備。優先使用 T417 的 _roofLine417 真屋面雪線作錨，避免裝飾漂在透明天空。 */
+function roofAnchor425(s,hv){
+  const x=clamp(Math.round(s.w*(.28+hv*.44)),3,Math.max(3,s.w-4));
+  let y=-1;
+  if(s._roofLine417&&s._roofLine417[x]>=0)y=s._roofLine417[x];
+  if(y<0)y=Math.max(4,Math.round(s.h*(.24+hv*.08)));
+  return[x,y];
+}
+function drawRooftop425(g,o,bd,s,bx,by,z,drawA){
+  if(window.__noRooftop425||z<.9||!bd||bd.ref||(bd.age|0)<18)return 0;
+  const cat=kcatOf(bd.k),special=bd.k===57||bd.k===64||bd.k===100||bd.k===116||bd.k===118||bd.k===119||bd.k===121||bd.k===122||bd.k===123;
+  if(!(cat==='R'||cat==='C'||cat==='I'||cat==='E'||special))return 0;
+  const life446=!window.__noRoofLife446,we446=cat==='R'?visualWealth446D(bd):1,age446=(bd.age|0),pol446=(typeof POL!=='undefined'&&POL[o.x+o.y*N])||0;
+  const inten446=roofLifeIntensity446(we446,age446,pol446),base0=cat==='R'?.56:cat==='C'?.62:(cat==='I'||cat==='E')?.68:.55;
+  const base=life446?base0*(0.75+inten446*0.45):base0;
+  if(!detailPermit432(o.x,o.y,425,z,base))return 0;
+  const h=streetHash(o.x,o.y,42501),a=roofAnchor425(s,h),ax=bx+a[0]*z,ay=by+a[1]*z;
+  const rect=(dx,dy,w,hh,c,al=1)=>{g.save();g.globalAlpha=drawA*detailAlpha432(z)*al;g.fillStyle=c;g.fillRect(ax+dx*z,ay+dy*z,Math.max(1,w*z),Math.max(1,hh*z));g.restore();};
+  const v=Math.floor(streetHash(o.x,o.y,42502)*4)%4,lv=bd.lv||1;
+  if(cat==='R'){
+    if(life446&&we446===0 && streetHash(o.x,o.y,44610)>0.35){ // 貧：鐵皮臨時加蓋
+      rect(-7,-4,15,3,'#6a5a48');rect(-6,-5,13,1,'#8a7a62');rect(-5,-3,2,2,'#4a4030');rect(3,-3,3,2,'#524636');
+    }else if(life446&&we446===2 && streetHash(o.x,o.y,44611)>0.45){ // 富：太陽能板
+      rect(-6,-5,13,3,'#2a3a4a');for(let i=0;i<4;i++)rect(-5+i*3,-5,2,2,'#3d5a78');rect(-6,-2,13,1,'#1e2a36');
+    }else if(v===0){ // 水箱＋下水管
+      rect(-3,-5,6,4,'#6f7f8b');rect(-2,-6,4,1,'#9aa8b0');rect(2,-2,1,5,'#56636a');rect(-1,-4,1,2,'#b8c2c7');
+    }else if(v===1){ // 衛星碟＋短桿
+      rect(-1,-4,1,5,'#5c636a');rect(-4,-5,5,1,'#aeb8bd');rect(-3,-6,4,1,'#c7cfd2');rect(1,-5,1,1,'#5f6970');
+    }else if(v===2&&lv<=2){ // 屋頂曬衣／晾被
+      rect(-6,-3,13,1,'#737b82');rect(-6,-3,1,4,'#5d666c');rect(6,-3,1,4,'#5d666c');const C=['#d76767','#5e91c7','#e0c45f'];for(let i=0;i<3;i++)rect(-4+i*4,-2,2,3,C[i]);
+    }else{ // 屋頂菜箱／植物槽
+      rect(-6,-2,12,3,'#806347');for(let i=0;i<5;i++){rect(-5+i*2,-4,1,2,i&1?'#5d9655':'#4b8248');rect(-5+i*2,-3,2,1,'#6cab62');}
+    }
+  }else if(cat==='C'){
+    if(v===0){ // HVAC 雙機組＋百葉
+      for(const dx of[-6,1]){rect(dx,-5,6,4,'#919ba3');rect(dx+1,-4,4,2,'#4b555d');rect(dx+5,-4,1,3,'#c2c8cc');}
+    }else if(v===1){ // 天窗玻璃帶
+      rect(-7,-3,14,3,'#536878');for(let i=0;i<4;i++)rect(-6+i*3,-3,2,1,'#a7d0df',.9);rect(-7,0,14,1,'#3c464e',.8);
+    }else if(v===2){ // 服務梯＋屋頂門
+      rect(-5,-6,5,6,'#6f777d');rect(-4,-5,3,5,'#41484e');rect(2,-7,1,8,'#606970');for(let j=-6;j<=0;j+=2)rect(2,j,4,1,'#8b949a');
+    }else{ // 廣告背架（只畫背面結構，避免滿城文字牌）
+      rect(-7,-8,14,5,'#5b6269');rect(-6,-7,12,3,'#747c83');rect(-5,-2,1,3,'#444b51');rect(4,-2,1,3,'#444b51');
+    }
+  }else{ // I / E / 深加工
+    if(v===0){ // 管橋
+      rect(-8,-3,17,2,'#667473');rect(-8,-6,2,5,'#879390');rect(7,-7,2,6,'#566563');rect(-2,-4,3,1,'#c18c3d');
+    }else if(v===1){ // 雙排氣筒＋紅白環帶
+      for(const dx of[-5,2]){rect(dx,-9,4,9,'#777f82');rect(dx,-9,4,2,'#b64b3b');rect(dx,-6,4,1,'#d9ddd9');rect(dx+3,-9,1,9,'#545a5d');}
+    }else if(v===2){ // 維修平台＋護欄
+      rect(-8,-2,16,2,'#555c61');for(const dx of[-8,-3,2,7])rect(dx,-6,1,4,'#7e878c');rect(-8,-6,16,1,'#8c969a');rect(3,-5,3,2,'#c89a46');
+    }else{ // 冷卻／風扇箱
+      rect(-7,-6,14,6,'#7d878d');for(const dx of[-5,1]){rect(dx,-5,4,4,'#343d42');rect(dx+1,-4,2,2,'#a6b0b4');}rect(-7,0,14,1,'#515a60');
+    }
+  }
+  window.__t425RoofCount=(window.__t425RoofCount||0)+1;return 1;
+}
+
+/* ---------- T426 立面時間記憶（桌面移植） ---------- */
+/* ===== T426 GPT Facade Memory／立面時間記憶 =====
+   age 只作視覺成熟度門檻，不影響維護/價值。補漆、排水、舊招牌孔、鏽水、電纜與底部雨漬皆以低 alpha 微量出現。 */
+function drawFacadeMemory426(g,o,bd,s,bx,by,z,drawA){
+  if(window.__noFacadeMemory426||z<.9||!bd||bd.ref||(bd.age|0)<28||bd.k===4)return 0;
+  const cat=kcatOf(bd.k),age=Math.min(1,(bd.age|0)/420),base0=.34+age*.30;
+  const we446=cat==='R'?visualWealth446D(bd):1;
+  const base=!window.__noRoofLife446&&cat==='R'?base0*(we446===0?1.35:we446===2?.75:1):base0;
+  if(!detailPermit432(o.x,o.y,426,z,base))return 0;
+  const h=streetHash(o.x,o.y,42601),ax=bx+s.w*z*(.25+h*.5),foot=by+s.h*z, v=Math.floor(streetHash(o.x,o.y,42602)*5)%5;
+  const rect=(dx,dy,w,hh,c,al=1)=>{g.save();g.globalAlpha=drawA*detailAlpha432(z)*al;g.fillStyle=c;g.fillRect(ax+dx*z,foot+dy*z,Math.max(1,w*z),Math.max(1,hh*z));g.restore();};
+  if(v===0){ // 補漆色差
+    const c=cat==='I'||cat==='E'?'rgba(116,95,77,.42)':cat==='C'?'rgba(154,145,126,.30)':'rgba(167,151,132,.26)';rect(-6,-20,5,4,c);rect(1,-15,6,3,c,.8);
+  }else if(v===1){ // 排水管＋牆腳濕痕
+    rect(0,-25,1,22,cat==='I'?'#697170':'#777f82',.8);rect(-1,-4,3,1,'rgba(60,55,50,.28)');rect(-2,-3,5,2,'rgba(72,63,56,.18)');
+  }else if(v===2){ // 拆牌後孔位／掛架
+    rect(-5,-18,11,1,'rgba(75,74,72,.42)');for(const dx of[-5,5]){rect(dx,-21,1,4,'#686d71',.85);rect(dx,-22,2,1,'rgba(55,55,55,.45)');}
+  }else if(v===3){ // 外露電纜／接線盒
+    rect(-6,-19,13,1,'#4d5458',.72);rect(5,-21,3,4,'#70797e',.82);rect(6,-20,1,1,'#c7a54c',.9);rect(-6,-19,1,8,'#586064',.7);
+  }else{ // 低位使用污漬／鏽水，不做全牆髒化
+    const c=cat==='I'||cat==='E'?'rgba(131,71,42,.32)':'rgba(76,68,60,.19)';rect(-5,-8,2,7,c);rect(-2,-5,1,5,c,.75);rect(3,-7,3,4,c,.65);
+  }
+  window.__t426FacadeCount=(window.__t426FacadeCount||0)+1;return 1;
+}
+
+/* ---------- T429 微型人物動詞（桌面移植） ---------- */
+/* ===== T429 GPT Micro Human Life／微型人物動詞 =====
+   T422 解決「哪裡有人」，T429 解決「人在做什麼」：聊天、遛狗、等車、坐著、搬箱、推嬰兒車、拍照。
+   無 citizen state、無 pathfinding；動作以 visT + streetHash 在 6~14 秒內緩慢擺動。 */
+function drawMicroLife429(g,o,bd,s,bx,by,z,drawA,nightDepth){
+  if(window.__noMicroLife429||z<1||!bd||bd.ref||(bd.age|0)<12)return 0;const cat=kcatOf(bd.k);
+  let role='';if(cat==='R')role='home';else if(cat==='C')role='shop';else if(cat==='T')role='wait';else if(cat==='I'||cat==='E')role='work';else if(cat==='A'||cat==='G')role='leisure';else if(cat==='D'||cat==='H'||cat==='S')role='civic';else return 0;
+  const r448=rhythmMicro448(role);if(r448<=.08)return 0;
+  const base=(role==='shop'?.45:role==='wait'?.52:role==='leisure'?.42:role==='work'?.36:.30)*clamp(r448,.10,1.18);if(!detailPermit432(o.x,o.y,429,z,base))return 0;
+  if(role==='civic'&&nightDepth>.62)return 0;if(role==='home'&&nightDepth>.80)return 0;
+  const cx=bx+s.w*z*.5,foot=by+s.h*z-1*z,scene=Math.floor(streetHash(o.x,o.y,42901)*5)%5,ph=streetHash(o.x,o.y,42902)*6.283,rA448=clamp(.55+.45*r448,.30,1.08);
+  const P=(ptype,x,y,sc=.82,al=.9)=>{if(!(SPR.ped&&SPR.ped[ptype]))return;const fr=SPR.ped[ptype][Math.floor(visT*2+ph)%2];g.save();g.globalAlpha=drawA*detailAlpha432(z)*al*rA448;g.drawImage(fr.img,x-fr.ax*z*sc,y-fr.ay*z*sc,fr.w*z*sc,fr.h*z*sc);g.restore();};
+  const Rp=(x,y,w,h,c,al=1)=>{g.save();g.globalAlpha=drawA*detailAlpha432(z)*al*rA448;g.fillStyle=c;g.fillRect(x,y,Math.max(1,w*z),Math.max(1,h*z));g.restore();};
+  const sway=Math.sin(visT*.75+ph)*1.3*z;
+  if(role==='work'){
+    if(scene<3){ // 工人搬箱：身體與箱子同步小幅移動
+      const px=cx-4*z+sway;P('adult',px,foot,.84,.82);Rp(px+2*z,foot-5*z,4,3,'#b98b55',.9);Rp(px+3*z,foot-4*z,2,1,'#8a633e',.9);
+    }else{ // 蹲下維修＋工具箱
+      const px=cx+sway;Rp(px-1*z,foot-4*z,3,3,'#4f6f91',.85);Rp(px,foot-6*z,2,2,'#d8aa7a',.9);Rp(px+4*z,foot-3*z,4,2,'#b44336',.9);Rp(px+5*z,foot-4*z,2,1,'#d26758',.9);
+    }
+  }else if(role==='wait'){
+    const gap=5*z;P('adult',cx-gap+sway*.25,foot,.82,.9);if(scene&1)P('stroller',cx+gap,foot,.78,.88);else P('adult',cx+gap,foot,.82,.88);Rp(cx-7*z,foot+1*z,14,1,'rgba(40,42,44,.25)',.8);
+  }else if(role==='leisure'){
+    if(scene<2){ // 坐著：極簡長椅＋坐姿人
+      Rp(cx-7*z,foot-2*z,14,2,'#66523d',.75);Rp(cx-5*z,foot,1,2,'#4c4235',.7);Rp(cx+4*z,foot,1,2,'#4c4235',.7);Rp(cx-1*z,foot-6*z,3,3,'#5d7794',.9);Rp(cx,foot-8*z,2,2,'#d8ad84',.92);
+    }else{ // 拍照／看景
+      P('adult',cx-3*z,foot,.82,.9);Rp(cx+1*z,foot-7*z,3,2,'#30383e',.9);Rp(cx+3*z,foot-7*z,1,1,'#a9d0e0',.9);
+    }
+  }else if(role==='home'){
+    if(scene<2){ // 遛狗
+      P('adult',cx-5*z+sway*.2,foot,.82,.9);Rp(cx+4*z,foot-3*z,4,2,'#6d523a',.9);Rp(cx+7*z,foot-4*z,2,2,'#7f6246',.9);Rp(cx+2*z,foot-2*z,5,1,'rgba(82,74,62,.55)',.7);
+    }else if(scene===2){P('stroller',cx+sway*.15,foot,.8,.9);}else{ // 鄰里聊天
+      P('adult',cx-5*z,foot,.82,.9);P('adult',cx+5*z,foot,.82,.88);Rp(cx-1*z,foot-8*z,2,1,'rgba(230,225,205,.38)',.55);
+    }
+  }else{ // shop / civic
+    if(scene<2){ // 外帶/排隊
+      P('adult',cx-5*z,foot,.82,.9);P('adult',cx+3*z,foot,.82,.88);Rp(cx+5*z,foot-5*z,2,3,'#c79558',.88);
+    }else{ // 一人停留＋飲料/文件
+      P('adult',cx+sway*.2,foot,.82,.9);Rp(cx+3*z,foot-6*z,1,2,role==='shop'?'#e1c06b':'#d9e1ea',.9);
+    }
+  }
+  window.__t429LifeCount=(window.__t429LifeCount||0)+1;if(!window.__noRhythm448)window.__t448MicroCount=(window.__t448MicroCount||0)+1;return 1;
+}
+
+/* ---------- T430 材質對環境反應（桌面移植） ---------- */
+/* ===== T430 GPT Material Response／材質對環境反應 =====
+   既有 wetSkin/snowCap 是「全建築通用氣候皮膚」；本卡再補材質差異：玻璃濕反光、磚牆吸水、金屬水線、泥濺、雪在設備頂累積。
+   不改 weather/rainDays，只讀 wetLvl/snowLvl/nightDepth。 */
+function drawMaterialResponse430(g,o,bd,s,bx,by,z,drawA,wetLvl,snowLvl,nightDepth){
+  if(window.__noMaterial430||z<.9||!bd||bd.ref||bd.k===4)return 0;const cat=kcatOf(bd.k),wet=clamp(wetLvl||0,0,1),snow=clamp(snowLvl||0,0,1);
+  if(wet<=.02&&snow<=.02&&nightDepth>.18)return 0;if(!detailPermit432(o.x,o.y,430,z,.52))return 0;
+  const cx=bx+s.w*z*.5,foot=by+s.h*z, h=streetHash(o.x,o.y,43001);let drew=0;
+  const Rp=(x,y,w,hh,c,al=1)=>{g.save();g.globalAlpha=drawA*detailAlpha432(z)*al;g.fillStyle=c;g.fillRect(x,y,Math.max(1,w*z),Math.max(1,hh*z));g.restore();};
+  if(wet>.02){
+    if(cat==='C'||bd.k===116){ // 玻璃/機電：縱向冷亮反光
+      for(let i=0;i<3;i++){const x=cx+(-8+i*7+h*2)*z;Rp(x,foot-(24+i*5)*z,1,8,'rgba(172,215,235,.72)',wet*.46);}
+      Rp(cx-12*z,foot-3*z,24,1,'rgba(165,195,208,.52)',wet*.38);
+    }else if(cat==='I'||cat==='E'){ // 金屬：水線＋底部泥濺
+      for(let i=0;i<3;i++)Rp(cx+(-7+i*6)*z,foot-(19+i*3)*z,1,10,'rgba(156,170,172,.34)',wet*.42);
+      Rp(cx-11*z,foot-4*z,22,2,'rgba(69,58,49,.28)',wet*.55);
+    }else{ // 住宅/公共：牆腳吸水深色
+      Rp(cx-12*z,foot-5*z,24,3,'rgba(54,61,67,.22)',wet*.48);for(let i=0;i<4;i++)Rp(cx+(-9+i*6)*z,foot-8*z,2,4,'rgba(68,74,77,.18)',wet*.35);
+    }drew=1;
+  }
+  if(snow>.02){
+    const a=roofAnchor425(s,h),ax=bx+a[0]*z,ay=by+a[1]*z;
+    // 微型設備積雪：短白頂線，不重複畫整棟 snowCap。
+    Rp(ax-6*z,ay-6*z,5,1,'rgba(248,252,255,.94)',snow*.80);Rp(ax+1*z,ay-4*z,6,1,'rgba(239,247,252,.90)',snow*.72);
+    if(cat==='I'||cat==='E')Rp(ax+6*z,ay-9*z,3,1,'rgba(250,253,255,.92)',snow*.75);drew=1;
+  }
+  if(!drew&&nightDepth<.12&&weather===0&&streetHash(o.x,o.y,43002)<.34&&(cat==='C'||cat==='T'||bd.k===116)){
+    // 晴天玻璃/金屬瞬時高光，速度很慢，避免閃爍。
+    const pulse=.45+.55*Math.max(0,Math.sin(visT*.22+h*6.283));Rp(cx+(h-.5)*12*z,foot-26*z,1,7,'rgba(235,249,255,.70)',pulse*.45);drew=1;
+  }
+  if(drew)window.__t430MaterialCount=(window.__t430MaterialCount||0)+1;return drew;
+}
+
+/* ---------- T431 夜間微光工程（桌面移植） ---------- */
+/* ===== T431 GPT Night Micro-Lighting／夜間微光工程 =====
+   T423 是「街區人格」，本卡補具體小光源：樓梯燈、販賣機、雨棚燈珠、警示 beacon、月台標記、醫療入口燈。
+   所有微光比 T423 更小、更低亮度，避免夜城變 RGB 噪音。 */
+function drawNightMicro431(g,o,bd,s,bx,by,z,drawA,nightDepth){
+  if(window.__noNightMicro431||z<.85||nightDepth<=.08||!bd||bd.ref||(bd.age|0)<9)return 0;if((bd.k<=3||bd.k===33||bd.k===34)&&!bd.pw)return 0;
+  const cat=kcatOf(bd.k),base=cat==='C'?.64:cat==='T'?.58:(cat==='I'||cat==='E')?.52:cat==='R'?.42:.34;if(!detailPermit432(o.x,o.y,431,z,base))return 0;
+  const cx=bx+s.w*z*.5,foot=by+s.h*z,h=streetHash(o.x,o.y,43101),pulse=.72+.28*Math.sin(visT*(cat==='I'||cat==='E'?2.8:.55)+h*6.283);
+  const A=clamp(drawA*nightDepth*detailAlpha432(z)*pulse,0,.9);g.save();g.globalCompositeOperation='lighter';
+  const Rp=(x,y,w,hh,c,a=1)=>{g.fillStyle=c.replace('ALPHA',(A*a).toFixed(3));g.fillRect(x,y,Math.max(1,w*z),Math.max(1,hh*z));};
+  if(cat==='R'){
+    for(let i=0;i<2;i++)Rp(cx+(-5+i*10)*z,foot-(11+i*4)*z,1,1,'rgba(255,213,145,ALPHA)',.55);Rp(cx-1*z,foot-7*z,2,1,'rgba(255,224,168,ALPHA)',.72);
+  }else if(cat==='C'){
+    // 雨棚燈珠 + 一台販賣機/小燈箱
+    for(let i=0;i<5;i++)Rp(cx+(-8+i*4)*z,foot-12*z,1,1,'rgba(255,205,112,ALPHA)',.55);
+    Rp(cx+(h<.5?-10:8)*z,foot-10*z,3,6,h<.33?'rgba(85,210,255,ALPHA)':h<.66?'rgba(255,92,154,ALPHA)':'rgba(255,198,82,ALPHA)',.48);
+  }else if(cat==='I'||cat==='E'){
+    Rp(cx-8*z,foot-20*z,2,2,'rgba(255,178,84,ALPHA)',.55);if(Math.sin(visT*3.3+h*8)>0)Rp(cx+8*z,foot-30*z,1,1,'rgba(255,66,56,ALPHA)',.85);Rp(cx+2*z,foot-15*z,1,6,'rgba(154,207,216,ALPHA)',.28);
+  }else if(cat==='T'){
+    for(let i=0;i<4;i++)Rp(cx+(-9+i*6)*z,foot-8*z,2,1,'rgba(109,210,255,ALPHA)',.52);Rp(cx-2*z,foot-13*z,4,2,'rgba(202,235,255,ALPHA)',.38);
+  }else if(cat==='H'){
+    Rp(cx-3*z,foot-10*z,6,2,'rgba(255,188,205,ALPHA)',.48);Rp(cx-1*z,foot-15*z,2,5,'rgba(255,102,112,ALPHA)',.34);
+  }else{
+    Rp(cx-5*z,foot-9*z,10,1,'rgba(255,214,155,ALPHA)',.32);Rp(cx-1*z,foot-12*z,2,2,'rgba(255,232,190,ALPHA)',.40);
+  }
+  g.restore();window.__t431MicroLightCount=(window.__t431MicroLightCount||0)+1;return 1;
+}
+
+/* ---------- T441 全局風場（桌面移植） ---------- */
+/* ===== T441 全局風場（Fable 親手，玩家指令「全局風場」）——乘法卡：零新物件，統一既有擺動的方向 =====
+   模型：windX441＝方向(day 3日窗雜湊，決定性)×強度(晴.18/雨.55/暴雨1.0)×陣風包絡(visT雙正弦，可歇至0)。
+   不變式：①所有耦合為「加法項」，__noWind441 時 windX441≡0 ⇒ 與 T440 逐像素恆等；②零 R()/ri()（鐵律2，
+   方向取 streetHash）；③不進存檔/模擬，無新欄位（讀 day/weather 為單向讀模擬，nightTier413 同款）；
+   ④同 visT 重繪恆等（純函數）；⑤GAME_VER 不動。驗收讀數 window.__t441Wind。
+   消費端 7 處各一行加法：降水斜率/煙粒漂移(原恆東+6 納入基線)/樹搖/螢火/蝴蝶/秋葉/花瓣。
+   明示不做：雲體雲影(位置=f(visT)·速度，無態耦合=天氣切換瞬間跳位)、旗幟(頻率=乘法項)、
+   風向雞風向計(烘焙像素)。 ===== */
+let windX441=0;
+function updWind441(){
+  if(window.__noWind441){windX441=0;window.__t441Wind=0;return;}
+  const dw=Math.floor((((day||1))-1)/3);
+  const dir=streetHash(dw&1023,17,44101)<.5?-1:1;
+  const wS=weather===2?1:weather===1?.55:.18;
+  const g=.55+.45*Math.sin(visT*.11+2.1)+.18*Math.sin(visT*.53+.7);
+  windX441=dir*wS*Math.max(0,g);
+  window.__t441Wind=windX441;
 }
 function drawCursor(sxOf,syOf,z){
   if(tool==='pan')return;
