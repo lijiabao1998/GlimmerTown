@@ -9684,3 +9684,45 @@ runPwaTests().then(() => {
     '__t424TextureCount','__t427EdgeCount','__t428GroundCount','__t432Suppressed'])
     assert(html.includes(b),'T427 G6 觀測橋 '+b+' 必須存在');
 }
+
+/* ===== T429 美術波上層移植層守衛（源自移動線 T482 T425/T426/T429/T430/T431/T441） ===== */
+{ // G1 六件函式存在（T368a 桌面 T368 已含，不重複）
+  const fns429=['roofAnchor425','drawRooftop425','drawFacadeMemory426','drawMicroLife429',
+    'drawMaterialResponse430','drawNightMicro431','updWind441'];
+  for(const f of fns429)assert(html.includes('function '+f+'('),'T429 G1 層函式 '+f+' 必須存在');
+}
+{ // G2 接線：幀首 updWind441＋建築層 5 行＋粒子 3 處
+  assert(html.includes('function draw(dt){\n  updWind441();'),'T429 G2 幀首 updWind441() 必須在 draw(dt) 第一行');
+  assert(html.includes('drawFacadeMemory426(ctx,o,bd,s,bx,by,z,drawA);'),'T429 G2 建築層 drawFacadeMemory426 接線');
+  assert(html.includes('drawRooftop425(ctx,o,bd,s,bx,by,z,drawA);'),'T429 G2 建築層 drawRooftop425 接線');
+  assert(html.includes('drawMaterialResponse430(ctx,o,bd,s,bx,by,z,drawA,wetLvl,snowLvl,nightDepth);'),'T429 G2 建築層 drawMaterialResponse430 接線（傳 wetLvl/snowLvl/nightDepth）');
+  assert(html.includes('drawNightMicro431(ctx,o,bd,s,bx,by,z,drawA,nightDepth);'),'T429 G2 建築層 drawNightMicro431 接線');
+  assert(html.includes('drawMicroLife429(ctx,o,bd,s,bx,by,z,drawA,nightDepth);'),'T429 G2 建築層 drawMicroLife429 接線');
+  assert(html.includes('+windX441*1.5*z:0; // T429 風場'),'T429 G2 樹搖風場消費端');
+  assert(html.includes('+windX441*1.2*z; /* T429 風場 */'),'T429 G2 螢火風場消費端');
+  assert(html.includes('+windX441*4*z; /* T429 風場 */'),'T429 G2 蝴蝶風場消費端');
+}
+{ // G3 kill-switch 七個
+  for(const k of ['__noRooftop425','__noFacadeMemory426','__noMicroLife429','__noMaterial430',
+    '__noNightMicro431','__noWind441','__noParkLife'])
+    assert(html.includes(k),'T429 G3 kill-switch '+k+' 必須存在');
+}
+{ // G4 退化橋（T446D/T448 未移植桌面，恆等退化）
+  assert(html.includes('const visualWealth446D=(bd)=>((bd&&bd.we)===2?2:(bd&&bd.we)===0?0:1);'),'T429 G4 visualWealth446D 退化橋');
+  assert(html.includes('const roofLifeIntensity446=()=>1;'),'T429 G4 roofLifeIntensity446 退化橋');
+  assert(html.includes('window.__noRoofLife446=true;'),'T429 G4 __noRoofLife446 常駐關閉');
+  assert(html.includes('const rhythmMicro448=()=>1;'),'T429 G4 rhythmMicro448 退化橋');
+}
+{ // G5 層區塊零亂數（剝註解後字面掃描）
+  const b429=html.indexOf('const visualWealth446D'),e429=html.indexOf('\nfunction drawCursor(',b429);
+  assert(b429>=0&&e429>b429,'T429 G5 應可界定移植層區段');
+  const seg429=html.slice(b429,e429).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(seg429),
+    'T429 G5 移植層區段不得消耗 R()/ri()/rand()/Math.random()/spriteTexRand（零亂數位移）');
+}
+{ // G6 觀測橋＋零風不變式
+  for(const b of ['__t425RoofCount','__t426FacadeCount','__t429LifeCount','__t430MaterialCount',
+    '__t431MicroLightCount','__t441Wind'])
+    assert(html.includes(b),'T429 G6 觀測橋 '+b+' 必須存在');
+  assert(html.includes('if(window.__noWind441){windX441=0;'),'T429 G6 __noWind441 時 windX441≡0（零風即零位移不變式）');
+}
