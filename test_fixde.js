@@ -9821,8 +9821,10 @@ runPwaTests().then(() => {
     + '卡面寫的「一刀關閉／緊急回退」在正式產物裡撥不動');
   assert(html.includes("localStorage.getItem(SAVEKEY+'.no')"),
     'T436 G2【原文前哨】必須有 localStorage 入口（持久版）');
-  assert(html.includes("if(t436&&/^[A-Za-z0-9_]+$/.test(t436))window['__no'+t436]=true;"),
-    'T436 G3【原文前哨】名稱必須過 [A-Za-z0-9_]+ 白名單再用屬性寫入；'
+  assert(html.includes("if(!t436||!/^[A-Za-z0-9_]+$/.test(t436))continue;")
+    && html.includes("window['__no'+t436]=true;applied436.push(t436);")
+    && html.includes("if(SIM_ONLY436.indexOf(t436)>=0){refused436.push(t436);continue;}"),
+    'T436 G3【原文前哨】名稱必須過 [A-Za-z0-9_]+ 白名單、且會影響模擬的開關（SIM_ONLY436）必須被拒收，再用屬性寫入；'
     + '不得改成 eval／new Function／直接拼接執行');
   assert(!/eval\(\s*['"]__no/.test(html),
     'T436 G4【原文前哨】通用入口不得使用 eval');
