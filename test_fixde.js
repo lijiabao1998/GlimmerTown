@@ -9959,6 +9959,53 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T439 牆面受光量測：守衛 ===== */
+{
+  // G1 記錄鉤存在，且**預設關閉**（陣列不存在時只是一次 falsy 判斷）
+  assert(html.includes("if(window.__wall439){window.__wall439.push({key:window.__wallKey439||null,cL:cL,cR:cR,hw:hw,h:h});window.__wallKey439=null;}"),
+    'T439 G1【原文前哨】isoBox 必須有預設關閉的牆面記錄鉤，且**鍵用過即清**——'
+    + '不清的話，mkBld 主體之後的所有附屬構件呼叫都會被記成同一個鍵（張冠李戴），'
+    + '量具就得在外面替它擦屁股，換一支工具就會被騙');
+  // G2 位置釘：開啟端必須早於 isoBox 與 buildSprites（T438 M2 的教訓）
+  const arm439 = html.indexOf("try{if(/[?&]wall439=1/.test(location.search)");
+  const iso439 = html.indexOf('\nfunction isoBox(');
+  const bs439 = html.indexOf('function buildSprites(){');
+  assert(arm439 > 0 && iso439 > 0 && bs439 > 0 && arm439 < iso439 && arm439 < bs439,
+    'T439 G2【位置釘】?wall439=1 的開啟端（' + arm439 + '）必須早於 `function isoBox(`（' + iso439
+    + '）與 `function buildSprites(){`（' + bs439 + '）。晚一步就一筆都收不到，'
+    + '而量具會綠得像是「這個建築沒有牆」——T434d 的逃生閥就是這樣空綠了一整張卡');
+  // G3 記錄鉤不得改變落筆：兩個牆面迴圈的原文必須原封不動
+  assert(html.includes("  g.fillStyle=cL;\n  for(let dx=1;dx<=hw;dx++){const yF=by-(dx>>1);g.fillRect(cx-dx,yF-h,1,h);}\n  g.fillStyle=cR;\n  for(let dx=0;dx<hw;dx++){const yF=by-((dx+1)>>1);g.fillRect(cx+dx,yF-h,1,h);}"),
+    'T439 G3【原文前哨】isoBox 的左右牆面迴圈必須逐字不變（cL 畫 cx-dx、cR 畫 cx+dx）。'
+    + '這兩行同時是「量測判準的定義」與「被量的東西」——改了它，art_wall.html 報的方向就沒有意義');
+  // G4 記錄鉤不得消耗共用亂數（否則打開量測就會位移世界流）
+  {
+    const a439 = html.indexOf('\nfunction isoBox(');
+    const b439 = html.indexOf('\n}', a439);
+    const body439 = htmlBare438.slice(a439, b439);
+    const n439 = (body439.match(/(^|[^A-Za-z0-9_$.])(R|ri|rf|rnd)\s*\(/g) || []).length;
+    assert(n439 === 0,
+      'T439 G4【機械複算】isoBox 函式體不得出現 R()/ri()/rf()/rnd()（實得 ' + n439 + '）：'
+      + '牆面記錄鉤是可以被玩家用 ?wall439=1 打開的，它一旦碰到共用亂數流，'
+      + '「打開量測」就會改變世界，兩釘也跟著失效');
+  }
+  // G5 歸屬鍵只在 mkBld 設定
+  assert(html.includes("if(window.__wall439)window.__wallKey439=k+'_'+lv+'_'+v;"),
+    'T439 G5【原文前哨】mkBld 必須設定歸屬鍵（格式與清冊鍵同款 k_lv_v），否則主體與附屬構件分不開');
+  // G6 量具：收不到資料要紅，且母體是「相異牆面」不是流水帳長度
+  {
+    const wall439 = fs.readFileSync(path.join(__dirname, 'docs', 'tools', 'art_wall.html'), 'utf8');
+    assert(wall439.includes('window.__wall439 不存在') && wall439.includes('window.__wall439 存在但一筆都沒有'),
+      'T439 G6 art_wall.html 必須把「陣列不存在（開關沒開）」與「存在但空（開啟端太晚）」分開報——'
+      + '兩者的診斷完全不同，混講等於沒講');
+    assert(wall439.includes('const sigOf = e =>') && wall439.includes('相異牆面'),
+      'T439 G6b art_wall.html 的母體必須是**相異牆面**（逐鍵／逐 (cL,cR,hw,h) 去重）。'
+      + '流水帳長度會隨遊戲繼續跑而一直增長（實測 444 → 1416），用它當母體會讓同一件事量出兩個數字');
+    assert(/throw new Error\('相異牆面數在 30 秒內仍在增長/.test(wall439),
+      'T439 G6c art_wall.html 必須在母體遲遲不穩定時丟錯，不能拿一個還在動的數字往下算');
+  }
+}
+
 /* ===== T438 夜班覆核退修：守衛 =====
    本區的四條（G1/G2/G3 白名單判準、G6 位置）是**機械複算**，不是原文前哨——
    也就是說它們不看我在 index.html 註解裡宣稱了什麼，而是自己從原始碼把答案算一遍。
