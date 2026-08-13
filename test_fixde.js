@@ -9784,6 +9784,35 @@ runPwaTests().then(() => {
   assert(html.includes('if(window.__noWind441){windX441=0;'),'T429 G6 __noWind441 時 windX441≡0（零風即零位移不變式）');
 }
 
+/* ===== T437 代碼地圖自檢：守衛 ===== */
+{
+  /* T371b 只驗「錨點字串能不能在 index.html 找到」，**不驗行號**，所以行號可以全面過期
+     而套件照樣全綠（2026-08-14 實測：§1 的 77 列行號**全部**不符）。
+     這條掃**整張 §1 表**，不受 T371b 列格式盲區影響：每一列的 grep 錨點都必須真的存在。 */
+  const archTxt437 = fs.readFileSync(path.join(__dirname, 'docs', 'ARCH.md'), 'utf8');
+  const secStart437 = archTxt437.indexOf('## 1. 檔案分節地圖');
+  const secEnd437 = archTxt437.indexOf('\n## ', secStart437 + 10);
+  assert(secStart437 >= 0 && secEnd437 > secStart437,
+    'T437 G1 docs/ARCH.md 必須有「## 1. 檔案分節地圖」節（自檢工具 tools/arch_map.py 依賴它）');
+  const secTxt437 = archTxt437.slice(secStart437, secEnd437);
+  const dead437 = [];
+  let checked437 = 0;
+  for (const line of secTxt437.split('\n')) {
+    const m = /^\|([^|]*)\|([^|]*)\|([^|]*)\|\s*$/.exec(line);
+    if (!m || !/\d/.test(m[2])) continue;
+    const ancs = m[3].match(/`([^`]+)`/g) || [];
+    if (!ancs.length) continue;
+    checked437++;
+    const raw = ancs.map(a => a.slice(1, -1));
+    if (!raw.some(a => html.includes(a))) dead437.push(raw[0].slice(0, 48));
+  }
+  assert(checked437 >= 60,
+    'T437 G2 §1 表格可檢查的列數異常（實得 ' + checked437 + '，預期 ≥60）——表格結構可能被改壞了');
+  assert(dead437.length === 0,
+    'T437 G3 ARCH §1 的 grep 錨點必須全部能在 index.html 找到；死錨點：' + JSON.stringify(dead437.slice(0, 4))
+    + '。地圖指錯地方比沒有地圖更費時間——改完 index.html 請跑 `python tools/arch_map.py --fix`');
+}
+
 /* ===== T436 逃生閥通用入口：守衛 ===== */
 {
   // G1 入口三件套：URL 參數、localStorage、白名單正則
