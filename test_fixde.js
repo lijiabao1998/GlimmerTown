@@ -633,6 +633,21 @@ eval(js);
 
 
 // ---- 測試輔助 ----
+/* T444：種子釘的共用入口。
+   `tools/verify.py` 的舊哨兵是 grep 原始碼字面
+   （`assert\(window\.GV\.stats\(\)\.pop === \d+`），它連方向都是反的——
+   把 `=== 3781` 改寫成一個等值常數，套件全綠、釘子照樣成立，哨兵卻回報 0 根而閘門紅；
+   反過來把 assert 刪掉、在註解裡貼兩行同樣的文字，哨兵數到 2 而全綠。
+   改成行為化：釘子走這裡，順便印一行機器可讀的 SEEDPIN，讓閘門去讀**真的跑出來的值**。
+   一根釘子有沒有釘在牆上，不能靠看牆上有沒有畫一根釘子的圖。 */
+function seedPin444(name, seed, days, expect, actual, note) {
+  console.log('SEEDPIN ' + name + ' seed=' + seed + ' days=' + days
+    + ' expect=' + expect + ' actual=' + actual);
+  assert(actual === expect,
+    'T444 種子釘 ' + name + '（seed' + seed + ' ' + days + ' 天）應恆為 ' + expect
+    + '，實得 ' + actual + (note ? '。' + note : ''));
+}
+
 function assert(cond, msg) {
   if (!cond) { console.error('FAIL:', msg); process.exit(1); }
   console.log('PASS:', msg);
@@ -4599,7 +4614,8 @@ runPwaTests().then(() => {
     // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
     // T432 重釘（業主授權 2026-08-13）：兩座孤島核電與四座孤島綠能共 686 容量不再跨網白嫖；4153→3781 是刻意供電語義變更。
     //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
-    assert(window.GV.stats().pop === 3781, 'T324/T342c seed301 400天 pop 應恆為 3781（T432 孤島電源不併網重釘；前值 4153），實得 ' + window.GV.stats().pop);
+    seedPin444('seed301', 301, 400, 3781, window.GV.stats().pop,
+      'T324/T342c 起釘；T432 孤島電源不併網重釘（前值 4153）');
     assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
   }
 
@@ -6904,6 +6920,17 @@ runPwaTests().then(() => {
     window.GV.ai(false);
     const pop5 = window.GV.stats().pop;
     assert(pop5 > 1000, 'T348 seed5 應脫離死鎖並長成城市（v8.8 基準恆 0），實得 ' + pop5);
+    /* T444 第三根釘（補餘裕）：`MIN_SEED_PINS` 原本恰好卡在 2，零餘裕——
+       任何一根被動到就直接跌破門檻。seed7 與既有兩根不同族（非水域中心、非拮据城）。 */
+    window.GV.newWorldSeeded(7);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 400; d++) window.GV.step(1);
+    window.GV.ai(false);
+    seedPin444('seed7', 7, 400, 251, window.GV.stats().pop,
+      'T444 補餘裕新釘。實測 251——這是一張**低成長地圖**，與 seed301（3781 拮据城）'
+      + '、seed22（4550 健康城）分屬三個不同的族群；選它正是要讓釘子涵蓋「難開的圖」那一端');
+
     // seed15 同屬水域中心地圖：至少必須有人口（不再是零）
     window.GV.newWorldSeeded(15);
     window.GV.setDiff(1);
@@ -6917,7 +6944,8 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    assert(window.GV.stats().pop === 4550, 'T348 健康種子 seed22 須維持 4550（紓困為手術式，健康城市位元恆等），實得 ' + window.GV.stats().pop);
+    seedPin444('seed22', 22, 400, 4550, window.GV.stats().pop,
+      'T348 起釘：紓困為手術式，健康城市位元恆等');
   }
 
 
@@ -9972,6 +10000,37 @@ runPwaTests().then(() => {
   // G6 沒給參數時一個字都不寫（預設行為逐位元不變）
   assert(html.includes("if(noList436)for(const nm436 of noList436.split(','))"),
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
+}
+
+/* ===== T444 種子哨兵行為化（ARCH §10.14）：守衛 ===== */
+{
+  /* 舊哨兵（`tools/verify.py`）是 grep 原始碼字面，**連方向都是反的**：
+     把 `=== 3781` 改寫成等值常數 ⇒ 套件全綠、釘子照樣成立，而哨兵回報 0 根、閘門紅；
+     把 assert 刪掉、在註解裡貼兩行同樣的文字 ⇒ 哨兵數到 2、閘門全綠而釘子一根都不在。
+     T444 把它換成讀套件輸出的 `SEEDPIN` 行。這一區守的是「換過去了，而且沒有換回來」。 */
+  const vpy444 = fs.readFileSync(path.join(__dirname, 'tools', 'verify.py'), 'utf8');
+  // G1 verify.py 必須讀 SEEDPIN 行，且不得再用原始碼 grep 當哨兵
+  assert(/SEEDPIN\s\(\?P<name>/.test(vpy444) || vpy444.indexOf('SEEDPIN ') >= 0,
+    'T444 G1 tools/verify.py 必須解析套件輸出的 `SEEDPIN` 行（行為化哨兵）');
+  assert(!/assert\\\(window\\\.GV\\\.stats\\\(\\\)\\\.pop === /.test(vpy444),
+    'T444 G1b tools/verify.py 不得再用「grep 原始碼字面」當種子哨兵——'
+    + '那條連方向都是反的：把釘子寫得更好（改成等值常數）會讓它變紅，'
+    + '把釘子刪掉再在註解裡貼同樣的文字反而會讓它變綠');
+  // G2 每一根釘都必須走 seedPin444（不得有人繞過去自己寫 assert）
+  const direct444 = (htmlBare438 ? 0 : 0) +
+    (fs.readFileSync(__filename, 'utf8').match(/assert\(window\.GV\.stats\(\)\.pop === \d+/g) || []).length;
+  assert(direct444 === 0,
+    'T444 G2 種子釘一律走 `seedPin444()`，不得直接寫 `assert(window.GV.stats().pop === <數字>)`'
+    + '（實得 ' + direct444 + ' 處）——繞過去就不會印 SEEDPIN，閘門也就看不到它');
+  const pins444 = (fs.readFileSync(__filename, 'utf8').match(/\n\s*seedPin444\('/g) || []).length;
+  assert(pins444 >= 3,
+    'T444 G2b 種子釘至少 3 根（實得 ' + pins444 + '）。ARCH §10.14：原本恰好卡在門檻 2、零餘裕，'
+    + '任何一根被動到就直接跌破');
+  // G3 門檻常數兩邊同步
+  const minPy444 = /^MIN_SEED_PINS = (\d+)$/m.exec(vpy444);
+  assert(minPy444 && Number(minPy444[1]) === 3,
+    'T444 G3【判準釘】tools/verify.py 的 MIN_SEED_PINS 必須是 3（實得 '
+    + (minPy444 ? minPy444[1] : '找不到') + '）。要改請在卡面寫明理由');
 }
 
 /* ===== T443 顯示價 vs 實扣（ARCH §10.9）／SPR 撞名與 hw 偶數（§10.10）：守衛 ===== */

@@ -26,7 +26,7 @@ from typing import NamedTuple
 
 HERE = Path(__file__).resolve().parent.parent
 MIN_PASS = 1902
-MIN_SEED_PINS = 2
+MIN_SEED_PINS = 3
 DONE_MARKER = 'FIX-D/FIX-E 回歸測試全部通過'
 TEXT_CHECK = ('index.html', 'sw.js', 'test_fixde.js')
 # T371：CRLF 掃描範圍。前三個是執行期契約檔；其餘是 .gitattributes 宣告為 `text eol=lf`
@@ -320,17 +320,12 @@ def main(argv=None):
         failures += 1
     else:
         ok('test harness fail-fast contract')
-    # T444a (widen before narrowing): this gate is the *canonical* verifier that
-    # merge_bay.py runs against every bay, so a card that replaces the sentinel
-    # cannot land in one step -- the old sentinel would reject the very bay that
-    # fixes it. Accept both signals here; T444b converts the pins and drops the
-    # legacy path.
-    #
-    # Why the legacy path has to go: it greps the test source for the literal
-    # `assert(window.GV.stats().pop === <n>)`, which points the wrong way.
-    # Rewriting `=== 3781` into an equal-valued constant keeps every pin working
-    # but scores zero, while deleting both asserts and pasting the same text into
-    # a comment scores two.
+    # T444: the sentinel used to grep the test source for a literal
+    # `assert(window.GV.stats().pop === <n>)`. That check pointed the wrong way:
+    # rewriting `=== 3781` into an equal-valued constant kept every pin intact but
+    # dropped the count to zero, while deleting both asserts and pasting the same
+    # text into a comment scored two. Read the suite's own SEEDPIN lines instead --
+    # they carry what the run actually produced.
     seen_pins = {}
     for m in re.finditer(
         r'^SEEDPIN (\S+) seed=(\d+) days=(\d+) expect=(-?\d+) actual=(-?\d+)$',
@@ -339,23 +334,15 @@ def main(argv=None):
     ):
         seen_pins[m.group(1)] = (int(m.group(4)), int(m.group(5)))
     mismatched = [n for n, (e, a) in seen_pins.items() if e != a]
-    legacy_pins = len(
-        re.findall(
-            r'assert\(window\.GV\.stats\(\)\.pop === \d+',
-            test_text,
-        )
-    )
     if mismatched:
         bad('seed pins RED: %s reported actual != expect' % ', '.join(sorted(mismatched)))
         failures += 1
     elif len(seen_pins) >= MIN_SEED_PINS:
         ok('seed pins ran and matched: %d (%s)'
            % (len(seen_pins), ', '.join('%s=%d' % (n, v[1]) for n, v in sorted(seen_pins.items()))))
-    elif legacy_pins >= MIN_SEED_PINS:
-        ok('seed pins present (legacy source scan, T444b will retire this): %d' % legacy_pins)
     else:
-        bad('seed pins: SEEDPIN lines=%d, legacy source scan=%d, both below baseline %d'
-            % (len(seen_pins), legacy_pins, MIN_SEED_PINS))
+        bad('seed pins=%d below baseline %d (SEEDPIN lines emitted by the suite)'
+            % (len(seen_pins), MIN_SEED_PINS))
         failures += 1
 
     # 6. Code map. T437 shipped tools/arch_map.py but wired it to nothing, so the
