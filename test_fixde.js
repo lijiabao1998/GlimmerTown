@@ -9789,3 +9789,136 @@ runPwaTests().then(() => {
   assert(html.includes("if(cat==='T')return k===55?.48:.22;"),'T431 G5 中央車站例外');
   assert(html.includes("if(k===19||k===114)return .20;"),'T431 G5 機場不按 footprint 當高牆');
 }
+
+/* ===== T432 電網分區守衛（桌面適配版，源自移動線 T450；含二輪審計修正釘） ===== */
+{ // G1 靜態：函式＋共用最近道路＋世代標記＋三 P1 修正＋fallback
+  for(const f of ['powerLegacy432','nearestPoweredRoadIdx432','rebuildPowerDistricts432'])
+    assert(html.includes('function '+f+'('),'T432 G1 函式 '+f+' 必須存在');
+  assert(html.includes('if(!plants){rebuildPowerDistricts432();return 0;}'),'T432 G1 P1-2 無啟動源必須重建清空');
+  assert(html.includes('const md=Math.abs(dx)+Math.abs(dy);'),'T432 G1 P1-3 曼哈頓最近（電源端）');
+  assert(html.includes('const dj=nearestPoweredRoadIdx432(x,y,2);'),'T432 G1 二輪審計：建築端也用共用最近函式（r=2）');
+  assert(html.includes('const fj=nearestPoweredRoadIdx432(x,y,1);'),'T432 G1 二輪審計：電源端共用函式（r=1）');
+  assert(html.includes('const seasonCap432=dCap432.map(c=>Math.floor(c*POWER_SEASON_MULT[sea]));'),'T432 G1 P1-1 季節倍率同套');
+  assert(html.includes('dUsed432[d432]<seasonCap432[d432];'),'T432 G1 判定用季節口徑');
+  assert(html.includes('powerTilesRef432=tiles;'),'T432 G1 二輪審計：世代標記寫入');
+  assert(html.includes('powerTilesRef432!==tiles'),'T432 G1 二輪審計：fallback 含跨世界檢查');
+  assert(html.includes('window.__t432Power='),'T432 G1 觀測橋');
+  assert(html.includes('__noPowerDistrict432'),'T432 G1 kill-switch');
+}
+{ // G2 區塊零亂數
+  const b432=html.indexOf('function powerLegacy432'),e432=html.indexOf('function countNear(',b432);
+  assert(b432>=0&&e432>b432,'T432 G2 應可界定區塊');
+  const seg432=html.slice(b432,e432).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(seg432),
+    'T432 G2 區塊不得消耗亂數流');
+}
+{ // G3 行為：單網等價——kill-switch 開/關同 seed 同 pop（150 天跨季節）
+  window.GV.setMapSize(72);
+  window.GV.newWorldSeeded(7);
+  window.GV.setDiff(1);
+  window.GV.weather(0);
+  window.GV.setSeason(0);
+  window.GV.ai(true);
+  for (let d = 0; d < 150; d++) window.GV.step(1);
+  window.GV.ai(false);
+  const popA = window.GV.stats().pop;
+  const distA = window.__t432Power ? window.__t432Power.districts : -1;
+  window.GV.newWorldSeeded(7);
+  window.GV.setDiff(1);
+  window.GV.weather(0);
+  window.GV.setSeason(0);
+  window.__noPowerDistrict432 = true;
+  window.GV.ai(true);
+  for (let d = 0; d < 150; d++) window.GV.step(1);
+  window.GV.ai(false);
+  const popB = window.GV.stats().pop;
+  delete window.__noPowerDistrict432;
+  assert(distA === 1, 'T432 G3 seed7 150 天單網城市應為 1 district（實得 ' + distA + '）');
+  assert(popA === popB, 'T432 G3 單網等價：開關 kill-switch 同 seed pop 恆等（' + popA + ' vs ' + popB + '）');
+}
+{ // G4 行為：孤島綠能不併網——容量三態 50/50/65
+  window.GV.newWorldSeeded(11);
+  window.GV.setDiff(1);
+  const pp432 = findSpot('plant');
+  assert(pp432, 'T432 G4 應能找到電廠位置');
+  place('plant', pp432.x, pp432.y);
+  for(let i=0;i<6;i++)place('road', pp432.x+1+i, pp432.y);
+  window.GV.step(1);
+  const capA = window.__t432Power ? window.__t432Power.sum : -1;
+  assert(capA === 50, 'T432 G4 單電廠應併網 50（實得 ' + capA + '）');
+  place('solar', pp432.x+8, pp432.y+8);
+  window.GV.step(1);
+  const capB = window.__t432Power ? window.__t432Power.sum : -1;
+  assert(capB === 50, 'T432 G4 孤島太陽能不得併網（應仍 50，實得 ' + capB + '）');
+  let sp432=null;
+  for(let i=0;i<6&&!sp432;i++)for(const[dx,dy]of[[0,1],[0,-1],[-1,0],[1,0]]){
+    const nx=pp432.x+1+i+dx,ny=pp432.y+dy;
+    if(place('solar',nx,ny)){sp432={x:nx,y:ny};break;}
+  }
+  assert(sp432,'T432 G4 路旁應能找到太陽能位置');
+  window.GV.step(1);
+  const capC = window.__t432Power ? window.__t432Power.sum : -1;
+  assert(capC === 65, 'T432 G4 併網太陽能應計入（50+15=65，實得 ' + capC + '）');
+}
+{ // G5 行為：雙網隔離——容量獨立不跨區
+  window.GV.newWorldSeeded(13);
+  window.GV.setDiff(1);
+  window.GV.setMapSize(72);
+  for(let i=0;i<8;i++)place('road',10+i,10);
+  place('plant',10,9);
+  for(let i=0;i<8;i++)place('road',30+i,10);
+  place('plant',30,9);
+  window.GV.step(1);
+  const caps1 = window.__t432Power ? window.__t432Power.cap.slice().sort() : [];
+  assert(caps1.length===2&&caps1[0]===50&&caps1[1]===50,'T432 G5 雙網應各併網 50（實得 '+JSON.stringify(caps1)+'）');
+  place('doze',30,9);
+  window.GV.step(1);
+  const caps2 = window.__t432Power ? window.__t432Power.cap.slice().sort() : [];
+  assert(caps2.length===1&&caps2[0]===50,'T432 G5 拆 B 電廠後應只剩 A 網 50（實得 '+JSON.stringify(caps2)+'）');
+}
+{ // G6 行為：存讀後 district 重建一致
+  window.GV.newWorldSeeded(17);
+  window.GV.setDiff(1);
+  const pp6=findSpot('plant');
+  for(let i=0;i<8;i++)place('road',pp6.x+1+i,pp6.y);
+  place('plant',pp6.x,pp6.y);
+  window.GV.step(1);
+  const d1 = window.__t432Power ? window.__t432Power.districts : -1;
+  window.GV.save();
+  window.GV.newWorldSeeded(99);
+  window.GV.step(1);
+  window.GV.load();
+  window.GV.step(1);
+  const d2 = window.__t432Power ? window.__t432Power.districts : -1;
+  assert(d1 === d2, 'T432 G6 存讀後 district 重建一致（' + d1 + ' vs ' + d2 + '）');
+}
+{ // G7 孤島清單：seed301 400 天逐座斷言（二輪審計要求：686 孤島容量正式入測）
+  window.GV.setMapSize(72);
+  window.GV.newWorldSeeded(301);
+  window.GV.setDiff(1);
+  window.GV.ai(true);
+  for (let d = 0; d < 400; d++) window.GV.step(1);
+  window.GV.ai(false);
+  const N7=window.GV.N();
+  let isoCap=0,isoNuke=0,isoGreen=0;
+  const isoList=[];
+  for(let y=0;y<N7;y++)for(let x=0;x<N7;x++){
+    const b=window.GV.tile(x,y).bld;
+    if(!b||b.ref)continue;
+    const k=b.k,lv=b.lv||1;
+    let c=0;
+    if(k===5)c=50+(lv-1)*25;else if(k===25)c=15+(lv-1)*8;else if(k===26)c=20+(lv-1)*10;
+    else if(k===58)c=250+(lv-1)*40;else if(k===59)c=100+(lv-1)*15;else if(k===60)c=45+(lv-1)*8;else if(k===62)c=60+(lv-1)*8;
+    if(!c)continue;
+    let rpN=false;
+    for(let dy=-1;dy<=1&&!rpN;dy++)for(let dx=-1;dx<=1;dx++){
+      const t2=window.GV.tile(x+dx,y+dy);
+      if(t2&&t2.road&&t2.rp)rpN=true;
+    }
+    if(!rpN){isoCap+=c;isoList.push({k,lv});if(k===58)isoNuke++;else isoGreen++;}
+  }
+  assert(isoNuke===2,'T432 G7 seed301 應有 2 座孤島核電（實得 '+isoNuke+'）');
+  assert(isoGreen===4,'T432 G7 seed301 應有 4 座孤島綠能（實得 '+isoGreen+'）');
+  assert(isoCap===686,'T432 G7 seed301 孤島容量應為 686（實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
+  assert(window.__t432Power.districts===1,'T432 G7 seed301 應為單 district（實得 '+window.__t432Power.districts+'）');
+}

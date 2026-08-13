@@ -10747,6 +10747,7 @@ function placeCost(toolId,x,y){
   return c*tq('B5',.95,1)*tq('C8',.95,1)*tq('D4a',.90,1)*sq('hub',1.05,1);
 }
 function doPlace(toolId,x,y,silent){
+  markPowerDirty432(); // T432
   markLandDirty(x,y,20); // T315：只標記受影響框（半徑20 覆蓋最大覆蓋場18/污染5）；T292：任何建造/拆除都可能改 COV/POL/公園景觀→地價靜態基準需在下一 tick 重建（doPlace 亦處理 doze 拆除 case）
   const err=canPlace(toolId,x,y);
   if(err){if(!silent){toast(err,'bad');sErr();}return false;}
@@ -11481,7 +11482,12 @@ function computePower(){
     }
   }
   // T82：再生能源加容量；仍需至少一座電廠啟動路網 BFS
-  if(!plants)return 0;
+  if(!plants){ // T432：無啟動源＝零 district（空城快路徑，不跑 Union-Find；fallback guard 依 dCap.length 回退舊決策）
+    powerSrcList432=[];
+    if(dCap432.length){dCap432=[];window.__t432Power={districts:0,cap:[],sum:0};}
+    powerDirty432=false;powerTilesRef432=tiles;
+    return 0;
+  }
   let qh=0;
   while(qh<qt){
     const x=powQ[qh++],y=powQ[qh++],d=powQ[qh++];
@@ -11494,7 +11500,89 @@ function computePower(){
       if(tiles[j].road&&!powSeen[j]){powSeen[j]=1;powQ[qt++]=nx;powQ[qt++]=ny;powQ[qt++]=d+1;}
     }
   }
+  if(powerDirty432||powerTilesRef432!==tiles)rebuildPowerDistricts432();else refreshPowerCapacities432(); // T432：拓撲髒才重建，否則只巡電源快取（效能）
   return cap; // T253：容量已於上方計數迴圈按各電源機組等級加權累加（lv1 時＝原 plants*(PLANT_CAP+ecoReg)+so*15+wi*20，向後相容）；T82 太陽能/風力；T122 節能條例
+}
+
+/* ===== T432 電網分區（源自移動線 T450，桌面適配版） =====
+   斷開的電網不再跨區借電：帶電道路 Union-Find 組件各擁各的容量。
+   runtime-only：PDIST432/dCap432/dUsed432 不進 save；零亂數。
+   單電網城市 district=1 ⇒ 與舊決策逐位等價（兩釘恆等論證）。
+   __noPowerDistrict432 精確回退全城共享。 ===== */
+let PDIST432=null;
+let dCap432=[],dUsed432=[];
+let powerTilesRef432=null; // T432 審計二輪：跨世界快取世代標記（newWorld/load 換 tiles 引用即失效）
+let powerDirty432=true,powerSrcList432=[]; // T432 審計二輪：拓撲髒標記＋電源快取（效能量測 +45.8% 修正）
+function powerLegacy432(){return !!window.__noPowerDistrict432;}
+function markPowerDirty432(){powerDirty432=true;}
+function nearestPoweredRoadIdx432(x,y,r){
+  let bj=-1,mb=1e9;
+  for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+    const nx=x+dx,ny=y+dy;if(!inMap(nx,ny))continue;const j=idx(nx,ny);
+    if(tiles[j].road&&tiles[j].rp&&PDIST432[j]>=0){
+      const md=Math.abs(dx)+Math.abs(dy);
+      if(md<mb){mb=md;bj=j;}
+    }
+  }
+  return bj;
+}
+function rebuildPowerDistricts432(){
+  const n=N*N;
+  if(!PDIST432||PDIST432.length!==n)PDIST432=new Int32Array(n);
+  PDIST432.fill(-1);
+  // Union-Find：帶電道路 4-鄰接組件
+  const par=new Int32Array(n);
+  for(let i=0;i<n;i++)par[i]=i;
+  const find=(a)=>{let p=par[a];while(p!==a){par[a]=par[p];a=par[a];p=par[a];}return a;};
+  const uni=(a,b)=>{a=find(a);b=find(b);if(a!==b)par[b]=a;};
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const i=idx(x,y);if(!tiles[i].rp)continue;
+    if(x+1<N&&tiles[idx(x+1,y)].rp)uni(i,idx(x+1,y));
+    if(y+1<N&&tiles[idx(x,y+1)].rp)uni(i,idx(x,y+1));
+  }
+  powerSrcList432=[]; // T432：rebuild 前清空電源快取（refresh 重複加舊電源是 [50,500] 的根因）
+  const rootToId=new Map();let nd=0;
+  for(let i=0;i<n;i++){if(!tiles[i].rp)continue;const r=find(i);let d=rootToId.get(r);if(d===undefined){d=nd++;rootToId.set(r,d);}PDIST432[i]=d;}
+  // 電源容量歸入 3×3 frontage 內最近帶電道路的 district
+  dCap432=new Array(nd).fill(0);
+  for(let i=0;i<n;i++){
+    const b=tiles[i].bld;
+    if(!b||b.ref)continue;
+    let pc=0;
+    if(b.k===5)pc=PLANT_CAP+((b.lv||1)-1)*25+(pol&&pol.ecoReg?5:0);
+    else if(b.k===25)pc=15+((b.lv||1)-1)*8;
+    else if(b.k===26)pc=20+((b.lv||1)-1)*10;
+    else if(b.k===58)pc=250+((b.lv||1)-1)*40;
+    else if(b.k===59)pc=100+((b.lv||1)-1)*15;
+    else if(b.k===60)pc=45+((b.lv||1)-1)*8;
+    else if(b.k===62)pc=60+((b.lv||1)-1)*8;
+    if(pc<=0)continue;
+    const x=i%N,y=(i/N)|0;
+    const fj=nearestPoweredRoadIdx432(x,y,1);
+    if(fj>=0){dCap432[PDIST432[fj]]+=pc;powerSrcList432.push({i,k:b.k,lv:b.lv||1,pc,d:PDIST432[fj]});}
+  }
+  powerDirty432=false;
+  powerTilesRef432=tiles;
+  window.__t432Power={districts:nd,cap:dCap432.slice(),sum:dCap432.reduce((a,c)=>a+c,0)};
+  return nd;
+}
+function refreshPowerCapacities432(){
+  dCap432.fill(0);
+  for(const s of powerSrcList432){
+    const b=tiles[s.i]&&tiles[s.i].bld;
+    if(!b||b.ref||b.k!==s.k){rebuildPowerDistricts432();return;}
+    let pc=0;
+    if(b.k===5)pc=PLANT_CAP+((b.lv||1)-1)*25+(pol&&pol.ecoReg?5:0);
+    else if(b.k===25)pc=15+((b.lv||1)-1)*8;
+    else if(b.k===26)pc=20+((b.lv||1)-1)*10;
+    else if(b.k===58)pc=250+((b.lv||1)-1)*40;
+    else if(b.k===59)pc=100+((b.lv||1)-1)*15;
+    else if(b.k===60)pc=45+((b.lv||1)-1)*8;
+    else if(b.k===62)pc=60+((b.lv||1)-1)*8;
+    if(pc<=0){rebuildPowerDistricts432();return;}
+    dCap432[s.d]+=pc;
+  }
+  window.__t432Power={districts:dCap432.length,cap:dCap432.slice(),sum:dCap432.reduce((a,c)=>a+c,0)};
 }
 function countNear(x,y,r,pred){
   let n=0;
@@ -12521,7 +12609,9 @@ function tick(){
   // T141：通勤場獨立衰減式移動平均（純觀察用途，供 GV.commuteLoad/commuteAt 讀取，不回饋 roadLoad 避免雙重疊加；
   // 無通勤 trip 時 commutePass 恆 0，此項恆為 0，與改動前逐位元一致）
   for(let i=0;i<N*N;i++){commuteLoad[i]=commuteLoad[i]*.85+commutePass[i]*.15;commutePass[i]=0;}
-  const cap=Math.floor(computePower()*POWER_SEASON_MULT[sea]); // T136：夏季冷氣／冬季暖氣抬高電力需求壓力＝有效供電容量打折；春秋 ×1 精確恆等（Math.floor 對已為整數之值原樣返回）
+  const cap=Math.floor(computePower()*POWER_SEASON_MULT[sea]);
+  const seasonCap432=dCap432.map(c=>Math.floor(c*POWER_SEASON_MULT[sea])); // T432：district 容量同套季節倍率（審計 P1-1，與舊版同口徑）
+  dUsed432=new Array(dCap432.length).fill(0); // T432 // T136：夏季冷氣／冬季暖氣抬高電力需求壓力＝有效供電容量打折；春秋 ×1 精確恆等（Math.floor 對已為整數之值原樣返回）
   const wCap=Math.floor(computeWater()*(drought?DROUGHT_WATER_MULT:1)); // T137：乾旱期間供水上限打折（非乾旱精確恆等 ×1，Math.floor 對已為整數之值原樣返回）
   // 死亡與墓園前置處理（T38）：既有死亡事件的懲罰標記與自動消退
   const deathPenalty=new Uint8Array(N*N);
@@ -12660,8 +12750,13 @@ function tick(){
        不併入下方既有隨機災害抽樣，避免為新設施改動共用亂數流。 */
     if(!b||(b.k>3&&b.k!==127))continue;
     const near=hasRoadNear(x,y,2,true);
-    b.pw=near&&powered<cap;
-    if(b.pw)powered++;
+    if(powerLegacy432()||!PDIST432||!dCap432.length||powerTilesRef432!==tiles){b.pw=near&&powered<cap;if(b.pw)powered++;} // T432：legacy／district 未初始化／跨世界快取失效（測試 stub 等）回退舊決策
+    else{
+      const dj=nearestPoweredRoadIdx432(x,y,2);
+      const d432=dj>=0?PDIST432[dj]:-1;
+      b.pw=near&&d432>=0&&dUsed432[d432]<seasonCap432[d432];
+      if(b.pw){powered++;dUsed432[d432]++;}
+    } // T432
     b.wa=b.pw&&hasWaterNear(x,y,2)&&watered<wCap; // 需供電且鄰近通水水管（T31）
     if(b.wa)watered++;
     if(b.k===1||b.k===127){
@@ -17850,6 +17945,7 @@ cvs.addEventListener('pointerdown',e=>{
 });
 // 撤銷「單指誤觸、隨即進入雙指縮放」放下的那一格
 function undoPlace(f){
+  markPowerDirty432(); // T432
   if(!inMap(f.x,f.y))return;
   const t=T(idx(f.x,f.y));
   if(roadToolToRc(f.tool)&&t.road){
