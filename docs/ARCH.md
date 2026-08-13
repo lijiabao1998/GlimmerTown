@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.66，約 21,481 行（實測檔案 21,481 行＝T430 City Health Strip 後 Python 數（CHANGELOG 380+ 條）；測試 `test_fixde.js`、實測 PASS 4,582、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.67，約 21,548 行（實測檔案 21,548 行＝T431 城市風影後 Python 數；測試 `test_fixde.js`、實測 PASS 4,582、exit 0。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 

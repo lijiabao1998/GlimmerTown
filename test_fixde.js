@@ -9698,7 +9698,7 @@ runPwaTests().then(() => {
   assert(html.includes('drawMaterialResponse430(ctx,o,bd,s,bx,by,z,drawA,wetLvl,snowLvl,nightDepth);'),'T429 G2 建築層 drawMaterialResponse430 接線（傳 wetLvl/snowLvl/nightDepth）');
   assert(html.includes('drawNightMicro431(ctx,o,bd,s,bx,by,z,drawA,nightDepth);'),'T429 G2 建築層 drawNightMicro431 接線');
   assert(html.includes('drawMicroLife429(ctx,o,bd,s,bx,by,z,drawA,nightDepth);'),'T429 G2 建築層 drawMicroLife429 接線');
-  assert(html.includes('+windX441*1.5*z:0; // T429 風場'),'T429 G2 樹搖風場消費端');
+  assert(html.includes('const lw443=localWind443(o.x,o.y);')&&html.includes('(Math.sin(visT*1.3+o.x*.7+o.y*1.3)+lw443*2.2)*z:0;'),'T429 G2 樹搖風場消費端（T431 升 lw443 局部風）');
   assert(html.includes('+windX441*1.2*z; /* T429 風場 */'),'T429 G2 螢火風場消費端');
   assert(html.includes('+windX441*4*z; /* T429 風場 */'),'T429 G2 蝴蝶風場消費端');
 }
@@ -9756,4 +9756,36 @@ runPwaTests().then(() => {
   const seg430=html.slice(b430,e430).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
   assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(seg430),
     'T430 G4 健康燈區塊不得消耗亂數流');
+}
+
+/* ===== T431 城市風影守衛（源自移動線 T482 T443） ===== */
+{ // G1 五函式＋觀測橋存在
+  for(const f of ['windRoot443','windMass443','windMassView443','windFactor443','localWind443'])
+    assert(html.includes('function '+f+'('),'T431 G1 函式 '+f+' 必須存在');
+  assert(html.includes('window.__t443WindAt=')&&html.includes('window.__t443FactorAt='),'T431 G1 觀測橋兩支必須存在');
+}
+{ // G2 樹搖 lw443 接線（螢火/蝴蝶保持 windX441——移動線主動飛行體語義）
+  assert(html.includes('const lw443=localWind443(o.x,o.y);'),'T431 G2 樹搖局部風讀值必須存在');
+  assert(html.includes('+windX441*1.2*z; /* T429 風場 */')&&html.includes('+windX441*4*z; /* T429 風場 */'),
+    'T431 G2 螢火/蝴蝶必須保持 windX441 直接（主動飛行體語義）');
+}
+{ // G3 kill-switch 分支：__noWindShadow443 時 localWind443≡windX441
+  assert(html.includes('__noWindShadow443'),'T431 G3 kill-switch 必須存在');
+  assert(html.includes('function localWind443(x,y){return windX441*windFactor443(x|0,y|0);}'),
+    'T431 G3 localWind443=windX441*windFactor443 原文釘');
+  assert(html.includes('if(window.__noWindShadow443||!inMap(x,y)||!windX441||quality===0||cam.z<.55)return 1;'),
+    'T431 G3 風影關閉/低畫質/遠景退回全局風（factor=1）');
+}
+{ // G4 區塊零亂數（剝註解後字面掃描）
+  const b431=html.indexOf('function windRoot443'),e431=html.indexOf('window.__t443WindAt=',b431);
+  assert(b431>=0&&e431>b431,'T431 G4 應可界定風影區塊');
+  const seg431=html.slice(b431,e431).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(seg431),
+    'T431 G4 風影區塊不得消耗亂數流');
+}
+{ // G5 量體表語義釘（摩天巨廈/農牧低矮/中央站/機場/RCI 依 lv+sz）
+  assert(html.includes("if(k===33||k===34||k===105||k===106)return 1;"),'T431 G5 摩天/巨廈量體=1');
+  assert(html.includes("if(cat==='G'||cat==='F')return .10+Math.min(.10,(sz-1)*.03);"),'T431 G5 公園農牧低矮量體');
+  assert(html.includes("if(cat==='T')return k===55?.48:.22;"),'T431 G5 中央車站例外');
+  assert(html.includes("if(k===19||k===114)return .20;"),'T431 G5 機場不按 footprint 當高牆');
 }
