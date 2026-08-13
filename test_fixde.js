@@ -5817,6 +5817,39 @@ runPwaTests().then(() => {
       'T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）');
   }
 
+  { /* ===== T434d 輪廓解禁：守衛 =====
+       【觀測能力聲明】Node harness 的 canvas 是空殼，本區只驗原文與結構，**不驗像素**。
+       像素證據在 docs/tools/art_style.html 的真瀏覽器輸出：
+       輪廓−內部明度中位 **−0.177 → −0.102**（390 個 bld 鍵），見卡面 §3 A3。 */
+    // G1 自體色輪廓的核心三行必須在場
+    assert(/const OUTLINE_MIX434=0\.55;/.test(html)
+      && /a\[i\]=src\[j\]\*OUTLINE_MIX434;a\[i\+1\]=src\[j\+1\]\*OUTLINE_MIX434;a\[i\+2\]=src\[j\+2\]\*OUTLINE_MIX434;a\[i\+3\]=255;/.test(html),
+      'T434d G1【原文前哨】輪廓像素必須塗「相鄰實體像素自己的顏色 × OUTLINE_MIX434」，'
+      + '不是全域死色（全檔 219 個呼叫點，最常見的 (26,30,44) 一色就佔 103 次）');
+    // G2 **結構保證**：outlineSprite 只准寫透明像素——這是「≤16px 重點細節零覆蓋」的結構依據
+    const osStart434 = html.indexOf('function outlineSprite(');
+    const osBody434 = osStart434 > 0 ? html.slice(osStart434, html.indexOf('\nfunction shade(', osStart434)) : '';
+    assert(osBody434.length > 200 && /if\(a\[i\+3\]<=40&&\(solid\(x\+1,y\)/.test(osBody434),
+      'T434d G2【結構釘】outlineSprite 的 marks 條件必須維持 `a[i+3]<=40`（只收透明像素）。'
+      + '這是本卡宣稱「結構上不可能覆蓋既有實體像素、不可能踩 ≤16px 細節鐵律」的唯一依據——'
+      + '改掉這個條件，那句話就不成立了');
+    // G3 先快照再寫：不先複製 src，前面寫好的輪廓會被後面誤認成「相鄰實體像素」而顏色外溢
+    assert(/const src=new Uint8ClampedArray\(a\);/.test(osBody434),
+      'T434d G3【原文前哨】必須先 `new Uint8ClampedArray(a)` 快照再寫入：'
+      + '否則先寫好的輪廓像素會被當成相鄰實體像素，顏色一圈一圈往外傳');
+    // G4 逃生閥要有真的寫入端（T428 G12 的同型病）
+    assert(/window\.__noSelfOutline434/.test(html)
+      && /\/\[\?&\]noSelfOutline=1\/\.test\(location\.search\)/.test(html)
+      && /localStorage\.getItem\(SAVEKEY\+'\.noSelfOutline434'\)==='1'/.test(html),
+      'T434d G4【原文前哨】逃生閥 __noSelfOutline434 必須有真的寫入端'
+      + '（URL ?noSelfOutline=1 或 localStorage），只有讀取端的開關撥不動＝沒有回退路徑');
+    // G5 位置：必須留在 T383c 亂數 token 快照掃描區間之外
+    const bs434d = html.indexOf('function buildSprites(){');
+    const ws434d = html.indexOf('\nfunction wealthSpr(');
+    assert(osStart434 > 0 && bs434d > 0 && ws434d > bs434d && !(osStart434 > bs434d && osStart434 < ws434d),
+      'T434d G5【位置釘】outlineSprite 不得被搬進 T383c 的掃描區間'
+      + '（`function buildSprites(){` ↔ `\\nfunction wealthSpr(`），否則會位移亂數 token 快照');
+  }
   { /* ===== T434b GV 同步建圖入口：守衛 =====
        【觀測能力聲明】Node harness 的 canvas 是空殼，本區只驗**原文與位置**，不驗像素。
        這個入口存在的理由本身就是「Node 驗不了像素、瀏覽器又開不了機」，
