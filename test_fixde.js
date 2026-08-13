@@ -5817,6 +5817,29 @@ runPwaTests().then(() => {
       'T423 R06 安全區：工具列底部 safe-area-inset-bottom（iOS 手勢條）');
   }
 
+  { /* ===== T434b GV 同步建圖入口：守衛 =====
+       【觀測能力聲明】Node harness 的 canvas 是空殼，本區只驗**原文與位置**，不驗像素。
+       這個入口存在的理由本身就是「Node 驗不了像素、瀏覽器又開不了機」，
+       所以像素證據在 docs/tools/art_diff.html 的真瀏覽器輸出（見卡面 §4 A4 的實測貼文）。 */
+    // G1 入口必須存在，且是**轉呼叫**既有的同步總管，不是複製它的內容
+    assert(/buildAllSprites:\(\)=>\{buildSprites\(\);const r=GV\.sprAtlas356\(\);return r&&r\.entries\?r\.entries\.length:0;\},/.test(html),
+      'T434b G1【原文前哨】GV.buildAllSprites 必須是「轉呼叫 buildSprites() ＋ 回報 sprAtlas356 條目數」的一行；'
+      + '它是 art_diff 在不繪製環境下唯一的退路（bootPaint426 是雙重 rAF，headless iframe 停在 pct=5）');
+    // G2 **開機路徑不得呼叫它**——它一旦被開機呼叫就會多跑一次 buildSprites，兩釘與 token 快照全毀
+    const bas434 = (html.match(/buildAllSprites/g) || []).length;
+    assert(bas434 === 1,
+      'T434b G2【計數釘】buildAllSprites 在 index.html 只准出現 1 次（就是那個定義）。'
+      + '出現第二次代表有人在開機路徑或其他地方呼叫它 ⇒ 會多跑一次 buildSprites()，'
+      + '兩釘（seed301 pop===3781／seed22 pop===4550）與 T383c token 快照全毀。實得 ' + bas434);
+    // G3 定義必須落在 T383c 的掃描區間**之外**（該快照掃 buildSprites 函式體的亂數 token）
+    const bsStart434 = html.indexOf('function buildSprites(){');
+    const bsEnd434 = html.indexOf('\nfunction wealthSpr(');
+    const basAt434 = html.indexOf('buildAllSprites');
+    assert(bsStart434 > 0 && bsEnd434 > bsStart434 && basAt434 > 0
+      && !(basAt434 > bsStart434 && basAt434 < bsEnd434),
+      'T434b G3【位置釘】buildAllSprites 的定義不得落在 T383c 的掃描區間內'
+      + '（`function buildSprites(){` ↔ `\\nfunction wealthSpr(`），否則會位移亂數 token 快照');
+  }
   { /* ===== T428 標題畫面版面修復與桌面現代化：守衛（R04 重做版） =====
        【觀測能力聲明（T419 教條⑬）】Node 端沒有排版引擎，本區**全部是原文前哨／計數釘**，
        只能驗「拼寫／存在／不存在／所在區塊」，**不能驗版面**。版面證據是

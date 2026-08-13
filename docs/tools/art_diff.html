@@ -96,13 +96,14 @@ function frame(src) {
            這不是繞過驗收，是繞過**環境**——量到的仍是真實 sprite 的真實像素。 */
         if (boot && !forced) {
           if (boot.pct === lastPct) stuck++; else { stuck = 0; lastPct = boot.pct; }
-          if (stuck >= 24 && typeof w.buildSprites === 'function') {
+          if (stuck >= 24 && w.GV && typeof w.GV.buildAllSprites === 'function') {
             forced = true;
             try {
-              w.buildSprites();
-              if (atlasSize(w) > 0) return res(w);
+              const n = w.GV.buildAllSprites();   // T434b 加的同步入口，轉呼叫既有的 buildSprites()
+              if (n > 0 && atlasSize(w) > 0) return res(w);
+              return rej(new Error('同步退路 GV.buildAllSprites() 跑完但清冊仍為空（回傳 ' + n + '）'));
             } catch (e) {
-              return rej(new Error('同步退路 buildSprites() 失敗：' + (e && e.message ? e.message : e)));
+              return rej(new Error('同步退路 GV.buildAllSprites() 失敗：' + (e && e.message ? e.message : e)));
             }
           }
         }
@@ -322,8 +323,10 @@ main().catch(err => {
   const msg = (err && err.message) ? err.message : String(err);
   P('');
   P('✘ 量測失敗（本次輸出沒有任何有效資料，不得引用）：' + msg, 'bad');
-  P('  這是 T434a 加的自我防呆。舊版在這種情況下會印「—— 量測完成 ——」，'
-    + '而 master 59b785a 實測就是 entries=0 卻宣告完成。', 'bad');
+  /* 這行**刻意不引用完成標記的字面**：標記字串必須唯一屬於成功路徑，
+     否則任何「用 grep 找標記」的自動判準都會被這句說明餵飽（我自己的驗收腳本就先被騙過一次）。 */
+  P('  這是 T434a 加的自我防呆。舊版在這種情況下會印出成功標記，'
+    + '而 master 59b785a 實測就是 entries=0 卻宣告量測已完成。', 'bad');
   window.ART_DIFF_ERROR = msg;
 });
 </script>
