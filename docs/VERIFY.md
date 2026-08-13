@@ -20,9 +20,11 @@
 | 埠 | 目錄 | 誰用 |
 |---|---|---|
 | 8124 | `C:\dev\glimmer-town` | 當班施工者 |
-| 8125 | `安卓探索ay-kimi` | Kimi |
-| 8126 | `安卓探索ay-codex` | Codex |
-| 8127 | `安卓探索ay-grok` | Grok |
+| 8125 | `安卓探索\bay-kimi` | Kimi |
+| 8126 | `安卓探索\bay-codex` | Codex |
+| 8127 | `安卓探索\bay-grok` | Grok |
+| 8128 | `安卓探索\bay-deepseek` | DeepSeek（`tools/merge_bay.py` 的 BAYS 是四個車位，本表原本漏了它） |
+| 8129+ | 任意暫存目錄 | 覆核者／一次性量測（用完就關；**不要占用上面五個**） |
 
 ```
 python -m http.server 8124 --directory C:\dev\glimmer-town

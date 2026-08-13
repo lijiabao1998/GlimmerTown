@@ -1160,6 +1160,115 @@ def changelog_entries_added_by(
     return added
 
 
+CORRECTION_TAG = 'CHANGELOG-CORRECTION:'
+
+
+def changelog_entries_removed_by(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> List[str]:
+    """T433: CHANGELOG entries this bay DELETES relative to master.
+
+    The mirror image of changelog_entries_added_by.  It exists because the
+    original only ever scanned '+' lines, so a release tail that overwrote the
+    previous card's entry in place ("+1/-1") passed the gate four times running
+    and four entries were actually lost from the file:
+
+        T423  1,304 chars  deleted by d8d2ca1 (T424 release tail)
+        T424  1,395 chars  deleted by 37bb901 (T425 release tail)
+        T425  1,641 chars  deleted by ff19b03 (T425A release tail)
+        T425A 1,495 chars  deleted by 46fe8ff (T425B release tail)
+
+    All four were recovered verbatim from Git objects by T433; this function is
+    the part that stops it happening again.  The general lesson is recorded in
+    the project's iron rules: a guard that only checks what you ADDED cannot see
+    what you DESTROYED.
+    """
+    result = git_result(
+        config.root,
+        'diff',
+        '--no-color',
+        'master...bay/' + name,
+        '--',
+        'docs/CHANGELOG.md',
+        runner=runner,
+    )
+    if result.returncode != 0:
+        raise ToolError('cannot diff CHANGELOG for bay ' + name + ': '
+                        + _command_detail(result))
+    removed = []
+    for line in result.stdout.split('\n'):
+        if line.startswith('-') and not line.startswith('---'):
+            body = line[1:]
+            if re.match(r'^\d{4}-\d{2}-\d{2} \| ', body):
+                removed.append(body)
+    return removed
+
+
+def bay_commit_messages(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> str:
+    """T433: full commit messages this bay introduces, for correction opt-in.
+
+    Deliberately reads commit messages rather than a code comment or the task
+    card: a card can be edited after the fact, a landed commit message cannot.
+    """
+    result = git_result(
+        config.root,
+        'log',
+        '--format=%B',
+        'master..bay/' + name,
+        runner=runner,
+    )
+    if result.returncode != 0:
+        raise ToolError('cannot read bay commit messages for ' + name + ': '
+                        + _command_detail(result))
+    return result.stdout
+
+
+def assert_changelog_only_grows(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> None:
+    """T433: refuse a merge that deletes CHANGELOG entries, unless declared.
+
+    Default is refuse.  To delete an entry on purpose the bay must carry a
+    commit message line beginning with CHANGELOG-CORRECTION: saying which entry
+    and why.  Rewriting an entry in place still trips this -- that is the point,
+    because "+1/-1" is exactly what silently destroyed four entries.
+    """
+    removed = changelog_entries_removed_by(config, name, runner=runner)
+    if not removed:
+        return
+    messages = bay_commit_messages(config, name, runner=runner)
+    declared = [
+        line.strip()
+        for line in messages.split('\n')
+        if line.strip().startswith(CORRECTION_TAG)
+    ]
+    if not declared:
+        cards = []
+        for entry in removed:
+            match = re.match(r'^\S+ \| (\S+)', entry)
+            cards.append(match.group(1) if match else '?')
+        raise ToolError(
+            'T433: this merge deletes %d CHANGELOG entr%s (%s) and no commit '
+            'message declares it. A release tail that overwrites the previous '
+            'card\'s line in place is how T423/T424/T425/T425A were lost. '
+            'If the deletion is intentional, put a line starting with '
+            '%s in a commit message saying which entry and why.'
+            % (len(removed), 'y' if len(removed) == 1 else 'ies',
+               ', '.join(cards[:6]), CORRECTION_TAG)
+        )
+    ok('CHANGELOG deletion declared: %d entr%s, %d %s line(s)'
+       % (len(removed), 'y' if len(removed) == 1 else 'ies',
+          len(declared), CORRECTION_TAG))
+
+
 def assert_signoff_landed(
     config: MergeConfig,
     name: str,
@@ -2095,6 +2204,7 @@ def start_transaction(
         assert_deploy_pristine(Path(config.deploy), config)
         ok('deployment directory pristine (runtime files only)')
     assert_signoff_landed(config, name, runner=runner)
+    assert_changelog_only_grows(config, name, runner=runner)
     ensure_integration_slot_free(config, runner=runner)
 
     step('1. freeze canonical master and bay identities')

@@ -1193,6 +1193,106 @@ class ToolchainRegressionTests(unittest.TestCase):
             bay_entry('2026-07-29 | T999 x | y | 驗收:通過（Kimi 非作者覆核：親跑 42/42）')
             merge_bay.assert_signoff_landed(repo.config, 'kimi')
 
+    def test_changelog_must_only_grow(self):
+        """T433: 合併不得刪掉既有 CHANGELOG 條目，除非用 commit message 明示。
+
+        關掉的實際形態（不是假想題）：release tail 把上一張卡的條目**就地覆寫**
+        （diff 是 +1/−1）。既有的 changelog_entries_added_by 只掃 '+' 行，
+        於是這種刪除連續四次全綠，四條條目真的從檔案裡消失：
+          T423 1,304 字（被 d8d2ca1 刪）／T424 1,395 字（37bb901）
+          T425 1,641 字（ff19b03）／T425A 1,495 字（46fe8ff）
+        四條已由 T433 從 git 物件逐字元救回；本例是止血的那一半。
+
+        設計上刻意讀 **commit message** 而不是程式註解或卡面：
+        卡面可以事後改，落地的 commit message 不能。
+        """
+        with TempRepo() as repo:
+            (repo.root / 'docs').mkdir(exist_ok=True)
+            base = ('# CHANGELOG\n'
+                    '2026-07-29 | T998 舊卡 | 內容 | 驗收:通過（Kimi 非作者覆核）\n')
+            repo.write(repo.root, 'docs/CHANGELOG.md', base)
+            repo.commit(repo.root, 'changelog base')
+            repo.git(repo.bay, 'merge', 'master', '--no-edit')
+
+            good = '2026-07-30 | T999 新卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+            old = '2026-07-29 | T998 舊卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+
+            # ① 純新增：既有條目原樣保留 ⇒ 必須放行（不得誤傷正常路徑）
+            repo.write(repo.bay, 'docs/CHANGELOG.md',
+                       '# CHANGELOG\n' + good + '\n' + old + '\n')
+            repo.commit(repo.bay, 'bay adds one entry')
+            merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+            self.assertEqual(
+                merge_bay.changelog_entries_removed_by(repo.config, 'kimi'), [])
+
+            # ② 就地覆寫（+1/−1）＝四次事故的形態 ⇒ 必須紅
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + good + '\n')
+            repo.commit(repo.bay, 'bay release tail overwrites previous entry')
+            removed = merge_bay.changelog_entries_removed_by(repo.config, 'kimi')
+            self.assertEqual(len(removed), 1)
+            self.assertIn('T998', removed[0])
+            with self.assertRaisesRegex(merge_bay.ToolError, 'deletes 1 CHANGELOG'):
+                merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
+            # ③ 明示更正：commit message 帶 CHANGELOG-CORRECTION: ⇒ 放行
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + good + '\n')
+            repo.git(repo.bay, 'add', '-A')
+            repo.git(repo.bay, 'commit', '--allow-empty', '-m',
+                     'bay declares the deletion\n\n'
+                     'CHANGELOG-CORRECTION: 移除 T998 條目，理由是該卡從未落地',
+                     check=False)
+            merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
+    def test_changelog_must_only_grow(self):
+        """T433: 合併不得刪掉既有 CHANGELOG 條目，除非用 commit message 明示。
+
+        關掉的實際形態（不是假想題）：release tail 把上一張卡的條目**就地覆寫**
+        （diff 是 +1/−1）。既有的 changelog_entries_added_by 只掃 '+' 行，
+        於是這種刪除連續四次全綠，四條條目真的從檔案裡消失：
+          T423 1,304 字（被 d8d2ca1 刪）／T424 1,395 字（37bb901）
+          T425 1,641 字（ff19b03）／T425A 1,495 字（46fe8ff）
+        四條已由 T433 從 git 物件逐字元救回；本例是止血的那一半。
+
+        設計上刻意讀 **commit message** 而不是程式註解或卡面：
+        卡面可以事後改，落地的 commit message 不能。
+        """
+        with TempRepo() as repo:
+            (repo.root / 'docs').mkdir(exist_ok=True)
+            base = ('# CHANGELOG\n'
+                    '2026-07-29 | T998 舊卡 | 內容 | 驗收:通過（Kimi 非作者覆核）\n')
+            repo.write(repo.root, 'docs/CHANGELOG.md', base)
+            repo.commit(repo.root, 'changelog base')
+            repo.git(repo.bay, 'merge', 'master', '--no-edit')
+
+            good = '2026-07-30 | T999 新卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+            old = '2026-07-29 | T998 舊卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+
+            # ① 純新增：既有條目原樣保留 ⇒ 必須放行（不得誤傷正常路徑）
+            repo.write(repo.bay, 'docs/CHANGELOG.md',
+                       '# CHANGELOG\n' + good + '\n' + old + '\n')
+            repo.commit(repo.bay, 'bay adds one entry')
+            merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+            self.assertEqual(
+                merge_bay.changelog_entries_removed_by(repo.config, 'kimi'), [])
+
+            # ② 就地覆寫（+1/−1）＝四次事故的形態 ⇒ 必須紅
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + good + '\n')
+            repo.commit(repo.bay, 'bay release tail overwrites previous entry')
+            removed = merge_bay.changelog_entries_removed_by(repo.config, 'kimi')
+            self.assertEqual(len(removed), 1)
+            self.assertIn('T998', removed[0])
+            with self.assertRaisesRegex(merge_bay.ToolError, 'deletes 1 CHANGELOG'):
+                merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
+            # ③ 明示更正：commit message 帶 CHANGELOG-CORRECTION: ⇒ 放行
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + good + '\n')
+            repo.git(repo.bay, 'add', '-A')
+            repo.git(repo.bay, 'commit', '--allow-empty', '-m',
+                     'bay declares the deletion\n\n'
+                     'CHANGELOG-CORRECTION: 移除 T998 條目，理由是該卡從未落地',
+                     check=False)
+            merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
     def test_resume_also_enforces_deploy_residue_scan(self):
         """T370a (Kimi 非作者覆核): --resume 也必須驗部署目錄純淨。
 

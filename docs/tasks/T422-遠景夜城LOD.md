@@ -4,7 +4,7 @@
 - **施工**：Codex（`bay/codex`，驗證埠 8126）
 - **最終放行**：業主；release tail、合併與部署由 Codex 代行（業主於 2026-08-09 本輪明示授權；單次角色例外，不作作者自合的一般先例）
 - **線別**：桌面線
-- **狀態**：`RELEASE_READY`；獨立瀏覽器覆核、v11.48 release tail 與正式閘門均通過，尚未合併／部署
+- **狀態**：**已合併部署 v11.48**（獨立瀏覽器覆核、release tail 與正式閘門均通過；業主 2026-08-09 明示放行並授權 Codex 代行 release tail 與合併，見 CHANGELOG 該卡條目）（T433 2026-08-14 校正：本行原本停在合併前狀態，與 docs/CHANGELOG.md 矛盾）
 
 ## Claim
 
