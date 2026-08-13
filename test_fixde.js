@@ -8405,13 +8405,22 @@ runPwaTests().then(() => {
   }
   /* ===== T394b 平衡調參（二期 R3；T394a 報告建議 1-4） ===== */
   {
-    // (1) 專精門檻 Lv9,且【門檻與文案數字必須一致】=改門檻者順手改文案(三處同源)
-    const gate394=(html.match(/spec386\|\|diff===3\|\|rankIdx\+1<(\d+)\)return false;/)||[])[1];
-    assert(gate394==='9','T394b G1 specPick386 門檻須為 Lv9,實得 <'+gate394);
-    // 專精相關文案恰 2 處(面板+指南)且數字=門檻;「城市等級 3 解鎖」是委託解鎖文案,別家功能不糾察
-    const specTxt394=(html.match(new RegExp('城市等級 '+gate394+' 解鎖','g'))||[]).length;
-    assert(specTxt394===2,'T394b G1 「城市等級 '+gate394+' 解鎖」文案須恰 2 處(面板+指南),實得 '+specTxt394);
-    assert(!/城市等級 6 解鎖/.test(html),'T394b G1 舊 Lv6 專精文案須清零(改門檻者順手改文案)');
+    /* (1) T442 跟版（**動既有斷言，理由寫在這裡**）：原本抓 `rankIdx+1<9` 的字面 9，
+       再數「城市等級 9 解鎖」恰 2 處，用意是「改門檻者順手改文案（三處同源）」。
+       T442 把三處合成**同一個常數** `SPEC_MIN_RANK386`，文案改由它拼出來 ⇒ 兩個字面比對都撲空。
+       **這不是放寬**：原本靠「人記得同時改三處」，現在靠「只有一處可以改」。
+       新釘更強——常數在場且值為 9、使用點引用常數、且**不得再出現手抄的『城市等級 <數字> 解鎖』**。 */
+    const gate394=(html.match(/const CMS_MIN_RANK385=(\d+), CMS_MIN_POP385=(\d+), SPEC_MIN_RANK386=(\d+);/)||[])[3];
+    assert(gate394==='9','T394b G1 SPEC_MIN_RANK386 須為 9,實得 <'+gate394);
+    assert(/spec386\|\|diff===3\|\|rankIdx\+1<SPEC_MIN_RANK386\)return false;/.test(html),
+      'T394b G1 specPick386 的門檻必須引用 SPEC_MIN_RANK386,不得寫死數字');
+    assert(/'城市等級 '\+SPEC_MIN_RANK386\+' 解鎖/.test(html),
+      'T394b G1 指南文案必須由 SPEC_MIN_RANK386 拼出來,不得手抄');
+    const hard394=(html.match(/城市等級 \d+ 解鎖/g)||[]);
+    assert(hard394.length===0,
+      'T394b G1 不得出現手抄的「城市等級 <數字> 解鎖」字面(實得 '+JSON.stringify(hard394)+
+      ');門檻只有一個真相來源 SPEC_MIN_RANK386,抄一份就會過期而且沒有人會發現'
+      +'——本卡 §1 的 edu「政策日費+$12」就是這樣過期三十幾張卡的');
     // (2) edu 費規模化:公式在場+界 [6,40] 真跑驗算+基線零影響(sq 未選恆 0 由 T386a 位元恆等紅線守)
     const feeM394=(html.match(/const eduFee394=Math\.min\(40,Math\.max\(6,Math\.round\(pop\/100\)\)\)/)||[])[0];
     assert(feeM394,'T394b G2 eduFee394 公式(min40/max6/pop百分之一)在場');
@@ -9963,6 +9972,51 @@ runPwaTests().then(() => {
   // G6 沒給參數時一個字都不寫（預設行為逐位元不變）
   assert(html.includes("if(noList436)for(const nm436 of noList436.split(','))"),
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
+}
+
+/* ===== T442 指南「委託與專精」分頁：守衛 ===== */
+{
+  /* 這一頁是這一夜第一張**玩家看得到**的東西，而它存在的第一天就撿到一個真 bug：
+     `SPEC386.edu.fx` 寫「政策日費+$12」，而 T394b 早已把它改成
+     `eduFee394=clamp(round(pop/100),6,40)`。它過期了三十幾張卡都沒人發現，
+     正是因為**沒有任何地方把這段文字印給玩家看**。所以這一區的重點不是「有沒有這一頁」，
+     是「這一頁的每一個數字都必須來自遊戲本身，不能是手抄的」。 */
+  // G1 分頁在場
+  assert(html.includes("'🔬 科技樹','📋 委託與專精'"),
+    'T442 G1【原文前哨】玩法指南必須有「📋 委託與專精」分頁');
+  assert(html.includes('}else if(guideTab===6){'),
+    'T442 G1b 指南必須有 guideTab===6 的分支（新分頁的渲染入口）');
+  // G2 委託清單必須**逐筆從 CMS385 導出**，不得手抄
+  assert(html.includes('for(const c442 of CMS385){'),
+    'T442 G2【原文前哨】委託清單必須 `for(const c442 of CMS385)` 逐筆導出。'
+    + '手抄一份就會過期，而且沒有人會發現——本區開頭那個 $12 就是這樣過期三十幾張卡的');
+  assert(html.includes('for(const id443 of SPEC_IDS386){'),
+    'T442 G2b【原文前哨】專精清單必須從 SPEC_IDS386／SPEC386 逐筆導出');
+  // G3 指南分頁的原始碼裡不得出現任何一條委託的獎金／目標數字（＝證明它沒有手抄）
+  {
+    const a442 = html.indexOf('}else if(guideTab===6){');
+    const b442 = html.indexOf('}else if(guideTab===5){', a442);
+    assert(a442 > 0 && b442 > a442, 'T442 G3 找不到 guideTab===6 分頁的區間');
+    const page442 = html.slice(a442, b442);
+    const nums442 = [];
+    for (const m of html.matchAll(/\{id:'[^']+',[^}]*?bonus:(\d+)/g)) nums442.push(m[1]);
+    const leaked442 = [...new Set(nums442)].filter(n => page442.indexOf(n) >= 0);
+    assert(leaked442.length === 0,
+      'T442 G3【機械複算】指南分頁裡出現了委託獎金的數字字面量 ' + JSON.stringify(leaked442)
+      + '——那代表有人開始手抄了。這一頁的每一個數字都必須來自 CMS385');
+  }
+  // G4 每一條委託都要被列出來：渲染用的欄位一個都不能少
+  for (const f442 of ['c442.ic', 'c442.nm', 'c442.bonus', 'c442.days', 'c442.minRank', 'c442.holdN'])
+    assert(html.includes(f442),
+      'T442 G4【原文前哨】指南必須用到 ' + f442 + '——少一個欄位，玩家就少看到一項條件');
+  assert(html.includes("CMS385.length+' 條"),
+    'T442 G4b 標題的條數必須用 CMS385.length，不得寫死（新增一條委託時標題會自己跟上）');
+  // G5 edu 的過期敘述不得回來
+  assert(!/政策日費\+\$12/.test(html),
+    'T442 G5【絕跡類】`政策日費+$12` 不得出現：T394b 之後 edu 的日費是 '
+    + 'eduFee394＝clamp(round(pop/100),6,40)，固定 $12 是過期三十幾張卡的數字');
+  assert(/政策日費 \$6–\$40（隨人口，每百人 \$1）/.test(html),
+    'T442 G5b SPEC386.edu.fx 必須寫成與 eduFee394 同源的區間敘述');
 }
 
 /* ===== T441 第二個牆面落筆口 boxUnit：守衛 ===== */
