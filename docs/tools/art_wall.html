@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>微光小鎮 — 牆面受光量具（T439）</title>
+<style>
+body{background:#141a26;color:#dce4f2;font:12px/1.55 Consolas,"Microsoft YaHei",monospace;margin:0;padding:12px}
+h1{font-size:16px;color:#7fd4ff;margin:2px 0 8px}
+.hint{color:#7a8699;margin-bottom:10px}
+#out{white-space:pre-wrap}
+.ok{color:#7be08a}.bad{color:#ff8a72}.warn{color:#ffd45f}.hd{color:#ffd45f;margin-top:8px}.inf{color:#8fa3cc}
+iframe{position:static;display:block;width:900px;height:640px;border:1px solid #2a3350;margin:8px 0}
+</style>
+</head>
+<body>
+<h1>牆面受光量具 <span class="hint">· 判定 T434c 撤回後留下的那個「未判定」</span></h1>
+<div class="hint">
+用法：<code>art_wall.html?a=/index.html</code>（會自動補上 <code>?wall439=1</code>）。<br>
+<b>母體＝所有 <code>isoBox</code> 呼叫</b>。<code>index.html</code> 的 <code>isoBox(g,cx,by,hw,h,cL,cR,cTop)</code>
+是全檔唯一的牆面落筆口：<code>cL</code> 畫 <code>cx-dx</code>（左半）、<code>cR</code> 畫 <code>cx+dx</code>（右半）。
+手繪 HERO_PIX 不走這條路，天然被排除——這正是 <code>art_style.html</code>（取 390 個 <code>fam==='bld'</code> 鍵、
+量整張 sprite 左右半平面）**沒有辦法**檢驗調研那條主張的原因，見 T438 覆核 M4。<br>
+判準：一次呼叫判「右受光」⇔ <code>lum(cR) &gt; lum(cL)</code>；<code>lum</code> 用 Rec.709（0.2126/0.7152/0.0722，先除 255），
+與 <code>art_style.html</code> 同源。<br>
+<b>必須走真實開機路徑</b>：記錄鉤在 <code>buildSprites</code> 期間就要收資料，事後用
+<code>GV.buildAllSprites()</code> 重建**也可以**收到（旗標早就設好了），但本量具會如實標示走的是哪一條。
+</div>
+<div id="out">booting…</div>
+<div id="frames"></div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.search);
+const A0 = Q.get('a') || '/index.html';
+const A = A0 + (A0.indexOf('?') >= 0 ? '&' : '?') + 'wall439=1';
+const TOPN = +(Q.get('top') || 20);
+const O = document.getElementById('out');
+const LINES = [];
+const P = (m, c) => { LINES.push(m); const d = document.createElement('div'); if (c) d.className = c; d.textContent = m; O.appendChild(d); };
+
+const READY_MAX_POLLS = 4800;
+const atlasSize = w => { try { const r = w.GV.sprAtlas356(); return (r && r.entries) ? r.entries.length : 0; } catch (e) { return 0; } };
+
+/* 就緒條件與同步退路與 art_diff／art_style 同款（T434a/T434b），
+   另外回報「走的是哪一條路」——這是 T438 M2 的教訓：路徑不同，能看見的東西就不同。 */
+function frame(src) {
+  return new Promise((res, rej) => {
+    const f = document.createElement('iframe');
+    f.src = src;
+    document.getElementById('frames').appendChild(f);
+    let polls = 0, forced = false, lastPct = -1, stuck = 0;
+    const tick = () => {
+      const w = f.contentWindow;
+      if (w && w.GV && w.GV.sprAtlas356) {
+        const boot = (typeof w.__boot426 === 'function') ? w.__boot426() : null;
+        if (boot ? boot.ready === true : atlasSize(w) > 0) return res({ w: w, path: '真實開機路徑', pct: boot ? boot.pct : null });
+        if (boot && !forced) {
+          if (boot.pct === lastPct) stuck++; else { stuck = 0; lastPct = boot.pct; }
+          if (stuck >= 24 && typeof w.GV.buildAllSprites === 'function') {
+            forced = true;
+            try {
+              const n = w.GV.buildAllSprites();
+              if (n > 0) return res({ w: w, path: '同步退路 GV.buildAllSprites()（開機停在 pct=' + boot.pct + '）', pct: boot.pct });
+              return rej(new Error('同步退路跑完但清冊仍為空'));
+            } catch (e) { return rej(new Error('同步退路失敗：' + (e && e.message ? e.message : e))); }
+          }
+        }
+      }
+      if (++polls > READY_MAX_POLLS) return rej(new Error('就緒逾時（輪詢 ' + polls + ' 次）'));
+      setTimeout(tick, 250);
+    };
+    tick();
+  });
+}
+
+const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+function lumOf(col) {
+  if (typeof col !== 'string') return null;
+  const s = col.trim();
+  let r, g, b;
+  if (HEX.test(s)) {
+    const h = s.slice(1);
+    if (h.length === 3) { r = parseInt(h[0] + h[0], 16); g = parseInt(h[1] + h[1], 16); b = parseInt(h[2] + h[2], 16); }
+    else { r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16); }
+  } else {
+    const m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(s);
+    if (!m) return null;
+    r = +m[1]; g = +m[2]; b = +m[3];
+  }
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+async function main() {
+  const r = await frame(A);
+  const w = r.w;
+  O.textContent = '';
+  P('a=' + A + '　建圖路徑：' + r.path);
+
+  /* T439：`__wall439` 是**流水帳**，而遊戲跑起來之後素材還會被重建（季節／分層之類），
+     同一面牆會被記很多次 ⇒ 兩次跑量到 435 與 444。**同一件事量出兩個數字，那個數字就不能引用。**
+     修法不是取平均，是把母體從「發生幾次」改成「有幾個相異的牆面」：
+     主體逐鍵去重、附屬構件以 (cL,cR,hw,h) 去重。穩定條件也跟著改成相異數不再增長。
+     （查明：isoBox 的呼叫點全在 1600-10343 行，繪製區 15218 之後一個都沒有——
+      這些重建是建圖路徑重跑，不是每幀在畫牆。） */
+  const sigOf = e => (e.key ? 'k:' + e.key : 'p:' + e.cL + '|' + e.cR + '|' + e.hw + '|' + e.h);
+  const distinct = () => { const s = new Set(); for (const e of (w.__wall439 || [])) s.add(sigOf(e)); return s.size; };
+  const settle = await new Promise((res) => {
+    const first = distinct();
+    let last = first, same = 0, waited = 0, raw0 = (w.__wall439 || []).length;
+    const step = () => {
+      const n = distinct();
+      if (n === last) same++; else { same = 0; last = n; }
+      if (same >= 8 || waited >= 30000) return res({ first: first, final: n, waited: waited, raw0: raw0, raw: (w.__wall439 || []).length });
+      waited += 250;
+      setTimeout(step, 250);
+    };
+    step();
+  });
+  P('母體穩定：相異牆面 ' + settle.first + ' → ' + settle.final + '（等待 ' + settle.waited
+    + ' ms；同期流水帳 ' + settle.raw0 + ' → ' + settle.raw + ' 筆，會一直長，不是母體）',
+    settle.waited >= 30000 ? 'bad' : 'inf');
+  if (settle.waited >= 30000) throw new Error('相異牆面數在 30 秒內仍在增長，母體不穩定＝這個數字不能引用');
+  const seen439 = new Set();
+  const armed439 = Array.isArray(w.__wall439);
+  const rows = (w.__wall439 || []).filter(e => { const s = sigOf(e); if (seen439.has(s)) return false; seen439.add(s); return true; });
+  /* 量具自我防呆（T434a/T438 同一條紀律）：收不到資料就當場紅，不准往下算。 */
+  if (!rows || !rows.length) {
+    /* 兩種空是兩件不同的事，訊息不可以混講：
+       陣列**不存在**＝開關沒開（?wall439=1 沒傳到，或 SAVEKEY 鍵沒設）；
+       陣列**存在但空**＝開關開了卻一筆都沒收到＝開啟端晚於 buildSprites（T438 M2 那個病）。 */
+    throw new Error(armed439
+      ? 'window.__wall439 存在但一筆都沒有：開關有打開，卻在建圖期間收不到任何呼叫'
+        + '＝開啟端晚於 buildSprites。這正是 T438 M2 抓到的時序病，這次量測不得引用。'
+      : 'window.__wall439 不存在：記錄鉤根本沒有被打開（?wall439=1 沒傳到頁面，'
+        + '或 localStorage 的 SAVEKEY+\'.wall439\' 沒設）。這次量測不得引用。');
+  }
+
+  let L = 0, R = 0, tie = 0, bad = 0;
+  const deltas = [], perKey = new Map(), parts = [];
+  for (const e of rows) {
+    const a = lumOf(e.cL), b = lumOf(e.cR);
+    if (a === null || b === null) { bad++; continue; }
+    const d = b - a;                       // 正＝右邊亮＝右受光
+    deltas.push(d);
+    if (Math.abs(d) < 1e-9) tie++; else if (d > 0) R++; else L++;
+    /* 記錄鉤的鍵是「用過即清」的：帶鍵的那一筆就是 mkBld 的主體呼叫，
+       附屬構件（塔樓／門廳／屋頂機組……）一律 null。分族不靠外部約定，靠原始資料本身。 */
+    if (e.key) perKey.set(e.key, d); else parts.push(d);
+  }
+  const med = a => { const s = a.slice().sort((p, q) => p - q); return s.length ? s[s.length >> 1] : 0; };
+  const absMed = med(deltas.map(Math.abs));
+
+  P('');
+  P('=== ① 全部相異牆面（母體 ' + rows.length + ' 面，無法解析的顏色 ' + bad + ' 筆）===', 'hd');
+  P('  右受光 ' + R + '　左受光 ' + L + '　平手 ' + tie);
+  P('  Δ=lum(cR)−lum(cL)：中位 ' + med(deltas).toFixed(4) + '　|Δ| 中位 ' + absMed.toFixed(4));
+
+  let kr = 0, kl = 0, kt = 0;
+  for (const d of perKey.values()) { if (Math.abs(d) < 1e-9) kt++; else if (d > 0) kr++; else kl++; }
+  P('');
+  P('=== ② 主體牆面（帶鍵，' + perKey.size + ' 個鍵）===', 'hd');
+  P('  右受光 ' + kr + '　左受光 ' + kl + '　平手 ' + kt);
+  P('  這一組才是調研那句「153 個程序化素材」對得上的母體口徑。', 'inf');
+  let pr = 0, pl = 0, pt = 0;
+  for (const d of parts) { if (Math.abs(d) < 1e-9) pt++; else if (d > 0) pr++; else pl++; }
+  P('');
+  P('=== ②b 附屬構件（無鍵，' + parts.length + ' 面：塔樓／門廳／屋頂機組／特殊建築的手挑色）===', 'hd');
+  P('  右受光 ' + pr + '　左受光 ' + pl + '　平手 ' + pt);
+  P('  這一族的顏色多半是逐處手挑的三元組，不走 PAL；調研那句話沒有涵蓋它們。', 'inf');
+  const ks = [...perKey.entries()].sort((a, b) => a[1] - b[1]);
+  P('  最左亮 ' + TOPN + ' 鍵：' + ks.slice(0, TOPN).map(t => t[0] + ':' + t[1].toFixed(3)).join('  '));
+  P('  最右亮 ' + TOPN + ' 鍵：' + ks.slice(-TOPN).reverse().map(t => t[0] + ':' + t[1].toFixed(3)).join('  '));
+
+  P('');
+  P('=== ③ 判讀 ===', 'hd');
+  const oneSided = (kl === 0 || kr === 0);
+  P('  逐鍵口徑是否單一方向：' + (oneSided ? 'YES' : 'NO（兩個方向都有）'), oneSided ? 'ok' : 'warn');
+  P('  註：本量具只回答「哪一面被填了較亮的顏色」。它不回答「看起來好不好」，', 'inf');
+  P('  也不回答「該不該統一」——那要人眼樣張，不是這支工具的職權。', 'inf');
+
+  window.ART_WALL = { total: rows.length, R: R, L: L, tie: tie, keys: perKey.size, parts: parts.length,
+    keyR: kr, keyL: kl, keyTie: kt, medDelta: med(deltas), path: r.path, text: LINES.join('\n') };
+  P('');
+  P('—— 牆面量測完畢；window.ART_WALL 有 JSON ——', 'ok');
+}
+main().catch(err => {
+  P('');
+  P('✘ 量測失敗（本次輸出沒有任何有效資料，不得引用）：' + ((err && err.message) ? err.message : String(err)), 'bad');
+  window.ART_WALL_ERROR = String(err && err.message ? err.message : err);
+});
+</script>
+</body>
+</html>
