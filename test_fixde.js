@@ -9784,6 +9784,30 @@ runPwaTests().then(() => {
   assert(html.includes('if(window.__noWind441){windX441=0;'),'T429 G6 __noWind441 時 windX441≡0（零風即零位移不變式）');
 }
 
+/* ===== T436 逃生閥通用入口：守衛 ===== */
+{
+  // G1 入口三件套：URL 參數、localStorage、白名單正則
+  assert(html.includes("const qm436=/[?&]no=([^&#]*)/.exec(location.search);"),
+    'T436 G1【原文前哨】必須有 URL `?no=` 入口——全檔 107 個 __no* 開關裡 73 個原本只有讀取端，'
+    + '卡面寫的「一刀關閉／緊急回退」在正式產物裡撥不動');
+  assert(html.includes("localStorage.getItem(SAVEKEY+'.no')"),
+    'T436 G2【原文前哨】必須有 localStorage 入口（持久版）');
+  assert(html.includes("if(t436&&/^[A-Za-z0-9_]+$/.test(t436))window['__no'+t436]=true;"),
+    'T436 G3【原文前哨】名稱必須過 [A-Za-z0-9_]+ 白名單再用屬性寫入；'
+    + '不得改成 eval／new Function／直接拼接執行');
+  assert(!/eval\(\s*['"]__no/.test(html),
+    'T436 G4【原文前哨】通用入口不得使用 eval');
+  // G5 位置：必須在 buildSprites 定義**之前**——有一整類開關是烘進 sprite 像素的
+  const e436 = html.indexOf("const qm436=/[?&]no=");
+  const b436 = html.indexOf('function buildSprites(){');
+  assert(e436 > 0 && b436 > 0 && e436 < b436,
+    'T436 G5【位置釘】通用入口必須落在 `function buildSprites(){` 之前：'
+    + '有一整類開關（如 __noBadge 的徽記）是**烘進 sprite 像素**的，晚一步就來不及');
+  // G6 沒給參數時一個字都不寫（預設行為逐位元不變）
+  assert(html.includes("if(noList436)for(const nm436 of noList436.split(','))"),
+    'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
+}
+
 /* ===== T435 健康燈帶誠實化：守衛 ===== */
 {
   // G1 live 判斷必須存在，且**與 tick 的早退條件同形狀**（兩處走鐘＝又一次假資料）
