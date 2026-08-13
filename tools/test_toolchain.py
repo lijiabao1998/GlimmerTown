@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import io
+import re
 import os
 import subprocess
 import sys
@@ -1192,6 +1193,157 @@ class ToolchainRegressionTests(unittest.TestCase):
 
             bay_entry('2026-07-29 | T999 x | y | 驗收:通過（Kimi 非作者覆核：親跑 42/42）')
             merge_bay.assert_signoff_landed(repo.config, 'kimi')
+
+    def test_changelog_must_only_grow(self):
+        """T433: 合併不得刪掉既有 CHANGELOG 條目，除非用 commit message 明示。
+
+        關掉的實際形態（不是假想題）：release tail 把上一張卡的條目**就地覆寫**
+        （diff 是 +1/−1）。既有的 changelog_entries_added_by 只掃 '+' 行，
+        於是這種刪除連續四次全綠，四條條目真的從檔案裡消失：
+          T423 1,304 字（被 d8d2ca1 刪）／T424 1,395 字（37bb901）
+          T425 1,641 字（ff19b03）／T425A 1,495 字（46fe8ff）
+        四條已由 T433 從 git 物件逐字元救回；本例是止血的那一半。
+
+        設計上刻意讀 **commit message** 而不是程式註解或卡面：
+        卡面可以事後改，落地的 commit message 不能。
+        """
+        with TempRepo() as repo:
+            (repo.root / 'docs').mkdir(exist_ok=True)
+            base = ('# CHANGELOG\n'
+                    '2026-07-29 | T998 舊卡 | 內容 | 驗收:通過（Kimi 非作者覆核）\n')
+            repo.write(repo.root, 'docs/CHANGELOG.md', base)
+            repo.commit(repo.root, 'changelog base')
+            repo.git(repo.bay, 'merge', 'master', '--no-edit')
+
+            good = '2026-07-30 | T999 新卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+            old = '2026-07-29 | T998 舊卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+
+            # ① 純新增：既有條目原樣保留 ⇒ 必須放行（不得誤傷正常路徑）
+            repo.write(repo.bay, 'docs/CHANGELOG.md',
+                       '# CHANGELOG\n' + good + '\n' + old + '\n')
+            repo.commit(repo.bay, 'bay adds one entry')
+            merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+            self.assertEqual(
+                merge_bay.changelog_entries_removed_by(repo.config, 'kimi'), [])
+
+            # ② 就地覆寫（+1/−1）＝四次事故的形態 ⇒ 必須紅
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + good + '\n')
+            repo.commit(repo.bay, 'bay release tail overwrites previous entry')
+            removed = merge_bay.changelog_entries_removed_by(repo.config, 'kimi')
+            self.assertEqual(len(removed), 1)
+            self.assertIn('T998', removed[0])
+            with self.assertRaisesRegex(merge_bay.ToolError, 'deletes 1 CHANGELOG'):
+                merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
+            # ③ 明示更正：commit message 帶 CHANGELOG-CORRECTION: ⇒ 放行
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + good + '\n')
+            repo.git(repo.bay, 'add', '-A')
+            repo.git(repo.bay, 'commit', '--allow-empty', '-m',
+                     'bay declares the deletion\n\n'
+                     'CHANGELOG-CORRECTION: 移除 T998 條目，理由是該卡從未落地',
+                     check=False)
+            merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
+            # ④ 一行宣告不得解鎖整個車位的所有刪除（覆核退修：第一版只要有任一宣告就全放行，
+            #    等於「commit 1 合法更正 A、commit 5 順手覆寫 B」照樣過——正是本守衛要止的血）
+            repo.write(repo.root, 'docs/CHANGELOG.md',
+                       '# CHANGELOG\n' + old + '\n'
+                       + '2026-07-28 | T997 另一張舊卡 | 內容 | 驗收:通過（Kimi 非作者覆核）\n')
+            repo.commit(repo.root, 'changelog base with two old entries')
+            repo.git(repo.bay, 'merge', 'master', '--no-edit', check=False)
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + good + '\n')
+            repo.git(repo.bay, 'add', '-A')
+            repo.git(repo.bay, 'commit', '-m',
+                     'bay deletes two, declares only one\n\n'
+                     'CHANGELOG-CORRECTION: 移除 T998 條目，理由是該卡從未落地',
+                     check=False)
+            removed_two = merge_bay.changelog_entries_removed_by(repo.config, 'kimi')
+            self.assertEqual(len(removed_two), 2)
+            with self.assertRaisesRegex(merge_bay.ToolError, 'not named in any declaration'):
+                merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
+    def test_no_duplicate_test_names(self):
+        """T433 R03：同一個 class 裡不得有同名 test_ 方法。
+
+        起因是本卡自己踩的：`test_changelog_must_only_grow` 被逐字貼了兩份
+        （1196 與 1246），Python 只保留後者，前 50 行成為永不執行的死碼——
+        而卡面「例數由 54 → 55」的機械閘門**正好因為重複名被靜默吞掉才剛好成立**。
+        單看總數分不出「加了一例」與「同一例貼了兩份」，這是本專案鐵訓
+        「『恰 N 次』的總數釘容易靠巧合成立」的教科書案例。
+
+        這條自檢讀自己的原始碼，所以它也擋得住未來任何一次同型貼錯。
+        """
+        source = io.open(__file__, encoding='utf-8').read()
+        names = re.findall(r'\n    def (test_\w+)', source)
+        duplicates = sorted({n for n in names if names.count(n) > 1})
+        self.assertEqual(
+            duplicates, [],
+            '同名 test_ 方法會被靜默覆蓋成死碼：' + ', '.join(duplicates))
+        self.assertEqual(
+            len(names), len(set(names)),
+            'def test_ 總數 %d 與 unique 數 %d 不符' % (len(names), len(set(names))))
+
+    def test_integration_must_keep_master_changelog_entries(self):
+        """T433 R03: 整合解衝突把 master 側條目吃掉，bay 三點 diff 看不見。
+
+        assert_changelog_only_grows 看的是 master...bay/NAME（merge-base→bay），
+        擋得住「release tail 就地覆寫車位繼承來的那一行」（＝T423-T425A 的形態），
+        但擋不住反方向：master 在 merge-base **之後**新增的條目，在整合工作樹
+        解衝突時被丟掉。CHANGELOG 是全庫最容易衝突的單檔（一卡一行全擠檔首）。
+
+        對抗性覆核在暫存 repo 實測過：bay 加 T003、master 加 T002，
+        三點 diff 只印 +T003、removed=0、守衛 PASSED——而以 bay 側解衝突會永久吃掉 T002。
+        凍結 bay OID 對這條路徑無效：bay OID 根本沒變。
+        所以真正該站崗的位置是**即將成為 master 的那個整合 commit**。
+        """
+        with TempRepo() as repo:
+            (repo.root / 'docs').mkdir(exist_ok=True)
+            t001 = '2026-07-28 | T001 起始 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+            repo.write(repo.root, 'docs/CHANGELOG.md', '# CHANGELOG\n' + t001 + '\n')
+            repo.commit(repo.root, 'changelog base')
+            repo.git(repo.bay, 'merge', 'master', '--no-edit')
+
+            # bay 加 T003（合法的只增）
+            t003 = '2026-07-30 | T003 車位新卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+            repo.write(repo.bay, 'docs/CHANGELOG.md', '# CHANGELOG\n' + t003 + '\n' + t001 + '\n')
+            repo.commit(repo.bay, 'bay adds T003')
+
+            # master 在 merge-base 之後也加了 T002
+            t002 = '2026-07-29 | T002 主線新卡 | 內容 | 驗收:通過（Kimi 非作者覆核）'
+            repo.write(repo.root, 'docs/CHANGELOG.md', '# CHANGELOG\n' + t002 + '\n' + t001 + '\n')
+            repo.commit(repo.root, 'master adds T002')
+
+            # 車位側的三點檢查：看不到任何刪除（這正是缺口）
+            self.assertEqual(
+                merge_bay.changelog_entries_removed_by(repo.config, 'kimi'), [])
+            merge_bay.assert_changelog_only_grows(repo.config, 'kimi')
+
+            # 造一個「以 bay 側解衝突」的整合 commit：T002 被吃掉
+            bad = repo.git(repo.root, 'commit-tree', '-p', 'master', '-p', 'bay/kimi',
+                           '-m', 'integration that drops T002',
+                           input_text=None) if False else None
+            # 用 worktree 造整合 commit（與工具實際做法一致）
+            repo.git(repo.root, 'checkout', '-q', '-b', 'tmp-int', 'master')
+            repo.git(repo.root, 'merge', 'bay/kimi', '--no-commit', '--no-ff', check=False)
+            repo.write(repo.root, 'docs/CHANGELOG.md', '# CHANGELOG\n' + t003 + '\n' + t001 + '\n')
+            repo.git(repo.root, 'add', '-A')
+            repo.git(repo.root, 'commit', '-m', 'integration resolved bay-side (drops T002)')
+            merged = repo.git(repo.root, 'rev-parse', 'HEAD').stdout.strip()
+            repo.git(repo.root, 'checkout', '-q', 'master')
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'drops 1 CHANGELOG'):
+                merge_bay.assert_integration_keeps_changelog(repo.config, merged)
+
+            # 對照：保留 T002 的整合結果必須放行
+            repo.git(repo.root, 'checkout', '-q', '-b', 'tmp-int2', 'master')
+            repo.git(repo.root, 'merge', 'bay/kimi', '--no-commit', '--no-ff', check=False)
+            repo.write(repo.root, 'docs/CHANGELOG.md',
+                       '# CHANGELOG\n' + t003 + '\n' + t002 + '\n' + t001 + '\n')
+            repo.git(repo.root, 'add', '-A')
+            repo.git(repo.root, 'commit', '-m', 'integration keeps both')
+            good = repo.git(repo.root, 'rev-parse', 'HEAD').stdout.strip()
+            repo.git(repo.root, 'checkout', '-q', 'master')
+            merge_bay.assert_integration_keeps_changelog(repo.config, good)
 
     def test_resume_also_enforces_deploy_residue_scan(self):
         """T370a (Kimi 非作者覆核): --resume 也必須驗部署目錄純淨。

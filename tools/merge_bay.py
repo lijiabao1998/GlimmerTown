@@ -1160,6 +1160,186 @@ def changelog_entries_added_by(
     return added
 
 
+CORRECTION_TAG = 'CHANGELOG-CORRECTION:'
+
+
+def changelog_entries_removed_by(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> List[str]:
+    """T433: CHANGELOG entries this bay DELETES relative to master.
+
+    The mirror image of changelog_entries_added_by.  It exists because the
+    original only ever scanned '+' lines, so a release tail that overwrote the
+    previous card's entry in place ("+1/-1") passed the gate four times running
+    and four entries were actually lost from the file:
+
+        T423  1,304 chars  deleted by d8d2ca1 (T424 release tail)
+        T424  1,395 chars  deleted by 37bb901 (T425 release tail)
+        T425  1,641 chars  deleted by ff19b03 (T425A release tail)
+        T425A 1,495 chars  deleted by 46fe8ff (T425B release tail)
+
+    All four were recovered verbatim from Git objects by T433; this function is
+    the part that stops it happening again.  The general lesson is recorded in
+    the project's iron rules: a guard that only checks what you ADDED cannot see
+    what you DESTROYED.
+    """
+    result = git_result(
+        config.root,
+        'diff',
+        '--no-color',
+        'master...bay/' + name,
+        '--',
+        'docs/CHANGELOG.md',
+        runner=runner,
+    )
+    if result.returncode != 0:
+        raise ToolError('cannot diff CHANGELOG for bay ' + name + ': '
+                        + _command_detail(result))
+    removed = []
+    for line in result.stdout.split('\n'):
+        if line.startswith('-') and not line.startswith('---'):
+            body = line[1:]
+            if re.match(r'^\d{4}-\d{2}-\d{2} \| ', body):
+                removed.append(body)
+    return removed
+
+
+def bay_commit_messages(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> str:
+    """T433: full commit messages this bay introduces, for correction opt-in.
+
+    Deliberately reads commit messages rather than a code comment or the task
+    card: a card can be edited after the fact, a landed commit message cannot.
+    """
+    result = git_result(
+        config.root,
+        'log',
+        '--format=%B',
+        'master..bay/' + name,
+        runner=runner,
+    )
+    if result.returncode != 0:
+        raise ToolError('cannot read bay commit messages for ' + name + ': '
+                        + _command_detail(result))
+    return result.stdout
+
+
+def assert_integration_keeps_changelog(
+    config: MergeConfig,
+    merged_oid: str,
+    runner: Runner = run_cmd,
+) -> None:
+    """T433 R03: every CHANGELOG entry on master must survive the integration.
+
+    assert_changelog_only_grows looks at ``master...bay/NAME`` -- the three-dot
+    diff, i.e. merge-base to bay.  That catches a release tail overwriting a
+    line the bay inherited, which is how T423/T424/T425/T425A were lost.  It
+    does NOT catch the other direction: entries master gained *after* the merge
+    base, dropped while resolving a conflict in the integration worktree.
+    CHANGELOG is the single most conflict-prone file in the repo (one card per
+    line, all crowded at the top of the file), so that is not a hypothetical.
+
+    Adversarial review reproduced it in a scratch repo: bay adds T003, master
+    adds T002, the three-dot diff prints only ``+T003`` with removed=0 and the
+    guard passes -- while a bay-side conflict resolution eats T002 for good.
+    Freezing the bay OID does not help here: the bay OID never changed.
+
+    So this check runs against the *integration commit that is about to become
+    master*, which is the only tree that actually lands.
+    """
+    master_text = git_result(
+        config.root, 'show', 'master:docs/CHANGELOG.md', runner=runner
+    )
+    merged_text = git_result(
+        config.root, 'show', merged_oid + ':docs/CHANGELOG.md', runner=runner
+    )
+    if master_text.returncode != 0:
+        # No CHANGELOG on master means there is nothing to protect (scratch
+        # repositories in the toolchain tests are exactly this shape).  Absent
+        # is not the same as deleted; the deletion case is caught below.
+        return
+    if merged_text.returncode != 0:
+        raise ToolError(
+            'T433: master has docs/CHANGELOG.md but the integration commit does '
+            'not -- the whole ledger would be deleted by this merge. '
+            + _command_detail(merged_text)
+        )
+    entry = re.compile(r'^\d{4}-\d{2}-\d{2} \| ')
+    before = [l for l in master_text.stdout.split('\n') if entry.match(l)]
+    after = set(l for l in merged_text.stdout.split('\n') if entry.match(l))
+    missing = [l for l in before if l not in after]
+    if missing:
+        cards = []
+        for line in missing:
+            match = re.match(r'^\S+ \| (\S+)', line)
+            cards.append(match.group(1) if match else '?')
+        raise ToolError(
+            'T433: the integration commit drops %d CHANGELOG entr%s that master '
+            'has (%s). This is the conflict-resolution direction the bay-side '
+            'three-dot check cannot see. Redo the integration keeping every '
+            'master entry, then resume.'
+            % (len(missing), 'y' if len(missing) == 1 else 'ies', ', '.join(cards[:6]))
+        )
+    ok('integration keeps all %d master CHANGELOG entries' % len(before))
+
+
+def assert_changelog_only_grows(
+    config: MergeConfig,
+    name: str,
+    runner: Runner = run_cmd,
+) -> None:
+    """T433: refuse a merge that deletes CHANGELOG entries, unless declared.
+
+    Default is refuse.  To delete an entry on purpose the bay must carry a
+    commit message line beginning with CHANGELOG-CORRECTION: saying which entry
+    and why.  Rewriting an entry in place still trips this -- that is the point,
+    because "+1/-1" is exactly what silently destroyed four entries.
+    """
+    removed = changelog_entries_removed_by(config, name, runner=runner)
+    if not removed:
+        return
+    cards = []
+    for entry in removed:
+        match = re.match(r'^\S+ \| (\S+)', entry)
+        cards.append(match.group(1) if match else '?')
+    messages = bay_commit_messages(config, name, runner=runner)
+    declared = [
+        line.strip()
+        for line in messages.split('\n')
+        if line.strip().startswith(CORRECTION_TAG)
+    ]
+    # R02 (adversarial review): the first cut accepted ANY single declaration
+    # line anywhere in the bay and let every other deletion through with it --
+    # one legitimate correction in commit 1 would have unlocked a silent
+    # release-tail overwrite in commit 5, which is the exact accident this
+    # guard exists to stop.  Each removed entry must now be named by name.
+    undeclared = [
+        card for card in cards
+        if not any(card in line for line in declared)
+    ]
+    if undeclared:
+        raise ToolError(
+            'T433: this merge deletes %d CHANGELOG entr%s (%s) and %s. '
+            'A release tail that overwrites the previous card\'s line in place '
+            'is how T423/T424/T425/T425A were lost. Every deleted entry needs '
+            'its own %s line naming that card and saying why.'
+            % (len(removed), 'y' if len(removed) == 1 else 'ies',
+               ', '.join(cards[:6]),
+               ('no commit message declares it' if not declared
+                else 'these are not named in any declaration: '
+                     + ', '.join(undeclared[:6])),
+               CORRECTION_TAG)
+        )
+    ok('CHANGELOG deletion declared: %d entr%s (%s), %d %s line(s)'
+       % (len(removed), 'y' if len(removed) == 1 else 'ies',
+          ', '.join(cards[:6]), len(declared), CORRECTION_TAG))
+
+
 def assert_signoff_landed(
     config: MergeConfig,
     name: str,
@@ -2095,6 +2275,7 @@ def start_transaction(
         assert_deploy_pristine(Path(config.deploy), config)
         ok('deployment directory pristine (runtime files only)')
     assert_signoff_landed(config, name, runner=runner)
+    assert_changelog_only_grows(config, name, runner=runner)
     ensure_integration_slot_free(config, runner=runner)
 
     step('1. freeze canonical master and bay identities')
@@ -2151,6 +2332,10 @@ def start_transaction(
             'integration gate failed; master is unchanged; use --resume to retry or --abort'
         )
     ok('integration gate green at exact merge OID')
+    # T433 R03: the bay-side three-dot check cannot see entries lost while
+    # resolving a conflict in the integration worktree.  Check the tree that
+    # actually lands, right before it lands.
+    assert_integration_keeps_changelog(config, merged, runner=runner)
 
     step('5. fast-forward master to verified OID')
     promote_verified(config, state, state_path, runner=runner)

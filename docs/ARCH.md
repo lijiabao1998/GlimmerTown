@@ -371,7 +371,7 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 | # | 不變量 | 在哪強制 | 被哪條測試守著 |
 |---|---|---|---|
 | 1 | 三條亂數流互不污染（R/ri、`rand=mulberry32(20260712)`、`spriteTexRand`） | index.html 285-298 / 1130-1142 / 1272 | T272 fresh-VM 指紋 mutation-kill（test 2860-2915）；各卡的區塊零亂數 regex |
-| 2 | 改的是 `R()` 的**次數**不是數值 | 全檔慣例 | 釘定種子 seed301→4153（test 3757）、seed22→4550（test 4722）；verify.py `MIN_SEED_PINS=2` |
+| 2 | 改的是 `R()` 的**次數**不是數值 | 全檔慣例 | 釘定種子 **seed301→3781**（test_fixde.js **4517**；T432 孤島電源不併網重釘，**前值 4153**）、**seed22→4550**（test_fixde.js **6753**）；verify.py `MIN_SEED_PINS=2`。**真值一律以 test_fixde.js 的斷言行為準、不要背舊值**——T433 實測時本欄與 LINEAGE 都還停在 4153，照它驗會得到相反結論（沒弄壞任何東西的人會以為自己弄壞了） |
 | 3 | 新素材放 `buildSprites` 絕對尾端（FIX-B） | 4051 註解宣告 | 各卡自寫的區塊 regex＋**T383c live token 序快照**（中段插入/刪除/換序消耗即紅） |
 | 4 | `buildSprites` 不得偷吃世界流（`__savedR` ↔ 8045 還原） | 1271 / 8045 | T275 globalRPreserved |
 | 5 | 五份多格尺寸表必須同步 `MSZ` | MSZ 18102 / SZC 8630 / SZB 8656 / SZM 18670 / SZM 18692 | **T383a 全鍵集合比對**（份數 1/1/1/2＋逐鍵 miss/extra/wrong 全零＋k9 不入表凍結） |
@@ -400,7 +400,7 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 1. ~~五份尺寸表沒有程式化比對~~ **已收口（T383a，2026-08-02）**：全鍵集合比對（份數 1/1/1/2＋miss/extra/wrong 逐鍵點名）。註：出卡偵查發現本條原宣稱的「缺 20 鍵」早被 T378 補齊，守衛以嚴格相等起步。**殘餘**：k9 不入表（T383a 凍結斷言）＋其色環減半視覺債（8698 `||1`）待另卡裁決入表與否。
 2. ~~稅收守衛沒有窮舉檢查~~ **已收口（T383b）**：執行期窮舉——KNAME 133 鍵各合成一棟、stub 亂數/道路/電水後 tick 一次，工業稅 fallback 裝 sink 記錄器（`else{const eduIndMul=` 錨點），除 k3 外任何 k 落入即紅並點名。新增 k134 忘補鏈當場咬，不必等 lv4 NaN。
 3. ~~per-cell 字串守衛~~ **已收口（T390）**：編碼修+DP 救援+雙守衛（29 條長度===N²、save→load→save 位元組恆等）。原文記錄： `tre` 在 tree===10 時寫兩字元，實測一次存讀後 1365 格樹種錯位。守衛可以是：save 後斷言 29 條字串長度全等於 N²，或存讀往返後逐格比對。同時要修 `tre` 本身（改寫 `String.fromCharCode(48+…)` 或把樹種壓回 0-9）。
-4. ~~亂數流守衛凍結在 backups 快照上~~ **已收口（T383c）**：live `buildSprites`（錨點 `function buildSprites(){` ↔ `\nfunction wealthSpr(`）剝註解（六態狀態機＋行數 canary）後對 R/ri/rand呼叫/rand裸引用/spriteTexRand 五類 token 做總數＋行序 CRC 快照（基線 118 / 0x103ef29c，master 87bb1e7 實測）。中段插入/刪除/換序消耗當場紅；純註解編輯免疫（T359「註解不得含 rand(」紀律對本守衛不再必要，但區塊 regex 各卡守衛仍在，紀律照舊）。合法改動＝施工卡同卡更新兩常數並記 delta（PASS 棘輪同款慣例）。T272/T274 快照對快照守衛原樣保留。
+4. ~~亂數流守衛凍結在 backups 快照上~~ **已收口（T383c）**：live `buildSprites`（錨點 `function buildSprites(){` ↔ `\nfunction wealthSpr(`）剝註解（六態狀態機＋行數 canary）後對 R/ri/rand呼叫/rand裸引用/spriteTexRand 五類 token 做總數＋行序 CRC 快照（基線 **119 / 0x6b858c3b**（`test_fixde.js:7600`；T426 拆段把 `let __savedR,rand;` 上提宣告行 +1 randX token，118→119，該行已記 delta。**原文寫 118 / 0x103ef29c 已過期，T433 校正**），master 87bb1e7 實測）。中段插入/刪除/換序消耗當場紅；純註解編輯免疫（T359「註解不得含 rand(」紀律對本守衛不再必要，但區塊 regex 各卡守衛仍在，紀律照舊）。合法改動＝施工卡同卡更新兩常數並記 delta（PASS 棘輪同款慣例）。T272/T274 快照對快照守衛原樣保留。
 5. **槽 3 紀律完全沒有機器守。** RULES 鐵律3、COLLAB、VERIFY 都寫了，但沒有任何東西檢查一份 probe 腳本裡有沒有 `setItem('glimmerville.v1.slot','3')`。T370 的目錄掃描只擋「probe 躺在玩家目錄裡」，擋不住有人在 8123 貼 Console 腳本（T371 剛修掉的 docs/VERIFY.md 就是這型事故）。
 6. **sprite 像素在 Node 套件裡根本測不到。** 素材守衛只到「家族計數 ≥ 基線」與中繼資料。真正的像素指紋（CRC32）在 `atlas.html`，但**倉庫裡沒有提交任何指紋基線檔**，也不在任何自動閘門裡。亂數流位移造成的全圖重繪，機器測不出來。
 7. **rot≠0 的十個漏轉點沒有任何守衛**（見 §4 表）。可做的是「rot=1 與 rot=0 的畫面在旋轉後應可疊合」的結構性斷言，或至少對「裸等距式 `(x-y)*32`」做全檔靜態掃描並列白名單。
@@ -410,7 +410,7 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 11. **「絕對尾端」的守衛證明不了尾端。** 各卡寫法是 `html.slice(indexOf('T3xx'), indexOf('R=__savedR'))`——只證明在 buildSprites 內、在流還原之前。事實上 T364b 之後又插了 T364c/d 與 T368。
 12. **tail parity 是手抄，沒有結構性守衛。** T261/T291/T345 跑在 7659-7774，之後新增的 `SPR.bld` 鍵必須自己重寫三層（`parity364` 7923、`parity364cd` 8019）。「亂數紀律要求放最尾端」與「視覺紀律要求經過後處理」在結構上互相衝突，目前純靠複製貼上。
 13. **CRLF 仍有 14 檔漏網**：`atlas.html`、`npu_bench.html`、`icon.svg`、`docs/HANDOFF-GPT.txt`、`generate_pwa_icons.py`、`t310_final.py`、`test_t31.js`…`test_t38.js`。目前全為 0（無現行漂移），但 T371「擴到 .gitattributes 宣告範圍的全部」是略微高估的說法。`atlas.html` 尤其值得補——它是還在改的活工具。
-14. **種子哨兵剛好卡在門檻上**（`MIN_SEED_PINS=2`，目前恰好 2 條），零餘裕；而且哨兵是正則數的，把 `=== 4153` 改寫成 `=== POP_EXPECTED` 就合法地繞過了。
+14. **種子哨兵剛好卡在門檻上**（`MIN_SEED_PINS=2`，目前恰好 2 條），零餘裕；而且哨兵是正則數的，把 `=== 3781` 改寫成 `=== POP_EXPECTED` 就合法地繞過了（T433 R02：原文舉的字面量是已退役的 4153，照著 grep 會找不到而先浪費一輪）。
 15. **`#bMetro` 的重複監聽（§7）測試零覆蓋。**
 16. **T356 的 `skipped≤60` 是「正規化漏了新形狀」的偵測器**，不是效能指標——加了新 SPR 資料形狀卻沒在 `sprAtlas356` 的 `walk()` 補分支，症狀是 skipped 暴增而非某條斷言直接紅。
 
