@@ -9959,6 +9959,53 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T440 代碼地圖解析度：守衛 ===== */
+{
+  /* 為什麼要有這一條：T437 把「行號會過期」修掉了，但沒有人擋「表太粗」。
+     改之前 §1 最寬的一段是 **4,070 行**（`FIX-B 尾端區起點` → `加蓋層 pass 群`），
+     一個 4,070 行的「區段」等於沒有指路——同一種病換個形態而已。
+     另外：T437/T438/T439 的收尾都寫過「還有 19% 未測繪」，那個數字**從來沒有定義過**，
+     是三次轉抄同一個沒有量法的百分比。這條守衛連同 ARCH 表頭把它換成可重算的東西。 */
+  const MAX_GAP440 = 800;   // 放寬要寫在卡面（鐵律：判準放寬要留痕）
+  const archTxt440 = fs.readFileSync(path.join(__dirname, 'docs', 'ARCH.md'), 'utf8');
+  const s440 = archTxt440.indexOf('## 1. 檔案分節地圖');
+  const e440 = archTxt440.indexOf('\n## ', s440 + 10);
+  const idxLines440 = html.split('\n').length;
+  const hits440 = [];
+  for (const line of archTxt440.slice(s440, e440).split('\n')) {
+    const m = /^\|([^|]*)\|([^|]*)\|([^|]*)\|\s*$/.exec(line);
+    if (!m) continue;
+    const n = parseInt(m[2].trim(), 10);
+    if (/`/.test(m[3]) && n > 0) hits440.push(n);
+  }
+  assert(hits440.length >= 90,
+    'T440 G1 §1 的可檢查列數異常（實得 ' + hits440.length + '，預期 ≥90）——表格結構可能被改壞了');
+  hits440.sort((a, b) => a - b);
+  let worst440 = 0, wa = 0, wb = 0;
+  const bounds440 = hits440.concat([idxLines440]);
+  for (let i = 0; i + 1 < bounds440.length; i++) {
+    const g = bounds440[i + 1] - bounds440[i];
+    if (g > worst440) { worst440 = g; wa = bounds440[i]; wb = bounds440[i + 1]; }
+  }
+  assert(worst440 <= MAX_GAP440,
+    'T440 G2【解析度】§1 相鄰兩列錨點的最大間距 ' + worst440 + ' 行（index.html ' + wa + ' → ' + wb
+    + '）超過上限 ' + MAX_GAP440 + '。這張表不會漏掉行——每一列標的是區段起點——它只會太粗；'
+    + '太粗的地圖跟過期的地圖一樣不能用。補一列錨點（`python tools/arch_map.py --fix` 會填行號）');
+  /* G3 上限本身也要釘住：放寬是一個決定，不是一個手滑。
+     **這一條第一版是錯的**：它驗「檔案裡有沒有 `const MAX_GAP440 = 800;` 這串字」，
+     而那串字也出現在它自己那條 assert 的正則裡；破壞式紅源把宣告改成 5000 之後，
+     正則那一處還在 ⇒ 文本比對命中 ⇒ **套件全綠**。
+     一條專門用來擋「偷偷放寬判準」的守衛，自己就能被偷偷放寬——今晚第四次同型。
+     改成比**值**：守衛的常數必須等於 800，且必須等於 tools/arch_map.py 解析出來的 MAX_GAP。 */
+  const toolGap440 = /^MAX_GAP = (\d+)$/m.exec(
+    fs.readFileSync(path.join(__dirname, 'tools', 'arch_map.py'), 'utf8'));
+  assert(toolGap440, 'T440 G3 tools/arch_map.py 必須有一行 `MAX_GAP = <數字>`（供守衛比對）');
+  assert(MAX_GAP440 === 800 && Number(toolGap440[1]) === MAX_GAP440,
+    'T440 G3【判準釘】解析度上限必須是 800，且守衛（' + MAX_GAP440 + '）與 tools/arch_map.py（'
+    + toolGap440[1] + '）必須同步。要放寬請先在卡面寫明理由——'
+    + '判準放寬寫在被驗物件裡，是本專案 2026-08-11 記過一次的老毛病');
+}
+
 /* ===== T439 牆面受光量測：守衛 ===== */
 {
   // G1 記錄鉤存在，且**預設關閉**（陣列不存在時只是一次 falsy 判斷）
