@@ -189,6 +189,91 @@ global.performance = { now: () => Date.now() };
 
 // ---- 載入 index.html 中的 script ----
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+/* T438 共用工具：把一份原始碼裡的區塊註解／行註解／字串／正則字面量逐字元換成空白，
+   換行保留、**總長度不變**（下面直接自測），所以行號與 index 位置都不位移。
+
+   為什麼要有這個：今晚三條守衛都栽在「守衛讀到的是自己的註解」——
+   T428 G1 被自己的 CSS 註解餵成假紅、T437 的死錨點被同列另一個錨點餵成假綠、
+   T434b G2 被 T438 的更正註解餵成假紅。原文前哨要問的是「程式碼裡有沒有」，不是「這份檔案裡有沒有」。
+
+   而這支工具自己也錯過一次：第一版不認識**正則字面量**，`index.html:19498` 的
+   `.replace(/"/g,'&quot;')` 讓它以為進入雙引號字串、一路吃掉 97 行，
+   到 :21311 時整份檔案後半都被當成字串。那次是假紅所以被看見；反過來就是無聲的假綠。
+   所以正則要認，而且下面那組單元自測必須跟著這支工具一起活。 */
+function stripCommentsAndStrings438(src) {
+  let out = '', st = 0, prev = '';   // 0=code 1=/* 2=// 3=' 4=" 5=` 6=regex
+  const blank = (c) => (c === '\n' ? '\n' : ' ');
+  /* 正則 vs 除法：看前一個非空白的程式碼字元。落在這組裡（或在開頭）就是正則的位置，
+     否則 `/` 是除號。這是 JS 詞法上的標準判法，對本專案的寫法足夠。 */
+  const REGEX_OK = '(,=:[!&|?{};+-*%~^<>\n';
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i], d = src[i + 1] || '';
+    if (st === 0) {
+      if (c === '/' && d === '*') { st = 1; out += '  '; i++; continue; }
+      if (c === '/' && d === '/') { st = 2; out += '  '; i++; continue; }
+      if (c === '/' && (prev === '' || REGEX_OK.indexOf(prev) >= 0)) { st = 6; out += ' '; continue; }
+      if (c === '\'' || c === '"' || c === '`') { st = (c === '\'' ? 3 : c === '"' ? 4 : 5); out += ' '; continue; }
+      out += c;
+      if (c.trim()) prev = c;
+      continue;
+    }
+    if (st === 1) { if (c === '*' && d === '/') { st = 0; out += '  '; i++; prev = ''; continue; } }
+    else if (st === 2) { if (c === '\n') st = 0; }
+    else if (st === 6) {
+      /* 字元類別 [...] 裡的 `/` 不算結束；跳脫字元一律吃掉下一個。
+         正則不可能跨行，遇到換行就當它其實是除號、回到 code（保守，寧可少剝不可多剝）。 */
+      if (c === '\\') { out += '  '; i++; continue; }
+      if (c === '\n') { st = 0; out += '\n'; continue; }
+      if (c === '[') { st = 7; out += ' '; continue; }
+      if (c === '/') { st = 0; prev = '/'; out += ' '; continue; }
+    }
+    else if (st === 7) {
+      if (c === '\\') { out += '  '; i++; continue; }
+      if (c === ']') { st = 6; out += ' '; continue; }
+      if (c === '\n') { st = 0; out += '\n'; continue; }
+    }
+    else {
+      if (c === '\\') { out += '  '; i++; continue; }
+      if ((st === 3 && c === '\'') || (st === 4 && c === '"') || (st === 5 && c === '`')) { st = 0; prev = c; }
+    }
+    out += blank(c);
+  }
+  return { text: out, state: st };
+}
+
+/* 剝除器的單元自測。一支沒有「它自己壞掉時會紅」證明的量具，就是今晚罵了一整夜的那種東西。 */
+{
+  const FIX = [
+    ['塊註解', '/* keepA */ keepB', 'keepB', 'keepA'],
+    ['行註解', 'keepC // keepD', 'keepC', 'keepD'],
+    ['單引號字串', 'x=\'keepE\';keepF', 'keepF', 'keepE'],
+    ['樣板字串', 'x=`keepG`;keepH', 'keepH', 'keepG'],
+    ['字串裡的假註解', 'x=\'/* keepI\';keepJ', 'keepJ', 'keepI'],
+    ['跳脫引號', 'x=\'a\\\'keepK\';keepL', 'keepL', 'keepK'],
+    ['正則含雙引號', 'x.replace(/"/g,\'keepM\');keepN', 'keepN', 'keepM'],
+    ['正則字元類別含斜線', 'x=/[/"]/.test(y);keepO', 'keepO', null],
+    ['除法不是正則', 'a=b/c;keepP', 'keepP', null],
+  ];
+  for (const [nm, src, must, gone] of FIX) {
+    const r = stripCommentsAndStrings438(src);
+    assert(r.text.length === src.length,
+      'T438 G0c 剝除器自測「' + nm + '」長度不等（' + r.text.length + ' vs ' + src.length + '）');
+    assert(r.text.indexOf(must) >= 0,
+      'T438 G0c 剝除器自測「' + nm + '」把程式碼也剝掉了：期望保留 ' + must + '，實得 ' + JSON.stringify(r.text));
+    if (gone !== null) assert(r.text.indexOf(gone) < 0,
+      'T438 G0c 剝除器自測「' + nm + '」沒剝乾淨：' + gone + ' 仍在 ' + JSON.stringify(r.text));
+  }
+}
+
+const strip438Result = stripCommentsAndStrings438(html);
+const htmlBare438 = strip438Result.text;
+assert(strip438Result.state === 0,
+  'T438 G0d 剝完 index.html 之後狀態必須回到 code（實得 ' + strip438Result.state
+  + '）。非 0 代表有字串／註解／正則沒閉合 ⇒ 檔案後半會整段被當成字串，'
+  + '所有靠它的原文前哨都會無聲失真（第一版就是這樣把 buildAllSprites 數成 0）');
+assert(htmlBare438.length === html.length,
+  'T438 G0 剝除器必須逐字元等長（實得 ' + htmlBare438.length + ' vs ' + html.length + '）');
+
 let js = '';
 let i = 0;
 while (true) {
@@ -5837,12 +5922,22 @@ runPwaTests().then(() => {
     assert(/const src=new Uint8ClampedArray\(a\);/.test(osBody434),
       'T434d G3【原文前哨】必須先 `new Uint8ClampedArray(a)` 快照再寫入：'
       + '否則先寫好的輪廓像素會被當成相鄰實體像素，顏色一圈一圈往外傳');
-    // G4 逃生閥要有真的寫入端（T428 G12 的同型病）
+    /* G4 T438 升級（**動既有斷言，理由寫在這裡**）：原本只釘「寫入端存在」，
+       而 T434d 的寫入端當時在 :21187、outlineSprite 在 :1719、開機分派在 :21126——
+       **寫入端比兩條開機路徑都晚** ⇒ 這個逃生閥對烘進 sprite 的像素從來沒生效過，而斷言全綠。
+       「存在」不等於「來得及」。升級成位置釘：寫入端必須早於 outlineSprite 的定義。
+       **這不是放寬**：原本三個原文條件一條沒少，只是多了一條位置條件。 */
     assert(/window\.__noSelfOutline434/.test(html)
       && /\/\[\?&\]noSelfOutline=1\/\.test\(location\.search\)/.test(html)
       && /localStorage\.getItem\(SAVEKEY\+'\.noSelfOutline434'\)==='1'/.test(html),
       'T434d G4【原文前哨】逃生閥 __noSelfOutline434 必須有真的寫入端'
       + '（URL ?noSelfOutline=1 或 localStorage），只有讀取端的開關撥不動＝沒有回退路徑');
+    const wr434d = html.indexOf("if(!window.__noSelfOutline434){try{if(/[?&]noSelfOutline=1/");
+    const os434d = html.indexOf('\nfunction outlineSprite(');
+    assert(wr434d > 0 && os434d > 0 && wr434d < os434d,
+      'T434d G4b【位置釘】__noSelfOutline434 的寫入端（index 位置 ' + wr434d + '）必須早於 '
+      + '`function outlineSprite(`（' + os434d + '）。outlineSprite 是 buildSprites 期間呼叫的，'
+      + '寫入端晚一步，這個逃生閥就對烘進 sprite 的像素完全無效——T438 覆核 M2 的原病');
     // G5 位置：必須留在 T383c 亂數 token 快照掃描區間之外
     const bs434d = html.indexOf('function buildSprites(){');
     const ws434d = html.indexOf('\nfunction wealthSpr(');
@@ -5854,16 +5949,26 @@ runPwaTests().then(() => {
        【觀測能力聲明】Node harness 的 canvas 是空殼，本區只驗**原文與位置**，不驗像素。
        這個入口存在的理由本身就是「Node 驗不了像素、瀏覽器又開不了機」，
        所以像素證據在 docs/tools/art_diff.html 的真瀏覽器輸出（見卡面 §4 A4 的實測貼文）。 */
-    // G1 入口必須存在，且是**轉呼叫**既有的同步總管，不是複製它的內容
-    assert(/buildAllSprites:\(\)=>\{buildSprites\(\);const r=GV\.sprAtlas356\(\);return r&&r\.entries\?r\.entries\.length:0;\},/.test(html),
-      'T434b G1【原文前哨】GV.buildAllSprites 必須是「轉呼叫 buildSprites() ＋ 回報 sprAtlas356 條目數」的一行；'
+    /* G1 T438 跟版（**動既有斷言，理由寫在這裡**）：原本釘的是「必須是一行」的完整字面量，
+       而 T438 M7 在它前面加了替身亂數流的前置檢查（不加的話，開機停在 pct≥7 時被外部工具呼叫，
+       會二次覆寫 __savedR、把世界亂數流永久換成替身流）。釘子擋住了必要的修補。
+       **這不是放寬**：原本那一行的兩個要件（轉呼叫既有 buildSprites、回報 sprAtlas356 條目數）
+       一個沒少，只是拆成兩條分別釘；替身流防護另有 T438 G5 專釘。 */
+    assert(/buildAllSprites:\(\)=>\{/.test(html)
+      && /buildSprites\(\);const r=GV\.sprAtlas356\(\);return r&&r\.entries\?r\.entries\.length:0;\},/.test(html),
+      'T434b G1【原文前哨】GV.buildAllSprites 必須**轉呼叫**既有的同步總管 buildSprites() 並回報 '
+      + 'sprAtlas356 條目數（不得改成複製 buildSprites 的內容）；'
       + '它是 art_diff 在不繪製環境下唯一的退路（bootPaint426 是雙重 rAF，headless iframe 停在 pct=5）');
-    // G2 **開機路徑不得呼叫它**——它一旦被開機呼叫就會多跑一次 buildSprites，兩釘與 token 快照全毀
-    const bas434 = (html.match(/buildAllSprites/g) || []).length;
+    /* G2 T438 跟版（**動既有斷言，理由寫在這裡**）：原本數的是 `html` 裡的字串出現次數，
+       於是 T438 在 index.html 寫的一句更正註解（逐字提到 `GV.buildAllSprites()`）就讓它由 1 變 2 而紅。
+       這是**假紅**，和今晚 T428 G1 被自己的 CSS 註解餵紅、T437 死錨點被同列錨點餵綠是同一個病。
+       改成數剝掉註解與字串之後的程式碼。**這不是放寬**：計數上限一樣是 1，只是不再把註解算成呼叫。 */
+    const bas434 = (htmlBare438.match(/buildAllSprites/g) || []).length;
     assert(bas434 === 1,
       'T434b G2【計數釘】buildAllSprites 在 index.html 只准出現 1 次（就是那個定義）。'
       + '出現第二次代表有人在開機路徑或其他地方呼叫它 ⇒ 會多跑一次 buildSprites()，'
-      + '兩釘（seed301 pop===3781／seed22 pop===4550）與 T383c token 快照全毀。實得 ' + bas434);
+      + '兩釘（seed301 pop===3781／seed22 pop===4550）與 T383c token 快照全毀。'
+      + '（本釘只數剝掉註解與字串後的程式碼；註解裡提到這個名字不算。）實得 ' + bas434);
     // G3 定義必須落在 T383c 的掃描區間**之外**（該快照掃 buildSprites 函式體的亂數 token）
     const bsStart434 = html.indexOf('function buildSprites(){');
     const bsEnd434 = html.indexOf('\nfunction wealthSpr(');
@@ -9797,15 +9902,25 @@ runPwaTests().then(() => {
   const secTxt437 = archTxt437.slice(secStart437, secEnd437);
   const dead437 = [];
   let checked437 = 0;
+  /* T438 退修（B2）：這裡原本是 `raw.some(a => html.includes(a))`——一列有兩個錨點時，
+     只要一個活著就整列判活。ARCH:55 的第二個錨點 `// ===== T382 …` 在 index.html 根本不存在
+     （真原文是區塊註解 `/* ===== T382 …`），被同列的 `const stampRoof=(key)=>{` 餵飽，
+     於是我在 T437 宣告的「死錨點 0」是**被 some 餵出來的假綠**。改成 every，並報出死的那一個。
+     另一處同型：`!/\d/.test(m[2]) continue` ⇒ 把行號欄清空就同時逃掉兩種檢查；改成算成錯誤。 */
+  const blank437 = [];
   for (const line of secTxt437.split('\n')) {
     const m = /^\|([^|]*)\|([^|]*)\|([^|]*)\|\s*$/.exec(line);
-    if (!m || !/\d/.test(m[2])) continue;
+    if (!m) continue;
     const ancs = m[3].match(/`([^`]+)`/g) || [];
     if (!ancs.length) continue;
-    checked437++;
     const raw = ancs.map(a => a.slice(1, -1));
-    if (!raw.some(a => html.includes(a))) dead437.push(raw[0].slice(0, 48));
+    if (!/\d/.test(m[2])) { blank437.push(raw[0].slice(0, 48)); continue; }
+    checked437++;
+    for (const a of raw) if (!html.includes(a)) dead437.push(a.slice(0, 48));
   }
+  assert(blank437.length === 0,
+    'T438 G2b ARCH §1 每一列都必須有行號；行號欄空白的列會同時逃掉行號與錨點檢查：'
+    + JSON.stringify(blank437.slice(0, 4)));
   assert(checked437 >= 60,
     'T437 G2 §1 表格可檢查的列數異常（實得 ' + checked437 + '，預期 ≥60）——表格結構可能被改壞了');
   assert(dead437.length === 0,
@@ -9821,11 +9936,16 @@ runPwaTests().then(() => {
     + '卡面寫的「一刀關閉／緊急回退」在正式產物裡撥不動');
   assert(html.includes("localStorage.getItem(SAVEKEY+'.no')"),
     'T436 G2【原文前哨】必須有 localStorage 入口（持久版）');
+  /* T438 跟版（**動既有斷言，理由寫在這裡**）：原本第三條釘的是
+     `SIM_ONLY436.indexOf(t436)>=0` 的**黑名單**寫法，而覆核 B1 證明黑名單本身是錯的設計
+     （`?no=Var12` 直接過關並讓渲染丟例外）。釘子指著錯的設計，不改就不能修它。
+     **這不是放寬**：新釘同樣是字面釘，而且從「不在黑名單就放行」改釘「不在白名單就拒收」，
+     再加上 T438 G1/G2/G3 三條機械複算，嚴格程度只增不減。 */
   assert(html.includes("if(!t436||!/^[A-Za-z0-9_]+$/.test(t436))continue;")
     && html.includes("window['__no'+t436]=true;applied436.push(t436);")
-    && html.includes("if(SIM_ONLY436.indexOf(t436)>=0){refused436.push(t436);continue;}"),
-    'T436 G3【原文前哨】名稱必須過 [A-Za-z0-9_]+ 白名單、且會影響模擬的開關（SIM_ONLY436）必須被拒收，再用屬性寫入；'
-    + '不得改成 eval／new Function／直接拼接執行');
+    && html.includes("if(ALLOW436.indexOf(t436)<0){refused436.push(t436);continue;}"),
+    'T436 G3【原文前哨】名稱必須過 [A-Za-z0-9_]+ 正則、且**不在 ALLOW436 白名單就拒收**，再用屬性寫入；'
+    + '不得改回黑名單，也不得改成 eval／new Function／直接拼接執行');
   assert(!/eval\(\s*['"]__no/.test(html),
     'T436 G4【原文前哨】通用入口不得使用 eval');
   // G5 位置：必須在 buildSprites 定義**之前**——有一整類開關是烘進 sprite 像素的
@@ -9837,6 +9957,129 @@ runPwaTests().then(() => {
   // G6 沒給參數時一個字都不寫（預設行為逐位元不變）
   assert(html.includes("if(noList436)for(const nm436 of noList436.split(','))"),
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
+}
+
+/* ===== T438 夜班覆核退修：守衛 =====
+   本區的四條（G1/G2/G3 白名單判準、G6 位置）是**機械複算**，不是原文前哨——
+   也就是說它們不看我在 index.html 註解裡宣稱了什麼，而是自己從原始碼把答案算一遍。
+   會這樣寫是因為今晚已經被自己的註解餵飽過兩次（T428 G1、T437 死錨點 0）。 */
+{
+  const bare438 = htmlBare438;   // T438：剝除器與其單元自測已提到檔頭（見 :191 之後）
+  const bl438 = bare438.split('\n');
+  const rl438 = html.split('\n');
+  const bend438 = (i) => { for (let j = i + 1; j < rl438.length; j++) if (rl438[j] === '}') return j; return rl438.length - 1; };
+
+  // 繪製區 = 函式名為 draw 或 draw* 的所有函式體聯集
+  const render438 = [];
+  for (let i = 0; i < rl438.length; i++) {
+    const m = /^function\s+(draw[A-Za-z0-9_$]*)\s*\(/.exec(rl438[i]);
+    if (m) render438.push([m[1], i + 1, bend438(i) + 1]);
+  }
+  const renderLines438 = render438.reduce((p, r) => p + (r[2] - r[1] + 1), 0);
+  assert(render438.length >= 25 && renderLines438 >= 2000,
+    'T438 G0b 繪製區辨識異常（' + render438.length + ' 個 draw* 函式 / ' + renderLines438
+    + ' 行）——判準的基礎壞了，下面三條就沒有意義');
+  const inRender438 = (x) => render438.some(r => x >= r[1] && x <= r[2]);
+
+  // 所有 __no* 的讀取端（剝乾淨之後才掃，註解裡提到的名字不算）
+  const reads438 = new Map();
+  for (let i = 0; i < bl438.length; i++) {
+    const re = /(?:window\.)?__no([A-Za-z0-9_]+)/g;
+    let m;
+    while ((m = re.exec(bl438[i]))) {
+      if (m[1] === '436') continue;
+      if (/^\s*=[^=]/.test(bl438[i].slice(m.index + m[0].length))) continue;   // 寫入端
+      if (!reads438.has(m[1])) reads438.set(m[1], []);
+      reads438.get(m[1]).push(i + 1);
+    }
+  }
+  const mAllow438 = /const ALLOW436=\[([\s\S]*?)\];/.exec(html);
+  assert(mAllow438, 'T438 G1 index.html 必須有 `const ALLOW436=[…];` 放行白名單');
+  const allow438 = (mAllow438[1].match(/'([^']+)'/g) || []).map(x => x.slice(1, -1));
+  assert(allow438.length >= 50,
+    'T438 G1 白名單只剩 ' + allow438.length + ' 名——低於 50 表示有人整批砍掉，請確認是不是誤刪');
+
+  // G1 白名單的每一個名稱，讀取端必須全部落在繪製區內
+  const out438 = [];
+  const dead438x = [];
+  for (const nm of allow438) {
+    const ls = reads438.get(nm);
+    if (!ls || !ls.length) { dead438x.push(nm); continue; }
+    const bad = ls.filter(x => !inRender438(x));
+    if (bad.length) out438.push('__no' + nm + '@' + bad.slice(0, 3).join(','));
+  }
+  assert(out438.length === 0,
+    'T438 G1【機械複算】ALLOW436 的名稱，讀取端必須全部落在繪製區（draw* 函式體）內。'
+    + '區外讀取端的意思是「它不只影響畫面」——可能改變模擬（__noPowerDistrict432 型），'
+    + '也可能改變 SPR 陣列結構讓渲染取到 undefined（__noVar12 型，玩家可用一條 URL 把遊戲弄崩）。'
+    + '違規：' + JSON.stringify(out438.slice(0, 5)));
+  // G3 白名單不收死名字
+  assert(dead438x.length === 0,
+    'T438 G3【機械複算】ALLOW436 裡有名稱在 index.html 完全沒有讀取端：' + JSON.stringify(dead438x.slice(0, 5))
+    + '。放行一個不存在的開關等於在白名單裡留一個沒人看得懂的坑');
+  // G1b 具名反例：這四個是覆核當場舉出來的，永遠不准進白名單
+  for (const nm of ['Var12', 'PowerDistrict432', 'Mort', 'Debris'])
+    assert(allow438.indexOf(nm) < 0,
+      'T438 G1b【具名反例】__no' + nm + ' 不得進 ALLOW436——'
+      + 'Var12 會讓 SPR.tree 由 10 變體縮成 7 而世界生成／渲染仍取 0-9；'
+      + 'PowerDistrict432／Mort／Debris 會改變 tick 的模擬結果，而 localStorage 路徑是持久的');
+
+  // G2 繪製區不得消耗共用亂數流；tick() 當對照組，防止剝除器把程式碼一起剝掉而假綠
+  const rngHits438 = (lo, hi) => {
+    let n = 0;
+    for (let x = lo; x <= hi && x <= bl438.length; x++) {
+      const re = /(^|[^A-Za-z0-9_$.])(R|ri|rf|rnd)\s*\(/g;
+      while (re.exec(bl438[x - 1])) n++;
+    }
+    return n;
+  };
+  let renderRng438 = 0;
+  for (const r of render438) renderRng438 += rngHits438(r[1], r[2]);
+  const tickStart438 = rl438.findIndex(l => l.startsWith('function tick(')) + 1;
+  const tickRng438 = tickStart438 > 0 ? rngHits438(tickStart438, bend438(tickStart438 - 1) + 1) : 0;
+  assert(tickRng438 > 0,
+    'T438 G2 對照組失效：tick() 內量到 ' + tickRng438 + ' 個共用亂數呼叫（應 >0）。'
+    + '這代表剝除器把程式碼也剝掉了，下面那條「繪製區零亂數」會變成假綠');
+  assert(renderRng438 === 0,
+    'T438 G2【機械複算】繪製區（' + render438.length + ' 個 draw* / ' + renderLines438
+    + ' 行）不得出現 R()/ri()/rf()/rnd()；實得 ' + renderRng438 + ' 處。'
+    + '一旦繪製區開始抽共用亂數，「關掉一個特效」就等於位移世界亂數流 ⇒ '
+    + 'ALLOW436 的整套判準連同兩釘一起失效（對照組 tick() 實得 ' + tickRng438 + ' 處）');
+
+  // G4 `?no=`（空值）必須以 URL 為準，不得掉回 localStorage
+  assert(html.includes("if(qm436){noList436=decodeURIComponent(qm436[1]);src436='url';}\n  else{noList436=localStorage.getItem(SAVEKEY+'.no')||'';"),
+    'T438 G4【原文前哨】`?no=` 空值必須走 URL 分支（本次不套用任何開關）＝玩家的自救鑰匙。'
+    + '寫成 `if(!noList436){…localStorage…}` 的話，一個持久化的壞值就沒有任何 URL 手段能清掉');
+
+  // G5 buildAllSprites 不得在 T275 替身亂數流中被重跑
+  assert(html.includes("if(b438&&b438.started&&!b438.ready&&b438.pct>=7)")
+    && html.includes('T438：開機已進入 T275 替身亂數流'),
+    'T438 G5【原文前哨】GV.buildAllSprites 必須先擋掉「開機已進入替身流」的情況：'
+    + 'bootstrap426 先 `__savedR=R;R=mulberry32(1)` 才逐段建圖，此時重跑 buildSprites 會二次覆寫 __savedR，'
+    + 'S9 還原時就把世界亂數流永久換成替身流（懷疑者實測停在 pct=5 與 pct=7）');
+
+  // G6 兩支量具：全透明圖集必須紅（canvas 物件存在 ≠ 上面畫過東西）
+  for (const f of ['art_diff.html', 'art_style.html']) {
+    const t438 = fs.readFileSync(path.join(__dirname, 'docs', 'tools', f), 'utf8');
+    assert(t438.includes('function assertHasPixels438(entries, tag)')
+      && /assertHasPixels438\((bld|entries)/.test(t438),
+      'T438 G6 docs/tools/' + f + ' 必須有 assertHasPixels438 像素防呆**並實際呼叫**：'
+      + '原本的防呆只驗 entries.length 與 bld.length，都只看 canvas 物件存不存在，'
+      + '一個全透明的圖集會照樣走到「量測完成」——這正是它自己註解在罵的 T421 空殼 harness 同型');
+    assert(t438.includes("if (opaque === 0) throw new Error("),
+      'T438 G6 docs/tools/' + f + ' 的像素防呆必須在不透明像素為 0 時**丟錯**，不能只印警告');
+  }
+
+  // G7 arch_map.py --check 必須真的掛在閘門上（T437 交了工具但沒接線）
+  const vpy438 = fs.readFileSync(path.join(__dirname, 'tools', 'verify.py'), 'utf8');
+  assert(vpy438.includes("os.path.join('tools', 'arch_map.py'), '--check'"),
+    'T438 G7 tools/verify.py 必須呼叫 `tools/arch_map.py --check`。'
+    + 'T437 寫了自檢工具卻沒有掛進任何閘門 ⇒「行號可以全面過期而套件全綠」那個根因原封不動');
+  const apy438 = fs.readFileSync(path.join(__dirname, 'tools', 'arch_map.py'), 'utf8');
+  assert(apy438.includes("missing = [a for a, k in hits if k is None]")
+    && apy438.includes("'blank': not re.search(r'\\d', declared),"),
+    'T438 G7b tools/arch_map.py 必須採「所有錨點都要命中」與「行號欄空白算錯誤」兩條語意，'
+    + '不得退回「任一命中就算過」或「沒數字就 continue」——那兩條各自製造過一次假綠');
 }
 
 /* ===== T435 健康燈帶誠實化：守衛 ===== */

@@ -155,6 +155,26 @@ function runs(d, w, h, colour) {
    就跟 T421 的空殼 harness、T428 的假綠探針是同一種東西。
    清冊為空（或 bld 家族為空）＝這次量測沒有任何資訊量，必須當場紅掉，
    不能讓後面的程式碼繼續跑到「—— 量測完成 ——」那一行。 */
+/* T438 退修（M6）：上面兩條只驗「canvas 物件存不存在」，不驗上面畫過任何一個像素——
+   一個全透明的圖集會照樣通過，而這正是本檔註解自己在罵的 T421 空殼 harness 同型。
+   所以再加一條：抽樣最大的一批素材，累計不透明像素必須大於 0。 */
+function assertHasPixels438(entries, tag) {
+  const cand = entries.filter(e => e.img && e.img.width > 0).sort((a, b) =>
+    b.img.width * b.img.height - a.img.width * a.img.height).slice(0, 40);
+  let opaque = 0, read = 0;
+  for (const e of cand) {
+    let d;
+    try { d = e.img.getContext('2d').getImageData(0, 0, e.img.width, e.img.height).data; }
+    catch (err) { continue; }
+    read++;
+    for (let i = 3; i < d.length; i += 4) if (d[i] !== 0) { opaque++; }
+  }
+  if (read === 0) throw new Error(tag + '：抽樣的 ' + cand.length
+    + ' 張素材一張都讀不出像素（getImageData 全部失敗）＝本次量測沒有像素證據。');
+  if (opaque === 0) throw new Error(tag + '：抽樣 ' + read + ' 張素材共 0 個不透明像素'
+    + '＝圖集是空的。canvas 物件存在不等於上面畫過東西——這正是空殼 harness 的形態。');
+  return { sampled: read, opaque: opaque };
+}
 function entryMap(w) {
   const r = w.GV.sprAtlas356();
   if (!r || !r.entries || r.entries.length === 0) {
@@ -166,7 +186,8 @@ function entryMap(w) {
     throw new Error('清冊裡沒有任何 bld 家族素材（entries=' + r.entries.length + '）：'
       + '建築素材是本工具的主要量測對象，缺席即判紅。');
   }
-  return { meta: r, map: new Map(r.entries.map(e => [e.fam + '/' + e.key, e])) };
+  const px = assertHasPixels438(bld, 'art_diff 圖集防呆');
+  return { meta: r, map: new Map(r.entries.map(e => [e.fam + '/' + e.key, e])), px: px };
 }
 
 /* 畫布台帳（定義寫死在這裡，避免不同人不同量法）：

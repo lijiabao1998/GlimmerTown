@@ -17,6 +17,7 @@ The verifier never creates a temporary file inside the repository.
 Output stays ASCII so Windows consoles do not corrupt diagnostics.
 """
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -329,6 +330,20 @@ def main(argv=None):
         ok('seed pins present: %d' % pins)
     else:
         bad('seed pins=%d below baseline %d' % (pins, MIN_SEED_PINS))
+        failures += 1
+
+    # 6. Code map. T437 shipped tools/arch_map.py but wired it to nothing, so the
+    # root cause it was written for -- line numbers going stale while the suite
+    # stays green -- survived untouched. T438 puts it in the gate.
+    map_result = run_cmd([sys.executable, os.path.join('tools', 'arch_map.py'), '--check'],
+                         root, timeout=120)
+    if map_result.returncode == 0:
+        ok('code map fresh: docs/ARCH.md §1 anchors and line numbers match index.html')
+    else:
+        bad('code map RED: docs/ARCH.md §1 drifted from index.html '
+            '(run `python tools/arch_map.py --fix`)')
+        for line in (map_result.stdout or '').splitlines()[:6]:
+            print('         ' + line[:180])
         failures += 1
 
     print('\nRESULT: ' + ('ALL GREEN' if failures == 0 else '%d CHECK(S) FAILED' % failures))
