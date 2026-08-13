@@ -6341,10 +6341,16 @@ runPwaTests().then(() => {
     // G1i 函數釘：boxUnit 六技法存在（三面色階/稜線/窗洞/節奏點/磚紋）
     assert(/function boxUnit\(g,ng,cx,by,hw,h,cL,cR,cTop,opts\)\{/.test(html),
       'T425I G1i 函數：boxUnit 函數必須存在（isoBox 極緻升級）');
-    assert(/rampL=\[shade\(cL,2\),shade\(cL,1\),cL,shade\(cL,-1\),shade\(cL,-2\)\]/.test(html),
-      'T425I G1i 色階：左面受光 5 級色階（shade +2/+1/0/-1/-2）');
-    assert(/rampR=\[shade\(cR,-2\),shade\(cR,-3\),shade\(cR,-4\),shade\(cR,-5\),shade\(cR,-6\)\]/.test(html),
-      'T425I G1i 色階：右面背光 5 級色階（shade -2..-6）');
+    /* T441 跟版（**動既有斷言，理由寫在這裡**）：原本釘的是兩個寫死的陣列字面量
+       `rampL=[shade(cL,2),…]` / `rampR=[shade(cR,-2),…]`，也就是把「左面受光」釘死。
+       而 T441 量到 boxUnit 與 isoBox 的受光方向相反（isoBox 主體 108 個鍵全部右受光），
+       要對齊就必須讓「哪一面吃亮階」可切換。釘子指著舊方向，不改就不能修它。
+       **這不是放寬**：五級色階的兩組 shade 參數（+2/+1/0/−1/−2 與 −2..−6）逐字保留，
+       只是從陣列字面量改釘產生它的函式；方向另有 T441 G3 專釘、逃生閥另有 T441 G4 位置釘。 */
+    assert(/rampLit=c=>\[shade\(c,2\),shade\(c,1\),c,shade\(c,-1\),shade\(c,-2\)\]/.test(html),
+      'T425I G1i 色階：受光面 5 級色階（shade +2/+1/0/-1/-2）必須維持');
+    assert(/rampDim=c=>\[shade\(c,-2\),shade\(c,-3\),shade\(c,-4\),shade\(c,-5\),shade\(c,-6\)\]/.test(html),
+      'T425I G1i 色階：背光面 5 級色階（shade -2..-6）必須維持');
     assert(/\/\/ ②稜線體系：左稜外摺角亮線/.test(html)&&/fillStyle=shade\(cL,3\);/.test(html),
       'T425I G1i 稜線：外摺角亮線（shade cL+3）與內摺角暗線（shade cR-4）');
     assert(/\/\/ ⑤斜邊節奏點：左斜面每 4 列 1 亮點/.test(html)&&/dx\+=4\)\{const yF=by-\(dx>>1\)/.test(html),
@@ -9959,6 +9965,58 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T441 第二個牆面落筆口 boxUnit：守衛 ===== */
+{
+  /* 這一區存在的理由是**我上一張卡的一句全稱句是錯的**：T439 的卡面、CHANGELOG 與
+     art_wall.html 都寫「isoBox 是全檔唯一的牆面落筆口」，而 index.html 還有 boxUnit
+     （T425I，19 個呼叫點）也自己畫左右兩片牆。母體是猜的，判定就只在猜對的那部分裡成立。 */
+  // G1 boxUnit 也要有記錄鉤，且預設關、鍵用過即清
+  assert(html.includes("if(window.__wall439){window.__wall439.push({via:'boxUnit',lit:(window.__noWallFlip441?'L':'R'),key:window.__wallKey439||null,cL:cL,cR:cR,hw:hw,h:h});window.__wallKey439=null;}"),
+    'T441 G1【原文前哨】boxUnit 必須有與 isoBox 同款的牆面記錄鉤（含 via 欄）。'
+    + '少了它，art_wall.html 的母體就會漏掉一整個落筆口——T439 就是這樣把「全檔唯一」寫進三份文件的');
+  // G2 兩個落筆口都要被記錄：via 只准這兩個值，且都必須在場
+  {
+    /* 為什麼要這樣繞：`htmlBare438` 是剝掉字串的版本，直接在上面找 `via:'…'` 一定是 0 筆
+       （第一版就這樣紅了）；但改用原文又會被註解餵飽。剝除器**逐字元等長**，
+       所以在剝乾淨的文字上找 `via:` 的**位置**（保證那是程式碼），再回原文同一位置讀內容。
+       位置由剝除器保證，內容由原文提供。 */
+    const vias441 = [];
+    for (let p441 = htmlBare438.indexOf('via:'); p441 >= 0; p441 = htmlBare438.indexOf('via:', p441 + 4)) {
+      const m441 = /^via:'([A-Za-z0-9_]+)'/.exec(html.slice(p441, p441 + 32));
+      if (m441) vias441.push(m441[1]);
+    }
+    vias441.sort();
+    assert(vias441.length === 2 && vias441[0] === 'boxUnit' && vias441[1] === 'isoBox',
+      'T441 G2【計數釘】牆面記錄鉤的 via 值目前應恰為 {boxUnit, isoBox}，實得 '
+      + JSON.stringify(vias441) + '。**新增第三個牆面落筆口時這條會紅**——那正是它的用途：'
+      + '母體邊界不能再靠某個人記得住');
+  }
+  // G3 受光方向：亮階必須落在右面（cx+dx 那個迴圈），暗階落在左面
+  assert(html.includes("const rampL=flip441?rampDim(cR):rampLit(cL);")
+    && html.includes("const rampR=flip441?rampLit(cL):rampDim(cR);"),
+    'T441 G3【原文前哨】boxUnit 的受光方向必須對齊 isoBox：預設（flip441 為真）時'
+    + '左面吃暗階、右面吃亮階。isoBox 的主體牆面實測 108 個鍵全部右受光，'
+    + '兩個畫法方向相反就是「全城光照自相矛盾」的本體');
+  // G4 逃生閥：要有真的寫入端，且早於 boxUnit 的定義（T438 M2 的教訓，位置釘）
+  const wf441 = html.indexOf("if(!window.__noWallFlip441){try{if(/[?&]noWallFlip441=1/");
+  const bu441 = html.indexOf('\nfunction boxUnit(');
+  assert(wf441 > 0 && bu441 > 0 && wf441 < bu441,
+    'T441 G4【位置釘】?noWallFlip441=1 的寫入端（' + wf441 + '）必須早於 `function boxUnit(`（'
+    + bu441 + '）。boxUnit 在 buildSprites 期間就被呼叫，寫入端晚一步這個逃生閥就對烘進 sprite 的'
+    + '像素完全無效——T434d 正是這樣空綠了一整張卡');
+  // G5 boxUnit 不得消耗共用亂數（記錄鉤與方向切換都是可被玩家撥動的）
+  {
+    const a441 = html.indexOf('\nfunction boxUnit(');
+    const b441 = html.indexOf('\n}', a441);
+    const body441 = htmlBare438.slice(a441, b441);
+    const n441 = (body441.match(/(^|[^A-Za-z0-9_$.])(R|ri|rf|rnd)\s*\(/g) || []).length;
+    assert(n441 === 0,
+      'T441 G5【機械複算】boxUnit 函式體不得出現 R()/ri()/rf()/rnd()（實得 ' + n441 + '）：'
+      + '它有兩個可被 URL 撥動的開關（?wall439=1／?noWallFlip441=1），'
+      + '一旦碰到共用亂數流，撥開關就會改變世界，兩釘也跟著失效');
+  }
+}
+
 /* ===== T440 代碼地圖解析度：守衛 ===== */
 {
   /* 為什麼要有這一條：T437 把「行號會過期」修掉了，但沒有人擋「表太粗」。
@@ -10008,8 +10066,10 @@ runPwaTests().then(() => {
 
 /* ===== T439 牆面受光量測：守衛 ===== */
 {
-  // G1 記錄鉤存在，且**預設關閉**（陣列不存在時只是一次 falsy 判斷）
-  assert(html.includes("if(window.__wall439){window.__wall439.push({key:window.__wallKey439||null,cL:cL,cR:cR,hw:hw,h:h});window.__wallKey439=null;}"),
+  /* G1 T441 跟版（**動既有斷言，理由寫在這裡**）：記錄項多了 `via` 欄，因為 T439 的母體
+     少了一整個落筆口——`boxUnit`（見下方 T441 區）。原本的字面釘擋住了必要的補全。
+     **這不是放寬**：原本的三個要件（預設關、鍵用過即清、四個欄位）一個沒少，只是多釘了 `via`。 */
+  assert(html.includes("if(window.__wall439){window.__wall439.push({via:'isoBox',key:window.__wallKey439||null,cL:cL,cR:cR,hw:hw,h:h});window.__wallKey439=null;}"),
     'T439 G1【原文前哨】isoBox 必須有預設關閉的牆面記錄鉤，且**鍵用過即清**——'
     + '不清的話，mkBld 主體之後的所有附屬構件呼叫都會被記成同一個鍵（張冠李戴），'
     + '量具就得在外面替它擦屁股，換一支工具就會被騙');
