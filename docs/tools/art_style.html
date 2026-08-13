@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>微光小鎮 — 風格量具（T434c）</title>
+<style>
+body{background:#141a26;color:#dce4f2;font:12px/1.55 Consolas,"Microsoft YaHei",monospace;margin:0;padding:12px}
+h1{font-size:16px;color:#7fd4ff;margin:2px 0 8px}
+.hint{color:#7a8699;margin-bottom:10px}
+#out{white-space:pre-wrap}
+.ok{color:#7be08a}.bad{color:#ff8a72}.warn{color:#ffd45f}.hd{color:#ffd45f;margin-top:8px}.inf{color:#8fa3cc}
+iframe{position:static;display:block;width:900px;height:640px;border:1px solid #2a3350;margin:8px 0}
+</style>
+</head>
+<body>
+<h1>風格量具 <span class="hint">· 把「偏向西奧小鎮」翻成可量的數字</span></h1>
+<div class="hint">
+用法：<code>art_style.html?a=/index.html</code>　無頭：<code>chrome --headless=new --virtual-time-budget=900000 --dump-dom "&lt;URL&gt;"</code><br>
+就緒條件與同步退路**與 <code>art_diff.html</code> 同款**（T434a/T434b）：
+bootstrap426 是雙重 rAF，在不繪製的環境開不了機，故卡住時改走 <code>GV.buildAllSprites()</code>。<br>
+<b>量的都是真像素</b>（<code>sprAtlas356()</code> 可達的 canvas），不是色票表——色票表講的是意圖，像素講的是結果。
+</div>
+<div id="out">booting…</div>
+<div id="frames"></div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.search);
+const A = Q.get('a') || '/index.html';
+const TOPN = +(Q.get('top') || 25);
+const O = document.getElementById('out');
+const LINES = [];
+const P = (m, c) => { LINES.push(m); const d = document.createElement('div'); if (c) d.className = c; d.textContent = m; O.appendChild(d); };
+
+const READY_MAX_POLLS = 4800;
+const atlasSize = w => { try { const r = w.GV.sprAtlas356(); return (r && r.entries) ? r.entries.length : 0; } catch (e) { return 0; } };
+
+function frame(src) {
+  return new Promise((res, rej) => {
+    const f = document.createElement('iframe');
+    f.src = src;
+    document.getElementById('frames').appendChild(f);
+    let polls = 0, forced = false, lastPct = -1, stuck = 0;
+    const tick = () => {
+      const w = f.contentWindow;
+      if (w && w.GV && w.GV.sprAtlas356) {
+        const boot = (typeof w.__boot426 === 'function') ? w.__boot426() : null;
+        if (boot ? boot.ready === true : atlasSize(w) > 0) return res(w);
+        if (boot && !forced) {
+          if (boot.pct === lastPct) stuck++; else { stuck = 0; lastPct = boot.pct; }
+          if (stuck >= 24 && typeof w.GV.buildAllSprites === 'function') {
+            forced = true;
+            try { const n = w.GV.buildAllSprites(); if (n > 0) return res(w); return rej(new Error('同步退路跑完但清冊仍為空')); }
+            catch (e) { return rej(new Error('同步退路失敗：' + (e && e.message ? e.message : e))); }
+          }
+        }
+      }
+      if (++polls > READY_MAX_POLLS) return rej(new Error('就緒逾時（輪詢 ' + polls + ' 次）'));
+      setTimeout(tick, 250);
+    };
+    tick();
+  });
+}
+
+const lum = (r, g, b) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+/* 每個 sprite 量四組：
+   ① 左右半明度（受光方向）——isoBox 的 cL 填 cx-dx（左半）、cR 填 cx+dx（右半）
+   ② 飽和度分布（shade() 是三通道等量加減，會把色相洗成灰）
+   ③ 輪廓 vs 內部明度差（outlineSprite 用全域死色包一圈）
+   ④ 明度階數與色數 */
+function measure(cvs) {
+  const g = cvs.getContext('2d');
+  const d = g.getImageData(0, 0, cvs.width, cvs.height).data;
+  const W = cvs.width, H = cvs.height, cx = W / 2;
+  let ln = 0, ls = 0, rn = 0, rs = 0;
+  const sats = [], vals = [], pal = {};
+  const edge = [], inner = [];
+  const opaqueAt = (x, y) => (x >= 0 && y >= 0 && x < W && y < H && d[(y * W + x) * 4 + 3] !== 0);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4;
+    if (d[i + 3] === 0) continue;
+    const r = d[i], gg = d[i + 1], b = d[i + 2], L = lum(r, gg, b);
+    const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+    sats.push(mx === 0 ? 0 : (mx - mn) / mx);
+    vals.push(L);
+    const key = '#' + [r, gg, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    pal[key] = (pal[key] || 0) + 1;
+    if (x < cx) { ln++; ls += L; } else { rn++; rs += L; }
+    const border = !opaqueAt(x - 1, y) || !opaqueAt(x + 1, y) || !opaqueAt(x, y - 1) || !opaqueAt(x, y + 1);
+    (border ? edge : inner).push(L);
+  }
+  if (!vals.length) return null;
+  const med = a => { const s = a.slice().sort((p, q) => p - q); return s[s.length >> 1]; };
+  const mean = a => a.reduce((p, q) => p + q, 0) / (a.length || 1);
+  return {
+    opaque: vals.length, colours: Object.keys(pal).length,
+    left: ln ? ls / ln : 0, right: rn ? rs / rn : 0,
+    satMed: med(sats), vMed: med(vals),
+    vMin: Math.min.apply(null, vals), vMax: Math.max.apply(null, vals),
+    steps: new Set(vals.map(v => Math.round(v * 15))).size,
+    edgeMean: mean(edge), innerMean: mean(inner),
+  };
+}
+
+async function main() {
+  const w = await frame(A);
+  O.textContent = '';
+  const at = w.GV.sprAtlas356();
+  const bld = at.entries.filter(e => e.fam === 'bld' && e.img);
+  P('a=' + A + '　清冊 entries=' + at.entries.length + '　bld=' + bld.length
+    + '　（本量具只看 bld 家族的 img，night 另計）');
+  if (!bld.length) throw new Error('bld 家族為空，量測沒有資訊量');
+
+  const rows = [];
+  for (const e of bld) {
+    const m = measure(e.img);
+    if (m && m.opaque > 200) rows.push({ key: e.key, m });
+  }
+  rows.sort((a, b) => b.m.opaque - a.m.opaque);
+
+  let leftBright = 0;
+  for (const r of rows) if (r.m.left > r.m.right) leftBright++;
+  P('');
+  P('=== ① 受光方向（左半平均明度 vs 右半）===', 'hd');
+  P('  可量的建築鍵 ' + rows.length + ' 個；**左半較亮 ' + leftBright + ' 個 / 右半較亮 '
+    + (rows.length - leftBright) + ' 個**');
+  P('  isoBox(g,cx,by,hw,h,cL,cR,cTop)：cL 填 cx-dx＝左半、cR 填 cx+dx＝右半；'
+    + 'mkBld 傳的是 wl[1],wl[0]。若 PAL 的 walls[0] 較亮，右半就會較亮＝右受光。',
+    'inf');
+  P('  前 ' + TOPN + ' 大鍵逐鍵：');
+  for (const r of rows.slice(0, TOPN)) {
+    const dd = r.m.left - r.m.right;
+    P('    ' + (r.key + '            ').slice(0, 12)
+      + ' 左 ' + r.m.left.toFixed(3) + ' 右 ' + r.m.right.toFixed(3)
+      + '  Δ ' + (dd >= 0 ? '+' : '') + dd.toFixed(3) + '  ' + (dd > 0 ? '左亮' : '右亮'),
+      dd > 0 ? 'ok' : 'warn');
+  }
+
+  const agg = k => { const a = rows.map(r => r.m[k]).sort((p, q) => p - q); return a[a.length >> 1]; };
+  P('');
+  P('=== ② 飽和度／明度／色數（全 bld 中位數）===', 'hd');
+  P('  飽和度中位 ' + agg('satMed').toFixed(3)
+    + '　明度中位 ' + agg('vMed').toFixed(3)
+    + '　明度階數中位 ' + agg('steps')
+    + '　色數中位 ' + agg('colours'));
+  P('');
+  P('=== ③ 輪廓 vs 內部明度（負值＝輪廓比內部暗）===', 'hd');
+  const eiMed = (() => { const a = rows.map(r => r.m.edgeMean - r.m.innerMean).sort((p, q) => p - q); return a[a.length >> 1]; })();
+  P('  中位 ' + eiMed.toFixed(3));
+
+  window.ART_STYLE = { rows, leftBright, total: rows.length, text: LINES.join('\n') };
+  P('');
+  P('—— 風格量測完畢；window.ART_STYLE 有 JSON ——', 'ok');
+}
+main().catch(err => {
+  P('');
+  P('✘ 量測失敗（本次輸出沒有任何有效資料，不得引用）：' + ((err && err.message) ? err.message : String(err)), 'bad');
+  window.ART_STYLE_ERROR = String(err && err.message ? err.message : err);
+});
+</script>
+</body>
+</html>
