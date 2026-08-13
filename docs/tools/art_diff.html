@@ -10,7 +10,12 @@ h1{font-size:16px;color:#7fd4ff;margin:2px 0 8px}
 #out{white-space:pre-wrap}
 canvas{image-rendering:pixelated;display:block;border:1px solid #2a3448;margin:8px 0;max-width:100%}
 .ok{color:#7be08a}.bad{color:#ff8a72}.warn{color:#ffd45f}.hd{color:#ffd45f;margin-top:8px}
-iframe{position:absolute;left:-9999px;width:64px;height:64px}
+/* T434a：原本是 `position:absolute;left:-9999px;width:64px;height:64px`——**離屏且 64×64**。
+   離屏 iframe 會被瀏覽器節流 requestAnimationFrame，而 T426 的 bootstrap426 用**雙重 rAF**
+   （index.html:21011 `bootPaint426`）推進 buildSpritesS1..S9。實測（本卡）：
+   iframe 在 x=-9999 時開機停在 pct=2，`buildSpritesS1()` 從來沒被呼叫。
+   改成在頁面內、有真實尺寸、可見——量測本身不看這個 iframe 的畫面，但瀏覽器要看得見它才會給幀。 */
+iframe{position:static;display:block;width:900px;height:640px;border:1px solid #2a3350;margin:8px 0}
 </style>
 </head>
 <body>
@@ -49,12 +54,69 @@ const px = cvs => cvs.getContext('2d').getImageData(0, 0, cvs.width, cvs.height)
 const crcOf = cvs => { const d = px(cvs); return crc32(new Uint8Array(d.buffer, d.byteOffset, d.byteLength)).toString(16); };
 const hex = (r, g, b) => '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
 
+/* T434a 就緒條件（原本是 `w.GV && w.GV.sprAtlas356`，那是**綠字失敗**的根因）：
+   `window.GV={…}` 在 index.html:21196 建立、sprAtlas356 在 :21327 定義——兩者都在**解析期**，
+   而真正把素材畫出來的 bootstrap426（:21034）是 async，分段呼叫 buildSpritesS1..S9。
+   於是舊條件在圖集**完全空**的時候就為真：master 59b785a 實測輸出
+     `entries=0 families=0 skipped=0 … MISSING bld/25_1_0` 然後綠字「量測完成」，1 秒跑完。
+   這支工具的就緒條件寫於 T420（當時開機是同步的），T426 改成 async 分段後沒人回頭改它。
+
+   正解是用 bootstrap426 自己準備好的顯式訊號：index.html:21053 `bootState426.ready=true`
+   ＋ :21063 `window.__boot426=()=>({...bootState426})`。
+   同時保留 fallback：若該頁走的是同步分支（沒有 #boot426 元素時的 else 路徑，見 :21064），
+   就退回「清冊非空」當就緒——但**永遠不接受「清冊為空」當就緒**。
+   逾時一律判紅，不得靜默往下跑。 */
+/* 逾時用**輪詢次數**而不是 Date.now()：headless Chrome 的 `--virtual-time-budget` 會把時鐘快轉，
+   牆鐘型逾時在虛擬時間下 1 秒就過完 180 秒而誤判（第一版就是這樣把自己判紅的）。
+   4800 次 × 250ms 的輪詢在真實時間約 20 分鐘、在虛擬時間下則由開機本身的節奏決定。 */
+const READY_MAX_POLLS = 4800;
+
+function atlasSize(w) {
+  try { const r = w.GV.sprAtlas356(); return (r && r.entries) ? r.entries.length : 0; }
+  catch (e) { return 0; }
+}
+
 function frame(src) {
-  return new Promise(res => {
+  return new Promise((res, rej) => {
     const f = document.createElement('iframe');
     f.src = src;
     document.getElementById('frames').appendChild(f);
-    const tick = () => { const w = f.contentWindow; if (w && w.GV && w.GV.sprAtlas356) return res(w); setTimeout(tick, 250); };
+    let polls = 0, forced = false, lastPct = -1, stuck = 0;
+    const tick = () => {
+      const w = f.contentWindow;
+      if (w && w.GV && w.GV.sprAtlas356) {
+        const boot = (typeof w.__boot426 === 'function') ? w.__boot426() : null;
+        if (boot ? boot.ready === true : atlasSize(w) > 0) return res(w);
+        /* T434a 同步退路：T426 的 bootstrap426 用**雙重 requestAnimationFrame**（index.html:21011）
+           推進分段建構，而 rAF 在**離屏 iframe** 或 **document.visibilityState==='hidden'** 的分頁裡
+           會被節流／完全不觸發。實測（本卡）：headless 的 iframe 停在 pct=5、
+           Browser 面板未顯示時停在 pct=2，`buildSpritesS1()` 從來沒被呼叫過。
+           index.html:21064 本來就有一條同步分支（沒有 rAF 時走 `buildSprites()`），
+           這裡就借它：卡住夠久就直接呼叫同一個同步總管，拿到完整圖集後繼續量。
+           這不是繞過驗收，是繞過**環境**——量到的仍是真實 sprite 的真實像素。 */
+        if (boot && !forced) {
+          if (boot.pct === lastPct) stuck++; else { stuck = 0; lastPct = boot.pct; }
+          if (stuck >= 24 && typeof w.buildSprites === 'function') {
+            forced = true;
+            try {
+              w.buildSprites();
+              if (atlasSize(w) > 0) return res(w);
+            } catch (e) {
+              return rej(new Error('同步退路 buildSprites() 失敗：' + (e && e.message ? e.message : e)));
+            }
+          }
+        }
+      }
+      if (++polls > READY_MAX_POLLS) {
+        const boot = (w && typeof w.__boot426 === 'function') ? w.__boot426() : null;
+        return rej(new Error('就緒逾時（輪詢 ' + polls + ' 次）：' + src
+          + ' 的 bootstrap426 未回報 ready'
+          + (boot ? '（最後狀態 pct=' + boot.pct + ' stage=' + boot.stage + '）' : '（該頁沒有 __boot426）')
+          + '，且素材清冊仍為空。'
+          + '**不接受「量到 0 個素材」當成量測完成**（那是 T434a 修掉的綠字失敗）。'));
+      }
+      setTimeout(tick, 250);
+    };
     tick();
   });
 }
@@ -88,8 +150,21 @@ function runs(d, w, h, colour) {
   return rows;
 }
 
+/* T434a 自我防呆：一支量具如果沒有「它自己壞掉時會紅」的證明，
+   就跟 T421 的空殼 harness、T428 的假綠探針是同一種東西。
+   清冊為空（或 bld 家族為空）＝這次量測沒有任何資訊量，必須當場紅掉，
+   不能讓後面的程式碼繼續跑到「—— 量測完成 ——」那一行。 */
 function entryMap(w) {
   const r = w.GV.sprAtlas356();
+  if (!r || !r.entries || r.entries.length === 0) {
+    throw new Error('素材清冊為空（entries=0）：這次量測沒有任何資訊量。'
+      + '常見原因是就緒條件在 bootstrap426 完成前就為真——見本檔 frame() 的 T434a 註解。');
+  }
+  const bld = r.entries.filter(e => e.fam === 'bld');
+  if (bld.length === 0) {
+    throw new Error('清冊裡沒有任何 bld 家族素材（entries=' + r.entries.length + '）：'
+      + '建築素材是本工具的主要量測對象，缺席即判紅。');
+  }
   return { meta: r, map: new Map(r.entries.map(e => [e.fam + '/' + e.key, e])) };
 }
 
@@ -240,7 +315,17 @@ async function main() {
   window.ART_DIFF = { added, removed, metaDiff, imgChanged, nightChanged, outside, violations, text: LINES.join('\n') };
   P('—— 對照完成；window.ART_DIFF 有 JSON，對照條可右鍵另存 ——', 'ok');
 }
-main();
+/* T434a：main() 原本沒有 try/catch，就緒逾時或清冊為空時會變成未處理的 promise rejection，
+   頁面停在「booting…」——比假綠好，但讀輸出的人（和 --dump-dom）看不出這是失敗。
+   一律轉成紅字並掛 window.ART_DIFF_ERROR，且**不得**印出任何「完成」字樣。 */
+main().catch(err => {
+  const msg = (err && err.message) ? err.message : String(err);
+  P('');
+  P('✘ 量測失敗（本次輸出沒有任何有效資料，不得引用）：' + msg, 'bad');
+  P('  這是 T434a 加的自我防呆。舊版在這種情況下會印「—— 量測完成 ——」，'
+    + '而 master 59b785a 實測就是 entries=0 卻宣告完成。', 'bad');
+  window.ART_DIFF_ERROR = msg;
+});
 </script>
 </body>
 </html>
