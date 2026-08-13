@@ -9974,6 +9974,142 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T443 顯示價 vs 實扣（ARCH §10.9）／SPR 撞名與 hw 偶數（§10.10）：守衛 ===== */
+{
+  /* §10.9 的玩家後果很直接：按鈕上寫 $20，實際扣的可能不是 $20，而且沒有任何東西會發現。
+     這一條**真的跑 placeCost**（T383b 同型的窮舉），不是 html.includes——
+     原文比對只能證明「有人寫了同一個字串」，證明不了「那顆按鈕真的扣這麼多」。 */
+  {
+    window.GV.newWorldSeeded(4431);
+    const N443 = window.GV.N();
+    // 找一格乾淨平地：沒有樹（會加 COST.doze）、沒有路／建物／分區、非水面
+    let px = -1, py = -1;
+    for (let y = 2; y < N443 - 2 && px < 0; y++) for (let x = 2; x < N443 - 2; x++) {
+      const t = window.GV.tile(x, y);
+      if (t && t.t !== 0 && !t.tree && !t.road && !t.bld && !t.zone && !t.rail && !t.deco && !t.ruin && !t.crater) {
+        px = x; py = y; break;
+      }
+    }
+    assert(px >= 0, 'T443 G1 找不到乾淨平地——對帳前提不成立，這次量測沒有意義');
+    const toolsSrc443 = /const TOOLS=\[([\s\S]*?)\n\];/.exec(html);
+    assert(toolsSrc443, 'T443 G1 找不到 TOOLS 表');
+    const rows443 = [];
+    for (const m of toolsSrc443[1].matchAll(/\{id:'([A-Za-z0-9_]+)'[^}]*?pr:([^},]+)\}/g))
+      rows443.push([m[1], m[2].trim()]);
+    assert(rows443.length >= 100,
+      'T443 G1 TOOLS 解析出的工具數異常（實得 ' + rows443.length + '，預期 ≥100）——表格結構可能被改壞了');
+    /* 只對帳「顯示價能算出一個定值」的工具：`'$'+COST.x` 與 `'$20'` 這兩型。
+       道路系是逐格地形計價（roadCostAt）、地形筆刷是逐格累加，定值對帳不適用，逐條列在下面。 */
+    const SKIP443 = {
+      pan: '檢視工具，不施工', alley: '道路逐格地形計價', road: '道路逐格地形計價',
+      coll: '道路逐格地形計價', art: '道路逐格地形計價', hwy: '道路逐格地形計價',
+      rail: '橋樑與平地兩種價', tram: '橋樑與平地兩種價',
+      tdig: '地形筆刷逐格累加', tland: '地形筆刷逐格累加', traise: '地形筆刷逐格累加',
+      doze: '隕石坑另計 $120', zr: '已有分區時為 0', zc: '已有分區時為 0', zi: '已有分區時為 0',
+      office: '已是商業分區時為 0',
+    };
+    const bad443 = [], checked443 = [];
+    for (const [id, prSrc] of rows443) {
+      if (SKIP443[id]) continue;
+      const lit = /^'\$'\+COST\.([A-Za-z0-9_]+)$/.exec(prSrc) || /^'\$(\d+)'$/.exec(prSrc);
+      if (!lit) continue;
+      let shown;
+      try { shown = /^'\$\d+'$/.test(prSrc) ? Number(lit[1]) : window.GV.cost443(lit[1]); }
+      catch (e) { continue; }
+      if (!(shown > 0)) continue;
+      let real;
+      try { real = window.GV.placeCost443(id, px, py); } catch (e) { real = 'throw:' + e.message; }
+      checked443.push(id);
+      if (real !== shown) bad443.push(id + ' 顯示 $' + shown + ' 實扣 $' + real);
+    }
+    assert(checked443.length >= 90,
+      'T443 G1 實際對帳到的工具只有 ' + checked443.length + ' 個（預期 ≥90）——'
+      + '解析或跳過清單出問題了，這條會變成空跑的假綠');
+    assert(bad443.length === 0,
+      'T443 G1【窮舉真跑】工具列顯示價必須等於 placeCost 實扣（乾淨平地、無科技無專精）。'
+      + '按鈕上的價格是給玩家看的承諾，placeCost 是真的從他錢包裡拿走的數字。'
+      + '不一致 ' + bad443.length + ' 項：' + JSON.stringify(bad443.slice(0, 6))
+      + '（本次對帳 ' + checked443.length + ' 項）');
+  }
+
+  /* §10.10 之一：SPR 撞名。實測有 4 個鍵被賦值兩次，全是 T151/T162 刻意的「後寫後贏」，
+     但沒有任何測試能區分**刻意覆蓋**與**撞名事故**——白名單就是用來把這件事寫下來的。 */
+  {
+    const DUP_OK443 = {
+      police: 'T151/T162 手繪版後寫覆蓋程序版（刻意）',
+      hospital: 'T151/T162 手繪版後寫覆蓋程序版（刻意）',
+      clinic: 'T151/T162 手繪版後寫覆蓋程序版（刻意）',
+      waterTower: 'T151/T162 手繪版後寫覆蓋程序版（刻意）',
+    };
+    const seen443 = {}, dup443 = [];
+    for (const m of htmlBare438.matchAll(/(?:^|\n)\s*SPR\.([A-Za-z0-9_$]+)\s*=[^=]/g)) {
+      const k = m[1];
+      if (seen443[k]) { if (dup443.indexOf(k) < 0) dup443.push(k); }
+      seen443[k] = 1;
+    }
+    const unlisted443 = dup443.filter(k => !DUP_OK443[k]);
+    assert(Object.keys(seen443).length >= 80,
+      'T443 G2 掃到的 SPR 頂層鍵只有 ' + Object.keys(seen443).length + ' 個（預期 ≥80）——掃描器壞了');
+    assert(unlisted443.length === 0,
+      'T443 G2【鐵律17】`SPR.<鍵>=` 重複賦值必須逐鍵列在白名單並註明理由（刻意覆蓋 vs 撞名事故）。'
+      + '未列名的重複：' + JSON.stringify(unlisted443)
+      + '。若這是刻意的後寫後贏，把它加進 DUP_OK443 並寫明是哪張卡的決定');
+  }
+
+  /* §10.10 之二：鐵律6。**原文在 `docs/RULES.md:13`**：
+       「畫菱形的 `dia()` / `diaEdge()` 半寬 `hw` 必須是偶數，否則像素錯位。」
+     我第一版是照 ARCH §10.10 的**轉述**（只寫「hw 必為偶數」）去掃 isoBox/boxUnit，
+     `dia`／`diaEdge` 一個都沒掃——而那才是規則點名的兩個函式。
+     （isoBox/boxUnit 把同一個 hw 轉手交給 `dia`，所以它們也在範圍內。）
+     這是 T441 抓到的「母體邊界是猜的」同型錯，這次在出貨前抓到。
+
+     實測既有違規 20 個（dia 2／diaEdge 7／isoBox 11），**全是既有美術**——
+     修它們等於改 20 處 sprite 的像素，那是觀感決定，不是守衛可以順手做的事。
+     所以這條做成**計數釘**：凍結在 20，任何新增的奇數 hw 會讓它變 21 而紅。
+     清單逐條寫在 T443 卡面，交業主決定要不要動。 */
+  {
+    const ODD_HW443 = 20;   // 放寬／收緊都要寫在卡面（鐵律：判準變動要留痕）
+    const POS443 = {dia: 3, diaEdge: 5, isoBox: 3, boxUnit: 4};
+    /* 深度感知的引數切分：引數裡有陣列或巢狀呼叫時，`split(',')` 會整排錯位
+       （第二版的 `dia hw=5` 誤報就是這樣來的）。 */
+    const argsAt443 = (src, open) => {
+      const out = []; let depth = 0, cur = '';
+      for (let i = open; i < src.length && i < open + 600; i++) {
+        const c = src[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; if (depth === 1 && c === '(') { cur = ''; continue; } }
+        else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { out.push(cur); return out; } }
+        else if (c === ',' && depth === 1) { out.push(cur); cur = ''; continue; }
+        if (depth >= 1) cur += c;
+      }
+      return null;
+    };
+    const stat443 = {dia: 0, diaEdge: 0, isoBox: 0, boxUnit: 0};
+    let lit443 = 0, odd443 = 0, unparsed443 = 0;
+    const re443 = /(?:^|[^A-Za-z0-9_$.])(dia|diaEdge|isoBox|boxUnit)\(/g;
+    let mm443;
+    while ((mm443 = re443.exec(htmlBare438))) {
+      const fn = mm443[1], open = mm443.index + mm443[0].length - 1;
+      const a = argsAt443(htmlBare438, open);
+      stat443[fn]++;
+      if (!a) { unparsed443++; continue; }
+      const v = (a[POS443[fn]] || '').trim();
+      if (!/^\d+$/.test(v)) continue;
+      lit443++;
+      if (Number(v) % 2 !== 0) odd443++;
+    }
+    assert(unparsed443 === 0,
+      'T443 G3 有 ' + unparsed443 + ' 個呼叫的括號切不出來——切分器壞了，這條會失真');
+    assert(stat443.dia >= 150 && stat443.diaEdge >= 200 && lit443 >= 400,
+      'T443 G3 掃到的呼叫數異常（dia ' + stat443.dia + '／diaEdge ' + stat443.diaEdge
+      + '／hw 字面量 ' + lit443 + '）——掃描器壞了，這條會變成空跑的假綠');
+    assert(odd443 === ODD_HW443,
+      'T443 G3【鐵律6・計數釘】`dia`／`diaEdge`／`isoBox`／`boxUnit` 的 hw 字面引數是奇數的，'
+      + '目前應恰為 ' + ODD_HW443 + ' 個（既有美術債，逐條列在 T443 卡面），實得 ' + odd443 + '。'
+      + '**變多＝有人新增了奇數 hw**（鐵律6：半寬必須偶數，否則像素錯位）；'
+      + '**變少＝有人修了既有的**，那是改 sprite 像素的觀感決定，請連同樣張一起出卡再調整這個數字');
+  }
+}
+
 /* ===== T442 指南「委託與專精」分頁：守衛 ===== */
 {
   /* 這一頁是這一夜第一張**玩家看得到**的東西，而它存在的第一天就撿到一個真 bug：
