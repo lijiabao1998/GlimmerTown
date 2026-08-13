@@ -11,6 +11,15 @@
     python tools/arch_map.py --check     # 只報告，有問題回傳 1
     python tools/arch_map.py --fix       # 把行號欄重寫成實測值
 
+解析度的定義（T440 加，寫在這裡也寫進 ARCH 表頭）：
+    §1 的解析度 = **相鄰兩列錨點命中行的最大間距**（含最後一列到檔尾）。
+    這張表不會「漏掉」行——每一列標的是區段起點，下一列之前的東西都算它的；
+    它只會**太粗**。所以該問的不是覆蓋率，是解析度。
+    T437/T438/T439 三張卡的收尾都寫過「還有 19% 未測繪」，那個數字**沒有量法**，
+    是三次轉抄同一個從未定義過的百分比；T440 用上面這句取代它。
+    上限 MAX_GAP=800：實測最寬的一段是 712 行（`doPlace` 到 `computePower` 之間，
+    那一段裡沒有任何「在全檔唯一」的區段註解可以當錨點，所以 712 是目前的地板，不是懶惰）。
+
 行號欄的定義（寫在這裡，也寫進 ARCH 表頭，任何人都能重算）：
     每一列的值 = 該列 grep 錨點在 index.html 的**第一個**命中行。
     不再寫「範圍」——範圍無法從錨點驗證，寫了就是不可覆核的數字。
@@ -33,6 +42,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARCH = os.path.join(ROOT, 'docs', 'ARCH.md')
 INDEX = os.path.join(ROOT, 'index.html')
 ROW = re.compile(r'^\|(?P<sec>[^|]*)\|(?P<line>[^|]*)\|(?P<anchor>[^|]*)\|\s*$')
+MAX_GAP = 800
 
 
 def load():
@@ -103,7 +113,15 @@ def main(argv):
     blank = [r for r in rows if not r['missing'] and r['blank']]
     drift = [r for r in rows if r['actual'] is not None and not r['blank']
              and r['declared'] != str(r['actual'])]
+    hits = sorted(r['actual'] for r in rows if r['actual'] is not None)
+    span = list(zip(hits, hits[1:] + [len(idx)]))
+    gaps = sorted(((b - a, a, b) for a, b in span), reverse=True)
+    res = gaps[0][0] if gaps else 0
     print('ARCH 分節地圖：可檢查的列 %d' % len(rows))
+    print('  解析度（相鄰錨點最大間距）：%d 行　上限 %d　%s'
+          % (res, MAX_GAP, 'OK' if res <= MAX_GAP else '**超標**'))
+    for g, a, b in gaps[:3]:
+        print('    最寬：%d 行（index.html %d → %d）' % (g, a, b))
     print('  死錨點（該列有錨點在 index.html 找不到）：%d' % len(dead))
     print('  行號欄空白（有錨點卻沒數字）：%d' % len(blank))
     print('  行號與實測不符：%d' % len(drift))
@@ -128,7 +146,7 @@ def main(argv):
         print('\n已重寫 %d 列的行號欄（死錨點 %d 列未動，需人工處理）' % (len(rows) - len(dead), len(dead)))
         return 0
 
-    return 0 if (not dead and not blank and not drift) else 1
+    return 0 if (not dead and not blank and not drift and res <= MAX_GAP) else 1
 
 
 if __name__ == '__main__':
