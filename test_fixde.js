@@ -9784,10 +9784,34 @@ runPwaTests().then(() => {
   assert(html.includes('if(window.__noWind441){windX441=0;'),'T429 G6 __noWind441 時 windX441≡0（零風即零位移不變式）');
 }
 
+/* ===== T435 健康燈帶誠實化：守衛 ===== */
+{
+  // G1 live 判斷必須存在，且**與 tick 的早退條件同形狀**（兩處走鐘＝又一次假資料）
+  assert(html.includes("const hsLive430=b=>!!b&&(b.k<=3||b.k===127);"),
+    'T435 G1【原文前哨】healthStrip430 必須先算 hsLive430(b)＝這棟的 pw/wa 是否真的被逐日重算');
+  assert(html.includes("if(!b||(b.k>3&&b.k!==127))continue;"),
+    'T435 G2【原文前哨】tick 的每日重算早退條件必須維持 `(b.k>3&&b.k!==127)`——'
+    + 'hsLive430 的 `(b.k<=3||b.k===127)` 是它的反面，兩處必須同時在場才不會走鐘');
+  // G3 na 分支的文案必須明說原因，不能只給一個灰點
+  assert(html.includes("'本類建築不逐日重算'"),
+    'T435 G3【原文前哨】na 分支必須明說「本類建築不逐日重算」；只給灰點等於把假話換成沉默');
+  // G4 pw:true 是放置時的殘值——這條計數釘是為了讓下一個人看到規模
+  const pwTrue435 = (html.match(/pw:true/g) || []).length;
+  assert(pwTrue435 >= 100,
+    'T435 G4【計數釘】`pw:true` 字面量目前 ' + pwTrue435 + ' 處（放置時硬寫）。'
+    + '這條釘不是要凍結數字，是要讓改動者知道：k≥4 建築的 b.pw 是殘值不是量測值。'
+    + '若這個數字大幅下降，代表有人開始逐棟重算了，屆時 hsLive430 的條件要一起改');
+}
+
 /* ===== T430 City Health Strip 守衛（桌面適配版，概念源自移動線 T461） ===== */
 { // G1 函式存在＋六格資料源原文釘（真實觀測，不造假）
   assert(html.includes('function healthStrip430(x,y,b){'),'T430 G1 healthStrip430 必須存在');
-  for(const src of ["state:b.pw?'good':'bad'","state:b.wa?'good':'bad'",
+  /* T435 跟版（**這是動既有斷言，理由寫在這裡**）：原本這兩條釘的是
+     `state:b.pw?'good':'bad'` 與 `state:b.wa?'good':'bad'`——而那正是 T435 修掉的 bug 本身：
+     b.pw／b.wa 的每日重算只跑 k=1/2/3＋k=127，對 k≥4 建築 ⚡恆 good、💧恆 bad。
+     釘子指向的是有 bug 的原文，不改就永遠不能修它。**這不是放寬**：新釘同樣是字面釘、
+     而且多釘了「na 分支」與「live 判斷」兩件事，嚴格程度只增不減。 */
+  for(const src of ["state:live?(b.pw?'good':'bad'):'na'","state:live?(b.wa?'good':'bad'):'na'",
     "state:garbCap>0?(garbRatio>1?'warn':'good'):'na'",
     "(COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)||(COV.fireHQ&&COV.fireHQ[i]>0))",
     "(COV.police[i]>0||COV.police2[i]>0)",
