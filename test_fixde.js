@@ -4512,8 +4512,9 @@ runPwaTests().then(() => {
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
     // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
+    // T432 重釘（業主授權 2026-08-13）：兩座孤島核電與四座孤島綠能共 686 容量不再跨網白嫖；4153→3781 是刻意供電語義變更。
     //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
-    assert(window.GV.stats().pop === 4153, 'T324/T342c seed301 400天 pop 應恆為 4153（T346d zoneBudget 4 窗種子重釘），實得 ' + window.GV.stats().pop);
+    assert(window.GV.stats().pop === 3781, 'T324/T342c seed301 400天 pop 應恆為 3781（T432 孤島電源不併網重釘；前值 4153），實得 ' + window.GV.stats().pop);
     assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
   }
 
@@ -8439,7 +8440,7 @@ runPwaTests().then(() => {
       }
       tw407.push({dens:n,h:(vh407.vh[b.k+'_1']||[])[b.v]||0});
     }
-    assert(tw407.length>=8,'T407 G4 800 天應長出 ≥8 座塔，實得 '+tw407.length);
+    assert(tw407.length>=7,'T407 G4 800 天應長出 ≥7 座塔（T432 孤島電源不併網重釘；前值 ≥8），實得 '+tw407.length);
     tw407.sort((a,b)=>a.dens-b.dens);
     const half=Math.floor(tw407.length/2);
     const mh=(arr)=>arr.reduce((s,r)=>s+r.h,0)/arr.length;
@@ -9794,15 +9795,23 @@ runPwaTests().then(() => {
 { // G1 靜態：函式＋共用最近道路＋世代標記＋三 P1 修正＋fallback
   for(const f of ['powerLegacy432','nearestPoweredRoadIdx432','rebuildPowerDistricts432'])
     assert(html.includes('function '+f+'('),'T432 G1 函式 '+f+' 必須存在');
-  assert(html.includes('if(!plants){rebuildPowerDistricts432();return 0;}'),'T432 G1 P1-2 無啟動源必須重建清空');
+  const cpStart432=html.indexOf('function computePower()');
+  const cp432=html.slice(cpStart432,html.indexOf('/* ===== T432 電網分區',cpStart432));
+  const cp432Code=cp432.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(/if\(!plants\)\{[\s\S]{0,360}powerSrcList432=\[\];[\s\S]{0,360}dCap432=\[\];[\s\S]{0,360}powerTilesRef432=tiles;[\s\S]{0,360}return 0;/.test(cp432Code),
+    'T432 G1 P1-2 無啟動源必須清空來源、容量與世代標記後回傳 0');
   assert(html.includes('const md=Math.abs(dx)+Math.abs(dy);'),'T432 G1 P1-3 曼哈頓最近（電源端）');
   assert(html.includes('const dj=nearestPoweredRoadIdx432(x,y,2);'),'T432 G1 二輪審計：建築端也用共用最近函式（r=2）');
   assert(html.includes('const fj=nearestPoweredRoadIdx432(x,y,1);'),'T432 G1 二輪審計：電源端共用函式（r=1）');
   assert(html.includes('const seasonCap432=dCap432.map(c=>Math.floor(c*POWER_SEASON_MULT[sea]));'),'T432 G1 P1-1 季節倍率同套');
   assert(html.includes('dUsed432[d432]<seasonCap432[d432];'),'T432 G1 判定用季節口徑');
-  assert(html.includes('powerTilesRef432=tiles;'),'T432 G1 二輪審計：世代標記寫入');
-  assert(html.includes('powerTilesRef432!==tiles'),'T432 G1 二輪審計：fallback 含跨世界檢查');
-  assert(html.includes('window.__t432Power='),'T432 G1 觀測橋');
+  assert(cp432Code.includes('powerTilesRef432=tiles;'),'T432 G1 二輪審計：世代標記寫入');
+  const tick432=html.slice(html.indexOf('const cap=Math.floor(computePower()'),html.indexOf('b.wa=b.pw',html.indexOf('const cap=Math.floor(computePower()')));
+  assert(html.includes('function powerDistrictFallback432()')&&tick432.replace(/\/\/[^\n]*/g,' ').includes('if(powerDistrictFallback432())'),'T432 G1 二輪審計：tick 必須走可行為驗證的跨世界 fallback helper（不可只藏在註解）');
+  assert(html.includes('function powerSourceBld432(b)')&&html.includes('function powerTopologyTile432(t)')&&html.includes('function powerTopologySig432(t)')&&html.includes('function powerTopologyChanged432(a,b)')&&html.includes('function powerTopologyChange432(toolId,t)'),'T432 G1 拓撲工具／來源白名單與前後簽名比較必須存在');
+  const undo432=html.slice(html.indexOf('function undo(){'),html.indexOf('\nfunction ',html.indexOf('function undo(){')+10));
+  assert(undo432.includes('if(powerTopologyChanged432(tiles[sn.i],restored))powerUndo432=true;')&&undo432.includes('if(powerUndo432)markPowerDirty432();'),'T432 G1 undo 必須以前後拓撲差異判定置髒再重算');
+  assert(html.includes('window.__t432Power=')&&html.includes('power432:()=>({districts:dCap432.length'),'T432 G1 觀測橋');
   assert(html.includes('__noPowerDistrict432'),'T432 G1 kill-switch');
 }
 { // G2 區塊零亂數
@@ -9822,6 +9831,8 @@ runPwaTests().then(() => {
   for (let d = 0; d < 150; d++) window.GV.step(1);
   window.GV.ai(false);
   const popA = window.GV.stats().pop;
+  window.GV.save();
+  const saveA432 = window.GV.rawSave();
   const distA = window.__t432Power ? window.__t432Power.districts : -1;
   window.GV.newWorldSeeded(7);
   window.GV.setDiff(1);
@@ -9832,9 +9843,12 @@ runPwaTests().then(() => {
   for (let d = 0; d < 150; d++) window.GV.step(1);
   window.GV.ai(false);
   const popB = window.GV.stats().pop;
+  window.GV.save();
+  const saveB432 = window.GV.rawSave();
   delete window.__noPowerDistrict432;
   assert(distA === 1, 'T432 G3 seed7 150 天單網城市應為 1 district（實得 ' + distA + '）');
   assert(popA === popB, 'T432 G3 單網等價：開關 kill-switch 同 seed pop 恆等（' + popA + ' vs ' + popB + '）');
+  assert(saveA432 === saveB432, 'T432 G3 單網等價：開關 kill-switch 固定城 rawSave 必須逐位元相同');
 }
 { // G4 行為：孤島綠能不併網——容量三態 50/50/65
   window.GV.newWorldSeeded(11);
@@ -9891,6 +9905,7 @@ runPwaTests().then(() => {
   window.GV.step(1);
   const d2 = window.__t432Power ? window.__t432Power.districts : -1;
   assert(d1 === d2, 'T432 G6 存讀後 district 重建一致（' + d1 + ' vs ' + d2 + '）');
+  assert((window.__t432Power ? window.__t432Power.sum : -1)===50, 'T432 G6 存讀後容量也必須重建為 50');
 }
 { // G7 孤島清單：seed301 400 天逐座斷言（二輪審計要求：686 孤島容量正式入測）
   window.GV.setMapSize(72);
@@ -9921,4 +9936,104 @@ runPwaTests().then(() => {
   assert(isoGreen===4,'T432 G7 seed301 應有 4 座孤島綠能（實得 '+isoGreen+'）');
   assert(isoCap===686,'T432 G7 seed301 孤島容量應為 686（實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
   assert(window.__t432Power.districts===1,'T432 G7 seed301 應為單 district（實得 '+window.__t432Power.districts+'）');
+  assert(window.__t432Power.sum===892,'T432 G7 seed301 併網容量應為 892（實得 '+window.__t432Power.sum+'）');
+}
+{ // G8 行為：撤銷電源後必須重建來源快取（不能遺失回復的風機容量）
+  window.GV.setMapSize(72); window.GV.newWorldSeeded(43208); window.GV.setDiff(3); window.GV.weather(0);
+  const p8=findSpot('plant');
+  assert(p8&&place('plant',p8.x,p8.y),'T432 G8 應能建立電廠');
+  for(let i=1;i<=6;i++)assert(place('road',p8.x+i,p8.y),'T432 G8 應能鋪設電廠旁道路 '+i);
+  let w8=null;
+  for(let i=1;i<=6&&!w8;i++)for(const [dx,dy] of [[0,1],[0,-1],[1,1],[1,-1]]){
+    const x=p8.x+i+dx,y=p8.y+dy;
+    if(place('wind',x,y)){w8={x,y};break;}
+  }
+  assert(w8,'T432 G8 應能在帶電道路旁建立風機');
+  window.GV.step(1);
+  assert(window.__t432Power.sum===70,'T432 G8 電廠加風機應為 70（實得 '+window.__t432Power.sum+'）');
+  assert(window.GV.placeUndo('doze',w8.x,w8.y),'T432 G8 拆風機必須走真 undo 群組');
+  window.GV.step(1);
+  assert(window.__t432Power.sum===50,'T432 G8 拆風機後應為 50（實得 '+window.__t432Power.sum+'）');
+  assert(window.GV.undo(),'T432 G8 必須能撤銷拆風機');
+  window.GV.step(1);
+  assert(window.__t432Power.sum===70,'T432 G8 undo 後風機容量必須立即回到 70（實得 '+window.__t432Power.sum+'）');
+}
+{ // G9 行為：撤銷接橋道路必須分回兩個電網
+  window.GV.setMapSize(72); window.GV.newWorldSeeded(43209); window.GV.setDiff(3); window.GV.weather(0);
+  let g9=null;
+  outerG9:for(let y=4;y<window.GV.N()-4;y++)for(let x=4;x<window.GV.N()-34;x++){
+    if(window.GV.canPlaceTool('plant',x,y)===null&&window.GV.canPlaceTool('plant',x+20,y)===null){g9={x,y};break outerG9;}
+  }
+  assert(g9,'T432 G9 應找到雙電廠造境位置');
+  for(let x=g9.x;x<=g9.x+13;x++)assert(place('road',x,g9.y+1),'T432 G9 A 路段應可鋪設 '+x);
+  for(let x=g9.x+15;x<=g9.x+28;x++)assert(place('road',x,g9.y+1),'T432 G9 B 路段應可鋪設 '+x);
+  assert(place('plant',g9.x,g9.y)&&place('plant',g9.x+20,g9.y),'T432 G9 應建立兩座電廠');
+  window.GV.step(1);
+  let caps9=window.__t432Power.cap.slice().sort((a,b)=>a-b);
+  assert(caps9.length===2&&caps9[0]===50&&caps9[1]===50,'T432 G9 接橋前應為兩網 [50,50]（實得 '+JSON.stringify(caps9)+'）');
+  assert(window.GV.placeUndo('road',g9.x+14,g9.y+1),'T432 G9 接橋必須走真 undo 群組');
+  window.GV.step(1);
+  assert(window.__t432Power.districts===1&&window.__t432Power.sum===100,'T432 G9 接橋後應為單網 100');
+  assert(window.GV.undo(),'T432 G9 必須能撤銷接橋');
+  window.GV.step(1);
+  caps9=window.__t432Power.cap.slice().sort((a,b)=>a-b);
+  assert(caps9.length===2&&caps9[0]===50&&caps9[1]===50,'T432 G9 undo 接橋後必須恢復兩網 [50,50]（實得 '+JSON.stringify(caps9)+'）');
+}
+{ // G10 行為：消費者選最近道路；等距時固定採 row-major tie-break（只走玩家同款 place/tile API）
+  const grid10=(targetDx)=>{
+    window.GV.setMapSize(72); window.GV.newWorldSeeded(43210); window.GV.setDiff(3); window.GV.weather(0);
+    let p10=null;
+    seek10:for(let y=4;y<60;y++)for(let x=4;x<60;x++){
+      const plan=[['substation',x,y],['plant',x+2,y],['road',x,y+1],['road',x+2,y+1],['socialHousing',x+targetDx,y+3]];
+      if(plan.every(([tool,px,py])=>window.GV.canPlaceTool(tool,px,py)===null)){p10={x,y,plan};break seek10;}
+    }
+    assert(p10,'T432 G10 必須找到可由玩家合法放置的雙網消費者造境');
+    for(const [tool,px,py] of p10.plan)assert(place(tool,px,py),'T432 G10 合法造境放置 '+tool+' 不得失敗');
+    window.GV.setSeason(0); window.GV.step(1);
+    return {cap:window.__t432Power.cap.slice(),pw:window.GV.tile(p10.x+targetDx,p10.y+3).bld.pw};
+  };
+  const tie10=grid10(1),near10=grid10(2);
+  assert(JSON.stringify(tie10.cap)==='[0,50]'&&JSON.stringify(near10.cap)==='[0,50]','T432 G10 應建出 A=0、B=50 的非對稱雙網（實得 '+JSON.stringify({tie:tie10.cap,near:near10.cap})+'）');
+  assert(tie10.pw===false,'T432 G10 等距 consumer 應固定選 row-major 的無電 A 網');
+  assert(near10.pw===true,'T432 G10 較近 consumer 必須選有電 B 網，不能偷偷固定 district 0');
+}
+{ // G11 行為：district 容量必須隨季節實際限制 consumers（50/45/50/42）
+  const powered11=(sea)=>{
+    window.GV.setMapSize(72); window.GV.newWorldSeeded(43211); window.GV.setDiff(3); window.GV.weather(0);
+    const plant11=findSpot('plant');
+    assert(plant11&&place('plant',plant11.x,plant11.y)&&place('road',plant11.x+1,plant11.y),'T432 G11 應建立與測試電網分離的啟動電廠');
+    const roadY11=20;
+    const badRoad11=[];
+    for(let x=4;x<68;x++)if(!place('road',x,roadY11))badRoad11.push(x);
+    assert(badRoad11.length===0,'T432 G11 主幹道路應可全數鋪設（失敗格 '+JSON.stringify(badRoad11)+'）');
+    let sub11=null,sol11=null;
+    for(let x=4;x<66&&!sub11;x++)if(window.GV.canPlaceTool('substation',x,19)===null)sub11={x,y:19};
+    for(let x=4;x<66&&!sol11;x++)if(window.GV.canPlaceTool('solar',x,21)===null)sol11={x,y:21};
+    assert(sub11&&sol11&&place('substation',sub11.x,sub11.y)&&place('solar',sol11.x,sol11.y),'T432 G11 應建立獨立的變電所＋太陽能 15 容量網');
+    const homes11=[];
+    for(let x=8;x<66&&homes11.length<15;x+=2)if(window.GV.canPlaceTool('socialHousing',x,18)===null&&place('socialHousing',x,18))homes11.push([x,18]);
+    assert(homes11.length===15,'T432 G11 應建立恰 15 座道路旁社宅 consumers（實得 '+homes11.length+'）');
+    window.GV.setSeason(sea); window.GV.step(1);
+    return homes11.filter(([x,y])=>window.GV.tile(x,y).bld.pw).length;
+  };
+  const seasons11=[0,1,2,3].map(powered11);
+  assert(JSON.stringify(seasons11)==='[15,13,15,12]','T432 G11 季節容量須實際限制 15 座同網 consumer（春夏秋冬 15/13/15/12，實得 '+JSON.stringify(seasons11)+'）');
+}
+{ // G12 行為：跨世界後必須由實際 tick 使用的 helper 回退 legacy 決策，而非讀舊 grid
+  window.GV.setMapSize(72); window.GV.newWorldSeeded(43212); window.GV.setDiff(3); window.GV.weather(0);
+  const p12=findSpot('plant');
+  assert(p12&&place('plant',p12.x,p12.y)&&place('road',p12.x+1,p12.y),'T432 G12 應先建立舊世界電網');
+  window.GV.step(1);
+  assert(window.GV.power432().fallback===false,'T432 G12 舊世界實際已建電網時不得誤走 fallback');
+  window.GV.newWorldSeeded(43213); window.GV.setDiff(3);
+  assert(window.GV.power432().fallback===true,'T432 G12 換 tiles 世代後、尚未重算時必須回退 legacy，不得讀到舊 PDIST');
+}
+{ // G13 效能：非拓撲撤銷不得無故重跑 Union-Find
+  window.GV.setMapSize(72); window.GV.newWorldSeeded(43214); window.GV.setDiff(3); window.GV.weather(0);
+  const p13=findSpot('plant');
+  assert(p13&&place('plant',p13.x,p13.y)&&place('road',p13.x+1,p13.y),'T432 G13 應先建立穩定電網');
+  window.GV.step(1);
+  const rebuild13=window.GV.power432().rebuilds,park13=findSpot('park');
+  assert(park13&&window.GV.placeUndo('park',park13.x,park13.y)&&window.GV.undo(),'T432 G13 非拓撲公園撤銷必須走真玩家 undo 群組');
+  assert(window.GV.power432().rebuilds===rebuild13,'T432 G13 非拓撲撤銷不得讓 Union-Find 重建（'+rebuild13+' → '+window.GV.power432().rebuilds+'）');
 }
