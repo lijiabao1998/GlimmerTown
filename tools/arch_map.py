@@ -14,6 +14,15 @@
 行號欄的定義（寫在這裡，也寫進 ARCH 表頭，任何人都能重算）：
     每一列的值 = 該列 grep 錨點在 index.html 的**第一個**命中行。
     不再寫「範圍」——範圍無法從錨點驗證，寫了就是不可覆核的數字。
+
+T438 退修（本工具第一版的兩個自身漏洞，都由對抗性覆核抓到）：
+  ① 「任一錨點命中就算過」：`found=[h for h in hits if h[1]]` ⇒ 一列有兩個錨點時，
+     只要其中一個活著，另一個就算在 index.html 裡完全不存在也照樣判活。
+     實例：ARCH:55 的 `// ===== T382 …` 是假的（真原文是區塊註解 `/* ===== T382 …`），
+     被同列的 `const stampRoof=(key)=>{` 餵飽 ⇒ 我當時宣告的「死錨點 0」是假綠。
+     改成 **every**：一列裡有任何一個錨點找不到，整列就是死的，並報出**死的那一個**。
+  ② 「行號欄沒有數字就 continue」：把行號欄清空，就同時逃掉行號檢查與錨點檢查。
+     改成**斷言**：有錨點卻沒有行號的列，直接算成錯誤。
 """
 import io
 import os
@@ -76,13 +85,13 @@ def scan():
         if not ancs:
             continue
         declared = m.group('line').strip()
-        if not re.search(r'\d', declared):
-            continue
         hits = [(a, first_hit(idx, a)) for a in ancs]
-        found = [h for h in hits if h[1]]
+        missing = [a for a, k in hits if k is None]
         out.append({
-            'row': i, 'declared': declared, 'anchors': ancs,
-            'hits': hits, 'actual': min(h[1] for h in found) if found else None,
+            'row': i, 'declared': declared, 'anchors': ancs, 'hits': hits,
+            'missing': missing,
+            'blank': not re.search(r'\d', declared),
+            'actual': min(k for _, k in hits) if not missing else None,
         })
     return arch, idx, out
 
@@ -90,13 +99,18 @@ def scan():
 def main(argv):
     mode = argv[1] if len(argv) > 1 else '--check'
     arch, idx, rows = scan()
-    dead = [r for r in rows if r['actual'] is None]
-    drift = [r for r in rows if r['actual'] is not None and r['declared'] != str(r['actual'])]
+    dead = [r for r in rows if r['missing']]
+    blank = [r for r in rows if not r['missing'] and r['blank']]
+    drift = [r for r in rows if r['actual'] is not None and not r['blank']
+             and r['declared'] != str(r['actual'])]
     print('ARCH 分節地圖：可檢查的列 %d' % len(rows))
-    print('  死錨點（index.html 找不到）：%d' % len(dead))
+    print('  死錨點（該列有錨點在 index.html 找不到）：%d' % len(dead))
+    print('  行號欄空白（有錨點卻沒數字）：%d' % len(blank))
     print('  行號與實測不符：%d' % len(drift))
     for r in dead:
-        print('    [死] ARCH:%d  %s' % (r['row'] + 1, ', '.join(r['anchors'])[:70]))
+        print('    [死] ARCH:%d  找不到 %s' % (r['row'] + 1, ' ／ '.join(r['missing'])[:70]))
+    for r in blank:
+        print('    [空] ARCH:%d  %s' % (r['row'] + 1, r['anchors'][0][:60]))
     for r in drift[:12]:
         print('    [漂] ARCH:%-4d 宣稱 %-10s 實測 %-6d %s'
               % (r['row'] + 1, r['declared'], r['actual'], r['anchors'][0][:52]))
@@ -114,7 +128,7 @@ def main(argv):
         print('\n已重寫 %d 列的行號欄（死錨點 %d 列未動，需人工處理）' % (len(rows) - len(dead), len(dead)))
         return 0
 
-    return 0 if (not dead and not drift) else 1
+    return 0 if (not dead and not blank and not drift) else 1
 
 
 if __name__ == '__main__':

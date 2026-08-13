@@ -102,14 +102,49 @@ function measure(cvs) {
   };
 }
 
+/* T438 退修（M6）：上面兩條只驗「canvas 物件存不存在」，不驗上面畫過任何一個像素——
+   一個全透明的圖集會照樣通過，而這正是本檔註解自己在罵的 T421 空殼 harness 同型。
+   所以再加一條：抽樣最大的一批素材，累計不透明像素必須大於 0。 */
+function assertHasPixels438(entries, tag) {
+  const cand = entries.filter(e => e.img && e.img.width > 0).sort((a, b) =>
+    b.img.width * b.img.height - a.img.width * a.img.height).slice(0, 40);
+  let opaque = 0, read = 0;
+  for (const e of cand) {
+    let d;
+    try { d = e.img.getContext('2d').getImageData(0, 0, e.img.width, e.img.height).data; }
+    catch (err) { continue; }
+    read++;
+    for (let i = 3; i < d.length; i += 4) if (d[i] !== 0) { opaque++; }
+  }
+  if (read === 0) throw new Error(tag + '：抽樣的 ' + cand.length
+    + ' 張素材一張都讀不出像素（getImageData 全部失敗）＝本次量測沒有像素證據。');
+  if (opaque === 0) throw new Error(tag + '：抽樣 ' + read + ' 張素材共 0 個不透明像素'
+    + '＝圖集是空的。canvas 物件存在不等於上面畫過東西——這正是空殼 harness 的形態。');
+  return { sampled: read, opaque: opaque };
+}
+
 async function main() {
   const w = await frame(A);
   O.textContent = '';
   const at = w.GV.sprAtlas356();
   const bld = at.entries.filter(e => e.fam === 'bld' && e.img);
-  P('a=' + A + '　清冊 entries=' + at.entries.length + '　bld=' + bld.length
-    + '　（本量具只看 bld 家族的 img，night 另計）');
   if (!bld.length) throw new Error('bld 家族為空，量測沒有資訊量');
+  const px438 = assertHasPixels438(bld, 'art_style 圖集防呆');
+
+  /* T438 退修（M4）：T434c 拿本量具的數字去「推翻」調研的頭號建議，那是**兩個母體混算**——
+     調研講的是 153 個由 PAL/mkBld 驅動的**程序化**素材的牆面 Δ亮度；
+     本量具取的是 fam==='bld' 的全部鍵（含手繪 HERO_PIX 地標），量的是**整張 sprite 的左右半平面**
+     （含屋頂、基座、陰影、煙囪）。母體與量法都不同 ⇒ 那個數字沒有資格當反證。
+     這裡先把母體切成「手繪 HERO_PIX」與「程序化其餘」兩族分開報，讓引用的人看得到自己在引哪一族；
+     牆面 Δ亮度本身仍未實作 ⇒ 調研那條建議的狀態是**未判定**，不是「已推翻」。 */
+  let heroKeys = [];
+  try { heroKeys = (at.heroKeys || (w.GV.heroKeys356 ? w.GV.heroKeys356() : [])) || []; } catch (e) {}
+  const heroSet = new Set(heroKeys);
+  const isHero = e => heroSet.has(e.key);
+  P('a=' + A + '　清冊 entries=' + at.entries.length + '　bld=' + bld.length
+    + '　手繪 HERO_PIX ' + bld.filter(isHero).length + ' ／ 程序化 ' + bld.filter(e => !isHero(e)).length
+    + '　（像素防呆：抽樣 ' + px438.sampled + ' 張、不透明 ' + px438.opaque + ' px）');
+  if (!heroKeys.length) P('  ⚠ 取不到 HERO_PIX 鍵表 ⇒ 下面的母體切分不可信，只能看合計。', 'warn');
 
   const rows = [];
   for (const e of bld) {
@@ -118,12 +153,20 @@ async function main() {
   }
   rows.sort((a, b) => b.m.opaque - a.m.opaque);
 
+  if (!rows.length) throw new Error('沒有任何素材的不透明像素超過 200 ⇒ 本次量測沒有資訊量');
   let leftBright = 0;
   for (const r of rows) if (r.m.left > r.m.right) leftBright++;
+  const split = f => { const s = rows.filter(f); return s.length
+    ? s.filter(r => r.m.left > r.m.right).length + ' 左亮 / ' + (s.length - s.filter(r => r.m.left > r.m.right).length) + ' 右亮（共 ' + s.length + '）'
+    : '（本族沒有可量的鍵）'; };
   P('');
   P('=== ① 受光方向（左半平均明度 vs 右半）===', 'hd');
   P('  可量的建築鍵 ' + rows.length + ' 個；**左半較亮 ' + leftBright + ' 個 / 右半較亮 '
     + (rows.length - leftBright) + ' 個**');
+  P('  ├ 手繪 HERO_PIX：' + split(r => heroSet.has(r.key)));
+  P('  └ 程序化其餘　：' + split(r => !heroSet.has(r.key)));
+  P('  注意：本項量的是**整張 sprite 的左右半平面**（含屋頂／基座／陰影／煙囪），'
+    + '不是牆面 Δ亮度。要拿它去驗證「程序化牆面受光方向」的主張，母體與量法都對不上。', 'inf');
   P('  isoBox(g,cx,by,hw,h,cL,cR,cTop)：cL 填 cx-dx＝左半、cR 填 cx+dx＝右半；'
     + 'mkBld 傳的是 wl[1],wl[0]。若 PAL 的 walls[0] 較亮，右半就會較亮＝右受光。',
     'inf');
@@ -148,7 +191,8 @@ async function main() {
   const eiMed = (() => { const a = rows.map(r => r.m.edgeMean - r.m.innerMean).sort((p, q) => p - q); return a[a.length >> 1]; })();
   P('  中位 ' + eiMed.toFixed(3));
 
-  window.ART_STYLE = { rows, leftBright, total: rows.length, text: LINES.join('\n') };
+  window.ART_STYLE = { rows, leftBright, total: rows.length, px: px438,
+    hero: rows.filter(r => heroSet.has(r.key)).length, text: LINES.join('\n') };
   P('');
   P('—— 風格量測完畢；window.ART_STYLE 有 JSON ——', 'ok');
 }
