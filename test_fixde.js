@@ -10037,3 +10037,96 @@ runPwaTests().then(() => {
   assert(park13&&window.GV.placeUndo('park',park13.x,park13.y)&&window.GV.undo(),'T432 G13 非拓撲公園撤銷必須走真玩家 undo 群組');
   assert(window.GV.power432().rebuilds===rebuild13,'T432 G13 非拓撲撤銷不得讓 Union-Find 重建（'+rebuild13+' → '+window.GV.power432().rebuilds+'）');
 }
+
+/* ===== T432a 電網診斷與孤島可視化守衛（純讀 T432 runtime） ===== */
+{ // G1 靜態：資料函式、面板、接線、逃生開關與只讀橋都必須同時在場
+  for(const f of ['powerDiag432','powerDiagPanel432a'])
+    assert(html.includes('function '+f+'('),'T432a G1 函式必須存在：'+f);
+  assert(html.includes("if((t.bld&&!t.bld.ref)||t.road){if(!window.__noPowerDiag432)html+=powerDiagPanel432a(x,y);}"),
+    'T432a G1 inspect 只能在建築／道路分支尾端接入診斷，且必須受 kill-switch 保護');
+  assert(html.includes("powerDiag432:(x,y)=>({...powerDiag432(x|0,y|0)})"),'T432a G1 GV 必須回傳新的純讀診斷快照');
+  assert(html.includes('.p432a{margin:7px 0 4px')&&html.includes('.p432aBar i{display:block')&&html.includes('@media (max-width:340px){.p432aTop{display:block}'),
+    'T432a G1 面板／容量條／窄屏樣式必須存在');
+  assert(html.includes("const capacity=Math.floor((dCap432[d]||0)*POWER_SEASON_MULT[season()]);"),
+    'T432a G1 面板容量必須使用 T432 同款季節口徑，不能顯示裸容量');
+}
+{ // G2 靜態：整個診斷區塊與面板皆零 RNG／時計，且不可寫入 T432 狀態
+  const a0=html.indexOf('const POWER_DIAG_SOURCE_432A'),a1=html.indexOf('function countNear(',a0);
+  const p0=html.indexOf('function powerDiagPanel432a'),p1=html.indexOf('function inspect(x,y){',p0);
+  assert(a0>=0&&a1>a0&&p0>=0&&p1>p0,'T432a G2 診斷資料／面板區塊必須可界定');
+  const aCode=(html.slice(a0,a1)+html.slice(p0,p1)).replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|\bvri\s*\(|Math\.random\s*\(|spriteTexRand|Date\.now|performance\.now|crypto\./.test(aCode),
+    'T432a G2 純讀診斷不得消耗 RNG 或讀取牆鐘');
+  assert(!/\b(?:PDIST432|dCap432|dUsed432|tiles)(?:\s*\[[^\]]+\]|\s*\.\w+)*\s*(?:=|\+=|-=|\*=|\/=|\+\+|--)/.test(aCode)
+    &&!/\b(?:PDIST432|dCap432|dUsed432|tiles)\s*\.\s*(?:fill|push|pop|shift|unshift|splice|sort|reverse|set|delete)\s*\(/.test(aCode)
+    &&!/\blocalStorage\s*\.\s*(?:setItem|removeItem|clear)\s*\(/.test(aCode),
+    'T432a G2 純讀診斷不得改寫 T432 runtime／tiles 或任何 localStorage');
+}
+{ // G3 行為：接網／孤島／未接網／道路／冬季容量／fallback／面板與純讀性
+  window.GV.setMapSize(72); window.GV.newWorldSeeded(43221); window.GV.setDiff(3); window.GV.weather(0);
+  const p=findSpot('plant');
+  assert(p&&place('plant',p.x,p.y),'T432a G3 應能建立主電廠');
+  for(let i=1;i<=6;i++)assert(place('road',p.x+i,p.y),'T432a G3 主電廠道路 '+i+' 應可鋪設');
+  let home=null;
+  for(let i=1;i<=6&&!home;i++)for(const [dx,dy] of [[0,1],[0,-1],[1,1],[1,-1]]){
+    const x=p.x+i+dx,y=p.y+dy;if(place('socialHousing',x,y)){home={x,y};break;}
+  }
+  assert(home,'T432a G3 應能建立接網消費建築');
+  let island=null;
+  outer432a:for(let y=4;y<68;y++)for(let x=4;x<68;x++){
+    if(Math.abs(x-p.x)+Math.abs(y-p.y)<12)continue;
+    if(window.GV.canPlaceTool('solar',x,y)===null&&window.GV.powerDiag432(x,y).mode==='unlinked'){island={x,y};break outer432a;}
+  }
+  assert(island&&place('solar',island.x,island.y),'T432a G3 應能建立遠離帶電道路的孤島太陽能');
+  window.GV.setSeason(0);window.GV.step(1);
+  const roadD=window.GV.powerDiag432(p.x+1,p.y),homeD=window.GV.powerDiag432(home.x,home.y),islandD=window.GV.powerDiag432(island.x,island.y);
+  assert(roadD.mode==='network'&&roadD.district===1&&roadD.capacity===50&&roadD.free>=0,'T432a G3 帶電道路必回報第 1 網與真實容量（實得 '+JSON.stringify(roadD)+'）');
+  assert(homeD.mode==='network'&&homeD.powered===true&&homeD.capacity===50,'T432a G3 接網建築必如實回報供電與容量（實得 '+JSON.stringify(homeD)+'）');
+  assert(islandD.mode==='island'&&islandD.source==='太陽能板'&&islandD.district===0,'T432a G3 孤島太陽能不得偽裝成已接網（實得 '+JSON.stringify(islandD)+'）');
+  let darkRoad=null;
+  outerRoad432a:for(let y=4;y<68;y++)for(let x=4;x<68;x++){
+    if(Math.abs(x-p.x)+Math.abs(y-p.y)<12)continue;
+    if(window.GV.canPlaceTool('road',x,y)===null&&window.GV.powerDiag432(x,y).mode==='unlinked'){darkRoad={x,y};break outerRoad432a;}
+  }
+  assert(darkRoad&&place('road',darkRoad.x,darkRoad.y),'T432a G3 應能建立未通電道路');
+  let loose=null;
+  outerLoose432a:for(let y=4;y<68;y++)for(let x=4;x<68;x++){
+    if(Math.abs(x-p.x)+Math.abs(y-p.y)<12)continue;
+    if(window.GV.canPlaceTool('socialHousing',x,y)===null&&window.GV.powerDiag432(x,y).mode==='unlinked'){loose={x,y};break outerLoose432a;}
+  }
+  assert(loose&&place('socialHousing',loose.x,loose.y),'T432a G3 應能建立未接網消費建築');
+  window.GV.step(1);
+  const looseD=window.GV.powerDiag432(loose.x,loose.y);
+  assert(looseD.mode==='unlinked'&&looseD.detail.includes('2 格內沒有帶電道路'),'T432a G3 未接網建築必說明道路原因（實得 '+JSON.stringify(looseD)+'）');
+  const darkRoadD=window.GV.powerDiag432(darkRoad.x,darkRoad.y);
+  assert(darkRoadD.mode==='unlinked'&&darkRoadD.detail.includes('道路尚未接入'),'T432a G3 未通電道路不得偽裝成接網（實得 '+JSON.stringify(darkRoadD)+'）');
+  window.GV.save(); const statsA=JSON.stringify(window.GV.stats()),saveA=window.GV.rawSave(),storeA=JSON.stringify(store);
+  const panelOn=window.GV.inspectAt(home.x,home.y);
+  const copy432a=window.GV.powerDiag432(home.x,home.y);copy432a.capacity=999;
+  assert(panelOn.includes('⚡ 電網診斷')&&panelOn.includes('電網 #1')&&panelOn.includes('本網今日'),'T432a G3 接網檢視面板必顯示真實診斷');
+  assert(window.GV.powerDiag432(home.x,home.y).capacity===50,'T432a G3 GV 診斷快照不可被外部改寫');
+  window.__noPowerDiag432=true;const panelOff=window.GV.inspectAt(home.x,home.y);delete window.__noPowerDiag432;
+  assert(!panelOff.includes('⚡ 電網診斷'),'T432a G3 kill-switch 開啟時面板診斷必須完全隱藏');
+  window.__noPowerDistrict432=true;const legacyD=window.GV.powerDiag432(home.x,home.y);delete window.__noPowerDistrict432;
+  assert(legacyD.mode==='fallback'&&legacyD.status==='相容模式','T432a G3 T432 相容模式不得讀取舊 district（實得 '+JSON.stringify(legacyD)+'）');
+  assert(JSON.stringify(window.GV.stats())===statsA&&window.GV.rawSave()===saveA&&JSON.stringify(store)===storeA,'T432a G3 讀診斷／開關面板不得改模擬、存檔或其他 localStorage');
+
+  window.GV.setMapSize(72);window.GV.newWorldSeeded(43222);window.GV.setDiff(3);window.GV.weather(0);
+  let q=null;
+  seek432a:for(let y=4;y<60;y++)for(let x=4;x<60;x++){
+    const plan=[['substation',x,y],['solar',x,y+2],['road',x,y+1],['plant',x+4,y],['road',x+4,y+1]];
+    if(plan.every(([tool,px,py])=>window.GV.canPlaceTool(tool,px,py)===null)){q={x,y,plan};break seek432a;}
+  }
+  assert(q,'T432a G3 應能建立獨立太陽能冬季造境');
+  for(const [tool,x,y] of q.plan)assert(place(tool,x,y),'T432a G3 冬季造境 '+tool+' 應可放置');
+  window.GV.setSeason(3);window.GV.step(1);
+  const winterD=window.GV.powerDiag432(q.x,q.y+2);
+  assert(winterD.mode==='network'&&winterD.source==='太陽能板'&&winterD.capacity===12,'T432a G3 冬季 15 容量太陽能網必顯示有效 12，不能顯示裸 15（實得 '+JSON.stringify(winterD)+'）');
+  window.GV.newWorldSeeded(43223);
+  assert(window.GV.powerDiag432(0,0).mode==='fallback','T432a G3 換世界未 tick 時必如實回報 fallback，不得讀舊網');
+  const lone=findSpot('solar');
+  assert(lone&&place('solar',lone.x,lone.y),'T432a G3 應能建立沒有啟動源的單獨太陽能');
+  window.GV.step(1);
+  const loneD=window.GV.powerDiag432(lone.x,lone.y);
+  assert(loneD.mode==='island'&&loneD.source==='太陽能板'&&loneD.district===0,'T432a G3 唯一孤島太陽能完成 tick 後也必如實標為孤島，不能永久資料更新中（實得 '+JSON.stringify(loneD)+'）');
+}
