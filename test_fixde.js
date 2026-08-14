@@ -10002,6 +10002,44 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T449 低層屋頂豐富化：守衛 ===== */
+{
+  /* roofStyle449：雙坡壓暗＋屋脊亮線＋瓦片列紋，只畫在屋頂菱形內（不越過 rty ⇒ 輪廓與 vh 不變）。
+     a/b 實測改變恰 66 鍵全部 `bld/1_[12]_*`、night CRC 0、逃生閥開啟時 CRC 改變 0。 */
+  // G1 三點接線（mkBld＋兩份 mkWealthBld）；少了＝財富套屋頂走鐘
+  {
+    const n449 = (htmlBare438.match(/roofStyle449\(sg,ax,rty,hw,rf\)/g) || []).length;
+    assert(n449 === 3,
+      'T449 G1【計數釘】roofStyle449 接線應恰 3 處（mkBld＋兩份 mkWealthBld），實得 ' + n449
+      + '。少了＝同鍵不同財富的屋頂走鐘；多了＝有人擴散到非住宅');
+    const g449 = (htmlBare438.match(/if\(k===1&&lv<=2\)roofStyle449\(/g) || []).length;
+    assert(g449 === 3,
+      'T449 G1b【原文釘】三處接線必須都帶 `k===1&&lv<=2` 條件（實得 ' + g449 + '）——'
+      + '擴散到商業/工業或 lv3 是另一張卡的決定，不是手滑');
+  }
+  // G2 helper 必須在 buildSprites 範圍外（T383c token 快照零風險）且函式體零共用亂數
+  {
+    const hp449 = html.indexOf('\nfunction roofStyle449(');
+    const bs449 = html.indexOf('function buildSprites(){');
+    assert(hp449 > 0 && bs449 > 0 && hp449 < bs449,
+      'T449 G2【位置釘】roofStyle449 定義（' + hp449 + '）必須在 `function buildSprites(){`（' + bs449
+      + '）之前——搬進掃描範圍就會動 T383c 亂數 token 快照的行序');
+    const b449 = html.indexOf('\n}', hp449);
+    const body449 = htmlBare438.slice(hp449, b449);
+    const rng449 = (body449.match(/(^|[^A-Za-z0-9_$.])(R|ri|rf2|rand)\s*\(/g) || []).length;
+    assert(rng449 === 0,
+      'T449 G2b【機械複算】roofStyle449 函式體不得出現共用亂數呼叫（實得 ' + rng449 + '）——'
+      + '它有玩家可撥的逃生閥，一旦碰共用流，撥開關就會位移世界');
+  }
+  // G3 逃生閥位置釘
+  {
+    const wr449 = html.indexOf("if(!window.__noRoofStyle449){try{if(/[?&]noRoofStyle449=1/");
+    const bs449b = html.indexOf('function buildSprites(){');
+    assert(wr449 > 0 && wr449 < bs449b,
+      'T449 G3【位置釘】?noRoofStyle449=1 的寫入端（' + wr449 + '）必須早於 buildSprites（' + bs449b + '）');
+  }
+}
+
 /* ===== T448 高層牆面立體化：守衛 ===== */
 {
   /* lv3 塔樓主體改走 boxUnit（T425I 五級色階），逃生閥 ?noWallDepth448=1 逐位元回退。
