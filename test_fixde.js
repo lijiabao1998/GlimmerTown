@@ -10002,6 +10002,34 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T450 「📈 趨勢」分頁：守衛 ===== */
+{
+  /* 小倍數趨勢分頁：純讀 T112 的 hist，零模擬、零存檔變更、零 tick 觸碰。
+     真瀏覽器實測（記錄在卡面）：40 天後面板當前值與 hist 末筆逐項相等、NaN 0、四張小圖有內容。 */
+  // G1 分頁鈕＋綁定＋渲染函式在場
+  assert(html.includes('id="statsTrend450"') && html.includes("trend.onclick=()=>{showTrendPanel450();"),
+    'T450 G1【原文前哨】統計面板必須有「📈 趨勢」分頁鈕且綁到 showTrendPanel450');
+  // G2 資料必須來自 hist（不得手抄任何序列）
+  assert(html.includes('function showTrendPanel450(){\n  const data=hist.slice(-histRange);'),
+    'T450 G2【原文前哨】趨勢分頁的資料必須是 `hist.slice(-histRange)`——'
+    + '手抄一份序列就會過期而且沒有人會發現（T442 的 $12 教訓）');
+  // G3 兩支渲染函式零共用亂數（純 UI；面板有玩家可撥的範圍鈕）
+  {
+    let bad450 = 0;
+    for (const fn of ['\nfunction trendCell450(', '\nfunction showTrendPanel450(']) {
+      const a = html.indexOf(fn);
+      const b = html.indexOf('\n}', a);
+      const body = htmlBare438.slice(a, b);
+      bad450 += (body.match(/(^|[^A-Za-z0-9_$.])(R|ri)\s*\(/g) || []).length;
+    }
+    assert(bad450 === 0,
+      'T450 G3【機械複算】trendCell450／showTrendPanel450 不得出現共用亂數呼叫（實得 ' + bad450 + '）');
+  }
+  // G4 空城後備（面板禁 NaN/undefined 慣例）
+  assert(html.includes("if(!hist.length)inner+=statTab([{k:'狀態',v:'尚無歷史資料'"),
+    'T450 G4【原文前哨】hist 為空時必須給 dim 後備列，不能讓四張空圖自己解釋自己');
+}
+
 /* ===== T449 低層屋頂豐富化：守衛 ===== */
 {
   /* roofStyle449：雙坡壓暗＋屋脊亮線＋瓦片列紋，只畫在屋頂菱形內（不越過 rty ⇒ 輪廓與 vh 不變）。

@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.81，約 21,938 行（實測檔案 21,938 行＝T449 低層屋頂豐富化後 Python 數；測試 `test_fixde.js`、實測 PASS 4,953、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.82，約 21,991 行（實測檔案 21,991 行＝T450 趨勢分頁後 Python 數；測試 `test_fixde.js`、實測 PASS 4,957、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -130,18 +130,18 @@
 | 存檔槽面板／分享碼 | 19396 | `function showSlots(){` |
 | 地圖／場景編輯器 | 19505 | `function showEditor(){` |
 | 歷史曲線／城市顧問／因果追溯 | 19591 | `function cityAdvisor(){` |
-| `showStats()` 統計面板 | 19958 | `function showStats()` |
-| 通知中心／成就 | 20333 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 20409 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 20611 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 20820 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 20838 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 20959 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `showStats()` 統計面板 | 20011 | `function showStats()` |
+| 通知中心／成就 | 20386 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 20462 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 20664 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 20873 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 20891 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 21012 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
 | `load()` | 16901-17037 | `const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;` |
-| 自動存檔 | 21143 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 21156 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 21298 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 21393 | `window.GV={` |
+| 自動存檔 | 21196 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 21209 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 21351 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 21446 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
