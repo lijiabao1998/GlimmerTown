@@ -10002,6 +10002,71 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T447 槽 3 紀律（ARCH §10.5）：守衛 ===== */
+{
+  /* 這一區的第一版被我寫進 `tools/test_toolchain.py`——而它**不在任何閘門上**
+     （`verify.py` 與 `merge_bay.py` 都沒有呼叫它）。那正是 T438 M3 抓到的同一個病：
+     「交了工具卻沒掛進閘門，根因原封不動」。**我在修這條債的同一夜又犯了一次**，
+     所以搬到這裡（`test_fixde.js` 在 `verify.py` 的閘門上）。
+
+     規則本體是 T447 補進 `docs/RULES.md` 的**第 18 條**——在那之前，
+     `ARCH §10.5` 與 `docs/VERIFY.md` 兩處都以「鐵律3」之名引用它，而 RULES 從來沒寫過。
+
+     風險範圍是量出來的，不是猜的：`index.html` **沒有自動存檔**（剝乾淨後全檔 `save()`
+     只在存檔按鈕的處理器裡出現一次），所以「把遊戲載起來放著」不會覆蓋任何槽；
+     真正會覆蓋的是**自己去呼叫 `GV.save()` 的 probe**（T370 事故那十個就是這型）。 */
+  const SKIP447 = ['.git', 'node_modules', 'backups', '_ds', 'attic'];
+  const walk447 = (dir, out) => {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (ent.isDirectory()) {
+        if (SKIP447.indexOf(ent.name) >= 0) continue;
+        walk447(path.join(dir, ent.name), out);
+      } else if (/\.(html|js)$/.test(ent.name)) {
+        out.push(path.join(dir, ent.name));
+      }
+    }
+    return out;
+  };
+  const files447 = walk447(__dirname, []);
+  assert(files447.length >= 20,
+    'T447 G0 掃到的 .html/.js 只有 ' + files447.length + ' 個（預期 ≥20）——'
+    + '檔案樹走訪壞了，下面兩條會變成空跑的假綠');
+  const offenders447 = [];
+  let saveCallers447 = 0;
+  for (const f of files447) {
+    const rel = path.relative(__dirname, f).replace(/\\/g, '/');
+    if (rel === 'index.html' || rel === 'sw.js') continue;
+    if (/^test_[A-Za-z0-9_]*\.js$/.test(rel)) continue;   // Node 測試跑在 mock localStorage 上
+    let body;
+    try { body = fs.readFileSync(f, 'utf8'); } catch (e) { continue; }
+    if (body.indexOf('GV.save(') < 0) continue;
+    saveCallers447++;
+    if (body.indexOf('glimmerville.v1.slot') < 0) offenders447.push(rel);
+  }
+  assert(offenders447.length === 0,
+    'T447 G1【鐵律18】這些檔案呼叫了 `GV.save()` 卻沒有先切到槽 3：'
+    + JSON.stringify(offenders447.slice(0, 5))
+    + '。在玩家目錄開它就會覆蓋一個真的存檔（`curSlot()` 遇不合法鍵回槽 1）。'
+    + '在呼叫前加一行 `localStorage.setItem(\'glimmerville.v1.slot\',\'3\')`');
+  /* 今天沒有任何非豁免檔案呼叫 GV.save()，所以上面那條是**合法地空**——
+     把這個事實釘住，而不是假裝它是覆蓋率。數字變動不一定是壞事，但一定要有人知道。 */
+  assert(saveCallers447 === 0,
+    'T447 G1b【計數釘】非豁免檔案裡呼叫 `GV.save()` 的數量由 0 變成 ' + saveCallers447
+    + '。新檔案必須設槽 3（G1 會驗），這條只是要讓「有人新增了會寫存檔的工具」這件事被看見');
+  // G2 規則要真的寫在 RULES 裡，而且 VERIFY 要引對號碼
+  {
+    const rules447 = fs.readFileSync(path.join(__dirname, 'docs', 'RULES.md'), 'utf8');
+    const verify447 = fs.readFileSync(path.join(__dirname, 'docs', 'VERIFY.md'), 'utf8');
+    assert(rules447.indexOf('18. **存檔槽紀律**') >= 0 && rules447.indexOf('glimmerville.v1.slot') >= 0,
+      'T447 G2 `docs/RULES.md` 必須把存檔槽紀律寫成第 18 條並指名那個 localStorage 鍵。'
+      + 'T447 之前，ARCH §10.5 與 VERIFY 兩處都以「鐵律3」之名引用它，而 RULES 從來沒有寫過'
+      + '——三份文件互相引用一條不存在的鐵律');
+    assert(verify447.indexOf('（鐵律3）') < 0 && verify447.indexOf('鐵律18') >= 0,
+      'T447 G2b `docs/VERIFY.md` 不得再以「鐵律3」之名引用存檔槽紀律'
+      + '（RULES 第 3 條講的是「禁止刪除既有功能／註解／GV API」），必須引第 18 條');
+  }
+}
+
 /* ===== T446 tail parity 結構守衛（ARCH §10.12）：守衛 ===== */
 {
   /* §10.12 說「tail parity 是手抄，純靠複製貼上」。去讀原文之後：

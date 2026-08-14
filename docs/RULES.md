@@ -27,6 +27,13 @@
 15. 完成後在 CHANGELOG.md 追加一行：`日期 | 卡號 | 一句話說明 | 驗收:通過`。
 16. **DOM mock / node 測試不能替代瀏覽器實測**：凡動渲染、繪製、UI 的卡，必須在真瀏覽器做像素級驗收（亮度取樣或截圖）。mock 測不出 sprite 覆蓋、圖層、命名衝突。
 17. 新增任何 `SPR.xxx` 鍵之前，先 `grep "SPR.xxx"` 全檔查重——撞名會靜默覆蓋既有素材（教訓：水塔曾覆蓋 SPR.water 水面幀）。
+18. **存檔槽紀律**：任何會把遊戲載起來的 probe／工具，在呼叫任何**會寫入存檔槽**的 API
+    （`GV.save()`、存檔按鈕）之前，必須先 `localStorage.setItem('glimmerville.v1.slot','3')`。
+    玩家的遊玩目錄（`安卓探索\glimmer-town`，埠 8123）**任何人不得跑測試**，用自己的驗證埠。
+    （T447 補：`ARCH §10.5`、`docs/VERIFY.md` 兩處都以「鐵律3」之名引用這條規矩，
+     而 RULES 從來沒有寫過它——三份文件互相引用一條不存在的鐵律。現在它有編號了。
+     另註：`index.html` **沒有自動存檔**，全檔 `save()` 只在存檔按鈕的處理器裡呼叫一次，
+     所以「把遊戲載起來放著」不會覆蓋任何槽；真正的風險是 probe 自己去呼叫 `GV.save()`。）
 18. 動 buildSprites 中段（新增會消耗 rand 的生成）必守 ARCH §5.1 亂數流對齊：新生成一律放 buildSprites **尾端**，或補逐鍵像素回歸並在 CHANGELOG 聲明。
 19. tick() 經濟 else-if 分類鏈新增建築種類 k 時，必須加對應分支（哪怕空分支 `else if(b.k===X);`），否則落入兜底工業稅（教訓：診所/墓園幽靈稅收）。
 20. 工具列 `pr` 顯示價與 placeCost 實際扣款必須一致；新增快捷鍵必須帶 `!e.ctrlKey&&!e.metaKey&&!e.altKey` 防護並同步 ARCH §8。
