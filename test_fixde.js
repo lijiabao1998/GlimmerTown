@@ -10002,6 +10002,40 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T448 高層牆面立體化：守衛 ===== */
+{
+  /* lv3 塔樓主體改走 boxUnit（T425I 五級色階），逃生閥 ?noWallDepth448=1 逐位元回退。
+     卡面原寫「mkBld :2156 全檔唯一」——**錯**（substring 命中 7 處），實際要分流的是
+     mkBld＋兩份 mkWealthBld 共 3 處（財富套不同步＝同鍵不同財富立面走鐘），
+     其餘 4 處是消防局/學校/圖書館/郵局單層服務建築、不在目標內。
+     a/b 實測改變恰 51 鍵全部 bld/[123]_3_*（27 程序化基鍵 v3-11＋24 個 k1 財富衍生；
+     v0-2 基鍵是手繪 HERO_PIX 不走 mkBld）、night CRC 改變 0、逃生閥開啟時 CRC 改變 0。 */
+  // G1 三個分流點：條件原文恰 3 處（mkBld＋mkWealthBld×2；多＝有人擴散、少＝有人退回）
+  {
+    const n448 = (htmlBare438.match(/\(lv===3&&!window\.__noWallDepth448\)/g) || []).length;
+    assert(n448 === 3,
+      'T448 G1【計數釘】lv3 牆面分流條件 `(lv===3&&!window.__noWallDepth448)` 應恰 3 處'
+      + '（mkBld＋兩份 mkWealthBld），實得 ' + n448 + '。'
+      + '少了＝財富套或主體被退回 isoBox（同鍵不同財富的立面會走鐘）；'
+      + '多了＝有人把分流擴散到服務建築（那 4 處不是塔樓，卡面明定不動）');
+  }
+  // G2 呼叫必須是無 opts 版（不畫窗洞、不碰 ng ⇒ 夜燈鏈照舊；a/b 實測 night CRC 改變 0）
+  {
+    const call448 = (htmlBare438.match(/boxUnit\(sg,ng,ax,by,hw,h,wl\[1\],wl\[0\],rf\)/g) || []).length;
+    assert(call448 === 3,
+      'T448 G2【原文釘】三個分流點的 boxUnit 呼叫必須是無 opts 的九參數版，實得 ' + call448
+      + '。傳了 opts.win 就會畫窗洞並寫 ng ⇒ 與 PARTS 的 windowsStd 疊窗、夜燈鏈被動到');
+  }
+  // G3 逃生閥位置釘（T438 M2 教訓：寫入端晚於 buildSprites 的逃生閥等於沒有）
+  {
+    const wr448 = html.indexOf("if(!window.__noWallDepth448){try{if(/[?&]noWallDepth448=1/");
+    const bs448 = html.indexOf('function buildSprites(){');
+    assert(wr448 > 0 && bs448 > 0 && wr448 < bs448,
+      'T448 G3【位置釘】?noWallDepth448=1 的寫入端（' + wr448 + '）必須早於 `function buildSprites(){`（'
+      + bs448 + '）——mkBld 在建圖期間執行，寫入端晚一步這個逃生閥就對烘進 sprite 的像素完全無效');
+  }
+}
+
 /* ===== T447 槽 3 紀律（ARCH §10.5）：守衛 ===== */
 {
   /* 這一區的第一版被我寫進 `tools/test_toolchain.py`——而它**不在任何閘門上**
