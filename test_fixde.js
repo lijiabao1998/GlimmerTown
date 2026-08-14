@@ -8016,11 +8016,13 @@ runPwaTests().then(() => {
   { // 靜態：sq(' 呼叫數 count pin（防靜默刪效果點）＋四向效果行字串釘
     const sqN=(html.match(/sq\('/g)||[]).length;
     assert(sqN===12,'T386a sq(\' 效果呼叫應恰 12 個（四向各 2 正 1 負），實得 '+sqN+'（合法增刪=同卡更新本 pin）');
-    /* T454 跟版：k2/k3 稅式在 sq() 之後、income+= 之前插入了最低工資成本記帳（mw454/mw454i），
-       釘的意圖不變（sq 效果因子必須仍落在兩條稅式上），needle 更新為現行原文。 */
-    assert(html.includes("*sq('hub',1.12,1))")&&html.includes("*sq('hub',1.03,1);if(pol&&pol.minWage454){const mw454=v2*(1-SCI_BY_ID451.minWage454.fx.bizTaxMul);v2-=mw454;mwCost454+=mw454;}income+=v2;taxC")&&
-           html.includes("*sq('ind',1.06,1)*sq('green',.92,1);if(pol&&pol.minWage454){const mw454i=v2*(1-SCI_BY_ID451.minWage454.fx.bizTaxMul);v2-=mw454i;mwCost454+=mw454i;}income+=v2;taxI")&&html.includes("*sq('green',1.15,1))"),
-      'T386a 運量/商稅/工稅/觀光四效果行字串釘在場（T454 跟版）');
+    /* T454 跟版：k2/k3 稅式在 sq() 之後插入最低工資成本記帳。
+       T458 二次跟版＋釘型升級：政策卡逐張在同一區間插記帳塊（mw454→agg458），全文釘每卡都要 churn；
+       改成「同行順序釘」——sq 效果因子與 income+=v2;tax?+= 必須同在一條稅式行上且順序固定，
+       中間允許讀 SCI_BY_ID451 的合法插入（意圖不變：效果因子不得從稅式上消失或被搬走）。 */
+    assert(html.includes("*sq('hub',1.12,1))")&&/\*sq\('hub',1\.03,1\);[^\n]*income\+=v2;taxC\+=v2;/.test(html)&&
+           /\*sq\('ind',1\.06,1\)\*sq\('green',\.92,1\);[^\n]*income\+=v2;taxI\+=v2;/.test(html)&&html.includes("*sq('green',1.15,1))"),
+      'T386a 運量/商稅/工稅/觀光四效果行字串釘在場（T458 升級為同行順序釘）');
     assert(html.includes("spec386=(typeof d.spec386==='string'&&SPEC386[d.spec386])?d.spec386:''"),
       'T386a load 側白名單驗型在場（鐵律7）');
     assert(html.split("spec386='';").length-1>=1,'T386a newWorld 成對歸零在場');
@@ -10320,6 +10322,52 @@ runPwaTests().then(() => {
     && html.includes("const w455=SCI_BY_ID451.oppAtlas455.fx;"),
     'T456 G1f【回歸】T452-T455 的效應原文必須原樣保留');
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
+}
+
+/* ===== T458 聚集經濟（產業聚落區劃）：守衛 ===== */
+{
+  /* Glaeser & Gottlieb 2009 JEL：密度倍增 ↔ 生產力 +2~3.5%（取下緣 3%）。政策預設關＝六哨兵不動；
+     密度走既有 urbanDens406（先掃現況：不重造）。 */
+  // G1 表項＋參數域機械複算
+  {
+    const mA458 = html.match(/fx:\{aggK:(\.\d+),dThr:(\.\d+)\}/);
+    assert(mA458 && /id:'aggCluster458'/.test(html) && /Glaeser & Gottlieb/.test(html),
+      'T458 G1【原文前哨】SCI451 必須有 aggCluster458 條目（含 Glaeser 引用與 aggK/dThr）');
+    assert(Number(mA458[1]) > 0 && Number(mA458[1]) < .1 && Number(mA458[2]) > 0 && Number(mA458[2]) < 1,
+      'T458 G1b【機械複算】aggK∈(0,.1)（彈性下緣的保守域）且 dThr∈(0,1)，實得 ' + mA458[1] + '/' + mA458[2]);
+  }
+  // G1c 兩接點讀表＋走 urbanDens406＋政策短路
+  assert(html.includes("if(pol&&pol.aggCluster458){const ag458=v2*SCI_BY_ID451.aggCluster458.fx.aggK*clamp((urbanDens406(bx,byy)-SCI_BY_ID451.aggCluster458.fx.dThr)")
+    && html.includes("if(pol&&pol.aggCluster458){const bx458=i%N,by458=(i/N)|0;const ag458i=v2*SCI_BY_ID451.aggCluster458.fx.aggK*clamp((urbanDens406(bx458,by458)-SCI_BY_ID451.aggCluster458.fx.dThr)")
+    && html.includes("v2+=ag458;aggGain458+=ag458;") && html.includes("v2+=ag458i;aggGain458+=ag458i;"),
+    'T458 G1c【原文前哨】商業/工業兩接點必須讀 SCI_BY_ID451 常數、密度走 urbanDens406、'
+    + '政策短路在最前且差額入 aggGain458');
+  // G3 預設關＋白名單
+  assert(html.includes("ecMix457:false,aggCluster458:false,"),
+    'T458 G3【原文前哨】pol 初始化必須含 aggCluster458:false');
+  assert(html.includes("ecMix457:!!p.ecMix457,aggCluster458:!!p.aggCluster458,"),
+    'T458 G3b GV.pol 測試鉤必須白名單 aggCluster458');
+  // G4 同種子對照：開 aggGain>0／關恆 0
+  {
+    window.GV.newWorldSeeded(4581);
+    window.GV.setDiff(1);
+    window.GV.pol({ aggCluster458: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.ai(true);
+    for (let d = 0; d < 150; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const agg458on = window.GV.sci451();
+    assert(agg458on.aggOn === true && agg458on.aggGain > 0,
+      'T458 G4 政策開啟的 150 天 AI 城 aggGain 必須 >0（實得 ' + JSON.stringify(agg458on) + '）'
+      + '——密集城區的商工稅必有密度紅利');
+    window.GV.newWorldSeeded(4581);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 150; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const agg458off = window.GV.sci451();
+    assert(agg458off.aggOn === false && agg458off.aggGain === 0,
+      'T458 G4b 同種子預設關世界 aggGain 必須恆 0（實得 ' + JSON.stringify(agg458off) + '）');
+  }
 }
 
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
