@@ -10002,6 +10002,96 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T446 tail parity 結構守衛（ARCH §10.12）：守衛 ===== */
+{
+  /* §10.12 說「tail parity 是手抄，純靠複製貼上」。去讀原文之後：
+     T425（現行 10233）已經把**底部貼合**改成對全 `SPR.bld` 泛化的迴圈，
+     還在手抄的只剩**徽記／夜燈遮罩**那一層——`parity364` 的三鍵清單與 `parity364cd` 的十鍵清單。
+     這一區守的就是那兩份清單：它們必須**恰好等於**「在 T345 徽記 pass 之後才生成的 bld 鍵集合」。
+     多一個＝清單有死鍵；少一個＝有新建築沒補徽記／夜燈遮罩（而且不會有任何東西告訴你）。 */
+  const lines446 = html.split('\n');
+  const bareL446 = htmlBare438.split('\n');
+  // ① T345 徽記 pass 的位置（區段橫幅在原文裡，用原文找；只取行號，內容不參與判斷）
+  let t345Line446 = -1;
+  for (let i = 0; i < lines446.length; i++)
+    if (/^\/\* ===== T345 建築類別辨識/.test(lines446[i])) { t345Line446 = i + 1; break; }
+  assert(t345Line446 > 0, 'T446 G0 找不到 T345 徽記 pass 的區段橫幅——邊界算不出來，這條會失真');
+  // 徽記 pass 實際跑的位置：T345 有兩處（CSS 說明 530 與建圖區），取**建圖區內**的那一次
+  let badgeRun446 = -1;
+  for (let i = 0; i < bareL446.length; i++)
+    if (/if\(!window\.__noBadge\)\{/.test(bareL446[i])) { badgeRun446 = i + 1; break; }
+  assert(badgeRun446 > 0, 'T446 G0b 找不到 `if(!window.__noBadge){` 的徽記加蓋入口');
+
+  // ② 徽記 pass 之後才生成的 SPR.bld 鍵（只看剝乾淨的程式碼）
+  /* **位置由剝除器、內容由原文**：剝乾淨的原始碼裡讀不到字串內容（那正是剝除器的工作），
+     所以先在剝乾淨的文字上找 `SPR.bld[` 的**位置**（保證那是程式碼、不是註解），
+     再回原文的同一個位置把鍵名讀出來。剝除器逐字元等長，位置可以直接共用。
+     （這一條的第一版就是在剝乾淨的文字上配 `'([0-9_]+)'`，永遠 0 命中 ⇒ **空跑的假綠**，
+      被破壞式紅源①當場抓到——同一個病 T441 G2 踩過一次。） */
+  const after446 = [];
+  let dynamic446 = 0;
+  {
+    const from446 = html.split('\n').slice(0, badgeRun446).join('\n').length;
+    for (let p = htmlBare438.indexOf('SPR.bld[', from446); p >= 0;
+         p = htmlBare438.indexOf('SPR.bld[', p + 8)) {
+      const seg = html.slice(p, p + 40);
+      const m1 = /^SPR\.bld\[\s*'([0-9]+_[0-9]+_[0-9]+)'\s*\]\s*=/.exec(seg);
+      if (m1) { after446.push(m1[1]); continue; }
+      if (/^SPR\.bld\[\s*k\s*\+\s*'_1_0'\s*\]\s*=/.test(seg)) dynamic446++;
+    }
+  }
+  assert(after446.length + dynamic446 >= 4,
+    'T446 G1a【自檢】徽記 pass 之後掃到的 `SPR.bld[...]=` 賦值只有 '
+    + (after446.length + dynamic446) + ' 筆（預期 ≥4）——掃描器壞了，G1 會變成空跑的假綠。'
+    + '（它第一版就是這樣：在剝乾淨的原始碼裡配字串內容，永遠 0 命中。）');
+  // ③ 兩份 parity 清單
+  const p364 = /for\(const k of\[('(?:[0-9_]+)'(?:,'(?:[0-9_]+)')*)\]\)parity364\(/.exec(html);
+  const p364cd = /for\(const k of\[([0-9,]+)\]\)parity364cd\(/.exec(html);
+  assert(p364 && p364cd, 'T446 G1 找不到 parity364／parity364cd 的清單——它們是這條守衛的被驗物件');
+  const list364 = p364[1].split(',').map(x => x.replace(/'/g, ''));
+  const list364cd = p364cd[1].split(',').map(x => x + '_1_0');
+  const covered446 = new Set([...list364, ...list364cd]);
+
+  const explicit446 = after446.slice();
+  const missing446 = explicit446.filter(x => !covered446.has(x));
+  assert(missing446.length === 0,
+    'T446 G1【機械複算】在 T345 徽記 pass 之後才生成的 `SPR.bld` 鍵，必須全部被 '
+    + '`parity364`／`parity364cd` 補做徽記與夜燈遮罩。漏掉的鍵：' + JSON.stringify(missing446.slice(0, 6))
+    + '。漏了不會有任何東西告訴你——那棟建築就是頂著方塊、夜燈畫在輪廓外');
+  assert(list364.length === 3 && list364cd.length === 10,
+    'T446 G1b【計數釘】parity 清單目前應為 parity364 三鍵／parity364cd 十鍵，實得 '
+    + list364.length + '／' + list364cd.length + '。**清單變動要跟著新建築一起出卡**');
+
+  /* ④ SZC425 與 MSZ 在共同鍵上必須一致。
+     差集是既有事實（SZC425 多了 121/122/123/127/129/131/132/133 八個 k）——
+     **實測過存讀往返沒事**（見 T446 卡面 §1），所以列白名單，不當紅。 */
+  {
+    const pick = (nm) => {
+      const i = html.indexOf('const ' + nm + '={');
+      if (i < 0) return null;
+      const j = html.indexOf('}', i);
+      const o = {};
+      for (const m of html.slice(i, j).matchAll(/(\d+)\s*:\s*(\d+)/g)) o[m[1]] = +m[2];
+      return o;
+    };
+    const szc = pick('SZC425'), msz = pick('MSZ');
+    assert(szc && msz && Object.keys(szc).length >= 60 && Object.keys(msz).length >= 50,
+      'T446 G2 SZC425／MSZ 解析異常（' + (szc ? Object.keys(szc).length : 'null') + '／'
+      + (msz ? Object.keys(msz).length : 'null') + '）——掃描器壞了');
+    const clash = Object.keys(szc).filter(k => msz[k] !== undefined && msz[k] !== szc[k]);
+    assert(clash.length === 0,
+      'T446 G2【機械複算】`SZC425`（T425 底部貼合用）與 `MSZ`（load 反查補 sz 用）'
+      + '在共同鍵上必須一致；不一致的 k：' + JSON.stringify(clash.slice(0, 6))
+      + '。兩張尺寸表走鐘＝有的建築貼合對了但讀檔尺寸錯，或反過來');
+    const onlySzc = Object.keys(szc).filter(k => msz[k] === undefined).sort((a, b) => a - b);
+    assert(JSON.stringify(onlySzc) === JSON.stringify(['121', '122', '123', '127', '129', '131', '132', '133']),
+      'T446 G2b【差集釘】只在 `SZC425` 而不在 `MSZ` 的 k，目前應恰為 T364b/c/d 那八座'
+      + '（121/122/123/127/129/131/132/133），實得 ' + JSON.stringify(onlySzc)
+      + '。這八座的 sz 走另一條路保住（T446 實測存讀往返 sz 與佔格前後相同）；'
+      + '**差集變動代表有人動了尺寸表的分工，要重新量一次存讀往返**');
+  }
+}
+
 /* ===== T445 裸等距式全檔掃描（ARCH §10.7）：守衛 ===== */
 {
   /* 等距投影的標準式是 `sx=(x-y)*32` / `sy=(x+y)*16`。跟轉的正規管道是
