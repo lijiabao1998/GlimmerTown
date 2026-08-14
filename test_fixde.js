@@ -10251,6 +10251,76 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T455 機會指數唯讀層：守衛 ===== */
+{
+  /* 十卡第一張唯讀圖層卡（Chetty Opportunity Atlas 2018）。零模擬觸碰：
+     三根 SEEDPIN 照常＝tick 路徑零觸碰的行為證明；函式體零亂數靜態掃＝draw 路徑的機械證明。 */
+  // G1 表項＋權重和機械複算=1
+  {
+    const mW455 = html.match(/fx:\{wEdu:(\.\d+),wEnv:(\.\d+),wSvc:(\.\d+),wLand:(\.\d+)\}/);
+    assert(mW455 && /id:'oppAtlas455'/.test(html) && /Chetty, Friedman, Hendren/.test(html),
+      'T455 G1【原文前哨】SCI451 必須有 oppAtlas455 條目（含 Chetty 引用與四權重）');
+    const sum455 = Number(mW455[1]) + Number(mW455[2]) + Number(mW455[3]) + Number(mW455[4]);
+    assert(Math.abs(sum455 - 1) < 1e-9,
+      'T455 G1b【機械複算】四權重之和必須恰為 1（實得 ' + sum455 + '）——分數才有 0-1 的解讀');
+  }
+  // G1c oppIdx455 讀表＋draw 呼叫在流向層之後
+  assert(html.includes('const w455=SCI_BY_ID451.oppAtlas455.fx;'),
+    'T455 G1c oppIdx455 必須讀 SCI_BY_ID451 的權重，不得硬編碼');
+  {
+    const aF455 = html.indexOf('drawFlowOverlay384(ox,oy,z,lodMini); // T384b');
+    const aO455 = html.indexOf('drawOppOverlay455(ox,oy,z,lodMini); // T455');
+    assert(aF455 > 0 && aO455 > aF455 && aO455 - aF455 < 400,
+      'T455 G1d 機會層必須緊跟流向層之後呼叫（夜燈之前＝同一疊放約定）');
+  }
+  // G1e 零亂數靜態掃：oppIdx455 與 drawOppOverlay455 函式體禁 R()/Math.random/ri(
+  {
+    const f0455 = html.indexOf('function oppIdx455(i){');
+    const f1455 = html.indexOf('function techRect343(n){', f0455);
+    assert(f0455 > 0 && f1455 > f0455, 'T455 G1e 找不到 oppIdx455..drawOppOverlay455 函式區');
+    const body455 = html.slice(f0455, f1455);
+    assert(!/\bR\(\)/.test(body455) && !/Math\.random/.test(body455) && !/\bri\(/.test(body455),
+      'T455 G1e【機械掃】唯讀圖層函式體不得消耗任何亂數——看地圖不能改城市的未來（T422 G4 同義）');
+  }
+  // G2 科學頁 layerBtn 由表導出
+  {
+    const a455 = html.indexOf('}else if(guideTab===7){');
+    const b455 = html.indexOf('}else if(guideTab===4){', a455);
+    const page455 = html.slice(a455, b455);
+    assert(page455.includes("if(e451.layerBtn)rows451.push"),
+      'T455 G2 科學頁圖層鈕必須由 SCI451.layerBtn 導出（表驅動，不得寫死在頁裡）');
+  }
+  // G3 預設關＋逃生閥
+  assert(html.includes('let oppShow455=false;'),
+    'T455 G3 圖層開關必須預設關');
+  assert(html.includes('if(!oppShow455||window.__noOpp455||lodMini)return null;'),
+    'T455 G3b 逃生閥 __noOpp455 必須在場（flow384 三件套同型）');
+  // G4 行為（Node meta 路徑）：關→null；開→tiles>0 且 bands 和=tiles；逃生閥→null
+  {
+    window.GV.newWorldSeeded(4551);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 90; d++) window.GV.step(1);
+    window.GV.ai(false);
+    assert(window.GV.drawOppOverlay455() === null,
+      'T455 G4 預設關閉時 drawOppOverlay455 必須回 null（零迭代）');
+    window.GV.setOppShow455(true);
+    const meta455 = window.GV.drawOppOverlay455();
+    assert(meta455 && meta455.tiles > 0,
+      'T455 G4b 開啟後 meta.tiles 必須 >0（90 天 AI 城必有住宅），實得 ' + JSON.stringify(meta455));
+    assert(meta455.bands.reduce((a, b) => a + b, 0) === meta455.tiles,
+      'T455 G4c 五段色計數之和必須等於染格總數（對帳），實得 ' + JSON.stringify(meta455));
+    const i455 = (() => { for (let q = 0; q < 200 * 200; q++) { try { const v = window.GV.oppIdx455(q); if (v > 0) return v; } catch (e) { break; } } return null; })();
+    assert(i455 === null || (i455 >= 0 && i455 <= 1),
+      'T455 G4d 單格分數必須落在 0-1（權重和=1 的行為面），實得 ' + i455);
+    window.__noOpp455 = true;
+    assert(window.GV.drawOppOverlay455() === null,
+      'T455 G4e 逃生閥 __noOpp455=true 時必須回 null');
+    delete window.__noOpp455;
+    window.GV.setOppShow455(false);
+  }
+}
+
 /* ===== T450 「📈 趨勢」分頁：守衛 ===== */
 {
   /* 小倍數趨勢分頁：純讀 T112 的 hist，零模擬、零存檔變更、零 tick 觸碰。
@@ -10581,11 +10651,13 @@ runPwaTests().then(() => {
      它把檔案的一部分當成字串抹掉，於是少看到 2 個 `isoW2V(` 呼叫點與 4 個命中；
      套件用的是 T438 那支（認正則），看到的是全部。
      **兩支量出的「區外集合」完全相同（11 行、0 行差異）**，只有 isoW2V 內部的數量不同
-     ⇒ 差異已解釋，取完整剝除器的 44。（鐵訓：同一件事量出兩個數字，先解釋差異再釘任何數。） */
-  assert(nIso445 === 44 && nLogo445 === 2 && spawnLines445.size === 10,
-    'T445 G2【計數釘】裸等距式的三類分佈目前應為 isoW2V 內 44 處／drawLogo 內 2 處／'
+     ⇒ 差異已解釋，取完整剝除器的 44。（鐵訓：同一件事量出兩個數字，先解釋差異再釘任何數。）
+     T455 跟版：機會指數 overlay 的 isoW2V((x455-y455)*32,(x455+y455)*16+16) 落在 isoW2V 引數內
+     ＝合法白名單類，44→46（兩條裸式都在同一個呼叫的引數裡）。計數釘的天職就是讓這種變動有人簽名。 */
+  assert(nIso445 === 46 && nLogo445 === 2 && spawnLines445.size === 10,
+    'T445 G2【計數釘】裸等距式的三類分佈目前應為 isoW2V 內 46 處／drawLogo 內 2 處／'
     + 'world spawn 10 行，實得 ' + nIso445 + '／' + nLogo445 + '／' + spawnLines445.size
-    + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 44 變少，'
+    + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 46 變少，'
     + '代表有人把裸式從旋轉層裡搬出來了');
 }
 
