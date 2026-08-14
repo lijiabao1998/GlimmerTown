@@ -10123,6 +10123,65 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T453 土地價值稅：守衛 ===== */
+{
+  /* 十卡系列第三張。George 理論＋丹麥 2007 自然實驗（Høj 等 2018；資本化幅度有爭議、科學頁如實記）。
+     機制只取穩健部分：LVT 入庫、建物稅移轉、配置效應（不抑制總量、中性地價 ×1 恆等）。 */
+  // G1 表項與 fx 常數
+  assert(/id:'lvt453'/.test(html) && /Høj, Jørgensen & Schou/.test(html)
+    && /fx:\{lvtK:\.5,bldRelief:\.95,allocK:\.2\}/.test(html),
+    'T453 G1【原文前哨】SCI451 必須有 lvt453 條目（含 who/year/finding 與 fx 常數）');
+  // G1b 三個效應點（LVT 記帳/建物稅移轉/配置）必須讀表；且 T452 的兩條原文 needle 必須原樣保留
+  assert(html.includes("const lv453=SCI_BY_ID451.lvt453.fx.lvtK*(LAND[i]/128);income+=lv453;lvtRev453+=lv453;")
+    && html.includes("if(pol&&pol.lvt453)v2*=SCI_BY_ID451.lvt453.fx.bldRelief;")
+    && html.includes("*(z===1&&pol&&pol.lvt453?(1+(LAND[idx(x,y)]-128)/128*SCI_BY_ID451.lvt453.fx.allocK):1)"),
+    'T453 G1b【原文前哨】三個效應點（LVT 記帳/建物稅移轉/配置）必須讀 SCI_BY_ID451.lvt453 的常數');
+  assert(html.includes("const cut452=v2*(1-SCI_BY_ID451.rentCtrl452.fx.rentTaxMul);v2-=cut452;rentCut452+=cut452;")
+    && html.includes("*(z===1&&pol&&pol.rentCtrl452?SCI_BY_ID451.rentCtrl452.fx.supplyMul:1)"),
+    'T453 G1c【回歸】T452 的兩條效應原文必須原樣保留——新因子只能追加不能改寫');
+  // G2 科學頁切片不得手抄本卡常數（opacity: 上下文白名單＝T452 教訓沿用）
+  {
+    const a453 = html.indexOf('}else if(guideTab===7){');
+    const b453 = html.indexOf('}else if(guideTab===4){', a453);
+    assert(a453 > 0 && b453 > a453, 'T453 G2 找不到 guideTab===7 分頁區間');
+    const page453 = html.slice(a453, b453);
+    for (const lit of ['.95', '0.95']) {
+      let i453 = -1;
+      while ((i453 = page453.indexOf(lit, i453 + 1)) >= 0)
+        assert(page453.slice(Math.max(0, i453 - 8), i453).endsWith('opacity:'),
+          'T453 G2b【機械複算】科學頁不得手抄機制常數字面 ' + lit + '（位於「…'
+          + page453.slice(Math.max(0, i453 - 30), i453 + 6) + '」）——由 SCI451.effectTxt 導出');
+    }
+  }
+  // G3 預設關＋白名單
+  assert(html.includes('if(pol==null)pol={congChg451:false,rentCtrl452:false,lvt453:false,'),
+    'T453 G3【原文前哨】pol 初始化必須含 lvt453:false（預設關＝關閉時位元恆等）');
+  assert(html.includes('pol={congChg451:!!p.congChg451,rentCtrl452:!!p.rentCtrl452,lvt453:!!p.lvt453,'),
+    'T453 G3b GV.pol 測試鉤必須白名單 lvt453');
+  // G4 行為對帳（T451/T452 同型）：關 0 → 開 tick >0 → 關 tick 回 0
+  {
+    window.GV.newWorldSeeded(4531);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 90; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const off453a = window.GV.sci451();
+    assert(off453a.lvtOn === false && off453a.lvtRev === 0,
+      'T453 G4 預設關閉時 lvtRev 必須為 0（實得 ' + JSON.stringify(off453a) + '）');
+    window.GV.pol({ lvt453: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const on453 = window.GV.sci451();
+    assert(on453.lvtOn === true && on453.lvtRev > 0,
+      'T453 G4b 開啟土地價值稅並 tick 一天後，lvtRev 必須為正（實得 '
+      + JSON.stringify(on453) + '）——90 天 AI 城必有可稅 RCI 建築');
+    window.GV.pol({ lvt453: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const off453b = window.GV.sci451();
+    assert(off453b.lvtRev === 0,
+      'T453 G4c 關閉後再 tick，lvtRev 必須回 0（實得 ' + JSON.stringify(off453b) + '）——政策可逆');
+  }
+}
+
 /* ===== T450 「📈 趨勢」分頁：守衛 ===== */
 {
   /* 小倍數趨勢分頁：純讀 T112 的 hist，零模擬、零存檔變更、零 tick 觸碰。
