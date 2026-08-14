@@ -7989,9 +7989,11 @@ runPwaTests().then(() => {
   { // 靜態：sq(' 呼叫數 count pin（防靜默刪效果點）＋四向效果行字串釘
     const sqN=(html.match(/sq\('/g)||[]).length;
     assert(sqN===12,'T386a sq(\' 效果呼叫應恰 12 個（四向各 2 正 1 負），實得 '+sqN+'（合法增刪=同卡更新本 pin）');
-    assert(html.includes("*sq('hub',1.12,1))")&&html.includes("*sq('hub',1.03,1);income+=v2;taxC")&&
-           html.includes("*sq('ind',1.06,1)*sq('green',.92,1);income+=v2;taxI")&&html.includes("*sq('green',1.15,1))"),
-      'T386a 運量/商稅/工稅/觀光四效果行字串釘在場');
+    /* T454 跟版：k2/k3 稅式在 sq() 之後、income+= 之前插入了最低工資成本記帳（mw454/mw454i），
+       釘的意圖不變（sq 效果因子必須仍落在兩條稅式上），needle 更新為現行原文。 */
+    assert(html.includes("*sq('hub',1.12,1))")&&html.includes("*sq('hub',1.03,1);if(pol&&pol.minWage454){const mw454=v2*(1-SCI_BY_ID451.minWage454.fx.bizTaxMul);v2-=mw454;mwCost454+=mw454;}income+=v2;taxC")&&
+           html.includes("*sq('ind',1.06,1)*sq('green',.92,1);if(pol&&pol.minWage454){const mw454i=v2*(1-SCI_BY_ID451.minWage454.fx.bizTaxMul);v2-=mw454i;mwCost454+=mw454i;}income+=v2;taxI")&&html.includes("*sq('green',1.15,1))"),
+      'T386a 運量/商稅/工稅/觀光四效果行字串釘在場（T454 跟版）');
     assert(html.includes("spec386=(typeof d.spec386==='string'&&SPEC386[d.spec386])?d.spec386:''"),
       'T386a load 側白名單驗型在場（鐵律7）');
     assert(html.split("spec386='';").length-1>=1,'T386a newWorld 成對歸零在場');
@@ -10179,6 +10181,73 @@ runPwaTests().then(() => {
     const off453b = window.GV.sci451();
     assert(off453b.lvtRev === 0,
       'T453 G4c 關閉後再 tick，lvtRev 必須回 0（實得 ' + JSON.stringify(off453b) + '）——政策可逆');
+  }
+}
+
+/* ===== T454 最低工資：守衛 ===== */
+{
+  /* 十卡系列第四張。Card & Krueger 1994（NJ/PA DiD）：就業零顯著流失——emplMul:1 把 null result
+     本身寫成常數接進 jobs 式。論戰（Neumark & Wascher vs Cengiz 等）科學頁如實記。 */
+  // G1 表項與 fx 常數（emplMul:1 是這張卡的靈魂，鎖死）
+  assert(/id:'minWage454'/.test(html) && /who:'Card & Krueger'/.test(html)
+    && /fx:\{emplMul:1,bizTaxMul:\.97,happyVal:\.015\}/.test(html),
+    'T454 G1【原文前哨】SCI451 必須有 minWage454 條目（含 fx 常數；emplMul 必須恰為 1）');
+  // G1b 三個效應點（就業/商家成本×2/幸福）必須讀表
+  assert(html.includes("if(pol&&pol.minWage454)jobs*=SCI_BY_ID451.minWage454.fx.emplMul;")
+    && html.includes("const mw454=v2*(1-SCI_BY_ID451.minWage454.fx.bizTaxMul);v2-=mw454;mwCost454+=mw454;")
+    && html.includes("const mw454i=v2*(1-SCI_BY_ID451.minWage454.fx.bizTaxMul);v2-=mw454i;mwCost454+=mw454i;")
+    && html.includes("val:pol&&pol.minWage454?SCI_BY_ID451.minWage454.fx.happyVal:0}"),
+    'T454 G1b【原文前哨】四個效應點（jobs/商業稅/工業稅/幸福）必須讀 SCI_BY_ID451.minWage454 的常數');
+  // G1c 回歸：前三卡的效應原文必須原樣保留（政策卡逐張疊同一組式子）
+  assert(html.includes("const cut452=v2*(1-SCI_BY_ID451.rentCtrl452.fx.rentTaxMul);v2-=cut452;rentCut452+=cut452;")
+    && html.includes("*(z===1&&pol&&pol.rentCtrl452?SCI_BY_ID451.rentCtrl452.fx.supplyMul:1)")
+    && html.includes("const lv453=SCI_BY_ID451.lvt453.fx.lvtK*(LAND[i]/128);income+=lv453;lvtRev453+=lv453;")
+    && html.includes("if(pol&&pol.lvt453)v2*=SCI_BY_ID451.lvt453.fx.bldRelief;")
+    && html.includes("*(z===1&&pol&&pol.lvt453?(1+(LAND[idx(x,y)]-128)/128*SCI_BY_ID451.lvt453.fx.allocK):1)"),
+    'T454 G1c【回歸】T452/T453 的五條效應原文必須原樣保留——新因子只能追加不能改寫');
+  // G2 科學頁切片不得手抄本卡常數（opacity: 白名單沿用）
+  {
+    const a454 = html.indexOf('}else if(guideTab===7){');
+    const b454 = html.indexOf('}else if(guideTab===4){', a454);
+    assert(a454 > 0 && b454 > a454, 'T454 G2 找不到 guideTab===7 分頁區間');
+    const page454 = html.slice(a454, b454);
+    for (const lit of ['.97', '0.97', '.015']) {
+      let i454 = -1;
+      while ((i454 = page454.indexOf(lit, i454 + 1)) >= 0)
+        assert(page454.slice(Math.max(0, i454 - 8), i454).endsWith('opacity:'),
+          'T454 G2b【機械複算】科學頁不得手抄機制常數字面 ' + lit + '（位於「…'
+          + page454.slice(Math.max(0, i454 - 30), i454 + 6) + '」）——由 SCI451.effectTxt 導出');
+    }
+  }
+  // G3 預設關＋白名單
+  assert(html.includes('if(pol==null)pol={congChg451:false,rentCtrl452:false,lvt453:false,minWage454:false,'),
+    'T454 G3【原文前哨】pol 初始化必須含 minWage454:false');
+  assert(html.includes('pol={congChg451:!!p.congChg451,rentCtrl452:!!p.rentCtrl452,lvt453:!!p.lvt453,minWage454:!!p.minWage454,'),
+    'T454 G3b GV.pol 測試鉤必須白名單 minWage454');
+  // G4 行為對帳：關 0 → 開 tick >0 → 關 tick 回 0；G4d 開關瞬間 jobs 不動
+  {
+    window.GV.newWorldSeeded(4541);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 90; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const off454a = window.GV.sci451();
+    assert(off454a.mwOn === false && off454a.mwCost === 0,
+      'T454 G4 預設關閉時 mwCost 必須為 0（實得 ' + JSON.stringify(off454a) + '）');
+    const jobsBefore454 = off454a.jobs;
+    window.GV.pol({ minWage454: true, taxR: 1, taxC: 1, taxI: 1 });
+    assert(window.GV.sci451().jobs === jobsBefore454,
+      'T454 G4d 開關瞬間（未 tick）jobs 必須不動（emplMul=1 的第一半：政策本身不動就業存量）');
+    window.GV.step(1);
+    const on454 = window.GV.sci451();
+    assert(on454.mwOn === true && on454.mwCost > 0,
+      'T454 G4b 開啟最低工資並 tick 一天後，商家成本 mwCost 必須為正（實得 '
+      + JSON.stringify(on454) + '）——90 天 AI 城必有可稅商業/工業');
+    window.GV.pol({ minWage454: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const off454b = window.GV.sci451();
+    assert(off454b.mwCost === 0,
+      'T454 G4c 關閉後再 tick，mwCost 必須回 0（實得 ' + JSON.stringify(off454b) + '）——政策可逆');
   }
 }
 
