@@ -316,9 +316,12 @@ inject343(
   "R()<(window.__t343Probe.upgrade=.035*eduBoost*libraryBoost*instituteBoost*landUpMul*tq('A5',1.10,1)*tq('C2',1.08,1))",
   'upgrade'
 );
+/* T451 跟版（**動既有 probe 錨點，理由寫在這裡**）：T451 在 transitRidership 公式裡
+   加了壅堵費乘數（讀 SCI451 常數），錨點原文隨之改變。probe 是量測鉤不是判準，
+   跟著新原文走即可；量測語義不變（仍是完整乘積）。 */
 inject343(
-  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
-  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
+  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
+  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
   'transit'
 );
 // T383b：稅收窮舉守衛的 sink 記錄器——漏守衛的 k 必然落入工業稅 fallback（鐵律14 的 NaN 落點），
@@ -10000,6 +10003,64 @@ runPwaTests().then(() => {
   // G6 沒給參數時一個字都不寫（預設行為逐位元不變）
   assert(html.includes("if(noList436)for(const nm436 of noList436.split(','))"),
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
+}
+
+/* ===== T451 城市科學基座＋壅堵費：守衛 ===== */
+{
+  /* 十卡系列（T451-T460）第一張。原則：機制常數與引用文字**只寫在 SCI451**，
+     tick 公式與指南頁都從表裡讀——手抄一份就會過期而且沒有人會發現（T442 的 $12 教訓）。
+     政策預設關 ⇒ 三根 SEEDPIN 全綠就是「關閉時位元恆等」的行為實證（T385 先例）。 */
+  // G1 資料表在場、欄位齊、tick 公式讀表（不得硬編碼效應常數）
+  assert(/const SCI451=\[/.test(html)
+    && /id:'congChg451'/.test(html) && /who:'Eliasson 等'/.test(html)
+    && /fx:\{transitMul:1\.15,feePerCar:\.015,happyVal:-\.01\}/.test(html),
+    'T451 G1【原文前哨】SCI451 必須有 congChg451 條目（含 who/year/finding 與 fx 常數）——'
+    + '引用與機制常數的單一真相來源');
+  assert(html.includes("(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)")
+    && html.includes("SCI_BY_ID451.congChg451.fx.feePerCar):0;income+=congRev451;")
+    && html.includes("val:pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.happyVal:0}"),
+    'T451 G1b【原文前哨】三個效應點（轉乘/收費/幸福）必須讀 SCI_BY_ID451 的常數，'
+    + '不得把 1.15/.015/-.01 硬編碼在 tick 裡——那樣表和實作就走鐘了');
+  // G2 指南頁由表導出；頁內不得出現機制常數字面
+  assert(html.includes("'📋 委託與專精','📚 城市科學'") && html.includes('for(const e451 of SCI451){'),
+    'T451 G2【原文前哨】指南必須有「📚 城市科學」分頁且逐筆由 SCI451 導出');
+  {
+    const a451 = html.indexOf('}else if(guideTab===7){');
+    const b451 = html.indexOf('}else if(guideTab===4){', a451);
+    assert(a451 > 0 && b451 > a451, 'T451 G2b 找不到 guideTab===7 分頁區間');
+    const page451 = html.slice(a451, b451);
+    for (const lit of ['1.15', '0.015', '.015'])
+      assert(page451.indexOf(lit) < 0,
+        'T451 G2c【機械複算】科學頁不得手抄機制常數字面 ' + lit + '——效應敘述由 SCI451.effectTxt 導出');
+  }
+  // G3 預設關（pol 初始 false ＋ GV.pol 白名單有鍵）
+  assert(html.includes('if(pol==null)pol={congChg451:false,'),
+    'T451 G3【原文前哨】pol 初始化必須含 congChg451:false（預設關＝關閉時位元恆等）');
+  assert(html.includes('pol={congChg451:!!p.congChg451,'),
+    'T451 G3b GV.pol 測試鉤必須白名單 congChg451，否則行為測試設不進去');
+  // G4 行為：開啟後收費收入為正、關閉為 0（讀 GV.sci451 唯讀鉤，真對帳不是差分猜測）
+  {
+    window.GV.newWorldSeeded(4511);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 90; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const off451a = window.GV.sci451();
+    assert(off451a.on === false && off451a.congRev === 0,
+      'T451 G4 預設關閉時 congRev 必須為 0（實得 ' + JSON.stringify(off451a) + '）——'
+      + '這是「未啟用＝零模擬副作用」的直接對帳');
+    window.GV.pol({ congChg451: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const on451 = window.GV.sci451();
+    assert(on451.on === true && on451.congRev > 0,
+      'T451 G4b 開啟壅堵費並 tick 一天後，收費收入必須為正（實得 ' + JSON.stringify(on451) + '）——'
+      + '90 天 AI 城有就業者、小鎮轉乘近零 ⇒ (workers−transit)×費率 > 0');
+    window.GV.pol({ congChg451: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const off451b = window.GV.sci451();
+    assert(off451b.congRev === 0,
+      'T451 G4c 關閉後再 tick，congRev 必須回 0（實得 ' + JSON.stringify(off451b) + '）——政策可逆');
+  }
 }
 
 /* ===== T450 「📈 趨勢」分頁：守衛 ===== */
