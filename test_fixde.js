@@ -10063,6 +10063,66 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T452 租金管制：守衛 ===== */
+{
+  /* 十卡系列第二張，走 T451 基座：常數只在 SCI451，指南頁零改動自動長出第二筆。
+     Diamond, McQuade & Qian (2019 AER) 舊金山自然實驗：留居 +、房東縮供 −15%、租金受限。
+     開啟時住宅生長 roll 結果分岔＝合法（indSubsidy 先例）；預設關 ⇒ SEEDPIN 保位元恆等。 */
+  // G1 表項與 fx 常數
+  assert(/id:'rentCtrl452'/.test(html) && /who:'Diamond, McQuade & Qian'/.test(html)
+    && /fx:\{supplyMul:\.85,rentTaxMul:\.92,happyVal:\.01\}/.test(html),
+    'T452 G1【原文前哨】SCI451 必須有 rentCtrl452 條目（含 who/year/finding 與 fx 常數）');
+  // G1b 三個效應點（生長/稅基/幸福）必須讀表
+  assert(html.includes("*(z===1&&pol&&pol.rentCtrl452?SCI_BY_ID451.rentCtrl452.fx.supplyMul:1)")
+    && html.includes("const cut452=v2*(1-SCI_BY_ID451.rentCtrl452.fx.rentTaxMul);v2-=cut452;rentCut452+=cut452;")
+    && html.includes("val:pol&&pol.rentCtrl452?SCI_BY_ID451.rentCtrl452.fx.happyVal:0}"),
+    'T452 G1b【原文前哨】三個效應點（住宅生長/住宅稅/幸福）必須讀 SCI_BY_ID451.rentCtrl452 的常數，'
+    + '不得把 .85/.92/.01 硬編碼在 tick 裡');
+  // G2 科學頁切片不得手抄本卡常數（頁面由表導出，T451 G2/G2b 已鎖分頁結構）
+  {
+    const a452 = html.indexOf('}else if(guideTab===7){');
+    const b452 = html.indexOf('}else if(guideTab===4){', a452);
+    assert(a452 > 0 && b452 > a452, 'T452 G2 找不到 guideTab===7 分頁區間');
+    const page452 = html.slice(a452, b452);
+    /* 頁內既有樣式 opacity:.85 是 CSS 字面不是手抄常數（第一版守衛在這裡誤紅）——
+       逐處檢查上下文：緊跟在 opacity: 後的放行，其餘任何 .85/.92 出現即紅。 */
+    for (const lit of ['.85', '.92']) {
+      let i452 = -1;
+      while ((i452 = page452.indexOf(lit, i452 + 1)) >= 0)
+        assert(page452.slice(Math.max(0, i452 - 8), i452).endsWith('opacity:'),
+          'T452 G2b【機械複算】科學頁不得手抄機制常數字面 ' + lit + '（位於「…'
+          + page452.slice(Math.max(0, i452 - 30), i452 + 6) + '」）——由 SCI451.effectTxt 導出');
+    }
+  }
+  // G3 預設關＋白名單
+  assert(html.includes('if(pol==null)pol={congChg451:false,rentCtrl452:false,'),
+    'T452 G3【原文前哨】pol 初始化必須含 rentCtrl452:false（預設關＝關閉時位元恆等）');
+  assert(html.includes('pol={congChg451:!!p.congChg451,rentCtrl452:!!p.rentCtrl452,'),
+    'T452 G3b GV.pol 測試鉤必須白名單 rentCtrl452');
+  // G4 行為對帳（T451 G4 同型）：關 0 → 開 tick >0 → 關 tick 回 0
+  {
+    window.GV.newWorldSeeded(4521);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 90; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const off452a = window.GV.sci451();
+    assert(off452a.rentOn === false && off452a.rentCut === 0,
+      'T452 G4 預設關閉時 rentCut 必須為 0（實得 ' + JSON.stringify(off452a) + '）');
+    window.GV.pol({ rentCtrl452: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const on452 = window.GV.sci451();
+    assert(on452.rentOn === true && on452.rentCut > 0,
+      'T452 G4b 開啟租金管制並 tick 一天後，被砍住宅稅 rentCut 必須為正（實得 '
+      + JSON.stringify(on452) + '）——90 天 AI 城必有納稅住宅');
+    window.GV.pol({ rentCtrl452: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const off452b = window.GV.sci451();
+    assert(off452b.rentCut === 0,
+      'T452 G4c 關閉後再 tick，rentCut 必須回 0（實得 ' + JSON.stringify(off452b) + '）——政策可逆');
+  }
+}
+
 /* ===== T450 「📈 趨勢」分頁：守衛 ===== */
 {
   /* 小倍數趨勢分頁：純讀 T112 的 hist，零模擬、零存檔變更、零 tick 觸碰。
