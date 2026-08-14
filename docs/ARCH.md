@@ -442,7 +442,19 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 2. ~~稅收守衛沒有窮舉檢查~~ **已收口（T383b）**：執行期窮舉——KNAME 133 鍵各合成一棟、stub 亂數/道路/電水後 tick 一次，工業稅 fallback 裝 sink 記錄器（`else{const eduIndMul=` 錨點），除 k3 外任何 k 落入即紅並點名。新增 k134 忘補鏈當場咬，不必等 lv4 NaN。
 3. ~~per-cell 字串守衛~~ **已收口（T390）**：編碼修+DP 救援+雙守衛（29 條長度===N²、save→load→save 位元組恆等）。原文記錄： `tre` 在 tree===10 時寫兩字元，實測一次存讀後 1365 格樹種錯位。守衛可以是：save 後斷言 29 條字串長度全等於 N²，或存讀往返後逐格比對。同時要修 `tre` 本身（改寫 `String.fromCharCode(48+…)` 或把樹種壓回 0-9）。
 4. ~~亂數流守衛凍結在 backups 快照上~~ **已收口（T383c）**：live `buildSprites`（錨點 `function buildSprites(){` ↔ `\nfunction wealthSpr(`）剝註解（六態狀態機＋行數 canary）後對 R/ri/rand呼叫/rand裸引用/spriteTexRand 五類 token 做總數＋行序 CRC 快照（基線 **119 / 0x6b858c3b**（`test_fixde.js:7600`；T426 拆段把 `let __savedR,rand;` 上提宣告行 +1 randX token，118→119，該行已記 delta。**原文寫 118 / 0x103ef29c 已過期，T433 校正**），master 87bb1e7 實測）。中段插入/刪除/換序消耗當場紅；純註解編輯免疫（T359「註解不得含 rand(」紀律對本守衛不再必要，但區塊 regex 各卡守衛仍在，紀律照舊）。合法改動＝施工卡同卡更新兩常數並記 delta（PASS 棘輪同款慣例）。T272/T274 快照對快照守衛原樣保留。
-5. **槽 3 紀律完全沒有機器守。** RULES 鐵律3、COLLAB、VERIFY 都寫了，但沒有任何東西檢查一份 probe 腳本裡有沒有 `setItem('glimmerville.v1.slot','3')`。T370 的目錄掃描只擋「probe 躺在玩家目錄裡」，擋不住有人在 8123 貼 Console 腳本（T371 剛修掉的 docs/VERIFY.md 就是這型事故）。
+5. **已收口＋更正（T447，2026-08-14）**：本條原文說「**RULES 鐵律3**、COLLAB、VERIFY 都寫了」——
+   **RULES 從來沒有寫過**。它總共 17 條，第 3 條的原文是「禁止刪除任何既有功能、註解、以及 `window.GV` 除錯 API」；
+   而 `docs/VERIFY.md` 兩處也都以「鐵律3」之名引用同一條規矩。
+   **三份文件互相引用一條不存在的鐵律**，每一份都以為規矩寫在別人那裡。
+   T447 把它補成 **RULES 第 18 條**、修掉 VERIFY 的兩處錯誤引用，並加機器守
+   （`tools/test_toolchain.py`：倉庫追蹤的檔案裡凡呼叫 `GV.save(` 的，必須在同檔內先設槽 3；
+   `backups/`／`_ds/`／`attic/` 整份遊戲複本與跑在 mock localStorage 上的 Node 測試逐條列白名單）。
+   **順路把風險量小了一級**：`index.html` **沒有自動存檔**——剝掉註解與字串後，全檔 `save()` 只在
+   `:19377` 存檔按鈕的處理器裡呼叫一次；不經使用者動作寫進 localStorage 的只有
+   `.scDone`／`.viewRot`／`.snd` 三個偏好鍵。所以「把遊戲載起來放著」不會覆蓋任何槽，
+   真正會覆蓋的是**自己去呼叫 `GV.save()` 的 probe**；實測 7 個會 iframe 載入遊戲的瀏覽器工具
+   （`atlas.html` 與 `docs/tools/` 六支）**沒有任何一支呼叫它** ⇒ 今天的實際曝險是零。
+   原文保留如下：**槽 3 紀律完全沒有機器守。** RULES 鐵律3、COLLAB、VERIFY 都寫了，但沒有任何東西檢查一份 probe 腳本裡有沒有 `setItem('glimmerville.v1.slot','3')`。T370 的目錄掃描只擋「probe 躺在玩家目錄裡」，擋不住有人在 8123 貼 Console 腳本（T371 剛修掉的 docs/VERIFY.md 就是這型事故）。
 6. **sprite 像素在 Node 套件裡根本測不到。** 素材守衛只到「家族計數 ≥ 基線」與中繼資料。真正的像素指紋（CRC32）在 `atlas.html`，但**倉庫裡沒有提交任何指紋基線檔**，也不在任何自動閘門裡。亂數流位移造成的全圖重繪，機器測不出來。
 7. **已更正＋部分收口（T445，2026-08-14）**：本條原文寫「rot≠0 的**十個**漏轉點沒有任何守衛（見 §4 表）」，
    而它指的 §4 表如今**只剩三列、且三列全部劃掉**，表上自己寫著

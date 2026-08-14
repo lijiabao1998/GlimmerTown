@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 import io
-import re
 import os
 import subprocess
 import sys
@@ -1760,6 +1759,7 @@ class TestConsoleEncodingT366(unittest.TestCase):
                 except SystemExit:
                     pass
         self.assertEqual(calls, ['configure'])
+
 
 
 if __name__ == '__main__':

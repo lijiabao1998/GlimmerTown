@@ -10,7 +10,7 @@
 
 > **⚠️ 埠號更正**：本文件原本寫 `python -m http.server 8123`，那是**玩家的遊玩目錄**。
 > 在該 origin 執行下方冒煙腳本會建出一座測試城，而遊戲每 25 秒自動存檔、
-> `curSlot()` 遇不合法鍵回槽 1 —— 等於覆蓋玩家存檔（鐵律3、COLLAB 第二節明令禁止）。
+> `curSlot()` 遇不合法鍵回槽 1 —— 等於覆蓋玩家存檔（**鐵律18**、COLLAB 第二節明令禁止；T447 前這裡寫的是「鐵律3」，而 RULES 的第 3 條講的是別的事）。
 > **8123 任何人不得跑測試。**
 
 ## 0. 啟動
@@ -32,7 +32,7 @@ python -m http.server 8124 --directory C:\dev\glimmer-town
 瀏覽器開對應埠，按 F12 開 DevTools。**執行任何腳本前先做**：
 
 ```js
-localStorage.setItem('glimmerville.v1.slot','3')   // 只用槽 3（鐵律3）
+localStorage.setItem('glimmerville.v1.slot','3')   // 只用槽 3（**鐵律18**；T447 前這裡寫的是「鐵律3」，引用了一條不存在的規則）
 ```
 
 ## 1. 零錯誤
