@@ -10324,6 +10324,60 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T459 污染外部性（空氣品質管制）：守衛 ===== */
+{
+  /* Chay & Greenstone 2003 QJE / 2005 JPE。排放削減接在 recomputePol 唯一導出點（不碰成對蓋印）；
+     健康/房價走既有 POL 管道湧現；開關與讀檔全圖重掃保一致性。 */
+  // G1 表項＋參數域
+  {
+    const mC459 = html.match(/fx:\{polCut:(\.\d+),compK:(\.\d+)\}/);
+    assert(mC459 && /id:'cleanAir459'/.test(html) && /who:'Chay & Greenstone'/.test(html),
+      'T459 G1【原文前哨】SCI451 必須有 cleanAir459 條目（含 Chay & Greenstone 引用與 polCut/compK）');
+    assert(Number(mC459[1]) > 0 && Number(mC459[1]) < .5 && Number(mC459[2]) > 0 && Number(mC459[2]) < .1,
+      'T459 G1b【機械複算】polCut∈(0,.5)／compK∈(0,.1)，實得 ' + mC459[1] + '/' + mC459[2]);
+  }
+  // G1c 導出點讀表＋不碰蓋印＋全圖重掃兩處＋k3 合規成本
+  assert(html.includes("const b459=pol&&pol.cleanAir459?Math.round(POLBASE[i]*(1-SCI_BY_ID451.cleanAir459.fx.polCut)):POLBASE[i];"),
+    'T459 G1c【原文前哨】排放削減必須接在 recomputePol 導出點、讀 SCI_BY_ID451、關閉時取原值');
+  assert(html.includes("polToggle('#polClean459','cleanAir459','空氣品質管制',()=>recomputePolAll459());")
+    && html.includes("if(pol&&pol.cleanAir459)recomputePolAll459();"),
+    'T459 G1d【原文前哨】全圖重掃必須掛在 toggle after 回調與讀檔 pol 恢復之後兩處——'
+    + '少一處就有 staleness（開著存檔的圖 POL 停在未管制值）');
+  assert(html.includes("if(pol&&pol.cleanAir459){const cc459=v2*SCI_BY_ID451.cleanAir459.fx.compK;v2-=cc459;cleanCost459+=cc459;}"),
+    'T459 G1e【原文前哨】工業合規成本必須讀表且差額入 cleanCost459');
+  // G3 預設關＋白名單
+  assert(html.includes("aggCluster458:false,cleanAir459:false,"),
+    'T459 G3【原文前哨】pol 初始化必須含 cleanAir459:false');
+  assert(html.includes("aggCluster458:!!p.aggCluster458,cleanAir459:!!p.cleanAir459,"),
+    'T459 G3b GV.pol 測試鉤必須白名單 cleanAir459');
+  // G4 行為：開關瞬間 polSum 立降（不需 tick）＋關回原值＋長跑合規成本入帳
+  {
+    window.GV.newWorldSeeded(4591);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 120; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const p0459 = window.GV.sci451().polSum;
+    assert(p0459 > 0, 'T459 G4 前置：120 天 AI 城必有污染（實得 polSum=' + p0459 + '）');
+    window.GV.pol({ cleanAir459: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.recomputePolAll459();
+    const p1459 = window.GV.sci451().polSum;
+    assert(p1459 < p0459,
+      'T459 G4b 開啟＋全圖重掃後 polSum 必須立降（不需 tick），實得 ' + p0459 + ' → ' + p1459);
+    window.GV.pol({ cleanAir459: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.recomputePolAll459();
+    const p2459 = window.GV.sci451().polSum;
+    assert(p2459 === p0459,
+      'T459 G4c 關閉＋重掃後 polSum 必須回到原值（可逆），實得 ' + p2459 + '（原 ' + p0459 + '）');
+    window.GV.pol({ cleanAir459: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.recomputePolAll459();
+    window.GV.step(1);
+    const c459 = window.GV.sci451();
+    assert(c459.cleanOn === true && c459.cleanCost > 0,
+      'T459 G4d 開啟後 tick 一天，工業合規成本 cleanCost 必須 >0（實得 ' + JSON.stringify({cleanCost: c459.cleanCost}) + '）');
+  }
+}
+
 /* ===== T458 聚集經濟（產業聚落區劃）：守衛 ===== */
 {
   /* Glaeser & Gottlieb 2009 JEL：密度倍增 ↔ 生產力 +2~3.5%（取下緣 3%）。政策預設關＝六哨兵不動；
