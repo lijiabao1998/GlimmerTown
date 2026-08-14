@@ -10002,6 +10002,89 @@ runPwaTests().then(() => {
     'T436 G6【原文前哨】沒有清單時必須完全不寫入，確保預設行為與改動前逐位元相同');
 }
 
+/* ===== T445 裸等距式全檔掃描（ARCH §10.7）：守衛 ===== */
+{
+  /* 等距投影的標準式是 `sx=(x-y)*32` / `sy=(x+y)*16`。跟轉的正規管道是
+     `isoW2V`／`w2v`／`viewDep`／`sxOf`／`syOf`；直接把裸式當螢幕座標用＝繞過旋轉層。
+     §10.7 說「或至少對裸等距式做全檔靜態掃描並列白名單」——這一區就是那個掃描。
+     （§10.7 前半句「十個漏轉點」已經過期：它指的 §4 表如今只剩三列而且全部劃掉，
+      表上自己寫著「旋轉收口全清（T375+T376+T388+T389）」。已在 ARCH 更正。） */
+  const bareLines445 = htmlBare438.split('\n');
+  const idx445 = [];
+  {
+    let acc = 0;
+    for (const l of bareLines445) { idx445.push(acc); acc += l.length + 1; }
+  }
+  const lineOf445 = (i) => {
+    let lo = 0, hi = idx445.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (idx445[mid] <= i) lo = mid; else hi = mid - 1; }
+    return lo + 1;
+  };
+  // ① isoW2V( 的引數區間
+  const spans445 = [];
+  {
+    const re = /isoW2V\(/g; let m;
+    while ((m = re.exec(htmlBare438))) {
+      let depth = 0, i = m.index + m[0].length - 1;
+      for (; i < htmlBare438.length && i < m.index + 800; i++) {
+        const c = htmlBare438[i];
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) break; }
+      }
+      spans445.push([m.index, i]);
+    }
+  }
+  // ② drawLogo() 的函式體區間（開始畫面小島，沒有世界旋轉）
+  let logoLo445 = -1, logoHi445 = -1;
+  for (let i = 0; i < bareLines445.length; i++) {
+    if (/^function drawLogo\(/.test(bareLines445[i])) {
+      logoLo445 = i + 1;
+      for (let j = i + 1; j < bareLines445.length; j++) if (bareLines445[j] === '}') { logoHi445 = j + 1; break; }
+      break;
+    }
+  }
+  assert(logoLo445 > 0 && logoHi445 > logoLo445,
+    'T445 G0 找不到 `function drawLogo(` 的函式體——白名單②的邊界算不出來，這條會失真');
+
+  const PATS445 = [
+    /\(\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*-\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*\)\s*\*\s*32\b/g,
+    /\(\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*\+\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*\)\s*\*\s*16\b/g,
+  ];
+  let nIso445 = 0, nLogo445 = 0, nSpawn445 = 0;
+  const spawnLines445 = new Set(), bad445 = [];
+  for (const re of PATS445) {
+    let m;
+    while ((m = re.exec(htmlBare438))) {
+      const ln = lineOf445(m.index);
+      if (spans445.some(s => m.index > s[0] && m.index < s[1])) { nIso445++; continue; }
+      if (ln >= logoLo445 && ln <= logoHi445) { nLogo445++; continue; }
+      // ③ world 空間 spawn：同一行或相鄰兩行內有 viewDep(（深度鍵已跟轉，T389）
+      const near = bareLines445.slice(Math.max(0, ln - 2), ln + 1).join('\n');
+      if (near.indexOf('viewDep(') >= 0) { nSpawn445++; spawnLines445.add(ln); continue; }
+      bad445.push(ln + ': ' + html.split('\n')[ln - 1].trim().slice(0, 70));
+    }
+  }
+  assert(bad445.length === 0,
+    'T445 G1【機械複算】裸等距式（`(a-b)*32` / `(a+b)*16`）只准落在三類白名單裡：'
+    + '① `isoW2V(…)` 的引數內（正規用法：裸式算 world 座標，交給旋轉層轉 view）；'
+    + '② `drawLogo()` 內（開始畫面小島，沒有世界旋轉）；'
+    + '③ 同行或前兩行有 `viewDep(` 的 world 空間 spawn（深度鍵已跟轉，T389）。'
+    + '三類之外 ' + bad445.length + ' 處：' + JSON.stringify(bad445.slice(0, 5))
+    + '。要新增請走 `isoW2V()`，或在卡面說明為什麼這一處不需要跟轉');
+  /* 計數釘：防止有人靠「把 isoW2V 拿掉」讓分母變小而蒙混過關。
+     數字變動＝有人動了旋轉層的用法，請連同理由一起出卡。 */
+  /* 為什麼是 44 而不是我偵查時量到的 40：偵查腳本用的是**簡版剝除器（不認正則字面量）**，
+     它把檔案的一部分當成字串抹掉，於是少看到 2 個 `isoW2V(` 呼叫點與 4 個命中；
+     套件用的是 T438 那支（認正則），看到的是全部。
+     **兩支量出的「區外集合」完全相同（11 行、0 行差異）**，只有 isoW2V 內部的數量不同
+     ⇒ 差異已解釋，取完整剝除器的 44。（鐵訓：同一件事量出兩個數字，先解釋差異再釘任何數。） */
+  assert(nIso445 === 44 && nLogo445 === 2 && spawnLines445.size === 10,
+    'T445 G2【計數釘】裸等距式的三類分佈目前應為 isoW2V 內 44 處／drawLogo 內 2 處／'
+    + 'world spawn 10 行，實得 ' + nIso445 + '／' + nLogo445 + '／' + spawnLines445.size
+    + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 44 變少，'
+    + '代表有人把裸式從旋轉層裡搬出來了');
+}
+
 /* ===== T444 種子哨兵行為化（ARCH §10.14）：守衛 ===== */
 {
   /* 舊哨兵（`tools/verify.py`）是 grep 原始碼字面，**連方向都是反的**：
