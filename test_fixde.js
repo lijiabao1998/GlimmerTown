@@ -10292,15 +10292,17 @@ runPwaTests().then(() => {
       'T456 G1b【機械複算】dnThr 必須嚴格小於 upThr（中性帶存在），實得 dn=' + mT456[2] + ' up=' + mT456[1]);
   }
   // G1c 暴露修正必須長在 T124 重判塊裡（唯一漂移寫入者）、讀表、雙向、計數
+  /* T457 跟版：第二管道（tgt1）插在 tgt 之後，計數與落筆行從 tgt 改讀 tgt1——
+     needle 更新為現行原文（合法演進跟版＋理由，T454 撞 T386a 同款；tgt 原式原文不動）。 */
   assert(html.includes("const tgt=s456>=SCI_BY_ID451.mobility456.fx.upThr?Math.min(2,tgt0+1):(s456<SCI_BY_ID451.mobility456.fx.dnThr?Math.max(0,tgt0-1):tgt0);")
-    && html.includes("if(tgt>tgt0)mob456.up++;else if(tgt<tgt0)mob456.dn++;")
+    && html.includes("if(tgt1>tgt0)mob456.up++;else if(tgt1<tgt0)mob456.dn++;")
     && html.includes("const tgt0=judgeWealth(x,y);"),
     'T456 G1c【原文前哨】暴露修正必須接在 T124 的 judgeWealth 目標上（單寫者）、讀 SCI_BY_ID451 常數、'
-    + '雙向且有介入計數——第一版蓋了平行普查、同 tick 被 T124 覆蓋成零效果（查因記卡面）');
+    + '雙向且有介入計數——第一版蓋了平行普查、同 tick 被 T124 覆蓋成零效果（查因記卡面）（T457 跟版）');
   // G1d 修正塊零亂數（決定性契約）
   {
     const c0456 = html.indexOf("const tgt0=judgeWealth(x,y);");
-    const c1456 = html.indexOf('else if(tgt<cur)b.we=cur-1;', c0456);
+    const c1456 = html.indexOf('else if(tgt1<cur)b.we=cur-1;', c0456);
     assert(c0456 > 0 && c1456 > c0456, 'T456 G1d 找不到重判塊範圍');
     /* 拿剝除後等長文本掃（第一版拿原文掃、被自己註解裡的「零 R() 消耗」字樣咬紅——
        T438 判讀被自己字串餵飽的反向重演；htmlBare438 位置對齊、註解已抹）。 */
@@ -10317,7 +10319,56 @@ runPwaTests().then(() => {
     && html.includes("if(pol&&pol.minWage454)jobs*=SCI_BY_ID451.minWage454.fx.emplMul;")
     && html.includes("const w455=SCI_BY_ID451.oppAtlas455.fx;"),
     'T456 G1f【回歸】T452-T455 的效應原文必須原樣保留');
-  /* G4/G4b/G4c（行為）：搭在三顆種子釘旁——seed301 12升0降／seed7 0/0 對照組／seed22 28升1降。 */
+  /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
+}
+
+/* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
+{
+  /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。
+     政策預設關 ⇒ ecIdx457 連算都不算、六哨兵位元恆等；開啟＝T456 流動的第二管道。 */
+  // G1 表項＋參數域機械複算
+  {
+    const mE457 = html.match(/fx:\{mixR:(\d+),venueW:(\.\d+),ecThr:(\.\d+)\}/);
+    assert(mE457 && /id:'ecMix457'/.test(html) && /Chetty, Jackson, Kuchler, Stroebel/.test(html),
+      'T457 G1【原文前哨】SCI451 必須有 ecMix457 條目（含 Nature 2022 引用與 mixR/venueW/ecThr）');
+    assert(Number(mE457[2]) > 0 && Number(mE457[2]) < 1 && Number(mE457[3]) > 0 && Number(mE457[3]) < 1,
+      'T457 G1b【機械複算】venueW 與 ecThr 必須落在 (0,1)，實得 ' + mE457[2] + '/' + mE457[3]);
+  }
+  // G1c ecIdx457 讀表＋第二管道接線讀表＋政策短路在最前
+  assert(html.includes("const f457=SCI_BY_ID451.ecMix457.fx;")
+    && html.includes("const tgt1=(pol&&pol.ecMix457&&tgt<=tgt0&&tgt0<2&&ecIdx457(i)>=SCI_BY_ID451.ecMix457.fx.ecThr)?tgt0+1:tgt;")
+    && html.includes("if(tgt1>tgt)ecUp457++;"),
+    'T457 G1c【原文前哨】ecIdx457 必須讀 SCI_BY_ID451 常數；第二管道必須以 pol&&pol.ecMix457 '
+    + '短路開頭（關閉＝連算都不算）且有 ecUp457 介入計數');
+  // G1d 計數器鐵律7
+  assert(html.includes("ecUp457=0;") && html.split('ecUp457=0').length - 1 >= 2,
+    'T457 G1d ecUp457 必須在 newWorld 成對歸零（鐵律7）');
+  // G3 預設關＋白名單
+  assert(html.includes("minWage454:false,ecMix457:false,"),
+    'T457 G3【原文前哨】pol 初始化必須含 ecMix457:false');
+  assert(html.includes("minWage454:!!p.minWage454,ecMix457:!!p.ecMix457,"),
+    'T457 G3b GV.pol 測試鉤必須白名單 ecMix457');
+  // G4 行為：政策開的世界 ecUp>0（決定性）、預設關世界恆 0（六哨兵世界已隱含，這裡取受控短跑）
+  {
+    window.GV.newWorldSeeded(4571);
+    window.GV.setDiff(1);
+    window.GV.pol({ ecMix457: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.ai(true);
+    for (let d = 0; d < 150; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const ec457on = window.GV.sci451();
+    assert(ec457on.ecOn === true && ec457on.ecUp > 0,
+      'T457 G4 政策開啟的 150 天 AI 城，第二管道介入 ecUp 必須 >0（實得 ' + JSON.stringify(ec457on) + '）'
+      + '——混城必有異級鄰里+混合場所');
+    window.GV.newWorldSeeded(4571);
+    window.GV.setDiff(1);
+    window.GV.ai(true);
+    for (let d = 0; d < 150; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const ec457off = window.GV.sci451();
+    assert(ec457off.ecOn === false && ec457off.ecUp === 0,
+      'T457 G4b 同種子預設關世界 ecUp 必須恆 0（實得 ' + JSON.stringify(ec457off) + '）——政策不開不參與模擬');
+  }
 }
 
 /* ===== T455 機會指數唯讀層：守衛 ===== */
