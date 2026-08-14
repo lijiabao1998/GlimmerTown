@@ -4617,8 +4617,19 @@ runPwaTests().then(() => {
     // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
     // T432 重釘（業主授權 2026-08-13）：兩座孤島核電與四座孤島綠能共 686 容量不再跨網白嫖；4153→3781 是刻意供電語義變更。
     //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
-    seedPin444('seed301', 301, 400, 3781, window.GV.stats().pop,
-      'T324/T342c 起釘；T432 孤島電源不併網重釘（前值 4153）');
+    seedPin444('seed301', 301, 400, 6876, window.GV.stats().pop,
+      'T324/T342c 起釘；T432 孤島電源不併網重釘（前值 4153）；T456 世代流動接線重釘（前值 3781，'
+      + '授權與查因記 T456 卡面——拮据城吃到暴露紅利翻身）');
+    /* T456 金流哨兵：世代普查是**常駐**機制，pop 釘在這三顆種子恰好不動（診斷記卡面：
+       零亂數規則＋金流非 pop 瓶頸），但金流已合法分岔——「三釘綠＝位元恆等」這句話從 T456 起
+       不再自動成立，必須把 money 也釘進哨兵，未來任何動到經濟的手都會在這裡留下指紋。 */
+    seedPin444('seed301m', 301, 400, 631145, Math.round(window.GV.stats().money),
+      'T456 起釘：pop 之外的第二自由度（金流），暴露修正 37 次介入的世界線');
+    {
+      const mob301 = window.GV.sci451();
+      assert(mob301.mobUp === 37 && mob301.mobDn === 0,
+        'T456 G4 seed301 400 天暴露修正應恰為 37 升 0 降（決定性），實得 up=' + mob301.mobUp + ' dn=' + mob301.mobDn);
+    }
     assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
   }
 
@@ -5986,7 +5997,7 @@ runPwaTests().then(() => {
     assert(bas434 === 1,
       'T434b G2【計數釘】buildAllSprites 在 index.html 只准出現 1 次（就是那個定義）。'
       + '出現第二次代表有人在開機路徑或其他地方呼叫它 ⇒ 會多跑一次 buildSprites()，'
-      + '兩釘（seed301 pop===3781／seed22 pop===4550）與 T383c token 快照全毀。'
+      + '種子釘（seed301/seed22/seed7 六根，值見 seedPin444 呼叫處）與 T383c token 快照全毀。'
       + '（本釘只數剝掉註解與字串後的程式碼；註解裡提到這個名字不算。）實得 ' + bas434);
     // G3 定義必須落在 T383c 的掃描區間**之外**（該快照掃 buildSprites 函式體的亂數 token）
     const bsStart434 = html.indexOf('function buildSprites(){');
@@ -6933,6 +6944,13 @@ runPwaTests().then(() => {
     seedPin444('seed7', 7, 400, 251, window.GV.stats().pop,
       'T444 補餘裕新釘。實測 251——這是一張**低成長地圖**，與 seed301（3781 拮据城）'
       + '、seed22（4550 健康城）分屬三個不同的族群；選它正是要讓釘子涵蓋「難開的圖」那一端');
+    seedPin444('seed7m', 7, 400, 55, Math.round(window.GV.stats().money),
+      'T456 金流哨兵：低成長圖普查 0 次＝金流應與 T455 版完全相同（對照組性質）');
+    {
+      const mob7 = window.GV.sci451();
+      assert(mob7.mobUp === 0 && mob7.mobDn === 0,
+        'T456 G4b seed7 低成長圖普查應恰為 0 升 0 降（全城分數落中性帶＝對照組），實得 up=' + mob7.mobUp + ' dn=' + mob7.mobDn);
+    }
 
     // seed15 同屬水域中心地圖：至少必須有人口（不再是零）
     window.GV.newWorldSeeded(15);
@@ -6947,8 +6965,17 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    seedPin444('seed22', 22, 400, 4550, window.GV.stats().pop,
-      'T348 起釘：紓困為手術式，健康城市位元恆等');
+    seedPin444('seed22', 22, 400, 3525, window.GV.stats().pop,
+      'T348 起釘：紓困為手術式；T456 世代流動接線重釘（前值 4550——短視野配對差實測機制為正紅利，'
+      + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）');
+    seedPin444('seed22m', 22, 400, 1456, Math.round(window.GV.stats().money),
+      'T456 金流哨兵：暴露修正最活躍的世界線（61 升 0 降）');
+    {
+      const mob22 = window.GV.sci451();
+      assert(mob22.mobUp === 61 && mob22.mobDn === 0,
+        'T456 G4c seed22 400 天暴露修正應恰為 61 升 0 降（決定性；下行分支目前僅 G1c 原文釘覆蓋，'
+        + '行為見證待 T460 平衡矩陣造境——如實記），實得 up=' + mob22.mobUp + ' dn=' + mob22.mobDn);
+    }
   }
 
 
@@ -10251,6 +10278,48 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T456 世代流動接線：守衛（重釘卡——金流哨兵與普查計數釘在三顆種子釘旁） ===== */
+{
+  /* Chetty & Hendren 2018 QJE 暴露效應。常駐機制（非政策開關）：90 天世代普查、oppIdx455 閾值
+     驅動 we 升降、走既有 WEALTH_TAX。決定性零 R() 消耗＝最小分岔；pop 釘在三顆種子恰好不動
+     （診斷記卡面），金流已合法分岔 ⇒ 新增三根 money 哨兵（seed301m/seed7m/seed22m）。 */
+  // G1 表項＋閾值序機械複算（第一版有 period:90 自建普查，查因後拆除——節奏跟 T124 的 30 天走）
+  {
+    const mT456 = html.match(/fx:\{upThr:(\.\d+),dnThr:(\.\d+)\}/);
+    assert(mT456 && /id:'mobility456'/.test(html) && /who:'Chetty & Hendren'/.test(html),
+      'T456 G1【原文前哨】SCI451 必須有 mobility456 條目（含 Chetty & Hendren 引用與 upThr/dnThr）');
+    assert(Number(mT456[2]) < Number(mT456[1]),
+      'T456 G1b【機械複算】dnThr 必須嚴格小於 upThr（中性帶存在），實得 dn=' + mT456[2] + ' up=' + mT456[1]);
+  }
+  // G1c 暴露修正必須長在 T124 重判塊裡（唯一漂移寫入者）、讀表、雙向、計數
+  assert(html.includes("const tgt=s456>=SCI_BY_ID451.mobility456.fx.upThr?Math.min(2,tgt0+1):(s456<SCI_BY_ID451.mobility456.fx.dnThr?Math.max(0,tgt0-1):tgt0);")
+    && html.includes("if(tgt>tgt0)mob456.up++;else if(tgt<tgt0)mob456.dn++;")
+    && html.includes("const tgt0=judgeWealth(x,y);"),
+    'T456 G1c【原文前哨】暴露修正必須接在 T124 的 judgeWealth 目標上（單寫者）、讀 SCI_BY_ID451 常數、'
+    + '雙向且有介入計數——第一版蓋了平行普查、同 tick 被 T124 覆蓋成零效果（查因記卡面）');
+  // G1d 修正塊零亂數（決定性契約）
+  {
+    const c0456 = html.indexOf("const tgt0=judgeWealth(x,y);");
+    const c1456 = html.indexOf('else if(tgt<cur)b.we=cur-1;', c0456);
+    assert(c0456 > 0 && c1456 > c0456, 'T456 G1d 找不到重判塊範圍');
+    /* 拿剝除後等長文本掃（第一版拿原文掃、被自己註解裡的「零 R() 消耗」字樣咬紅——
+       T438 判讀被自己字串餵飽的反向重演；htmlBare438 位置對齊、註解已抹）。 */
+    const blk456 = htmlBare438.slice(c0456, c1456);
+    assert(!/\bR\(\)/.test(blk456) && !/Math\.random/.test(blk456) && !/\bri\(/.test(blk456),
+      'T456 G1d【機械掃】暴露修正必須是決定性規則（零亂數）——最小分岔契約');
+  }
+  // G1e 計數器 newWorld 成對歸零（鐵律7）
+  assert(html.includes("mob456={up:0,dn:0};") && html.split('mob456={up:0,dn:0}').length - 1 >= 2,
+    'T456 G1e mob456 計數器必須在 newWorld 成對歸零（鐵律7）');
+  // G1f 前四卡效應原文保留（G1c 回歸鏈延續）
+  assert(html.includes("const cut452=v2*(1-SCI_BY_ID451.rentCtrl452.fx.rentTaxMul);v2-=cut452;rentCut452+=cut452;")
+    && html.includes("const lv453=SCI_BY_ID451.lvt453.fx.lvtK*(LAND[i]/128);income+=lv453;lvtRev453+=lv453;")
+    && html.includes("if(pol&&pol.minWage454)jobs*=SCI_BY_ID451.minWage454.fx.emplMul;")
+    && html.includes("const w455=SCI_BY_ID451.oppAtlas455.fx;"),
+    'T456 G1f【回歸】T452-T455 的效應原文必須原樣保留');
+  /* G4/G4b/G4c（行為）：搭在三顆種子釘旁——seed301 12升0降／seed7 0/0 對照組／seed22 28升1降。 */
+}
+
 /* ===== T455 機會指數唯讀層：守衛 ===== */
 {
   /* 十卡第一張唯讀圖層卡（Chetty Opportunity Atlas 2018）。零模擬觸碰：
@@ -11372,11 +11441,14 @@ runPwaTests().then(() => {
     }
     if(!rpN){isoCap+=c;isoList.push({k,lv});if(k===58)isoNuke++;else isoGreen++;}
   }
-  assert(isoNuke===2,'T432 G7 seed301 應有 2 座孤島核電（實得 '+isoNuke+'）');
-  assert(isoGreen===4,'T432 G7 seed301 應有 4 座孤島綠能（實得 '+isoGreen+'）');
-  assert(isoCap===686,'T432 G7 seed301 孤島容量應為 686（實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
+  /* T456 跟版：世代流動接線重釘讓 seed301 世界形狀整個改變（拮据城翻身），孤島電源從 2 核 4 綠
+     縮成 1 綠——本塊仍是世界形狀回歸釘，但「孤島不併網」的**行為**保證現在主要由 G8 受控造境
+     測試承擔（G8 不依賴任何 AI 世界形狀）。 */
+  assert(isoNuke===0,'T432 G7 seed301 應有 0 座孤島核電（T456 重釘後；實得 '+isoNuke+'）');
+  assert(isoGreen===1,'T432 G7 seed301 應有 1 座孤島綠能（T456 重釘後；實得 '+isoGreen+'）');
+  assert(isoCap===30,'T432 G7 seed301 孤島容量應為 30（T456 重釘後；實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
   assert(window.__t432Power.districts===1,'T432 G7 seed301 應為單 district（實得 '+window.__t432Power.districts+'）');
-  assert(window.__t432Power.sum===892,'T432 G7 seed301 併網容量應為 892（實得 '+window.__t432Power.sum+'）');
+  assert(window.__t432Power.sum===1370,'T432 G7 seed301 併網容量應為 1370（T456 重釘後；實得 '+window.__t432Power.sum+'）');
 }
 { // G8 行為：撤銷電源後必須重建來源快取（不能遺失回復的風機容量）
   window.GV.setMapSize(72); window.GV.newWorldSeeded(43208); window.GV.setDiff(3); window.GV.weather(0);
