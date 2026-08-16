@@ -10844,6 +10844,27 @@ runPwaTests().then(() => {
 }
 
 
+/* ===== T479 大學知識外溢：守衛 ===== */
+{
+  assert(/id:'univSp479'/.test(html), 'T479 G1 SCI451 必須有 univSp479');
+  assert(html.includes('univSp479:false'), 'T479 G1b pol 預設 false');
+  assert(html.includes('univSp479:!!p.univSp479'), 'T479 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polunivSp479'"), 'T479 G1d polToggle 在場');
+  assert(html.includes('SCI_BY_ID451.univSp479'), 'T479 G2 效應必須讀表');
+  {
+    window.GV.newWorldSeeded(479);
+    window.GV.setDiff(1);
+    window.GV.pol({ univSp479: false, congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, houseSup464: false, jobMul465: false, hwySub466: false, schoolPeer467: false, spatMis468: false, amenCap469: false, tod470: false, lez471: false, vacRet472: false, greenB473: false, portPath474: false, congFund475: false, inclH476: false, nightEc477: false, floodR478: false, univSp479: false, bikeInf480: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().univSp479 === false, 'T479 G3 關閉態');
+    window.GV.pol({ univSp479: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().univSp479 === true, 'T479 G4 開啟態');
+    window.GV.pol({ univSp479: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
+
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
   /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。
