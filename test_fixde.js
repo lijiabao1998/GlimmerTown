@@ -10573,6 +10573,27 @@ runPwaTests().then(() => {
 }
 
 
+/* ===== T466 公路郊區化：守衛 ===== */
+{
+  assert(/id:'hwySub466'/.test(html), 'T466 G1 SCI451 必須有 hwySub466');
+  assert(html.includes('hwySub466:false'), 'T466 G1b pol 預設 false');
+  assert(html.includes('hwySub466:!!p.hwySub466'), 'T466 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polhwySub466'"), 'T466 G1d polToggle 在場');
+  assert(html.includes('SCI_BY_ID451.hwySub466'), 'T466 G2 效應必須讀表');
+  {
+    window.GV.newWorldSeeded(466);
+    window.GV.setDiff(1);
+    window.GV.pol({ hwySub466: false, congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, houseSup464: false, jobMul465: false, hwySub466: false, schoolPeer467: false, spatMis468: false, amenCap469: false, tod470: false, lez471: false, vacRet472: false, greenB473: false, portPath474: false, congFund475: false, inclH476: false, nightEc477: false, floodR478: false, univSp479: false, bikeInf480: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().hwySub466 === false, 'T466 G3 關閉態');
+    window.GV.pol({ hwySub466: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().hwySub466 === true, 'T466 G4 開啟態');
+    window.GV.pol({ hwySub466: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
+
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
   /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。
