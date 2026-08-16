@@ -10378,6 +10378,55 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T461 城市科學財政條（showStats 表驅動 SCI_FIN461）===== */
+{
+  /* 玩家可見的自屬日帳：常數／fin key 只在 SCI_FIN461；showStats 用 sciFinRows461 長出。
+     零 tick 公式改動；政策全關時列顯示未啟用且 v=0。 */
+  assert(/const SCI_FIN461=\[/.test(html), 'T461 G1 SCI_FIN461 表必須在場');
+  assert(html.includes('function sciFinRows461') && html.includes('function sciFinVal461'),
+    'T461 G1b sciFinRows461／sciFinVal461 必須在場');
+  assert(html.includes('t461Html=statTab(sciFinRows461())') && html.includes('${t461Html}'),
+    'T461 G1c showStats 必須 statTab(sciFinRows461()) 且模板插入 t461Html');
+  const tFin461 = html.slice(html.indexOf('const SCI_FIN461=['), html.indexOf('];', html.indexOf('const SCI_FIN461=[')) + 2);
+  const keys461 = [...tFin461.matchAll(/finKey:'([a-zA-Z]+)'/g)].map(m => m[1]);
+  assert(keys461.join(',') === 'congRev,rentCut,lvtRev,mwCost,aggGain,cleanCost',
+    'T461 G2 finKey 恰等六欄帳本，實得 ' + keys461.join(','));
+  const rowsFn461 = html.slice(html.indexOf('function sciFinRows461'), html.indexOf('function sciFinRows461') + 900);
+  assert(/sciFinVal461\(e\)/.test(rowsFn461), 'T461 G2b 列值必須走 sciFinVal461(e)');
+  assert(!/v:'\d+\.\d+'/.test(rowsFn461) && !/v:"\$/.test(rowsFn461),
+    'T461 G2c 列值不得手抄數字／美元字面');
+  assert(typeof window.GV.sciFin461 === 'function', 'T461 G3 GV.sciFin461 對帳橋在場');
+  {
+    window.GV.newWorldSeeded(4611);
+    window.GV.setDiff(1);
+    window.GV.pol({ congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const off = window.GV.sciFin461();
+    assert(Array.isArray(off) && off.length === 6, 'T461 G4 預設 6 列，實得 ' + (off && off.length));
+    assert(off.every(r => r.on === false && r.v === 0),
+      'T461 G4 政策全關時 on=false 且 v=0，實得 ' + JSON.stringify(off));
+    window.GV.ai(true);
+    for (let d = 0; d < 60; d++) window.GV.step(1);
+    window.GV.ai(false);
+    window.GV.pol({ congChg451: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const on = window.GV.sciFin461();
+    const cong = on.find(r => r.finKey === 'congRev');
+    assert(cong && cong.on === true,
+      'T461 G4b 開啟壅堵費後 congRev.on===true，實得 ' + JSON.stringify(cong));
+    // sci451 與 sciFin461 同欄對帳
+    const s = window.GV.sci451();
+    assert(Math.abs((cong.v || 0) - (s.congRev || 0)) < 1e-9,
+      'T461 G4c sciFin461.congRev 必須等於 sci451.congRev，實得 ' + cong.v + ' vs ' + s.congRev);
+    window.GV.pol({ congChg451: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const off2 = window.GV.sciFin461().find(r => r.finKey === 'congRev');
+    assert(off2 && off2.on === false && off2.v === 0,
+      'T461 G4d 關閉後 congRev 回 on=false/v=0，實得 ' + JSON.stringify(off2));
+  }
+}
+
+
 /* ===== T458 聚集經濟（產業聚落區劃）：守衛 ===== */
 {
   /* Glaeser & Gottlieb 2009 JEL：密度倍增 ↔ 生產力 +2~3.5%（取下緣 3%）。政策預設關＝六哨兵不動；
