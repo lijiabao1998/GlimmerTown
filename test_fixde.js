@@ -10513,6 +10513,23 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T463 政策開關後統計面板即時重繪 ===== */
+{
+  /* polToggle 在 sTick 之後必須 showStats()——否則 📊 內科學今日帳／checkbox 狀態要關開面板才更新。
+     innerHTML 重繪會拆掉舊節點，listener 不累加（與稅率鈕既有路徑同構）。 */
+  const i463 = html.indexOf('const polToggle=');
+  assert(i463 > 0, 'T463 G1 找不到 polToggle');
+  const line463 = html.slice(i463, html.indexOf('\n', i463));
+  assert(/sTick\(\);\s*showStats\(\)/.test(line463) || (line463.includes('sTick()') && line463.includes('showStats()')),
+    'T463 G1b polToggle 必須在 sTick 之後呼叫 showStats（實得 ' + line463.slice(0, 180) + '）');
+  assert(line463.includes('T463') || html.includes('T463：政策開關後重繪'),
+    'T463 G1c 註解具名 T463');
+  // 紅源方向：若只剩 sTick 無 showStats 會紅——以靜態缺席模擬（不得在源碼把 showStats 從 polToggle 拿掉）
+  assert(!/const polToggle=[^;]*sTick\(\);\}\);\}/.test(html.replace(/\s+/g, '')),
+    'T463 G2 不得存在「sTick 後無 showStats」的 polToggle 緊湊形');
+}
+
+
 
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
