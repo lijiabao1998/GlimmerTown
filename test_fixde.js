@@ -10387,8 +10387,9 @@ runPwaTests().then(() => {
     'T461 G1c showStats 必須 statTab(sciFinRows461()) 且模板插入 t461Html');
   const tFin461 = html.slice(html.indexOf('const SCI_FIN461=['), html.indexOf('];', html.indexOf('const SCI_FIN461=[')) + 2);
   const keys461 = [...tFin461.matchAll(/finKey:'([a-zA-Z]+)'/g)].map(m => m[1]);
-  assert(keys461.join(',') === 'congRev,rentCut,lvtRev,mwCost,aggGain,cleanCost',
-    'T461 G2 finKey 恰等六欄帳本，實得 ' + keys461.join(','));
+  assert(keys461.slice(0,6).join(',') === 'congRev,rentCut,lvtRev,mwCost,aggGain,cleanCost',
+    'T461 G2 finKey 前六欄帳本，實得 ' + keys461.join(','));
+  assert(keys461.length >= 6, 'T461/T482 SCI_FIN 至少 6 列');
   const rowsFn461 = html.slice(html.indexOf('function sciFinRows461'), html.indexOf('function sciFinRows461') + 900);
   assert(/sciFinVal461\(e\)/.test(rowsFn461), 'T461 G2b 列值必須走 sciFinVal461(e)');
   assert(!/v:'\d+\.\d+'/.test(rowsFn461) && !/v:"\$/.test(rowsFn461),
@@ -10400,7 +10401,7 @@ runPwaTests().then(() => {
     window.GV.pol({ congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, taxR: 1, taxC: 1, taxI: 1 });
     window.GV.step(1);
     const off = window.GV.sciFin461();
-    assert(Array.isArray(off) && off.length === 6, 'T461 G4 預設 6 列，實得 ' + (off && off.length));
+    assert(Array.isArray(off) && off.length >= 6, 'T461 G4 預設至少 6 列，實得 ' + (off && off.length));
     assert(off.every(r => r.on === false && r.v === 0),
       'T461 G4 政策全關時 on=false 且 v=0，實得 ' + JSON.stringify(off));
     window.GV.ai(true);
@@ -10902,6 +10903,17 @@ runPwaTests().then(() => {
     const p0 = window.GV.sciPacks481()[0];
     assert(p0.keys.length >= 3, 'T481 G3 公交套餐至少 3 鍵');
   }
+}
+
+
+/* ===== T482 科學財政擴列 ===== */
+{
+  const tFin = html.slice(html.indexOf('const SCI_FIN461=['), html.indexOf('];', html.indexOf('const SCI_FIN461=[')) + 2);
+  assert(tFin.includes("finKey:'lezCost'") && tFin.includes("finKey:'greenRev'"),
+    'T482 G1 SCI_FIN461 必須含 lezCost／greenRev');
+  const snap = window.GV.sciFin461();
+  assert(snap.some(r => r.finKey === 'lezCost') && snap.some(r => r.finKey === 'greenRev'),
+    'T482 G2 sciFin461 橋含新列');
 }
 
 
