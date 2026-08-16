@@ -10886,6 +10886,25 @@ runPwaTests().then(() => {
 }
 
 
+/* ===== T481 科學政策套餐 ===== */
+{
+  assert(/const SCI_PACKS481=\[/.test(html) && html.includes('function applySciPack481'),
+    'T481 G1 套餐表與 applySciPack481 在場');
+  assert(html.includes("applySciPack481('transitCity')"), 'T481 G1b 三鈕綁定');
+  assert(typeof window.GV.sciPacks481 === 'function', 'T481 G2 橋');
+  const packs = window.GV.sciPacks481();
+  assert(Array.isArray(packs) && packs.length === 3, 'T481 G2b 恰 3 套餐');
+  {
+    window.GV.newWorldSeeded(4811);
+    window.GV.setDiff(1);
+    window.GV.pol({ congChg451: false, taxR: 1, taxC: 1, taxI: 1 });
+    // apply via internal if exposed - call through eval of pack keys
+    const p0 = window.GV.sciPacks481()[0];
+    assert(p0.keys.length >= 3, 'T481 G3 公交套餐至少 3 鍵');
+  }
+}
+
+
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
   /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。
