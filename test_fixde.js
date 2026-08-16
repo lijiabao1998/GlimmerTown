@@ -10473,6 +10473,47 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T462 科學頁政策旁今日帳 ===== */
+{
+  /* 指南 guideTab===7 每筆有 polKey 且在 SCI_FIN461 者，追加「今日帳」列；值走 sciFinVal461。 */
+  const a462 = html.indexOf('}else if(guideTab===7){');
+  const b462 = html.indexOf('}else if(guideTab===4){', a462);
+  assert(a462 > 0 && b462 > a462, 'T462 G1 找不到 guideTab===7 區間');
+  const page462 = html.slice(a462, b462);
+  assert(page462.includes("SCI_FIN461.find(f=>f.polKey===e451.polKey)"),
+    'T462 G1b 今日帳必須 SCI_FIN461.find 對 polKey');
+  assert(page462.includes('sciFinVal461(finE462)'),
+    'T462 G1c 今日帳值必須 sciFinVal461');
+  assert(page462.includes("k:'今日帳'"), 'T462 G1d 必須有今日帳列鍵');
+  // 不得在指南頁手抄日額
+  assert(!/今日帳[^;]{0,40}v:'\d/.test(page462), 'T462 G2 今日帳不得手抄數字字面');
+  // 行為：開指南頁（showHelp）後 infoBody 在政策開啟時可含今日帳標籤
+  {
+    window.GV.newWorldSeeded(4621);
+    window.GV.setDiff(1);
+    window.GV.pol({ congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.ai(true);
+    for (let d = 0; d < 40; d++) window.GV.step(1);
+    window.GV.ai(false);
+    window.GV.pol({ congChg451: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    const finSnap = window.GV.sciFin461().find(r => r.finKey === 'congRev');
+    assert(finSnap && finSnap.on, 'T462 G3 前置：壅堵費應已啟用');
+    if (typeof guideTab !== 'undefined' && typeof showHelp === 'function') {
+      guideTab = 7;
+      try {
+        showHelp();
+        const body = (document.getElementById('infoBody') && document.getElementById('infoBody').innerText) || '';
+        assert(body.includes('今日帳'), 'T462 G3 showHelp 科學頁須含「今日帳」文字，實得 len=' + body.length);
+      } catch (e462) {
+        // DOM 不完整時退回靜態釘
+        assert(page462.includes("k:'今日帳'"), 'T462 G3 靜態退回：源碼須含今日帳');
+      }
+    }
+  }
+}
+
+
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
   /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。

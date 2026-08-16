@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.92，約 22,160 行（實測檔案 22,160 行＝T461 城市科學財政條後 Python 數；測試 `test_fixde.js`）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.93，約 22,160 行（實測檔案 22,160 行＝T461 城市科學財政條後 Python 數；測試 `test_fixde.js`）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -134,14 +134,14 @@
 | 通知中心／成就 | 20532 | `T114：通知中心——HUD 鈴鐺按鈕` |
 | `chipPanel()` 六晶片明細 | 20608 | `function chipPanel(which){` |
 | `showHelp()` 五分頁指南 | 20810 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 21036 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 21054 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 21175 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `undo()` / 快捷鍵 / 新手提示 | 21041 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 21059 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 21180 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
 | `load()` | 16901-17037 | `const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;` |
-| 自動存檔 | 21360 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 21373 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 21515 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 21610 | `window.GV={` |
+| 自動存檔 | 21365 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 21378 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 21520 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 21615 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
