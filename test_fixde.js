@@ -10699,6 +10699,27 @@ runPwaTests().then(() => {
 }
 
 
+/* ===== T472 零售設施韌性：守衛 ===== */
+{
+  assert(/id:'vacRet472'/.test(html), 'T472 G1 SCI451 必須有 vacRet472');
+  assert(html.includes('vacRet472:false'), 'T472 G1b pol 預設 false');
+  assert(html.includes('vacRet472:!!p.vacRet472'), 'T472 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polvacRet472'"), 'T472 G1d polToggle 在場');
+  assert(html.includes('SCI_BY_ID451.vacRet472'), 'T472 G2 效應必須讀表');
+  {
+    window.GV.newWorldSeeded(472);
+    window.GV.setDiff(1);
+    window.GV.pol({ vacRet472: false, congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, houseSup464: false, jobMul465: false, hwySub466: false, schoolPeer467: false, spatMis468: false, amenCap469: false, tod470: false, lez471: false, vacRet472: false, greenB473: false, portPath474: false, congFund475: false, inclH476: false, nightEc477: false, floodR478: false, univSp479: false, bikeInf480: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().vacRet472 === false, 'T472 G3 關閉態');
+    window.GV.pol({ vacRet472: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().vacRet472 === true, 'T472 G4 開啟態');
+    window.GV.pol({ vacRet472: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
+
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
   /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。
