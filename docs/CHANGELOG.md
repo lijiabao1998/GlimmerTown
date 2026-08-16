@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T483 二十卡研究波效果報告（Grok；index 零改動不 bump） | SCI451 現 **26** 條、可開關 **24**；三答案：機制入帳／哨兵未動／玩家可見面。報告 docs/tasks/T483-二十卡效果報告.md。 | 驗收:通過（Grok 全鏈二次自審：純文件量測）。
 2026-08-17 | T482 科學財政擴列（Grok；v11.113） | SCI_FIN461 增 lezCost／greenRev，showStats／指南自動長出。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T481 科學政策套餐 UI（Grok；v11.112） | SCI_PACKS481 三套餐（公交城市／清潔空氣／混合居住）一鍵開多項 pol，不新增公式；T460 組合入口。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T480 自行車基建（Grok；v11.111） | **Pucher & Buehler（多篇）**——自行車友好環境提高非機動出行份額… 政策 `bikeInf480` 預設關；開啟後：幸福 +0.008 且轉乘 ×1.03；關閉恆等… | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN／預設關）。

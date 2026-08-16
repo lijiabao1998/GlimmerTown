@@ -10917,6 +10917,16 @@ runPwaTests().then(() => {
 }
 
 
+/* ===== T483 研究波收官量測 ===== */
+{
+  const fs483 = require('fs');
+  const p483 = path.join(__dirname, 'docs', 'tasks', 'T483-二十卡效果報告.md');
+  assert(fs483.existsSync(p483), 'T483 G1 效果報告檔必須在場');
+  const rep = fs483.readFileSync(p483, 'utf8');
+  assert(/SCI451/.test(rep) && /三答案/.test(rep), 'T483 G1b 報告含 SCI451 與三答案');
+}
+
+
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
   /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。
