@@ -318,8 +318,8 @@ inject343(
 );
 /* T451/T475 跟版：transitRidership 公式隨壅堵費再投資等乘數演進；probe 跟原文。 */
 inject343(
-  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
-  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
+  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.bikeInf480?SCI_BY_ID451.bikeInf480.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
+  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.bikeInf480?SCI_BY_ID451.bikeInf480.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
   'transit'
 );
 // T383b：稅收窮舉守衛的 sink 記錄器——漏守衛的 k 必然落入工業稅 fallback（鐵律14 的 NaN 落點），
@@ -10861,6 +10861,27 @@ runPwaTests().then(() => {
     window.GV.step(1);
     assert(window.GV.pol().univSp479 === true, 'T479 G4 開啟態');
     window.GV.pol({ univSp479: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
+
+/* ===== T480 自行車基建：守衛 ===== */
+{
+  assert(/id:'bikeInf480'/.test(html), 'T480 G1 SCI451 必須有 bikeInf480');
+  assert(html.includes('bikeInf480:false'), 'T480 G1b pol 預設 false');
+  assert(html.includes('bikeInf480:!!p.bikeInf480'), 'T480 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polbikeInf480'"), 'T480 G1d polToggle 在場');
+  assert(html.includes('SCI_BY_ID451.bikeInf480'), 'T480 G2 效應必須讀表');
+  {
+    window.GV.newWorldSeeded(480);
+    window.GV.setDiff(1);
+    window.GV.pol({ bikeInf480: false, congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, houseSup464: false, jobMul465: false, hwySub466: false, schoolPeer467: false, spatMis468: false, amenCap469: false, tod470: false, lez471: false, vacRet472: false, greenB473: false, portPath474: false, congFund475: false, inclH476: false, nightEc477: false, floodR478: false, univSp479: false, bikeInf480: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().bikeInf480 === false, 'T480 G3 關閉態');
+    window.GV.pol({ bikeInf480: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().bikeInf480 === true, 'T480 G4 開啟態');
+    window.GV.pol({ bikeInf480: false, taxR: 1, taxC: 1, taxI: 1 });
   }
 }
 
