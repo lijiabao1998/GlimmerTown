@@ -10657,6 +10657,27 @@ runPwaTests().then(() => {
 }
 
 
+/* ===== T470 公交導向開發：守衛 ===== */
+{
+  assert(/id:'tod470'/.test(html), 'T470 G1 SCI451 必須有 tod470');
+  assert(html.includes('tod470:false'), 'T470 G1b pol 預設 false');
+  assert(html.includes('tod470:!!p.tod470'), 'T470 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#poltod470'"), 'T470 G1d polToggle 在場');
+  assert(html.includes('SCI_BY_ID451.tod470'), 'T470 G2 效應必須讀表');
+  {
+    window.GV.newWorldSeeded(470);
+    window.GV.setDiff(1);
+    window.GV.pol({ tod470: false, congChg451: false, rentCtrl452: false, lvt453: false, minWage454: false, ecMix457: false, aggCluster458: false, cleanAir459: false, houseSup464: false, jobMul465: false, hwySub466: false, schoolPeer467: false, spatMis468: false, amenCap469: false, tod470: false, lez471: false, vacRet472: false, greenB473: false, portPath474: false, congFund475: false, inclH476: false, nightEc477: false, floodR478: false, univSp479: false, bikeInf480: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().tod470 === false, 'T470 G3 關閉態');
+    window.GV.pol({ tod470: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().tod470 === true, 'T470 G4 開啟態');
+    window.GV.pol({ tod470: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
+
 /* ===== T457 經濟連結度（混合社區計畫）：守衛 ===== */
 {
   /* Chetty 等 2022 Nature 社會資本 I/II：經濟連結度＝最強流動預測子。
