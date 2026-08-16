@@ -10600,6 +10600,10 @@ runPwaTests().then(() => {
   assert(html.includes('schoolPeer467:!!p.schoolPeer467'), 'T467 G1c GV.pol 白名單');
   assert(html.includes("polToggle('#polschoolPeer467'"), 'T467 G1d polToggle 在場');
   assert(html.includes('SCI_BY_ID451.schoolPeer467'), 'T467 G2 效應必須讀表');
+  assert(html.includes('pol&&pol.schoolPeer467&&COV.school[idx(x,y)]>0'),
+    'T467 G2b【機制紅線】幸福必須閘在 COV.school[idx(x,y)]>0——刪覆蓋閘門即紅');
+  assert(!/name:'學校同儕',val:pol&&pol\.schoolPeer467\?SCI_BY_ID451\.schoolPeer467\.fx\.happyVal:0/.test(html),
+    'T467 G2c 不得回歸全市無覆蓋閘門寫法');
   {
     window.GV.newWorldSeeded(467);
     window.GV.setDiff(1);
@@ -10726,6 +10730,10 @@ runPwaTests().then(() => {
   assert(html.includes('greenB473:!!p.greenB473'), 'T473 G1c GV.pol 白名單');
   assert(html.includes("polToggle('#polgreenB473'"), 'T473 G1d polToggle 在場');
   assert(html.includes('SCI_BY_ID451.greenB473'), 'T473 G2 效應必須讀表');
+  assert(/if\(np>5\)\{greenRev473=np\*SCI_BY_ID451\.greenB473\.fx\.perPark/.test(html),
+    'T473 G2b【機制紅線】greenRev 必須 if(np>5) 閘門——公園≤5 不得入帳');
+  assert(!/greenRev473=np\*SCI_BY_ID451\.greenB473\.fx\.perPark;income\+=greenRev473;\} \/\* T473 \*\//.test(html),
+    'T473 G2c 不得回歸無 np>5 的無閘門寫法');
   {
     window.GV.newWorldSeeded(473);
     window.GV.setDiff(1);
