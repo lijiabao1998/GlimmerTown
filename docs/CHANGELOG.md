@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T464 住房供給彈性（Grok；v11.95） | **Saiz（2010）**——地理與法規約束強的都會區住房供給彈性更低，需求衝擊更多反映在價格而非數量… 政策 `houseSup464` 預設關；開啟後：住宅新生長機率 ×1.12（供給端鬆綁的下緣代理）；關閉 ×1 恆等… | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN／預設關）。
 2026-08-14 | T463 政策開關後統計面板即時重繪（Grok bay/grok；v11.94） | `polToggle` 在 sTick 後呼叫 showStats——📊 內科學今日帳與政策 checkbox 即時更新；innerHTML 重綁不累加 listener。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-14 | T462 科學頁政策旁今日帳（Grok bay/grok；v11.93） | 指南城市科學：有 SCI_FIN461 對應之政策追加今日帳列（find polKey + sciFinVal461）；與 T461 同表，零 tick 改動。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN／表驅動）。
 2026-08-08 | T461 城市科學財政條（Grok bay/grok；v11.92） | **玩家看得見的科學日帳。**`SCI_FIN461` 六列（congRev／rentCut／lvtRev／mwCost／aggGain／cleanCost）為 fin key／標籤單一真相；`sciFinRows461`→showStats「📚 城市科學·今日帳」；`GV.sciFin461` 對帳。零 tick 改動；政策全關 v=0；開壅堵費後與 sci451.congRev 恰等。G1–G4 守衛。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN／政策開關對帳／無 pending 字）。
