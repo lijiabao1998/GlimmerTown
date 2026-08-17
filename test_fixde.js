@@ -318,8 +318,8 @@ inject343(
 );
 /* T451/T475 跟版：transitRidership 公式隨壅堵費再投資等乘數演進；probe 跟原文。 */
 inject343(
-  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.bikeInf480?SCI_BY_ID451.bikeInf480.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*(pol&&pol.compSt495?SCI_BY_ID451.compSt495.fx.transitMul:1)*(pol&&pol.brt496?SCI_BY_ID451.brt496.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
-  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.bikeInf480?SCI_BY_ID451.bikeInf480.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*(pol&&pol.compSt495?SCI_BY_ID451.compSt495.fx.transitMul:1)*(pol&&pol.brt496?SCI_BY_ID451.brt496.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
+  "transitRidership=Math.round((busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.bikeInf480?SCI_BY_ID451.bikeInf480.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*(pol&&pol.compSt495?SCI_BY_ID451.compSt495.fx.transitMul:1)*(pol&&pol.brt496?SCI_BY_ID451.brt496.fx.transitMul:1)*(pol&&pol.poly504?SCI_BY_ID451.poly504.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
+  "transitRidership=Math.round(window.__t343Probe.transit=(busP*.45+railP*.65+metroP*.75)*(pol&&pol.freeTransit?1.35:1)*(pol&&pol.congChg451?SCI_BY_ID451.congChg451.fx.transitMul:1)*(pol&&pol.bikeInf480?SCI_BY_ID451.bikeInf480.fx.transitMul:1)*(pol&&pol.congFund475&&pol.congChg451?SCI_BY_ID451.congFund475.fx.transitMul:1)*(pol&&pol.compSt495?SCI_BY_ID451.compSt495.fx.transitMul:1)*(pol&&pol.brt496?SCI_BY_ID451.brt496.fx.transitMul:1)*(pol&&pol.poly504?SCI_BY_ID451.poly504.fx.transitMul:1)*tq('A2',1.12,1)*tq('C5',1.08,1)*sq('hub',1.12,1));",
   'transit'
 );
 // T383b：稅收窮舉守衛的 sink 記錄器——漏守衛的 k 必然落入工業稅 fallback（鐵律14 的 NaN 落點），
@@ -12723,6 +12723,27 @@ runPwaTests().then(() => {
     window.GV.step(1);
     assert(window.GV.pol().brainDr503 === true, 'T503 G4 開啟');
     window.GV.pol({ brainDr503: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
+
+/* ===== T504 多中心城市：守衛 ===== */
+{
+  assert(/id:'poly504'/.test(html), 'T504 G1 SCI451 必須有 poly504');
+  assert(html.includes('poly504:false'), 'T504 G1b pol 預設 false');
+  assert(html.includes('poly504:!!p.poly504'), 'T504 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polpoly504'"), 'T504 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.poly504'), 'T504 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(504);
+    window.GV.setDiff(1);
+    window.GV.pol({ poly504: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().poly504 === false, 'T504 G3 關閉');
+    window.GV.pol({ poly504: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().poly504 === true, 'T504 G4 開啟');
+    window.GV.pol({ poly504: false, taxR: 1, taxC: 1, taxI: 1 });
   }
 }
 
