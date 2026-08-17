@@ -12306,3 +12306,24 @@ runPwaTests().then(() => {
   const loneD=window.GV.powerDiag432(lone.x,lone.y);
   assert(loneD.mode==='island'&&loneD.source==='太陽能板'&&loneD.district===0,'T432a G3 唯一孤島太陽能完成 tick 後也必如實標為孤島，不能永久資料更新中（實得 '+JSON.stringify(loneD)+'）');
 }
+
+/* ===== T484 分區嚴格度：守衛 ===== */
+{
+  assert(/id:'zoneStr484'/.test(html), 'T484 G1 SCI451 必須有 zoneStr484');
+  assert(html.includes('zoneStr484:false'), 'T484 G1b pol 預設 false');
+  assert(html.includes('zoneStr484:!!p.zoneStr484'), 'T484 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polzoneStr484'"), 'T484 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.zoneStr484'), 'T484 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(484);
+    window.GV.setDiff(1);
+    window.GV.pol({ zoneStr484: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().zoneStr484 === false, 'T484 G3 關閉');
+    window.GV.pol({ zoneStr484: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().zoneStr484 === true, 'T484 G4 開啟');
+    window.GV.pol({ zoneStr484: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
