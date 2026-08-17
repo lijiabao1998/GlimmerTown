@@ -12327,3 +12327,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T485 空間錯配效率：守衛 ===== */
+{
+  assert(/id:'misalloc485'/.test(html), 'T485 G1 SCI451 必須有 misalloc485');
+  assert(html.includes('misalloc485:false'), 'T485 G1b pol 預設 false');
+  assert(html.includes('misalloc485:!!p.misalloc485'), 'T485 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polmisalloc485'"), 'T485 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.misalloc485'), 'T485 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(485);
+    window.GV.setDiff(1);
+    window.GV.pol({ misalloc485: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().misalloc485 === false, 'T485 G3 關閉');
+    window.GV.pol({ misalloc485: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().misalloc485 === true, 'T485 G4 開啟');
+    window.GV.pol({ misalloc485: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+

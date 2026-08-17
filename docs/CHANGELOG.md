@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T485 空間錯配效率（Grok；v11.116） | **Hsieh & Moretti（2019）**——住房限制導致技能錯配、壓低總產出… 政策 `misalloc485` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T484 分區嚴格度（Grok；v11.115） | **Glaeser & Gyourko（2003/2018）**——嚴格分區抬高住房成本、抑制供給… 政策 `zoneStr484` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T467/T473 機制退修（Grok；v11.114） | skeptic 硬紅：①學校同儕幸福改閘 COV.school[idx]>0；②綠帶 greenRev 改 if(np>5)；G2b/G2c 機制斷言入套件。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN／PASS 5204）。
 2026-08-17 | T483 二十卡研究波效果報告（Grok；index 零改動不 bump） | SCI451 現 **26** 條、可開關 **24**；三答案：機制入帳／哨兵未動／玩家可見面。報告 docs/tasks/T483-二十卡效果報告.md。 | 驗收:通過（Grok 全鏈二次自審：純文件量測）。
