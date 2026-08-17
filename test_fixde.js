@@ -12684,3 +12684,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T502 銀髮經濟：守衛 ===== */
+{
+  assert(/id:'silver502'/.test(html), 'T502 G1 SCI451 必須有 silver502');
+  assert(html.includes('silver502:false'), 'T502 G1b pol 預設 false');
+  assert(html.includes('silver502:!!p.silver502'), 'T502 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polsilver502'"), 'T502 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.silver502'), 'T502 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(502);
+    window.GV.setDiff(1);
+    window.GV.pol({ silver502: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().silver502 === false, 'T502 G3 關閉');
+    window.GV.pol({ silver502: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().silver502 === true, 'T502 G4 開啟');
+    window.GV.pol({ silver502: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
