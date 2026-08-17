@@ -12890,3 +12890,13 @@ runPwaTests().then(() => {
   assert(typeof window.GV.sciFin461 === 'function' && window.GV.sciFin461().length >= 6, 'T512 G2 sciFin 仍可用');
 }
 
+
+/* ===== T513 三十卡效果報告 ===== */
+{
+  const fs = require('fs');
+  const p = path.join(__dirname, 'docs', 'tasks', 'T513-三十卡效果報告.md');
+  assert(fs.existsSync(p), 'T513 G1 報告在場');
+  const rep = fs.readFileSync(p, 'utf8');
+  assert(/三答案/.test(rep) && /T484/.test(rep), 'T513 G1b 含三答案與卡號');
+}
+
