@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import io
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -1272,7 +1273,8 @@ class ToolchainRegressionTests(unittest.TestCase):
 
         這條自檢讀自己的原始碼，所以它也擋得住未來任何一次同型貼錯。
         """
-        source = io.open(__file__, encoding='utf-8').read()
+        with io.open(__file__, encoding='utf-8') as source_file:
+            source = source_file.read()
         names = re.findall(r'\n    def (test_\w+)', source)
         duplicates = sorted({n for n in names if names.count(n) > 1})
         self.assertEqual(

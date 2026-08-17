@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>微光小鎮 — 版面探針（T428 R04）</title>
+<title>微光小鎮 — 版面探針（T428 R04 + T515）</title>
 <style>
 body{background:#141a26;color:#dce4f2;font:12px/1.55 Consolas,"Microsoft YaHei",monospace;margin:0;padding:12px}
 h1{font-size:16px;color:#7fd4ff;margin:2px 0 8px}
@@ -13,7 +13,7 @@ iframe{position:absolute;left:-99999px;top:0;border:0}
 </style>
 </head>
 <body>
-<h1>版面探針 <span class="hint">· 標題畫面在多個視窗尺寸下的版面不變量（R04）</span></h1>
+<h1>版面探針 <span class="hint">· 標題畫面在多個視窗尺寸下的版面不變量（T428 R04 + T515）</span></h1>
 <div class="hint">
 用法：<code>ui_probe.html?a=/index.html&amp;b=/before.html&amp;sizes=1280x720,390x844</code><br>
 無頭取字：<code>chrome --headless=new --disable-gpu --virtual-time-budget=900000 --dump-dom "&lt;URL&gt;"</code><br>
@@ -83,6 +83,19 @@ function measure(win, w) {
   const diff = q('.diffrow');
   const diffKids = diff ? [...diff.children].filter(vis) : [];
   const chal = [...S.querySelectorAll('button')].filter(b => vis(b) && /挑戰/.test(b.textContent || ''));
+  const topGroups = more ? [...more.children].filter(e => vis(e) && e.hasAttribute('data-start-role')) : [];
+  const roles = topGroups.map(e => e.getAttribute('data-start-role'));
+  const config = q('.startConfig515'), extras = q('.startExtras515'), challenge = q('.startChallenge515');
+  const campaign = q('.startCampaign515'), challengeWrap = q('.startChallenges515');
+  const challengeBtns = challengeWrap ? [...challengeWrap.querySelectorAll('button')].filter(vis) : [];
+  const settings = q('.startConfig515 .settingsGrid');
+  const settingBtns = settings ? [...settings.children].filter(vis) : [];
+  const rb = e => e && vis(e) ? R(e) : null;
+  const widths = es => es.map(e => R(e).w);
+  const rowsOf = es => es.length ? new Set(es.map(e => R(e).y)).size : 0;
+  const centerDelta = (a,b) => {
+    const A=rb(a),B=rb(b); return A&&B ? Math.abs((A.x+A.w/2)-(B.x+B.w/2)) : null;
+  };
   const btns = [...S.querySelectorAll('button')].filter(vis);
   const prim = q('.startPrimary'), primB = prim && vis(prim) ? R(prim) : null;
   const primBtn = prim ? [...prim.querySelectorAll('button')].filter(vis)[0] : null;
@@ -124,6 +137,20 @@ function measure(win, w) {
     diffCount: diffKids.length,
     chalCount: chal.length,
     chalRows: chal.length ? new Set(chal.map(b => Math.round(b.getBoundingClientRect().y))).size : 0,
+    roleOrder: roles,
+    campaignInsideExtras: !!(campaign && extras && extras.contains(campaign)),
+    controlReachable: !!(q('#bEditorMode') && q('#bCampaign') && diffKids.length >= 4
+      && challengeBtns.length === 3 && settingBtns.length === 5),
+    challengeCount515: challengeBtns.length,
+    challengeRows515: rowsOf(challengeBtns),
+    challengeWidths515: widths(challengeBtns),
+    settingsCount515: settingBtns.length,
+    settingsRows515: rowsOf(settingBtns),
+    settingsWidths515: widths(settingBtns),
+    challengeCenterDelta515: centerDelta(challenge, more),
+    configPresent515: !!config,
+    extrasPresent515: !!extras,
+    challengePresent515: !!challenge,
     primFound: !!prim, primY: primB ? primB.y : null, primBottom: primB ? primB.bottom : null,
     primInView: primB ? (primB.y >= 0 && primB.bottom <= clientH) : null,
     primBtnH: primBtn ? R(primBtn).h : null,
@@ -190,12 +217,27 @@ async function main() {
     ok = F('絕對下限', A.primBtnH >= MIN_PRIMARY_H && A.minBtnH >= MIN_BTN_H && A.helpFS >= MIN_HELP_FS,
       '主鈕 h=' + A.primBtnH + '(≥' + MIN_PRIMARY_H + ')  最小鈕 h=' + A.minBtnH + '(≥' + MIN_BTN_H
       + ')  help ' + A.helpFS + 'px(≥' + MIN_HELP_FS + ')  ' + A.btnCount + ' 顆鈕', true) && ok;
+    ok = F('T515 群組結構', A.configPresent515 && A.extrasPresent515 && A.challengePresent515
+      && A.roleOrder.join(',') === 'config,extras,challenge' && A.campaignInsideExtras,
+      'top=' + A.roleOrder.join('→') + '　戰役在其他玩法=' + A.campaignInsideExtras, true) && ok;
+    ok = F('原控制項可達', A.controlReachable,
+      '難度=' + A.diffCount + '　挑戰=' + A.challengeCount515 + '　設定=' + A.settingsCount515 + '　編輯器/戰役=' + !!(A.controlReachable), true) && ok;
 
     /* ── 桌面硬條件 ── */
     if (desktop) {
       ok = F('垂直溢出', A.overflow <= 0, A.overflow + ' px', true) && ok;
       ok = F('底部切掉', !A.bottomCut, (A.bottomCut ? '是（最低 ' + A.lowestBottom + ' > ' + A.clientH + '）' : '否'), true) && ok;
       ok = F('挑戰列', A.chalRows === 1, A.chalCount + ' 顆 / ' + A.chalRows + ' 列', true) && ok;
+      const chMin = A.challengeWidths515.length ? Math.min(...A.challengeWidths515) : 0;
+      const chMax = A.challengeWidths515.length ? Math.max(...A.challengeWidths515) : 0;
+      const setMin = A.settingsWidths515.length ? Math.min(...A.settingsWidths515) : 0;
+      const setMax = A.settingsWidths515.length ? Math.max(...A.settingsWidths515) : 0;
+      ok = F('T515 挑戰節律', A.challengeCount515 === 3 && A.challengeRows515 === 1
+        && chMax - chMin <= 1 && chMax <= 280 && A.challengeCenterDelta515 !== null && A.challengeCenterDelta515 <= 1,
+        A.challengeCount515 + ' 顆 / ' + A.challengeRows515 + ' 列　' + chMin + '–' + chMax
+        + 'px　置中差=' + A.challengeCenterDelta515 + 'px', true) && ok;
+      ok = F('T515 設定節律', A.settingsCount515 === 5 && A.settingsRows515 === 1 && setMax - setMin <= 1,
+        A.settingsCount515 + ' 顆 / ' + A.settingsRows515 + ' 列　' + setMin + '–' + setMax + 'px', true) && ok;
     } else {
       F('垂直溢出', true, A.overflow + ' px（行動端允許滾動；退步與否見下一行）', false);
     }
