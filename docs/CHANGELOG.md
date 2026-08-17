@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T499 水資源定價（Grok；v11.130） | **Olmstead；水價彈性文獻（多篇）**——合理定價抑制浪費… 政策 `waterP499` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T498 循環經濟（Grok；v11.129） | **Ellen MacArthur；歐盟 CE（綜述）**——回收與再製造降低原料依賴… 政策 `circEc498` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T497 最後一哩物流（Grok；v11.128） | **電商物流城市影響文獻（2010s）**——末端配送增加道路壓力也可創造就業… 政策 `lastMile497` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T496 快速公交（Grok；v11.127） | **ITDP BRT 標準（多篇）**——高品質公交走廊提高運量… 政策 `brt496` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
