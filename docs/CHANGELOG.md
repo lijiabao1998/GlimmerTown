@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T493 歷史保護供給（Grok；v11.124） | **Been 等；紐約保護區文獻（2016+）**——保護區可能限制改建供給… 政策 `histPres493` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T492 場館懷疑論（Grok；v11.123） | **Coates & Humphreys（多篇）**——場館對本地經濟淨效益常被高估… 政策 `stadTax492` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T491 移民創業（Grok；v11.122） | **Kerr；Hunt（多篇）**——移民企業家比例高於原生人口… 政策 `immEnt491` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T490 寬頻接入（Grok；v11.121） | **Czernich 等；ITU（2011+）**——寬頻滲透與生產力正相關… 政策 `broadband490` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。

@@ -12495,3 +12495,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T493 歷史保護供給：守衛 ===== */
+{
+  assert(/id:'histPres493'/.test(html), 'T493 G1 SCI451 必須有 histPres493');
+  assert(html.includes('histPres493:false'), 'T493 G1b pol 預設 false');
+  assert(html.includes('histPres493:!!p.histPres493'), 'T493 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polhistPres493'"), 'T493 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.histPres493'), 'T493 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(493);
+    window.GV.setDiff(1);
+    window.GV.pol({ histPres493: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().histPres493 === false, 'T493 G3 關閉');
+    window.GV.pol({ histPres493: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().histPres493 === true, 'T493 G4 開啟');
+    window.GV.pol({ histPres493: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
