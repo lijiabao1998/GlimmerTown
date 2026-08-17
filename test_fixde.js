@@ -12642,3 +12642,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T500 噪音管制：守衛 ===== */
+{
+  assert(/id:'noise500'/.test(html), 'T500 G1 SCI451 必須有 noise500');
+  assert(html.includes('noise500:false'), 'T500 G1b pol 預設 false');
+  assert(html.includes('noise500:!!p.noise500'), 'T500 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polnoise500'"), 'T500 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.noise500'), 'T500 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(500);
+    window.GV.setDiff(1);
+    window.GV.pol({ noise500: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().noise500 === false, 'T500 G3 關閉');
+    window.GV.pol({ noise500: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().noise500 === true, 'T500 G4 開啟');
+    window.GV.pol({ noise500: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
