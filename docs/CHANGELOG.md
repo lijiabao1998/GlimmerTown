@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T501 光污染（Grok；v11.132） | **IDA；城市夜間照明文獻（多篇）**——過亮照明影響睡眠與生態… 政策 `lightPol501` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T500 噪音管制（Grok；v11.131） | **WHO 噪音指南；歐洲噪音地圖（多篇）**——長期噪音暴露損害健康與房價… 政策 `noise500` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T499 水資源定價（Grok；v11.130） | **Olmstead；水價彈性文獻（多篇）**——合理定價抑制浪費… 政策 `waterP499` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T498 循環經濟（Grok；v11.129） | **Ellen MacArthur；歐盟 CE（綜述）**——回收與再製造降低原料依賴… 政策 `circEc498` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
