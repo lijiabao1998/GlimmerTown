@@ -12873,3 +12873,12 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T511 科學套餐二期 ===== */
+{
+  assert(/const SCI_PACKS2_511=\[/.test(html) && html.includes('applySciPack2_511'),
+    'T511 G1 套餐二表在場');
+  assert(typeof window.GV.sciPacks2_511 === 'function', 'T511 G2 橋');
+  assert(window.GV.sciPacks2_511().length === 3, 'T511 G2b 恰 3 套餐');
+}
+
