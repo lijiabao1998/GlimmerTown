@@ -12882,3 +12882,11 @@ runPwaTests().then(() => {
   assert(window.GV.sciPacks2_511().length === 3, 'T511 G2b 恰 3 套餐');
 }
 
+
+/* ===== T512 財政表擴列 ===== */
+{
+  const tFin = html.slice(html.indexOf('const SCI_FIN461=['), html.indexOf('];', html.indexOf('const SCI_FIN461=[')) + 2);
+  assert(tFin.includes('parkMin494') || tFin.includes('T512'), 'T512 G1 財政擴列標記');
+  assert(typeof window.GV.sciFin461 === 'function' && window.GV.sciFin461().length >= 6, 'T512 G2 sciFin 仍可用');
+}
+
