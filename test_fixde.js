@@ -12516,3 +12516,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T494 停車下限：守衛 ===== */
+{
+  assert(/id:'parkMin494'/.test(html), 'T494 G1 SCI451 必須有 parkMin494');
+  assert(html.includes('parkMin494:false'), 'T494 G1b pol 預設 false');
+  assert(html.includes('parkMin494:!!p.parkMin494'), 'T494 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polparkMin494'"), 'T494 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.parkMin494'), 'T494 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(494);
+    window.GV.setDiff(1);
+    window.GV.pol({ parkMin494: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().parkMin494 === false, 'T494 G3 關閉');
+    window.GV.pol({ parkMin494: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().parkMin494 === true, 'T494 G4 開啟');
+    window.GV.pol({ parkMin494: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+

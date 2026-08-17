@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T494 停車下限（Grok；v11.125） | **Shoup（2005/2011）**——最低停車要求抬高住房成本、鼓勵開車… 政策 `parkMin494` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T493 歷史保護供給（Grok；v11.124） | **Been 等；紐約保護區文獻（2016+）**——保護區可能限制改建供給… 政策 `histPres493` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T492 場館懷疑論（Grok；v11.123） | **Coates & Humphreys（多篇）**——場館對本地經濟淨效益常被高估… 政策 `stadTax492` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T491 移民創業（Grok；v11.122） | **Kerr；Hunt（多篇）**——移民企業家比例高於原生人口… 政策 `immEnt491` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
