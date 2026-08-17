@@ -6087,12 +6087,13 @@ runPwaTests().then(() => {
       && /html\.noT428 #start \.settingsGrid\{min-width:auto;width:auto;max-width:420px;grid-template-columns:repeat\(auto-fit,minmax\(120px,1fr\)\)\}/.test(styleC428),
       'T428 G9【原文前哨】.settingsGrid 必須可收縮到容器寬（min-width:0＋width:100%＋max-width:min(420px,100%)'
       + '＋minmax 下修 120→100px）；退回 420px 固定上限會在 390 寬機種右緣切掉 17px，「地圖 72×72」鈕要水平滾動才點得到');
-    // G10 桌面跨欄兩顆按鈕居中成膠囊
-    assert(/#start \.startMore>#bEditorMode,#start \.startMore>#bCampaign\{justify-self:center;min-width:240px\}/.test(styleC428)
+    // G10（T515 升級，非放寬）：按鈕不再是假定為 startMore 的裸 sibling，而是必須活在具名的其他玩法列。
+    //  舊釘若保留，只會釘一個已無效的 selector，正是「測試綠但版面退回」的假綠來源。
+    assert(/#start \.startAltRow515>#bEditorMode,#start \.startAltRow515>#bCampaign\{flex:1 1 210px;max-width:260px\}/.test(styleC428)
+      && !/#start \.startMore>#bEditorMode/.test(styleC428)
       && !/:not\(#bEditorMode\):not\(#bCampaign\)\{width:100%\}/.test(styleC428),
-      'T428 G10【原文前哨】桌面斷點內「編輯器/戰役」必須 justify-self:center 成膠囊（原 stretch 會拉成 1040px 大條）；'
-      + '且不得留 `>button:not(#bEditorMode):not(#bCampaign){width:100%}`——它在 grid 下是死碼，'
-      + '唯一實際作用是讓逃生閥失真（實測 1430×900：BEFORE 挑戰鈕 151px、開逃生閥卻變 320px）');
+      'T428 G10【T515 真結構釘】編輯器/戰役必須只在 .startAltRow515 內走 compact flex（210px basis / 260px 上限），'
+      + '不得留已失效的 startMore 裸 sibling selector，也不得用 not(...) 把其他按鈕拉滿。否則「其他玩法」會回到無語義巨條。');
     // ── 以下 R04 新增（全部由對抗性覆核打出來） ──
     // G11 line-height 不得再出現混型 clamp（clamp 三參數必須同型，否則整條宣告被丟棄）
     assert(/#start \.help\{margin-top:clamp\(2px,1vh,10px\);color:#96a4c9;font-size:12px;line-height:1\.9;/.test(styleC428)
@@ -6148,6 +6149,70 @@ runPwaTests().then(() => {
     assert(/#start \.startMore \.diffbtn\{min-width:auto;padding:10px 8px;font-size:13px;border-radius:9px\}/.test(styleC428),
       'T428 G16【原文前哨】難度鈕必須 padding:10px 8px;font-size:13px（實測 360×640 → 43×67、單列、右緣 324≤360）；'
       + '第一版寫 6px 12px/12px 讓它縮成 33×72＝比改動前的 39×83 更小的可點目標（行動端退步）');
+  }
+
+  { /* ===== T515 開始畫面與面板導覽結構化：原文結構守衛 =====
+       【觀測能力聲明】本 harness 的 fake DOM 不會建立靜態 class tree、appendChild 也不會移除舊 parent，
+       所以這裡只釘真實 source/事件歸屬；跨尺寸 hierarchy、bbox、可點性與展開態由 ui_probe/真瀏覽器驗收。
+       不能拿 mock 的匿名 div 假裝證明新 DOM。 */
+    const s515a=html.indexOf('<div class="startMore" id="startMore">');
+    const s515b=html.indexOf('</div>\n</div>\n\n<script>',s515a);
+    const static515=(s515a>=0&&s515b>s515a)?html.slice(s515a,s515b):'';
+    const dyn515a=html.indexOf("const moreEl=$('#startMore')||startEl;");
+    const dyn515b=html.indexOf('// title version',dyn515a);
+    const dyn515=(dyn515a>=0&&dyn515b>dyn515a)?html.slice(dyn515a,dyn515b):'';
+    const css515=html.slice(html.indexOf('<style>'),html.indexOf('</style>'));
+    /* T515 斷點守衛不能只用跨大括號的貪婪 regex：那會讓規則被搬出 media 後仍假綠。
+       兩段都有唯一的 T515 首行錨，切片後才驗內容；找不到閉合也必紅。 */
+    const desk515a=css515.indexOf('@media (min-width:900px){\n  #start{');
+    const desk515b=desk515a<0?-1:css515.indexOf('\n}\n/* T428 矮桌面',desk515a);
+    const desk515=(desk515a>=0&&desk515b>desk515a)?css515.slice(desk515a,desk515b+3):'';
+    const narrow515a=css515.indexOf('@media (max-width:420px){\n  .panelAction515');
+    const narrow515b=narrow515a<0?-1:css515.indexOf('\n}\n',narrow515a);
+    const narrow515=(narrow515a>=0&&narrow515b>narrow515a)?css515.slice(narrow515a,narrow515b+3):'';
+    assert(static515.length>100 && dyn515.length>1000,
+      'T515 G0【前置】開始畫面 static/dynamic 區塊必須可定位（防搜尋失敗後下列守衛空跑）');
+    const pCfg515=static515.indexOf('data-start-role="config"');
+    const pExt515=static515.indexOf('data-start-role="extras"');
+    const pCha515=static515.indexOf('data-start-role="challenge"');
+    assert(pCfg515>=0&&pExt515>pCfg515&&pCha515>pExt515
+      && /class="startSection515 startExtras515" data-start-role="extras"[\s\S]*?class="startAltRow515"[\s\S]*?id="bEditorMode"/.test(static515),
+      'T515 G1【開始層級】config → extras → challenge 三個 section 必須按順序存在；既有 #bEditorMode 必須在 extras 的 compact row，不能再是 startMore 裸 sibling');
+    assert(/const config515=startGroup515\('\.startConfig515'\)\|\|moreEl;/.test(dyn515)
+      && /const challenge515=startGroup515\('\.startChallenge515'\)\|\|moreEl;/.test(dyn515)
+      && /const altRow515=startGroup515\('\.startAltRow515'\)\|\|extras515;/.test(dyn515)
+      && /config515\.appendChild\(dlabel\)[\s\S]*?config515\.appendChild\(drow\)/.test(dyn515)
+      && /const challenges515=document\.createElement\('div'\);challenges515\.className='startChallenges515';[\s\S]*?challenges515\.appendChild\(mk\('bCh1'[\s\S]*?\)\)[\s\S]*?challenges515\.appendChild\(mk\('bCh2'[\s\S]*?\)\)[\s\S]*?challenges515\.appendChild\(mk\('bCh3'[\s\S]*?\)\)[\s\S]*?challenge515\.appendChild\(challenges515\)/.test(dyn515)
+      && /config515\.appendChild\(grid\)/.test(dyn515)
+      && /altRow515\.appendChild\(bCamp\);campaign515\.appendChild\(scMenu\);/.test(dyn515),
+      'T515 G2【事件歸屬】難度/設定/三挑戰/戰役必須分派到自己的 group；所有既有 id 與原 onclick 仍由同一個原物件承接');
+    assert(desk515.length>200
+      && /#start \.startMore\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);[\s\S]*?max-width:min\(840px,92vw\)/.test(desk515)
+      && /#start \.startMore>\.startConfig515\{grid-column:span 2/.test(desk515)
+      && /#start \.startMore>\.startExtras515\{grid-column:span 1/.test(desk515)
+      && /#start \.startMore>\.startChallenge515\{grid-column:1\/-1/.test(desk515)
+      && /#start \.startChallenges515\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\);max-width:760px\}/.test(desk515),
+      'T515 G3【桌面節律】外層仍是 T428 三欄；設定 2 欄、其他玩法 1 欄、挑戰跨滿且內部三欄/760px 上限，防挑戰重回滿版巨條');
+    assert(/@media \(orientation:portrait\)\{\n  #info\{left:0;right:0;margin-inline:auto;width:min\(560px,92vw\);max-width:92vw\}\n\}/.test(css515)
+      && /\.panelTabs515\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(104px,1fr\)\);/.test(css515)
+      && /\.panelAction515\{display:grid;grid-template-columns:max-content minmax\(0,1fr\);/.test(css515)
+      && /#info \.panelTabs515 \.hbtn\{min-width:0;min-height:30px;white-space:normal/.test(css515)
+      && narrow515.length>150
+      && /#info \.stab\{grid-template-columns:minmax\(0,1fr\) auto;gap:2px 6px\}/.test(narrow515)
+      && /#info \.stab \.u\{grid-column:1\/-1;min-width:0;white-space:normal;overflow-wrap:anywhere/.test(narrow515),
+      'T515 G4【窄面板】直式 #info 必須採 92vw 安全寬度；tab/action 只准走具名 grid，statTab 說明欄只准在 max-width:420px 窄幅改為可換行的次列，不得靠 min-content 撐出面板或意外重排桌面表格');
+    const trend515=html.slice(html.indexOf('function showTrendPanel450(){'),html.indexOf('function statsTabs343(',html.indexOf('function showTrendPanel450(){')));
+    const help515=html.slice(html.indexOf('function showHelp(){'),html.indexOf("$('#bHelp').onclick",html.indexOf('function showHelp(){')));
+    const stats515=html.slice(html.indexOf('function showStats(){'),html.indexOf('function showDetail(',html.indexOf('function showStats(){')));
+    assert(/class="techTabs343 panelTabs515"/.test(html)
+      && /class="panelTabs515" role="group" aria-label="玩法指南分頁"/.test(help515)
+      && /class="panelAction515"[\s\S]*?id="trR30"[\s\S]*?class="panelMeta515"/.test(trend515)
+      && /class="panelAction515"><div class="panelMeta515">📈 歷史曲線<\/div><div class="panelActionBtns515"><button class="hbtn" id="histR30"/.test(stats515),
+      'T515 G5【面板接線】五統計 tab、八指南 tab、趨勢與歷史範圍鈕必須實際輸出 panelTabs/action/meta，不得只寫 CSS 空類');
+    assert(!/#info \.row\{[^}]*display:(?:grid|flex)/.test(css515)
+      && (html.match(/\$\('#info'\)\.style\.display='block'/g)||[]).length===1
+      && !/\b(?:R|ri|vri)\s*\(/.test(dyn515),
+      'T515 G6【零副作用】不得重排通用 #info .row；showInfoPanel 的唯一 display 寫入不變；整段 T515 開始畫面注入不得消耗任何亂數流');
   }
 
 
@@ -12938,4 +13003,3 @@ runPwaTests().then(() => {
   assert(!/🏛️ 政策　<label><input type="checkbox" id="polFreeT"/.test(html), 'T514 G6 舊政策牆已拆除');
   assert(!/📦 科學套餐　<button class="hbtn" id="packTransit481">/.test(html), 'T514 G6b 舊套餐單行已拆除');
 }
-
