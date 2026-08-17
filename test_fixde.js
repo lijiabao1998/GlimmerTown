@@ -12390,3 +12390,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T488 綠地降溫：守衛 ===== */
+{
+  assert(/id:'heatGr488'/.test(html), 'T488 G1 SCI451 必須有 heatGr488');
+  assert(html.includes('heatGr488:false'), 'T488 G1b pol 預設 false');
+  assert(html.includes('heatGr488:!!p.heatGr488'), 'T488 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polheatGr488'"), 'T488 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.heatGr488'), 'T488 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(488);
+    window.GV.setDiff(1);
+    window.GV.pol({ heatGr488: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().heatGr488 === false, 'T488 G3 關閉');
+    window.GV.pol({ heatGr488: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().heatGr488 === true, 'T488 G4 開啟');
+    window.GV.pol({ heatGr488: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
