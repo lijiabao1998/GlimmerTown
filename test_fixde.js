@@ -12663,3 +12663,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T501 光污染：守衛 ===== */
+{
+  assert(/id:'lightPol501'/.test(html), 'T501 G1 SCI451 必須有 lightPol501');
+  assert(html.includes('lightPol501:false'), 'T501 G1b pol 預設 false');
+  assert(html.includes('lightPol501:!!p.lightPol501'), 'T501 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#pollightPol501'"), 'T501 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.lightPol501'), 'T501 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(501);
+    window.GV.setDiff(1);
+    window.GV.pol({ lightPol501: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().lightPol501 === false, 'T501 G3 關閉');
+    window.GV.pol({ lightPol501: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().lightPol501 === true, 'T501 G4 開啟');
+    window.GV.pol({ lightPol501: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
