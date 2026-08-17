@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T496 快速公交（Grok；v11.127） | **ITDP BRT 標準（多篇）**——高品質公交走廊提高運量… 政策 `brt496` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T495 完整街道（Grok；v11.126） | **NACTO / complete streets（綜述）**——多模式街道提高安全與可達… 政策 `compSt495` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T494 停車下限（Grok；v11.125） | **Shoup（2005/2011）**——最低停車要求抬高住房成本、鼓勵開車… 政策 `parkMin494` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T493 歷史保護供給（Grok；v11.124） | **Been 等；紐約保護區文獻（2016+）**——保護區可能限制改建供給… 政策 `histPres493` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
