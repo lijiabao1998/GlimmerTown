@@ -12810,3 +12810,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T508 基本收入試點：守衛 ===== */
+{
+  assert(/id:'ubiPilot508'/.test(html), 'T508 G1 SCI451 必須有 ubiPilot508');
+  assert(html.includes('ubiPilot508:false'), 'T508 G1b pol 預設 false');
+  assert(html.includes('ubiPilot508:!!p.ubiPilot508'), 'T508 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polubiPilot508'"), 'T508 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.ubiPilot508'), 'T508 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(508);
+    window.GV.setDiff(1);
+    window.GV.pol({ ubiPilot508: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().ubiPilot508 === false, 'T508 G3 關閉');
+    window.GV.pol({ ubiPilot508: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().ubiPilot508 === true, 'T508 G4 開啟');
+    window.GV.pol({ ubiPilot508: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
