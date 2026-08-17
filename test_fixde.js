@@ -12900,3 +12900,42 @@ runPwaTests().then(() => {
   assert(/三答案/.test(rep) && /T484/.test(rep), 'T513 G1b 含三答案與卡號');
 }
 
+
+/* ===== T514 科學政策指揮台 + 控件結構化 ===== */
+{
+  assert(/renderSciCmd514/.test(html) && /SCI_GRP514/.test(html), 'T514 G1 指揮台渲染器在場');
+  assert(/renderTaxCtrl514/.test(html) && /renderBudCtrl514/.test(html), 'T514 G1b 稅率/預算結構化');
+  assert(/renderSciPacks514/.test(html) && /packGrid514/.test(html), 'T514 G1c 套餐網格');
+  assert(/renderCivicPol514/.test(html) && /renderFleetCtrl514/.test(html), 'T514 G1d 市政與車隊');
+  assert(/sciCard514/.test(html) && /ctrlCard514/.test(html), 'T514 G1e CSS 卡片類');
+  // 全部 SCI 分組鍵必須有 checkbox id 映射（DOM id 仍為 pol*，綁定零改動）
+  {
+    const g = html.match(/const SCI_GRP514=\[([\s\S]*?)\];/);
+    assert(g, 'T514 G2 分組表可解析');
+    const keys = [...g[1].matchAll(/'([a-zA-Z0-9]+)'/g)].map(m => m[1]).filter(k => !/^(housing|labor|transit|env|econ|social|id|nm|ic|keys)$/.test(k) && /[0-9]/.test(k));
+    assert(keys.length >= 40, 'T514 G2b 分組涵蓋 ≥40 科學鍵（得 '+keys.length+'）');
+  }
+  assert(typeof window.GV.sciGrp514 === 'function' && window.GV.sciGrp514().length === 6, 'T514 G3 六分組橋');
+  assert(typeof window.GV.sciCmdOn514 === 'function', 'T514 G3b 啟用計數橋');
+  {
+    window.GV.newWorldSeeded(514);
+    window.GV.setDiff(1);
+    // 全關
+    const off = window.GV.sciCmdOn514();
+    assert(off === 0, 'T514 G4 新局指揮台啟用數為 0（得 '+off+'）');
+    // 開啟一項科學政策後計數
+    window.GV.pol({ zoneStr484: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().zoneStr484 === true, 'T514 G4b pol 可開');
+    assert(window.GV.sciCmdOn514() >= 1, 'T514 G4c 開啟後計數 ≥1');
+    window.GV.pol({ zoneStr484: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+  // 舊 id 契約：套餐鈕 id 字串仍在 btnMap（執行期寫入 DOM；源碼無靜態 id="pack…"）
+  assert(html.includes("transitCity:'packTransit481'") && html.includes("indCity:'packInd511'"), 'T514 G5 套餐 id 契約（btnMap）');
+  assert(html.includes("polDomId514") && html.includes("polCong451"), 'T514 G5b 壅堵費 id 映射在場');
+  assert(html.includes("polToggle('#polCong451'") && html.includes("polToggle('#polzoneStr484'"), 'T514 G5c polToggle 綁定契約');
+  // 舊牆式「🏛️ 政策　<label>…」長行不得再出現（已改指揮台）
+  assert(!/🏛️ 政策　<label><input type="checkbox" id="polFreeT"/.test(html), 'T514 G6 舊政策牆已拆除');
+  assert(!/📦 科學套餐　<button class="hbtn" id="packTransit481">/.test(html), 'T514 G6b 舊套餐單行已拆除');
+}
+
