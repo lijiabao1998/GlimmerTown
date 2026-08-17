@@ -12852,3 +12852,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T510 文化軟實力：守衛 ===== */
+{
+  assert(/id:'softPower510'/.test(html), 'T510 G1 SCI451 必須有 softPower510');
+  assert(html.includes('softPower510:false'), 'T510 G1b pol 預設 false');
+  assert(html.includes('softPower510:!!p.softPower510'), 'T510 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polsoftPower510'"), 'T510 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.softPower510'), 'T510 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(510);
+    window.GV.setDiff(1);
+    window.GV.pol({ softPower510: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().softPower510 === false, 'T510 G3 關閉');
+    window.GV.pol({ softPower510: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().softPower510 === true, 'T510 G4 開啟');
+    window.GV.pol({ softPower510: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+

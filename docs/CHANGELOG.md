@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T510 文化軟實力（Grok；v11.141） | **Florida 創意階層（有爭議）；消費城市（2002+）**——文化消費提高城市吸引力（幅度爭議）… 政策 `softPower510` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T509 出口基數（Grok；v11.140） | **North；經濟基數理論（經典）**——可貿易部門擴張帶動非貿易… 政策 `exportBase509` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T508 基本收入試點（Grok；v11.139） | **芬蘭 UBI；GiveDirectly 等（2017+）**——試點對就業影響接近中性、安全感上升… 政策 `ubiPilot508` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T507 累進房產稅（Grok；v11.138） | **Oates；地方財政（經典）**——累進設計影響住房選擇… 政策 `progTax507` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
