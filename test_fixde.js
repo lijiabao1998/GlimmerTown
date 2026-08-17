@@ -12432,3 +12432,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T490 寬頻接入：守衛 ===== */
+{
+  assert(/id:'broadband490'/.test(html), 'T490 G1 SCI451 必須有 broadband490');
+  assert(html.includes('broadband490:false'), 'T490 G1b pol 預設 false');
+  assert(html.includes('broadband490:!!p.broadband490'), 'T490 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polbroadband490'"), 'T490 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.broadband490'), 'T490 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(490);
+    window.GV.setDiff(1);
+    window.GV.pol({ broadband490: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().broadband490 === false, 'T490 G3 關閉');
+    window.GV.pol({ broadband490: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().broadband490 === true, 'T490 G4 開啟');
+    window.GV.pol({ broadband490: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
