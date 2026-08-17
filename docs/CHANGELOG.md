@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T506 土地增值回收（Grok；v11.137） | **Medda；LVC 文獻（綜述）**——可回收部分公共投資外部性… 政策 `lvc506` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T505 邊緣城市（Grok；v11.136） | **Garreau；edge city 批評（1991+）**——郊區就業節點改變通勤模式… 政策 `edge505` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T504 多中心城市（Grok；v11.135） | **Anas；polycentric city 文獻（多篇）**——就業次中心緩解單中心壅堵… 政策 `poly504` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T503 青年留才（Grok；v11.134） | **Docquier & Rapoport；人才流動（綜述）**——機會不足導致青年外流… 政策 `brainDr503` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。

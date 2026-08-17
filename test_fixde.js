@@ -12768,3 +12768,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T506 土地增值回收：守衛 ===== */
+{
+  assert(/id:'lvc506'/.test(html), 'T506 G1 SCI451 必須有 lvc506');
+  assert(html.includes('lvc506:false'), 'T506 G1b pol 預設 false');
+  assert(html.includes('lvc506:!!p.lvc506'), 'T506 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#pollvc506'"), 'T506 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.lvc506'), 'T506 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(506);
+    window.GV.setDiff(1);
+    window.GV.pol({ lvc506: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().lvc506 === false, 'T506 G3 關閉');
+    window.GV.pol({ lvc506: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().lvc506 === true, 'T506 G4 開啟');
+    window.GV.pol({ lvc506: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
