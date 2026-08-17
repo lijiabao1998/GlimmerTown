@@ -12621,3 +12621,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T499 水資源定價：守衛 ===== */
+{
+  assert(/id:'waterP499'/.test(html), 'T499 G1 SCI451 必須有 waterP499');
+  assert(html.includes('waterP499:false'), 'T499 G1b pol 預設 false');
+  assert(html.includes('waterP499:!!p.waterP499'), 'T499 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polwaterP499'"), 'T499 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.waterP499'), 'T499 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(499);
+    window.GV.setDiff(1);
+    window.GV.pol({ waterP499: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().waterP499 === false, 'T499 G3 關閉');
+    window.GV.pol({ waterP499: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().waterP499 === true, 'T499 G4 開啟');
+    window.GV.pol({ waterP499: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
