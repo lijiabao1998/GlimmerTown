@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T491 移民創業（Grok；v11.122） | **Kerr；Hunt（多篇）**——移民企業家比例高於原生人口… 政策 `immEnt491` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T490 寬頻接入（Grok；v11.121） | **Czernich 等；ITU（2011+）**——寬頻滲透與生產力正相關… 政策 `broadband490` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T489 托育可及（Grok；v11.120） | **Blau & Currie；OECD（綜述）**——可負擔托育提高勞動供給… 政策 `childcare489` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T488 綠地降溫（Grok；v11.119） | **EPA / 城市熱島文獻（多篇）**——植被降低地表溫度與熱壓力… 政策 `heatGr488` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
