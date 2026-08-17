@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T488 綠地降溫（Grok；v11.119） | **EPA / 城市熱島文獻（多篇）**——植被降低地表溫度與熱壓力… 政策 `heatGr488` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T487 可步行健康（Grok；v11.118） | **Frank 等；Sallis（多篇）**——可步行環境提高活動量與健康… 政策 `walkH487` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T486 地方化經濟（Grok；v11.117） | **Marshall；Duranton & Puga（1890/2004）**——同業集聚降低成本、提高創新… 政策 `marshall486` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T485 空間錯配效率（Grok；v11.116） | **Hsieh & Moretti（2019）**——住房限制導致技能錯配、壓低總產出… 政策 `misalloc485` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
