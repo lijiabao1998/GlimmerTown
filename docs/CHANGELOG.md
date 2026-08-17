@@ -1,4 +1,5 @@
 # CHANGELOG — 每完成一張任務卡追加一行
+2026-08-17 | T486 地方化經濟（Grok；v11.117） | **Marshall；Duranton & Puga（1890/2004）**——同業集聚降低成本、提高創新… 政策 `marshall486` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T485 空間錯配效率（Grok；v11.116） | **Hsieh & Moretti（2019）**——住房限制導致技能錯配、壓低總產出… 政策 `misalloc485` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T484 分區嚴格度（Grok；v11.115） | **Glaeser & Gyourko（2003/2018）**——嚴格分區抬高住房成本、抑制供給… 政策 `zoneStr484` 預設關。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN）。
 2026-08-17 | T467/T473 機制退修（Grok；v11.114） | skeptic 硬紅：①學校同儕幸福改閘 COV.school[idx]>0；②綠帶 greenRev 改 if(np>5)；G2b/G2c 機制斷言入套件。 | 驗收:通過（Grok 全鏈二次自審：verify ALL GREEN／PASS 5204）。

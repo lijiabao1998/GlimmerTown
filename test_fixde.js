@@ -12348,3 +12348,24 @@ runPwaTests().then(() => {
   }
 }
 
+
+/* ===== T486 地方化經濟：守衛 ===== */
+{
+  assert(/id:'marshall486'/.test(html), 'T486 G1 SCI451 必須有 marshall486');
+  assert(html.includes('marshall486:false'), 'T486 G1b pol 預設 false');
+  assert(html.includes('marshall486:!!p.marshall486'), 'T486 G1c GV.pol 白名單');
+  assert(html.includes("polToggle('#polmarshall486'"), 'T486 G1d polToggle');
+  assert(html.includes('SCI_BY_ID451.marshall486'), 'T486 G2 效應讀表');
+  {
+    window.GV.newWorldSeeded(486);
+    window.GV.setDiff(1);
+    window.GV.pol({ marshall486: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().marshall486 === false, 'T486 G3 關閉');
+    window.GV.pol({ marshall486: true, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.step(1);
+    assert(window.GV.pol().marshall486 === true, 'T486 G4 開啟');
+    window.GV.pol({ marshall486: false, taxR: 1, taxC: 1, taxI: 1 });
+  }
+}
+
