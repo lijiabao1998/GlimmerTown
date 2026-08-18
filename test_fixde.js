@@ -10387,6 +10387,67 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T516 研究血統（Research Lineage）：守衛 ===== */
+{
+  /* 四型嚴格分離＋雙線記帳。守衛走 GV 唯讀鉤做**真資料驗證**（枚舉/雙向覆蓋），
+     不靠正則刮源碼；頁面結構走原文針；零模擬由六哨兵（行為）＋出現位置計數釘（機械）雙保險。 */
+  const A516 = window.GV.ancestry516();
+  // G1 枚舉機械驗證（type/mode/line 全在枚舉內）
+  assert(A516.rows.length >= 12, 'T516 G1 血統表至少應有回填的 12+ 列（實得 ' + A516.rows.length + '）');
+  for (const r516 of A516.rows) {
+    assert(A516.types.includes(r516.type), 'T516 G1 type 必須在枚舉內（' + r516.card + ' 實得 ' + r516.type + '）');
+    assert(A516.modes.includes(r516.mode), 'T516 G1 mode 必須在枚舉內（' + r516.card + ' 實得 ' + r516.mode + '）');
+    assert(A516.lines.includes(r516.line), 'T516 G1 line 必須在枚舉內（' + r516.card + ' 實得 ' + r516.line + '）');
+    assert(typeof r516.audit === 'string' && r516.audit.length > 0, 'T516 G1 每列必須有覆核狀態欄（' + r516.card + '）');
+  }
+  assert(!A516.modes.some(m => /independent/i.test(m)),
+    'T516 G1d 枚舉不得含 independent convergence——五條件（pre-literature 凍結時戳等）協定成立前，機械上不可能掛');
+  // G1b sciRefs 雙向全覆蓋（每個 sciRef ∈ SCI451；SCI451 每條被恰好一個 research 列涵蓋）＋非 research 禁 sciRefs
+  {
+    const seen516 = {};
+    for (const r516 of A516.rows) {
+      if (r516.type === 'research') {
+        assert(Array.isArray(r516.sciRefs) && r516.sciRefs.length > 0,
+          'T516 G1b research 列必須以 sciRefs 指回 SCI451（' + r516.card + '）——不重抄引用＝單一真相源');
+        for (const id516 of r516.sciRefs) {
+          assert(A516.sciIds.includes(id516),
+            'T516 G1b sciRef 必須存在於 SCI451（' + r516.card + ' 掛了不存在的 ' + id516 + '）');
+          assert(!seen516[id516], 'T516 G1b 同一 SCI451 條目不得被兩列涵蓋（' + id516 + '）');
+          seen516[id516] = r516.card;
+        }
+      } else {
+        assert(r516.sciRefs === undefined,
+          'T516 G1c 非 research 列禁掛 sciRefs/DOI（' + r516.card + '）——產品對標與學術證據是兩種認識論對象');
+      }
+    }
+    const orphan516 = A516.sciIds.filter(id => !seen516[id]);
+    assert(orphan516.length === 0,
+      'T516 G1b【完備性】SCI451 全部 ' + A516.sciIds.length + ' 條研究必須被 research 列全覆蓋，孤兒：' + JSON.stringify(orphan516));
+  }
+  // G1e 五句標準模板在場（含歸屬邊界）
+  for (const nk516 of ['adaptation', 'evidence', 'dataUse', 'attribution', 'license'])
+    assert(typeof A516.notes[nk516] === 'string' && A516.notes[nk516].length > 10,
+      'T516 G1e 標準模板句必須齊（缺 ' + nk516 + '）');
+  assert(A516.notes.attribution.indexOf('不代表') >= 0,
+    'T516 G1e 歸屬邊界句必須明言「引用不代表作者背書實作」');
+  // G2 頁面結構：表驅動＋新分頁在 tabs＋===8 塊必須排在 ===7 之前（不落入六家守衛的掃描切片）
+  assert(html.includes("'📚 城市科學','🧬 研究血統'"),
+    'T516 G2 tabs 必須在城市科學之後追加研究血統分頁');
+  assert(html.includes('for(const e516 of ANCESTRY516){') && html.includes('h+=statTab(rows516);')
+    && html.includes('ANCESTRY_NOTES516[nk516]'),
+    'T516 G2b 血統頁必須逐列由 ANCESTRY516 導出、模板句由 ANCESTRY_NOTES516 導出（零手寫行）');
+  assert(html.indexOf('}else if(guideTab===8){') > 0
+    && html.indexOf('}else if(guideTab===8){') < html.indexOf('}else if(guideTab===7){'),
+    'T516 G2c【位置釘】===8 塊必須排在 ===7 之前——否則落入 T451/T452/T453/T454/T462/T455 的 ===7→===4 掃描切片');
+  // G3 零模擬：ANCESTRY516 token 出現位置計數釘（定義 1＋頁頭 length 1＋渲染 for 1＋GV 鉤 1）
+  {
+    const n516 = (htmlBare438.match(/ANCESTRY516/g) || []).length;
+    assert(n516 === 4,
+      'T516 G3【計數釘】ANCESTRY516 在剝除後源碼應恰出現 4 處（定義/頁頭/渲染/GV 鉤），實得 ' + n516
+      + '——多出來的那處可能把血統表接進了模擬（零模擬語意契約）；合法增刪=同卡更新本釘');
+  }
+}
+
 /* ===== T459 污染外部性（空氣品質管制）：守衛 ===== */
 {
   /* Chay & Greenstone 2003 QJE / 2005 JPE。排放削減接在 recomputePol 唯一導出點（不碰成對蓋印）；
