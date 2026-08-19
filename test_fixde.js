@@ -10387,6 +10387,48 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T525 上手階梯延長：守衛 ===== */
+{
+  /* 玩測：checkHints 的階梯到 h6（機場 pop≥400）就停了，而科技樹 36 節點／委託／專精／
+     53 條研究 51 個政策全在那之後才登場——玩到 pop 400+ 的玩家可能永遠不知道它們存在。 */
+  // G1 門檻與數量必須引既有常數（機械掃：新提示區段不得手抄門檻/數量數字）
+  {
+    const a525 = html.indexOf("showHint('h7',");
+    const b525 = html.indexOf("function showHint(", 0) > a525 ? html.indexOf("function showHint(", 0) : html.indexOf('}\n', html.indexOf("showHint('h10',"));
+    assert(a525 > 0, 'T525 G1 找不到 h7 區段');
+    const blk525 = html.slice(a525, html.indexOf("showHint('h10',") + 400);
+    assert(blk525.includes('TECH343.length') && blk525.includes('TECH343[0].cost') && blk525.includes('SCI451.length'),
+      'T525 G1【原文前哨】提示裡的節點數／費用／研究條數必須由既有表導出（TECH343／SCI451），不得手抄');
+    assert(html.includes('rankIdx+1>=CMS_MIN_RANK385&&pop>CMS_MIN_POP385') && html.includes('rankIdx+1>=SPEC_MIN_RANK386'),
+      'T525 G1b 委託／專精門檻必須引既有具名常數（T442 的 $12 教訓）');
+    assert(!/[「（]\s*\d{3,}\s*[條個]/.test(blk525),
+      'T525 G1c 提示文案不得出現手抄的三位數以上數量（必須由表導出）');
+  }
+  // G2 既有 h1-h6 原文回歸（只能追加）
+  assert(html.includes("showHint('h1','👉 先選「🛣 支路」，在草地上拖出幾條路')")
+    && html.includes("showHint('h6','✈️ 小鎮已頗具規模！蓋一座「大型」分類的機場，能大量吸引遊客、提升全城商業稅收')"),
+    'T525 G2【回歸】既有 h1-h6 原文必須原樣保留');
+  // G3 行為：長跑城市必須走完階梯續段，且每條只觸發一次
+  {
+    window.GV.newWorldSeeded(525); window.GV.setDiff(1); window.GV.ai(true);
+    for (let d = 0; d < 400; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const H525 = window.GV.hints525();
+    const st525 = window.GV.stats();
+    assert(H525.shown.indexOf('h7') >= 0 || st525.pop < H525.techPop,
+      'T525 G3 城市達 pop≥' + H525.techPop + ' 且有錢無研究時必須提示科技樹（實得 pop=' + st525.pop
+      + '、已顯示 ' + JSON.stringify(H525.shown) + '）');
+    // 一次性：hintShown 是 key 集合，同一 key 不可能出現兩次；再跑一段也不得新增重複
+    const before525 = H525.shown.slice().sort().join(',');
+    for (let d = 0; d < 60; d++) window.GV.step(1);
+    const after525 = window.GV.hints525().shown;
+    assert(new Set(after525).size === after525.length,
+      'T525 G3b 提示必須一次性（hintShown 不得出現重複鍵）');
+    assert(after525.length >= before525.split(',').filter(Boolean).length,
+      'T525 G3c 提示集合只增不減');
+  }
+}
+
 /* ===== T524 科學頁篩選：守衛 ===== */
 {
   /* 玩測：科學頁 4,574px（≈5.7 屏）、53 條、無搜尋無篩選。分組真相源＝既有 SCI_GRP514，
