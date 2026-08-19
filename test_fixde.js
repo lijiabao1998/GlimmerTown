@@ -10387,6 +10387,53 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T523 渲染預算閘門：守衛 ===== */
+{
+  /* 每幀落筆數是確定性的（與 GPU/時序無關）；headless 的**時間**量測不可信（實測基準樣本
+     220-288ms、交錯 A/B 差值全在雜訊內），所以本閘門釘的是呼叫次數而不是毫秒。
+     用**上限**不用精確值——幀內容會隨動畫時間微幅浮動，精確釘必 flaky（T444 教訓）。 */
+  /* **預算必須照本閘門自己量到的數字校準**：套件的 ctx 是 stub、跑的不是完整渲染路徑，
+     實測本閘門 585（空城）／2,587（300 天城）；真瀏覽器同場景是 1,684／15,936。
+     第一版照瀏覽器數字設 3,000／25,000 ⇒ 套件裡有 10 倍餘裕＝**閘門咬不到任何東西**
+     （「看起來在量、其實量的是別的」——本季一路在修的同一族毛病）。
+     現值＝套件實測 ×約 2 的成長餘裕；瀏覽器側的真實數字記在 T523 卡面。 */
+  const BUDGET_EMPTY523 = 1200, BUDGET_CITY523 = 6000;
+  window.GV.newWorldSeeded(523); window.GV.setDiff(1); window.GV.setZoom(1);
+  const empty523 = window.GV.drawCensus523();
+  assert(empty523.restored === true,
+    'T523 G1 census 必須把攔截的 canvas 方法還原乾淨（殘留就會污染之後所有量測與繪製）');
+  assert(empty523.total > 0 && empty523.total <= BUDGET_EMPTY523,
+    'T523 G2 空城一幀落筆必須 >0 且 ≤' + BUDGET_EMPTY523 + '（實得 ' + empty523.total + '）');
+  const st523a = JSON.stringify(window.GV.stats());
+  window.GV.ai(true);
+  for (let d = 0; d < 300; d++) window.GV.step(1);
+  window.GV.ai(false);
+  const city523 = window.GV.drawCensus523();
+  assert(city523.restored === true, 'T523 G1b 城市態 census 同樣必須還原乾淨');
+  assert(city523.total <= BUDGET_CITY523,
+    'T523 G2b 300 天城一幀落筆必須 ≤' + BUDGET_CITY523 + '（實得 ' + city523.total
+    + '）——超出代表有人加了一層很貴的美術，請在合併前先量過');
+  assert(city523.total > empty523.total,
+    'T523 G2c 城市長大後落筆數必須增加（實得 空城 ' + empty523.total + ' → 城市 ' + city523.total + '）');
+  // G3 零副作用：量測不得改變世界（stats 與亂數流）
+  {
+    const before523 = JSON.stringify(window.GV.stats());
+    window.GV.drawCensus523();
+    assert(JSON.stringify(window.GV.stats()) === before523,
+      'T523 G3 量測前後 stats 必須逐字相同——量測不得改變世界');
+    /* G3b 第一版寫成 `window.GV.rngPeek ? … : null`——鉤子不存在就整條略過＝**空跑的假綠**
+       （本季一路在修的同一族毛病，這次犯在自己手上）。改成不可跳過的機械掃：
+       census 函式體零亂數。draw() 本身零亂數已由 T422 G4 行為證明，這裡只守我這層包裝。 */
+    const c0523 = htmlBare438.indexOf('drawCensus523:()=>{');
+    const c1523 = htmlBare438.indexOf('recomputePolAll459:', c0523);
+    assert(c0523 > 0 && c1523 > c0523, 'T523 G3b 找不到 census 函式區段');
+    const blk523 = htmlBare438.slice(c0523, c1523);
+    assert(!/\bR\(\)/.test(blk523) && !/Math\.random/.test(blk523) && !/\bri\(/.test(blk523),
+      'T523 G3b【機械掃】census 包裝層不得消耗亂數——量測用的儀器自己動了世界，量到的就不是原來那個世界');
+  }
+  void st523a;
+}
+
 /* ===== T522 孤島電源嚴重度分級：守衛 ===== */
 {
   /* 長局玩測抓到 T519 自己的缺陷：600 天成熟城（6,890 人）裡一座 AI 隨手蓋的孤島風力塔，
