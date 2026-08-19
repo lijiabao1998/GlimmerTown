@@ -7974,8 +7974,12 @@ runPwaTests().then(() => {
     window.GV.newWorldSeeded(99);window.GV.weather(0);
     window.__t385Rank(4); // Lv.5：五型皆有可選
     const o1=window.GV.cmsOffers385(),o2=window.GV.cmsOffers385();
-    assert(o1.length===3&&new Set(o1).size===3&&JSON.stringify(o1)===JSON.stringify(o2),
-      'T385 三選一決定性：同 seed 同輪次恆同三條且互異，實得 '+o1.join(','));
+    /* T529 合法演進跟版（原文為「恆同**三條**且互異」）：本卡在發單側加了可行性閘門
+       ——沒有鋼鐵廠/煉油廠/貿易站的城市不再收到那幾張必然過期的單 ⇒ **池會小於 3**。
+       這條守衛真正要守的是「決定性抽選」與「互異」，3 這個數字是當時的附帶事實。
+       改為 1..3 且互異且兩次呼叫恆同；「池不得為空」由 T529 G1 專守（那才是靈魂）。 */
+    assert(o1.length>=1&&o1.length<=3&&new Set(o1).size===o1.length&&JSON.stringify(o1)===JSON.stringify(o2),
+      'T385 抽選決定性：同 seed 同輪次恆同、1..3 條且互異，實得 '+o1.join(','));
     // 零接單純度：步進三日 cms385 仍全零
     window.GV.step(3);
     assert(JSON.stringify(window.GV.cms385())===JSON.stringify({act:'',st:0,acc:0,hold:0,n:0,done:[]}),
@@ -11907,6 +11911,147 @@ runPwaTests().then(() => {
     assert(verify447.indexOf('（鐵律3）') < 0 && verify447.indexOf('鐵律18') >= 0,
       'T447 G2b `docs/VERIFY.md` 不得再以「鐵律3」之名引用存檔槽紀律'
       + '（RULES 第 3 條講的是「禁止刪除既有功能／註解／GV API」），必須引第 18 條');
+  }
+}
+
+/* ===== T529 委託不該發你做不到的單 =====
+
+   實測「見單就接」的玩家 500 天×三城：12 件結案只完成 2 件＝**83% 過期率**，
+   成熟城獎金佔財富累積 0.16%。兩個根因都在發單側：
+     ①發單不看城市有沒有能力做（鋼材/燃料四條需要 k122/k121，而那兩座**不在 AI 的 78 條 wants 裡**）
+     ②合格委託 ≤3 時直接全回、沒有抽選 ⇒ 過期後又拿到同一張（實測連續三次）
+
+   守衛分工：
+     G1  **發單池永不為空**（靈魂）——閘門寫太嚴＝把整個系統靜靜關掉，比 83% 過期更糟。
+     G2  可行性雙向：沒廠不發、有廠必發。
+     G3  剛過期的不連發（除非池會因此為空）。
+     G4  發單側零亂數（機械掃函式體，不可跳過）。
+     G5  幸福峰值是純觀測（唯讀）＋鐵律7 三處歸零。 */
+{
+  const GC = window.GV;
+  GC.newWorldSeeded(529);
+  /* 先把城市養到 pop>50——`cmsAccept385` 有 `pop<=CMS_MIN_POP385` 門檻，
+     只設等級不設人口的話後面的行為釘會卡在「接單失敗」。AI 不會蓋加工廠，
+     所以「新城沒有鋼鐵廠」這個前提不受影響（那正是本卡要修的事）。 */
+  GC.ai(true); for (let d = 0; d < 140; d++) GC.step(1); GC.ai(false);
+  window.__t385Rank(11); // 高階：讓 minRank 不成為干擾項，閘門才是唯一變因
+
+  const c0 = GC.cms529();
+  assert(c0.eligAll.length >= 8,
+    'T529 前置：高階城市的「未過閘門合格池」應有 8 條以上（實得 ' + c0.eligAll.length
+    + '）——太少的話下面驗不出閘門的效果');
+  assert(c0.plants.steelMill === 0 && c0.plants.refinery === 0,
+    'T529 前置：新城不該有鋼鐵廠／煉油廠（實得 ' + JSON.stringify(c0.plants) + '）');
+
+  /* G1 的精確不變量（第一版把話說太滿，被自己的探針抓到）：
+     原文寫「**任何**城市狀態下發單池都不得為空」——但實測 seed528 有 42 天池是空的，
+     那是 `minRank` 造成的（低階城市本來就還沒解鎖委託，屬既有設計），不是可行性閘門。
+     真正要守的是：**閘門不得把一個本來非空的池弄空**。 */
+  assert(!(c0.eligAll.length >= 1 && c0.offers.length === 0),
+    'T529 G1【本卡靈魂】可行性閘門不得把非空的合格池弄成空池（eligAll ' + c0.eligAll.length
+    + ' 條 → offers ' + c0.offers.length
+    + ' 條）。閘門的失敗模式不是「發錯單」，是「一張都不發」＝把整個系統靜靜關掉');
+  assert(c0.offers.length >= 1,
+    'T529 G1a 本場（rank 11、eligAll ' + c0.eligAll.length + ' 條）必須發得出單，實得 '
+    + c0.offers.length + ' 條');
+  /* G1b 低階城市：eligAll 為空時池空是既有設計，但閘門仍不得「額外」清空。
+     用 rank 0 造境驗這條分界，順便釘住「空池不是閘門造成的」。 */
+  {
+    window.__t385Rank(0);
+    const cLow = GC.cms529();
+    assert(!(cLow.eligAll.length >= 1 && cLow.offers.length === 0),
+      'T529 G1b 低階城市：閘門同樣不得把非空的合格池弄空（eligAll ' + cLow.eligAll.length
+      + ' → offers ' + cLow.offers.length + '）');
+    window.__t385Rank(11);
+  }
+
+  /* G2 可行性：沒有加工廠時，鋼材/燃料四條不得在池裡 */
+  const PLANT_GATED = ['steel40', 'steel80', 'ct_steel60', 'ct_fuel80'];
+  for (const id of PLANT_GATED)
+    assert(c0.feas[id] === false,
+      'T529 G2 沒有加工廠的城市，`' + id + '` 必須判為不可行（實得可行）');
+  const leaked = c0.offers.filter(id => PLANT_GATED.indexOf(id) >= 0);
+  assert(leaked.length === 0,
+    'T529 G2a 不可行的委託不得進入發單池（洩漏：' + leaked.join(',') + '）');
+
+  /* G2b 反向：蓋了鋼鐵廠之後 stock/steel 必須變成可行——單向釘擋不住「閘門永遠回 false」 */
+  {
+    const NN = GC.N();
+    let placed = null;
+    outer529: for (let x = 2; x < NN - 5; x++) for (let y = 2; y < NN - 5; y++) {
+      let ok = true;
+      for (let dx = 0; dx < 3 && ok; dx++) for (let dy = 0; dy < 3 && ok; dy++) {
+        const t = GC.tile(x + dx, y + dy);
+        if (!t || t.t !== 2 || t.bld || t.road || t.tree || t.el) ok = false;
+      }
+      if (ok) { GC.addMoney(50000); if (GC.place('steelMill', x, y) === true) { placed = [x, y]; break outer529; } }
+    }
+    assert(placed, 'T529 G2b 前置：找不到地方蓋鋼鐵廠（3×3 空地掃描失敗）');
+    const c1 = GC.cms529();
+    assert(c1.plants.steelMill === 1, 'T529 G2b 前置：鋼鐵廠應已蓋起（實得 ' + c1.plants.steelMill + '）');
+    assert(c1.feas['ct_steel60'] === true,
+      'T529 G2b【反向】蓋了鋼鐵廠之後 `ct_steel60` 必須變成可行——'
+      + '只驗「不可行時不發」擋不住「閘門永遠回 false」（那會讓四條委託從此消失）');
+    assert(c1.feas['steel40'] === false,
+      'T529 G2c `steel40` 是「耗鋼累計」型，還需要造船廠出貨；只有鋼鐵廠時仍應不可行');
+  }
+
+  /* G3 剛過期的不連發：cms529().lastExp 有值時，它不得出現在 offers（除非池會因此為空） */
+  {
+    const c2 = GC.cms529();
+    const pool = c2.eligAll.filter(id => c2.feas[id]);
+    assert(pool.length >= 2,
+      'T529 G3 前置：可行池要有 2 條以上，才驗得出「排除一條後仍有得發」（實得 ' + pool.length + '）');
+    /* 行為釘：真的接一張、真的讓它過期，再驗「下一輪不會又發同一張」。
+       （第一版這裡寫了 `assert(x?true:true,'')` 的空斷言＝我自己在 T523 批評過的假綠，已換掉。） */
+    const pick529 = GC.cmsOffers385()[0];
+    assert(GC.cmsAccept385(0) === true, 'T529 G3 前置：接單應成功（實得失敗，門檻或池有問題）');
+    for (let d = 0; d < 210; d++) GC.step(1);
+    const st529 = GC.cms385(), c3 = GC.cms529();
+    assert(st529.n >= 1, 'T529 G3 前置：210 天後那張委託應該已結案（實得 n=' + st529.n + '）');
+    if (st529.done.indexOf(pick529) < 0) { // 沒完成＝過期路徑
+      assert(c3.lastExp === pick529,
+        'T529 G3【行為】過期後 lastExp 必須是剛過期的那張（期望 ' + pick529 + '，實得 ' + c3.lastExp + '）');
+      const alt = c3.eligAll.filter(id => c3.feas[id] && id !== pick529);
+      if (alt.length) assert(c3.offers.indexOf(pick529) < 0,
+        'T529 G3b【行為】還有別的可行委託時，剛過期的 `' + pick529 + '` 不得又出現在發單池（實得 '
+        + c3.offers.join(',') + '）——實測 seed528 `trade1200` 曾連續過期三次');
+    }
+    assert(htmlBare438.indexOf('lastExp529=cAct385.id;') >= 0,
+      'T529 G3 過期路徑必須記下剛過期的委託 id（`lastExp529=cAct385.id;`）——沒有它就不可能不連發');
+    assert(htmlBare438.indexOf("c.id!==lastExp529") >= 0,
+      'T529 G3a 發單池必須排除剛過期的那一條');
+  }
+
+  /* G4 發單側零亂數（機械掃，不可跳過） */
+  {
+    const a529 = 'function cmsFeas529(c){';
+    const at = htmlBare438.indexOf(a529);
+    assert(at >= 0, 'T529 G4 找不到 `' + a529 + '` 錨點（改簽名要同步這條）');
+    const feasEnd = html.indexOf('\nfunction cmsOffers385', at);
+    const body = html.slice(at, feasEnd > 0 ? feasEnd : at + 400);
+    assert(body.length > 20 && body.length < 600,
+      'T529 G4 錨點取到的函式體長度異常（' + body.length + '）＝抓錯範圍');
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|[^a-zA-Z_]rand\(|Math\.random/.test(body),
+      'T529 G4 可行性判定必須零亂數（鐵律2）');
+    const tbl = html.slice(html.indexOf('const CMS_FEAS529={'), html.indexOf('let happyPeak529'));
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|Math\.random/.test(tbl),
+      'T529 G4a 可行性表本身也必須零亂數');
+    assert((tbl.match(/:\s*\(?c?\)?\s*=>/g) || []).length === 5,
+      'T529 G4b 可行性表應恰有 5 條規則（acc/steel、stock/steel、stock/fuel、acc/trade、hold/happy），'
+      + '實得 ' + (tbl.match(/:\s*\(?c?\)?\s*=>/g) || []).length
+      + '——多出來的規則要跟版這條計數釘並在卡面說明');
+  }
+
+  /* G5 幸福峰值：純觀測（唯讀 cityHappy）＋鐵律7 三處歸零 */
+  {
+    assert(htmlBare438.indexOf('if(cityHappy>happyPeak529)happyPeak529=cityHappy;') >= 0,
+      'T529 G5 幸福峰值必須是「只比大小、只賦值給自己」的純觀測寫法');
+    const resets = (htmlBare438.match(/happyPeak529=0/g) || []).length;
+    assert(resets >= 3,
+      'T529 G5a 幸福峰值必須在宣告／newWorld／load 三處歸零（鐵律7），實得 ' + resets + ' 處');
+    assert(htmlBare438.indexOf('happyPeak529') > 0 && html.indexOf('data.happyPeak529') < 0,
+      'T529 G5b 幸福峰值不得進存檔（它是發單側提示，不是世界狀態）');
   }
 }
 
