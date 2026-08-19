@@ -11921,6 +11921,72 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T533 分享碼跨尺寸誤判（T262 遺留債）=====
+
+   「朋友的 108×108 分享碼在 72×72 世界裡貼不進來」：load() 支援跨尺寸（T262 驗 dd.n），
+   但匯入閘門忘了改、還在驗當前 N ⇒ 合法碼被拒「分享碼無效」，而同一份資料直接走 load() 開得起來。
+   同一條規則兩處各寫一份＝T530/T518 同族。修法＝抽 saveShapeOk533 單一真相源。 */
+{
+  /* G1 交叉一致性（靈魂）：形狀判定全檔只准寫一次 */
+  const dnDn533 = (htmlBare438.match(/\.length===dn\*dn/g) || []).length;
+  assert(dnDn533 === 1,
+    'T533 G1【本卡靈魂】`ter 長度===dn*dn` 全檔只准寫一次（在 `saveShapeOk533` 裡），實得 '
+    + dnDn533 + ' 處——兩處各寫一份正是 T262 留下的病：load 那份改了、匯入閘門那份忘了');
+  assert((htmlBare438.match(/ter\.length===N\*N/g) || []).length === 0,
+    'T533 G1a 匯入閘門不得再用當前執行期的 N 驗長度（`ter.length===N*N` 應為 0 處）');
+  assert(htmlBare438.indexOf('if(!saveShapeOk533(d))') >= 0
+      && htmlBare438.indexOf('const vlen=saveShapeOk533;') >= 0,
+    'T533 G1b 匯入閘門與 load 的 vlen 都必須讀 `saveShapeOk533`（兩個使用點）');
+
+  /* G2 行為：跨尺寸匯入必須成功且世界正確 */
+  const GS = window.GV;
+  GS.setMapSize(108);
+  GS.newWorldSeeded(533);
+  GS.weather(0);
+  GS.ai(true); for (let d = 0; d < 60; d++) GS.step(1); GS.ai(false); // 養到有人口，G2b 才不是 0===0 的空跑
+  window.GV.save();
+  const raw108 = store[SKEY];
+  const code108 = btoa(unescape(encodeURIComponent(raw108)));
+  GS.step(1); const pop108 = GS.stats().pop;
+  assert(pop108 > 0,
+    'T533 G2 前置：來源城必須有人口（實得 ' + pop108 + '）——pop=0 時 G2b 的一致性斷言是空跑（0===0 什麼都沒驗）');
+
+  GS.setMapSize(72);
+  GS.newWorldSeeded(534);
+  GS.weather(0);
+  for (let d = 0; d < 3; d++) GS.step(1);
+  window.GV.save();
+  const code72 = btoa(unescape(encodeURIComponent(store[SKEY])));
+  assert(GS.N() === 72, 'T533 G2 前置：目前世界應為 72（實得 ' + GS.N() + '）');
+
+  assert(GS.importCode(code108) === true,
+    'T533 G2【行為】跨尺寸匯入必須成功（108 碼進 72 世界）——修前一律被拒「分享碼無效」，'
+    + '而同一份資料直接走 load() 開得起來（實測 N=108）');
+  assert(GS.N() === 108,
+    'T533 G2a 匯入後世界尺寸必須切到分享碼宣告的 108（實得 ' + GS.N() + '）');
+  GS.step(1);
+  assert(GS.stats().pop === pop108,
+    'T533 G2b 匯入後步進一天的 pop 應與來源城一致（期望 ' + pop108 + '，實得 ' + GS.stats().pop
+    + '）——尺寸切了但內容錯位＝更糟的失敗模式，必須釘住');
+
+  /* G3 基線＋負向 */
+  assert(GS.importCode(code72) === true,
+    'T533 G3 同尺寸匯入必須照樣成功（基線，修前也是綠的——放寬不得弄壞它）');
+  assert(GS.N() === 72, 'T533 G3a 匯回 72 碼後尺寸應為 72（實得 ' + GS.N() + '）');
+  {
+    const bad = JSON.parse(raw108);
+    bad.ter = bad.ter.slice(0, 100); // 內容與宣告的 n² 不符＝畸形
+    const badCode = btoa(unescape(encodeURIComponent(JSON.stringify(bad))));
+    const mainBefore533 = store[SKEY];
+    assert(GS.importCode(badCode) === false,
+      'T533 G3b【負向】畸形碼（ter 長度與宣告的 n² 不符）必須照樣被拒——'
+      + '放寬跨尺寸不准把驗證整個放掉（真相源退化恆真就會漏這個）');
+    assert(store[SKEY] === mainBefore533,
+      'T533 G3c 畸形碼失敗不得覆蓋現有槽位（T135 既有保護必須存活）');
+  }
+  GS.setMapSize(72); // 收尾：把偏好還原，避免污染後續測試的世界尺寸
+}
+
 /* ===== T532 貧困陷阱的電力鎖（業主裁決 A 案）=====
 
    實測 12 種子：7 個 900 天內從沒到過 rank 9 ⇒ 幸福 0.2-0.3、資金長期負值、建築反而減少。
