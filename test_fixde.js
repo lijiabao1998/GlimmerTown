@@ -11914,6 +11914,84 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T531 資源耗盡由玩家決定 =====
+
+   競品的正解：Skylines 的礦/油耗盡是品類公認爭議，官方回應是內建 Unlimited Oil and Ore 開關
+   而非重新調數值——「別替玩家決定這個數字」。T530 做了「不騙玩家」那一半，本卡把開關做出來。
+
+   守衛分工：
+     G2 預設關閉 ⇒ 位元恆等（六哨兵由套件實測，這裡釘「預設值是 false」與算式等價形態）
+     G3 開啟後行為雙向：永不見底／耗盡格可蓋／不發通知；**關回去 RDEP 不得暴增**
+     G4 不進存檔、走 localStorage
+     G5 零亂數 */
+{
+  const GI = window.GV;
+  assert(GI.resInf531() === false,
+    'T531 G2 資源開關必須預設關閉（實得 ' + GI.resInf531() + '）——'
+    + '預設開啟會改變每一場遊戲的經濟曲線，也會破哨兵');
+  assert(/let resInfinite531=false;/.test(htmlBare438),
+    'T531 G2a 預設值必須在原文裡就是 false（T385 pattern：關閉時位元恆等）');
+
+  /* 造境：一座礦場挖到見底（開關關閉）＝T530 行為必須完全照舊 */
+  GI.newWorldSeeded(531);
+  GI.ai(true); for (let d = 0; d < 100; d++) GI.step(1); GI.ai(false);
+  GI.addMoney(300000);
+  const NN = GI.N();
+  let ore = null;
+  outer531: for (let x = 1; x < NN - 1; x++) for (let y = 1; y < NN - 1; y++) {
+    const t = GI.tile(x, y);
+    if (t && !t.bld && !t.road && GI.resourceAt(x, y) === 2) { ore = [x, y]; break outer531; }
+  }
+  assert(ore, 'T531 前置：找不到空的礦藏格');
+  const [mx, my] = ore;
+  assert(GI.place('mine', mx, my) === true, 'T531 前置：礦場應蓋得起來');
+  for (let d = 0; d < 200 && !GI.res530(mx, my).depleted; d++) GI.step(1);
+  assert(GI.res530(mx, my).depleted === true,
+    'T531 G2b 開關關閉時，礦脈必須照舊會見底（實得 rdep=' + GI.res530(mx, my).rdep + '）');
+  const rdepAtCap = GI.res530(mx, my).rdep;
+
+  /* G3 開啟：立刻不再算耗盡，且再挖 300 天 RDEP 不得增加（開啟期間不累計） */
+  GI.resInf531(true);
+  assert(GI.res530(mx, my).depleted === false,
+    'T531 G3 開啟後那一格不得再算作耗盡（同一格 rdep=' + GI.res530(mx, my).rdep + '）');
+  for (let d = 0; d < 300; d++) GI.step(1);
+  assert(GI.res530(mx, my).rdep === rdepAtCap,
+    'T531 G3a【本卡靈魂】開啟期間**不得累計耗損**：跑 300 天後 rdep 應維持 ' + rdepAtCap
+    + '，實得 ' + GI.res530(mx, my).rdep
+    + '。若讓它繼續長大，玩家把開關關回去時全圖礦脈會瞬間見底');
+  assert(GI.res530(mx, my).depleted === false,
+    'T531 G3b 開啟期間永不見底（跑 300 天後仍應可採）');
+  /* 耗盡格此時應該可以蓋（開關開啟） */
+  assert(GI.place('doze', mx, my) === true, 'T531 前置：應拆得掉');
+  assert(GI.place('mine', mx, my) === true,
+    'T531 G3c 開啟後，原本已見底的格子必須可以再蓋礦場（開關要同時影響「能不能挖」與「能不能蓋」，'
+    + '否則會出現「開了無限資源、礦場照樣停產」的半殘狀態）');
+
+  /* G3d 關回去：立刻恢復耗盡判定，且 RDEP 沒有暴增 */
+  GI.resInf531(false);
+  assert(GI.res530(mx, my).depleted === true && GI.res530(mx, my).rdep === rdepAtCap,
+    'T531 G3d 關回去必須立刻恢復耗盡判定，且 rdep 維持 ' + rdepAtCap
+    + '（實得 depleted=' + GI.res530(mx, my).depleted + ' rdep=' + GI.res530(mx, my).rdep + '）');
+  GI.resInf531(false);
+
+  /* G4 不進存檔、走 localStorage */
+  assert(html.indexOf('data.resInfinite531') < 0 && html.indexOf('resInf:') < 0,
+    'T531 G4 開關不得進存檔（它是偏好，不是世界狀態）');
+  assert(htmlBare438.indexOf(".rinf'") >= 0 || html.indexOf(".rinf'") >= 0,
+    'T531 G4a 開關必須走 localStorage 持久化（沿用 .ds/.q 的 SAVEKEY 後綴慣例）');
+
+  /* G5 零亂數 */
+  {
+    const a = 'function resExtract531(i,rate){';
+    const at = htmlBare438.indexOf(a);
+    assert(at >= 0, 'T531 G5 找不到 `' + a + '` 錨點');
+    const body = html.slice(at, html.indexOf('\n}', at) + 2);
+    assert(body.length > 40 && body.length < 500, 'T531 G5 函式體長度異常（' + body.length + '）');
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|[^a-zA-Z_]rand\(|Math\.random/.test(body),
+      'T531 G5 抽取函式必須零亂數（鐵律2）——它在 tick 路徑上');
+  }
+}
+
 /* ===== T530 耗盡的礦脈不該還能賣給你 =====
 
    競品研究先行：Cities: Skylines 的礦/油耗盡是品類公認的設計爭議（玩家「升到 5 級資源就沒了」、
@@ -11999,13 +12077,21 @@ runPwaTests().then(() => {
   /* T530 靜態守衛（與上面的行為守衛分開，避免造境狀態互相干擾） */
   const src530 = htmlBare438;
   /* G1 交叉一致性：`RDEP[...]>=RESOURCE_STOCK` 這條判定只准出現在真相源函式裡一次。 */
-  const raw530 = (src530.match(/RDEP\[[^\]]*\]\s*>=\s*RESOURCE_STOCK/g) || []).length;
-  assert(raw530 === 1,
-    'T530 G1【本卡靈魂】`RDEP[..]>=RESOURCE_STOCK` 全檔只准寫一次（在 `resDepleted530` 裡），'
-    + '實得 ' + raw530 + ' 處。各寫一份正是本卡要修的病：AI 那份有、玩家端那份忘了寫，'
-    + '結果遊戲賣了一座零產出的礦場給玩家');
-  assert(src530.indexOf('function resDepleted530(i){return RDEP[i]>=RESOURCE_STOCK;}') >= 0,
-    'T530 G1a 真相源函式必須在場且是那一行');
+  /* T531 強化（原文只釘 `>=` 一種寫法）：**同一條規則的兩種等價寫法，釘住一種等於沒釘。**
+     T530 抽了真相源卻只收斂 `>=`，抽取條件用的等價 `<` 寫法還在裸寫兩處，這條計數釘沒抓到。
+     現在兩種都釘：`>=` 只准出現在 `resDepleted530`、`<` 只准出現在 `resExtract531`。 */
+  const rawGE530 = (src530.match(/RDEP\[[^\]]*\]\s*>=\s*RESOURCE_STOCK/g) || []).length;
+  const rawLT530 = (src530.match(/RDEP\[[^\]]*\]\s*<\s*RESOURCE_STOCK/g) || []).length;
+  assert(rawGE530 === 1 && rawLT530 === 0,
+    'T530 G1【本卡靈魂，T531 強化】耗損判定的兩種等價寫法都只准收在真相源裡：'
+    + '`RDEP[..]>=RESOURCE_STOCK` 實得 ' + rawGE530 + ' 處（應 1，在 `resDepleted530`）、'
+    + '`RDEP[..]<RESOURCE_STOCK` 實得 ' + rawLT530 + ' 處（應 0，抽取端走 `resExtract531`）。'
+    + '各寫一份正是這張卡要修的病：AI 那份有、玩家端那份忘了寫，結果遊戲賣了一座零產出的礦場給玩家');
+  assert(/function resDepleted530\(i\)\{return [^;]*RDEP\[i\]>=RESOURCE_STOCK;\}/.test(src530),
+    'T530 G1a 真相源必須是「唯一一行、以 `RDEP[i]>=RESOURCE_STOCK` 收尾」的形態'
+    + '（T531 在前面加了 `!resInfinite531&&` 的開關，故改釘形態而非逐字）');
+  assert(src530.indexOf('function resExtract531(i,rate){') >= 0,
+    'T530 G1c 抽取端必須有唯一決定點 `resExtract531`（T531 補：耗損累計不准散在呼叫點）');
   const uses530 = (src530.match(/resDepleted530\(/g) || []).length;
   assert(uses530 >= 6,
     'T530 G1b 真相源必須被雙端＋通知＋疊圖共同使用（宣告 1＋玩家端 1＋AI 兩支＋通知兩支＋疊圖 1），'
