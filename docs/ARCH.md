@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.154，約 22,957 行（實測檔案 22,957 行＝T525 上手階梯延長後 Python 數；測試 `test_fixde.js`、實測 PASS 5,846、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.155，約 22,979 行（實測檔案 22,979 行＝T526 通知節流後 Python 數；測試 `test_fixde.js`、實測 PASS 5,857、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -128,22 +128,22 @@
 | §10 UI 起點：`buildToolbar` | 19711 | `function buildToolbar(){` |
 | `drawMini` 小地圖 | 19820 | `const MINI_VIEW_NAME=` |
 | `statTab` / `dataTable` / `serviceRefRows` | 19895 | `T319 標準化數據表格產生器` |
-| `toast` / `updHud` / HUD 三鈕 | 19962 | `T311 提示訊息不刷屏` |
-| 存檔槽面板／分享碼 | 20057 | `function showSlots(){` |
-| 地圖／場景編輯器 | 20166 | `function showEditor(){` |
-| 歷史曲線／城市顧問／因果追溯 | 20276 | `function cityAdvisor(allT522){` |
-| `showStats()` 統計面板 | 20772 | `function showStats()` |
-| 通知中心／成就 | 21230 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 21306 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 21508 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 21770 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 21802 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 21923 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `toast` / `updHud` / HUD 三鈕 | 19980 | `T311 提示訊息不刷屏` |
+| 存檔槽面板／分享碼 | 20075 | `function showSlots(){` |
+| 地圖／場景編輯器 | 20184 | `function showEditor(){` |
+| 歷史曲線／城市顧問／因果追溯 | 20294 | `function cityAdvisor(allT522){` |
+| `showStats()` 統計面板 | 20790 | `function showStats()` |
+| 通知中心／成就 | 21248 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 21324 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 21526 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 21788 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 21820 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 21941 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
 | `load()` | 16901-17037 | `const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;` |
-| 自動存檔 | 22108 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 22121 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 22263 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 22370 | `window.GV={` |
+| 自動存檔 | 22126 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 22139 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 22281 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 22388 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 

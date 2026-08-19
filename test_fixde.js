@@ -10387,6 +10387,54 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T526 通知節流與聚合：守衛 ===== */
+{
+  /* 玩測：600 天困難城 942 次通知＝每 0.6 天被打斷一次，前五名全是重複同一句；
+     而 log 只存 100 筆 ⇒ 刷屏會把瘟疫/升級/T520 電力警告擠出通知中心。 */
+  // G1 節流必須在 toast 單一漏斗內（呼叫點零改動）
+  assert(html.includes('function toast(msg,cls,x,y){\n  {const k526=notifKey526(msg);')
+    && html.includes('function toastRaw526(msg,cls,x,y){'),
+    'T526 G1【原文前哨】節流必須寫在 toast 這個唯一漏斗裡（呼叫點零改動）');
+  assert(html.includes("if(last526!==undefined&&day-last526<NOTIF_WIN526)"),
+    'T526 G1b【原文前哨】首次（last 未定義）必須永不抑制——罕見事件天然即時，不需要白名單');
+  assert(html.includes("msg=msg+'（近 '+NOTIF_WIN526+' 天另有 '+p526+' 起）'"),
+    'T526 G1c【原文前哨】被抑制的次數必須寫進後續訊息，不得靜靜吞掉');
+  // G2 鐵律7：三處歸零（宣告／newWorld／load）
+  /* 用「欄位齊全的重置字面」當釘會隨欄位增減而 churn（本卡已 churn 兩次）——改釘「三處都把
+     notif526 整個重新賦值」這個意圖本身，欄位由 G3 系列的行為釘負責。 */
+  assert((html.match(/notif526=\{last:\{\},pend:\{\},/g) || []).length >= 3,
+    'T526 G2 節流狀態必須在宣告／newWorld／load 三處整個重置（鐵律7）');
+  // G3 行為（靈魂）：總數大幅下降，但**種類數不得減少**
+  {
+    window.GV.newWorldSeeded(3003); window.GV.setDiff(3); window.GV.ai(true);
+    for (let d = 0; d < 600; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const N526 = window.GV.notif526();
+    assert(N526.total > 200,
+      'T526 G3 前置：600 天困難城本來就該有大量事件（實得 total=' + N526.total + '），否則此測沒有意義');
+    assert(N526.shown < N526.total * .6,
+      'T526 G3b 實際彈出數必須顯著低於事件總數（實得 ' + N526.shown + '/' + N526.total
+      + '＝' + Math.round(N526.shown / N526.total * 100) + '%）');
+    assert(N526.kinds >= 20,
+      'T526 G3c【反作弊】訊息種類數不得因節流而減少（實得 ' + N526.kinds
+      + ' 種）——不准靠「整類丟掉」把數字做漂亮');
+    assert(N526.win >= 3 && N526.win <= 30,
+      'T526 G3d 節流窗口應落在 3-30 天（實得 ' + N526.win + '）');
+    /* 這條才是真正的不變量（第一版漏了，只有源碼釘守「首次不抑制」）：
+       發生過的每一類事件都必須至少被玩家看見一次——沒有任何一類被完全靜音。 */
+    assert(N526.silent.length === 0,
+      'T526 G3e【本卡靈魂】沒有任何一類事件可以被完全靜音（首次必顯示）。被靜音的類別：'
+      + JSON.stringify(N526.silent));
+    /* G3f 守恆釘——紅源①（拿掉 pending 累加）第一版**全綠通過**：G1c 只是原文釘，
+       訊息組裝那行還在、只是永遠拿到 0，沒有任何行為守衛驗「被吞掉的事件真的有被回報」。
+       補上：被折疊的事件必須有一大半透過聚合訊息回到玩家眼前。 */
+    assert(N526.folded > 0, 'T526 G3f 前置：本場必須真的發生過折疊（實得 folded=' + N526.folded + '）');
+    assert(N526.agg > 0 && N526.reported >= N526.folded * .5,
+      'T526 G3f【守恆】被折疊的 ' + N526.folded + ' 起事件必須有一大半透過聚合訊息回報（實得 reported='
+      + N526.reported + '、聚合訊息 ' + N526.agg + ' 則）——靜靜吞掉就是騙玩家');
+  }
+}
+
 /* ===== T525 上手階梯延長：守衛 ===== */
 {
   /* 玩測：checkHints 的階梯到 h6（機場 pop≥400）就停了，而科技樹 36 節點／委託／專精／
