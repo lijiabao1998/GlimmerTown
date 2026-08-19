@@ -10387,6 +10387,65 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T521 顧問說人話：守衛 ===== */
+{
+  /* 玩測實錄：五座死法完全不同的城（沒水／水管沒接／工業過剩幸福 0.09／住宅蓋滿沒工作／對照組），
+     顧問輸出一字不差——因為五條服務缺口各 sev=1.0 把 slice(0,5) 佔滿。本卡合併服務缺口騰出名額。 */
+  // G1 服務缺口合併在場＋顯式 traceKey（拆掉 T143 的文字比對耦合）
+  assert(html.includes("text:'🏛️ 公共服務覆蓋不足：'+gaps521.length+' 項未覆蓋（'")
+    && html.includes('traceKey:SVC_NM[worst.f][2]'),
+    'T521 G1【原文前哨】多項服務缺口必須合併成一條並帶顯式 traceKey');
+  assert((html.match(/const svcKey=tp\.traceKey\|\|SVC_GAP_KEYS\.find/g) || []).length === 2,
+    'T521 G1b 渲染側與綁定側都必須改讀顯式 traceKey（文字比對只當回退），兩處同源缺一即漂移');
+  assert(html.includes("demWhy&&demWhy.ok&&demWhy.workers>20&&demWhy.jobs<demWhy.workers*.6"),
+    'T521 G1c 就業缺口診斷必須走既有 demWhy（tick 已算好），不得自建就業計算');
+  // G2 行為（本卡靈魂）：五座造境城的顧問輸出必須互不相同
+  {
+    const site521 = () => {
+      const N521 = window.GV.N(); let sx = -1, sy = -1;
+      for (let y = 10; y < N521 - 18 && sx < 0; y++) for (let x = 10; x < N521 - 22; x++) {
+        let ok = true;
+        for (let dy = 0; dy < 12 && ok; dy++) for (let dx = 0; dx < 20; dx++) {
+          const t = window.GV.tile(x + dx, y + dy);
+          if (!t || t.bld || t.road || (t.t !== 1 && t.t !== 2)) { ok = false; break; }
+        }
+        if (ok) { sx = x; sy = y; }
+      }
+      return [sx, sy];
+    };
+    const run521 = (setup) => {
+      window.GV.newWorldSeeded(9001); window.GV.setDiff(1); window.GV.addMoney(60000);
+      const [sx, sy] = site521();
+      assert(sx >= 0, 'T521 G2 造境失敗：找不到乾淨草地');
+      const P = (t, x, y) => window.GV.place(t, x, y);
+      for (let i = 0; i < 18; i++) P('road', sx + i, sy + 5);
+      for (let i = 0; i < 9; i++) P('zr', sx + i, sy + 4);
+      for (let i = 9; i < 14; i++) P('zc', sx + i, sy + 4);
+      P('plant', sx + 16, sy + 6);
+      setup(P, sx, sy);
+      for (let d = 0; d < 60; d++) window.GV.step(1);
+      return window.GV.polAdv517().tips.map(t => t.text).join('｜');
+    };
+    const outs521 = [
+      run521(() => {}),                                                        // 對照組
+      run521((P, sx, sy) => { P('water', sx + 17, sy + 9); }),                 // 有水塔但沒接管
+      run521((P, sx, sy) => { for (let r = 0; r < 4; r++) for (let i = 0; i < 18; i++) P('zi', sx + i, sy + 6 + r); }), // 工業過剩
+      run521((P, sx, sy) => { for (let r = 0; r < 4; r++) for (let i = 0; i < 18; i++) P('zr', sx + i, sy + 6 + r); }), // 住宅蓋滿沒工作
+      run521((P, sx, sy) => { for (let i = 0; i < 6; i++) P('police', sx + i * 3, sy + 8); }),                          // 補了治安
+    ];
+    const uniq521 = new Set(outs521);
+    assert(uniq521.size === outs521.length,
+      'T521 G2【本卡靈魂】五座死法不同的城，顧問輸出必須互不相同（實得 ' + uniq521.size + '/' + outs521.length
+      + ' 種）——講同一段話的顧問就是背景噪音');
+    // 工業過剩城（幸福會被壓到極低）必須看得到不快樂診斷
+    assert(/市民不快樂/.test(outs521[2]),
+      'T521 G2b 幸福崩到極低的城必須看得到「市民不快樂」（合併前它被服務缺口擠到第 6 位）；實得 ' + outs521[2].slice(0, 120));
+    // 住宅蓋滿沒工作的城必須看得到就業缺口
+    assert(/工作機會不足/.test(outs521[3]),
+      'T521 G2c 住宅蓋滿沒工作的城必須看得到「工作機會不足」；實得 ' + outs521[3].slice(0, 120));
+  }
+}
+
 /* ===== T520 關鍵診斷主動通知：守衛 ===== */
 {
   /* T519 讓顧問會講孤島電源，但 cityAdvisor 只在面板開啟時跑、且顧問排在 3,798px 面板的 3,300px 處。
@@ -10596,8 +10655,10 @@ runPwaTests().then(() => {
       'T517 G1e【機械掃】政策鈕區段不得自己讀寫 pol——自己寫就會漏掉 T459 的 recomputePolAll459 after 回調（staleness）');
   }
   // G1f 既有 13 條 tip 原文回歸（新欄位只能追加）
+  /* T521 跟版：服務缺口從「五條」合併成「多項一條＋單項一條」，單項分支的迴圈變數 f/ratio 改為
+     g.f/g.ratio——**玩家看到的文案一字未改**，只是重構後的變數名。needle 跟版＋理由。 */
   assert(html.includes("text:'🗑️ 垃圾超載：'+garbage.toFixed(1)")
-    && html.includes("text:SVC_NM[f][0]+'：'+Math.round(ratio*100)+'% 建築未受覆蓋 → 加蓋'+SVC_NM[f][1]")
+    && html.includes("text:SVC_NM[g.f][0]+'：'+Math.round(g.ratio*100)+'% 建築未受覆蓋 → 加蓋'+SVC_NM[g.f][1]")
     && html.includes("text:'🚗 道路壅堵：負載達容量 '+Math.round(jamMax*100)+'% → 升級路級或增闢替代道路'")
     && html.includes("text:'💰 財政吃緊：每日淨收入 '+fin.net.toFixed(1)+' → 調高稅率或減少維護支出'"),
     'T517 G1f【回歸】既有顧問建議原文必須原樣保留——新欄位（sym）只能追加');
