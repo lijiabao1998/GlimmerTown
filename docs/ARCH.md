@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.155，約 22,979 行（實測檔案 22,979 行＝T526 通知節流後 Python 數；測試 `test_fixde.js`、實測 PASS 5,864、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.156，約 23,016 行（實測檔案 23,016 行＝T528 草地變體通道後 Python 數；測試 `test_fixde.js`、實測 PASS 5,884、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -138,12 +138,12 @@
 | `showHelp()` 五分頁指南 | 21526 | `const tabs=['🚦 上手流程'` |
 | `undo()` / 快捷鍵 / 新手提示 | 21788 | `function checkHints(plants,roads){` |
 | §11 存檔：槽位／RLE／`save` | 21820 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 21941 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `MSZ` 多格尺寸反查表 | 21966 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
 | `load()` | 16901-17037 | `const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;` |
-| 自動存檔 | 22126 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 22139 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 22281 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 22388 | `window.GV={` |
+| 自動存檔 | 22151 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 22164 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 22306 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 22413 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 

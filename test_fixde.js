@@ -11910,6 +11910,95 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T528 讀檔不得憑空編造世界：草地貼圖變體的往返恆等 =====
+
+   缺陷：`t.gv`（草地貼圖變體，`SPR.grass[t.gv&3]`）**不進存檔**，而 load 拿 `i&3` 當代用值。
+   地圖 N=72、72%4===0 ⇒ `i&3 === x&3` ⇒ 讀檔後每一列固定一種貼圖＝全圖 4 格週期條紋。
+   實測 seed528/120 天：存檔前「整列同一變體」0/72 列，讀檔後 72/72 列，`gv===x&3` 100%。
+
+   守衛分工（T522 教訓：原文前哨與語意釘不綁在同一條字串上）：
+     G1  往返**逐格恆等**（digest 順序敏感）——本卡靈魂，不是「看起來也隨機」而是同一個值。
+     G1b 條紋病的直接指標：colsUniform 不得等於草地列總數。
+     G2  舊檔（無 gvc）回退必須決定性、且**不得退回 x&3**。
+     G3  新增碼零亂數（機械掃函式體，不可跳過）。
+     G4  鐵律9：舊檔缺欄位必須讀得起來。 */
+{
+  const G528 = window.GV;
+  G528.newWorldSeeded(528);
+  for (let k = 0; k < 60; k++) G528.step(1);
+
+  const before528 = G528.gv528();
+  assert(before528.grass > 500,
+    'T528 前置：本場草地格數實得 ' + before528.grass + '，太少會讓後面的比對沒有樣本');
+  assert(before528.colsUniform === 0,
+    'T528 前置：世界生成後「整列同一變體」的列數必須是 0（實得 ' + before528.colsUniform
+    + '/' + before528.cols + '）——不是 0 就表示連生成端都在產生條紋');
+
+  G528.save();
+  const rawSave528 = JSON.parse(store[SKEY]);
+  assert(window.GV.load() === true, 'T528 前置：存檔必須讀得回來');
+  const after528 = G528.gv528();
+
+  assert(after528.digest === before528.digest,
+    'T528 G1【本卡靈魂】存讀往返後逐格草地變體必須完全相同（digest 存檔前 '
+    + before528.digest + ' → 讀檔後 ' + after528.digest
+    + '）。原本 load 用 `i&3` 代用，而 N%4===0 ⇒ i&3===x&3 ⇒ 全圖條紋');
+  assert(after528.grass === before528.grass,
+    'T528 G1a 草地格數本身不得因存讀改變（' + before528.grass + ' → ' + after528.grass + '）');
+  assert(after528.colsUniform === 0,
+    'T528 G1b 讀檔後「整列同一變體」的列數必須維持 0（實得 ' + after528.colsUniform
+    + '/' + after528.cols + '）——等於草地列總數就是條紋病復發');
+
+  /* G2 舊檔回退：把 gvc 通道拿掉（模擬本卡之前存的檔），必須①讀得起來②決定性③不是 x&3。
+     注意存檔是 saveDeflate 壓縮過的，所以直接刪 raw 物件的欄位再寫回。 */
+  {
+    const old528 = JSON.parse(JSON.stringify(rawSave528));
+    assert(old528.gvc !== undefined,
+      'T528 G2 前置：存檔必須含 gvc 通道（沒有的話下面「拿掉它」就沒驗到東西）');
+    delete old528.gvc;
+    store[SKEY] = JSON.stringify(old528);
+    assert(window.GV.load() === true,
+      'T528 G4【鐵律9】舊檔缺 gvc 必須照樣讀得起來，不得報錯');
+    const fb1 = G528.gv528();
+    assert(window.GV.load() === true, 'T528 G2 前置：同一舊檔要能連讀兩次');
+    const fb2 = G528.gv528();
+    assert(fb1.digest === fb2.digest,
+      'T528 G2 舊檔回退必須決定性：同一存檔讀兩次 digest 必須相同（實得 '
+      + fb1.digest + ' vs ' + fb2.digest + '）');
+    assert(fb1.eqX3 < .5,
+      'T528 G2b 舊檔回退**不得**退回 `x&3`（gv===x&3 的比例實得 '
+      + (fb1.eqX3 * 100).toFixed(1) + '%）——那正是本卡要修掉的條紋');
+    assert(fb1.colsUniform === 0,
+      'T528 G2c 舊檔回退也不得產生條紋（「整列同一變體」實得 ' + fb1.colsUniform
+      + '/' + fb1.cols + '）');
+    /* 回歸：把回退換回 i&3 這件事本身要被咬住——上面 G2b/G2c 就是那條絆線。 */
+  }
+
+  /* G3 零亂數機械掃：兩個新增函式的**函式體**（由剝除器定位、內容由原文）不得出現
+     R()/ri()/rand()/Math.random。寫成不可跳過的形式（T523 教訓：`x ? ... : null` 的
+     條件分支＝空跑假綠）。 */
+  {
+    const anchors528 = ['function gvFallback528(i){', 'function gvOf528(d, i){'];
+    for (const a of anchors528) {
+      const at = htmlBare438.indexOf(a);
+      assert(at >= 0, 'T528 G3 找不到函式錨點 `' + a + '`（改了簽名要同步這條守衛）');
+      const body = html.slice(at, html.indexOf('\n}', at) + 2);
+      assert(body.length > 20 && body.length < 900,
+        'T528 G3 錨點 `' + a + '` 取到的函式體長度異常（' + body.length + '）＝錨點抓錯範圍');
+      assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|[^a-zA-Z_]rand\(|Math\.random/.test(body),
+        'T528 G3 `' + a + '` 必須零亂數消耗（鐵律2）——它跑在 load 路徑上，'
+        + '消耗共用亂數流會讓「讀檔後的世界」與「沒存讀的世界」分岔');
+    }
+    assert(html.indexOf('const GV_SALT528 = 528;') >= 0,
+      'T528 G3b salt 必須是具名常數（GV_SALT528），不得散在呼叫點手抄');
+    const saltUse528 = (htmlBare438.match(/GV_SALT528/g) || []).length;
+    assert(saltUse528 === 3,
+      'T528 G3c GV_SALT528 應恰出現 3 次（①宣告 ②gvFallback528 唯一計算點 ③gv528 觀測鉤回報），'
+      + '實得 ' + saltUse528 + '——多出來的使用點表示 salt 空間被別的用途借用了，'
+      + '那會讓兩個視覺細節層挑到相關的值');
+  }
+}
+
 /* ===== T527 自動存檔的真相：程式碼與文件的雙向守衛 =====
 
    T447 在補上 RULES 第 18 條的同一段裡斷言「`index.html` 沒有自動存檔，全檔 save()
