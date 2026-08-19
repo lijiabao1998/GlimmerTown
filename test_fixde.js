@@ -10387,6 +10387,72 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T522 孤島電源嚴重度分級：守衛 ===== */
+{
+  /* 長局玩測抓到 T519 自己的缺陷：600 天成熟城（6,890 人）裡一座 AI 隨手蓋的孤島風力塔，
+     被 sev=1 的「全城不會生長」壓過污染 255 與教育缺口 57%——那句話對這座城是假的。
+     分級依據＝城市有沒有在依賴這座電源（既有 __t432Power.sum）。 */
+  // G1 必須讀既有併網容量，不自建計算
+  /* 守衛分工（T522 紅源當場學到的）：**原文前哨只守「用對資料源」，語意閾值交給行為釘**。
+     第一版把資料源與比較式釘在同一條字串上，導致任何行為破壞都先咬原文釘＝行為釘從沒被驗到。 */
+  assert(html.includes("const grid522=(window.__t432Power&&window.__t432Power.sum)||0;"),
+    'T522 G1【原文前哨】分級必須讀既有 __t432Power.sum（T432 已算好），不得自建容量計算');
+  assert(/if\(day%10===0&&day-islandWarnT520>=60&&[^\n]*__t432Power[^\n]*\)\{/.test(html),
+    'T522 G1b 主動通知的條件必須參照既有 __t432Power（門檻語意由 G2c 行為釘負責）');
+  // G2 行為 A/B/C
+  {
+    const site522 = () => {
+      const N522 = window.GV.N(); let sx = -1, sy = -1;
+      for (let y = 10; y < N522 - 16 && sx < 0; y++) for (let x = 10; x < N522 - 22; x++) {
+        let ok = true;
+        for (let dy = 0; dy < 11 && ok; dy++) for (let dx = 0; dx < 20; dx++) {
+          const t = window.GV.tile(x + dx, y + dy);
+          if (!t || t.bld || t.road || (t.t !== 1 && t.t !== 2)) { ok = false; break; }
+        }
+        if (ok) { sx = x; sy = y; }
+      }
+      return [sx, sy];
+    };
+    const run522 = (withGrid) => {
+      window.GV.newWorldSeeded(5221); window.GV.setDiff(1); window.GV.addMoney(60000);
+      const [sx, sy] = site522();
+      assert(sx >= 0, 'T522 G2 造境失敗');
+      const P = (t, x, y) => window.GV.place(t, x, y);
+      for (let i = 0; i < 18; i++) P('road', sx + i, sy + 5);
+      for (let i = 0; i < 9; i++) P('zr', sx + i, sy + 4);
+      P('plant', sx + 16, sy + 9);                 // 孤島電源（離路 4 格）
+      if (withGrid) P('plant', sx + 2, sy + 6);    // 另一座挨著路＝城市有正常電網
+      const logBefore = window.GV.log().length;
+      for (let d = 0; d < 40; d++) window.GV.step(1);
+      const A522 = window.GV.polAdv517();
+      return {
+        /* 讀不截斷清單：降級後的低嚴重度建議本來就該被前 5 名擠掉（那正是它的下場），
+           但守衛仍要看得見它、才驗得到分級真的發生（第一版讀截斷清單，量到 undefined）。 */
+        tip: A522.tipsAll.find(t => /電源/.test(t.text)),
+        top5: A522.tips,
+        warns: window.GV.log().slice(logBefore).filter(l => /電力送不出去/.test(l.m)).length,
+        grid: (window.__t432Power && window.__t432Power.sum) || 0,
+      };
+    };
+    const noGrid522 = run522(false);
+    assert(noGrid522.tip && noGrid522.tip.sev === 1 && /全城不會生長/.test(noGrid522.tip.text),
+      'T522 G2 無其他電源時必須維持 sev=1 與「全城不會生長」（新手殺手情境）；實得 '
+      + JSON.stringify(noGrid522.tip && { sev: noGrid522.tip.sev, t: noGrid522.tip.text.slice(0, 30) }));
+    const withGrid522 = run522(true);
+    assert(withGrid522.grid > 0, 'T522 G2b 造境前置：第二座電廠必須真的併網（實得 sum=' + withGrid522.grid + '）');
+    assert(withGrid522.tip && withGrid522.tip.sev < .5
+      && /白付維護費/.test(withGrid522.tip.text) && !/全城不會生長/.test(withGrid522.tip.text),
+      'T522 G2b 已有正常電網時必須降級為「白付維護費」且不得再說「全城不會生長」（那是假的）；實得 '
+      + JSON.stringify(withGrid522.tip && { sev: withGrid522.tip.sev, t: withGrid522.tip.text.slice(0, 30) }));
+    assert(!withGrid522.top5.some(t => /全城不會生長/.test(t.text)),
+      'T522 G2b2 已有電網時，「全城不會生長」不得出現在玩家真正看到的前 5 條裡');
+    assert(withGrid522.warns === 0,
+      'T522 G2c 已有正常電網時不得主動通知（騷擾）；實得 ' + withGrid522.warns + ' 條');
+    assert(noGrid522.warns >= 1,
+      'T522 G2d 無電源時仍必須主動通知（T520 契約不得被本卡改壞）；實得 ' + noGrid522.warns + ' 條');
+  }
+}
+
 /* ===== T521 顧問說人話：守衛 ===== */
 {
   /* 玩測實錄：五座死法完全不同的城（沒水／水管沒接／工業過剩幸福 0.09／住宅蓋滿沒工作／對照組），
@@ -10451,13 +10517,16 @@ runPwaTests().then(() => {
   /* T519 讓顧問會講孤島電源，但 cityAdvisor 只在面板開啟時跑、且顧問排在 3,798px 面板的 3,300px 處。
      本卡把關鍵診斷接進既有 T114 通知中心（toast → log[] → 🔔 紅點 → 可跳鏡頭），不新建 UI。 */
   // G1 走既有 tickBld 與既有 powerDiag432（不自建掃描/判定）＋節流
-  assert(html.includes('if(day%10===0&&day-islandWarnT520>=60){')
+  /* T522 跟版：條件追加「城市無併網電源時才發」（成熟城市被閒置電源反覆通知是騷擾）。
+     10 天節奏／60 天節流／既有 tickBld／既有 powerDiag432 四項意圖不變，needle 跟版。 */
+  assert(html.includes('if(day%10===0&&day-islandWarnT520>=60&&!((window.__t432Power&&window.__t432Power.sum)>0)){')
     && html.includes('for(const i520 of tickBld){')
     && html.includes('dg520=powerDiag432(x520,y520)'),
     'T520 G1【原文前哨】主動通知必須每 10 天走既有 tickBld＋既有 powerDiag432，並有 60 天節流');
   // G1b 零亂數機械掃（剝除後文本，錨不得含字串字面——T517 G1e 教訓）
   {
-    const a520 = htmlBare438.indexOf('if(day%10===0&&day-islandWarnT520>=60){');
+    /* 錨改用不含條件細節的穩定片段（T522 追加電網條件後，原本整條 if 的錨就失效了）。 */
+    const a520 = htmlBare438.indexOf('for(const i520 of tickBld){');
     const b520 = htmlBare438.indexOf('computeGarbLocal()', a520);
     assert(a520 > 0 && b520 > a520, 'T520 G1b 找不到本卡區段');
     const blk520 = htmlBare438.slice(a520, b520);
