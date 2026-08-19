@@ -3,7 +3,7 @@ const CACHE_PREFIX='glimmerville-shell-';
 /* T349 版本單一來源：快取名由 APP_VER 組出，APP_VER 必須與 index.html 的 GAME_VER 相同
    （tools/bump.py 一次改兩處；test_fixde.js 有一條斷言比對兩檔相等，漂移立刻紅）。
    歷史事故：兩處各自手動維護曾造成 sw v36 / 測試釘 v28 不同步，讓外部審閱者誤判「測試紅、專案沒提交」。 */
-const APP_VER='11.152';
+const APP_VER='11.153';
 const CACHE=CACHE_PREFIX+'v'+APP_VER;
 const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);
 const FILES=[

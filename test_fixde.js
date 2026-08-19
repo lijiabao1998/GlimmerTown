@@ -10387,6 +10387,64 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T524 科學頁篩選：守衛 ===== */
+{
+  /* 玩測：科學頁 4,574px（≈5.7 屏）、53 條、無搜尋無篩選。分組真相源＝既有 SCI_GRP514，
+     但它只涵蓋 51/53（oppAtlas455/mobility456 無 polKey），且不能為湊分組塞進那張表
+     （它同時驅動指揮台的政策卡片）⇒ 機械化回退桶接住它們。 */
+  const F524 = window.GV.sciFilter524('all');
+  // G1【本卡靈魂】完備性：每條研究恰好被一個篩選涵蓋（分組 or 回退桶），無孤兒無重複
+  {
+    const grpIds524 = F524.groups.filter(g => g !== 'all' && g !== 'on');
+    const seen524 = {};
+    for (const gid of grpIds524)
+      for (const id of window.GV.sciFilter524(gid).shown) {
+        assert(!seen524[id], 'T524 G1 研究不得被兩個篩選同時涵蓋（' + id + ' 同時在 ' + seen524[id] + ' 與 ' + gid + '）');
+        seen524[id] = gid;
+      }
+    const all524 = window.GV.sciFilter524('all').shown;
+    const orphan524 = all524.filter(id => !seen524[id]);
+    assert(orphan524.length === 0,
+      'T524 G1【完備性】每條研究都必須被某個篩選涵蓋，否則篩選一開它就從頁面消失。孤兒：' + JSON.stringify(orphan524));
+    assert(all524.length === F524.total && F524.total >= 53,
+      'T524 G1b 全部篩選必須顯示全部 ' + F524.total + ' 條（實得 ' + all524.length + '）');
+    // 回退桶必須真的接住那兩條無 polKey 的研究（不是空桶）
+    const other524 = window.GV.sciFilter524('other').shown;
+    assert(other524.length >= 1 && other524.indexOf('oppAtlas455') >= 0 && other524.indexOf('mobility456') >= 0,
+      'T524 G1c 回退桶必須接住不屬於任何分組的研究（實得 ' + JSON.stringify(other524) + '）');
+  }
+  // G2 篩選鈕與組 id 由 SCI_GRP514 導出（不手寫）
+  assert(html.includes("for(const g of SCI_GRP514)fh524+=btn524(g.id,g.ic+' '+g.nm);")
+    && html.includes("for(const fid of ['all'].concat(SCI_GRP514.map(g=>g.id)).concat(['other','on'])){"),
+    'T524 G2【原文前哨】篩選鈕與綁定都必須由 SCI_GRP514 導出，不得手寫組名');
+  /* G2b 的意圖是「判定只有一份」。第一版只數 `const sciPass524=` 的次數——但真正會發生的走鐘是
+     **有人在計數處就地又寫一個 inline 判定**（同名重宣告是語法錯誤，根本進不了 repo）。
+     改成釘「計數與渲染兩處都必須呼叫同一個 sciPass524」。 */
+  assert((html.match(/const sciPass524=/g) || []).length === 1,
+    'T524 G2b 篩選判定只准宣告一次');
+  assert(html.includes("SCI451.filter(e=>sciPass524(e,fid)).length")
+    && html.includes("if(!sciPass524(e451,sciFilter524))continue;"),
+    'T524 G2c 篩選鈕的計數與列渲染必須呼叫同一個 sciPass524——就地再寫一份 inline 判定就會與顯示走鐘');
+  // G3 行為：切到某組只剩該組；「只看已啟用」隨政策開關變化
+  {
+    const transit524 = window.GV.sciFilter524('transit');
+    assert(transit524.shown.length === transit524.counts.transit && transit524.shown.length > 0,
+      'T524 G3 切到「交通與可達」後顯示數必須等於該組計數（實得 ' + transit524.shown.length + '）');
+    assert(transit524.shown.indexOf('congChg451') >= 0 && transit524.shown.indexOf('cleanAir459') < 0,
+      'T524 G3b 交通組必須含壅堵費、不得含空品管制（分組來自 SCI_GRP514）');
+    window.GV.newWorldSeeded(524); window.GV.setDiff(1); window.GV.step(1);
+    window.GV.pol({ congChg451: false, taxR: 1, taxC: 1, taxI: 1 });
+    assert(window.GV.sciFilter524('on').shown.length === 0,
+      'T524 G3c 零政策時「只看已啟用」必須是 0 條');
+    window.GV.pol({ congChg451: true, taxR: 1, taxC: 1, taxI: 1 });
+    const on524 = window.GV.sciFilter524('on').shown;
+    assert(on524.length === 1 && on524[0] === 'congChg451',
+      'T524 G3d 開一個政策後「只看已啟用」必須恰好 1 條且是它（實得 ' + JSON.stringify(on524) + '）');
+    window.GV.pol({ congChg451: false, taxR: 1, taxC: 1, taxI: 1 });
+    window.GV.sciFilter524('all');
+  }
+}
+
 /* ===== T523 渲染預算閘門：守衛 ===== */
 {
   /* 每幀落筆數是確定性的（與 GPU/時序無關）；headless 的**時間**量測不可信（實測基準樣本
