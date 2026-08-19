@@ -84,7 +84,7 @@ function makeEl(tag, id) {
   return el;
 }
 
-const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343','statsFlow384','bFlowOverlay384','statsComm385','bCommAcc385_0','bCommAcc385_1','bCommAcc385_2','bCommDrop385','bSpecPick386_0','bSpecPick386_1','bSpecPick386_2','bSpecPick386_3'];
+const ids = ['game','hud','money','day','pop','jobs','happy','rci','bStats','bHelp','bUndo','bSpeed','bSound','bSave','bNew','hint','hintTxt','hintX','tools','toolcats','toasts','dragcost','mini','zoomer','zin','zout','info','infoX','infoBody','start','logo','bContinue','bNewGame','star','date','statsCity343','statsTech343','techTree343','techDetail343','techStart343','techHome343','statsFlow384','bFlowOverlay384','statsComm385','bCommAcc385_0','bCommAcc385_1','bCommAcc385_2','bCommDrop385','bSpecPick386_0','bSpecPick386_1','bSpecPick386_2','bSpecPick386_3','bLoan'];
 ids.forEach(id => makeEl(id==='techTree343'?'canvas':'div', id));
 makeEl('canvas', 'game');
 makeEl('canvas', 'logo');
@@ -11919,6 +11919,54 @@ runPwaTests().then(() => {
       'T447 G2b `docs/VERIFY.md` 不得再以「鐵律3」之名引用存檔槽紀律'
       + '（RULES 第 3 條講的是「禁止刪除既有功能／註解／GV API」），必須引第 18 條');
   }
+}
+
+/* ===== T536 貸款按鈕的防線只在渲染層（同族病第五例）=====
+
+   渲染層防重複（有貸款時按鈕換成還款中文字）擋不住 stale 面板窗口：面板開著時
+   tick 裡的 AI 自動貸款讓 loan 變非空而面板不重繪 ⇒ 真點擊會把 AI 的債覆蓋歸零＋再拿本金
+   （實測 +$19,700/10 天）。AI 兩條路徑都有 !loan 防線、玩家按鈕沒有。
+   守衛用「按住舊按鈕引用再點」等價重現 stale 窗口（真滑鼠在該窗口點到的就是這顆處理器）。 */
+{
+  const GL = window.GV;
+  GL.newWorldSeeded(537);
+  GL.weather(0);
+  GL.ai(true); for (let d = 0; d < 60; d++) GL.step(1); GL.ai(false); // 養到 pop>50 讓面板出貸款段
+
+  const openStats536 = () => { elMap.get('bStats').dispatchEvent({ type: 'click' }); };
+  openStats536();
+  const lb536 = elMap.get('bLoan');
+  assert(lb536, 'T536 前置：城市面板應含貸款按鈕（pop ' + GL.stats().pop + '）');
+
+  /* G2 正向：無貸款時借得到 */
+  const m0536 = GL.stats().money;
+  lb536.dispatchEvent({ type: 'click' });
+  /* mock 的 addEventListener 會跨 showStats 呼叫累積 listener——修好防線後恰好自穩定：
+     首個 listener 放款、其餘全被 loan 防線擋 ⇒ 淨 +2000 恰一次（防線拿掉時這裡會 +2000×k 直接紅）。 */
+  assert(GL.stats().money === m0536 + 2000,
+    'T536 G2 無貸款時應借到 $2000（防線不得把功能鎖死；實得 +' + (GL.stats().money - m0536) + '）');
+
+  /* G1 防線：有貸款在身時再觸發同一處理器（stale 窗口等價）⇒ 資金不變、債務不變 */
+  GL.step(1); // 還一期：remain 19
+  const m1536 = GL.stats().money;
+  window.GV.save();
+  const ln1536 = JSON.parse(store[SKEY]).ln;
+  assert(ln1536 && ln1536[0] === 19,
+    'T536 前置：應欠 19 天（實得 ' + JSON.stringify(ln1536) + '）');
+  lb536.dispatchEvent({ type: 'click' }); // stale 按鈕引用＝該窗口裡真點擊打到的處理器
+  assert(GL.stats().money === m1536,
+    'T536 G1【防線】有貸款在身時觸發處理器不得再放款（實得資金 ' + m1536 + ' → '
+    + GL.stats().money + '）——修前這裡 +$2,000 且舊債被洗掉');
+  window.GV.save();
+  const ln2536 = JSON.parse(store[SKEY]).ln;
+  assert(ln2536 && ln2536[0] === 19 && ln2536[1] === 120,
+    'T536 G1a 債務不得被重置（實得 ' + JSON.stringify(ln2536) + '，應維持 [19,120]）');
+
+  /* G3 toast 誠實：源釘走 raw html（字串字面量進不了 bare＝T517 坑） */
+  assert(html.indexOf("toast('🏦 貸款到帳 $'+(big536?5000:2000)+'！','gold')") >= 0,
+    'T536 G3 放款 toast 金額必須依實際額度組出（原本銀行城 $5000 也寫死「$2000！」）');
+  assert(html.indexOf("toast('🏦 貸款到帳 $2000！','gold')") < 0,
+    'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
 /* ===== T535 保單要給對帳單 =====
