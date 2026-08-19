@@ -10387,6 +10387,61 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T519 孤島電源進顧問：守衛 ===== */
+{
+  /* 玩測 A/B：同種子同建置，電廠離路 4 格 ⇒ 90 天 0 人口 0 建築，而顧問只說「財政吃緊→調高稅率」。
+     T432a 的 powerDiag432 早就能診斷孤島電源，只是沒接到顧問——本卡是接線，不是造能力。 */
+  // G1 必須呼叫既有診斷，不得自建第二套電網判定
+  assert(html.includes('const dg519=powerDiag432(px519,py519);')
+    && html.includes('POWER_DIAG_SOURCE_432A[b.k]'),
+    'T519 G1【原文前哨】孤島判定必須呼叫既有 powerDiag432、電源型別走既有 POWER_DIAG_SOURCE_432A'
+    + '——自建第二套判定就會與 tick 的真實電網漂移');
+  // G1b 兩條建議都不得掛 sym（51 個政策沒有一個能把電廠接上路網＝寧可沒有不硬掛）
+  {
+    const a519 = html.indexOf("const pwSrc519=[]");
+    const b519 = html.indexOf("if(garbage>0&&garbRatio>1)", a519);
+    assert(a519 > 0 && b519 > a519, 'T519 G1b 找不到本卡區段');
+    const blk519 = html.slice(html.indexOf('let isl519=null;'), b519);
+    assert(!/sym:/.test(blk519),
+      'T519 G1b 孤島/缺電建議不得掛 sym——沒有任何政策能把電廠接上路網，硬掛就是假建議');
+  }
+  // G2 行為 A/B（本卡靈魂）：同種子同建置，只差電廠位置
+  {
+    const build519 = (isolated) => {
+      window.GV.newWorldSeeded(5191); window.GV.setDiff(1); window.GV.addMoney(20000);
+      const N519 = window.GV.N();
+      let sx = -1, sy = -1;
+      for (let y = 10; y < N519 - 14 && sx < 0; y++) for (let x = 10; x < N519 - 18; x++) {
+        let ok = true;
+        for (let dy = 0; dy < 9 && ok; dy++) for (let dx = 0; dx < 16; dx++) {
+          const t = window.GV.tile(x + dx, y + dy);
+          if (!t || t.bld || t.road || (t.t !== 1 && t.t !== 2)) { ok = false; break; }
+        }
+        if (ok) { sx = x; sy = y; }
+      }
+      assert(sx >= 0, 'T519 G2 造境失敗：找不到乾淨草地');
+      for (let i = 0; i < 16; i++) window.GV.place('road', sx + i, sy + 4);
+      for (let i = 0; i < 8; i++) window.GV.place('zr', sx + i, sy + 3);
+      for (let i = 8; i < 13; i++) window.GV.place('zc', sx + i, sy + 3);
+      window.GV.place('plant', sx + 14, isolated ? (sy + 8) : (sy + 5));
+      for (let d = 0; d < 30; d++) window.GV.step(1);
+      return window.GV.polAdv517().tips;
+    };
+    const tipsB519 = build519(true);
+    const isl519 = tipsB519.find(t => /電源未併入路網/.test(t.text));
+    assert(isl519,
+      'T519 G2 孤島電廠時顧問必須出「電源未併入路網」建議（實得 ' + JSON.stringify(tipsB519.map(t => t.text.slice(0, 14))) + '）');
+    /* 第一版寫成「>= 當場其他建議的最大值」——紅源把 sev 降到 .2 竟仍僥倖過關（當時財政吃緊只有 .18）。
+       守衛太弱不是紅源錯：改釘設計契約本身——孤島電源 sev 必須**恰為 1** 且排在第一。 */
+    assert(isl519.sev === 1 && tipsB519[0] === isl519,
+      'T519 G2b 孤島電源必須 sev===1 且排第一——它會讓整座城歸零，被任何建議壓過去就等於沒說（實得 sev='
+      + isl519.sev + '、排第 ' + (tipsB519.indexOf(isl519) + 1) + '）');
+    const tipsA519 = build519(false);
+    assert(!tipsA519.find(t => /電源未併入路網/.test(t.text)),
+      'T519 G2c 電廠挨著路時不得誤報孤島（實得 ' + JSON.stringify(tipsA519.map(t => t.text.slice(0, 14))) + '）');
+  }
+}
+
 /* ===== T518 死開關修復：UI 綁定一致性守衛 ===== */
 {
   /* 玩測抓到 shipped bug：T514 把政策列改成 sciCard514 卡片後，DOM id 由 polDomId514(pk) 產生，
