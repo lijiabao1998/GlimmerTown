@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.160，約 23145 行（實測檔案 23145 行＝T532 電力鎖紓困後 Python 數；測試 `test_fixde.js`、實測 PASS 5,959、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.161，約 23153 行（實測檔案 23153 行＝T533 分享碼真相源後 Python 數；測試 `test_fixde.js`、實測 PASS 5,971、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -130,20 +130,20 @@
 | `statTab` / `dataTable` / `serviceRefRows` | 20005 | `T319 標準化數據表格產生器` |
 | `toast` / `updHud` / HUD 三鈕 | 20090 | `T311 提示訊息不刷屏` |
 | 存檔槽面板／分享碼 | 20185 | `function showSlots(){` |
-| 地圖／場景編輯器 | 20294 | `function showEditor(){` |
-| 歷史曲線／城市顧問／因果追溯 | 20404 | `function cityAdvisor(allT522){` |
-| `showStats()` 統計面板 | 20900 | `function showStats()` |
-| 通知中心／成就 | 21358 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 21434 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 21636 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 21898 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 21930 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 22076 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
-| `load()` | 16901-17037 | `const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;` |
-| 自動存檔 | 22261 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 22274 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 22416 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 22528 | `window.GV={` |
+| 地圖／場景編輯器 | 20302 | `function showEditor(){` |
+| 歷史曲線／城市顧問／因果追溯 | 20412 | `function cityAdvisor(allT522){` |
+| `showStats()` 統計面板 | 20908 | `function showStats()` |
+| 通知中心／成就 | 21366 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 21442 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 21644 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 21906 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 21938 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 22084 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `load()` | 22127 | `const vlen=saveShapeOk533;` |
+| 自動存檔 | 22269 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 22282 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 22424 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 22536 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
