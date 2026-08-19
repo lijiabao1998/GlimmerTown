@@ -11921,6 +11921,110 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T535 保單要給對帳單 =====
+
+   實測（困難 500 天×三種子）：保費 $9,000 vs 理賠 $420-$2,240＝保單淨值 −$6,760~−$8,580，
+   連災害最重的城也只拿回 25%，而卡片只寫「保費換理賠」。定價是業主層級（數據在帳本筆記八），
+   本卡只做透明化：insPrem535/insPaid535 純觀測計數器＋保單卡片動態對帳單。 */
+{
+  const GI5 = window.GV;
+  GI5.newWorldSeeded(535);
+  GI5.weather(0);
+  GI5.ai(true); // 造境要有住宅可點燃（G1b），AI 開著不影響保費計數的精確性
+  /* G1 保費：未投保恆 0；投保 10 天恰 180 */
+  for (let d = 0; d < 25; d++) GI5.step(1);
+  assert(GI5.ins535().prem === 0 && GI5.ins535().paid === 0,
+    'T535 G1 未投保時對帳單必須恆 0/0（實得 ' + JSON.stringify(GI5.ins535()) + '）');
+  GI5.pol({ insurance: true });
+  for (let d = 0; d < 10; d++) GI5.step(1);
+  assert(GI5.ins535().prem === 180,
+    'T535 G1a 投保 10 天保費必須恰為 $180（18×10；實得 ' + GI5.ins535().prem
+    + '）——多了＝一天收兩次、少了＝有天沒收，都是對帳單說謊');
+
+  /* G1b 理賠：點燃一棟住宅燒到全毀 ⇒ paid 增加且與 money 增量一致（+35 理賠 −35 外的其他金流用差值法隔離不了，
+     故直接驗 paid 計數與「燒毀當日 money 比不投保多 35」的弱式──改用 paid 與 toast 同源驗證） */
+  {
+    const NN5 = GI5.N();
+    let res5 = null;
+    outer535: for (let x = 1; x < NN5 - 1; x++) for (let y = 1; y < NN5 - 1; y++) {
+      const t = GI5.tile(x, y);
+      if (t && t.bld && !t.bld.ref && t.bld.k === 1 && !t.bld.fire) { res5 = [x, y]; break outer535; }
+    }
+    assert(res5, 'T535 G1b 前置：找不到可點燃的住宅（AI 開著跑 35 天應已長出住宅）');
+    assert(GI5.ignite(res5[0], res5[1]) === true, 'T535 G1b 前置：點燃應成功');
+    const paid0 = GI5.ins535().paid;
+    for (let d = 0; d < 12; d++) GI5.step(1); // 火勢每日 +1，fire>=5 全毀（消防可能撲滅＝允許多燒幾天再判）
+    const paid1 = GI5.ins535().paid;
+    if (paid1 > paid0) {
+      assert((paid1 - paid0) % 35 === 0,
+        'T535 G1b 理賠增量必須是 $35 的整數倍（實得 +' + (paid1 - paid0) + '）');
+    } else {
+      /* 火被消防撲滅＝沒有燒毀＝沒有理賠，屬合法結局；改用直接造毀路徑驗證：
+         把 fire 拉到 4 再步進一天，下一 tick 必達 5 全毀 */
+      const t5 = GI5.tile(res5[0], res5[1]);
+      if (t5 && t5.bld && !t5.bld.fire) GI5.ignite(res5[0], res5[1]);
+      let burned = false;
+      for (let k = 0; k < 3 && !burned; k++) {
+        for (let d = 0; d < 12; d++) GI5.step(1);
+        if (GI5.ins535().paid > paid0) burned = true;
+      }
+      assert(burned,
+        'T535 G1b 反覆點燃 3 輪後仍無任何理賠入帳——投保狀態下的燒毀路徑沒有累加對帳單');
+    }
+  }
+
+  /* G2 對帳單文字：有帳含明細、（下一局）零帳逐字等於原靜態文字 */
+  assert(/保費換理賠｜本局已付 \$\d+・已獲理賠 \$\d+/.test(GI5.ins535().fx),
+    'T535 G2 有帳時 fx 必須是對帳單格式（實得「' + GI5.ins535().fx + '」）');
+
+  /* G3 存讀往返 + G4 零狀態不落欄位 */
+  window.GV.save();
+  {
+    const d535 = JSON.parse(store[SKEY]);
+    assert(Array.isArray(d535.ins535) && d535.ins535[0] === GI5.ins535().prem
+        && d535.ins535[1] === GI5.ins535().paid,
+      'T535 G3 存檔必須帶 ins535=[prem,paid]（實得 ' + JSON.stringify(d535.ins535) + '）');
+    const before535 = GI5.ins535();
+    assert(window.GV.load() === true, 'T535 G3 前置：讀檔應成功');
+    assert(GI5.ins535().prem === before535.prem && GI5.ins535().paid === before535.paid,
+      'T535 G3a 對帳單必須經存讀保真（' + JSON.stringify(before535) + ' → '
+      + JSON.stringify(GI5.ins535()) + '）');
+    /* 舊檔缺欄位 ⇒ 0/0（鐵律9） */
+    delete d535.ins535;
+    store[SKEY] = JSON.stringify(d535);
+    assert(window.GV.load() === true, 'T535 G3b 舊檔（無 ins535）必須照樣讀得起來');
+    assert(GI5.ins535().prem === 0 && GI5.ins535().paid === 0,
+      'T535 G3c 舊檔缺欄位必須容錯為 0/0（實得 ' + JSON.stringify(GI5.ins535()) + '）');
+  }
+  GI5.newWorldSeeded(536);
+  assert(GI5.ins535().prem === 0 && GI5.ins535().paid === 0,
+    'T535 G5 newWorld 必須歸零對帳單（鐵律7；實得 ' + JSON.stringify(GI5.ins535()) + '）');
+  assert(GI5.ins535().fx === '保費換理賠',
+    'T535 G2a 零帳時 fx 必須逐字等於原靜態文字（實得「' + GI5.ins535().fx + '」）');
+  {
+    window.GV.save();
+    const d536 = JSON.parse(store[SKEY]);
+    assert(d536.ins535 === undefined,
+      'T535 G4 從未投保的存檔不得含 ins535 欄位（T364b 慣例＝既有存檔 bytes 不變）');
+  }
+  /* G5a 靜態面：三處歸零＋渲染行走 ternary＋零亂數 */
+  assert((htmlBare438.match(/insPrem535=0;insPaid535=0;insToastDay=-1;/g) || []).length === 2
+      && htmlBare438.indexOf('let insPrem535=0,insPaid535=0;') >= 0,
+    'T535 G5a 對帳單計數器必須在宣告＋newWorld＋load 三處歸零（鐵律7；含 insToastDay——'
+    + '它原本只靠宣告初值，跨局殘留會讓新局同日號的第一筆理賠 toast 被吞）');
+  /* 錨點不得含字串字面量（剝除器會抹掉 'insurance'＝T517 老坑）——改釘無字串的尾段 */
+  assert(htmlBare438.indexOf('?insFx535():c.fx') >= 0,
+    'T535 G2b 保單卡片渲染必須走 insFx535 動態對帳單（其他政策維持靜態 fx）');
+  {
+    const a5 = 'function insFx535(){';
+    const at5 = htmlBare438.indexOf(a5);
+    assert(at5 >= 0, 'T535 G5b 找不到 insFx535 錨點');
+    const body5 = html.slice(at5, html.indexOf('\n}', at5) + 2);
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|Math\.random/.test(body5),
+      'T535 G5b 對帳單必須零亂數');
+  }
+}
+
 /* ===== T533 分享碼跨尺寸誤判（T262 遺留債）=====
 
    「朋友的 108×108 分享碼在 72×72 世界裡貼不進來」：load() 支援跨尺寸（T262 驗 dd.n），
