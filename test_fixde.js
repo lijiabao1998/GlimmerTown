@@ -11914,6 +11914,120 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T530 耗盡的礦脈不該還能賣給你 =====
+
+   競品研究先行：Cities: Skylines 的礦/油耗盡是品類公認的設計爭議（玩家「升到 5 級資源就沒了」、
+   官方回應是內建 Unlimited Oil and Ore 開關而非改數值）。社群抱怨的第二半是**被伏擊感**，
+   而那一半在我們這裡是明確的不一致：
+
+   `RDEP[i]>=RESOURCE_STOCK` 原本**在兩處各寫一份**——AI 選址過濾寫了、玩家端 `canPlace` 沒寫。
+   實測 seed301：某格 RDEP=240/240 已完全耗盡，`place('mine')` 仍回 true，
+   花 $1,500、30 天礦石產出 0、維護費照收。**程式碼知道該擋，只是只擋 AI。**（T518 同族。）
+
+   守衛分工：
+     G1  **交叉一致性**（靈魂）：兩端必須讀同一個真相源，不准各寫一份。
+     G2  行為**雙向**：耗盡格擋下且訊息明確；**未耗盡格必須照樣蓋得起來**。
+     G2b `gaswell` 不受影響（它不讀 RDEP，耗盡油田格仍是合法氣井位）。
+     G3  耗盡通知逐格**只發一次**。
+     G4  鐵律7 三處歸零、不入存檔。
+     G5  零亂數。 */
+{
+  const GR = window.GV;
+  GR.newWorldSeeded(530);
+  GR.ai(true); for (let d = 0; d < 120; d++) GR.step(1); GR.ai(false);
+  GR.addMoney(300000);
+  const cap530 = GR.res530().cap;
+  assert(cap530 === 240, 'T530 前置：RESOURCE_STOCK 應為 240（實得 ' + cap530 + '）——改了要跟版本卡面');
+
+  /* 找一格空的礦藏格 */
+  const NN = GR.N();
+  let ore530 = null;
+  outer530: for (let x = 1; x < NN - 1; x++) for (let y = 1; y < NN - 1; y++) {
+    const t = GR.tile(x, y);
+    if (t && !t.bld && !t.road && GR.resourceAt(x, y) === 2) { ore530 = [x, y]; break outer530; }
+  }
+  assert(ore530, 'T530 前置：找不到空的礦藏格（seed 530 無礦或全被佔）');
+  const [ox, oy] = ore530;
+
+  /* G2 正向：未耗盡格必須蓋得起來（單向釘擋不住「把所有礦場都擋掉」） */
+  /* 這條原本標成「前置」，但它其實是實質不變量（紅源②「閘門恆真」正是先咬到它）⇒ 正名為 G2a。 */
+  assert(GR.res530(ox, oy).depleted === false,
+    'T530 G2a 沒挖過的資源格不得判為耗盡（rdep=' + GR.res530(ox, oy).rdep
+    + '）——閘門寫成恆真就會把每一格都當成挖空的');
+  assert(GR.place('mine', ox, oy) === true,
+    'T530 G2【正向】未耗盡的礦藏格必須照樣蓋得起來——只驗「耗盡時擋下」擋不住「全部都擋掉」');
+
+  /* 跑到耗盡，順便驗通知 */
+  let depDay = 0;
+  for (let d = 1; d <= 200 && !depDay; d++) { GR.step(1); if (GR.res530(ox, oy).depleted) depDay = d; }
+  assert(depDay > 0, 'T530 前置：200 天內應該挖到見底（ORE_RATE=2、上限 240 ⇒ 約 120 天）');
+  const st530 = GR.res530(ox, oy);
+  assert(st530.warned === true,
+    'T530 G3 礦脈見底那一天必須通知過這一格（實得 warned=' + st530.warned
+    + '）——原本它靜靜停產、維護費照收，165 條通知裡一個字都沒提');
+  /* G3a 用**玩家真的看到的東西**當判準：通知中心裡那條訊息的筆數。
+     第一版拿 `resWarn530.size` 當判準＝空跑——`Set.add(同一個 i)` 是**幂等**的，
+     所以拿掉 `has()` 早退時集合大小完全不變、而 toast 每天照發，紅源整場全綠通過。
+     （這是 T529「用衍生訊號當判準就會量到別的東西」在同一季內第二次落地。） */
+  const depLogN530 = () => ((GR.log && GR.log()) || []).filter(l => /礦脈已開採完畢/.test(l.m)).length;
+  assert(depLogN530() === 1,
+    'T530 G3b 見底時通知中心應恰有 1 筆耗盡通知（實得 ' + depLogN530() + ' 筆）');
+  for (let d = 0; d < 40; d++) GR.step(1);
+  assert(depLogN530() === 1,
+    'T530 G3a 耗盡通知必須逐格只發一次——再跑 40 天後通知中心實得 ' + depLogN530()
+    + ' 筆（每天重發的話 T526 節流也只折疊 8 天窗口，仍會累積出多筆）');
+
+  /* G2 反向：拆掉後在已耗盡的同一格不得再蓋 */
+  assert(GR.place('doze', ox, oy) === true, 'T530 前置：應該拆得掉那座礦場');
+  assert(GR.place('mine', ox, oy) !== true,
+    'T530 G2【反向】已耗盡的礦脈不得再賣一座礦場給玩家（實測修前回 true、$1,500、零產出、維護費照收）');
+
+  /* G2b gaswell 不受影響：找一格已耗盡的油田格（若本場沒有就找未耗盡的，語意仍成立） */
+  {
+    let oil530 = null;
+    outerOil: for (let x = 1; x < NN - 1; x++) for (let y = 1; y < NN - 1; y++) {
+      const t = GR.tile(x, y);
+      if (t && !t.bld && !t.road && GR.resourceAt(x, y) === 1) { oil530 = [x, y]; break outerOil; }
+    }
+    assert(oil530, 'T530 G2b 前置：找不到空的油田格');
+    assert(GR.place('gaswell', oil530[0], oil530[1]) === true,
+      'T530 G2b `gaswell` 不讀 RDEP（產氣只看井數）⇒ 不得被耗損閘門擋掉，'
+      + '否則會擋掉一種合法玩法');
+  }
+}
+{
+  /* T530 靜態守衛（與上面的行為守衛分開，避免造境狀態互相干擾） */
+  const src530 = htmlBare438;
+  /* G1 交叉一致性：`RDEP[...]>=RESOURCE_STOCK` 這條判定只准出現在真相源函式裡一次。 */
+  const raw530 = (src530.match(/RDEP\[[^\]]*\]\s*>=\s*RESOURCE_STOCK/g) || []).length;
+  assert(raw530 === 1,
+    'T530 G1【本卡靈魂】`RDEP[..]>=RESOURCE_STOCK` 全檔只准寫一次（在 `resDepleted530` 裡），'
+    + '實得 ' + raw530 + ' 處。各寫一份正是本卡要修的病：AI 那份有、玩家端那份忘了寫，'
+    + '結果遊戲賣了一座零產出的礦場給玩家');
+  assert(src530.indexOf('function resDepleted530(i){return RDEP[i]>=RESOURCE_STOCK;}') >= 0,
+    'T530 G1a 真相源函式必須在場且是那一行');
+  const uses530 = (src530.match(/resDepleted530\(/g) || []).length;
+  assert(uses530 >= 6,
+    'T530 G1b 真相源必須被雙端＋通知＋疊圖共同使用（宣告 1＋玩家端 1＋AI 兩支＋通知兩支＋疊圖 1），'
+    + '實得 ' + uses530 + ' 處呼叫');
+  /* G4 鐵律7 */
+  const rst530 = (src530.match(/resWarn530=new Set\(\)/g) || []).length;
+  assert(rst530 === 3,
+    'T530 G4 `resWarn530` 必須在宣告／newWorld／load 三處歸零（鐵律7），實得 ' + rst530 + ' 處');
+  assert(html.indexOf('data.resWarn530') < 0 && html.indexOf('resWarn:') < 0,
+    'T530 G4a 耗盡通知集合不得進存檔（它是提示，不是世界狀態）');
+  /* G5 零亂數 */
+  {
+    const a = 'function resNotify530(x,y,nm){';
+    const at = src530.indexOf(a);
+    assert(at >= 0, 'T530 G5 找不到 `' + a + '` 錨點');
+    const body = html.slice(at, html.indexOf('\n}', at) + 2);
+    assert(body.length > 40 && body.length < 700, 'T530 G5 函式體長度異常（' + body.length + '）');
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|[^a-zA-Z_]rand\(|Math\.random/.test(body),
+      'T530 G5 耗盡通知必須零亂數（鐵律2）——它在 tick 路徑上');
+  }
+}
+
 /* ===== T529 委託不該發你做不到的單 =====
 
    實測「見單就接」的玩家 500 天×三城：12 件結案只完成 2 件＝**83% 過期率**，
