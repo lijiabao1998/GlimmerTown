@@ -6997,6 +6997,7 @@ runPwaTests().then(() => {
     window.GV.ai(false);
     const pop5 = window.GV.stats().pop;
     assert(pop5 > 1000, 'T348 seed5 應脫離死鎖並長成城市（v8.8 基準恆 0），實得 ' + pop5);
+    const SEED7M_T532=50; // T532 重釘實測值（前值 55；紓困後城市把補助花在電源上，殘金略降＝合理）
     /* T444 第三根釘（補餘裕）：`MIN_SEED_PINS` 原本恰好卡在 2，零餘裕——
        任何一根被動到就直接跌破門檻。seed7 與既有兩根不同族（非水域中心、非拮据城）。 */
     window.GV.newWorldSeeded(7);
@@ -7004,11 +7005,17 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    seedPin444('seed7', 7, 400, 251, window.GV.stats().pop,
-      'T444 補餘裕新釘。實測 251——這是一張**低成長地圖**，與 seed301（3781 拮据城）'
-      + '、seed22（4550 健康城）分屬三個不同的族群；選它正是要讓釘子涵蓋「難開的圖」那一端');
-    seedPin444('seed7m', 7, 400, 55, Math.round(window.GV.stats().money),
-      'T456 金流哨兵：低成長圖普查 0 次＝金流應與 T455 版完全相同（對照組性質）');
+    /* T532 重釘（業主 2026-08-19 裁決 A 案，明示「A你處理乾淨吧，我尊重你的決策」＝重釘授權）：
+       seed7 是低成長圖＝電力鎖貧困陷阱的族群，T532 的紓困會在第 271+ 天觸發並改變其軌跡
+       251→260（那正是本卡要的效果：這根釘從「對照組」變成「陷阱得救的行為見證」）。
+       seed301/seed22 不受擾動＝手術式條件「健康城市永不滿足」的實測面（鐵律19 正解形態②）。
+       前值：pop 251（T444 起）／money 55（T456 起）。 */
+    seedPin444('seed7', 7, 400, 260, window.GV.stats().pop,
+      'T532 重釘（前值 251，業主 A 案授權）。低成長地圖＝電力鎖陷阱族群，'
+      + 'T532 紓困觸發後軌跡合法改變；與 seed301（拮据城）、seed22（健康城）分屬三族，'
+      + '這根釘現在同時見證「紓困有發生」與「只發生在陷阱城市」');
+    seedPin444('seed7m', 7, 400, SEED7M_T532, Math.round(window.GV.stats().money),
+      'T532 重釘（前值 55）：紓困是一次性 money=Math.max(...) ⇒ 金流必然改變，新值見常數宣告');
     {
       const mob7 = window.GV.sci451();
       assert(mob7.mobUp === 0 && mob7.mobDn === 0,
@@ -11912,6 +11919,54 @@ runPwaTests().then(() => {
       'T447 G2b `docs/VERIFY.md` 不得再以「鐵律3」之名引用存檔槽紀律'
       + '（RULES 第 3 條講的是「禁止刪除既有功能／註解／GV API」），必須引第 18 條');
   }
+}
+
+/* ===== T532 貧困陷阱的電力鎖（業主裁決 A 案）=====
+
+   實測 12 種子：7 個 900 天內從沒到過 rank 9 ⇒ 幸福 0.2-0.3、資金長期負值、建築反而減少。
+   真機制：未供電 100% 是 network（分區容量用滿）→ 買不起 → `money<80` 時 aiStep 整個停工
+   ⇒ 死迴圈。判別因子＝**卡了多久**（四版迭代：瞬時金額會誤傷成長期城市、`money<0` 不可達，
+   取捨表在卡面第 5 節；業主 2026-08-19 選 A 案並授權 seed7 重釘）。
+
+   行為守衛就是哨兵本身：seed7（陷阱族）重釘 260/50＝紓困有發生；
+   seed301/seed22 位元恆等＝手術式條件「健康城市永不滿足」的實測面。
+   這裡補靜態面： */
+{
+  const src532 = htmlBare438;
+  /* G1 具名常數（不手抄門檻） */
+  assert(src532.indexOf('const POWLOCK_DAY532=150, POWLOCK_FRAC532=.35, POWLOCK_AID_GAP532=60, POWLOCK_HOLD532=120;') >= 0,
+    'T532 G1 四個門檻必須是具名常數且與卡面一致（150／.35／60／120）——改任何一個都要重跑 12 種子取捨表並跟版卡面');
+  /* G1a 判別因子必須是「持續天數」不是瞬時值——這正是四版迭代學到的 */
+  assert(src532.indexOf('powLockDays532=powStarved532?powLockDays532+1:0;') >= 0
+      && src532.indexOf('powLockDays532>=POWLOCK_HOLD532') >= 0,
+    'T532 G1a 電力鎖判定必須用「已持續天數」計數器——瞬時判定實測會誤傷成長期城市'
+    + '（seed3002 −4,705 人口，取捨表版本②）');
+  /* G1b 閘門放行的形態：只在 powLock532 時繞過 !poor */
+  assert((src532.match(/\(!poor\|\|powLock532\)&&powCap<bldN\+6/g) || []).length === 1,
+    'T532 G1b 擴容閘門必須恰是 `(!poor||powLock532)` 形態一處——無條件放寬＝版本①，實測是 no-op');
+  /* G2 紓困必受節流與「真的買不起」約束（不是錢的水龍頭） */
+  const aidAt = src532.indexOf('if(powLock532&&powCap<bldN+6&&money<COST.geo+RESERVE&&day-powAid532>=POWLOCK_AID_GAP532){');
+  assert(aidAt >= 0,
+    'T532 G2 紓困觸發必須同時要求：鎖確立＋容量不足＋買不起最便宜電源＋距上次 ≥60 天');
+  /* G3 未供電比例只數 pw 逐日重算的建築（k<=3 與 127）——k>=4 是殘值（T435） */
+  assert((src532.match(/if\(b\.k<=3\|\|b\.k===127\)\{pwLiveN532\+\+;if\(!b\.pw\)pwOutN532\+\+;\}/g) || []).length === 1,
+    'T532 G3 未供電計數必須只數 `pw` 逐日重算的建築（k<=3||k===127）且全檔恰一處——'
+    + '數到 k>=4 的放置殘值會得到假比例');
+  /* G4 零亂數（紓困塊在 tick 路徑上） */
+  {
+    const body = html.slice(aidAt >= 0 ? html.indexOf('if(powLock532&&powCap<bldN+6') : 0);
+    const blk = body.slice(0, body.indexOf('\n  }') + 4);
+    assert(blk.length > 80 && blk.length < 900, 'T532 G4 紓困塊長度異常（' + blk.length + '）＝錨點抓錯');
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|[^a-zA-Z_]rand\(|Math\.random/.test(blk),
+      'T532 G4 紓困塊必須零亂數（鐵律2）——它在 aiStep/tick 路徑上');
+  }
+  /* G5 鐵律7：三處歸零、不入存檔 */
+  assert((src532.match(/powAid532=-999/g) || []).length === 3
+      && (src532.match(/powLockDays532=0/g) || []).length >= 3,
+    'T532 G5 紓困節流與鎖定計數器必須在宣告／newWorld／load 三處歸零（鐵律7），實得 powAid '
+    + (src532.match(/powAid532=-999/g) || []).length + ' 處');
+  assert(html.indexOf('data.powAid532') < 0 && html.indexOf('data.powLockDays532') < 0,
+    'T532 G5a 電力鎖狀態不得進存檔（它是 AI 內部節流，不是世界狀態；讀檔後重新累積 120 天是想要的保守行為）');
 }
 
 /* ===== T531 資源耗盡由玩家決定 =====
