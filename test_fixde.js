@@ -11910,6 +11910,59 @@ runPwaTests().then(() => {
   }
 }
 
+/* ===== T527 自動存檔的真相：程式碼與文件的雙向守衛 =====
+
+   T447 在補上 RULES 第 18 條的同一段裡斷言「`index.html` 沒有自動存檔，全檔 save()
+   只在存檔按鈕的處理器裡呼叫一次」——**那句話在寫下的當刻就是錯的**：
+   `setInterval(()=>{if(tiles)save();},25000)` 自 2026-07-18 `6e4d31a` 就存在，
+   而 `docs/ARCH.md` §11 那張表**一直有**「自動存檔」這一列。
+   三份文件互相矛盾了三十幾張卡沒人發現，而 RULES 18 的整條防護正是建立在那個錯前提上
+   （它只擋「顯式呼叫 GV.save() 之前沒釘槽」，擋不住「把頁面載起來放 25 秒」）。
+
+   所以這裡要的不是單向的原文釘，而是**雙向**：程式碼裡的自動存檔在場 ⇔ 文件描述它。
+   哪天真的把自動存檔拿掉而沒同步文件（或反過來），這條就紅。 */
+{
+  const AUTOSAVE_MS527 = 25000;
+  const rules527 = fs.readFileSync(path.join(__dirname, 'docs', 'RULES.md'), 'utf8');
+  /* 位置由剝除器、內容由原文：自動存檔那行沒有字串字面量，可直接在剝乾淨的原始碼上掃，
+     這樣註解裡談論自動存檔不會餵飽守衛（T446 G1「空跑的假綠」教訓）。 */
+  const bare527 = htmlBare438;
+  const auto527 = bare527.match(/setInterval\(\(\)=>\{if\(tiles\)save\(\);\},(\d+)\)/g) || [];
+  assert(auto527.length === 1,
+    'T527 G1 `index.html` 必須恰有一處自動存檔 `setInterval(()=>{if(tiles)save();},N)`（實得 '
+    + auto527.length + ' 處）。若真要移除它，必須同時改 RULES 第 18 條的描述——'
+    + '這條守衛存在的理由就是 T447 曾經斷言「沒有自動存檔」而它其實一直在');
+  const ms527 = +(/,(\d+)\)/.exec(auto527[0]) || [])[1];
+  assert(ms527 === AUTOSAVE_MS527,
+    'T527 G1b 自動存檔週期實得 ' + ms527 + 'ms，文件寫的是 ' + AUTOSAVE_MS527
+    + 'ms（25 秒）。改週期必須同步 RULES 第 18 條，否則「放著 25 秒就會覆蓋」這句話會失真');
+  assert(rules527.indexOf('setInterval(()=>{if(tiles)save();},25000)') >= 0
+      && rules527.indexOf('有自動存檔') >= 0,
+    'T527 G1c 反向：`docs/RULES.md` 第 18 條必須原樣寫出自動存檔那行並說明它存在。'
+    + '單向的原文釘擋不住「程式碼在、文件說不在」——那正是 T447 留下的狀態');
+  assert(rules527.indexOf('沒有自動存檔') < 0,
+    'T527 G1d `docs/RULES.md` 不得再出現「沒有自動存檔」的斷言（T447 的錯誤結論）');
+
+  /* G2 編號機械複算：RULES 條目編號必須從 1 開始嚴格遞增、無重複、無跳號。
+     T447 把新規則編成 18 時本檔已經有一條 18，撞號之後 19/20 全部錯位，
+     而且沒有任何東西會發現——條列文件的編號是人手維護的，正是機械複算的用武之地。 */
+  const nums527 = (rules527.split('\n')
+    .map(l => /^(\d+)\. /.exec(l))
+    .filter(Boolean)
+    .map(m => +m[1]));
+  assert(nums527.length >= 21,
+    'T527 G2 前置：RULES 條目數實得 ' + nums527.length + '，少於 21 條＝有條目被刪或編號格式被改');
+  const bad527 = [];
+  for (let i = 0; i < nums527.length; i++) if (nums527[i] !== i + 1) bad527.push('第 ' + (i + 1) + ' 個條目編號寫成 ' + nums527[i]);
+  assert(bad527.length === 0,
+    'T527 G2 `docs/RULES.md` 條目編號必須是 1..N 嚴格遞增無重複（實測異常：'
+    + bad527.slice(0, 4).join('、') + '）。T447 撞號留下兩條 18，'
+    + '而「鐵律18」在整個 repo 裡同時指三件不同的事');
+  assert(rules527.indexOf('編號空間須知') >= 0,
+    'T527 G2b RULES 必須保留「編號空間須知」——本檔的 1-21 與 COLLAB/CHANGELOG 那套「鐵律N」'
+    + '是兩套獨立編號，不寫清楚就會再撞一次');
+}
+
 /* ===== T446 tail parity 結構守衛（ARCH §10.12）：守衛 ===== */
 {
   /* §10.12 說「tail parity 是手抄，純靠複製貼上」。去讀原文之後：
