@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.147，約 22,843 行（實測檔案 22,843 行＝T518 死開關修復＋T517 顧問政策橋接後 Python 數；測試 `test_fixde.js`、實測 PASS 5,730、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.148，約 22,855 行（實測檔案 22,855 行＝T519 孤島電源進顧問後 Python 數；測試 `test_fixde.js`、實測 PASS 5,738、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -132,18 +132,18 @@
 | 存檔槽面板／分享碼 | 20041 | `function showSlots(){` |
 | 地圖／場景編輯器 | 20150 | `function showEditor(){` |
 | 歷史曲線／城市顧問／因果追溯 | 20253 | `function cityAdvisor(){` |
-| `showStats()` 統計面板 | 20714 | `function showStats()` |
-| 通知中心／成就 | 21172 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 21248 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 21450 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 21697 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 21715 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 21836 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `showStats()` 統計面板 | 20726 | `function showStats()` |
+| 通知中心／成就 | 21184 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 21260 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 21462 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 21709 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 21727 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 21848 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
 | `load()` | 16901-17037 | `const vlen=(dd)=>{const dn=+(dd&&dd.n)||72;` |
-| 自動存檔 | 22021 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 22034 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 22176 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 22283 | `window.GV={` |
+| 自動存檔 | 22033 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 22046 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 22188 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 22295 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
