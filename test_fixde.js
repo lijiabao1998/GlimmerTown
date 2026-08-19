@@ -10387,6 +10387,61 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T520 關鍵診斷主動通知：守衛 ===== */
+{
+  /* T519 讓顧問會講孤島電源，但 cityAdvisor 只在面板開啟時跑、且顧問排在 3,798px 面板的 3,300px 處。
+     本卡把關鍵診斷接進既有 T114 通知中心（toast → log[] → 🔔 紅點 → 可跳鏡頭），不新建 UI。 */
+  // G1 走既有 tickBld 與既有 powerDiag432（不自建掃描/判定）＋節流
+  assert(html.includes('if(day%10===0&&day-islandWarnT520>=60){')
+    && html.includes('for(const i520 of tickBld){')
+    && html.includes('dg520=powerDiag432(x520,y520)'),
+    'T520 G1【原文前哨】主動通知必須每 10 天走既有 tickBld＋既有 powerDiag432，並有 60 天節流');
+  // G1b 零亂數機械掃（剝除後文本，錨不得含字串字面——T517 G1e 教訓）
+  {
+    const a520 = htmlBare438.indexOf('if(day%10===0&&day-islandWarnT520>=60){');
+    const b520 = htmlBare438.indexOf('computeGarbLocal()', a520);
+    assert(a520 > 0 && b520 > a520, 'T520 G1b 找不到本卡區段');
+    const blk520 = htmlBare438.slice(a520, b520);
+    assert(!/\bR\(\)/.test(blk520) && !/Math\.random/.test(blk520) && !/\bri\(/.test(blk520),
+      'T520 G1b【機械掃】主動通知不得消耗亂數——它跑在 tick 裡，吃一顆亂數就會位移整條模擬流');
+  }
+  // G2 節流變數鐵律7 成對歸零（newWorld 與 load 各一）
+  assert((html.match(/islandWarnT520=-999/g) || []).length >= 3,
+    'T520 G2 節流變數必須在 newWorld 與 load 兩處成對歸零（鐵律7），連宣告共 3 處');
+  // G3 行為（本卡靈魂）：孤島造境必通知、挨路造境零誤報
+  {
+    const build520 = (isolated) => {
+      window.GV.newWorldSeeded(5201); window.GV.setDiff(1); window.GV.addMoney(20000);
+      const N520 = window.GV.N();
+      let sx = -1, sy = -1;
+      for (let y = 10; y < N520 - 14 && sx < 0; y++) for (let x = 10; x < N520 - 18; x++) {
+        let ok = true;
+        for (let dy = 0; dy < 9 && ok; dy++) for (let dx = 0; dx < 16; dx++) {
+          const t = window.GV.tile(x + dx, y + dy);
+          if (!t || t.bld || t.road || (t.t !== 1 && t.t !== 2)) { ok = false; break; }
+        }
+        if (ok) { sx = x; sy = y; }
+      }
+      assert(sx >= 0, 'T520 G3 造境失敗：找不到乾淨草地');
+      for (let i = 0; i < 16; i++) window.GV.place('road', sx + i, sy + 4);
+      for (let i = 0; i < 8; i++) window.GV.place('zr', sx + i, sy + 3);
+      window.GV.place('plant', sx + 14, isolated ? (sy + 8) : (sy + 5));
+      for (let d = 0; d < 30; d++) window.GV.step(1);
+      return window.GV.log().filter(l => /電力送不出去/.test(l.m));
+    };
+    const warnB520 = build520(true);
+    /* 恰為 1：既是「必須通知」也是「不得洗版」——60 天節流下 30 天內只准一條。
+       （T519 G2b 教訓當場套用：斷言寫成 >=1 的話，拆掉節流的紅源根本不會紅。） */
+    assert(warnB520.length === 1,
+      'T520 G3 孤島電源 30 天內必須恰好通知一次（沉默＝那個 bug；洗版＝節流壞了）。實得 ' + warnB520.length + ' 條');
+    assert(warnB520[0].x !== undefined && warnB520[0].y !== undefined,
+      'T520 G3b 通知必須帶座標（T114 日誌可點擊跳鏡頭）');
+    const warnA520 = build520(false);
+    assert(warnA520.length === 0,
+      'T520 G3c 電廠挨著路時不得誤報（實得 ' + warnA520.length + ' 條）');
+  }
+}
+
 /* ===== T519 孤島電源進顧問：守衛 ===== */
 {
   /* 玩測 A/B：同種子同建置，電廠離路 4 格 ⇒ 90 天 0 人口 0 建築，而顧問只說「財政吃緊→調高稅率」。
