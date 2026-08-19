@@ -10387,6 +10387,133 @@ runPwaTests().then(() => {
   /* G4/G4b/G4c（行為）：搭在六根哨兵旁——seed301 37升0降／seed7 0/0 對照組／seed22 61升0降。 */
 }
 
+/* ===== T518 死開關修復：UI 綁定一致性守衛 ===== */
+{
+  /* 玩測抓到 shipped bug：T514 把政策列改成 sciCard514 卡片後，DOM id 由 polDomId514(pk) 產生，
+     而 T451-T459 七張卡的 polToggle 仍綁舊縮寫 id（#polCong451…）＝綁到不存在的元素 ⇒ 七個政策
+     點不動、T459 的 recomputePolAll459 after 回調一起死。5,608 條守衛全綠沒抓到，因為它們驗的是
+     **原文在場**——原文在場、元素不在場＝假綠的系統級版本。
+     本守衛是機械等價物：每個 polToggle 的選擇器必須等於卡片實際會產生的 id。
+     （逐一點擊 62 個 checkbox 的行為驗證在真瀏覽器探針，記在卡面——套件的 DOM 是 stub。） */
+  const D518 = window.GV.polDom518();
+  const calls518 = [...html.matchAll(/polToggle\(\s*(?:'#([A-Za-z0-9_]+)'|'#'\+polDomId514\('([A-Za-z0-9_]+)'\))\s*,\s*'([A-Za-z0-9_]+)'/g)];
+  assert(calls518.length >= 55,
+    'T518 G1 應找到 55+ 個 polToggle 呼叫（實得 ' + calls518.length + '）——找不到就是解析壞了，不是真的沒有');
+  const dead518 = [];
+  for (const m518 of calls518) {
+    const litId = m518[1], derivedKey = m518[2], polKey = m518[3];
+    const want518 = D518.ids[polKey] || (D518.alias[polKey] || ('pol' + polKey));
+    if (derivedKey) {
+      // 由 polDomId514(key) 導出的寫法：只要 key 對得上就必然一致
+      if (derivedKey !== polKey) dead518.push(polKey + '：導出用了 ' + derivedKey);
+    } else if (litId !== want518) {
+      dead518.push(polKey + '：綁 #' + litId + '，卡片實際 id 是 #' + want518);
+    }
+  }
+  assert(dead518.length === 0,
+    'T518 G1b【交叉一致性】每個 polToggle 的選擇器必須等於 sciCard514 實際產生的 DOM id，'
+    + '否則就是綁到不存在的元素＝玩家點了沒反應的死開關。不一致：' + JSON.stringify(dead518));
+  // G1c：政策條目全覆蓋——SCI451 每個 polKey 都要有一個 polToggle 綁定（沒綁＝永遠點不動）
+  {
+    const bound518 = new Set(calls518.map(m => m[3]));
+    const unbound518 = Object.keys(D518.ids).filter(k => !bound518.has(k));
+    assert(unbound518.length === 0,
+      'T518 G1c SCI451 的每個政策都必須有 polToggle 綁定（無綁定＝死開關）。未綁：' + JSON.stringify(unbound518));
+  }
+  // G1d T459 after 回調必須仍掛在（現在真的會被觸發的）那個綁定上
+  assert(html.includes("polToggle('#'+polDomId514('cleanAir459'),'cleanAir459','空氣品質管制',()=>recomputePolAll459())"),
+    'T518 G1d T459 的全圖重掃 after 回調必須掛在修好的綁定上——否則開了空品管制而污染場不重掃（staleness）');
+}
+
+/* ===== T517 顧問政策橋接（Policy Bridge）：守衛 ===== */
+{
+  /* 玩測發現：cityAdvisor 13 類建議全是「蓋東西」、51 個政策一個都沒提過。
+     本卡整合既有顧問（非再造），映射表 id 指回 SCI451；一鍵開關只准 .click() 既有 checkbox。 */
+  const A517 = window.GV.polAdv517();
+  const SCI517 = window.GV.ancestry516().sciIds;
+  // G1 表項：每個 ref 存在、有 polKey（真開關）、同症狀不重複、每症狀至少一條
+  {
+    const grpKeys517 = new Set();
+    assert(Object.keys(A517.map).length >= 8,
+      'T517 G1 症狀映射表至少應有 8 個症狀（實得 ' + Object.keys(A517.map).length + '）');
+    for (const sym517 in A517.map) {
+      const ids517 = A517.map[sym517];
+      assert(Array.isArray(ids517) && ids517.length > 0,
+        'T517 G1 每個症狀至少要有一條政策（' + sym517 + '）——沒有誠實對應就不要建條目');
+      const seen517 = new Set();
+      for (const id517 of ids517) {
+        assert(SCI517.includes(id517),
+          'T517 G1b 政策 ref 必須存在於 SCI451（' + sym517 + ' 掛了 ' + id517 + '）');
+        assert(!seen517.has(id517), 'T517 G1b 同一症狀內政策不得重複（' + sym517 + ' 的 ' + id517 + '）');
+        seen517.add(id517);
+        grpKeys517.add(id517);
+      }
+    }
+    // G1c 每個 ref 必須是「真的可開關的政策」——唯讀條目（oppAtlas455/mobility456）混進來就紅
+    for (const sym517 in A517.resolved)
+      for (const r517 of A517.resolved[sym517])
+        assert(typeof r517.polKey === 'string' && r517.polKey.length > 0,
+          'T517 G1c 政策 ref 必須是可開關條目（' + sym517 + ' 的 ' + r517.id
+          + ' 沒有 polKey＝唯讀研究，顧問點了也開不起來）');
+  }
+  // G1d 雙向覆蓋：表裡每個症狀都要被 cityAdvisor 實際用過（造境檢出），tips 的 sym 都要在表內
+  {
+    const used517 = new Set();
+    const collect517 = () => { for (const t of window.GV.polAdv517().tips) if (t.sym) used517.add(t.sym); };
+    // 造境一：髒亂窮城（污染/垃圾/財政/不快樂/服務缺口）
+    window.GV.newWorldSeeded(5171); window.GV.setDiff(1); window.GV.ai(true);
+    for (let d = 0; d < 200; d++) window.GV.step(1);
+    window.GV.ai(false); collect517();
+    // 造境二：另一顆長相不同的種子（RCI 需求/壅堵）
+    window.GV.newWorldSeeded(22); window.GV.setDiff(1); window.GV.ai(true);
+    for (let d = 0; d < 200; d++) window.GV.step(1);
+    window.GV.ai(false); collect517();
+    for (const t of window.GV.polAdv517().tips)
+      assert(!t.sym || A517.map[t.sym],
+        'T517 G1d 顧問給出的 sym 必須在 POLADV517 內（實得 ' + t.sym + '）');
+    assert(used517.size >= 3,
+      'T517 G1d 兩座造境城至少應觸發 3 種帶政策的症狀（實得 ' + used517.size + '：' + JSON.stringify([...used517]) + '）');
+  }
+  // G1e 顧問政策鈕禁止直接寫 pol（機械掃剝除後源碼的綁定區段）——防 T459 型 after 回調漏跑
+  {
+    /* 錨點不得含字串字面——剝除器會把 'click' 抹成空白（T446「位置由剝除器、內容由原文」第三次現身）。 */
+    const b0517 = htmlBare438.indexOf('btn517.addEventListener(');
+    assert(b0517 > 0, 'T517 G1e 找不到政策鈕綁定區段');
+    const blk517 = htmlBare438.slice(b0517, b0517 + 320);
+    assert(/cb517\.click\(\)/.test(blk517),
+      'T517 G1e 政策鈕必須 .click() 既有 checkbox（讓 polToggle 原處理器與 after 回調照跑）');
+    assert(!/pol\[/.test(blk517) && !/pol\./.test(blk517),
+      'T517 G1e【機械掃】政策鈕區段不得自己讀寫 pol——自己寫就會漏掉 T459 的 recomputePolAll459 after 回調（staleness）');
+  }
+  // G1f 既有 13 條 tip 原文回歸（新欄位只能追加）
+  assert(html.includes("text:'🗑️ 垃圾超載：'+garbage.toFixed(1)")
+    && html.includes("text:SVC_NM[f][0]+'：'+Math.round(ratio*100)+'% 建築未受覆蓋 → 加蓋'+SVC_NM[f][1]")
+    && html.includes("text:'🚗 道路壅堵：負載達容量 '+Math.round(jamMax*100)+'% → 升級路級或增闢替代道路'")
+    && html.includes("text:'💰 財政吃緊：每日淨收入 '+fin.net.toFixed(1)+' → 調高稅率或減少維護支出'"),
+    'T517 G1f【回歸】既有顧問建議原文必須原樣保留——新欄位（sym）只能追加');
+  // G2 不快樂診斷：門檻與觸發
+  {
+    assert(A517.thr > .3 && A517.thr < .6, 'T517 G2 不快樂門檻應落在 (.3,.6)，實得 ' + A517.thr);
+    window.GV.newWorldSeeded(777); window.GV.setDiff(1); window.GV.ai(true);
+    for (let d = 0; d < 180; d++) window.GV.step(1);
+    window.GV.ai(false);
+    const st517 = window.GV.stats();
+    const tips517 = window.GV.polAdv517().tips;
+    const un517 = tips517.find(t => t.sym === 'unhappy');
+    assert(st517.happy >= A517.thr || !!un517,
+      'T517 G2b 幸福低於門檻時顧問必須出「市民不快樂」診斷（幸福 ' + st517.happy.toFixed(3)
+      + '，實得 tips ' + JSON.stringify(tips517.map(t => t.sym)) + '）——玩測發現顧問原本一聲不吭');
+  }
+  // G3 計數釘（零模擬語意：表只被顧問與 GV 鉤讀）
+  {
+    const n517 = (htmlBare438.match(/POLADV517/g) || []).length;
+    assert(n517 === 6,
+      'T517 G3【計數釘】POLADV517 應恰出現 6 處（定義 1／顧問渲染 1／鈕綁定 1／GV 唯讀鉤 3），實得 ' + n517
+      + '——多出來的那處可能把顧問表接進了模擬；合法增刪=同卡更新本釘');
+    /* 意圖是「表沒被接進模擬」；行為面由六哨兵位元恆等背書（顧問只在面板開啟時跑、不進 tick）。 */
+  }
+}
+
 /* ===== T516 研究血統（Research Lineage）：守衛 ===== */
 {
   /* 四型嚴格分離＋雙線記帳。守衛走 GV 唯讀鉤做**真資料驗證**（枚舉/雙向覆蓋），
@@ -10463,7 +10590,10 @@ runPwaTests().then(() => {
   // G1c 導出點讀表＋不碰蓋印＋全圖重掃兩處＋k3 合規成本
   assert(html.includes("const b459=pol&&pol.cleanAir459?Math.round(POLBASE[i]*(1-SCI_BY_ID451.cleanAir459.fx.polCut)):POLBASE[i];"),
     'T459 G1c【原文前哨】排放削減必須接在 recomputePol 導出點、讀 SCI_BY_ID451、關閉時取原值');
-  assert(html.includes("polToggle('#polClean459','cleanAir459','空氣品質管制',()=>recomputePolAll459());")
+  /* T518 跟版（且這是本卡最貴的一條記錄）：舊 needle `polToggle('#polClean459',…)` 本身就是 bug 的指紋——
+     T514 卡片化後該 DOM id 已不存在，這條守衛從那天起一直在為一個綁到空元素的字串蓋綠章。
+     現在選擇器改由 polDomId514 導出，needle 跟版；交叉一致性由 T518 G1b 機械保證。 */
+  assert(html.includes("polToggle('#'+polDomId514('cleanAir459'),'cleanAir459','空氣品質管制',()=>recomputePolAll459());")
     && html.includes("if(pol&&pol.cleanAir459)recomputePolAll459();"),
     'T459 G1d【原文前哨】全圖重掃必須掛在 toggle after 回調與讀檔 pol 恢復之後兩處——'
     + '少一處就有 staleness（開著存檔的圖 POL 停在未管制值）');
@@ -13058,8 +13188,14 @@ runPwaTests().then(() => {
   }
   // 舊 id 契約：套餐鈕 id 字串仍在 btnMap（執行期寫入 DOM；源碼無靜態 id="pack…"）
   assert(html.includes("transitCity:'packTransit481'") && html.includes("indCity:'packInd511'"), 'T514 G5 套餐 id 契約（btnMap）');
-  assert(html.includes("polDomId514") && html.includes("polCong451"), 'T514 G5b 壅堵費 id 映射在場');
-  assert(html.includes("polToggle('#polCong451'") && html.includes("polToggle('#polzoneStr484'"), 'T514 G5c polToggle 綁定契約');
+  /* T518 更正（本卡最貴的一條）：G5b/G5c 原本釘的是 `polCong451` 與 `polToggle('#polCong451'` 兩個字面——
+     那正是 T514 卡片化之後**已經不存在的 DOM id**。也就是說這兩條守衛不但沒抓到死開關，
+     還把缺陷寫成了契約、要求它必須留著。改釘真正的不變量：id 由 polDomId514 導出（真相源單一），
+     交叉一致性由 T518 G1b 機械複算（每個 polToggle 選擇器＝卡片實際產生的 id）。 */
+  assert(html.includes("function polDomId514(pk)") && html.includes("const SCI_DOM_ID514="),
+    'T514 G5b DOM id 真相源（polDomId514＋別名表）在場');
+  assert(html.includes("polToggle('#'+polDomId514('congChg451')") && html.includes("polToggle('#polzoneStr484'"),
+    'T514 G5c polToggle 綁定契約（T518：舊卡選擇器改由 polDomId514 導出）');
   // 舊牆式「🏛️ 政策　<label>…」長行不得再出現（已改指揮台）
   assert(!/🏛️ 政策　<label><input type="checkbox" id="polFreeT"/.test(html), 'T514 G6 舊政策牆已拆除');
   assert(!/📦 科學套餐　<button class="hbtn" id="packTransit481">/.test(html), 'T514 G6b 舊套餐單行已拆除');
