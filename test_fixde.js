@@ -4781,13 +4781,13 @@ runPwaTests().then(() => {
       for (let d2 = 0; d2 < 7; d2++) window.GV.step(1); // 燒毀（fire>=5）
       assert(!tile(ix, iy).bld, 'T337 工業應已燒毀');
       const dm = Math.round(window.GV.stats().money - m0);
-      if (insur) assert(dm === 35, 'T337 投保燒毀一戶應精確理賠 +35，實得 ' + dm);
+      if (insur) assert(dm === 140, 'T337 投保燒毀一戶應精確理賠 +140（T537 重定價 $35→$140，業主 2026-08-20 全權授權），實得 ' + dm);
       else assert(dm === 0, 'T337 未投保應精確恆等 0，實得 ' + dm);
     }
     // 保費入法規日費：開保險後 upReg 含 18
     window.GV.pol({ taxR: 1, taxC: 1, taxI: 1, insurance: true, schoolLunch: true });
     window.GV.step(1);
-    assert(/法規\s*-30(\.0)?(\s|$)/.test(window.GV.chipText('money').replace(/\n/g, ' ')), 'T337 保險18+營養午餐12=法規-30');
+    assert(/法規\s*-16(\.0)?(\s|$)/.test(window.GV.chipText('money').replace(/\n/g, ' ')), 'T337 保險4+營養午餐12=法規-16（T537 二輪定價 $18→$4）');
     // T338：事件表 ≥58 條且含新事件
     const evN = (html.match(/\{id:'[a-z]+',name:'[^']+',days:\d/g) || []).length;
     assert(evN >= 58, 'T338 CITY_EVENTS 應 ≥58 條，實得 ' + evN);
@@ -11969,6 +11969,27 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T537 保險重定價（業主 2026-08-20 全權授權裁決：理賠 $35→$140、保費不動）=====
+   依 T535 實測：災害最重的城 64 戶/500 天 ⇒ 64×$140≈保費 $9,000＝期望值≈0。
+   守衛重點＝**單一真相源**（同族病預防）：保費/理賠數字只准出現在常數宣告，四個使用點全走常數。 */
+{
+  assert(htmlBare438.indexOf('const INS_PREM537=4, INS_CLAIM537=140;') >= 0,
+    'T537 G1 費率常數必須是這一行（改任何一個數字都要重跑 T535 的 500 天×三種子 A/B 並跟版卡面）');
+  assert(htmlBare438.indexOf('pol.insurance?INS_PREM537:0') >= 0
+      && htmlBare438.indexOf('insPrem535+=INS_PREM537') >= 0,
+    'T537 G1a 保費的兩個使用點（upReg 收費、對帳單累加）都必須走 INS_PREM537——'
+    + '兩處不同值＝對帳單說謊');
+  assert(htmlBare438.indexOf('money+=INS_CLAIM537;insPaid535+=INS_CLAIM537;') >= 0,
+    'T537 G1b 理賠的實際入帳與對帳單必須在同一行走同一常數（帳實同源）');
+  assert(htmlBare438.indexOf('insurance?18:0') < 0 && htmlBare438.indexOf('+=18;') < 0,
+    'T537 G1c 保險路徑不得殘留裸寫的 18（單一真相源）');
+  assert((htmlBare438.match(/INS_CLAIM537/g) || []).length >= 4
+      && (htmlBare438.match(/INS_PREM537/g) || []).length >= 4,
+    'T537 G1d 常數使用點計數（宣告+使用+fx 組字）：CLAIM 實得 '
+    + (htmlBare438.match(/INS_CLAIM537/g) || []).length + '、PREM 實得 '
+    + (htmlBare438.match(/INS_PREM537/g) || []).length);
+}
+
 /* ===== T535 保單要給對帳單 =====
 
    實測（困難 500 天×三種子）：保費 $9,000 vs 理賠 $420-$2,240＝保單淨值 −$6,760~−$8,580，
@@ -11985,8 +12006,8 @@ runPwaTests().then(() => {
     'T535 G1 未投保時對帳單必須恆 0/0（實得 ' + JSON.stringify(GI5.ins535()) + '）');
   GI5.pol({ insurance: true });
   for (let d = 0; d < 10; d++) GI5.step(1);
-  assert(GI5.ins535().prem === 180,
-    'T535 G1a 投保 10 天保費必須恰為 $180（18×10；實得 ' + GI5.ins535().prem
+  assert(GI5.ins535().prem === 40,
+    'T535 G1a 投保 10 天保費必須恰為 $40（4×10，T537 二輪定價；實得 ' + GI5.ins535().prem
     + '）——多了＝一天收兩次、少了＝有天沒收，都是對帳單說謊');
 
   /* G1b 理賠：點燃一棟住宅燒到全毀 ⇒ paid 增加且與 money 增量一致（+35 理賠 −35 外的其他金流用差值法隔離不了，
@@ -12004,26 +12025,32 @@ runPwaTests().then(() => {
     for (let d = 0; d < 12; d++) GI5.step(1); // 火勢每日 +1，fire>=5 全毀（消防可能撲滅＝允許多燒幾天再判）
     const paid1 = GI5.ins535().paid;
     if (paid1 > paid0) {
-      assert((paid1 - paid0) % 35 === 0,
-        'T535 G1b 理賠增量必須是 $35 的整數倍（實得 +' + (paid1 - paid0) + '）');
+      assert((paid1 - paid0) % 140 === 0,
+        'T535 G1b 理賠增量必須是 $140 的整數倍（T537 重定價 $35→$140；實得 +' + (paid1 - paid0) + '）');
     } else {
-      /* 火被消防撲滅＝沒有燒毀＝沒有理賠，屬合法結局；改用直接造毀路徑驗證：
-         把 fire 拉到 4 再步進一天，下一 tick 必達 5 全毀 */
-      const t5 = GI5.tile(res5[0], res5[1]);
-      if (t5 && t5.bld && !t5.bld.fire) GI5.ignite(res5[0], res5[1]);
+      /* 火被消防撲滅＝沒有燒毀＝沒有理賠，屬合法結局（T537 二輪定價改了資金軌跡後
+         單棟點燃被救活的機率變高）。改成每輪點燃多棟住宅（超出消防車隊容量）×多輪，
+         必有燒毀；仍驗「理賠有累加」這一條，不依賴特定那棟。 */
       let burned = false;
-      for (let k = 0; k < 3 && !burned; k++) {
+      for (let k = 0; k < 4 && !burned; k++) {
+        let lit = 0;
+        for (let x = 1; x < NN5 - 1 && lit < 6; x++) for (let y = 1; y < NN5 - 1 && lit < 6; y++) {
+          const t = GI5.tile(x, y);
+          if (t && t.bld && !t.bld.ref && t.bld.k === 1 && !t.bld.fire) { if (GI5.ignite(x, y)) lit++; }
+        }
         for (let d = 0; d < 12; d++) GI5.step(1);
         if (GI5.ins535().paid > paid0) burned = true;
       }
       assert(burned,
-        'T535 G1b 反覆點燃 3 輪後仍無任何理賠入帳——投保狀態下的燒毀路徑沒有累加對帳單');
+        'T535 G1b 每輪 6 棟×4 輪點燃後仍無任何理賠入帳——投保狀態下的燒毀路徑沒有累加對帳單');
+      assert((GI5.ins535().paid - paid0) % 140 === 0,
+        'T535 G1b-2 理賠增量必須是 $140 的整數倍（實得 +' + (GI5.ins535().paid - paid0) + '）');
     }
   }
 
   /* G2 對帳單文字：有帳含明細、（下一局）零帳逐字等於原靜態文字 */
-  assert(/保費換理賠｜本局已付 \$\d+・已獲理賠 \$\d+/.test(GI5.ins535().fx),
-    'T535 G2 有帳時 fx 必須是對帳單格式（實得「' + GI5.ins535().fx + '」）');
+  assert(/保費 \$4\/日・理賠 \$140\/戶｜本局已付 \$\d+・已獲理賠 \$\d+/.test(GI5.ins535().fx),
+    'T535 G2 有帳時 fx 必須是「費率＋對帳單」格式（T537 起卡片揭露費率；實得「' + GI5.ins535().fx + '」）');
 
   /* G3 存讀往返 + G4 零狀態不落欄位 */
   window.GV.save();
@@ -12047,8 +12074,9 @@ runPwaTests().then(() => {
   GI5.newWorldSeeded(536);
   assert(GI5.ins535().prem === 0 && GI5.ins535().paid === 0,
     'T535 G5 newWorld 必須歸零對帳單（鐵律7；實得 ' + JSON.stringify(GI5.ins535()) + '）');
-  assert(GI5.ins535().fx === '保費換理賠',
-    'T535 G2a 零帳時 fx 必須逐字等於原靜態文字（實得「' + GI5.ins535().fx + '」）');
+  assert(GI5.ins535().fx === '保費 $4/日・理賠 $140/戶',
+    'T535 G2a 零帳時 fx 必須逐字等於費率揭露文字（T537 起不再只寫「保費換理賠」四個字；實得「'
+    + GI5.ins535().fx + '」）');
   {
     window.GV.save();
     const d536 = JSON.parse(store[SKEY]);
