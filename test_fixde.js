@@ -8567,7 +8567,27 @@ runPwaTests().then(() => {
     for(const em of html.matchAll(/\{id:'happy(\d+)',[^}]*nm:'幸福 (\d+)%[^']*'[^}]*target:\.(\d+),/g)){
       assert(em[2]===em[3],'T394b G3 happy'+em[1]+' 值-文案須同步:nm '+em[2]+'% vs target .'+em[3]);
     }
-    assert(/\{id:'happy80',[^}]*target:\.78,/.test(html),'T394b G3 happy80 目標須為 .78(觀測天花板 .75 下沿)');
+    assert(/\{id:'happy80',[^}]*target:\.72,/.test(html),
+      'T394b G3 happy80 目標須為 .72（T539 業主全權授權：第四份量測＝調優城市代理可持續上界 ≈.72-.74，'
+      + '決策規則量測前寫死＝上界 −0.02；改目標必須重量測並跟版）');
+    /* T539 G1：sc_harmony 場景目標與 intro 同步（精確 intro 窗口＝T538 教訓） */
+    {
+      assert(/goal:\{type:'happy',target:\.72,hold:20,/.test(html),
+        'T539 G1 sc_harmony 目標須為 .72（與 happy80 委託同一份量測與規則）');
+      const hAt=html.indexOf("id:'sc_harmony'");
+      const hIntroKey=html.indexOf("intro:'",hAt);
+      const hIntro=html.slice(hIntroKey+7,html.indexOf("',",hIntroKey));
+      assert(hIntro.indexOf('72')>=0&&hIntro.indexOf('78')<0,
+        'T539 G1a sc_harmony intro 必須寫 72、不得殘留 78（實得「'+hIntro+'」）');
+    }
+    /* T539 G2 階梯序：happy80 必須嚴格難於 happy70 */
+    {
+      const h70=html.match(/\{id:'happy70',[^}]*target:\.(\d+), holdN:(\d+),/);
+      const h80=html.match(/\{id:'happy80',[^}]*target:\.(\d+), holdN:(\d+),/);
+      assert(h70&&h80&&(+h80[1]>+h70[1]||+h80[2]>+h70[2])&&+h80[1]>=+h70[1]&&+h80[2]>=+h70[2],
+        'T539 G2 happy80（.'+(h80&&h80[1])+'×'+(h80&&h80[2])+'）必須嚴格難於 happy70（.'
+        +(h70&&h70[1])+'×'+(h70&&h70[2])+'）——階梯倒置＝獎勵結構壞掉');
+    }
     // (4) transit400 目標 1200 + 值-文案同步
     const tm394=html.match(/\{id:'transit400',[^}]*nm:'公共運量 (\d+)[^']*'[^}]*target:(\d+),/);
     assert(tm394&&tm394[1]===tm394[2]&&tm394[2]==='1200',
