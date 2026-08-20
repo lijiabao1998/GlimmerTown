@@ -11989,6 +11989,43 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T541 挑戰三星反退化（T538 判例同型收尾）=====
+   star3 挑戰＝三挑戰裡獎金最高（$2,500），判定卻是 bestStar>=3——迷你城第 19 天即白拿。 */
+{
+  const GC5 = window.GV;
+  /* G1 源釘：當前星＋具名常數；star3 分支不得殘留 bestStar */
+  assert(htmlBare438.indexOf('const CH_STAR3_POP541=500;') >= 0,
+    'T541 G1 人口門檻必須是具名常數 500（改值要跟版卡面與文案）');
+  /* 窗口切到行內註解之前——第一版 200 字窗把我自己的 T541 註解（內含「bestStar」四字）也掃進去
+     ＝守衛咬自己的說明文字（T538「窗口裡只有你要驗的東西」教訓的即時複習）。 */
+  const s3At541 = html.indexOf("challenge.id==='star3'");
+  const s3End541 = html.indexOf('//', s3At541);
+  const star3Seg541 = html.slice(s3At541, s3End541 > s3At541 ? s3End541 : s3At541 + 160);
+  assert(star3Seg541.indexOf('cityStar>=3&&pop>=CH_STAR3_POP541') >= 0,
+    'T541 G1a star3 判定必須是「當前 cityStar>=3 且 pop>=常數」形態');
+  assert(star3Seg541.indexOf('bestStar') < 0,
+    'T541 G1b star3 分支（程式碼部分）不得殘留 bestStar（迷你城先刷星再衝人口的退化外衣）');
+  /* G3 文案交叉一致：按鈕 label 由常數組出 */
+  assert(htmlBare438.indexOf("+CH_STAR3_POP541+") >= 0,
+    'T541 G3 按鈕文案必須由常數組出（不手抄＝T442 紀律）');
+
+  /* G2 行為：迷你城 star 3 但 pop<500 ⇒ 不得發獎；造境達標 ⇒ 恰 +$2,500 */
+  GC5.newWorldSeeded(541);
+  GC5.weather(0);
+  GC5.ai(true); for (let d = 0; d < 45; d++) GC5.step(1); GC5.ai(false);
+  const st541 = GC5.star538(), pop541 = GC5.stats().pop;
+  assert(st541.cur >= 3 && pop541 < 500,
+    'T541 G2 前置：45 天迷你城應已達 3 星且 pop<500（實得 star ' + st541.cur + '、pop ' + pop541
+    + '）——這正是修前白拿 $2,500 的狀態');
+  GC5.challenge541('star3', 2500);
+  const m541 = GC5.stats().money;
+  for (let d = 0; d < 10; d++) GC5.step(1);
+  assert(GC5.stats().money < m541 + 2500 - 200,
+    'T541 G2【反退化】迷你城掛上 star3 挑戰跑 10 天不得發獎 $2,500（資金 ' + m541 + ' → '
+    + GC5.stats().money + '）——修前這裡直接 +$2,500');
+  GC5.challenge541(null); // 清掉，避免污染後續守衛
+}
+
 /* ===== T538 星耀之城反退化（業主全權裁決②）=====
    筆記七實測：迷你城（pop 183）第 25 天 4 星速通——評分全比例項，小城全覆蓋即 84 分。
    裁決＝改關卡不動全域公式：目標「**當前** cityStar>=4 且 pop>=1000 同時成立」。 */
