@@ -12007,6 +12007,84 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T548 太空任務靜默跳過要說話 =====
+
+   首次量測（seed301 d400 staging × 240 天 × 兩臂）：**連玩家補 3 鮮井＋3 鮮礦（15/日產量）
+   都 10 週期全滅**——工業建築每日優先消耗供應品（0.6/座、先扣再輪到太空中心），
+   成熟城供應品恆 0、180 永遠攢不到；而跳過完全靜默＝$4,500 紀念碑之謎（T530 靜靜停產同族）。
+   修＝週期日不足警示 toast（固定前綴）＋ k51 面板工業競爭說明行（INDUSTRY_SUPPLY_UNIT 同源）。
+   警示分支純 day/supplies 導出、零亂數、不改模擬狀態 ⇒ 哨兵位元恆等。
+   消耗順序/門檻＝業主決策項⑥。
+
+   守衛分工：G1a 跳過要說話（行為釘）／G1b 成功日不誤報（反向行為釘）／
+   G2 面板同源釘／G3 分支互補釘＋零亂數。 */
+{
+  const GC = window.GV;
+  const place548 = (tool) => {
+    const NN = GC.N();
+    for (let x = 2; x < NN - 5; x++) for (let y = 2; y < NN - 5; y++) {
+      let ok = true;
+      for (let dx = 0; dx < 3 && ok; dx++) for (let dy = 0; dy < 3 && ok; dy++) {
+        const t = GC.tile(x + dx, y + dy);
+        if (!t || t.t !== 2 || t.bld || t.road || t.tree || t.el) ok = false;
+      }
+      if (ok && GC.place(tool, x, y) === true) return true;
+    }
+    return false;
+  };
+  const hasKind548 = (mark) => {
+    const c = GC.notif526();
+    return (c.top || []).some(e => String(e[0]).indexOf(mark) >= 0)
+        || (c.silent || []).some(k => String(k).indexOf(mark) >= 0);
+  };
+  /* G1a 跳過要說話：太空中心＋供應品 0＋步進到週期日 → 🛰️ 警示、無 $3500 入帳 */
+  GC.newWorldSeeded(548);
+  GC.addMoney(99999);
+  assert(place548('megaproject'), 'T548 前置：蓋不了太空研究中心');
+  GC.setDay(23);
+  const m548a = GC.stats().money;
+  GC.step(1);
+  const dm548 = GC.stats().money - m548a;
+  assert(hasKind548('🛰️'),
+    'T548 G1a 週期日供應品不足必須發警示（🛰️ 前綴通知種類不存在）——'
+    + '實測連補 3 鮮井 3 鮮礦都 10 週期全滅而玩家零回饋，$4,500 紀念碑不能繼續沉默');
+  assert(dm548 < 3000, 'T548 G1a-2 跳過日不得發回饋金（Δmoney ' + dm548 + '）');
+  /* G1b 成功日不誤報：太空中心＋3 油井（零工業）攢滿 180 → +3500、無 🛰️ */
+  {
+    GC.newWorldSeeded(549);
+    GC.addMoney(99999);
+    assert(place548('megaproject'), 'T548 G1b 前置：蓋不了太空研究中心');
+    let w548 = 0;
+    const NN = GC.N();
+    outer548: for (let x = 1; x < NN - 1; x++) for (let y = 1; y < NN - 1; y++) {
+      const t = GC.tile(x, y);
+      if (t && !t.bld && !t.road && !t.tree && !t.el && GC.resourceAt(x, y) === 1 && GC.rdepAt(x, y) === 0) {
+        if (GC.place('oilwell', x, y) === true) { w548++; if (w548 >= 3) break outer548; }
+      }
+    }
+    assert(w548 === 3, 'T548 G1b 前置：油井應蓋 3 座（實得 ' + w548 + '）');
+    let jumped548 = false;
+    for (let d = 0; d < 30; d++) {
+      const mb = GC.stats().money; GC.step(1);
+      if (GC.stats().money - mb > 3000) jumped548 = true;
+    }
+    assert(jumped548, 'T548 G1b 攢滿 180（3 井×3/日×24 天、零工業）後週期日必須發 $3500 回饋——警示分支不得吃掉回饋路徑');
+    assert(!hasKind548('🛰️'), 'T548 G1b-2 成功攢滿的城不得誤報供應品不足（🛰️ 種類不應存在）');
+  }
+  /* G2 面板同源：k51 檢視必須引用 INDUSTRY_SUPPLY_UNIT 常數（貼字面值＝第二份真相會過期） */
+  assert(html.indexOf('${INDUSTRY_SUPPLY_UNIT}/座') >= 0,
+    'T548 G2 k51 面板的工業競爭行必須由 INDUSTRY_SUPPLY_UNIT 同源組出');
+  /* G3 分支互補釘＋零亂數 */
+  {
+    const anchor548 = '}else if(mgN>0&&day%MEGAPROJECT_CYCLE_DAYS===0){';
+    assert(htmlBare438.indexOf(anchor548) >= 0,
+      'T548 G3 警示分支必須是回饋分支的 else（同 mgN/週期條件的精確補集）');
+    const at8 = html.indexOf(anchor548);
+    const body8 = html.slice(at8, html.indexOf('  }', at8 + 10) + 3);
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|Math\.random/.test(body8), 'T548 G3a 警示分支零亂數（鐵律2：它在 tick 裡）');
+  }
+}
+
 /* ===== T547 難度要說明白、「破產」是謊言 =====
 
    難度曲線量測（4 種子 × diff 0/1/2 × 500 天）：旋鈕在轉（災害計數 ×3 符合設計）
