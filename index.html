@@ -674,7 +674,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.169'; // T543 委託閘門要看礦還活著：廠會活得比礦久（油井 80 天/礦場 120 天挖乾），礦死後鋼/燃料四單回到「結構不可能卻照發」；發單側判定升級為可完成上界＝剩餘儲量＋現有庫存 ≥ 目標（resvLeft543，純讀零亂數不在 tick 路徑，六哨兵位元恆等）
+const GAME_VER='11.170'; // T544 編輯器匯出的是上一局的城市：buildEditorShareData 讀槽前先 save()＝匯出即所見（25 秒自動存檔窗口內匯出會打包舊城）；順帶編輯器幸福示例 .78→.72 對齊 T539；匯出鏈不在 tick 路徑＝六哨兵位元恆等
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -20354,7 +20354,7 @@ function pickEditGoalType(type){
   else if(type==='cash'){const v=parseInt(prompt('目標資金',editorGoal.target||15000),10);if(!isNaN(v)&&v>0)editorGoal.target=v;}
   else if(type==='star'){const v=parseInt(prompt('目標星等（1-5）',editorGoal.target||4),10);if(!isNaN(v))editorGoal.target=clamp(v,1,5);}
   else if(type==='happy'){
-    const v=parseFloat(prompt('目標幸福度（0-1，例如 0.78）',editorGoal.target||.78));if(!isNaN(v))editorGoal.target=clamp(v,0,1);
+    const v=parseFloat(prompt('目標幸福度（0-1，例如 0.72）',editorGoal.target||.72));if(!isNaN(v))editorGoal.target=clamp(v,0,1); /* T544：示例與 fallback 對齊 T539 實測可持續天花板（happy80/sc_harmony=.72），別引導創作者做出接近不可能的場景 */
     const h=parseInt(prompt('連續維持天數',editorGoal.hold||20),10);if(!isNaN(h)&&h>0)editorGoal.hold=h;
   }else if(type==='coverage'){
     const f=(prompt('設施類型（police/fire/hospital/school/park）',editorGoal.field||'police')||'').trim();
@@ -20392,7 +20392,11 @@ function showEditor(){
   body.appendChild(io);
   showInfoPanel();
 }
-function buildEditorShareData(){ // 組出待編碼的存檔＋目標物件（純記憶體操作，不落地 localStorage），供匯出按鈕與 GV 測試鉤子共用
+function buildEditorShareData(){ // 組出待編碼的存檔＋目標物件，供匯出按鈕與 GV 測試鉤子共用
+  /* T544 匯出即所見：本函式讀 localStorage 槽，而全遊戲唯一自動存檔是 25 秒定時器——
+     不先落地就匯出＝打包「上一局的城市」（實測 113 座建築 vs 畫面上 3 座公園）或最後 <25 秒編輯無聲丟失。
+     save() 不在 tick 路徑（手動存檔鈕/自動存檔同一函式）⇒ 哨兵零影響。tiles 守門與自動存檔同款。 */
+  if(tiles)save();
   const raw=localStorage.getItem(slotKey(curSlot()));
   if(!raw)return null;
   let d;try{d=saveInflate(JSON.parse(raw));}catch(e){return null;} // T312
