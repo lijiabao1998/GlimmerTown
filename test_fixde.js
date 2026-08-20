@@ -8567,7 +8567,27 @@ runPwaTests().then(() => {
     for(const em of html.matchAll(/\{id:'happy(\d+)',[^}]*nm:'幸福 (\d+)%[^']*'[^}]*target:\.(\d+),/g)){
       assert(em[2]===em[3],'T394b G3 happy'+em[1]+' 值-文案須同步:nm '+em[2]+'% vs target .'+em[3]);
     }
-    assert(/\{id:'happy80',[^}]*target:\.78,/.test(html),'T394b G3 happy80 目標須為 .78(觀測天花板 .75 下沿)');
+    assert(/\{id:'happy80',[^}]*target:\.72,/.test(html),
+      'T394b G3 happy80 目標須為 .72（T539 業主全權授權：第四份量測＝調優城市代理可持續上界 ≈.72-.74，'
+      + '決策規則量測前寫死＝上界 −0.02；改目標必須重量測並跟版）');
+    /* T539 G1：sc_harmony 場景目標與 intro 同步（精確 intro 窗口＝T538 教訓） */
+    {
+      assert(/goal:\{type:'happy',target:\.72,hold:20,/.test(html),
+        'T539 G1 sc_harmony 目標須為 .72（與 happy80 委託同一份量測與規則）');
+      const hAt=html.indexOf("id:'sc_harmony'");
+      const hIntroKey=html.indexOf("intro:'",hAt);
+      const hIntro=html.slice(hIntroKey+7,html.indexOf("',",hIntroKey));
+      assert(hIntro.indexOf('72')>=0&&hIntro.indexOf('78')<0,
+        'T539 G1a sc_harmony intro 必須寫 72、不得殘留 78（實得「'+hIntro+'」）');
+    }
+    /* T539 G2 階梯序：happy80 必須嚴格難於 happy70 */
+    {
+      const h70=html.match(/\{id:'happy70',[^}]*target:\.(\d+), holdN:(\d+),/);
+      const h80=html.match(/\{id:'happy80',[^}]*target:\.(\d+), holdN:(\d+),/);
+      assert(h70&&h80&&(+h80[1]>+h70[1]||+h80[2]>+h70[2])&&+h80[1]>=+h70[1]&&+h80[2]>=+h70[2],
+        'T539 G2 happy80（.'+(h80&&h80[1])+'×'+(h80&&h80[2])+'）必須嚴格難於 happy70（.'
+        +(h70&&h70[1])+'×'+(h70&&h70[2])+'）——階梯倒置＝獎勵結構壞掉');
+    }
     // (4) transit400 目標 1200 + 值-文案同步
     const tm394=html.match(/\{id:'transit400',[^}]*nm:'公共運量 (\d+)[^']*'[^}]*target:(\d+),/);
     assert(tm394&&tm394[1]===tm394[2]&&tm394[2]==='1200',
@@ -11967,6 +11987,47 @@ runPwaTests().then(() => {
     'T536 G3 放款 toast 金額必須依實際額度組出（原本銀行城 $5000 也寫死「$2000！」）');
   assert(html.indexOf("toast('🏦 貸款到帳 $2000！','gold')") < 0,
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
+}
+
+/* ===== T538 星耀之城反退化（業主全權裁決②）=====
+   筆記七實測：迷你城（pop 183）第 25 天 4 星速通——評分全比例項，小城全覆蓋即 84 分。
+   裁決＝改關卡不動全域公式：目標「**當前** cityStar>=4 且 pop>=1000 同時成立」。 */
+{
+  const GT = window.GV;
+  /* G3 語義隔離（先驗，避免造境污染）：無 g.pop 的 star 判定必須維持 bestStar 舊語義 */
+  assert(htmlBare438.indexOf('g.pop?(cityStar>=g.target&&pop>=g.pop):bestStar>=g.target') >= 0,
+    'T538 G3【源釘】star 判定必須是「有 g.pop 走當前 cityStar＋pop、無 g.pop 走 bestStar」的形態——'
+    + '改用 bestStar 配 g.pop＝迷你城先刷星再衝人口＝退化策略換外衣');
+
+  /* G2 交叉一致：intro 文案必須含 goal.pop 的數字（T442 教訓：文案數字與門檻同源） */
+  const sc538 = GT.scenarios().find(x => x.id === 'sc_starlight');
+  assert(sc538 && sc538.goal.pop === 1000,
+    'T538 G2 前置：sc_starlight 的 goal.pop 應為 1000（實得 ' + JSON.stringify(sc538 && sc538.goal) + '）');
+  {
+    /* 第一版取 id 起 400 字窗口＝把 goal:{pop:1000} 也含進去 ⇒ 對 intro 漂移是**空跑**
+       （紅源③把 intro 改成「千人」照樣全綠）。改成精確取 intro 字串本身。 */
+    const scAt = html.indexOf("id:'sc_starlight'");
+    const introKey = html.indexOf("intro:'", scAt);
+    const introEnd = html.indexOf("',", introKey);
+    const introStr = html.slice(introKey + 7, introEnd);
+    assert(introStr.indexOf(String(sc538.goal.pop)) >= 0,
+      'T538 G2 開場文案本身必須含門檻數字 ' + sc538.goal.pop
+      + '（實得文案「' + introStr.slice(0, 40) + '…」；文案與 goal 交叉一致，防 T442 型過期）');
+  }
+
+  /* G1 行為（反退化）：AI 開著跑 40 天——修前第 25-26 天就贏；修後必須仍在進行中 */
+  assert(GT.startScenario('sc_starlight') === true, 'T538 G1 前置：開關卡應成功');
+  GT.ai(true);
+  let ended538 = 0;
+  for (let d = 1; d <= 40; d++) { GT.step(1); if (!GT.scenario()) { ended538 = d; break; } }
+  GT.ai(false);
+  assert(ended538 === 0,
+    'T538 G1【反退化】修後 40 天內不得結案（修前迷你城 pop 183 於第 25 天 4 星速通；實得第 '
+    + ended538 + ' 天結案）——若紅在這裡表示 g.pop 門檻沒有生效');
+  const st538 = GT.star538();
+  assert(typeof st538.cur === 'number' && typeof st538.best === 'number',
+    'T538 G1a 星等觀測鉤必須回傳 cur/best（實得 ' + JSON.stringify(st538) + '）');
+  GT.newWorldSeeded(1); // 清掉進行中的場景，避免污染後續守衛
 }
 
 /* ===== T537 保險重定價（業主 2026-08-20 全權授權裁決：理賠 $35→$140、保費不動）=====
