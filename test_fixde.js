@@ -12007,6 +12007,48 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T547 難度要說明白、「破產」是謊言 =====
+
+   難度曲線量測（4 種子 × diff 0/1/2 × 500 天）：旋鈕在轉（災害計數 ×3 符合設計）
+   但結果層無階梯（2 順 2 逆＝混沌淹沒），數據入卡面＝業主決策項⑤。
+   本卡兩刀（皆 UI/文案）：①難度說明行（DIFF_MONEY/DIFF_HAZ 同源組出）；
+   ②指南「淨收支為負會破產」＝謊言修正（一般模式無破產機制，實測 −$1,997 城照常跑）。
+
+   守衛分工：G1 說明文案＝源碼抽常數組出的期望字串（零第二份真相）／
+   G2 謊言絕跡＋新負債語義在場／G3 同源釘（builder 必須引用常數）＋接線釘＋零亂數。 */
+{
+  const GC = window.GV;
+  /* G1：從源碼抽 DIFF_MONEY/DIFF_HAZ，組期望文案，比對 GV.diffDesc547 */
+  const mM = html.match(/const DIFF_MONEY=\[(\d+),(\d+),(\d+),(\d+)\]/);
+  const mH = html.match(/const DIFF_HAZ=\[([\d.]+),([\d.]+),([\d.]+),([\d.]+)\]/);
+  assert(mM && mH, 'T547 G1 前置：抽不到 DIFF_MONEY/DIFF_HAZ 常數（改宣告要同步本釘）');
+  for (const i of [0, 1, 2]) {
+    const exp547 = '起始資金 $' + mM[1 + i] + '・災害機率 ×' + (+mH[1 + i]);
+    assert(GC.diffDesc547(i) === exp547,
+      'T547 G1 難度 ' + i + ' 說明應為「' + exp547 + '」（實得「' + GC.diffDesc547(i) + '」）——文案必須由常數組出，改常數自動跟');
+  }
+  assert(GC.diffDesc547(3).indexOf('免費建造') >= 0 && GC.diffDesc547(3).indexOf('無委託') >= 0,
+    'T547 G1a 沙盒說明必須講明免費建造與無委託（沙盒關掉整個委託/方向系統，玩家不知道會以為壞了）');
+  /* G2 謊言絕跡 */
+  assert(html.indexOf('淨收支為負會破產') < 0,
+    'T547 G2 「淨收支為負會破產」必須絕跡——一般模式沒有破產機制，指南不得宣稱不存在的行為（T447 同族）');
+  assert(html.indexOf('淨收支為負會陷入負債') >= 0,
+    'T547 G2a 新負債語義行必須在場（負債＝建造凍結＋AI 停工，不是 game over）');
+  /* G3 同源釘＋接線釘＋零亂數 */
+  {
+    const at7 = html.indexOf('function diffDesc547(i){');
+    assert(at7 >= 0, 'T547 G3 找不到 diffDesc547 錨點');
+    const body7 = html.slice(at7, html.indexOf('}', at7 + 60) + 1);
+    assert(body7.indexOf('DIFF_MONEY[') >= 0 && body7.indexOf('DIFF_HAZ[') >= 0,
+      'T547 G3 說明 builder 必須引用 DIFF_MONEY[/DIFF_HAZ[ 常數——貼字面值＝第二份真相會過期');
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|Math\.random/.test(body7), 'T547 G3a builder 零亂數');
+    assert(htmlBare438.indexOf('dd547.textContent=diffDesc547(i);') >= 0,
+      'T547 G3b 難度鈕點擊必須更新說明行（接線釘）');
+    assert(htmlBare438.indexOf('dDesc547.textContent=diffDesc547(diff);') >= 0,
+      'T547 G3c 說明行初始渲染必須用同一 builder（接線釘）');
+  }
+}
+
 /* ===== T546 觀光面板要說出商業加成與封頂 =====
 
    生成側實測：兩條商業稅通道（一般 1+min(.2,t/500)、購物中心 1+min(.25,t/400)）**都在 100 遊客封頂**；
