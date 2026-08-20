@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.171，約 23232 行（實測檔案 23232 行＝T545 事件表轉繁後 Python 數；測試 `test_fixde.js`、實測 PASS 6,075、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.172，約 23240 行（實測檔案 23240 行＝T546 觀光面板加成行後 Python 數；測試 `test_fixde.js`、實測 PASS 6,091、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -133,17 +133,17 @@
 | 地圖／場景編輯器 | 20365 | `function showEditor(){` |
 | 歷史曲線／城市顧問／因果追溯 | 20479 | `function cityAdvisor(allT522){` |
 | `showStats()` 統計面板 | 20975 | `function showStats()` |
-| 通知中心／成就 | 21439 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 21515 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 21717 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 21979 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 22011 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 22158 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
-| `load()` | 22201 | `const vlen=saveShapeOk533;` |
-| 自動存檔 | 22344 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 22357 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 22499 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 22611 | `window.GV={` |
+| 通知中心／成就 | 21446 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 21522 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 21724 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 21986 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 22018 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 22165 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `load()` | 22208 | `const vlen=saveShapeOk533;` |
+| 自動存檔 | 22351 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 22364 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 22506 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 22618 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
