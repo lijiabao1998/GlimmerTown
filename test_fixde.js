@@ -12007,6 +12007,144 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T543 委託閘門要看礦還活著（廠會活得比礦久）=====
+
+   T529×T542 整合閉環實測（seed301、720 天）：d370 三廠到位、d430 油井全死（儲量 240÷3/日）、
+   d480 礦場全死（240÷2/日），此後 feas[steel40]/feas[ct_fuel80] **恆 1 到局末**
+   ＝鋼/燃料四單回到「結構不可能卻照發」——T529 的病用 T530 的機制復發（同族病：數結構不數活產能）。
+   修法：可完成上界＝剩餘儲量＋現有庫存 ≥ 目標（resvLeft543；1:1 上界；引導非保證）。
+
+   守衛分工：
+     G1 儲量階梯（本卡靈魂）：蓋廠不可行→活礦可行→近死邊界（差 1 儲量翻面）→死礦不可行。
+     G2 庫存逃生口：庫存≥目標可行、差 1 不可行、儲量＋庫存**加總**語義。
+     G3 燃料側同型（煉油廠×油井、目標 80 邊界）。
+     G4 acc 型結構前提不變＋acc/steel 規則原文釘（無造船廠可造境，靠原文釘正向）。
+     G5 池不空沿用 T529 靈魂：全死之城 eligAll 非空 ⇒ offers 非空、且四單不入池。
+     G6 零亂數＋計數釘（resvLeft543 恰 4 處）＋兩枚測試鉤 clamp。 */
+{
+  const GC = window.GV;
+  GC.newWorldSeeded(543);
+  GC.addMoney(300000);
+  window.__t385Rank(11);
+  const NN = GC.N();
+  const feas543 = () => GC.cms529().feas;
+  const CAP543 = GC.resourceStock();
+  assert(CAP543 === 240, 'T543 前置：單格儲量上限應為 240（實得 ' + CAP543 + '）——變了要重算本塊全部邊界值');
+
+  /* 3×3 空地放置器（T529 G2b 同款掃描） */
+  const place3 = (tool) => {
+    for (let x = 2; x < NN - 5; x++) for (let y = 2; y < NN - 5; y++) {
+      let ok = true;
+      for (let dx = 0; dx < 3 && ok; dx++) for (let dy = 0; dy < 3 && ok; dy++) {
+        const t = GC.tile(x + dx, y + dy);
+        if (!t || t.t !== 2 || t.bld || t.road || t.tree || t.el) ok = false;
+      }
+      if (ok && GC.place(tool, x, y) === true) return [x, y];
+    }
+    return null;
+  };
+  const place1 = (tool, res) => {
+    for (let x = 1; x < NN - 1; x++) for (let y = 1; y < NN - 1; y++) {
+      const t = GC.tile(x, y);
+      if (t && !t.bld && !t.road && !t.tree && !t.el && GC.resourceAt(x, y) === res && GC.rdepAt(x, y) === 0) {
+        if (GC.place(tool, x, y) === true) return [x, y];
+      }
+    }
+    return null;
+  };
+
+  /* G1 儲量階梯（鋼側，ct_steel60 目標 60） */
+  assert(place3('steelMill'), 'T543 前置：蓋不了鋼鐵廠（3×3 空地掃描失敗）');
+  assert(feas543()['ct_steel60'] === false,
+    'T543 G1a 只有鋼鐵廠、無礦無庫存：`ct_steel60` 應不可行（廠是結構、礦才是產能）');
+  const m543 = place1('mine', 2);
+  assert(m543, 'T543 前置：蓋不了礦場（未耗盡礦藏格掃描失敗）');
+  assert(feas543()['ct_steel60'] === true,
+    'T543 G1b 鋼鐵廠＋活礦（儲量 240 ≥ 60）：`ct_steel60` 應可行');
+  GC.setRdepAt(m543[0], m543[1], CAP543 - 59);
+  assert(feas543()['ct_steel60'] === false,
+    'T543 G1c【近死邊界】剩餘儲量 59 < 目標 60：應不可行——這正是 steel40@449 接單陷阱'
+    + '（接單當下礦快死，窗口內注定做不完）的修法');
+  GC.setRdepAt(m543[0], m543[1], CAP543 - 60);
+  assert(feas543()['ct_steel60'] === true,
+    'T543 G1d【近死邊界】剩餘儲量 60 ≥ 目標 60：應可行（邊界在 ≥，不是 >）');
+  GC.setRdepAt(m543[0], m543[1], CAP543);
+  assert(feas543()['ct_steel60'] === false,
+    'T543 G1e 死礦（儲量 0）：應不可行——seed301 實測 d480 之後就是這個狀態');
+
+  /* G2 庫存逃生口：礦死了但庫存夠＝這單仍是誠實的 */
+  GC.setStock364(60, 0);
+  assert(feas543()['ct_steel60'] === true,
+    'T543 G2a 死礦＋鋼庫存 60 ≥ 目標 60：應可行（庫存逃生口）');
+  GC.setStock364(59, 0);
+  assert(feas543()['ct_steel60'] === false,
+    'T543 G2b 死礦＋鋼庫存 59 < 60：應不可行');
+  GC.setRdepAt(m543[0], m543[1], CAP543 - 30);
+  GC.setStock364(30, 0);
+  assert(feas543()['ct_steel60'] === true,
+    'T543 G2c 儲量 30＋庫存 30 = 60：應可行——判定是**加總**不是二選一');
+  GC.setStock364(0, 0);
+
+  /* G4 acc 型結構前提：活礦＋滿儲量也不放行沒有造船廠的 steel40/80 */
+  GC.setRdepAt(m543[0], m543[1], 0);
+  const f4 = feas543();
+  assert(f4['steel40'] === false && f4['steel80'] === false,
+    'T543 G4 無造船廠：`steel40`/`steel80` 即使活礦滿儲量也應不可行（k123 結構前提不變）');
+  assert(htmlBare438.indexOf('listBldK(123).length>0&&resvLeft543(50)+steel>=c.target') >= 0,
+    'T543 G4a acc/steel 規則原文釘：造船廠前提×儲量上界（造境成本高，正向靠原文釘）');
+
+  /* G3 燃料側同型（ct_fuel80 目標 80） */
+  assert(feas543()['ct_fuel80'] === false, 'T543 G3a 無煉油廠：`ct_fuel80` 應不可行');
+  assert(place3('refinery'), 'T543 前置：蓋不了煉油廠（3×3 空地掃描失敗）');
+  assert(feas543()['ct_fuel80'] === false,
+    'T543 G3b 只有煉油廠、無油井：應不可行（T529 只驗了這層，T543 加儲量層）');
+  const o543 = place1('oilwell', 1);
+  assert(o543, 'T543 前置：蓋不了油井（未耗盡油田格掃描失敗）');
+  assert(feas543()['ct_fuel80'] === true,
+    'T543 G3c 煉油廠＋活油井（240 ≥ 80）：應可行');
+  GC.setRdepAt(o543[0], o543[1], CAP543 - 79);
+  assert(feas543()['ct_fuel80'] === false,
+    'T543 G3d 剩餘儲量 79 < 80：應不可行（油井 80 天挖乾＝這個窗口比礦場更常見）');
+  GC.setRdepAt(o543[0], o543[1], CAP543);
+  GC.setStock364(0, 80);
+  assert(feas543()['ct_fuel80'] === true, 'T543 G3e 死井＋燃料庫存 80：庫存逃生口同樣生效');
+  GC.setStock364(0, 0);
+
+  /* G5 池不空（T529 靈魂沿用）：全死之城照樣有單發、且四張鏈單不得入池 */
+  {
+    GC.setRdepAt(m543[0], m543[1], CAP543); /* G4 為驗 acc 型曾把礦復活，這裡歸位成全死（第一版漏了這行、G5a 紅得對） */
+    const c5 = GC.cms529();
+    assert(c5.eligAll.length >= 1, 'T543 G5 前置：rank 11 的合格池不該是空的');
+    assert(c5.offers.length >= 1,
+      'T543 G5 全死之城（死礦死井零庫存）發單池不得為空——收緊閘門不准把系統靜靜關掉');
+    const leak5 = c5.offers.filter(id => ['steel40', 'steel80', 'ct_steel60', 'ct_fuel80'].indexOf(id) >= 0);
+    assert(leak5.length === 0,
+      'T543 G5a 全死之城的發單池不得含鋼/燃料四單（洩漏：' + leak5.join(',') + '）');
+  }
+
+  /* G6 零亂數＋計數釘＋測試鉤 clamp */
+  {
+    const at6 = html.indexOf('function resvLeft543(k){');
+    assert(at6 >= 0, 'T543 G6 找不到 `function resvLeft543(k){` 錨點（改簽名要同步這條）');
+    const end6 = html.indexOf('const CMS_FEAS529={', at6);
+    const body6 = html.slice(at6, end6 > 0 ? end6 : at6 + 400);
+    assert(body6.length > 50 && body6.length < 400, 'T543 G6 錨點取到的函式體長度異常（' + body6.length + '）＝抓錯範圍');
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|[^a-zA-Z_]rand\(|Math\.random/.test(body6),
+      'T543 G6 儲量判定必須零亂數（鐵律2）');
+    const n6 = (htmlBare438.match(/resvLeft543\(/g) || []).length;
+    assert(n6 === 4,
+      'T543 G6a `resvLeft543(` 應恰 4 處（1 定義＋3 條規則），實得 ' + n6
+      + '——多出來的呼叫點要跟版本釘並在卡面說明（防偷接進 tick）');
+    assert(GC.setRdepAt(1, 1, 99999) === CAP543 && GC.setRdepAt(1, 1, -7) === 0,
+      'T543 G6b `setRdepAt` 必須 clamp 到 [0, 儲量上限]（clamp 型別鐵律）');
+    GC.setRdepAt(1, 1, 0);
+    const st6 = GC.setStock364(99999, 99999);
+    assert(st6.steel === 120 && st6.fuel === 120,
+      'T543 G6c `setStock364` 必須 clamp 到庫存上限 120（實得 ' + JSON.stringify(st6) + '）');
+    GC.setStock364(0, 0);
+  }
+}
+
 /* ===== T542 讓資源產業鏈在 AI 局活過來（鐵律19 正規程序；六哨兵全重釘卡）=====
    筆記五懸案：k121/k122/k123 不在 AI wants ⇒ 鋼/燃料在 AI 局恆 0、三組機制從未觸發。
    二層根因：'oil'/'ore' 選址只掃擴張視窗（礦脈是全圖斑塊）＝上游也死；
@@ -12616,7 +12754,10 @@ runPwaTests().then(() => {
   assert(leaked.length === 0,
     'T529 G2a 不可行的委託不得進入發單池（洩漏：' + leaked.join(',') + '）');
 
-  /* G2b 反向：蓋了鋼鐵廠之後 stock/steel 必須變成可行——單向釘擋不住「閘門永遠回 false」 */
+  /* G2b 反向（T543 跟版）：蓋了鋼鐵廠之後「結構」條件滿足——但 T543 起 stock/steel 還要
+     「剩餘儲量＋庫存 ≥ 目標」（廠會活得比礦久：seed301 實測 d480 礦全死後 feas 恆 1、
+     又開始發做不到的單）。故改三段式：蓋廠仍不可行 → 補一座活礦變可行 → 造船廠前提不變。
+     完整的儲量階梯（近死邊界/死礦/庫存逃生口）在 T543 塊。 */
   {
     const NN = GC.N();
     let placed = null;
@@ -12629,13 +12770,32 @@ runPwaTests().then(() => {
       if (ok) { GC.addMoney(50000); if (GC.place('steelMill', x, y) === true) { placed = [x, y]; break outer529; } }
     }
     assert(placed, 'T529 G2b 前置：找不到地方蓋鋼鐵廠（3×3 空地掃描失敗）');
+    /* 決定性歸零：AI 養城 140 天可能已蓋井/礦，全部寫死＋庫存清零，讓儲量成為唯一變因 */
+    for (let i5 = 0; i5 < NN * NN; i5++) {
+      const t5 = GC.tile(i5 % NN, Math.floor(i5 / NN));
+      if (t5 && t5.bld && !t5.bld.ref && (t5.bld.k === 49 || t5.bld.k === 50))
+        GC.setRdepAt(i5 % NN, Math.floor(i5 / NN), GC.resourceStock());
+    }
+    GC.setStock364(0, 0);
     const c1 = GC.cms529();
     assert(c1.plants.steelMill === 1, 'T529 G2b 前置：鋼鐵廠應已蓋起（實得 ' + c1.plants.steelMill + '）');
-    assert(c1.feas['ct_steel60'] === true,
-      'T529 G2b【反向】蓋了鋼鐵廠之後 `ct_steel60` 必須變成可行——'
+    assert(c1.feas['ct_steel60'] === false,
+      'T529 G2b【T543 收緊】只有鋼鐵廠、零儲量零庫存時 `ct_steel60` 應不可行——'
+      + '廠是結構、礦才是產能；礦死後發這張單＝回到 T529 修之前');
+    let mPlaced = null;
+    outer529m: for (let x = 1; x < NN - 1; x++) for (let y = 1; y < NN - 1; y++) {
+      const t = GC.tile(x, y);
+      if (t && !t.bld && !t.road && !t.tree && !t.el && GC.resourceAt(x, y) === 2 && GC.rdepAt(x, y) === 0) {
+        GC.addMoney(50000); if (GC.place('mine', x, y) === true) { mPlaced = [x, y]; break outer529m; }
+      }
+    }
+    assert(mPlaced, 'T529 G2b 前置：找不到未耗盡的礦藏格可蓋礦場');
+    const c1b = GC.cms529();
+    assert(c1b.feas['ct_steel60'] === true,
+      'T529 G2b【反向】鋼鐵廠＋活礦（儲量 240 ≥ 60）之後 `ct_steel60` 必須變成可行——'
       + '只驗「不可行時不發」擋不住「閘門永遠回 false」（那會讓四條委託從此消失）');
-    assert(c1.feas['steel40'] === false,
-      'T529 G2c `steel40` 是「耗鋼累計」型，還需要造船廠出貨；只有鋼鐵廠時仍應不可行');
+    assert(c1b.feas['steel40'] === false,
+      'T529 G2c `steel40` 是「耗鋼累計」型，還需要造船廠出貨；鋼鐵廠＋活礦仍應不可行');
   }
 
   /* G3 剛過期的不連發：cms529().lastExp 有值時，它不得出現在 offers（除非池會因此為空） */
