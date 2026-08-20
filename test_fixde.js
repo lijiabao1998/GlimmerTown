@@ -12007,6 +12007,36 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T549 像素指紋基線入庫（ARCH §10.6 收口）=====
+
+   sprite 像素在 Node 套件裡測不到（canvas stub）——真指紋在無頭 Chrome 的 tools/fp_snapshot.py。
+   套件能守的是「基線紀律」：檔案在庫、ver 與 GAME_VER 同步（**強制每次 bump 重跑工具**＝
+   像素差異必經收束者的眼）、count 自洽、鍵數棘輪下限。
+   首次入庫實測：1,374 鍵／116 家族／兩次快照逐鍵恆等（確定性前提成立）。 */
+{
+  const fs549 = require('fs');
+  let pins549 = null;
+  try { pins549 = JSON.parse(fs549.readFileSync('docs/SPR_PINS.json', 'utf8')); } catch (e) {}
+  assert(pins549 && pins549.__meta,
+    'T549 G2a 像素指紋基線 docs/SPR_PINS.json 必須在庫且可解析——它是亂數位移全圖重繪的唯一機器見證');
+  const mVer549 = html.match(/const GAME_VER='([^']*)'/);
+  assert(mVer549, 'T549 前置：抽不到 GAME_VER');
+  assert(pins549.__meta.ver === mVer549[1],
+    'T549 G2b 基線 ver（' + pins549.__meta.ver + '）必須等於 GAME_VER（' + mVer549[1]
+    + '）——每次 bump 必須重跑 tools/fp_snapshot.py 並人工審像素差異（收束順序：bump→arch→ARCH→fp→套件）');
+  const nKeys549 = Object.keys(pins549).length - 1;
+  assert(pins549.__meta.count === nKeys549,
+    'T549 G2c 基線 count（' + pins549.__meta.count + '）必須等於實際鍵數（' + nKeys549 + '）——防手改');
+  assert(nKeys549 >= 1374,
+    'T549 G2d 鍵數棘輪：' + nKeys549 + ' < 1374（首次入庫值）——素材只增不減；真要刪素材須跟版本釘並在卡面說明');
+  for (const k549 in pins549) {
+    if (k549 === '__meta') continue;
+    assert(Array.isArray(pins549[k549]) && pins549[k549].length >= 1 && /^[0-9a-f]+$/.test(String(pins549[k549][0])),
+      'T549 G2e 基線鍵 ' + k549 + ' 格式異常（應為 hex CRC 陣列）');
+    break; /* 抽查首鍵格式即可，全量格式由工具寫入端保證 */
+  }
+}
+
 /* ===== T548 太空任務靜默跳過要說話 =====
 
    首次量測（seed301 d400 staging × 240 天 × 兩臂）：**連玩家補 3 鮮井＋3 鮮礦（15/日產量）
