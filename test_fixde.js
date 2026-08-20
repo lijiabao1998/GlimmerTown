@@ -12007,6 +12007,32 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T545 城市事件表簡繁統一（40 條簡體混在繁體遊戲裡）=====
+
+   CITY_EVENTS 三段身世：T299 原批 6 條繁體、中段擴充批 40 條**簡體**、T338 批 12 條繁體。
+   事件 toast 直出玩家眼前（✨ name＋desc），「🎆 煙火大會」與「🦠 流感大爆发」並存。
+   修＝40 條 name/desc 字級轉繁，id/days/tax/food/happy 零改動
+   （數值在 tick 路徑：稅收/食物/幸福乘數、day%37 決定性觸發 ⇒ 六哨兵位元恆等＝數值零改動的行為守衛）。
+
+   守衛分工：G1 簡體字黑名單掃描（表切片；黑名單只收無歧義簡體專用字，
+   刻意排除簡繁同形/歧義字：堵/面/云/干/汛/裂…）／G2 條數釘 58／G3 id 抽查。 */
+{
+  const evStart = html.indexOf('const CITY_EVENTS=[');
+  assert(evStart >= 0, 'T545 前置：找不到 CITY_EVENTS 表');
+  const evEnd = html.indexOf('\n];', evStart);
+  assert(evEnd > evStart, 'T545 前置：找不到表尾');
+  const evSlice = html.slice(evStart, evEnd);
+  const simp545 = '发庆丰满张灯摊粮机体验队艺术变画乐电厂动园阳风绿军联赛书节烟鱼购货创写楼龙价会诊课罢轮济员业热恶胀钞贵车来际国马万声织墙区费开无点脸渔鲜战气蓝户带饼赢冻飙长队积压转让温调内雾见断库盗窃频坏骚乱紧钉纸轻摇剥滥迟卖时谣盐抢过应现从边樱谜奖团圆涂鸦红网遗呐';
+  const hit545 = [...evSlice].filter(ch => simp545.indexOf(ch) >= 0);
+  assert(hit545.length === 0,
+    'T545 G1【本卡靈魂】城市事件表不得含簡體字（黑名單命中：' + [...new Set(hit545)].join('') + '）'
+    + '——全遊戲 UI 是繁體，事件 toast 蹦簡體＝同一功能裡兩套文字');
+  const evN = (evSlice.match(/\{id:'/g) || []).length;
+  assert(evN === 58, 'T545 G2 事件表應恰 58 條（6 原批＋40 轉繁批＋12 T338 批），實得 ' + evN + '——轉換不准弄丟整條');
+  for (const eid of ['springfest', 'fakenews', 'moonfest', 'quake', 'blight', 'trafficjam'])
+    assert(evSlice.indexOf("{id:'" + eid + "'") >= 0, 'T545 G3 事件 id `' + eid + '` 必須原樣在場（id 不准被誤轉）');
+}
+
 /* ===== T544 編輯器匯出的是上一局的城市（匯出即所見）=====
 
    e2e 首次全程走通（建圖→設目標→匯出→匯入→勝/敗閉環全綠）後抓到：
