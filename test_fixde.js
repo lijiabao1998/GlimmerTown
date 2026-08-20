@@ -12007,6 +12007,66 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T546 觀光面板要說出商業加成與封頂 =====
+
+   生成側實測：兩條商業稅通道（一般 1+min(.2,t/500)、購物中心 1+min(.25,t/400)）**都在 100 遊客封頂**；
+   成熟城 +45 遊客 taxC 只動 0.8%（死區）、年輕城 +15%（有感）；seed22 遊客 359＝超封頂 3.6 倍。
+   修＝面板加「🛍️ 商業加成」行（乘數＋封頂/進度文案）；tick 原式零觸碰、常數同步釘綁定。
+
+   守衛分工：G1 行為階梯（1 動物園 ×1.09 進度／3 動物園 ×1.20 已封頂）／
+   G2 tick↔面板常數同步釘（不硬編碼第二份真相）／G3 新增顯示碼零亂數。 */
+{
+  const GC = window.GV;
+  GC.newWorldSeeded(546);
+  GC.addMoney(99999);
+  const place546 = (tool) => {
+    const NN = GC.N();
+    for (let x = 2; x < NN - 5; x++) for (let y = 2; y < NN - 5; y++) {
+      let ok = true;
+      for (let dx = 0; dx < 3 && ok; dx++) for (let dy = 0; dy < 3 && ok; dy++) {
+        const t = GC.tile(x + dx, y + dy);
+        if (!t || t.t !== 2 || t.bld || t.road || t.tree || t.el) ok = false;
+      }
+      if (ok && GC.place(tool, x, y) === true) return true;
+    }
+    return false;
+  };
+  assert(place546('zoo'), 'T546 前置：蓋不了動物園');
+  GC.step(1);
+  assert(GC.tourists() === 45, 'T546 前置：1 座動物園春季應恰 45 遊客（實得 ' + GC.tourists() + '）——權重或季節乘數變了要跟版本塊');
+  const p1 = GC.statsPanel546();
+  assert(p1 && p1.length > 100, 'T546 前置：statsPanel546 鉤子應回渲染後的面板 HTML（實得長度 ' + (p1 ? p1.length : 0) + '）');
+  assert(p1.indexOf('商業加成') >= 0, 'T546 G1a 面板必須有「商業加成」行——遊客值多少錢不說，玩家不可能知道');
+  assert(p1.indexOf('×1.09') >= 0, 'T546 G1b 45 遊客應顯示 ×1.09（1+45/500）');
+  assert(p1.indexOf('距滿額還差 55 遊客') >= 0, 'T546 G1c 封頂下應顯示進度（100−45＝55）');
+  assert(place546('zoo') && place546('zoo'), 'T546 前置：第 2/3 座動物園蓋不了');
+  GC.step(1);
+  assert(GC.tourists() === 135, 'T546 前置：3 座動物園應恰 135 遊客（實得 ' + GC.tourists() + '）');
+  const p2 = GC.statsPanel546();
+  assert(p2.indexOf('×1.20') >= 0, 'T546 G1d 135 遊客應顯示 ×1.20（min(.2,.27) 封頂）');
+  assert(p2.indexOf('已封頂') >= 0, 'T546 G1e 超過 100 遊客必須明說「已封頂」——超封頂 2-3.6 倍的城市不該以為遊客還在生錢');
+  /* G2 同步釘：tick 式與面板式的常數各自源碼抽出比對（T544 G2c 先例） */
+  {
+    const mTick = html.match(/if\(tourists>0\)mult\*=1\+Math\.min\(\.(\d+),tourists\/(\d+)\)\*\(pm\.tourPromo\?1\.(\d+):1\)/);
+    assert(mTick, 'T546 G2 找不到 tick 側一般商業遊客乘數式（改寫要同步本釘）');
+    const mPanel = html.match(/商業加成',v:'×'\+\(1\+Math\.min\(\.(\d+),tourists\/(\d+)\)\*\(\(pol&&pol\.tourPromo\)\?1\.(\d+):1\)\)/);
+    assert(mPanel, 'T546 G2a 找不到面板側商業加成式');
+    assert(mTick[1] === mPanel[1] && mTick[2] === mPanel[2] && mTick[3] === mPanel[3],
+      'T546 G2b tick(.'+ mTick[1] + '/' + mTick[2] + '/1.' + mTick[3] + ') 與面板(.' + mPanel[1] + '/' + mPanel[2] + '/1.' + mPanel[3] + ') 常數必須同值——單邊漂移＝面板說謊');
+    const mTickMall = html.match(/if\(tourists>0\)mult\*=1\+Math\.min\(\.(\d+),tourists\/(\d+)\);/);
+    const mPanelMall = html.match(/購物中心加成',v:'×'\+\(1\+Math\.min\(\.(\d+),tourists\/(\d+)\)\)/);
+    assert(mTickMall && mPanelMall && mTickMall[1] === mPanelMall[1] && mTickMall[2] === mPanelMall[2],
+      'T546 G2c 購物中心通道 tick↔面板常數必須同值（實得 ' + JSON.stringify([mTickMall && mTickMall.slice(1), mPanelMall && mPanelMall.slice(1)]) + '）');
+  }
+  /* G3 新增顯示碼零亂數 */
+  {
+    const at6 = html.indexOf("k:'🛍️ 商業加成'");
+    assert(at6 >= 0, 'T546 G3 找不到商業加成行錨點');
+    const seg6 = html.slice(at6 - 200, at6 + 500);
+    assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|Math\.random/.test(seg6), 'T546 G3 顯示行必須零亂數（鐵律2）');
+  }
+}
+
 /* ===== T545 城市事件表簡繁統一（40 條簡體混在繁體遊戲裡）=====
 
    CITY_EVENTS 三段身世：T299 原批 6 條繁體、中段擴充批 40 條**簡體**、T338 批 12 條繁體。
