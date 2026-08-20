@@ -4615,18 +4615,34 @@ runPwaTests().then(() => {
     // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
     // T432 重釘（業主授權 2026-08-13）：兩座孤島核電與四座孤島綠能共 686 容量不再跨網白嫖；4153→3781 是刻意供電語義變更。
     //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
-    seedPin444('seed301', 301, 400, 6876, window.GV.stats().pop,
-      'T324/T342c 起釘；T432 孤島電源不併網重釘（前值 4153）；T456 世代流動接線重釘（前值 3781，'
-      + '授權與查因記 T456 卡面——拮据城吃到暴露紅利翻身）');
+    seedPin444('seed301', 301, 400, 6801, window.GV.stats().pop,
+      'T324/T342c 起釘；T432 重釘（前值 4153）；T456 重釘（前值 3781）；'
+      + 'T542 資源鏈進 wants 重釘（前值 6876——wants 長度改變＝輪轉相位全城自第 1 天分岔，'
+      + '業主 2026-08-20「你來決定，解決完成」授權，12 種子崩城率 A/B 記 T542 卡面）');
     /* T456 金流哨兵：世代普查是**常駐**機制，pop 釘在這三顆種子恰好不動（診斷記卡面：
        零亂數規則＋金流非 pop 瓶頸），但金流已合法分岔——「三釘綠＝位元恆等」這句話從 T456 起
        不再自動成立，必須把 money 也釘進哨兵，未來任何動到經濟的手都會在這裡留下指紋。 */
-    seedPin444('seed301m', 301, 400, 631145, Math.round(window.GV.stats().money),
+    seedPin444('seed301m', 301, 400, 640249, Math.round(window.GV.stats().money),
       'T456 起釘：pop 之外的第二自由度（金流），暴露修正 37 次介入的世界線');
+    /* T542 G2 活化見證（就地取材：上面 seed301 已跑完 400 天，零額外運行成本）——
+       資源鏈在 AI 局活著：井/礦各 3（既有條目吃到地理化選址）、三座加工廠全鏈成形。
+       這組計數與六哨兵一起構成「拿掉 T542 任何一刀就會紅」的行為見證網。 */
+    {
+      const cnt542 = (k) => { let c = 0; const NN = window.GV.N();
+        for (let x = 0; x < NN; x++) for (let y = 0; y < NN; y++) {
+          const t = window.GV.tile(x, y);
+          if (t && t.bld && !t.bld.ref && t.bld.k === k) c++; } return c; };
+      assert(cnt542(49) === 3 && cnt542(50) === 3,
+        'T542 G2 seed301 400 天應有油井 3＋礦場 3（地理化選址讓既有井礦條目活了；實得 '
+        + cnt542(49) + '/' + cnt542(50) + '）');
+      assert(cnt542(121) === 1 && cnt542(122) === 1 && cnt542(123) === 1,
+        'T542 G2a seed301 400 天應有煉油 1＋鋼鐵 1＋造船 1＝全鏈成形（修前恆 0/0/0；實得 '
+        + cnt542(121) + '/' + cnt542(122) + '/' + cnt542(123) + '）');
+    }
     {
       const mob301 = window.GV.sci451();
-      assert(mob301.mobUp === 37 && mob301.mobDn === 0,
-        'T456 G4 seed301 400 天暴露修正應恰為 37 升 0 降（決定性），實得 up=' + mob301.mobUp + ' dn=' + mob301.mobDn);
+      assert(mob301.mobUp === 52 && mob301.mobDn === 0,
+        'T456 G4 seed301 400 天暴露修正應恰為 52 升 0 降（決定性；T542 重釘，前值 37——軌跡分岔後富裕城暴露修正變多），實得 up=' + mob301.mobUp + ' dn=' + mob301.mobDn);
     }
     assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
   }
@@ -7035,15 +7051,15 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    seedPin444('seed22', 22, 400, 3525, window.GV.stats().pop,
+    seedPin444('seed22', 22, 400, 3423, window.GV.stats().pop,
       'T348 起釘：紓困為手術式；T456 世代流動接線重釘（前值 4550——短視野配對差實測機制為正紅利，'
       + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）');
-    seedPin444('seed22m', 22, 400, 1456, Math.round(window.GV.stats().money),
+    seedPin444('seed22m', 22, 400, 1461, Math.round(window.GV.stats().money),
       'T456 金流哨兵：暴露修正最活躍的世界線（61 升 0 降）');
     {
       const mob22 = window.GV.sci451();
-      assert(mob22.mobUp === 61 && mob22.mobDn === 0,
-        'T456 G4c seed22 400 天暴露修正應恰為 61 升 0 降（決定性；下行分支目前僅 G1c 原文釘覆蓋，'
+      assert(mob22.mobUp === 59 && mob22.mobDn === 0,
+        'T456 G4c seed22 400 天暴露修正應恰為 59 升 0 降（決定性；T542 重釘，前值 61；下行分支目前僅 G1c 原文釘覆蓋，'
         + '行為見證待 T460 平衡矩陣造境——如實記），實得 up=' + mob22.mobUp + ' dn=' + mob22.mobDn);
     }
   }
@@ -10576,7 +10592,9 @@ runPwaTests().then(() => {
      第一版照瀏覽器數字設 3,000／25,000 ⇒ 套件裡有 10 倍餘裕＝**閘門咬不到任何東西**
      （「看起來在量、其實量的是別的」——本季一路在修的同一族毛病）。
      現值＝套件實測 ×約 2 的成長餘裕；瀏覽器側的真實數字記在 T523 卡面。 */
-  const BUDGET_EMPTY523 = 1200, BUDGET_CITY523 = 6000;
+  /* T542 跟版：AI 資源選址地理化後會蓋遠處礦井/加工廠＝建築合法變多，300 天城實測 6,771
+     （+13%，非美術層變貴——T523 自己的結論是 14k/幀對 GPU 都不算誇張）。6000→7500 留 ~10% 餘裕。 */
+  const BUDGET_EMPTY523 = 1200, BUDGET_CITY523 = 7500;
   window.GV.newWorldSeeded(523); window.GV.setDiff(1); window.GV.setZoom(1);
   const empty523 = window.GV.drawCensus523();
   assert(empty523.restored === true,
@@ -11987,6 +12005,31 @@ runPwaTests().then(() => {
     'T536 G3 放款 toast 金額必須依實際額度組出（原本銀行城 $5000 也寫死「$2000！」）');
   assert(html.indexOf("toast('🏦 貸款到帳 $2000！','gold')") < 0,
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
+}
+
+/* ===== T542 讓資源產業鏈在 AI 局活過來（鐵律19 正規程序；六哨兵全重釘卡）=====
+   筆記五懸案：k121/k122/k123 不在 AI wants ⇒ 鋼/燃料在 AI 局恆 0、三組機制從未觸發。
+   二層根因：'oil'/'ore' 選址只掃擴張視窗（礦脈是全圖斑塊）＝上游也死；
+   三層根因（施工中診斷：條件真 12/資金過 12/落地 0）：'res' 在成熟城視窗內無 3×3 臨路空地
+   ⇒ 加工廠改「貼著井礦蓋」（mill542 全圖掃、距井礦 ≤6）。
+   行為見證＝六哨兵新值＋seed301 活化計數（掛在種子釘塊內）。 */
+{
+  assert(htmlBare438.indexOf('outerR542') >= 0,
+    'T542 G1 資源選址地理化的全圖預掃必須在場（outerR542）——退回視窗掃描＝井礦蓋不出來、鏈全死');
+  assert(htmlBare438.indexOf('outerM542') >= 0 && htmlBare438.indexOf('outerS542') >= 0,
+    'T542 G1a 加工廠貼井礦（outerM542）與造船廠全圖鄰水（outerS542）選址必須在場——'
+    + '退回 res/water 視窗選址＝條件真/資金過/落地 0（施工中實測）');
+  /* 選址標籤是字串字面量＝bare 會抹掉（T517 坑第三犯、自己當場抓到）——改 raw html 計數 */
+  assert((html.match(/mill542/g) || []).length >= 3
+      && (html.match(/water542/g) || []).length >= 2,
+    'T542 G1b 三條目必須走 mill542/water542 選址標籤');
+  assert(html.indexOf('oilAny') >= 0, // 同上：字串字面量走 raw
+    'T542 G1c gaswell 的 oilAny 選址必須在場（氣井不讀 RDEP，耗盡油田是合法氣井位＝T530 記帳債）');
+  /* 條件形態釘：三重閘門（pop/money/net）不得被拆——它們是崩城率 4/12→4/12 不惡化的防線 */
+  assert(/\['refinery',\s+pop>900&&C2\(49\)>0/.test(html)
+      && /\['steelMill',\s+pop>900&&C2\(50\)>0/.test(html)
+      && /\['shipyard',\s+pop>1200&&C2\(122\)>0/.test(html),
+    'T542 G1d 三條目的鏈式前提（見井才煉油、見礦才煉鋼、見鋼廠才造船）與成長期閘門不得被拆');
 }
 
 /* ===== T541 挑戰三星反退化（T538 判例同型收尾）=====
@@ -13685,11 +13728,11 @@ runPwaTests().then(() => {
   /* T456 跟版：世代流動接線重釘讓 seed301 世界形狀整個改變（拮据城翻身），孤島電源從 2 核 4 綠
      縮成 1 綠——本塊仍是世界形狀回歸釘，但「孤島不併網」的**行為**保證現在主要由 G8 受控造境
      測試承擔（G8 不依賴任何 AI 世界形狀）。 */
-  assert(isoNuke===0,'T432 G7 seed301 應有 0 座孤島核電（T456 重釘後；實得 '+isoNuke+'）');
-  assert(isoGreen===1,'T432 G7 seed301 應有 1 座孤島綠能（T456 重釘後；實得 '+isoGreen+'）');
-  assert(isoCap===30,'T432 G7 seed301 孤島容量應為 30（T456 重釘後；實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
+  assert(isoNuke===1,'T432 G7 seed301 孤島核電應為 1（T542 重釘：AI 資源地理化＝wants 長度改變＝全城軌跡自第 1 天分岔；前值 0；孤島不併網的行為保證由 G8 受控造境承擔；實得 '+isoNuke+'）');
+  assert(isoGreen===3,'T432 G7 seed301 孤島綠能應為 3（T542 重釘，前值 1；T432 原始基線曾為 4＝仍在歷史帶內；實得 '+isoGreen+'）');
+  assert(isoCap===320,'T432 G7 seed301 孤島容量應為 320（T542 重釘，前值 30＝1 綠；新軌跡 3 綠 70 + 1 核 250；實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
   assert(window.__t432Power.districts===1,'T432 G7 seed301 應為單 district（實得 '+window.__t432Power.districts+'）');
-  assert(window.__t432Power.sum===1370,'T432 G7 seed301 併網容量應為 1370（T456 重釘後；實得 '+window.__t432Power.sum+'）');
+  assert(window.__t432Power.sum===853,'T432 G7 seed301 併網容量應為 853（T542 重釘，前值 1370——AI 資源地理化後軌跡分岔、電網構成改變；城市總體健康由 12 種子崩城率 A/B 與六哨兵裁決；實得 '+window.__t432Power.sum+'）');
 }
 { // G8 行為：撤銷電源後必須重建來源快取（不能遺失回復的風機容量）
   window.GV.setMapSize(72); window.GV.newWorldSeeded(43208); window.GV.setDiff(3); window.GV.weather(0);
