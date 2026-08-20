@@ -11969,6 +11969,47 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T538 星耀之城反退化（業主全權裁決②）=====
+   筆記七實測：迷你城（pop 183）第 25 天 4 星速通——評分全比例項，小城全覆蓋即 84 分。
+   裁決＝改關卡不動全域公式：目標「**當前** cityStar>=4 且 pop>=1000 同時成立」。 */
+{
+  const GT = window.GV;
+  /* G3 語義隔離（先驗，避免造境污染）：無 g.pop 的 star 判定必須維持 bestStar 舊語義 */
+  assert(htmlBare438.indexOf('g.pop?(cityStar>=g.target&&pop>=g.pop):bestStar>=g.target') >= 0,
+    'T538 G3【源釘】star 判定必須是「有 g.pop 走當前 cityStar＋pop、無 g.pop 走 bestStar」的形態——'
+    + '改用 bestStar 配 g.pop＝迷你城先刷星再衝人口＝退化策略換外衣');
+
+  /* G2 交叉一致：intro 文案必須含 goal.pop 的數字（T442 教訓：文案數字與門檻同源） */
+  const sc538 = GT.scenarios().find(x => x.id === 'sc_starlight');
+  assert(sc538 && sc538.goal.pop === 1000,
+    'T538 G2 前置：sc_starlight 的 goal.pop 應為 1000（實得 ' + JSON.stringify(sc538 && sc538.goal) + '）');
+  {
+    /* 第一版取 id 起 400 字窗口＝把 goal:{pop:1000} 也含進去 ⇒ 對 intro 漂移是**空跑**
+       （紅源③把 intro 改成「千人」照樣全綠）。改成精確取 intro 字串本身。 */
+    const scAt = html.indexOf("id:'sc_starlight'");
+    const introKey = html.indexOf("intro:'", scAt);
+    const introEnd = html.indexOf("',", introKey);
+    const introStr = html.slice(introKey + 7, introEnd);
+    assert(introStr.indexOf(String(sc538.goal.pop)) >= 0,
+      'T538 G2 開場文案本身必須含門檻數字 ' + sc538.goal.pop
+      + '（實得文案「' + introStr.slice(0, 40) + '…」；文案與 goal 交叉一致，防 T442 型過期）');
+  }
+
+  /* G1 行為（反退化）：AI 開著跑 40 天——修前第 25-26 天就贏；修後必須仍在進行中 */
+  assert(GT.startScenario('sc_starlight') === true, 'T538 G1 前置：開關卡應成功');
+  GT.ai(true);
+  let ended538 = 0;
+  for (let d = 1; d <= 40; d++) { GT.step(1); if (!GT.scenario()) { ended538 = d; break; } }
+  GT.ai(false);
+  assert(ended538 === 0,
+    'T538 G1【反退化】修後 40 天內不得結案（修前迷你城 pop 183 於第 25 天 4 星速通；實得第 '
+    + ended538 + ' 天結案）——若紅在這裡表示 g.pop 門檻沒有生效');
+  const st538 = GT.star538();
+  assert(typeof st538.cur === 'number' && typeof st538.best === 'number',
+    'T538 G1a 星等觀測鉤必須回傳 cur/best（實得 ' + JSON.stringify(st538) + '）');
+  GT.newWorldSeeded(1); // 清掉進行中的場景，避免污染後續守衛
+}
+
 /* ===== T537 保險重定價（業主 2026-08-20 全權授權裁決：理賠 $35→$140、保費不動）=====
    依 T535 實測：災害最重的城 64 戶/500 天 ⇒ 64×$140≈保費 $9,000＝期望值≈0。
    守衛重點＝**單一真相源**（同族病預防）：保費/理賠數字只准出現在常數宣告，四個使用點全走常數。 */
