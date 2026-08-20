@@ -12007,6 +12007,68 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T544 編輯器匯出的是上一局的城市（匯出即所見）=====
+
+   e2e 首次全程走通（建圖→設目標→匯出→匯入→勝/敗閉環全綠）後抓到：
+   `buildEditorShareData()` 讀 localStorage 槽、匯出前沒有任何主動存檔，而全遊戲唯一自動存檔
+   是 25 秒 wall-clock 定時器（T527）⇒ 進編輯器 25 秒內匯出＝打包**上一局的城市**
+   （實錘：113 座建築 vs 畫面上 3 座公園）；之後也永遠缺最後 <25 秒的編輯。
+   修＝讀槽前 `if(tiles)save();`（save 不在 tick 路徑 ⇒ 哨兵零影響）。
+   順帶：編輯器幸福示例 .78→.72（T539 對齊；值-文案同步家族）。
+
+   守衛分工：G1 匯出即所見（行為釘＝本卡靈魂）／G2 幸福示例同步釘（不硬編碼第二份真相）／
+   G3 save 在讀槽之前（原文釘）。 */
+{
+  const GC = window.GV;
+  /* 世界 A：有建築、存入槽——它是「上一局」 */
+  GC.newWorldSeeded(544);
+  GC.ai(true); for (let d = 0; d < 30; d++) GC.step(1); GC.ai(false);
+  GC.save();
+  const dec544 = (code) => JSON.parse(decodeURIComponent(escape(atob(code.slice(5)))));
+  const codeA = GC.editorExportCode();
+  assert(codeA && codeA.indexOf('GVX1:') === 0, 'T544 前置：匯出鉤應回 GVX1: 前綴的擴充版分享碼');
+  const blA = (dec544(codeA).bl || []).length;
+  assert(blA >= 5, 'T544 前置：世界 A（30 AI 天）應有 5 座以上建築（實得 ' + blA + '）——太少驗不出 stale');
+  /* 世界 B：全新、「不存檔」——匯出必須打包 B，不得打包槽裡的 A */
+  GC.newWorldSeeded(545);
+  {
+    const NN = GC.N();
+    let ok544 = false;
+    outer544: for (let x = 2; x < NN - 2; x++) for (let y = 2; y < NN - 2; y++) {
+      const t = GC.tile(x, y);
+      if (t && t.t === 2 && !t.bld && !t.road && !t.tree && !t.el) { GC.addMoney(9999); if (GC.place('park', x, y) === true) { ok544 = true; break outer544; } }
+    }
+    assert(ok544, 'T544 前置：世界 B 放不了指紋公園');
+  }
+  const codeB = GC.editorExportCode();
+  const blB = (dec544(codeB).bl || []).length;
+  assert(blB === 1,
+    'T544 G1【本卡靈魂】匯出必須打包「畫面上的世界」（世界 B＝恰 1 座公園），實得 ' + blB
+    + ' 座——若 ≥' + blA + ' 座＝打包了槽裡上一局的世界 A（匯出前沒先 save()）。'
+    + '玩家視角：「我編的場景，朋友打開是我上一局的城市」');
+  /* G2 幸福示例同步：示例/fallback 與 happy80 目標值同源比對，不硬編碼第二份真相 */
+  {
+    assert(html.indexOf('例如 0.78') < 0, 'T544 G2 編輯器幸福示例「例如 0.78」必須絕跡（T539 已把天花板對齊 .72）');
+    const mEd = html.match(/例如 0\.(\d+)）',editorGoal\.target\|\|\.(\d+)\)/);
+    assert(mEd && mEd[1] === mEd[2], 'T544 G2a 幸福示例文字與 fallback 必須同值（實得 ' + JSON.stringify(mEd && mEd.slice(1)) + '）');
+    const mH80 = html.match(/id:'happy80'[^}]*target:\s*\.(\d+)/);
+    assert(mH80, 'T544 G2b 找不到 happy80 目標值（CMS385 表改動要跟版這條）');
+    assert(mEd[1] === mH80[1],
+      'T544 G2c 編輯器幸福示例（.' + mEd[1] + '）必須與 happy80 目標（.' + mH80[1] + '）同值——'
+      + 'T539 下修目標時，編輯器的建議值不准掉隊（值-文案同步家族）');
+  }
+  /* G3 save 在讀槽之前（原文釘；行為已由 G1 釘住） */
+  {
+    const at5 = html.indexOf('function buildEditorShareData');
+    assert(at5 >= 0, 'T544 G3 找不到 buildEditorShareData 錨點');
+    const end5 = html.indexOf('function encodeShare', at5);
+    const body5 = html.slice(at5, end5 > 0 ? end5 : at5 + 800);
+    const iSave = body5.indexOf('if(tiles)save();'), iGet = body5.indexOf('localStorage.getItem');
+    assert(iSave >= 0 && iGet > iSave,
+      'T544 G3 匯出組包必須「先落地當前世界、再讀槽」（save@' + iSave + ' getItem@' + iGet + '）');
+  }
+}
+
 /* ===== T543 委託閘門要看礦還活著（廠會活得比礦久）=====
 
    T529×T542 整合閉環實測（seed301、720 天）：d370 三廠到位、d430 油井全死（儲量 240÷3/日）、

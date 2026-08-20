@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.169，約 23228 行（實測檔案 23228 行＝T543 委託儲量閘門後 Python 數；測試 `test_fixde.js`、實測 PASS 6,055、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.170，約 23232 行（實測檔案 23232 行＝T544 匯出即所見後 Python 數；測試 `test_fixde.js`、實測 PASS 6,065、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -131,19 +131,19 @@
 | `toast` / `updHud` / HUD 三鈕 | 20153 | `T311 提示訊息不刷屏` |
 | 存檔槽面板／分享碼 | 20248 | `function showSlots(){` |
 | 地圖／場景編輯器 | 20365 | `function showEditor(){` |
-| 歷史曲線／城市顧問／因果追溯 | 20475 | `function cityAdvisor(allT522){` |
-| `showStats()` 統計面板 | 20971 | `function showStats()` |
-| 通知中心／成就 | 21435 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 21511 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 21713 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 21975 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 22007 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 22154 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
-| `load()` | 22197 | `const vlen=saveShapeOk533;` |
-| 自動存檔 | 22340 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 22353 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 22495 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 22607 | `window.GV={` |
+| 歷史曲線／城市顧問／因果追溯 | 20479 | `function cityAdvisor(allT522){` |
+| `showStats()` 統計面板 | 20975 | `function showStats()` |
+| 通知中心／成就 | 21439 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 21515 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 21717 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 21979 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 22011 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 22158 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `load()` | 22201 | `const vlen=saveShapeOk533;` |
+| 自動存檔 | 22344 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 22357 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 22499 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 22611 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
