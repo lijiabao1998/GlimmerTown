@@ -63,7 +63,7 @@ subprocess（Chrome 子行程，非 Python stdio，無此病）；timeout／inpu
 
 ## 4. 施工紀錄（2026-08-21 收）
 
-**不 bump（工具鏈卡，不碰 index.html）**　**工具鏈 57 → 60 例全綠**　**master 回填於合併後**
+**不 bump（工具鏈卡，不碰 index.html）**　**工具鏈 57 → 60 例全綠**　**master `afae8a6`**
 
 ### 行為證明
 - G3 活假紅轉綠：乾淨環境（pop 兩變數）下 `verify.run_cmd` 跑 `arch_map --check` → rc 0、
