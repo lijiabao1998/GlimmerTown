@@ -12056,6 +12056,100 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T552 指令面板與 HUD 分組（找得到，才叫結構化）=====
+
+   現況實測：HUD 13 顆平排按鈕零分組（4 類混裝）；217 個可尋找目標（工具 153＋政策 51＋面板 13）
+   卻只有 4 個全域快捷鍵。A＝HUD 四群包裹；B＝Ctrl/Cmd+K 指令面板。
+
+   **本卡的靈魂是 G1**：指令面板是**路由器**，不是第二套實作。它只准 .click() 既有控制項，
+   一旦開始自己寫 tool=／pol[]／toolCat=，就變成第二份真相、日後必然與本體分岔（T517 判例）。 */
+{
+  /* G1 路由不自己寫狀態——機械掃 cmdkRun552 函式體 */
+  const at552 = html.indexOf('function cmdkRun552(r){');
+  assert(at552 >= 0, 'T552 前置：找不到 cmdkRun552 錨點（改簽名要同步本塊）');
+  const body552 = html.slice(at552, html.indexOf('function cmdkRender552', at552));
+  assert(body552.length > 200 && body552.length < 2000,
+    'T552 前置：cmdkRun552 函式體長度異常（' + body552.length + '）＝抓錯範圍');
+  assert(!/[^a-zA-Z_.]tool\s*=[^=]/.test(body552) && !/toolCat\s*=[^=]/.test(body552)
+    && !/pol\s*\[/.test(body552),
+    'T552 G1【本卡靈魂】指令面板是路由器不是第二套實作——動作實作內不得直接寫 tool=／toolCat=／pol[]，'
+    + '只能 .click() 既有控制項（T517 判例）。自己寫狀態＝第二份真相，日後必與本體分岔');
+  assert((body552.match(/\.click\(\)/g) || []).length >= 4,
+    'T552 G1a 三條路由（工具／面板／政策）都必須經由 .click() 轉交既有處理器');
+  assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|Math\.random/.test(body552), 'T552 G7 路由零亂數（鐵律2）');
+
+  /* G1b 先切分類再點工具——工具鈕只在其分類啟用時才存在於 DOM，少了這一步就永遠選不到跨分類的工具 */
+  assert(/TOOL_CATS\.findIndex/.test(body552) && body552.indexOf('cbs[ci].click()') >= 0,
+    'T552 G1b 工具路由必須先 .click() 對應的分類鈕再點 [data-tid]——'
+    + 'buildToolbar 只渲染當前分類的工具（`if(t.cat!==toolCat&&…)continue`），'
+    + '不先切分類就只能選到當前分類內的工具');
+
+  /* G5 鍵盤接線：Ctrl+K 必須早於「修飾鍵一律早退」那一行 */
+  {
+    const atK = html.indexOf("window.addEventListener('keydown',e=>{");
+    /* 終點錨必須取在「修飾鍵早退」之後——第一版用 if(e.key==='Escape') 當終點，
+       而 T552 新增的面板攔截行裡就有這個字串，切片提早結束、把早退行切掉了（實得 早退@-1）。 */
+    const kb = html.slice(atK, html.indexOf("const map={", atK));
+    const iCmdk = kb.indexOf("e.key==='k'||e.key==='K'");
+    const iBail = kb.indexOf('if(e.ctrlKey||e.metaKey||e.altKey)');
+    assert(iCmdk >= 0 && iBail > iCmdk,
+      'T552 G5【接線】Ctrl/Cmd+K 的判定必須寫在「修飾鍵一律早退」那一行**之前**（實得 K@'
+      + iCmdk + ' 早退@' + iBail + '）——那行會把所有修飾鍵組合 return 掉，寫在後面永遠到不了');
+    assert(/if\(cmdkOn552\)\{if\(e\.key==='Escape'\)\{[^}]*cmdkClose552\(\);\}return;\}/.test(kb),
+      'T552 G5a 面板開啟時必須攔截所有按鍵並 return——'
+      + '否則 Esc 會落到下方的 `Escape → 選回第一個工具`，關面板的同時把玩家的工具也換掉');
+  }
+
+  /* G6 層級：高於 #hud(30)、低於 #start(50) */
+  {
+    const mz = html.match(/#cmdk552\{position:absolute;inset:0;z-index:(\d+)/);
+    assert(mz, 'T552 G6 找不到 #cmdk552 的 z-index 宣告');
+    const z = +mz[1];
+    assert(z > 30 && z < 50,
+      'T552 G6【層級】指令面板 z-index 必須 >30（蓋過 HUD）且 <50（開始畫面永遠蓋得住它），實得 ' + z);
+  }
+
+  /* G4 HUD 分組：13 顆按鈕一顆都不許漏在群外 */
+  {
+    const atH = html.indexOf('<div id="hud">');
+    const hud = html.slice(atH, html.indexOf('</div>', html.indexOf('data-hud-grp="sys"', atH)) + 6);
+    const grps = (hud.match(/class="hudGrp552" data-hud-grp="/g) || []).length;
+    assert(grps === 4, 'T552 G4 HUD 必須恰有 4 個語義群（檢視／世界／編輯／系統），實得 ' + grps);
+    const IDS552 = ['bStats','bHelp','bAch','bBell','bSpeed','bAI','bRot','bMetro','bUndo','bEditor','bSave','bNew','bMenu','bSound'];
+    /* 逐群取出內容再比對。第一版只驗「這顆按鈕之前存在過群開頭」——那對任何按鈕都成立
+       （前面總有前一群的開頭），紅源③把 bSound 移到群外時照樣全綠＝守衛比事實弱。 */
+    const inners552 = [];
+    {
+      const re = /<span class="hudGrp552" data-hud-grp="[a-z]+">([\s\S]*?)<\/span>\s*(?=<span class="hudGrp552"|<\/div>)/g;
+      let m;
+      while ((m = re.exec(hud)) !== null) inners552.push(m[1]);
+    }
+    assert(inners552.length === 4,
+      'T552 G4b 前置：應解析出 4 個群的內容，實得 ' + inners552.length + '（群的開閉標籤結構壞了）');
+    for (const id of IDS552) {
+      assert(hud.indexOf('id="' + id + '"') >= 0,
+        'T552 G4a HUD 按鈕 #' + id + ' 必須仍在 #hud 之內（分組只加包裹層，不得搬走或刪除）');
+      assert(inners552.some(s => s.indexOf('id="' + id + '"') >= 0),
+        'T552 G4c #' + id + ' 漏在群外——14 顆按鈕全部必須落在某個 .hudGrp552 之內，'
+        + '一顆漏在外面就是「分組只做一半」，比不分組更亂');
+    }
+  }
+
+  /* G3 索引涵蓋三個來源 */
+  {
+    const atI = html.indexOf('function cmdkIndex552(){');
+    const bi = html.slice(atI, html.indexOf('function cmdkRun552', atI));
+    assert(/for\(const t of TOOLS\)/.test(bi) && /for\(const e of SCI451\)/.test(bi)
+      && /CMDK_PANELS552/.test(bi),
+      'T552 G3 索引必須同時涵蓋三個來源：TOOLS（建築）、SCI451（政策）、CMDK_PANELS552（面板）');
+    assert(/if\(t\.unlockRank&&rankIdx\+1<t\.unlockRank\)continue;/.test(bi),
+      'T552 G3a 索引必須沿用工具列的 unlockRank 門檻——'
+      + '否則指令面板會列出玩家還沒解鎖的建築，點下去卻找不到按鈕（路由靜默失敗）');
+    assert(html.indexOf('/* 索引即時建立（不快取）') >= 0,
+      'T552 G3b 索引必須即時建立不得快取（工具受 unlockRank、政策受解鎖影響，快取會過期說謊）');
+  }
+}
+
 /* ===== T550 面板圖表解析度（業主回報「圖表分辨率非常模糊」）=====
 
    DPR 2 實測基線：趨勢圖背板 252×96 被 CSS 拉到 407.5×156.5、需要 815×313 ＝ **3.23× 放大**；

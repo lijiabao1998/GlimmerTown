@@ -58,6 +58,31 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d1226;
 @keyframes moneyFlashUp{0%{color:#fff;text-shadow:0 0 8px rgba(123,224,138,.9)}100%{color:var(--accent)}}
 @keyframes moneyFlashDown{0%{color:#ffd0d0;text-shadow:0 0 8px rgba(226,88,92,.9)}100%{color:var(--accent)}}
 #hud .spacer{flex:1}
+/* ===== T552 A：HUD 語義分群——13 顆平排按鈕分四群，群間留白＋細分隔線。
+   群本身是 flex 且可換行，窄screen 行為與改動前一致（每群內部先擠、群再換行）。 ===== */
+#hud .hudGrp552{display:flex;align-items:center;gap:4px;flex-wrap:wrap;min-width:0}
+#hud .hudGrp552+.hudGrp552{margin-left:6px;padding-left:8px;border-left:1px solid var(--panel-border-soft)}
+/* ===== T552 B：指令面板。z-index 40＝高於 #hud(30)、低於 #start(50)
+   ⇒ 開始畫面永遠蓋得住它，不可能在主選單上開出面板。 ===== */
+#cmdk552{position:absolute;inset:0;z-index:40;background:rgba(6,10,20,.62);
+  display:flex;align-items:flex-start;justify-content:center;padding-top:12vh}
+#cmdk552 .cmdkBox552{width:min(560px,92vw);background:var(--panel-bg);
+  border:1px solid var(--panel-border-strong);border-radius:var(--radius-md);
+  box-shadow:0 18px 48px rgba(0,0,0,.55);overflow:hidden;display:flex;flex-direction:column}
+#cmdk552 #cmdkIn552{width:100%;box-sizing:border-box;background:#0f1420;color:var(--text);
+  border:0;border-bottom:1px solid var(--panel-border-soft);padding:13px 16px;font-size:15px;
+  font-family:inherit;outline:none}
+#cmdk552 #cmdkIn552::placeholder{color:var(--text-dim)}
+#cmdk552 #cmdkList552{max-height:min(46vh,380px);overflow-y:auto}
+#cmdk552 .cmdkRow552{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;
+  border-left:2px solid transparent}
+#cmdk552 .cmdkRow552.on{background:rgba(42,103,201,.22);border-left-color:var(--accent)}
+#cmdk552 .cmdkRow552 .cIc{font-size:16px;width:20px;text-align:center;flex:0 0 auto}
+#cmdk552 .cmdkRow552 .cNm{color:var(--text);font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cmdk552 .cmdkRow552 .cKind{margin-left:auto;color:var(--text-dim);font-size:10px;letter-spacing:.1em;flex:0 0 auto}
+#cmdk552 .cmdkEmpty552{padding:18px 16px;color:var(--text-dim);font-size:13px;text-align:center}
+#cmdk552 .cmdkFoot552{display:flex;gap:14px;justify-content:center;padding:7px 16px;
+  border-top:1px solid var(--panel-border-soft);color:var(--text-dim);font-size:10px;letter-spacing:.08em}
 .hbtn{background:#232c4a;border:1px solid var(--panel-border);color:var(--text);border-radius:var(--radius-xs);
   padding:2px 9px;font-size:13px;line-height:22px;cursor:pointer;transition:background-color var(--ease),border-color var(--ease),transform var(--ease),box-shadow var(--ease)}
 .hbtn:active{background:#31407a;transform:scale(.95)}
@@ -542,19 +567,39 @@ html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-
     <span class="col r"><i></i></span><span class="col c"><i></i></span><span class="col i"><i></i></span>
   </span>
   <span class="spacer"></span>
-  <button class="hbtn" id="bStats">📊</button>
-  <button class="hbtn" id="bHelp">❓</button>
-  <button class="hbtn" id="bUndo">↩️</button>
-  <button class="hbtn" id="bSpeed">▶ 1x</button>
-  <button class="hbtn" id="bSound">🔊</button>
-  <button class="hbtn" id="bSave">💾</button>
-  <button class="hbtn" id="bMenu" title="返回主選單（選難度／挑戰／戰役／畫質）">🏠</button>
-  <button class="hbtn" id="bAI" title="AI 市長：自動修路、分區、補服務、演化擴張直到覆蓋全圖">🤖</button>
-  <button class="hbtn" id="bNew">🆕</button>
-  <button class="hbtn" id="bMetro" title="切換地鐵路線圖層（站體美術恆顯示）">🚇</button><button class="hbtn" id="bBell">🔔<span id="bellDot" class="dot" style="display:none">0</span></button>
-  <button class="hbtn" id="bAch">🏆</button>
-  <button class="hbtn" id="bRot" title="旋轉視角（四向）">🔄 南</button>
-  <button class="hbtn" id="bEditor" style="display:none">🛠 目標</button>
+  <!-- T552 A：13 顆平排按鈕依語義分四群（檢視／世界／編輯／系統）。
+       只加包裹層——所有 id、onclick 與 DOM 物件原封不動。 -->
+  <span class="hudGrp552" data-hud-grp="view">
+    <button class="hbtn" id="bStats">📊</button>
+    <button class="hbtn" id="bHelp">❓</button>
+    <button class="hbtn" id="bAch">🏆</button>
+    <button class="hbtn" id="bBell">🔔<span id="bellDot" class="dot" style="display:none">0</span></button>
+  </span>
+  <span class="hudGrp552" data-hud-grp="world">
+    <button class="hbtn" id="bSpeed">▶ 1x</button>
+    <button class="hbtn" id="bAI" title="AI 市長：自動修路、分區、補服務、演化擴張直到覆蓋全圖">🤖</button>
+    <button class="hbtn" id="bRot" title="旋轉視角（四向）">🔄 南</button>
+    <button class="hbtn" id="bMetro" title="切換地鐵路線圖層（站體美術恆顯示）">🚇</button>
+  </span>
+  <span class="hudGrp552" data-hud-grp="edit">
+    <button class="hbtn" id="bUndo">↩️</button>
+    <button class="hbtn" id="bEditor" style="display:none">🛠 目標</button>
+  </span>
+  <span class="hudGrp552" data-hud-grp="sys">
+    <button class="hbtn" id="bSave">💾</button>
+    <button class="hbtn" id="bNew">🆕</button>
+    <button class="hbtn" id="bMenu" title="返回主選單（選難度／挑戰／戰役／畫質）">🏠</button>
+    <button class="hbtn" id="bSound">🔊</button>
+  </span>
+</div>
+<!-- T552 B：指令面板。路由器，不是第二套實作——所有動作一律 .click() 既有控制項（T517 判例）。 -->
+<div id="cmdk552" role="dialog" aria-modal="true" aria-label="指令面板" style="display:none">
+  <div class="cmdkBox552">
+    <input id="cmdkIn552" type="text" autocomplete="off" spellcheck="false"
+           placeholder="搜尋建築、政策、面板…（Esc 關閉）" aria-label="搜尋指令">
+    <div id="cmdkList552" role="listbox" aria-label="搜尋結果"></div>
+    <div class="cmdkFoot552"><span>↑↓ 選擇</span><span>Enter 執行</span><span>Esc 關閉</span></div>
+  </div>
 </div>
 
 <div id="hint"><span id="hintTxt"></span><button id="hintX">✕</button></div>
@@ -714,7 +759,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.177'; // T551 開始畫面結構化（業主「UI 排列還是不夠結構化」）：六區重組——模式散落三處收歸一區、難度與偏好分家（難度是這一局的參數/偏好是這台機器的口味）、help 三行各自歸位、快速設定欄數綁定晶片數（6 的因數：手機 3 桌面 6，終結 repeat(5) 對 6 顆的 5+1 留洞）；三提案+對抗評審定案，跟版 T515 G1/G2/G3
+const GAME_VER='11.178'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -22066,8 +22111,118 @@ $('#bNew').onclick=()=>{
 $('#zin').onclick=()=>zoomStep(1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#zout').onclick=()=>zoomStep(-1,cvs.clientWidth/2,cvs.clientHeight/2);
 $('#hintX').onclick=()=>{$('#hint').style.display='none';hintsOff=true;};
+/* =====================================================================
+   T552 B：指令面板（Ctrl/Cmd+K 或 /）
+   **核心紀律：這是路由器，不是第二套實作。** 沿用 T517 判例——絕不自己寫遊戲狀態，
+   一律 .click() 既有控制項，讓原本的處理器照跑（含它們各自的副作用與重繪）。
+   三條路由：
+     工具 → 先點分類鈕（工具鈕**只在其分類啟用時才存在於 DOM**），再點 [data-tid]
+     面板 → 點對應的 HUD 按鈕
+     政策 → 點 #bStats 渲染面板，再點該政策的 checkbox（T517 顧問橋接同款）
+   零亂數、不在 tick 路徑、不動存檔 ⇒ 六哨兵位元恆等。
+===================================================================== */
+let cmdkOn552=false, cmdkSel552=0, cmdkRows552=[];
+const CMDK_PANELS552=[
+  ['bStats','📊','統計面板'],['bHelp','❓','玩法指南'],['bAch','🏆','成就'],
+  ['bBell','🔔','通知中心'],['bSave','💾','存檔'],['bMenu','🏠','返回主選單'],
+  ['bAI','🤖','AI 市長'],['bRot','🔄','旋轉視角'],['bMetro','🚇','地鐵圖層'],
+  ['bSpeed','▶','切換速度'],['bUndo','↩️','撤銷'],['bSound','🔊','音效'],['bNew','🆕','開新遊戲'],
+];
+/* 索引即時建立（不快取）：工具受 unlockRank 影響、政策受解鎖影響，快取會過期說謊。 */
+function cmdkIndex552(){
+  const out=[];
+  for(const t of TOOLS){
+    if(t.unlockRank&&rankIdx+1<t.unlockRank)continue;
+    const catNm=(TOOL_CATS.find(c=>c.id===t.cat)||{}).nm||t.cat;
+    out.push({kind:'tool',ic:t.ic||'🔧',nm:t.nm,sub:catNm,key:(t.nm+' '+t.id+' '+catNm).toLowerCase(),tid:t.id,cat:t.cat});
+  }
+  for(const [id,ic,nm] of CMDK_PANELS552){
+    if(!$('#'+id))continue;
+    out.push({kind:'panel',ic,nm,sub:'面板',key:(nm+' '+id).toLowerCase(),btn:id});
+  }
+  for(const e of SCI451){
+    if(!e.polKey)continue;
+    out.push({kind:'pol',ic:e.ic||'🏛️',nm:e.nm,sub:'政策',key:(e.nm+' '+e.id).toLowerCase(),pol:e.polKey});
+  }
+  return out;
+}
+function cmdkRun552(r){
+  cmdkClose552();
+  if(!r)return false;
+  if(r.kind==='tool'){
+    const ci=TOOL_CATS.findIndex(c=>c.id===r.cat);
+    const cbs=[...($('#toolcats')?$('#toolcats').querySelectorAll('button'):[])];
+    if(ci>=0&&cbs[ci])cbs[ci].click(); // 先切分類：工具鈕只在其分類啟用時才存在
+    const tb=[...document.querySelectorAll('.tool')].find(x=>x.dataset&&x.dataset.tid===r.tid);
+    if(tb){tb.click();return true;}
+    return false;
+  }
+  if(r.kind==='panel'){const el=$('#'+r.btn);if(el){el.click();return true;}return false;}
+  if(r.kind==='pol'){
+    const sb=$('#bStats');if(sb)sb.click(); // 政策 checkbox 由統計面板渲染出來
+    const cb=$('#'+polDomId514(r.pol));
+    if(cb){cb.click();return true;}
+    toast('政策開關在 🏛️ 政策區','warn');return false;
+  }
+  return false;
+}
+function cmdkRender552(){
+  const q=($('#cmdkIn552')?$('#cmdkIn552').value:'').trim().toLowerCase();
+  const all=cmdkIndex552();
+  cmdkRows552=(q?all.filter(r=>r.key.indexOf(q)>=0):all).slice(0,40);
+  if(cmdkSel552>=cmdkRows552.length)cmdkSel552=Math.max(0,cmdkRows552.length-1);
+  const list=$('#cmdkList552');if(!list)return;
+  if(!cmdkRows552.length){list.innerHTML='<div class="cmdkEmpty552">找不到符合的項目</div>';return;}
+  list.innerHTML='';
+  cmdkRows552.forEach((r,i)=>{
+    const d=document.createElement('div');
+    d.className='cmdkRow552'+(i===cmdkSel552?' on':'');
+    d.setAttribute('role','option');d.setAttribute('aria-selected',i===cmdkSel552?'true':'false');
+    const ic=document.createElement('span');ic.className='cIc';ic.textContent=r.ic;
+    const nm=document.createElement('span');nm.className='cNm';nm.textContent=r.nm;
+    const kd=document.createElement('span');kd.className='cKind';kd.textContent=r.sub;
+    d.appendChild(ic);d.appendChild(nm);d.appendChild(kd);
+    d.addEventListener('mousedown',ev=>{ev.preventDefault();cmdkRun552(r);});
+    list.appendChild(d);
+  });
+  const on=list.querySelector('.cmdkRow552.on');
+  if(on&&on.scrollIntoView)on.scrollIntoView({block:'nearest'});
+}
+function cmdkOpen552(){
+  if(cmdkOn552)return false;
+  const el=$('#cmdk552');if(!el)return false;
+  if($('#start')&&$('#start').style.display!=='none'&&!running)return false; // 主選單不開面板
+  cmdkOn552=true;cmdkSel552=0;
+  el.style.display='flex';
+  const inp=$('#cmdkIn552');if(inp){inp.value='';inp.focus();}
+  cmdkRender552();
+  return true;
+}
+function cmdkClose552(){
+  cmdkOn552=false;
+  const el=$('#cmdk552');if(el)el.style.display='none';
+}
+{
+  const el=$('#cmdk552'),inp=$('#cmdkIn552');
+  if(el)el.addEventListener('mousedown',ev=>{if(ev.target===el)cmdkClose552();}); // 點面板外關閉
+  if(inp){
+    inp.addEventListener('input',()=>{cmdkSel552=0;cmdkRender552();});
+    inp.addEventListener('keydown',ev=>{
+      if(ev.key==='ArrowDown'){ev.preventDefault();cmdkSel552=Math.min(cmdkSel552+1,cmdkRows552.length-1);cmdkRender552();}
+      else if(ev.key==='ArrowUp'){ev.preventDefault();cmdkSel552=Math.max(cmdkSel552-1,0);cmdkRender552();}
+      else if(ev.key==='Enter'){ev.preventDefault();cmdkRun552(cmdkRows552[cmdkSel552]);}
+      else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();cmdkClose552();}
+    });
+  }
+}
 window.addEventListener('keydown',e=>{
+  /* T552：Ctrl/Cmd+K 必須判在下一行「修飾鍵一律早退」之前，否則永遠到不了。
+     面板開著時所有按鍵交給面板自己的 handler（含 Esc），不得落到下方的工具快捷鍵與
+     `Escape → 選回第一個工具`那條。 */
+  if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();cmdkOn552?cmdkClose552():cmdkOpen552();return;}
+  if(cmdkOn552){if(e.key==='Escape'){e.preventDefault();cmdkClose552();}return;}
   if(e.ctrlKey||e.metaKey||e.altKey){if(!((e.ctrlKey||e.metaKey)&&e.key==='z'))return;} // FIX-A：修飾鍵組合放行給瀏覽器，僅保留 Ctrl/Cmd+Z 撤銷
+  if(e.key==='/'){e.preventDefault();cmdkOpen552();return;} // T552：/ 未被工具快捷鍵表佔用
   const map={'1':'pan','2':'alley','3':'road','4':'coll','5':'art','6':'hwy','7':'zr','8':'zc','9':'zi','0':'park','-':'doze','=':'rdec','b':'bus','w':'water','g':'wpipe','j':'police','h':'hospital','c':'clinic','l':'library','o':'post','m':'cemetery'}; // FIX-A：水管 p→g、警察局 P→j（取消大寫 P 綁定）
   if(map[e.key]){const btn=[...document.querySelectorAll('.tool')].find(b=>b.dataset.tid===map[e.key]);if(btn)btn.click();} // FIX-E：在篩選後的可見按鈕上反查，不再用 TOOLS 全表索引（避免錯位/越界）
   if(e.key===' '){e.preventDefault();$('#bSpeed').click();}
