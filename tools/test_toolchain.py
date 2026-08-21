@@ -1764,5 +1764,71 @@ class TestConsoleEncodingT366(unittest.TestCase):
 
 
 
+
+class RunCmdChildEncodingTests(unittest.TestCase):
+    """T553: run_cmd 必須強制子 Python 行程講 UTF-8（工具鏈假紅收口）。
+
+    病灶：兩個 run_cmd 對子行程輸出做嚴格 UTF-8 解碼、解不開改寫 rc=125；
+    而子 Python 走 pipe 時 stdio 用系統碼頁（cp936），印中文就假紅——
+    活案例是 verify 第 6 閘的「code map RED」（地圖沒漂，是子行程講 cp936）。
+
+    鑑別力設計：測試必須先造敵意環境（PYTHONIOENCODING=gbk、pop PYTHONUTF8）。
+    直接跑會繼承本機/CI 的 PYTHONUTF8 而恆綠＝測不到；敵意注入在任何 locale
+    的機器上都成立（gbk 中文位元組不可能是合法 UTF-8）。
+    """
+
+    def _child(self, base):
+        script = base / 't553_child.py'
+        script.write_text(
+            "import sys\nprint(sys.stdout.encoding)\nprint('安卓探索中文測試')\n",
+            encoding='utf-8',
+        )
+        return script
+
+    def _assert_forces_utf8(self, runner, who):
+        with tempfile.TemporaryDirectory(prefix='glimmer-t553-') as td:
+            base = Path(td)
+            script = self._child(base)
+            with mock.patch.dict(os.environ, {'PYTHONIOENCODING': 'gbk'}):
+                os.environ.pop('PYTHONUTF8', None)
+                result = runner([sys.executable, script], base)
+        self.assertEqual(
+            result.returncode, 0,
+            'T553: %s.run_cmd 在敵意環境下 rc=%r —— 沒帶 env 強制子行程 UTF-8，'
+            '這就是「code map RED」假紅的根因。修法是 subprocess.run 帶 '
+            'env=os.environ 加 PYTHONUTF8=1 與 PYTHONIOENCODING=utf-8（兩個都要：'
+            'PYTHONIOENCODING 對 stdio 優先權最高，少了它敵意父環境會穿透）'
+            % (who, result.returncode),
+        )
+        self.assertIn('安卓探索中文測試', result.stdout,
+                      'T553: 中文沒完整到達父行程（%s）' % who)
+        first = result.stdout.splitlines()[0].lower()
+        self.assertIn('utf', first,
+                      'T553: 子行程自報 stdio 編碼為 %r 而非 utf-8（%s）' % (first, who))
+
+    def test_verify_run_cmd_forces_child_utf8(self):
+        self._assert_forces_utf8(verify.run_cmd, 'verify')
+
+    def test_merge_bay_run_cmd_forces_child_utf8(self):
+        self._assert_forces_utf8(merge_bay.run_cmd, 'merge_bay')
+
+    def test_verify_run_cmd_arch_map_check_no_false_red(self):
+        """T553 G3: 活假紅直接復現——乾淨環境下 arch_map --check 不得被 125 改寫。
+
+        只驗編碼路徑：rc 可以是 0（地圖新鮮）或 1（真漂移，那是第 6 閘的事），
+        唯獨不得是 125（編碼假紅）。
+        """
+        root = Path(__file__).resolve().parents[1]
+        with mock.patch.dict(os.environ):
+            os.environ.pop('PYTHONUTF8', None)
+            os.environ.pop('PYTHONIOENCODING', None)
+            result = verify.run_cmd(
+                [sys.executable, root / 'tools' / 'arch_map.py', '--check'], root)
+        self.assertNotEqual(
+            result.returncode, 125,
+            'T553: arch_map --check 被 125 改寫＝編碼假紅（地圖沒漂，是子行程講系統碼頁）')
+        self.assertNotIn('not valid UTF-8', result.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -175,6 +175,8 @@ def run_cmd(args: Sequence[object], cwd: Path, timeout: int = 300) -> CommandRes
             cwd=str(cwd),
             capture_output=True,
             timeout=timeout,
+            # T553: children must speak UTF-8 on stdio; our values override a hostile parent (PYTHONIOENCODING beats UTF-8 mode).
+            env={**os.environ, 'PYTHONUTF8': '1', 'PYTHONIOENCODING': 'utf-8'},
         )
         try:
             stdout = result.stdout.decode('utf-8')
