@@ -334,6 +334,31 @@ table.dtab tr:hover td{background:#1b2334}
 #start .startSectionTitle515{font-size:10px;line-height:1.2;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase}
 #start .startAltRow515{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:100%;min-width:0}
 #start .startAltRow515>#bEditorMode,#start .startAltRow515>#bCampaign{width:100%;min-width:0}
+/* ===== T551 開始畫面結構化：六區重組（業主「UI 排列還是不夠結構化」）=====
+   Z1 品牌前提／Z2 續玩／Z3 開新的一局／Z4 現成的局・工具／Z5 快速設定／Z6 註腳。 */
+/* Z1：機制說明從 .help 上移，與 .sub 一虛一實成段 */
+#start .subMech{color:var(--text-dim);font-size:12px;line-height:1.5;max-width:340px;
+  margin:0 0 clamp(0px,1vh,8px);text-shadow:0 1px 3px rgba(0,0,0,.65)}
+/* Z3：上手步驟降級為 #bNewGame 的 caption——它回答的正是「按下去之後要幹嘛」 */
+#start .pathHint{align-self:stretch;text-align:left;padding-left:8px;color:var(--text-dim);
+  font-size:12px;line-height:1.5;margin-top:2px}
+/* Z3 特異度倒掛防線（本卡最重要的一條 CSS）：line 318 `#start .startPrimary button` 與
+   line 325 `#start .startMore button` 同為 (1,1,1)，325 原文更後面故獲勝。#bNewGame 搬進
+   .startMore 轄區後若無此覆寫會**靜默變成 13px 小鈕**、與難度鍵同大、主次反轉——
+   headless 與 fake DOM 都量不到，只有真瀏覽器看得見。此選擇器 (2,1,0) 穩壓 (1,1,1)。 */
+#start .startConfig515>#bNewGame{width:100%;min-width:0;font-size:clamp(15px,2.1vh,17px);
+  padding:clamp(10px,1.7vh,14px) 22px}
+/* Z3：難度說明行的樣式錯配——它在 JS 裡以 className='startMoreLabel' 生出，
+   等於把 10px/letter-spacing:3px/uppercase 的「標籤」樣式套在一整句中文說明上。 */
+#start #diffDesc547{font-size:11px;letter-spacing:0;text-transform:none;line-height:1.5}
+/* Z4：框內不再加框——巢狀進 extras 的挑戰區清掉自己的框，改用一條頂線當分隔 */
+#start .startExtras515>.startChallenge515{border:0;background:none;padding:0;max-width:none;
+  border-top:1px solid rgba(73,91,139,.56);padding-top:6px}
+/* Z4：手機與 Z3 切齊，不再比隔壁窄 24px（改動前 config 320／extras 280＝邊界參差） */
+#start .startExtras515{max-width:none}
+/* Z5：欄數只能取晶片數的因數——6 顆晶片只准 6/3/2/1 欄。手機 3 欄兩列填滿、零空洞。
+   顯式欄數而非 auto-fit：auto-fit 的欄數隨容器寬浮動，寬一點就可能跳成 4＝又留洞。 */
+#start .startPrefs551 .settingsGrid{width:100%;max-width:none;grid-template-columns:repeat(3,minmax(0,1fr))}
 #start .startChallenges515{display:grid;grid-template-columns:1fr;gap:6px;width:100%;min-width:0}
 #start .startChallenges515 .alt{width:100%;min-width:0}
 /* T428：修既存水平溢出（T423 R03 遺留，非本卡引入；BEFORE/AFTER 實測皆 r=407 > vw=390）。
@@ -359,12 +384,18 @@ table.dtab tr:hover td{background:#1b2334}
   /* T515：T428 外層三欄保留；三個語義 section 自己決定橫跨範圍，終結裸 sibling 的 1040px 拉伸。 */
   #start .startMore>.startConfig515{grid-column:span 2;max-width:none;align-self:stretch}
   #start .startMore>.startExtras515{grid-column:span 1;max-width:none;align-self:stretch}
-  #start .startMore>.startChallenge515{grid-column:1/-1;max-width:760px;justify-self:center}
+  /* T551：挑戰改巢狀進 extras 後，`.startMore>.startChallenge515` 永久不匹配＝死規則，已刪除
+     （鐵律：不留會誤導下一個人的說謊規則）。偏好區改為跨滿最後一列。 */
+  #start .startMore>.startPrefs551{grid-column:1/-1;max-width:none}
   /* 編輯器／戰役只在自己的其他玩法群組內並列或換行，不能再跨滿整個 startMore。 */
   #start .startAltRow515>#bEditorMode,#start .startAltRow515>#bCampaign{flex:1 1 210px;max-width:260px}
   #start .diffrow{max-width:none;flex-wrap:nowrap}
-  #start .startConfig515 .settingsGrid{width:100%;max-width:none;grid-template-columns:repeat(5,minmax(0,1fr))}
-  #start .startChallenges515{grid-template-columns:repeat(3,minmax(0,1fr));max-width:760px}
+  /* T551：改動前這裡寫死 repeat(5)，而實際掛了 6 顆晶片（夜景後加、規則沒跟）＝永遠 5+1 留洞。
+     欄數只能取晶片數的因數：6→只准 6/3/2/1。桌面偏好區跨滿 824px，6 欄每顆約 132px，
+     最長標籤「資源：不耗盡」10px 約 60px＋padding 20＝80px，寬鬆。 */
+  #start .startPrefs551 .settingsGrid{width:100%;max-width:none;grid-template-columns:repeat(6,minmax(0,1fr))}
+  /* T551：挑戰巢狀進 extras（約 255px 內寬）後不得再排三欄——會把「🏁 挑戰：三星城市·500人」擠成三行；
+     基礎段的 grid-template-columns:1fr 直排才是對的，故此處桌面覆寫一併刪除。 */
   /* 桌面解除 .scmenu 的內層 220px 滾動（原本在 320 窄柱內再開一層滾動＝雙層滾動） */
   /* 桌面只解寬度上限（原本被關在 320 窄柱裡）；**保留 220px 內層滾動**——
      放高會把溢出推給外層，實測點開🎯戰役後 1440×900 外層溢出 222 > 改動前 153。 */
@@ -547,24 +578,33 @@ html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-
   <h1>微光小鎮</h1>
   <div class="en">G L I M M E R V I L L E</div>
   <div class="sub">從一片荒野，點亮一座小鎮。</div>
+  <!-- T551 Z1：原 .help 第 3 行（機制說明）上移當第二句標語，與 .sub 一虛一實成段。 -->
+  <div class="subMech">建築會沿著有電的道路自己生長、繳稅給你</div>
+  <!-- T551 Z2 續玩：.startPrimary 只留 #bContinue 且**不進 #startMore**。
+       #bNewGame 移出後，line 318 的 startGlow 自動只命中一顆＝全畫面唯一會呼吸的元素，
+       不需要任何咬 inline style 的狀態選擇器（#bContinue 的 display 由 JS 寫，toMainMenu 會清空）。 -->
   <div class="startPrimary">
     <button id="bContinue" style="display:none">▶ 繼續上次的小鎮</button>
-    <button id="bNewGame">🌱 開拓新地圖</button>
-  </div>
-  <div class="help">
-    🖐 拖曳平移 ・ 滾輪／雙指縮放<br>
-    🛣 先鋪路 → 🏠 劃分區域 → ⚡ 蓋電廠供電<br>
-    建築會沿著有電的道路自己生長、繳稅給你
   </div>
   <div class="startMore" id="startMore">
-    <section class="startSection515 startConfig515" data-start-role="config"></section>
+    <!-- T551 Z3：難度只對「開拓新地圖」這條路徑有意義（begin() 只有這條吃 DIFF_MONEY[diff]；
+         戰役/挑戰強制標準、編輯器強制沙盒），所以主鍵與難度同框。 -->
+    <section class="startSection515 startConfig515" data-start-role="config">
+      <button id="bNewGame">🌱 開拓新地圖</button>
+      <div class="pathHint">🛣 先鋪路 → 🏠 劃分區域 → ⚡ 蓋電廠供電</div>
+    </section>
+    <!-- T551 Z4：三種次級開局（戰役／編輯器／挑戰）收進同一區，終結「模式散落三處」。 -->
     <section class="startSection515 startExtras515" data-start-role="extras">
-      <div class="startSectionTitle515">其他玩法</div>
+      <div class="startSectionTitle515">現成的局・工具</div>
       <div class="startAltRow515"><button class="alt" id="bEditorMode">🛠 編輯器</button></div>
       <div class="startCampaign515" data-start-role="campaign"></div>
+      <section class="startSection515 startChallenge515" data-start-role="challenge"></section>
     </section>
-    <section class="startSection515 startChallenge515" data-start-role="challenge"></section>
+    <!-- T551 Z5：偏好從 config 拆出——難度是「這一局的參數」、偏好是「這台機器的口味」。 -->
+    <section class="startSection515 startPrefs551" data-start-role="prefs"></section>
   </div>
+  <!-- T551 Z6：.help 只剩操作鍵位一行、位置降到最後當註腳；class 與 CSS 一字不改（T428 G11 原文釘）。 -->
+  <div class="help">🖐 拖曳平移 ・ 滾輪／雙指縮放</div>
 </div>
 
 <script>
@@ -674,7 +714,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.176'; // T550 面板圖表解析度（業主回報模糊）：新增 fitCanvas550 尺規把主畫布的 DPR 房規接到面板圖上，迷你圖 2.02x／趨勢圖 3.23x 放大歸零；canvas 改 aspect-ratio 讓 CSS 尺寸與背板屬性脫鉤（消除量尺回饋迴圈）＋兩相讀寫與一輪收斂；純面板側不在 tick 路徑
+const GAME_VER='11.177'; // T551 開始畫面結構化（業主「UI 排列還是不夠結構化」）：六區重組——模式散落三處收歸一區、難度與偏好分家（難度是這一局的參數/偏好是這台機器的口味）、help 三行各自歸位、快速設定欄數綁定晶片數（6 的因數：手機 3 桌面 6，終結 repeat(5) 對 6 顆的 5+1 留洞）；三提案+對抗評審定案，跟版 T515 G1/G2/G3
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -22596,6 +22636,8 @@ const challenge515=startGroup515('.startChallenge515')||moreEl;
 const extras515=startGroup515('.startExtras515')||moreEl;
 const altRow515=startGroup515('.startAltRow515')||extras515;
 const campaign515=startGroup515('.startCampaign515')||extras515;
+/* T551 Z5：快速設定自己的容器。查不到就退回 config515＝改動前行為（沿用 T515 的無副作用回退慣例）。 */
+const prefs551=startGroup515('.startPrefs551')||config515;
 // T115：難度／沙盒選擇列（#start 按鈕區，仿下方 T88 挑戰按鈕先例以 JS 注入；四鈕，選中高亮，預設標準）
 if(startEl&&!$('#bDiff0')){
   const dlabel=document.createElement('div');dlabel.className='startMoreLabel';dlabel.textContent='難度'; // T158：分組標籤
@@ -22631,7 +22673,7 @@ if(startEl&&!$('#bCh1')){
     const lbEl=document.createElement('span');lbEl.className='sgLb';lbEl.textContent=label;
     b.appendChild(icEl);b.appendChild(lbEl);b.onclick=onclick;return b;};
   const setLabel=document.createElement('div');setLabel.className='startMoreLabel';setLabel.textContent='快速設定';
-  config515.appendChild(setLabel);
+  prefs551.appendChild(setLabel); // T551：偏好與難度分家
   const grid=document.createElement('div');grid.className='settingsGrid';
   const dsLabel=()=>disastersOn?'災害：開':'災害：關';
   const ds=mkSet('🌪',dsLabel(),()=>{disastersOn=!disastersOn;localStorage.setItem(SAVEKEY+'.ds',disastersOn?'1':'0');ds.querySelector('.sgLb').textContent=dsLabel();sTick();});
@@ -22654,7 +22696,7 @@ if(startEl&&!$('#bCh1')){
   /* T413b 夜景開關：overlay 即時 __noNightCity；烘焙層 reload（同 T405） */
   const ncLbl=()=>nightCityPref?'夜景：開':'夜景：關';
   const nc=mkSet('🌃',ncLbl(),()=>{nightCityPref=!nightCityPref;localStorage.setItem(SAVEKEY+'.nightcity',nightCityPref?'1':'0');if(!nightCityPref)window.__noNightCity=true;else delete window.__noNightCity;nc.querySelector('.sgLb').textContent=ncLbl();sTick();location.reload();},'bNightCity');
-  grid.appendChild(ds);grid.appendChild(ri);grid.appendChild(q);grid.appendChild(ms);grid.appendChild(bg);grid.appendChild(nc);config515.appendChild(grid); // T531：資源開關緊接災害開關
+  grid.appendChild(ds);grid.appendChild(ri);grid.appendChild(q);grid.appendChild(ms);grid.appendChild(bg);grid.appendChild(nc);prefs551.appendChild(grid); // T531：資源開關緊接災害開關；T551：掛到偏好區
 }
 // T132：場景戰役入口（開始畫面新增「🎯 戰役」按鈕，點擊展開/收合 8 關選單；比照 T88 挑戰按鈕先例以 JS 注入）
 if(startEl&&!$('#bCampaign')){
