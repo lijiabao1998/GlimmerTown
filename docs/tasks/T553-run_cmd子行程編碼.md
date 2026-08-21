@@ -58,3 +58,30 @@ env={**os.environ, 'PYTHONUTF8': '1', 'PYTHONIOENCODING': 'utf-8'},
 **明確不動**：125 改寫機制保留（launch 失敗與真非 UTF-8 輸出的最後防線）；
 `configure_stdio()`（T366b 收的是**輸出側**，另一層）；`fp_snapshot.py` 的 3 處
 subprocess（Chrome 子行程，非 Python stdio，無此病）；timeout／input_bytes 路徑。
+
+---
+
+## 4. 施工紀錄（2026-08-21 收）
+
+**不 bump（工具鏈卡，不碰 index.html）**　**工具鏈 57 → 60 例全綠**　**master 回填於合併後**
+
+### 行為證明
+- G3 活假紅轉綠：乾淨環境（pop 兩變數）下 `verify.run_cmd` 跑 `arch_map --check` → rc 0、
+  無「not valid UTF-8」。第 0 節那個「code map RED」假紅就此收口。
+- 敵意注入（`PYTHONIOENCODING=gbk`）下兩個 run_cmd 的子行程自報編碼皆 utf-8、中文完整到達、rc 真實。
+
+### 紅源三案（全咬中，紅綠分布與病理預測逐條吻合）
+①verify 拔 env → **G1+G3 雙紅**（G3＝活假紅在本機復現）／②merge_bay 拔 env → 只 G2／
+③env 只留 PYTHONUTF8 → **只 G1**（gbk 穿透 PYTHONUTF8＝「PYTHONIOENCODING 對 stdio 優先權最高」的實證；
+G3 保持綠與案一形成對照——乾淨環境下單靠 PYTHONUTF8 夠用，敵意環境下不夠）。
+
+### 過程自捕（一件）
+紅源驗證器第一版逐行解析 unittest -v 輸出，而**帶 docstring 的測試其 `... FAIL` 印在 docstring 行**、
+不含測試名＝案一的 G3 真實狀態是「未知」而非「綠」。當時三案都顯示 BIT，差點就這樣收卡。
+改為解析總結段 `FAIL: <名>` 行後重跑，才得到與病理逐條吻合的分布。
+教訓同 T552 G4：**驗證器比事實弱時，BIT 可能是假的**——這次弱的不是守衛，是驗紅的工具。
+
+### 收束後續
+- 人肉紀律（跑 merge 帶 PYTHONUTF8=1 前綴）**保留為皮帶加吊帶**，但自本卡起它不再是唯一防線；
+  記憶 windows-env-hazards §6 已補記「T553 起程式碼側已強制」。
+- 本卡合併本身仍用舊版 merge_bay 執行（修復要到合併落地後才保護下一次）——前綴照帶。
