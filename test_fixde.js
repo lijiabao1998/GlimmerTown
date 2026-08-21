@@ -12007,6 +12007,120 @@ runPwaTests().then(() => {
     'T536 G3a 寫死的「貸款到帳 $2000！」不得殘留');
 }
 
+/* ===== T550 面板圖表解析度（業主回報「圖表分辨率非常模糊」）=====
+
+   DPR 2 實測基線：趨勢圖背板 252×96 被 CSS 拉到 407.5×156.5、需要 815×313 ＝ **3.23× 放大**；
+   城市頁迷你圖 260×80 → 需要 524×164 ＝ 2.02×；`ctx.getTransform()` 回 a=1/d=1 ＝完全沒做 DPR。
+   趨勢圖是兩層疊加：`width:100%` 橫拉（DPR 1 也已 1.6× 糊）＋ 無 DPR。
+   修＝共用尺規 `fitCanvas550`，比照主畫布 `resize()` 的房規（clientWidth×DPR），
+   setTransform 後繪圖碼續用 CSS 像素座標。
+
+   守衛分工：G1 DPR 行為釘（雙向：1× 與 2× 各驗，防寫死）／G2 座標空間是 CSS 像素而非裝置像素／
+   G3 兩條路徑都接上／G4 面板隱藏時回退不炸／G5 零亂數。 */
+{
+  const mkCv550 = (cw, ch, aw, ah) => {
+    /* 造境用假 canvas：clientWidth/Height 可控，getContext 回可記錄 transform 的 stub */
+    let tr = null;
+    const g = {
+      setTransform: (a, b, c, d, e, f) => { tr = [a, b, c, d, e, f]; },
+      getTransform: () => ({ a: tr ? tr[0] : 1, d: tr ? tr[3] : 1 }),
+      clearRect(){}, beginPath(){}, moveTo(){}, lineTo(){}, stroke(){}, fill(){}, save(){}, restore(){},
+      fillText(){}, setLineDash(){},
+      createLinearGradient: () => ({ addColorStop(){} }),
+      get __tr(){ return tr; },
+    };
+    return { width: aw, height: ah, clientWidth: cw, clientHeight: ch, getContext: () => g, __g: g };
+  };
+  const fitSrc = html.slice(html.indexOf('function fitCanvas550('),
+                            html.indexOf('function drawHistChart()'));
+  assert(fitSrc.length > 100 && fitSrc.length < 1400,
+    'T550 前置：抓不到 fitCanvas550 函式體（改簽名要同步本塊），實得長度 ' + fitSrc.length);
+
+  /* 直接在測試側重建同一份邏輯無法證明產品碼——改用真跑：把函式體 eval 出來，
+     餵入可控的 devicePixelRatio 與假 canvas。clamp 由 harness 既有實作提供。 */
+  const runFit = (dpr, cv) => {
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const window = { devicePixelRatio: dpr };
+    const fn = new Function('clamp', 'window', 'Math', fitSrc + '\nreturn fitCanvas550;');
+    return fn(clamp, window, Math)(cv);
+  };
+
+  /* G1 DPR 行為釘（雙向） */
+  {
+    const cv1 = mkCv550(405, 154, 252, 96);
+    const r1 = runFit(1, cv1);
+    assert(cv1.width === 405 && cv1.height === 154,
+      'T550 G1a DPR 1：背板必須等於 CSS 尺寸 405×154（實得 ' + cv1.width + '×' + cv1.height + '）');
+    assert(r1.W === 405 && r1.H === 154, 'T550 G1a-2 回傳的 W/H 必須是 CSS 像素');
+
+    const cv2 = mkCv550(405, 154, 252, 96);
+    const r2 = runFit(2, cv2);
+    assert(cv2.width === 810 && cv2.height === 308,
+      'T550 G1b【本卡靈魂】DPR 2：背板必須是 CSS 尺寸 ×2 ＝ 810×308（實得 '
+      + cv2.width + '×' + cv2.height + '）——業主回報的模糊就是這裡沒乘');
+    assert(r2.W === 405 && r2.H === 154,
+      'T550 G1b-2 即使背板放大，回傳的 W/H 仍必須是 CSS 像素 405×154（實得 '
+      + r2.W + '×' + r2.H + '）——否則繪圖座標會跟著放大、內容只填左上角');
+    const t2 = cv2.__g.getTransform();
+    assert(t2.a === 2 && t2.d === 2,
+      'T550 G1c ctx transform 必須做 dpr 縮放（實得 a=' + t2.a + ' d=' + t2.d + '）');
+    assert(r2.dpr === 2, 'T550 G1d 回傳的 dpr 應為 2');
+  }
+  /* G1e DPR 上限：極端 dpr 不得讓背板無界成長 */
+  {
+    const cvX = mkCv550(400, 150, 252, 96);
+    runFit(9, cvX);
+    assert(cvX.width === 1600,
+      'T550 G1e dpr 應 clamp 到 4（400×4=1600，實得 ' + cvX.width + '）——防超高 DPI 產生無界背板');
+  }
+  /* G4 面板隱藏（clientWidth=0）時回退屬性尺寸，不得為 0/NaN */
+  {
+    const cvH = mkCv550(0, 0, 252, 96);
+    const rH = runFit(2, cvH);
+    assert(cvH.width === 504 && cvH.height === 192,
+      'T550 G4 clientWidth=0（面板 display:none）必須回退屬性尺寸 252×96 再乘 dpr（實得 '
+      + cvH.width + '×' + cvH.height + '）——歸零會讓整張圖消失');
+    assert(rH.W === 252 && rH.H === 96 && isFinite(rH.W), 'T550 G4a 回退後 W/H 不得為 0 或 NaN');
+  }
+  /* G2 座標空間：trendCell450 必須收 CSS 寬——繪製最右點不得超過 CSS 寬 */
+  {
+    const at = html.indexOf('function trendCell450(');
+    const body = html.slice(at, html.indexOf('function showTrendPanel450', at));
+    assert(body.indexOf('W-8') >= 0 && body.indexOf('W-4') >= 0,
+      'T550 G2 trendCell450 的座標必須由參數 W 導出（不得回到寫死 252）');
+    assert(html.indexOf('trendCell450(cv.getContext(\'2d\'),252,96,') < 0,
+      'T550 G2a 寫死 252×96 的呼叫必須絕跡——那正是「CSS 拉大、背板不動」的來源');
+    assert(htmlBare438.indexOf('trendCell450(g,W,H,') >= 0,
+      'T550 G2b 呼叫端必須把量到的 CSS 寬高傳進去');
+  }
+  /* G3 兩條路徑都接上尺規 */
+  {
+    const n550 = (htmlBare438.match(/fitCanvas550\(/g) || []).length;
+    assert(n550 === 3,
+      'T550 G3 `fitCanvas550(` 應恰 3 處（1 定義＋迷你圖＋趨勢圖），實得 ' + n550
+      + '——少一處代表有圖沒接上尺規，多出來的要跟版本釘');
+    assert(htmlBare438.indexOf('drawTrendCells550(') >= 0 && htmlBare438.indexOf('drawHistChart();') >= 0,
+      'T550 G3a 兩張圖的繪製入口都必須在場');
+    /* 這條錨點含字串字面量（'#trCv_money'），htmlBare438 會把它剝掉＝永遠找不到（T517 坑）。
+       用原始 html 比對，並改以 resize() 函式體為範圍，證明是「縮放路徑」而非別處。 */
+    const atR = html.indexOf('function resize(){');
+    const bodyR = html.slice(atR, html.indexOf('function syncHudH()', atR));
+    assert(bodyR.indexOf('drawTrendCells550()') >= 0 && bodyR.indexOf('drawHistChart()') >= 0,
+      'T550 G3b 視窗縮放必須重新量尺重畫兩張圖（否則一拖曳就退回模糊）');
+  }
+  /* G5 零亂數 */
+  assert(!/[^a-zA-Z_]R\(\)|[^a-zA-Z_]ri\(|Math\.random/.test(fitSrc),
+    'T550 G5 尺規必須零亂數（鐵律2）');
+  /* G6 時序釘：showInfoPanel 必須在量尺之前 */
+  {
+    const at6 = html.indexOf('function showTrendPanel450()');
+    const b6 = html.slice(at6, html.indexOf('function drawTrendCells550', at6));
+    const iShow = b6.indexOf('showInfoPanel();'), iDraw = b6.indexOf('drawTrendCells550(');
+    assert(iShow >= 0 && iDraw > iShow,
+      'T550 G6 showInfoPanel() 必須早於繪製（面板還是 display:none 時 clientWidth 為 0，量不到真實寬）');
+  }
+}
+
 /* ===== T549 像素指紋基線入庫（ARCH §10.6 收口）=====
 
    sprite 像素在 Node 套件裡測不到（canvas stub）——真指紋在無頭 Chrome 的 tools/fp_snapshot.py。

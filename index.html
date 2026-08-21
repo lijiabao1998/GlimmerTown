@@ -674,7 +674,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.175'; // T549 像素指紋基線入庫（ARCH §10.6 收口）：tools/fp_snapshot.py＋docs/SPR_PINS.json（1374 鍵/116 家族/兩次快照逐鍵恆等）＋套件 ver 同步閘＝每卡收束強制重跑、像素差異必經人眼；index 本體零改動
+const GAME_VER='11.176'; // T550 面板圖表解析度（業主回報模糊）：新增 fitCanvas550 尺規把主畫布的 DPR 房規接到面板圖上，迷你圖 2.02x／趨勢圖 3.23x 放大歸零；canvas 改 aspect-ratio 讓 CSS 尺寸與背板屬性脫鉤（消除量尺回饋迴圈）＋兩相讀寫與一輪收斂；純面板側不在 tick 路徑
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -2073,6 +2073,10 @@ function resize(){
   H=cvs.height=Math.round(cvs.clientHeight*DPR);
   ctx.imageSmoothingEnabled=false;
   syncHudH();
+  /* T550：面板圖表在縮放後也要重新量尺，否則一拖曳就退回模糊。
+     只重畫既有 canvas（不重建面板 HTML），面板沒開時兩個 $ 都是 null＝零成本。 */
+  if(typeof drawTrendCells550==='function'&&$('#trCv_money'))drawTrendCells550();
+  if(typeof drawHistChart==='function'&&$('#histCv'))drawHistChart();
 }
 // T322：實測導航欄高度寫入 --hud-h，#info 的 max-height 據此扣除。
 // 導航欄 flex-wrap 在窄螢幕會折成 2～3 行（實測 420px 寬時高 98px），寫死高度會讓長面板頂穿導航欄。
@@ -20437,10 +20441,29 @@ $('#bEditor').addEventListener('click',()=>{showEditor();sTick();});
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 // T112：歷史曲線——260×80 canvas，四序列各自獨立縱軸自動縮放（量級差異大，共用軸會壓平幸福/人口）
 // 僅由 showStats() 與範圍切換鈕呼叫，面板關閉時不會被呼叫、不渲染
+/* T550 面板 canvas 尺規（業主回報「圖表分辨率非常模糊」）：背板像素必須跟著裝置像素比走。
+   病灶＝面板圖的 canvas 寫死 width/height 屬性，而 CSS 又把元素拉大（趨勢圖再加 width:100%）
+   ⇒ DPR 2 實測放大 2.02×（迷你圖）與 3.23×（趨勢圖）。主畫布 #game 從第一天就做對了
+   （resize()：cvs.width=round(cvs.clientWidth*DPR)），本函式就是把同一條房規接到面板圖上。
+   用 clientWidth/clientHeight（**內容框**）而非 getBoundingClientRect（會多算 2px 邊框）；
+   setTransform 之後繪圖碼繼續用 CSS 像素座標，一行都不必改寫。
+   面板 display:none 時 clientWidth 為 0 ⇒ 回退屬性尺寸（canvas.width=0 會讓整張圖消失）。 */
+function fitCanvas550(cv,cssW,cssH){
+  const dpr=clamp(window.devicePixelRatio||1,1,4);
+  /* cssW/cssH 可由呼叫端預先量好（多張圖時「先全部量、再全部設」＝避免中途改背板觸發重排，
+     讓第一張量到尚未安定的版面——實測 trCv_money 曾因此拿到 812 背板而其餘三張是 528）。 */
+  const W=cssW||cv.clientWidth||cv.width||1, H=cssH||cv.clientHeight||cv.height||1;
+  const bw=Math.round(W*dpr), bh=Math.round(H*dpr);
+  if(cv.width!==bw)cv.width=bw;
+  if(cv.height!==bh)cv.height=bh;
+  const g=cv.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);
+  return {g,W,H,dpr};
+}
 function drawHistChart(){
   const cv=$('#histCv');if(!cv)return;
-  const g=cv.getContext('2d');
-  g.clearRect(0,0,260,80);
+  const {g,W,H}=fitCanvas550(cv); // T550：背板跟著 DPR，繪圖仍以 CSS 像素為座標
+  g.clearRect(0,0,W,H);
   if(!hist.length)return;
   const data=hist.slice(-histRange);
   const n=data.length;
@@ -20452,8 +20475,8 @@ function drawHistChart(){
     if(hi===lo)hi=lo+1;
     g.strokeStyle=col;g.lineWidth=1.2;g.beginPath();
     for(let i=0;i<n;i++){
-      const px=1+(n>1?(i/(n-1))*258:0);
-      const py=78-((data[i][k]-lo)/(hi-lo))*76;
+      const px=1+(n>1?(i/(n-1))*(W-2):0);
+      const py=(H-2)-((data[i][k]-lo)/(hi-lo))*(H-4);
       i?g.lineTo(px,py):g.moveTo(px,py);
     }
     g.stroke();
@@ -20598,6 +20621,11 @@ let techSel343='A1',techPan343={x:18,y:18,init:false},techDrag343=null;
    解決 T112 迷你圖四序列共畫布互相疊壓、無軸標無當前值的問題。
    純讀 hist（T112 既有每日環形緩衝），零模擬、零存檔變更、零 tick 觸碰；
    繪製在面板 canvas（不碰 #game）。城市頁的 260×80 迷你圖保留不動（拆它是另一個決定）。 */
+/* T550：四張小倍數圖的定義（原為 showTrendPanel450 的區域常數，提到模組層供縮放重繪共用）。 */
+const TREND_CELLS450=[['money','💰 資金','#ffd977',v=>'$'+Math.round(v)],
+                      ['net','📈 淨收支','#5ec8ff',v=>(v>=0?'+':'')+(+v).toFixed(1)],
+                      ['pop','👥 人口','#7be08a',v=>''+Math.round(v)],
+                      ['happy','😊 幸福','#ff8fd0',v=>Math.round(v*100)+'%']];
 function trendCell450(g,W,H,data,key,col,fmt){
   g.clearRect(0,0,W,H);
   const n=data.length;
@@ -20626,24 +20654,46 @@ function showTrendPanel450(){
     +'<div class="panelActionBtns515"><button class="hbtn" id="trR30">30 天</button><button class="hbtn" id="trR90">90 天</button>'
     +'<button class="hbtn" id="trR365">365 天</button></div>'
     +'<div class="panelMeta515">目前範圍 '+histRange+' 天・資料 '+data.length+' 筆（每日一筆，最多 365）</div></div>';
-  const CELLS=[['money','💰 資金','#ffd977',v=>'$'+Math.round(v)],['net','📈 淨收支','#5ec8ff',v=>(v>=0?'+':'')+(+v).toFixed(1)],
-               ['pop','👥 人口','#7be08a',v=>''+Math.round(v)],['happy','😊 幸福','#ff8fd0',v=>Math.round(v*100)+'%']];
+  const CELLS=TREND_CELLS450; /* T550：提到模組層，面板渲染與縮放重繪共用同一份定義 */
   inner+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px">';
   for(const[key,nm,col]of CELLS)
     inner+='<div><div style="font-size:11px;margin-bottom:2px">'+nm+'　<b id="trV_'+key+'" style="color:'+col+'">—</b></div>'
-      +'<canvas id="trCv_'+key+'" width="252" height="96" style="display:block;width:100%;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas></div>';
+      /* T550：CSS 尺寸必須與 width/height 屬性脫鉤——canvas 是替換元素，
+         沒有 aspect-ratio 時 CSS 高由屬性比例導出，於是「量尺→改背板→再量」會回饋放大。
+         aspect-ratio 讓版面只認 CSS，改背板不再擾動佈局（實測 812/528 兩種背板互擠的來源）。 */
+      +'<canvas id="trCv_'+key+'" width="252" height="96" style="display:block;width:100%;aspect-ratio:252/96;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas></div>';
   inner+='</div>';
   if(!hist.length)inner+=statTab([{k:'狀態',v:'尚無歷史資料',u:'開始經營後每天自動記錄',t:'dim'}]);
   $('#infoBody').innerHTML=inner;
   bindStatsTabs343();
-  for(const[key,nm,col,fmt]of CELLS){
-    const cv=$('#trCv_'+key);if(!cv)continue;
-    const cur=trendCell450(cv.getContext('2d'),252,96,data,key,col,fmt);
-    const lbl=$('#trV_'+key);if(lbl&&cur!==null)lbl.textContent=fmt(cur);
-  }
+  showInfoPanel(); /* T550：必須在量尺之前——面板還是 display:none 時 clientWidth 為 0，量不到真實寬度 */
+  drawTrendCells550(data);
   const rBtn=(id,r)=>{const el=$(id);if(el)el.onclick=()=>{histRange=r;showTrendPanel450();sTick();};};
   rBtn('#trR30',30);rBtn('#trR90',90);rBtn('#trR365',365);
-  showInfoPanel();
+}
+/* T550：趨勢四圖的繪製收口——面板重繪與視窗縮放重繪共用，避免縮放時重建整個面板 HTML。 */
+function drawTrendCells550(data){
+  const rows=[];
+  for(const[key,nm,col,fmt]of TREND_CELLS450){ // 讀取相：一次量完，四張共用同一份已安定的版面
+    const cv=$('#trCv_'+key);if(!cv)continue;
+    rows.push({cv,key,col,fmt,cssW:cv.clientWidth||cv.width||1,cssH:cv.clientHeight||cv.height||1});
+  }
+  const d=data||hist.slice(-histRange);
+  /* 寫入相。改背板可能讓版面再位移一次（實測 DPR 2 下四格由 2 欄變 3 欄、CSS 寬 406→264，
+     背板因此偏大一倍），所以最多再收斂一輪：量到的寬變了就以新寬重畫。
+     只跑兩輪＝有界，不會因版面來回擺盪而空轉。 */
+  for(let pass=0;pass<2;pass++){
+    let stable=true;
+    for(const r of rows){
+      const w2=r.cv.clientWidth||r.cv.width||1, h2=r.cv.clientHeight||r.cv.height||1;
+      if(pass&&w2===r.cssW&&h2===r.cssH)continue;
+      if(pass){stable=false;r.cssW=w2;r.cssH=h2;}
+      const {g,W,H}=fitCanvas550(r.cv,r.cssW,r.cssH);
+      const cur=trendCell450(g,W,H,d,r.key,r.col,r.fmt);
+      const lbl=$('#trV_'+r.key);if(lbl&&cur!==null)lbl.textContent=r.fmt(cur);
+    }
+    if(pass&&stable)break;
+  }
 }
 function statsTabs343(active){
   return '<div class="techTabs343 panelTabs515" role="tablist" aria-label="統計分頁">'+
@@ -21225,7 +21275,7 @@ function showStats(){
      ${rankHtml}
      ${scoreHtml}
      <div class="panelAction515"><div class="panelMeta515">📈 歷史曲線</div><div class="panelActionBtns515"><button class="hbtn" id="histR30">30天</button><button class="hbtn" id="histR90">90天</button><button class="hbtn" id="histR365">365天</button></div></div>
-     <canvas id="histCv" width="260" height="80" style="display:block;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
+     <canvas id="histCv" width="260" height="80" style="display:block;width:260px;height:80px;background:#0d1226;border:1px solid #2c3450;border-radius:4px"></canvas>
      <div class="row" style="font-size:11px;opacity:.85"><span style="color:#ffd977">●</span>資金　<span style="color:#5ec8ff">●</span>淨收入　<span style="color:#7be08a">●</span>人口　<span style="color:#ff8fd0">●</span>幸福</div>
      ${diff===3?'<div class="row">🌋 <button class="hbtn" id="sbQuake">觸發地震</button>　🌊 <button class="hbtn" id="sbFlood">觸發洪水</button>　🔥 <button class="hbtn" id="sbFire">觸發火災</button>　🌪 <button class="hbtn" id="sbTornado">觸發龍捲風</button>　☄️ <button class="hbtn" id="sbMeteor">觸發隕石</button>　⚔️ <button class="hbtn" id="sbRiot">觸發暴亂</button></div><div class="row">🦠 <button class="hbtn" id="sbPlague">觸發瘟疫</button>　☀️ <button class="hbtn" id="sbDrought">觸發乾旱</button>　🌨️ <button class="hbtn" id="sbBlizzard">觸發暴風雪</button>　☣️ <button class="hbtn" id="sbLeak">觸發工業洩漏</button></div>':''}
      ${riot?`<div class="row" style="color:#ff8a5c">🔥 暴亂中（${riot.cells.length} 戶封路）<button class="hbtn" id="riotBtn">🚔 鎮壓 $200</button></div>`:''}
