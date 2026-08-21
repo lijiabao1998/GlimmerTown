@@ -6191,24 +6191,73 @@ runPwaTests().then(() => {
     const pCfg515=static515.indexOf('data-start-role="config"');
     const pExt515=static515.indexOf('data-start-role="extras"');
     const pCha515=static515.indexOf('data-start-role="challenge"');
-    assert(pCfg515>=0&&pExt515>pCfg515&&pCha515>pExt515
+    /* T551 跟版·加嚴：原本只釘三個 role 的先後順序，那擋不住「難度被搬回繼續鈕旁邊」這種
+       把分類理由整個作廢的改動。改為同時釘四條巢狀關係（見 T551 卡面§4）。 */
+    const pPrf551=static515.indexOf('data-start-role="prefs"');
+    assert(pCfg515>=0&&pExt515>pCfg515&&pCha515>pExt515&&pPrf551>pCha515
       && /class="startSection515 startExtras515" data-start-role="extras"[\s\S]*?class="startAltRow515"[\s\S]*?id="bEditorMode"/.test(static515),
-      'T515 G1【開始層級】config → extras → challenge 三個 section 必須按順序存在；既有 #bEditorMode 必須在 extras 的 compact row，不能再是 startMore 裸 sibling');
+      'T515 G1【開始層級】config → extras（內含 challenge）→ prefs 必須按順序存在；'
+      + '既有 #bEditorMode 必須在 extras 的 compact row，不能再是 startMore 裸 sibling');
+    assert(/data-start-role="config">\s*<button id="bNewGame">/.test(static515),
+      'T551 G1a【難度歸屬】#bNewGame 必須是 config section 的第一個子元素——'
+      + '難度只對「開拓新地圖」這條路徑有意義（begin() 只有這條吃 DIFF_MONEY[diff]），'
+      + '主鍵與難度同框才是這件事的結構表達；搬走它等於把本卡的分類理由作廢');
+    /* static515 是從 `<div class="startMore"` 起算的切片，.startPrimary 在它之前——
+       故本條必須另切一份涵蓋整個 #start 的範圍（第一版誤用 static515＝永遠找不到，守衛當場咬到）。 */
+    const startBlk551=html.slice(html.indexOf('<div id="start">'), s515b);
+    assert(/<div class="startPrimary">\s*<button id="bContinue"[\s\S]{0,120}?<\/div>/.test(startBlk551)
+      && startBlk551.indexOf('class="startPrimary"') < startBlk551.indexOf('id="startMore"')
+      && !/id="startMore"[\s\S]*?class="startPrimary"/.test(startBlk551),
+      'T551 G1b【續玩獨立】#bContinue 必須獨佔 .startPrimary，且該容器不得被搬進 #startMore——'
+      + '它移出後 startGlow 才只命中一顆＝全畫面唯一會呼吸的元素；'
+      + '搬進 #startMore 會撞上 line 325 的 (1,1,1) 特異度而無聲縮成 13px');
+    assert(/data-start-role="extras"[\s\S]*?data-start-role="challenge"[\s\S]*?<\/section>\s*<\/section>/.test(static515),
+      'T551 G1c【模式歸一】挑戰 section 必須巢狀在 extras 之內——業主抱怨的正是「模式散落三處」，'
+      + '戰役／編輯器／挑戰三種次級開局必須在同一區');
     assert(/const config515=startGroup515\('\.startConfig515'\)\|\|moreEl;/.test(dyn515)
       && /const challenge515=startGroup515\('\.startChallenge515'\)\|\|moreEl;/.test(dyn515)
       && /const altRow515=startGroup515\('\.startAltRow515'\)\|\|extras515;/.test(dyn515)
       && /config515\.appendChild\(dlabel\)[\s\S]*?config515\.appendChild\(drow\)/.test(dyn515)
       && /const challenges515=document\.createElement\('div'\);challenges515\.className='startChallenges515';[\s\S]*?challenges515\.appendChild\(mk\('bCh1'[\s\S]*?\)\)[\s\S]*?challenges515\.appendChild\(mk\('bCh2'[\s\S]*?\)\)[\s\S]*?challenges515\.appendChild\(mk\('bCh3'[\s\S]*?\)\)[\s\S]*?challenge515\.appendChild\(challenges515\)/.test(dyn515)
-      && /config515\.appendChild\(grid\)/.test(dyn515)
+      /* T551 跟版：判準由「難度與偏好同屬設定」改為「**難度是這一局的參數、偏好是這台機器的口味**」，
+         故快速設定（setLabel＋grid）改掛 prefs551。這是本卡唯一無法避免的守衛改判——
+         任何把偏好從 config 拆出的方案都會撞上這一條。 */
+      && /prefs551\.appendChild\(setLabel\)/.test(dyn515)
+      && /prefs551\.appendChild\(grid\)/.test(dyn515)
+      && /const prefs551=startGroup515\('\.startPrefs551'\)\|\|config515;/.test(dyn515)
       && /altRow515\.appendChild\(bCamp\);campaign515\.appendChild\(scMenu\);/.test(dyn515),
-      'T515 G2【事件歸屬】難度/設定/三挑戰/戰役必須分派到自己的 group；所有既有 id 與原 onclick 仍由同一個原物件承接');
+      'T515 G2【事件歸屬】難度歸 config、快速設定歸 prefs551、三挑戰與戰役各歸其位；'
+      + '所有既有 id 與原 onclick 仍由同一個原物件承接（T551 跟版：偏好與難度分家）');
     assert(desk515.length>200
       && /#start \.startMore\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\);[\s\S]*?max-width:min\(840px,92vw\)/.test(desk515)
       && /#start \.startMore>\.startConfig515\{grid-column:span 2/.test(desk515)
       && /#start \.startMore>\.startExtras515\{grid-column:span 1/.test(desk515)
-      && /#start \.startMore>\.startChallenge515\{grid-column:1\/-1/.test(desk515)
-      && /#start \.startChallenges515\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\);max-width:760px\}/.test(desk515),
-      'T515 G3【桌面節律】外層仍是 T428 三欄；設定 2 欄、其他玩法 1 欄、挑戰跨滿且內部三欄/760px 上限，防挑戰重回滿版巨條');
+      /* T551 跟版：挑戰改巢狀進 extras 後，`.startMore>.startChallenge515` 永久不匹配＝死規則，
+         連同「桌面三欄」一起刪（255px 窄欄內排三欄會把「🏁 挑戰：三星城市·500人」擠成三行）。
+         偏好區接手最後一列的跨滿位置。 */
+      && /#start \.startMore>\.startPrefs551\{grid-column:1\/-1/.test(desk515)
+      && !/#start \.startMore>\.startChallenge515/.test(css515)
+      && !/#start \.startChallenges515\{grid-template-columns:repeat\(3/.test(css515),
+      'T515 G3【桌面節律】外層仍是 T428 三欄；開新局 2 欄、現成的局 1 欄、偏好跨滿最後一列；'
+      + '挑戰巢狀後的兩條死規則必須絕跡（不留會誤導下一個人的說謊規則）');
+    /* T551 新釘一：特異度倒掛防線。這是全卡最容易靜默壞版的一處。 */
+    assert(/#start \.startConfig515>#bNewGame\{width:100%;min-width:0;font-size:clamp\(15px,2\.1vh,17px\)/.test(css515),
+      'T551 G3a【特異度】必須有 `#start .startConfig515>#bNewGame{…}` 覆寫——'
+      + 'line 318 `#start .startPrimary button` 與 line 325 `#start .startMore button` 同為 (1,1,1)，'
+      + '325 原文更後面故獲勝；#bNewGame 進入 .startMore 轄區後若無此 (2,1,0) 覆寫，'
+      + '會**無聲**變成 13px 小鈕、與難度鍵同大、主次反轉——headless 與 fake DOM 都量不到');
+    /* T551 新釘二：欄數必須是晶片數的因數。 */
+    assert(/#start \.startPrefs551 \.settingsGrid\{width:100%;max-width:none;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/.test(css515)
+      && /#start \.startPrefs551 \.settingsGrid\{width:100%;max-width:none;grid-template-columns:repeat\(6,minmax\(0,1fr\)\)\}/.test(desk515)
+      && !/#start \.startConfig515 \.settingsGrid/.test(css515),
+      'T551 G3b【欄數綁定晶片數】快速設定共 6 顆，欄數只能取 6 的因數（6/3/2/1）——'
+      + '手機 3 欄、桌面 6 欄，兩者都零空洞。寫 4 或 5 必留洞：'
+      + '改動前桌面寫死 repeat(5) 而實際掛了 6 顆（夜景後加、規則沒跟），就是這條規則被違反的化石');
+    /* T551 新釘三：#diffDesc547 的樣式錯配。 */
+    assert(/#start #diffDesc547\{font-size:11px;letter-spacing:0;text-transform:none/.test(css515),
+      'T551 G3c【樣式與內容相符】#diffDesc547 在 JS 裡以 className=\'startMoreLabel\' 生出，'
+      + '等於把 10px/letter-spacing:3px/uppercase 的「標籤」樣式套在一整句中文說明上；'
+      + '移除這條覆寫，一整句話會退回被打散的字距');
     assert(/@media \(orientation:portrait\)\{\n  #info\{left:0;right:0;margin-inline:auto;width:min\(560px,92vw\);max-width:92vw\}\n\}/.test(css515)
       && /\.panelTabs515\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(104px,1fr\)\);/.test(css515)
       && /\.panelAction515\{display:grid;grid-template-columns:max-content minmax\(0,1fr\);/.test(css515)
