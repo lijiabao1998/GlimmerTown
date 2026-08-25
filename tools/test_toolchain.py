@@ -1830,5 +1830,25 @@ class RunCmdChildEncodingTests(unittest.TestCase):
         self.assertNotIn('not valid UTF-8', result.stderr)
 
 
+
+class SignoffPartiesSyncTests(unittest.TestCase):
+    """T557 同步釘：兩份簽核名單（JS/Python）是同一條規則的兩份實作，必須逐位一致。
+
+    同族病譜系（T518→T530→T533→T535→T536→T543→T553）的防治手法：
+    跨語言無法共用一份真相源，就讓測試把兩份釘在一起——改一邊不改另一邊＝紅。
+    """
+
+    def test_signoff_parties_lists_match(self):
+        root = Path(__file__).resolve().parents[1]
+        src = (root / 'test_fixde.js').read_text(encoding='utf-8')
+        m = re.search(r"SIGNOFF_PARTIES557 = \[([^\]]*)\]", src)
+        self.assertIsNotNone(m, 'T557: test_fixde.js 找不到 SIGNOFF_PARTIES557 名單')
+        js = tuple(s.strip().strip("'").strip('"') for s in m.group(1).split(',') if s.strip())
+        self.assertEqual(
+            js, merge_bay.SIGNOFF_PARTIES,
+            'T557: 兩份簽核名單脫鉤（JS=%r vs Python=%r）——同族病：改一邊必須同步另一邊'
+            % (js, merge_bay.SIGNOFF_PARTIES))
+
+
 if __name__ == '__main__':
     unittest.main()
