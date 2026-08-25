@@ -1850,5 +1850,39 @@ class SignoffPartiesSyncTests(unittest.TestCase):
             % (js, merge_bay.SIGNOFF_PARTIES))
 
 
+
+class BumpArgValidationTests(unittest.TestCase):
+    """T564: bump.py 參數驗證——非版本字串必須拒絕且零寫入（實踩：--help 被寫進兩檔）。"""
+
+    def _mini_root(self, base):
+        root = base / 'repo'
+        root.mkdir()
+        # write_bytes：Windows 的 write_text 會把換行轉 CRLF、被 bump 的鐵律 20 斷言咬（環境陷阱 §5）
+        (root / 'index.html').write_bytes(b"const GAME_VER='1.0';\n")
+        (root / 'sw.js').write_bytes(b"const APP_VER='1.0';\n")
+        return root
+
+    def test_rejects_non_version_and_writes_nothing(self):
+        from tools import bump as bump_mod
+        with tempfile.TemporaryDirectory(prefix='glimmer-t564-') as td:
+            root = self._mini_root(Path(td))
+            with mock.patch.object(bump_mod, 'ROOT', str(root)):
+                before = ((root / 'index.html').read_bytes(), (root / 'sw.js').read_bytes())
+                with self.assertRaisesRegex(SystemExit, 'T564'):
+                    bump_mod.bump('--help')
+                after = ((root / 'index.html').read_bytes(), (root / 'sw.js').read_bytes())
+        self.assertEqual(before, after,
+            'T564: 拒絕之後兩檔必須位元不動（實踩事故裡 --help 被寫進 GAME_VER/APP_VER）')
+
+    def test_accepts_real_version(self):
+        from tools import bump as bump_mod
+        with tempfile.TemporaryDirectory(prefix='glimmer-t564-') as td:
+            root = self._mini_root(Path(td))
+            with mock.patch.object(bump_mod, 'ROOT', str(root)):
+                bump_mod.bump('12.5')
+                self.assertIn("GAME_VER='12.5'", (root / 'index.html').read_text(encoding='utf-8'))
+                self.assertIn("APP_VER='12.5'", (root / 'sw.js').read_text(encoding='utf-8'))
+
+
 if __name__ == '__main__':
     unittest.main()

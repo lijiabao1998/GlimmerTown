@@ -10062,6 +10062,142 @@ runPwaTests().then(() => {
     'T558 k62 排氣：垃圾>0／zoom2 必須有決定性且可見的排氣團（muted A/B 差），實得 ' + wtePuffs);
 }
 
+/* ===== T559 操作回饋（框選單擊拒因＋分區覆蓋提示；檔尾＝下游零依賴）===== */
+{
+  window.GV.newWorldSeeded(21); window.GV.weather(0); window.GV.addMoney(100000);
+  const cc559 = window.GV.center();
+  const selTool559 = (tid) => {
+    let btn = null;
+    for (const cb of elMap.get('toolcats').children) {
+      cb.click();
+      btn = elMap.get('tools').children.find(c => c.dataset.tid === tid);
+      if (btn) break;
+    }
+    assert(btn, 'T559 應找得到工具鈕 ' + tid);
+    btn.click();
+  };
+  const toastN559 = () => window.GV.notif526().total;
+  // G1 拒因說話：中心格鋪路 → 選 zr → 單擊路格 → toast +1、零落地
+  assert(place('road', cc559[0], cc559[1]), 'T559 G1 造境：中心格應可鋪路');
+  selTool559('zr');
+  const g1t0 = toastN559(), g1z0 = window.GV.stats().zones, g1m0 = window.GV.stats().money;
+  pointer('pointerdown', 400, 300); pointer('pointerup', 400, 300);
+  assert(window.GV.stats().zones === g1z0 && window.GV.stats().money === g1m0,
+    'T559 G1 無效格單擊不得落地');
+  assert(toastN559() === g1t0 + 1,
+    'T559 G1 框選工具單擊無效格必須把 canPlace 拒因 toast 出來（修前三軸全靜默）');
+  // G3 無噪音（對稱釘）：東鄰草地格單擊 → 落地成功、零多餘 toast
+  const g3t0 = toastN559(), g3z0 = window.GV.stats().zones;
+  pointer('pointerdown', 432, 316); pointer('pointerup', 432, 316);
+  assert(window.GV.stats().zones === g3z0 + 1, 'T559 G3 可建格單擊應落地');
+  assert(toastN559() === g3t0, 'T559 G3 成功放置不得產生任何 toast（防「用噪音修靜默」）');
+  // G2 覆蓋提示：對角畫兩格 zone → solar 手勢蓋上 → toast +1、undo 可復原
+  window.GV.newWorldSeeded(22); window.GV.weather(0); window.GV.addMoney(100000);
+  const cc2 = window.GV.center();
+  assert(place('zr', cc2[0], cc2[1]) && place('zr', cc2[0] + 1, cc2[1] + 1),
+    'T559 G2 造境：對角兩格分區');
+  selTool559('solar');
+  const g2t0 = toastN559();
+  pointer('pointerdown', 400, 300); pointer('pointerup', 400, 300);
+  assert(tile(cc2[0], cc2[1]).bld && tile(cc2[0], cc2[1]).bld.k === 25, 'T559 G2 太陽能應落在中心格');
+  assert(toastN559() === g2t0 + 1, 'T559 G2 大建築壓掉 2 格分區必須提示（43 個 ct.zone=0 案點的單點覆蓋）');
+  elMap.get('bUndo').onclick();
+  assert(tile(cc2[0], cc2[1]).zone === 1 && tile(cc2[0] + 1, cc2[1] + 1).zone === 1,
+    'T559 G2 提示裡說的「可 Ctrl+Z 復原」必須是真話——undo 後分區原樣回來');
+  // G4 doze 排除：分區格 doze → 零覆蓋提示（明示刪除不吵）
+  window.GV.newWorldSeeded(23); window.GV.weather(0); window.GV.addMoney(100000);
+  const cc3 = window.GV.center();
+  assert(place('zr', cc3[0], cc3[1]), 'T559 G4 造境');
+  selTool559('doze');
+  const g4t0 = toastN559();
+  pointer('pointerdown', 400, 300); pointer('pointerup', 400, 300);
+  assert(!tile(cc3[0], cc3[1]).zone, 'T559 G4 doze 應清掉分區');
+  assert(toastN559() === g4t0, 'T559 G4 doze 是明示刪除，不得出覆蓋提示');
+  // G5 零亂數：新增碼機械掃
+  const cu559 = html.slice(html.indexOf('const closeUndo=()=>{'), html.indexOf('function toTile'));
+  assert(cu559.length > 100 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(cu559),
+    'T559 G5 closeUndo 覆蓋統計不得消耗亂數');
+}
+
+/* ===== T560 教學 h3 啟動源判準（同族病第九例：兩處數電廠判準不同步）===== */
+{
+  const mkTown560 = (seed) => {
+    window.GV.newWorldSeeded(seed); window.GV.weather(0); window.GV.addMoney(300000);
+    const c = window.GV.center();
+    for (let i = 0; i < 4; i++) assert(place('road', c[0] - 1 + i, c[1]), 'T560 造境鋪路');
+    for (let i = 0; i < 4; i++) assert(place('zr', c[0] - 1 + i, c[1] + 1), 'T560 造境畫區');
+    // hintShown/hintsOff 由 newWorld 成對重置（鐵律7，index:11285）——重播種即乾淨，不需手動清
+    elMap.get('hintTxt').textContent = '';
+  };
+  // G1a 基線（防恆真）：無啟動源 → h3 顯示
+  mkTown560(31);
+  window.GV.step(1);
+  assert(elMap.get('hintTxt').textContent.includes('蓋一座'),
+    'T560 G1a 基線：無啟動源時 h3 必須顯示——沒有這條，下一段永遠恆真');
+  // G1b：核電＝啟動源 → h3 不再教「蓋一座電廠」
+  mkTown560(31);
+  const nu560 = findSpot('nuclear');
+  assert(nu560 && place('nuclear', nu560.x, nu560.y), 'T560 應可建核電');
+  window.__t412Set(nu560.x, nu560.y, 'age', 9);
+  elMap.get('hintTxt').textContent = ''; // 造境期間無 step ⇒ checkHints 未跑 ⇒ hintShown 仍空
+  window.GV.step(1);
+  assert(!elMap.get('hintTxt').textContent.includes('蓋一座'),
+    'T560 G1b 核電已是啟動源，h3 不得再教「蓋一座電廠」——修前 checkHints 拿到的 plants 只數 k5');
+  // G2：純太陽能＝非啟動源（需電廠併網）→ h3 持續引導（設計語意釘）
+  mkTown560(32);
+  const so560 = findSpot('solar');
+  assert(so560 && place('solar', so560.x, so560.y), 'T560 應可建太陽能');
+  window.__t412Set(so560.x, so560.y, 'age', 9);
+  elMap.get('hintTxt').textContent = ''; // 造境期間無 step ⇒ checkHints 未跑 ⇒ hintShown 仍空
+  window.GV.step(1);
+  assert(elMap.get('hintTxt').textContent.includes('蓋一座'),
+    'T560 G2 純太陽能不啟動電網（面板原文「需電廠併網啟動」），h3 必須持續引導——防「順手放寬」');
+  // G3 同步釘：兩處 k 集合原文互鎖
+  assert(/if\(b\.k===5\|\|b\.k===58\|\|b\.k===59\|\|b\.k===60\|\|b\.k===62\)pwrStart560\+\+/.test(html),
+    'T560 G3 pwrStart560 的啟動源集合必須是 {5,58,59,60,62}——改這裡要同步 computePower 的 plants++ 各行');
+  for (const kk of ['58', '59', '60', '62'])
+    assert(new RegExp('b\\.k===' + kk + '\\)\\{plants\\+\\+').test(html),
+      'T560 G3 computePower 啟動源 k' + kk + ' 的 plants++ 行必須在場——改那裡要同步 pwrStart560 集合');
+  assert(/checkHints\(pwrStart560,roads\)/.test(html),
+    'T560 G3 checkHints 必須吃啟動源計數（不是只數 k5 的 plants）');
+  // G4 plants 語意不變
+  assert(/plants\*4/.test(html), 'T560 G4 plants*4 維護費原文釘——plants 語意（k5 專用）不得被本卡改動');
+}
+
+/* ===== T563 烘焙草坪冬季相（位元級「只換清單色」證明＋雙開機路徑同族病釘）===== */
+{
+  const KEYS563 = ['112_1_0', '113_1_0', '47_1_0', '23_1_0', '23_1_1', '23_1_2', '23_1_3', '23_1_4'];
+  for (const k563 of KEYS563) {
+    const b0 = window.__t420SPR.bld[k563];
+    assert(b0 && b0.win563 && b0.win563.img, 'T563 G1 ' + k563 + ' 冬側版必須在場');
+    assert(b0.win563.w === b0.w && b0.win563.h === b0.h && b0.win563.ax === b0.ax && b0.win563.ay === b0.ay,
+      'T563 G1b ' + k563 + ' 冬側版幾何必須與原精靈一致');
+    assert(b0.win563.night === b0.night, 'T563 G1c ' + k563 + ' 夜圖共用原 night（夜層不含草皮色）');
+  }
+  /* G2 位元級映射證明【移層】：本 harness 的主 DOM stub 畫布無像素
+     （getImageData 恆回空 4 位元組——winterize563 在此環境跑的是物件層、不是像素層），
+     位元真相由 fp_snapshot 承接：真 Chrome 對 win563 每鍵算 CRC 入基線＝映射值被釘死，
+     「映射改錯值」由 fp --check 咬（本卡紅源③實證）；既有 1,374 鍵 CRC 不變
+     ＝「沒碰既有像素」的機器證明。人眼層＝樣張三組。 */
+  // G3 雙開機路徑同族病釘：winterize563() 恰 2 個呼叫點（總管＋bootstrap 分段）
+  const calls563 = (html.match(/winterize563\(\);/g) || []).length;
+  assert(calls563 === 2,
+    'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
+    + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
+  assert(/buildSpritesS9\(\);winterize563\(\);await bootCheckpoint426/.test(html),
+    'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
+  // G4 draw 分派＋k9 排除
+  assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
+  for (let v9 = 0; v9 < 14; v9++) {
+    const s9 = window.__t420SPR.bld['9_1_' + v9];
+    if (s9) assert(!s9.win563, 'T563 G4b k9 體育場刻意除外（球場雪封是設計裁決），9_1_' + v9 + ' 不得有冬側版');
+  }
+  // G5 零亂數
+  const wz563 = html.slice(html.indexOf('function winterize563'), html.indexOf('/* ===== T426 拆段'));
+  assert(wz563.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(wz563),
+    'T563 G5 winterize563 不得消耗任何亂數（鐵律 2）');
+}
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {

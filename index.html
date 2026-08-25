@@ -759,7 +759,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.178'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.179'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -2728,6 +2728,46 @@ function buildSprites(){
   rand=mulberry32(20260712);
   buildSpritesS1();buildSpritesS2();buildSpritesS3();buildSpritesS4();buildSpritesS5();
   buildSpritesS6();buildSpritesS7();buildSpritesS8();buildSpritesS9();
+  winterize563();
+}
+/* ===== T563 烘焙草坪冬季相（加蓋式，手法沿 T353「季節色表補漏」；對已生成畫布產出冬側版，
+   draw 端一行分派）。五棟同病（SPR.bld 家族冬季鍵 0、draw 僅 k4 有季節分派）：
+   k112 中央公園／k113 大學城方庭／k47 植物園／k23 牧場五變體；k9 體育場【刻意除外】——
+   13 種球場雪封與否是玩法視覺語意（hockey 本就是冰場），留業主裁決。
+   plate() 族底色的衍生五色（speck±/edge±）用活的 shade() 同步生成＝與生成端永不脫鉤（同族病防治）。
+   k47 同色雙用（#6f9a48 兼室外花圃與溫室內植株）：x 謂詞限定溫室帶（96..112）以外才換。
+   夜圖不含草皮色，冬側版共用原 night。全程 getImageData 查表、零共用亂數（鐵律 2）。 ===== */
+function winterize563(){
+  const hx=(s)=>parseInt(s.slice(1),16);
+  const SNOW='#e8eef2',SNOW_D='#d4dce6',SNOW_L='#f2f6fa'; // T229 WIN 原調
+  const plateWin=(col)=>({[hx(col)]:hx(SNOW),[hx(shade(col,-10))]:hx(shade(SNOW,-8)),
+    [hx(shade(col,8))]:hx(shade(SNOW,5)),[hx(shade(col,-20))]:hx(SNOW_D),[hx(shade(col,10))]:hx(SNOW_L)});
+  const remap563=(src,w,h,map,pred)=>{const[c2,g2]=cv(w,h);g2.drawImage(src,0,0);
+    const im=g2.getImageData(0,0,w,h),d=im.data;
+    for(let i=0;i<d.length;i+=4){
+      if(d[i+3]===0)continue;
+      if(pred&&!pred((i>>2)%w))continue;
+      const v=map[(d[i]<<16)|(d[i+1]<<8)|d[i+2]];
+      if(v!==undefined){d[i]=(v>>16)&255;d[i+1]=(v>>8)&255;d[i+2]=v&255;}
+    }
+    g2.putImageData(im,0,0);return c2;};
+  const JOBS=[
+    ['112_1_0',{[hx('#6da254')]:hx(SNOW),[hx('#5c8f46')]:hx(SNOW_D),[hx('#7eb365')]:hx(SNOW_L)},null],
+    ['113_1_0',{[hx('#79b060')]:hx(SNOW),[hx('#9aa07e')]:hx(SNOW),[hx('#878d6c')]:hx(SNOW_D),[hx('#aab08c')]:hx(SNOW_L)},null], // 方庭＋校園鋪地三色（4×4 大片 khaki 在雪景裡是土黃毯，樣張裁定入表）
+    ['47_1_0',plateWin('#7a9a5a'),null],
+    ['47_1_0',{[hx('#6f9a48')]:hx(SNOW_D)},(px)=>px<96||px>112],
+    ['23_1_0',plateWin('#7a9a4a'),null],
+    ['23_1_1',plateWin('#7a9a4a'),null],
+    ['23_1_2',plateWin('#7a9a4a'),null],
+    ['23_1_3',plateWin('#7a9a4a'),null],
+    ['23_1_4',plateWin('#7a9a4a'),null],
+    ['23_1_4',{[hx('#5d8b45')]:hx(SNOW_D)},null],
+  ];
+  for(const[k,map,pred]of JOBS){
+    const b0=SPR.bld[k];if(!b0)continue;
+    const src=b0.win563?b0.win563.img:b0.img; // 同鍵多表＝疊代（k47 兩輪、23_1_4 兩輪）
+    b0.win563={img:remap563(src,b0.w,b0.h,map,pred),night:b0.night,ax:b0.ax,ay:b0.ay,w:b0.w,h:b0.h,smoke:[]};
+  }
 }
 /* ===== T426 拆段：buildSprites 函式級宣告上提（純重構，像素零漂移；S1..S9 依序共用） ===== */
 let __savedR,rand;
@@ -14503,7 +14543,7 @@ function tick(){
     }
   }
   // 經濟
-  let income=0,upkeep=0,roads=0,parks=0,plants=0,bridges=0,nI=0,taxR=0,taxC=0,taxI=0,fireStations=0,policeStations=0,hospitals=0,policeBoxes=0,rentCut452=0,lvtRev453=0,mwCost454=0,aggGain458=0,cleanCost459=0,greenRev473=0,lezCost471=0,parkMin494Cost=0,waterP499Cost=0; // T222：派出所計數 /* T452：租金管制砍掉的住宅稅日額（對帳欄，關閉恆 0）；T453：土地價值稅日收（同）；T454：最低工資商家成本（同）；T458：聚集紅利（同） */
+  let income=0,upkeep=0,roads=0,parks=0,plants=0,pwrStart560=0,bridges=0,nI=0,taxR=0,taxC=0,taxI=0,fireStations=0,policeStations=0,hospitals=0,policeBoxes=0,rentCut452=0,lvtRev453=0,mwCost454=0,aggGain458=0,cleanCost459=0,greenRev473=0,lezCost471=0,parkMin494Cost=0,waterP499Cost=0; // T222：派出所計數 /* T452：租金管制砍掉的住宅稅日額（對帳欄，關閉恆 0）；T453：土地價值稅日收（同）；T454：最低工資商家成本（同）；T458：聚集紅利（同） */
   let stations=0,ports=0,airports=0,parkingLots=0,tramStations=0,farms=0,ranches=0,landmarks=0,solars=0,winds=0,sewages=0,ambulances2=0,recyclings=0,fireStation2s=0,prisons=0,universities=0;
   /* T409：服務可觀測性——tick 區域計數器（T387b medCured387／T145 svcSamples 先例：不進存檔、不需 newWorld/load 成對歸零＝鐵律7 免疫）。
      本迴圈位於火災段（起火/蔓延）與犯罪段之後 ⇒ 計到的是「當日結算後仍未處理」的積案數，正是派遣佇列的真實輸入；
@@ -14519,6 +14559,7 @@ function tick(){
     /* T409：可出勤判定條件逐字照抄 updFireTrucks／updPoliceCars 的候選過濾式——公式一旦漂移，面板數字就會對玩家說謊，故守衛以原文字串比對 */
     if(b.k<=3&&b.fire){fireN409++;if(COV.fire[i]>0||(COV.fire2&&COV.fire2[i]>0)||(COV.fireHQ&&COV.fireHQ[i]>0))fireSvc409++;}
     if(b.k<=3&&b.crime){crimeN409++;crimeSvc409++;} /* T410：與派遣端逐字同步——候選已無覆蓋過濾 ⇒ 可出勤=全部積案（T409 鐵約：本判定與 updPoliceCars 候選式一致，漂移=面板說謊） */
+    if(b.k===5||b.k===58||b.k===59||b.k===60||b.k===62)pwrStart560++; // T560：電網啟動源（判準＝computePower 啟動源集合，供 checkHints h3；與 plants 分開——plants 還餵 k5 維護費與 achStats）
     if(b.k===3)nI++;
     if(b.k===4)parks++;
     else if(b.k===5)plants++;
@@ -14754,7 +14795,7 @@ function tick(){
     money+=250;bailoutDay=day;
     toast('🏦 小鎮銀行送來 $250 紓困金（也可到 📊 面板貸款）','gold');
   }
-  checkHints(plants,roads);
+  checkHints(pwrStart560,roads); // T560：h3 判準改用啟動源計數（核電/水力/地熱/焚化也算「電廠」）
   aiStep(); // T260：AI 市長每日決策（aiMode 關閉時零成本早退；置於經濟結算後＝以當日最新 money/dem/COV 決策）
   /* ===== T384 flowStat BEGIN（tick 寫快照、面板純讀；只抄本 tick 已算好的值，零重算零亂數零副作用——
      比照 gFlow284/demWhy/fin 慣例；與 hist 同視角＝aiStep 後。僅面板/測試可讀，禁止餵回模擬。） ===== */
@@ -17418,6 +17459,7 @@ function draw(dt){
     else if(bd.k===1&&bd.lv===3&&bd.den>=4)s=wealthSpr('1_3_4',bd.we); // 高密度 Lv3 住宅（T30）；T125：財富色變，缺鍵回退中產
     else if(bd.k===1)s=wealthSpr(bd.k+'_'+bd.lv+'_'+bd.v,bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0']; // T125：住宅財富色變；變體鍵兜底同 FIX-D
     else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）；T239：服務升級 lv>1 無對應圖時退回 lv1（升級不改外觀、僅疊等級星）
+    if(win&&snowLvl>0&&s&&s.win563)s=s.win563; // T563：烘焙草坪冬側版（比照 k4 季節分派；一行、兜底自動繼承；k9 刻意除外見卡面）
     /* T364a sc sprite view：新波素材以 2× 畫布保存細節，僅在世界繪製時縮放。
        無 sc 的既有素材直接保留原物件／原 w,h,ax,ay，下面所有舊算式逐位元不變；
        有 sc 才建立一次快取檢視，將邏輯尺寸與錨點同步縮放，並保留原圖尺寸給施工裁切與遮罩快取。 */
@@ -19022,7 +19064,12 @@ let lastTapT=0,lastTapX=0,lastTapY=0; // T108：單擊雙擊（含觸控）＝�
 let twoTapT=0,twoTapX=0,twoTapY=0;    // T108：雙指雙擊＝縮小一檔，偵測用時間戳/座標
 let undoStack=[],undoGroup=null;
 const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};
-const closeUndo=()=>{if(undoGroup&&undoGroup.snaps.length){undoStack.push(undoGroup);if(undoStack.length>40)undoStack.shift();}undoGroup=null;};
+const closeUndo=()=>{if(undoGroup&&undoGroup.snaps.length){
+  if(tool!=='doze'){ // T559：手勢收束時數「快照有 zone、現在沒了」——43 個 ct.zone=0 案點的單點覆蓋；doze 是明示刪除不提示
+    let zc559=0;for(const sn of undoGroup.snaps){try{if(JSON.parse(sn.s).zone&&!tiles[sn.i].zone)zc559++;}catch(e){}}
+    if(zc559>0)toast('⚠️ '+zc559+' 格分區被覆蓋（可 Ctrl+Z 復原）');
+  }
+  undoStack.push(undoGroup);if(undoStack.length>40)undoStack.shift();}undoGroup=null;};
 
 function toTile(cssX,cssY){
   const mx=cssX*DPR,my=cssY*DPR;
@@ -19251,6 +19298,10 @@ function commitRect(){
   if(skippedHi)toast(`已跳過 ${skippedHi} 棟 Lv2+ 建築（單獨點兩次可拆）`);
   closeUndo();
   if(done){sBuild();}
+  else if(single){ // T559：框選工具單擊無效格＝把 canPlace 拒因說出來；多格框選維持靜默 skip 語意
+    const why559=canPlace(tool,x0,y0);
+    if(why559){toast(why559,'bad');sErr();}
+  }
 }
 /* T239 功能建築升級系統：復用 bld.lv（已進存檔第3位）當服務升級等級，零存檔格式改動；升級提升等級→更多就業＋等級星＋加成，成本隨等級遞增。UP_MAX 各建築上限（體育場15，其餘10）。純提升 lv，不動 COV/存檔序列化 */
 const UP_MAX={9:15,6:10,7:10,11:10,12:10,13:10,14:10,15:10,10:10,5:10,16:10,28:10,29:10,30:10,17:10,18:10,21:10,54:10,55:10,53:8,56:15,22:8,23:8,25:10,26:10,57:10,58:10,59:10,60:10,61:10,62:10,63:8,64:10,65:8}; // T290：購物中心擴店 8 級；T285：倉儲容量升級；T280：溫室擴建 8 級；T265：焚化發電機組可升至10級；T257：核電/水力/地熱亦可升級擴容、消防總局可升級；T251：農場 k22 灌溉升級（8 級）；大農場 k53 亦升級；T252：牧場 k23 牧養升級（8 級）；T253：太陽能 k25/風力 k26 亦可升級擴容；T254：食品加工廠 k57 可升級加工容量（10 級）
@@ -22704,7 +22755,7 @@ async function bootstrap426(){
     buildSpritesS6();await bootCheckpoint426(53,'建立大型建築與購物中心…','city');
     buildSpritesS7();await bootCheckpoint426(65,'建立新建築與農牧生活…','life');
     buildSpritesS8();await bootCheckpoint426(92,'細緻建築、屋頂與四季細節…','life');
-    buildSpritesS9();await bootCheckpoint426(96,'烘焙夜景與動態生命…','night'); // S9 尾已還原 R
+    buildSpritesS9();winterize563();await bootCheckpoint426(96,'烘焙夜景與動態生命…','night'); // S9 尾已還原 R；T563 兩條開機路徑各掛一次（同族病：另一處在 buildSprites 總管）
     await bootCheckpoint426(97,'整理工具與介面…','night');
     buildToolbar();resize();
     await bootCheckpoint426(99,'點亮主選單…','night');
@@ -23052,7 +23103,7 @@ window.GV={
     const walk=(fam,key,v)=>{
       if(isCvs(v)){push(fam,key,v);return;}
       if(!v||typeof v!=='object'){skipped++;return;}
-      if(v.img!==undefined){push(fam,key,v.img,v.night,v.ax,v.ay,v.sc,v.nightCity);return;}
+      if(v.img!==undefined){push(fam,key,v.img,v.night,v.ax,v.ay,v.sc,v.nightCity);if(v.win563&&v.win563.img)push(fam,key+'.win563',v.win563.img,v.win563.night,v.win563.ax,v.win563.ay);return;} // T563：冬側版入清冊＝入 fp 基線（映射值被 CRC 釘死）
       if(v.A!==undefined){push(fam,key+'.A',v.A,v.NA||null,v.ax,v.ay,v.sc);if(v.B!==undefined)push(fam,key+'.B',v.B,v.NB||null,v.ax,v.ay,v.sc);return;}
       if(Array.isArray(v)){for(let i=0;i<v.length;i++)walk(fam,(key?key+'.':'')+i,v[i]);return;}
       let any=false;

@@ -27,6 +27,10 @@ def cur():
     return (a.group(1) if a else None),(b.group(1) if b else None)
 
 def bump(new):
+    # T564：格式驗證——任何非版本字串（實踩案例：--help）直接拒絕且零寫入；
+    # 否則壞版本會讓 cur() 的 [\d.]+ 正則失配，下一次 bump 崩在讀舊版本＝工具自傷。
+    if not re.fullmatch(r'\d+\.\d+(\.\d+)?', new):
+        raise SystemExit('T564: 版本號格式必須是 N.N 或 N.N.N，收到 %r。用法：python tools/bump.py 11.179' % (new,))
     ip=ROOT+r'\index.html'; sp=ROOT+r'\sw.js'
     idx=readb(ip); sw=readb(sp)
     old=re.search(r"const GAME_VER='([\d.]+)'",idx).group(1)
