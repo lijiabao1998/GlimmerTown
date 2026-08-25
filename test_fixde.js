@@ -10062,7 +10062,7 @@ runPwaTests().then(() => {
     'T558 k62 排氣：垃圾>0／zoom2 必須有決定性且可見的排氣團（muted A/B 差），實得 ' + wtePuffs);
 }
 
-console.log('\nFIX-D/FIX-E 回歸測試全部通過');
+  console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
   console.error('FAIL: PWA 回歸測試非預期例外', err && err.stack ? err.stack : err);
