@@ -1253,10 +1253,9 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   assert(/seaL===1&&nightDepth>0/.test(html), 'T361c 螢火蟲應僅夏夜（nightDepth>0）');
   assert(typeof window.GV.lifeShips === 'function', 'T361a GV.lifeShips 鉤子應存在');
   assert(typeof window.GV.lifeShipsByKind === 'function', 'T361a GV.lifeShipsByKind 鉤子應存在');
-  // 運行時：__noLife 時 updLifeShips 應清空（不依賴模擬種子）
-  window.__noLife = true;
-  assert(window.GV.lifeShips() === 0, 'T361 __noLife 開啟前預設船隊為 0（新圖）');
-  window.__noLife = false;
+  // 運行時 A/B 移至檔尾 T558 塊——原版在新圖上開著開關斷言 0＝恆真式（船隊本來就 0、
+  // 開關根本沒被行使；ROADMAP 掛帳的「:413 無鑑別力」本尊）。此處不得重播種：
+  // 本段位於共享狀態區（後方 SVK 存檔測試依賴前面積木蓋的城），重播種＝炸城＋動亂數流尾端。
 }
 /* ===== T363 垃圾焚化發電廠運轉視覺（k62 draw-time 排氣／夜班；禁 updSmoke）===== */
 {
@@ -1277,20 +1276,7 @@ assert(Array.isArray(window.GV.sprAboveAudit()), 'T355 sprAboveAudit 應回傳�
   // updSmoke 本體仍不得被改成接 k62 煙（smoke:[] 契約）
   assert(/SPR\.bld\['62_1_0'\]=\{img:c,night:nc,ax,ay,w:136,h:150,smoke:\[\]\}/.test(html),
     'T265/T363：k62 仍應為 smoke:[]（不接入每幀煙霧亂數流）');
-  // 行為：放置 k62 後 forceDraw 不拋錯；開關可設
-  window.__noWteFx = false;
-  try {
-    if (typeof window.GV.forceDraw === 'function') window.GV.forceDraw();
-  } catch (e) {
-    assert(false, 'T363 forceDraw 不應拋錯：' + e.message);
-  }
-  window.__noWteFx = true;
-  try {
-    if (typeof window.GV.forceDraw === 'function') window.GV.forceDraw();
-  } catch (e) {
-    assert(false, 'T363 __noWteFx 下 forceDraw 不應拋錯：' + e.message);
-  }
-  window.__noWteFx = false;
+  // 行為 A/B 移至檔尾 T558 塊——原版只驗「不拋錯」＝效果死了也測不到（無鑑別力家族）。
 }
 /* ===== T367 視角四向旋轉（view-space 變換層）===== */
 {
@@ -10031,7 +10017,52 @@ runPwaTests().then(() => {
     assert(twin422.control===twin422.after,'T422 G4 同 seed 不 draw／draw 後下一顆 R 必須恆等，實得 '+JSON.stringify(twin422));
   }
 
-  console.log('\nFIX-D/FIX-E 回歸測試全部通過');
+  /* ===== T558 執行期開關真 A/B（修無鑑別力斷言；置於檔尾＝下游零依賴、不碰共享狀態）=====
+   稽核結論：9 個執行期被撥動的 __no* 開關中 7 個健康（__noRefineryFx／__noFlow384／__noVeh／
+   __noRoofProps417／__noFarNight422／__noOpp455／__noPowerDistrict432 皆有非零基線或位元恆等 A/B），
+   2 個無鑑別力：__noLife（恆真式）與 __noWteFx（只驗不拋錯）。本塊補齊。
+   判準（入方法論）：執行期開關斷言必須先確立「關閉態的非零基線」、再驗「開啟態的差異」；
+   恆真式（兩態同值也綠）一律判紅。 */
+{
+  // --- __noLife：港口完工＋幀推進生船（基線>0）→ 開關＋一幀 → 清空 ---
+  window.GV.newWorldSeeded(301); window.GV.setDiff(1);
+  const pt558 = findSpot('port');
+  assert(pt558 && place('port', pt558.x, pt558.y), 'T558 應可建港口（k18 cargo hub）');
+  window.__t412Set(pt558.x, pt558.y, 'age', 9);
+  window.__noLife = false;
+  for (let i558 = 0; i558 < 60 && window.GV.lifeShips() === 0; i558++) window.GV.advanceN(0.05, 6);
+  assert(window.GV.lifeShips() > 0,
+    'T558 基線：港口完工＋幀推進後船隊必須 >0（開關關閉態）——沒有非零基線，清空斷言永遠恆真');
+  window.__noLife = true;
+  window.GV.advanceN(0.05, 1);
+  assert(window.GV.lifeShips() === 0, 'T361/T558 __noLife 開啟＋一幀後船隊必須清空');
+  window.__noLife = false;
+
+  // --- __noWteFx：ellipse 追蹤 A/B（手法沿 T364b）——k62 排氣是 ctx.ellipse ---
+  window.GV.newWorldSeeded(301); window.GV.setDiff(1);
+  window.GV.ai(true); for (let d558 = 0; d558 < 60; d558++) window.GV.step(1); window.GV.ai(false);
+  window.GV.addMoney(50000); // canPlace 含資金檢查——60 天 AI 城可能太窮（T265 同法）
+  const wte558 = findSpot('wasteIncinerator');
+  assert(wte558 && place('wasteIncinerator', wte558.x, wte558.y), 'T558 應可建 k62 焚化廠');
+  window.__t412Set(wte558.x, wte558.y, 'age', 9);
+  assert(window.GV.garbageInfo().amount > 0,
+    'T558 造境：60 天 AI 城垃圾量必須 >0（活動排氣的前置條件 garbage>0）');
+  const traceWte558 = muted => {
+    gameEllipseTrace = [];
+    window.__noWteFx = muted;
+    window.GV.setZoom(2); window.GV.lookAt(wte558.x, wte558.y); window.GV.setVisT(55); window.GV.forceDraw();
+    const out558 = JSON.parse(JSON.stringify(gameEllipseTrace));
+    gameEllipseTrace = null;
+    return out558;
+  };
+  const wteMuted = traceWte558(true), wteActive = traceWte558(false), wteRepeat = traceWte558(false);
+  window.__noWteFx = false;
+  const wtePuffs = wteActive.length - wteMuted.length;
+  assert(JSON.stringify(wteActive) === JSON.stringify(wteRepeat) && wtePuffs >= 2,
+    'T558 k62 排氣：垃圾>0／zoom2 必須有決定性且可見的排氣團（muted A/B 差），實得 ' + wtePuffs);
+}
+
+console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
   console.error('FAIL: PWA 回歸測試非預期例外', err && err.stack ? err.stack : err);
