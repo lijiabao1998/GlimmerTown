@@ -1,0 +1,11 @@
+import { connect, sleep } from './cdp.mjs';
+const c = await connect();
+const evT = async (expr, ms = 4000) => Promise.race([c.evalJs(expr).catch(e => 'EXC:' + String(e.message).slice(0, 100)), sleep(ms).then(() => '<<T>>')]);
+console.log('href:', await evT('location.href', 3000));
+console.log('readyState:', await evT('document.readyState', 3000));
+console.log('GV:', await evT('typeof GV', 3000));
+console.log('title:', await evT('document.title', 3000));
+console.log('start:', await evT(`!!document.querySelector('#start')`, 3000));
+console.log('newgame:', await evT(`!!document.querySelector('#bNewGame')`, 3000));
+console.log('sw:', await evT(`(navigator.serviceWorker&&navigator.serviceWorker.controller)?navigator.serviceWorker.controller.scriptURL:'none'`, 3000));
+process.exit(0);

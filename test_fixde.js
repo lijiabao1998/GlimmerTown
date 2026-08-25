@@ -855,6 +855,39 @@ assert(Array.isArray(window.GV.sprFootAudit()), 'T291 sprFootAudit 應回傳陣�
     JSON.stringify(noField371.map(l => (l.match(/^\S+ \| (\S+)/) || [])[1])) + '）');
 }
 
+/* ===== T557 master 直寫簽核閘 =====
+   病灶：merge_bay 的 assert_signoff_landed（禁「待」＋具名）只掛合併交易 preflight——
+   而 T541 起的實際工作流大量直寫 master（工具鏈卡/撤卡/文件卡），這條路全程無閘。
+   T370a（2026-07-29）自陳「這個缺口本身另立卡」，163 張卡後由本卡收。
+   本守衛把同一判準搬進主套件：任何 verify（bay／integration／merge 時的 frozen base）都會執行，
+   直寫 master 的產物最遲在下一次合併的 base 驗證被咬住。
+   分界錨點＝T553 條目（錨點字串而非行號）。其後新條目：(a)必須有驗收欄（沿 T371）；
+   (b)必須具名 SIGNOFF_PARTIES557 之一；(c)不得含待覆核語意。
+   刻意不溯及：歷史 24 條「待」在分界之前豁免——「實機冒煙待人」「樣張待業主人眼裁定」
+   是合法且可能永久的狀態（T552 稽核：該禁的是待覆核語意，不是待字）。
+   同族病防治：SIGNOFF_PARTIES557 與 merge_bay.py 的 SIGNOFF_PARTIES 是同一條規則的
+   兩份跨語言實作，由 test_toolchain 的同步釘互相看守（改一邊不改另一邊＝紅）。 */
+{
+  const SIGNOFF_PARTIES557 = ['Claude', 'Kimi', 'Codex', 'Grok', 'DeepSeek', '業主', 'GPT'];
+  assert(SIGNOFF_PARTIES557.length > 0,
+    'T557 簽核名單不得為空（空名單會讓所有新條目無法具名＝全紅）');
+  const entries557 = fs.readFileSync(path.join(__dirname, 'docs', 'CHANGELOG.md'), 'utf8')
+    .split(/\r?\n/).filter(l => /^\d{4}-\d{2}-\d{2} \| /.test(l));
+  const cut557 = entries557.findIndex(l => / \| T553 run_cmd /.test(l));
+  assert(cut557 >= 0, 'T557 應能在 CHANGELOG 找到 T553 條目當分界錨點');
+  for (const line of entries557.slice(0, cut557)) {
+    const id557 = (line.match(/^\S+ \| (\S+)/) || [])[1] || line.slice(0, 24);
+    const m557 = line.match(/\| (驗收:[^|]*)$/);
+    assert(m557, 'T557 條目 ' + id557 + ' 缺驗收欄——master 層簽核閘（判準同 merge_bay preflight，'
+      + '直寫 master 也要過）');
+    assert(!/驗收:待|待非作者覆核|待覆核/.test(m557[1]),
+      'T557 條目 ' + id557 + ' 驗收欄含待覆核語意——master 不留待覆核：覆核沒完成就別落 master，'
+      + '或如實寫自簽聲明（「未經第三方覆核，如實聲明」）');
+    assert(SIGNOFF_PARTIES557.some(p => m557[1].includes(p)),
+      'T557 條目 ' + id557 + ' 驗收欄未具名簽核方（' + SIGNOFF_PARTIES557.join('/') + ' 之一）');
+  }
+}
+
 /* ===== T353 錨點一致性守衛（修「農場動畫漂移」）=====
    病灶：doFarm() 的 (ax,ay) 是「田地在畫布上的繪製座標」，T281 的 stages() 卻把它當成精靈錨點
    metadata 寫入 SPR.farmGrow。大農場 base/farmSea=164/242、farmGrow=104/218 ⇒ draw() 用 s.ax/s.ay

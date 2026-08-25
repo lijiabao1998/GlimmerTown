@@ -1,0 +1,12 @@
+import { connect, sleep } from './cdp.mjs';
+const c = await connect();
+const evT = async (expr, ms = 5000) => Promise.race([c.evalJs(expr).catch(e => 'EXC:' + String(e.message).slice(0, 120)), sleep(ms).then(() => '<<T>>')]);
+console.log('GV:', await evT('typeof GV', 3000));
+console.log('day:', await evT('GV.stats().day', 3000));
+console.log('money:', await evT('Math.round(GV.stats().money)', 3000));
+console.log('newWorld:', await evT('(()=>{try{GV.newWorldSeeded(101);GV.setDiff(1);return "ok";}catch(e){return "ERR:"+e.message}})()', 4000));
+console.log('day2:', await evT('GV.stats().day', 3000));
+console.log('place1:', await evT(`String(GV.place('road',10,6))`, 3000));
+console.log('roads:', await evT('GV.stats().roads', 3000));
+console.log('iife:', await evT(`JSON.stringify((()=>{const ok=[];for(let x=2;x<70;x++){if(GV.place('road',x,6))ok.push(x);}return {n:ok.length};})())`, 5000));
+process.exit(0);
