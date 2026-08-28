@@ -463,6 +463,22 @@ window.__t413ForceRoad=function(x,y){if(!inMap(x,y))return false;const t=tiles[i
 window.__t413ForceWater=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.t=0;t.bld=null;t.road=0;return true;}; // T413b B4 造境：直寫水格
 window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,bakeByKind:()=>({...(window.__t413BakeByKind||{})}),strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0}),sx:(x,y)=>_sx413(x,y),sy:(x,y)=>_sy413(x,y),visPad:()=>Math.max(40,80*_z413()),setShake:(v)=>{shakeT=+v||0;return shakeT;},getShake:()=>shakeT};}; // T413a/b 測試橋（第三輪：分族 bake + strokes + shake/pad）
 window.__t413R=function(){let c=0;const o=R;R=function(){c++;return o();};try{nightTierDirty413=true;rebuildNightTier413();}finally{R=o;}return c;}; // T413a 測試橋：重建期間 R() 實際消耗計數——文本掃描看不穿 helper 間接層（覆核繞過①c），行為計數看得穿
+window.__t565=function(){return{bakeCount:()=>window.__t565BakeCount|0,padKeys:()=>window.__t565PadKeys|0,
+  wall:()=>window.__t565Wall|0,fence:()=>window.__t565Fence|0,gate:()=>window.__t565Gate|0,
+  reset:()=>{window.__t565Wall=0;window.__t565Fence=0;window.__t565Gate=0;window.__t565GateMask=0;},
+  gateMask:()=>window.__t565GateMask|0,
+  padPixel:(key,x,y)=>{const s=SPR.bld[key];if(!s||!s.img)return -1;const d=s.img.getContext('2d').getImageData(x,y,1,1).data;return(d[0]<<16)|(d[1]<<8)|d[2];},
+  probe:(x,y)=>{ // T565 behavioral bridge: replay draw() object-chain geometry for one tile, return counter deltas
+    const i=idx(x,y),bd=tiles[i].bld;if(!bd)return null;
+    const o={x,y,sx:_sx413(x,y),sy:_sy413(x,y)}; // sxOf/syOf 是 draw() 局域；_sx413/_sy413 模組層同式（shakeT=0 時逐位等值）
+    let s=bd.k===1?(wealthSpr('1_'+(bd.lv||1)+'_'+bd.v,bd.we)||SPR.bld['1_1_0']):(SPR.bld[bd.k+'_'+(bd.lv||1)+'_'+bd.v]||SPR.bld[bd.k+'_1_0']);
+    if(!s)return null;
+    if(s.sc!==undefined){const raw=s,q=s.sc;s=raw._scView||(raw._scView={...raw,w:raw.w*q,h:raw.h*q,ax:raw.ax*q,ay:raw.ay*q,_scSrcW:raw.w,_scSrcH:raw.h});}
+    const bx=o.sx+(32-s.ax)*cam.z,by=o.sy+(32-s.ay)*cam.z;
+    const w0=window.__t565Wall|0,f0=window.__t565Fence|0,g0=window.__t565Gate|0;
+    drawLotFence565(ctx,o,bd,cam.z,0,1);drawLotFence565(ctx,o,bd,cam.z,1,1);
+    drawPartyWall565(ctx,o,bd,s,bx,by,cam.z,1);
+    return{wall:(window.__t565Wall|0)-w0,fence:(window.__t565Fence|0)-f0,gate:(window.__t565Gate|0)-g0};}};};
 window.__t422=function(){return{spec:(k,x,y,s)=>farNightRect422({k},x,y,0,0,s),palette:()=>FAR_NIGHT_C422.slice(),stats:()=>({cand:farNightCandN422,drawn:farNightDrawN422,legacy:farNightLegacyN422,R:farNightR422,C:farNightC422,I:farNightI422,L:farNightL422})};}; // T422 測試橋：純樣式與完整 draw 接線計數（不進正式 GV）
 window.__t422Screen=function(){const out=[],of=ctx.fillRect;ctx.fillRect=function(...a){if(ctx.globalCompositeOperation==='screen')out.push({col:String(ctx.fillStyle),rect:a.map(Number)});return of.apply(ctx,a);};try{draw(.016);}finally{ctx.fillRect=of;}return out;}; // T422：觀察最終 screen 合成真落筆，防 helper／計數器與 nightSprites 正式輸出脫鉤假綠
 window.__t422Quality=function(q){const old=quality;quality=q;return old;}; // T422：低畫質 legacy 回退行為造境
@@ -10184,7 +10200,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);await bootCheckpoint426/.test(html),
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);await bootCheckpoint426/.test(html), /* T565 修訂：鏈尾加 buildSpritesS10()，本釘同步收緊為完整新鏈（原釘「緊接 S9」被 S10 插入咬中＝互鎖如預期運作） */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -10196,6 +10212,69 @@ runPwaTests().then(() => {
   const wz563 = html.slice(html.indexOf('function winterize563'), html.indexOf('/* ===== T426 拆段'));
   assert(wz563.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(wz563),
     'T563 G5 winterize563 不得消耗任何亂數（鐵律 2）');
+}
+
+
+/* ===== T565 街廓織理三件套（連棟／分族地墊／工業圍籬＋路側大門）守衛 =====
+   （④屋頂景觀經查已由 T425/T446 draw-time 屋頂層覆蓋，本卡不收＝不重複造輪子，見卡面補記） */
+{
+  const bare565 = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  // G1 雙開機路徑掛載釘（T563 同族病防治）：S10 緊接 winterize563、恰 2 處
+  const squash565 = bare565.replace(/\s+/g, '');
+  const mounts565 = (squash565.match(/winterize563\(\);buildSpritesS10\(\);/g) || []).length;
+  assert(mounts565 === 2, 'T565 G1 兩條開機路徑各需「winterize563();buildSpritesS10();」相鄰掛載，實得 ' + mounts565
+    + '——漏掛分段路徑＝真瀏覽器永遠無地墊（T563 原型實踩的同族病）');
+  assert((window.__t565BakeCount | 0) >= 1, 'T565 G1b 本環境 S10 已跑（__t565BakeCount≥1），實得 ' + (window.__t565BakeCount | 0));
+  assert((window.__t565PadKeys | 0) > 50, 'T565 G1c 地墊後處理觸碰 RCI 鍵數 >50（三族 lv1-3），實得 ' + (window.__t565PadKeys | 0));
+  /* G2 像素層真相沿 T563 G2 判例：主 DOM stub 畫布無像素，位元證明由 fp_snapshot 承接——
+     白名單（RCI ^[123]_ 族）外 CRC 漂移由 fp --check 咬；本套件守物件層＋接線。 */
+  assert(/drawPartyWall565\(ctx,o,bd,s,bx,by,z,drawA\)/.test(html), 'T565 G2b 連棟掛點（T427 區塊內）必須在場');
+  const fenceCalls565 = (html.match(/drawLotFence565\(ctx,o,bd,z,[01],drawA\)/g) || []).length;
+  assert(fenceCalls565 === 2, 'T565 G2b 圍籬雙相位掛點（drawImage 前後各一）恰 2 處，實得 ' + fenceCalls565);
+  // G3/G4/G7 行為釘（真造境；計數器量落筆，no-op／拔判定必紅）
+  {
+    window.GV.newWorldSeeded(565); window.GV.weather(0); window.GV.setVisT(8);
+    if (window.GV.setZoom) window.GV.setZoom(1);
+    const CX = 36, CY = 36; // 連棟密度閥 .78：本對雜湊 streetHash(36,36,56511)=0.539 過閥（釘死造境點＝釘死雜湊）
+    window.__t384Bld(1, CX, CY); window.__t412Set(CX, CY, 'age', 9);
+    window.__t384Bld(1, CX + 1, CY); window.__t412Set(CX + 1, CY, 'age', 9);
+    const b565 = window.__t565(); b565.reset();
+    const r1 = b565.probe(CX, CY);
+    assert(r1 && r1.wall > 0, 'T565 G3 相鄰兩棟 k1lv1 連棟 strokes>0（繪製器 no-op 會紅），實得 ' + (r1 && r1.wall));
+    window.__t384Bld(1, CX + 6, CY + 6); window.__t412Set(CX + 6, CY + 6, 'age', 9);
+    b565.reset(); const r2 = b565.probe(CX + 6, CY + 6);
+    assert(r2 && r2.wall === 0, 'T565 G3b 孤棟不得有連棟，實得 ' + (r2 && r2.wall));
+    window.__t384Bld(3, CX + 12, CY); window.__t412Set(CX + 12, CY, 'age', 9);
+    window.__t413ForceRoad(CX + 12, CY + 1);
+    b565.reset(); const r3 = b565.probe(CX + 12, CY);
+    assert(r3 && r3.fence > 0, 'T565 G4 k3 圍籬 strokes>0，實得 ' + (r3 && r3.fence));
+    assert(r3 && r3.gate > 0, 'T565 G4 路側大門 strokes>0，實得 ' + (r3 && r3.gate));
+    assert((b565.gateMask() & 4) !== 0, 'T565 G4c 大門必須開在路側邊（路在 (x,y+1) → 螢幕邊 e=2；只數缺口數看不穿開錯邊），實得 mask=' + b565.gateMask());
+    window.__t384Bld(3, CX + 20, CY + 8); window.__t412Set(CX + 20, CY + 8, 'age', 9);
+    b565.reset(); const r4 = b565.probe(CX + 20, CY + 8);
+    assert(r4 && r4.fence > 0 && r4.gate === 0, 'T565 G4b 四向無路＝有籬無門，實得 fence=' + (r4 && r4.fence) + ' gate=' + (r4 && r4.gate));
+    window.__noAdj565 = true; b565.reset();
+    const r5 = b565.probe(CX, CY); const r6 = b565.probe(CX + 12, CY);
+    window.__noAdj565 = false;
+    assert(r5 && r5.wall === 0 && r6 && r6.fence === 0 && r6.gate === 0,
+      'T565 G7 __noAdj565 全關時三計數恆 0，實得 wall=' + (r5 && r5.wall) + ' fence=' + (r6 && r6.fence) + ' gate=' + (r6 && r6.gate));
+    if (window.GV.setZoom) {
+      window.GV.setZoom(0.5); b565.reset();
+      const r7 = b565.probe(CX, CY);
+      window.GV.setZoom(1);
+      assert(!r7 || r7.wall === 0, 'T565 G7b z<1（lodFar）連棟短路，實得 ' + (r7 && r7.wall));
+    }
+  }
+  // G5 零亂數（剝註解字面掃：S10＋雙繪製器，鐵律 2）
+  const s10Seg565 = bare565.slice(bare565.indexOf('function buildSpritesS10'), bare565.indexOf('let __savedR,rand;')); // 剝註解後端點必須是程式碼錨（註解錨會被剝成空白→indexOf=-1→切到檔尾）
+  assert(s10Seg565.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(s10Seg565),
+    'T565 G5 buildSpritesS10 不得消耗 R()/ri()/rand()/Math.random/spriteTexRand');
+  const drwSeg565 = bare565.slice(bare565.indexOf('function drawPartyWall565'), bare565.indexOf('function drawFacadeMemory426')); // 同上：程式碼錨
+  assert(drwSeg565.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(drwSeg565),
+    'T565 G5b draw-time 雙繪製器不得消耗 R()/ri()/rand()/Math.random/spriteTexRand');
+  // G6 純讀鐵律：draw-time 雙繪製器不得寫 tiles（兩釘/六哨兵由既有套件承接——本卡純視覺）
+  assert(!/tiles\[idx\([^\)]*\)\]\.(bld|road|zone)\s*=[^=]/.test(drwSeg565),
+    'T565 G6 draw-time 雙繪製器不得寫 tiles（純讀鐵律）');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
