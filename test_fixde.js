@@ -10201,7 +10201,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);await bootCheckpoint426/.test(html), /* T565 修訂：鏈尾加 buildSpritesS10()，本釘同步收緊為完整新鏈（原釘「緊接 S9」被 S10 插入咬中＝互鎖如預期運作） */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);await bootCheckpoint426/.test(html), /* T567 修訂：鏈尾加 buildSpritesS11()，本釘同步收緊為完整新鏈（T565 已演習一次：原釘被插入咬中＝互鎖如預期運作） */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -10222,8 +10222,8 @@ runPwaTests().then(() => {
   const bare565 = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
   // G1 雙開機路徑掛載釘（T563 同族病防治）：S10 緊接 winterize563、恰 2 處
   const squash565 = bare565.replace(/\s+/g, '');
-  const mounts565 = (squash565.match(/winterize563\(\);buildSpritesS10\(\);/g) || []).length;
-  assert(mounts565 === 2, 'T565 G1 兩條開機路徑各需「winterize563();buildSpritesS10();」相鄰掛載，實得 ' + mounts565
+  const mounts565 = (squash565.match(/winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);/g) || []).length;
+  assert(mounts565 === 2, 'T565 G1（T567 修訂：鏈尾加 S11 同步收緊為完整新鏈）兩條開機路徑各需「winterize563();buildSpritesS10();buildSpritesS11();」相鄰掛載，實得 ' + mounts565
     + '——漏掛分段路徑＝真瀏覽器永遠無地墊（T563 原型實踩的同族病）');
   assert((window.__t565BakeCount | 0) >= 1, 'T565 G1b 本環境 S10 已跑（__t565BakeCount≥1），實得 ' + (window.__t565BakeCount | 0));
   assert((window.__t565PadKeys | 0) > 50, 'T565 G1c 地墊後處理觸碰 RCI 鍵數 >50（三族 lv1-3），實得 ' + (window.__t565PadKeys | 0));
@@ -10295,6 +10295,52 @@ runPwaTests().then(() => {
   // G3 預算面：等量替換＝每道縫仍恰一次批次落筆（橋帶臂撤、立牆臂補），T523 census（7500 紅線）
   //   由全域閘門承接；實得值記入卡面施工紀錄。
   // G4 位元面：純 draw-time、烘焙零觸碰 ⇒ 指紋零漂移（無白名單宣告），六哨兵/兩釘由既有套件承接。
+}
+
+/* ===== T567 剪影驅動烘焙三件套（牆角收邊／檐下陰影／牆基 AO）守衛 ===== */
+{
+  const bare567 = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  const squash567 = bare567.replace(/\s+/g, '');
+  // G1 雙開機路徑掛載釘（T563 同族病防治）：S11 緊接 S10、恰 2 處（T563 G3b／T565 G1 兩條舊鏈釘已同步收緊）
+  const mounts567 = (squash567.match(/buildSpritesS10\(\);buildSpritesS11\(\);/g) || []).length;
+  assert(mounts567 === 2, 'T567 G1 兩條開機路徑各需「buildSpritesS10();buildSpritesS11();」相鄰掛載，實得 ' + mounts567
+    + '——漏掛分段路徑＝真瀏覽器永遠無收邊（T563 原型實踩的同族病）');
+  assert((window.__t567BakeCount | 0) >= 1, 'T567 G1b 本環境 S11 已跑（__t567BakeCount≥1），實得 ' + (window.__t567BakeCount | 0));
+  assert((window.__t567Keys | 0) > 50, 'T567 G1c 剪影後處理觸碰 RCI 鍵數 >50（三族 lv1-3＋財富變體尾碼），實得 ' + (window.__t567Keys | 0));
+  /* G2 行為像素釘（T417 台架模式：stub 主畫布無像素→注入合成剪影真像素畫布，proc 重跑逐像素驗；
+     卡面「牆緣列變、牆心列不變」的機器證明在此——真實鍵的位元證明由 fp_snapshot 白名單承接） */
+  {
+    const key567 = '1_1_0', s567 = window.__t420SPR.bld[key567];
+    assert(s567 && s567.img, 'T567 G2 白名單鍵 1_1_0 必須在場');
+    const bak567 = s567.img;
+    s567.img = window.__t417Canvas(72, 112)[0];
+    const g567 = s567.img.getContext('2d');
+    g567.fillStyle = '#9a9484'; g567.fillRect(4, 97, 64, 13);   // plate 色帶 rows 97..109（plateTop=97）
+    g567.fillStyle = '#c9ad82'; g567.fillRect(15, 60, 42, 37);   // 牆帶 rows 60..96（寬 42 恆定）
+    g567.fillStyle = '#8a6f5f'; g567.fillRect(20, 50, 32, 10);   // 屋頂漸變段 rows 50..59（寬 32，Δ10>3 被恆寬偵測排除）
+    const px0 = window.__t567Px | 0;
+    window.__t567Proc(key567);
+    const pxD = (window.__t567Px | 0) - px0;
+    const rd567 = (x, y) => { const d = s567.img.getContext('2d').getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2], d[3]]; };
+    const pEdgeL = rd567(15, 78), pEdgeR = rd567(56, 78), pHeart = rd567(30, 78),
+      pEave = rd567(30, 60), pAO = rd567(30, 96), pPlate = rd567(30, 100), pVoid = rd567(0, 0);
+    s567.img = bak567; // 先還原再斷言（斷言炸也不留換過的畫布）
+    const eq567 = (p, r, g, b) => p[0] === r && p[1] === g && p[2] === b && p[3] === 255;
+    assert(pxD === 242, 'T567 G2 合成剪影落筆數應恰 242（檐 2×42＋AO 2×42＋緣 37×2），實得 ' + pxD + '——主段 no-op/半 no-op 會紅');
+    assert(eq567(pEdgeL, 216, 188, 145), 'T567 G2 牆左緣應提亮 +15，實得 ' + pEdgeL.join(','));
+    assert(eq567(pEdgeR, 176, 148, 105), 'T567 G2 牆右緣應壓暗 -25，實得 ' + pEdgeR.join(','));
+    assert(eq567(pHeart, 201, 173, 130), 'T567 G2 牆心列應不變（卡面：牆緣列變、牆心列不變），實得 ' + pHeart.join(','));
+    assert(eq567(pEave, 170, 142, 99), 'T567 G2 檐下兩行應壓暗 -31，實得 ' + pEave.join(','));
+    assert(eq567(pAO, 176, 148, 105), 'T567 G2 牆基兩行應壓暗 -25，實得 ' + pAO.join(','));
+    assert(eq567(pPlate, 154, 148, 132), 'T567 G2 plate 地墊色應逐位不動（永不碰地墊），實得 ' + pPlate.join(','));
+    assert(pVoid[3] === 0, 'T567 G2 透明像素應保持透明，實得 a=' + pVoid[3]);
+  }
+  // G5 零亂數（剝註解字面掃：S11 段，鐵律 2；T565 G5 掃段因 S11 插入已自動延伸覆蓋，本釘再具名一次）
+  const s11Seg567 = bare567.slice(bare567.indexOf('function buildSpritesS11'), bare567.indexOf('let __savedR,rand;'));
+  assert(s11Seg567.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(s11Seg567),
+    'T567 G5 buildSpritesS11 不得消耗 R()/ri()/rand()/Math.random/spriteTexRand');
+  // G3 白名單：fp diff 恰 bld/^[123]_lv_v(_w[02])?$ 族、新增 0 移除 0 白名單外 0——fp_snapshot 重建基線時逐鍵審（卡面 §3）。
+  // G4 位元面：純烘焙、draw-time 零新增 ⇒ 六哨兵/兩釘/T523 census 由既有全域閘門承接；實得值記入卡面施工紀錄。
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
