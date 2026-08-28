@@ -465,7 +465,8 @@ window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay
 window.__t413R=function(){let c=0;const o=R;R=function(){c++;return o();};try{nightTierDirty413=true;rebuildNightTier413();}finally{R=o;}return c;}; // T413a 測試橋：重建期間 R() 實際消耗計數——文本掃描看不穿 helper 間接層（覆核繞過①c），行為計數看得穿
 window.__t565=function(){return{bakeCount:()=>window.__t565BakeCount|0,padKeys:()=>window.__t565PadKeys|0,
   wall:()=>window.__t565Wall|0,fence:()=>window.__t565Fence|0,gate:()=>window.__t565Gate|0,
-  reset:()=>{window.__t565Wall=0;window.__t565Fence=0;window.__t565Gate=0;window.__t565GateMask=0;},
+  fin:()=>window.__t565Fin|0, // T566：接縫立牆條計數（行為釘主錨）
+  reset:()=>{window.__t565Wall=0;window.__t565Fence=0;window.__t565Gate=0;window.__t565GateMask=0;window.__t565Fin=0;},
   gateMask:()=>window.__t565GateMask|0,
   padPixel:(key,x,y)=>{const s=SPR.bld[key];if(!s||!s.img)return -1;const d=s.img.getContext('2d').getImageData(x,y,1,1).data;return(d[0]<<16)|(d[1]<<8)|d[2];},
   probe:(x,y)=>{ // T565 behavioral bridge: replay draw() object-chain geometry for one tile, return counter deltas
@@ -475,10 +476,10 @@ window.__t565=function(){return{bakeCount:()=>window.__t565BakeCount|0,padKeys:(
     if(!s)return null;
     if(s.sc!==undefined){const raw=s,q=s.sc;s=raw._scView||(raw._scView={...raw,w:raw.w*q,h:raw.h*q,ax:raw.ax*q,ay:raw.ay*q,_scSrcW:raw.w,_scSrcH:raw.h});}
     const bx=o.sx+(32-s.ax)*cam.z,by=o.sy+(32-s.ay)*cam.z;
-    const w0=window.__t565Wall|0,f0=window.__t565Fence|0,g0=window.__t565Gate|0;
+    const w0=window.__t565Wall|0,f0=window.__t565Fence|0,g0=window.__t565Gate|0,fi0=window.__t565Fin|0;
     drawLotFence565(ctx,o,bd,cam.z,0,1);drawLotFence565(ctx,o,bd,cam.z,1,1);
     drawPartyWall565(ctx,o,bd,s,bx,by,cam.z,1);
-    return{wall:(window.__t565Wall|0)-w0,fence:(window.__t565Fence|0)-f0,gate:(window.__t565Gate|0)-g0};}};};
+    return{wall:(window.__t565Wall|0)-w0,fence:(window.__t565Fence|0)-f0,gate:(window.__t565Gate|0)-g0,fin:(window.__t565Fin|0)-fi0};}};};
 window.__t422=function(){return{spec:(k,x,y,s)=>farNightRect422({k},x,y,0,0,s),palette:()=>FAR_NIGHT_C422.slice(),stats:()=>({cand:farNightCandN422,drawn:farNightDrawN422,legacy:farNightLegacyN422,R:farNightR422,C:farNightC422,I:farNightI422,L:farNightL422})};}; // T422 測試橋：純樣式與完整 draw 接線計數（不進正式 GV）
 window.__t422Screen=function(){const out=[],of=ctx.fillRect;ctx.fillRect=function(...a){if(ctx.globalCompositeOperation==='screen')out.push({col:String(ctx.fillStyle),rect:a.map(Number)});return of.apply(ctx,a);};try{draw(.016);}finally{ctx.fillRect=of;}return out;}; // T422：觀察最終 screen 合成真落筆，防 helper／計數器與 nightSprites 正式輸出脫鉤假綠
 window.__t422Quality=function(q){const old=quality;quality=q;return old;}; // T422：低畫質 legacy 回退行為造境
@@ -10240,10 +10241,12 @@ runPwaTests().then(() => {
     window.__t384Bld(1, CX + 1, CY); window.__t412Set(CX + 1, CY, 'age', 9);
     const b565 = window.__t565(); b565.reset();
     const r1 = b565.probe(CX, CY);
-    assert(r1 && r1.wall > 0, 'T565 G3 相鄰兩棟 k1lv1 連棟 strokes>0（繪製器 no-op 會紅），實得 ' + (r1 && r1.wall));
+    const r1b = b565.probe(CX + 1, CY);
+    assert(r1 && r1.wall === 0, 'T565 G3（T566 修訂）檐口橋帶已等量替換撤除：__t565Wall 恆 0——任何人讓它重新累加＝第二套實作回流（同族病釘），實得 ' + (r1 && r1.wall));
+    assert(r1b && r1b.fin > 0, 'T566 G1 相鄰兩棟 k1lv1 連棟：鏡頭側後棟接縫立牆條 fin>0（立牆段 no-op 會紅；同造境雜湊 0.539 過閥），實得 ' + (r1b && r1b.fin));
     window.__t384Bld(1, CX + 6, CY + 6); window.__t412Set(CX + 6, CY + 6, 'age', 9);
     b565.reset(); const r2 = b565.probe(CX + 6, CY + 6);
-    assert(r2 && r2.wall === 0, 'T565 G3b 孤棟不得有連棟，實得 ' + (r2 && r2.wall));
+    assert(r2 && r2.wall === 0 && r2.fin === 0, 'T565 G3b（T566 併釘）孤棟不得有連棟，實得 wall=' + (r2 && r2.wall) + ' fin=' + (r2 && r2.fin));
     window.__t384Bld(3, CX + 12, CY); window.__t412Set(CX + 12, CY, 'age', 9);
     window.__t413ForceRoad(CX + 12, CY + 1);
     b565.reset(); const r3 = b565.probe(CX + 12, CY);
@@ -10255,14 +10258,16 @@ runPwaTests().then(() => {
     assert(r4 && r4.fence > 0 && r4.gate === 0, 'T565 G4b 四向無路＝有籬無門，實得 fence=' + (r4 && r4.fence) + ' gate=' + (r4 && r4.gate));
     window.__noAdj565 = true; b565.reset();
     const r5 = b565.probe(CX, CY); const r6 = b565.probe(CX + 12, CY);
+    const r5b = b565.probe(CX + 1, CY);
     window.__noAdj565 = false;
-    assert(r5 && r5.wall === 0 && r6 && r6.fence === 0 && r6.gate === 0,
-      'T565 G7 __noAdj565 全關時三計數恆 0，實得 wall=' + (r5 && r5.wall) + ' fence=' + (r6 && r6.fence) + ' gate=' + (r6 && r6.gate));
+    assert(r5 && r5.wall === 0 && r5b && r5b.fin === 0 && r6 && r6.fence === 0 && r6.gate === 0,
+      'T565 G7（T566 併釘）__noAdj565 全關時四計數恆 0，實得 wall=' + (r5 && r5.wall) + ' fin=' + (r5b && r5b.fin) + ' fence=' + (r6 && r6.fence) + ' gate=' + (r6 && r6.gate));
     if (window.GV.setZoom) {
       window.GV.setZoom(0.5); b565.reset();
-      const r7 = b565.probe(CX, CY);
+      const r7 = b565.probe(CX, CY); const r7b = b565.probe(CX + 1, CY);
       window.GV.setZoom(1);
       assert(!r7 || r7.wall === 0, 'T565 G7b z<1（lodFar）連棟短路，實得 ' + (r7 && r7.wall));
+      assert(!r7b || r7b.fin === 0, 'T566 G7c z<1（lodFar）立牆條短路，實得 ' + (r7b && r7b.fin));
     }
   }
   // G5 零亂數（剝註解字面掃：S10＋雙繪製器，鐵律 2）
@@ -10275,6 +10280,21 @@ runPwaTests().then(() => {
   // G6 純讀鐵律：draw-time 雙繪製器不得寫 tiles（兩釘/六哨兵由既有套件承接——本卡純視覺）
   assert(!/tiles\[idx\([^\)]*\)\]\.(bld|road|zone)\s*=[^=]/.test(drwSeg565),
     'T565 G6 draw-time 雙繪製器不得寫 tiles（純讀鐵律）');
+}
+
+/* ===== T566 連棟派對牆加強守衛（行為主釘併入 T565 G3 造境塊同場景；本塊守結構面） ===== */
+{
+  const seg566 = html.slice(html.indexOf('function drawPartyWall565'), html.indexOf('function drawLotFence565'));
+  assert(seg566.length > 400, 'T566 G0 段掃錨點必須有效（drawPartyWall565→drawLotFence565）');
+  assert(/__t565Fin=\(window\.__t565Fin\|0\)\+/.test(seg566),
+    'T566 G2 立牆條計數器累加必須在場（行為釘的電源）');
+  assert(!/__t565Wall=\(window\.__t565Wall\|0\)\+/.test(seg566),
+    'T566 G2b 橋帶計數器累加必須已撤（卡面白紙黑字：等量替換，不留第二套實作）');
+  assert(/off\[1\]>0\)continue/.test(seg566),
+    'T566 G2c 落筆臂必須是「鏡頭側後棟」（off[1]>0 跳過＝該縫由鄰棟自己的 pass 畫）——方向反轉＝回到被遮罩老路');
+  // G3 預算面：等量替換＝每道縫仍恰一次批次落筆（橋帶臂撤、立牆臂補），T523 census（7500 紅線）
+  //   由全域閘門承接；實得值記入卡面施工紀錄。
+  // G4 位元面：純 draw-time、烘焙零觸碰 ⇒ 指紋零漂移（無白名單宣告），六哨兵/兩釘由既有套件承接。
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
