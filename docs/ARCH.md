@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.180，約 23701 行（實測檔案 23701 行＝T565 街廓織理三件套後套件實數；測試 `test_fixde.js`、實測 PASS 6,324、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
+**現況（測繪基準）**：單檔 `index.html`，v11.181，約 23703 行（實測檔案 23703 行＝T566 連棟派對牆加強後套件實數；測試 `test_fixde.js`、實測 PASS 6,333、exit 0）。零執行期相依、無框架無 CDN、全部美術程序化生成。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -119,31 +119,31 @@
 | ├ 天氣後製與晝夜 multiply | 17981 | `// ---- 天氣色調（雨天壓暗` |
 | └ 夜燈層 `nightSprites` | 18176 | `// ---- 夜間燈光（T212` |
 |　├ drawGroundMemory428| 18671 | `function drawGroundMemory428(g,x,y,sx,sy,z){` |
-| `drawCursor` / `drawHoverLabel` / `toTile` | 19144 | `function drawHoverLabel(sxOf,syOf,z){` |
-| undo 群組 helper | 19215 | `const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};` |
-| `commitRect` 批次施作 | 19422 | `const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;` |
-| `UP_MAX` / `upCost` / `upgradeBld` | 19456 | `const UP_MAX={9:15,6:10,7:10,11:10,12:10` |
-| `inspect()` 建築檢視面板 | 19482 | `function svcStatTable(x,y,b){` |
-|　├ MOODS| 19913 | `const MOODS={` |
-| §10 UI 起點：`buildToolbar` | 20180 | `function buildToolbar(){` |
-| `drawMini` 小地圖 | 20289 | `const MINI_VIEW_NAME=` |
-| `statTab` / `dataTable` / `serviceRefRows` | 20366 | `T319 標準化數據表格產生器` |
-| `toast` / `updHud` / HUD 三鈕 | 20451 | `T311 提示訊息不刷屏` |
-| 存檔槽面板／分享碼 | 20546 | `function showSlots(){` |
-| 地圖／場景編輯器 | 20663 | `function showEditor(){` |
-| 歷史曲線／城市顧問／因果追溯 | 20796 | `function cityAdvisor(allT522){` |
-| `showStats()` 統計面板 | 21319 | `function showStats()` |
-| 通知中心／成就 | 21790 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 21866 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 22068 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 22440 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 22472 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 22619 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
-| `load()` | 22662 | `const vlen=saveShapeOk533;` |
-| 自動存檔 | 22805 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 22818 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 22960 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 23077 | `window.GV={` |
+| `drawCursor` / `drawHoverLabel` / `toTile` | 19147 | `function drawHoverLabel(sxOf,syOf,z){` |
+| undo 群組 helper | 19218 | `const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};` |
+| `commitRect` 批次施作 | 19425 | `const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;` |
+| `UP_MAX` / `upCost` / `upgradeBld` | 19459 | `const UP_MAX={9:15,6:10,7:10,11:10,12:10` |
+| `inspect()` 建築檢視面板 | 19485 | `function svcStatTable(x,y,b){` |
+|　├ MOODS| 19916 | `const MOODS={` |
+| §10 UI 起點：`buildToolbar` | 20183 | `function buildToolbar(){` |
+| `drawMini` 小地圖 | 20292 | `const MINI_VIEW_NAME=` |
+| `statTab` / `dataTable` / `serviceRefRows` | 20369 | `T319 標準化數據表格產生器` |
+| `toast` / `updHud` / HUD 三鈕 | 20454 | `T311 提示訊息不刷屏` |
+| 存檔槽面板／分享碼 | 20549 | `function showSlots(){` |
+| 地圖／場景編輯器 | 20666 | `function showEditor(){` |
+| 歷史曲線／城市顧問／因果追溯 | 20799 | `function cityAdvisor(allT522){` |
+| `showStats()` 統計面板 | 21322 | `function showStats()` |
+| 通知中心／成就 | 21793 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 21869 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 22071 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 22443 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 22475 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 22622 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `load()` | 22665 | `const vlen=saveShapeOk533;` |
+| 自動存檔 | 22808 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 22821 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 22963 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 23080 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
