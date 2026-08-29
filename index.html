@@ -759,7 +759,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.183'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.184'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -2728,7 +2728,7 @@ function buildSprites(){
   rand=mulberry32(20260712);
   buildSpritesS1();buildSpritesS2();buildSpritesS3();buildSpritesS4();buildSpritesS5();
   buildSpritesS6();buildSpritesS7();buildSpritesS8();buildSpritesS9();
-  winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();
+  winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();buildSpritesS13();
 }
 /* ===== T563 烘焙草坪冬季相（加蓋式，手法沿 T353「季節色表補漏」；對已生成畫布產出冬側版，
    draw 端一行分派）。五棟同病（SPR.bld 家族冬季鍵 0、draw 僅 k4 有季節分派）：
@@ -2945,6 +2945,121 @@ function buildSpritesS12(){
   window.__t569BakeCount=(window.__t569BakeCount|0)+1;
   window.__t569Keys=touched;
   window.__t569Proc=proc569;
+}
+/* ===== T570 第三波＋輪廓出界裁切（S13；業主點名「美術超過輪廓」＋T568 第三波）=====
+   四件（各帶開關，樣張逐件裁決；掃描骨架 S12 同構、plate 色系自我描述菱形＝免疫 sc/sz 表漂移）：
+   ①CLIP 輪廓裁切——審計 v3 判準（帶內超 allow+3、below 超 ay+3 清 alpha；垂直區不裁＝塔尖天線
+   豁免；容差內描邊自然保留）；night 與 win563 冬側版同步裁（否則夜燈亮在被裁區／冬季輪廓回歸）。
+   豁免族：k18/90/97（水岸設計性跨水，標紅樣張判定）＋k22/53（農牧季節畫布生成於本段之前，
+   裁 base 不裁季節版＝換季輪廓不一致，且審計無真病）。
+   ②PARAPET 女兒牆——lv2/3 平頂偵測（頂緣同 y 連續 ≥8 欄）：頂緣列壓暗成環線、下一行提亮頂面。
+   ③SHRUB 前庭灌木——k1 族 plate 帶前緣左右各一團 3×2 深淺綠叢，位置由 key 字串雜湊微移
+   （決定性、零抽數、同鍵恆定）。
+   ④TILE 屋頂瓦紋——坡頂族屋頂段每 4 行壓暗一行（保守起步，樣張髒即砍）。
+   全程零抽數（鐵律 2）；__t570Proc 台架橋（非冪等）。 */
+function buildSpritesS13(){
+  const hx=s=>parseInt(s.slice(1),16);
+  const PLATE570={};
+  for(const base of['#9a9484','#8f8a7c','#7a9a5a','#7a9a4a','#8a9a7a'])
+    for(const c of[base,shade(base,-10),shade(base,8),shade(base,-20),shade(base,10)])PLATE570[hx(c)]=1;
+  const S13_CLIP=true,S13_PARAPET=true,S13_SHRUB=true,S13_TILE=true;
+  const PAR_D=-20,PAR_TOP=8,TILE_D=-8,SHRUB_A='#3f7a3e',SHRUB_B='#57a057';
+  const EXEMPT570=/^(18|90|97|22|53)_/;
+  const geom=(img)=>{ // plate 自我描述（與審計 v3 同式）
+    const g=img.getContext('2d'),W2=img.width|0,H2=img.height|0;
+    if(!(W2>0&&H2>0))return null;
+    const im=g.getImageData(0,0,W2,H2),dd=im.data;
+    let plW=0,plBot=-1,plRow=-1,plCx=0,plCnt=0;
+    const XL=[],XR=[],WR=[],TOPX=[];
+    for(let x=0;x<W2;x++)TOPX[x]=-1;
+    for(let y=0;y<H2;y++){let xL=-1,xR=-1,c0=-1,c1=-1,cn=0;
+      for(let x=0;x<W2;x++){const q=(y*W2+x)*4;if(!dd[q+3])continue;
+        if(xL<0)xL=x;xR=x;if(TOPX[x]<0)TOPX[x]=y;
+        if(PLATE570[(dd[q]<<16)|(dd[q+1]<<8)|dd[q+2]]){cn++;if(c0<0)c0=x;c1=x;}}
+      XL[y]=xL;XR[y]=xR;WR[y]=xL<0?0:xR-xL+1;
+      if(cn>=2){plBot=y;plCnt+=cn;if(c1-c0+1>plW){plW=c1-c0+1;plRow=y;plCx=(c0+c1)>>1;}}}
+    if(plCnt<80)return null;
+    let plTop=-1;for(let y=0;y<H2;y++){let cn=0;for(let x=0;x<W2;x++){const q=(y*W2+x)*4;if(dd[q+3]&&PLATE570[(dd[q]<<16)|(dd[q+1]<<8)|dd[q+2]])cn++;}if(cn>=2){plTop=y;break;}}
+    return {g,W2,H2,im,dd,hw:plW>>1,hh:plW>>2,ax:plCx,ay:plBot,cy:plRow,plTop,XL,XR,WR,TOPX};
+  };
+  const clipOn=(img,G2)=>{ // 用主圖幾何 G2 對任意同幾何畫布清出界 alpha；回清除數
+    const g=img.getContext('2d'),W2=img.width|0,H2=img.height|0;
+    const im=g.getImageData(0,0,W2,H2),dd=im.data;
+    let cut=0;
+    for(let y=0;y<H2;y++)for(let x=0;x<W2;x++){
+      const q=(y*W2+x)*4;if(!dd[q+3])continue;
+      const dx=Math.abs(x-G2.ax);let v=false;
+      if(y>G2.ay+3)v=true;
+      else if(y>G2.cy&&y<=G2.ay+1){if(dx>G2.hw*(1-Math.abs(y-G2.cy)/G2.hh)+3)v=true;}
+      if(v){dd[q+3]=0;cut++;}
+    }
+    if(cut>0)g.putImageData(im,0,0);
+    return cut;
+  };
+  const proc570=(key)=>{
+    if(EXEMPT570.test(key))return 0; // 全件豁免（入口一刀切）——首版只豁免 CLIP，TILE 把瓦紋壓上 k18 吊臂被 fp 對帳抓到
+    const s=SPR.bld[key];if(!s||!s.img)return 0;
+    const G2=geom(s.img);if(!G2)return 0;
+    const {dd,W2,ax,ay,cy,hw,hh,XL,XR,WR,TOPX}=G2;
+    let px=0;
+    if(S13_CLIP){
+      px+=clipOn(s.img,G2);
+      if(s.night)clipOn(s.night,G2);
+      if(s.win563&&s.win563.img)clipOn(s.win563.img,G2);
+    }
+    // 裁後重取像素做加蓋件
+    const im2=G2.g.getImageData(0,0,W2,G2.H2),d2=im2.data;
+    const sh=(x,y,amt)=>{if(x<0||y<0)return 0;const q=(y*W2+x)*4;
+      if(!d2[q+3])return 0;
+      if(PLATE570[(d2[q]<<16)|(d2[q+1]<<8)|d2[q+2]])return 0;
+      d2[q]=clamp(d2[q]+amt,0,255);d2[q+1]=clamp(d2[q+1]+amt,0,255);d2[q+2]=clamp(d2[q+2]+amt,0,255);return 1;};
+    const put=(x,y,col)=>{if(x<0||y<0||x>=W2||y>=G2.H2)return 0;const q=(y*W2+x)*4;
+      if(!d2[q+3])return 0;const n=hx(col);
+      d2[q]=(n>>16)&255;d2[q+1]=(n>>8)&255;d2[q+2]=n&255;return 1;};
+    // 平頂偵測：頂緣最長同 y 連續段
+    let flatY=-1,flatX0=-1,flatX1=-1;
+    {let bestLen=0,run=0,runY=-1,runX0=-1;
+     for(let x=0;x<W2;x++){const t=TOPX[x];
+       if(t>=0&&t===runY){run++;}
+       else{if(run>bestLen&&runY>=0){bestLen=run;flatY=runY;flatX0=runX0;flatX1=x-1;}
+         run=1;runY=t;runX0=x;}}
+     if(run>bestLen&&runY>=0){bestLen=run;flatY=runY;flatX0=runX0;flatX1=W2-1;}
+     if(bestLen<8)flatY=-1;}
+    const isFlat=flatY>=0&&/^[123]_[23]_/.test(key);
+    if(S13_PARAPET&&isFlat){
+      for(let x=flatX0;x<=flatX1;x++){px+=sh(x,flatY,PAR_D);px+=sh(x,flatY+1,PAR_TOP);}
+    }
+    if(S13_TILE&&!isFlat){
+      let roofTop=1e9;for(let x=0;x<W2;x++)if(TOPX[x]>=0&&WR[TOPX[x]]>=4)roofTop=Math.min(roofTop,TOPX[x]);
+      let wallTop=G2.plTop-1; // 預演自捕：首版從 ay-2 上溯在 plate 菱形漸變內立即 break＝瓦紋變全身樓層線
+      for(let y=G2.plTop-2;y>=0;y--){if(WR[y]===0)break;if(Math.abs(WR[y]-WR[y+1])<=3)wallTop=y;else break;}
+      if(roofTop<wallTop-3)
+        for(let y=roofTop;y<wallTop;y++)if((y-roofTop)%4===3)
+          for(let x=XL[y];x<=XR[y];x++)px+=sh(x,y,TILE_D);
+    }
+    if(S13_SHRUB&&/^1_\d+_\d+(_w[02])?$/.test(key)){
+      let h570=0;for(let i=0;i<key.length;i++)h570=(h570*31+key.charCodeAt(i))&1023;
+      const off=(h570%7)-3;
+      const sy=cy+2; // 預演自捕：cy+(hh>>1) 在半寬減半帶、灌木大半落空
+      for(const bx of[ax-(hw>>1)+off,ax+(hw>>1)+off]){
+        for(let dy=0;dy<2;dy++)for(let dx2=0;dx2<3;dx2++)
+          px+=put(bx+dx2,sy+dy,(dx2+dy)%2?SHRUB_A:SHRUB_B);
+      }
+    }
+    if(px>0)G2.g.putImageData(im2,0,0);
+    window.__t570ClipPx=(window.__t570ClipPx|0)+px;
+    return px;
+  };
+  let touched=0;const keys570=[];
+  for(const key in SPR.bld){
+    if(!/^\d+_\d+_\d+(_w[02])?$/.test(key))continue;
+    if(proc570(key)>0)keys570.push(key);
+    touched++;
+  }
+  window.__t570BakeCount=(window.__t570BakeCount|0)+1;
+  window.__t570Keys=keys570;
+  window.__t570Scan=touched;
+  window.__t570Proc=proc570;
 }
 /* ===== T426 拆段：buildSprites 函式級宣告上提（純重構，像素零漂移；S1..S9 依序共用） ===== */
 let __savedR,rand;
@@ -23039,7 +23154,7 @@ async function bootstrap426(){
     buildSpritesS6();await bootCheckpoint426(53,'建立大型建築與購物中心…','city');
     buildSpritesS7();await bootCheckpoint426(65,'建立新建築與農牧生活…','life');
     buildSpritesS8();await bootCheckpoint426(92,'細緻建築、屋頂與四季細節…','life');
-    buildSpritesS9();winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();await bootCheckpoint426(96,'烘焙夜景與動態生命…','night'); // S9 尾已還原 R；T563/T565/T567/T569 兩條開機路徑各掛一次（同族病：另一處在 buildSprites 總管）
+    buildSpritesS9();winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();buildSpritesS13();await bootCheckpoint426(96,'烘焙夜景與動態生命…','night'); // S9 尾已還原 R；T563/T565/T567/T569 兩條開機路徑各掛一次（同族病：另一處在 buildSprites 總管）
     await bootCheckpoint426(97,'整理工具與介面…','night');
     buildToolbar();resize();
     await bootCheckpoint426(99,'點亮主選單…','night');
