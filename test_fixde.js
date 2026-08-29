@@ -10201,7 +10201,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);await bootCheckpoint426/.test(html), /* T569 修訂：鏈尾加 buildSpritesS12()，本釘同步收緊為完整新鏈（T565 已演習一次：原釘被插入咬中＝互鎖如預期運作） */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);await bootCheckpoint426/.test(html), /* T569 修訂：鏈尾加 buildSpritesS12()，本釘同步收緊為完整新鏈（T565 已演習一次：原釘被插入咬中＝互鎖如預期運作） */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -10390,6 +10390,74 @@ runPwaTests().then(() => {
   const wz569 = bare569.slice(bare569.indexOf('function buildSpritesS12'), bare569.indexOf('function dashSeg'));
   assert(wz569.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(wz569),
     'T569 G5 S12 不得消耗任何亂數（鐵律 2）');
+}
+
+/* ===== T570 第三波＋輪廓裁切守衛（兩台架預演精算：坡頂 64＝CLIP4+TILE48+SHRUB12／平頂 92＝PAR80+SHRUB12）===== */
+{
+  const bare570 = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  const squash570 = bare570.replace(/\s+/g, '');
+  // G1 掛載鏈：S13 緊接 S12、恰 2 處
+  const mounts570 = (squash570.match(/buildSpritesS12\(\);buildSpritesS13\(\);/g) || []).length;
+  assert(mounts570 === 2, 'T570 G1 兩條開機路徑各需「buildSpritesS12();buildSpritesS13();」相鄰掛載，實得 ' + mounts570);
+  assert((window.__t570BakeCount | 0) >= 1, 'T570 G1b 本環境 S13 已跑，實得 ' + (window.__t570BakeCount | 0));
+  /* 落筆鍵帳移層（T563 判例）：主 stub 畫布無像素＝geom() 讀空、__t570Keys 只在真瀏覽器有值；
+     鍵集合真相由 fp 對帳承接（本卡收束實測：變更 219 鍵、豁免族入侵 0、新增 0、移除 0）。 */
+  assert((window.__t570Scan | 0) > 300, 'T570 G1c S13 應掃描全 bld 鍵（>300；bld 家族 390），實得 ' + (window.__t570Scan | 0));
+  // G4 豁免釘：落筆鍵不得含豁免五族
+  for (const kk of (window.__t570Keys || []))
+    assert(!/^(18|90|97|22|53)_/.test(kk), 'T570 G4 豁免族被落筆：' + kk + '（水岸跨水/農牧季節畫布一致性）');
+  // G2 兩台架（幾何見預演腳本 t570_sim.py；菱形 plate 逐行 fill）
+  const mkDia570 = (g, ax, cy, hw, hh, y0, y1) => {
+    for (let y = y0; y <= y1; y++) {
+      let half = Math.floor(hw * (1 - Math.abs(y - cy) / hh)); if (half < 1) half = 1;
+      g.fillRect(ax - half, y, half * 2, 1);
+    }
+  };
+  { // 坡頂台架 '3_1_0'：CLIP4＋TILE48＋SHRUB0（k3 非 k1）→ 52
+    const key570 = '3_1_0', s570 = window.__t420SPR.bld[key570];
+    assert(s570 && s570.img, 'T570 G2 白名單鍵 3_1_0 必須在場');
+    const bak570 = s570.img;
+    s570.img = window.__t417Canvas(72, 112)[0];
+    const g570 = s570.img.getContext('2d');
+    g570.fillStyle = '#9a9484'; mkDia570(g570, 36, 97, 24, 12, 86, 109);
+    g570.fillStyle = '#c8b090'; g570.fillRect(16, 66, 40, 20);
+    g570.fillStyle = '#2a3550'; g570.fillRect(24, 70, 4, 5);
+    g570.fillStyle = '#8a5a3a';
+    for (let ry = 56; ry <= 65; ry++) { const ins = (66 - ry) * 2; if (40 - ins * 2 > 0) g570.fillRect(16 + ins, ry, 40 - ins * 2, 1); }
+    g570.fillStyle = '#5a3c28';
+    for (const xx of [16, 17, 55, 56]) g570.fillRect(xx, 103, 1, 1); // 出界裙邊 4 點（dx>allow+3）
+    const got570 = window.__t570Proc(key570);
+    assert(got570 === 52, 'T570 G2 坡頂台架落筆應恰 52（CLIP4+TILE48），實得 ' + got570);
+    const gg570 = s570.img.getContext('2d');
+    const at570 = (x, y) => { const d = gg570.getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2], d[3]].join(','); };
+    assert(at570(16, 103).endsWith(',0'), 'T570 G2a 出界裙邊必須被裁（alpha=0；RGB 保留是 putImageData 語義），實得 ' + at570(16, 103));
+    assert(at570(30, 60).endsWith(',255') && at570(30, 60) !== '138,90,58,255',
+      'T570 G2b 瓦紋行 60 應壓暗（(60-57)%4==3），實得 ' + at570(30, 60));
+    assert(at570(30, 61) === '138,90,58,255', 'T570 G2c 非瓦紋行 61 不動，實得 ' + at570(30, 61));
+    assert(at570(30, 75) === '200,176,144,255', 'T570 G2d 牆面不得有瓦紋（首版全身樓層線之病），實得 ' + at570(30, 75));
+    s570.img = bak570;
+  }
+  { // 平頂台架 '1_2_0'：PAR80＋SHRUB12 → 92
+    const key570 = '1_2_0', s570 = window.__t420SPR.bld[key570];
+    assert(s570 && s570.img, 'T570 G2e 白名單鍵 1_2_0 必須在場');
+    const bak570 = s570.img;
+    s570.img = window.__t417Canvas(72, 112)[0];
+    const g570 = s570.img.getContext('2d');
+    g570.fillStyle = '#9a9484'; mkDia570(g570, 36, 97, 24, 12, 86, 109);
+    g570.fillStyle = '#beaa96'; g570.fillRect(16, 40, 40, 46);
+    const got570 = window.__t570Proc(key570);
+    assert(got570 === 92, 'T570 G2f 平頂台架落筆應恰 92（PAR80+SHRUB12），實得 ' + got570);
+    const gg570 = s570.img.getContext('2d');
+    const at570 = (x, y) => { const d = gg570.getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2], d[3]].join(','); };
+    assert(at570(30, 40) === '170,150,130,255', 'T570 G2g 女兒牆環線 −20，實得 ' + at570(30, 40));
+    assert(at570(30, 41) === '198,178,158,255', 'T570 G2h 頂面提亮 +8，實得 ' + at570(30, 41));
+    assert(at570(30, 43) === '190,170,150,255', 'T570 G2i 牆心不動，實得 ' + at570(30, 43));
+    s570.img = bak570;
+  }
+  // G5 零亂數
+  const wz570 = bare570.slice(bare570.indexOf('function buildSpritesS13'), bare570.indexOf('function dashSeg'));
+  assert(wz570.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(wz570),
+    'T570 G5 S13 不得消耗任何亂數（鐵律 2）');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
