@@ -10201,7 +10201,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);await bootCheckpoint426/.test(html), /* T567 修訂：鏈尾加 buildSpritesS11()，本釘同步收緊為完整新鏈（T565 已演習一次：原釘被插入咬中＝互鎖如預期運作） */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);await bootCheckpoint426/.test(html), /* T569 修訂：鏈尾加 buildSpritesS12()，本釘同步收緊為完整新鏈（T565 已演習一次：原釘被插入咬中＝互鎖如預期運作） */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -10341,6 +10341,55 @@ runPwaTests().then(() => {
     'T567 G5 buildSpritesS11 不得消耗 R()/ri()/rand()/Math.random/spriteTexRand');
   // G3 白名單：fp diff 恰 bld/^[123]_lv_v(_w[02])?$ 族、新增 0 移除 0 白名單外 0——fp_snapshot 重建基線時逐鍵審（卡面 §3）。
   // G4 位元面：純烘焙、draw-time 零新增 ⇒ 六哨兵/兩釘/T523 census 由既有全域閘門承接；實得值記入卡面施工紀錄。
+}
+
+/* ===== T569 第二波立面細節四件套守衛（台架幾何精算 267 筆＝BASE150＋RIDGE45＋SILL8＋CURB64）===== */
+{
+  const bare569 = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  const squash569 = bare569.replace(/\s+/g, '');
+  // G1 掛載鏈：S12 緊接 S11、恰 2 處（T563 G3b 已收緊為含 S12 全鏈；T565/T567 為子串式經查不失配）
+  const mounts569 = (squash569.match(/buildSpritesS11\(\);buildSpritesS12\(\);/g) || []).length;
+  assert(mounts569 === 2, 'T569 G1 兩條開機路徑各需「buildSpritesS11();buildSpritesS12();」相鄰掛載，實得 ' + mounts569
+    + '——漏掛分段路徑＝真瀏覽器永遠無第二波（T563 原型實踩的同族病）');
+  assert((window.__t569BakeCount | 0) >= 1, 'T569 G1b 本環境 S12 已跑，實得 ' + (window.__t569BakeCount | 0));
+  assert((window.__t569Keys | 0) > 50, 'T569 G1c 觸碰 RCI 鍵數 >50，實得 ' + (window.__t569Keys | 0));
+  // G2 合成剪影台架（T567 G2 同模）：plate 97..109 x[4,68)；牆帶 84..96 x[10,60) 恆寬 50；
+  // 窗A #2a3550 x[20,24) 88..92／窗B #7ab4d4 x[40,44) 88..92；屋頂梯形 74..83 ins=(84-ry)*2
+  //（首行與牆帶寬差 4>3＝wallTop 卡在 84）；1px 天線 x=35 rows 64..73（行寬 1<4＝脊線不點）。
+  {
+    const key569 = '1_1_0', s569 = window.__t420SPR.bld[key569];
+    assert(s569 && s569.img, 'T569 G2 白名單鍵 1_1_0 必須在場');
+    const bak569 = s569.img;
+    s569.img = window.__t417Canvas(72, 112)[0];
+    const g569 = s569.img.getContext('2d');
+    g569.fillStyle = '#9a9484'; g569.fillRect(4, 97, 64, 13);
+    g569.fillStyle = '#c8b090'; g569.fillRect(10, 84, 50, 13);
+    g569.fillStyle = '#2a3550'; g569.fillRect(20, 88, 4, 5);
+    g569.fillStyle = '#7ab4d4'; g569.fillRect(40, 88, 4, 5);
+    g569.fillStyle = '#8a5a3a';
+    for (let ry = 74; ry <= 83; ry++) { const ins = (84 - ry) * 2; g569.fillRect(10 + ins, ry, 50 - ins * 2, 1); }
+    g569.fillStyle = '#6a6a72'; g569.fillRect(35, 64, 1, 10);
+    const got569 = window.__t569Proc(key569);
+    assert(got569 === 267, 'T569 G2 合成剪影四件落筆應恰 267（BASE150+RIDGE45+SILL8+CURB64），實得 ' + got569);
+    const gg569 = s569.img.getContext('2d');
+    const at569 = (x, y) => { const d = gg569.getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2], d[3]].join(','); };
+    assert(at569(30, 90) === '200,176,144,255', 'T569 G2a 牆心不動，實得 ' + at569(30, 90));
+    assert(at569(30, 98) === '154,148,132,255', 'T569 G2b plate 次行不動（CURB 只寫首行），實得 ' + at569(30, 98));
+    assert(at569(21, 90) === '42,53,80,255', 'T569 G2c 玻璃心不動，實得 ' + at569(21, 90));
+    assert(at569(30, 93) === '182,158,126,255', 'T569 G2d 石基帶 −18，實得 ' + at569(30, 93));
+    assert(at569(30, 92) === '210,186,154,255', 'T569 G2e 分界線 +10，實得 ' + at569(30, 92));
+    assert(at569(20, 93) === '197,173,141,255', 'T569 G2f 窗檻＝帶 −18 後 +15（相對亮 15 保留），實得 ' + at569(20, 93));
+    assert(at569(20, 92) === '52,63,90,255', 'T569 G2g 窗底玻璃行僅分界線 +10（在帶線上），實得 ' + at569(20, 92));
+    assert(at569(30, 74) === '156,108,76,255', 'T569 G2h 屋脊 +18，實得 ' + at569(30, 74));
+    assert(at569(35, 64) === '106,106,114,255', 'T569 G2i 天線頂不點亮（行寬法），實得 ' + at569(35, 64));
+    assert(at569(10, 97) === '166,160,144,255', 'T569 G2j 路緣亮線 plate 首行 +12，實得 ' + at569(10, 97));
+    assert(at569(2, 90) === '0,0,0,0', 'T569 G2k 透明區恆等，實得 ' + at569(2, 90));
+    s569.img = bak569;
+  }
+  // G5 零亂數（剝註解掃 S12 段）
+  const wz569 = bare569.slice(bare569.indexOf('function buildSpritesS12'), bare569.indexOf('function dashSeg'));
+  assert(wz569.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(wz569),
+    'T569 G5 S12 不得消耗任何亂數（鐵律 2）');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
