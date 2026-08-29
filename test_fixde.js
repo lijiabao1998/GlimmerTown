@@ -461,6 +461,7 @@ window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=win
 window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;};
 window.__t571Mk=function(x,y,k,v){const t5=tiles[idx(x,y)];t5.bld={k:k,lv:1,v:v,age:9,pw:true,h:1};t5.zone=0;return true;}; // T571 測試橋：直造完工 1x1 建築（zone 自然生長不可控；__t412Set 同權）
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
+window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t413ForceRoad=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.road=1;t.rc=t.rc||2;t.zone=0;t.bld=null;return true;}; // T413b B4 造境：直寫路旗
 window.__t413ForceWater=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.t=0;t.bld=null;t.road=0;return true;}; // T413b B4 造境：直寫水格
 window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,bakeByKind:()=>({...(window.__t413BakeByKind||{})}),strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0}),sx:(x,y)=>_sx413(x,y),sy:(x,y)=>_sy413(x,y),visPad:()=>Math.max(40,80*_z413()),setShake:(v)=>{shakeT=+v||0;return shakeT;},getShake:()=>shakeT};}; // T413a/b 測試橋（第三輪：分族 bake + strokes + shake/pad）
@@ -10522,6 +10523,59 @@ runPwaTests().then(() => {
   const seg571b = bare571.slice(bare571.indexOf('__noStagger571'), bare571.indexOf('__t571Stagger=(window.__t571Stagger|0)+1;}'));
   assert(seg571b.length > 100 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(seg571b),
     'T571 G5b STAGGER 段零亂數');
+}
+
+/* ===== T572 獨立電廠輪廓＋第五波街具收束守衛 ===== */
+{
+  // G1：獨立容器必須三張全掃；k5 metadata/煙霧掛點一字不動。
+  const P572=window.__t420SPR;
+  assert((window.__t572PlantScan|0)===3,'T572 G1a 獨立發電廠應掃 SPR.plant＋plantVar v1/v2 恰 3 張，實得 '+(window.__t572PlantScan|0));
+  assert(P572.plant&&P572.plant.w===88&&P572.plant.h===120&&P572.plant.ax===44&&P572.plant.ay===118,
+    'T572 G1b 基礎發電廠 metadata 88×120/44,118 不得改');
+  assert(P572.plantVar&&P572.plantVar[1]&&P572.plantVar[1].w===88&&P572.plantVar[1].h===120&&
+    P572.plantVar[1].ax===44&&P572.plantVar[1].ay===118&&P572.plantVar[1].smoke.length===2,
+    'T572 G1c 冷卻塔廠 metadata 與雙煙霧掛點不得改');
+  // 真像素台架：plate 下半的塔腳越界必裁；同一柱在 plate 中心以上屬垂直結構，必保留；夜圖同步。
+  const [im572,g572]=window.__t417Canvas(72,112),[ni572,ng572]=window.__t417Canvas(72,112);
+  g572.fillStyle='#8f8a7c';
+  for(let y=86;y<=109;y++){let half=Math.floor(24*(1-Math.abs(y-97)/12));if(half<1)half=1;g572.fillRect(36-half,y,half*2,1);}
+  g572.fillStyle='#b2b8c0';g572.fillRect(10,50,8,54);
+  ng572.fillStyle='#ffd77a';ng572.fillRect(10,50,8,54);
+  const got572=window.__t572ClipSprite({img:im572,night:ni572});
+  const alpha572=(g,x,y)=>g.getImageData(x,y,1,1).data[3];
+  assert(got572>0&&alpha572(g572,12,103)===0&&alpha572(ng572,12,103)===0,
+    'T572 G1d 日／夜塔腳越出 1×1 菱形必同步裁掉（cut='+got572+'；alpha='+alpha572(g572,12,103)+'/'+alpha572(ng572,12,103)+')');
+  assert(alpha572(g572,12,60)===255&&alpha572(ng572,12,60)===255,
+    'T572 G1e 垂直塔身不得被當越界裁掉（alpha='+alpha572(g572,12,60)+'/'+alpha572(ng572,12,60)+')');
+  const bare572=htmlBare438;
+  assert(/const plants572=\[SPR\.plant\]\.concat\(\(SPR\.plantVar\|\|\[\]\)\.filter\(Boolean\)\)/.test(bare572),
+    'T572 G1f 獨立容器掛載必須直接覆蓋 SPR.plant＋plantVar，不得只修樣張 v1');
+  assert(/for\(const s572 of plants572\)plantClip572\+=clipSprite570\(s572\)/.test(bare572),
+    'T572 G1g 三張獨立發電廠必須真的逐張接進裁切 helper；只有清單沒有呼叫＝死碼');
+
+  // G2：第五波三件套已存在，不重造；街燈優先時同格小件必讓位，逃生閥恢復舊選址。
+  assert(P572.streetLamp&&P572.roadDeco&&P572.roadDeco.bench&&P572.roadDeco.hydrant,
+    'T572 G2a 白天燈桿／長椅／消防栓三件套必須沿用既有 T146/T289 素材');
+  let lp572=null;for(let y=2;y<30&&!lp572;y++)for(let x=2;x<30;x++){
+    const q=window.__t572Street(x,y,{rdec:0,bus:0,bridge:0});if(q.lamp){lp572=[x,y];break;}}
+  assert(lp572,'T572 G2b 造境窗內必須找到一個既有 .28 街燈格（不能用固定座標碰運氣）');
+  window.__noLamp=false;window.__noStreetOrder572=false;
+  const st572=window.__t572Street(lp572[0],lp572[1],{rdec:0,bus:0,bridge:0});
+  assert(st572.lamp&&st572.occupied&&!st572.allow,
+    'T572 G2c 街燈格必標占用且拒絕 T146 小件（lamp/occupied/allow='+st572.lamp+'/'+st572.occupied+'/'+st572.allow+')');
+  window.__noStreetOrder572=true;
+  assert(window.__t572Street(lp572[0],lp572[1],{rdec:0,bus:0,bridge:0}).allow,
+    'T572 G2d 逃生閥必恢復 v11.185 獨立選址（允許同格小件）');
+  window.__noStreetOrder572=false;
+  assert(!window.__t572Street(31,31,{rdec:1,bus:0,bridge:0}).allow&&
+         !window.__t572Street(31,31,{rdec:0,bus:1,bridge:0}).allow,
+    'T572 G2e 既有路飾／公車站格也不得再疊 T146 小件');
+  assert(/streetHash\(x,y,701\)<dens&&drawStreetDetailAllowed572\(x,y,t\)/.test(bare572),
+    'T572 G2f 正式 T146 小件掛點必接互斥 helper；只寫 helper 不接 draw＝死碼');
+  const seg572=bare572.slice(bare572.indexOf('function drawStreetLampPick572'),bare572.indexOf('let viewRot=0;'))+
+    bare572.slice(bare572.indexOf('const plants572='),bare572.indexOf('const[c571,g571]=cv(12,7);'));
+  assert(seg572.length>300&&!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(seg572),
+    'T572 G3 新增裁切／街具互斥段零亂數（鐵律 2）');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
