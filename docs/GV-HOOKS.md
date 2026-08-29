@@ -38,6 +38,12 @@
 10. **streetHash 是純座標函數**：與 seed 無關——被密度閥擋格時換 seed 無效，
    要**擴座標候選集**（T571：四組 L 路 16 內角）。套件端可經 `__t571Hash` 橋讀值。
 
+11. **隱藏分頁 rAF 停擺會把 T426 boot 卡死**：啟動管線段間讓出靠 rAF，面板隱藏＝讓出
+   永不返回、boot 永停在半路；interval 後備 draw 拿半建 sprite 每 250ms 炸一次 TypeError
+   （T572 實踩：Codex 的擱淺截圖就是死在這畫面）。探針解法＝載入前注入 MessageChannel 版
+   rAF shim（不受隱藏節流；只動排程零像素效應），或保持面板前置。隱藏面板另有兩坑：
+   devicePixelRatio 退 1（sprite 尺度變）、canvas clientWidth 歸 0（畫布自縮 0）。
+
 ## 三、已判決案例索引
 
 | 指控 | 判決 | 出處 |
