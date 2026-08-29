@@ -759,7 +759,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.184'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.185'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -3055,6 +3055,13 @@ function buildSpritesS13(){
     if(!/^\d+_\d+_\d+(_w[02])?$/.test(key))continue;
     if(proc570(key)>0)keys570.push(key);
     touched++;
+  }
+  { // T571 轉角篷小件（12×7 紅白條紋遮陽篷＋薄影；預烘＝零抽數；fp 新增恰 1 鍵 corner571）
+    const[c571,g571]=cv(12,7);
+    for(let i5=0;i5<6;i5++){g571.fillStyle=i5%2?'#e8e4da':'#c85a4a';g571.fillRect(i5*2,0,2,5);}
+    g571.fillStyle='rgba(40,30,25,.35)';g571.fillRect(0,5,12,1);
+    g571.fillStyle='#8a6a4a';g571.fillRect(0,0,1,6);g571.fillRect(11,0,1,6);
+    SPR.corner571=c571;
   }
   window.__t570BakeCount=(window.__t570BakeCount|0)+1;
   window.__t570Keys=keys570;
@@ -17766,6 +17773,18 @@ function draw(dt){
     }
     else if(bd.k===9){bx=sxOf(o.x+1,o.y+1)+(32-s.ax)*z;by=syOf(o.x+1,o.y+1)+(32-s.ay)*z;}
     else{bx=o.sx+(32-s.ax)*z;by=o.sy+(32-s.ay)*z;}
+    if(!window.__noStagger571&&!lodFar&&z>=1&&bd&&!bd.ref&&bd.k===1&&(bd.lv||1)===1&&(bd.sz|0)<2&&(bd.age|0)>=9){ /* T571 連棟屋頂線錯落：
+       同族連棟鄰且 v 不同 → 整棟繪製 y 位移 ±1px（奇偶決定、零抽數）；by 在此統一調整＝
+       夜圖/冬側版/雪帽/派對牆全鏈同步位移；零 census 零 fp（只動繪製參數） */
+      let st571=0;
+      for(let d5=0;d5<4&&!st571;d5++){
+        const nx5=o.x+[1,0,-1,0][d5],ny5=o.y+[0,1,0,-1][d5];
+        if(!inMap(nx5,ny5))continue;
+        const nb5=tiles[idx(nx5,ny5)].bld;
+        if(nb5&&!nb5.ref&&nb5.k===1&&(nb5.lv||1)===1&&(nb5.sz|0)<2&&(nb5.age|0)>=9&&nb5.v!==bd.v)st571=1;
+      }
+      if(st571){by+=(((o.x+o.y)&1)?-1:1)*z;window.__t571Stagger=(window.__t571Stagger|0)+1;}
+    }
     if(bd.age<4&&bd.k!==4&&!window.__noConstr2&&!lodFar){ // T220/T258/T259 分階段施工（Opus 親手，玩家「更細更緩慢」）——工期 5→9 天：age0 圍籬+開挖坑+挖掘機、age1 地基鋼筋+水泥攪拌車、age2 鋼骨半高、age3 鋼骨全高+焊接火花；age4-8 交下方樓體逐層升起+鷹架。純 age/visT 決定性不消耗 R()、__noConstr2=true 退回舊淡入、遠景不繪
       const sz2=bd.sz||1;
       const cx1=sxOf(o.x,o.y)+32*z, cy1=syOf(o.x,o.y)+16*z;
@@ -17949,6 +17968,7 @@ function draw(dt){
       drawActivityPocket422(ctx,o,bd,s,bx,by,z,drawA,nightDepth);
       drawMicroLife429(ctx,o,bd,s,bx,by,z,drawA,nightDepth); // T429
       drawPartyWall565(ctx,o,bd,s,bx,by,z,drawA); // T565 連棟派對牆＋女兒牆帽線（鏡頭側同族鄰棟）
+      drawCorner571(ctx,o,bd,z,drawA); // T571 轉角地塊篷（恰兩正交鄰路的商業格）
       drawLotFence565(ctx,o,bd,z,1,drawA);        // T565 圍籬前半邊＋路側大門（背半邊在 drawImage 前）
     }
     /* ===== T363 垃圾焚化發電廠運轉視覺（k62）：draw-time 決定性排氣＋夜班辨識；
@@ -19056,6 +19076,26 @@ function drawRooftop425(g,o,bd,s,bx,by,z,drawA){
    兩件皆：純讀 tiles、零 R()/ri()、不寫狀態（面板純讀鐵律同源）；z<1（lodFar）短路＝遠景維持現況；
    逃生閥 window.__noAdj565 一刀全關＝關閉時逐像素恆等。觀測：__t565Fin/__t565Fence/__t565Gate。 */
 function _nOff565(x,y,nx,ny,z){const a=w2v(x,y),b2=w2v(nx,ny);return [((b2[0]-b2[1])-(a[0]-a[1]))*32*z,((b2[0]+b2[1])-(a[0]+a[1]))*16*z];} // T565：相鄰格螢幕偏移（sxOf/syOf 是 draw() 局域；w2v 差分同款公式、相機位移自然消去、旋轉免疫）
+function drawCorner571(g,o,bd,z,drawA){ /* T571 轉角地塊篷：k2 商業 lv1 完工 1×1、恰兩正交鄰路
+   → 貼預烘篷 sprite（單次 drawImage＝census 每格恰 1 筆，預算最省打法）；篷位由兩路方向的
+   _nOff565 合成角映射（旋轉免疫）；密度閥 57100；純讀 tiles、零抽數、不寫狀態 */
+  if(window.__noCorner571||z<1||!bd||bd.ref||bd.k!==2||(bd.lv||1)>1||(bd.sz|0)>=2||(bd.age|0)<9)return;
+  if(!SPR.corner571)return;
+  let r0=-1,r1=-1,rn=0;
+  for(let d5=0;d5<4;d5++){
+    const nx5=o.x+[1,0,-1,0][d5],ny5=o.y+[0,1,0,-1][d5];
+    if(inMap(nx5,ny5)&&tiles[idx(nx5,ny5)].road){if(rn===0)r0=d5;else r1=d5;rn++;}
+  }
+  if(rn!==2||((r0^r1)&1)===0)return; // 恰兩路且正交（對向兩路＝街中段不是轉角）
+  if(streetHash(o.x,o.y,57100)>=.55)return;
+  const a5=_nOff565(o.x,o.y,o.x+[1,0,-1,0][r0],o.y+[0,1,0,-1][r0],z);
+  const b5=_nOff565(o.x,o.y,o.x+[1,0,-1,0][r1],o.y+[0,1,0,-1][r1],z);
+  const cx5=o.sx+32*z+(a5[0]+b5[0])*.30, cy5=o.sy+16*z+(a5[1]+b5[1])*.30;
+  g.save();g.globalAlpha=drawA;
+  g.drawImage(SPR.corner571,cx5-6*z,cy5-4*z,12*z,7*z);
+  g.restore();
+  window.__t571Corner=(window.__t571Corner|0)+1;
+}
 function drawPartyWall565(g,o,bd,s,bx,by,z,drawA){
   if(window.__noAdj565||z<1||!bd||bd.ref||bd.k!==1||(bd.lv||1)>1||(bd.sz|0)>=2||(bd.age|0)<9)return 0;
   const finTone=['#c9ad82','#cf9862','#9db49a'][bd.v===1?1:bd.v===2?2:0]; /* T566 迭代3：色調改從本棟變體牆族派生
