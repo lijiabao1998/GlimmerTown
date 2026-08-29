@@ -458,7 +458,9 @@ window.__t387Cov=function(){rebuildCov();}; // T387b 測試橋：直寫服務建
 window.__t390Repair=function(tre,ter,n){return repairTre390(tre,ter,n);}; // T390 測試橋：救援函式單元測試
 window.__t410Pol=function(dt){updPoliceCars(dt);return policeCars.length;}; // T410 測試橋：幀路徑警車派遣單步（回傳在途車數；vri 系不碰 R()）
 window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=window.__t411Rold;}}; // T411 測試橋：量測期間凍結 R 機率路徑（比照 __t386Tick 的 stub 慣例）——G3 量的是純車輛物理，tick 的診所擲骰/病亡轉化/犯罪點火/火勢蔓延全部惰性化，量測不受未來 R 流位移影響
-window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;}; // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
+window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;};
+window.__t571Mk=function(x,y,k,v){const t5=tiles[idx(x,y)];t5.bld={k:k,lv:1,v:v,age:9,pw:true,h:1};t5.zone=0;return true;}; // T571 測試橋：直造完工 1x1 建築（zone 自然生長不可控；__t412Set 同權）
+window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t413ForceRoad=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.road=1;t.rc=t.rc||2;t.zone=0;t.bld=null;return true;}; // T413b B4 造境：直寫路旗
 window.__t413ForceWater=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.t=0;t.bld=null;t.road=0;return true;}; // T413b B4 造境：直寫水格
 window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,bakeByKind:()=>({...(window.__t413BakeByKind||{})}),strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0}),sx:(x,y)=>_sx413(x,y),sy:(x,y)=>_sy413(x,y),visPad:()=>Math.max(40,80*_z413()),setShake:(v)=>{shakeT=+v||0;return shakeT;},getShake:()=>shakeT};}; // T413a/b 測試橋（第三輪：分族 bake + strokes + shake/pad）
@@ -10458,6 +10460,68 @@ runPwaTests().then(() => {
   const wz570 = bare570.slice(bare570.indexOf('function buildSpritesS13'), bare570.indexOf('function dashSeg'));
   assert(wz570.length > 400 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(wz570),
     'T570 G5 S13 不得消耗任何亂數（鐵律 2）');
+}
+
+/* ===== T571 第四波街廓級守衛（STAGGER 位移＋CORNER 轉角篷；G1 依 T558 判準：非零基線→逃生閥歸零）===== */
+{
+  // 造境：L 形路＋轉角商業＋連棟異 v 住宅（全完工）
+  window.GV.newWorldSeeded(41); window.GV.weather(0); window.GV.addMoney(200000);
+  const c571 = window.GV.center();
+  const lOff571 = [[0, 0], [8, 4], [-7, 5], [6, -8]]; // 四組 L 路＝16 內角候選（streetHash 純座標函數、換 seed 無效——擴座標集）
+  const corners571 = [];
+  for (const off of lOff571) {
+    const lx = c571[0] + off[0], ly = c571[1] + off[1];
+    for (let i = 0; i < 5; i++) { place('road', lx - 2 + i, ly); place('road', lx, ly - 2 + i); }
+    for (const d of [[1, 1], [-1, -1], [1, -1], [-1, 1]]) corners571.push([lx + d[0], ly + d[1]]);
+  }
+  // 直造 bld 經 __t571Mk 橋（T 是 IIFE 內 const、檔尾塊不可及——橋注入 IIFE 尾與 __t412Set 同權）
+  // 轉角格動態挑選：四個 L 路內角中取 streetHash<.55（過密度閥）者——決定性、零機率假紅
+  const orthoRoads571 = (cc) => { // 恰兩正交鄰路（多組 L 交疊可能造出第三鄰路——挑格時就驗）
+    const ds = [[1, 0], [0, 1], [-1, 0], [0, -1]]; const hit = [];
+    for (let d5 = 0; d5 < 4; d5++) { const tt = tile(cc[0] + ds[d5][0], cc[1] + ds[d5][1]); if (tt && tt.road) hit.push(d5); }
+    return hit.length === 2 && ((hit[0] ^ hit[1]) & 1) === 1;
+  };
+  const cpick571 = corners571.find(cc => window.__t571Hash(cc[0], cc[1], 57100) < .55
+    && tile(cc[0], cc[1]).t !== 0 && !tile(cc[0], cc[1]).road && !tile(cc[0], cc[1]).bld && orthoRoads571(cc));
+  assert(cpick571, 'T571 造境：16 內角至少一格須過密度閥、可造且恰兩正交路（全擋＝擴 L 組）');
+  window.__t571Mk(cpick571[0], cpick571[1], 2, 0);
+  window.__t571Mk(c571[0] + 2, c571[1] - 1, 1, 0);
+  window.__t571Mk(c571[0] + 3, c571[1] - 1, 1, 1);
+  window.GV.setZoom(2); window.GV.setVisT(55);
+  window.__noStagger571 = false; window.__noCorner571 = false;
+  // 兩幀量測（forceDraw 有視錐裁剪——cpick 可能在中心視野外）
+  window.__t571Stagger = 0; window.__t571Corner = 0;
+  window.GV.lookAt(c571[0] + 2, c571[1] - 1); window.GV.forceDraw();
+  const stagBase = window.__t571Stagger | 0;
+  window.__t571Corner = 0;
+  window.GV.lookAt(cpick571[0], cpick571[1]); window.GV.forceDraw();
+  const cornBase = window.__t571Corner | 0;
+  assert(stagBase > 0, 'T571 G1a STAGGER 基線必須 >0（連棟異 v 二連在景）——沒有非零基線，歸零斷言恆真');
+  assert(cornBase > 0, 'T571 G1b CORNER 基線必須 >0（轉角商業＋密度閥 57100 在此格必須放行；'
+    + '若造境格被閥擋，換造境座標而不是放寬閥）');
+  window.__noStagger571 = true; window.__noCorner571 = true;
+  window.__t571Stagger = 0; window.__t571Corner = 0;
+  window.GV.lookAt(c571[0] + 2, c571[1] - 1); window.GV.forceDraw();
+  window.GV.lookAt(cpick571[0], cpick571[1]); window.GV.forceDraw();
+  assert((window.__t571Stagger | 0) === 0 && (window.__t571Corner | 0) === 0,
+    'T571 G1c 逃生閥開＝兩件計數歸零（關閉態逐參數恆等），實得 ' + (window.__t571Stagger | 0) + '/' + (window.__t571Corner | 0));
+  window.__noStagger571 = false; window.__noCorner571 = false;
+  // G2 原文釘
+  assert(/by\+=\(\(\(o\.x\+o\.y\)&1\)\?-1:1\)\*z;window\.__t571Stagger/.test(html),
+    'T571 G2a 位移式必須是奇偶 ±1*z 且緊接計數器（by 統一調整＝全鏈同步位移）');
+  assert(/rn!==2\|\|\(\(r0\^r1\)&1\)===0/.test(html),
+    'T571 G2b 轉角判定必須是「恰兩路且正交」（對向兩路＝街中段）');
+  assert(/streetHash\(o\.x,o\.y,57100\)>=\.55/.test(html), 'T571 G2c 密度閥 57100/.55 在場');
+  assert(typeof window.__t420SPR !== 'undefined' && window.GV.sprAtlas356().entries.some(e => e.fam === 'corner571'),
+    'T571 G2d 轉角篷 sprite 必須入清冊（fp 新增恰 1 鍵）');
+  // G5 零亂數（兩段新碼）
+  const bare571 = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  const seg571a = bare571.slice(bare571.indexOf('function drawCorner571'), bare571.indexOf('function drawPartyWall565'));
+  assert(seg571a.length > 200 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(seg571a),
+    'T571 G5a drawCorner571 零亂數');
+  const seg571b = bare571.slice(bare571.indexOf('__noStagger571'), bare571.indexOf('__t571Stagger=(window.__t571Stagger|0)+1;}'));
+  assert(seg571b.length > 100 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(seg571b),
+    'T571 G5b STAGGER 段零亂數');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
