@@ -462,6 +462,7 @@ window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[
 window.__t571Mk=function(x,y,k,v){const t5=tiles[idx(x,y)];t5.bld={k:k,lv:1,v:v,age:9,pw:true,h:1};t5.zone=0;return true;}; // T571 測試橋：直造完工 1x1 建築（zone 自然生長不可控；__t412Set 同權）
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
+window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
 window.__t413ForceRoad=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.road=1;t.rc=t.rc||2;t.zone=0;t.bld=null;return true;}; // T413b B4 造境：直寫路旗
 window.__t413ForceWater=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.t=0;t.bld=null;t.road=0;return true;}; // T413b B4 造境：直寫水格
 window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,bakeByKind:()=>({...(window.__t413BakeByKind||{})}),strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0}),sx:(x,y)=>_sx413(x,y),sy:(x,y)=>_sy413(x,y),visPad:()=>Math.max(40,80*_z413()),setShake:(v)=>{shakeT=+v||0;return shakeT;},getShake:()=>shakeT};}; // T413a/b 測試橋（第三輪：分族 bake + strokes + shake/pad）
@@ -10576,6 +10577,53 @@ runPwaTests().then(() => {
     bare572.slice(bare572.indexOf('const plants572='),bare572.indexOf('const[c571,g571]=cv(12,7);'));
   assert(seg572.length>300&&!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(seg572),
     'T572 G3 新增裁切／街具互斥段零亂數（鐵律 2）');
+}
+
+/* ===== T573 冷卻塔：接地幾何／真像素／視覺掛點 ===== */
+{
+  const start573=html.indexOf('   { // v1 冷卻塔廠'),end573=html.indexOf('   { // v2 現代燃氣廠',start573);
+  assert(start573>=0&&end573>start573,'T573 G1a 正式 v1 生成區必須可定位');
+  const block573=html.slice(start573,end573),hook573='for(const q of towers573)tower(q);';
+  assert(block573.split(hook573).length===2,'T573 G1b 雙塔真落筆掛點恰一處，台架注入失配必紅');
+  const bare573=block573.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(bare573)&&
+    (bare573.match(/\bplate\(/g)||[]).length===1,'T573 G3b 冷卻塔零新亂數、plate 固定一次');
+  const frames573=[],P573={plantVar:[]},H573=window.__t573Helpers;
+  const cv573=(w,h)=>{const [c,g]=window.__t417Canvas(w,h);
+    g.drawImage=(src,x,y)=>{const d=src.getContext('2d').getImageData(0,0,w,h).data;
+      const dst=g.getImageData(0,0,w,h);for(let p=0;p<d.length;p+=4)if(d[p+3])dst.data.set(d.slice(p,p+4),p);
+      if(x!==0||y!==0)throw Error('T573 台架只允許原點合成');g.putImageData(dst,0,0);};return[c,g];};
+  const capture573=(q,c)=>{const [halo,g]=cv573(88,120);g.drawImage(c,0,0);H573.outlineSprite(halo,26,30,44);
+    frames573.push({q:q.map(t=>({...t})),pixels:c.getContext('2d').getImageData(0,0,88,120).data,
+      outlined:g.getImageData(0,0,88,120).data});};
+  new Function('cv','plate','isoBox','outlineSprite','shade','SPR','capture',
+    block573.replace(hook573,hook573+'capture(towers573,sc);'))
+    (cv573,H573.plate,H573.isoBox,H573.outlineSprite,H573.shade,P573,capture573);
+  assert(frames573.length===1&&frames573[0].q.length===2,'T573 G1c 正式雙塔必真跑，不能空台架假綠');
+  const Q573=frames573[0].q,pix573=frames573[0].pixels,S573=P573.plantVar[1];
+  const in573=(x,y)=>{const i=y-86;if(i<0||i>=32)return false;const hw=2*(Math.min(i,31-i)+1);return x>=44-hw&&x<44+hw;};
+  let baseN573=0,out573=[];
+  for(const q of Q573){for(let y=q.foot-3;y<=q.foot+3;y++)for(let x=q.x-16;x<=q.x+16;x++){
+    const a=frames573[0].outlined[(y*88+x)*4+3];if(!a)continue;baseN573++;if(!in573(x,y))out573.push([x,y]);}}
+  assert(baseN573>=100&&out573.length===0,'T573 G1d 兩塔真像素地腳含描邊須在 1×1 plate 內（像素='+baseN573+'，越界='+JSON.stringify(out573.slice(0,5))+')');
+  // 獨立按兩側實際輪廓掃間隙，防把窄塔擠成連成一片的灰牆。
+  let gaps573=0;for(let y=66;y<=76;y++){let gap=0;for(let x=37;x<=40;x++)if(!pix573[(y*88+x)*4+3])gap++;if(gap>=2)gaps573++;}
+  assert(gaps573===11,'T573 G1e 塔身之間連續 11 行至少留 2px 真透明間隙，實得 '+gaps573);
+  assert(Q573[0].x-Q573[1].x===18&&Q573[1].foot-Q573[0].foot===9,
+    'T573 G1f 雙塔地腳沿 2:1 等距方向排列，不能同一螢幕橫線擠放');
+  const pixels573=S573.img.getContext('2d'),night573=S573.night.getContext('2d');
+  const rgb573=(g,x,y)=>Array.from(g.getImageData(x,y,1,1).data).join(',');
+  assert(S573.smoke.length===2&&S573.smoke.every((p,i)=>p.dx===Q573[i].x-44&&p.dy===Q573[i].foot-Q573[i].h-2-118),
+    'T573 G2a 雙蒸汽起點必須跟實際塔口同源，不能殘留舊 dx/dy');
+  assert(S573.lamp.dx===Q573[1].x-44&&S573.lamp.dy===Q573[1].foot-Q573[1].h-3-118,
+    'T573 G2b 閃燈起點必須對齊前塔警示燈');
+  assert(Q573.every(q=>rgb573(night573,q.x,q.foot-q.h-3)==='255,96,96,255'&&
+    rgb573(pixels573,q.x,q.foot-q.h-3)==='224,82,82,255'),
+    'T573 G2c 日圖／夜圖兩塔警示燈必須實際存在且精確對位');
+  assert(rgb573(night573,57,99)==='159,232,255,255'&&rgb573(pixels573,57,99)==='191,232,220,255',
+    'T573 G2d 青綠廳原窗位置／夜光必須保留');
+  assert(S573.w===88&&S573.h===120&&S573.ax===44&&S573.ay===118,
+    'T573 G3a k5 v1 畫布與渲染錨點不變 88×120 / 44,118');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
