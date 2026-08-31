@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.187，約 24019 行（實測檔案 24019 行＝T573 冷卻塔地腳修復後換行計數；測試 `test_fixde.js`、實測 PASS 6,435、exit 0）。
+**現況（測繪基準）**：單檔 `index.html`，候選 v11.188，約 24738 行（實測檔案 24738 行＝LF換行計數；T574 全建築占地／園區及遮擋退修）。最新標準 `verify.py` 實測 **PASS 10,335／0 FAIL／exit0／ALL GREEN**（修前9,825），六哨兵不變；過程中的超時、中斷與T422函式位置退修均保留於T574卡面9.2–9.5，不弱化舊守衛。共用地腳偏序修正園內與新舊樓混排，煙柱隨所屬新廠區入序；夜光按同序sprite alpha遮擋，另加一張視口大小合成畫布（不計入原12M園區LRU，須另量真瀏覽器幀成本）。22種隔離故障已在最後候選重播全紅。**STOP: BROWSER_VERIFICATION**：本版真瀏覽器複拍尚未完成，Node綠不等於美術簽核。僅車位候選、退修未commit、未經非作者覆核、未合併／部署；AI成長與效能風險見T574卡面。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -53,97 +53,101 @@
 | body DOM 骨架（全部靜態節點只有這份） | 560 | `<span class="chip" id="money">` |
 | 亂數零號：`mulberry32` / `R` / `ri` | 664 | `let R=mulberry32(1);` |
 | 世界尺寸／SAVEKEY | 686 | `const MAP_SIZES=` |
-| 價目表 `COST` / `ROAD_COST` / `GAME_VER` | 760 | `const COST={road:15,bridge:60,zone:8` |
-| `TOOLS` 153 項 ＋ `TOOL_CATS` | 765 | `const TOOLS=[` |
-| T451 城市科學政策表 `SCI451` | 948 | `const SCI451=[` |
-| T514 科學政策指揮台分組 `SCI_GRP514` | 1335 | `const SCI_GRP514=[` |
-| 季節與 360 天年 / `foodPriceOf` | 1720 | `const season=()=>{const doy=(day-1)%360;` |
-| T343 科技樹（36 節點／研究狀態／集中 `tq` 效果） | 1878 | `const TECH343=[` |
-| §2 繪圖基元：`cv` / `dia` / `railTrack` / `isoBox` / `outlineSprite` | 2198 | `function cv(w,h){const c=document.createElement('canvas')` |
-| 紋理流 `spriteTexRand` ＋ `plate()` | 2585 | `const SPRITE_TEX_SEED=0x54455832;` |
-| `HERO_PIX` 手繪點陣表（53 鍵） | 2610 | `const HERO_PIX={` |
-| **`buildSprites()` 全體** | 2727 | `__savedR=R;R=mulberry32(1);` |
-| ├ 地形／道路／覆蓋層 | 3314 | `/* ---------- 草地 4 變化 ---------- */` |
-| ├ `PARTS` / `DRAFTS` / `mkBld` | 3149 | `const PARTS=` |
-| ├ 服務建築與變體 | 3478 | `/* ---------- 公園 3 變化 ---------- */` |
-|　├ 體育場| 3910 | `/* ---------- 體育場（T22；首個 2×2 多格建築；136×150、錨點 68/` |
-|　├ 墓園| 4394 | `/* ---------- 墓園（T38；72×112 小教堂＋墓碑群＋柏樹＋夜間微弱燭光；3 ` |
-|　├ T382：鐘樓細化| 4859 | `/* T382：鐘樓細化（零亂數）——門、台階、壁燈、石紋 */` |
-|　├ T382：度假酒店細化| 5341 | `/* T382：度假酒店細化（零亂數）——陽台欄、大堂門廊、池邊躺椅、遮陽傘、水線、翼門、夜池邊` |
-|　├ T382：社區菜園細化| 5833 | `/* T382：社區菜園細化（零亂數）——澆水壺、圍欄、小徑、補夜層（退修：澆水壺下移，避免 v` |
-| ├ 多格地標長列 | 6012 | `T355 版面重排` |
-| ├ FIX-B 尾端區起點 | 6378 | `/* ===== FIX-B 亂數流對齊：以下 T29/T30/T35/T36` |
-|　├ T382：綠蔭停車 v2 細化| 6763 | `/* T382：綠蔭停車 v2 細化（零亂數）——充電樁、路緣、地磚 */` |
-|　├ 公園新變體 3 種| 7232 | `/* ---------- 公園新變體 3 種（噴泉廣場／玫瑰園／遊樂場） ----------` |
-|　├ 立面件：沿左右牆挑 dx 段落| 7724 | `// ---- 立面件：沿左右牆挑 dx 段落，y 落在該 dx 列牆面安全範圍內（yF-h+p` |
-|　├ 街道設施小件| 8187 | `// ---- 街道設施小件（沿用 SPR.rdec/SPR.busStop 同款 64×40／` |
-|　├ T150 變體大擴充：住宅/商業/工業每級 8→12 變體| 8444 | `/* ===== T150 變體大擴充：住宅/商業/工業每級 8→12 變體（k=1/2/3 各` |
-|　├ T382：hero 後寫加蓋——救護車、入口雨棚、紅十字角燈 */| 8944 | `/* T382：hero 後寫加蓋——救護車、入口雨棚、紅十字角燈 */` |
-|　├ T382：hero 後寫加蓋——候診椅、門廊、綠十字角燈 */| 9440 | `/* T382：hero 後寫加蓋——候診椅、門廊、綠十字角燈 */` |
-|　├ T380：美術改畫在田外上緣自由區| 9931 | `/* T380：美術改畫在田外上緣自由區（y≤105；田心 cy=128 hh=20 不蓋），保` |
-|　├ T278 RCI 屋頂雜項加蓋| 10395 | `/* ===== T278 RCI 屋頂雜項加蓋（TheoTown 級屋頂密度）：snowCap` |
-| ├ 加蓋層 pass 群（T277→T345→**T382**） | 10454 | `const stampRoof=(key)=>{` / `/* ===== T382 全局美術極細化加蓋 pass` |
-| └ T364 縮放管線與收尾 | 10886 | `const mkIndustry364=(kind)=>{` |
-|　├ T425 統一底部貼合 pass| 11368 | `/* ===== T425 統一底部貼合 pass（buildSprites 絕對尾端）：T29` |
-| §3 世界生成 `genWorld` / `newWorld` | 11655 | `FIX-K：天氣/災害殘留狀態種子化重置` |
-| §4 `canPlace` / `placeCost` / `doPlace` | 11730 | `function canPlace(toolId,x,y){` |
-|　├ doPlace| 12023 | `function doPlace(toolId,x,y,silent){` |
-| `computePower` | 12735 | `function computePower(){` |
-| `COVR` / `COV` / `covFieldOfK` / `stampCov` | 12949 | `const covFieldOfKBase=covFieldOfK;` |
-| POL / NOISE 場 | 12970 | `function stampPolSrc(x,y,k,sign){` |
-| LAND 場 | 13078 | `function landStaticAt(x,y){` |
-| EDU / `rebuildCov` / `judgeWealth` | 13126 | `function rebuildCov(){` |
-| `computeWater` / `resilience364At` | 13256 | `function computeWater(){` |
-| §5 `aiStep()` AI 市長 | 13408 | `let acts=0;const MAXA=14,RESERVE=poor?50:350;` |
-| `buildTickIndex()` | 13978 | `function buildTickIndex(){` |
-| **`tick()` 全體** | 13991 | `rebuildNoise(tickBld); // T325` |
-| ├ 第一經濟迴圈（計數／幸福） | 14086 | `for(const i88 of tickBld){` |
-| ├ 產業鏈 | 14355 | `/* ===== T364b A 深加工鏈 BEGIN =====` |
-| ├ 災害段 | 14417 | `// T69/T70 災害（可關）` |
-| ├ 生長／升級／合併／火災 | 14585 | `// 生長：收集候選` |
-| ├ **第二經濟迴圈（稅收守衛鏈）** | 14871 | `const civicMul=chN>0?1.03:1;` |
-| └ 維護費／評分／`aiStep` 呼叫 | 15025 | `if(diff!==3)money+=income-upkeep;` |
-|　├ updCars| 15467 | `function updCars(dt){` |
-| §6 載具與煙／`computeCommute` | 16182 | `function computeCommute(){` |
-| §7 繪製起點：`DIRSCR` / 雨雪 | 15752 | `const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];` |
-| 粒子池 `fxParts` | 15782 | `/* ---------- T159 粒子特效豐富化` |
-| `daylight()` | 15878 | `function daylight(){` |
-| `streetHash` | 16267 | `function streetHash(x,y,salt){` |
-| **T367 旋轉變換層** | 16282 | `/* ===== T367 視角四向旋轉：view-space 變換層` |
-| 地面快取全域 | 16371 | `let groundDirty=true,groundCache=null,` |
-| **`draw()` 全體** | 16615 | `function draw(dt){` |
-| ├ 地面層與 groundCache 重烘 | 16758 | `// ---- 地面層 ----（T96：離屏快取` |
-| ├ `objs` 收集與深度排序 | 17177 | `// ---- 物件層（依深度排序） ----` |
-| ├ 地格分支（建築十餘層加疊） | 17615 | `const t=o.t;` |
-|　├ T403b/c 農事與牧場動態| 18115 | `/* ===== T403b/c 農事與牧場動態（T368a 純視覺路線：零狀態、零陣列，一切由` |
-| ├ 天氣後製與晝夜 multiply | 18276 | `// ---- 天氣色調（雨天壓暗` |
-| └ 夜燈層 `nightSprites` | 18471 | `// ---- 夜間燈光（T212` |
-|　├ drawGroundMemory428| 18966 | `function drawGroundMemory428(g,x,y,sx,sy,z){` |
-| `drawCursor` / `drawHoverLabel` / `toTile` | 19462 | `function drawHoverLabel(sxOf,syOf,z){` |
-| undo 群組 helper | 19533 | `const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};` |
-| `commitRect` 批次施作 | 19740 | `const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;` |
-| `UP_MAX` / `upCost` / `upgradeBld` | 19774 | `const UP_MAX={9:15,6:10,7:10,11:10,12:10` |
-| `inspect()` 建築檢視面板 | 19800 | `function svcStatTable(x,y,b){` |
-|　├ MOODS| 20231 | `const MOODS={` |
-| §10 UI 起點：`buildToolbar` | 20498 | `function buildToolbar(){` |
-| `drawMini` 小地圖 | 20607 | `const MINI_VIEW_NAME=` |
-| `statTab` / `dataTable` / `serviceRefRows` | 20684 | `T319 標準化數據表格產生器` |
-| `toast` / `updHud` / HUD 三鈕 | 20769 | `T311 提示訊息不刷屏` |
-| 存檔槽面板／分享碼 | 20864 | `function showSlots(){` |
-| 地圖／場景編輯器 | 20981 | `function showEditor(){` |
-| 歷史曲線／城市顧問／因果追溯 | 21114 | `function cityAdvisor(allT522){` |
-| `showStats()` 統計面板 | 21637 | `function showStats()` |
-| 通知中心／成就 | 22108 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 22184 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 22386 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 22758 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 22790 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 22937 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
-| `load()` | 22980 | `const vlen=saveShapeOk533;` |
-| 自動存檔 | 23123 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 23136 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 23278 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 23395 | `window.GV={` |
+| T574 全建築新建占地目錄（舊 MSZ 相容表不改） | 726 | `const LOT_PLAN574=` |
+| T574 園區視角底錨／局部地面座標／四邊接點 | 747 | `function lotViewBase574(` |
+| 價目表 `COST` / `ROAD_COST` / `GAME_VER` | 800 | `const COST={road:15,bridge:60,zone:8` |
+| `TOOLS` 153 項 ＋ `TOOL_CATS` | 805 | `const TOOLS=[` |
+| T451 城市科學政策表 `SCI451` | 988 | `const SCI451=[` |
+| T514 科學政策指揮台分組 `SCI_GRP514` | 1375 | `const SCI_GRP514=[` |
+| 季節與 360 天年 / `foodPriceOf` | 1760 | `const season=()=>{const doy=(day-1)%360;` |
+| T343 科技樹（36 節點／研究狀態／集中 `tq` 效果） | 1918 | `const TECH343=[` |
+| §2 繪圖基元：`cv` / `dia` / `railTrack` / `isoBox` / `outlineSprite` | 2238 | `function cv(w,h){const c=document.createElement('canvas')` |
+| 紋理流 `spriteTexRand` ＋ `plate()` | 2625 | `const SPRITE_TEX_SEED=0x54455832;` |
+| `HERO_PIX` 手繪點陣表（53 鍵） | 2650 | `const HERO_PIX={` |
+| **`buildSprites()` 全體** | 2767 | `__savedR=R;R=mulberry32(1);` |
+| ├ T574 新3×3電廠三變體（舊圖不覆寫） | 3130 | `function buildLots574(){` |
+| ├ T574 105族按需園區烘焙（日夜／冬季、有界LRU） | 3310 | `function bakeLot574(` |
+| ├ 地形／道路／覆蓋層 | 3836 | `/* ---------- 草地 4 變化 ---------- */` |
+| ├ `PARTS` / `DRAFTS` / `mkBld` | 3671 | `const PARTS=` |
+| ├ 服務建築與變體 | 4000 | `/* ---------- 公園 3 變化 ---------- */` |
+|　├ 體育場| 4432 | `/* ---------- 體育場（T22；首個 2×2 多格建築；136×150、錨點 68/` |
+|　├ 墓園| 4916 | `/* ---------- 墓園（T38；72×112 小教堂＋墓碑群＋柏樹＋夜間微弱燭光；3 ` |
+|　├ T382：鐘樓細化| 5381 | `/* T382：鐘樓細化（零亂數）——門、台階、壁燈、石紋 */` |
+|　├ T382：度假酒店細化| 5863 | `/* T382：度假酒店細化（零亂數）——陽台欄、大堂門廊、池邊躺椅、遮陽傘、水線、翼門、夜池邊` |
+|　├ T382：社區菜園細化| 6355 | `/* T382：社區菜園細化（零亂數）——澆水壺、圍欄、小徑、補夜層（退修：澆水壺下移，避免 v` |
+| ├ 多格地標長列 | 6534 | `T355 版面重排` |
+| ├ FIX-B 尾端區起點 | 6900 | `/* ===== FIX-B 亂數流對齊：以下 T29/T30/T35/T36` |
+|　├ T382：綠蔭停車 v2 細化| 7285 | `/* T382：綠蔭停車 v2 細化（零亂數）——充電樁、路緣、地磚 */` |
+|　├ 公園新變體 3 種| 7754 | `/* ---------- 公園新變體 3 種（噴泉廣場／玫瑰園／遊樂場） ----------` |
+|　├ 立面件：沿左右牆挑 dx 段落| 8246 | `// ---- 立面件：沿左右牆挑 dx 段落，y 落在該 dx 列牆面安全範圍內（yF-h+p` |
+|　├ 街道設施小件| 8709 | `// ---- 街道設施小件（沿用 SPR.rdec/SPR.busStop 同款 64×40／` |
+|　├ T150 變體大擴充：住宅/商業/工業每級 8→12 變體| 8966 | `/* ===== T150 變體大擴充：住宅/商業/工業每級 8→12 變體（k=1/2/3 各` |
+|　├ T382：hero 後寫加蓋——救護車、入口雨棚、紅十字角燈 */| 9466 | `/* T382：hero 後寫加蓋——救護車、入口雨棚、紅十字角燈 */` |
+|　├ T382：hero 後寫加蓋——候診椅、門廊、綠十字角燈 */| 9962 | `/* T382：hero 後寫加蓋——候診椅、門廊、綠十字角燈 */` |
+|　├ T380：美術改畫在田外上緣自由區| 10453 | `/* T380：美術改畫在田外上緣自由區（y≤105；田心 cy=128 hh=20 不蓋），保` |
+|　├ T278 RCI 屋頂雜項加蓋| 10917 | `/* ===== T278 RCI 屋頂雜項加蓋（TheoTown 級屋頂密度）：snowCap` |
+| ├ 加蓋層 pass 群（T277→T345→**T382**） | 10976 | `const stampRoof=(key)=>{` / `/* ===== T382 全局美術極細化加蓋 pass` |
+| └ T364 縮放管線與收尾 | 11408 | `const mkIndustry364=(kind)=>{` |
+|　├ T425 統一底部貼合 pass| 11890 | `/* ===== T425 統一底部貼合 pass（buildSprites 絕對尾端）：T29` |
+| §3 世界生成 `genWorld` / `newWorld` | 12177 | `FIX-K：天氣/災害殘留狀態種子化重置` |
+| §4 `canPlace` / `placeCost` / `doPlace` | 12252 | `function canPlace(toolId,x,y){` |
+|　├ doPlace| 12621 | `function doPlace(toolId,x,y,silent){` |
+| `computePower` | 13338 | `function computePower(){` |
+| `COVR` / `COV` / `covFieldOfK` / `stampCov` | 13564 | `const covFieldOfKBase=covFieldOfK;` |
+| POL / NOISE 場 | 13585 | `function stampPolSrc(x,y,k,sign){` |
+| LAND 場 | 13693 | `function landStaticAt(x,y){` |
+| EDU / `rebuildCov` / `judgeWealth` | 13741 | `function rebuildCov(){` |
+| `computeWater` / `resilience364At` | 13872 | `function computeWater(){` |
+| §5 `aiStep()` AI 市長 | 14039 | `let acts=0;const MAXA=14,RESERVE=poor?50:350;` |
+| `buildTickIndex()` | 14607 | `function buildTickIndex(){` |
+| **`tick()` 全體** | 14620 | `rebuildNoise(tickBld); // T325` |
+| ├ 第一經濟迴圈（計數／幸福） | 14715 | `for(const i88 of tickBld){` |
+| ├ 產業鏈 | 14984 | `/* ===== T364b A 深加工鏈 BEGIN =====` |
+| ├ 災害段 | 15046 | `// T69/T70 災害（可關）` |
+| ├ 生長／升級／合併／火災 | 15214 | `// 生長：收集候選` |
+| ├ **第二經濟迴圈（稅收守衛鏈）** | 15500 | `const civicMul=chN>0?1.03:1;` |
+| └ 維護費／評分／`aiStep` 呼叫 | 15654 | `if(diff!==3)money+=income-upkeep;` |
+|　├ updCars| 16096 | `function updCars(dt){` |
+| §6 載具與煙／`computeCommute` | 16826 | `function computeCommute(){` |
+| §7 繪製起點：`DIRSCR` / 雨雪 | 16389 | `const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];` |
+| 粒子池 `fxParts` | 16419 | `/* ---------- T159 粒子特效豐富化` |
+| `daylight()` | 16515 | `function daylight(){` |
+| `streetHash` | 16911 | `function streetHash(x,y,salt){` |
+| **T367 旋轉變換層** | 16926 | `/* ===== T367 視角四向旋轉：view-space 變換層` |
+| 地面快取全域 | 17015 | `let groundDirty=true,groundCache=null,` |
+| **`draw()` 全體** | 17291 | `function draw(dt){` |
+| ├ 地面層與 groundCache 重烘 | 17434 | `// ---- 地面層 ----（T96：離屏快取` |
+| ├ `objs` 收集與深度排序 | 17853 | `// ---- 物件層（依深度排序） ----` |
+| ├ 地格分支（建築十餘層加疊） | 18295 | `const t=o.t;` |
+|　├ T403b/c 農事與牧場動態| 18803 | `/* ===== T403b/c 農事與牧場動態（T368a 純視覺路線：零狀態、零陣列，一切由` |
+| ├ 天氣後製與晝夜 multiply | 18968 | `// ---- 天氣色調（雨天壓暗` |
+| └ 夜燈層 `nightSprites` | 19163 | `// ---- 夜間燈光（T212` |
+|　├ drawGroundMemory428| 19660 | `function drawGroundMemory428(g,x,y,sx,sy,z){` |
+| `drawCursor` / `drawHoverLabel` / `toTile` | 20160 | `function drawHoverLabel(sxOf,syOf,z){` |
+| undo 群組 helper | 20231 | `const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};` |
+| `commitRect` 批次施作 | 20448 | `const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;` |
+| `UP_MAX` / `upCost` / `upgradeBld` | 20482 | `const UP_MAX={9:15,6:10,7:10,11:10,12:10` |
+| `inspect()` 建築檢視面板 | 20508 | `function svcStatTable(x,y,b){` |
+|　├ MOODS| 20941 | `const MOODS={` |
+| §10 UI 起點：`buildToolbar` | 21208 | `function buildToolbar(){` |
+| `drawMini` 小地圖 | 21319 | `const MINI_VIEW_NAME=` |
+| `statTab` / `dataTable` / `serviceRefRows` | 21396 | `T319 標準化數據表格產生器` |
+| `toast` / `updHud` / HUD 三鈕 | 21481 | `T311 提示訊息不刷屏` |
+| 存檔槽面板／分享碼 | 21576 | `function showSlots(){` |
+| 地圖／場景編輯器 | 21693 | `function showEditor(){` |
+| 歷史曲線／城市顧問／因果追溯 | 21826 | `function cityAdvisor(allT522){` |
+| `showStats()` 統計面板 | 22349 | `function showStats()` |
+| 通知中心／成就 | 22820 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 22896 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 23098 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 23471 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 23503 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 23652 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `load()` | 23695 | `const vlen=saveShapeOk533;` |
+| 自動存檔 | 23843 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 23856 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 23998 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 24115 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
@@ -176,8 +180,8 @@
 - **新增 per-cell 字串必須同步進 `RLE_F`**（16803）。漏加不壞資料但失壓，1000² 時單欄位就 1MB。
 - **存檔格式只准新增可選欄位**；load 端對缺欄位一律容錯。`data.v` 至今恆 1，代表 210 張卡全走這條路線。
 - **`bl` 是位置編碼**：第 6 位 fire（k9 時是 sz）、第 7 位 den、第 8 位 we，前面缺就要補預設佔位（16864-16865）。新增第 9 位不照抄這套寫法，load 端 `rec.length>=7/>=8` 的判斷會整組錯位。
-- **`sz` 不落盤（k9 例外），靠 `MSZ[k]` 反查補回**。缺表項＝ref 格全失、該地可被覆蓋建造（FIX-J）。
-- **ref 格重建是 load 的最後一步**（17021-17031），任何提前跑的重建都必須對 ref 格不敏感；k9 是唯一在 bl 迴圈就先建 ref 的特例（因為 rebuildCov 要對它的 ref 格蓋 stadium）。
+- **舊尺寸契約**：舊 `sz` 不落盤（k9 例外），靠 `MSZ[k]` 反查補回。T574 不改這張表；新園區另以可選稀疏 `lots574=[[rootIndex,k,sz],…]` 落盤，舊 `bl` 欄位與 `data.v=1` 均不變。缺新欄位就保留舊尺寸，不能自動吞掉鄰格。
+- **新園區須先補 ref 再重建派生場**：`readLots574` 在改寫世界前驗 root/k/size/重複/碰撞/越界；load 讀入 root 後先恢復新標記與全 footprint refs，再重建 COV／水網。不能把原本最後才補 ref 的舊路徑照抄到新園區，否則讀檔當下水網與覆蓋帳錯位。舊 k9 及無新欄位的舊檔保留原路。
 - **五處讀檔入口都要先 `saveInflate`**：16905／16909／16792／15790／15883。
 - **不入存檔的 state 必須在 `newWorld()` 與 `load()` 兩處成對歸零**（鐵律7）。特別是 `weather/wxT/rainDays/quakeRecover`——它們會改變 tick 內 `R()` 的呼叫次數，不歸零就跨分頁模擬分岔（FIX-K/FIX-L）。
 - **`townName` 未消毒**，可由分享碼進來，注入 innerHTML 前必過 `escHtml`（FIX-E）。
@@ -195,7 +199,7 @@
 ## 3. 程序化像素美術管線（§2 ＋ `buildSprites`）
 
 ### 它做什麼
-啟動時（唯一呼叫點 L17092，**無熱重建入口**）一次性生成全部 sprite。整體結構是「基元 → 資料驅動引擎 → 手寫地標 → 一連串就地加蓋 pass」。
+原有 sprite 仍在啟動鏈集中生成，結構是「基元 → 資料驅動引擎 → 手寫地標 → 一連串就地加蓋 pass」。T574 的新 k5 三變體／冬側六鍵在尾端新增；其餘新園區透過有界按需快取生成，不能再假設所有素材都在初次 atlas 裡。`GV.buildAllSprites()` 可供驗證完整重建，會一併清空園區快取。
 
 | 子區 | 行號 | 錨點 |
 |---|---|---|
@@ -231,6 +235,16 @@
 - **T274 區塊與 T229 色表已被位元級測試凍結**（拿 `backups/index.pre-T274.html` 逐位元比對，含「尾端區塊後必須是單一 LF」）。缺色只能像 T353 那樣另開一張表就地加蓋。
 - **git 還原後必查 CRLF**——`git checkout index.html` 會被 autocrlf 換成 CRLF，直接踩爆上述位元測試。
 
+### T574 新園區與舊素材隔離
+
+- `LOT_PLAN574` 是 133 種新建尺寸唯一來源；`BUILD_LOTS574`／`lotSpec574` 只選出 105 種擴大種類。28 種保留尺寸，舊 `SPR.bld`／獨立英雄圖／舊縮放表不覆寫。
+- `buildLots574` 生成 k5 固定三變體；`bakeLot574` 依種類、變體、農作期、冬季組合生成廠房／庭院／跑道等分區。新圖不是把舊一格 sprite 等比拉大。
+- `lotSprite574` 的 LRU 同時受 128 組與 **12,000,000 日夜合計像素**限制。命中不重烘焙、淘汰扣像素帳、完整重建時歸零；新世界不需要丟棄與世界無關的純素材。
+- `lotFarFrame574` 對可見新園區的唯一變體估算完整日夜像素／條目；四作期預留，超任一原預算或進遠景時選半解析度最近鄰縮圖、沿既有 `sc=2` 還原原地塊幾何。遠景合併色票，近景未超限恢復原生圖；不是提高上限或每幀淘汰重烘。k5仍保留固定三種機組。
+- `lotHookCache574` 只存數字錨點／設備幾何，不持有canvas；農塵、摩天輪與夜燈讀幾何不因LRU淘汰而重烘圖片，完整buildSprites清空此表。G22以105種實建／1920與3840視口／日夜積雪四向暖幀0守住，另驗129合法鍵但像素未超限的條目分支。
+- `lotMeta574` 把煙口、農田、摩天輪、航空燈、招牌等掛點與本體綁在一起。夜圖需本體 alpha 遮罩，泛光另走地坪橢圓，不能把高樓整張透明畫布塗成藍色長方形。
+- 真瀏覽器清冊須拆成兩張帳：舊 atlas 的逐鍵像素契約，以及新園區 LRU 的目錄／變體／像素上限。Node canvas mock 不是真像素證據。
+
 ### 已驗證缺口
 - ~~`SZC` 缺 20 鍵~~ **已由 T378 補齊、T383a 機器守**：五表（MSZ/SZC/SZB/SZM×2）現況 65 鍵逐鍵相等，新多格建築漏任一表當場紅並點名。
 - `k9`（體育場，2×2）**設計性不入五表**（沿用存檔第 6 位 sz，T383a 以斷言凍結此現狀），但 T345 色環 `hw=32*(SZB[9]||1)=32`＝只有應有長度的一半（與 T353 修掉的 k91 同型）——視覺債仍在市面，入表須五表齊補＋改 T383a 斷言。
@@ -257,6 +271,8 @@
 - **LOD 只裁「畫」不裁「算」**（T107）：`lodFar/lodMini` 不得影響 tick／updCars／updSmoke。
 - **`gKey` 必須涵蓋所有影響地面外觀的量**：`ox_oy_z_waterF_win_day_W_H_r{rot}`。反之 `day` 已在鍵內，tick 直改 tile 的路徑**刻意不補 `groundDirty`**——不要「順手」補。`groundDirty` 置真點分散在六處（doPlace 9360／undo 16736／newWorld 8321／load 17034／GV.flood 17605／setViewRot 12480），漏一處＝「改了地圖畫面不變」，且因 day 遞增次日自癒＝間歇性難重現。
 - **多格建築只由 root 繪製**；錨點取 footprint 內 view 最大 dep 的角（rot≠0 時未必是 SE 角）。
+- **T574 新園區另守完整足跡**：`lotVisible574` 不能只裁root的一格；9×9末端仍可見就要畫本體。遠景／小地圖同樣畫全地塊，不回退單格點。夜景從可見ref解析root後同幀去重，未完工不先畫燈；地面泛光只覆蓋地坪，不用整張高樓畫布填透明天空。
+- **T574 局部座標例外是具名且有界的**：`lotGround574`、`buildLots574`、`bakeLot574`、`attachFarmSmoke574` 內的局部投影不等於世界漏轉。T445逐一平衡括號取函式體並計數，不能擴成整段繪製免查。園內人物、設備煙口、農塵與夜燈均使用新地塊底錨；舊建築保留舊路徑。
 - **夜燈只能走 `nightSprites`**（14217-14229 唯一出口），在別處自行 `'screen'` 會破壞層序。
 - **`'lighter'` 會洗白**：T195 電光／T207 隕石拖尾／T248 彩虹三處都撞過，底下已飽和到 255 或淺藍天時疊上去是變白／看不見，三處都改回 `source-over`。
 - **T359 探照燈必須畫在建築本體之後**，畫在之前會被剪影整段蓋掉、截圖完全不可見（Node mock 只能證明「呼叫有發出」，抓不到這種層序錯誤）。
@@ -320,7 +336,7 @@
 - **`canPlace` 新增分支必須明確 `return null`**，否則落到 8551 的兜底 `'無法建造'`（8452 上方的原始註解就是這個事故的碑文）。`canPlace` 與 `placeCost` 的 case 清單是**兩份手抄副本**。
 - **工具列顯示價必須等於 `placeCost` 實扣**（鐵律20）。多數 `pr` 寫成 `'$'+COST.x` 自動同步，但 `oneway`（'$20'）與 `light`（'$60'）是字面值、placeCost 也硬編碼，兩處必須同改。**目前無任何測試守這個一致性。**
 - **工具 id 必須與 COST 鍵同名**，唯一例外 `civichall→COST.civicHall`，由 AI 端的 `aiCostOf`（10280）顯式處理。新工具讓 id≠COST 鍵又忘了補＝AI 拿到 undefined 永遠 continue，**不報錯，只是那座建築 AI 永遠不蓋**。
-- **多格 root/ref 契約**：root 存 `{k,lv,v,age,pw,h,sz}`、其餘存 `{k,ref:[rx,ry]}`；覆蓋場只在 root 蓋一次（唯一例外 k9 四格皆蓋 stadium）。處理多格一律先 `t.bld.ref||[x,y]` 解析 root 再讀 sz。
+- **多格 root/ref 契約**：root 存 `{k,lv,v,age,pw,h,sz}`、其餘存 `{k,ref:[rx,ry]}`；T574 新園區 root 另有 `lot574` 標記。新覆蓋從整塊外緣算原半徑、只蓋一次，舊 k9 四格各蓋 stadium 的相容例外仍保留。先解析 root 再讀實際 sz，不能用新尺寸表強改舊城。
 - **`UP_JOB[k]` 一律用 `??` 不可用 `||`**（鐵律15／T254）：顯式 0（純擴容不加就業）會被 `||6` 誤 fallback 成每級 +6 幽靈就業。
 - **「讓某個 k 變成可升級」這個動作本身就是引信**——進入 `UP_MAX` 就必須確認第二經濟迴圈有它的分支。
 - **doze 的 else-if 鏈順序＝拆除優先序**。T117 隕石坑原本落在 zone 之後，導致「曾劃過分區的格子上的隕石坑永遠剷不掉」，才被提到僅次於 ruin。
@@ -330,10 +346,17 @@
 - **AI 的動作不進 undo 群組**（tryP 直呼 doPlace 而未 openUndo），玩家撤不掉 AI 蓋的東西——這是刻意的。
 - **AI 的節拍常數互相錯開**：服務 day%2、適應性建設 day%2、中庭公園 day%3、公車站 day%10、車隊 day%20、地鐵 day%25、都更 day%30、地標 day%40，路網 %6／%18、水管 %6===3。改任一個都屬於動 AI 旋鈕。
 
+### T574 全地塊接線
+
+- 玩家與 AI 都讀新建尺寸；合法性、預覽、清場與造價扣款必須同一 footprint。所有 ref 格拆除／undo／手機手勢撤回都要還原整塊，地下既有水管保留，不以拆樓順手拆管。
+- 道路／電網／水網、車站四邊月台、垃圾路網及水岸來源按完整地塊找接點；電水容量、日費、人口仍只計 root。`connectedLotSize574` 對舊城保留原 root 接點語意。
+- `lotRoadLink574` 只補園區外緣到已有道路的缺口，仍走 `tryP`／`doPlace` 及原有動作／資金閘。不許直接給電、不穿園區補路，也不增加 AI 額外補助。
+- 占地變大會改變選址及後續模擬軌跡；T574 已有業主條件式重建哨兵授權。多種子健康度必須另表揭露，不能把改用成熟城的美術／產業鏈測試宣稱為原種子成長未退化。
+
 ### 已知缺口
 - 放置後的即時電網刷新清單（9355）**不含 T257 新增的 nuclear/hydro/geo**，要等下一次 tick 自癒。
 - `canPlace` 的 1×1 服務群分支（8399-8403）**沒擋 rail/tram**，而多格通用分支擋。補上會改變 AI 的合法點集合＝需多種子驗收。
-- AI 完全不蓋 T364b/c/d 的 13 種建築（k121-133），已 grep 確認這些 id 在 aiStep 全段一次都沒出現。
+- 原「AI 完全不蓋 k121-133」已過期：T542 已接 k121/122/123 深加工鏈。T574 的 seed3002/3003 自然900天各實測三廠各1；測試見證城與全體健康度分列，不能以個別成熟城掩蓋其他種子成長放慢。
 
 ---
 
@@ -405,7 +428,7 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 - **preflight 三閘**：部署目錄純淨（T370：`DEPLOY_ALLOWED` 從【寫入】白名單改成【存在】白名單，多一個檔或**任何目錄**就紅）、CHANGELOG 簽核已落地（T371：驗收欄不得含「待」且必須具名六方之一）、部署收據無事後回滾。
 - **18 個交易階段**落在原子寫入的 `active.json`，`--resume` 可從任一階段接續；master 只被 `git merge --ff-only` 到已在隔離 integration worktree 驗過的那個確切 OID。
 
-`tools/test_toolchain.py`（43 例）是對閘門本身的故障注入回歸，全部在拋棄式 git repo 裡跑。
+`tools/test_toolchain.py` 是對閘門本身的故障注入回歸，全部在拋棄式 git repo 裡跑。T574 收束親跑63例、exit0／OK；沒有更改工具或既有工具鏈斷言。
 
 ---
 
@@ -417,7 +440,7 @@ CSS（16-210）＋ 靜態 DOM（213-275）＋ §10 的所有面板函式。九�
 | 2 | 改的是 `R()` 的**次數**不是數值 | 全檔慣例 | 釘定種子 **seed301→3781**（test_fixde.js **4517**；T432 孤島電源不併網重釘，**前值 4153**）、**seed22→4550**（test_fixde.js **6753**）；verify.py `MIN_SEED_PINS=2`。**真值一律以 test_fixde.js 的斷言行為準、不要背舊值**——T433 實測時本欄與 LINEAGE 都還停在 4153，照它驗會得到相反結論（沒弄壞任何東西的人會以為自己弄壞了） |
 | 3 | 新素材放 `buildSprites` 絕對尾端（FIX-B） | 4051 註解宣告 | 各卡自寫的區塊 regex＋**T383c live token 序快照**（中段插入/刪除/換序消耗即紅） |
 | 4 | `buildSprites` 不得偷吃世界流（`__savedR` ↔ 8045 還原） | 1271 / 8045 | T275 globalRPreserved |
-| 5 | 五份多格尺寸表必須同步 `MSZ` | MSZ 18102 / SZC 8630 / SZB 8656 / SZM 18670 / SZM 18692 | **T383a 全鍵集合比對**（份數 1/1/1/2＋逐鍵 miss/extra/wrong 全零＋k9 不入表凍結） |
+| 5 | 五份舊圖多格尺寸表必須同步舊 `MSZ`；T574 新占地另走唯一目錄 | MSZ / SZC / SZB / SZM；LOT_PLAN574 | **T383a 全鍵集合比對**（份數 1/1/1/2＋逐鍵 miss/extra/wrong 全零＋k9 不入表凍結）；T574 G10全133筆新目錄、G11真建造／存讀 |
 | 6 | 每個 k 都要有稅收守衛分支（鐵律14） | tick 12105-12245 | **T383b 執行期窮舉**（133 鍵合成城、fallback sink 記錄器）＋既有字串斷言與定點 NaN 冒煙 |
 | 7 | 多格 ref 格不參與經濟（`if(b.ref)continue`） | 11135 | 間接由釘定種子守 |
 | 8 | 讀檔絕不拋錯；存檔格式只准新增可選欄位（鐵律9） | load 全包 try/catch，17036 回 false | 存讀往返測試、_bak 還原測試 |

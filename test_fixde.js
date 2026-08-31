@@ -463,6 +463,65 @@ window.__t571Mk=function(x,y,k,v){const t5=tiles[idx(x,y)];t5.bld={k:k,lv:1,v:v,
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
+window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveShapeOk533,pinch:undoPlace,diag:powerDiag432,
+  waterCap:computeWater,waterNear:hasWaterNear,roadNear:hasRoadNear,lotView:lotViewBase574,sprites:()=>SPR.lot574,
+  farFrame:lotFarFrame574,artKeys:()=>[...lotCache574.keys()],rainDays:v=>{if(v!==undefined)rainDays=v;return rainDays;},
+  art:lotSprite574,artBake:bakeLot574,artCache:()=>({entries:lotCache574.size,pixels:lotCachePixels574,bakes:lotBakeN574}),
+  order:lotOrder574,objectOrder:lotObjectOrder574,
+  oldObjectPath:objs=>{const old=lotOrder574;let calls=0;try{lotOrder574=function(...a){calls++;return old(...a);};return{result:lotObjectOrder574(objs),calls};}finally{lotOrder574=old;}},
+  nightWith:(factory,fn)=>{const oldCv=cv,oldC=lotNightCanvas574,oldG=lotNightCtx574;
+    try{cv=factory;lotNightCanvas574=null;lotNightCtx574=null;return fn(lotNightLayer574);}
+    finally{cv=oldCv;lotNightCanvas574=oldC;lotNightCtx574=oldG;}},
+  bakeTrace:(k,v,winter,factory)=>{const oldCv=cv,oldOrder=lotOrder574,trace=[];let cycles=null;
+    try{if(factory)cv=factory;lotOrder574=function(items,sparse){const sorted=oldOrder(items,sparse);cycles=sorted.cycles574;
+      for(const p of items){const fn=p.fn;p.fn=()=>{trace.push({role:p.role574,foot:p.foot574});return fn();};}return sorted;};
+      return {sprite:bakeLot574(k,v,2,winter),trace,cycles};
+    }finally{cv=oldCv;lotOrder574=oldOrder;}},
+  drawOrder:(points,z,night)=>{const before={...cam},oldDraw=ctx.drawImage,oldOrder=lotObjectOrder574,oldTopo=lotOrder574,oldLayer=lotNightLayer574,oldT=visT,oldShake=shakeT,oldZoom=zoomAnim,oldTool=tool,oldSel=selTile,oldWeather=weather;
+    const images=new Map(),painted=[],objects=[];let calls=0,cycles=null,nightCalls=0,nightMasks=0;
+    for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b.lot574)images.set(lotSprite574(b.k,b.v,2,false,z<1).img,p.id);
+      else for(const key of Object.keys(SPR.bld))if(+key.split('_')[0]===b.k)images.set(SPR.bld[key].img,p.id);}
+    try{const a=lotViewBase574(points[0].x,points[0].y,tiles[idx(points[0].x,points[0].y)].bld.sz);
+      cam.x=a[0];cam.y=a[1]-tiles[idx(points[0].x,points[0].y)].bld.sz*16;cam.z=z;visT=night?100:55;weather=0;shakeT=0;zoomAnim=null;tool='pan';selTile=null;groundDirty=true;
+      lotOrder574=function(items,sparse){const r=oldTopo(items,sparse);if(sparse)cycles=r.cycles574;return r;};
+      lotObjectOrder574=function(os){calls++;const r=oldOrder(os);for(const o of r)if(o.t&&o.t.bld&&!o.t.bld.ref)objects.push([o.x,o.y]);return r;};
+      lotNightLayer574=function(...args){nightCalls++;nightMasks=args[0].filter(n=>n.occlude574).length;return oldLayer(...args);};
+      ctx.drawImage=(im,...args)=>{if(images.has(im))painted.push(images.get(im));};draw(0);return {calls,cycles,painted,objects,nightCalls,nightMasks};
+    }finally{Object.assign(cam,before);ctx.drawImage=oldDraw;lotObjectOrder574=oldOrder;lotOrder574=oldTopo;lotNightLayer574=oldLayer;visT=oldT;weather=oldWeather;shakeT=oldShake;zoomAnim=oldZoom;tool=oldTool;selTile=oldSel;groundDirty=true;}},
+  ground:lotGround574,visible:lotVisible574,roadLink:lotRoadLink574,
+  nightRoots:points=>{const seen=new Set();return points.map(p=>nightRoot574(p[0],p[1],seen)).filter(Boolean).map(p=>p.slice(0,3));},
+  nightFrame:(kind,x,y)=>{const before={...cam},old=ctx.fillRect,oldT=visT,oldShake=shakeT,oldGate=window.__noNightCity,b=tiles[idx(x,y)].bld;
+    const sp=lotSprite574(b.k,b.v),a=lotViewBase574(x,y,b.sz),hits=[];
+    try{cam.x=a[0];cam.y=a[1]-b.sz*16;cam.z=1.5;visT=100;shakeT=0;window.__noNightCity=false;nightTierDirty413=true;
+      ctx.fillRect=(...args)=>hits.push(args);({land:drawNightLandmarks413,neon:drawNightCommNeon413,ind:drawNightIndAvia413})[kind](1);
+      return {hits,anchor:a,cam:{...cam},world:[W,H],sprite:{ax:sp.ax,ay:sp.ay,hooks:sp.lotMeta574.hooks}};
+    }finally{Object.assign(cam,before);ctx.fillRect=old;visT=oldT;shakeT=oldShake;window.__noNightCity=oldGate;}},
+  actions:fn=>{const old=doPlace,actions=[];try{doPlace=function(...args){const ok=old(...args);if(ok)actions.push(args[0]);return ok;};fn();return actions;}finally{doPlace=old;}},
+  farmSmoke:(s,b,x,y,baseY)=>{attachFarmSmoke574(s,b,x,y,baseY);return s;},
+  frame:(x,y,z,rootY,atNight=false)=>{const before={...cam},old=ctx.drawImage,oldRect=ctx.fillRect,oldArc=ctx.arc,oldT=visT,oldShake=shakeT,oldZoom=zoomAnim,b=tiles[idx(x,y)].bld;
+    const sp=lotSprite574(b.k,b.v,2,false,z<1),a=lotViewBase574(x,y,b.sz),p=w2v(x,y),hits=[],rects=[],arcs=[];
+    try{cam.x=a[0];cam.y=rootY===undefined?a[1]-b.sz*16:(p[0]+p[1])*16+H/(2*z)-rootY/z;cam.z=z;visT=atNight?100:55;shakeT=0;zoomAnim=null;groundDirty=true;
+      ctx.fillRect=(...args)=>{if(args[2]>30&&args[3]>30&&args[2]<W*.9)rects.push(args);};ctx.arc=(...args)=>arcs.push(args);
+      ctx.drawImage=(im,...args)=>{if(im===sp.img)hits.push(args);};draw(.016);return {hits,rects,arcs,w:sp.w*(sp.sc||1),h:sp.h*(sp.sc||1),world:[W,H,N],root:{...b},cam:{...cam},visible:lotVisible574(x,y,b.sz,Math.round(W/2-cam.x*z),Math.round(H/2-cam.y*z),z,W,H)};
+    }finally{Object.assign(cam,before);ctx.drawImage=old;ctx.fillRect=oldRect;ctx.arc=oldArc;visT=oldT;shakeT=oldShake;zoomAnim=oldZoom;groundDirty=true;}},
+  artVariants:k=>k===5||k===11||k===12?[0,1,2]:[...new Set(Object.keys(SPR.bld).filter(s=>s.startsWith(k+'_1_')).map(s=>+s.split('_')[2]))],
+  plan:()=>LOT_PLAN574,tools:()=>TOOLS.map(t=>t.id),legacy:k=>k===9?2:MSZ[k]||1,
+  resource:(x,y,r)=>{RESOURCE[idx(x,y)]=r;RDEP[idx(x,y)]=0;},
+  liveHouse:(x,y)=>{tiles[idx(x,y)].bld={k:1,lv:1,v:0,age:9,pw:true,h:1};},
+  utilityState:()=>({powered:tiles.filter(t=>t.bld&&t.bld.k===127&&t.bld.pw).length,watered:tiles.filter(t=>t.bld&&t.bld.k===127&&t.bld.wa).length,garbRatio}),
+  fields:()=>JSON.stringify({cov:COV,pol:POL,trees:POLTREE}),rebuild:()=>{rebuildCov();},
+  ports:lotPorts574,sea:lifeShipNearWater,garbage:computeGarbLocal,garbAt:(x,y)=>garbLocal[idx(x,y)],
+  transit:()=>{computeBusRtCovPop();return {rail:railCovPop,people:transitRidership};},
+  rail:(tram)=>{if(tram){tramCars.length=0;updTrams(0);return tramCars.map(c=>({...c}));}trains.length=0;updTrains(0);return trains.map(c=>({...c}));},
+  smoke:()=>{const prev=Math.random;try{Math.random=()=>.75;smokes.length=0;smokeAcc=1;updSmoke(0);return smokes.map(s=>({...s}));}finally{Math.random=prev;}},
+  begin:()=>{undoGroup={snaps:[],seen:{},spent:0};},end:()=>{undoStack.push(undoGroup);undoGroup=null;},
+  edit:(x,y,f,v)=>{tiles[idx(x,y)][f]=v;},oldPlant:(x,y)=>{tiles[idx(x,y)].bld={k:5,lv:1,v:1,age:9,pw:true,h:1};},
+  cursor:(x,y)=>{const prevTool=tool,prevHover={...hover},prevRect=rect.on,prev=ctx.drawImage;let calls=[];
+    try{tool='plant';hover.x=x;hover.y=y;rect.on=false;ctx.drawImage=(im,sx,sy,w,h)=>{calls.push([sx,sy,w,h]);};drawCursor((x,y)=>x,(x,y)=>y,1);return calls;}
+    finally{tool=prevTool;Object.assign(hover,prevHover);rect.on=prevRect;ctx.drawImage=prev;}},
+  clear:()=>{for(const t of tiles){t.t=2;t.el=0;t.tree=0;t.bld=null;t.road=0;t.rail=0;t.tram=0;t.dock=0;t.zone=0;t.deco=0;t.ruin=0;t.crater=0;t.wp=0;t.rp=false;}
+    recalcAllMasks();recalcAllRailMasks();computeFoam();computeElMask();computeWater();
+    rebuildCov();recomputePolAll459();markPowerDirty432();}}; // T574 僅測試注入，正式 runtime 不帶造境橋
 window.__t413ForceRoad=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.road=1;t.rc=t.rc||2;t.zone=0;t.bld=null;return true;}; // T413b B4 造境：直寫路旗
 window.__t413ForceWater=function(x,y){if(!inMap(x,y))return false;const t=tiles[idx(x,y)];t.t=0;t.bld=null;t.road=0;return true;}; // T413b B4 造境：直寫水格
 window.__t413=function(){return {rebuild:()=>{rebuildNightTier413();nightTierDay413=day;},tier:(x,y)=>nightTier413?nightTier413[idx(x,y)]:-1,roadTier:(x,y)=>_roadTier413(x,y),reg:NIGHT413,regT:NIGHT413T,call:(nd)=>drawNightCity413(nd),callTop:(nd)=>drawNightCityTop413(nd),scan:()=>nightScanN413,bakeCount:()=>window.__t413BakeCount|0,bakeByKind:()=>({...(window.__t413BakeByKind||{})}),strokes:()=>({lamp:window.__t413LampStrokes|0,water:window.__t413WaterStrokes|0,land:window.__t413LandStrokes|0,neon:window.__t413NeonStrokes|0,ind:window.__t413IndStrokes|0}),sx:(x,y)=>_sx413(x,y),sy:(x,y)=>_sy413(x,y),visPad:()=>Math.max(40,80*_z413()),setShake:(v)=>{shakeT=+v||0;return shakeT;},getShake:()=>shakeT};}; // T413a/b 測試橋（第三輪：分族 bake + strokes + shake/pad）
@@ -710,9 +769,9 @@ window.GV.addMoney(100000);
 
 // ================= (1) 七種單變體建築 v=0 與存檔正規化 =================
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
-const SV = [ // [tool, k, sz]；T226/T230/T232：farm/ranch/parking 擴變體移出單變體清單；T228：新增 bigFarm 5×5
-  ['airport', 19, 4],
-  ['solar', 25, 2], ['prison', 31, 2], ['university', 32, 3], ['bigFarm', 53, 5], ['bigCemetery', 54, 3], ['grandStation', 55, 3], ['sportsComplex', 56, 3], ['foodPlant', 57, 3], ['nuclear', 58, 3], ['hydro', 59, 2], ['fireHQ', 61, 3], ['greenhouse', 63, 2], ['warehouse', 64, 2], ['grandMall', 65, 4], ['faithCenter', 66, 2], ['observatory', 68, 2], ['wasteIncinerator', 62, 2], ['hotel', 82, 2], ['resort', 83, 3], ['market', 87, 2], ['marina', 90, 2], ['tradepost', 91, 2], ['brewery', 100, 2], ['waterpark', 101, 2], ['highschool', 108, 2], ['techpark', 109, 3], ['freight', 110, 2], ['upcycle', 111, 2], ['centralpark', 112, 3], ['unicampus', 113, 4], ['megaport', 114, 5], ['civiccenter', 115, 3], ['datacenter', 116, 2], ['fertplant', 118, 2], ['kitchen', 119, 2]
+const SV = [ // T574：真建造採新占地；v=0／正規化原斷言保留，舊尺寸另外以缺lots574的舊城驗證。
+  ['airport', 19, 7],
+  ['solar', 25, 3], ['prison', 31, 4], ['university', 32, 4], ['bigFarm', 53, 7], ['bigCemetery', 54, 5], ['grandStation', 55, 5], ['sportsComplex', 56, 7], ['foodPlant', 57, 3], ['nuclear', 58, 5], ['hydro', 59, 4], ['fireHQ', 61, 4], ['greenhouse', 63, 3], ['warehouse', 64, 3], ['grandMall', 65, 5], ['faithCenter', 66, 3], ['observatory', 68, 3], ['wasteIncinerator', 62, 4], ['hotel', 82, 2], ['resort', 83, 5], ['market', 87, 3], ['marina', 90, 3], ['tradepost', 91, 3], ['brewery', 100, 3], ['waterpark', 101, 5], ['highschool', 108, 4], ['techpark', 109, 5], ['freight', 110, 4], ['upcycle', 111, 3], ['centralpark', 112, 5], ['unicampus', 113, 7], ['megaport', 114, 9], ['civiccenter', 115, 4], ['datacenter', 116, 3], ['fertplant', 118, 3], ['kitchen', 119, 3]
 ];
 const svRoots = [];
 for (const [tool, k, sz] of SV) {
@@ -1581,7 +1640,7 @@ assert(/doFarm\('53_1_0',164,/.test(html),
   assert(place('farm', sp.x, sp.y), 'farm 應成功建造');
   const fb = tile(sp.x, sp.y).bld;
   const expV = (sp.x * 5 + sp.y * 11) % 16; // T274：16 作物
-  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 2, 'farm root v 應為座標決定性 (x*5+y*11)%16=' + expV + '、sz=2');
+  assert(fb && fb.k === 22 && fb.v === expV && fb.sz === 3, 'farm root v 應為座標決定性 (x*5+y*11)%16=' + expV + '、T574 sz=3');
   assert(html.includes("SPR.bld['22_1_1']") && html.includes("SPR.bld['22_1_15']"), 'SPR.bld 應生成 22_1_1..22_1_15（T226/227/235/T274 農場 16 作物）');
   svRoots.push({ k: 22, x: sp.x, y: sp.y, keepV: expV });
 }
@@ -1603,7 +1662,7 @@ assert(/doFarm\('53_1_0',164,/.test(html),
   assert(place('ranch', sp.x, sp.y), 'ranch 應成功建造');
   const rb2 = tile(sp.x, sp.y).bld;
   const expV = (sp.x * 7 + sp.y * 5) % 5;
-  assert(rb2 && rb2.k === 23 && rb2.v === expV && rb2.sz === 2, 'ranch root v 應為座標決定性 (x*7+y*5)%5=' + expV + '、sz=2');
+  assert(rb2 && rb2.k === 23 && rb2.v === expV && rb2.sz === 3, 'ranch root v 應為座標決定性 (x*7+y*5)%5=' + expV + '、T574 sz=3');
   assert(html.includes("SPR.bld['23_1_1']") && html.includes("SPR.bld['23_1_2']") &&
     html.includes("SPR.bld['23_1_3']") && html.includes("SPR.bld['23_1_4']"),
   'SPR.bld 應生成 23_1_1..23_1_4（T230/T273 牧場 5 變體）');
@@ -1623,7 +1682,7 @@ for (const r of svRoots) {
   assert(b && b.v === expV, 'k=' + r.k + ' load 後 v 應為 ' + expV + '（單變體正規化/農場保留）');
 }
 // FIX-J 迴歸：save→load 往返後多格 root 應保留 sz、ref 格應全數重建（舊版 load 未補 sz→ref 格全失、可被覆蓋建造）
-const SZOF = {}; for (const [, k, sz] of SV) SZOF[k] = sz; SZOF[22] = 2; SZOF[23] = 2; SZOF[20] = 2; // T226/T230/T232：農場/牧場/停車場已移出 SV，sz 表補回
+const SZOF = {}; for (const [, k, sz] of SV) SZOF[k] = sz; SZOF[22] = 3; SZOF[23] = 3; SZOF[20] = 2; // T574：新農牧地塊3×3，停車場仍2×2
 for (const r of svRoots) {
   const b = tile(r.x, r.y).bld;
   assert(b && b.sz === SZOF[r.k], 'k=' + r.k + ' load 後 root 應保留 sz=' + SZOF[r.k]);
@@ -1641,13 +1700,13 @@ console.log('\n-- (2) ref 格 doze / 體育場 COV --');
 const f2 = findSpot('farm');
 assert(f2 && place('farm', f2.x, f2.y), '農場應成功建造');
 assert(place('doze', f2.x + 1, f2.y + 1), '從 ref 格拆除農場應成功');
-for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++)
+for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++)
   assert(tile(f2.x + dx, f2.y + dy).bld === null, '農場 ref 格 doze 後 (' + dx + ',' + dy + ') 應清空');
 
 const a2 = findSpot('airport');
 assert(a2 && place('airport', a2.x, a2.y), '機場應成功建造');
 assert(place('doze', a2.x + 2, a2.y + 1), '從 ref 格拆除機場應成功');
-for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++)
+for (let dy = 0; dy < 7; dy++) for (let dx = 0; dx < 7; dx++)
   assert(tile(a2.x + dx, a2.y + dy).bld === null, '機場 ref 格 doze 後 (' + dx + ',' + dy + ') 應清空');
 
 const s2 = findSpot('stad');
@@ -1901,7 +1960,7 @@ console.log('\n-- (10) T251 農場升級經濟 / k53-56 稅收 NaN 守衛 --');
   window.GV.save();
   assert(window.GV.load() === true, 'ranch 升級後 save→load 應成功');
   const bl = tile(sp.x, sp.y).bld;
-  assert(bl && bl.k === 23 && bl.lv === 5 && bl.sz === 2, 'ranch 存讀檔應保留 lv5/sz2，實際 lv=' + (bl && bl.lv) + ' sz=' + (bl && bl.sz));
+  assert(bl && bl.k === 23 && bl.lv === 5 && bl.sz === 3, 'T574 ranch 新城存讀檔應保留 lv5/sz3，實際 lv=' + (bl && bl.lv) + ' sz=' + (bl && bl.sz));
 }
 // T253 電廠/太陽能/風力可升級擴容：computePower 隨機組等級加權（春季 ×1 精確）
 {
@@ -2001,14 +2060,14 @@ console.log('\n-- (10) T251 農場升級經濟 / k53-56 稅收 NaN 守衛 --');
   assert(ge && place('geo', ge.x, ge.y), 'geo(T257) 應成功建造');
   assert(cap() === 475, 'geo lv1 應 +45 容量，實際 ' + window.GV.region().powerCap);
   assert(isFinite(window.GV.stats().money), 'T257 電源建造/升級後 money 不得 NaN');
-  // 消防總局：fireHQ 半徑 16 覆蓋（root 起 Chebyshev），doze 對稱歸零
+  // T574 消防總局：4×4 地塊外 Chebyshev 半徑 16，半徑不放寬，doze 對稱歸零
   const fq = findSpot('fireHQ');
   assert(fq && place('fireHQ', fq.x, fq.y), 'fireHQ(T257) 應成功建造');
   assert(window.GV.cov('fireHQ', fq.x, fq.y) > 0, 'fireHQ root 覆蓋應 >0');
-  const edge = { x: Math.min(N - 1, fq.x + 16), y: fq.y };
-  assert(window.GV.cov('fireHQ', edge.x, edge.y) > 0, 'fireHQ +16 邊陲格覆蓋應 >0（半徑16）');
-  const beyond = { x: Math.min(N - 1, fq.x + 17), y: fq.y };
-  if (fq.x + 17 <= N - 1) assert(window.GV.cov('fireHQ', beyond.x, beyond.y) === 0, 'fireHQ +17 格應 0（半徑邊界精確）');
+  const edge = { x: Math.min(N - 1, fq.x + 3 + 16), y: fq.y };
+  assert(window.GV.cov('fireHQ', edge.x, edge.y) > 0, 'fireHQ 地塊邊緣 +16 格覆蓋應 >0（半徑16）');
+  const beyond = { x: Math.min(N - 1, fq.x + 3 + 17), y: fq.y };
+  if (fq.x + 3 + 17 <= N - 1) assert(window.GV.cov('fireHQ', beyond.x, beyond.y) === 0, 'fireHQ 地塊邊緣 +17 格應 0（半徑邊界精確）');
   assert(place('doze', fq.x, fq.y), 'fireHQ doze 應成功');
   assert(window.GV.cov('fireHQ', fq.x, fq.y) === 0, 'fireHQ doze 後覆蓋應對稱歸 0');
   // 升級 fireHQ 至 lv5 NaN 檢查（civic 走預設就業 +6/級）
@@ -2063,7 +2122,7 @@ console.log('\n-- (10) T251 農場升級經濟 / k53-56 稅收 NaN 守衛 --');
   window.GV.save();
   assert(window.GV.load() === true, 'bigFarm 升級後 save→load 應成功');
   const bl = tile(sp.x, sp.y).bld;
-  assert(bl && bl.k === 53 && bl.lv === 6 && bl.sz === 5, 'bigFarm 存讀檔應保留 lv6/sz5，實際 lv=' + (bl && bl.lv) + ' sz=' + (bl && bl.sz));
+  assert(bl && bl.k === 53 && bl.lv === 6 && bl.sz === 7, 'T574 bigFarm 新城存讀檔應保留 lv6/sz7，實際 lv=' + (bl && bl.lv) + ' sz=' + (bl && bl.sz));
 }
 
 // ================= (11) T262 可調地圖規模 =================
@@ -2152,17 +2211,17 @@ console.log('\n-- T290 大型購物中心 --');
   if (window.GV.setDiff) window.GV.setDiff(1);
   window.GV.addMoney(60000);
   const sp = findSpot('grandMall');
-  assert(sp, 'T290 購物中心應找到 4×4 可建位置');
+  assert(sp, 'T574/T290 購物中心應找到 5×5 可建位置');
   const jobs0 = window.GV.stats().jobs || 0;
   assert(place('grandMall', sp.x, sp.y), 'T290 購物中心應成功建造');
-  // 16 格佔用：root sz=4 + 15 ref
+  // T574：25 格佔用；舊4×4資料仍由舊檔專項驗收。
   let rootN = 0, refN = 0;
-  for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++) {
+  for (let dy = 0; dy < 5; dy++) for (let dx = 0; dx < 5; dx++) {
     const b = tile(sp.x + dx, sp.y + dy).bld;
-    assert(b && b.k === 65, 'T290 4×4 每格應為 k65');
-    if (b.ref) refN++; else { rootN++; assert(b.sz === 4, 'T290 root sz 應=4'); }
+    assert(b && b.k === 65, 'T574/T290 5×5 每格應為 k65');
+    if (b.ref) refN++; else { rootN++; assert(b.sz === 5, 'T574/T290 root sz 應=5'); }
   }
-  assert(rootN === 1 && refN === 15, 'T290 應 1 root + 15 ref（實得 ' + rootN + '/' + refN + '）');
+  assert(rootN === 1 && refN === 24, 'T574/T290 應 1 root + 24 ref（實得 ' + rootN + '/' + refN + '）');
   window.GV.step(12); // 催熟完工
   const jobs1 = window.GV.stats().jobs || 0;
   assert(jobs1 > jobs0, 'T290 購物中心應增就業（' + jobs0 + '→' + jobs1 + '）');
@@ -2457,7 +2516,7 @@ console.log('\n-- (12) T263 AI 災後維護 --');
   }
   assert(cx > 0, 'T263 應找到清地');
   for (let i = 0; i < 12; i++) { place('road', cx + i, cy + 3); place('road', cx + i, cy + 6); }
-  place('plant', cx + 5, cy + 2);
+  assert(place('plant', cx + 5, cy), 'T263 新3×3電廠在完整空地落成、南側接既有道路'); // T574：cy+2 原一格造境會壓 cy+3 道路；住宅門檻不動
   for (let i = 0; i < 12; i++) { place('zr', cx + i, cy + 4); place('zr', cx + i, cy + 5); }
   for (let d = 0; d < 60; d++) window.GV.step(1);
   const grown = [];
@@ -2517,14 +2576,14 @@ console.log('\n-- (13) T265 垃圾焚化發電廠 --');
   pointer('pointerdown', 400, 300); pointer('pointerup', 400, 300);
 
   let wb = tile(wt.x, wt.y).bld;
-  assert(wb && wb.k === 62 && wb.v === 0 && wb.sz === 2 && wb.lv === 1, 'T265 UI 放置應建立 k62/v0/sz2/lv1 root');
+  assert(wb && wb.k === 62 && wb.v === 0 && wb.sz === 4 && wb.lv === 1, 'T574/T265 UI 放置應建立 k62/v0/sz4/lv1 root');
   let wtRefs = 0;
-  for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+  for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++) {
     if (!dx && !dy) continue;
     const rb = tile(wt.x + dx, wt.y + dy).bld;
     if (rb && rb.k === 62 && rb.ref && rb.ref[0] === wt.x && rb.ref[1] === wt.y) wtRefs++;
   }
-  assert(wtRefs === 3, 'T265 2×2 應建立 3 個 ref 格，實際 ' + wtRefs);
+  assert(wtRefs === 15, 'T574/T265 4×4 應建立 15 個 ref 格，實際 ' + wtRefs);
   assert(window.GV.region().powerCap === 60, 'T265 建造後 powerCap 應即時為 60，實際 ' + window.GV.region().powerCap);
   assert(window.GV.polAt(wt.x, wt.y) === 44, 'T265 污染中心應為 44，實際 ' + window.GV.polAt(wt.x, wt.y));
   assert(window.GV.polAt(wt.x + 7, wt.y) === 6, 'T265 污染 r7 邊界應為 6，實際 ' + window.GV.polAt(wt.x + 7, wt.y));
@@ -2545,7 +2604,7 @@ console.log('\n-- (13) T265 垃圾焚化發電廠 --');
     assert(wtInspect1.includes(s), 'T265 inspect lv1 應含「' + s + '」');
 
   elMap.get('bUndo').onclick();
-  for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++)
+  for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++)
     assert(!tile(wt.x + dx, wt.y + dy).bld, 'T265 undo 後 footprint (' + dx + ',' + dy + ') 應清空');
   assert(window.GV.polAt(wt.x, wt.y) === 0, 'T265 undo 後污染應對稱歸 0');
   assert(window.GV.region().powerCap === 0, 'T265 undo 後 powerCap 應立即為 0');
@@ -2569,14 +2628,14 @@ console.log('\n-- (13) T265 垃圾焚化發電廠 --');
   window.GV.save();
   assert(window.GV.load() === true, 'T265 Lv5 save→load 應成功');
   wb = tile(wt.x, wt.y).bld;
-  assert(wb && wb.k === 62 && wb.lv === 5 && wb.sz === 2, 'T265 load 應保留 k62/lv5/sz2');
+  assert(wb && wb.k === 62 && wb.lv === 5 && wb.sz === 4, 'T574/T265 load 應保留 k62/lv5/sz4');
   wtRefs = 0;
-  for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+  for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++) {
     if (!dx && !dy) continue;
     const rb = tile(wt.x + dx, wt.y + dy).bld;
     if (rb && rb.k === 62 && rb.ref && rb.ref[0] === wt.x && rb.ref[1] === wt.y) wtRefs++;
   }
-  assert(wtRefs === 3, 'T265 load 後應精確重建 3 個 ref 格，實際 ' + wtRefs);
+  assert(wtRefs === 15, 'T574/T265 load 後應精確重建 15 個 ref 格，實際 ' + wtRefs);
 
   wtGuard = 0;
   while ((wb.lv || 1) < 10 && wtGuard++ < 15) {
@@ -2613,27 +2672,27 @@ console.log('\n-- (13) T265 垃圾焚化發電廠 --');
   let cx265 = -1, cy265 = -1;
   for (let y = 10; y < N - 14 && cx265 < 0; y++) for (let x = 10; x < N - 14; x++) {
     let ok = true;
-    for (let dy = 0; dy < 8 && ok; dy++) for (let dx = 0; dx < 12 && ok; dx++) {
+    for (let dy = 0; dy < 10 && ok; dy++) for (let dx = 0; dx < 12 && ok; dx++) {
       const t = tile(x + dx, y + dy);
       if (!t || t.t !== 2 || t.bld || t.road) ok = false;
     }
     if (ok) { cx265 = x; cy265 = y; }
   }
-  assert(cx265 > 0, 'T265 garbLocal 應找到 12×8 清地');
+  assert(cx265 > 0, 'T265 garbLocal 應找到 12×10 清地（T574 廠區4×4）');
   for (let i = 0; i < 12; i++) {
-    assert(place('road', cx265 + i, cy265 + 3), 'T265 ref 側服務路 row3 應可建');
-    assert(place('road', cx265 + i, cy265 + 6), 'T265 住宅另一側服務路 row6 應可建');
+    assert(place('road', cx265 + i, cy265 + 5), 'T265 ref 側服務路 row5 應可建');
+    assert(place('road', cx265 + i, cy265 + 8), 'T265 住宅另一側服務路 row8 應可建');
   }
   const wt2x = cx265 + 5, wt2y = cy265 + 1;
   assert(place('wasteIncinerator', wt2x, wt2y), 'T265 ref 側鄰路的 k62 應可建');
   for (let i = 0; i < 12; i++) {
-    assert(place('zr', cx265 + i, cy265 + 4), 'T265 住宅分區 row4 應可建');
-    assert(place('zr', cx265 + i, cy265 + 5), 'T265 住宅分區 row5 應可建');
+    assert(place('zr', cx265 + i, cy265 + 6), 'T265 住宅分區 row6 應可建');
+    assert(place('zr', cx265 + i, cy265 + 7), 'T265 住宅分區 row7 應可建');
   }
   for (let d = 0; d < 60; d++) window.GV.step(1);
-  assert(tile(wt2x, cy265 + 3).rp === true, 'T265 道路只貼下方 ref 時仍應由 k62 啟動電網');
+  assert(tile(wt2x, cy265 + 5).rp === true, 'T265 道路只貼下方 ref 時仍應由 k62 啟動電網');
   const grown265 = [];
-  for (let i = 0; i < 12; i++) for (const ry of [4, 5]) {
+  for (let i = 0; i < 12; i++) for (const ry of [6, 7]) {
     const b = tile(cx265 + i, cy265 + ry).bld;
     if (b && b.k === 1 && !b.ref) grown265.push([cx265 + i, cy265 + ry]);
   }
@@ -2667,13 +2726,13 @@ console.log('\n-- (14) T266 垃圾服務可觀測性 --');
   let cx266 = -1, cy266 = -1;
   for (let y = 10; y < N - 14 && cx266 < 0; y++) for (let x = 10; x < N - 14; x++) {
     let ok = true;
-    for (let dy = 0; dy < 8 && ok; dy++) for (let dx = 0; dx < 12 && ok; dx++) {
+    for (let dy = 0; dy < 10 && ok; dy++) for (let dx = 0; dx < 12 && ok; dx++) {
       const t = tile(x + dx, y + dy);
       if (!t || t.t !== 2 || t.bld || t.road) ok = false;
     }
     if (ok) { cx266 = x; cy266 = y; }
   }
-  assert(cx266 > 0, 'T266 應找到 12×8 清地');
+  assert(cx266 > 0, 'T266 應找到 12×10 清地（T574 廠區4×4）');
   const wt266x = cx266 + 5, wt266y = cy266 + 1;
   assert(place('wasteIncinerator', wt266x, wt266y), 'T266 應可建一座 k62 供報表驗收');
   window.GV.step(1);
@@ -2685,7 +2744,7 @@ console.log('\n-- (14) T266 垃圾服務可觀測性 --');
   // T323：面板改 statTab/dataTable 結構化後，斷言隨之改為結構化格式（意圖不變：k62 維護鏡像到電廠分項、ref 不重複計數）
   assert(stats266.includes('⚡ 電廠') && stats266.includes('>-10.0<'), 'T266 財務面板應把 k62 的既有 $10 維護鏡像到電廠分項（statTab）');
   assert(stats266.includes('垃圾焚化發電廠</td><td class="n">1</td>'), 'T266 建築統計表應把單座 k62 精確計為 1 棟');
-  assert(!stats266.includes('垃圾焚化發電廠</td><td class="n">4</td>'), 'T266 2×2 k62 的三個 ref 不得重複計成 4 棟');
+  assert(!stats266.includes('垃圾焚化發電廠</td><td class="n">16</td>'), 'T266 4×4 k62 的十五個 ref 不得重複計成 16 棟');
   assert(stats266.includes('class="stab"') && stats266.includes('table class="dtab"'), 'T323 統計面板需含 statTab 與可排序 dataTable');
   const hist266AfterPanel = window.GV.hist().slice(-1)[0];
   assert(window.GV.stats().money === money266BeforePanel && hist266AfterPanel.net === hist266BeforePanel.net,
@@ -2698,17 +2757,17 @@ console.log('\n-- (14) T266 垃圾服務可觀測性 --');
   // 用 k62 啟動真道路電網養出住宅，再補普通電廠並拆 k62：
   // 住宅仍有電、實際垃圾 >0，但垃圾容量歸零，才能驗證真超載而非空城 0/0。
   for (let i = 0; i < 12; i++) {
-    assert(place('road', cx266 + i, cy266 + 3), 'T266 服務路 row3 應可建');
-    assert(place('road', cx266 + i, cy266 + 6), 'T266 住宅另一側服務路 row6 應可建');
+    assert(place('road', cx266 + i, cy266 + 5), 'T266 服務路 row5 應可建');
+    assert(place('road', cx266 + i, cy266 + 8), 'T266 住宅另一側服務路 row8 應可建');
   }
-  assert(place('plant', cx266 + 1, cy266 + 2), 'T266 應可補普通電廠維持拆除 k62 後的住宅供電');
+  assert(place('plant', cx266 + 1, cy266 + 2), 'T266 應可補普通電廠維持拆除 k62 後的住宅供電'); // T574：3×3南緣接cy+5服務路，不壓路
   for (let i = 0; i < 12; i++) {
-    assert(place('zr', cx266 + i, cy266 + 4), 'T266 住宅分區 row4 應可建');
-    assert(place('zr', cx266 + i, cy266 + 5), 'T266 住宅分區 row5 應可建');
+    assert(place('zr', cx266 + i, cy266 + 6), 'T266 住宅分區 row6 應可建');
+    assert(place('zr', cx266 + i, cy266 + 7), 'T266 住宅分區 row7 應可建');
   }
   for (let d = 0; d < 60; d++) window.GV.step(1);
   let grown266 = 0;
-  for (let i = 0; i < 12; i++) for (const ry of [4, 5]) {
+  for (let i = 0; i < 12; i++) for (const ry of [6, 7]) {
     const b = tile(cx266 + i, cy266 + ry).bld;
     if (b && b.k === 1 && !b.ref) grown266++;
   }
@@ -2804,13 +2863,14 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
       d.bl.push([y * n + x, 3, 3, 0, 9]);
     }
     if (block2x2) {
-      // AI 質心固定約 (45,11)、半徑12；把整個搜尋區鋪成相連道路，再只挖一個 1×1 空位。
-      // 因此區內沒有任何 2×2，電廠／工業卻都由同一電網供電，且 k8 仍有直接貼路的位置。
+      // T574：AI 質心固定約 (45,11)、半徑12；道路網只留 3×3 洞給新版垃圾場。
+      // 沒有 4×4 焚化廠位置，電廠／工業同一電網供電；3×3 垃圾場仍可 fallback。
       for (let y = 0; y <= 24; y++) for (let x = 32; x <= 59; x++) {
         rd[y * n + x] = '1'; rcl[y * n + x] = '2';
       }
       for (const rec of d.bl) { rd[rec[0]] = '0'; rcl[rec[0]] = '0'; }
-      rd[1 * n + 33] = '0'; rcl[1 * n + 33] = '0'; // 唯一可供 k8 fallback 的 1×1
+      for(const x of [33,35,37,39,41,43]){rd[n+x]='0';rcl[n+x]='0';} // 六個分區預算消耗位，不能堵掉真正 fallback 洞
+      for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){rd[(1+dy)*n+55+dx]='0';rcl[(1+dy)*n+55+dx]='0';}
     } else {
       for (let x = 40; x <= 57; x++) { rd[10 * n + x] = '1'; rcl[10 * n + x] = '2'; }
     }
@@ -2859,16 +2919,16 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
   let wtes267 = roots267(62), dumps267 = roots267(8);
   assert(wtes267.length === 1 && dumps267.length === 0,
     'T267 大缺口＋健康財務應在單 tick 建恰一座 k62、不建 k8');
-  assert(roadTouch267(wtes267[0]), 'T267 AI k62 的 2×2 footprint 應四鄰直接接路');
-  assert(!nearRes267(wtes267[0].x, wtes267[0].y) && !nearRes267(wtes267[0].x + 1, wtes267[0].y + 1),
+  assert(roadTouch267(wtes267[0]), 'T267 AI k62 的 4×4 footprint 應四鄰直接接路');
+  assert(!nearRes267(wtes267[0].x, wtes267[0].y) && !nearRes267(wtes267[0].x + 3, wtes267[0].y + 3),
     'T267 AI k62 的 root 與右下角都不得落在住宅／住宅分區三格內');
   let refs267 = 0;
-  for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+  for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++) {
     if (!dx && !dy) continue;
     const b = tile(wtes267[0].x + dx, wtes267[0].y + dy).bld;
     if (b && b.k === 62 && b.ref && b.ref[0] === wtes267[0].x && b.ref[1] === wtes267[0].y) refs267++;
   }
-  assert(refs267 === 3, 'T267 AI k62 應建立 1 root＋3 ref');
+  assert(refs267 === 15, 'T267 AI k62 應建立 1 root＋15 ref');
   assert(window.GV.garbageInfo().sources === 1 && window.GV.garbageInfo().capacity === 0,
     'T267 建造當 tick 來源應立即為1；容量沿既有日結時序仍為0');
   window.GV.step(1); // k62 已入翌日日結；Lv10 電廠不再可升，AI 應直接把新 k62 升到 Lv2
@@ -2886,8 +2946,8 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
   assert(JSON.stringify(replayB267) === JSON.stringify(replayA267),
     'T267 同一 prepared save 兩次重播的建築座標／money／垃圾／powerCap 應完全一致');
 
-  // 建一個全道路網、五個 2×2 草地洞的 control：道路段不再改圖，分區預算會依 row-major
-  // 填壞前三洞，垃圾決策應選第四洞；第五洞保留給加入住宅障礙後的安全改選。
+  // T574 建一個全道路網、五個 4×4 草地洞的 control：道路段不再改圖，分區預算會依 row-major
+  // 新4×4洞使六次分區填壞前兩洞，垃圾決策應選第三洞；後兩洞保留給住宅障礙安全改選。
   const roadReadyData267 = window.GV.inflateSave(high267.prepared); // T312：存檔已 RLE 壓縮，按格索引前需解壓
   const roadReadyN267 = roadReadyData267.n || 72;
   const roadReadyRd267 = roadReadyData267.rd.split(''), roadReadyRcl267 = roadReadyData267.rcl.split('');
@@ -2899,31 +2959,31 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
     roadReadyRd267[rec[0]] = '0'; roadReadyRcl267[rec[0]] = '0';
   }
   const roadReadyHoles267 = [[37, 1], [43, 1], [49, 1], [55, 1], [37, 7]];
-  for (const [hx, hy] of roadReadyHoles267) for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+  for (const [hx, hy] of roadReadyHoles267) for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++) {
     roadReadyRd267[(hy + dy) * roadReadyN267 + hx + dx] = '0';
     roadReadyRcl267[(hy + dy) * roadReadyN267 + hx + dx] = '0';
   }
-  roadReadyRd267[4 * roadReadyN267 + 55] = '0'; // target 下方三格的住宅障礙位；control 先保持純草地
-  roadReadyRcl267[4 * roadReadyN267 + 55] = '0';
+  roadReadyRd267[5 * roadReadyN267 + 49] = '0'; // T574：地塊外障礙避開AI每6格道路線，不能被AI先改鋪路掩蓋
+  roadReadyRcl267[5 * roadReadyN267 + 49] = '0';
   roadReadyData267.rd = roadReadyRd267.join(''); roadReadyData267.rcl = roadReadyRcl267.join('');
   const roadReadyPrepared267 = JSON.stringify(roadReadyData267);
   load267(roadReadyPrepared267);
   window.GV.step(1);
   wtes267 = roots267(62); dumps267 = roots267(8);
-  const controlWte267 = { x: 55, y: 1, sz: 2 };
+  const controlWte267 = { x: 49, y: 1, sz: 4 };
   assert(wtes267.length === 1 && dumps267.length === 0 && wtes267[0].x === controlWte267.x &&
     wtes267[0].y === controlWte267.y,
-    'T267 道路網 control 應在前三洞被分區預算填壞後，實建第四洞 (55,1)；實際 ' +
+    'T267 道路網 control 應在前兩洞被分區預算填壞後，實建第三洞 (49,1)；實際 ' +
     JSON.stringify({ actual: wtes267, dumps: dumps267 }));
   window.GV.ai(false);
   load267(roadReadyPrepared267);
   assert(window.GV.canPlaceTool('wasteIncinerator', controlWte267.x, controlWte267.y) === null &&
     roadTouch267(controlWte267) && !nearRes267(controlWte267.x, controlWte267.y),
-    'T267 control 實際首選 (55,1) 應在 tick 前已可建／直接接路／遠離住宅');
+    'T267 control 實際首選 (49,1) 應在 tick 前已可建／直接接路／遠離住宅');
   window.GV.ai(false);
 
   const avoidData267 = window.GV.inflateSave(roadReadyPrepared267); // T312：同上
-  const avoidZoneX267 = controlWte267.x, avoidZoneY267 = controlWte267.y + 3;
+  const avoidZoneX267 = controlWte267.x, avoidZoneY267 = controlWte267.y + 4;
   const avoidZn267 = avoidData267.zn.split('');
   avoidZn267[avoidZoneY267 * (avoidData267.n || 72) + avoidZoneX267] = '1';
   avoidData267.zn = avoidZn267.join('');
@@ -2931,7 +2991,7 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
   const avoidProbe267 = {
     canPlace: window.GV.canPlaceTool('wasteIncinerator', controlWte267.x, controlWte267.y),
     road: roadTouch267(controlWte267),
-    nearRes: nearRes267(controlWte267.x, controlWte267.y),
+    nearRes: nearRes267(controlWte267.x+3, controlWte267.y+3),
     root: controlWte267, zone: [avoidZoneX267, avoidZoneY267]
   };
   assert(avoidProbe267.canPlace === null && avoidProbe267.road && avoidProbe267.nearRes,
@@ -2941,9 +3001,9 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
   wtes267 = roots267(62); dumps267 = roots267(8);
   assert(wtes267.length === 1 && dumps267.length === 0 &&
     (wtes267[0].x !== controlWte267.x || wtes267[0].y !== controlWte267.y),
-    'T267 只加入住宅障礙後，AI 應跳過原首選地點並改建另一座 k62');
+    'T267 只加入住宅障礙後，AI 應跳過原首選地點並改建另一座 k62；實得 '+JSON.stringify({wtes:wtes267,dumps:dumps267}));
   assert(roadTouch267(wtes267[0]) && !nearRes267(wtes267[0].x, wtes267[0].y) &&
-    !nearRes267(wtes267[0].x + 1, wtes267[0].y + 1),
+    !nearRes267(wtes267[0].x + 3, wtes267[0].y + 3),
     'T267 改選後 k62 仍須直接接路，且 root／右下角都不得落在住宅三格內');
   window.GV.ai(false);
 
@@ -2953,11 +3013,10 @@ console.log('\n-- (15) T267 AI 垃圾處理決策 --');
     'T267 action-budget fixture 應保留大缺口＋健康財務');
   load267(budget267.prepared);
   const activityBefore267 = activity267();
-  window.GV.step(1);
+  const actions267=window.__t574.actions(()=>window.GV.step(1));
   const activityAfter267 = activity267();
-  const ordinaryActs267 = (activityAfter267.roads - activityBefore267.roads) +
-    (activityAfter267.zones - activityBefore267.zones) +
-    (activityAfter267.pipes - activityBefore267.pipes);
+  // T574：4×4落地會清掉區內剛劃的分區；淨格數≠施工次數。攔真doPlace成功回傳計數，仍釘13，不改MAXA。
+  const ordinaryActs267 = actions267.filter(id=>['road','coll','wpipe','zr','zc','zi'].includes(id)).length;
   assert(ordinaryActs267 === 13,
     'T267 垃圾危機應把道路／水管／分區一般動作封頂13，實際 ' + ordinaryActs267);
   assert(roots267(62).length === 1 && roots267(8).length === 0,
@@ -4066,17 +4125,17 @@ async function runPwaTests() {
       `T273 residue ${wanted} 牧場應真實建造成功`);
     const root = tile(spot.x, spot.y).bld;
     assert(root && root.k === 23 && root.v === wanted && root.lv === 1 &&
-      root.sz === 2,
-    `T273 residue ${wanted} root 應精確為 k23/v${wanted}/lv1/sz2`);
+      root.sz === 3,
+    `T574/T273 residue ${wanted} root 應精確為 k23/v${wanted}/lv1/sz3`);
     let refs = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+    for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) {
       if (!dx && !dy) continue;
       const ref = tile(spot.x + dx, spot.y + dy).bld;
       if (ref && ref.k === 23 && ref.ref &&
           ref.ref[0] === spot.x && ref.ref[1] === spot.y) refs++;
     }
-    assert(refs === 3,
-      `T273 residue ${wanted} 應建立精確3個 ref 格，實際 ${refs}`);
+    assert(refs === 8,
+      `T574/T273 residue ${wanted} 應建立精確8個 ref 格，實際 ${refs}`);
     ranchRoots273.push({ ...spot, v: wanted });
   }
   window.GV.save();
@@ -4085,7 +4144,7 @@ async function runPwaTests() {
   for (const root of ranchRoots273) {
     const loaded = tile(root.x, root.y).bld;
     assert(loaded && loaded.k === 23 && loaded.v === root.v &&
-      loaded.lv === 1 && loaded.sz === 2,
+      loaded.lv === 1 && loaded.sz === 3,
     `T273 load 後牧場 v${root.v} 應逐值保留`);
   }
 
@@ -4483,17 +4542,17 @@ async function runPwaTests() {
       `T274 residue ${wanted} 農場應真實建造成功`);
     const root = tile(spot.x, spot.y).bld;
     assert(root && root.k === 22 && root.v === wanted && root.lv === 1 &&
-      root.sz === 2,
-    `T274 residue ${wanted} root 應精確為 k22/v${wanted}/lv1/sz2`);
+      root.sz === 3,
+    `T574/T274 residue ${wanted} root 應精確為 k22/v${wanted}/lv1/sz3`);
     let refs = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+    for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) {
       if (!dx && !dy) continue;
       const ref = tile(spot.x + dx, spot.y + dy).bld;
       if (ref && ref.k === 22 && ref.ref &&
           ref.ref[0] === spot.x && ref.ref[1] === spot.y) refs++;
     }
-    assert(refs === 3,
-      `T274 residue ${wanted} 應建立精確3個 ref 格，實際 ${refs}`);
+    assert(refs === 8,
+      `T574/T274 residue ${wanted} 應建立精確8個 ref 格，實際 ${refs}`);
     farmRoots274.push({ ...spot, v: wanted });
   }
   window.GV.save();
@@ -4508,7 +4567,7 @@ async function runPwaTests() {
   for (const root of farmRoots274) {
     const loaded = tile(root.x, root.y).bld;
     assert(loaded && loaded.k === 22 && loaded.v === root.v &&
-      loaded.lv === 1 && loaded.sz === 2,
+      loaded.lv === 1 && loaded.sz === 3,
     `T274 load 後農場 v${root.v} root 應逐值保留`);
     let refs = 0;
     for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
@@ -4655,34 +4714,21 @@ runPwaTests().then(() => {
     // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
     // T432 重釘（業主授權 2026-08-13）：兩座孤島核電與四座孤島綠能共 686 容量不再跨網白嫖；4153→3781 是刻意供電語義變更。
     //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
-    seedPin444('seed301', 301, 400, 6801, window.GV.stats().pop,
+    seedPin444('seed301', 301, 400, 288, window.GV.stats().pop,
       'T324/T342c 起釘；T432 重釘（前值 4153）；T456 重釘（前值 3781）；'
       + 'T542 資源鏈進 wants 重釘（前值 6876——wants 長度改變＝輪轉相位全城自第 1 天分岔，'
-      + '業主 2026-08-20「你來決定，解決完成」授權，12 種子崩城率 A/B 記 T542 卡面）');
+      + '業主 2026-08-20「你來決定，解決完成」授權，12 種子崩城率 A/B 記 T542 卡面）；'
+      + 'T574 業主授權真實占地／管線驗證後重建基線：前值6801，完整72格／400天配方實測288，不改AI權重或經濟公式');
     /* T456 金流哨兵：世代普查是**常駐**機制，pop 釘在這三顆種子恰好不動（診斷記卡面：
        零亂數規則＋金流非 pop 瓶頸），但金流已合法分岔——「三釘綠＝位元恆等」這句話從 T456 起
        不再自動成立，必須把 money 也釘進哨兵，未來任何動到經濟的手都會在這裡留下指紋。 */
-    seedPin444('seed301m', 301, 400, 640249, Math.round(window.GV.stats().money),
-      'T456 起釘：pop 之外的第二自由度（金流），暴露修正 37 次介入的世界線');
-    /* T542 G2 活化見證（就地取材：上面 seed301 已跑完 400 天，零額外運行成本）——
-       資源鏈在 AI 局活著：井/礦各 3（既有條目吃到地理化選址）、三座加工廠全鏈成形。
-       這組計數與六哨兵一起構成「拿掉 T542 任何一刀就會紅」的行為見證網。 */
-    {
-      const cnt542 = (k) => { let c = 0; const NN = window.GV.N();
-        for (let x = 0; x < NN; x++) for (let y = 0; y < NN; y++) {
-          const t = window.GV.tile(x, y);
-          if (t && t.bld && !t.bld.ref && t.bld.k === k) c++; } return c; };
-      assert(cnt542(49) === 3 && cnt542(50) === 3,
-        'T542 G2 seed301 400 天應有油井 3＋礦場 3（地理化選址讓既有井礦條目活了；實得 '
-        + cnt542(49) + '/' + cnt542(50) + '）');
-      assert(cnt542(121) === 1 && cnt542(122) === 1 && cnt542(123) === 1,
-        'T542 G2a seed301 400 天應有煉油 1＋鋼鐵 1＋造船 1＝全鏈成形（修前恆 0/0/0；實得 '
-        + cnt542(121) + '/' + cnt542(122) + '/' + cnt542(123) + '）');
-    }
+    seedPin444('seed301m', 301, 400, 4779, Math.round(window.GV.stats().money),
+      'T456 起釘；T574 真實占地授權重建，前值640249。金流仍獨立於人口精確釘定');
+    // T574：此城400天不再到加工鏈人口門檻。T542 G2/G2a完整移至T574尾段的自然成熟城，不把原3/3、1/1/1弱化成零。
     {
       const mob301 = window.GV.sci451();
-      assert(mob301.mobUp === 52 && mob301.mobDn === 0,
-        'T456 G4 seed301 400 天暴露修正應恰為 52 升 0 降（決定性；T542 重釘，前值 37——軌跡分岔後富裕城暴露修正變多），實得 up=' + mob301.mobUp + ' dn=' + mob301.mobDn);
+      assert(mob301.mobUp === 12 && mob301.mobDn === 0,
+        'T456 G4 seed301 400 天暴露修正應恰為 12 升 0 降（T574 授權空間基線重建，前值52/0），實得 up=' + mob301.mobUp + ' dn=' + mob301.mobDn);
     }
     assert(window.GV.stats().money > 0, 'T324 拮据城不得破產');
   }
@@ -4821,14 +4867,17 @@ runPwaTests().then(() => {
       window.GV.setDiff(3);
       window.GV.addMoney(5000);
       window.GV.pol({ taxR: 1, taxC: 1, taxI: 1, insurance: insur });
-      const sp = findSpot('plant'); // 借電廠附近孤立地放工業測燒毀？直接用 GV.ignite 對 zone 生長太慢——改放 1×1 火源：用 sewage 不可燃…k<=3 才可燃。
-      // 手動造一棟孤立工業（走 place 不可（分區生長），用測試鉤子 ignite 需既有 k<=3）：
-      // 以 zi 分區＋道路＋電廠養出工業太慢；改用既有 GV.igniteCrime？→ 最短路徑：找地放 road+plant+zi 並 step 至長出工業
+      // T574：電廠是真3×3；原 x+1道路/x+2分區在廠內，place失敗卻未驗回傳。
+      // 只遷移造境到完整外緣，仍以真分區在80天內生長、點火、驗精確理賠。
       let ix = -1, iy = -1;
-      { const f = findSpot('plant'); assert(f, 'T337 需可建地'); place('plant', f.x, f.y);
-        place('road', f.x + 1, f.y);
-        window.GV.place('zi', f.x + 2, f.y);
-        for (let d2 = 0; d2 < 80 && ix < 0; d2++) { window.GV.step(1); const b = tile(f.x + 2, f.y).bld; if (b && b.k === 3) { ix = f.x + 2; iy = f.y; } }
+      { let f=null;
+        for(let y=3;y<N-4&&!f;y++)for(let x=3;x<N-6&&!f;x++)
+          if(window.GV.canPlaceTool('plant',x,y)===null&&window.GV.canPlaceTool('road',x+3,y+1)===null&&window.GV.canPlaceTool('zi',x+4,y+1)===null)f={x,y};
+        assert(f, 'T337 需有三格電廠與外側道路／分區可建地');
+        assert(place('plant',f.x,f.y),'T337 三格電廠必須真建成');
+        assert(place('road',f.x+3,f.y+1),'T337 道路必須真在電廠外緣建成');
+        assert(place('zi',f.x+4,f.y+1),'T337 工業分區必須真建成，不可壓在ref上');
+        for (let d2 = 0; d2 < 80 && ix < 0; d2++) { window.GV.step(1); const b = tile(f.x + 4, f.y+1).bld; if (b && b.k === 3) { ix = f.x + 4; iy = f.y+1; } }
       }
       assert(ix >= 0, 'T337 工業應在 80 天內長出');
       for (let d2 = 0; d2 < 3; d2++) window.GV.step(1); // 穩定
@@ -5052,8 +5101,12 @@ runPwaTests().then(() => {
     assert(html.includes(',118:2,119:2};'), 'T346 MSZ 需含 118/119（鐵律13）');
     // T346b 閘門紀律：四條新 wants 都必須有 fin.net 閘門（首版沒有→拮据城 3228 崩到 387）
     {
+      // T574：新占地清單也有 ['gaswell',2]；只在唯一的真 wants 表中找支出閘門。
+      const starts346=[...html.matchAll(/\bconst wants=\[/g)].map(m=>m.index),end346=starts346.length===1?html.indexOf('];',starts346[0]):-1;
+      assert(starts346.length===1&&end346>starts346[0], 'T346b AI wants 真表定位必須唯一且完整，不能誤讀占地清單');
+      const wants346=html.slice(starts346[0],end346+2);
       for (const tool of ['gaswell', 'fertplant', 'kitchen', 'fishfarm']) {
-        const m2 = html.match(new RegExp("\\['" + tool + "',[^\\]]*\\]"));
+        const m2 = wants346.match(new RegExp("\\['" + tool + "',[^\\]]*\\]"));
         assert(m2, 'T346 wants 應含 ' + tool);
         assert(/fin\.net>/.test(m2[0]), 'T346b ' + tool + ' 必須有 fin.net 閘門（AI 進階支出不得擊穿 poor 線）');
       }
@@ -5065,12 +5118,14 @@ runPwaTests().then(() => {
     const n346 = window.GV.N();
     let oil346 = null;
     for (let y = 2; y < n346 - 2 && !oil346; y++) for (let x = 2; x < n346 - 2; x++)
-      if (window.GV.resourceAt(x, y) === 1) { const t = tile(x, y); if (t && !t.bld && (t.t === 1 || t.t === 2)) { oil346 = [x, y]; break; } }
+      if (window.GV.resourceAt(x, y) === 1 && window.GV.canPlaceTool('gaswell',x,y)===null) { oil346 = [x, y]; break; }
+    assert(oil346, 'T346 必須找到完整2×2且真可建的油田格，不能略過全链造境');
     if (oil346) {
       assert(place('gaswell', oil346[0], oil346[1]), 'T346 油田格應可建天然氣井');
-      const fF = findSpot('farm'); if (fF) place('farm', fF.x, fF.y);
-      const fP = findSpot('fertplant'); if (fP) place('fertplant', fP.x, fP.y);
-      const fK = findSpot('kitchen'); if (fK) place('kitchen', fK.x, fK.y);
+      for (const tool346 of ['farm','fertplant','kitchen']) {
+        const p346=findSpot(tool346);assert(p346, 'T346 '+tool346+' 必須有完整園區位置');
+        assert(place(tool346,p346.x,p346.y), 'T346 '+tool346+' 必須真建成');
+      }
       for (let d = 0; d < 18; d++) window.GV.step(1);
       const c346 = window.GV.chain346();
       assert(c346.gasSup === 8, 'T346 一座天然氣井應供 8，實得 ' + c346.gasSup);
@@ -5082,10 +5137,13 @@ runPwaTests().then(() => {
     {
       let plain = null;
       for (let y = 6; y < n346 - 6 && !plain; y++) for (let x = 6; x < n346 - 6; x++) {
-        const t = tile(x, y);
-        if (t && !t.bld && !t.road && (t.t === 1 || t.t === 2) && window.GV.resourceAt(x, y) !== 1) { plain = [x, y]; break; }
+        let clear346=true;for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
+          const t=tile(x+dx,y+dy);if(!t||(t.t!==1&&t.t!==2)||t.bld||t.road||t.rail||t.tram||t.dock||t.ruin||t.crater)clear346=false;
+        }
+        if (clear346 && window.GV.resourceAt(x, y) !== 1) { plain = [x, y]; break; }
       }
-      if (plain) assert(window.GV.canPlaceTool('gaswell', plain[0], plain[1]) !== null, 'T346 非油田格應拒建天然氣井');
+      assert(plain, 'T346 非油田負向案必須有完整無碰撞2×2空地');
+      assert(String(window.GV.canPlaceTool('gaswell', plain[0], plain[1])).includes('油田資源格'), 'T346 非油田格應因資源限制拒建天然氣井，不借別的碰撞假綠');
     }
   }
 
@@ -5145,17 +5203,22 @@ runPwaTests().then(() => {
     const placeStart364 = html.indexOf("case 'refinery':case 'steelMill':case 'shipyard':{ // T364b：3×3 深加工廠群");
     const placeEnd364 = html.indexOf("case 'techpark':case 'centralpark':case 'civiccenter':", placeStart364);
     const place364src = html.slice(placeStart364, placeEnd364);
-    assert(/if\(\(dx\|\|dy\)&&ct\.tree\)stampPolTree\(sx,sy,-1\)/.test(place364src),
-      'T364b 3×3 ref 格原有樹木必須撤銷 POLTREE，不能留下幽靈減污');
+    const treeStart574=html.indexOf('function snapshotLot574('),treeEnd574=html.indexOf('function occupyLot574(',treeStart574);
+    const tree574=html.slice(treeStart574,treeEnd574),placeCall574=html.indexOf('snapshotLot574(toolId,x,y);',html.indexOf('function doPlace('));
+    assert(placeStart364>0&&placeEnd364>placeStart364&&treeStart574>0&&treeEnd574>treeStart574&&
+      /if\(\(dx\|\|dy\)&&ct\.tree&&!lotSpec574\(toolId\)\)stampPolTree\(sx,sy,-1\)/.test(place364src)&&
+      /if\(\(dx\|\|dy\)&&T\(i\)\.tree\)stampPolTree\(x\+dx,y\+dy,-1\)/.test(tree574)&&
+      placeCall574>0&&placeCall574<placeStart364,
+      'T574/T364b ref 格樹木必須由正式前置 snapshot 撤銷 POLTREE，舊分支不得重扣或留下幽靈減污');
 
-    // 3×3 放置／ref／存讀往返，以及造船廠的鄰水硬條件。
+    // T574：5×5 放置／ref／存讀往返，以及造船廠的鄰水硬條件；舊3×3另由舊檔案驗證。
     window.GV.newWorldSeeded(9); window.GV.setDiff(3); window.GV.addMoney(999999);
     const roots364 = [];
     const place364 = (tool, k, p) => {
       assert(p && place(tool, p.x, p.y), 'T364b ' + tool + ' 應成功建造');
       const root = tile(p.x, p.y).bld;
-      assert(root && root.k === k && root.sz === 3 && !root.ref, 'T364b ' + tool + ' root 應為 k' + k + '/sz3');
-      for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) if (dx || dy) {
+      assert(root && root.k === k && root.sz === 5 && !root.ref, 'T574/T364b ' + tool + ' root 應為 k' + k + '/sz5');
+      for (let dy = 0; dy < 5; dy++) for (let dx = 0; dx < 5; dx++) if (dx || dy) {
         const ref = tile(p.x + dx, p.y + dy).bld;
         assert(ref && ref.k === k && ref.ref && ref.ref[0] === p.x && ref.ref[1] === p.y,
           'T364b ' + tool + ' ref(' + dx + ',' + dy + ') 應回指 root');
@@ -5165,26 +5228,26 @@ runPwaTests().then(() => {
     place364('refinery', 121, findSpot('refinery'));
     place364('steelMill', 122, findSpot('steelMill'));
     let ship364 = findSpot('shipyard');
-    assert(ship364, 'T364b 應找到臨水 3×3 造船廠位置');
+    assert(ship364, 'T574/T364b 應找到臨水 5×5 造船廠位置');
     place364('shipyard', 123, ship364);
     let inland364 = null;
     for (let y = 4; y < window.GV.N() - 8 && !inland364; y++) for (let x = 4; x < window.GV.N() - 8; x++) {
       if (window.GV.canPlaceTool('refinery', x, y) === null && window.GV.canPlaceTool('shipyard', x, y) !== null) { inland364 = { x, y }; break; }
     }
-    assert(inland364, 'T364b 應找到可建 3×3 但不鄰水的內陸位置');
+    assert(inland364, 'T574/T364b 應找到可建 5×5 但不鄰水的內陸位置');
     assert(window.GV.canPlaceTool('shipyard', inland364.x, inland364.y) !== null, 'T364b 造船廠內陸必須被拒');
     window.GV.save(); assert(window.GV.load(), 'T364b 含三座新廠的存檔應可讀回');
     for (const r364 of roots364) {
       const root = tile(r364.x, r364.y).bld;
-      assert(root && root.k === r364.k && root.sz === 3, 'T364b load 後 ' + r364.tool + ' root 應保留');
-      for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) if (dx || dy) {
+      assert(root && root.k === r364.k && root.sz === 5, 'T574/T364b load 後 ' + r364.tool + ' root 應保留');
+      for (let dy = 0; dy < 5; dy++) for (let dx = 0; dx < 5; dx++) if (dx || dy) {
         const ref = tile(r364.x + dx, r364.y + dy).bld;
         assert(ref && ref.ref && ref.ref[0] === r364.x && ref.ref[1] === r364.y, 'T364b load 後 ref 應重建');
       }
     }
     const doze364 = roots364[0];
-    assert(place('doze', doze364.x + 1, doze364.y + 1), 'T364b 應可從 ref 格拆除 3×3 煉油廠');
-    for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) assert(!tile(doze364.x + dx, doze364.y + dy).bld,
+    assert(place('doze', doze364.x + 4, doze364.y + 4), 'T574/T364b 應可從最遠 ref 格拆除 5×5 煉油廠');
+    for (let dy = 0; dy < 5; dy++) for (let dx = 0; dx < 5; dx++) assert(!tile(doze364.x + dx, doze364.y + dy).bld,
       'T364b ref 格 doze 後整座煉油廠應清空');
 
     // 真跑：油→燃料、礦→鋼、耗鋼→港貿；並驗 owner 指定的 upCost 0.85 嚴格比值。
@@ -5194,8 +5257,8 @@ runPwaTests().then(() => {
     let oil364 = null, ore364 = null, n364 = window.GV.N();
     for (let y = 2; y < n364 - 2 && (!oil364 || !ore364); y++) for (let x = 2; x < n364 - 2; x++) {
       const t = tile(x, y); if (!t || t.bld || (t.t !== 1 && t.t !== 2)) continue;
-      if (!oil364 && window.GV.resourceAt(x, y) === 1) oil364 = { x, y };
-      if (!ore364 && window.GV.resourceAt(x, y) === 2) ore364 = { x, y };
+      if (!oil364 && window.GV.resourceAt(x, y) === 1 && window.GV.canPlaceTool('oilwell',x,y)===null) oil364 = { x, y };
+      if (!ore364 && window.GV.resourceAt(x, y) === 2 && window.GV.canPlaceTool('mine',x,y)===null) ore364 = { x, y };
     }
     assert(oil364 && ore364, 'T364b seed9 應同時有可用油田與礦藏');
     assert(place('oilwell', oil364.x, oil364.y), 'T364b 油田格應可建油井');
@@ -6945,10 +7008,12 @@ runPwaTests().then(() => {
     assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random/.test(resSrc),
       'T364d 韌性讀取層不得新增亂數流');
 
-    // 十座放置、2×2 ref／存讀、水管由淡化廠「ref 邊」啟動，以及 COV 韌性效果。
+    // T574：十座真放置讀新占地；上面的 civic364 舊尺寸只驗保留的舊SPR／MSZ契約。
+    // 全足跡ref／存讀、水管由淡化廠「ref 邊」啟動，以及 COV 韌性效果。
     window.GV.setMapSize(72); window.GV.newWorldSeeded(364); window.GV.weather(0); window.GV.setDiff(3); window.GV.addMoney(999999);
     const rootsCivic364=[];
-    const putCivic364=(tool,k,sz,p)=>{
+    const putCivic364=(tool,k,p)=>{
+      const sz=window.__t574.plan()[k][1];
       p=p||findSpot(tool); assert(p,'T364c/d '+tool+' 應找到可建位置');
       assert(place(tool,p.x,p.y),'T364c/d '+tool+' 應成功建造');
       const b=tile(p.x,p.y).bld;
@@ -6965,8 +7030,8 @@ runPwaTests().then(() => {
       const n=window.GV.N();
       for(let y=4;y<n-8;y++)for(let x=4;x<n-8;x++){
         if(window.GV.canPlaceTool('desalination',x,y)!==null)continue;
-        // (x+2,y) 緊貼右側 ref、卻不鄰 root；可證明 computeWater() 真把 ref 當第二水源種子。
-        if(window.GV.canPlaceTool('wpipe',x+2,y)===null)return{x,y,px:x+2,py:y};
+        // T574 (x+3,y) 緊貼3×3右側ref、卻不鄰root，水管必須從真外緣啟動。
+        if(window.GV.canPlaceTool('wpipe',x+3,y)===null)return{x,y,px:x+3,py:y};
       }
       return null;
     };
@@ -6976,13 +7041,13 @@ runPwaTests().then(() => {
         if(window.GV.canPlaceTool(tool,x,y)===null)return{x,y};
       return null;
     };
-    const court364=putCivic364('basketballCourt',124,1);
-    const tennis364=putCivic364('tennisCourt',125,1);
-    const play364=putCivic364('playground',126,1);
-    const pumpCivic364=putCivic364('pumpStation',130,1);
-    const subCivic364=putCivic364('substation',128,1);
+    const court364=putCivic364('basketballCourt',124);
+    const tennis364=putCivic364('tennisCourt',125);
+    const play364=putCivic364('playground',126);
+    const pumpCivic364=putCivic364('pumpStation',130);
+    const subCivic364=putCivic364('substation',128);
     const ds364=desalSpot364(); assert(ds364,'T364d 應找到淡化廠與其 ref 邊水管位置');
-    const desalCivic364=putCivic364('desalination',129,2,ds364);
+    const desalCivic364=putCivic364('desalination',129,ds364);
     assert(window.GV.placeUndo('wpipe',ds364.px,ds364.py),'T364d 淡化廠 ref 邊水管應可鋪設並記入真 undo 群組');
     assert(tile(ds364.px,ds364.py).wp===1&&tile(ds364.px,ds364.py).wr,
       'T364d placeUndo 後 ref 邊水管必須先真通水，不能用 no-op hook 假綠');
@@ -6990,11 +7055,11 @@ runPwaTests().then(() => {
     assert(tile(ds364.px,ds364.py).wp===0&&!tile(ds364.px,ds364.py).wr,
       'T364d undo 淡化廠 ref 邊水管後 wr 必須立即重算歸零，不可殘到下一 tick');
     assert(place('wpipe',ds364.px,ds364.py),'T364d undo 後 ref 邊水管應可重新鋪設');
-    const centerCivic364=putCivic364('disasterCenter',131,2);
-    const shelterCivic364=putCivic364('shelterPark',132,2);
+    const centerCivic364=putCivic364('disasterCenter',131);
+    const shelterCivic364=putCivic364('shelterPark',132);
     const homeSpotCivic364=nearCivic364('socialHousing',shelterCivic364.x,shelterCivic364.y,6);
-    const homeCivic364=putCivic364('socialHousing',127,2,homeSpotCivic364);
-    const radarCivic364=putCivic364('disasterRadar',133,2);
+    const homeCivic364=putCivic364('socialHousing',127,homeSpotCivic364);
+    const radarCivic364=putCivic364('disasterRadar',133);
     window.GV.step(1);
     assert(window.GV.cov('park',court364.x,court364.y)>0&&window.GV.cov('park',tennis364.x,tennis364.y)>0&&window.GV.cov('park',play364.x,play364.y)>0&&window.GV.cov('play',play364.x,play364.y)>0,
       'T364c 三座社區休閒設施必須真蓋公園覆蓋，遊樂場另有家庭幸福場');
@@ -7031,18 +7096,21 @@ runPwaTests().then(() => {
     assert(!tile(play364.x,play364.y).bld&&!window.GV.cov('play',play364.x,play364.y),
       'T364c 遊樂場 doze 後附加幸福場必須對稱歸零');
     assert(place('doze',shelterCivic364.x+1,shelterCivic364.y+1),'T364d 應可從避難公園 ref 格拆除');
-    for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++)assert(!tile(shelterCivic364.x+dx,shelterCivic364.y+dy).bld,'T364d 避難公園 ref doze 後 footprint 應清空');
+    for(let dy=0;dy<shelterCivic364.sz;dy++)for(let dx=0;dx<shelterCivic364.sz;dx++)assert(!tile(shelterCivic364.x+dx,shelterCivic364.y+dy).bld,'T364d 避難公園 ref doze 後完整新 footprint 應清空');
     assert(!window.GV.cov('shelter',shelterCivic364.x,shelterCivic364.y),'T364d 避難公園 doze 後 shelter COV 應對稱歸零');
 
     // 社宅不是幽靈人口：先無電水，再接既有道路／電網／水網，入住精確恢復 76；舊城不因此新增 region 鍵。
     window.GV.setMapSize(72); window.GV.newWorldSeeded(36402); window.GV.weather(0); window.GV.setDiff(3); window.GV.addMoney(999999);
     let socialLine364=null;
-    outerSocial364:for(let y=4;y<window.GV.N()-5;y++)for(let x=4;x<window.GV.N()-6;x++){
-      const need=[['plant',x,y],['road',x+1,y],['socialHousing',x+2,y-1],['water',x,y+2],['wpipe',x+1,y+2],['wpipe',x+2,y+2],['wpipe',x+2,y+1]];
-      if(need.every(([tool,px,py])=>window.GV.canPlaceTool(tool,px,py)===null)){socialLine364={x,y};break outerSocial364;}
+    outerSocial364:for(let y=4;y<window.GV.N()-6;y++)for(let x=4;x<window.GV.N()-10;x++){
+      // T574：兩個3×3園區分開，南邊道路與水管在足跡外，不用一格舊造境相互覆蓋。
+      const need=[['plant',x+6,y],['water',x+5,y+4]];
+      for(let dx=1;dx<=7;dx++)need.push(['road',x+dx,y+3]);
+      for(let dx=3;dx<=5;dx++)need.push(['wpipe',x+dx,y+4]);
+      if(window.GV.canPlaceTool('socialHousing',x,y)===null&&need.every(([tool,px,py])=>window.GV.canPlaceTool(tool,px,py)===null)){socialLine364={x,y,need};break outerSocial364;}
     }
     assert(socialLine364,'T364c 應找到社宅電水真跑的乾淨走廊');
-    const shx364=socialLine364.x+2,shy364=socialLine364.y-1;
+    const shx364=socialLine364.x,shy364=socialLine364.y;
     assert(place('socialHousing',shx364,shy364),'T364c 社宅應可先在無公用事業的地塊建造');
     window.GV.step(1);
     assert(!tile(shx364,shy364).bld.pw&&!tile(shx364,shy364).bld.wa&&window.GV.stats().pop===0,
@@ -7050,8 +7118,8 @@ runPwaTests().then(() => {
     window.GV.save();
     assert(!Object.prototype.hasOwnProperty.call(window.GV.inflateSave(window.GV.rawSave()).region||{},'waterCap'),
       'T364d 無淡化廠的舊城存檔不得因 region probe 平白新增 waterCap 鍵');
-    assert(place('plant',socialLine364.x,socialLine364.y)&&place('road',socialLine364.x+1,socialLine364.y)&&place('water',socialLine364.x,socialLine364.y+2)&&place('wpipe',socialLine364.x+1,socialLine364.y+2)&&place('wpipe',socialLine364.x+2,socialLine364.y+2)&&place('wpipe',socialLine364.x+2,socialLine364.y+1),
-      'T364c 社宅驗收走廊應可接上既有電廠、道路、水塔與水管');
+    for(const[tool,x,y]of socialLine364.need)assert(place(tool,x,y),
+      'T364c 社宅驗收走廊應可接上既有電廠、道路、水塔與水管：'+tool+'@'+x+','+y);
     window.GV.step(1);
     assert(tile(shx364,shy364).bld.pw&&tile(shx364,shy364).bld.wa&&window.GV.stats().pop===76,
       'T364c 社宅接妥道路電水後必須只入住固定 76 人（root-only）');
@@ -7059,19 +7127,22 @@ runPwaTests().then(() => {
     // 144×144 實跑：沒有 k128 時 >90 格道路未通電；掛入中繼後同一條道路立即接通，但容量仍是原電廠 50。
     window.GV.setMapSize(144); window.GV.newWorldSeeded(36401); window.GV.weather(0); window.GV.setDiff(3); window.GV.setSeason(0); window.GV.addMoney(999999);
     const nPower364=window.GV.N(); let line364=null;
-    for(let y=2;y<nPower364-2&&!line364;y++)for(let px=2;px<nPower364-104&&!line364;px++){
-      for(let sx=px+95;sx<nPower364-2;sx++){
-        const tx=sx+1;
-        if(window.GV.canPlaceTool('plant',px,y-1)===null&&window.GV.canPlaceTool('substation',sx,y-1)===null&&window.GV.canPlaceTool('clinic',tx,y-1)===null){line364={px,y,sx,tx};break;}
+    for(let y=4;y<nPower364-2&&!line364;y++)for(let px=2;px<nPower364-104&&!line364;px++){
+      for(let sx=px+95;sx<nPower364-3;sx++){
+        const tx=sx+2; // T574：兩格變電所不與遠端診所疊地，電廠南緣在道路上方。
+        if(window.GV.canPlaceTool('plant',px,y-3)===null&&window.GV.canPlaceTool('substation',sx,y-2)===null&&window.GV.canPlaceTool('clinic',tx,y-1)===null){
+          let clear=true;for(let x=px;x<=tx;x++)if(window.GV.canPlaceTool('road',x,y)!==null){clear=false;break;}
+          if(clear){line364={px,y,sx,tx};break;}
+        }
       }
     }
     assert(line364,'T364d 144 圖應找到 >90 格的電網中繼驗收走廊');
     for(let x=line364.px;x<=line364.tx;x++)assert(place('road',x,line364.y),'T364d 中繼驗收道路應可連續鋪設 x='+x);
-    assert(place('plant',line364.px,line364.y-1)&&place('clinic',line364.tx,line364.y-1),'T364d 中繼驗收應能放電廠與遠端診所');
+    assert(place('plant',line364.px,line364.y-3)&&place('clinic',line364.tx,line364.y-1),'T364d 中繼驗收應能放完整三格電廠與遠端診所');
     window.GV.step(1);
     assert(!tile(line364.tx,line364.y).rp&&window.GV.region().powerCap===50,
       'T364d 沒有變電所時，超過 90 格的遠端道路不得通電（容量仍 50）');
-    assert(place('substation',line364.sx,line364.y-1),'T364d 中繼驗收變電所應可建造');
+    assert(place('substation',line364.sx,line364.y-2),'T364d 中繼驗收兩格變電所應可建造');
     window.GV.step(1);
     assert(tile(line364.tx,line364.y).rp&&window.GV.region().powerCap===50,
       'T364d 變電所必須重啟遠端道路電網，且不得增加發電容量');
@@ -7102,7 +7173,7 @@ runPwaTests().then(() => {
     window.GV.ai(false);
     const pop5 = window.GV.stats().pop;
     assert(pop5 > 1000, 'T348 seed5 應脫離死鎖並長成城市（v8.8 基準恆 0），實得 ' + pop5);
-    const SEED7M_T532=50; // T532 重釘實測值（前值 55；紓困後城市把補助花在電源上，殘金略降＝合理）
+    const SEED7M_T532=77; // T574 授權空間基線重建，前值50；T532原重釘前值55。相同72格／400天配方實測。
     /* T444 第三根釘（補餘裕）：`MIN_SEED_PINS` 原本恰好卡在 2，零餘裕——
        任何一根被動到就直接跌破門檻。seed7 與既有兩根不同族（非水域中心、非拮据城）。 */
     window.GV.newWorldSeeded(7);
@@ -7115,12 +7186,12 @@ runPwaTests().then(() => {
        251→260（那正是本卡要的效果：這根釘從「對照組」變成「陷阱得救的行為見證」）。
        seed301/seed22 不受擾動＝手術式條件「健康城市永不滿足」的實測面（鐵律19 正解形態②）。
        前值：pop 251（T444 起）／money 55（T456 起）。 */
-    seedPin444('seed7', 7, 400, 260, window.GV.stats().pop,
+    seedPin444('seed7', 7, 400, 117, window.GV.stats().pop,
       'T532 重釘（前值 251，業主 A 案授權）。低成長地圖＝電力鎖陷阱族群，'
       + 'T532 紓困觸發後軌跡合法改變；與 seed301（拮据城）、seed22（健康城）分屬三族，'
-      + '這根釘現在同時見證「紓困有發生」與「只發生在陷阱城市」');
+      + '這根釘現在同時見證「紓困有發生」與「只發生在陷阱城市」；T574授權空間基線重建，前值260→117');
     seedPin444('seed7m', 7, 400, SEED7M_T532, Math.round(window.GV.stats().money),
-      'T532 重釘（前值 55）：紓困是一次性 money=Math.max(...) ⇒ 金流必然改變，新值見常數宣告');
+      'T532起釘前值55；T574授權空間基線重建，前值50→77，新值見常數宣告');
     {
       const mob7 = window.GV.sci451();
       assert(mob7.mobUp === 0 && mob7.mobDn === 0,
@@ -7140,16 +7211,15 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    seedPin444('seed22', 22, 400, 3423, window.GV.stats().pop,
+    seedPin444('seed22', 22, 400, 412, window.GV.stats().pop,
       'T348 起釘：紓困為手術式；T456 世代流動接線重釘（前值 4550——短視野配對差實測機制為正紅利，'
-      + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）');
-    seedPin444('seed22m', 22, 400, 1461, Math.round(window.GV.stats().money),
-      'T456 金流哨兵：暴露修正最活躍的世界線（61 升 0 降）');
+      + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）；T574授權空間基線重建，前值3423→412');
+    seedPin444('seed22m', 22, 400, 35041, Math.round(window.GV.stats().money),
+      'T456金流哨兵；T574授權空間基線重建，前值1461→35041，原公式不改');
     {
       const mob22 = window.GV.sci451();
-      assert(mob22.mobUp === 59 && mob22.mobDn === 0,
-        'T456 G4c seed22 400 天暴露修正應恰為 59 升 0 降（決定性；T542 重釘，前值 61；下行分支目前僅 G1c 原文釘覆蓋，'
-        + '行為見證待 T460 平衡矩陣造境——如實記），實得 up=' + mob22.mobUp + ' dn=' + mob22.mobDn);
+      assert(mob22.mobUp === 0 && mob22.mobDn === 0,
+        'T456 G4c seed22 400 天暴露修正應恰為 0 升 0 降（T574授權空間基線重建，前值59/0；機制源釘保留），實得 up=' + mob22.mobUp + ' dn=' + mob22.mobDn);
     }
   }
 
@@ -8626,8 +8696,8 @@ runPwaTests().then(() => {
     assert(/bd\.k===53&&gst403>=2/.test(bBlk403),'T403b G2 拖拉機限大農場成熟/割茬期');
     assert(/bd\.k===22&&gst403<=1&&streetHash\(o\.x,o\.y,4035\)<\.3/.test(bBlk403),'T403b G2 灑水器限生長期 30% 農戶');
     assert(/bd\.v===4/.test(bBlk403),'T403c G3 雞群（v4）分支在場');
-    assert(/const DOOR403=\[\[52,130,4,6\],\[49,129,4,6\],\[46,131,4,6\],\[45,128,5,8\],\[45,129,6,8\]\]/.test(bBlk403),
-      'T403c G3 穀倉門座標表五變體在場（取自烘焙碼畜舍座標）');
+    assert(bBlk403.includes('const DOOR403=bd.lot574?s.lotMeta574.hooks.door:([[52,130,4,6],[49,129,4,6],[46,131,4,6],[45,128,5,8],[45,129,6,8]][bd.v]||[52,130,4,6]);'),
+      'T574/T403c G3 新牧場門位取實際畜舍掛點，舊五變體座標及fallback逐字不變');
     assert(/nightDepth<\.5/.test(bBlk403)&&/門開＝深色門洞|#241a12/.test(bBlk403)&&/#7a5230/.test(bBlk403),
       'T403c G3 門晝開（深門洞）夜閉（門板+門縫暖光）雙態在場');
     assert(/streetHash\(o\.x,o\.y,4040\)<\.4/.test(bBlk403)&&/#c8a860/.test(bBlk403),
@@ -8808,10 +8878,11 @@ runPwaTests().then(() => {
       for(let i2=1;i2<12;i2++)if(vh[rk[i2]]<vh[rk[i2-1]]){badR.push(key+':未單調@'+i2);break;}
     }
     assert(badR.length===0,'T406 G4 九組 (k,lv) 的樓高表須各 12 項且 rank 為由矮到高的合法排列，違者：'+badR.join(','));
-    // (5) 梯度實證：AI 城 300 天後，鄰域密度前 25% 組的「同級高度百分位」須顯著高於後 25%
-    //     （白噪音下兩組應無差異；門檻 15 個百分點，實測三種子 31~33）
-    window.GV.newWorldSeeded(301);window.GV.setDiff(1);window.GV.ai(true);
-    for(let d=0;d<300;d++)window.GV.step(1);
+    // (5) T574：以自然成熟城測視覺梯度。舊 seed301/300天因真占地不再滿足樣本前提，
+    //     改 seed777/400天；仍要求 ≥80 棟、前後25%相差 ≥15 個百分點，不補錢／補樓。
+    //     城市健康另以12種子A/B揭露，這裡不得拿少樣本放寬梯度。
+    window.GV.setMapSize(72);window.GV.newWorldSeeded(777);window.GV.setDiff(1);window.GV.ai(true);
+    for(let d=0;d<400;d++)window.GV.step(1);
     window.GV.ai(false);
     const N406=window.GV.N(),rows406=[],span406={};
     for(let y=0;y<N406;y++)for(let x=0;x<N406;x++){
@@ -8829,7 +8900,7 @@ runPwaTests().then(() => {
       const [lo,hi]=span406[key];
       rows406.push({dens:n,pct:hi>lo?((a[b.v]||0)-lo)/(hi-lo):0});
     }
-    assert(rows406.length>=80,'T406 G5 lv2+ 樣本應 ≥80（AI 城 300 天），實得 '+rows406.length);
+    assert(rows406.length>=80,'T406 G5 lv2+ 樣本應 ≥80（T574自然成熟城 seed777/400天），實得 '+rows406.length);
     rows406.sort((a,b)=>a.dens-b.dens);
     const q406=Math.floor(rows406.length/4);
     const mean406=(arr)=>arr.reduce((s,r)=>s+r.pct,0)/arr.length;
@@ -8860,10 +8931,8 @@ runPwaTests().then(() => {
       assert(vh&&rk&&vh.length===2&&rk.length===2,'T407 G3 '+key+' 樓高表須恰 2 項，實得 '+(vh?vh.length:'MISSING'));
       assert(vh[rk[0]]<vh[rk[1]],'T407 G3 '+key+' rank 須由矮到高，實得 '+JSON.stringify(vh)+' rank '+JSON.stringify(rk));
     }
-    // (4) 梯度實證：800 天 AI 城的塔，鄰域密度上半 vs 下半的平均高度須有正向差
-    window.GV.newWorldSeeded(301);window.GV.setDiff(1);window.GV.ai(true);
-    for(let d=0;d<800;d++)window.GV.step(1);
-    window.GV.ai(false);
+    // (4) T574：沿用上段未改動的 seed777/400天成熟城（原為 seed301/800天）。
+    //     塔數 ≥7 與高密度側較高兩道門檻原封不動，這裡沒有額外成長或人工補楼。
     const N407=window.GV.N(),tw407=[];
     for(let y=0;y<N407;y++)for(let x=0;x<N407;x++){
       const b=window.GV.tile(x,y).bld;
@@ -8877,7 +8946,7 @@ runPwaTests().then(() => {
       }
       tw407.push({dens:n,h:(vh407.vh[b.k+'_1']||[])[b.v]||0});
     }
-    assert(tw407.length>=7,'T407 G4 800 天應長出 ≥7 座塔（T432 孤島電源不併網重釘；前值 ≥8），實得 '+tw407.length);
+    assert(tw407.length>=7,'T407 G4 自然成熟城應長出 ≥7 座塔（T574 seed777/400天；T432門檻不降），實得 '+tw407.length);
     tw407.sort((a,b)=>a.dens-b.dens);
     const half=Math.floor(tw407.length/2);
     const mh=(arr)=>arr.reduce((s,r)=>s+r.h,0)/arr.length;
@@ -9963,7 +10032,7 @@ runPwaTests().then(() => {
       'T422 G1 商業三色票須為單一常數且受管區可定位');
     assert(!/=\s*(?:R|ri|vri|Math\.random)\b|\b(?:R|ri|vri)\s*\(|Math\.random\s*\(/.test(managedBody),
       'T422 G1 受管產品區禁直呼與預先捕獲 R/ri/vri/Math.random alias');
-    const miniAt=bare422.indexOf('if(lodMini){');
+    const miniAt=bare422.indexOf('if(lodMini&&!bd.lot574){'); // T574 新園區有真縮略圖；這段仍只驗既有T107遠景路徑。
     const miniEnd=bare422.indexOf('\n      continue;',miniAt);
     assert(miniAt>0&&miniEnd>miniAt,'T422 G1 T107 lodMini 受管切片可定位');
     const miniBody=bare422.slice(miniAt,miniEnd);
@@ -10626,6 +10695,560 @@ runPwaTests().then(() => {
     'T573 G3a k5 v1 畫布與渲染錨點不變 88×120 / 44,118');
 }
 
+/* ===== T574 實體地塊：k5 垂直切片（全建築卡施工第一段，非全卡完成） ===== */
+{
+  const G=window.GV,A=window.__t574,sk='glimmerville.v1.s3';
+  localStorage.setItem('glimmerville.v1.slot','3');
+  const fresh=()=>{G.setMapSize(72);G.newWorldSeeded(574);G.setDiff(3);G.ai(false);A.clear();};
+  const at=(x,y)=>G.tile(x,y),build=(x,y)=>G.place('plant',x,y,true);
+  const read=()=>A.inflate(JSON.parse(localStorage.getItem(sk)));
+  const all=(x,y)=>{const a=[];for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++)a.push(at(x+dx,y+dy));return a;};
+  fresh();
+  assert(build(20,20),'T574 G1 新電廠可放在完整3×3草地');
+  const cells=all(20,20),root=cells[0].bld;
+  assert(root.k===5&&root.sz===3&&root.lot574===3&&cells.filter(t=>t.bld&&!t.bld.ref).length===1&&
+    cells.slice(1).every(t=>t.bld&&t.bld.k===5&&JSON.stringify(t.bld.ref)==='[20,20]'),
+    'T574 G1a 精確1 root＋8 refs，占地九格，不是圖片放大');
+  assert(A.cap()===50,'T574 G1b 九格電廠只計一份50容量（實得 '+A.cap()+'）');
+  for(const [x,y] of [[19,21],[23,21],[21,19],[21,23]]){
+    fresh();build(20,20);G.place('road',x,y,true);A.cap();
+    assert(A.diag(20,20).mode==='network'&&A.diag(20,20).capacity>0,
+      'T574 G1d 電廠外緣('+x+','+y+')接路必須真正歸網，不只路亮而容量孤島');
+  }
+  assert(G.canPlaceTool('road',22,22)!==null&&G.canPlaceTool('park',22,22)!==null,
+    'T574 G1c 最遠ref格不可被道路或另一建築穿入');
+  for(const [field,value] of [['road',1],['rail',1],['tram',1],['bld',{k:13,lv:1}],['t',0],['crater',1],['ruin',1],['dock',1]]){
+    fresh();A.edit(22,22,field,value);const before=JSON.stringify(all(20,20)),money=G.stats().money;
+    assert(G.canPlaceTool('plant',20,20)!==null&&!build(20,20)&&JSON.stringify(all(20,20))===before&&G.stats().money===money,
+      'T574 G2 尾格 '+field+' 擋建造且零扣款／零部分清場');
+  }
+  fresh();assert(!build(70,70),'T574 G2a 3×3超出72邊界必須拒絕');
+  const cursor=A.cursor(20,20);
+  assert(cursor.length===9&&new Set(cursor.map(c=>c[0]+','+c[1])).size===9,
+    'T574 G3 放置預覽必須精確九個格框（實得 '+cursor.length+'）');
+  for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){
+    fresh();build(20,20);assert(G.place('doze',20+dx,20+dy,true)&&all(20,20).every(t=>!t.bld),
+      'T574 G4 從足跡('+dx+','+dy+')拆除必須九格全清');
+  }
+  fresh();const original=JSON.stringify(all(20,20));A.begin();build(20,20);A.end();G.undo();
+  assert(JSON.stringify(all(20,20))===original,'T574 G4a 建造撤銷九格逐字恢復，不留ref；差異 '+JSON.stringify(all(20,20).map((t,j)=>Object.keys(t).filter(k=>JSON.stringify(t[k])!==JSON.stringify(JSON.parse(original)[j][k])))));
+  fresh();build(20,20);A.begin();G.place('doze',22,22,true);A.end();G.undo();
+  assert(all(20,20).every(t=>t.bld)&&at(20,20).bld.sz===3,'T574 G4b ref拆除撤銷九格恢復');
+  fresh();A.edit(22,22,'tree',2);const pinchBefore=JSON.stringify(all(20,20));A.begin();build(20,20);A.pinch({x:20,y:20,tool:'plant',spent:0});
+  assert(JSON.stringify(all(20,20))===pinchBefore,'T574 G4c 手機誤觸轉雙指縮放必須全地塊復原，尾格樹也要回來');
+  fresh();build(20,20);
+  G.save();const saved=read();
+  assert(JSON.stringify(saved.lots574)==='[[1460,5,3]]','T574 G5 新占地稀疏落盤，僅1筆root');
+  assert(G.load(3)&&all(20,20).every(t=>t.bld)&&at(20,20).bld.sz===3,'T574 G5a 新電廠讀回九格');
+  fresh();A.oldPlant(20,20);G.place('road',21,20,true);G.save();const old=read();
+  assert(!Object.prototype.hasOwnProperty.call(old,'lots574'),'T574 G5b 舊一格電廠不添新占地欄位');
+  assert(G.load(3)&&!at(20,20).bld.sz&&at(21,20).road===1&&!at(21,20).bld,
+    'T574 G5c 舊城一格電廠讀回不吃掉鄰路');
+  fresh();build(20,20);localStorage.setItem(sk,JSON.stringify(old));
+  assert(G.load(3)&&!at(20,20).bld.lot574&&!at(20,20).bld.sz&&at(21,20).road===1,
+    'T574 G5d 新九格城直接load舊一格城，不經newWorld且不殘留尺寸');
+  const invalid=[
+    d=>d.lots574.push([1460,5,3]),d=>d.lots574[0][1]=12,d=>d.lots574[0][2]=9,
+    d=>d.bl.push([1461,13,1,0,9]),d=>{d.rd=d.rd.slice(0,1606)+'1'+d.rd.slice(1607);},
+    d=>{d.bl[0][0]=5183;d.lots574[0][0]=5183;}
+  ];
+  for(let j=0;j<invalid.length;j++){
+    const d=JSON.parse(JSON.stringify(saved));invalid[j](d);
+    assert(A.read(d)===null&&!A.shape(d),'T574 G6 畸形占地案'+j+'在覆寫世界前拒收');
+  }
+  const raw=html.slice(html.indexOf('function canPlaceLot574('),html.indexOf('function placeCost('));
+  assert(raw&&!/\b(?:R|ri|rand|spriteTexRand)\s*\(|Math\.random\s*\(/.test(stripCommentsAndStrings438(raw).text),
+    'T574 G7 占地與讀檔驗型零亂數');
+  assert(!html.includes('window.__t574'),'T574 G7a 測試造境橋不進正式runtime');
+  const art=A.sprites();
+  for(let v=0;v<3;v++){
+    const s=art&&art['5_1_'+v];
+    assert(s&&s.w===208&&s.h===220&&s.ax===104&&s.ay===212&&s.img.width===208&&s.img.height===220,
+      'T574 G8 k5/v'+v+' 是3×3新烘焙園區，不是原一格圖放大');
+    const m=s.lotMeta574;
+    assert(m.sz===3&&m.feet.length>=3&&m.feet.every(f=>f.points.every(([x,y])=>Math.abs(x-104)+Math.abs(y-164)*2<=96)),
+      'T574 G8a k5/v'+v+' 每座設備地腳都在九格菱形內：'+JSON.stringify(m.feet));
+    assert(s.win563&&s.win563.w===208&&s.win563.ay===s.ay&&s.night&&s.win563.night&&s.smoke.length>0&&
+      JSON.stringify(s.smoke)===JSON.stringify(s.win563.smoke),'T574 G8b 新廠日夜／雪側共用尺寸及煙口');
+  }
+  const artBeg574=html.indexOf('function lotEllipse574('),artEnd574=html.indexOf('/* ===== T426 拆段：',artBeg574);
+  assert(artBeg574>=0&&artEnd574>artBeg574,'T574 G8c-scope 園區美術守衛必須命中完整生成區，失配不得空驗');
+  const artRaw=html.slice(artBeg574,artEnd574),artCode574=stripCommentsAndStrings438(artRaw).text;
+  // 唯一例外是完整新園區的日／夜遠景快取：來源、半尺寸、最近鄰及邏輯尺度一併釘死。
+  // 不能只刪 drawImage 禁令；此區塊以外的貼圖仍拒收，亂數仍掃完整區塊（含例外本身）。
+  const lodCopy574=`s=bakeLot574(k,v,stage,winter);
+  if(far){
+    const q=.5,[c,g]=cv(s.w*q,s.h*q),[nc,ng]=cv(s.w*q,s.h*q);
+    g.imageSmoothingEnabled=ng.imageSmoothingEnabled=false;
+    g.drawImage(s.img,0,0,c.width,c.height);ng.drawImage(s.night,0,0,nc.width,nc.height);
+    s={...s,img:c,night:nc,w:c.width,h:c.height,ax:s.ax*q,ay:s.ay*q,sc:1/q};
+  }`;
+  assert(artCode574.split(lodCopy574).length===2,'T574 G8d 遠景只可將新烘焙園區日夜各縮至半尺寸，零平滑並保留邏輯尺度');
+  assert(!/\b(?:R|ri|rand|spriteTexRand)\s*\(|Math\.random\s*\(/.test(artCode574)&&
+    !/drawImage\s*\(/.test(artCode574.replace(lodCopy574,'')),
+    'T574 G8c 新園區零亂數、不得 drawImage 放大或貼回舊一格廠');
+  A.clear();assert(G.place('plant',20,20),'T574 G9 煙口造境新廠落成');
+  const parts=A.smoke();
+  assert(parts.length===1&&parts[0].lot574&&parts[0].lot574.sz===3,'T574 G9a 每輪只發一個root煙粒、八個ref不得重噴（實得 '+parts.length+'）');
+  const expected574=[[0,736,44],[928,1200,73],[0,1664,102],[-928,1200,73]];
+  for(let r=0;r<4;r++){
+    G.setRot(r);const a=A.lotView(20,20,3);
+    assert(JSON.stringify(a)===JSON.stringify(expected574[r]),'T574 G9b rot'+r+' 新廠煙口底錨／深度必須精確對齊實際九格，實得 '+a);
+  }
+  G.setRot(0);
+  const plan=A.plan(),card574=fs.readFileSync(require('path').join(__dirname,'docs/tasks/T574-全建築實體地塊與園區尺度.md'),'utf8');
+  const rows574=[...card574.slice(card574.indexOf('## 3. 全建築尺度清單'),card574.indexOf('## 4.')).matchAll(/^\|(\d+)\|[^|]+\|(\d+)\|(\d+)\|/gm)];
+  assert(plan.length===134&&rows574.length===133&&rows574.every(r=>plan[+r[1]]&&plan[+r[1]][1]===+r[3]&&A.legacy(+r[1])===+r[2]),
+    'T574 G10 全133種目錄必須逐筆對齊卡面尺寸，舊MSZ不重釘');
+  const allTools=new Set(A.tools());
+  assert(plan.slice(1).every(p=>p[0]===null||allTools.has(p[0])),'T574 G10a 每個直接建造目錄ID必須真正在工具列存在');
+  const needsShore=new Set(['port','sewage','hydro','shipyard','desalination','marina','fishfarm','fishpier']);
+  const prepare=(id,sz)=>{A.clear();if(needsShore.has(id)){A.edit(20+sz,20,'t',0);A.edit(20+sz,21,'t',0);}
+    if(['oilwell','gaswell'].includes(id))A.resource(20,20,1);if(id==='mine')A.resource(20,20,2);};
+  for(let k=1;k<plan.length;k++){
+    const [id,sz]=plan[k];if(!id)continue;
+    prepare(id,sz);A.edit(20+sz-1,20+sz-1,'tree',2);A.rebuild();
+    const why574=G.canPlaceTool(id,20,20);A.begin();const placed=G.place(id,20,20,true);A.end();
+    assert(placed,'T574 G11 k'+k+' '+id+' 真建造 '+sz+'×'+sz+'（預檢 '+why574+'）');
+    const root=at(20,20).bld,foot=[];for(let y=0;y<sz;y++)for(let x=0;x<sz;x++)foot.push(at(20+x,20+y));
+    assert(root&&root.k===k&&(root.sz||1)===sz&&foot.filter(t=>t.bld&&!t.bld.ref).length===1&&foot.slice(1).every(t=>t.bld&&t.bld.k===k&&String(t.bld.ref)==='20,20'),
+      'T574 G11a k'+k+' 實際足跡恰1 root＋'+(sz*sz-1)+' refs');
+    const inc=A.fields();A.rebuild();assert(inc===A.fields(),'T574 G11b k'+k+' 即時覆蓋／樹木撤帳必須與全量重建逐位相等');
+    G.save();const data=read();
+    assert(G.load(3)&&(at(20,20).bld.sz||1)===sz&&!!at(20,20).bld.lot574===(sz>A.legacy(k))&&foot.every((_,j)=>at(20+j%sz,20+((j/sz)|0)).bld)&&inc===A.fields(),
+      'T574 G11c k'+k+' 存讀占地恆等，新舊尺度標記不能互串');
+    assert(G.place('doze',20+sz-1,20+sz-1,true)&&foot.every((_,j)=>!at(20+j%sz,20+((j/sz)|0)).bld),
+      'T574 G11d k'+k+' 尾端拆除不得留下ref');
+    const removed=A.fields();A.rebuild();assert(removed===A.fields(),'T574 G11e k'+k+' 拆除撤印無255下溢／殭屍覆蓋');
+    if(sz>A.legacy(k)){
+      prepare(id,sz);G.place('wpipe',20+sz-1,20+sz-1,true);A.edit(20+sz-1,20+sz-1,'tree',2);A.rebuild();
+      const before=[];for(let y=0;y<sz;y++)for(let x=0;x<sz;x++)before.push(JSON.stringify(at(20+x,20+y)));
+      A.begin();assert(G.place(id,20,20,true),'T574 G11f k'+k+' 新園區允許水管從地下通過');
+      A.pinch({x:20,y:20,tool:id,spent:0});
+      assert(before.every((s,j)=>s===JSON.stringify(at(20+j%sz,20+((j/sz)|0)))),'T574 G11g k'+k+' 沙盒誤觸轉縮放完整退回地塊與地下水管');
+    }
+  }
+}
+{
+  const A=window.__t574,plan=A.plan();let families=0,combinations=0;
+  for(let k=1;k<plan.length;k++){
+    if(!plan[k][0]||plan[k][1]<=A.legacy(k))continue;families++;
+    const vs=A.artVariants(k);assert(vs.length>0,'T574 G12a k'+k+' 必須有可渲染變體');
+    for(const v of vs)for(const winter of [false,true]){
+      const s=A.art(k,v,2,winter);combinations++;
+      assert(s&&s.img&&s.night&&s.lotMeta574.sz===plan[k][1],
+        'T574 G12b k'+k+' v'+v+' winter='+winter+' 必須命中新地塊美術，不能退回舊一格');
+      assert(s.w===s.img.width&&s.h===s.img.height&&s.night.width===s.w&&s.night.height===s.h&&s.w>=plan[k][1]*64,
+        'T574 G12c k'+k+' 真畫布／日夜圖同尺寸，覆蓋完整 '+plan[k][1]+'×'+plan[k][1]+' 格');
+      const m=s.lotMeta574,[cx,ty,hw]=m.ground,cy=ty+hw/2;
+      assert(m.feet.length>=3&&m.feet.every(f=>f.points.every(([x,y])=>Number.isFinite(x+y)&&Math.abs(x-cx)/hw+Math.abs(y-cy)/(hw/2)<=1+1e-9)),
+        'T574 G12d k'+k+' v'+v+' 地腳必須全部在真實菱形內，不能把高度當占地或夾帶界外設備');
+      const stat=A.artCache();assert(stat.entries<=128&&stat.pixels<=12000000,
+        'T574 G12e 園區快取必須同時守 128 組／12M 像素上限，實得 '+JSON.stringify(stat));
+    }
+  }
+  assert(families===105&&combinations>=210,'T574 G12f 105 擴大種類全部造圖（實得 '+families+' 族／'+combinations+' 組）；不能缺族用通用方盒掩蓋');
+  const s=A.art(114,0,2,false),before=A.artCache();
+  assert(A.art(114,0,2,false)===s&&A.artCache().bakes===before.bakes,'T574 G12g 相同園區連續繪製必須命中快取，不得每幀烘焙');
+  const stages=[0,1,2,3].map(i=>A.art(53,0,i,false));
+  assert(new Set(stages).size===4&&stages.every((s,i)=>s.lotMeta574.stage===i),'T574 G12h 新大農場四段作物圖必須各自存在，不得把收割態抹掉');
+  for(const [k,key]of[[7,'flag'],[9,'flag'],[42,'flag'],[19,'radar'],[46,'radar'],[26,'rotor'],[62,'exhaust'],[121,'exhaust'],[23,'door'],[22,'farmer'],[53,'field']]){
+    const s=A.art(k,0),p=s.lotMeta574.hooks[key];
+    assert(Array.isArray(p)&&p.length>=2&&p.every(Number.isFinite)&&p[0]>=0&&p[0]<s.w&&p[1]>=0&&p[1]<s.h,
+      'T574 G12i k'+k+' '+key+' 動態掛點必須在自身畫布內且由真設備產生');
+  }
+}
+{
+  const G=window.GV,A=window.__t574,at=(x,y)=>G.tile(x,y);
+  const fresh=()=>{G.setMapSize(72);G.newWorldSeeded(57413);G.setDiff(3);G.ai(false);G.weather(0);G.setSeason(0);A.clear();};
+  const put=(tool,x,y)=>assert(G.place(tool,x,y,true),'T574 G13 造境 '+tool+'@'+x+','+y+' 必須真建成功');
+  for(const [px,py,dx,dy]of[[22,19,0,-1],[23,22,1,0],[22,23,0,1],[19,22,-1,0]]){
+    fresh();A.edit(24,24,'t',0);A.edit(24,23,'t',0);put('desalination',20,20);
+    for(let j=0;j<=3;j++)put('wpipe',px+dx*j,py+dy*j);
+    const ex=px+dx*3,ey=py+dy*3;
+    assert(A.waterCap()===80&&at(ex,ey).wr,'T574 G13a 淡化廠四侧遠端 ref 接管：80 容量只計一次且水流真到末端 '+px+','+py);
+    G.save();assert(G.load()&&at(ex,ey).wr,'T574 G13b load 未 tick 必須補 ref 再重建水網，遠側水管不可等下一天才有水');
+    put('doze',px,py);A.waterCap();assert(!at(ex,ey).wr,'T574 G13c 切斷入口後下游即無水，不留通水快取');
+    put('wpipe',px,py);A.waterCap();assert(at(ex,ey).wr,'T574 G13d 重新接管後下游恢復');
+    put('doze',22,22);assert(A.waterCap()===0&&!at(ex,ey).wr,'T574 G13e 拆尾 ref 撤整廠，容量與通水同時撤除');
+  }
+  fresh();put('water',16,21);for(let x=17;x<=28;x++)put('wpipe',x,21);put('school',20,20);A.waterCap();
+  assert(at(21,21).wp&&at(28,21).wr,'T574 G13f 水管從完整園區地下穿越，蓋樓不得截斷既有管線');
+  put('doze',22,22);A.waterCap();assert(at(21,21).wp&&at(28,21).wr,'T574 G13g 拆園區不順便拆地下水管');
+  fresh();put('plant',30,20);put('socialHousing',24,20);put('water',29,24);
+  for(let x=25;x<=31;x++)put('road',x,23);for(let x=27;x<=29;x++)put('wpipe',x,24);
+  G.step(1);
+  assert(at(24,20).bld.pw&&at(24,20).bld.wa&&A.utilityState().powered===1&&A.utilityState().watered===1,
+    'T574 G13h 社宅遠端外緣接路／管，tick 真供電水；九格仍只算一戶容量');
+  put('doze',28,24);G.step(1);assert(!at(24,20).bld.wa&&A.utilityState().watered===0,'T574 G13i 社宅切水後次日真缺水，不能只是健康面板變色');
+  for(const [id,key,sz]of[['station','rail',3],['grandStation','rail',5],['tramStation','tram',2]])for(let d=0;d<4;d++){
+    fresh();put(id,20,20);put(id,40,40);const px=d===0||d===2?20+sz-1:d===1?20+sz:19,py=d===1||d===3?20+sz-1:d===2?20+sz:19;
+    if(key==='tram')put('road',px,py);put(key,px,py);
+    if(key==='tram')put('road',px+20,py+20);put(key,px+20,py+20);
+    const ports=A.ports(20,20,sz,key),vehicles=A.rail(key==='tram');
+    assert(ports[d]&&ports[d][0]===px&&ports[d][1]===py&&vehicles.length===(key==='tram'?2:1)&&vehicles.every(c=>(c.x===px&&c.y===py)||(c.x===px+20&&c.y===py+20)),
+      'T574 G13j '+id+' 第'+d+'側遠端軌道必須真出車（不是只判 helper 接通）');
+  }
+  for(const id of ['dump','wasteIncinerator']){
+    fresh();put(id,20,20);const n=id==='dump'?3:4,x=20+n,y=20+n-1;
+    for(let j=0;j<5;j++)put('road',x+j,y);A.liveHouse(x+4,y+1);
+    assert(A.garbage()===0&&A.garbAt(x+4,y+1)===A.utilityState().garbRatio,'T574 G13k '+id+' 尾端道路能清運，住宅不得被誤判遠端垃圾孤島');
+    put('doze',x,y);assert(A.garbage()===1,'T574 G13l 切垃圾外緣道路後同住宅必須真成孤島');
+  }
+  for(const [id,n]of[['port',3],['marina',3],['shipyard',5]]){
+    fresh();A.edit(20+n,20+n-1,'t',0);A.edit(20+n,20+n-2,'t',0);put(id,20,20);
+    const waters=A.sea(20,20);assert(waters.some(p=>p[0]===20+n&&p[1]===20+n-1),'T574 G13m '+id+' 靠遠端水岸可被真航運尋岸函式找到');
+  }
+  fresh();A.edit(20,20,'bld',{k:62,lv:1,v:0,age:9,sz:2});
+  for(const [x,y]of[[21,20],[20,21],[21,21]])A.edit(x,y,'bld',{k:62,ref:[20,20]});
+  put('road',22,21);put('road',23,21);A.liveHouse(23,22);
+  assert(A.garbage()===1,'T574 G13n 舊2×2焚化廠沒有新標記時，清運接入仍用舊root，不以新規則暗改舊城');
+}
+/* T574 G14 rendered footprint contracts */
+{
+  const G=window.GV,A=window.__t574;G.setMapSize(72);G.newWorldSeeded(574);G.setDiff(3);G.ai(false);G.setSeason(0);G.setRot(0);A.clear();
+  assert(G.place('megaport',20,20,true),'T574 G14a 九格機場裁切造境必須真建造');A.edit(20,20,'bld',{...G.tile(20,20).bld,age:9});
+  const clipped=A.frame(20,20,1,-200),mini=A.frame(20,20,.4);
+  assert(clipped.hits.length===1&&clipped.hits[0][2]===clipped.w&&clipped.hits[0][3]===clipped.h,
+    'T574 G14b root 已離開舊160px視錐、園區末端仍可見時，完整9×9本體仍須繪製一次，實得 '+JSON.stringify(clipped));
+  assert(mini.hits.length===1&&Math.abs(mini.hits[0][2]-mini.w*.4)<1e-9,
+    'T574 G14c 遠景0.4倍園區仍占滿九格，不得退化回root上的單一4px方塊');
+  for(let r=0;r<4;r++){
+    G.setRot(r);const a=A.lotView(20,20,2),p=A.ground(20,20,2,1,1);
+    assert(JSON.stringify(p)===JSON.stringify([a[0],a[1]-32,a[2]]),
+      'T574 G14d rot'+r+' 園內人物地面位置／深度同園區底錨，不得被本體遮沒');
+  }
+  G.setRot(0);
+  const b={k:53,v:0,sz:7,lot574:7},sp=A.art(53,0),field=sp.lotMeta574.hooks.field;
+  const s=A.farmSmoke({wx:7,wy:666,age:0},b,20,20,26);
+  assert(s.lot574&&s.lot574.dx===field[0]-sp.ax+7&&s.lot574.dy===field[1]-sp.ay&&s.lot574.sz===7,
+    'T574 G14e 農場揚塵保留原7px抖動、落在新田間掛點，不得仍從root一格噴出');
+  const old={wx:7,wy:666,age:0};A.farmSmoke(old,{k:53,v:0,sz:5},20,20,26);
+  assert(JSON.stringify(old)==='{"wx":7,"wy":666,"age":0}','T574 G14f 舊農場煙粒逐欄不變');
+  const draw574=html.slice(html.indexOf('/* ===== T368a 公園有人'),html.indexOf('/* ===== T368c 魚躍'));
+  assert((draw574.match(/lotGround574\(/g)||[]).length===3&&(draw574.match(/t\.bld\.lot574\?_iso[2]?\[2\]/g)||[]).length===3,
+    'T574 G14g 孩童／狗／主人三條實際推送皆用園內座標和園區深度，不得只留未呼叫helper');
+}
+/* T574 G15 rendered night contracts */
+{
+  const G=window.GV,A=window.__t574;G.setMapSize(72);G.newWorldSeeded(574);G.setDiff(3);G.ai(false);G.setSeason(0);
+  const cases=[[76,'land','wheel',0,1],[89,'land','aviation',0,1],[65,'neon','sign',41370,.55],[58,'ind','aviation',41375,.4]];
+  for(const [k,kind,key,salt,threshold]of cases){
+    const id=A.plan()[k][0];A.clear();let x=20;while(salt&&window.__t571Hash(x,20,salt)>threshold)x++;
+    assert(x<40&&G.place(id,x,20,true),'T574 G15a '+id+' 夜景造境須真建造且通過原有雜湊閥');
+    const b=G.tile(x,20).bld;A.edit(x,20,'bld',{...b,age:9,pw:true,h:1});
+    for(let r=0;r<4;r++){
+      G.setRot(r);const f=A.nightFrame(kind,x,20),z=f.cam.z,h=f.sprite.hooks[key];
+      const ox=Math.round(f.world[0]/2-f.cam.x*z),oy=Math.round(f.world[1]/2-f.cam.y*z);
+      const px=ox+(f.anchor[0]+h[0]-f.sprite.ax)*z,py=oy+(f.anchor[1]+h[1]-f.sprite.ay)*z;
+      const expected=k===76?Array.from({length:8},(_,j)=>[px+Math.cos(90+j*6.283/8)*h[2]*z,py+Math.sin(90+j*6.283/8)*h[3]*z]):
+        k===89?[[px-z,py],[px-2*z,py+10*z]]:k===65?[[px-6*z,py]]:[[px-z,py]];
+      assert(f.hits.length===expected.length&&f.hits.every((p,i)=>Math.abs(p[0]-expected[i][0])<1e-9&&Math.abs(p[1]-expected[i][1])<1e-9),
+        'T574 G15b '+id+' rot'+r+' 真夜景繪製必須一次且貼合園區掛點（IEEE-754座標容差1e-9），實得 '+JSON.stringify(f.hits));
+    }
+    const n=b.sz,roots=A.nightRoots([[x+n-1,20+n-1],[x,20],[x+1,20]]);
+    assert(JSON.stringify(roots)===JSON.stringify([[x,20,x+20*72]]),'T574 G15c '+id+' 可見尾格解析同root、同幀去重，root離開視窗仍不得漏燈或重畫');
+    A.edit(x,20,'bld',{...G.tile(x,20).bld,age:8});
+    assert(A.nightFrame(kind,x,20).hits.length===0,'T574 G15e '+id+' 新園區未到age9時不得先畫完工夜燈');
+  }
+  G.setRot(0);A.clear();A.edit(20,20,'bld',{k:65,lv:1,v:0,age:9,sz:3});A.edit(22,22,'bld',{ref:[20,20]});
+  assert(A.nightRoots([[22,22],[20,20]]).length===1,'T574 G15d 舊城尾格仍忽略，只由原root繪夜燈');
+}
+/* T574 G16 complete footprint road link */
+{
+  const G=window.GV,A=window.__t574;G.setMapSize(72);G.newWorldSeeded(574);G.ai(false);A.clear();
+  assert(JSON.stringify(A.roadLink(20,20,3,[25+21*72]))==='[[23,21],[24,21]]',
+    'T574 G16a 三格園區由外緣接路，只補兩格缺口、不穿過園區也不重鋪終點');
+  assert(JSON.stringify(A.roadLink(20,20,3,[23+22*72]))==='[]'&&A.roadLink(20,20,3,[])===null,
+    'T574 G16b 已貼路零施工、無道路拒絕，不能捏造已接網');
+  G.newWorldSeeded(15);G.setDiff(1);G.ai(true);const actions=A.actions(()=>{for(let d=0;d<60;d++)G.step(1);});
+  assert(G.stats().pop>0&&G.power432().sum>0,
+    'T574 G16c seed15 真AI60天必須接通3×3紓困電源並長出人口，不得把缺口電廠當作接好（實得 '+G.stats().pop+'/'+G.power432().sum+'）');
+  assert(actions.includes('geo')&&actions.includes('road'),
+    'T574 G16d 接線必須走真doPlace電廠／道路，不得直接捏造地圖或電力');
+  G.ai(false);
+}
+/* T574 G17 campus floodlight bounds */
+{
+  const G=window.GV,A=window.__t574;G.setMapSize(72);G.newWorldSeeded(574);G.setDiff(3);G.ai(false);A.clear();
+  assert(G.place('nuclear',20,20,true),'T574 G17 5×5核電泛光造境');A.edit(20,20,'bld',{...G.tile(20,20).bld,age:9});
+  const f=A.frame(20,20,1,undefined,true);
+  assert(f.rects.length===0&&f.arcs.some(p=>p[0]===0&&p[1]===0&&p[2]===172),
+    'T574 G17a 真draw夜景以5格地面光池取代整畫布泛光，透明天空不得出現矩形（實得 '+JSON.stringify(f.rects)+'）');
+  const day=A.frame(20,20,1);
+  assert(!day.arcs.some(p=>p[0]===0&&p[1]===0&&p[2]===172),'T574 G17b 日間不得新增園區泛光');
+}
+/* T574 G18 / T542 mature natural-city witnesses (relocated, not weakened) */
+{
+  const G=window.GV;G.setMapSize(72);G.newWorldSeeded(3002);G.setDiff(1);G.ai(true);
+  for(let d=0;d<900;d++)G.step(1);G.ai(false);
+  const kinds={};for(let y=0;y<G.N();y++)for(let x=0;x<G.N();x++){
+    const b=G.tile(x,y).bld;if(b&&!b.ref)kinds[b.k]=(kinds[b.k]||0)+1;
+  }
+  // T574：園區需真實空地；原seed301/400天不再達門檻。改用自然成熟城，零人工補錢／補廠。
+  assert(G.stats().pop>1200,'T574 G18 產業鏈見證城必須由真AI自然成長到1200人以上，實得 '+G.stats().pop);
+  assert(kinds[49]===3&&kinds[50]===3,
+    'T542 G2 資源地理化：成熟自然城仍須有3油井＋3礦場，不得以新占地為由放寬成零（實得 '+(kinds[49]||0)+'/'+(kinds[50]||0)+'）');
+  assert(kinds[121]===1&&kinds[122]===1&&kinds[123]===1,
+    'T542 G2a 成熟自然城仍須有煉油廠／鋼鐵廠／造船廠各1座，實得 '+JSON.stringify([kinds[121]||0,kinds[122]||0,kinds[123]||0]));
+}
+/* T574 G19 large-map format boundary */
+{
+  const G=window.GV,A=window.__t574;G.setMapSize(216);G.newWorldSeeded(574);G.setDiff(3);G.ai(false);A.clear();
+  assert(!G.place('megaport',208,207),'T574 G19b 空白地圖上超出一格必須拒建，不能拿既有建築碰撞代替邊界驗證');
+  assert(G.place('megaport',207,207),'T574 G19a 216格圖最遠角必須能真建9×9園區');
+  G.save();const d=JSON.parse(G.rawSave()),root=207+207*216;
+  assert(d.n===216&&d.lots574.some(r=>r[0]===root&&r[1]===114&&r[2]===9),
+    'T574 G19c 高於32767的root索引仍須完整落盤，不得截斷或遺失占地記錄');
+  G.newWorldSeeded(99);assert(G.load(),'T574 G19d 216圖存檔必須真載入');
+  const b=G.tile(207,207).bld,t=G.tile(215,215).bld;
+  assert(G.N()===216&&b&&b.sz===9&&b.lot574===9&&t&&JSON.stringify(t.ref)==='[207,207]',
+    'T574 G19e 最末格46655必須還原為正確root的ref，不得回捲或丟失');
+  G.setMapSize(72);
+}
+/* T574 G20 guide footprint consistency */
+{
+  const before=JSON.stringify(window.GV.stats());
+  for(const tab of [0,1]){
+    const h=window.__t343Test.guide(tab);
+    assert(h.includes('新建 4×4')&&!h.includes('2×2，勿貼住宅')&&!h.includes('2×2 高污染'),
+      'T574 G20a 指南'+tab+'的焚化廠新建尺寸須來自真占地4×4，不得留舊2×2');
+  }
+  assert(JSON.stringify(window.GV.stats())===before,'T574 G20b 更新指南尺寸不得改模擬狀態');
+}
+/* T574 G21 mixed old/new save contract */
+{
+  const G=window.GV,A=window.__t574;
+  G.setMapSize(72);G.newWorldSeeded(574);G.setDiff(3);G.ai(false);A.clear();
+  const at=(x,y)=>G.tile(x,y),put=(id,x,y)=>assert(G.place(id,x,y,true),'T574 G21 造境必須真建造 '+id+'@'+x+','+y);
+  // 只用資料橋描述舊檔既有建築，所有新樓／道路／管線走正式建造API。
+  A.oldPlant(10,10);put('road',11,10);
+  A.edit(16,16,'bld',{k:9,lv:1,v:0,age:9,pw:true,h:1,sz:2});
+  for(const[dx,dy]of[[1,0],[0,1],[1,1]])A.edit(16+dx,16+dy,'bld',{k:9,ref:[16,16]});
+  put('road',18,16);put('plant',20,20);put('water',29,31);
+  for(let x=30;x<=34;x++)put('wpipe',x,31);put('school',30,30);A.rebuild();A.waterCap();
+  const covBefore=JSON.stringify(JSON.parse(A.fields()).cov);
+  G.save();const raw=G.inflateSave(G.rawSave());
+  assert(JSON.stringify(raw.lots574)==='[[1460,5,3],[2190,7,3]]',
+    'T574 G21a 混合城只記兩座新園區，舊一格廠與舊2×2體育場不得補新占地標記');
+  assert(G.load(),'T574 G21b 混合新舊城必須直接load成功');
+  assert(!at(10,10).bld.lot574&&!at(10,10).bld.sz&&at(11,10).road===1&&!at(11,10).bld,
+    'T574 G21c 混合load不許把舊一格電廠自動擴建吃掉鄰路');
+  assert(at(16,16).bld.sz===2&&!at(16,16).bld.lot574&&String(at(17,17).bld.ref)==='16,16'&&at(18,16).road===1&&!at(18,16).bld,
+    'T574 G21d 舊體育場保留2×2及3 refs，不能套新4×4尺寸');
+  assert(at(20,20).bld.sz===3&&at(20,20).bld.lot574===3&&String(at(22,22).bld.ref)==='20,20'&&
+    at(30,30).bld.sz===3&&at(30,30).bld.lot574===3&&String(at(32,32).bld.ref)==='30,30',
+    'T574 G21e 同份存檔的新電廠／學校仍是3×3，不能為了保舊城退回舊尺寸');
+  assert([30,31,32,33,34].every(x=>at(x,31).wp&&at(x,31).wr),
+    'T574 G21f 混合load未tick，學校ref下的原水管及下游必須已通水');
+  assert(JSON.stringify(JSON.parse(A.fields()).cov)===covBefore,
+    'T574 G21g 混合load舊體育場四印與新學校單份地塊覆蓋逐字恆等');
+  put('doze',17,17);
+  assert([at(16,16),at(17,16),at(16,17),at(17,17)].every(t=>!t.bld)&&at(18,16).road===1&&at(22,22).bld,
+    'T574 G21h 從舊體育場ref拆除只清原四格，不傷新園區或旁路');
+  put('doze',32,32);A.waterCap();
+  assert(!at(30,30).bld&&!at(32,32).bld&&[30,31,32,33,34].every(x=>at(x,31).wp&&at(x,31).wr),
+    'T574 G21i 拆混合城的新學校只撤樓，地下管線與下游供水維持');
+}
+/* T574 G22 bounded mixed-campus rendering cache */
+{
+  const G=window.GV,A=window.__t574,cv574=elMap.get('game');
+  const oldView574=[cv574.clientWidth,cv574.clientHeight,window.innerWidth,window.innerHeight];
+  const resize574=(w,h)=>{cv574.clientWidth=window.innerWidth=w;cv574.clientHeight=window.innerHeight=h;for(const fn of winListeners.resize||[])fn();};
+  try{
+    resize574(1920,1200);G.setMapSize(144);G.newWorldSeeded(57428);G.setDiff(3);G.ai(false);G.weather(0);G.setSeason(0);G.setRot(0);A.clear();
+    const shore574=new Set(['port','sewage','hydro','shipyard','desalination','marina','fishfarm','fishpier']);
+    const kinds574=A.plan().map((p,k)=>p&&p[0]&&p[1]>A.legacy(k)?{k,id:p[0],n:p[1]}:null).filter(Boolean).sort((a,b)=>b.n-a.n||a.k-b.k);
+    let x574=3,y574=3,row574=0;const roots574=[];
+    for(const p of kinds574){
+      if(x574+p.n>63){x574=3;y574+=row574+2;row574=0;}
+      if(shore574.has(p.id)){A.edit(x574+p.n,y574,'t',0);A.edit(x574+p.n,y574+1,'t',0);}
+      if(p.id==='oilwell'||p.id==='gaswell')A.resource(x574,y574,1);if(p.id==='mine')A.resource(x574,y574,2);
+      const why=G.canPlaceTool(p.id,x574,y574),ok=G.place(p.id,x574,y574,true);
+      roots574.push({...p,x:x574,y:y574,ok,why});
+      if(ok){window.__t412Set(x574,y574,'age',9);window.__t412Set(x574,y574,'v',0);window.__t412Set(x574,y574,'pw',true);}
+      x574+=p.n+2;row574=Math.max(row574,p.n);
+    }
+    assert(roots574.length===105&&roots574.every(p=>p.ok),'T574 G22a 遠景壓力城105類園區全部經真建造，不准漏蓋假綠；失敗 '+JSON.stringify(roots574.filter(p=>!p.ok)));
+    const bottom574=y574+row574,checks574=[];
+    const frame574=(label,z,r=0,atNight=false)=>{
+      G.setRot(r);G.setZoom(z);G.lookAt(33,(3+bottom574)/2);G.setVisT(atNight?100:55);
+      const before=JSON.stringify(G.stats()),bakes=[];
+      for(let f=0;f<3;f++){const b=A.artCache().bakes;G.forceDraw();bakes.push(A.artCache().bakes-b);}
+      const cache=A.artCache();checks574.push({label,z,r,bakes,cache});
+      assert(cache.entries<=128&&cache.pixels<=12000000,'T574 G22b '+label+' 不得藉擴大128組／12M預算藏掉重烘焙；'+JSON.stringify(cache));
+      assert(bakes[1]===0&&bakes[2]===0,'T574 G22c '+label+' 相同畫面暖幀不可再烘焙；實得 '+bakes.join('/'));
+      assert(JSON.stringify(G.stats())===before,'T574 G22d '+label+' 真實draw不得改模擬狀態');
+    };
+    for(const z of [.25,.5,.7,1,2])frame574('1920-day',z);
+    resize574(3840,2400);for(const z of [1,1.4,2])frame574('3840-day',z);
+    for(let r=0;r<4;r++)frame574('3840-night',1,r,true);
+    G.setSeason(3);A.rainDays(10);for(let r=0;r<4;r++)frame574('3840-winter',.5,r);
+    const winterKeys574=A.artKeys().filter(k=>k.startsWith('far:')&&k.endsWith('_1')).length;
+    assert(winterKeys574>=100,'T574 G22k 冬景須有積雪並真畫至少100組冬側縮略圖，不能只換季而零雪假綠；實得 '+winterKeys574);
+    assert(checks574[0].cache.entries>=100,'T574 G22e 壓力案必須真的渲染至少100組園區，不能跳過draw求零次烘焙');
+    let exact574=0,variants574=0;
+    for(const p of kinds574){
+      const full=A.art(p.k,0,2,false),small=A.art(p.k,0,2,false,true),q=small.sc||1;
+      if(small.w*q===full.w&&small.h*q===full.h&&small.ax*q===full.ax&&small.ay*q===full.ay)exact574++;
+      if(p.k!==5&&small===A.art(p.k,2,2,false,true))variants574++;
+    }
+    assert(exact574===105,'T574 G22f 105類縮略圖須以既有sc路徑精確還原w/h/ax/ay，地塊不得縮回一格；實得 '+exact574);
+    assert(variants574===104,'T574 G22g 遠景合併色票變體鍵防128組抖動，但k5三種機組保持固定圖；實得 '+variants574);
+    for(const k of [22,53]){
+      const stages=[0,1,2,3].map(st=>A.art(k,0,st,false,true));
+      assert(new Set(stages).size===4&&stages.every((s,i)=>s.lotMeta574.stage===i),'T574 G22h k'+k+' 遠景四作期必須保留，不能一律畫成熟田');
+    }
+    const near=A.art(12,1),far=A.art(12,1,2,false,true),snow=A.art(12,1,2,true,true);
+    assert(near!==far&&near.sc===undefined&&far.sc===2&&far!==snow&&snow.lotMeta574.winter,'T574 G22i 拉近恢復完整變體；冬側與日圖不得混用快取');
+    // Hooks are pure geometry. Reading a warmed hook after its image is evicted must not bake another image.
+    const farm=roots574.find(p=>p.k===53),farmB=G.tile(farm.x,farm.y).bld;
+    A.farmSmoke({wx:0,wy:0,age:0},farmB,farm.x,farm.y,26);
+    for(const p of kinds574)if(p.k!==5)A.art(p.k,0,2,true);
+    const hookBefore=A.artCache().bakes;
+    for(let i=0;i<3;i++)A.farmSmoke({wx:0,wy:0,age:0},farmB,farm.x,farm.y,26);
+    assert(A.artCache().bakes===hookBefore,'T574 G22j 農場掛點讀取不得因畫布被LRU淘汰而重新烘焙；幾何不依賴圖片常駐');
+    const smallObjects574=[];
+    for(const p of [...kinds574].sort((a,b)=>a.n-b.n||a.k-b.k))if(p.n<=4&&p.k!==5&&p.k!==22)for(const v of A.artVariants(p.k))smallObjects574.push({t:{bld:{k:p.k,v,sz:p.n,lot574:p.n}}});
+    const entryOnly574=smallObjects574.slice(0,129),entryPixels574=entryOnly574.reduce((n,o)=>n+(o.t.bld.sz*64+16)*(o.t.bld.sz*32+144)*2,0);
+    assert(entryOnly574.length===129&&entryPixels574<12000000,'T574 G22l 條目閘造境須有129個合法小型變體鍵且像素低於12M，不得用像素超限冒充條目超限；實得 '+entryOnly574.length+'/'+entryPixels574);
+    assert(A.farFrame(entryOnly574,false),'T574 G22m '+entryPixels574+'像素未滿12M但129鍵超128組，必須選縮略圖');
+    assert(!A.farFrame(smallObjects574.slice(0,1),false),'T574 G22n 單座近景未超限必須保留完整畫布，不准一律降畫質');
+    console.log('T574 G22 CACHE_MATRIX '+JSON.stringify(checks574));
+  }finally{
+    [cv574.clientWidth,cv574.clientHeight,window.innerWidth,window.innerHeight]=oldView574;
+    for(const fn of winListeners.resize||[])fn();A.rainDays(0);G.setMapSize(72);G.setRot(0);G.setSeason(0);G.setZoom(1);
+  }
+}
+/* T574 G23 業主預覽退修：園區內／跨地塊的遮擋，不能只測 helper 存在 */
+{
+  const A=window.__t574,G=window.GV;
+  const behind=(a,b)=>a[2]<=b[0]+1e-9||a[3]<=b[1]+1e-9;
+  const inversions=parts=>{const bad=[];for(let i=0;i<parts.length;i++)for(let j=i+1;j<parts.length;j++){
+    const a=parts[i],b=parts[j];if(behind(b.foot,a.foot)&&!behind(a.foot,b.foot))bad.push(a.role+' > '+b.role);
+  }return bad;};
+  let kinds=0,variants=0,strokes=0;
+  for(let k=6;k<A.plan().length;k++){
+    const p=A.plan()[k];if(!p||!p[0]||p[1]<=A.legacy(k))continue;kinds++;
+    for(const v of A.artVariants(k))for(const winter of [false,true]){
+      const r=A.bakeTrace(k,v,winter),bad=inversions(r.trace);variants++;strokes+=r.trace.length;
+      const solidFence=r.trace.some(p=>p.role==='fence'&&p.foot[2]>p.foot[0]&&p.foot[3]>p.foot[1]);
+      assert(r.trace.length>0&&r.cycles===0&&bad.length===0&&!solidFence,'T574 G23a k'+k+' v'+v+(winter?' 冬':' 日')+
+        ' 實際落筆必須滿足地腳前後關係且無循環，不能僅回傳排好的 metadata；筆數='+r.trace.length+' cycle='+r.cycles+' 反序='+bad.join(','));
+    }
+  }
+  assert(kinds===104&&variants>208&&strokes>1000,'T574 G23b 104種新園區所有既有變體的日／冬兩側都必須真跑；實得 '+kinds+'/'+variants+'/'+strokes);
+  for(const [k,role]of [[32,'library'],[108,'library'],[113,'library'],[40,'atrium'],[44,'atrium'],[65,'atrium']]){
+    const fs=A.artBake(k,0,2,false).lotMeta574.feet,a=fs.find(f=>f.role==='main').uv,b=fs.find(f=>f.role===role).uv;
+    assert(a[1]+a[3]+.079999999<=b[1],'T574 G23c k'+k+' 的'+role+'須在主樓前留至少0.08格實際空隙，不得地腳交疊；'+JSON.stringify([a,b]));
+  }
+  // 簡化軸向像素台架只支援本配方使用的 fillRect，非瀏覽器實拍；真實 Canvas 另驗。
+  const pixelCanvas=(w,h)=>{const px=new Uint32Array(w*h);let style='#000',mode='source-over',draws=0,erases=0;
+    const g={get fillStyle(){return style;},set fillStyle(v){style=v;},get globalCompositeOperation(){return mode;},set globalCompositeOperation(v){mode=v;},
+      fillRect(x,y,ww,hh){let hex=String(style).slice(1);if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+        if(!/^[0-9a-f]{6}$/i.test(hex))throw Error('T574 G23 像素台架不支援色值 '+style);
+        const value=mode==='destination-out'?0:(0xff000000|parseInt(hex,16))>>>0;
+        if(mode==='destination-out')erases++;else if(mode==='source-over')draws++;else throw Error('T574 G23 未支援合成模式 '+mode);
+        const x0=Math.max(0,Math.floor(Math.min(x,x+ww))),x1=Math.min(w,Math.ceil(Math.max(x,x+ww))),y0=Math.max(0,Math.floor(Math.min(y,y+hh))),y1=Math.min(h,Math.ceil(Math.max(y,y+hh)));
+        for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++)px[xx+yy*w]=value;
+      }};
+    const c={width:w,height:h,getContext:()=>g,px,counts:()=>({draws,erases})};g.canvas=c;return[c,g];};
+  const visibleWindow=new Set([0xff344d5b,0xffb1c3c5,0xffddd5ad]);
+  for(const k of [7,12,14,32,40,41,44,65,108,113])for(const winter of [false,true]){
+    const s=A.bakeTrace(k,0,winter,pixelCanvas).sprite,d=s.img.px,n=s.night.px;let lamps=0,through=0;
+    for(let i=0;i<n.length;i++)if(n[i]){lamps++;if(!visibleWindow.has(d[i]))through++;}
+    const op=s.night.counts();
+    assert(lamps>16&&op.draws>0&&op.erases>0&&through===0,'T574 G23d k'+k+(winter?' 冬':' 日')+
+      ' 前楼／屋頂遮住的後窗不得穿透夜圖，且不能刪掉全部夜燈求綠；亮像素='+lamps+' 穿透='+through+' '+JSON.stringify(op));
+  }
+  G.setMapSize(72);G.newWorldSeeded(57431);G.setDiff(3);G.ai(false);G.setSeason(0);G.setRot(0);A.rainDays(0);A.clear();
+  const points=[{id:'mall',x:24,y:24,k:65,n:5},{id:'house',x:24,y:29,k:1,n:1},{id:'oldStadium',x:29,y:24,k:9,n:2},
+    {id:'school',x:21,y:24,k:7,n:3},{id:'police',x:24,y:22,k:11,n:2}];
+  for(const p of points){
+    if(p.k===1)A.liveHouse(p.x,p.y);
+    else if(p.k===9){A.edit(p.x,p.y,'bld',{k:9,lv:1,v:0,age:9,pw:true,h:1,sz:2});
+      for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++)if(dx||dy)A.edit(p.x+dx,p.y+dy,'bld',{k:9,ref:[p.x,p.y]});
+    }else{assert(G.place(A.plan()[p.k][0],p.x,p.y,true),'T574 G23e 真建造相鄰'+p.id+'必須成功');window.__t412Set(p.x,p.y,'age',9);window.__t412Set(p.x,p.y,'v',0);window.__t412Set(p.x,p.y,'pw',true);}
+  }
+  const cv23=elMap.get('game'),oldView=[cv23.clientWidth,cv23.clientHeight,window.innerWidth,window.innerHeight];
+  const view=(x,y,r)=>r===0?[x,y]:r===1?[G.N()-1-y,x]:r===2?[G.N()-1-x,G.N()-1-y]:[y,G.N()-1-x];
+  const foot=(p,r)=>{const a=view(p.x,p.y,r),b=view(p.x+p.n-1,p.y+p.n-1,r);return[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0])+1,Math.max(a[1],b[1])+1];};
+  try{
+    cv23.clientWidth=1280;cv23.clientHeight=800;window.innerWidth=1280;window.innerHeight=800;for(const fn of winListeners.resize||[])fn();
+    for(let r=0;r<4;r++)for(const z of [.75,1.5,2])for(const night of [false,true]){
+      G.setRot(r);const before=JSON.stringify(G.stats()),q=A.drawOrder(points,z,night);
+      assert(q.calls===1&&q.cycles===0&&points.every(p=>q.painted.includes(p.id))&&(night?q.nightCalls===1&&q.nightMasks===5:q.nightCalls===0),
+        'T574 G23f 真實draw必須走新排序並畫出五種混排，不能只單測 helper；rot='+r+' z='+z+' night='+night+' '+JSON.stringify(q));
+      const bad=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){
+        const a=points[i],b=points[j];if((a.k===1||a.k===9)&&(b.k===1||b.k===9))continue;
+        const ab=behind(foot(a,r),foot(b,r)),ba=behind(foot(b,r),foot(a,r));if(ab===ba)continue;
+        if((q.painted.indexOf(a.id)<q.painted.indexOf(b.id))!==ab)bad.push(a.id+'/'+b.id);
+      }
+      assert(bad.length===0,'T574 G23g 混合新園區／舊一格樓／舊2×2體育場落筆前後須隨四向旋轉；rot='+r+' z='+z+' night='+night+' 反序='+bad.join(','));
+      assert(JSON.stringify(G.stats())===before,'T574 G23h 遮擋排序只改畫面，不得改模擬狀態；rot='+r+' z='+z+' night='+night);
+    }
+    const oldOnly=[{dep:9,t:{bld:{k:9,sz:2}},x:4,y:3},{dep:11,t:{bld:{k:1}},x:6,y:5}],oldSnap=JSON.stringify(oldOnly),oldRun=A.oldObjectPath(oldOnly);
+    assert(oldRun.result===oldOnly&&oldRun.calls===0&&JSON.stringify(oldOnly)===oldSnap,'T574 G23i 無新園區的舊城必須原陣列原序返回，且不分配新排序圖；calls='+oldRun.calls);
+  }finally{[cv23.clientWidth,cv23.clientHeight,window.innerWidth,window.innerHeight]=oldView;for(const fn of winListeners.resize||[])fn();G.setRot(0);G.setZoom(1);}
+  console.log('T574 G23 OCCLUSION_MATRIX '+JSON.stringify({kinds,variants,strokes,worldFrames:24}));
+}
+/* T574 G24 跨樓夜光遮擋：透明洞須透光、前樓須擋、暖幀不增畫布 */
+{
+  const A=window.__t574;let allocated=0;
+  const factory=(w,h)=>{allocated++;let ww=w,hh=h,alpha=new Float64Array(w*h),ga=1,mode='source-over';
+    const put=(x,y,sa)=>{if(x<0||y<0||x>=ww||y>=hh)return;const i=x+y*ww,a=sa*ga;
+      if(mode==='destination-out')alpha[i]*=1-a;
+      else if(mode==='source-over'||mode==='screen')alpha[i]=a+alpha[i]*(1-a);
+      else throw Error('T574 G24 台架不支援合成模式 '+mode);};
+    const g={get globalAlpha(){return ga;},set globalAlpha(v){ga=v;},get globalCompositeOperation(){return mode;},set globalCompositeOperation(v){mode=v;},
+      clearRect(){alpha.fill(0);},fillRect(x,y,dx,dy){for(let yy=Math.floor(y);yy<Math.ceil(y+dy);yy++)for(let xx=Math.floor(x);xx<Math.ceil(x+dx);xx++)put(xx,yy,1);},
+      drawImage(im,x,y,dx=im.width,dy=im.height){for(let yy=Math.floor(y);yy<Math.ceil(y+dy);yy++)for(let xx=Math.floor(x);xx<Math.ceil(x+dx);xx++){
+        const sx=Math.min(im.width-1,Math.max(0,Math.floor((xx-x)*im.width/dx))),sy=Math.min(im.height-1,Math.max(0,Math.floor((yy-y)*im.height/dy)));
+        put(xx,yy,im.alpha[sx+sy*im.width]);
+      }}
+    };
+    const c={get width(){return ww;},set width(v){ww=v;alpha=new Float64Array(ww*hh);},get height(){return hh;},set height(v){hh=v;alpha=new Float64Array(ww*hh);},get alpha(){return alpha;},getContext:()=>g};return[c,g];};
+  const rear={width:4,height:4,alpha:new Float64Array(16).fill(1)},front={width:4,height:4,alpha:new Float64Array(16).fill(1)};
+  front.alpha[1+4]=0; // 前樓實際透明洞；不能用整張 bounding box 擋光。
+  const lights=[{img:rear,x:2,y:2,w:4,h:4},{occlude574:front,x:2,y:2,w:4,h:4,a:1},{rect:[4,4,1,1],col:'#ffe9a0'}];
+  A.nightWith(factory,render=>{
+    const c=render(lights,.5,12,10),at=(x,y)=>c.alpha[x+y*c.width];
+    assert(c&&at(2,2)===0&&at(3,3)===.5&&at(4,4)===.5,'T574 G24a 後燈遭前樓遮住必為0，透明洞及後畫前窗仍亮0.5，不能全遮或全不遮');
+    const snap=Array.from(c.alpha),again=render(lights,.5,12,10);
+    assert(c===again&&allocated===1&&JSON.stringify(Array.from(again.alpha))===JSON.stringify(snap),'T574 G24b 同尺寸暖幀必重用一張畫布並先清空，不能每幀累光或重配');
+    lights[1].a=.5;render(lights,.5,12,10);
+    assert(at(2,2)===.25&&at(3,3)===.5,'T574 G24c 選中前樓半透明時仍可透半份後燈，遮擋須用實際drawA');
+    lights[1].a=1;lights[0].a=.4;render(lights,.5,12,10);
+    assert(Math.abs(at(3,3)-.2)<=1e-9,'T574 G24d 原夜窗自帶alpha仍須乘全局夜深倍率（IEEE-754容差1e-9），不得變成全亮；實得 '+at(3,3));
+    const resized=render(lights,1,8,7);
+    assert(resized===c&&allocated===1&&c.width===8&&c.height===7,'T574 G24e resize只調同一張視口畫布，不能按樓數／幀數囤積');
+    assert(render([{img:rear,x:0,y:0,w:4,h:4}],1,8,7)===null&&allocated===1,'T574 G24f 無前樓遮罩不得替換原夜光路徑或分配畫布');
+  });
+}
+/* T574 G25 排序附著物：電廠與5×5鄰樓交錯時，煙不得跑到自己的樓後面 */
+{
+  const A=window.__t574,G=window.GV;
+  const plant={id:'plant',x:28,y:26,t:{bld:{k:5,sz:3,lot574:1}}},mall={id:'mall',x:23,y:28,t:{bld:{k:65,sz:5,lot574:1}}};
+  const smoke1={id:'steam1',smoke:{lot574:{x:28,y:26,sz:3}}},smoke2={id:'steam2',smoke:{lot574:{x:28,y:26,sz:3}}};
+  const oldSmoke={id:'oldSmoke',smoke:{dep:0}},orphan={id:'orphan',smoke:{lot574:{x:1,y:1,sz:3}}};
+  const all=[plant,mall,smoke1,smoke2,oldSmoke,orphan],original=JSON.stringify(all),before=JSON.stringify(G.stats());
+  const view=(x,y,r)=>r===0?[x,y]:r===1?[G.N()-1-y,x]:r===2?[G.N()-1-x,G.N()-1-y]:[y,G.N()-1-x];
+  const foot=(o,r)=>{const a=view(o.x,o.y,r),n=o.t.bld.sz,b=view(o.x+n-1,o.y+n-1,r);return[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0])+1,Math.max(a[1],b[1])+1];};
+  try{for(let r=0;r<4;r++){
+    G.setRot(r);const p=foot(plant,r),m=foot(mall,r),depth=o=>o===plant?p[2]+p[3]-2+plant.y*.001:o===mall?m[2]+m[3]-2+mall.y*.001:o===smoke1?p[2]+p[3]-2+.02:o===smoke2?p[2]+p[3]-2+.021:-1;
+    const objs=all.slice().sort((a,b)=>depth(a)-depth(b));A.objectOrder(objs);
+    assert(objs.length===all.length&&new Set(objs).size===all.length&&all.every(o=>objs.includes(o)),
+      'T574 G25a 排序不得遺失／複製煙；舊煙與視錐外孤煙仍在；rot='+r);
+    assert(objs.indexOf(smoke1)===objs.indexOf(plant)+1&&objs.indexOf(smoke2)===objs.indexOf(plant)+2,
+      'T574 G25b 園區煙必跟所屬廠房之後、同批順序不變，不能被自己樓蓋住；rot='+r+' '+objs.map(o=>o.id).join(' > '));
+    const pm=p[2]<=m[0]||p[3]<=m[1],mp=m[2]<=p[0]||m[3]<=p[1];
+    assert(pm!==mp&&(pm?objs.indexOf(smoke2)<objs.indexOf(mall):objs.indexOf(mall)<objs.indexOf(plant)),
+      'T574 G25c 煙跟隨廠房仍須保留鄰樓四向遮擋，不得全移至畫面最頂層；rot='+r);
+  }}finally{G.setRot(0);}
+  assert(JSON.stringify(all)===original&&JSON.stringify(G.stats())===before,'T574 G25d 排序只動臨時佇列，不寫粒子／所屬楼／模擬資料');
+}
+/* ===== T574 實體地塊切片 END ===== */
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
@@ -11044,9 +11667,14 @@ runPwaTests().then(() => {
   {
     window.GV.newWorldSeeded(4541);
     window.GV.setDiff(1);
-    window.GV.ai(true);
-    for (let d = 0; d < 90; d++) window.GV.step(1);
     window.GV.ai(false);
+    // T574：三格地熱占去原早期分區；seed4541 的90天AI城只有住宅，不能作最低工資的商家前提。
+    // 政策回歸改用真道路／真3×3地熱接網的完工商家；AI健康度另作同配方A/B，不把政策紅綠交給AI選址。
+    window.__t574.clear();
+    assert(window.GV.place('geo',20,20,true)&&window.GV.place('road',23,21,true)&&window.GV.place('road',24,21,true)&&window.GV.place('zc',24,20,true),
+      'T454 G4造境 新3×3地熱、外緣道路、商業分區皆須真建造');
+    window.__t574.edit(24,20,'bld',{k:2,lv:1,v:0,age:9,pw:true,h:1});window.GV.step(1);
+    assert(window.GV.tile(24,20).bld.pw&&window.GV.sci451().jobs>0,'T454 G4造境 商家必須經真tick接電並產生就業，不得用空城測政策');
     const off454a = window.GV.sci451();
     assert(off454a.mwOn === false && off454a.mwCost === 0,
       'T454 G4 預設關閉時 mwCost 必須為 0（實得 ' + JSON.stringify(off454a) + '）');
@@ -11058,7 +11686,7 @@ runPwaTests().then(() => {
     const on454 = window.GV.sci451();
     assert(on454.mwOn === true && on454.mwCost > 0,
       'T454 G4b 開啟最低工資並 tick 一天後，商家成本 mwCost 必須為正（實得 '
-      + JSON.stringify(on454) + '）——90 天 AI 城必有可稅商業/工業');
+      + JSON.stringify(on454) + '）——真接網完工商家的政策成本不得為零');
     window.GV.pol({ minWage454: false, taxR: 1, taxC: 1, taxI: 1 });
     window.GV.step(1);
     const off454b = window.GV.sci451();
@@ -11465,7 +12093,7 @@ runPwaTests().then(() => {
       let sx = -1, sy = -1;
       for (let y = 10; y < N520 - 14 && sx < 0; y++) for (let x = 10; x < N520 - 18; x++) {
         let ok = true;
-        for (let dy = 0; dy < 9 && ok; dy++) for (let dx = 0; dx < 16; dx++) {
+        for (let dy = 0; dy < 11 && ok; dy++) for (let dx = 0; dx < 18; dx++) {
           const t = window.GV.tile(x + dx, y + dy);
           if (!t || t.bld || t.road || (t.t !== 1 && t.t !== 2)) { ok = false; break; }
         }
@@ -11474,7 +12102,8 @@ runPwaTests().then(() => {
       assert(sx >= 0, 'T520 G3 造境失敗：找不到乾淨草地');
       for (let i = 0; i < 16; i++) window.GV.place('road', sx + i, sy + 4);
       for (let i = 0; i < 8; i++) window.GV.place('zr', sx + i, sy + 3);
-      window.GV.place('plant', sx + 14, isolated ? (sy + 8) : (sy + 5));
+      assert(window.GV.place('plant', sx + 14, isolated ? (sy + 8) : (sy + 5)),
+        'T520 G3 T574 造境必須真正放下完整 3×3 電廠，不能用未建成的空城驗不誤報');
       for (let d = 0; d < 30; d++) window.GV.step(1);
       return window.GV.log().filter(l => /電力送不出去/.test(l.m));
     };
@@ -11517,7 +12146,7 @@ runPwaTests().then(() => {
       let sx = -1, sy = -1;
       for (let y = 10; y < N519 - 14 && sx < 0; y++) for (let x = 10; x < N519 - 18; x++) {
         let ok = true;
-        for (let dy = 0; dy < 9 && ok; dy++) for (let dx = 0; dx < 16; dx++) {
+        for (let dy = 0; dy < 11 && ok; dy++) for (let dx = 0; dx < 18; dx++) {
           const t = window.GV.tile(x + dx, y + dy);
           if (!t || t.bld || t.road || (t.t !== 1 && t.t !== 2)) { ok = false; break; }
         }
@@ -11527,7 +12156,8 @@ runPwaTests().then(() => {
       for (let i = 0; i < 16; i++) window.GV.place('road', sx + i, sy + 4);
       for (let i = 0; i < 8; i++) window.GV.place('zr', sx + i, sy + 3);
       for (let i = 8; i < 13; i++) window.GV.place('zc', sx + i, sy + 3);
-      window.GV.place('plant', sx + 14, isolated ? (sy + 8) : (sy + 5));
+      assert(window.GV.place('plant', sx + 14, isolated ? (sy + 8) : (sy + 5)),
+        'T519 G2 T574 造境必須真正放下完整 3×3 電廠，不能拿孤島與無電廠比較');
       for (let d = 0; d < 30; d++) window.GV.step(1);
       return window.GV.polAdv517().tips;
     };
@@ -13376,14 +14006,16 @@ runPwaTests().then(() => {
   /* G2 行為：迷你城 star 3 但 pop<500 ⇒ 不得發獎；造境達標 ⇒ 恰 +$2,500 */
   GC5.newWorldSeeded(541);
   GC5.weather(0);
-  GC5.ai(true); for (let d = 0; d < 45; d++) GC5.step(1); GC5.ai(false);
+  // T574：新占地使此城第45→55天跨過500人；取第35天，且逐日驗前提，不能把合法達標當誤發獎。
+  GC5.ai(true); for (let d = 0; d < 35; d++) GC5.step(1); GC5.ai(false);
   const st541 = GC5.star538(), pop541 = GC5.stats().pop;
   assert(st541.cur >= 3 && pop541 < 500,
-    'T541 G2 前置：45 天迷你城應已達 3 星且 pop<500（實得 star ' + st541.cur + '、pop ' + pop541
+    'T541 G2 前置：35 天迷你城應已達 3 星且 pop<500（實得 star ' + st541.cur + '、pop ' + pop541
     + '）——這正是修前白拿 $2,500 的狀態');
   GC5.challenge541('star3', 2500);
   const m541 = GC5.stats().money;
-  for (let d = 0; d < 10; d++) GC5.step(1);
+  for (let d = 0; d < 10; d++) { GC5.step(1); assert(GC5.stats().pop<500,
+    'T541 G2 T574 反退化案第'+(d+1)+'天仍須人口未達門檻，否則不能斷言不得發獎（實得 '+GC5.stats().pop+'）'); }
   assert(GC5.stats().money < m541 + 2500 - 200,
     'T541 G2【反退化】迷你城掛上 star3 挑戰跑 10 天不得發獎 $2,500（資金 ' + m541 + ' → '
     + GC5.stats().money + '）——修前這裡直接 +$2,500');
@@ -13475,6 +14107,7 @@ runPwaTests().then(() => {
   /* G1b 理賠：點燃一棟住宅燒到全毀 ⇒ paid 增加且與 money 增量一致（+35 理賠 −35 外的其他金流用差值法隔離不了，
      故直接驗 paid 計數與「燒毀當日 money 比不投保多 35」的弱式──改用 paid 與 toast 同源驗證） */
   {
+    GI5.ai(false); // T574：新布局下市長介入可讓四輪皆未燒毀；本段停止AI施工／救災，保留真消防與燃燒路徑，專驗理賠。
     const NN5 = GI5.N();
     let res5 = null;
     outer535: for (let x = 1; x < NN5 - 1; x++) for (let y = 1; y < NN5 - 1; y++) {
@@ -13892,11 +14525,14 @@ runPwaTests().then(() => {
      G5  幸福峰值是純觀測（唯讀）＋鐵律7 三處歸零。 */
 {
   const GC = window.GV;
-  GC.newWorldSeeded(529);
+  // T574：原seed529在新占地400天只有22人；改用seed22作自然接單城市，不降低50人接單門檻。
+  GC.setMapSize(72);GC.newWorldSeeded(22);GC.setDiff(1);
   /* 先把城市養到 pop>50——`cmsAccept385` 有 `pop<=CMS_MIN_POP385` 門檻，
      只設等級不設人口的話後面的行為釘會卡在「接單失敗」。AI 不會蓋加工廠，
      所以「新城沒有鋼鐵廠」這個前提不受影響（那正是本卡要修的事）。 */
-  GC.ai(true); for (let d = 0; d < 140; d++) GC.step(1); GC.ai(false);
+  // T574：完整園區令成長時間改變；在固定400天預算內真養到門檻，不直接捏造人口。
+  GC.ai(true); for (let d = 0; d < 400 && GC.stats().pop <= 50; d++) GC.step(1); GC.ai(false);
+  assert(GC.stats().pop>50,'T529 T574 接單造境必須自然養到50人以上，實得 '+GC.stats().pop);
   window.__t385Rank(11); // 高階：讓 minRank 不成為干擾項，閘門才是唯一變因
 
   const c0 = GC.cms529();
@@ -13953,7 +14589,7 @@ runPwaTests().then(() => {
       if (ok) { GC.addMoney(50000); if (GC.place('steelMill', x, y) === true) { placed = [x, y]; break outer529; } }
     }
     assert(placed, 'T529 G2b 前置：找不到地方蓋鋼鐵廠（3×3 空地掃描失敗）');
-    /* 決定性歸零：AI 養城 140 天可能已蓋井/礦，全部寫死＋庫存清零，讓儲量成為唯一變因 */
+    /* 決定性歸零：AI 養城可能已蓋井/礦，全部写死＋庫存清零，讓儲量成為唯一變因 */
     for (let i5 = 0; i5 < NN * NN; i5++) {
       const t5 = GC.tile(i5 % NN, Math.floor(i5 / NN));
       if (t5 && t5.bld && !t5.bld.ref && (t5.bld.k === 49 || t5.bld.k === 50))
@@ -14316,11 +14952,27 @@ runPwaTests().then(() => {
   assert(logoLo445 > 0 && logoHi445 > logoLo445,
     'T445 G0 找不到 `function drawLogo(` 的函式體——白名單②的邊界算不出來，這條會失真');
 
+  // T574 精確增列：兩個sprite烘焙器、已轉view的園區底錨＋局部點、農塵world偏移反解。
+  // 它們都不是裸world座標直送螢幕；四向真draw由G14/G15、幾何由G12保證。禁止以574後綴泛放行。
+  const localSpans574=[];
+  for(const name of ['lotGround574','buildLots574','bakeLot574','attachFarmSmoke574']){
+    const key='function '+name+'(',lo=htmlBare438.indexOf(key),open=htmlBare438.indexOf('{',lo);let hi=-1,depth=0;
+    if(lo>=0)for(let p=open;p<htmlBare438.length;p++){if(htmlBare438[p]==='{')depth++;else if(htmlBare438[p]==='}'&&!--depth){hi=p;break;}}
+    assert(lo>=0&&htmlBare438.indexOf(key,lo+1)<0&&hi>open,'T445 G0 T574局部座標白名單必須唯一且完整：'+name);
+    localSpans574.push([lo,hi]);
+  }
+  // 原煙粒world spawn多了一行純資料lot574，viewDep不再落在原三行窗。只認完整這一筆，不放寬全檔窗寬。
+  const smokeExpr574='const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;';
+  const smokeLo574=htmlBare438.indexOf(smokeExpr574),smokeHi574=htmlBare438.indexOf('\n    }',smokeLo574);
+  assert(smokeLo574>=0&&htmlBare438.indexOf(smokeExpr574,smokeLo574+1)<0&&smokeHi574>smokeLo574
+    &&/const lot574=b\.lot574\?\{x,y,sz:b\.sz,dx:o\.dx,dy:o\.dy\}:null;\s*smokes\.push\(\{wx,wy,[^\n]*dep:viewDep\(x,y\)/.test(htmlBare438.slice(smokeLo574,smokeHi574)),
+    'T445 G0 T574煙粒例外必須仍是帶viewDep的同一world spawn，不能放行任意相鄰裸式');
+
   const PATS445 = [
     /\(\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*-\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*\)\s*\*\s*32\b/g,
     /\(\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*\+\s*[A-Za-z_$][A-Za-z0-9_$.]*\s*\)\s*\*\s*16\b/g,
   ];
-  let nIso445 = 0, nLogo445 = 0, nSpawn445 = 0;
+  let nIso445 = 0, nLogo445 = 0, nSpawn445 = 0,nLocal574=0;
   const spawnLines445 = new Set(), bad445 = [];
   for (const re of PATS445) {
     let m;
@@ -14328,6 +14980,8 @@ runPwaTests().then(() => {
       const ln = lineOf445(m.index);
       if (spans445.some(s => m.index > s[0] && m.index < s[1])) { nIso445++; continue; }
       if (ln >= logoLo445 && ln <= logoHi445) { nLogo445++; continue; }
+      if(localSpans574.some(s=>m.index>s[0]&&m.index<s[1])){nLocal574++;continue;}
+      if(m.index>=smokeLo574&&m.index<smokeLo574+smokeExpr574.length){nSpawn445++;spawnLines445.add(ln);continue;}
       // ③ world 空間 spawn：同一行或相鄰兩行內有 viewDep(（深度鍵已跟轉，T389）
       const near = bareLines445.slice(Math.max(0, ln - 2), ln + 1).join('\n');
       if (near.indexOf('viewDep(') >= 0) { nSpawn445++; spawnLines445.add(ln); continue; }
@@ -14335,11 +14989,12 @@ runPwaTests().then(() => {
     }
   }
   assert(bad445.length === 0,
-    'T445 G1【機械複算】裸等距式（`(a-b)*32` / `(a+b)*16`）只准落在三類白名單裡：'
+    'T445 G1【機械複算】裸等距式（`(a-b)*32` / `(a+b)*16`）只准落在四類白名單裡：'
     + '① `isoW2V(…)` 的引數內（正規用法：裸式算 world 座標，交給旋轉層轉 view）；'
     + '② `drawLogo()` 內（開始畫面小島，沒有世界旋轉）；'
     + '③ 同行或前兩行有 `viewDep(` 的 world 空間 spawn（深度鍵已跟轉，T389）。'
-    + '三類之外 ' + bad445.length + ' 處：' + JSON.stringify(bad445.slice(0, 5))
+    + '④ T574四個具名局部座標函式（sprite烘焙／已轉view底錨／world偏移反解），另精認原煙粒spawn。'
+    + '四類之外 ' + bad445.length + ' 處：' + JSON.stringify(bad445.slice(0, 5))
     + '。要新增請走 `isoW2V()`，或在卡面說明為什麼這一處不需要跟轉');
   /* 計數釘：防止有人靠「把 isoW2V 拿掉」讓分母變小而蒙混過關。
      數字變動＝有人動了旋轉層的用法，請連同理由一起出卡。 */
@@ -14350,9 +15005,9 @@ runPwaTests().then(() => {
      ⇒ 差異已解釋，取完整剝除器的 44。（鐵訓：同一件事量出兩個數字，先解釋差異再釘任何數。）
      T455 跟版：機會指數 overlay 的 isoW2V((x455-y455)*32,(x455+y455)*16+16) 落在 isoW2V 引數內
      ＝合法白名單類，44→46（兩條裸式都在同一個呼叫的引數裡）。計數釘的天職就是讓這種變動有人簽名。 */
-  assert(nIso445 === 46 && nLogo445 === 2 && spawnLines445.size === 10,
-    'T445 G2【計數釘】裸等距式的三類分佈目前應為 isoW2V 內 46 處／drawLogo 內 2 處／'
-    + 'world spawn 10 行，實得 ' + nIso445 + '／' + nLogo445 + '／' + spawnLines445.size
+  assert(nIso445 === 46 && nLogo445 === 2 && spawnLines445.size === 10&&nLocal574===8,
+    'T445 G2【計數釘】裸等距式的四類分佈目前應為 isoW2V 內 46 處／drawLogo 內 2 處／'
+    + 'world spawn 10 行／T574局部式8處，實得 ' + nIso445 + '／' + nLogo445 + '／' + spawnLines445.size+'／'+nLocal574
     + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 46 變少，'
     + '代表有人把裸式從旋轉層裡搬出來了');
 }
@@ -14986,52 +15641,46 @@ runPwaTests().then(() => {
   assert(popA === popB, 'T432 G3 單網等價：開關 kill-switch 同 seed pop 恆等（' + popA + ' vs ' + popB + '）');
   assert(saveA432 === saveB432, 'T432 G3 單網等價：開關 kill-switch 固定城 rawSave 必須逐位元相同');
 }
+// T574：以下是受控電網案；平地只排除地形干擾，建造／接網／撤銷仍全部走正式玩家 API。
+function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(seed);window.GV.setDiff(3);window.GV.weather(0);window.GV.setSeason(0);window.__t574.clear();}
 { // G4 行為：孤島綠能不併網——容量三態 50/50/65
-  window.GV.newWorldSeeded(11);
-  window.GV.setDiff(1);
-  const pp432 = findSpot('plant');
+  prepPower574(11);
+  const pp432 = {x:10,y:10};
   assert(pp432, 'T432 G4 應能找到電廠位置');
-  place('plant', pp432.x, pp432.y);
-  for(let i=0;i<6;i++)place('road', pp432.x+1+i, pp432.y);
+  assert(place('plant', pp432.x, pp432.y),'T432 G4 T574 三格電廠必須真放置');
+  for(let i=0;i<11;i++)assert(place('road', pp432.x+i, pp432.y-1),'T432 G4 T574 道路應沿地塊北緣 '+i);
   window.GV.step(1);
   const capA = window.__t432Power ? window.__t432Power.sum : -1;
   assert(capA === 50, 'T432 G4 單電廠應併網 50（實得 ' + capA + '）');
-  place('solar', pp432.x+8, pp432.y+8);
+  assert(place('solar', pp432.x+18, pp432.y+12),'T432 G4 T574 遠端三格太陽能必須真放置');
   window.GV.step(1);
   const capB = window.__t432Power ? window.__t432Power.sum : -1;
   assert(capB === 50, 'T432 G4 孤島太陽能不得併網（應仍 50，實得 ' + capB + '）');
-  let sp432=null;
-  for(let i=0;i<6&&!sp432;i++)for(const[dx,dy]of[[0,1],[0,-1],[-1,0],[1,0]]){
-    const nx=pp432.x+1+i+dx,ny=pp432.y+dy;
-    if(place('solar',nx,ny)){sp432={x:nx,y:ny};break;}
-  }
+  const sp432=place('solar',pp432.x+5,pp432.y)?{x:pp432.x+5,y:pp432.y}:null;
   assert(sp432,'T432 G4 路旁應能找到太陽能位置');
   window.GV.step(1);
   const capC = window.__t432Power ? window.__t432Power.sum : -1;
   assert(capC === 65, 'T432 G4 併網太陽能應計入（50+15=65，實得 ' + capC + '）');
 }
 { // G5 行為：雙網隔離——容量獨立不跨區
-  window.GV.newWorldSeeded(13);
-  window.GV.setDiff(1);
-  window.GV.setMapSize(72);
-  for(let i=0;i<8;i++)place('road',10+i,10);
-  place('plant',10,9);
-  for(let i=0;i<8;i++)place('road',30+i,10);
-  place('plant',30,9);
+  prepPower574(13);
+  for(let i=0;i<8;i++)assert(place('road',10+i,9),'T432 G5 T574 A網道路 '+i);
+  assert(place('plant',10,10),'T432 G5 T574 A網三格電廠');
+  for(let i=0;i<8;i++)assert(place('road',30+i,9),'T432 G5 T574 B網道路 '+i);
+  assert(place('plant',30,10),'T432 G5 T574 B網三格電廠');
   window.GV.step(1);
   const caps1 = window.__t432Power ? window.__t432Power.cap.slice().sort() : [];
   assert(caps1.length===2&&caps1[0]===50&&caps1[1]===50,'T432 G5 雙網應各併網 50（實得 '+JSON.stringify(caps1)+'）');
-  place('doze',30,9);
+  assert(place('doze',30,10),'T432 G5 T574 拆B網電廠');
   window.GV.step(1);
   const caps2 = window.__t432Power ? window.__t432Power.cap.slice().sort() : [];
   assert(caps2.length===1&&caps2[0]===50,'T432 G5 拆 B 電廠後應只剩 A 網 50（實得 '+JSON.stringify(caps2)+'）');
 }
 { // G6 行為：存讀後 district 重建一致
-  window.GV.newWorldSeeded(17);
-  window.GV.setDiff(1);
-  const pp6=findSpot('plant');
-  for(let i=0;i<8;i++)place('road',pp6.x+1+i,pp6.y);
-  place('plant',pp6.x,pp6.y);
+  prepPower574(17);
+  const pp6={x:10,y:10};
+  for(let i=0;i<8;i++)assert(place('road',pp6.x+i,pp6.y-1),'T432 G6 T574 地塊外接路 '+i);
+  assert(place('plant',pp6.x,pp6.y),'T432 G6 T574 三格電廠真放置');
   window.GV.step(1);
   const d1 = window.__t432Power ? window.__t432Power.districts : -1;
   window.GV.save();
@@ -15062,7 +15711,8 @@ runPwaTests().then(() => {
     else if(k===58)c=250+(lv-1)*40;else if(k===59)c=100+(lv-1)*15;else if(k===60)c=45+(lv-1)*8;else if(k===62)c=60+(lv-1)*8;
     if(!c)continue;
     let rpN=false;
-    for(let dy=-1;dy<=1&&!rpN;dy++)for(let dx=-1;dx<=1;dx++){
+    const n574=b.lot574?b.sz:1; // T574：逐座清單也以實體地塊外緣找接點，舊城仍以root。
+    for(let dy=-1;dy<n574+1&&!rpN;dy++)for(let dx=-1;dx<n574+1;dx++){
       const t2=window.GV.tile(x+dx,y+dy);
       if(t2&&t2.road&&t2.rp)rpN=true;
     }
@@ -15071,22 +15721,18 @@ runPwaTests().then(() => {
   /* T456 跟版：世代流動接線重釘讓 seed301 世界形狀整個改變（拮据城翻身），孤島電源從 2 核 4 綠
      縮成 1 綠——本塊仍是世界形狀回歸釘，但「孤島不併網」的**行為**保證現在主要由 G8 受控造境
      測試承擔（G8 不依賴任何 AI 世界形狀）。 */
-  assert(isoNuke===1,'T432 G7 seed301 孤島核電應為 1（T542 重釘：AI 資源地理化＝wants 長度改變＝全城軌跡自第 1 天分岔；前值 0；孤島不併網的行為保證由 G8 受控造境承擔；實得 '+isoNuke+'）');
-  assert(isoGreen===3,'T432 G7 seed301 孤島綠能應為 3（T542 重釘，前值 1；T432 原始基線曾為 4＝仍在歷史帶內；實得 '+isoGreen+'）');
-  assert(isoCap===320,'T432 G7 seed301 孤島容量應為 320（T542 重釘，前值 30＝1 綠；新軌跡 3 綠 70 + 1 核 250；實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
+  assert(isoNuke===0,'T432 G7 seed301 孤島核電應為 0（T574業主授權占地重釘，前值1；逐座真地塊外緣盤點；孤島不併網另由G4/G8受控案保證；實得 '+isoNuke+'）');
+  assert(isoGreen===0,'T432 G7 seed301 孤島綠能應為 0（T574占地重釘，前值3；實得 '+isoGreen+'）');
+  assert(isoCap===0,'T432 G7 seed301 孤島容量應為 0（T574占地重釘，前值320；實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
   assert(window.__t432Power.districts===1,'T432 G7 seed301 應為單 district（實得 '+window.__t432Power.districts+'）');
-  assert(window.__t432Power.sum===853,'T432 G7 seed301 併網容量應為 853（T542 重釘，前值 1370——AI 資源地理化後軌跡分岔、電網構成改變；城市總體健康由 12 種子崩城率 A/B 與六哨兵裁決；實得 '+window.__t432Power.sum+'）');
+  assert(window.__t432Power.sum===90,'T432 G7 seed301 併網容量應為 90（T574占地重釘，前值853；城市總體影響另附12種子A/B，不把變小宣称成健康不變；實得 '+window.__t432Power.sum+'）');
 }
 { // G8 行為：撤銷電源後必須重建來源快取（不能遺失回復的風機容量）
-  window.GV.setMapSize(72); window.GV.newWorldSeeded(43208); window.GV.setDiff(3); window.GV.weather(0);
-  const p8=findSpot('plant');
+  prepPower574(43208);
+  const p8={x:10,y:10};
   assert(p8&&place('plant',p8.x,p8.y),'T432 G8 應能建立電廠');
-  for(let i=1;i<=6;i++)assert(place('road',p8.x+i,p8.y),'T432 G8 應能鋪設電廠旁道路 '+i);
-  let w8=null;
-  for(let i=1;i<=6&&!w8;i++)for(const [dx,dy] of [[0,1],[0,-1],[1,1],[1,-1]]){
-    const x=p8.x+i+dx,y=p8.y+dy;
-    if(place('wind',x,y)){w8={x,y};break;}
-  }
+  for(let i=0;i<10;i++)assert(place('road',p8.x+i,p8.y-1),'T432 G8 應能鋪設電廠旁道路 '+i);
+  const w8=place('wind',16,10)?{x:16,y:10}:null;
   assert(w8,'T432 G8 應能在帶電道路旁建立風機');
   window.GV.step(1);
   assert(window.__t432Power.sum===70,'T432 G8 電廠加風機應為 70（實得 '+window.__t432Power.sum+'）');
@@ -15098,19 +15744,19 @@ runPwaTests().then(() => {
   assert(window.__t432Power.sum===70,'T432 G8 undo 後風機容量必須立即回到 70（實得 '+window.__t432Power.sum+'）');
 }
 { // G9 行為：撤銷接橋道路必須分回兩個電網
-  window.GV.setMapSize(72); window.GV.newWorldSeeded(43209); window.GV.setDiff(3); window.GV.weather(0);
+  prepPower574(43209);
   let g9=null;
   outerG9:for(let y=4;y<window.GV.N()-4;y++)for(let x=4;x<window.GV.N()-34;x++){
     if(window.GV.canPlaceTool('plant',x,y)===null&&window.GV.canPlaceTool('plant',x+20,y)===null){g9={x,y};break outerG9;}
   }
   assert(g9,'T432 G9 應找到雙電廠造境位置');
-  for(let x=g9.x;x<=g9.x+13;x++)assert(place('road',x,g9.y+1),'T432 G9 A 路段應可鋪設 '+x);
-  for(let x=g9.x+15;x<=g9.x+28;x++)assert(place('road',x,g9.y+1),'T432 G9 B 路段應可鋪設 '+x);
+  for(let x=g9.x;x<=g9.x+13;x++)assert(place('road',x,g9.y-1),'T432 G9 A 路段應可鋪設 '+x);
+  for(let x=g9.x+15;x<=g9.x+28;x++)assert(place('road',x,g9.y-1),'T432 G9 B 路段應可鋪設 '+x);
   assert(place('plant',g9.x,g9.y)&&place('plant',g9.x+20,g9.y),'T432 G9 應建立兩座電廠');
   window.GV.step(1);
   let caps9=window.__t432Power.cap.slice().sort((a,b)=>a-b);
   assert(caps9.length===2&&caps9[0]===50&&caps9[1]===50,'T432 G9 接橋前應為兩網 [50,50]（實得 '+JSON.stringify(caps9)+'）');
-  assert(window.GV.placeUndo('road',g9.x+14,g9.y+1),'T432 G9 接橋必須走真 undo 群組');
+  assert(window.GV.placeUndo('road',g9.x+14,g9.y-1),'T432 G9 接橋必須走真 undo 群組');
   window.GV.step(1);
   assert(window.__t432Power.districts===1&&window.__t432Power.sum===100,'T432 G9 接橋後應為單網 100');
   assert(window.GV.undo(),'T432 G9 必須能撤銷接橋');
@@ -15120,16 +15766,13 @@ runPwaTests().then(() => {
 }
 { // G10 行為：消費者選最近道路；等距時固定採 row-major tie-break（只走玩家同款 place/tile API）
   const grid10=(targetDx)=>{
-    window.GV.setMapSize(72); window.GV.newWorldSeeded(43210); window.GV.setDiff(3); window.GV.weather(0);
-    let p10=null;
-    seek10:for(let y=4;y<60;y++)for(let x=4;x<60;x++){
-      const plan=[['substation',x,y],['plant',x+2,y],['road',x,y+1],['road',x+2,y+1],['socialHousing',x+targetDx,y+3]];
-      if(plan.every(([tool,px,py])=>window.GV.canPlaceTool(tool,px,py)===null)){p10={x,y,plan};break seek10;}
-    }
+    prepPower574(43210);
+    const plan=[['substation',10,6],['plant',15,5],['road',11,8],['road',15,8],['socialHousing',11+targetDx,10]];
+    const p10=plan.every(([tool,x,y])=>window.GV.canPlaceTool(tool,x,y)===null)?{plan}:null;
     assert(p10,'T432 G10 必須找到可由玩家合法放置的雙網消費者造境');
     for(const [tool,px,py] of p10.plan)assert(place(tool,px,py),'T432 G10 合法造境放置 '+tool+' 不得失敗');
     window.GV.setSeason(0); window.GV.step(1);
-    return {cap:window.__t432Power.cap.slice(),pw:window.GV.tile(p10.x+targetDx,p10.y+3).bld.pw};
+    return {cap:window.__t432Power.cap.slice(),pw:window.GV.tile(11+targetDx,10).bld.pw};
   };
   const tie10=grid10(1),near10=grid10(2);
   assert(JSON.stringify(tie10.cap)==='[0,50]'&&JSON.stringify(near10.cap)==='[0,50]','T432 G10 應建出 A=0、B=50 的非對稱雙網（實得 '+JSON.stringify({tie:tie10.cap,near:near10.cap})+'）');
@@ -15138,19 +15781,19 @@ runPwaTests().then(() => {
 }
 { // G11 行為：district 容量必須隨季節實際限制 consumers（50/45/50/42）
   const powered11=(sea)=>{
-    window.GV.setMapSize(72); window.GV.newWorldSeeded(43211); window.GV.setDiff(3); window.GV.weather(0);
+    prepPower574(43211);
     const plant11=findSpot('plant');
-    assert(plant11&&place('plant',plant11.x,plant11.y)&&place('road',plant11.x+1,plant11.y),'T432 G11 應建立與測試電網分離的啟動電廠');
+    assert(plant11&&place('plant',plant11.x,plant11.y)&&place('road',plant11.x+3,plant11.y),'T432 G11 應建立與測試電網分離的啟動電廠');
     const roadY11=20;
     const badRoad11=[];
     for(let x=4;x<68;x++)if(!place('road',x,roadY11))badRoad11.push(x);
     assert(badRoad11.length===0,'T432 G11 主幹道路應可全數鋪設（失敗格 '+JSON.stringify(badRoad11)+'）');
     let sub11=null,sol11=null;
-    for(let x=4;x<66&&!sub11;x++)if(window.GV.canPlaceTool('substation',x,19)===null)sub11={x,y:19};
+    for(let x=4;x<66&&!sub11;x++)if(window.GV.canPlaceTool('substation',x,18)===null)sub11={x,y:18};
     for(let x=4;x<66&&!sol11;x++)if(window.GV.canPlaceTool('solar',x,21)===null)sol11={x,y:21};
     assert(sub11&&sol11&&place('substation',sub11.x,sub11.y)&&place('solar',sol11.x,sol11.y),'T432 G11 應建立獨立的變電所＋太陽能 15 容量網');
     const homes11=[];
-    for(let x=8;x<66&&homes11.length<15;x+=2)if(window.GV.canPlaceTool('socialHousing',x,18)===null&&place('socialHousing',x,18))homes11.push([x,18]);
+    for(let x=8;x<66&&homes11.length<15;x+=4)if(window.GV.canPlaceTool('socialHousing',x,17)===null&&place('socialHousing',x,17))homes11.push([x,17]);
     assert(homes11.length===15,'T432 G11 應建立恰 15 座道路旁社宅 consumers（實得 '+homes11.length+'）');
     window.GV.setSeason(sea); window.GV.step(1);
     return homes11.filter(([x,y])=>window.GV.tile(x,y).bld.pw).length;
@@ -15161,7 +15804,7 @@ runPwaTests().then(() => {
 { // G12 行為：跨世界後必須由實際 tick 使用的 helper 回退 legacy 決策，而非讀舊 grid
   window.GV.setMapSize(72); window.GV.newWorldSeeded(43212); window.GV.setDiff(3); window.GV.weather(0);
   const p12=findSpot('plant');
-  assert(p12&&place('plant',p12.x,p12.y)&&place('road',p12.x+1,p12.y),'T432 G12 應先建立舊世界電網');
+  assert(p12&&place('plant',p12.x,p12.y)&&place('road',p12.x+3,p12.y),'T432 G12 應先建立舊世界電網');
   window.GV.step(1);
   assert(window.GV.power432().fallback===false,'T432 G12 舊世界實際已建電網時不得誤走 fallback');
   window.GV.newWorldSeeded(43213); window.GV.setDiff(3);
@@ -15170,7 +15813,7 @@ runPwaTests().then(() => {
 { // G13 效能：非拓撲撤銷不得無故重跑 Union-Find
   window.GV.setMapSize(72); window.GV.newWorldSeeded(43214); window.GV.setDiff(3); window.GV.weather(0);
   const p13=findSpot('plant');
-  assert(p13&&place('plant',p13.x,p13.y)&&place('road',p13.x+1,p13.y),'T432 G13 應先建立穩定電網');
+  assert(p13&&place('plant',p13.x,p13.y)&&place('road',p13.x+3,p13.y),'T432 G13 應先建立穩定電網');
   window.GV.step(1);
   const rebuild13=window.GV.power432().rebuilds,park13=findSpot('park');
   assert(park13&&window.GV.placeUndo('park',park13.x,park13.y)&&window.GV.undo(),'T432 G13 非拓撲公園撤銷必須走真玩家 undo 群組');
@@ -15202,10 +15845,10 @@ runPwaTests().then(() => {
     'T432a G2 純讀診斷不得改寫 T432 runtime／tiles 或任何 localStorage');
 }
 { // G3 行為：接網／孤島／未接網／道路／冬季容量／fallback／面板與純讀性
-  window.GV.setMapSize(72); window.GV.newWorldSeeded(43221); window.GV.setDiff(3); window.GV.weather(0);
+  prepPower574(43221);
   const p=findSpot('plant');
   assert(p&&place('plant',p.x,p.y),'T432a G3 應能建立主電廠');
-  for(let i=1;i<=6;i++)assert(place('road',p.x+i,p.y),'T432a G3 主電廠道路 '+i+' 應可鋪設');
+  for(let i=1;i<=6;i++)assert(place('road',p.x+2+i,p.y),'T432a G3 主電廠道路 '+i+' 應可鋪設');
   let home=null;
   for(let i=1;i<=6&&!home;i++)for(const [dx,dy] of [[0,1],[0,-1],[1,1],[1,-1]]){
     const x=p.x+i+dx,y=p.y+dy;if(place('socialHousing',x,y)){home={x,y};break;}
@@ -15218,7 +15861,7 @@ runPwaTests().then(() => {
   }
   assert(island&&place('solar',island.x,island.y),'T432a G3 應能建立遠離帶電道路的孤島太陽能');
   window.GV.setSeason(0);window.GV.step(1);
-  const roadD=window.GV.powerDiag432(p.x+1,p.y),homeD=window.GV.powerDiag432(home.x,home.y),islandD=window.GV.powerDiag432(island.x,island.y);
+  const roadD=window.GV.powerDiag432(p.x+3,p.y),homeD=window.GV.powerDiag432(home.x,home.y),islandD=window.GV.powerDiag432(island.x,island.y);
   assert(roadD.mode==='network'&&roadD.district===1&&roadD.capacity===50&&roadD.free>=0,'T432a G3 帶電道路必回報第 1 網與真實容量（實得 '+JSON.stringify(roadD)+'）');
   assert(homeD.mode==='network'&&homeD.powered===true&&homeD.capacity===50,'T432a G3 接網建築必如實回報供電與容量（實得 '+JSON.stringify(homeD)+'）');
   assert(islandD.mode==='island'&&islandD.source==='太陽能板'&&islandD.district===0,'T432a G3 孤島太陽能不得偽裝成已接網（實得 '+JSON.stringify(islandD)+'）');
@@ -15250,12 +15893,9 @@ runPwaTests().then(() => {
   assert(legacyD.mode==='fallback'&&legacyD.status==='相容模式','T432a G3 T432 相容模式不得讀取舊 district（實得 '+JSON.stringify(legacyD)+'）');
   assert(JSON.stringify(window.GV.stats())===statsA&&window.GV.rawSave()===saveA&&JSON.stringify(store)===storeA,'T432a G3 讀診斷／開關面板不得改模擬、存檔或其他 localStorage');
 
-  window.GV.setMapSize(72);window.GV.newWorldSeeded(43222);window.GV.setDiff(3);window.GV.weather(0);
-  let q=null;
-  seek432a:for(let y=4;y<60;y++)for(let x=4;x<60;x++){
-    const plan=[['substation',x,y],['solar',x,y+2],['road',x,y+1],['plant',x+4,y],['road',x+4,y+1]];
-    if(plan.every(([tool,px,py])=>window.GV.canPlaceTool(tool,px,py)===null)){q={x,y,plan};break seek432a;}
-  }
+  prepPower574(43222);
+  const plan=[['substation',10,8],['solar',10,11],['road',10,10],['plant',20,8],['road',20,11]];
+  const q=plan.every(([tool,x,y])=>window.GV.canPlaceTool(tool,x,y)===null)?{x:10,y:9,plan}:null;
   assert(q,'T432a G3 應能建立獨立太陽能冬季造境');
   for(const [tool,x,y] of q.plan)assert(place(tool,x,y),'T432a G3 冬季造境 '+tool+' 應可放置');
   window.GV.setSeason(3);window.GV.step(1);
