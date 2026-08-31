@@ -3267,12 +3267,56 @@ function lotFloodGlow574(g,s,bx,by,z,depth){
   grad.addColorStop(0,'rgba(180,205,255,'+(0.22*depth).toFixed(3)+')');grad.addColorStop(1,'rgba(180,205,255,0)');
   g.fillStyle=grad;g.beginPath();g.arc(0,0,r,0,Math.PI*2);g.fill();g.restore();
 }
+function lotOrder574(items,sparse=false){
+  // T574 退修：先滿足地腳分離的前後關係，再以原順序作穩定 tie-break；不能用長樓遠角壓過前樓。
+  const n=items.length,next=Array.from({length:n},()=>[]),degree=new Uint32Array(n),used=new Uint8Array(n),ready=[],out=[];
+  const link=(i,j)=>{const a=items[i].foot574,b=items[j].foot574;if(!a||!b)return;
+    const ab=a[2]<=b[0]+1e-9||a[3]<=b[1]+1e-9,ba=b[2]<=a[0]+1e-9||b[3]<=a[1]+1e-9;
+    if(ab===ba)return; // 重疊的附著件／左右分離的對角物件沒有唯一遮擋關係，保留原順序。
+    const from=ab?i:j,to=ab?j:i;next[from].push(to);degree[to]++;
+  };
+  if(sparse){for(let i=0;i<n;i++)if(items[i].lot574)for(let j=0;j<n;j++){if(j===i||(items[j].lot574&&j<i))continue;link(i,j);}}
+  else for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)link(i,j);
+  const push=i=>{let p=ready.length;ready.push(i);while(p){const q=(p-1)>>1;if(ready[q]<=i)break;ready[p]=ready[q];p=q;}ready[p]=i;};
+  const pop=()=>{const first=ready[0],last=ready.pop();if(ready.length){let p=0;while(p*2+1<ready.length){let q=p*2+1;if(q+1<ready.length&&ready[q+1]<ready[q])q++;if(ready[q]>=last)break;ready[p]=ready[q];p=q;}ready[p]=last;}return first;};
+  for(let i=0;i<n;i++)if(!degree[i])push(i);
+  out.cycles574=0;
+  while(out.length<n){
+    if(!ready.length){out.cycles574++;for(let i=0;i<n;i++)if(!used[i]){push(i);break;}} // 非法循環仍確定性顯示；全目錄守衛要求此計數為0。
+    const i=pop();if(used[i])continue;used[i]=1;out.push(items[i]);
+    for(const j of next[i])if(!used[j]&&--degree[j]===0)push(j);
+  }
+  return out;
+}
+function lotObjectOrder574(objs){
+  // 舊城沒有新園區時原陣列原路返回；不把新增排序帶進舊城像素契約。
+  if(!objs.some(o=>o.t&&o.t.bld&&o.t.bld.lot574))return objs;
+  // 廠區煙柱附在所屬樓之後一起排；否則樓等候前置鄰樓時，無地腳的煙會搶先畫而被自己蓋掉。
+  const owners574=new Map();
+  for(const o of objs)if(o.t&&o.t.bld&&o.t.bld.lot574)owners574.set(o.x+o.y*N,{sz:o.t.bld.sz,after:[]});
+  const records=objs.map(o=>{
+    const q=o.smoke&&o.smoke.lot574,owner=q&&owners574.get(q.x+q.y*N);
+    if(owner&&owner.sz===q.sz){owner.after.push(o);return null;}
+    const b=o.t&&o.t.bld;let foot574=null;
+    if(o.t){const sz=b?(b.sz||(b.k===9?2:1)):1,p=w2v(o.x,o.y),q=w2v(o.x+sz-1,o.y+sz-1);
+      foot574=[Math.min(p[0],q[0]),Math.min(p[1],q[1]),Math.max(p[0],q[0])+1,Math.max(p[1],q[1])+1];
+    }else if(Number.isFinite(o.wx)&&Number.isFinite(o.wy)){const u=o.wx/64+o.wy/32,v=o.wy/32-o.wx/64;foot574=[u,v,u,v];}
+    return {o,foot574,lot574:!!(b&&b.lot574),after574:b&&b.lot574?owners574.get(o.x+o.y*N).after:null};
+  }).filter(Boolean);
+  const sorted=lotOrder574(records,true);let i=0;
+  for(const r of sorted){objs[i++]=r.o;if(r.after574)for(const o of r.after574)objs[i++]=o;}
+  return objs;
+}
 function bakeLot574(k,v,stage,winter){
   const n=LOT_PLAN574[k][1],w=n*64+16,h=n*32+144,ax=w/2,ay=h-8,top=ay-n*32;
-  const [c,g]=cv(w,h),[nc,ng]=cv(w,h),feet=[],parts=[],hooks={};
+  const [c,cg]=cv(w,h),[nc,ng]=cv(w,h),feet=[],parts=[],hooks={};let solid574=false;
+  // 前方實體的每一筆不透明像素同時遮住後方窗燈；只在烘焙執行，不新增畫布或每幀讀回像素。
+  const g={get fillStyle(){return cg.fillStyle;},set fillStyle(v){cg.fillStyle=v;},fillRect(...r){
+    cg.fillRect(...r);if(solid574){ng.globalCompositeOperation='destination-out';ng.fillStyle='#000';ng.fillRect(...r);}
+  }};
   const P=(u,vv,z=0)=>[ax+(u-vv)*32,top+(u+vv)*16-z];
   const quad=(u,vv,du,dv,z=0)=>[P(u,vv,z),P(u+du,vv,z),P(u+du,vv+dv,z),P(u,vv+dv,z)];
-  const face=(ps,col,ctx=g)=>lotPoly574(ctx,ps,col),line=(a,b,col,wd=1,ctx=g)=>lotLine574(ctx,a,b,col,wd);
+  const face=(ps,col,ctx=g)=>{if(ctx===ng)ng.globalCompositeOperation='source-over';lotPoly574(ctx,ps,col);},line=(a,b,col,wd=1,ctx=g)=>lotLine574(ctx,a,b,col,wd);
   const ground=(u,vv,du,dv,col)=>face(quad(u,vv,du,dv),winter&&col!=='#598eaa'?'#d5dfdc':col);
   const turf=[22,23,25,26,38,47,53,54,63,68,84,85,92,104,112,126,132,133].includes(k);
   for(let u=0;u<n;u++)for(let vv=0;vv<n;vv++){
@@ -3283,7 +3327,7 @@ function bakeLot574(k,v,stage,winter){
   const palettes=[['#cbb58c','#a39376','#74554a'],['#a5b9b6','#738f92','#4c6879'],['#b78a70','#8e6859','#675749'],['#aec1cd','#7b929d','#5e7890'],['#c5b7a2','#988e7b','#836952']];
   const pal=palettes[(v+k)%palettes.length];
   const foot=(role,u,vv,du,dv)=>{feet.push({role,uv:[u,vv,du,dv],points:quad(u,vv,du,dv)});};
-  const add=(u,vv,du,dv,fn)=>parts.push({dep:u+vv+du+dv,fn});
+  const add=(u,vv,du,dv,fn)=>parts.push({dep:u+vv+du+dv,fn,foot574:[u,vv,u+du,vv+dv],role574:feet.length?feet[feet.length-1].role:'detail'});
   const box=(role,u,vv,du,dv,bh=28,colors=pal,roof='flat')=>{
     if(!hooks.sign)hooks.sign=P(u+du*.55,vv+dv,bh*.55);
     const crown=P(u+du/2,vv+dv/2,bh+2);if(!hooks.aviation||crown[1]<hooks.aviation[1])hooks.aviation=crown;
@@ -3348,12 +3392,12 @@ function bakeLot574(k,v,stage,winter){
   const garden=(u,vv,du,dv)=>{ground(u,vv,du,dv,'#759866');for(let x=u+.18;x<u+du-.1;x+=.48)tree(x,vv+dv*.5,.13);};
   const road=(u,vv,du,dv)=>{ground(u,vv,du,dv,'#707c7d');line(P(u,vv),P(u+du,vv),'#c7c5ab');line(P(u,vv+dv),P(u+du,vv+dv),'#c7c5ab');};
   const fence=(u,vv,du,dv)=>{
-    foot('fence',u,vv,du,dv);add(u,vv,du,dv,()=>{for(const [a,b]of[[[u,vv],[u+du,vv]],[[u,vv],[u,vv+dv]],[[u+du,vv],[u+du,vv+dv]],[[u,vv+dv],[u+du,vv+dv]]]){
+    foot('fence',u,vv,du,dv);for(const [a,b]of[[[u,vv],[u+du,vv]],[[u,vv],[u,vv+dv]],[[u+du,vv],[u+du,vv+dv]],[[u,vv+dv],[u+du,vv+dv]]])add(a[0],a[1],b[0]-a[0],b[1]-a[1],()=>{
       line(P(a[0],a[1],4),P(b[0],b[1],4),'#a8af93');const steps=Math.ceil((Math.abs(b[0]-a[0])+Math.abs(b[1]-a[1]))*3);
-      for(let i=0;i<=steps;i++){const x=a[0]+(b[0]-a[0])*i/steps,y=a[1]+(b[1]-a[1])*i/steps;line(P(x,y),P(x,y,7),'#566960',2);}}});
+      for(let i=0;i<=steps;i++){const x=a[0]+(b[0]-a[0])*i/steps,y=a[1]+(b[1]-a[1])*i/steps;line(P(x,y),P(x,y,7),'#566960',2);}});
   };
   const lamp=(u,vv)=>{const p=P(u,vv,15);foot('lamp',u-.03,vv-.03,.06,.06);add(u,vv,0,0,()=>{
-    line(P(u,vv),p,'#526b70',2);g.fillStyle='#ddd5ad';g.fillRect(p[0]-1,p[1]-1,4,2);ng.fillStyle='#ffe8ad';ng.fillRect(p[0]-1,p[1]-1,4,2);});(hooks.lamps||(hooks.lamps=[])).push(p);};
+    line(P(u,vv),p,'#526b70',2);g.fillStyle='#ddd5ad';g.fillRect(p[0]-1,p[1]-1,4,2);ng.globalCompositeOperation='source-over';ng.fillStyle='#ffe8ad';ng.fillRect(p[0]-1,p[1]-1,4,2);});(hooks.lamps||(hooks.lamps=[])).push(p);};
   const flag=(u,vv,bh=32)=>{hooks.flag=P(u,vv,bh);foot('flag',u-.02,vv-.02,.04,.04);add(u,vv,0,0,()=>{
     line(P(u,vv),hooks.flag,'#a5b5af');face([hooks.flag,[hooks.flag[0]+9,hooks.flag[1]+1],[hooks.flag[0]+8,hooks.flag[1]+5],[hooks.flag[0],hooks.flag[1]+5]],'#cba960');});};
   const court=(u,vv,du,dv,type='court')=>{
@@ -3389,7 +3433,7 @@ function bakeLot574(k,v,stage,winter){
     case 7: case 32: case 108: case 113:
       main(k===113?45:32);box('classrooms',.22,n*.51,n*.26,n*.39,31);
       court(n*.56,n*.54,n*.33,n*.31);garden(n*.35,n*.63,n*.14,n*.27);flag(n*.48,n*.48);
-      if(n>=4)box('library',n*.68,n*.34,n*.2,n*.16,24,pal,'glass');break;
+      if(n>=4){const ly=.30+n*.33,ld=Math.min(n*.16,n*.54-.08-ly);box('library',n*.68,ly,n*.2,ld,24,pal,'glass');}break;
     case 8: case 29: case 88: case 111:
       garage(.15,.16,n-.3,n*.27);road(.12,n*.49,n-.24,.3);
       if(k===29||k===111)containers(.25,n*.67,n-.5,n*.23);
@@ -3486,7 +3530,7 @@ function bakeLot574(k,v,stage,winter){
       else{court(.3,.3,n*.6,n*.52,'pool');for(let j=0;j<3;j++){const u=n*.73+j*.22;line(P(u,.35,28),P(u,n*.65,2),['#b68c58','#9d6960','#779ea5'][j],5);}}
       garage(n*.2,n*.79,n*.56,n*.14);garden(.17,n*.43,n*.13,n*.2);break;
     case 40: case 44: case 65:
-      main(k===40?34:39,'glass');box('atrium',n*.4,n*.38,n*.2,n*.23,29,['#91b5b6','#6c949e','#779eab'],'glass');
+      main(k===40?34:39,'glass');box('atrium',n*.4,Math.max(n*.38,.30+n*.33),n*.2,n*.23,29,['#91b5b6','#6c949e','#779eab'],'glass');
       road(.17,n*.82,n-.34,n*.12);for(let j=0;j<5;j++)line(P(n*.22+j*n*.12,n*.64),P(n*.22+j*n*.12,n*.77),'#d2cdb4');
       garden(.17,n*.48,n*.19,n*.23);break;
     case 45: case 109: case 116:
@@ -3554,9 +3598,9 @@ function bakeLot574(k,v,stage,winter){
     default:throw new Error('T574 缺少園區配方 k'+k);
   }
   if(!hooks.lamps)lamp(n-.16,n-.18);
-  parts.sort((a,b)=>a.dep-b.dep);for(const p of parts)p.fn();
+  parts.sort((a,b)=>a.dep-b.dep);const ordered=lotOrder574(parts);solid574=true;for(const p of ordered)p.fn();solid574=false;ng.globalCompositeOperation='source-over';
   lotHookCache574.set(k+'_'+v,{ax,ay,hooks});
-  return{img:c,night:nc,w,h,ax,ay,lotMeta574:{sz:n,kind:k,variant:v,stage,winter,ground:[ax,top,n*32],feet,hooks}};
+  return{img:c,night:nc,w,h,ax,ay,lotMeta574:{sz:n,kind:k,variant:v,stage,winter,ground:[ax,top,n*32],feet,hooks,order574:ordered.map(p=>({role:p.role574,foot:p.foot574})),cycles574:ordered.cycles574}};
 }
 /* ===== T426 拆段：buildSprites 函式級宣告上提（純重構，像素零漂移；S1..S9 依序共用） ===== */
 let __savedR,rand;
@@ -17210,6 +17254,22 @@ NIGHT413.push(drawNightWaterReflect413);   // 地面：水面夜反射
 NIGHT413T.push(drawNightLandmarks413);     // 頂層：地標身份
 NIGHT413T.push(drawNightCommNeon413);      // 頂層：商業霓虹閃爍
 NIGHT413T.push(drawNightIndAvia413);       // 頂層：工業航障
+let lotNightCanvas574=null,lotNightCtx574=null;
+function lotNightLayer574(lights,a,w,h){
+  // 新園區混排時按同一前後序累積夜光，前樓真實 alpha 擦去後燈；一張視口大小畫布反覆使用。
+  if(!lights.some(n=>n.occlude574))return null;
+  if(!lotNightCanvas574)[lotNightCanvas574,lotNightCtx574]=cv(w,h);
+  const c=lotNightCanvas574,g=lotNightCtx574;
+  if(c.width!==w)c.width=w;if(c.height!==h)c.height=h;
+  g.imageSmoothingEnabled=false;g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,w,h);
+  for(const n of lights){
+    if(n.occlude574){g.globalCompositeOperation='destination-out';g.globalAlpha=n.a;g.drawImage(n.occlude574,n.x,n.y,n.w,n.h);}
+    else{g.globalCompositeOperation='screen';g.globalAlpha=a*(n.img&&n.a!=null?n.a:1);
+      if(n.img)g.drawImage(n.img,n.x,n.y,n.w,n.h);else if(n.rect){g.fillStyle=n.col||'#ffe9a0';g.fillRect(...n.rect);}
+    }
+  }
+  g.globalAlpha=1;g.globalCompositeOperation='source-over';return c;
+}
 /* ===== T422 遠景夜城 LOD：只替換 T107 mini 建築既有的一筆夜燈 rect。
    類型化色與幾何不增 draw call；街區密度由可見 root 數自然形成，不讀 nightTier、不重掃地圖。
    __noFarNight422=true 時由呼叫端走原 generic rect，供逐像素 A/B 回退。 ===== */
@@ -17959,7 +18019,9 @@ function draw(dt){
   if(!lodFar&&SPR.ped&&!window.__noVeh)for(const c of citizens){if(c.at!==2)continue; // T295b：只畫通勤途中的市民（走在路上）；在家/工作＝室內不畫
     const _iso=isoW2V((c.fx-c.fy)*32,(c.fx+c.fy)*16+16); const wx=_iso[0],wy=_iso[1];objs.push({dep:viewDep(c.fx,c.fy)+.018,ped:c,wx,wy});}
   objs.sort((a,b2)=>a.dep-b2.dep);
+  lotObjectOrder574(objs); // T574：新園區與鄰樓依旋轉後的完整地腳排前後，原dep仍供既有特效讀取。
   const lotFar574=lotFarFrame574(objs,lodFar);
+  const lotNight574=(b<.72||(weather===2&&!window.__noStormLit))&&objs.some(o=>o.t&&o.t.bld&&o.t.bld.lot574);
   const nightSprites=[];
   farNightCandN422=0;farNightDrawN422=0;farNightLegacyN422=0;farNightR422=0;farNightC422=0;farNightI422=0;farNightL422=0;
   nightSprites.push(...rdecGlow);
@@ -18606,6 +18668,7 @@ function draw(dt){
       }
       if(!window.__noWinLit)nightSprites.push({rect:[bx+s.w*z*.42,slabY-4*z,s.w*z*.16,3*z],col:'#ffd9a0'}); // 夜間趕工燈（樓板處）
     }else ctx.drawImage(s.img,bx,by,s.w*z,s.h*z);
+    if(lotNight574&&!constrRise)nightSprites.push({occlude574:s.img,x:bx,y:by,w:s.w*z,h:s.h*z,a:drawA});
     if(drawA<1)ctx.globalAlpha=1;
     /* ===== T427 GPT 美術波（建築層四層：區域材質/生活痕跡/夜間街區/活動口袋；源自移動線） ===== */
     if(!constrRise&&(bd.age|0)>=9){
@@ -19103,7 +19166,9 @@ function draw(dt){
     const a=Math.max(clamp((0.72-b)/.5,0,1),stormA);
     ctx.globalAlpha=a;
     ctx.globalCompositeOperation='screen';
-    for(const nsp of nightSprites){
+    const layer574=lotNight574?lotNightLayer574(nightSprites,a,W,H):null;
+    if(layer574){ctx.globalAlpha=1;ctx.drawImage(layer574,0,0);}
+    else for(const nsp of nightSprites){
       if(nsp.img){const aa=(nsp.a!=null?nsp.a:1); if(aa!==1)ctx.globalAlpha=a*aa; ctx.drawImage(nsp.img,nsp.x,nsp.y,nsp.w,nsp.h); if(aa!==1)ctx.globalAlpha=a;}
       else if(nsp.rect){ctx.fillStyle=nsp.col||'#ffe9a0';ctx.fillRect(...nsp.rect);} // T165：nsp.col 可選（車尾燈紅等），缺省沿用既有暖白＝零位移
     }

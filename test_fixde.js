@@ -467,6 +467,27 @@ window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveS
   waterCap:computeWater,waterNear:hasWaterNear,roadNear:hasRoadNear,lotView:lotViewBase574,sprites:()=>SPR.lot574,
   farFrame:lotFarFrame574,artKeys:()=>[...lotCache574.keys()],rainDays:v=>{if(v!==undefined)rainDays=v;return rainDays;},
   art:lotSprite574,artBake:bakeLot574,artCache:()=>({entries:lotCache574.size,pixels:lotCachePixels574,bakes:lotBakeN574}),
+  order:lotOrder574,objectOrder:lotObjectOrder574,
+  oldObjectPath:objs=>{const old=lotOrder574;let calls=0;try{lotOrder574=function(...a){calls++;return old(...a);};return{result:lotObjectOrder574(objs),calls};}finally{lotOrder574=old;}},
+  nightWith:(factory,fn)=>{const oldCv=cv,oldC=lotNightCanvas574,oldG=lotNightCtx574;
+    try{cv=factory;lotNightCanvas574=null;lotNightCtx574=null;return fn(lotNightLayer574);}
+    finally{cv=oldCv;lotNightCanvas574=oldC;lotNightCtx574=oldG;}},
+  bakeTrace:(k,v,winter,factory)=>{const oldCv=cv,oldOrder=lotOrder574,trace=[];let cycles=null;
+    try{if(factory)cv=factory;lotOrder574=function(items,sparse){const sorted=oldOrder(items,sparse);cycles=sorted.cycles574;
+      for(const p of items){const fn=p.fn;p.fn=()=>{trace.push({role:p.role574,foot:p.foot574});return fn();};}return sorted;};
+      return {sprite:bakeLot574(k,v,2,winter),trace,cycles};
+    }finally{cv=oldCv;lotOrder574=oldOrder;}},
+  drawOrder:(points,z,night)=>{const before={...cam},oldDraw=ctx.drawImage,oldOrder=lotObjectOrder574,oldTopo=lotOrder574,oldLayer=lotNightLayer574,oldT=visT,oldShake=shakeT,oldZoom=zoomAnim,oldTool=tool,oldSel=selTile,oldWeather=weather;
+    const images=new Map(),painted=[],objects=[];let calls=0,cycles=null,nightCalls=0,nightMasks=0;
+    for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b.lot574)images.set(lotSprite574(b.k,b.v,2,false,z<1).img,p.id);
+      else for(const key of Object.keys(SPR.bld))if(+key.split('_')[0]===b.k)images.set(SPR.bld[key].img,p.id);}
+    try{const a=lotViewBase574(points[0].x,points[0].y,tiles[idx(points[0].x,points[0].y)].bld.sz);
+      cam.x=a[0];cam.y=a[1]-tiles[idx(points[0].x,points[0].y)].bld.sz*16;cam.z=z;visT=night?100:55;weather=0;shakeT=0;zoomAnim=null;tool='pan';selTile=null;groundDirty=true;
+      lotOrder574=function(items,sparse){const r=oldTopo(items,sparse);if(sparse)cycles=r.cycles574;return r;};
+      lotObjectOrder574=function(os){calls++;const r=oldOrder(os);for(const o of r)if(o.t&&o.t.bld&&!o.t.bld.ref)objects.push([o.x,o.y]);return r;};
+      lotNightLayer574=function(...args){nightCalls++;nightMasks=args[0].filter(n=>n.occlude574).length;return oldLayer(...args);};
+      ctx.drawImage=(im,...args)=>{if(images.has(im))painted.push(images.get(im));};draw(0);return {calls,cycles,painted,objects,nightCalls,nightMasks};
+    }finally{Object.assign(cam,before);ctx.drawImage=oldDraw;lotObjectOrder574=oldOrder;lotOrder574=oldTopo;lotNightLayer574=oldLayer;visT=oldT;weather=oldWeather;shakeT=oldShake;zoomAnim=oldZoom;tool=oldTool;selTile=oldSel;groundDirty=true;}},
   ground:lotGround574,visible:lotVisible574,roadLink:lotRoadLink574,
   nightRoots:points=>{const seen=new Set();return points.map(p=>nightRoot574(p[0],p[1],seen)).filter(Boolean).map(p=>p.slice(0,3));},
   nightFrame:(kind,x,y)=>{const before={...cam},old=ctx.fillRect,oldT=visT,oldShake=shakeT,oldGate=window.__noNightCity,b=tiles[idx(x,y)].bld;
@@ -11098,6 +11119,133 @@ runPwaTests().then(() => {
     [cv574.clientWidth,cv574.clientHeight,window.innerWidth,window.innerHeight]=oldView574;
     for(const fn of winListeners.resize||[])fn();A.rainDays(0);G.setMapSize(72);G.setRot(0);G.setSeason(0);G.setZoom(1);
   }
+}
+/* T574 G23 業主預覽退修：園區內／跨地塊的遮擋，不能只測 helper 存在 */
+{
+  const A=window.__t574,G=window.GV;
+  const behind=(a,b)=>a[2]<=b[0]+1e-9||a[3]<=b[1]+1e-9;
+  const inversions=parts=>{const bad=[];for(let i=0;i<parts.length;i++)for(let j=i+1;j<parts.length;j++){
+    const a=parts[i],b=parts[j];if(behind(b.foot,a.foot)&&!behind(a.foot,b.foot))bad.push(a.role+' > '+b.role);
+  }return bad;};
+  let kinds=0,variants=0,strokes=0;
+  for(let k=6;k<A.plan().length;k++){
+    const p=A.plan()[k];if(!p||!p[0]||p[1]<=A.legacy(k))continue;kinds++;
+    for(const v of A.artVariants(k))for(const winter of [false,true]){
+      const r=A.bakeTrace(k,v,winter),bad=inversions(r.trace);variants++;strokes+=r.trace.length;
+      const solidFence=r.trace.some(p=>p.role==='fence'&&p.foot[2]>p.foot[0]&&p.foot[3]>p.foot[1]);
+      assert(r.trace.length>0&&r.cycles===0&&bad.length===0&&!solidFence,'T574 G23a k'+k+' v'+v+(winter?' 冬':' 日')+
+        ' 實際落筆必須滿足地腳前後關係且無循環，不能僅回傳排好的 metadata；筆數='+r.trace.length+' cycle='+r.cycles+' 反序='+bad.join(','));
+    }
+  }
+  assert(kinds===104&&variants>208&&strokes>1000,'T574 G23b 104種新園區所有既有變體的日／冬兩側都必須真跑；實得 '+kinds+'/'+variants+'/'+strokes);
+  for(const [k,role]of [[32,'library'],[108,'library'],[113,'library'],[40,'atrium'],[44,'atrium'],[65,'atrium']]){
+    const fs=A.artBake(k,0,2,false).lotMeta574.feet,a=fs.find(f=>f.role==='main').uv,b=fs.find(f=>f.role===role).uv;
+    assert(a[1]+a[3]+.079999999<=b[1],'T574 G23c k'+k+' 的'+role+'須在主樓前留至少0.08格實際空隙，不得地腳交疊；'+JSON.stringify([a,b]));
+  }
+  // 簡化軸向像素台架只支援本配方使用的 fillRect，非瀏覽器實拍；真實 Canvas 另驗。
+  const pixelCanvas=(w,h)=>{const px=new Uint32Array(w*h);let style='#000',mode='source-over',draws=0,erases=0;
+    const g={get fillStyle(){return style;},set fillStyle(v){style=v;},get globalCompositeOperation(){return mode;},set globalCompositeOperation(v){mode=v;},
+      fillRect(x,y,ww,hh){let hex=String(style).slice(1);if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+        if(!/^[0-9a-f]{6}$/i.test(hex))throw Error('T574 G23 像素台架不支援色值 '+style);
+        const value=mode==='destination-out'?0:(0xff000000|parseInt(hex,16))>>>0;
+        if(mode==='destination-out')erases++;else if(mode==='source-over')draws++;else throw Error('T574 G23 未支援合成模式 '+mode);
+        const x0=Math.max(0,Math.floor(Math.min(x,x+ww))),x1=Math.min(w,Math.ceil(Math.max(x,x+ww))),y0=Math.max(0,Math.floor(Math.min(y,y+hh))),y1=Math.min(h,Math.ceil(Math.max(y,y+hh)));
+        for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++)px[xx+yy*w]=value;
+      }};
+    const c={width:w,height:h,getContext:()=>g,px,counts:()=>({draws,erases})};g.canvas=c;return[c,g];};
+  const visibleWindow=new Set([0xff344d5b,0xffb1c3c5,0xffddd5ad]);
+  for(const k of [7,12,14,32,40,41,44,65,108,113])for(const winter of [false,true]){
+    const s=A.bakeTrace(k,0,winter,pixelCanvas).sprite,d=s.img.px,n=s.night.px;let lamps=0,through=0;
+    for(let i=0;i<n.length;i++)if(n[i]){lamps++;if(!visibleWindow.has(d[i]))through++;}
+    const op=s.night.counts();
+    assert(lamps>16&&op.draws>0&&op.erases>0&&through===0,'T574 G23d k'+k+(winter?' 冬':' 日')+
+      ' 前楼／屋頂遮住的後窗不得穿透夜圖，且不能刪掉全部夜燈求綠；亮像素='+lamps+' 穿透='+through+' '+JSON.stringify(op));
+  }
+  G.setMapSize(72);G.newWorldSeeded(57431);G.setDiff(3);G.ai(false);G.setSeason(0);G.setRot(0);A.rainDays(0);A.clear();
+  const points=[{id:'mall',x:24,y:24,k:65,n:5},{id:'house',x:24,y:29,k:1,n:1},{id:'oldStadium',x:29,y:24,k:9,n:2},
+    {id:'school',x:21,y:24,k:7,n:3},{id:'police',x:24,y:22,k:11,n:2}];
+  for(const p of points){
+    if(p.k===1)A.liveHouse(p.x,p.y);
+    else if(p.k===9){A.edit(p.x,p.y,'bld',{k:9,lv:1,v:0,age:9,pw:true,h:1,sz:2});
+      for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++)if(dx||dy)A.edit(p.x+dx,p.y+dy,'bld',{k:9,ref:[p.x,p.y]});
+    }else{assert(G.place(A.plan()[p.k][0],p.x,p.y,true),'T574 G23e 真建造相鄰'+p.id+'必須成功');window.__t412Set(p.x,p.y,'age',9);window.__t412Set(p.x,p.y,'v',0);window.__t412Set(p.x,p.y,'pw',true);}
+  }
+  const cv23=elMap.get('game'),oldView=[cv23.clientWidth,cv23.clientHeight,window.innerWidth,window.innerHeight];
+  const view=(x,y,r)=>r===0?[x,y]:r===1?[G.N()-1-y,x]:r===2?[G.N()-1-x,G.N()-1-y]:[y,G.N()-1-x];
+  const foot=(p,r)=>{const a=view(p.x,p.y,r),b=view(p.x+p.n-1,p.y+p.n-1,r);return[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0])+1,Math.max(a[1],b[1])+1];};
+  try{
+    cv23.clientWidth=1280;cv23.clientHeight=800;window.innerWidth=1280;window.innerHeight=800;for(const fn of winListeners.resize||[])fn();
+    for(let r=0;r<4;r++)for(const z of [.75,1.5,2])for(const night of [false,true]){
+      G.setRot(r);const before=JSON.stringify(G.stats()),q=A.drawOrder(points,z,night);
+      assert(q.calls===1&&q.cycles===0&&points.every(p=>q.painted.includes(p.id))&&(night?q.nightCalls===1&&q.nightMasks===5:q.nightCalls===0),
+        'T574 G23f 真實draw必須走新排序並畫出五種混排，不能只單測 helper；rot='+r+' z='+z+' night='+night+' '+JSON.stringify(q));
+      const bad=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){
+        const a=points[i],b=points[j];if((a.k===1||a.k===9)&&(b.k===1||b.k===9))continue;
+        const ab=behind(foot(a,r),foot(b,r)),ba=behind(foot(b,r),foot(a,r));if(ab===ba)continue;
+        if((q.painted.indexOf(a.id)<q.painted.indexOf(b.id))!==ab)bad.push(a.id+'/'+b.id);
+      }
+      assert(bad.length===0,'T574 G23g 混合新園區／舊一格樓／舊2×2體育場落筆前後須隨四向旋轉；rot='+r+' z='+z+' night='+night+' 反序='+bad.join(','));
+      assert(JSON.stringify(G.stats())===before,'T574 G23h 遮擋排序只改畫面，不得改模擬狀態；rot='+r+' z='+z+' night='+night);
+    }
+    const oldOnly=[{dep:9,t:{bld:{k:9,sz:2}},x:4,y:3},{dep:11,t:{bld:{k:1}},x:6,y:5}],oldSnap=JSON.stringify(oldOnly),oldRun=A.oldObjectPath(oldOnly);
+    assert(oldRun.result===oldOnly&&oldRun.calls===0&&JSON.stringify(oldOnly)===oldSnap,'T574 G23i 無新園區的舊城必須原陣列原序返回，且不分配新排序圖；calls='+oldRun.calls);
+  }finally{[cv23.clientWidth,cv23.clientHeight,window.innerWidth,window.innerHeight]=oldView;for(const fn of winListeners.resize||[])fn();G.setRot(0);G.setZoom(1);}
+  console.log('T574 G23 OCCLUSION_MATRIX '+JSON.stringify({kinds,variants,strokes,worldFrames:24}));
+}
+/* T574 G24 跨樓夜光遮擋：透明洞須透光、前樓須擋、暖幀不增畫布 */
+{
+  const A=window.__t574;let allocated=0;
+  const factory=(w,h)=>{allocated++;let ww=w,hh=h,alpha=new Float64Array(w*h),ga=1,mode='source-over';
+    const put=(x,y,sa)=>{if(x<0||y<0||x>=ww||y>=hh)return;const i=x+y*ww,a=sa*ga;
+      if(mode==='destination-out')alpha[i]*=1-a;
+      else if(mode==='source-over'||mode==='screen')alpha[i]=a+alpha[i]*(1-a);
+      else throw Error('T574 G24 台架不支援合成模式 '+mode);};
+    const g={get globalAlpha(){return ga;},set globalAlpha(v){ga=v;},get globalCompositeOperation(){return mode;},set globalCompositeOperation(v){mode=v;},
+      clearRect(){alpha.fill(0);},fillRect(x,y,dx,dy){for(let yy=Math.floor(y);yy<Math.ceil(y+dy);yy++)for(let xx=Math.floor(x);xx<Math.ceil(x+dx);xx++)put(xx,yy,1);},
+      drawImage(im,x,y,dx=im.width,dy=im.height){for(let yy=Math.floor(y);yy<Math.ceil(y+dy);yy++)for(let xx=Math.floor(x);xx<Math.ceil(x+dx);xx++){
+        const sx=Math.min(im.width-1,Math.max(0,Math.floor((xx-x)*im.width/dx))),sy=Math.min(im.height-1,Math.max(0,Math.floor((yy-y)*im.height/dy)));
+        put(xx,yy,im.alpha[sx+sy*im.width]);
+      }}
+    };
+    const c={get width(){return ww;},set width(v){ww=v;alpha=new Float64Array(ww*hh);},get height(){return hh;},set height(v){hh=v;alpha=new Float64Array(ww*hh);},get alpha(){return alpha;},getContext:()=>g};return[c,g];};
+  const rear={width:4,height:4,alpha:new Float64Array(16).fill(1)},front={width:4,height:4,alpha:new Float64Array(16).fill(1)};
+  front.alpha[1+4]=0; // 前樓實際透明洞；不能用整張 bounding box 擋光。
+  const lights=[{img:rear,x:2,y:2,w:4,h:4},{occlude574:front,x:2,y:2,w:4,h:4,a:1},{rect:[4,4,1,1],col:'#ffe9a0'}];
+  A.nightWith(factory,render=>{
+    const c=render(lights,.5,12,10),at=(x,y)=>c.alpha[x+y*c.width];
+    assert(c&&at(2,2)===0&&at(3,3)===.5&&at(4,4)===.5,'T574 G24a 後燈遭前樓遮住必為0，透明洞及後畫前窗仍亮0.5，不能全遮或全不遮');
+    const snap=Array.from(c.alpha),again=render(lights,.5,12,10);
+    assert(c===again&&allocated===1&&JSON.stringify(Array.from(again.alpha))===JSON.stringify(snap),'T574 G24b 同尺寸暖幀必重用一張畫布並先清空，不能每幀累光或重配');
+    lights[1].a=.5;render(lights,.5,12,10);
+    assert(at(2,2)===.25&&at(3,3)===.5,'T574 G24c 選中前樓半透明時仍可透半份後燈，遮擋須用實際drawA');
+    lights[1].a=1;lights[0].a=.4;render(lights,.5,12,10);
+    assert(Math.abs(at(3,3)-.2)<=1e-9,'T574 G24d 原夜窗自帶alpha仍須乘全局夜深倍率（IEEE-754容差1e-9），不得變成全亮；實得 '+at(3,3));
+    const resized=render(lights,1,8,7);
+    assert(resized===c&&allocated===1&&c.width===8&&c.height===7,'T574 G24e resize只調同一張視口畫布，不能按樓數／幀數囤積');
+    assert(render([{img:rear,x:0,y:0,w:4,h:4}],1,8,7)===null&&allocated===1,'T574 G24f 無前樓遮罩不得替換原夜光路徑或分配畫布');
+  });
+}
+/* T574 G25 排序附著物：電廠與5×5鄰樓交錯時，煙不得跑到自己的樓後面 */
+{
+  const A=window.__t574,G=window.GV;
+  const plant={id:'plant',x:28,y:26,t:{bld:{k:5,sz:3,lot574:1}}},mall={id:'mall',x:23,y:28,t:{bld:{k:65,sz:5,lot574:1}}};
+  const smoke1={id:'steam1',smoke:{lot574:{x:28,y:26,sz:3}}},smoke2={id:'steam2',smoke:{lot574:{x:28,y:26,sz:3}}};
+  const oldSmoke={id:'oldSmoke',smoke:{dep:0}},orphan={id:'orphan',smoke:{lot574:{x:1,y:1,sz:3}}};
+  const all=[plant,mall,smoke1,smoke2,oldSmoke,orphan],original=JSON.stringify(all),before=JSON.stringify(G.stats());
+  const view=(x,y,r)=>r===0?[x,y]:r===1?[G.N()-1-y,x]:r===2?[G.N()-1-x,G.N()-1-y]:[y,G.N()-1-x];
+  const foot=(o,r)=>{const a=view(o.x,o.y,r),n=o.t.bld.sz,b=view(o.x+n-1,o.y+n-1,r);return[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0])+1,Math.max(a[1],b[1])+1];};
+  try{for(let r=0;r<4;r++){
+    G.setRot(r);const p=foot(plant,r),m=foot(mall,r),depth=o=>o===plant?p[2]+p[3]-2+plant.y*.001:o===mall?m[2]+m[3]-2+mall.y*.001:o===smoke1?p[2]+p[3]-2+.02:o===smoke2?p[2]+p[3]-2+.021:-1;
+    const objs=all.slice().sort((a,b)=>depth(a)-depth(b));A.objectOrder(objs);
+    assert(objs.length===all.length&&new Set(objs).size===all.length&&all.every(o=>objs.includes(o)),
+      'T574 G25a 排序不得遺失／複製煙；舊煙與視錐外孤煙仍在；rot='+r);
+    assert(objs.indexOf(smoke1)===objs.indexOf(plant)+1&&objs.indexOf(smoke2)===objs.indexOf(plant)+2,
+      'T574 G25b 園區煙必跟所屬廠房之後、同批順序不變，不能被自己樓蓋住；rot='+r+' '+objs.map(o=>o.id).join(' > '));
+    const pm=p[2]<=m[0]||p[3]<=m[1],mp=m[2]<=p[0]||m[3]<=p[1];
+    assert(pm!==mp&&(pm?objs.indexOf(smoke2)<objs.indexOf(mall):objs.indexOf(mall)<objs.indexOf(plant)),
+      'T574 G25c 煙跟隨廠房仍須保留鄰樓四向遮擋，不得全移至畫面最頂層；rot='+r);
+  }}finally{G.setRot(0);}
+  assert(JSON.stringify(all)===original&&JSON.stringify(G.stats())===before,'T574 G25d 排序只動臨時佇列，不寫粒子／所屬楼／模擬資料');
 }
 /* ===== T574 實體地塊切片 END ===== */
 
