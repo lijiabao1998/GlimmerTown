@@ -1,0 +1,343 @@
+{
+ "__meta": {
+  "card": "T575",
+  "purpose": "健康度單向地板（棘輪）。與六哨兵分工：seedPin444 釘決定性（混沌終點精確值，抓亂數流位移），本檔釘健康度（只准變好）。內容增長不會誤觸地板，遊戲崩塌一定咬中。",
+  "rule": "floor 只可上調。下調必須在該項 history 追加一筆 {date,value,dir:\"down\",why,authorized} 並取得業主授權——溯源釘會擋住沒留記錄的下調。",
+  "measured_when": "2026-09-03 於 master 7cb0dcd / v11.188，官方配方 newWorldSeeded(seed) + setDiff(1) + ai(true) + 400 x step(1)",
+  "target_source": "同配方於 v11.186（master 0378c73）實測；記錄 T574 全建築占地改造造成的落差，避免目標被遺忘",
+  "why_this_exists": "T574 把 seed301 400 天人口從 6801 打到 288，六哨兵重釘後隨即吻合＝決定性回來、健康度的屍體被一起埋掉。系統當時沒有任何位置能讓崩塌擋住合併。"
+ },
+ "seeds": {
+  "seed301": {
+   "pop": {
+    "floor": 288,
+    "measured": 288,
+    "target": 6801,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 288,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "buildings": {
+    "floor": 550,
+    "measured": 550,
+    "target": 2304,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 550,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "roads": {
+    "floor": 175,
+    "measured": 175,
+    "target": 726,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 175,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "zones": {
+    "floor": 209,
+    "measured": 209,
+    "target": 736,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 209,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "poweredBld": {
+    "floor": 192,
+    "measured": 192,
+    "target": 1065,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 192,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   }
+  },
+  "seed7": {
+   "pop": {
+    "floor": 117,
+    "measured": 117,
+    "target": 260,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 117,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "buildings": {
+    "floor": 188,
+    "measured": 188,
+    "target": 214,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 188,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "roads": {
+    "floor": 160,
+    "measured": 160,
+    "target": 99,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 160,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "zones": {
+    "floor": 137,
+    "measured": 137,
+    "target": 163,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 137,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "poweredBld": {
+    "floor": 77,
+    "measured": 77,
+    "target": 160,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 77,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   }
+  },
+  "seed22": {
+   "pop": {
+    "floor": 412,
+    "measured": 412,
+    "target": 3423,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 412,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "buildings": {
+    "floor": 503,
+    "measured": 503,
+    "target": 1464,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 503,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "roads": {
+    "floor": 80,
+    "measured": 80,
+    "target": 763,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 80,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "zones": {
+    "floor": 142,
+    "measured": 142,
+    "target": 1085,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 142,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   },
+   "poweredBld": {
+    "floor": 170,
+    "measured": 170,
+    "target": 960,
+    "history": [
+     {
+      "date": "2026-09-03",
+      "value": 170,
+      "dir": "init",
+      "why": "T575 立釘：地板取 T574 之後的實測谷底。設在 target 會讓套件當天就紅＝路障不是偵測器；棘輪語意是從今天起不准更差，階段二每修好一段就上調。",
+      "authorized": "業主 2026-09-03「分階段修Claude，開始吧」"
+     }
+    ]
+   }
+  }
+ },
+ "panel_reference": {
+  "note": "12 種子健康度面板。因套件 900 秒限時，本表不入套件、不作為閘門；階段二 AI 校準以此為驗收面。",
+  "source": "T574 卡面 8.2 / health-base-v1.log / health-bay-final-v2.log（Codex 實跑）",
+  "criterion": "400 天 pop<500 者：舊版 4/12，新版 8/12",
+  "rows": [
+   {
+    "seed": 7,
+    "old400": 260,
+    "new400": 117,
+    "old900": 392,
+    "new900": 576,
+    "old900money": -2385,
+    "new900money": 436
+   },
+   {
+    "seed": 9,
+    "old400": 2313,
+    "new400": 1864,
+    "old900": 2631,
+    "new900": 1916,
+    "old900money": 516989,
+    "new900money": 32144
+   },
+   {
+    "seed": 15,
+    "old400": 350,
+    "new400": 43,
+    "old900": 307,
+    "new900": 327,
+    "old900money": 285,
+    "new900money": 433
+   },
+   {
+    "seed": 22,
+    "old400": 3423,
+    "new400": 412,
+    "old900": 6032,
+    "new900": 494,
+    "old900money": 384711,
+    "new900money": 39786
+   },
+   {
+    "seed": 123,
+    "old400": 984,
+    "new400": 430,
+    "old900": 10727,
+    "new900": 490,
+    "old900money": 181543,
+    "new900money": 39263
+   },
+   {
+    "seed": 301,
+    "old400": 6801,
+    "new400": 288,
+    "old900": 7177,
+    "new900": 406,
+    "old900money": 4560941,
+    "new900money": 39023
+   },
+   {
+    "seed": 528,
+    "old400": 202,
+    "new400": 264,
+    "old900": 165,
+    "new900": 182,
+    "old900money": -43,
+    "new900money": -11571
+   },
+   {
+    "seed": 777,
+    "old400": 242,
+    "new400": 2639,
+    "old900": 221,
+    "new900": 2657,
+    "old900money": -2965,
+    "new900money": 38804
+   },
+   {
+    "seed": 3001,
+    "old400": 3960,
+    "new400": 72,
+    "old900": 4383,
+    "new900": 415,
+    "old900money": 2268402,
+    "new900money": 464
+   },
+   {
+    "seed": 3002,
+    "old400": 808,
+    "new400": 1077,
+    "old900": 7671,
+    "new900": 2857,
+    "old900money": 419650,
+    "new900money": 39679
+   },
+   {
+    "seed": 3003,
+    "old400": 5236,
+    "new400": 838,
+    "old900": 5272,
+    "new900": 1315,
+    "old900money": 2695576,
+    "new900money": 22883
+   },
+   {
+    "seed": 5150,
+    "old400": 767,
+    "new400": 355,
+    "old900": 7500,
+    "new900": 557,
+    "old900money": 131116,
+    "new900money": 35104
+   }
+  ]
+ }
+}
