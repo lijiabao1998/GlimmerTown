@@ -734,6 +734,47 @@ function assert(cond, msg) {
   console.log('PASS:', msg);
 }
 
+/* ===== T575 健康度棘輪（階段一；業主 2026-09-03「分階段修」）=====
+   分工：seedPin444 是**決定性**釘（混沌終點精確值，抓亂數流位移，每卡必動＝重釘是正常的）；
+   本組是**健康度**釘（單向地板，只准變好）。兩者釘在同一次模擬上，零額外模擬、零額外亂數。
+   T574 的教訓：六哨兵重釘之後「吻合」，但 seed301 400 天人口 6801→288 的崩塌被一起埋掉——
+   系統當時沒有一個位置能讓崩塌擋住合併。地板值只寫在 docs/HEALTH-PINS.json（單一來源，
+   不寫在本檔＝重釘時不會順手改掉），下調必須在 history 留一筆才過得了溯源釘。 */
+const HEALTH575 = JSON.parse(fs.readFileSync(path.join(__dirname, 'docs', 'HEALTH-PINS.json'), 'utf8'));
+const HEALTH575_METRICS = ['pop', 'buildings', 'roads', 'zones', 'poweredBld'];
+const HEALTH575_SEEDS = ['seed301', 'seed7', 'seed22'];
+function healthFloor575(name) {
+  const e = HEALTH575.seeds[name], s = window.GV.stats();
+  for (const m of HEALTH575_METRICS) {
+    const got = Math.round(s[m]), f = e[m].floor;
+    console.log('HEALTHPIN ' + name + '.' + m + ' floor=' + f + ' actual=' + got + ' target=' + e[m].target);
+    assert(got >= f,
+      'T575 健康度地板 ' + name + '.' + m + ' 應 >= ' + f + '，實得 ' + got
+      + '（單向棘輪：只准變好。內容增長不會誤觸；掉下來就是遊戲退化。要下調地板必須在'
+      + ' docs/HEALTH-PINS.json 的 history 追加一筆並取得業主授權；本項 v11.186 目標值 ' + e[m].target + '）');
+  }
+}
+{ // T575 G1 結構／溯源釘：地板不得被靜默下調
+  assert(HEALTH575 && HEALTH575.seeds && typeof HEALTH575.seeds === 'object' && HEALTH575.__meta,
+    'T575 G1a docs/HEALTH-PINS.json 必須存在且含 __meta 與 seeds（健康度地板的單一來源）');
+  const names575 = Object.keys(HEALTH575.seeds);
+  assert(names575.length === HEALTH575_SEEDS.length && HEALTH575_SEEDS.every(n => names575.includes(n)),
+    'T575 G1b 地板檔必須恰含三顆哨兵種子 ' + HEALTH575_SEEDS.join('/') + '，實得 ' + names575.join('/')
+    + '（少一顆＝該城的健康度無人看守）');
+  for (const n of HEALTH575_SEEDS) for (const m of HEALTH575_METRICS) {
+    const e = HEALTH575.seeds[n][m];
+    assert(e && Number.isInteger(e.floor) && Number.isInteger(e.measured) && Number.isInteger(e.target)
+      && Array.isArray(e.history) && e.history.length >= 1,
+      'T575 G1c ' + n + '.' + m + ' 必須有 floor/measured/target/history 四欄且型別正確');
+    const last575 = e.history[e.history.length - 1];
+    assert(last575 && last575.value === e.floor && typeof last575.date === 'string'
+      && typeof last575.why === 'string' && typeof last575.authorized === 'string',
+      'T575 G1d ' + n + '.' + m + ' 的 floor（' + e.floor + '）必須等於 history 末筆 value（'
+      + (last575 ? last575.value : 'none') + '）且該筆須有 date/why/authorized'
+      + '——這條釘的唯一用途是讓「下調地板」無法靜默發生');
+  }
+}
+
 const N = window.GV.N();
 const SAVEKEY = (html.match(/const SAVEKEY='([^']+)'/) || [])[1];
 const SKEY = SAVEKEY + '.s1';
@@ -4724,6 +4765,7 @@ runPwaTests().then(() => {
        不再自動成立，必須把 money 也釘進哨兵，未來任何動到經濟的手都會在這裡留下指紋。 */
     seedPin444('seed301m', 301, 400, 4779, Math.round(window.GV.stats().money),
       'T456 起釘；T574 真實占地授權重建，前值640249。金流仍獨立於人口精確釘定');
+    healthFloor575('seed301'); // T575 健康度地板（同一次模擬，零額外成本）
     // T574：此城400天不再到加工鏈人口門檻。T542 G2/G2a完整移至T574尾段的自然成熟城，不把原3/3、1/1/1弱化成零。
     {
       const mob301 = window.GV.sci451();
@@ -7192,6 +7234,7 @@ runPwaTests().then(() => {
       + '這根釘現在同時見證「紓困有發生」與「只發生在陷阱城市」；T574授權空間基線重建，前值260→117');
     seedPin444('seed7m', 7, 400, SEED7M_T532, Math.round(window.GV.stats().money),
       'T532起釘前值55；T574授權空間基線重建，前值50→77，新值見常數宣告');
+    healthFloor575('seed7'); // T575 健康度地板（同一次模擬，零額外成本）
     {
       const mob7 = window.GV.sci451();
       assert(mob7.mobUp === 0 && mob7.mobDn === 0,
@@ -7216,6 +7259,7 @@ runPwaTests().then(() => {
       + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）；T574授權空間基線重建，前值3423→412');
     seedPin444('seed22m', 22, 400, 35041, Math.round(window.GV.stats().money),
       'T456金流哨兵；T574授權空間基線重建，前值1461→35041，原公式不改');
+    healthFloor575('seed22'); // T575 健康度地板（同一次模擬，零額外成本）
     {
       const mob22 = window.GV.sci451();
       assert(mob22.mobUp === 0 && mob22.mobDn === 0,
