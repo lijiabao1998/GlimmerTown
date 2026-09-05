@@ -1,8 +1,8 @@
 {
  "__meta": {
   "card": "T575",
-  "purpose": "健康度單向地板（棘輪）。與六哨兵分工：seedPin444 釘決定性（混沌終點精確值，抓亂數流位移），本檔釘健康度（只准變好）。內容增長不會誤觸地板，遊戲崩塌一定咬中。",
-  "rule": "floor 只可上調。下調必須在該項 history 追加一筆 {date,value,dir:\"down\",why,authorized} 並取得業主授權——溯源釘會擋住沒留記錄的下調。",
+  "purpose": "健康度單向地板（棘輪）。與六哨兵分工：seedPin444 釘決定性，本檔釘固定三種子400tick的十五個計數地板；不涵蓋所有城市、時間與玩法，已死子系統或未列指標退化可能不響。buildings是占用格含ref，不是root棟數。",
+  "rule": "floor只可上調；下調須業主明示授權並追加history。T577驗每筆真日期／非空why與authorized／非負安全整數／方向與首尾一致性；字串不證明真授權，也不能抵抗整段歷史重寫。不可改舊記錄由base diff覆核，不假稱JSON本身是不可變帳本。",
   "measured_when": "2026-09-03 於 master 7cb0dcd / v11.188，官方配方 newWorldSeeded(seed) + setDiff(1) + ai(true) + 400 x step(1)",
   "target_source": "同配方於 v11.186（master 0378c73）實測；記錄 T574 全建築占地改造造成的落差，避免目標被遺忘",
   "why_this_exists": "T574 把 seed301 400 天人口從 6801 打到 288，六哨兵重釘後隨即吻合＝決定性回來、健康度的屍體被一起埋掉。系統當時沒有任何位置能讓崩塌擋住合併。"

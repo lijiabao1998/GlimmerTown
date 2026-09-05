@@ -754,9 +754,32 @@ function assert(cond, msg) {
 const HEALTH575 = JSON.parse(fs.readFileSync(path.join(__dirname, 'docs', 'HEALTH-PINS.json'), 'utf8'));
 const HEALTH575_METRICS = ['pop', 'buildings', 'roads', 'zones', 'poweredBld'];
 const HEALTH575_SEEDS = ['seed301', 'seed7', 'seed22'];
+// T577 只驗資料一致性；authorized文字不等於已證明業主授權，舊歷史不可改由diff覆核。
+function healthEntry577(e) {
+  const count=v=>Number.isSafeInteger(v)&&v>=0, text=v=>typeof v==='string'&&v.trim().length>0;
+  if(!e||!['floor','measured','target'].every(k=>count(e[k])))return 'counts';
+  if(!Array.isArray(e.history)||!e.history.length)return 'history';
+  let prev=null;
+  for(const h of e.history){
+    if(!h||typeof h!=='object'||Array.isArray(h)||!count(h.value))return 'record';
+    if(typeof h.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(h.date))return 'date';
+    const stamp=Date.parse(h.date+'T00:00:00.000Z');
+    if(!Number.isFinite(stamp)||new Date(stamp).toISOString().slice(0,10)!==h.date)return 'date';
+    if(!text(h.why)||!text(h.authorized))return 'provenance';
+    if(!prev){if(h.dir!=='init'||h.value!==e.measured)return 'initial';}
+    else {
+      if(h.date<prev.date)return 'chronology';
+      if(!((h.dir==='up'&&h.value>prev.value)||(h.dir==='down'&&h.value<prev.value)))return 'direction';
+    }
+    prev=h;
+  }
+  return prev.value===e.floor?null:'tail';
+}
 function healthFloor575(name) {
   const e = HEALTH575.seeds[name], s = window.GV.stats();
   for (const m of HEALTH575_METRICS) {
+    assert(Number.isSafeInteger(s[m])&&s[m]>=0,
+      'T577 raw metric '+name+'.'+m+' 必須為非負安全整數，取整前實得 '+String(s[m]));
     const got = Math.round(s[m]), f = e[m].floor;
     console.log('HEALTHPIN ' + name + '.' + m + ' floor=' + f + ' actual=' + got + ' target=' + e[m].target);
     assert(got >= f,
@@ -783,7 +806,48 @@ function healthFloor575(name) {
       'T575 G1d ' + n + '.' + m + ' 的 floor（' + e.floor + '）必須等於 history 末筆 value（'
       + (last575 ? last575.value : 'none') + '）且該筆須有 date/why/authorized'
       + '——這條釘的唯一用途是讓「下調地板」無法靜默發生');
+    const error577=healthEntry577(e);
+    assert(error577===null,'T577 history '+n+'.'+m+' 資料契約錯誤：'+error577);
   }
+}
+{ // T577 正反資料與真healthFloor575呼叫端；不觸模擬、不改正式地板
+  const sample577={floor:12,measured:10,target:20,history:[
+    {date:'2024-02-29',value:10,dir:'init',why:'fixture',authorized:'fixture only'},
+    {date:'2024-02-29',value:12,dir:'up',why:'fixture',authorized:'fixture only'}]};
+  const clone577=()=>JSON.parse(JSON.stringify(sample577));
+  assert(healthEntry577(sample577)===null,'T577 G1 合法閏日／同日上調可接受');
+  const down577=clone577();down577.floor=9;down577.history.push({...down577.history[1],value:9,dir:'down'});
+  assert(healthEntry577(down577)===null,'T577 G1a 下調資料格式可驗，不代表正式地板獲授權下調');
+  for(const key of ['floor','measured','target'])for(const v of [-1,.5,'12',Infinity,Number.MAX_SAFE_INTEGER+1]){
+    const e=clone577();e[key]=v;
+    assert(healthEntry577(e)==='counts','T577 G2 拒絕 '+key+' 非計數 '+String(v));
+  }
+  const mutations577=[
+    ['history',e=>{e.history=[];}],['record',e=>{e.history.splice(1,0,null);}],
+    ['record',e=>{e.history[1].value=-1;}],['record',e=>{e.history[1].value=.5;}],
+    ['record',e=>{e.history[1].value='12';}],['record',e=>{e.history[1].value=Number.MAX_SAFE_INTEGER+1;}],
+    ['date',e=>{e.history[0].date='2025-02-29';}],['date',e=>{e.history[1].date='2024-02-30';}],
+    ['date',e=>{e.history[0].date='-000001-01';}],['date',e=>{e.history[0].date='+010000-01';}],
+    ['date',e=>{e.history[1].date='2024/03/01';}],['date',e=>{e.history[1].date=' ';}],
+    ['provenance',e=>{e.history[0].why=' ';}],['provenance',e=>{e.history[0].authorized='\t';}],
+    ['initial',e=>{e.history[0].dir='up';}],['initial',e=>{e.history[0].value=9;}],
+    ['chronology',e=>{e.history[1].date='2024-02-28';}],['direction',e=>{e.history[1].dir='down';}],
+    ['direction',e=>{delete e.history[1].dir;}],['direction',e=>{e.history[1].value=10;}],
+    ['direction',e=>{e.history[1].dir='down';e.history[1].value=10;}],['tail',e=>{e.floor=11;}]
+  ];
+  for(const [want,mutate] of mutations577){const e=clone577();mutate(e);
+    assert(healthEntry577(e)===want,'T577 G3 拒絕資料畸形 '+want+' '+String(mutate));}
+  const raw577=Object.fromEntries(HEALTH575_METRICS.map(m=>[m,HEALTH575.seeds.seed22[m].floor]));
+  const checkRaw577=s=>{
+    try{require('vm').runInNewContext('('+healthFloor575.toString()+')("seed22")',{
+      HEALTH575,HEALTH575_METRICS,window:{GV:{stats:()=>s}},console:{log(){}},
+      assert:(ok,message)=>{if(!ok)throw Error(message);}});return '';}
+    catch(error){return String(error.message);}
+  };
+  assert(checkRaw577(raw577)==='','T577 G4 真healthFloor575恰等地板綠');
+  for(const m of HEALTH575_METRICS)for(const v of [Infinity,NaN,-1,raw577[m]+.25,String(raw577[m]),Number.MAX_SAFE_INTEGER+1])
+    assert(checkRaw577({...raw577,[m]:v}).startsWith('T577 raw metric seed22.'+m+' '),
+      'T577 G4a 真取樣拒絕 '+m+'='+String(v)+'，不可取整／轉型／Infinity比較假綠');
 }
 
 const N = window.GV.N();
@@ -11355,6 +11419,13 @@ runPwaTests().then(() => {
   const helper576=bare576.slice(bare576.indexOf('function powerLinkPlan576('),bare576.indexOf('function aiCenter('));
   assert(helper576.length>500&&!/\b(?:R|ri|rand)\s*\(|Math\.random/.test(helper576),
     'T576 G5 規劃 helper 不得新增亂數呼叫，切片必須非空');
+  const start577='if(!built576&&startersN>0&&day%4===0){',end577='// ── 1.5 災後維護';
+  const callerA577=html.indexOf(start577),callerB577=html.indexOf(end577);
+  assert(callerA577>=0&&callerB577>callerA577&&html.split(start577).length===2&&html.split(end577).length===2,
+    'T577 G5 caller雙錨必存在且唯一、順序正確，不准靜默空切片');
+  const caller577=stripCommentsAndStrings438(html.slice(callerA577,callerB577)).text;
+  assert(caller577.length>300&&!/\b(?:R|ri|rand)\s*\(|Math\s*\.\s*random\s*\(/.test(caller577),
+    'T577 G5a caller新增區不得直接呼叫亂數（不含既有tryP間接消耗）');
   assert(/if\(!built576&&startersN>0&&day%4===0\)/.test(bare576)
     &&/tickRoad\.filter\(i=>tiles\[i\]\.road&&tiles\[i\]\.rp\)/.test(bare576),
     'T576 G5a 只補未成功的一般擴容且只接通電路，不介入首源紓困');
