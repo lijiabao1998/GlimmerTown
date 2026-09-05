@@ -301,6 +301,9 @@ const inject343 = (needle, replacement, label) => {
   js = js.replace(needle, replacement);
   if (js === before) throw new Error('T343c probe 注入未改變源碼 ' + label);
 };
+inject343('  const clearable=(cx3,cy3,allowPark,keepPipe574)=>{',
+  '  if(window.__t576Drive){window.__t576Drive(tryP,()=>acts,v=>{acts=v;});return;}\n  const clearable=(cx3,cy3,allowPark,keepPipe574)=>{',
+  'T576 真 tryP 動作與扣款台架');
 inject343(
   "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1)*sq('ind',1.08,1)*sq('green',.90,1);\n    if(R()<p){",
   "p*=tq('A4a',1.10,1)*tq('A4b',.85,1)*tq('B3',.90,1)*sq('ind',1.08,1)*sq('green',.90,1);\n    window.__t343Probe.fire=p;\n    if(R()<p){",
@@ -463,6 +466,14 @@ window.__t571Mk=function(x,y,k,v){const t5=tiles[idx(x,y)];t5.bld={k:k,lv:1,v:v,
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
+window.__t576={plan:powerLinkPlan576,set:(d,m)=>{day=d;money=m;},cash:()=>money,check:canPlace,cost:placeCost,
+  scan:args=>{const old=canPlace,seen=[];try{canPlace=function(tool,x,y){if(tool===args[0])seen.push([x,y]);return old(tool,x,y);};return {plan:powerLinkPlan576(...args),seen};}finally{canPlace=old;}},
+  run:(args,used)=>{const old=window.__t576Drive,oldAi=aiMode;let result=null;
+    try{window.__t576Drive=(put,count,set)=>{set(used);const plan=powerLinkPlan576(...args);let success=false;
+      if(plan){success=true;for(const p of plan.link.slice().reverse())if(!put('road',p[0],p[1])){success=false;break;}
+        if(success)success=put(args[0],plan.x,plan.y);}
+      result={plan,success,acts:count(),cash:money};};aiMode=true;aiStep();return result;
+    }finally{window.__t576Drive=old;aiMode=oldAi;}}}; // T576 僅測試注入，正式 runtime 不帶台架
 window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveShapeOk533,pinch:undoPlace,diag:powerDiag432,
   waterCap:computeWater,waterNear:hasWaterNear,roadNear:hasRoadNear,lotView:lotViewBase574,sprites:()=>SPR.lot574,
   farFrame:lotFarFrame574,artKeys:()=>[...lotCache574.keys()],rainDays:v=>{if(v!==undefined)rainDays=v;return rainDays;},
@@ -7254,11 +7265,11 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    seedPin444('seed22', 22, 400, 412, window.GV.stats().pop,
+    seedPin444('seed22', 22, 400, 476, window.GV.stats().pop,
       'T348 起釘：紓困為手術式；T456 世代流動接線重釘（前值 4550——短視野配對差實測機制為正紅利，'
-      + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）；T574授權空間基線重建，前值3423→412');
-    seedPin444('seed22m', 22, 400, 35041, Math.round(window.GV.stats().money),
-      'T456金流哨兵；T574授權空間基線重建，前值1461→35041，原公式不改');
+      + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）；T574授權空間基線重建，前值3423→412；T576業主兩輪迭代：一般電源接路，412→476，十五健康地板不降／12城400日崩城8→7，非改弱守衛');
+    seedPin444('seed22m', 22, 400, 40021, Math.round(window.GV.stats().money),
+      'T456金流哨兵；T574前值1461→35041；T576接路量測35041→40021，12城完整delta入卡');
     healthFloor575('seed22'); // T575 健康度地板（同一次模擬，零額外成本）
     {
       const mob22 = window.GV.sci451();
@@ -11292,6 +11303,101 @@ runPwaTests().then(() => {
   assert(JSON.stringify(all)===original&&JSON.stringify(G.stats())===before,'T574 G25d 排序只動臨時佇列，不寫粒子／所屬楼／模擬資料');
 }
 /* ===== T574 實體地塊切片 END ===== */
+/* ===== T576 健康度跑檯：量測完成不等於完整套件通過；缺樣本不能假綠 ===== */
+{
+  const panel576=require('./tools/health_panel.js');
+  const rejects576=fn=>{try{fn();return false;}catch(e){return /T576|usage:/.test(String(e));}};
+  const anchor576=['const N = ','window.GV.N();'].join('');
+  const storage576=['const store = ','{};'].join('');
+  const boot576=panel576.bootstrap576(storage576+'\nloadGame();\n'+anchor576);
+  assert(boot576.includes("'glimmerville.v1.slot':'3'")&&boot576.indexOf("'glimmerville.v1.slot'")<boot576.indexOf('loadGame()'),
+    'T576 G1 跑檯必須在載入遊戲前設定記憶體槽3');
+  assert(rejects576(()=>panel576.bootstrap576(storage576))&&rejects576(()=>panel576.bootstrap576(storage576+anchor576+anchor576)),
+    'T576 G1a bootstrap 切點消失或重複必須拒絕，不可靜默載空測試');
+  assert(rejects576(()=>panel576.bootstrap576(anchor576))&&rejects576(()=>panel576.bootstrap576(storage576+storage576+anchor576)),
+    'T576 G1b store 切點消失或重複必須拒絕，不能落回玩家槽');
+  assert(rejects576(()=>panel576.options576(['--runtime']))&&rejects576(()=>panel576.options576(['--typo'])),
+    'T576 G1c 不完整與未知參數必須拒絕，不能偷偷量錯版本');
+  const opt576=panel576.options576([]),smoke576=panel576.options576(['--smoke']);
+  assert(JSON.stringify(opt576.seeds)==='[7,9,15,22,123,301,528,777,3001,3002,3003,5150]'&&opt576.days===900
+    &&JSON.stringify(smoke576.seeds)==='[301,7,22]'&&smoke576.days===400,'T576 G1d 固定12種子900tick與官方3種子400tick配方');
+  const floor576=HEALTH575.seeds.seed301;
+  const row576={seed:301,ticks:400,money:4779,roots:309};
+  for(const m of HEALTH575_METRICS)row576[m]=floor576[m].floor;
+  const summarize576=rows=>panel576.summary576(rows,[301],400,HEALTH575);
+  assert(summarize576([row576]).belowFloor.length===0&&summarize576([row576]).complete===true,
+    'T576 G2 地板恰等的完整量測可接受');
+  for(const m of HEALTH575_METRICS){
+    const bad576={...row576,[m]:row576[m]-1},r576=summarize576([bad576]);
+    assert(r576.belowFloor.length===1&&r576.belowFloor[0].metric===m,
+      'T576 G2a 單欄下降必指名 '+m+'，不能只看人口');
+    for(const v of [Infinity,NaN,-1,1.5,9007199254740992])
+      assert(rejects576(()=>summarize576([{...row576,[m]:v}])),
+        'T576 G2b 非法量測必拒絕 '+m+'='+v+'，不得因 Infinity>=floor 假綠');
+  }
+  assert(rejects576(()=>summarize576([]))&&rejects576(()=>summarize576([row576,row576])),
+    'T576 G3 缺列／多列必拒絕，不可把未完成量測當綠');
+  assert(rejects576(()=>panel576.summary576([row576,{...row576}],[301],900,HEALTH575)),
+    'T576 G3a 正確列數但重複400日、缺900日仍須拒絕');
+  assert(rejects576(()=>summarize576([{...row576,seed:999}]))&&rejects576(()=>summarize576([{...row576,ticks:399}])),
+    'T576 G3b 錯種子／錯tick必拒絕');
+  const c576=panel576.summary576([{...row576,pop:499},{...row576,ticks:900,pop:500}],[301],900,HEALTH575);
+  assert(c576.collapseBelow500[400]===1&&c576.collapseBelow500[900]===0,
+    'T576 G4 崩城口徑嚴格pop<500，400與900日分開計數');
+}
+/* ===== T576 健康度跑檯 END ===== */
+/* ===== T576 電源接路：真地塊／真 tryP，規劃先行、失敗零施工 ===== */
+{
+  const G=window.GV,P=window.__t576,L=window.__t574;
+  G.setMapSize(72);G.newWorldSeeded(576);
+  const before576=JSON.stringify(G.stats());
+  const bare576=html.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+  const helper576=bare576.slice(bare576.indexOf('function powerLinkPlan576('),bare576.indexOf('function aiCenter('));
+  assert(helper576.length>500&&!/\b(?:R|ri|rand)\s*\(|Math\.random/.test(helper576),
+    'T576 G5 規劃 helper 不得新增亂數呼叫，切片必須非空');
+  assert(/if\(!built576&&startersN>0&&day%4===0\)/.test(bare576)
+    &&/tickRoad\.filter\(i=>tiles\[i\]\.road&&tiles\[i\]\.rp\)/.test(bare576),
+    'T576 G5a 只補未成功的一般擴容且只接通電路，不介入首源紓困');
+  assert(!html.includes('__t576Drive')&&before576===JSON.stringify(G.stats()),'T576 G5b 真tryP台架僅存在測試字串');
+  G.setDiff(3);L.clear();
+  assert(G.place('road',10,20),'T576 G6 前置：真路');G.setDiff(1);P.set(4,10000);
+  const args576=['plant',13,20,13,20,[20*72+10],14,10000,350];
+  const plan576=P.plan(...args576);
+  assert(plan576&&plan576.link.length===2&&plan576.x===13,'T576 G6a 3×3合法地塊兩格接路可規劃');
+  assert(P.cash()===10000&&!G.tile(11,20).road&&!G.tile(13,20).bld,'T576 G6b 規劃不寫世界、不扣款');
+  L.edit(15,22,'crater',1);assert(!P.plan(...args576),'T576 G6c plant最遠尾格隕石坑必拒絕');L.edit(15,22,'crater',0);
+  L.liveHouse(11,20);assert(!P.plan(...args576),'T576 G6d 接路活建築不可拆');L.edit(11,20,'bld',null);
+  const short576=args576.slice();short576[6]=2;
+  const miss576=P.run(short576,12);
+  assert(!miss576.plan&&miss576.acts===12&&miss576.cash===10000&&!G.tile(11,20).road,
+    'T576 G7 真tryP僅餘兩動作不准先鋪两路後沒動作蓋電廠');
+  const exact576=args576.slice();exact576[6]=3;
+  const ok576=P.run(exact576,11);
+  assert(ok576.success&&ok576.acts===14&&G.tile(13,20).bld.sz===3&&G.tile(15,22).bld.ref,
+    'T576 G7a 真tryP恰餘三動作＝兩路＋一座3×3，不能縮回一格');
+  assert(G.tile(11,20).road&&G.tile(12,20).road&&L.cap()>0&&G.tile(10,20).rp,
+    'T576 G7b 補路連續且電源真接上原道路供電');
+  P.set(5,10000);assert(P.scan(args576).seen.length===0,'T576 G8 非觸發日零候選掃描');P.set(4,10000);
+  const far576=['nuclear',30,30,30,30,[30*72+22],14,10000,350];
+  G.setDiff(3);assert(G.place('road',22,30),'T576 G8a 前置：七格遠路');G.setDiff(1);
+  assert(!P.plan(...far576),'T576 G8b 超過六格接路拒絕');
+  const wide576=['nuclear',30,30,50,50,[],14,10000,350];
+  assert(P.scan(wide576).seen.length===0,'T576 G8c 無路零掃描');wide576[5]=[20*72+10];
+  const scanA576=P.scan(wide576);P.set(8,10000);const scanB576=P.scan(wide576);
+  assert(scanA576.seen.length===64&&scanB576.seen.length===64&&JSON.stringify(scanA576.seen)!==JSON.stringify(scanB576.seen),
+    'T576 G8d 無解最多64候選且按日輪替，不能全圖掃描或永久卡頭段');
+  G.newWorldSeeded(576);G.setDiff(3);L.clear();assert(G.place('road',10,30),'T576 G9 前置：折扣路');G.setDiff(1);
+  G.techGrant('B5');G.techGrant('D4a');P.set(4,1196.45);
+  const cash576=['geo',17,30,17,30,[30*72+10],14,1196.45,350];
+  const no576=P.run(cash576,0);
+  assert(!no576.plan&&no576.acts===0&&no576.cash===1196.45&&!G.tile(11,30).road,
+    'T576 G9a 折扣總和看似足夠但逐筆扣款少浮點尾差：第一條路前拒絕');
+  cash576[7]=1196.46;P.set(4,1196.46);const yes576=P.run(cash576,0);
+  assert(yes576.success&&yes576.acts===7&&yes576.cash>=350&&G.tile(17,30).bld.k===60,
+    'T576 G9b 多0.01元真tryP完成六路＋地熱，剩餘保留金仍足額');
+  G.setDiff(1);
+}
+/* ===== T576 電源接路 END ===== */
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);

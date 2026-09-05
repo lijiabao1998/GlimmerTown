@@ -1,6 +1,6 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.188，約 24738 行（實測檔案 24738 行＝LF換行計數；T574 全建築占地／園區及遮擋退修，T575 未動 runtime）。最新標準 `verify.py` 實測 **PASS 10,385／0 FAIL／exit0／ALL GREEN**，六哨兵不變。T574 已於 2026-08-31 13:35 併入 master `7cb0dcd` 並部署（收據 source_oid=7cb0dcd）；**本行在 T574 收束時遺留「STOP: BROWSER_VERIFICATION／未合併／部署」的過時敘述，由 T575 更正——arch_map 只驗表格錨點行號、T371b 只驗行數與版本字串，沒有守衛讀這段散文，閘門擋不住散文說謊，記此為已知限制。** T574 的 AI 成長退化（12 種子 400 天 pop<500 由 4/12 惡化為 8/12）與效能風險仍在，見 T574 卡面；T575 已把三顆哨兵城的健康度改為單向地板（`docs/HEALTH-PINS.json`），退化從此擋得住，修復屬階段二。
+**現況（測繪基準）**：單檔 `index.html`，v11.189，約 24768 行（實測檔案 24768 行＝LF換行計數；T576 AI 大地塊電源接路）。本輪開工基線 `verify.py` 為 **PASS 10,385／0 FAIL／exit0／ALL GREEN**；本卡終驗另見 CHANGELOG。T576 仍在 bay/codex，未合併／未部署，玩家維持 v11.188。T575 的三種子十五健康地板不降；T576 seed22 五項地板上調，人口／金流精確哨兵 412/35041→476/40021，其餘四哨兵不變。固定12城400日 pop<500 由8/12→7/12，900日6/12→4/12；seed22 的900日人口494→476及seed528負債仍明列風險，不宣稱全面治癒。地板只覆蓋列出的城市／指標，不能保證所有退化都攔得住。代碼地圖只驗錨點，不驗本段散文的歷史真偽。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -98,56 +98,56 @@
 | LAND 場 | 13693 | `function landStaticAt(x,y){` |
 | EDU / `rebuildCov` / `judgeWealth` | 13741 | `function rebuildCov(){` |
 | `computeWater` / `resilience364At` | 13872 | `function computeWater(){` |
-| §5 `aiStep()` AI 市長 | 14039 | `let acts=0;const MAXA=14,RESERVE=poor?50:350;` |
-| `buildTickIndex()` | 14607 | `function buildTickIndex(){` |
-| **`tick()` 全體** | 14620 | `rebuildNoise(tickBld); // T325` |
-| ├ 第一經濟迴圈（計數／幸福） | 14715 | `for(const i88 of tickBld){` |
-| ├ 產業鏈 | 14984 | `/* ===== T364b A 深加工鏈 BEGIN =====` |
-| ├ 災害段 | 15046 | `// T69/T70 災害（可關）` |
-| ├ 生長／升級／合併／火災 | 15214 | `// 生長：收集候選` |
-| ├ **第二經濟迴圈（稅收守衛鏈）** | 15500 | `const civicMul=chN>0?1.03:1;` |
-| └ 維護費／評分／`aiStep` 呼叫 | 15654 | `if(diff!==3)money+=income-upkeep;` |
-|　├ updCars| 16096 | `function updCars(dt){` |
-| §6 載具與煙／`computeCommute` | 16826 | `function computeCommute(){` |
-| §7 繪製起點：`DIRSCR` / 雨雪 | 16389 | `const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];` |
-| 粒子池 `fxParts` | 16419 | `/* ---------- T159 粒子特效豐富化` |
-| `daylight()` | 16515 | `function daylight(){` |
-| `streetHash` | 16911 | `function streetHash(x,y,salt){` |
-| **T367 旋轉變換層** | 16926 | `/* ===== T367 視角四向旋轉：view-space 變換層` |
-| 地面快取全域 | 17015 | `let groundDirty=true,groundCache=null,` |
-| **`draw()` 全體** | 17291 | `function draw(dt){` |
-| ├ 地面層與 groundCache 重烘 | 17434 | `// ---- 地面層 ----（T96：離屏快取` |
-| ├ `objs` 收集與深度排序 | 17853 | `// ---- 物件層（依深度排序） ----` |
-| ├ 地格分支（建築十餘層加疊） | 18295 | `const t=o.t;` |
-|　├ T403b/c 農事與牧場動態| 18803 | `/* ===== T403b/c 農事與牧場動態（T368a 純視覺路線：零狀態、零陣列，一切由` |
-| ├ 天氣後製與晝夜 multiply | 18968 | `// ---- 天氣色調（雨天壓暗` |
-| └ 夜燈層 `nightSprites` | 19163 | `// ---- 夜間燈光（T212` |
-|　├ drawGroundMemory428| 19660 | `function drawGroundMemory428(g,x,y,sx,sy,z){` |
-| `drawCursor` / `drawHoverLabel` / `toTile` | 20160 | `function drawHoverLabel(sxOf,syOf,z){` |
-| undo 群組 helper | 20231 | `const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};` |
-| `commitRect` 批次施作 | 20448 | `const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;` |
-| `UP_MAX` / `upCost` / `upgradeBld` | 20482 | `const UP_MAX={9:15,6:10,7:10,11:10,12:10` |
-| `inspect()` 建築檢視面板 | 20508 | `function svcStatTable(x,y,b){` |
-|　├ MOODS| 20941 | `const MOODS={` |
-| §10 UI 起點：`buildToolbar` | 21208 | `function buildToolbar(){` |
-| `drawMini` 小地圖 | 21319 | `const MINI_VIEW_NAME=` |
-| `statTab` / `dataTable` / `serviceRefRows` | 21396 | `T319 標準化數據表格產生器` |
-| `toast` / `updHud` / HUD 三鈕 | 21481 | `T311 提示訊息不刷屏` |
-| 存檔槽面板／分享碼 | 21576 | `function showSlots(){` |
-| 地圖／場景編輯器 | 21693 | `function showEditor(){` |
-| 歷史曲線／城市顧問／因果追溯 | 21826 | `function cityAdvisor(allT522){` |
-| `showStats()` 統計面板 | 22349 | `function showStats()` |
-| 通知中心／成就 | 22820 | `T114：通知中心——HUD 鈴鐺按鈕` |
-| `chipPanel()` 六晶片明細 | 22896 | `function chipPanel(which){` |
-| `showHelp()` 五分頁指南 | 23098 | `const tabs=['🚦 上手流程'` |
-| `undo()` / 快捷鍵 / 新手提示 | 23471 | `function checkHints(plants,roads){` |
-| §11 存檔：槽位／RLE／`save` | 23503 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
-| `MSZ` 多格尺寸反查表 | 23652 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
-| `load()` | 23695 | `const vlen=saveShapeOk533;` |
-| 自動存檔 | 23843 | `setInterval(()=>{if(tiles)save();},25000);` |
-| 主迴圈 `advance` / `frame` | 23856 | `while(simAcc>=DAYLEN&&steps<8){` |
-| `begin` / `toMainMenu` / 開始畫面注入 | 23998 | `function toMainMenu(){` |
-| `window.GV` 除錯鉤子（194 鍵） | 24115 | `window.GV={` |
+| §5 `aiStep()` AI 市長 | 14059 | `let acts=0;const MAXA=14,RESERVE=poor?50:350;` |
+| `buildTickIndex()` | 14637 | `function buildTickIndex(){` |
+| **`tick()` 全體** | 14650 | `rebuildNoise(tickBld); // T325` |
+| ├ 第一經濟迴圈（計數／幸福） | 14745 | `for(const i88 of tickBld){` |
+| ├ 產業鏈 | 15014 | `/* ===== T364b A 深加工鏈 BEGIN =====` |
+| ├ 災害段 | 15076 | `// T69/T70 災害（可關）` |
+| ├ 生長／升級／合併／火災 | 15244 | `// 生長：收集候選` |
+| ├ **第二經濟迴圈（稅收守衛鏈）** | 15530 | `const civicMul=chN>0?1.03:1;` |
+| └ 維護費／評分／`aiStep` 呼叫 | 15684 | `if(diff!==3)money+=income-upkeep;` |
+|　├ updCars| 16126 | `function updCars(dt){` |
+| §6 載具與煙／`computeCommute` | 16856 | `function computeCommute(){` |
+| §7 繪製起點：`DIRSCR` / 雨雪 | 16419 | `const DIRSCR=[[4,-2],[4,2],[-4,2],[-4,-2]];` |
+| 粒子池 `fxParts` | 16449 | `/* ---------- T159 粒子特效豐富化` |
+| `daylight()` | 16545 | `function daylight(){` |
+| `streetHash` | 16941 | `function streetHash(x,y,salt){` |
+| **T367 旋轉變換層** | 16956 | `/* ===== T367 視角四向旋轉：view-space 變換層` |
+| 地面快取全域 | 17045 | `let groundDirty=true,groundCache=null,` |
+| **`draw()` 全體** | 17321 | `function draw(dt){` |
+| ├ 地面層與 groundCache 重烘 | 17464 | `// ---- 地面層 ----（T96：離屏快取` |
+| ├ `objs` 收集與深度排序 | 17883 | `// ---- 物件層（依深度排序） ----` |
+| ├ 地格分支（建築十餘層加疊） | 18325 | `const t=o.t;` |
+|　├ T403b/c 農事與牧場動態| 18833 | `/* ===== T403b/c 農事與牧場動態（T368a 純視覺路線：零狀態、零陣列，一切由` |
+| ├ 天氣後製與晝夜 multiply | 18998 | `// ---- 天氣色調（雨天壓暗` |
+| └ 夜燈層 `nightSprites` | 19193 | `// ---- 夜間燈光（T212` |
+|　├ drawGroundMemory428| 19690 | `function drawGroundMemory428(g,x,y,sx,sy,z){` |
+| `drawCursor` / `drawHoverLabel` / `toTile` | 20190 | `function drawHoverLabel(sxOf,syOf,z){` |
+| undo 群組 helper | 20261 | `const openUndo=()=>{undoGroup={snaps:[],seen:{},spent:0};};` |
+| `commitRect` 批次施作 | 20478 | `const hiBld=(x,y)=>{const b=T(idx(x,y)).bld;` |
+| `UP_MAX` / `upCost` / `upgradeBld` | 20512 | `const UP_MAX={9:15,6:10,7:10,11:10,12:10` |
+| `inspect()` 建築檢視面板 | 20538 | `function svcStatTable(x,y,b){` |
+|　├ MOODS| 20971 | `const MOODS={` |
+| §10 UI 起點：`buildToolbar` | 21238 | `function buildToolbar(){` |
+| `drawMini` 小地圖 | 21349 | `const MINI_VIEW_NAME=` |
+| `statTab` / `dataTable` / `serviceRefRows` | 21426 | `T319 標準化數據表格產生器` |
+| `toast` / `updHud` / HUD 三鈕 | 21511 | `T311 提示訊息不刷屏` |
+| 存檔槽面板／分享碼 | 21606 | `function showSlots(){` |
+| 地圖／場景編輯器 | 21723 | `function showEditor(){` |
+| 歷史曲線／城市顧問／因果追溯 | 21856 | `function cityAdvisor(allT522){` |
+| `showStats()` 統計面板 | 22379 | `function showStats()` |
+| 通知中心／成就 | 22850 | `T114：通知中心——HUD 鈴鐺按鈕` |
+| `chipPanel()` 六晶片明細 | 22926 | `function chipPanel(which){` |
+| `showHelp()` 五分頁指南 | 23128 | `const tabs=['🚦 上手流程'` |
+| `undo()` / 快捷鍵 / 新手提示 | 23501 | `function checkHints(plants,roads){` |
+| §11 存檔：槽位／RLE／`save` | 23533 | `function slotKey(n){return SAVEKEY+'.s'+n;}` |
+| `MSZ` 多格尺寸反查表 | 23682 | `const MSZ={19:4,20:2,22:2,23:2,24:2,25:2` |
+| `load()` | 23725 | `const vlen=saveShapeOk533;` |
+| 自動存檔 | 23873 | `setInterval(()=>{if(tiles)save();},25000);` |
+| 主迴圈 `advance` / `frame` | 23886 | `while(simAcc>=DAYLEN&&steps<8){` |
+| `begin` / `toMainMenu` / 開始畫面注入 | 24028 | `function toMainMenu(){` |
+| `window.GV` 除錯鉤子（194 鍵） | 24145 | `window.GV={` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
