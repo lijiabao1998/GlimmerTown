@@ -44,6 +44,11 @@
    rAF shim（不受隱藏節流；只動排程零像素效應），或保持面板前置。隱藏面板另有兩坑：
    devicePixelRatio 退 1（sprite 尺度變）、canvas clientWidth 歸 0（畫布自縮 0）。
 
+12. **`window.__t574` 造境橋（T574 引入、套件注入，正式 GV 不含）**：約 50 個入口，關鍵幾個——
+   `clear()` **把整張圖鋪平成草地**（造境前清場用，誤呼叫＝整城消失）；`edit(x,y,field,obj)` 直寫格欄位；
+   `read/shape/inflate` 存讀內部；`cap/waterCap` 電水容量；`frame(x,y,…)` 真 draw 攔截；`actions()` 攔 doPlace 回傳序列。
+   T578 之後三座長視野見證城在 worker 內跑：worker 有自己的一份橋，主執行緒讀不到 worker 世界。
+
 ## 三、已判決案例索引
 
 | 指控 | 判決 | 出處 |
