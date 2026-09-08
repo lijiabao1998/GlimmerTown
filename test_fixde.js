@@ -4,6 +4,10 @@
 //       快捷鍵 dataset.tid 反查、doze 鈕去重、showStats 逸出、sw.js 版號、inspect 文案
 const fs = require('fs');
 const path = require('path');
+/* T578 套件並行化：三座長視野見證城（T341／T574G18／T526G3）在 worker 跑同一份原文，主執行緒原位重放錄音。
+   非主執行緒一律靜音——否則 worker 的 PASS 行會流進 stdout 灌大 PASS 棘輪（等同作弊）。 */
+const WT578 = require('worker_threads');
+if (!WT578.isMainThread) { console.log = () => {}; console.error = () => {}; console.warn = () => {}; }
 const vm = require('vm');
 const crypto = require('crypto');
 const zlib = require('zlib');
@@ -882,6 +886,79 @@ function pointer(type, x, y) { // 模擬 canvas 指針事件（單指、左鍵�
 window.GV.newWorldSeeded(1);
 window.GV.weather(0);
 window.GV.addMoney(100000);
+
+/* ===== T578 並行基礎設施（業主 09-05「把問題解決吧，除了施工紀律必須要遵守」）=====
+   套件空機 327s、與業主另一專案滿載同跑時 1,116s＞verify.py 900s 硬限（T574 期間踩兩次、T576 合併前再踩一次）。
+   帶時間戳實測：T341 seed22/1200 天 98.5s、T574G18 seed3002/900 天 54.6s、T526G3 seed3003/600 天 29.8s＝56%，
+   三者皆以 newWorldSeeded 起頭、自足、其後測試各自重新造世界。故：主執行緒開跑即 spawn 三個 worker，
+   每個 worker 重跑同一份 bootstrap，從 __filename 依 @@T578 標記抽出區塊**原文**執行（同一份程式碼，不複製），
+   worker 內的 assert 是錄音機；主執行緒在原斷言位置 Atomics.wait 到 worker 完成，逐筆用真的 assert 重放
+   ＝PASS 文字／順序／數量／首紅即停逐字不變。原型實證 T341 區塊 inline 與 worker 逐項相等（卡面 §1）。
+   逃生閥 T578_INLINE=1：三區塊在原位 inline 跑（同一段原文），供等值證明與除錯。
+   已知坑：遊戲 bootstrap 內有 setInterval（rAF 後備／自動存檔），worker 事件迴圈不會自然結束——主執行緒
+   不等 exit，收到 message 即 terminate。 */
+const T578 = { mode: process.env.T578_INLINE ? 'inline' : 'worker', jobs: {}, names: ['T341', 'T574G18', 'T526G3'], waitMs: 850000 };
+function t578Body(name) {
+  const src = fs.readFileSync(__filename, 'utf8');
+  const b0 = '/* @@T578:BEGIN ' + name + ' */', e0 = '/* @@T578:END ' + name + ' */';
+  const b = src.indexOf(b0), e = src.indexOf(e0);
+  if (b < 0 || e < 0 || e <= b) return null;
+  return src.slice(b + b0.length, e);
+}
+if (!WT578.isMainThread && WT578.workerData && WT578.workerData.t578) {
+  // ---- worker 分支：跑指定區塊原文、錄音、回報；絕不進入主套件 ----
+  const wd = WT578.workerData, rec = [];
+  let err = null; const t0 = Date.now();
+  const body = t578Body(wd.t578);
+  if (body === null) err = '找不到 @@T578 標記：' + wd.t578;
+  else {
+    // 不可宣告或重新賦值 assert（verify.py harness 契約會紅——那道閘門是對的）：錄音機另名，
+    // 對抽出的區塊**文字**做一次純詞法替換 assert( → assert578( 再 eval；檔案原文一個字不動。
+    const assert578 = (cond, msg) => { rec.push([!!cond, String(msg)]); if (!cond) throw new Error('T578-STOP'); };
+    try { eval(body.replace(/\bassert\(/g, 'assert578(')); } catch (x) { if (!(x && x.message === 'T578-STOP')) err = String(x && x.stack || x); }
+  }
+  wd.port.postMessage({ rec, err, ms: Date.now() - t0 });
+  Atomics.store(wd.flag, 0, 1); Atomics.notify(wd.flag, 0);
+  return; // CJS 模組頂層 return：worker 到此為止
+}
+function t578Spawn(name) {
+  const ch = new WT578.MessageChannel();
+  const flag = new Int32Array(new SharedArrayBuffer(4));
+  const job = { name, port: ch.port1, flag, t0: Date.now(), err: null, w: null };
+  job.w = new WT578.Worker(__filename, { workerData: { t578: name, port: ch.port2, flag }, transferList: [ch.port2] });
+  job.w.on('error', e => { job.err = String(e && e.stack || e); Atomics.store(flag, 0, 1); Atomics.notify(flag, 0); });
+  T578.jobs[name] = job;
+}
+function t578Replay(name) {
+  const job = T578.jobs[name];
+  assert(!!job, 'T578 G3a ' + name + ' 的 worker 必須已被 spawn（主執行緒開跑即派工）');
+  const waited0 = Date.now();
+  if (Atomics.load(job.flag, 0) === 0) Atomics.wait(job.flag, 0, 0, T578.waitMs);
+  const m = WT578.receiveMessageOnPort(job.port);
+  const r = m ? m.message : null;
+  job.w.terminate();
+  console.log('T578 ' + name + ' worker ' + (r ? r.ms : '?') + 'ms, main waited ' + (Date.now() - waited0) + 'ms, since spawn ' + (Date.now() - job.t0) + 'ms');
+  assert(!!r, 'T578 G3b ' + name + ' worker 必須交回結果（' + (job.err || (Atomics.load(job.flag, 0) === 0 ? '逾時 ' + T578.waitMs + 'ms 未完成' : '無訊息')) + '）');
+  assert(r.rec.length > 0, 'T578 G3c ' + name + ' 錄音必須非空（區塊內至少一條斷言真的跑過）');
+  for (const [ok, msg] of r.rec) assert(ok, msg);
+  assert(!r.err, 'T578 G3d ' + name + ' worker 不得拋出非斷言例外：' + r.err);
+}
+if (T578.mode === 'worker') for (const n of T578.names) t578Spawn(n);
+{ // T578 G1 結構釘／G2 靜音釘（兩種模式都驗）
+  const src578 = fs.readFileSync(__filename, 'utf8');
+  for (const n of T578.names) {
+    const b = '/* @@T578:BEGIN ' + n + ' */', e = '/* @@T578:END ' + n + ' */';
+    assert(src578.split(b).length === 2 && src578.split(e).length === 2 && src578.indexOf(b) < src578.indexOf(e),
+      'T578 G1a ' + n + ' 的 BEGIN/END 標記各恰一次且成對');
+    const body = src578.slice(src578.indexOf(b) + b.length, src578.indexOf(e));
+    const iw = body.indexOf('newWorldSeeded('), istep = body.indexOf('.step(');
+    assert(iw >= 0 && istep > iw, 'T578 G1b ' + n + ' 區塊必須自足：先 newWorldSeeded 再 step（不准把有狀態依賴的測試搬進 worker）');
+    assert(body.indexOf('@@T578') < 0, 'T578 G1c ' + n + ' 區塊內不得巢狀另一個 T578 標記');
+  }
+  assert(src578.slice(0, 1200).includes("if (!WT578.isMainThread) { console.log = () => {};"),
+    'T578 G2 檔頭必須讓非主執行緒靜音（否則 worker 的 PASS 行灌進 stdout＝PASS 棘輪作弊）');
+  console.log('T578 mode=' + T578.mode);
+}
 
 // ================= (1) 七種單變體建築 v=0 與存檔正規化 =================
 console.log('\n-- (1) 單變體建築 v=0 / save-load 正規化 --');
@@ -5047,7 +5124,8 @@ runPwaTests().then(() => {
 
 
   // ===== T341 巨型合併鏈：Lv2+ 簇 → 2×2 摩天樓 → 3×3 巨廈（有機垂直進化） =====
-  {
+  if (T578.mode === 'worker') t578Replay('T341'); else {
+  /* @@T578:BEGIN T341 */
     assert(html.includes("SPR.bld['105_1_0']") && html.includes("SPR.bld['106_1_0']"), 'T341 巨廈/綜合體 sprite 鍵');
     assert(html.includes('const MEGA_POP=Math.round(POPS[3]*9*1.35)'), 'T341 巨廈人口＝九棟 lv3 總和×1.35');
     assert(html.includes('105:3,106:3'), 'T341 MSZ 需含 105:3/106:3（鐵律13）');
@@ -5126,6 +5204,7 @@ runPwaTests().then(() => {
     assert(rb2 && rb2.k === mk341 && rb2.sz === 3 && refs2 === 8, 'T341 巨廈 save→load 往返 root sz＋ref 全保留');
     window.GV.step(1);
     assert(isFinite(window.GV.stats().money) && window.GV.stats().pop > 0, 'T341 讀檔後首 tick 人口/資金正常');
+  /* @@T578:END T341 */
   }
 
 
@@ -11098,7 +11177,8 @@ runPwaTests().then(() => {
   assert(!day.arcs.some(p=>p[0]===0&&p[1]===0&&p[2]===172),'T574 G17b 日間不得新增園區泛光');
 }
 /* T574 G18 / T542 mature natural-city witnesses (relocated, not weakened) */
-{
+if (T578.mode === 'worker') t578Replay('T574G18'); else {
+/* @@T578:BEGIN T574G18 */
   const G=window.GV;G.setMapSize(72);G.newWorldSeeded(3002);G.setDiff(1);G.ai(true);
   for(let d=0;d<900;d++)G.step(1);G.ai(false);
   const kinds={};for(let y=0;y<G.N();y++)for(let x=0;x<G.N();x++){
@@ -11110,6 +11190,7 @@ runPwaTests().then(() => {
     'T542 G2 資源地理化：成熟自然城仍須有3油井＋3礦場，不得以新占地為由放寬成零（實得 '+(kinds[49]||0)+'/'+(kinds[50]||0)+'）');
   assert(kinds[121]===1&&kinds[122]===1&&kinds[123]===1,
     'T542 G2a 成熟自然城仍須有煉油廠／鋼鐵廠／造船廠各1座，實得 '+JSON.stringify([kinds[121]||0,kinds[122]||0,kinds[123]||0]));
+/* @@T578:END T574G18 */
 }
 /* T574 G19 large-map format boundary */
 {
@@ -11978,7 +12059,8 @@ runPwaTests().then(() => {
   assert((html.match(/notif526=\{last:\{\},pend:\{\},/g) || []).length >= 3,
     'T526 G2 節流狀態必須在宣告／newWorld／load 三處整個重置（鐵律7）');
   // G3 行為（靈魂）：總數大幅下降，但**種類數不得減少**
-  {
+  if (T578.mode === 'worker') t578Replay('T526G3'); else {
+  /* @@T578:BEGIN T526G3 */
     window.GV.newWorldSeeded(3003); window.GV.setDiff(3); window.GV.ai(true);
     for (let d = 0; d < 600; d++) window.GV.step(1);
     window.GV.ai(false);
@@ -12005,6 +12087,7 @@ runPwaTests().then(() => {
     assert(N526.agg > 0 && N526.reported >= N526.folded * .5,
       'T526 G3f【守恆】被折疊的 ' + N526.folded + ' 起事件必須有一大半透過聚合訊息回報（實得 reported='
       + N526.reported + '、聚合訊息 ' + N526.agg + ' 則）——靜靜吞掉就是騙玩家');
+  /* @@T578:END T526G3 */
   }
 }
 
