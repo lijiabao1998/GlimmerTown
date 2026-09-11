@@ -799,7 +799,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.189'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.190'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -3328,6 +3328,135 @@ function bakeLot574(k,v,stage,winter){
   const pal=palettes[(v+k)%palettes.length];
   const foot=(role,u,vv,du,dv)=>{feet.push({role,uv:[u,vv,du,dv],points:quad(u,vv,du,dv)});};
   const add=(u,vv,du,dv,fn)=>parts.push({dep:u+vv+du+dv,fn,foot574:[u,vv,u+du,vv+dv],role574:feet.length?feet[feet.length-1].role:'detail'});
+  /* T580 園區細節層（業主 2026-09-11「美術素材强化」）。病灶見卡面 §0：T570 的加蓋件只作用在 SPR.bld，
+     園區走 bakeLot574 另一條路，整個細節層從未套上——全城最大的建築反而是視覺上最空的。
+     三個 Kit 全部烘焙期執行、零 draw-time、**零亂數**：所有位置由 (k,v,u,vv,du,dv,bh) 的整數運算決定，
+     同鍵恆定。日圖寫 g（受 solid574 前遮後燈保護），夜圖只寫 ng。 */
+  const H580=(a,b)=>{let h=(k*73+v*31+Math.round(a*97)+Math.round(b*131))&255;h^=h>>4;return h&255;}; // 決定性雜湊，非亂數
+  /* T574 G23d 契約：夜圖亮點只允許落在日圖的窗／燈色上（#344d5b 玻璃／#b1c3c5 窗框／#ddd5ad 燈頭），
+     那是它判斷「前樓遮住後窗」的機制。LIT580 把「日燈具」與「夜發光」綁成同一個整數矩形，
+     前樓的日圖 fillRect 會同時抹掉兩者＝遮擋天然成立。所有新增夜光一律走這支。 */
+  const LIT580=(x,y,w2,h2,dayCol,nightCol)=>{
+    const x0=Math.round(x),y0=Math.round(y),w3=Math.max(1,Math.round(w2)),h3=Math.max(1,Math.round(h2));
+    g.fillStyle=dayCol;g.fillRect(x0,y0,w3,h3);
+    ng.globalCompositeOperation='source-over';ng.fillStyle=nightCol;ng.fillRect(x0,y0,w3,h3);
+  };
+  const roofKit580=(u,vv,du,dv,bh,colors,roof)=>{
+    const deck=(uu,vvv,z)=>P(u+uu,vv+vvv,z);
+    if(roof==='glass'){ // 玻璃頂：屋架樑＋脊線通風口＋周邊機組（主體多為 glass，第一版漏掉＝最大建築最空）
+      for(let uu=.34;uu<du-.2;uu+=.5)line(deck(uu,.12,bh+1),deck(uu,dv-.12,bh+1),'#7f9a9c',2); // 屋架樑
+      for(let uu=.3;uu<du-.2;uu+=.55){
+        const a=deck(uu,dv*.5,bh+1),b2=deck(uu+.22,dv*.5,bh+1);
+        face([a,b2,[b2[0],b2[1]-4],[a[0],a[1]-4]],'#93a8a6');line([a[0],a[1]-4],[b2[0],b2[1]-4],'#cfe0dc');
+      }
+      for(let uu=.26;uu<du-.3;uu+=.62){ // 周邊機組（貼屋頂邊緣，不擋採光帶）
+        const q=quad(u+uu,vv+dv-.34,.22,.18,bh+3);
+        face([q[3],q[2],[q[2][0],q[2][1]-3],[q[3][0],q[3][1]-3]],'#79837f');
+        face([[q[0][0],q[0][1]-3],[q[1][0],q[1][1]-3],[q[2][0],q[2][1]-3],[q[3][0],q[3][1]-3]],'#8fa39d');
+      }
+      for(let vvv=.3;vvv<dv-.28;vvv+=.7){ // 採光帶（日）
+        line(deck(.26,vvv,bh+2),deck(du-.26,vvv,bh+2),'#c8dde0',3);
+      }
+      return;
+    }
+    if(roof==='gable'){ // 斜頂：屋脊通風口＋老虎窗＋煙囪（第一版直接 return＝主體全空）
+      const rh=bh+9;
+      for(let uu=.35;uu<du-.25;uu+=.62){ // 屋脊通風脊帽
+        const a=deck(uu,dv*.5,rh+1),b2=deck(uu+.24,dv*.5,rh+1);
+        face([a,b2,[b2[0],b2[1]-3],[a[0],a[1]-3]],'#8e9790');line([a[0],a[1]-3],[b2[0],b2[1]-3],'#d3ddd4');
+      }
+      for(let uu=.3;uu<du-.3;uu+=.78){ // 老虎窗（朝鏡頭側屋坡）
+        const hsh=H580(u+uu,vv);if(hsh%4===0)continue;
+        const a=deck(uu,dv*.78,bh+4),b2=deck(uu+.2,dv*.78,bh+4);
+        face([a,b2,[b2[0],b2[1]-6],[a[0],a[1]-6]],'#b6b9a6'); // 老虎窗體
+        const dx0=Math.min(a[0],b2[0])+1,dy0=Math.min(a[1],b2[1])-5,dw=Math.max(2,Math.abs(b2[0]-a[0])-2);
+        if(hsh%3)LIT580(dx0,dy0,dw,3,'#344d5b','#ffe1a1');   // 窗玻璃用既有允許色，夜光同矩形（G23d 契約）
+        else{g.fillStyle='#344d5b';g.fillRect(dx0,dy0,dw,3);}
+      }
+      const ch=deck(du*.78,dv*.3,rh+2); // 煙囪
+      g.fillStyle='#8d7d6e';g.fillRect(ch[0]-2,ch[1]-9,5,10);
+      g.fillStyle='#a89685';g.fillRect(ch[0]-2,ch[1]-9,5,2);
+      return;
+    }
+    // 平頂：女兒牆壓線（呼應 T570 PARAPET 語彙）
+    const t=quad(u,vv,du,dv,bh);
+    line(t[3],t[2],shade(colors[1],-18),1);line(t[2],t[1],shade(colors[0],-18),1);
+    // 空調／機組陣列＋通風管：沿屋頂格點放置，邊緣留 .18 不出界
+    let units=0;
+    for(let uu=.2;uu<du-.24;uu+=.34)for(let vvv=.2;vvv<dv-.22;vvv+=.32){ // 步距 .46/.42→.34/.32：中型屋頂也排得下
+      const hsh=H580(u+uu,vv+vvv);
+      if(hsh%3===0)continue; // 決定性留空，讓屋頂不呆板
+      const q=quad(u+uu,vv+vvv,.24,.2,bh+3);
+      face([q[3],q[2],[q[2][0],q[2][1]-4],[q[3][0],q[3][1]-4]],'#79837f');
+      face([q[2],q[1],[q[1][0],q[1][1]-4],[q[2][0],q[2][1]-4]],'#98a29d');
+      face([[q[0][0],q[0][1]-4],[q[1][0],q[1][1]-4],[q[2][0],q[2][1]-4],[q[3][0],q[3][1]-4]],'#8fa39d');
+      if(hsh%5===0){const vp=deck(uu+.06,vvv+.24,bh+9);line(deck(uu+.06,vvv+.24,bh),vp,'#6f7a78',2);} // 通風管
+      units++;
+    }
+    // 大屋頂：天窗長條＋檢修走道
+    if(du*dv>=.85){ // 第一版門檻 1.6 太高，中型平頂全吃不到
+      for(let vvv=.34;vvv<dv-.34;vvv+=.62){
+        const a=deck(.3,vvv,bh+1),b2=deck(du-.3,vvv,bh+1);
+        line(a,b2,'#c8dde0',3);line([a[0],a[1]-2],[b2[0],b2[1]-2],'#dfeceb',1);
+      }
+      line(deck(du*.5,.26,bh+1),deck(du*.5,dv-.26,bh+1),'#8d9792',2); // 檢修走道
+    }
+    // 高樓：屋頂水塔
+    if(bh>=40){
+      const c1=deck(du*.72,dv*.28,bh+4);
+      lotEllipse574(g,c1[0],c1[1],5,3,'#8f9a96');
+      for(let hh=0;hh<7;hh++){g.fillStyle=shade('#a9b3ae',hh%2?-8:4);g.fillRect(c1[0]-5,c1[1]-hh,10,1);}
+      lotEllipse574(g,c1[0],c1[1]-7,5,3,winter?'#e2e9e6':'#bcc6c1');
+    }
+    // 醫療族大屋頂：直升機坪圓環
+    if((k===12||k===48)&&du*dv>=1.2){ // 第一版 2.2 讓 3×3 醫院永遠吃不到
+      const c1=deck(du*.5,dv*.5,bh+2);
+      lotEllipse574(g,c1[0],c1[1],13,7,'#6d7a76');
+      lotEllipse574(g,c1[0],c1[1],10,5,'#d8dcc4');
+      lotEllipse574(g,c1[0],c1[1],7,4,'#6d7a76');
+      g.fillStyle='#d8dcc4';g.fillRect(c1[0]-4,c1[1]-1,8,2);g.fillRect(c1[0]-1,c1[1]-4,2,8);
+    }
+    return units;
+  };
+  const nightKit580=(u,vv,du,dv,bh,role)=>{ // 夜光三件：門楣燈／招牌／屋頂燈籠
+    /* T574 G23d 契約：夜圖亮點只允許落在日圖的窗／燈色上（#344d5b 玻璃／#b1c3c5 窗框／#ddd5ad 燈頭），
+       那是它判斷「前樓遮住後窗」的機制。故每一處夜光都先在日圖畫出燈具本體，夜圖再以
+       **完全相同的整數矩形**發光——前樓的日圖 fillRect 會同時抹掉日燈具與夜光，遮擋天然成立。 */
+    const door=P(u+du*.57,vv+dv,0); // 與 box() 的門同一算式
+    LIT580(door[0]-5,door[1]-11,10,3,'#ddd5ad','#ffd9a0');           // 門楣燈具（日：燈頭色；夜：暖光）
+    if(du*dv>=.85){                                              // 屋頂燈籠（大屋頂）
+      for(let vvv=.34;vvv<dv-.34;vvv+=.62){
+        const a=P(u+.34,vv+vvv,bh+2),b2=P(u+du-.34,vv+vvv,bh+2);
+        const x0=Math.min(a[0],b2[0]),wid=Math.abs(b2[0]-a[0]);
+        if(wid>=4)LIT580(x0,Math.min(a[1],b2[1])-1,wid,2,'#344d5b','#b6d9e4');
+      }
+    }
+    if(hooks.sign&&SIGN580.includes(k)){                         // 招牌：日為暗玻璃面＋窗框，夜為燈箱
+      const sp=P(u+du*.55,vv+dv,bh*.62);
+      g.fillStyle='#b1c3c5';g.fillRect(Math.round(sp[0])-13,Math.round(sp[1])-4,26,8); // 外框（窗框色）
+      LIT580(sp[0]-12,sp[1]-3,24,6,'#344d5b','#ff9ad2');
+      LIT580(sp[0]-10,sp[1]-1,20,2,'#344d5b','#ffe6f4');
+      if(bh>=34){                                                // 高樓直式招牌
+        const vp=P(u+du,vv+dv*.5,bh*.78);
+        g.fillStyle='#b1c3c5';g.fillRect(Math.round(vp[0])-3,Math.round(vp[1])-13,6,21);
+        LIT580(vp[0]-2,vp[1]-12,4,19,'#344d5b','#ff9ad2');
+      }
+    }
+  };
+  const SIGN580=[2,35,36,39,40,41,42,43,44,65,66,76,80,82,83,87,91,99,100,101,103,115];
+  const groundKit580=(u,vv,du,dv)=>{ // 園內道路中線虛線（原本只有兩條路緣線）
+    const horiz=du>=dv;
+    if(horiz){for(let x=u+.12;x<u+du-.1;x+=.3)line(P(x,vv+dv*.5),P(Math.min(x+.15,u+du-.08),vv+dv*.5),'#cfcaa6',1);}
+    else{for(let y=vv+.12;y<vv+dv-.1;y+=.3)line(P(u+du*.5,y),P(u+du*.5,Math.min(y+.15,vv+dv-.08)),'#cfcaa6',1);}
+  };
+  const apron580=(u,vv,du,dv)=>{ // 機場停機坪：取代純色 ground，加停機格與滑行導引線
+    ground(u,vv,du,dv,'#8e9c9e');
+    for(let x=u+.2;x<u+du-.15;x+=.55){
+      line(P(x,vv+.1),P(x,vv+dv-.1),'#e3e0c6',1);
+      line(P(x,vv+dv*.5),P(Math.min(x+.3,u+du-.12),vv+dv*.5),'#e3e0c6',1);
+    }
+    line(P(u+.08,vv+dv-.16),P(u+du-.08,vv+dv-.16),'#e0c27a',2); // 滑行導引線
+  };
   const box=(role,u,vv,du,dv,bh=28,colors=pal,roof='flat')=>{
     if(!hooks.sign)hooks.sign=P(u+du*.55,vv+dv,bh*.55);
     const crown=P(u+du/2,vv+dv/2,bh+2);if(!hooks.aviation||crown[1]<hooks.aviation[1])hooks.aviation=crown;
@@ -3357,6 +3486,8 @@ function bakeLot574(k,v,stage,winter){
       }else{
         face(quad(u+.1,vv+.1,Math.min(.28,du-.18),Math.min(.25,dv-.18),bh+2),winter?'#cbd6d7':'#8c9b99');
       }
+      roofKit580(u,vv,du,dv,bh,colors,roof); // T580 屋頂設備層
+      nightKit580(u,vv,du,dv,bh,role);       // T580 夜間發光（只寫夜圖）
     });
     return P(u+du/2,vv+dv/2,bh);
   };
@@ -3390,7 +3521,7 @@ function bakeLot574(k,v,stage,winter){
       lotEllipse574(g,p[0]-2,p[1]-16,Math.ceil(r*28),Math.ceil(r*18),winter?'#e8ece2':'#7da568');});
   };
   const garden=(u,vv,du,dv)=>{ground(u,vv,du,dv,'#759866');for(let x=u+.18;x<u+du-.1;x+=.48)tree(x,vv+dv*.5,.13);};
-  const road=(u,vv,du,dv)=>{ground(u,vv,du,dv,'#707c7d');line(P(u,vv),P(u+du,vv),'#c7c5ab');line(P(u,vv+dv),P(u+du,vv+dv),'#c7c5ab');};
+  const road=(u,vv,du,dv)=>{ground(u,vv,du,dv,'#707c7d');line(P(u,vv),P(u+du,vv),'#c7c5ab');line(P(u,vv+dv),P(u+du,vv+dv),'#c7c5ab');groundKit580(u,vv,du,dv);}; // T580 中線虛線
   const fence=(u,vv,du,dv)=>{
     foot('fence',u,vv,du,dv);for(const [a,b]of[[[u,vv],[u+du,vv]],[[u,vv],[u,vv+dv]],[[u+du,vv],[u+du,vv+dv]],[[u,vv+dv],[u+du,vv+dv]]])add(a[0],a[1],b[0]-a[0],b[1]-a[1],()=>{
       line(P(a[0],a[1],4),P(b[0],b[1],4),'#a8af93');const steps=Math.ceil((Math.abs(b[0]-a[0])+Math.abs(b[1]-a[1]))*3);
@@ -3472,7 +3603,7 @@ function bakeLot574(k,v,stage,winter){
       road(.15,.17,n-.3,n*.18);road(.15,n*.43,n-.3,n*.12);
       for(let u=.28;u<n-.3;u+=.42)line(P(u,n*.115+.17),P(Math.min(u+.18,n-.15),n*.115+.17),'#e5e0c5',2);
       for(const u of[.4,n-.4])for(let j=0;j<4;j++)line(P(u,n*.055+.17+j*.12),P(u+.08,n*.055+.17+j*.12),'#e7e5d2',2);
-      ground(n*.37,n*.59,n*.55,n*.29,'#8e9c9e');box('terminal',.25,n*.68,n*.28,n*.23,38,pal,'glass');
+      apron580(n*.37,n*.59,n*.55,n*.29);box('terminal',.25,n*.68,n*.28,n*.23,38,pal,'glass'); // T580 停機格與滑行導引線
       hooks.radar=box('control',n*.13,n*.5,.4,.43,68,['#bcc8be','#7d9597','#6c858f']);
       for(let i=0;i<(k===114?3:2);i++){const u=n*.45+i*n*.16,vv=n*.73;foot('airplane',u-.3,vv-.34,.6,.68);add(u-.3,vv-.34,.6,.68,()=>{
         face([P(u-.31,vv,5),P(u-.05,vv-.1,5),P(u,vv-.38,5),P(u+.06,vv-.1,5),P(u+.3,vv,5),P(u+.06,vv+.05,5),P(u+.08,vv+.28,5),P(u-.08,vv+.28,5),P(u-.04,vv+.05,5)],'#d7e0dc');
