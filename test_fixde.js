@@ -11551,6 +11551,99 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
 }
 /* ===== T576 電源接路 END ===== */
 
+/* ===== T580 園區細節層補課守衛（美術素材強化；業主 2026-09-11「直接做…最大完成度」）=====
+   病灶：T570 的加蓋件只作用在 SPR.bld，T574 的園區走 bakeLot574 另一條路，整個細節層從未套上——
+   實拍證實全城最大的建築反而視覺上最空。三個 Kit 全烘焙、零 draw-time、零亂數。
+   本組守衛的核心是**標記色像素計數**：每一件加蓋物用一個專屬色，拔掉該件 → 該色歸零 → 紅。 */
+{
+  const MARK580 = { AC:'#8fa39d', SKY:'#c8dde0', HEL:'#d8dcc4', LANE:'#cfcaa6', APRON:'#e3e0c6', TAXI:'#e0c27a' };
+  const NMARK580 = { DOOR:'#ffd9a0', SKYN:'#b6d9e4', SIGN:'#ff9ad2' };
+  const hx580 = t => { const n = parseInt(t.slice(1), 16); return (((n >> 16) & 255) << 16) | (((n >> 8) & 255) << 8) | (n & 255); };
+  const tally580 = (cvs, cols) => {
+    const g = cvs.getContext('2d'), d = g.getImageData(0, 0, cvs.width, cvs.height).data, out = {}, idx = {};
+    for (const kk in cols) { out[kk] = 0; idx[hx580(cols[kk])] = kk; }
+    let opaque = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      if (!d[i + 3]) continue; opaque++;
+      const t = idx[(d[i] << 16) | (d[i + 1] << 8) | d[i + 2]]; if (t) out[t]++;
+    }
+    out._opaque = opaque; return out;
+  };
+  const bake580 = (k, v) => window.__t574.bakeTrace(k, v, false, window.__t417Canvas).sprite;
+
+  // G1 死碼釘：四個 Kit 必須定義**且**真被呼叫（只寫不接＝死碼，T574 期間已有前例）
+  for (const [fnName, callSite, why] of [
+    ['const roofKit580=', 'roofKit580(u,vv,du,dv,bh,colors,roof);', '屋頂設備層必須掛在 box() 的屋頂之後'],
+    ['const nightKit580=', 'nightKit580(u,vv,du,dv,bh,role);', '夜間發光必須掛在 box()'],
+    ['const groundKit580=', 'groundKit580(u,vv,du,dv);', '園內道路中線必須掛在 road()'],
+    ['const apron580=', 'apron580(n*.37,n*.59,n*.55,n*.29);', '機場停機坪必須改走 apron580 而非純色 ground'],
+  ]) {
+    assert(html.split(fnName).length === 2, 'T580 G1a ' + fnName + ' 必須恰定義一次');
+    assert(html.split(callSite).length === 2, 'T580 G1b 死碼釘：' + why + '（找不到呼叫點 ' + callSite + '）');
+  }
+
+  // G2 行為釘：真烘焙後數標記色。門檻取實測值七折，拔件→歸零→必紅。
+  const CASES580 = [
+    { k: 65, v: 0, nm: '商場5x5',  day: { AC: 235, SKY: 369 }, night: { DOOR: 23, SKYN: 355, SIGN: 149 } },
+    { k: 12, v: 0, nm: '醫院3x3',  day: { AC: 249, HEL: 86 },  night: { DOOR: 45, SKYN: 36 } },
+    { k: 9,  v: 0, nm: '體育場4x4', day: { AC: 351, SKY: 39 },  night: { DOOR: 63, SKYN: 21 } },
+    { k: 19, v: 0, nm: '機場7x7',  day: { SKY: 127, LANE: 166, APRON: 325, TAXI: 126 }, night: { DOOR: 25, SKYN: 114 } },
+    { k: 114, v: 0, nm: '國際機場9x9', day: { SKY: 259, LANE: 226, APRON: 530, TAXI: 161 }, night: { DOOR: 42, SKYN: 247 } },
+    { k: 31, v: 0, nm: '監獄4x4',  day: { AC: 479, SKY: 108 }, night: { DOOR: 104, SKYN: 102 } },
+    { k: 40, v: 0, nm: '電影院2x2', day: { AC: 44 },           night: { DOOR: 29, SIGN: 156 } },
+  ];
+  const seen580 = {};
+  for (const c of CASES580) {
+    const sp = bake580(c.k, c.v);
+    const d = tally580(sp.img, MARK580), n = tally580(sp.night, NMARK580);
+    seen580[c.nm] = { d, n };
+    for (const mk in c.day) assert(d[mk] >= c.day[mk],
+      'T580 G2 ' + c.nm + ' 日圖 ' + mk + ' 標記色應 >= ' + c.day[mk] + '，實得 ' + d[mk]
+      + '（此色只由 T580 的加蓋件產生；歸零＝該件被拔掉或門檻被改到吃不到屋頂）');
+    for (const mk in c.night) assert(n[mk] >= c.night[mk],
+      'T580 G2n ' + c.nm + ' 夜圖 ' + mk + ' 標記色應 >= ' + c.night[mk] + '，實得 ' + n[mk]);
+  }
+
+  // G2b 覆蓋面釘：主體屋頂（gable／glass）必須吃得到細節——第一版只咬 flat，最大的建築反而最空
+  assert(seen580['商場5x5'].d.AC > 0 && seen580['商場5x5'].d.SKY > 0,
+    'T580 G2b 商場主體是 glass 屋頂，必須有機組與採光帶（第一版 roofKit 對 glass 直接 return＝最大建築最空，本釘防止回退）');
+  assert(seen580['醫院3x3'].d.HEL > 0,
+    'T580 G2c 3×3 醫院必須畫得出直升機坪（第一版門檻 du*dv>=2.2 讓它永遠吃不到）');
+
+  // G3 不得溢出：新增像素一律在地塊幾何內。以 sz 與畫布尺寸的關係驗——
+  //    園區畫布 w=n*64+16、h=n*32+144；加蓋件不得改變畫布尺寸，也不得讓不透明像素貼到畫布邊界。
+  for (const c of [{ k: 65, v: 0, n: 5 }, { k: 114, v: 0, n: 9 }]) {
+    const sp = bake580(c.k, c.v);
+    assert(sp.w === c.n * 64 + 16 && sp.h === c.n * 32 + 144,
+      'T580 G3a k' + c.k + ' 畫布尺寸必須維持 n*64+16 × n*32+144，實得 ' + sp.w + '×' + sp.h);
+    const g = sp.img.getContext('2d'), d = g.getImageData(0, 0, sp.w, sp.h).data;
+    let edge = 0;
+    for (let x = 0; x < sp.w; x++) { if (d[(0 * sp.w + x) * 4 + 3]) edge++; if (d[((sp.h - 1) * sp.w + x) * 4 + 3]) edge++; }
+    for (let y = 0; y < sp.h; y++) { if (d[(y * sp.w) * 4 + 3]) edge++; if (d[(y * sp.w + sp.w - 1) * 4 + 3]) edge++; }
+    assert(edge === 0, 'T580 G3b k' + c.k + ' 加蓋件不得把像素推到畫布邊界（實得邊界不透明 ' + edge + ' 點）');
+  }
+
+  // G4 帳不變：LRU 上限常數未被放寬（加細節不得靠放寬記憶體帳換來）
+  assert(/LOT_CACHE_ENTRIES574\s*=\s*128\b/.test(html) && /LOT_CACHE_PIXELS574\s*=\s*12000000\b/.test(html),
+    'T580 G4 園區 LRU 上限必須維持 128 組／12,000,000 像素（不得為了塞細節而放寬）');
+
+  // G6 零亂數：剝註解與字串後掃三個 Kit 的整段
+  {
+    const bare580 = stripCommentsAndStrings438(html).text;
+    // 錨點鋹蝕教訓（本卡實踩）：'const box=' 在 index.html 出現 3 次，
+    // indexOf 會抓到更早的一處→切片變負。改用唯一且不含字串字面的終點錨，
+    // 並加段長合理性判準（沿用 T579 的元守衛精神）。
+    const END580 = 'const box=(role,u,vv,du,dv,bh=28,colors=pal,roof=';
+    const a = bare580.indexOf('const H580='), b = bare580.indexOf(END580);
+    assert(bare580.split(END580).length === 2, 'T580 G6a1 終點錨必須在全檔唯一');
+    assert(a >= 0 && b > a && b - a > 800 && b - a < 20000,
+      'T580 G6a 零亂數掃描的起訖錨必須有效且段長合理（a=' + a + ' b=' + b + ' 段長=' + (b - a) + '）');
+    const seg = bare580.slice(a, b);
+    assert(seg.length > 800 && !/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(seg),
+      'T580 G6 三個 Kit 必須零亂數（鐵律 2）——位置全由 (k,v,u,vv,du,dv,bh) 的整數運算決定，段長 ' + seg.length);
+  }
+}
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
