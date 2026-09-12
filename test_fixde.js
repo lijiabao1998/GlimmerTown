@@ -12142,6 +12142,249 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   }
 }
 
+/* ===== T582 軌道基礎設施補完守衛（橋樑／車擋／凹槽／道碴收邊／吊點對齊／夜光接線）=====
+   進場探針（卡面 §0，業主已看過取證圖）：同一套 dia/diaEdge 幾何，道路橋有底面陰影條、
+   橋面四向延伸、橋墩、側護欄四件，**軌道橋一件都沒有**；孤立軌道格是純土菱形；
+   死路的鋼軌在格中央憑空切斷；輕軌自稱凹槽軌但凹槽從沒畫出來；
+   電桿橫臂在螢幕 sy-5、接觸網在 sy+9，**差 14px＝橫臂什麼都沒吊**；
+   街燈／橋燈掛點是 t.road／t.bridge，整條鐵路走廊夜裡零光源。
+
+   軌道幾何全是純 fillRect 的模組層函式（dia／diaEdge／railTrack／catenary582），
+   所以本塊把它們切片**真跑**在一張會記顏色、會數裁切的假 canvas 上——
+   落點、顏色、雙向（該有的有／不該有的沒有）都是可斷言的像素事實，不必等真 Chrome。 */
+{
+  const bare582 = htmlBare438;
+
+  /* ── 台架（沿用 T581 退修後的版本：記顏色與 alpha、數裁切面積）────────── */
+  const alphaOf582 = (v) => {
+    const m = /^rgba?\(([^)]*)\)$/i.exec(String(v));
+    if (m) { const p = m[1].split(','); return p.length >= 4 ? parseFloat(p[3]) : 1; }
+    return String(v).toLowerCase() === 'transparent' ? 0 : 1;
+  };
+  const mkCv582 = (w, h) => {
+    const col = new Array(w * h).fill(null);
+    const st = { fill: '#000000', clip: 0 };
+    const g = {
+      get fillStyle() { return st.fill; }, set fillStyle(v) { st.fill = v; },
+      fillRect(x, y, rw, rh) {
+        const want = Math.max(0, Math.ceil(rw)) * Math.max(0, Math.ceil(rh));
+        if (alphaOf582(st.fill) <= 0) return;
+        let got = 0;
+        for (let yy = Math.floor(y); yy < Math.ceil(y + rh); yy++)
+          for (let xx = Math.floor(x); xx < Math.ceil(x + rw); xx++)
+            if (xx >= 0 && yy >= 0 && xx < w && yy < h) { col[yy * w + xx] = st.fill; got++; }
+        st.clip += want - got;
+      },
+    };
+    return { width: w, height: h, getContext: () => g, __col: col, __st: st, __g: g };
+  };
+  const has582 = (cvs, c) => { let n = 0; for (const v of cvs.__col) if (v === c) n++; return n; };
+  const bbox582 = (cvs, w) => {
+    let n = 0, y0 = 1e9, y1 = -1, x0 = 1e9, x1 = -1;
+    for (let i = 0; i < cvs.__col.length; i++) {
+      if (cvs.__col[i] === null) continue;
+      n++; const y = Math.floor(i / w), x = i % w;
+      if (y < y0) y0 = y; if (y > y1) y1 = y; if (x < x0) x0 = x; if (x > x1) x1 = x;
+    }
+    return { n, y0: n ? y0 : -1, y1, x0: n ? x0 : -1, x1 };
+  };
+
+  /* ── 把模組層的幾何函式切出來真跑（錨點一律驗唯一）──────────────── */
+  const cut582 = (start, end, gid, what) => {
+    assert(html.split(start).length === 2,
+      'T582 ' + gid + ' 起點錨「' + what + '」必須在全檔唯一，實得 ' + (html.split(start).length - 1)
+      + ' 處——不唯一時 indexOf 取第一個命中，整組會默默量到別的東西身上');
+    const i = html.indexOf(start), j = html.indexOf(end, i + start.length);
+    assert(j > i && j - i < 6000, 'T582 ' + gid + 'a 「' + what + '」段長不合理（' + (j - i) + '）');
+    return html.slice(i, j);
+  };
+  /* 三段新碼的起訖錨抽成**單一真相源**：SRC582（切出來真跑）與 G7（零亂數掃描）共用同一份。
+     第一版兩處各寫一份，改了一處另一處就漂——當場自捕，同一張卡上這族毛病的第二次。 */
+  const SEG582 = {
+    dia: ['function dia(g,cx,ty,hw,col){', '\n/*'],
+    diaEdge: ['function diaEdge(g,edges,col,cx=32,ty=0,hw=32){', '\n//'],
+    STOPPC582: ['function STOPPC582(m){', '\nfunction railTrack'],
+    railTrack: ['function railTrack(g,m,cy,len,cfg){', '\n/* T582 架空接觸網'],
+    catenary582: ['function catenary582(g,m,baseY,len,col){', '\n// 等距方塊'],
+    bridge: ['  const bridgeKit582=(g,m,deck)=>{', '  const TRAM_RAIL582='],
+  };
+  const seg582 = (k, gid) => cut582(SEG582[k][0], SEG582[k][1], gid, k);
+  const SRC582 = ['dia', 'diaEdge', 'STOPPC582', 'railTrack', 'catenary582', 'bridge']
+    .map((k, n) => seg582(k, 'G0' + 'abcdef'[n])).join('');
+  let API582;
+  try {
+    API582 = new Function(SRC582 + '\nreturn {dia,diaEdge,STOPPC582,railTrack,catenary582,bridgeKit582,bridgePier582};')();
+  } catch (e) {
+    assert(false, 'T582 G0 軌道幾何切片編譯失敗：' + e.message
+      + '——這些函式必須保持「純 fillRect 的模組層函式」，一旦引用外層名字本塊就跑不起來');
+  }
+  const MT582 = new Function('return ' + cut582('  const TRAM_RAIL582=', ';\n', 'G0g', '輕軌 cfg').split('=').slice(1).join('=') + ';')();
+  assert(MT582 && MT582.ballast === false && MT582.groove === true,
+    'T582 G0h 輕軌 cfg 必須是 {ballast:false, groove:true}——**從產品原文讀**，'
+    + '測試側自己手打一份會讓釘子驗的是「另一個產品」（T581 G9a2 判例）');
+
+  /* 標記色：每一件新畫件都有自己的顏色，於是「該有的有／不該有的沒有」可以雙向斷言。 */
+  const C582 = {
+    toe: '#584e42', groove: '#4e5a66', stopBlk: '#3a3a42', stopRed: '#c0403a', stopWhite: '#e8e4dc',
+    tieHi: '#5d4a34', pier: '#3f2f22', pierFoot: '#463321',
+  };
+  const runTrack582 = (m, cfg, W, H, cy, len) => {
+    const c = mkCv582(W, H);
+    API582.railTrack(c.__g, m, cy, len, cfg);
+    return c;
+  };
+
+  // G8 落點在畫布內（沿用 T581 判準）：任何落筆被畫布邊界吃掉即紅
+  for (let m = 0; m < 16; m++) for (const [nm, cfg, W, H, cy, len] of [
+    ['重軌', undefined, 64, 32, 16, 8], ['鐵路橋', undefined, 64, 44, 20, 6],
+    ['輕軌', MT582, 64, 32, 16, 8], ['輕軌橋', MT582, 64, 44, 20, 6],
+  ]) {
+    const c = runTrack582(m, cfg, W, H, cy, len);
+    assert(c.__st.clip === 0,
+      'T582 G8 ' + nm + ' m=' + m + ' 有 ' + c.__st.clip + ' 個像素被畫布邊界裁掉'
+      + '——畫到畫布外不會報錯、只會什麼都沒有（T581 實踩過一次受電弓火花畫在 y=-8）');
+  }
+
+  // G2 收頭釘（雙向）：連接數 ≤1 才有車擋；m=0 不得再是空菱形
+  for (let m = 0; m < 16; m++) {
+    const pc = API582.STOPPC582(m);
+    const c = runTrack582(m, undefined, 64, 32, 16, 8);
+    const blk = has582(c, C582.stopBlk), red = has582(c, C582.stopRed);
+    if (pc <= 1) {
+      assert(blk > 0 && red > 0,
+        'T582 G2 m=' + m + '（連接數 ' + pc + '）必須有車擋（擋塊 ' + blk + '／紅反光板 ' + red + '）'
+        + '——進場探針：死路的鋼軌原本在格中央憑空切斷');
+    } else {
+      assert(blk === 0 && red === 0,
+        'T582 G2a m=' + m + '（連接數 ' + pc + '）是通過式軌道，不得出現車擋（實得擋塊 ' + blk + '）');
+    }
+    if (m === 0) assert(bbox582(c, 64).n > 40,
+      'T582 G2b 孤立軌道格必須有短軌樁＋車擋，不得再是一張空菱形（實得落筆 ' + bbox582(c, 64).n + ' 點）');
+  }
+
+  // G3 凹槽釘（雙向）：只有輕軌有；重軌不得有
+  {
+    const tram = runTrack582(5, MT582, 64, 32, 16, 8), heavy = runTrack582(5, undefined, 64, 32, 16, 8);
+    assert(has582(tram, C582.groove) > 10,
+      'T582 G3 輕軌必須畫出凹槽（實得 ' + has582(tram, C582.groove) + ' 點）'
+      + '——註解自稱「嵌入鋪面的凹槽軌」而凹槽從沒畫出來，是本卡的進場探針之一');
+    assert(has582(heavy, C582.groove) === 0,
+      'T582 G3a 重軌不得有凹槽（實得 ' + has582(heavy, C582.groove) + ' 點）——一套幾何兩邊套就失去區別');
+    assert(has582(tram, C582.tieHi) === 0,
+      'T582 G3b 輕軌是嵌入鋪面，枕木埋在底下、不得露出端頭（實得 ' + has582(tram, C582.tieHi) + ' 點）'
+      + '——舊碼在 slHalf=0 時仍讓 k=0 跑一輪，每格留 8 個棕色像素浮在石板上');
+  }
+
+  // G4 道碴收邊釘（雙向）：重軌有坡腳；輕軌（ballast:false）不得有道碴色
+  {
+    const heavy = runTrack582(5, undefined, 64, 32, 16, 8), tram = runTrack582(5, MT582, 64, 32, 16, 8);
+    assert(has582(heavy, C582.toe) > 30,
+      'T582 G4 重軌道碴必須有坡腳暗帶（實得 ' + has582(heavy, C582.toe) + ' 點）'
+      + '——原本橫向掃到 slHalf+2.2 就硬切，讀起來是「鐵軌浮在一條噪點帶上」');
+    assert(has582(tram, C582.toe) === 0,
+      'T582 G4a 輕軌沒有道碴（ballast:false），不得出現坡腳色（實得 ' + has582(tram, C582.toe) + ' 點）');
+  }
+
+  // G1 橋樑四件釘：橋墩／護欄／底面陰影／橋面延伸，全部在台架上真跑
+  {
+    const mkBridge = (m, deck, hi, lo) => {
+      const c = mkCv582(64, 44);
+      API582.dia(c.__g, 32, 4, 32, '#5a4a3a');
+      API582.bridgeKit582(c.__g, m, deck);
+      API582.diaEdge(c.__g, (~m) & 15, '#8a7a5a', 32, 4, 32);
+      API582.bridgePier582(c.__g, m, hi, lo);
+      return c;
+    };
+    for (const [nm, deck, hi, lo] of [['鐵路橋', '#6b5e4a', '#c2c6ce', '#8e929a'],
+                                      ['輕軌橋', '#8e8e94', '#cdd6de', '#98a2ac']]) {
+      for (let m = 0; m < 16; m++) {
+        const c = mkBridge(m, deck, hi, lo);
+        assert(has582(c, C582.pier) >= 40 && has582(c, C582.pierFoot) >= 8,
+          'T582 G1 ' + nm + ' m=' + m + ' 必須有橋墩＋腳座（實得 ' + has582(c, C582.pier) + '／'
+          + has582(c, C582.pierFoot) + '）——道路橋 :3781-3782 有，軌道橋一件都沒有是本卡的進場探針');
+        assert(has582(c, 'rgba(0,0,0,.16)') > 0,
+          'T582 G1a ' + nm + ' m=' + m + ' 必須有底面陰影條（照道路橋 :3763-3767），否則橋體沒有厚度');
+        const railM = ((~m) & 15) & (2 | 4);
+        assert((has582(c, hi) > 0) === (railM !== 0),
+          'T582 G1b ' + nm + ' m=' + m + ' 側護欄應' + (railM ? '在場' : '不在場')
+          + '（裸露側緣 railM=' + railM + '，照 T203 :3783 的同一判準）');
+      }
+      /* G1c 橋面延伸釘：只數**橋面色**的橫向範圍。
+         第一版數的是「全部落筆的外框」——但橋體 dia(32,4,32) 本來就鋪滿 0..63，
+         外框永遠是 0..63，延伸與否完全看不出來（量錯對象，當場自捕）。 */
+      const deckSpan = (cvs) => {
+        let x0 = 64, x1 = -1, n = 0;
+        for (let i = 0; i < cvs.__col.length; i++) if (cvs.__col[i] === deck) {
+          n++; const x = i % 64; if (x < x0) x0 = x; if (x > x1) x1 = x;
+        }
+        return { n, x0, x1 };
+      };
+      const d5 = deckSpan(mkBridge(5, deck, hi, lo)), d0 = deckSpan(mkBridge(0, deck, hi, lo));
+      assert(d5.x0 < d0.x0 && d5.x1 > d0.x1 && d5.n > d0.n,
+        'T582 G1c ' + nm + ' 有連接方向時橋面必須朝該方向延伸（m=5 橋面色橫向 ' + d5.x0 + '..' + d5.x1
+        + '／' + d5.n + ' 點，未超過 m=0 的 ' + d0.x0 + '..' + d0.x1 + '／' + d0.n + ' 點）'
+        + '——原本 dia(32,8,24) 只有 48px 寬、到不了 64px 格邊，整條橋是一節一節斷開的');
+    }
+  }
+
+  /* G5 吊點對齊釘（本卡核心）。**兩邊的數字都從原文讀**，不在測試側重算一遍——
+     T581 的 G8 第一版就是自己重算落點、不讀程式碼裡真正那個數字，於是變成假釘。 */
+  {
+    const mArm = html.match(/g\.fillStyle='#4a4a52';g\.fillRect\(2,(\d+),6,2\);\s*\/\/ 橫臂/);
+    const mIns = html.match(/g\.fillStyle='#8a8a92';g\.fillRect\(1,(\d+),2,2\);/);
+    const mPole = html.match(/gc\.drawImage\(SPR\.tramPole,sx\+27\*z,sy-(\d+)\*z,10\*z,26\*z\)/);
+    const mWire = html.match(/gc\.drawImage\(SPR\.tramWire\[rotMask\(t\.tramMask\)\],sx,sy-\(t\.tramBridge\?(\d+):(\d+)\)\*z,64\*z,24\*z\)/);
+    const mBase = html.match(/catenary582\(g,m,(\d+),(\d+),'#[0-9a-f]{6}'\)/);
+    assert(mArm && mIns && mPole && mWire && mBase,
+      'T582 G5a 讀不到吊點對齊所需的五個原文數字（橫臂 y／絕緣子 y／電桿偏移／架空線偏移／catenary baseY）'
+      + '——錨點鏽蝕會讓本釘變成恆真式');
+    const armScreen = -(+mPole[1]) + (+mArm[1]);       // 橫臂在螢幕上的 y（相對 sy）
+    const insScreen = -(+mPole[1]) + (+mIns[1]);       // 絕緣子
+    const wireScreen = -(+mWire[2]) + (+mBase[1]);     // 接觸網在格心的螢幕 y
+    assert(Math.abs(wireScreen - armScreen) <= 1 || Math.abs(wireScreen - insScreen) <= 1,
+      'T582 G5【先有吊點，才有線】接觸網的螢幕 y（' + wireScreen + '）必須落在電桿橫臂（'
+      + armScreen + '）或絕緣子（' + insScreen + '）那一列，誤差 ≤1px。'
+      + '進場探針實測舊值是 +9 對 -5＝差 14px：橫臂什麼都沒吊，線從柱身中段穿出去');
+    const bridgeLift = (+mWire[1]) - (+mWire[2]);
+    assert(bridgeLift === 4,
+      'T582 G5b 橋上的架空線必須跟著橋面抬高 4px（橋面本身畫在 sy-4z），實得 ' + bridgeLift);
+    // G5c 架空線必須真的落在畫布內，且四幀…不，四個方向都畫得出來
+    for (let m = 1; m < 16; m++) {
+      const c = mkCv582(64, 24);
+      API582.catenary582(c.__g, m, +mBase[1], +mBase[2], '#6a6a72');
+      assert(c.__st.clip === 0 && bbox582(c, 64).n > 0,
+        'T582 G5c 架空線 m=' + m + ' 必須畫得出來且不被裁切（裁 ' + c.__st.clip + '／落筆 '
+        + bbox582(c, 64).n + '）');
+    }
+  }
+
+  /* G6 夜光接線釘：燈具掛點必須涵蓋軌道橋，且**燈具 sprite 在日間就畫出來**
+     （先有燈具，才有光——不得只 push 光而不畫燈，T574 G23d／T581 G9j 判例）。 */
+  {
+    assert(/\(t\.bridge\|\|t\.railBridge\|\|t\.tramBridge\)&&SPR\.bridgeLamp/.test(bare582),
+      'T582 G6 橋燈掛點必須涵蓋 t.railBridge 與 t.tramBridge'
+      + '——原條件只有 t.bridge，於是所有軌道橋夜裡零光源（進場探針 C）');
+    const lampBlk = cut582('(t.bridge||t.railBridge||t.tramBridge)&&SPR.bridgeLamp', 'if(!lodFar&&t.rdec)', 'G6a', '橋燈區塊');
+    assert(lampBlk.indexOf('gc.drawImage(bl.img') >= 0 && lampBlk.indexOf('rdecGlow.push') >= 0,
+      'T582 G6b 橋燈必須**先畫燈具**（gc.drawImage）再推光洗（rdecGlow.push）——'
+      + '只推光不畫燈就是憑空發亮');
+    assert(/t\.rail&&!t\.railBridge&&!window\.__noBufferGlow582&&STOPPC582\(rrm\)<=1/.test(bare582),
+      'T582 G6c 車擋反光板的夜光必須掛在「連接數 ≤1 的軌道格」且吃逃生閥；'
+      + '且必須用繪製端既有的 rrm（rotMask(t.railMask||0)），不得自己重算一次遮罩');
+  }
+
+  // G7 零亂數：三段新碼剝註解後掃描
+  {
+    for (const nm of ['railTrack', 'catenary582', 'bridge']) {
+      const seg = seg582(nm, 'G7a');
+      assert(!/\bR\s*\(|\bri\s*\(|\brand\b|Math\.random|spriteTexRand/.test(seg),
+        'T582 G7 ' + nm + ' 必須零亂數（鐵律 2）——位置全由 u/k 的整數與 0.5 步運算決定');
+    }
+    assert(/speck\(g,32,0,32,\['#7a6d58','#5d5040'\],30,rand\)/.test(html),
+      'T582 G7b SPR.rail 生成處的 speck 抽數（30）必須原樣不動——新增件插在它前後都不得位移亂數流');
+  }
+}
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {

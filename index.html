@@ -799,7 +799,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.191'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.192'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -2364,6 +2364,9 @@ function diaEdge(g,edges,col,cx=32,ty=0,hw=32){
    ③枕木加寬加厚 ④鋼軌加頂面高光＋軌腰陰影，讓兩條鋼軌在任何縮放下都分得開。
    cfg 讓輕軌共用同一套幾何但換風格：{ballast:false} ＝嵌入式凹槽軌（無道碴無枕木）＋架空線。
    全程純 fillRect 幾何、零亂數消耗（鐵律2）。 */
+/* T582：遮罩連接數（popcount）。車擋只畫在連接數 ≤1 的格，繪製端與 railTrack 共用同一判準，
+   避免兩邊各算一套（T581 G8 假釘判例：守衛／產品各重算一遍就會漂）。 */
+function STOPPC582(m){return (m&1)+((m>>1)&1)+((m>>2)&1)+((m>>3)&1);}
 function railTrack(g,m,cy,len,cfg){
   cfg=cfg||{};
   const gauge=cfg.gauge!==undefined?cfg.gauge:3.4;      // 半軌距（像素）＝兩軌相距 6.8px，遠看仍可辨
@@ -2371,52 +2374,98 @@ function railTrack(g,m,cy,len,cfg){
   const ballast=cfg.ballast!==false;
   const railC=cfg.railC||'#c6cad2', railTop=cfg.railTop||'#e8ecf2', railSh=cfg.railSh||'#7a7e86';
   const sleeperC=cfg.sleeperC||'#4a3a2a', sleeperHi=cfg.sleeperHi||'#5d4a34';
+  /* ═══ T582 收邊與構件（T567「剪影收邊／牆基 AO」語彙搬到軌道）═══
+     進場探針：道碴是等寬平塗棋盤、橫向掃到 slHalf+2.2 就硬切，鋼軌三層像素直疊、
+     軌腰下方沒有接地陰影 ⇒ 讀起來是「鐵軌浮在一條噪點帶上」，與 T567 之前建築「浮在地上」同病。
+     三件全部零亂數：位置由既有的 u/k 整數與 0.5 步運算決定。 */
+  const toeC=cfg.toeC||'#584e42';                       // 道碴坡腳暗帶（第三色，讓道碴帶有坡度而不是硬切）
+  const groundSh='rgba(0,0,0,.22)';                     // 軌腰接地陰影
+  const tieSh='rgba(0,0,0,.18)';                        // 枕木落影
+  /* T582 凹槽軌：tramTrack 的註解自稱「嵌入鋪面的凹槽軌」，但幾何與重軌是同一套三層直疊像素，
+     凹槽從來沒被畫出來（進場探針 A 圖目視確認）。cfg.groove 開啟後在鋼軌內側 1px 畫暗溝。 */
+  const grooveC=cfg.groove?(cfg.grooveC||'#4e5a66'):null;
   const AX={1:[2,-1],2:[2,1],4:[-2,1],8:[-2,-1]};
   const PERP={1:[2,1],2:[2,-1],4:[-2,-1],8:[-2,1]};     // 地面正交＝另一條等距軸（軌距的正解）
   const cx=32;
-  for(const bit of [1,2,4,8]){
-    if(!(m&bit))continue;
+  /* 單軸繪製抽成函式：原本這段直接寫在 for(bit) 迴圈裡，m=0 時整個迴圈 continue ⇒
+     孤立軌道格是一張純土棕菱形（進場探針 A 第一格）。抽出來之後 m=0 可以借軸畫一段短軌樁。 */
+  const drawAxis=(bit,uMax)=>{
     const a=AX[bit], ax=a[0], ay=a[1];
     const p=PERP[bit], pl=Math.hypot(p[0],p[1]), px=p[0]/pl, py=p[1]/pl;
     // ① 碎石道床：沿軸每 0.5 步、橫向掃到枕木外緣，兩色棋盤（(bx+by)&1）＝決定性紋理、零亂數
     if(ballast){
       const bw=slHalf+2.2;
-      for(let u=0;u<=len;u+=.5){
+      for(let u=0;u<=uMax;u+=.5){
         const bx=cx+ax*u, by=cy+ay*u;
         for(let k=-bw;k<=bw;k+=1){
           const qx=Math.round(bx+px*k), qy=Math.round(by+py*k);
           g.fillStyle=((qx+qy)&1)?'#7d7060':'#6a5f50';
+          if(Math.abs(k)>bw-2)g.fillStyle=toeC;   // T582 坡腳：**覆寫**而不是包裹——
+          // T344a 釘的是上一行的字面（道碴須為決定性棋盤紋），包成三元式會讓那根原文釘破掉。
+          // 動既有斷言需業主授權，所以改我自己的寫法：原文原封不動，像素結果相同。
           g.fillRect(qx,qy,1,1);
         }
       }
     }
-    // ② 枕木：每 2 步一根，2px 厚，端頭高光
-    for(let u=1.5;u<=len-.5;u+=2){
+    // ② 枕木：每 2 步一根，2px 厚，端頭高光（T582：下緣補落影）
+    /* T582：slHalf<=0 代表「嵌入鋪面」（輕軌），枕木埋在鋪面下本來就不該露出來——
+       舊碼在 slHalf=0 時仍讓 k=0 跑一輪，每格留 8 個棕色像素浮在石板上（實測數出來的）。 */
+    if(slHalf>0)for(let u=1.5;u<=uMax-.5;u+=2){
       const bx=cx+ax*u, by=cy+ay*u;
       for(let k=-slHalf;k<=slHalf;k+=1){
         const qx=Math.round(bx+px*k), qy=Math.round(by+py*k);
         g.fillStyle=(Math.abs(k)>slHalf-1.2)?sleeperHi:sleeperC;
         g.fillRect(qx,qy,1,2);
+        if(ballast){g.fillStyle=tieSh;g.fillRect(qx,qy+2,1,1);}                  // T582 枕木落影
       }
     }
-    // ③ 雙鋼軌：頂面高光 → 軌頭 → 軌腰陰影（三層，明顯）
-    for(let u=0;u<=len;u+=.5){
+    // ③ 雙鋼軌：接地陰影 → 軌腰 → 軌頭 → 頂面高光（T582 補最底那一層；凹槽在內側）
+    for(let u=0;u<=uMax;u+=.5){
       const bx=cx+ax*u, by=cy+ay*u;
       for(const sgn of [1,-1]){
         const qx=Math.round(bx+px*gauge*sgn), qy=Math.round(by+py*gauge*sgn);
+        if(ballast){g.fillStyle=groundSh;g.fillRect(qx,qy+2,1,1);}               // T582 軌腰接地
         g.fillStyle=railSh; g.fillRect(qx,qy+1,1,1);
         g.fillStyle=railC;  g.fillRect(qx,qy,1,1);
         g.fillStyle=railTop;g.fillRect(qx,qy-1,1,1);
+        if(grooveC){                                                            // T582 凹槽（僅輕軌）
+          const gx=Math.round(bx+px*(gauge-0.8)*sgn), gy=Math.round(by+py*(gauge-0.8)*sgn); // 緊貼軌頭內側（1.2 太遠，實測離軌 2-3px）
+          g.fillStyle=grooveC; g.fillRect(gx,gy,1,1);
+        }
       }
     }
-    // ④ 架空接觸網（輕軌/電氣化）：沿軸在軌面上方 7px 畫一條細線，跨格連續故無縫
-    if(cfg.wire){
-      g.fillStyle=cfg.wireC||'#6a6a72';
-      for(let u=0;u<=len;u+=.5){
-        const bx=cx+ax*u, by=cy+ay*u;
-        g.fillRect(Math.round(bx),Math.round(by)-7,1,1);
-      }
+  };
+  /* T582 車擋：死路（連接數 ≤1）的鋼軌原本在格中央憑空切斷（進場探針 A 第二格）。
+     在閉合側 u=-1 畫擋塊橫樑＋紅白反光板。**紅色反光板是實體塗裝、不是光**——
+     夜光由繪製端另掛（先有燈具，才有光）。 */
+  const bufferStop=(bit)=>{
+    const a=AX[bit], ax=a[0], ay=a[1];
+    const p=PERP[bit], pl=Math.hypot(p[0],p[1]), px=p[0]/pl, py=p[1]/pl;
+    const bx=cx+ax*-1, by=cy+ay*-1;
+    for(let k=-(gauge+1);k<=gauge+1;k+=1){
+      const qx=Math.round(bx+px*k), qy=Math.round(by+py*k);
+      g.fillStyle='#3a3a42'; g.fillRect(qx,qy-2,1,3);
     }
+    const rx=Math.round(bx), ry=Math.round(by);
+    g.fillStyle='#c0403a'; g.fillRect(rx-2,ry-4,2,2);
+    g.fillStyle='#e8e4dc'; g.fillRect(rx,ry-4,2,2);
+  };
+  for(const bit of [1,2,4,8]) if(m&bit) drawAxis(bit,len);
+  const pc=STOPPC582(m);                               // 與繪製端共用同一個 popcount
+  if(pc===0){ drawAxis(1,2.5); bufferStop(1); }        // 孤立格：短軌樁＋車擋
+  else if(pc===1){ bufferStop(m); }                    // 死路：閉合側車擋
+}
+/* T582 架空接觸網（自 railTrack 抽出）。原本畫在 tramTrack 的 sprite 裡、軌面上方 7px
+   ⇒ 螢幕 sy+9，而 tramPole 的橫臂在 sy-5，**兩者差 14px：橫臂什麼都沒吊，線從柱身中段穿出去**
+   （進場探針 B 圖標尺確認）。軌道 sprite 是 64×32、畫不到 sy-5，故把線移到獨立 sprite，
+   以負 y 偏移繪製，讓它落在橫臂／絕緣子那一列。判例：先有吊點，才有線。 */
+function catenary582(g,m,baseY,len,col){
+  const AX={1:[2,-1],2:[2,1],4:[-2,1],8:[-2,-1]};
+  g.fillStyle=col||'#6a6a72';
+  for(const bit of [1,2,4,8]){
+    if(!(m&bit))continue;
+    const a=AX[bit], ax=a[0], ay=a[1];
+    for(let u=0;u<=len;u+=.5)g.fillRect(Math.round(32+ax*u),Math.round(baseY+ay*u),1,1);
   }
 }
 // 等距方塊：底頂點 (cx,by)、半寬 hw（偶數）、牆高 h；回傳屋頂菱形頂點 y
@@ -7221,27 +7270,62 @@ function buildSpritesS7(){
    g.fillStyle='#8a8a92';g.fillRect(1,4,2,2);g.fillRect(7,4,2,2); // 絕緣子
    g.fillStyle='rgba(0,0,0,.28)';g.fillRect(3,24,4,2); // 落影
    SPR.tramPole=c;}
-  SPR.rail=[];SPR.railBridge=[];SPR.tramTrack=[];SPR.tramBridgeT=[];
+  SPR.rail=[];SPR.railBridge=[];SPR.tramTrack=[];SPR.tramBridgeT=[];SPR.tramWire=[];
+  /* ═══ T582 軌道橋補完 ═══
+     進場探針：同一套 dia/diaEdge 幾何，道路橋（:3760-3784）有底面陰影條、橋面四向延伸、
+     橋墩＋腳座、T203 側護欄四件，**軌道橋一件都沒有**——橋面 dia(32,8,24) 只有 48px 寬、
+     到不了 64px 的格邊，整條橋是一節一節斷開的。這不是風格取捨，是漏掉。
+     四件的幾何常數直接複用道路橋那一份（對照組跑了幾百版），不自創。 */
+  const bridgeKit582=(g,m,deck)=>{
+    g.fillStyle='rgba(0,0,0,.16)';                                   // ① 底面陰影條（照 :3763-3767）
+    for(let yy=8;yy<34;yy+=4){
+      const rr=yy-4,hr=(rr<16?(rr+1):(32-rr))*2-4;
+      if(hr>4)g.fillRect(32-hr+2,yy,hr*2-4,1);
+    }
+    dia(g,32,8,24,deck);
+    if(m&1)dia(g,48,4,16,deck);                                      // ② 橋面四向延伸（照 :3770-3773）
+    if(m&2)dia(g,48,20,16,deck);
+    if(m&4)dia(g,16,20,16,deck);
+    if(m&8)dia(g,16,4,16,deck);
+  };
+  const bridgePier582=(g,m,railHi,railLo)=>{
+    g.fillStyle='#3f2f22';g.fillRect(12,34,4,9);g.fillRect(48,34,4,9); // ③ 橋墩（照 :3781-3782）
+    g.fillStyle='#463321';g.fillRect(12,41,4,2);g.fillRect(48,41,4,2);
+    const railM=((~m)&15)&(2|4);                                      // ④ 側護欄（照 T203 :3783）
+    if(railM){diaEdge(g,railM,railHi,32,0,32);diaEdge(g,railM,railLo,32,2,32);}
+  };
+  const TRAM_RAIL582={ballast:false,gauge:2.8,slHalf:0,railC:'#b0bcc8',railTop:'#dfe8f2',railSh:'#6e7a86',groove:true};
   for(let m=0;m<16;m++){
     {const[c,g]=cv(64,32);dia(g,32,0,32,'#6b5e4a');speck(g,32,0,32,['#7a6d58','#5d5040'],30,rand);
      diaEdge(g,(~m)&15,'#9a8a6a');railTrack(g,m,16,8);SPR.rail.push(c);} // T189：疊鋼軌+枕木
-    {const[c,g]=cv(64,44);dia(g,32,4,32,'#5a4a3a');dia(g,32,8,24,'#6b5e4a');
-     diaEdge(g,(~m)&15,'#8a7a5a',32,4,32);railTrack(g,m,20,6);SPR.railBridge.push(c);} // T189：橋面鐵軌
+    {const[c,g]=cv(64,44);dia(g,32,4,32,'#5a4a3a');
+     bridgeKit582(g,m,'#6b5e4a');
+     diaEdge(g,(~m)&15,'#8a7a5a',32,4,32);
+     bridgePier582(g,m,'#c2c6ce','#8e929a');
+     railTrack(g,m,20,6);SPR.railBridge.push(c);} // T189：橋面鐵軌／T582：四件補完
     /* T344b 輕軌自有貼圖（原本 draw() 直接借用 SPR.rail，兩種軌道長得一模一樣）：
-       都市輕軌＝**嵌入鋪面的凹槽軌**——無道碴、無枕木、軌距略窄、鋼軌偏冷色，
-       外加一條架空接觸網（沿軸上方 7px，跨格連續無縫）＝一眼分辨「這是電車軌」。 */
+       都市輕軌＝**嵌入鋪面的凹槽軌**——無道碴、無枕木、軌距略窄、鋼軌偏冷色。
+       T582：凹槽（groove）以前只寫在這段註解裡、從來沒畫出來，現在真的畫了；
+       架空接觸網移出本 sprite（見 SPR.tramWire），因為 64×32 畫不到電桿橫臂的高度。 */
     {const[c,g]=cv(64,32);dia(g,32,0,32,'#8e8e94');
      for(let yy=0;yy<32;yy++)for(let xx=0;xx<64;xx++){ // 鋪面石板紋（決定性棋盤，零亂數）
        const dxp=Math.abs(xx-32)/2, dyp=Math.abs(yy-16);
        if(dxp+dyp<16&&((xx>>2)+(yy>>1))%2===0){g.fillStyle='rgba(255,255,255,.045)';g.fillRect(xx,yy,1,1);}
      }
      diaEdge(g,(~m)&15,'#a2a2a8');
-     railTrack(g,m,16,8,{ballast:false,gauge:2.8,slHalf:0,railC:'#b0bcc8',railTop:'#dfe8f2',railSh:'#6e7a86',wire:true});
+     railTrack(g,m,16,8,TRAM_RAIL582);
      SPR.tramTrack.push(c);}
-    {const[c,g]=cv(64,44);dia(g,32,4,32,'#5a4a3a');dia(g,32,8,24,'#8e8e94');
+    {const[c,g]=cv(64,44);dia(g,32,4,32,'#5a4a3a');
+     bridgeKit582(g,m,'#8e8e94');
      diaEdge(g,(~m)&15,'#a2a2a8',32,4,32);
-     railTrack(g,m,20,6,{ballast:false,gauge:2.8,slHalf:0,railC:'#b0bcc8',railTop:'#dfe8f2',railSh:'#6e7a86',wire:true});
+     bridgePier582(g,m,'#cdd6de','#98a2ac');
+     railTrack(g,m,20,6,TRAM_RAIL582);
      SPR.tramBridgeT.push(c);}
+    /* T582 架空接觸網獨立 sprite（64×24，以 sy-16z 繪製）：
+       tramPole 的橫臂／絕緣子在螢幕 sy-5，而 64×32 的軌道 sprite 最高只畫得到 sy+0，
+       所以線過去被迫畫在 sy+9、比橫臂低 14px。移出來之後 u=0 落在 sprite y=11 ⇒ 螢幕 sy-5，
+       正是橫臂那一列。**先有吊點，才有線。** */
+    {const[c,g]=cv(64,24);catenary582(g,m,11,8,'#6a6a72');SPR.tramWire.push(c);}
   }
   // T39 火車站 (k=17)
   for(let v=0;v<3;v++){const[c,g]=cv(72,112),[nc,ng]=cv(72,112),[sc,sg]=cv(72,112);
@@ -17794,7 +17878,9 @@ function draw(dt){
             rdecGlow.push({img:SPR.lampGlow.img,x:sx+32*z-lw/2,y:sy+16*z-lh/2,w:lw,h:lh});
           }
         }
-        if(!lodFar&&!window.__noLamp&&t.bridge&&SPR.bridgeLamp&&streetHash(x,y,1652)<.35){ // T359：橋面欄杆燈（原街燈排除橋格）——日間矮桿貼欄杆頂，夜間光洗欄杆面板（參考月台燈洗欄杆光柱）
+        /* T582：原條件只有 t.bridge，於是**所有軌道橋夜裡零光源**（進場探針 C）。
+           軌道橋現在也有護欄（bridgePier582 的第 ④ 件），燈具 sprite 日間可見＝先有燈具才有光。 */
+        if(!lodFar&&!window.__noLamp&&(t.bridge||t.railBridge||t.tramBridge)&&SPR.bridgeLamp&&streetHash(x,y,1652)<.35){ // T359：橋面欄杆燈（原街燈排除橋格）——日間矮桿貼欄杆頂，夜間光洗欄杆面板（參考月台燈洗欄杆光柱）
           const bl=SPR.bridgeLamp;
           gc.drawImage(bl.img,sx+(32-bl.ax)*z,sy-4*z+(11-bl.ay)*z,bl.w*z,bl.h*z);
           const rw359=streetHash(x,y,1651)<.5?SPR.railWashWarm:SPR.railWashCool;
@@ -17893,10 +17979,20 @@ function draw(dt){
         if(t.railBridge)gc.drawImage(SPR.railBridge[rrm],sx,sy-4*z,64*z,44*z);
         else gc.drawImage(SPR.rail[rrm],sx,sy,64*z,32*z);
       }
+      /* T582 車擋反光板夜光：日圖已由 railTrack 的 bufferStop 畫出**實體紅色塗裝**，
+         這裡只讓同一個位置在夜裡反光。連接數 ≤1 的格全城只有個位數，落筆成本可忽略。
+         先有燈具，才有光（T574 G23d／T581 G9j 判例）。 */
+      if(t.rail&&!t.railBridge&&!window.__noBufferGlow582&&STOPPC582(rrm)<=1)
+        rdecGlow.push({rect:[sx+30*z,sy+11*z,4*z,3*z],col:'#ff6a5a'});
       if(t.tram){ // T344b：輕軌改用自有貼圖（嵌入式凹槽軌＋架空線），不再與鐵路同圖
         // 錨：SPR.tramTrack?SPR.tramTrack[t.tramMask]（T344b 源碼斷言；實際索引經 rotMask＝T367 視角）
         if(t.tramBridge)gc.drawImage(SPR.tramBridgeT?SPR.tramBridgeT[rotMask(t.tramMask)]:SPR.railBridge[rotMask(t.tramMask)],sx,sy-4*z,64*z,44*z);
         else gc.drawImage(SPR.tramTrack?SPR.tramTrack[rotMask(t.tramMask)]:SPR.rail[rotMask(t.tramMask)],sx,sy,64*z,32*z);
+        /* T582 架空接觸網：移出軌道 sprite 之後才畫得到電桿橫臂的高度。
+           軌道 sy-16z ⇒ sprite y=11 落在螢幕 sy-5＝橫臂／絕緣子那一列；橋上再抬 4px（橋面本身抬 4）。
+           畫在電桿之前＝絕緣子壓在線上，讀起來是「線吊在絕緣子下」。 */
+        if(SPR.tramWire&&!window.__noTramWire582)
+          gc.drawImage(SPR.tramWire[rotMask(t.tramMask)],sx,sy-(t.tramBridge?20:16)*z,64*z,24*z);
         if(SPR.tramPole&&!t.tramBridge&&streetHash(x,y,613)<.26) // 稀疏電桿（決定性，約 1/4 格）
           gc.drawImage(SPR.tramPole,sx+27*z,sy-10*z,10*z,26*z);
       }
