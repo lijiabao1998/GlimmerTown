@@ -11644,6 +11644,504 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   }
 }
 
+/* ===== T581 軌道車輛動畫守衛（車輪旋轉／柴油排氣／受電弓火花／夜間頭燈光錐）=====
+   T344c 的靜態品質沒問題——單節 40+ 色塊、轉向架、四車輪、個別車窗、鼻錐、頭燈、受電弓——
+   缺的是**幀**：每個方向恰一張圖，車輪不轉、停車與全速外觀完全一樣。
+   本卡讓 mkVeh 產出 4 幀，**幀 0 就是原本那張 canvas 物件本身**（既有 12 個指紋鍵零變動），
+   幀索引由行進進度 p 驅動而非 visT——車停輪停，這是時間驅動做不到的。
+   Node 的 DOM stub 無像素（T563 G2／T570 G1c 判例），故像素層的「四幀互異」改由
+   docs/SPR_PINS.json 的 CRC 承接（那是真 Chrome 跑出來的），本檔驗物件層、清冊與原文。 */
+{
+  const S581 = window.__t420SPR;
+  // 第三欄＝夜圖應有的指紋種數。電力車（受電弓）f2 爆閃／f3 餘輝＝3 種；
+  // 柴油車與客車的動畫只有車輪與排煙，**車輪不是光源**，夜圖必須恰 1 種——
+  // 這一格同時是正釘與負釘：漏光＝黑夜裡輪子在發亮。
+  const RAIL581 = [['trainLoco/0', S581.trainLoco[0], 1], ['trainLoco/1', S581.trainLoco[1], 1],
+                   ['trainCar/0', S581.trainCar[0], 1], ['trainCar/1', S581.trainCar[1], 1],
+                   ['tramVeh/', S581.tramVeh, 3], ['tramVehB/', S581.tramVehB, 3]];
+  assert(RAIL581.every(r => r[1] && typeof r[1].w === 'number'),
+    'T581 G0 六種軌道車輛 record 必須都在場（trainLoco×2／trainCar×2／tramVeh／tramVehB）');
+
+  // G1 結構釘：四種面向都要有四幀，且四幀是四個不同的 canvas 物件
+  for (const [nm, sp] of RAIL581) {
+    for (const key of ['AF', 'BF', 'NAF', 'NBF']) {
+      assert(Array.isArray(sp[key]) && sp[key].length === 4,
+        'T581 G1a ' + nm + '.' + key + ' 必須是長度 4 的幀陣列，實得 '
+        + (Array.isArray(sp[key]) ? sp[key].length : typeof sp[key]));
+      assert(new Set(sp[key]).size === 4,
+        'T581 G1b ' + nm + '.' + key + ' 四幀必須是四個不同的 canvas 物件（同一物件重複＝假動畫）');
+      for (const cvs of sp[key]) assert(cvs && typeof cvs.getContext === 'function'
+        && cvs.width === sp.w && cvs.height === sp.h,
+        'T581 G1c ' + nm + '.' + key + ' 每幀都必須是與本體同尺寸（' + sp.w + '×' + sp.h + '）的 canvas');
+    }
+    // G2 向後相容釘：幀 0 必須**就是**原本那張（同一物件），不是「複製一份」
+    assert(sp.AF[0] === sp.A && sp.BF[0] === sp.B && sp.NAF[0] === sp.NA && sp.NBF[0] === sp.NB,
+      'T581 G2 ' + nm + ' 的幀 0 必須就是原本的 A/B/NA/NB 物件本身——改成複製一份，'
+      + '既有 12 個指紋鍵就可能漂移，且 __noTrainSpr fallback 與 GV 測試橋的語意會變');
+  }
+
+  // G3 清冊收錄釘：新幀必須進 sprAtlas356，否則新畫的圖沒有任何像素指紋看著
+  {
+    const keys581 = window.GV.sprAtlas356().entries.map(e => e.fam + '/' + e.key);
+    for (const [nm] of RAIL581) for (const f of [1, 2, 3]) {
+      assert(keys581.includes(nm + '.AF' + f) && keys581.includes(nm + '.BF' + f),
+        'T581 G3 ' + nm + ' 的第 ' + f + ' 幀必須進素材清冊（.AF' + f + '/.BF' + f
+        + '）——不進清冊＝沒有像素指紋看著它，而本專案以像素為真相源');
+    }
+    /* 覆核退修：原本只抽查 trainLoco/0.AF0 一格，改成六族 × AF0/BF0 全查。 */
+    for (const [nm] of RAIL581) for (const sfx of ['.AF0', '.BF0', '.NAF0', '.NBF0'])
+      assert(!keys581.includes(nm + sfx),
+        'T581 G3a ' + nm + sfx + ' 不得入冊——幀 0 就是 .A/.B，重複入冊＝同一張圖佔兩個指紋鍵');
+  }
+
+  // G4 像素互異釘：由真 Chrome 的 SPR_PINS 基線承接（Node stub 無像素，這是本檔唯一能驗到的像素事實）
+  {
+    const pins581 = JSON.parse(fs.readFileSync(path.join(__dirname, 'docs', 'SPR_PINS.json'), 'utf8'));
+    for (const [nm, , wantN] of RAIL581) for (const face of ['A', 'B']) {
+      const sfx = ['', 'F1', 'F2', 'F3'].map(t => '.' + face + t);
+      const day = sfx.map(t => pins581[nm + t] && pins581[nm + t][0]);
+      const ngt = sfx.map(t => pins581[nm + t] && pins581[nm + t][1]);
+      assert(day.every(c => typeof c === 'string'),
+        'T581 G4a ' + nm + face + ' 的四幀都必須在 SPR_PINS 有指紋，實得 ' + JSON.stringify(day)
+        + '（缺＝fp_snapshot 還沒重跑，或清冊沒收到這幀）');
+      assert(new Set(day).size === 4,
+        'T581 G4 ' + nm + face + ' 四幀的日圖指紋必須兩兩相異，實得 ' + JSON.stringify(day)
+        + '（相同＝做了四幀但內容一樣＝假動畫。此釘由真 Chrome 的 fp_snapshot 基線承接，'
+        + 'Node 的 DOM stub 無像素驗不到）');
+      /* 覆核退修：夜圖這一欄原本沒有型別前置，四個 undefined 的 Set size 也是 1，
+         於是「夜圖指紋全部不存在」與「恰 1 種」在這根釘眼裡等價＝零證據通過。 */
+      assert(ngt.every(c => typeof c === 'string'),
+        'T581 G4c ' + nm + face + ' 的四幀都必須有**夜圖**指紋，實得 ' + JSON.stringify(ngt)
+        + '——缺第二欄代表素材清冊沒把夜圖一起入冊，而 G4b 的 Set 計數對 undefined 是分不出來的');
+      assert(new Set(ngt).size === wantN,
+        'T581 G4b ' + nm + face + ' 夜圖指紋應恰 ' + wantN + ' 種，實得 ' + new Set(ngt).size
+        + ' ' + JSON.stringify(ngt) + (wantN === 1
+          ? '（>1＝車輪／排煙漏進發光層，夜裡輪子會發亮）'
+          : '（受電弓車必須是 f0=f1 無火花／f2 爆閃／f3 餘輝＝3 種；'
+            + '掉到 1 種＝火花被畫到畫布外，本卡實踩過一次）'));
+    }
+  }
+
+  /* G5／G6 幀索引與逃生閥（對抗覆核退修版）。
+     退修前：G5/G5a 只比對 `const fr581=…` **宣告那一行的字面**，全套守衛沒有任何一根看
+     `sp.AF[fr581]` 這些**取用點**——五個覆核鏡頭裡有四個各自獨立點名同一件事。
+     於是「宣告照抄、取用點一律寫 0」就讓輪子不轉、機車不冒煙、電車不閃火花，而整塊全綠。
+     G6 則只是 `__noVehAnim581` 的全檔**出現次數** >= 4，不分位置、不分讀寫、
+     更不管那次出現有沒有真的當閘門用（`if(!__noVehAnim581||true)` 照樣計數達標）。 */
+  {
+    const bare581 = htmlBare438;
+    // G5／G5a 宣告釘（保留）：運算式必須由行進進度驅動
+    assert(/const fr581=\(window\.__noVehAnim581\|\|!sp\.AF\)\?0:\(Math\.floor\(\(o\.train\.p\|\|0\)\*4\)&3\)/.test(bare581),
+      'T581 G5 火車幀索引必須是 Math.floor(o.train.p*4)&3（行進進度驅動＝車停輪停），不得改用 visT');
+    assert(/const fr581t=\(window\.__noVehAnim581\|\|!sp\.AF\)\?0:\(Math\.floor\(\(o\.tram\.p\|\|0\)\*4\)&3\)/.test(bare581),
+      'T581 G5a 電車幀索引同樣必須由 o.tram.p 驅動');
+    assert(!/\bfr581t?\s*=[^;]*visT/.test(bare581), 'T581 G5b 幀索引不得摻入 visT');
+
+    /* G5c **取用點釘（覆核補上的那一根）**：index.html 裡每一次對 AF/BF/NAF/NBF 的下標，
+       索引都必須是 fr581 或 fr581t。宣告寫得再漂亮，取用點寫 0 一樣是死的。 */
+    {
+      /* 只收**繪製點**：繪製端一律 `sp.AF[…]`，而素材清冊 sprAtlas356 的 walk() 用 `v.AF[f]`
+         逐幀入冊（那是 G3 的轄區，不該被這根釘管）。 */
+      const USE = /sp\.(AF|BF|NAF|NBF)\[([^\]]*)\]/g;
+      const uses = []; let mu;
+      const RE = new RegExp(USE.source, 'g');
+      while ((mu = RE.exec(bare581)) !== null) uses.push({ arr: mu[1], idx: mu[2].trim() });
+      assert(uses.length === 8,
+        'T581 G5c0 index.html 對 AF/BF/NAF/NBF 的下標必須恰 8 處（火車日夜各 2、電車日夜各 2），實得 '
+        + uses.length + '：' + JSON.stringify(uses));
+      for (const u of uses) assert(u.idx === 'fr581' || u.idx === 'fr581t',
+        'T581 G5c 取幀下標 `.' + u.arr + '[' + u.idx + ']` 必須是 fr581／fr581t——'
+        + '寫成常數（例如 0）就等於永遠畫第 0 幀：輪子不轉、機車不冒煙、電車不閃火花，'
+        + '而宣告那一行原封不動，G5／G5a 照樣綠。這根釘是對抗覆核揪出來補的');
+      assert(uses.filter(u => u.idx === 'fr581').length === 4
+        && uses.filter(u => u.idx === 'fr581t').length === 4,
+        'T581 G5c2 火車與電車各必須有 4 處取幀（日圖 A/B、夜圖 NA/NB）');
+    }
+
+    /* G6 **逃生閥位置釘（覆核退修）**：不再數次數，改成指名四處，
+       且每一處都必須是「未被稀釋的」條件——`||true`、`&&false`、重複 or 都算破壞。 */
+    {
+      const SITES = [
+        ['火車取幀', /const fr581=\(window\.__noVehAnim581\|\|!sp\.AF\)\?0:/],
+        ['電車取幀', /const fr581t=\(window\.__noVehAnim581\|\|!sp\.AF\)\?0:/],
+        ['火車光錐', /if\(!window\.__noVehAnim581\)\{/],
+        ['電車光錐', /if\(!window\.__noVehAnim581\)nightSprites\.push\(/],
+      ];
+      for (const [nm, re] of SITES) assert(re.test(bare581),
+        'T581 G6 逃生閥 __noVehAnim581 必須在「' + nm + '」原位當閘門用（找不到該寫法）'
+        + '——舊版只數全檔出現次數，把 `if(!__noVehAnim581||true)` 混進來照樣達標');
+      const all6 = bare581.match(/__noVehAnim581[^\n]{0,24}/g) || [];
+      assert(all6.length === 4,
+        'T581 G6a 逃生閥必須恰出現 4 處（多出來的那一處請先確認不是在稀釋閘門），實得 '
+        + all6.length + '：' + JSON.stringify(all6));
+      for (const seg of all6) assert(!/\|\|\s*true|&&\s*false/.test(seg),
+        'T581 G6b 逃生閥的判斷式不得被 `||true` / `&&false` 稀釋：' + seg);
+    }
+  }
+
+  /* ===== G8／G9 落點與內容釘（對抗覆核退修版）=====
+     出卡時這兩根釘各自只做一半的事，被五鏡頭覆核逐條拆穿，重寫如下。
+     退修前的毛病（每一條都對應一個「全綠但功能已死」的具體突變，全部留在卡面 §7）：
+       ① G9 的假 canvas 把 drawImage 設成 no-op ⇒ 對「複製幀 0」這一步結構性失明；
+          B 面（BF/NBF）靠鏡射 drawImage 產生，於是**從頭到尾沒被量過**。
+       ② 假 canvas 只記「哪裡落過筆」不記顏色 ⇒ G9j 聲稱「畫亮的像素」，實際只驗 footprint；
+          把日圖火花改成全透明，夜圖的光就憑空亮著而沒人管。
+       ③ 台架量的 n 是 footprint 面積、不是「與幀 0 相異」⇒ 四幀畫成一模一樣（假動畫）
+          在 Node 側零覆蓋，只剩 G4 而 G4 得等有人自願重跑 fp_snapshot。
+       ④ G8 的 picks 是寫死的六筆 ⇒ 第七筆新畫件畫到畫布外完全靜默。
+     重寫後：台架真複製、真鏡射、記顏色與 alpha、數裁切面積，底圖先塗哨兵色。 */
+  {
+    const bare581 = htmlBare438;
+    /* 錨點唯一性（覆核退修）：這幾個 match 都沒有 /g，拿的是**第一個命中**。
+       日後任何一個排在前面的 sprite 工廠只要也叫 bogies／也寫 const W2=..,H2=..，
+       整組落點釘就會拿別人的幾何去算軌道車輛——不紅，只是默默量錯對象。 */
+    const uniq581 = (re, gid, what) => {
+      const n = (bare581.match(new RegExp(re.source, 'g')) || []).length;
+      assert(n === 1, 'T581 ' + gid + ' 錨點「' + what + '」必須在全檔唯一，實得 ' + n
+        + ' 處——不唯一時 match() 取第一個命中，整組落點釘會默默量到別的 sprite 工廠');
+    };
+    /* 本釘自己第一版是用**前綴字串**數的，`const W2=` 抓到三處而誤紅——
+       正好示範了它要防的那件事：**數的東西必須跟用的東西是同一個**。 */
+    const RE_GEOM = /const SEG=(\d+), SW=(\d+), BODY_X=(\d+), BODY_Y=(\d+), BODY_H=(\d+);/;
+    const RE_CANV = /const W2=(\d+),H2=(\d+);/;
+    const RE_BOGI = /const bogies=(\[\[[^;]*?\]\]);/;
+    const RE_EXEY = /const ex=BODY_X\+\(SEG-2\)\*SW\+1, ey=BODY_Y-\(SEG-2\);/;
+    const RE_MXMY = /const mx=BODY_X\+3\*SW, my=BODY_Y-3, hot=\(f===2\);/;
+    uniq581(RE_GEOM, 'G8a1', '幾何常數行');
+    uniq581(RE_CANV, 'G8b1', '畫布尺寸行');
+    uniq581(RE_BOGI, 'G9a1', 'bogies 定義');
+    uniq581(RE_EXEY, 'G8c1', '排氣基準點 ex/ey');
+    uniq581(RE_MXMY, 'G8c2', '受電弓基準點 mx/my');
+    const mg = bare581.match(RE_GEOM);
+    assert(mg, 'T581 G8a 讀不到軌道車輛幾何常數行（錨點鏽蝕會讓本釘變成恆真式）');
+    const SEG9 = +mg[1], SW9 = +mg[2], BX9 = +mg[3], BY9 = +mg[4], BH9 = +mg[5];
+    const mh = bare581.match(RE_CANV);
+    assert(mh, 'T581 G8b 讀不到軌道車輛畫布尺寸（const W2=..,H2=..）');
+    const W29 = +mh[1], H29 = +mh[2];
+    assert(W29 >= 24 && W29 <= 64 && H29 >= 16 && H29 <= 48,
+      'T581 G8b2 軌道車輛畫布 ' + W29 + '×' + H29 + ' 超出合理範圍（放大畫布要跟卡面一起審）');
+    const mb = bare581.match(RE_BOGI);
+    assert(mb, 'T581 G9a 抓不到 bogies 定義（錨點鏽蝕）');
+    const bogies9 = new Function('BODY_X', 'BODY_Y', 'BODY_H', 'SEG', 'SW', 'return ' + mb[1] + ';')
+      (BX9, BY9, BH9, SEG9, SW9);
+    const WHEEL_TOP9 = Math.min.apply(null, bogies9.map(b => b[1] + 2));
+
+    /* ── 台架：一張會複製、會鏡射、會記顏色、會數裁切的假 canvas ──────────── */
+    const SENTINEL9 = '#010203';               // 底圖哨兵：幀 1-3 沒複製幀 0 就看不到它
+    const alphaOf9 = (v) => {                  // 只解析本專案實際用到的兩種寫法
+      const m = /^rgba?\(([^)]*)\)$/i.exec(String(v));
+      if (m) { const p = m[1].split(','); return p.length >= 4 ? parseFloat(p[3]) : 1; }
+      if (String(v).toLowerCase() === 'transparent') return 0;
+      return 1;                                 // #rrggbb 等一律視為不透明
+    };
+    const mkCv581 = (w, h) => {
+      const col = new Array(w * h).fill(null);  // 每個像素最後被畫上的顏色（null＝沒畫過）
+      const st = { fill: '#000000', tx: 0, ty: 0, sx: 1, sy: 1, clip: 0, strokeUsed: false };
+      const put = (x, y, v) => { if (x >= 0 && y >= 0 && x < w && y < h) { col[y * w + x] = v; return 1; } return 0; };
+      const g = {
+        get fillStyle() { return st.fill; }, set fillStyle(v) { st.fill = v; },
+        set strokeStyle(v) { st.strokeUsed = true; },
+        beginPath() { st.strokeUsed = true; }, moveTo() { st.strokeUsed = true; },
+        lineTo() { st.strokeUsed = true; }, stroke() { st.strokeUsed = true; },
+        fillRect(x, y, rw, rh) {
+          const want = Math.max(0, Math.ceil(rw)) * Math.max(0, Math.ceil(rh));
+          if (alphaOf9(st.fill) <= 0) return;   // 全透明＝沒畫（真 canvas 同語意）
+          let got = 0;
+          for (let yy = Math.floor(y); yy < Math.ceil(y + rh); yy++)
+            for (let xx = Math.floor(x); xx < Math.ceil(x + rw); xx++) got += put(xx, yy, st.fill);
+          st.clip += want - got;                // 被畫布邊界吃掉的面積
+        },
+        translate(dx, dy) { st.tx += dx; st.ty += dy; },
+        scale(kx, ky) { st.sx *= kx; st.sy *= ky; },
+        drawImage(src) {                        // 只支援本段用到的 (src,0,0)；含 translate/scale 鏡射
+          for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+            const v = src.__col[yy * w + xx]; if (v === null) continue;
+            const dx = Math.round(st.tx + st.sx * xx + (st.sx < 0 ? -1 : 0));
+            const dy = Math.round(st.ty + st.sy * yy + (st.sy < 0 ? -1 : 0));
+            put(dx, dy, v);
+          }
+        },
+      };
+      return [{ width: w, height: h, getContext: () => g, __col: col, __st: st }, g];
+    };
+    const paintBase9 = (cvs) => { const g = cvs.getContext('2d'); g.fillStyle = SENTINEL9; g.fillRect(0, 0, W29, H29); };
+    const stat9 = (cvs) => {
+      let n = 0, sent = 0, y0 = 1e9, y1 = -1, x0 = 1e9, x1 = -1;
+      for (let i = 0; i < cvs.__col.length; i++) {
+        const v = cvs.__col[i]; if (v === null) continue;
+        if (v === SENTINEL9) { sent++; continue; }
+        n++; const y = Math.floor(i / W29), x = i % W29;
+        if (y < y0) y0 = y; if (y > y1) y1 = y; if (x < x0) x0 = x; if (x > x1) x1 = x;
+      }
+      return { n, sent, y0: n ? y0 : -1, y1, x0: n ? x0 : -1, x1, clip: cvs.__st.clip };
+    };
+    const sameCol9 = (p, q) => {
+      for (let i = 0; i < p.__col.length; i++) if (p.__col[i] !== q.__col[i]) return false;
+      return true;
+    };
+
+    /* ── 把產品的幀生成段切片真跑。cfg **從產品自己的 mkVeh 呼叫原文取**，
+       不再是測試側手打的字面量（覆核指出：兩份各寫一份，改了旗標名字釘子會指向不存在的 bug）。 */
+    const START9 = 'const FR581=4', END9 = 'return {A:c,B:b2,NA:nc,NB:nb,AF,BF,NAF,NBF';
+    assert(html.split(START9).length === 2 && html.split(END9).length === 2,
+      'T581 G9b0 幀生成段的起訖錨必須在全檔唯一');
+    const slice9 = html.slice(html.indexOf(START9), html.indexOf(END9));
+    assert(slice9.length > 700 && slice9.length < 4000 && slice9.indexOf('for(let f=1;f<FR581;f++)') >= 0,
+      'T581 G9b 幀生成段切片異常（長度 ' + slice9.length + '）');
+    assert(!/\.(?:strokeStyle|beginPath|moveTo|lineTo|stroke|save|restore|globalAlpha|createLinearGradient)\b/.test(slice9),
+      'T581 G9b2 幀生成段目前只用 fillRect／drawImage；若要改用線條或漸層，'
+      + '必須先把本塊的台架（mkCv581）補上對應 API，否則台架量不到那筆落筆而靜默放行');
+
+    const CFG_RE = /mkVeh\(\{([^}]*)\}\)/g;
+    const cfgs9 = [];
+    for (let m; (m = CFG_RE.exec(html)) !== null;) {
+      const body = m[1];
+      if (body.indexOf('body:') < 0 || body.indexOf('glass:') < 0) continue;   // 濾掉同名的汽車工廠
+      cfgs9.push(new Function('return {' + body + '};')());
+    }
+    assert(cfgs9.length === 6,
+      'T581 G9a2 必須從產品原文取到 6 份 mkVeh 實參（trainLoco×2／trainCar×2／tramVeh／tramVehB），實得 '
+      + cfgs9.length + '——測試側自己手打 cfg 會讓釘子驗的是「另一個產品」');
+    const kindOf9 = (c) => (c.panto ? 'tram' : (c.loco ? 'loco' : 'car'));
+    /* 覆核退修：原本只要求「三類各至少一台」——把 tramVehB 的 panto:true 刪掉
+       （電車第二節沒有受電弓、夜裡不再閃火花）照樣綠。改成恰 2/2/2。 */
+    for (const [k, want] of [['loco', 2], ['car', 2], ['tram', 2]]) {
+      const got = cfgs9.filter(c => kindOf9(c) === k).length;
+      assert(got === want,
+        'T581 G9a3 六份 mkVeh 實參的類別必須恰 柴油機車 2／客車 2／電車 2，'
+        + k + ' 實得 ' + got + '——少一台電車代表有人把 panto:true 拿掉了，'
+        + '那一節車廂從此不閃火花，而 G9 用自己那份 cfg 照樣跑得很開心');
+    }
+
+    const run9 = (cfg) => {
+      const [c9] = mkCv581(W29, H29), [nc9] = mkCv581(W29, H29);
+      const [b29] = mkCv581(W29, H29), [nb9] = mkCv581(W29, H29);
+      paintBase9(c9); paintBase9(nc9); paintBase9(b29); paintBase9(nb9);
+      let fn;
+      try {
+        fn = new Function('cv', 'c', 'nc', 'b2', 'nb', 'cfg', 'bogies',
+          'BODY_X', 'BODY_Y', 'BODY_H', 'SEG', 'SW', 'W2', 'H2',
+          slice9 + '\nreturn {AF,BF,NAF,NBF};');
+      } catch (e) {
+        assert(false, 'T581 G9b3 幀生成段編譯失敗：' + e.message);
+      }
+      let r;
+      try {
+        r = fn(mkCv581, c9, nc9, b29, nb9, cfg, bogies9, BX9, BY9, BH9, SEG9, SW9, W29, H29);
+      } catch (e) {
+        assert(false, 'T581 G9b4 幀生成段執行失敗：' + e.message
+          + '——多半是它開始引用台架沒注入的外層名字（例如 shade／px／outlineSprite），'
+          + '請把那個名字加進 run9 的注入表，不要讓整個套件炸成無名例外');
+      }
+      return r;
+    };
+
+    for (const cfg of cfgs9) {
+      const kind = kindOf9(cfg), tag = kind + '(' + (cfg.body || '?') + ')';
+      const r = run9(cfg);
+      for (const face of ['AF', 'BF', 'NAF', 'NBF']) {
+        assert(Array.isArray(r[face]) && r[face].length === 4, 'T581 G9-0 ' + tag + '.' + face + ' 必須是四幀');
+      }
+      const A = r.AF.map(stat9), B = r.BF.map(stat9), NA = r.NAF.map(stat9), NB = r.NBF.map(stat9);
+
+      // G8（重寫）：**任何**落筆被畫布邊界裁掉都紅——不再只管 picks 那六筆
+      for (const [face, arr] of [['AF', r.AF], ['BF', r.BF], ['NAF', r.NAF], ['NBF', r.NBF]])
+        for (let f = 1; f < 4; f++) assert(arr[f].__st.clip === 0,
+          'T581 G8 ' + tag + '.' + face + '[' + f + '] 有 ' + arr[f].__st.clip
+          + ' 個像素被畫布邊界裁掉——畫到畫布外不會報錯、只會什麼都沒有。'
+          + '本卡第一版就是這樣把受電弓火花畫在 y=-8 的（日圖指紋照樣四幀全異，只有夜圖 CRC 全同洩底）');
+
+      // G9a4 複製幀 0 釘：幀 1-3 必須帶著底圖的哨兵色 ⇒ 證明 drawImage(c,0,0) 那一步在場
+      for (let f = 1; f < 4; f++) {
+        assert(A[f].sent > 0 && NA[f].sent > 0,
+          'T581 G9a4 ' + tag + ' 第 ' + f + ' 幀必須先把幀 0 複製過來（底圖哨兵不見了）'
+          + '——少了 gf.drawImage(c,0,0) 這一句，新幀會只剩輪子浮在透明背景上');
+        assert(B[f].sent > 0 && NB[f].sent > 0, 'T581 G9a5 ' + tag + ' 第 ' + f + ' 幀的 B 面同樣必須複製到底圖');
+      }
+
+      // G9a6 鏡射釘（本次覆核才補上：B 面過去從頭到尾沒被量過）
+      for (let f = 1; f < 4; f++) {
+        assert(B[f].n === A[f].n && NB[f].n === NA[f].n,
+          'T581 G9a6 ' + tag + ' 第 ' + f + ' 幀的 B 面落筆數必須等於 A 面（實得 ' + B[f].n + ' vs ' + A[f].n
+          + '）——B 面是鏡射複製當幀的 cf/nf；只要鏡射源寫成 c/nc，B 面就永遠停在幀 0');
+        if (A[f].n) assert(B[f].x0 === W29 - 1 - A[f].x1 && B[f].y0 === A[f].y0,
+          'T581 G9a7 ' + tag + ' 第 ' + f + ' 幀 B 面必須是 A 面的水平鏡射');
+      }
+
+      // G9-diff 幀互異釘（**Node 側第一次咬得到假動畫**）：四幀的像素內容兩兩不同
+      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++)
+        assert(!sameCol9(r.AF[i], r.AF[j]),
+          'T581 G9-diff ' + tag + ' 第 ' + i + ' 幀與第 ' + j + ' 幀逐像素相同＝假動畫。'
+          + '這根釘在覆核前不存在：舊台架量的是「落筆 footprint 面積」，'
+          + '四幀畫成一模一樣它照樣是 16 點＞0，只剩 G4 而 G4 要等有人自願重跑 fp_snapshot');
+
+      // G9c 客車：只有輪子在動，車頂零差異、夜圖零差異
+      if (kind === 'car') for (let f = 1; f < 4; f++) {
+        assert(A[f].n > 0 && A[f].y0 >= WHEEL_TOP9,
+          'T581 G9c 客車幀差必須全部落在轉向架高度（y>=' + WHEEL_TOP9 + '）以下，實得 y0=' + A[f].y0
+          + '——客車沒有動力也沒有受電弓，車頂出現差異就是排氣／火花漏接到了客車身上');
+        assert(NA[f].n === 0,
+          'T581 G9d 客車夜圖不得有新落筆（實得 ' + NA[f].n + '）——車輪不是光源，漏進發光層＝夜裡輪子在發亮');
+      }
+      // G9e 柴油機車：每幀都要有車頂排氣，且排氣不進發光層
+      if (kind === 'loco') {
+        assert(A.slice(1).every(d => d.y0 >= 0 && d.y0 < WHEEL_TOP9),
+          'T581 G9e 柴油機車每一幀都必須有車頂排氣（幀差要跨到 y<' + WHEEL_TOP9 + '），實得 y0='
+          + JSON.stringify(A.slice(1).map(d => d.y0)));
+        assert(NA.slice(1).every(d => d.n === 0),
+          'T581 G9f 柴油排氣不得進發光層——煙不發光（夜裡會變成一團亮斑跟著車跑）');
+      }
+      // G9g-k 電車：f1 無火花、f2 爆閃、f3 餘輝，且夜圖亮點是日圖亮色的子集
+      if (kind === 'tram') {
+        assert(NA[1].n === 0, 'T581 G9g 電車第 1 幀不得有火花（四幀取二才有閃爍感）');
+        assert(NA[2].n > 0 && NA[3].n > 0,
+          'T581 G9h 電車 f2/f3 的夜圖必須有受電弓火花，實得 ' + NA[2].n + '/' + NA[3].n
+          + '（0＝火花被算到畫布外：頂桿就在 y=0，頭上沒有任何餘裕，本卡第一版就摔在這裡）');
+        assert(NA[2].n > NA[3].n, 'T581 G9i f2 爆閃必須比 f3 餘輝亮（面積大）');
+        for (const f of [2, 3]) {
+          let leak = 0;
+          for (let i = 0; i < r.NAF[f].__col.length; i++) {
+            const ncol = r.NAF[f].__col[i];
+            if (ncol === null || ncol === SENTINEL9) continue;
+            const dcol = r.AF[f].__col[i];
+            if (dcol === null || dcol === SENTINEL9) leak++;
+          }
+          assert(leak === 0,
+            'T581 G9j【先有燈具，才有光】電車 f' + f + ' 的夜圖亮點必須全部落在日圖同幀**畫亮**的像素上，'
+            + '實得 ' + leak + ' 點憑空發亮——這是 T574 G23d 的同一條判例搬到載具上。'
+            + '（覆核退修：舊版台架不看顏色，把日圖火花改成全透明照樣綠）');
+        }
+        assert(A.slice(1).every(d => d.y1 >= WHEEL_TOP9), 'T581 G9k 電車每一幀仍必須有輪子在動');
+      }
+    }
+
+    /* G8e 餘裕釘（改成帶狀，不再是雙向等式）：受電弓頂桿本來就貼著畫布頂，
+       上面一格餘裕都沒有；但「把東西往下挪一格」是更安全的改動，不該紅。 */
+    {
+      const r = run9(cfgs9.find(c => kindOf9(c) === 'tram'));
+      const top = Math.min.apply(null, [1, 2, 3].map(f => stat9(r.AF[f]).y0).filter(v => v >= 0));
+      assert(top >= 0 && top <= 2,
+        'T581 G8e 電車新畫件的最高點應貼著畫布頂（實得 y=' + top + '）：'
+        + '往上會掉出畫布（G8 會紅），往下超過 2 格代表受電弓火花已經離開頂桿、'
+        + '視覺上不再是「電弧」。要調整得連卡面一起改');
+    }
+  }
+
+  /* G10 夜間頭燈光錐釘（對抗覆核退修版）。這件是 draw-time 的 nightSprites rect——
+     沒有 sprite 就沒有像素指紋，G4/G9 都看不到它，能守的只有原文與數值關係。
+     退修前三個毛病，覆核各給了一個「全綠但功能已死」或「無害改動卻誤紅」的突變：
+       ① 光錐的身分由寫死的小寫色碼認定 ⇒ 調個色就 G10 紅（誤紅），而把光池縮到 0.2 格全綠（漏抓）。
+       ② G10b 迴圈跑的是 `cones`（全檔掃描結果）不是 `trainCone` ⇒ 未來「汽車也要頭燈」那張卡
+          只要用了同形狀的光池，就會被這根 T581 釘管轄而誤紅。
+       ③ G10c 的正則結尾寫死 `if\(!__noVehAnim581\)\{`（要求大括號），
+          而電車那支是無括號寫法 ⇒ 全檔恰 1 個 match，**電車光錐一個字都沒被驗到**。
+     退修後：分別錨定火車段與電車段，驗量級下限與序關係，色碼只當附屬資訊。 */
+  {
+    const bare581 = htmlBare438;
+    const grab10 = (label, block) => {
+      const RE = /nightSprites\.push\(\{rect:\[sx\+v\[0\]\*([\d.]+)\*z-([\d.]+)\*z,sy\+v\[1\]\*\1\*z-\2\*z,([\d.]+)\*z,\3\*z\],col:'(#[0-9A-Fa-f]{6})'\}\)/g;
+      const out = []; let m;
+      while ((m = RE.exec(block)) !== null) out.push({ d: +m[1], off: +m[2], size: +m[3], col: m[4] });
+      return out;
+    };
+    /* 錨定：火車段 = 從火車取幀那行到該分支的 continue；電車段同理。 */
+    const cut10 = (startNeedle, label) => {
+      /* 覆核退修：原本只 assert(i>0)，沒驗起點錨全檔唯一——那正是 G7a/G9b0 已經在做、
+         卻沒推廣到這裡的那套元守衛。錨點不唯一時 indexOf 取第一個，整段會切到別人身上。 */
+      assert(html.split(startNeedle).length === 2,
+        'T581 G10x0 「' + label + '」的起點錨必須在全檔唯一（' + startNeedle + '），實得 '
+        + (html.split(startNeedle).length - 1) + ' 處');
+      const i = html.indexOf(startNeedle);
+      assert(i > 0, 'T581 G10x 抓不到「' + label + '」的起點錨（' + startNeedle + '）');
+      const j = html.indexOf('continue;', i);
+      assert(j > i && j - i < 2400, 'T581 G10x2 「' + label + '」段長不合理（' + (j - i) + '）');
+      return html.slice(i, j);
+    };
+    /* 大括號配平：從 needle 結尾的那個 `{` 起，找到與它配對的 `}`，回傳中間那段本體。
+       這是本釘第三版的核心——前兩版都在問「兩個字串離得近不近」，而不是「它在不在裡面」。 */
+    const body10 = (blk, needle, gid, what) => {
+      const i = blk.indexOf(needle);
+      assert(i >= 0, 'T581 ' + gid + ' 找不到「' + what + '」（' + needle + '）');
+      let k = i + needle.length - 1;
+      assert(blk[k] === '{', 'T581 ' + gid + 'a 「' + what + '」的錨點結尾必須是 {');
+      let depth = 0, end = -1;
+      for (; k < blk.length; k++) {
+        if (blk[k] === '{') depth++;
+        else if (blk[k] === '}') { depth--; if (depth === 0) { end = k; break; } }
+      }
+      assert(end > i, 'T581 ' + gid + 'b 「' + what + '」的大括號不配對');
+      return blk.slice(i + needle.length, end);
+    };
+    const trainBlk = cut10('const fr581=(window.__noVehAnim581', '火車繪製分支');
+    const tramBlk = cut10('const fr581t=(window.__noVehAnim581', '電車繪製分支');
+
+    const tCone = grab10('火車', trainBlk), mCone = grab10('電車', tramBlk);
+    assert(tCone.length === 2,
+      'T581 G10 火車頭燈必須是**兩段**漸弱光池（實得 ' + tCone.length + ' 段）'
+      + '——它是業主點名的「夜裡有頭燈的點、地面卻沒有光」的答案；退化成一段就只剩一塊亮斑');
+    assert(mCone.length === 1, 'T581 G10a0 電車頭燈必須有一段光池（實得 ' + mCone.length + '）');
+
+    assert(tCone[1].d > tCone[0].d && tCone[1].size > tCone[0].size,
+      'T581 G10a 火車頭燈第二段要更遠（' + tCone[1].d + '>' + tCone[0].d + '）、更大（'
+      + tCone[1].size + '>' + tCone[0].size + '）＝往前照的讀感');
+    /* 量級下限（覆核補上）：舊版只驗序關係與比例，把兩段光池縮到 0.2/0.3 格
+       ——地上等於沒有光——三根釘全綠。 */
+    for (const [nm, arr] of [['火車', tCone], ['電車', mCone]]) for (const c of arr) {
+      assert(c.d >= 1.5 && c.d <= 8,
+        'T581 G10d ' + nm + '光池的外推距離 ' + c.d + ' 必須落在 [1.5,8] 格：'
+        + '太近＝縮在車頭底下看不出「往前照」，太遠＝光池跟車脫節');
+      assert(c.size >= 2 && c.size <= 8,
+        'T581 G10e ' + nm + '光池邊長 ' + c.size + ' 必須落在 [2,8] 格（縮到次像素等於沒有光）');
+      assert(Math.abs(c.off * 2 - c.size) < 1e-9,
+        'T581 G10b ' + nm + '光池必須以外推點為中心（offset 恰為邊長的一半），實得 off='
+        + c.off + ' size=' + c.size + '——偏心的光池看起來像貼在車頭側面的一塊色板');
+      assert(/^#[0-9A-Fa-f]{6}$/.test(c.col), 'T581 G10f 光池色碼格式異常：' + c.col);
+    }
+    /* G10c 掛點釘：兩支都要驗（舊版的正則因為要求大括號，電車那支一個字都沒碰到）。 */
+    /* G10c 掛點釘（第三版：作用域，不是鄰近度）。
+       覆核的三個駁斥者一致指出：`[\s\S]{0,300}?` 只證明兩個字串相鄰，
+       把光錐提到 `if(o.carIdx===0){…}` 的 `}` 之後（間隙僅約 70 字）正則照咬，
+       而且**火車那條同構、兩邊都漏**。紅源 r11 之所以會紅，是因為它把整個
+       `if(o.carIdx===0){` 拿掉了——測到的是比較弱的突變。現在改成大括號配平。 */
+    for (const [nm, blk, valve] of [
+      ['火車', trainBlk, 'if(!window.__noVehAnim581){'],
+      ['電車', tramBlk, 'if(!window.__noVehAnim581)nightSprites.push'],
+    ]) {
+      const head = body10(blk, 'if(o.carIdx===0){', 'G10c' + (nm === '火車' ? 'T' : 'M'), nm + '的車頭分支');
+      assert(head.indexOf(valve) >= 0,
+        'T581 G10c ' + nm + '光錐必須掛在 carIdx===0（車頭）**本體之內**並受逃生閥保護——'
+        + '提到大括號之外，整列車每一節都會在地上拖一顆光池（「一串路燈」）；'
+        + '這一版用大括號配平判定，不再是「兩個字串離得近」');
+      const cones = (head.match(/nightSprites\.push\(\{rect:\[sx\+v\[0\]\*[\d.]+\*z/g) || []).length;
+      assert(cones === (nm === '火車' ? 2 : 1),
+        'T581 G10c3 ' + nm + '的光池必須恰 ' + (nm === '火車' ? 2 : 1) + ' 段落在車頭分支本體內，實得 ' + cones);
+    }
+    /* G10c2（覆核退修）：火車的**兩段**光池都必須在逃生閥區塊內。
+       舊版只要求區塊裡至少出現一次 push，於是把近段提到區塊外、只留遠段在裡面，
+       兩根釘都滿足——逃生閥打開後近段照亮，卡面 §6「回單幀與本卡前逐像素恆等」就是假的。 */
+    {
+      const valveBody = body10(trainBlk, 'if(!window.__noVehAnim581){', 'G10c2', '火車光錐的逃生閥區塊');
+      const nPush = (valveBody.match(/nightSprites\.push/g) || []).length;
+      assert(nPush === 2,
+        'T581 G10c2 火車頭燈的**兩段**光池都必須在逃生閥區塊本體內（實得 ' + nPush + ' 段）');
+    }
+  }
+
+  // G7 零亂數：多幀生成段（高光位置只由幀序 f 決定）
+  {
+    const bare581 = htmlBare438;
+    const END581 = 'return {A:c,B:b2,NA:nc,NB:nb,AF,BF,NAF,NBF';
+    assert(bare581.split('const FR581=4').length === 2 && bare581.split(END581).length === 2,
+      'T581 G7a 零亂數掃描的起訖錨必須在全檔唯一（錨點鏽蝕會讓本釘變成恆真式）');
+    const a = bare581.indexOf('const FR581=4'), b = bare581.indexOf(END581);
+    assert(b > a && b - a > 700 && b - a < 4000,
+      'T581 G7b 多幀生成段長度必須合理（a=' + a + ' b=' + b + ' 段長=' + (b - a) + '）');
+    const seg = bare581.slice(a, b);
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random|spriteTexRand/.test(seg),
+      'T581 G7 多幀生成段必須零亂數（鐵律 2）——高光位置由幀序 f 決定，段長 ' + seg.length);
+  }
+}
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {

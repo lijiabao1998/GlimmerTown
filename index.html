@@ -799,7 +799,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.190'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.191'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -7157,7 +7157,50 @@ function buildSpritesS7(){
       outlineSprite(c,26,30,40);
       const [b2,bg2]=cv(W2,H2); bg2.translate(W2,0); bg2.scale(-1,1); bg2.drawImage(c,0,0);
       const [nb,nbg]=cv(W2,H2); nbg.translate(W2,0); nbg.scale(-1,1); nbg.drawImage(nc,0,0);
-      return {A:c,B:b2,NA:nc,NB:nb,w:W2,h:H2,ox:16,oy:15};
+      /* T581 軌道車輛動畫（業主 2026-09-12「更好的火車動畫」）。T344c 的靜態品質沒問題——
+         單節 40+ 色塊、轉向架、四車輪、個別車窗、鼻錐、頭燈、受電弓——缺的是**幀**：
+         每個方向恰一張圖，車輪不轉、機車不冒煙、停車與全速外觀完全一樣。
+         **幀 0 就是上面那張 canvas 本身，一個像素都不重畫**（既有 12 個指紋鍵因此逐位元不動）；
+         幀 1-3 複製幀 0 後只覆蓋輪面與車頂小區域。零亂數：高光位置由幀序 f 決定。 */
+      const FR581=4, AF=[c], NAF=[nc], BF=[b2], NBF=[nb];
+      const WHEEL_HL581=[[0,0],[1,0],[1,1],[0,1]]; // 輪心高光四位輪轉；f=0 與原圖同位＝幀 0 不需重畫
+      /* 接觸表 6× 實拍的誠實回饋：只挪動 1px 高光在 2×2 輪面上**幾乎看不見**。
+         輪子就這麼大，能加的只有對比——讓高光每兩幀亮一次（輪輻每轉半圈反一次光）。
+         f=0 沿用原圖的暗高光（不重畫＝指紋零變動），f=1/3 亮、f=2 暗。 */
+      const WHEEL_LIT581=['#3d444f','#939daa','#3d444f','#939daa'];
+      for(let f=1;f<FR581;f++){
+        const [cf,gf]=cv(W2,H2); gf.drawImage(c,0,0);
+        const [nf,nfg]=cv(W2,H2); nfg.drawImage(nc,0,0);
+        for(const bgp of bogies)for(const wx of [bgp[0],bgp[0]+4]){
+          gf.fillStyle='#14181f'; gf.fillRect(wx,bgp[1]+2,2,2);                  // 重畫輪面
+          gf.fillStyle=WHEEL_LIT581[f&3];
+          const hp=WHEEL_HL581[f&3]; gf.fillRect(wx+hp[0],bgp[1]+2+hp[1],1,1);   // 高光輪轉＋兩幀一閃＝視覺上的轉動
+        }
+        if(cfg.loco&&!cfg.panto){                                                // 柴油機車車頂排氣（電車不冒煙）
+          const ex=BODY_X+(SEG-2)*SW+1, ey=BODY_Y-(SEG-2);
+          gf.fillStyle=['#c8cdd4','#b6bcc5','#a6adb7'][f-1];
+          gf.fillRect(ex,ey-1-f,2,2);
+          if(f>=2)gf.fillRect(ex+1,ey-2-f,2,1);                                 // 上升第二朵；ey-2-f 最低 y=0，不得再往上（畫布外＝白畫）
+        }
+        if(cfg.panto&&f>=2){
+          /* 受電弓火花（f=2 爆閃／f=3 餘輝）。第一版畫在 my-7／my-8＝y-1／y-8——**整個在畫布外**，
+             夜圖四幀 CRC 全同才抓到（Node 的 DOM stub 無像素，看不到這件事）。
+             幾何無情：W2=32,H2=22,BODY_Y=9 ⇒ 頂桿就在 y=0，頭上沒有任何餘裕。
+             故火花只能落在頂桿**自己那一列**與弓臂頂點。
+             夜圖的發光恰落在日圖剛畫亮的同一 footprint 上——「先有燈具，才有光」（T574 G23d 判例）。 */
+          const mx=BODY_X+3*SW, my=BODY_Y-3, hot=(f===2);
+          gf.fillStyle=hot?'#eaf6ff':'#b9d4e6';
+          gf.fillRect(mx+3,my-6,hot?3:1,1);                                      // 接觸條爆閃
+          if(hot)gf.fillRect(mx+4,my-5,1,1);                                     // 弓臂頂點濺火
+          nfg.fillStyle=hot?'#cfe9ff':'#7fa8c0';
+          nfg.fillRect(mx+3,my-6,hot?3:1,1);
+          if(hot)nfg.fillRect(mx+4,my-5,1,1);
+        }
+        const [bf,bfg]=cv(W2,H2); bfg.translate(W2,0); bfg.scale(-1,1); bfg.drawImage(cf,0,0);
+        const [nbf,nbfg]=cv(W2,H2); nbfg.translate(W2,0); nbfg.scale(-1,1); nbfg.drawImage(nf,0,0);
+        AF.push(cf); NAF.push(nf); BF.push(bf); NBF.push(nbf);
+      }
+      return {A:c,B:b2,NA:nc,NB:nb,AF,BF,NAF,NBF,w:W2,h:H2,ox:16,oy:15};
     };
     SPR.trainLoco=[
       mkVeh({loco:true,body:'#8a3a3a',roof:'#e8dcc0',glass:'#2b3550',lit:'#ffd98a'}),
@@ -18284,11 +18327,19 @@ function draw(dt){
       const face=(tdv===0||tdv===2)?'A':'B';
       const pt=o.train.pt===1?1:0;
       const sp=(o.carIdx===0)?SPR.trainLoco[pt]:SPR.trainCar[pt];
-      ctx.drawImage(sp[face],sx-sp.ox*z,sy-sp.oy*z,sp.w*z,sp.h*z);
+      // T581 幀索引由**行進進度**驅動（不是 visT）：車停下來輪子就停，這是時間驅動做不到的
+      const fr581=(window.__noVehAnim581||!sp.AF)?0:(Math.floor((o.train.p||0)*4)&3);
+      ctx.drawImage(sp.AF?(face==='A'?sp.AF[fr581]:sp.BF[fr581]):sp[face],sx-sp.ox*z,sy-sp.oy*z,sp.w*z,sp.h*z);
       if(b<.55){
-        nightSprites.push({img:sp[face==='A'?'NA':'NB'],x:sx-sp.ox*z,y:sy-sp.oy*z,w:sp.w*z,h:sp.h*z});
+        nightSprites.push({img:sp.NAF?(face==='A'?sp.NAF[fr581]:sp.NBF[fr581]):sp[face==='A'?'NA':'NB'],x:sx-sp.ox*z,y:sy-sp.oy*z,w:sp.w*z,h:sp.h*z});
         const v=DIRSCR[tdv];
-        if(o.carIdx===0)nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+        if(o.carIdx===0){
+          nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+          if(!window.__noVehAnim581){ // T581 頭燈光錐：沿行進方向兩段漸弱光池
+            nightSprites.push({rect:[sx+v[0]*2.2*z-1.5*z,sy+v[1]*2.2*z-1.5*z,3*z,3*z],col:'#e8dcaa'});
+            nightSprites.push({rect:[sx+v[0]*3.6*z-2*z,sy+v[1]*3.6*z-2*z,4*z,4*z],col:'#c8bc8a'});
+          }
+        }
         else nightSprites.push({rect:[sx-v[0]*z-z,sy-v[1]*z-z,2*z,2*z],col:'#ff4636'});
       }
       continue;
@@ -18361,10 +18412,12 @@ function draw(dt){
       const tv=(o.trd+viewRotEff())&3; // T376 B6 精細路徑
       const face=(tv===0||tv===2)?'A':'B';
       const sp=(o.carIdx===0)?SPR.tramVeh:SPR.tramVehB;
-      ctx.drawImage(sp[face],sx-sp.ox*z,sy-sp.oy*z,sp.w*z,sp.h*z);
+      const fr581t=(window.__noVehAnim581||!sp.AF)?0:(Math.floor((o.tram.p||0)*4)&3); // T581 同款：進度驅動
+      ctx.drawImage(sp.AF?(face==='A'?sp.AF[fr581t]:sp.BF[fr581t]):sp[face],sx-sp.ox*z,sy-sp.oy*z,sp.w*z,sp.h*z);
       if(b<.55){
-        nightSprites.push({img:sp[face==='A'?'NA':'NB'],x:sx-sp.ox*z,y:sy-sp.oy*z,w:sp.w*z,h:sp.h*z});
-        if(o.carIdx===0){const v=DIRSCR[tv];nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});}
+        nightSprites.push({img:sp.NAF?(face==='A'?sp.NAF[fr581t]:sp.NBF[fr581t]):sp[face==='A'?'NA':'NB'],x:sx-sp.ox*z,y:sy-sp.oy*z,w:sp.w*z,h:sp.h*z});
+        if(o.carIdx===0){const v=DIRSCR[tv];nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
+          if(!window.__noVehAnim581)nightSprites.push({rect:[sx+v[0]*2.2*z-1.5*z,sy+v[1]*2.2*z-1.5*z,3*z,3*z],col:'#e8dcaa'});}
       }
       continue;
     }
@@ -24452,7 +24505,14 @@ window.GV={
       if(isCvs(v)){push(fam,key,v);return;}
       if(!v||typeof v!=='object'){skipped++;return;}
       if(v.img!==undefined){push(fam,key,v.img,v.night,v.ax,v.ay,v.sc,v.nightCity);if(v.win563&&v.win563.img)push(fam,key+'.win563',v.win563.img,v.win563.night,v.win563.ax,v.win563.ay);return;} // T563：冬側版入清冊＝入 fp 基線（映射值被 CRC 釘死）
-      if(v.A!==undefined){push(fam,key+'.A',v.A,v.NA||null,v.ax,v.ay,v.sc);if(v.B!==undefined)push(fam,key+'.B',v.B,v.NB||null,v.ax,v.ay,v.sc);return;}
+      if(v.A!==undefined){push(fam,key+'.A',v.A,v.NA||null,v.ax,v.ay,v.sc);if(v.B!==undefined)push(fam,key+'.B',v.B,v.NB||null,v.ax,v.ay,v.sc);
+      /* T581：多幀車輛（AF/BF 與其夜圖）也要進清冊，否則新畫的幀沒有任何像素指紋看著——
+         本專案的原則是像素才是真相源。從 f=1 起，因為 f=0 就是上面已推入的 .A/.B（同一物件）。 */
+      if(Array.isArray(v.AF))for(let f=1;f<v.AF.length;f++){
+        push(fam,key+'.AF'+f,v.AF[f],(v.NAF&&v.NAF[f])||null,v.ax,v.ay,v.sc);
+        if(v.BF&&v.BF[f])push(fam,key+'.BF'+f,v.BF[f],(v.NBF&&v.NBF[f])||null,v.ax,v.ay,v.sc);
+      }
+      return;}
       if(Array.isArray(v)){for(let i=0;i<v.length;i++)walk(fam,(key?key+'.':'')+i,v[i]);return;}
       let any=false;
       for(const k2 in v){any=true;walk(fam,(key?key+'.':'')+k2,v[k2]);}
