@@ -1,0 +1,20 @@
+T583 對抗突變實跑（2026-09-13）
+來源：bay/codex 工作樹，index.html SHA-256 前後皆為
+7F1B39DBAADE76CB36E153E1D1398F02C80FA21F7CB6434F35AF9E0BB5F8228B
+
+CASE=G2 EXIT=1 FIRST=FAIL: T583 G2 target guard rejected injected defect
+  突變：拿掉次幹道冷白導引色。
+CASE=G3 EXIT=1 FIRST=FAIL: T583 G3 target guard rejected injected defect
+  突變：所有遮罩一律畫四條臂，含不存在的連接方向。
+CASE=G4 EXIT=1 FIRST=FAIL: T583 G4 target guard rejected injected defect
+  突變：四張單行箭頭全部強制用方向 0。
+CASE=G5 EXIT=1 FIRST=FAIL: T583 G5 target guard rejected injected defect
+  突變：移除高速橋四段伸縮縫。
+CASE=G6 EXIT=1 FIRST=FAIL: T583 G6 target guard rejected injected defect
+  突變：在真街燈分支外額外推入道路光洗。
+CASE=G8 EXIT=1 FIRST=FAIL: T583 G8 target guard rejected injected defect
+  突變：在道路語法入口注入 Math.random()。
+
+六案皆由同一份未落盤來源作字串替換後執行目標 guard；每案 control 先綠、突變後 exit 1，
+磁碟上的 index.html 未被改寫，前後 SHA-256 恆等。這份報告只證明列出的六種攻擊會被咬住，
+不把「exit 1」誇大成所有未知缺陷皆已排除。

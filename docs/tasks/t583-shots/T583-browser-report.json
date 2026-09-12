@@ -1,0 +1,278 @@
+{
+  "loadMs": 18984,
+  "setup": {
+    "made": 309,
+    "by": {
+      "alley": 61,
+      "road": 61,
+      "coll": 61,
+      "art": 61,
+      "hwy": 61,
+      "oneway": 4
+    },
+    "n": 72,
+    "title": "燕泊岸 · 微光小鎮",
+    "start": "none",
+    "boot": {
+      "pct": 100,
+      "stage": "微光小鎮準備完成",
+      "group": "night",
+      "ready": true,
+      "started": true
+    }
+  },
+  "grid": [
+    {
+      "phase": 55,
+      "rot": 0,
+      "z": 0.5,
+      "hash": "21c0fc53"
+    },
+    {
+      "phase": 55,
+      "rot": 0,
+      "z": 1,
+      "hash": "49477753"
+    },
+    {
+      "phase": 55,
+      "rot": 0,
+      "z": 2,
+      "hash": "e29d85c2"
+    },
+    {
+      "phase": 55,
+      "rot": 0,
+      "z": 3,
+      "hash": "191eb903"
+    },
+    {
+      "phase": 55,
+      "rot": 1,
+      "z": 0.5,
+      "hash": "f3499196"
+    },
+    {
+      "phase": 55,
+      "rot": 1,
+      "z": 1,
+      "hash": "8d2153dd"
+    },
+    {
+      "phase": 55,
+      "rot": 1,
+      "z": 2,
+      "hash": "18994c35"
+    },
+    {
+      "phase": 55,
+      "rot": 1,
+      "z": 3,
+      "hash": "e82ad599"
+    },
+    {
+      "phase": 55,
+      "rot": 2,
+      "z": 0.5,
+      "hash": "e3f01a03"
+    },
+    {
+      "phase": 55,
+      "rot": 2,
+      "z": 1,
+      "hash": "3cee1155"
+    },
+    {
+      "phase": 55,
+      "rot": 2,
+      "z": 2,
+      "hash": "291dfe35"
+    },
+    {
+      "phase": 55,
+      "rot": 2,
+      "z": 3,
+      "hash": "b641332a"
+    },
+    {
+      "phase": 55,
+      "rot": 3,
+      "z": 0.5,
+      "hash": "dd82acd2"
+    },
+    {
+      "phase": 55,
+      "rot": 3,
+      "z": 1,
+      "hash": "cb5ddde8"
+    },
+    {
+      "phase": 55,
+      "rot": 3,
+      "z": 2,
+      "hash": "516fd271"
+    },
+    {
+      "phase": 55,
+      "rot": 3,
+      "z": 3,
+      "hash": "9d43daee"
+    },
+    {
+      "phase": 190,
+      "rot": 0,
+      "z": 0.5,
+      "hash": "19458f61"
+    },
+    {
+      "phase": 190,
+      "rot": 0,
+      "z": 1,
+      "hash": "724f4513"
+    },
+    {
+      "phase": 190,
+      "rot": 0,
+      "z": 2,
+      "hash": "a3d91cd0"
+    },
+    {
+      "phase": 190,
+      "rot": 0,
+      "z": 3,
+      "hash": "44e86825"
+    },
+    {
+      "phase": 190,
+      "rot": 1,
+      "z": 0.5,
+      "hash": "ec4e8c53"
+    },
+    {
+      "phase": 190,
+      "rot": 1,
+      "z": 1,
+      "hash": "32065545"
+    },
+    {
+      "phase": 190,
+      "rot": 1,
+      "z": 2,
+      "hash": "ea5a9573"
+    },
+    {
+      "phase": 190,
+      "rot": 1,
+      "z": 3,
+      "hash": "91b77b2c"
+    },
+    {
+      "phase": 190,
+      "rot": 2,
+      "z": 0.5,
+      "hash": "6a55eca4"
+    },
+    {
+      "phase": 190,
+      "rot": 2,
+      "z": 1,
+      "hash": "4b138d1d"
+    },
+    {
+      "phase": 190,
+      "rot": 2,
+      "z": 2,
+      "hash": "5be99d0d"
+    },
+    {
+      "phase": 190,
+      "rot": 2,
+      "z": 3,
+      "hash": "0fad2768"
+    },
+    {
+      "phase": 190,
+      "rot": 3,
+      "z": 0.5,
+      "hash": "e7c52277"
+    },
+    {
+      "phase": 190,
+      "rot": 3,
+      "z": 1,
+      "hash": "10a6dcb3"
+    },
+    {
+      "phase": 190,
+      "rot": 3,
+      "z": 2,
+      "hash": "07a0217e"
+    },
+    {
+      "phase": 190,
+      "rot": 3,
+      "z": 3,
+      "hash": "90261ac8"
+    }
+  ],
+  "images": [
+    {
+      "file": "docs\\tasks\\t583-shots\\T583-day-rot0-z1-desktop.png",
+      "bytes": 466835
+    },
+    {
+      "file": "docs\\tasks\\t583-shots\\T583-day-rot1-z2-desktop.png",
+      "bytes": 257191
+    },
+    {
+      "file": "docs\\tasks\\t583-shots\\T583-night-rot2-z1-desktop.png",
+      "bytes": 717243
+    },
+    {
+      "file": "docs\\tasks\\t583-shots\\T583-night-rot3-z05-mobile.png",
+      "bytes": 147314
+    }
+  ],
+  "audit": {
+    "title": "燕泊岸 · 微光小鎮",
+    "href": "http://127.0.0.1:8126/index.html?t583=1789249176312",
+    "ready": "complete",
+    "canvas": {
+      "w": 390,
+      "h": 844,
+      "cssW": 390,
+      "cssH": 844
+    },
+    "start": "none",
+    "boot": {
+      "pct": 100,
+      "stage": "微光小鎮準備完成",
+      "group": "night",
+      "ready": true,
+      "started": true
+    },
+    "stats": {
+      "money": 999983406,
+      "pop": 0,
+      "jobs": 0,
+      "day": 1,
+      "buildings": 0,
+      "poweredBld": 0,
+      "roads": 297,
+      "zones": 0,
+      "happy": 0.6,
+      "dem": {
+        "1": 0.5,
+        "2": 0,
+        "3": 0
+      },
+      "cars": 0,
+      "fires": 0,
+      "ruins": 0,
+      "weather": 0,
+      "buses": 0
+    },
+    "atlas": 146
+  },
+  "errors": []
+}
