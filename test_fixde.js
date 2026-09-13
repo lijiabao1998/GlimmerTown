@@ -10472,7 +10472,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);await bootCheckpoint426/.test(html), /* T569 修訂：鏈尾加 buildSpritesS12()，本釘同步收緊為完整新鏈（T565 已演習一次：原釘被插入咬中＝互鎖如預期運作） */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);await bootCheckpoint426/.test(html), /* T583 修訂：鏈尾加 buildSpritesS14()，本釘同步收緊為完整新鏈；winterize563 仍緊接 S9，既有順序契約不放寬 */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -12385,6 +12385,149 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   }
 }
 
+/* ===== T583 道路視覺語法重整守衛（146 鍵審計／100 鍵原地加蓋／燈下受光） ===== */
+{
+  const cut583 = (start, end, gid) => {
+    assert(html.split(start).length === 2,
+      'T583 ' + gid + ' 起點錨必須全檔唯一（實得 ' + (html.split(start).length - 1) + '）');
+    const a = html.indexOf(start), b = html.indexOf(end, a + start.length);
+    assert(a >= 0 && b > a && b - a > 800 && b - a < 9000,
+      'T583 ' + gid + ' 幾何段長必須合理（實得 ' + (b - a) + '）');
+    return html.slice(a, b);
+  };
+  const seg583 = cut583('  function roadGrammar583(g,kind,level,m){', '\n  function buildSpritesS14(){', 'G0');
+  let roadGrammar583Test;
+  try { roadGrammar583Test = new Function(seg583 + '\nreturn roadGrammar583;')(); }
+  catch (e) { assert(false, 'T583 G0a 道路語法模組層函式必須可獨立編譯：' + e.message); }
+
+  const mk583 = (w, h) => {
+    const col = new Array(w * h).fill(null), st = { fill: '#000', clip: 0, calls: 0 };
+    const g = {
+      get fillStyle() { return st.fill; }, set fillStyle(v) { st.fill = v; },
+      fillRect(x, y, rw, rh) {
+        const want = Math.max(0, Math.ceil(rw)) * Math.max(0, Math.ceil(rh)); let got = 0;
+        for (let yy = Math.floor(y); yy < Math.ceil(y + rh); yy++)
+          for (let xx = Math.floor(x); xx < Math.ceil(x + rw); xx++)
+            if (xx >= 0 && yy >= 0 && xx < w && yy < h) { col[yy * w + xx] = st.fill; got++; }
+        st.clip += want - got; st.calls++;
+      },
+    };
+    return { width: w, height: h, __g: g, __col: col, __st: st };
+  };
+  const run583 = (kind, level, m) => {
+    const c = mk583(64, kind === 'hwyBridge' ? 44 : 32);
+    c.__ink = roadGrammar583Test(c.__g, kind, level, m);
+    return c;
+  };
+  const n583 = (c, col) => c.__col.reduce((n, v) => n + (v === col ? 1 : 0), 0);
+
+  // G1：146 鍵是審計面；本卡只原地改 100 個道路本體鍵，不為湊 KPI 重畫 46 個既有街具鍵。
+  {
+    const entries = window.GV.sprAtlas356().entries;
+    const cnt = fam => entries.filter(e => e.fam === fam).length;
+    const rcN = cnt('roadClass'), rdN = cnt('roadDeco'), hwN = cnt('hwy'), hbN = cnt('hwyBridge'), owN = cnt('oneway');
+    assert(rcN === 64 && rdN === 46 && hwN === 16 && hbN === 16 && owN === 4,
+      'T583 G1 道路審計清冊必須恰 146 鍵（roadClass/roadDeco/hwy/hwyBridge/oneway=' +
+      [rcN, rdN, hwN, hbN, owN].join('/') + '）');
+    assert(window.__t583RoadKeys === 100 && window.__t583RoadInk > 0,
+      'T583 G1a 原地加蓋必須恰處理 100 個本體鍵且有真落筆（實得 keys=' + window.__t583RoadKeys +
+      ' ink=' + window.__t583RoadInk + '）');
+  }
+
+  // G2/G3：五個層級各有自己的像素語彙；每個遮罩都真跑且沒有畫到畫布外。
+  for (let level = 0; level < 4; level++) for (let m = 0; m < 16; m++) {
+    const c = run583('road', level, m);
+    assert(c.__ink > 0 && c.__st.calls > 0 && c.__st.clip === 0,
+      'T583 G3 一般道路 rc=' + level + ' m=' + m + ' 必須真落筆且零裁切（ink/calls/clip=' +
+      [c.__ink, c.__st.calls, c.__st.clip].join('/') + '）');
+  }
+  for (let m = 0; m < 16; m++) for (const kind of ['hwy', 'hwyBridge']) {
+    const c = run583(kind, 4, m);
+    assert(c.__ink > 0 && c.__st.clip === 0,
+      'T583 G3a ' + kind + ' m=' + m + ' 必須真落筆且零裁切（ink/clip=' + c.__ink + '/' + c.__st.clip + '）');
+  }
+  {
+    const alley = run583('road', 0, 5), local = run583('road', 1, 5), collector = run583('road', 2, 5);
+    const arterial = run583('road', 3, 5), hwy = run583('hwy', 4, 5), bridge = run583('hwyBridge', 4, 5);
+    assert(n583(alley, '#40444b') > 0 && n583(alley, '#d8b94f') === 0,
+      'T583 G2 巷道必須只有低對比接縫、不得偷得中心黃線');
+    assert(n583(local, '#d8b94f') > 0 && n583(local, '#b9d7ef') === 0,
+      'T583 G2a 支路必須有單暖線、不得冒充次幹道反光點');
+    assert(n583(collector, '#d9dde2') > 0 && n583(collector, '#b9d7ef') > 0,
+      'T583 G2b 次幹道必須同時有冷白導引與藍白反光點');
+    assert(n583(arterial, '#efc24b') > 0 && n583(arterial, '#eef1f2') > 0,
+      'T583 G2c 主幹道必須同時有雙黃主軸與白色外側導引');
+    assert(n583(hwy, '#b9d9ff') > 0 && n583(hwy, '#f2c76a') === 0,
+      'T583 G2d 陸上高速必須有冷色反光點、不得得到橋面暖色反光件');
+    assert(n583(bridge, '#252930') >= 8 && n583(bridge, '#f2c76a') === 4,
+      'T583 G5 高速橋必須有伸縮縫與左右各一枚反光件（實得 dark/amber=' +
+      n583(bridge, '#252930') + '/' + n583(bridge, '#f2c76a') + '）');
+  }
+  // 單臂 m=1 的識別色只可落在右上臂；若有人改成四向全畫，其他三象限會立即出現同色。
+  {
+    const c = run583('road', 2, 1), col = '#d9dde2'; let ur = 0, elsewhere = 0;
+    for (let i = 0; i < c.__col.length; i++) if (c.__col[i] === col) {
+      const x = i % 64, y = Math.floor(i / 64); if (x > 32 && y < 16) ur++; else elsewhere++;
+    }
+    assert(ur > 0 && elsewhere === 0,
+      'T583 G3b m=1 冷白導引只能落在右上連接臂（實得 right-up/else=' + ur + '/' + elsewhere + '）');
+  }
+
+  // G4：四張單行箭頭必須各有不同尖端方向，且 draw 端的旋轉公式原文不動。
+  {
+    const hi = '#f4f5f2', pts = [];
+    for (let d = 0; d < 4; d++) {
+      const c = run583('oneway', 0, d), xy = [];
+      for (let i = 0; i < c.__col.length; i++) if (c.__col[i] === hi) xy.push([i % 64, Math.floor(i / 64)]);
+      assert(xy.length >= 8, 'T583 G4 單行箭頭 d=' + d + ' 必須有清楚亮面（實得 ' + xy.length + 'px）');
+      pts.push([Math.min(...xy.map(p => p[0])), Math.max(...xy.map(p => p[0])),
+                Math.min(...xy.map(p => p[1])), Math.max(...xy.map(p => p[1]))].join(','));
+    }
+    assert(new Set(pts).size === 4, 'T583 G4a 四向箭頭 bbox 必須四個都不同（實得 ' + pts.join(' | ') + '）');
+    assert(html.includes("SPR.oneway[((t.oneway-1)+viewRotEff())&3]||SPR.oneway[0]"),
+      'T583 G4b 單行道方向必須沿用 (direction+viewRot)&3 的既有公式');
+  }
+
+  // G6：受光規格必須在真街燈分支內；沒有燈的路徑不得能獨立 push road583。
+  {
+    const lampStart = html.indexOf('if(!lodFar&&drawStreetLampPick572(x,y,t)){');
+    const lampEnd = html.indexOf('/* T582：原條件只有 t.bridge', lampStart);
+    assert(lampStart > 0 && lampEnd > lampStart, 'T583 G6 必須能界定真街燈分支');
+    const lampBlk = html.slice(lampStart, lampEnd);
+    const push583 = 'rdecGlow.push(roadWashSpec583(sx,sy,z,rw583))';
+    assert(lampBlk.includes(push583) && html.split(push583).length === 2 &&
+           lampBlk.includes('if(!window.__noRoadGrammar583)'),
+      'T583 G6a 道路光洗必須全檔唯一、位於 drawStreetLampPick572 已成立的分支內，並吃 kill-switch');
+    assert((html.match(/road583:1/g) || []).length === 1,
+      'T583 G6b road583 光洗規格只能有一個真相源（實得 ' + (html.match(/road583:1/g) || []).length + '）');
+    const w0 = html.indexOf('function roadWashSpec583('), w1 = html.indexOf('\n/* ===== T367', w0);
+    assert(w0 > 0 && w1 > w0, 'T583 G6c 光洗規格函式錨點必須存在');
+    const W583 = new Function(html.slice(w0, w1) + '\nreturn roadWashSpec583;')();
+    const spec = W583(100, 200, 2, { img: 'wash', w: 26, h: 14 });
+    assert(spec.img === 'wash' && spec.x === 138 && spec.y === 228 && spec.w === 52 && spec.h === 28 && spec.noHalo === 1,
+      'T583 G6d 燈下光洗必須貼道路菱形下半面（實得 ' + JSON.stringify(spec) + '）');
+  }
+
+  // G7/G8：雙開機掛載、逃生閥、零亂數與零新增持久畫布。
+  {
+    assert((html.match(/buildSpritesS13\(\);buildSpritesS14\(\)/g) || []).length === 2,
+      'T583 G7 兩條開機路徑都必須在 S13 後恰掛一次 S14');
+    const s14a = html.indexOf('  function buildSpritesS14(){'), s14b = html.indexOf('\n  const genRoadLvl=', s14a);
+    assert(s14a > 0 && s14b > s14a, 'T583 G7a S14 段錨點必須存在');
+    const all583 = (seg583 + html.slice(s14a, s14b)).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(all583),
+      'T583 G8 道路語法與掛載段不得消耗任何共用亂數');
+    assert(!/\bcv\s*\(|createElement\s*\(\s*['\"]canvas/.test(all583),
+      'T583 G8a 本卡必須原地加蓋，禁止新增或放大持久 canvas');
+    assert(all583.includes('if(window.__noRoadGrammar583)return;'),
+      'T583 G7b S14 必須由 __noRoadGrammar583 一刀回到 T582 像素');
+    const stats583 = JSON.stringify(window.GV.stats());
+    window.GV.forceDraw();
+    assert(JSON.stringify(window.GV.stats()) === stats583,
+      'T583 G8b 道路語法繪製前後 GV.stats() 必須逐字相同——美術卡不得偷動模擬');
+  }
+}
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
@@ -13055,6 +13198,28 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + '）——超出代表有人加了一層很貴的美術，請在合併前先量過');
   assert(city523.total > empty523.total,
     'T523 G2c 城市長大後落筆數必須增加（實得 空城 ' + empty523.total + ' → 城市 ' + city523.total + '）');
+  // T583 G9：獨立造一格確定有街燈的可見道路，只切本卡 draw-time 逃生閥，隔離光洗的真實每幀增量。
+  // 不能借 300 天 AI 城碰運氣：該城的可見道路可能全被 rdec/bus 佔位，初版因此量到 0/假紅。
+  {
+    const gate583 = window.__noRoadGrammar583, lampGate583 = window.__noLamp;
+    window.GV.newWorldSeeded(583); window.GV.setDiff(3); window.GV.ai(false); window.GV.setZoom(1); window.GV.setRot(0);
+    let lamp583 = null;
+    for (let y = 12; y < 60 && !lamp583; y++) for (let x = 12; x < 60; x++) {
+      if (window.__t571Hash(x, y, 1650) < .28) { lamp583 = [x, y]; break; }
+    }
+    assert(lamp583 && window.__t413ForceRoad(lamp583[0], lamp583[1]),
+      'T583 G9a 必須造出一格由正式 streetHash(1650) 選中的真街燈道路');
+    window.__noLamp = false; window.GV.lookAt(lamp583[0], lamp583[1]);
+    window.GV.setVisT(190); // 真夜相量光洗；T574 壓力案收尾固定回白天 55，本案量完同值復原。
+    window.__noRoadGrammar583 = true; window.GV.setRot(1); window.GV.setRot(0); const off583 = window.GV.drawCensus523();
+    window.__noRoadGrammar583 = false; window.GV.setRot(1); window.GV.setRot(0); const on583 = window.GV.drawCensus523();
+    window.__noRoadGrammar583 = gate583; window.__noLamp = lampGate583;
+    window.GV.setVisT(55);
+    const delta583 = on583.total - off583.total;
+    assert(off583.restored === true && on583.restored === true && delta583 === 1,
+      'T583 G9b 單一真街燈道路開啟光洗只可增加 1 次 drawImage（off/on/delta=' +
+      [off583.total, on583.total, delta583].join('/') + '）');
+  }
   // G3 零副作用：量測不得改變世界（stats 與亂數流）
   {
     const before523 = JSON.stringify(window.GV.stats());
