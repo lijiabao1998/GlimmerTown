@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>T584 街區素材一致性補課 · 舊城 A/B</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111827;color:#dce7f5;font:13px/1.45 Consolas,"Microsoft JhengHei",sans-serif}
+header{position:sticky;top:0;z-index:5;padding:10px 14px;background:#172236;border-bottom:1px solid #34445f}
+h1{font-size:16px;margin:0 0 8px;color:#ffd76a}.tools{display:flex;gap:6px;flex-wrap:wrap}
+button{border:1px solid #536889;background:#23324c;color:#e6eef9;border-radius:5px;padding:6px 10px;cursor:pointer}
+button:hover,button.on{background:#385172;border-color:#82b9ed}.note{color:#94a6bf;margin-left:8px}
+main{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}.panel{min-width:0;border:1px solid #34445f;background:#0b1220}
+.lab{padding:5px 8px;color:#9fd5ff;background:#172236;border-bottom:1px solid #34445f}.lab b{color:#fff}
+iframe{display:block;width:100%;height:720px;border:0;background:#0a1020}
+#status{color:#8fe3a4;margin-top:6px;white-space:pre-wrap}
+@media(max-width:900px){main{grid-template-columns:1fr}iframe{height:620px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>T584 · 舊城素材補課 A/B（左 v11.193 原貌／右 T584）</h1>
+  <div class="tools">
+    <button data-scene="overview" class="on">總覽</button>
+    <button data-scene="agri">農場／食品廠</button>
+    <button data-scene="civic">墓園／水塔</button>
+    <button data-scene="street">舊房／商業篷／電廠</button>
+    <button id="day">白天</button><button id="night">夜晚</button>
+    <button id="rot">旋轉</button><button id="zin">放大</button><button id="zout">縮小</button>
+    <span class="note">只用 127.0.0.1:8126／槽 3；不讀寫玩家 8123 存檔</span>
+  </div>
+  <div id="status">開機中…</div>
+</header>
+<main>
+  <section class="panel"><div class="lab"><b>BEFORE</b> · ?noT584=1</div><iframe id="before" src="/index.html?noT584=1"></iframe></section>
+  <section class="panel"><div class="lab"><b>AFTER</b> · T584</div><iframe id="after" src="/index.html?t584=1"></iframe></section>
+</main>
+<script>
+'use strict';
+const SLOT_KEY='glimmerville.v1.s3',SLOT_PICK='glimmerville.v1.slot';
+const frames=[document.getElementById('before'),document.getElementById('after')];
+let scene='overview',rot=0,zoom=1.35,visT=55;
+const status=document.getElementById('status');
+const wait=w=>new Promise(resolve=>{const poll=()=>{const c=w.document&&w.document.getElementById('game'),boot=w.document&&w.document.getElementById('boot426');
+  if(w.GV&&c&&c.width>0&&c.height>0&&(!boot||boot.classList.contains('hide')))resolve(w);else setTimeout(poll,180);};poll();});
+const setChar=(s,i,c)=>s.slice(0,i)+c+s.slice(i+1);
+const clearRect=(d,x0,y0,x1,y1)=>{
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const i=y*d.n+x;d.ter=setChar(d.ter,i,'2');d.tre=setChar(d.tre,i,'0');d.zn=setChar(d.zn,i,'0');d.dc=setChar(d.dc,i,'0');
+    d.rd=setChar(d.rd,i,'0');if(d.rcl)d.rcl=setChar(d.rcl,i,'0');if(d.gvc)d.gvc=setChar(d.gvc,i,String((x*3+y*5)&3));
+  }
+};
+const road=(d,x1,y1,x2,y2)=>{
+  const dx=Math.sign(x2-x1),dy=Math.sign(y2-y1),n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));
+  for(let j=0;j<=n;j++){const x=x1+dx*j,y=y1+dy*j,i=y*d.n+x;d.rd=setChar(d.rd,i,'1');if(d.rcl)d.rcl=setChar(d.rcl,i,'2');}
+};
+const rec=(d,x,y,k,v=0,we=1)=>{const a=[y*d.n+x,k,1,v,9];if(k===1&&we!==1)a.push(0,3,we);d.bl.push(a);};
+function populate(d,name){
+  d.bl=[];delete d.lots574;d.money=999999;d.day=120;d.df=3;d.aim=0;
+  clearRect(d,8,8,63,63);
+  if(name==='agri'){
+    road(d,9,35,62,35);road(d,35,10,35,61);
+    rec(d,12,16,22,0);rec(d,20,16,22,6);rec(d,28,16,22,10);rec(d,36,16,22,15);
+    rec(d,12,38,53,0);rec(d,35,39,57,0);rec(d,51,18,10,2);return [32,31];
+  }
+  if(name==='civic'){
+    road(d,10,36,62,36);road(d,36,11,36,61);
+    for(let v=0;v<5;v++)rec(d,11+v*7,18,16,v);rec(d,13,39,54,0);
+    for(let v=0;v<5;v++)rec(d,43+(v%2)*7,16+Math.floor(v/2)*9,10,v);return [34,33];
+  }
+  if(name==='street'){
+    road(d,9,31,62,31);road(d,9,42,62,42);road(d,31,10,31,61);
+    for(let v=0;v<4;v++){rec(d,12+v*5,24,1,v,0);rec(d,12+v*5,34,1,v,2);}
+    for(let v=3;v<9;v++)rec(d,36+(v-3)*4,25,2,v);
+    rec(d,15,45,5,0);rec(d,30,45,5,1);rec(d,45,45,5,2);return [33,35];
+  }
+  road(d,9,34,62,34);road(d,34,9,34,62);road(d,9,50,62,50);
+  rec(d,11,15,22,0);rec(d,19,15,22,6);rec(d,27,15,22,10);rec(d,38,13,57,0);
+  rec(d,12,37,54,0);rec(d,32,39,10,0);rec(d,39,39,10,2);
+  for(let v=0;v<4;v++)rec(d,47+v*3,39,1,v,v&1?2:0);
+  rec(d,12,53,5,0);rec(d,25,53,5,1);rec(d,38,53,5,2);return [33,34];
+}
+async function setupFrame(f,name){
+  const w=await wait(f.contentWindow),G=w.GV;w.localStorage.setItem(SLOT_PICK,'3');
+  G.newWorldSeeded(584);G.save();const d=G.inflateSave(G.rawSave()),look=populate(d,name);
+  w.localStorage.setItem(SLOT_KEY,JSON.stringify(d));const loadOk=G.load();
+  if(!loadOk)throw new Error('T584 測試城讀檔失敗：'+name);
+  const start=w.document.getElementById('start');if(start)start.style.display='none';
+  w.dispatchEvent(new w.Event('resize'));await new Promise(resolve=>w.requestAnimationFrame(()=>w.requestAnimationFrame(resolve)));
+  G.setRot(rot);G.setZoom(zoom);G.lookAt(look[0],look[1]);G.setVisT(visT);G.weather(0);G.forceDraw();
+  return {entries:G.sprAtlas356().entries.length,save:G.saveSize(),buildings:d.bl.length};
+}
+async function render(name=scene){
+  scene=name;status.textContent='建立 '+name+' A/B…';
+  const rows=[];for(const f of frames)rows.push(await setupFrame(f,name));
+  status.textContent='READY · '+name+' · rot '+rot+' · zoom '+zoom.toFixed(2)+' · visT '+visT+' · atlas '+rows.map(r=>r.entries).join('/')+' · buildings '+rows.map(r=>r.buildings).join('/')+' · slot 3';
+  window.T584_SCENE={scene,rot,zoom,visT,rows,ready:true};
+}
+for(const b of document.querySelectorAll('[data-scene]'))b.onclick=()=>{document.querySelectorAll('[data-scene]').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(b.dataset.scene);};
+document.getElementById('day').onclick=()=>{visT=55;render();};document.getElementById('night').onclick=()=>{visT=8;render();};
+document.getElementById('rot').onclick=()=>{rot=(rot+1)&3;render();};document.getElementById('zin').onclick=()=>{zoom=Math.min(2,zoom+.2);render();};document.getElementById('zout').onclick=()=>{zoom=Math.max(.5,zoom-.2);render();};
+render();
+</script>
+</body>
+</html>

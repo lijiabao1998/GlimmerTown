@@ -799,7 +799,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.193'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.194'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -2817,7 +2817,7 @@ function buildSprites(){
   rand=mulberry32(20260712);
   buildSpritesS1();buildSpritesS2();buildSpritesS3();buildSpritesS4();buildSpritesS5();
   buildSpritesS6();buildSpritesS7();buildSpritesS8();buildSpritesS9();
-  winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();buildSpritesS13();buildSpritesS14();
+  winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();buildSpritesS13();buildSpritesS14();buildSpritesS15();
 }
 /* ===== T563 烘焙草坪冬季相（加蓋式，手法沿 T353「季節色表補漏」；對已生成畫布產出冬側版，
    draw 端一行分派）。五棟同病（SPR.bld 家族冬季鍵 0、draw 僅 k4 有季節分派）：
@@ -3858,6 +3858,191 @@ let __savedR,rand;
       ink583+=roadGrammar583(SPR.oneway[d583].getContext('2d'),'oneway',0,d583);keys583++;
     }
     window.__t583RoadKeys=keys583;window.__t583RoadInk=ink583;
+  }
+  /* ===== T584 街區素材一致性補課（純原地加蓋）：把「主體如何站立／如何運作」補回舊素材。
+     只用整數 fillRect、零亂數、零新 canvas；buildSpritesS15() 位於生成鏈最尾端，kill-switch 可回到 v11.193 像素。 ===== */
+  function materialOff584(){return !!window.__noMaterialGrammar584||(typeof location!=='undefined'&&/(?:^|[?&])noT584(?:=1)?(?:&|$)/.test(location.search||''));}
+  function materialGrammar584(g,kind,v,ax,ay){
+    let ink584=0;
+    /* T584 A/B 首輪抓到的真問題：泛用補筆若直接 source-over，會把每鍵僅 1..16px 的
+       原有招牌、花朵、作物與墓碑辨識色蓋掉。這裡在任何落筆前凍結原圖色票；落筆完成後
+       一次性恢復所有稀有細節像素。保護層只讀／回寫同一 canvas，不建立新畫布、不改
+       metadata；Node 的無像素 recording context 則維持完整幾何量測。 */
+    /* 真 canvas 走一次 getImageData → 先記錄補筆矩形 → 只統計「確實會碰到」的原像素 →
+       一次 putImageData。第一版掃每張素材的整幅畫布，雙 iframe A/B 實測超過 80 秒；
+       第二版雖減成一次 GPU readback，仍把 197 張素材的透明區全部掃過，重載 30 秒未完成。
+       現版保護語意更保守：在實際落筆區內合計 <=16px 的原色全部不覆蓋；透明區照常可新增。
+       Node 的無像素 recording context 仍走 fillRect，讓幾何台帳不依賴瀏覽器像素 API。 */
+    let pixel584=null;const ops584=[];
+    const real584=g.canvas&&g.canvas.width>0&&g.canvas.height>0&&typeof g.drawImage==='function'&&
+      typeof g.getImageData==='function'&&typeof g.putImageData==='function';
+    if(real584)try{
+      const w=g.canvas.width|0,h=g.canvas.height|0,img=g.getImageData(0,0,w,h);
+      pixel584={w,h,img,data:img.data};
+    }catch(_e584){pixel584=null;}
+    const colours584=new Map();
+    const rgba584=col=>{
+      if(colours584.has(col))return colours584.get(col);
+      let out=[0,0,0,255],m=/^#([0-9a-f]{6})$/i.exec(col);
+      if(m){const n=parseInt(m[1],16);out=[(n>>16)&255,(n>>8)&255,n&255,255];}
+      else{m=/^rgba?\(([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)(?:[ ,]+([0-9.]+))?\)$/i.exec(col);if(m)out=[+m[1],+m[2],+m[3],m[4]===undefined?255:Math.round(+m[4]*255)];}
+      colours584.set(col,out);return out;
+    };
+    const put=(x,y,w,h,col)=>{
+      x|=0;y|=0;w|=0;h|=0;if(w<=0||h<=0)return;
+      if(pixel584)ops584.push([x,y,w,h,rgba584(col)]);else{g.fillStyle=col;g.fillRect(x,y,w,h);}
+      ink584+=w*h;
+    };
+    const diag=(x,y,n,dx,dy,col)=>{for(let i=0;i<n;i++)put(x+i*dx,y+i*dy,1,1,col);};
+    const by=ay-2;
+    if(kind==='graveSmall'){
+      const sets=[
+        [[-16,-6],[-12,-10],[12,-8],[16,-5]],
+        [[-16,-6],[-12,-10],[12,-8],[16,-5]],
+        [[-16,-6],[-12,-10],[12,-8],[16,-5]],
+        [[-18,-4],[17,-6]],
+        [[-16,-6],[-9,-10],[9,-9],[16,-4],[-13,-16],[13,-15],[6,-4],[-5,-5]]
+      ];
+      for(const[ox,oy]of sets[v]||sets[0]){
+        const gx=ax+ox,gy=by+oy;
+        put(gx-2,gy-8,4,1,'#d5d9d2');              // 帽緣
+        put(gx-1,gy-7,2,5,'#aeb6ae');              // 正面
+        put(gx+1,gy-7,1,6,'#687169');               // 側暗
+        put(gx-3,gy-1,6,2,'#7d857d');               // 落地底座
+        put(gx-1,gy+1,6,1,'rgba(30,38,32,.34)');    // 短投影
+      }
+      if(v<3){put(ax-7,by-17,14,2,'#b8b4aa');put(ax-5,by-15,10,2,'#747a72');}
+      if(v===4){put(ax-4,by-28,1,25,'#d0cbc0');put(ax+3,by-28,1,25,'#807d75');}
+    }else if(kind==='graveLarge'){
+      for(let r=0;r<4;r++)for(let i=0;i<5;i++){
+        const gx=ax-78+i*14+(r%2)*7+(r>1?92:0),gy=ay-40+r*9-(r>1?18:0);
+        if(Math.abs(gx-ax)<10)continue;
+        put(gx-2,gy-7,4,1,'#d5d9d2');put(gx+1,gy-6,1,5,'#687169');
+        put(gx-3,gy-1,6,2,'#7d857d');put(gx-1,gy+1,6,1,'rgba(30,38,32,.32)');
+      }
+      put(ax-4,ay-88,1,78,'#d4d0c6');put(ax+3,ay-88,1,78,'#77756f');
+      put(ax-42,ay-51,84,1,'#d4d0c6');put(ax-42,ay-48,84,1,'#77756f');
+      put(ax-8,ay-57,16,2,'#c6c1b6');put(ax-6,ay-55,12,2,'#737770');
+    }else if(kind==='farmSmall'||kind==='farmLarge'){
+      const large=kind==='farmLarge',hw=large?52:64,hh=large?26:32,cy=ay-(large?36:32);
+      for(let t=-hw+8;t<=hw-8;t+=4){
+        const yy=cy+Math.round(hh*(1-Math.abs(t)/hw))-3;
+        put(ax+t,yy,4,1,'#c7ad71');put(ax+t,yy+1,4,2,'#60472d');
+      }
+      for(const t of[-Math.floor(hw/2),0,Math.floor(hw/2)]){
+        const yy=cy+Math.round(hh*(1-Math.abs(t)/hw))-7;
+        put(ax+t,yy,1,5,'#6f5130');put(ax+t+1,yy,1,1,'#d3b77b');
+        put(ax+t+1,yy+4,3,1,'rgba(40,32,20,.28)');
+      }
+      const sx=ax-hw+15,sy=cy+2;
+      put(sx,sy,10,2,'#557d86');put(sx+1,sy,8,1,'#a8d3cf');put(sx+8,sy+2,3,1,'#4c3828');
+    }else if(kind==='foodPlant'){
+      const fhx=ax,fhy=ay-28;
+      for(let sx=-34;sx<34;sx+=12){
+        put(fhx+sx,fhy-33,10,2,'#d7c6b8');
+        put(fhx+sx+2,fhy-31,8,2,'#758690');
+        put(fhx+sx+8,fhy-29,2,4,'#4d555c');
+      }
+      put(fhx-40,fhy-24,80,2,'#77422f');             // 深簷口
+      put(fhx-14,fhy+6,30,3,'#c6bba8');              // 裝卸平台頂
+      put(fhx-14,fhy+9,30,3,'#6c6258');              // 平台立面
+      put(fhx-12,fhy+7,26,1,'#e4bc42');              // 安全邊
+      for(let i=0;i<6;i++)put(fhx+16+i*2,fhy+10+i,3,1,'#877d70'); // 短坡道
+      for(const scx of[ax-30,ax-8,ax+14]){put(scx-9,ay-43,18,2,'#756e64');put(scx-6,ay-41,12,2,'rgba(52,45,38,.28)');}
+      put(ax+20,ay-77,1,33,'#6e7478');for(let y=ay-74;y<ay-45;y+=5)put(ax+18,y,4,1,'#aeb5b8');
+      for(const px of[ax-26,ax,ax+24]){put(px,ay-44,2,16,'#60656a');diag(px+2,ay-42,8,1,2,'#8e9498');}
+    }else if(kind==='waterTower'){
+      const dark='#46545c',mid='#74838b',hi='#c6d6dc';
+      if(v===0){
+        put(ax-17,by-39,34,2,dark);put(ax-15,by-42,2,4,mid);put(ax+13,by-42,2,4,mid);
+        put(ax+13,by-38,2,34,mid);for(let y=by-35;y<by-5;y+=6)put(ax+10,y,5,1,hi);
+        diag(ax-11,by-30,14,1,2,dark);diag(ax+10,by-30,14,-1,2,dark);
+      }else if(v===1){
+        put(ax-17,by-38,34,2,dark);put(ax-15,by-42,2,5,mid);put(ax+13,by-42,2,5,mid);
+        diag(ax-11,by-32,13,1,2,dark);diag(ax+11,by-32,13,-1,2,dark);
+        put(ax+13,by-50,2,46,mid);for(let y=by-47;y<by-5;y+=6)put(ax+10,y,5,1,hi);
+      }else if(v===2){
+        put(ax-16,by-38,32,2,dark);put(ax-14,by-42,2,5,mid);put(ax+12,by-42,2,5,mid);
+        put(ax+7,by-36,2,32,mid);for(let y=by-33;y<by-5;y+=6)put(ax+4,y,5,1,hi);
+        diag(ax-5,by-30,10,-1,2,dark);diag(ax+5,by-30,10,1,2,dark);
+      }else if(v===3){
+        for(let y=by-15;y<by-2;y+=4)put(ax-12,y,24,1,'#6f4430');
+        put(ax+12,by-32,2,29,mid);for(let y=by-29;y<by-4;y+=6)put(ax+9,y,5,1,hi);
+        put(ax-14,by-2,28,2,dark);
+      }else{
+        put(ax-18,by-28,36,2,dark);put(ax-17,by-31,2,4,mid);put(ax+15,by-31,2,4,mid);
+        diag(ax-9,by-24,10,1,2,dark);diag(ax+10,by-24,10,-1,2,dark);
+        put(ax,by-34,2,31,mid);for(let y=by-31;y<by-4;y+=6)put(ax-3,y,5,1,hi);
+      }
+      put(ax-15,by-2,8,2,'#3f494f');put(ax+7,by-2,8,2,'#3f494f');
+      put(ax-13,by,30,1,'rgba(35,42,45,.28)');
+    }else if(kind==='legacyPlant'){
+      const rail='#aeb5ba',steel='#5f686e',pipe='#d0a83a';
+      if(v===0){
+        put(ax-24,ay-55,39,2,steel);put(ax-23,ay-59,2,5,rail);put(ax+12,ay-59,2,5,rail);
+        for(let x=ax-19;x<ax+11;x+=6)put(x,ay-58,2,1,rail);
+        put(ax-26,ay-47,52,2,pipe);put(ax-26,ay-52,2,7,steel);put(ax+24,ay-52,2,7,steel);
+        put(ax+26,ay-39,2,34,steel);for(let y=ay-36;y<ay-5;y+=6)put(ax+23,y,5,1,rail);
+      }else if(v===1){
+        put(ax-24,ay-46,49,2,steel);put(ax-23,ay-50,2,5,rail);put(ax+22,ay-50,2,5,rail);
+        for(let x=ax-18;x<ax+20;x+=6)put(x,ay-49,2,1,rail);
+        put(ax+26,ay-43,2,38,steel);for(let y=ay-40;y<ay-5;y+=6)put(ax+23,y,5,1,rail);
+        diag(ax-16,ay-34,12,1,2,steel);diag(ax+15,ay-34,12,-1,2,steel);
+      }else{
+        put(ax-28,ay-50,42,2,steel);put(ax-27,ay-54,2,5,rail);put(ax+11,ay-54,2,5,rail);
+        for(let x=ax-22;x<ax+10;x+=6)put(x,ay-53,2,1,rail);
+        put(ax-29,ay-40,50,2,pipe);for(const x of[ax-29,ax-5,ax+19])put(x,ay-45,2,8,steel);
+        put(ax+27,ay-35,2,30,steel);for(let y=ay-32;y<ay-5;y+=6)put(ax+24,y,5,1,rail);
+      }
+      put(ax-31,ay-4,18,2,'rgba(35,40,43,.35)');put(ax+12,ay-4,20,2,'rgba(35,40,43,.35)');
+    }else if(kind==='earlyHome'){
+      put(ax+2,ay-16,11,2,'#4a4238');                // 門楣厚度
+      put(ax+3,ay-14,1,6,'#8a7b68');put(ax+11,ay-14,1,6,'#594f44');
+      put(ax+2,ay-7,11,2,'#b0a48f');                 // 門前踏面
+      put(ax+4,ay-5,10,2,'#675f54');put(ax+6,ay-3,10,1,'rgba(42,38,32,.28)');
+    }
+    if(pixel584)try{
+      const touched584=new Uint8Array(pixel584.w*pixel584.h),list584=[];
+      for(const[x,y,w,h]of ops584){const x0=Math.max(0,x),y0=Math.max(0,y),x1=Math.min(pixel584.w,x+w),y1=Math.min(pixel584.h,y+h);
+        for(let py=y0;py<y1;py++)for(let px=x0;px<x1;px++){const i=py*pixel584.w+px;if(!touched584[i]){touched584[i]=1;list584.push(i);}}}
+      const freq=new Map(),protect584=new Uint8Array(pixel584.w*pixel584.h);
+      for(const i of list584){const p=i*4;if(pixel584.data[p+3]){const k=(pixel584.data[p]<<16)|(pixel584.data[p+1]<<8)|pixel584.data[p+2];freq.set(k,(freq.get(k)||0)+1);}}
+      for(const i of list584){const p=i*4;if(pixel584.data[p+3]){const k=(pixel584.data[p]<<16)|(pixel584.data[p+1]<<8)|pixel584.data[p+2];if((freq.get(k)||0)<=16)protect584[i]=1;}}
+      for(const[x,y,w,h,c]of ops584){const x0=Math.max(0,x),y0=Math.max(0,y),x1=Math.min(pixel584.w,x+w),y1=Math.min(pixel584.h,y+h);
+        for(let py=y0;py<y1;py++)for(let px=x0;px<x1;px++){
+          const i=py*pixel584.w+px;if(protect584[i])continue;const p=i*4,sa=c[3];
+          if(sa===255||pixel584.data[p+3]===0){pixel584.data[p]=c[0];pixel584.data[p+1]=c[1];pixel584.data[p+2]=c[2];pixel584.data[p+3]=sa;}
+          else if(sa){const da=pixel584.data[p+3],oa=sa+Math.round(da*(255-sa)/255),back=da*(255-sa)/255;
+            pixel584.data[p]=Math.round((c[0]*sa+pixel584.data[p]*back)/oa);
+            pixel584.data[p+1]=Math.round((c[1]*sa+pixel584.data[p+1]*back)/oa);
+            pixel584.data[p+2]=Math.round((c[2]*sa+pixel584.data[p+2]*back)/oa);pixel584.data[p+3]=oa;}
+        }}
+      g.putImageData(pixel584.img,0,0);
+    }catch(_e584){/* 真瀏覽器 A/B 會把回寫失敗抓成零改動。 */}
+    return ink584;
+  }
+  function buildSpritesS15(){
+    const report584={keys:0,ink:0,families:{}};window.__t584Material=report584;
+    if(materialOff584())return;
+    const seen584=new Set();
+    const one584=(s,kind,v)=>{if(!s||!s.img||seen584.has(s.img))return;seen584.add(s.img);
+      const n=materialGrammar584(s.img.getContext('2d'),kind,v,s.ax,s.ay);report584.keys++;report584.ink+=n;report584.families[kind]=(report584.families[kind]||0)+1;};
+    const stamp584=(s,kind,v)=>{one584(s,kind,v);if(s&&s.win563)one584(s.win563,kind,v);};
+    for(let v=0;v<5;v++)stamp584(SPR.bld['16_1_'+v],'graveSmall',v);
+    stamp584(SPR.bld['54_1_0'],'graveLarge',0);
+    const farm584=(t,key,kind)=>{if(t&&t[key])stamp584(t[key],kind,0);};
+    for(let v=0;v<16;v++){
+      const key='22_1_'+v;stamp584(SPR.bld[key],'farmSmall',v);
+      if(SPR.farmSea)for(const si of[1,2,3])farm584(SPR.farmSea[si],key,'farmSmall');
+      if(SPR.farmGrow)for(const si of[0,1,2])for(const st of[0,1])farm584(SPR.farmGrow[si]&&SPR.farmGrow[si][st],key,'farmSmall');
+    }
+    {const key='53_1_0';stamp584(SPR.bld[key],'farmLarge',0);
+      if(SPR.farmSea)for(const si of[1,2,3])farm584(SPR.farmSea[si],key,'farmLarge');
+      if(SPR.farmGrow)for(const si of[0,1,2])for(const st of[0,1])farm584(SPR.farmGrow[si]&&SPR.farmGrow[si][st],key,'farmLarge');}
+    stamp584(SPR.bld['57_1_0'],'foodPlant',0);
+    stamp584(SPR.waterTower,'waterTower',0);for(let v=1;v<=4;v++)stamp584(SPR.waterTowerVar&&SPR.waterTowerVar[v],'waterTower',v);
+    stamp584(SPR.plant,'legacyPlant',0);for(let v=1;v<=2;v++)stamp584(SPR.plantVar&&SPR.plantVar[v],'legacyPlant',v);
+    for(let v=0;v<4;v++)for(const suffix of['','_w0','_w2'])stamp584(SPR.bld['1_1_'+v+suffix],'earlyHome',v);
   }
   const genRoadLvl=rcI=>{
     SPR.roadClass[rcI]=[];SPR.bridgeClass[rcI]=[];
@@ -9130,7 +9315,7 @@ function buildSpritesS8(){
     const rustSpot=(g,x,y)=>{g.fillStyle='rgba(150,80,40,.5)';g.fillRect(x,y,2,1);g.fillStyle='rgba(108,58,28,.5)';g.fillRect(x,y+1,1,1);};
     const mossPatch=(g,x,y)=>{g.fillStyle='rgba(92,122,62,.32)';g.fillRect(x,y,3,2);g.fillStyle='rgba(70,100,45,.3)';g.fillRect(x+1,y,1,1);};
     // ---- 商業招牌：遮陽棚（日）＋霓虹字條（夜光，色從 SIGNC 派生）----
-    const shopAwning=(g,x,y,w,col)=>{g.fillStyle=shade(col,-10);g.fillRect(x,y,w,2);for(let i=0;i<w;i+=2){g.fillStyle=(i&2)?col:'#f2f2f2';g.fillRect(x+i,y,2,2);}};
+    const shopAwning=(g,x,y,w,col)=>{if(materialOff584()){g.fillStyle=shade(col,-10);g.fillRect(x,y,w,2);for(let i=0;i<w;i+=2){g.fillStyle=(i&2)?col:'#f2f2f2';g.fillRect(x+i,y,2,2);}return;}g.fillStyle=shade(col,-42);g.fillRect(x-1,y-1,w+2,1);g.fillStyle=shade(col,-18);g.fillRect(x,y,w,3);for(let i=0;i<w;i+=2){g.fillStyle=(i&2)?col:'#f2f2f2';g.fillRect(x+i,y,Math.min(2,w-i),2);}g.fillStyle=shade(col,-32);g.fillRect(x,y+2,w,1);g.fillRect(x,y+3,1,2);g.fillRect(x+w-1,y+3,1,2);};
     const neonStrip=(g,ng,x,y,w,col)=>{g.fillStyle='#1c1f26';g.fillRect(x,y,w,2);g.fillStyle=col;g.fillRect(x+1,y,w-2,1);ng.fillStyle=col;ng.fillRect(x,y,w,2);};
     // ---- 牆面痕跡：海報／塗鴉小色塊（僅貧/中產、僅 lv1-2）----
     const posterMark=(g,x,y,col)=>{g.fillStyle='#e8e4d8';g.fillRect(x,y,3,4);g.fillStyle=col;g.fillRect(x+1,y+1,1,2);};
@@ -9167,9 +9352,9 @@ function buildSpritesS8(){
       if(kind==='C'){
         const dx=clamp(Math.round(hw*.42)+Math.floor(rand()*3)-1,2,hw-6);
         const{x:colX,yF}=wallCol(ax,by,dx,'R');
-        const topY=wallSafeY(yF,h,.72,2);
+        const off584=materialOff584(),topY=wallSafeY(yF,h,off584?.72:.18,off584?2:5);
         shopAwning(g,colX-3,topY,7,SIGNC[(k*3+we+dx)%SIGNC.length]);
-        const neonY=clamp(topY+3,yF-h+4,yF-6);
+        const neonY=off584?clamp(topY+3,yF-h+4,yF-6):clamp(topY-4,yF-h+4,topY-2);
         neonStrip(g,ng,colX-3,neonY,7,SIGNC[(k*3+we+dx+4)%SIGNC.length]);
       }
       // ---- 牆面痕跡：低層海報/塗鴉小色塊（僅貧/中產、僅 lv1-2）----
@@ -9462,7 +9647,7 @@ function buildSpritesS8(){
       const grime=(g,x,y,tone)=>{g.fillStyle='rgba(22,20,16,.24)';g.fillRect(x,y,2,2);g.fillStyle=shade(tone,-26);g.fillRect(x,y,1,1);};
       const rustSpot=(g,x,y)=>{g.fillStyle='rgba(150,80,40,.5)';g.fillRect(x,y,2,1);g.fillStyle='rgba(108,58,28,.5)';g.fillRect(x,y+1,1,1);};
       const mossPatch=(g,x,y)=>{g.fillStyle='rgba(92,122,62,.32)';g.fillRect(x,y,3,2);g.fillStyle='rgba(70,100,45,.3)';g.fillRect(x+1,y,1,1);};
-      const shopAwning=(g,x,y,w,col)=>{g.fillStyle=shade(col,-10);g.fillRect(x,y,w,2);for(let i=0;i<w;i+=2){g.fillStyle=(i&2)?col:'#f2f2f2';g.fillRect(x+i,y,2,2);}};
+      const shopAwning=(g,x,y,w,col)=>{if(materialOff584()){g.fillStyle=shade(col,-10);g.fillRect(x,y,w,2);for(let i=0;i<w;i+=2){g.fillStyle=(i&2)?col:'#f2f2f2';g.fillRect(x+i,y,2,2);}return;}g.fillStyle=shade(col,-42);g.fillRect(x-1,y-1,w+2,1);g.fillStyle=shade(col,-18);g.fillRect(x,y,w,3);for(let i=0;i<w;i+=2){g.fillStyle=(i&2)?col:'#f2f2f2';g.fillRect(x+i,y,Math.min(2,w-i),2);}g.fillStyle=shade(col,-32);g.fillRect(x,y+2,w,1);g.fillRect(x,y+3,1,2);g.fillRect(x+w-1,y+3,1,2);};
       const neonStrip=(g,ng,x,y,w,col)=>{g.fillStyle='#1c1f26';g.fillRect(x,y,w,2);g.fillStyle=col;g.fillRect(x+1,y,w-2,1);ng.fillStyle=col;ng.fillRect(x,y,w,2);};
       const posterMark=(g,x,y,col)=>{g.fillStyle='#e8e4d8';g.fillRect(x,y,3,4);g.fillStyle=col;g.fillRect(x+1,y+1,1,2);};
       const graffitiMark=(g,x,y,col)=>{const a=g.globalAlpha;g.globalAlpha=.55;g.fillStyle=col;g.fillRect(x,y,4,2);g.globalAlpha=a;};
@@ -9493,9 +9678,9 @@ function buildSpritesS8(){
         if(kind==='C'){
           const dx=clamp(Math.round(hw*.42)+Math.floor(rand()*3)-1,2,hw-6);
           const{x:colX,yF}=wallCol(ax,by,dx,'R');
-          const topY=wallSafeY(yF,h,.72,2);
+          const off584=materialOff584(),topY=wallSafeY(yF,h,off584?.72:.18,off584?2:5);
           shopAwning(g,colX-3,topY,7,SIGNC[(k*3+we+dx)%SIGNC.length]);
-          const neonY=clamp(topY+3,yF-h+4,yF-6);
+          const neonY=off584?clamp(topY+3,yF-h+4,yF-6):clamp(topY-4,yF-h+4,topY-2);
           neonStrip(g,ng,colX-3,neonY,7,SIGNC[(k*3+we+dx+4)%SIGNC.length]);
         }
         if(k===1&&lv<=2&&we!==2){
@@ -24330,7 +24515,7 @@ async function bootstrap426(){
     buildSpritesS6();await bootCheckpoint426(53,'建立大型建築與購物中心…','city');
     buildSpritesS7();await bootCheckpoint426(65,'建立新建築與農牧生活…','life');
     buildSpritesS8();await bootCheckpoint426(92,'細緻建築、屋頂與四季細節…','life');
-    buildSpritesS9();winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();buildSpritesS13();buildSpritesS14();await bootCheckpoint426(96,'烘焙夜景與動態生命…','night'); // S9 尾已還原 R；T563/T565/T567/T569/T583 兩條開機路徑各掛一次（同族病：另一處在 buildSprites 總管）
+    buildSpritesS9();winterize563();buildSpritesS10();buildSpritesS11();buildSpritesS12();buildSpritesS13();buildSpritesS14();buildSpritesS15();await bootCheckpoint426(96,'烘焙夜景與動態生命…','night'); // S9 尾已還原 R；T563/T565/T567/T569/T583/T584 兩條開機路徑各掛一次（同族病：另一處在 buildSprites 總管）
     await bootCheckpoint426(97,'整理工具與介面…','night');
     buildToolbar();resize();
     await bootCheckpoint426(99,'點亮主選單…','night');

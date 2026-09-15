@@ -10472,7 +10472,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);await bootCheckpoint426/.test(html), /* T583 修訂：鏈尾加 buildSpritesS14()，本釘同步收緊為完整新鏈；winterize563 仍緊接 S9，既有順序契約不放寬 */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);buildSpritesS15\(\);await bootCheckpoint426/.test(html), /* T584 修訂：鏈尾加 buildSpritesS15()，本釘同步收緊為完整新鏈；winterize563 仍緊接 S9，既有順序契約不放寬 */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -12525,6 +12525,133 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     window.GV.forceDraw();
     assert(JSON.stringify(window.GV.stats()) === stats583,
       'T583 G8b 道路語法繪製前後 GV.stats() 必須逐字相同——美術卡不得偷動模擬');
+  }
+}
+
+/* ===== T584 街區素材一致性補課守衛（原地加蓋／零亂數／零新畫布） ===== */
+{
+  const start584 = '  function materialGrammar584(g,kind,v,ax,ay){';
+  const end584 = '\n  const genRoadLvl=';
+  assert(html.split(start584).length === 2,
+    'T584 G0 materialGrammar584 起點錨必須全檔唯一（實得 ' + (html.split(start584).length - 1) + '）');
+  const a584 = html.indexOf(start584), b584 = html.indexOf(end584, a584 + start584.length);
+  assert(a584 > 0 && b584 > a584 && b584 - a584 > 5000 && b584 - a584 < 18000,
+    'T584 G0a 補筆模組範圍必須完整且有界（實得 ' + (b584 - a584) + ' 字元）');
+  const seg584 = html.slice(a584, b584);
+  const bare584 = seg584.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+  let grammar584;
+  try { grammar584 = new Function(seg584 + '\nreturn materialGrammar584;')(); }
+  catch (e) { assert(false, 'T584 G0b materialGrammar584 必須可獨立編譯：' + e.message); }
+
+  const mk584 = () => {
+    const st = { fill: '#000', calls: 0, area: 0, clip: 0, colours: new Set() };
+    const g = {
+      get fillStyle() { return st.fill; }, set fillStyle(v) { st.fill = v; },
+      fillRect(x, y, w, h) {
+        st.calls++; st.colours.add(st.fill); st.area += Math.max(0, w) * Math.max(0, h);
+        if (x < 0 || y < 0 || x + w > 256 || y + h > 240) st.clip++;
+      }
+    };
+    return { g, st };
+  };
+  const run584 = (kind, v) => {
+    const c = mk584(), ink = grammar584(c.g, kind, v, 128, 210);
+    assert(ink === c.st.area && ink > 0 && c.st.calls >= 5,
+      'T584 G1 ' + kind + ' v' + v + ' 必須真落筆且回傳帳等於實畫面積（ink/area/calls=' +
+      [ink, c.st.area, c.st.calls].join('/') + '）');
+    assert(c.st.clip === 0,
+      'T584 G1a ' + kind + ' v' + v + ' 補筆不得越出 256×240 測試畫布（clip=' + c.st.clip + '）');
+    return c;
+  };
+  for (let v = 0; v < 5; v++) run584('graveSmall', v);
+  run584('graveLarge', 0); run584('farmSmall', 0); run584('farmLarge', 0);
+  run584('foodPlant', 0);
+  for (let v = 0; v < 5; v++) run584('waterTower', v);
+  for (let v = 0; v < 3; v++) run584('legacyPlant', v);
+  run584('earlyHome', 0);
+
+  // G1b：A/B 首輪抓到通用 source-over 會蓋掉稀有識別色；真 canvas 路徑必須凍結原像素，
+  // 並在落筆後還原全鍵僅 1..16px 的顏色。此案在 earlyHome 第一塊門楣放一顆稀有像素；
+  // 先證明補筆真的跨過它，再驗最終 bytes 已恢復。拿掉 protect584 時首紅必須是本釘。
+  {
+    const rareX=130,rareY=194,pix=new Uint8ClampedArray(256*240*4),rp=(rareY*256+rareX)*4;
+    pix[rp]=224;pix[rp+1]=90;pix[rp+2]=68;pix[rp+3]=255;
+    let rareHits=0,calls=0,cur=new Uint8ClampedArray(pix);
+    const g={canvas:{width:256,height:240},drawImage(){},fillStyle:'#000',getImageData:()=>({data:new Uint8ClampedArray(cur)}),
+      putImageData(img){cur=new Uint8ClampedArray(img.data);},
+      fillRect(x,y,w,h){calls++;if(rareX>=x&&rareX<x+w&&rareY>=y&&rareY<y+h)rareHits++;
+        for(let yy=Math.max(0,y);yy<Math.min(240,y+h);yy++)for(let xx=Math.max(0,x);xx<Math.min(256,x+w);xx++){
+          const p=(yy*256+xx)*4;cur[p]=1;cur[p+1]=2;cur[p+2]=3;cur[p+3]=255;
+        }}};
+    const ink=grammar584(g,'earlyHome',0,128,210);
+    assert(calls===0&&ink>0&&rareHits===0&&cur[rp]===224&&cur[rp+1]===90&&cur[rp+2]===68&&cur[rp+3]===255,
+      'T584 G1b 真 canvas 單次 ImageData 路徑必須跳過原圖稀有色並保留其 RGBA（calls/ink/hits/final='+
+      [calls,ink,rareHits,[cur[rp],cur[rp+1],cur[rp+2],cur[rp+3]].join('.')].join('/')+'）');
+  }
+
+  // G2：八族都必須從真圖集走過；精確數量來自第一次真跑台帳，不用同一份迴圈重算自己的答案。
+  {
+    const r = window.__t584Material, f = r && r.families ? r.families : {};
+    assert(r && r.keys > 0 && r.ink > 0, 'T584 G2 執行期素材台帳必須存在且有真落筆');
+    const expect = { graveSmall:5, graveLarge:1, farmSmall:160, farmLarge:10,
+      foodPlant:1, waterTower:5, legacyPlant:3, earlyHome:12 };
+    for (const k of Object.keys(expect)) assert((f[k] || 0) === expect[k],
+      'T584 G2a ' + k + ' 白名單覆蓋數必須精確（實得/預期=' + (f[k] || 0) + '/' + expect[k] + '）');
+    assert(r.keys === 197 && r.ink === 74843,
+      'T584 G2b 全批台帳必須恰為 197 張／74843 px（實得 ' + r.keys + '/' + r.ink + '）');
+    console.log('T584 MATERIAL ' + JSON.stringify(r));
+  }
+
+  // G3：S15 只能是生成鏈尾端的純加蓋；兩條開機路徑都要掛，不能新增持久畫布或抽亂數。
+  {
+    assert((html.match(/buildSpritesS14\(\);buildSpritesS15\(\)/g) || []).length === 2,
+      'T584 G3 兩條開機路徑都必須在 S14 後恰掛一次 S15');
+    assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand/.test(bare584),
+      'T584 G3a 補筆模組不得消耗任何共用亂數（鐵律 2）');
+    assert(!/\bcv\s*\(|createElement\s*\(\s*['\"]canvas/.test(bare584),
+      'T584 G3b 補筆模組只能原地畫既有 canvas，不得新增或放大持久畫布');
+    assert(bare584.includes("typeof g.drawImage==='function'") && bare584.includes('const touched584=') &&
+           bare584.includes('if((freq.get(k)||0)<=16)protect584[i]=1') && bare584.includes('g.putImageData(pixel584.img,0,0)'),
+      'T584 G3d 真 canvas 必須只掃實際落筆區、跳過區內 <=16px 的稀有細節色並一次回寫');
+    assert((html.match(/function materialOff584\(\)/g) || []).length === 1 &&
+           bare584.includes('if(materialOff584())return;') && html.includes("/(?:^|[?&])noT584(?:=1)?(?:&|$)/"),
+      'T584 G3c S15 與遮陽棚必須共用 window／URL kill-switch，可一刀回到 v11.193 像素');
+  }
+
+  // G4：粉紅橫條的真因是 T147 棚體只有薄片、掛在立面偏高；兩個重複生成段必須同步修。
+  {
+    assert((html.match(/const shopAwning=/g) || []).length === 2,
+      'T584 G4 T147 的兩個 shopAwning 同源副本必須仍恰好兩處');
+    assert((html.match(/wallSafeY\(yF,h,off584\?\.72:\.18,off584\?2:5\)/g) || []).length === 2,
+      'T584 G4a 兩個遮陽棚正常態都必須掛在近地門面並預留 5px；kill-switch 精確回舊 .72/2');
+    assert((html.match(/g\.fillRect\(x-1,y-1,w\+2,1\)/g) || []).length === 2 &&
+           (html.match(/g\.fillRect\(x,y\+3,1,2\);g\.fillRect\(x\+w-1,y\+3,1,2\)/g) || []).length === 2,
+      'T584 G4b 兩個遮陽棚都必須有牆軌與左右支撐，不得退回飄空色條');
+    assert((html.match(/const neonY=off584\?clamp\(topY\+3,yF-h\+4,yF-6\):clamp\(topY-4,yF-h\+4,topY-2\)/g) || []).length === 2,
+      'T584 G4c 正常態霓虹條必須位於棚體上方；kill-switch 精確回舊 topY+3');
+  }
+
+  // G5：指定鍵必須在場；模組原文不得賦值任何 sprite 或 metadata，證明 S15 只畫 img 像素。
+  {
+    const keys584 = ['16_1_0','16_1_1','16_1_2','16_1_3','16_1_4','54_1_0',
+      '22_1_0','22_1_5','22_1_10','22_1_15','53_1_0','57_1_0',
+      '1_1_0','1_1_1','1_1_2','1_1_3','1_1_0_w0','1_1_0_w2'];
+    const meta = k => { const s = window.__t420SPR.bld[k]; return s && [s.w,s.h,s.ax,s.ay]; };
+    const got = keys584.map(meta);
+    assert(got.every(Boolean), 'T584 G5 白名單代表鍵必須全部存在：' + keys584.filter((k,i)=>!got[i]).join(','));
+    assert(got.every(m => m.every(Number.isFinite) && m[0] > 0 && m[1] > 0),
+      'T584 G5a 白名單代表鍵 metadata 必須全為有限正尺寸');
+    assert(!/SPR\.(?:bld|farmSea|farmGrow|waterTower|waterTowerVar|plant|plantVar)[^\n;]*=/.test(bare584) &&
+           !/\.(?:w|h|ax|ay)\s*=/.test(bare584),
+      'T584 G5b 補筆模組不得賦值任何 SPR 鍵或 w/h/ax/ay metadata；幾何真值由原素材保留');
+  }
+
+  // G6：本卡是純美術；重繪與開啟畫面前後模擬快照不得有任何位元差。
+  {
+    const stats584 = JSON.stringify(window.GV.stats());
+    window.GV.forceDraw();
+    assert(JSON.stringify(window.GV.stats()) === stats584,
+      'T584 G6 原地補筆與 forceDraw 前後 GV.stats() 必須逐字相同');
   }
 }
 
