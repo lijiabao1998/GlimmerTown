@@ -10472,7 +10472,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);buildSpritesS15\(\);await bootCheckpoint426/.test(html), /* T584 修訂：鏈尾加 buildSpritesS15()，本釘同步收緊為完整新鏈；winterize563 仍緊接 S9，既有順序契約不放寬 */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);buildSpritesS15\(\);buildSpritesS16\(\);await bootCheckpoint426/.test(html), /* T585：只把新 S16 納入同一條全鏈，winterize563 緊接 S9 的既有契約維持不變 */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -12653,6 +12653,54 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(JSON.stringify(window.GV.stats()) === stats584,
       'T584 G6 原地補筆與 forceDraw 前後 GV.stats() 必須逐字相同');
   }
+}
+
+/* ===== T585 建築體積與完整生長期：真掛載、全作期及園區落筆 ===== */
+{
+  const a=html.indexOf('  function buildSpritesS16(){'),b=html.indexOf('  const genRoadLvl=',a);
+  assert(a>0&&b>a&&html.split('  function buildSpritesS16(){').length===2,
+    'T585 G0 S16 必須單一存在且在道路生成前');
+  const seg=html.slice(a,b),bare=seg.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert((html.match(/buildSpritesS15\(\);buildSpritesS16\(\)/g)||[]).length===2&&
+    seg.includes('if(artOff585())return;'),
+    'T585 G1 兩條開機鏈 S15 後都要掛 S16，且 A/B 逃生閥不可失效');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand|\bcv\s*\(/.test(bare)&&
+    !/SPR\.(?:bld|farmGrow|waterTower|waterTowerVar|plant|plantVar)[^\n;]*=/.test(bare),
+    'T585 G1b S16 只在原圖加蓋，禁止抽共用亂數、配置新畫布或覆寫 SPR 鍵');
+  const rep=window.__t585Material,f=rep&&rep.families||{};
+  assert(rep&&rep.keys===71&&f.farmSmall===48&&f.farmLarge===3&&f.tower585===5&&f.plant585===3&&f.home585===12&&rep.ink>20000,
+    'T585 G2 真開機加蓋須含割茬 51 張、五式水塔、三式舊電廠、12 屋型；實得 '+JSON.stringify(rep));
+  const S=window.__t420SPR;
+  assert([0,1,2].every(sea=>[...Array(16).keys()].every(v=>!!S.farmGrow[sea][2]['22_1_'+v])&&!!S.farmGrow[sea][2]['53_1_0']),
+    'T585 G2b 舊小／大農場割茬期 3 季×17 鍵必須真有 sprite，不能只增台帳數');
+  const grammarText=html.slice(html.indexOf('  function materialGrammar584(g,kind,v,ax,ay){'),html.indexOf('  function buildSpritesS15(){'));
+  let gram;try{gram=new Function(grammarText+'\nreturn materialGrammar584;')();}catch(e){assert(false,'T585 G3 補筆配方須可獨立編譯 '+e.message);}
+  for(const [kind,n] of [['home585',4],['tower585',5],['plant585',3]])for(let v=0;v<n;v++){
+    let col='',count=0,area=0,clip=0;
+    const sp=kind==='home585'?S.bld['1_1_'+v]:kind==='tower585'?(v?S.waterTowerVar[v]:S.waterTower):(v?S.plantVar[v]:S.plant);
+    assert(sp&&sp.img&&sp.img.width>0&&sp.img.height>0,'T585 G3 '+kind+' v'+v+' 必須有原畫布尺寸，不能拿假 256×240 尺寸驗越界');
+    const g={get fillStyle(){return col;},set fillStyle(c){col=c;},fillRect(x,y,w,h){count++;area+=w*h;if(x<0||y<0||x+w>sp.img.width||y+h>sp.img.height)clip++;}};
+    const ink=gram(g,kind,v,sp.ax,sp.ay);
+    assert(count>=(kind==='home585'?3:8)&&area===ink&&clip===0,
+      'T585 G3 '+kind+' v'+v+' 必須真落筆、回帳相符、零越出（'+[count,area,ink,clip].join('/')+'）');
+  }
+  const A=window.__t574,old=window.__noArt585;
+  try{
+    window.__noArt585=false;
+    const farm=A.bakeTrace(22,0,false),big=A.bakeTrace(53,0,false),grave=A.bakeTrace(54,0,false);
+    assert(farm.trace.some(x=>x.role==='crop-bed')&&big.trace.some(x=>x.role==='crop-bed')&&grave.trace.filter(x=>x.role==='grave').length>=6,
+      'T585 G4 新園區真 bake：小／大農場田壟與墓園立碑須進前後排序，不得只畫在函式死枝');
+    assert(grave.trace.filter(x=>x.role==='grave').every(x=>Math.abs(x.foot[2]-x.foot[0]-.24)<1e-9),
+      'T585 G4c 新墓碑台基必須真的採 .24 格寬；只把舊臥式墓碑改名仍應紅');
+    window.__noArt585=true;
+    const oldFarm=A.bakeTrace(22,0,false),oldGrave=A.bakeTrace(54,0,false);
+    assert(!oldFarm.trace.some(x=>x.role==='crop-bed')&&oldGrave.trace.filter(x=>x.role==='grave').length>=6,
+      'T585 G4b A/B 逃生閥須真的退回舊田與舊墓，不可只有旗標宣告');
+    assert(oldGrave.trace.filter(x=>x.role==='grave').every(x=>Math.abs(x.foot[2]-x.foot[0]-.15)<1e-9),
+      'T585 G4d A/B 關閉時墓碑必須回到舊 .15 格寬，不可只讓農田退回');
+  }finally{window.__noArt585=old;}
+  const before=JSON.stringify(window.GV.stats());window.GV.forceDraw();
+  assert(JSON.stringify(window.GV.stats())===before,'T585 G5 原地繪圖不得改任何模擬快照');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
