@@ -10472,7 +10472,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);buildSpritesS15\(\);buildSpritesS16\(\);await bootCheckpoint426/.test(html), /* T585：只把新 S16 納入同一條全鏈，winterize563 緊接 S9 的既有契約維持不變 */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);buildSpritesS15\(\);buildSpritesS16\(\);buildSpritesS17\(\);await bootCheckpoint426/.test(html), /* T586：只把新 S17 納入同一條全鏈，winterize563 緊接 S9 的既有契約維持不變 */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -12701,6 +12701,52 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   }finally{window.__noArt585=old;}
   const before=JSON.stringify(window.GV.stats());window.GV.forceDraw();
   assert(JSON.stringify(window.GV.stats())===before,'T585 G5 原地繪圖不得改任何模擬快照');
+}
+
+/* ===== T586 舊城單格地腳：徽記預設關也必須裁，且不得削掉上部建築 ===== */
+{
+  const a=html.indexOf('  function clipFoot586(canvas,s){'),
+    b=html.indexOf('  const genRoadLvl=',a),
+    s17=html.indexOf('  function buildSpritesS17(){',a);
+  assert(a>0&&s17>a&&b>s17&&html.split('  function clipFoot586(canvas,s){').length===2,
+    'T586 G0 地腳刀必須只在 S17 定義一次並接在道路生成前');
+  const block=html.slice(a,b),helper=html.slice(a,s17);
+  assert((html.match(/buildSpritesS16\(\);buildSpritesS17\(\)/g)||[]).length===2,
+    'T586 G1 同步／分段開機都必須在 S16 後掛 S17');
+  const chosen=/for\(const key of\[([^\]]+)\]\)/.exec(block);
+  assert(chosen&&chosen[1]==="'29_1_0','30_1_0','67_1_0','69_1_0'"&&
+    block.includes('report.day+=clipFoot586(s.img,s)')&&
+    block.includes('report.night+=clipFoot586(s.night,s)'),
+    'T586 G1a 僅四個已驗證舊鍵可裁，日／夜必須走同一把刀');
+  assert(block.includes('if(window.__noFoundation586||')&&block.includes('noT586')&&
+    !block.includes('if(!window.__noBadge)'),
+    'T586 G1b 裁切不得依附預設關閉的徽記開關，且要能整卡回退');
+  const bare=block.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand|\bcv\s*\(/.test(bare)&&
+    !/SPR\.[^\n;]*=/.test(bare),
+    'T586 G1c S17 不准抽亂數、造新畫布或改 SPR 鍵');
+  const r=window.__t586Foot;
+  assert(r&&r.keys===4,'T586 G2 真開機須逐鍵跑完四個舊素材，實得 '+JSON.stringify(r));
+  let clip;try{clip=new Function(helper+'\nreturn clipFoot586;')();}
+  catch(e){assert(false,'T586 G3 地腳刀獨立編譯失敗：'+e.message);}
+  const w=72,h=112,buf=new Uint8ClampedArray(w*h*4);
+  const mark=(x,y)=>{const q=(y*w+x)*4;buf[q]=154;buf[q+1]=148;buf[q+2]=132;buf[q+3]=255;};
+  mark(36,109); // 菱形前尖內，必須保留
+  mark(30,109); // 菱形前尖外，必須清除
+  mark(36,110); // 下緣之外，必須清除
+  mark(5,98);   // 同列側面越界，必須清除
+  mark(0,20);   // 合法高塔輪廓，即使投影在鄰格上方也不能截斷
+  const canvas={width:w,height:h,getContext:()=>({
+    getImageData:()=>({data:new Uint8ClampedArray(buf)}),
+    putImageData:im=>buf.set(im.data)
+  })};
+  const cut=clip(canvas,{w,h,ax:36,ay:110});
+  const alpha=(x,y)=>buf[(y*w+x)*4+3];
+  assert(cut===3&&alpha(36,109)===255&&alpha(30,109)===0&&
+    alpha(36,110)===0&&alpha(5,98)===0&&alpha(0,20)===255,
+    'T586 G3 真像素地腳裁切須只清三個越界點、保留前尖與高塔（實得 '+[cut,alpha(36,109),alpha(30,109),alpha(36,110),alpha(5,98),alpha(0,20)].join('/')+'）');
+  assert(clip(canvas,{w,h,ax:36,ay:110})===0,
+    'T586 G3a 地腳刀重跑必須冪等，否則烘焙／重載可能持續侵蝕');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
