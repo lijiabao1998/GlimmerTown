@@ -471,6 +471,7 @@ window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋�
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
 window.__t576={plan:powerLinkPlan576,set:(d,m)=>{day=d;money=m;},cash:()=>money,check:canPlace,cost:placeCost,
+  direct588:powerDirectSite588,aidCost588:powerAidCost588,grid588:roadGridBridge588,
   scan:args=>{const old=canPlace,seen=[];try{canPlace=function(tool,x,y){if(tool===args[0])seen.push([x,y]);return old(tool,x,y);};return {plan:powerLinkPlan576(...args),seen};}finally{canPlace=old;}},
   run:(args,used)=>{const old=window.__t576Drive,oldAi=aiMode;let result=null;
     try{window.__t576Drive=(put,count,set)=>{set(used);const plan=powerLinkPlan576(...args);let success=false;
@@ -4907,16 +4908,17 @@ runPwaTests().then(() => {
     // T326 重釘：人口學波（移民潮+demoMul）讓 seed301 從停滯(355)翻身成長，「無T324基線」前提已合法改變。
     // T432 重釘（業主授權 2026-08-13）：兩座孤島核電與四座孤島綠能共 686 容量不再跨網白嫖；4153→3781 是刻意供電語義變更。
     //           釘現值＝守確定性（同 T267 釘座標慣例）；再破＝有人動了模擬公式，需有意識重釘。
-    seedPin444('seed301', 301, 400, 288, window.GV.stats().pop,
+    seedPin444('seed301', 301, 400, 780, window.GV.stats().pop,
       'T324/T342c 起釘；T432 重釘（前值 4153）；T456 重釘（前值 3781）；'
       + 'T542 資源鏈進 wants 重釘（前值 6876——wants 長度改變＝輪轉相位全城自第 1 天分岔，'
       + '業主 2026-08-20「你來決定，解決完成」授權，12 種子崩城率 A/B 記 T542 卡面）；'
-      + 'T574 業主授權真實占地／管線驗證後重建基線：前值6801，完整72格／400天配方實測288，不改AI權重或經濟公式');
+      + 'T574 業主授權真實占地／管線驗證後重建基線：前值6801，完整72格／400天配方實測288，不改AI權重或經濟公式；'
+      + 'T588 長期供電鎖替代合法接路：288→780，12城同配方400／900天低人口7→4／4→3');
     /* T456 金流哨兵：世代普查是**常駐**機制，pop 釘在這三顆種子恰好不動（診斷記卡面：
        零亂數規則＋金流非 pop 瓶頸），但金流已合法分岔——「三釘綠＝位元恆等」這句話從 T456 起
        不再自動成立，必須把 money 也釘進哨兵，未來任何動到經濟的手都會在這裡留下指紋。 */
-    seedPin444('seed301m', 301, 400, 4779, Math.round(window.GV.stats().money),
-      'T456 起釘；T574 真實占地授權重建，前值640249。金流仍獨立於人口精確釘定');
+    seedPin444('seed301m', 301, 400, 2297, Math.round(window.GV.stats().money),
+      'T456 起釘；T574 真實占地授權重建，前值640249；T588 真接路施工支出4779→2297。金流仍獨立於人口精確釘定');
     healthFloor575('seed301'); // T575 健康度地板（同一次模擬，零額外成本）
     // T574：此城400天不再到加工鏈人口門檻。T542 G2/G2a完整移至T574尾段的自然成熟城，不把原3/3、1/1/1弱化成零。
     {
@@ -7408,11 +7410,12 @@ runPwaTests().then(() => {
     window.GV.ai(true);
     for (let d = 0; d < 400; d++) window.GV.step(1);
     window.GV.ai(false);
-    seedPin444('seed22', 22, 400, 476, window.GV.stats().pop,
+    seedPin444('seed22', 22, 400, 639, window.GV.stats().pop,
       'T348 起釘：紓困為手術式；T456 世代流動接線重釘（前值 4550——短視野配對差實測機制為正紅利，'
-      + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）；T574授權空間基線重建，前值3423→412；T576業主兩輪迭代：一般電源接路，412→476，十五健康地板不降／12城400日崩城8→7，非改弱守衛');
-    seedPin444('seed22m', 22, 400, 40021, Math.round(window.GV.stats().money),
-      'T456金流哨兵；T574前值1461→35041；T576接路量測35041→40021，12城完整delta入卡');
+      + '400 天端點下移是混沌路徑重擲，數據記 T456 卡面）；T574授權空間基線重建，前值3423→412；T576業主兩輪迭代：一般電源接路，412→476，十五健康地板不降／12城400日崩城8→7；'
+      + 'T588 有資金但網格被阻之城最短合法接橋：476→639，900天476→3632');
+    seedPin444('seed22m', 22, 400, 14523, Math.round(window.GV.stats().money),
+      'T456金流哨兵；T574前值1461→35041；T576接路量測35041→40021；T588 真接橋支出40021→14523，12城完整delta入卡');
     healthFloor575('seed22'); // T575 健康度地板（同一次模擬，零額外成本）
     {
       const mob22 = window.GV.sci451();
@@ -11532,7 +11535,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   P.set(5,10000);assert(P.scan(args576).seen.length===0,'T576 G8 非觸發日零候選掃描');P.set(4,10000);
   const far576=['nuclear',30,30,30,30,[30*72+22],14,10000,350];
   G.setDiff(3);assert(G.place('road',22,30),'T576 G8a 前置：七格遠路');G.setDiff(1);
-  assert(!P.plan(...far576),'T576 G8b 超過六格接路拒絕');
+  assert(!P.plan(...far576),'T576 G8b 未確立電力鎖時，原有超過六格接路仍拒絕');
   const wide576=['nuclear',30,30,50,50,[],14,10000,350];
   assert(P.scan(wide576).seen.length===0,'T576 G8c 無路零掃描');wide576[5]=[20*72+10];
   const scanA576=P.scan(wide576);P.set(8,10000);const scanB576=P.scan(wide576);
@@ -11550,6 +11553,59 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   G.setDiff(1);
 }
 /* ===== T576 電源接路 END ===== */
+
+/* ===== T588 電源替代接路／按施工單補足紓困，不得只是多發錢 ===== */
+{
+  const G=window.GV,P=window.__t576,L=window.__t574;
+  G.setMapSize(72);G.newWorldSeeded(588);G.setDiff(3);L.clear();
+  assert(G.place('road',10,20)&&G.place('road',13,16),'T588 G1 前置：兩條真路');
+  G.setDiff(1);L.liveHouse(11,20);P.set(4,10000);
+  const args588=['geo',13,20,13,20,[20*72+10,16*72+13],14,10000,350,true];
+  assert(P.plan(...args588.slice(0,-1))===null,
+    'T588 G0 未確立電力鎖時仍用 T576 原窄路徑，不能擾動健康城市早期決策');
+  const plan588=P.plan(...args588);
+  assert(plan588&&plan588.x===13&&plan588.y===20&&plan588.link.length===3
+    &&JSON.stringify(plan588.link)==='[[13,19],[13,18],[13,17]]',
+    'T588 G1 最近 X 路被住宅擋住時，改查另一條通電路與 Y 折線；須回三格真可建路');
+  assert(P.direct588('geo',13,20,13,20)===false,'T588 G1a 三格外的路不得冒稱真臨路電源點');
+  const exact588=P.cost('geo',13,20)+350+plan588.link.reduce((sum,p)=>sum+P.cost('road',p[0],p[1]),0);
+  const aid588=P.aidCost588('geo',plan588,350);
+  assert(aid588>=exact588&&aid588-exact588<=.011,
+    'T588 G2 紓困目標只可由選中電源＋逐格真接路費＋保留金算出，最多容一分浮點圓整；實得 '+aid588+'/'+exact588);
+  assert(!G.tile(13,19).road&&!G.tile(13,20).bld,'T588 G2a 規劃／算錢不得提前寫世界');
+  const run588=P.run(args588,10);
+  assert(run588.success&&run588.acts===14&&G.tile(13,20).bld?.k===60
+    &&G.tile(13,19).road&&G.tile(13,18).road&&G.tile(13,17).road,
+    'T588 G3 四個剩餘動作須從既有路反向鋪三格、真蓋地熱並接上；不是只返回一條假計畫');
+  G.setDiff(3);assert(G.place('road',20,19),'T588 G4 前置：另一合法3×3地塊的真臨路');G.setDiff(1);
+  assert(P.direct588('geo',20,20,20,20)===true,'T588 G4 合法3×3地塊正貼道路時，不准改走遠距離補助');
+  G.newWorldSeeded(588);G.setDiff(3);L.clear();assert(G.place('road',10,20),'T588 G5 前置：真路');G.setDiff(1);
+  const grid588=P.grid588(10,20,13,20,6);
+  assert(JSON.stringify(grid588)==='[[11,20],[12,20]]'&&!G.tile(11,20).road,
+    'T588 G5 六格網格橋應從既有路接出最短兩格；規劃不得寫世界');
+  assert(P.grid588(10,20,13,20,1)===null,'T588 G5a 動作上界只有一格時不准回兩格半成品');
+  L.liveHouse(11,20);
+  assert(P.grid588(10,20,13,20,6)===null,'T588 G5b 活住宅堵住唯一接路時必須拒絕，不可踩地塊');
+  const a588=html.indexOf('function powerAltLink588('),b588=html.indexOf('function aiCenter(');
+  assert(a588>=0&&b588>a588&&b588-a588>1000&&b588-a588<9000,
+    'T588 G6 零亂數掃描起訖錨必存在、唯一區段長度合理');
+  const seg588=html.slice(a588,b588);
+  assert(!/\b(?:R|ri|rand)\s*\(|Math\.random|spriteTexRand/.test(seg588),
+    'T588 G6a 電源路徑與救濟成本 helper 不得新增亂數呼叫');
+  assert(html.split('const powLongLock588=powLock532&&powLockDays532>=POWLOCK_HOLD532+POWLOCK_AID_GAP532&&aiR>=N/2;').length===2
+    &&html.split('powerLinkPlan576(tool,x0,y0,x1,y1,roads576,MAXA-acts,money,RESERVE,powLongLock588)').length===2,
+    'T588 G6b 廣路線只在持續兩輪供電鎖且規劃半徑過半圖時使用；健康小城仍走舊路線');
+  assert(html.split('money>COST.nuclear+RESERVE&&pop<500&&!powLock532&&aiR>=N').length===2,
+    'T588 G6c 網格接橋只准用在有資金、低人口、無電力鎖且已全圖規劃的停滯城');
+  for(const [seed588,minPop588,exactPop588] of [[22,500,null],[301,500,null],[5150,500,null],[123,0,1196],[3002,0,1077]]){
+    G.newWorldSeeded(seed588);G.setDiff(1);G.ai(true);
+    for(let d=0;d<400;d++)G.step(1);
+    G.ai(false);const got588=G.stats();
+    assert(got588.pop>=minPop588&&(exactPop588===null||got588.pop===exactPop588),
+      'T588 G7 seed'+seed588+' 真AI 400天：停滯城脫離500線／健康對照不變（pop='+got588.pop+'、money='+got588.money+'）');
+  }
+}
+/* ===== T588 電源接路 END ===== */
 
 /* ===== T580 園區細節層補課守衛（美術素材強化；業主 2026-09-11「直接做…最大完成度」）=====
    病灶：T570 的加蓋件只作用在 SPR.bld，T574 的園區走 bakeLot574 另一條路，整個細節層從未套上——
@@ -15834,9 +15890,9 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert((src532.match(/\(!poor\|\|powLock532\)&&powCap<bldN\+6/g) || []).length === 1,
     'T532 G1b 擴容閘門必須恰是 `(!poor||powLock532)` 形態一處——無條件放寬＝版本①，實測是 no-op');
   /* G2 紓困必受節流與「真的買不起」約束（不是錢的水龍頭） */
-  const aidAt = src532.indexOf('if(powLock532&&powCap<bldN+6&&money<COST.geo+RESERVE&&day-powAid532>=POWLOCK_AID_GAP532){');
+  const aidAt = src532.indexOf('if(powLock532&&powCap<bldN+6&&money<COST.geo+RESERVE&&day-powAid532>=POWLOCK_AID_GAP532&&(!powLongLock588||day%4===0)){');
   assert(aidAt >= 0,
-    'T532 G2 紓困觸發必須同時要求：鎖確立＋容量不足＋買不起最便宜電源＋距上次 ≥60 天');
+    'T532 G2 紓困觸發必須同時要求：鎖確立＋容量不足＋買不起最便宜電源＋距上次 ≥60 天；T588 深鎖接路才等可施工日，舊援助時序保留');
   /* G3 未供電比例只數 pw 逐日重算的建築（k<=3 與 127）——k>=4 是殘值（T435） */
   assert((src532.match(/if\(b\.k<=3\|\|b\.k===127\)\{pwLiveN532\+\+;if\(!b\.pw\)pwOutN532\+\+;\}/g) || []).length === 1,
     'T532 G3 未供電計數必須只數 `pw` 逐日重算的建築（k<=3||k===127）且全檔恰一處——'
@@ -17273,7 +17329,7 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
   assert(isoGreen===0,'T432 G7 seed301 孤島綠能應為 0（T574占地重釘，前值3；實得 '+isoGreen+'）');
   assert(isoCap===0,'T432 G7 seed301 孤島容量應為 0（T574占地重釘，前值320；實得 '+isoCap+'，逐座清單 '+JSON.stringify(isoList)+'）');
   assert(window.__t432Power.districts===1,'T432 G7 seed301 應為單 district（實得 '+window.__t432Power.districts+'）');
-  assert(window.__t432Power.sum===90,'T432 G7 seed301 併網容量應為 90（T574占地重釘，前值853；城市總體影響另附12種子A/B，不把變小宣称成健康不變；實得 '+window.__t432Power.sum+'）');
+  assert(window.__t432Power.sum===180,'T432 G7 seed301 併網容量應為 180（T588 長鎖替代接路讓真電源接網；前值90；孤島不併網另由G8守住；實得 '+window.__t432Power.sum+'）');
 }
 { // G8 行為：撤銷電源後必須重建來源快取（不能遺失回復的風機容量）
   prepPower574(43208);
