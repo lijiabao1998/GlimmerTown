@@ -10472,7 +10472,7 @@ runPwaTests().then(() => {
   assert(calls563 === 2,
     'T563 G3 兩條開機路徑（buildSprites 總管／bootstrap426 分段）各需一個 winterize563() 呼叫，實得 ' + calls563
     + '——漏掛分段路徑＝真瀏覽器永遠夏綠（原型實踩：樣張第一輪草皮全綠就是這個）');
-  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);buildSpritesS15\(\);buildSpritesS16\(\);buildSpritesS17\(\);await bootCheckpoint426/.test(html), /* T586：只把新 S17 納入同一條全鏈，winterize563 緊接 S9 的既有契約維持不變 */
+  assert(/buildSpritesS9\(\);winterize563\(\);buildSpritesS10\(\);buildSpritesS11\(\);buildSpritesS12\(\);buildSpritesS13\(\);buildSpritesS14\(\);buildSpritesS15\(\);buildSpritesS16\(\);buildSpritesS17\(\);buildSpritesS18\(\);await bootCheckpoint426/.test(html), /* T587：只把新 S18 納入同一條全鏈，winterize563 緊接 S9 的既有契約維持不變 */
     'T563 G3b 分段路徑呼叫必須緊接 S9 之後');
   // G4 draw 分派＋k9 排除
   assert(/if\(win&&snowLvl>0&&s&&s\.win563\)s=s\.win563;/.test(html), 'T563 G4 draw 冬季分派行必須在場');
@@ -12747,6 +12747,30 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     'T586 G3 真像素地腳裁切須只清三個越界點、保留前尖與高塔（實得 '+[cut,alpha(36,109),alpha(30,109),alpha(36,110),alpha(5,98),alpha(0,20)].join('/')+'）');
   assert(clip(canvas,{w,h,ax:36,ay:110})===0,
     'T586 G3a 地腳刀重跑必須冪等，否則烘焙／重載可能持續侵蝕');
+}
+
+/* ===== T587 舊單格道路接縫：僅四家族十個高信號鍵沿既有 T586 幾何收腳 ===== */
+{
+  const a=html.indexOf('  function buildSpritesS18(){'),b=html.indexOf('  const genRoadLvl=',a);
+  assert(a>0&&b>a&&html.split('  function buildSpritesS18(){').length===2,
+    'T587 G0 S18 必須只定義一次，且在道路生成前完成舊素材收腳');
+  const block=html.slice(a,b),chosen=/for\(const key of\[([^\]]+)\]\)/.exec(block);
+  assert((html.match(/buildSpritesS17\(\);buildSpritesS18\(\)/g)||[]).length===2,
+    'T587 G1 同步／分段開機都必須在 S17 後掛 S18');
+  assert(chosen&&chosen[1]==="'70_1_0','7_1_1','7_1_2','7_1_3','7_1_4','6_1_1','6_1_2','6_1_3','6_1_4','16_1_0'"&&
+    block.includes('report.day+=clipFoot586(s.img,s)')&&
+    block.includes('report.night+=clipFoot586(s.night,s)')&&
+    block.includes('report.winter+=clipFoot586(s.win563.img,s.win563)'),
+    'T587 G1a 白名單必須恰十舊鍵，日／夜／冬同用既有精確菱形刀');
+  assert(block.includes('if(window.__noSeam587||')&&block.includes('noT587')&&
+    !block.includes('if(!window.__noBadge)'),
+    'T587 G1b 本卡須能獨立回退，且不依賴類別徽記開關');
+  const bare=block.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/\/\/[^\n]*/g,' ');
+  assert(!/\bR\s*\(|\bri\s*\(|\brand\s*\(|Math\.random\s*\(|spriteTexRand|\bcv\s*\(/.test(bare)&&
+    !/SPR\.[^\n;]*=/.test(bare),
+    'T587 G1c S18 不准抽亂數、造畫布或改 SPR 鍵');
+  const r=window.__t587Foot;
+  assert(r&&r.keys===10,'T587 G2 真開機須逐鍵跑完十個既有素材，實得 '+JSON.stringify(r));
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
