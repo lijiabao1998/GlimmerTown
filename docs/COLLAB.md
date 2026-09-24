@@ -16,6 +16,7 @@
 | `安卓探索\bay-grok` | Grok 的施工車位（git worktree，分支 `bay/grok`） | Grok 專屬 |
 | `安卓探索\bay-deepseek` | DeepSeek 的施工車位（git worktree，分支 `bay/deepseek`） | DeepSeek 專屬 |
 | `安卓探索\glimmer-town` | **玩家遊玩目錄（部署目標）**，只放執行期檔案 | 只由合併後的部署步驟寫 |
+| GitHub `origin`（`lijiabao1998/GlimmerTown`，公開） | 遠端鏡像＋雲端施工收件處；遠端 `main` ↔ 本地 `master`（T589，見第九節） | 本地落地後 `git push`；雲端直推者只有 Codex |
 
 **車位＝真 git worktree**，共用 `C:\dev\glimmer-town` 的物件庫與 config。所以在車位裡：
 `git log` / `git diff master` / `node test_fixde.js` 全部照常，寫入只影響自己分支，**不可能撞車**。
@@ -372,3 +373,74 @@ T378 卡面自己寫了「不得蓋到農場自帶的穀倉／建築（各變體
 但擋不住非合作的自行發卡或作者偷按合併鈕。發現違規的補救是事實核查（`git log` 圖、
 `--status`、部署 receipt）＋退件，不是事後改歷史。施工權可以分散；
 **發卡權與合併權必須集中**——這是本節的一句話版本。
+
+---
+
+## 九、GitHub 遠端與雲端施工同步（T589）
+
+2026-09-24 起主線有遠端。**遠端不取代第七節**：`main` 上的東西最後都要經過本機閘門，
+GitHub 只是鏡像和雲端施工的收件處。一句話版本：**落地只在本機，GitHub 只收件與備份。**
+
+### 現況（2026-09-24 設定，可覆核）
+
+| 項目 | 值 | 覆核方式 |
+|---|---|---|
+| 遠端 | `origin` ＝ `https://lijiabao1998@github.com/lijiabao1998/GlimmerTown.git`（**公開**倉庫） | `git remote -v` |
+| 分支對應 | 本地 `master` ↔ 遠端 `main`；本倉庫 `push.default=upstream`，所以直接 `git push` 就會推到 `main` | `git config --local push.default`、`git status -sb` |
+| 為什麼不改名 | `merge_bay.py` 第 357 行硬檢 `branch != 'master'`，全檔 98 處、`test_toolchain.py` 35 處依賴這個名字；業主選擇保留 `master` | `grep -nw master tools/merge_bay.py` |
+| 首推 | `db3f1c1`（v11.198／T588），強推覆蓋遠端空倉庫的 README 初始 commit `e61ef98`（業主選定）；tag `v2.0`、`fork/mobile-T420` 一併推送 | `git ls-remote origin` |
+| 規則集 | `protect-main`（id 23925785，Active，目標＝預設分支 `main`）：禁刪除、禁強推、須經 PR（核准數 0） | `gh api repos/lijiabao1998/GlimmerTown/rules/branches/main` |
+| 可繞過 | Repository admin（Always allow）＋ **ChatGPT Codex Connector（Always allow）**——業主選「完全繞過」 | 倉庫 Settings → Rules（只有 admin 看得到） |
+| 未推 | `bay/*` 車位分支只在本機 | `git ls-remote origin` |
+
+### 規則集的真實強度（誠實邊界）
+
+- 能直推 `main` 的只有兩個身分：**lijiabao1998**（本機推送用的帳號，admin）與 **Codex 雲端**。其他人、其他 App 只能推分支、開 PR。
+- **Codex 雲端直推 `main` 的提交沒有經過本機任何閘門**（`verify.py`、亂數流哨兵、T557 簽核閘、凍結 base、部署 receipt）。這是業主知情選擇的代價，不是漏洞；下面的「收件」就是補這個洞的協議。
+- 規則集擋的是**身分**，不是「有沒有驗過」：任何以 lijiabao1998 權限動作的工具（包括本機 git）一樣能繞過。
+- 8123 部署目錄**永遠不會因為 GitHub 變動而改變**，只有第七節的 `--deploy`／`--publish` 會寫它。
+- 倉庫公開：1,366 筆歷史 commit 的作者信箱與 docs 內的本機路徑已隨推送公開（業主推送前已知情選擇）。之後新增的文件同樣會公開，**不要寫進任何密鑰或私人資料**。
+
+### 開工前（本機車位與雲端都一樣）
+
+進場三連**之前**先同步遠端；遠端有本機沒有的提交，就先收件，不要在舊 master 上動工（第八節規則 2 的延伸）：
+
+```bash
+git -C C:\dev\glimmer-town fetch origin
+git -C C:\dev\glimmer-town log --oneline master..origin/main
+```
+
+雲端施工者（Codex 雲端、Claude Code 網頁版等）必須從**最新的 `origin/main`** 開工，並照第八節帶卡面、CHANGELOG 條目與驗收欄（T557），否則收件時會被 `merge_bay.py` 擋下。
+
+### 本機 → GitHub
+
+第七節合併（或 T373 直寫 master）落地後，在 canonical master 執行：
+
+```bash
+cd C:\dev\glimmer-town && git fetch origin && git push
+```
+
+`git push` 被拒（non-fast-forward）＝遠端有本機沒有的提交，多半是 Codex 雲端直推 → 走下面的收件。
+**禁止 `--force`**：規則集會擋，而且那會抹掉別人的提交。
+
+### GitHub → 本機（收件：一律經車位，不在 master 上直接 merge 遠端）
+
+1. 在 canonical master 執行 `git fetch origin`，再看 `git log --oneline master..origin/main`。空＝無事。
+2. 非空：收進該施工者的車位。Codex 雲端的成果收進 `bay-codex`；由**車位擁有者本人或業主指定的一方**執行（第七節單寫者協議）。先確認車位 clean、沒有未落地的本地工作（`git log --oneline master..HEAD` 為空），然後：
+
+   ```bash
+   git merge origin/main
+   ```
+
+   能 fast-forward 就 fast-forward，不能就產生合併提交；衝突在車位裡解。車位有未落地工作時停手，不替別人合併。
+3. 由**非作者**在 canonical master 執行 `python tools/merge_bay.py codex --deploy`（或 `--no-deploy`）。
+   雲端提交**在這一步第一次**經過 `verify.py`、亂數流哨兵、T557 簽核閘與「CHANGELOG 只增不減」；
+   紅就留在 integration，master 與 8123 都不動。
+4. 落地後 `git push`。master 的新合併提交以 `origin/main` 為祖先，推送是 fast-forward。
+
+### 為什麼 `main` 只能有一條落地路
+
+每張卡都改同一個 `index.html`、都要升 `GAME_VER`，兩邊平行落地幾乎一定衝突；
+而全部品質閘門只存在本機。GitHub 上若再開第二條合併路（例如網頁上直接合 PR），
+`main` 就會出現沒驗過的提交，和本機 master 分岔，還得人工收拾。
+Codex 直推是業主明示的唯一例外，收件協議讓它最遲在下一次合併時被閘門咬住。
