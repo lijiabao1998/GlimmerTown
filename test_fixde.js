@@ -469,6 +469,7 @@ window.__t410Pol=function(dt){updPoliceCars(dt);return policeCars.length;}; // T
 window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=window.__t411Rold;}}; // T411 測試橋：量測期間凍結 R 機率路徑（比照 __t386Tick 的 stub 慣例）——G3 量的是純車輛物理，tick 的診所擲骰/病亡轉化/犯罪點火/火勢蔓延全部惰性化，量測不受未來 R 流位移影響
 window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;};
 window.__t571Mk=function(x,y,k,v){const t5=tiles[idx(x,y)];t5.bld={k:k,lv:1,v:v,age:9,pw:true,h:1};t5.zone=0;return true;}; // T571 測試橋：直造完工 1x1 建築（zone 自然生長不可控；__t412Set 同權）
+window.__t591V=function(x,y,b){return lotV591(x,y,b);}; window.__t591Hooks=function(k,v){return lotHooks574(k,v);}; window.__t591OnFn=t591On; window.__t591Ported=function(k){return portedLot591(k);}; // T591 測試橋：掛點快取、網址閥、移植判斷 // T591 測試橋：曝光園區繪製變體選擇（純函式）
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
@@ -497,7 +498,7 @@ window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveS
     }finally{cv=oldCv;lotOrder574=oldOrder;}},
   drawOrder:(points,z,night)=>{const before={...cam},oldDraw=ctx.drawImage,oldOrder=lotObjectOrder574,oldTopo=lotOrder574,oldLayer=lotNightLayer574,oldT=visT,oldShake=shakeT,oldZoom=zoomAnim,oldTool=tool,oldSel=selTile,oldWeather=weather;
     const images=new Map(),painted=[],objects=[];let calls=0,cycles=null,nightCalls=0,nightMasks=0;
-    for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b.lot574)images.set(lotSprite574(b.k,b.v,2,false,z<1).img,p.id);
+    for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b.lot574)images.set(lotSprite574(b.k,lotV591(p.x,p.y,b),2,false,z<1).img,p.id); // T591：與繪製同一個變體
       else for(const key of Object.keys(SPR.bld))if(+key.split('_')[0]===b.k)images.set(SPR.bld[key].img,p.id);}
     try{const a=lotViewBase574(points[0].x,points[0].y,tiles[idx(points[0].x,points[0].y)].bld.sz);
       cam.x=a[0];cam.y=a[1]-tiles[idx(points[0].x,points[0].y)].bld.sz*16;cam.z=z;visT=night?100:55;weather=0;shakeT=0;zoomAnim=null;tool='pan';selTile=null;groundDirty=true;
@@ -509,7 +510,7 @@ window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveS
   ground:lotGround574,visible:lotVisible574,roadLink:lotRoadLink574,
   nightRoots:points=>{const seen=new Set();return points.map(p=>nightRoot574(p[0],p[1],seen)).filter(Boolean).map(p=>p.slice(0,3));},
   nightFrame:(kind,x,y)=>{const before={...cam},old=ctx.fillRect,oldT=visT,oldShake=shakeT,oldGate=window.__noNightCity,b=tiles[idx(x,y)].bld;
-    const sp=lotSprite574(b.k,b.v),a=lotViewBase574(x,y,b.sz),hits=[];
+    const sp=lotSprite574(b.k,lotV591(x,y,b)),a=lotViewBase574(x,y,b.sz),hits=[]; // T591：與繪製同一個變體
     try{cam.x=a[0];cam.y=a[1]-b.sz*16;cam.z=1.5;visT=100;shakeT=0;window.__noNightCity=false;nightTierDirty413=true;
       ctx.fillRect=(...args)=>hits.push(args);({land:drawNightLandmarks413,neon:drawNightCommNeon413,ind:drawNightIndAvia413})[kind](1);
       return {hits,anchor:a,cam:{...cam},world:[W,H],sprite:{ax:sp.ax,ay:sp.ay,hooks:sp.lotMeta574.hooks}};
@@ -517,7 +518,7 @@ window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveS
   actions:fn=>{const old=doPlace,actions=[];try{doPlace=function(...args){const ok=old(...args);if(ok)actions.push(args[0]);return ok;};fn();return actions;}finally{doPlace=old;}},
   farmSmoke:(s,b,x,y,baseY)=>{attachFarmSmoke574(s,b,x,y,baseY);return s;},
   frame:(x,y,z,rootY,atNight=false)=>{const before={...cam},old=ctx.drawImage,oldRect=ctx.fillRect,oldArc=ctx.arc,oldT=visT,oldShake=shakeT,oldZoom=zoomAnim,b=tiles[idx(x,y)].bld;
-    const sp=lotSprite574(b.k,b.v,2,false,z<1),a=lotViewBase574(x,y,b.sz),p=w2v(x,y),hits=[],rects=[],arcs=[];
+    const sp=lotSprite574(b.k,lotV591(x,y,b),2,false,z<1),a=lotViewBase574(x,y,b.sz),p=w2v(x,y),hits=[],rects=[],arcs=[]; // T591：與繪製同一個變體
     try{cam.x=a[0];cam.y=rootY===undefined?a[1]-b.sz*16:(p[0]+p[1])*16+H/(2*z)-rootY/z;cam.z=z;visT=atNight?100:55;shakeT=0;zoomAnim=null;groundDirty=true;
       ctx.fillRect=(...args)=>{if(args[2]>30&&args[3]>30&&args[2]<W*.9)rects.push(args);};ctx.arc=(...args)=>arcs.push(args);
       ctx.drawImage=(im,...args)=>{if(im===sp.img)hits.push(args);};draw(.016);return {hits,rects,arcs,w:sp.w*(sp.sc||1),h:sp.h*(sp.sc||1),world:[W,H,N],root:{...b},cam:{...cam},visible:lotVisible574(x,y,b.sz,Math.round(W/2-cam.x*z),Math.round(H/2-cam.y*z),z,W,H)};
@@ -11016,8 +11017,15 @@ runPwaTests().then(() => {
     s={...s,img:c,night:nc,w:c.width,h:c.height,ax:s.ax*q,ay:s.ay*q,sc:1/q};
   }`;
   assert(artCode574.split(lodCopy574).length===2,'T574 G8d 遠景只可將新烘焙園區日夜各縮至半尺寸，零平滑並保留邏輯尺度');
+  // T591 第二個例外：業主定案 A 把實驗線新圖以 1:1 貼進園區。只放行這三行原文（來源 S 是 portedLot591 認過的新圖物件、
+  // 尺寸 sw／sh＝S.w／S.h 乘它自己的 sc，不放大），其餘貼圖照舊拒收；舊一格廠仍不得貼回。
+  const paste591=stripCommentsAndStrings438(`      cg.drawImage(S.img,x0,y0,sw,sh);
+      ng.globalCompositeOperation='destination-out';ng.drawImage(S.img,x0,y0,sw,sh);ng.globalCompositeOperation='source-over';
+      if(S.night)ng.drawImage(S.night,x0,y0,sw,sh);`).text;
+  assert(artCode574.split(paste591).length===2&&/const q=S\.sc\|\|1,sw=S\.w\*q,sh=S\.h\*q,sax=S\.ax\*q,say=S\.ay\*q;/.test(artCode574),
+    'T591 G8c 園區貼新圖只准一處、1:1（sw／sh 由新圖自身尺寸與 sc 算出）');
   assert(!/\b(?:R|ri|rand|spriteTexRand)\s*\(|Math\.random\s*\(/.test(artCode574)&&
-    !/drawImage\s*\(/.test(artCode574.replace(lodCopy574,'')),
+    !/drawImage\s*\(/.test(artCode574.replace(lodCopy574,'').replace(paste591,'')),
     'T574 G8c 新園區零亂數、不得 drawImage 放大或貼回舊一格廠');
   A.clear();assert(G.place('plant',20,20),'T574 G9 煙口造境新廠落成');
   const parts=A.smoke();
@@ -11166,6 +11174,8 @@ runPwaTests().then(() => {
   const G=window.GV,A=window.__t574;G.setMapSize(72);G.newWorldSeeded(574);G.setDiff(3);G.ai(false);G.setSeason(0);
   const cases=[[76,'land','wheel',0,1],[89,'land','aviation',0,1],[65,'neon','sign',41370,.55],[58,'ind','aviation',41375,.4]];
   for(const [k,kind,key,salt,threshold]of cases){
+    // T591：k65 購物中心園區已貼新圖（夜圖自帶招牌），寫死的霓虹條刻意跳過、也沒有配方的 sign 掛點；這條驗的是 T574 配方霓虹契約，在 T591 關閉下照樣守，開啟時的跳過另在下方驗
+    const off591=k===65;if(off591)window.__noT591=true;try{
     const id=A.plan()[k][0];A.clear();let x=20;while(salt&&window.__t571Hash(x,20,salt)>threshold)x++;
     assert(x<40&&G.place(id,x,20,true),'T574 G15a '+id+' 夜景造境須真建造且通過原有雜湊閥');
     const b=G.tile(x,20).bld;A.edit(x,20,'bld',{...b,age:9,pw:true,h:1});
@@ -11182,6 +11192,9 @@ runPwaTests().then(() => {
     assert(JSON.stringify(roots)===JSON.stringify([[x,20,x+20*72]]),'T574 G15c '+id+' 可見尾格解析同root、同幀去重，root離開視窗仍不得漏燈或重畫');
     A.edit(x,20,'bld',{...G.tile(x,20).bld,age:8});
     assert(A.nightFrame(kind,x,20).hits.length===0,'T574 G15e '+id+' 新園區未到age9時不得先畫完工夜燈');
+    if(off591){delete window.__noT591;A.edit(x,20,'bld',{...G.tile(x,20).bld,age:9});
+      assert(A.nightFrame(kind,x,20).hits.length===0,'T591 G15 購物中心園區貼新圖後不得再疊寫死霓虹條（新圖夜圖自帶招牌）');}
+    }finally{if(off591)delete window.__noT591;}
   }
   G.setRot(0);A.clear();A.edit(20,20,'bld',{k:65,lv:1,v:0,age:9,sz:3});A.edit(22,22,'bld',{ref:[20,20]});
   assert(A.nightRoots([[22,22],[20,20]]).length===1,'T574 G15d 舊城尾格仍忽略，只由原root繪夜燈');
@@ -11325,7 +11338,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     for(const p of kinds574){
       const full=A.art(p.k,0,2,false),small=A.art(p.k,0,2,false,true),q=small.sc||1;
       if(small.w*q===full.w&&small.h*q===full.h&&small.ax*q===full.ax&&small.ay*q===full.ay)exact574++;
-      if(p.k!==5&&small===A.art(p.k,2,2,false,true))variants574++;
+      if(p.k!==5){window.__noT591=true;try{if(A.art(p.k,0,2,false,true)===A.art(p.k,2,2,false,true))variants574++;}finally{delete window.__noT591;}} // T591：貼新圖的園區遠景保留變體（T591 G7），遠景合併是配方色票變體的契約，在 T591 關閉下數
     }
     assert(exact574===105,'T574 G22f 105類縮略圖須以既有sc路徑精確還原w/h/ax/ay，地塊不得縮回一格；實得 '+exact574);
     assert(variants574===104,'T574 G22g 遠景合併色票變體鍵防128組抖動，但k5三種機組保持固定圖；實得 '+variants574);
@@ -11342,12 +11355,16 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     const hookBefore=A.artCache().bakes;
     for(let i=0;i<3;i++)A.farmSmoke({wx:0,wy:0,age:0},farmB,farm.x,farm.y,26);
     assert(A.artCache().bakes===hookBefore,'T574 G22j 農場掛點讀取不得因畫布被LRU淘汰而重新烘焙；幾何不依賴圖片常駐');
+    // T591：下面 G22l–n 用沒有座標的合成物件驗 T574 的條目／像素閥值算術（變體＝存檔的 v）。T591 開啟時 v=0 的園區按格雜湊選款，
+    // 沒座標的合成物件會全擠到同一款、少算一組，所以在 T591 關閉下照樣驗算術；T591 的「按實際繪製變體計鍵」由 T591 G1b／G6 驗。
+    window.__noT591=true;try{
     const smallObjects574=[];
     for(const p of [...kinds574].sort((a,b)=>a.n-b.n||a.k-b.k))if(p.n<=4&&p.k!==5&&p.k!==22)for(const v of A.artVariants(p.k))smallObjects574.push({t:{bld:{k:p.k,v,sz:p.n,lot574:p.n}}});
     const entryOnly574=smallObjects574.slice(0,129),entryPixels574=entryOnly574.reduce((n,o)=>n+(o.t.bld.sz*64+16)*(o.t.bld.sz*32+144)*2,0);
     assert(entryOnly574.length===129&&entryPixels574<12000000,'T574 G22l 條目閘造境須有129個合法小型變體鍵且像素低於12M，不得用像素超限冒充條目超限；實得 '+entryOnly574.length+'/'+entryPixels574);
     assert(A.farFrame(entryOnly574,false),'T574 G22m '+entryPixels574+'像素未滿12M但129鍵超128組，必須選縮略圖');
     assert(!A.farFrame(smallObjects574.slice(0,1),false),'T574 G22n 單座近景未超限必須保留完整畫布，不准一律降畫質');
+    }finally{delete window.__noT591;}
     console.log('T574 G22 CACHE_MATRIX '+JSON.stringify(checks574));
   }finally{
     [cv574.clientWidth,cv574.clientHeight,window.innerWidth,window.innerHeight]=oldView574;
@@ -11372,6 +11389,9 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     }
   }
   assert(kinds===104&&variants>208&&strokes>1000,'T574 G23b 104種新園區所有既有變體的日／冬兩側都必須真跑；實得 '+kinds+'/'+variants+'/'+strokes);
+  // T591：以下 G23c／G23d 驗的是 T574 配方本身（主樓與側翼的地腳、配方窗燈的夜光契約）。這幾類已貼新圖，配方只剩逃生閥路徑，
+  // 所以在 T591 關閉下照樣守；貼新圖後的夜光遮擋由 T591 卡面的真 Chrome 逐像素稽核（208 次烘焙、零穿透）與 T591 G8c 原文釘承接。
+  window.__noT591=true;try{
   for(const [k,role]of [[32,'library'],[108,'library'],[113,'library'],[40,'atrium'],[44,'atrium'],[65,'atrium']]){
     const fs=A.artBake(k,0,2,false).lotMeta574.feet,a=fs.find(f=>f.role==='main').uv,b=fs.find(f=>f.role===role).uv;
     assert(a[1]+a[3]+.079999999<=b[1],'T574 G23c k'+k+' 的'+role+'須在主樓前留至少0.08格實際空隙，不得地腳交疊；'+JSON.stringify([a,b]));
@@ -11395,6 +11415,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(lamps>16&&op.draws>0&&op.erases>0&&through===0,'T574 G23d k'+k+(winter?' 冬':' 日')+
       ' 前楼／屋頂遮住的後窗不得穿透夜圖，且不能刪掉全部夜燈求綠；亮像素='+lamps+' 穿透='+through+' '+JSON.stringify(op));
   }
+  }finally{delete window.__noT591;}
   G.setMapSize(72);G.newWorldSeeded(57431);G.setDiff(3);G.ai(false);G.setSeason(0);G.setRot(0);A.rainDays(0);A.clear();
   const points=[{id:'mall',x:24,y:24,k:65,n:5},{id:'house',x:24,y:29,k:1,n:1},{id:'oldStadium',x:29,y:24,k:9,n:2},
     {id:'school',x:21,y:24,k:7,n:3},{id:'police',x:24,y:22,k:11,n:2}];
@@ -11656,7 +11677,9 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     }
     out._opaque = opaque; return out;
   };
-  const bake580 = (k, v) => window.__t574.bakeTrace(k, v, false, window.__t417Canvas).sprite;
+  // T591：這組數的是 T574 配方的細節件（屋頂機組、夜燈、停機坪…）。k65／12／19／114／40 的園區已貼新圖，配方只剩逃生閥路徑，
+  // 所以在 T591 關閉下照樣驗配方；貼新圖後的園區由 T591 G2／G3 與真 Chrome 稽核承接。
+  const bake580 = (k, v) => { window.__noT591 = true; try { return window.__t574.bakeTrace(k, v, false, window.__t417Canvas).sprite; } finally { delete window.__noT591; } };
 
   // G1 死碼釘：四個 Kit 必須定義**且**真被呼叫（只寫不接＝死碼，T574 期間已有前例）
   for (const [fnName, callSite, why] of [
@@ -12890,12 +12913,12 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     'T590 G4b 區塊內 R( 只准是 port590_cul_c 的局部極座標函式（定義 1 處、呼叫 3 處），實得區塊 '+nR590);
   assert(blk590.indexOf('__variants574')<0,'T590 G4c 實驗線的佇列延後邏輯必須全部拿掉（改固定順序）');
   // G5 繪製端原文釘（只動舊路徑）
-  assert(html.includes("if((!bd.lot574&&s.__t590&&s.flagAt)||((bd.k===7||bd.k===9||bd.k===42)&&(bd.lot574||!s.__t590))){")&&html.includes('const fa590=!bd.lot574&&s.__t590?s.flagAt:null;'),'T590 G5a 旗子：新圖帶 flagAt 就掛，沒帶的新圖不掛寫死旗');
+  assert(html.includes("if(!constrRise&&((!bd.lot574&&s.__t590&&s.flagAt)||(bd.lot574&&s.__t590&&s.lotMeta574.hooks.flag)||((bd.k===7||bd.k===9||bd.k===42)&&!s.__t590))){")&&html.includes('const fa590=!bd.lot574&&s.__t590?s.flagAt:null;'),'T590 G5a 旗子：新圖帶 flagAt 就掛，沒帶的新圖不掛寫死旗（T591：園區新圖讀換算後的 hooks.flag）');
   assert(html.includes('(s.radarAt?s.radarAt[0]:(bd.k===46?36:136))')&&html.includes('(s.hen403||[62,114])'),'T590 G5b 雷達與雞群讀新圖自帶掛點');
   assert(html.includes("else if(!bd.lot574&&bd.v===0&&vark590().has(bd.k)&&ported590(bd.k))s=SPR.bld[bd.k+'_1_'+vdraw590(o,bd)]||SPR.bld[bd.k+'_1_0'];")&&/function vdraw590\(o,bd\)\{[^}]*bd\.k\+'_1_2'/.test(html),'T590 G5c 新變體依格雜湊，只讀 lv1 鍵');
   assert((html.match(/      if\(!s\.__t590\)draw(DistrictTexture424|FacadeMemory426|LivedIn421|Rooftop425|MaterialResponse430|NightIdentity423|NightMicro431)\(/g)||[]).length===7,'T590 G5d 七個外框比例牆面層對新圖跳過（人物層照畫）');
   assert(html.includes('if(shadowA>0&&!(s&&s.__t590)){')&&html.includes('else if(s&&s.__t590)lotFloodGlow574(ctx,{ax:s.ax,ay:s.ay,lotMeta574:{sz:bd.sz}},bx,by,z,nightDepth);')
-    &&html.includes('if(!b.lot574&&(k===65||k===87)&&ported590(k))continue;'),'T590 G5e 壓扁剪影影、泛光、霓虹對新圖改走對應處理');
+    &&html.includes('if((k===65||k===87)&&ported590(k)&&(!b.lot574||t591On()))continue;'),'T590 G5e 壓扁剪影影、泛光、霓虹對新圖改走對應處理');
   // G6 逃生閥真的能撥：關掉 S19 重建一次，新圖必須全部消失；再開回來必須全部回來、數量相同（重建兩次冪等）
   assert(/if\(window\.__noPort590\|\|\/\(\?:\^\|\[\?&\]\)noT590/.test(html),'T590 G6a 逃生閥：網址 ?noT590=1 與 window.__noPort590');
   const rebuild590=()=>{const had=Object.prototype.hasOwnProperty.call(global,'GV');global.GV=window.GV;try{return window.GV.buildAllSprites();}finally{if(!had)delete global.GV;}}; // buildAllSprites 內部讀全域 GV（瀏覽器有、Node 替身只有 window.GV）
@@ -12915,6 +12938,119 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const extraW590=Object.keys(S590w.bld).filter(key=>{const s=S590w.bld[key];return s&&s.__t590===1&&s.win563&&!objW590.has(s);});
   assert(extraW590.length===0,'T590 G7b 名單外的新圖不得有冬側版（沒有草坪就不必多一張畫布）：'+extraW590.join(','));
   assert(/function winter590\(s\)\{[\s\S]{0,700}delete o\.win563;s\.win563=o;/.test(html)&&!/function (lawn590|winter590)\([^)]*\)\{[^\n]*(Math\.random|\bri\(|\brand\()/.test(html),'T590 G7c 冬側版複製本體欄位只換 img、零亂數');
+}
+{ // ===== T591 園區接新圖（業主定案 A）：36 類新圖貼進 T574 園區的行為釘與原文釘（覆核後重寫：期望值一律由園區幾何獨立算出） =====
+  const A=window.__t574,S591=window.__t420SPR;
+  // 名單寫死（不從 portK590／LOT_PLAN574 推算，免得守衛替自己作證）：43 類扣掉 k5（T585 電廠園區）與 6 個不走園區的類
+  const K591=[6,7,11,12,14,15,17,18,19,21,23,28,30,32,35,36,37,38,39,40,41,42,43,44,47,48,55,56,61,65,84,87,108,113,114,130];
+  const VARK591=new Set([19,32,35,36,37,38,39,40,41,42,43,44,47,48,56,61,65,84,87,95,102,108,113,114,130]); // T590 放置寫死 v:0 的類（另抄一份）
+  // ---- G1 原文 ----
+  assert((html.match(/\n  if\(!t591\)switch\(k\)\{\n/g)||[]).length===1,'T591 G1a 配方 switch 只在沒貼新圖時跑（恰一處）');
+  assert(html.includes('if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574);')&&html.includes("const key=b.k+'_'+lotVariant574(b.k,lotV591(o.x,o.y,b));"),'T591 G1b 繪製與縮略圖預算用同一個變體');
+  assert(html.includes('if(t591)out574.__t590=1;')&&html.includes("+lotKey591(k);let s=lotCache574.get(key);")&&html.includes("const key=k+'_'+v+lotKey591(k);")&&html.includes("lotHookCache574.set(k+'_'+v+lotKey591(k),{ax,ay,hooks});")
+    &&html.includes("function lotKey591(k){if(!portedLot591(k))return '';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
+  assert(/function t591On\(\)\{if\(t591On\.u===undefined\)t591On\.u=\/\(\?:\^\|\[\?&\]\)noT591\(\?:=1\)\?\(\?:&\|\$\)\/\.test\(/.test(html)&&html.includes('return !window.__noT591&&!t591On.u;}'),'T591 G1d 網址 ?noT591=1 逃生閥原文');
+  // G8c 原文（未剝字串）：三行貼圖含合成模式整行釘死（覆核抓到剝字串後改成等長別的模式不會紅）
+  assert(html.includes("      cg.drawImage(S.img,x0,y0,sw,sh);\n      ng.globalCompositeOperation='destination-out';ng.drawImage(S.img,x0,y0,sw,sh);ng.globalCompositeOperation='source-over';\n      if(S.night)ng.drawImage(S.night,x0,y0,sw,sh);\n"),'T591 G1e 貼圖三行原文（含合成模式字串）');
+  // ---- G2 逐類逐款（每一個真的會出現的款）日冬真烘，錄下每一筆貼圖 ----
+  const bench591=()=>{const rec=[];let made=0;const fac=(w,h)=>{const id=made++;let style='#000',mode='source-over';
+    const g={get fillStyle(){return style;},set fillStyle(v){style=v;},get globalCompositeOperation(){return mode;},set globalCompositeOperation(v){mode=v;},
+      fillRect(){},drawImage(im,x,y,ww,hh){rec.push({cv:id,mode,im,x,y,w:ww,h:hh});}};const c={width:w,height:h,getContext:()=>g};g.canvas=c;return[c,g];};return{rec,fac};};
+  const behind591=(a,b)=>a[2]<=b[0]+1e-9||a[3]<=b[1]+1e-9;
+  const src591=(k,v)=>k===11?((v&&S591.policeVar&&S591.policeVar[v])||S591.police):k===12?((v&&S591.hospitalVar&&S591.hospitalVar[v])||S591.hospital):(S591.bld[k+'_1_'+v]||S591.bld[k+'_1_0']);
+  let n591=0;const bad591=[],fill591={};
+  for(const k of K591){
+    const vs=k===11||k===12?[0,1,2,3,4]:A.artVariants(k);
+    for(const v of vs)for(const w of [false,true]){
+      const {rec,fac}=bench591(),r=A.bakeTrace(k,v,w,fac),s=r.sprite,mt=s.lotMeta574;n591++;
+      const n=A.plan()[k][1],mm=Math.min(n-1,A.legacy(k)),u0=(n-mm)/2,S0=src591(k,v),S=w&&S0.win563?S0.win563:S0,q=S.sc||1;
+      const [ax,top]=mt.ground,Pf=[ax+((u0+mm)-(u0+mm))*32,top+((u0+mm)+(u0+mm))*16]; // 前角 P(fu,fv)，由園區地面錨點獨立算
+      const x0=Math.round(Pf[0]-S.ax*q),y0=Math.round(Pf[1]-S.ay*q),sw=S.w*q,sh=S.h*q;
+      const draws=rec.filter(d=>true),okDraw=draws.length===3&&draws[0].cv===0&&draws[0].mode==='source-over'&&draws[0].im===S.img
+        &&draws[1].cv===1&&draws[1].mode==='destination-out'&&draws[1].im===S.img&&draws[2].cv===1&&draws[2].mode==='source-over'&&draws[2].im===S.night
+        &&draws.every(d=>d.x===x0&&d.y===y0&&d.w===sw&&d.h===sh);
+      const H=mt.hooks,eqp=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Math.abs(x-b[i])<1e-9);
+      const okHook=(S.flagAt?eqp(H.flag,[x0+S.flagAt[0]*q,y0+S.flagAt[1]*q]):!H.flag)
+        &&(k!==19||eqp(H.radar,S.radarAt?[x0+S.radarAt[0]*q,y0+S.radarAt[1]*q]:[x0+sw*.5,y0+8]))
+        &&(k!==23||(eqp(H.door,S.door403?[x0+S.door403[0]*q,y0+S.door403[1]*q,S.door403[2]*q,S.door403[3]*q]:[x0+sw*.5-2,y0+sh-14,4,6])&&eqp(H.field,S.hen403?[x0+S.hen403[0]*q,y0+S.hen403[1]*q]:[x0+sw*.5,y0+sh-8])));
+      const mi=r.trace.findIndex(p=>p.role==='main590'),mf=mi>=0?r.trace[mi].foot:null;
+      const okOrder=mi>=0&&r.trace.filter(p=>p.role==='main590').length===1&&JSON.stringify(mf)===JSON.stringify([u0,u0,u0+mm,u0+mm])
+        &&r.trace.every((p,i)=>i===mi||!(behind591(p.foot,mf)&&!behind591(mf,p.foot))||i<mi)&&r.trace.every((p,i)=>i===mi||!(behind591(mf,p.foot)&&!behind591(p.foot,mf))||i>mi);
+      const ok=mt.t591===true&&s.__t590===1&&r.cycles===0&&okDraw&&okHook&&okOrder&&!mt.feet.some(f=>f.role==='main');
+      if(!ok)bad591.push('k'+k+'v'+v+(w?'冬':'日')+(okDraw?'':'［貼圖］')+(okHook?'':'［掛點］')+(okOrder?'':'［排序］'));
+      if(!w&&v===0){const c=role=>r.trace.filter(p=>p.role===role).length;fill591[k]={n,r:n-mm,tree:c('tree'),car:c('car'),lamp:c('lamp')};}
+    }
+  }
+  assert(bad591.length===0&&n591>=250,'T591 G2 36 類每款日冬：貼的是該款自己的圖（冬天是它的雪景）、位置與三筆合成模式對、掛點換算對、本體在部件排序裡且前後關係對（實烘 '+n591+'）：'+bad591.slice(0,8).join(','));
+  // G2f 補地內容（業主定案 A「剩下的地補停車／花園」）：下限取 2026-09-26 實測的保守值
+  // 下限依「新圖四周剩幾格」分級（2026-09-26 實測最小值打折）：剩 1 格只補樹（離右立面留空後放不下停車場）；剩 2 格起要有停車；剩 3 格以上要成片
+  const fillBad591=Object.entries(fill591).filter(([k,f])=>f.lamp<1||f.tree<(f.r>=3?40:f.r>=2?8:4)||(f.r>=2&&f.car<(f.r>=3?8:2))).map(([k,f])=>'k'+k+JSON.stringify(f));
+  assert(fillBad591.length===0,'T591 G2f 園區剩下的地要真的補上樹林與停車（大園區更多），至少一盞燈：'+fillBad591.join(' '));
+  // ---- G4 逃生閥真撥（快取與掛點快取都分開）----
+  window.__noT591=true;
+  try{
+    const off=A.artBake(7,0,2,false);
+    assert(off.lotMeta574.t591===false&&!off.__t590&&off.lotMeta574.feet.some(f=>f.role==='main'),'T591 G4a 關閥後 k7 走回 T574 配方');
+    const cOff=A.art(32,0,2,false);assert(cOff&&!cOff.__t590,'T591 G4b 關閥後快取拿到的是配方園區');
+  }finally{delete window.__noT591;}
+  const cOn=A.art(32,0,2,false);assert(cOn&&cOn.__t590===1&&cOn.lotMeta574.t591===true,'T591 G4c 打開後快取拿到的是貼新圖的園區（不被關閥時的烘焙蓋掉）');
+  // G4d 覆核抓到的崩潰路徑：關→開→關之後，購物中心／農貿市場的配方霓虹掛點仍在（掛點快取不得留著另一條路的）
+  window.__noT591=true;try{A.art(65,0,2,false);A.art(87,0,2,false);}finally{delete window.__noT591;}
+  A.art(65,0,2,false);A.art(87,0,2,false);
+  window.__noT591=true;
+  try{assert(window.__t591Hooks(65,0).hooks.sign&&window.__t591Hooks(87,0).hooks.sign,'T591 G4d 關→開→關後配方霓虹掛點仍在（掛點快取與精靈快取同鍵尾）');}finally{delete window.__noT591;}
+  assert(!window.__t591Hooks(65,0).hooks.sign&&window.__t591Hooks(65,0).hooks.body591,'T591 G4e 打開時拿到的是貼新圖園區的掛點');
+  // G4f 網址逃生閥真的判得到（用真的 t591On，網址判斷只算一次，所以暫時清掉快取值）
+  { const T=window.__t591OnFn,oldU=T.u,oldS=global.location.search;
+    try{global.location.search='?a=1&noT591=1';T.u=undefined;assert(!T(),'T591 G4f 網址帶 noT591=1 時必須關閉');
+      global.location.search='?noT591';T.u=undefined;assert(!T(),'T591 G4f 網址只帶 noT591 也要關閉');
+      global.location.search='?xnoT591=1';T.u=undefined;assert(T(),'T591 G4f 別的參數名不得誤判');
+    }finally{global.location.search=oldS;T.u=oldU;}
+  }
+  // ---- G5 不該碰的不碰 ----
+  { const had=S591.bld['5_1_0'];S591.bld['5_1_0']={...(had||{}),img:(had&&had.img)||{},__t590:1};
+    try{assert(window.__t591Ported(5)===false,'T591 G5a k5 就算 SPR.bld 帶新圖標記也不移植（T585 電廠園區）');}finally{if(had)S591.bld['5_1_0']=had;else delete S591.bld['5_1_0'];}
+  }
+  // 只取真的走園區的非移植類
+  for(const k of [9,16,22,27,53])if(A.plan()[k]&&A.plan()[k][0]&&A.plan()[k][1]>A.legacy(k)){const s=A.artBake(k,0,2,false);assert(!s.lotMeta574.t591&&!s.__t590,'T591 G5b 非移植類 k'+k+' 走 T574 配方');}
+  // G5c 覆核抓到：「不得貼回舊一格圖」只靠 S0.__t590 閘——某款不是新圖時必須走回配方
+  { const had=S591.bld['7_1_1'],copy={...had};delete copy.__t590;S591.bld['7_1_1']=copy;
+    try{const s=A.artBake(7,1,2,false);assert(s.lotMeta574.t591===false&&s.lotMeta574.feet.some(f=>f.role==='main'),'T591 G5c 某款不是 T590 新圖時走回配方，不把舊圖貼進園區');}finally{S591.bld['7_1_1']=had;}
+  }
+  // ---- G6 園區變體：只對放置寫死 v:0 的類按格雜湊；其餘類照存檔的 v；關閥一律照存檔 ----
+  const vOf591=(x,y,k,v)=>window.__t591V(x,y,{k,v,lot574:1});
+  const seen591=new Set();for(let x=0;x<40;x++)seen591.add(vOf591(x,7,32,0));
+  assert(seen591.size===3&&[...seen591].every(v=>v>=0&&v<=2),'T591 G6a 大學園區 v=0 依格雜湊出現三款，實得 '+[...seen591].join(','));
+  const nonV591=K591.filter(k=>!VARK591.has(k)).concat([5,9]).filter(k=>[...Array(40).keys()].some(x=>vOf591(x,9,k,0)!==0));
+  assert(nonV591.length===0,'T591 G6b 放置時就選過款的類（k6／7／23 牧場畜種／55…）與非移植類，v=0 不得被改款：'+nonV591.join(','));
+  assert(vOf591(3,4,32,2)===2&&vOf591(3,4,23,4)===4,'T591 G6c 非 0 的 v 保留');
+  window.__noT591=true;try{assert([...Array(20).keys()].every(x=>vOf591(x,7,32,0)===0),'T591 G6d 關閥時一律用存檔的 v');}finally{delete window.__noT591;}
+  // ---- G7 遠景保留貼新圖園區的變體（覆核抓到：縮放跨過 1 就整棟換款）；配方園區遠景照舊合併 ----
+  { const f1=A.art(32,1,2,false,true),f0=A.art(32,0,2,false,true);
+    assert(f1&&f1.lotMeta574.variant===1&&f0.lotMeta574.variant===0&&f1!==f0,'T591 G7a 貼新圖的園區遠景保留變體');
+    window.__noT591=true;try{const g1=A.art(32,1,2,false,true);assert(g1&&g1.lotMeta574.variant===0,'T591 G7b 關閥時遠景照 T574 合併成 v0');}finally{delete window.__noT591;}
+  }
+  // ---- G10 夜光遮擋像素台架（預設路徑可重複跑）：以已知遮罩的合成新圖代替 k40 v0，驗「新圖窗燈全數貼上、落在新圖可見處」----
+  { const px591=(w,h)=>{const px=new Uint32Array(w*h);let style='#000',mode='source-over';
+      const g={get fillStyle(){return style;},set fillStyle(v){style=v;},get globalCompositeOperation(){return mode;},set globalCompositeOperation(v){mode=v;},
+        fillRect(x,y,ww,hh){let hex=String(style).slice(1);if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+          if(!/^[0-9a-f]{6}$/i.test(hex))throw Error('T591 G10 台架不支援色值 '+style);const val=mode==='destination-out'?0:(0xff000000|parseInt(hex,16))>>>0;
+          const x0=Math.max(0,Math.floor(Math.min(x,x+ww))),x1=Math.min(w,Math.ceil(Math.max(x,x+ww))),y0=Math.max(0,Math.floor(Math.min(y,y+hh))),y1=Math.min(h,Math.ceil(Math.max(y,y+hh)));
+          for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++)px[xx+yy*w]=val;},
+        drawImage(src,x,y,ww,hh){if(!src.px||ww!==src.width||hh!==src.height||x!==Math.round(x)||y!==Math.round(y))throw Error('T591 G10 台架只收 1:1 整數位置的台架畫布');
+          for(let sy=0;sy<src.height;sy++)for(let sx=0;sx<src.width;sx++){const v=src.px[sx+sy*src.width];if(!v)continue;const dx=x+sx,dy=y+sy;if(dx<0||dy<0||dx>=w||dy>=h)continue;
+            px[dx+dy*w]=mode==='destination-out'?0:v;}}};
+      const c={width:w,height:h,getContext:()=>g,px};g.canvas=c;return[c,g];};
+    const [si]=px591(24,34),[sn]=px591(24,34);for(let y=4;y<34;y++)for(let x=2;x<22;x++)si.px[x+y*24]=0xff123456;
+    const WIN=[[6,12],[12,18],[17,24]];for(const [x,y] of WIN)sn.px[x+y*24]=0xffffe0a0;
+    const had=S591.bld['40_1_0'],fake={img:si,night:sn,w:24,h:34,ax:12,ay:33,smoke:[],__t590:1};S591.bld['40_1_0']=fake;
+    try{
+      const s=A.bakeTrace(40,0,false,px591).sprite,d=s.img.px,nn=s.night.px,b=s.lotMeta574.hooks.body591;let lit=0,stray=0;
+      for(let i=0;i<nn.length;i++){if(!nn[i])continue;const x=i%s.w,y=(i/s.w)|0,sx=x-b[0],sy=y-b[1];
+        if(sx>=0&&sy>=0&&sx<24&&sy<34&&si.px[sx+sy*24]&&d[i]===0xff123456&&nn[i]===0xffffe0a0)lit++;else if(d[i]!==0xffddd5ad)stray++;}
+      assert(lit===WIN.length&&stray===0,'T591 G10 新圖三顆窗燈都要貼上且落在新圖可見處，其他夜光只准是燈頭；實得 窗燈='+lit+' 雜光='+stray);
+    }finally{S591.bld['40_1_0']=had;}
+  }
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
