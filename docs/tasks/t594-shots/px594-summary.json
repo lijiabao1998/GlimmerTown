@@ -1,0 +1,29 @@
+{
+ "card": "T594",
+ "date": "2026-09-26",
+ "lab": "origin/main d172e97",
+ "main": "working tree on top of 75b5340 (v11.202 + T594 block)",
+ "grid": "k1-3 x lv1-3 x v0-11 x bw,bh in 1..4",
+ "n": 1728,
+ "identical": 1728,
+ "fields": "w,h,ax,ay,crc32(day),crc32(night),smoke608,__t547.sty,__t547.pitch,__t547.wall,__t547.occ",
+ "consoleError": {
+  "main": 0,
+  "lab": 0
+ },
+ "styles": {
+  "0": 452,
+  "1": 436,
+  "2": 452,
+  "f577:ukSemi": 21,
+  "f577:ukTerrace": 14,
+  "f577:ukMews": 7,
+  "f577:usBrownstone": 21,
+  "f577:ukMansion": 21,
+  "f577:ukVictorian": 32,
+  "f577:usPrewar": 64,
+  "f577:usMainStreet": 96,
+  "f577:ukHighStreet": 80,
+  "f577:ukCornerShopGPT001": 32
+ }
+}

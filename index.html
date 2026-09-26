@@ -799,7 +799,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.202'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.203'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -25086,6 +25086,2666 @@ if(startEl&&!$('#bCampaign')){
 try{document.title=(townName||'微光小鎮')+' v'+GAME_VER;}catch(e){}
 
 /* 除錯／測試用 API（不影響一般遊玩） */
+/* ===== T594 住商工立面核心（實驗線 d172e97 超街區生成器移植；只移植，不接繪製） =====
+   來源：實驗線 origin/main d172e97（2026-09-26，T681 之後）。getBlockSprite547／makeBlockSprite547 的相依閉包 51 個宣告原樣搬入，
+   實驗線 T 號一律換成 594（makeBlockSprite547→makeBlockSprite594、ARCHE568→ARCHE594…）；改名只改真正指向這些宣告的識別字，
+   區域變數與字串不動（亂數種子字串 'block557:'／'roof559:' 照實驗線原文，生圖才會與實驗線逐位相同）。
+   沿用：metroHash／metroRand／metroPalette／metroFacade／isoBox／windows／winShape 用 T593 版（與 d172e97 逐字相同），描邊用 outlineFlat590；
+   cv／shade／clamp 與主線逐字相同，直接用主線的。
+   七支立面繪製器（英式 uk1／uk2／ukhigh、GPT-001 街角店屋、美式 us1／usmain、GROK-002 馬廄）原樣內嵌，只把登記表 window.__facade577
+   換成 FACADE594，並剝掉實驗線自測（依賴實驗線 GV.block559）。window.__no*／__facadeForce577 閥門照實驗線原名保留，預設全關＝實驗線預設畫法。
+   本卡不接繪製：沒有任何繪製路徑呼叫 getBlockSprite594，開機不生圖，SPR 零變化。亂數只有 metroRand593 局部串流，不碰世界亂數。 */
+const FACADE594={}; // 立面繪製器登記表（實驗線 window.__facade577 的本地版）
+const A594={shade,lerp2:lerp2_594,paraPt559:paraPt594,fillPara547:fillPara594}; // 立面繪製器的 ctx.A：實驗線 GV.art574 的子集，繪製器只用這四個
+function metroChimney594(g,ng,x,y){g.fillStyle='#6a5348';g.fillRect(x,y-12,4,12);g.fillStyle='#3f322c';g.fillRect(x-1,y-14,6,3);if(ng){ng.fillStyle='rgba(255,140,70,.45)';ng.fillRect(x+1,y-15,2,2);}}
+const BLOCK_SPR594=new Map();
+function blockCorners594(ax,ay,bw,bh){
+  return {S:[ax,ay],N:[ax-(bw-bh)*32,ay-(bw+bh)*16],E:[ax+bh*32,ay-bh*16],W:[ax-bw*32,ay-bw*16]};
+}
+function fillPara594(g,C,col){
+  g.fillStyle=col;g.beginPath();g.moveTo(C.N[0],C.N[1]);g.lineTo(C.E[0],C.E[1]);g.lineTo(C.S[0],C.S[1]);g.lineTo(C.W[0],C.W[1]);g.closePath();g.fill();
+}
+function edgeWall594(g,a,b,h,col){
+  const dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(1,Math.hypot(dx,dy)|0);
+  g.fillStyle=col;
+  for(let i=0;i<=n;i++){const x=a[0]+dx*i/n,y=a[1]+dy*i/n;g.fillRect(Math.round(x),Math.round(y-h),1,h);}
+}
+function shrinkPara594(C,inset){
+  const cx=(C.N[0]+C.E[0]+C.S[0]+C.W[0])/4,cy=(C.N[1]+C.E[1]+C.S[1]+C.W[1])/4;
+  const L=p=>[p[0]+(cx-p[0])*inset,p[1]+(cy-p[1])*inset];
+  return {N:L(C.N),E:L(C.E),S:L(C.S),W:L(C.W)};
+}
+function lerp2_594(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];}
+function gableEnd594(g,a,b,rise,col){
+  const f=lerp2_594(a,b,.5);f[1]-=rise;
+  g.fillStyle=col;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(f[0],f[1]);g.lineTo(b[0],b[1]);g.closePath();g.fill();
+}
+function ridgeAxis594(bw,bh,v){if(window.__noRidge554||window.__noPitch553)return 0;if(bw>bh+1)return 1;if(bh>bw+1)return 0;return v&1;}
+function pitchPara594(g,C,rise,cL,cR,ridgeCol,axis){
+  let f,b;
+  if(axis){
+    f=lerp2_594(C.W,C.N,.5);f[1]-=rise;b=lerp2_594(C.S,C.E,.5);b[1]-=rise;
+    g.fillStyle=cR;g.beginPath();g.moveTo(C.W[0],C.W[1]);g.lineTo(C.S[0],C.S[1]);g.lineTo(b[0],b[1]);g.lineTo(f[0],f[1]);g.closePath();g.fill();
+    g.fillStyle=cL;g.beginPath();g.moveTo(C.N[0],C.N[1]);g.lineTo(C.E[0],C.E[1]);g.lineTo(b[0],b[1]);g.lineTo(f[0],f[1]);g.closePath();g.fill();
+  }else{
+    f=lerp2_594(C.W,C.S,.5);f[1]-=rise;b=lerp2_594(C.N,C.E,.5);b[1]-=rise;
+    g.fillStyle=cL;g.beginPath();g.moveTo(C.W[0],C.W[1]);g.lineTo(f[0],f[1]);g.lineTo(b[0],b[1]);g.lineTo(C.N[0],C.N[1]);g.closePath();g.fill();
+    g.fillStyle=cR;g.beginPath();g.moveTo(C.S[0],C.S[1]);g.lineTo(f[0],f[1]);g.lineTo(b[0],b[1]);g.lineTo(C.E[0],C.E[1]);g.closePath();g.fill();
+  }
+  g.strokeStyle=ridgeCol||cL;g.lineWidth=1;g.beginPath();g.moveTo(Math.round(f[0]),Math.round(f[1]));g.lineTo(Math.round(b[0]),Math.round(b[1]));g.stroke();
+  return {f,b,rise,axis:axis|0};
+}
+function sawtoothPara594(g,C,n,rise,cL,cR,ridgeCol,axis){
+  n=Math.max(2,Math.min(8,n|0));let last=null;
+  for(let i=0;i<n;i++){
+    const t0=i/n,t1=(i+1)/n;let sl;
+    if(axis){
+      sl={W:lerp2_594(C.W,C.N,t0),N:lerp2_594(C.W,C.N,t1),S:lerp2_594(C.S,C.E,t0),E:lerp2_594(C.S,C.E,t1)};
+      gableEnd594(g,sl.W,sl.N,rise,cL);
+    }else{
+      sl={W:lerp2_594(C.W,C.S,t0),S:lerp2_594(C.W,C.S,t1),N:lerp2_594(C.N,C.E,t0),E:lerp2_594(C.N,C.E,t1)};
+      gableEnd594(g,sl.W,sl.S,rise,cL);
+    }
+    last=pitchPara594(g,sl,rise,cL,cR,ridgeCol,axis);
+  }
+  return last;
+}
+function wallCourse594(g,a,b,h,col,step){
+  const dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(1,Math.hypot(dx,dy)|0);
+  g.fillStyle=col;
+  for(let row=step;row<h-1;row+=step)for(let i=0;i<n;i+=2)g.fillRect(Math.round(a[0]+dx*i/n),Math.round(a[1]+dy*i/n-row),2,1);
+}
+function tileLines594(g,C,rise,col){
+  const f=lerp2_594(C.W,C.S,.5);f[1]-=rise;const b=lerp2_594(C.N,C.E,.5);b[1]-=rise;
+  g.strokeStyle=col;g.lineWidth=1;
+  for(const t of[.28,.52,.76]){const p1=lerp2_594(C.W,f,t),p2=lerp2_594(C.N,b,t);g.beginPath();g.moveTo(p1[0],p1[1]);g.lineTo(p2[0],p2[1]);g.stroke();}
+}
+function downpipe594(g,p,h,col){
+  g.fillStyle=col;g.fillRect(Math.round(p[0]),Math.round(p[1]-h),1,h);
+}
+function bayDoor594(g,p){
+  g.fillStyle='#3a2418';g.fillRect(Math.round(p[0])-2,Math.round(p[1]-9),5,9);
+  g.fillStyle='#c9a06a';g.fillRect(Math.round(p[0])+1,Math.round(p[1]-5),1,1);
+  g.fillStyle='#5a3a28';g.fillRect(Math.round(p[0])-3,Math.round(p[1]),7,2);
+}
+function paraPt594(C,u,vv){
+  return [C.N[0]+u*(C.E[0]-C.N[0])+vv*(C.W[0]-C.N[0]),
+          C.N[1]+u*(C.E[1]-C.N[1])+vv*(C.W[1]-C.N[1])];
+}
+function roofKit594(g,ng,C,rk,k,pal,area){
+  if(window.__noRoofKit559)return;
+  const put=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h);};
+  const acUnit=(x,y)=>{put(x-2,y-4,5,3,'#b9c0c6');put(x-2,y-2,5,2,'#8d959c');put(x+2,y-3,1,4,'#6d747a');
+    put(x-1,y-4,1,1,'#dfe4e8');put(x-2,y+1,6,1,'rgba(20,26,22,.30)');};
+  const vent=(x,y)=>{put(x,y-6,1,6,'#9aa1a7');put(x-1,y-7,3,1,'#c3c9ce');put(x,y,3,1,'rgba(20,26,22,.28)');};
+  const stair=(x,y)=>{put(x-4,y-7,8,6,shade(pal.dark,14));put(x-4,y-8,8,1,shade(pal.light,10));
+    put(x+3,y-7,1,7,shade(pal.dark,-18));put(x-4,y-1,9,1,'rgba(20,26,22,.32)');};
+  const tank=(x,y)=>{put(x-3,y-9,6,7,'#8a8272');put(x-3,y-10,6,1,'#b0a692');put(x+2,y-9,1,8,'#5f594d');
+    put(x-2,y-2,1,3,'#5f594d');put(x+1,y-2,1,3,'#5f594d');put(x-3,y+1,7,1,'rgba(20,26,22,.30)');};
+  const n=Math.max(2,Math.min(9,Math.round(area*.9)));
+  const kit=k===3?[acUnit,vent,vent,tank]:k===2?[acUnit,acUnit,stair,vent]:[acUnit,vent,stair,tank];
+  for(let i=0;i<n;i++){
+    const u=.18+rk()*.64,vv=.18+rk()*.64,p=paraPt594(C,u,vv);
+    kit[(rk()*kit.length)|0](Math.round(p[0]),Math.round(p[1]));
+  }
+  const rail=(a,b,col)=>{const st=Math.max(3,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/6));
+    for(let i=0;i<=st;i++){const t=i/st,x=Math.round(a[0]+(b[0]-a[0])*t),y=Math.round(a[1]+(b[1]-a[1])*t);put(x,y-4,1,4,col);}
+    g.strokeStyle=col;g.lineWidth=1;g.beginPath();g.moveTo(a[0],a[1]-4);g.lineTo(b[0],b[1]-4);g.stroke();};
+  rail(C.W,C.S,shade(pal.dark,26));rail(C.S,C.E,shade(pal.dark,6));
+  if(ng){ng.fillStyle='rgba(255,120,90,.85)';const p=paraPt594(C,.5,.5);ng.fillRect(Math.round(p[0]),Math.round(p[1])-10,1,1);}
+}
+function wallBand594(g,a,b,wallH,y0,h,col){
+  const n=Math.max(2,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])));
+  g.fillStyle=col;
+  for(let i=0;i<=n;i++){const t=i/n,x=Math.round(a[0]+(b[0]-a[0])*t),y=Math.round(a[1]+(b[1]-a[1])*t);
+    g.fillRect(x,y-wallH+ (wallH-y0-h),1,h);}
+}
+const TRIM594={
+  stone:{baseL:'#b9b09c',baseR:'#8e8675',bandL:'#cfc5ae',bandR:'#9d9382',corL:'#ddd3bb',corR:'#a79d89',quoin:'#cdc3ac'},
+  brick:{baseL:'#8f4a38',baseR:'#6d372a',bandL:'#d8c9b4',bandR:'#a8998a',corL:'#e2d6c2',corR:'#ab9f8e',quoin:'#9a5240'}
+};
+function classicTrim594(g,C,wallH,cL,cR,tone){
+  // 石基座
+  const T=TRIM594[tone||'stone'];
+  wallBand594(g,C.W,C.S,wallH,0,4,T.baseL);wallBand594(g,C.E,C.S,wallH,0,4,T.baseR);
+  wallBand594(g,C.W,C.S,wallH,4,1,'rgba(30,24,18,.34)');wallBand594(g,C.E,C.S,wallH,4,1,'rgba(30,24,18,.40)');
+  // 腰線
+  const mid=Math.max(6,Math.round(wallH*.52));
+  wallBand594(g,C.W,C.S,wallH,mid,2,T.bandL);wallBand594(g,C.E,C.S,wallH,mid,2,T.bandR);
+  // 簷口＋齒飾
+  wallBand594(g,C.W,C.S,wallH,wallH-4,3,T.corL);wallBand594(g,C.E,C.S,wallH,wallH-4,3,T.corR);
+  wallBand594(g,C.W,C.S,wallH,wallH-5,1,'rgba(30,24,18,.30)');wallBand594(g,C.E,C.S,wallH,wallH-5,1,'rgba(30,24,18,.36)');
+  const dent=(a,b,col)=>{const n=Math.max(3,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/4));g.fillStyle=col;
+    for(let i=0;i<=n;i++){const t=i/4/n*4,x=Math.round(a[0]+(b[0]-a[0])*t),y=Math.round(a[1]+(b[1]-a[1])*t);
+      g.fillRect(x,y-wallH+1,1,2);}};
+  dent(C.W,C.S,'rgba(40,32,24,.42)');dent(C.E,C.S,'rgba(40,32,24,.50)');
+  // 轉角石：南角上下交錯
+  g.fillStyle=T.quoin;
+  for(let i=0;i<Math.min(7,Math.floor(wallH/5));i++)g.fillRect(Math.round(C.S[0])-1,Math.round(C.S[1])-wallH+i*5,2,3);
+}
+function modernTrim594(g,ng,C,wallH,pal){
+  // 女兒牆
+  wallBand594(g,C.W,C.S,wallH,wallH-2,3,'#d3d8dc');wallBand594(g,C.E,C.S,wallH,wallH-2,3,'#9aa1a7');
+  // 兩道玻璃帷幕帶（夜圖同步：先有燈具才有光 —— 白天這裡就是玻璃）
+  const gl=pal&&pal.glass?pal.glass:'#4a6578';
+  for(const f of [.34,.64]){
+    const y0=Math.round(wallH*f);
+    wallBand594(g,C.W,C.S,wallH,y0,3,gl);
+    wallBand594(g,C.E,C.S,wallH,y0,3,shade(gl,-20));
+    wallBand594(g,C.W,C.S,wallH,y0+3,1,'rgba(20,28,34,.38)');
+    wallBand594(g,C.E,C.S,wallH,y0+3,1,'rgba(20,28,34,.46)');
+    if(ng){wallBand594(ng,C.W,C.S,wallH,y0,3,'rgba(255,251,229,.55)');
+           wallBand594(ng,C.E,C.S,wallH,y0,3,'rgba(255,251,229,.34)');}
+  }
+  // 底層挑高門廳
+  wallBand594(g,C.W,C.S,wallH,0,5,shade(gl,-34));wallBand594(g,C.E,C.S,wallH,0,5,shade(gl,-46));
+  if(ng){wallBand594(ng,C.W,C.S,wallH,1,3,'rgba(255,238,190,.42)');}
+}
+const ARCHE594={
+  '1_1':[ {n:'villa',    box:[.06,.66,.06,.66],hm:1.00,wd:[6,7],win:'arch'},
+          {n:'bungalow',fs:'ukSemi', box:[.06,.80,.18,.86],hm:0.62,wd:[6,7],win:'punch'},
+          {n:'cottage',fs:'ukTerrace',  box:[.04,.96,.10,.72],hm:0.85,wd:[5,6],win:'arch'},
+          {n:'modern',   box:[.14,.86,.10,.82],hm:0.90,flat:1,wd:[4,4],win:'ribbon'},
+          {n:'town',     box:[.08,.92,.06,.88],hm:1.12,wd:[5,6],win:'arch'} ],
+  '1_2':[ {n:'walkup',fs:'usBrownstone',   box:[.04,.96,0,.82],        hm:1.00,wd:[5,6],win:'arch'},
+          {n:'courtyard',fs:'ukMansion',box:[0,1,0,.52],      hm:1.10,ex:{box:[0,.46,.52,1],hm:0.95},wd:[5,6],win:'arch'},
+          {n:'terrace',fs:'ukVictorian',  box:[.08,.92,0,1],    hm:1.38,flat:1,wd:[4,5],win:'grid'},
+          {n:'modernWalk', box:[.14,.86,.10,.78],hm:1.08,flat:1,wd:[4,4],win:'ribbon'},
+          {n:'townWalk',   box:[.10,.90,.06,.86],hm:1.22,wd:[5,6],win:'arch'} ],
+  '1_3':[ {n:'slab',fs:'usPrewar',     box:[0,1,.16,.84],    hm:1.15,flat:1,wd:[4,5],win:'grid'},
+          {n:'point',    box:[.26,.74,.26,.74],hm:2.05,ex:{box:[0,1,0,1],hm:0.26},flat:1,wd:[3,4],win:'grid'},
+          {n:'twin',fs:'usPrewar',     box:[0,.44,0,1],      hm:1.85,ex:{box:[.56,1,0,1],hm:1.45},flat:1,wd:[3,4],win:'grid'},
+          {n:'modernPoint',box:[.34,.66,.34,.66],hm:2.42,ex:{box:[0,1,0,1],hm:0.22},flat:1,wd:[3,4],win:'ribbon'},
+          {n:'townSlab',   box:[.08,.92,.12,.88],hm:1.28,wd:[4,5],win:'arch'},
+          {n:'stepTwin',   box:[0,.36,0,1],      hm:2.05,ex:{box:[.64,1,0,1],hm:1.55},flat:1,wd:[3,4],win:'grid'} ],
+  '2_1':[ {n:'shophouse',fs:'usMainStreet',box:[0,1,.24,1],      hm:0.72,wd:[5,6],win:'shop'},
+          {n:'market',   box:[.03,.97,.03,.97],hm:0.58,wd:[7,8],win:'punch'},
+          {n:'cornerLot',fs:'ukHighStreet',box:[0,.72,.20,1],    hm:0.80,wd:[5,6],win:'shop'},
+          {n:'modernShop', box:[.12,.88,.18,.92],hm:0.78,flat:1,wd:[4,4],win:'ribbon'},
+          {n:'townShop',fs:'ukCornerShopGPT001',box:[.08,.84,.16,.94],hm:0.88,wd:[5,6],win:'arch'} ],
+  '2_2':[ {n:'office',fs:'usMainStreet',   box:[.04,.96,0,.80],        hm:1.00,wd:[4,5],win:'grid'},
+          {n:'hotel',fs:'ukHighStreet',    box:[.16,.84,0,.78],    hm:1.55,wd:[4,6],win:'arch'},
+          {n:'dept',     box:[0,1,.06,1],      hm:0.88,ex:{box:[0,1,0,.30],hm:0.55},wd:[6,6],win:'shop'},
+          {n:'modernOffice',box:[.16,.84,.10,.78],hm:1.18,flat:1,wd:[4,4],win:'ribbon'},
+          {n:'stoneHotel',  box:[.12,.88,.08,.84],hm:1.48,wd:[4,6],win:'arch'} ],
+  '2_3':[ {n:'podTower', box:[.26,.74,.26,.74],hm:2.35,ex:{box:[0,1,0,1],hm:0.42},wd:[3,4],win:'ribbon'},
+          {n:'setback',  box:[.10,.90,.06,.76],hm:1.75,wd:[4,5],win:'grid'},
+          {n:'slabC',    box:[0,1,.20,.80],    hm:1.45,ex:{box:[0,1,0,.22],hm:0.50},wd:[4,5],win:'ribbon'},
+          {n:'stoneTower', box:[.22,.78,.22,.78],hm:2.12,ex:{box:[0,1,0,1],hm:0.34},wd:[4,5],win:'arch'},
+          {n:'modernNeedle',box:[.36,.64,.36,.64],hm:2.58,ex:{box:[0,1,0,1],hm:0.20},flat:1,wd:[3,4],win:'ribbon'},
+          {n:'courtC',     box:[0,1,0,.48],      hm:1.32,ex:{box:[0,.42,.50,1],hm:1.05},wd:[4,5],win:'grid'} ],
+  '3_1':[ {n:'shed',     box:[.06,.94,.04,.78],  hm:0.70,wd:[7,8],win:'punch'},
+          {n:'workshop', box:[.08,.88,.06,.90],  hm:0.95,wd:[6,7],win:'punch'},
+          {n:'sawShed',  box:[.04,.96,.02,.82],  hm:0.80,wd:[7,8],win:'punch'},
+          {n:'yard',     box:[.12,.72,.08,.86],  hm:0.55,wd:[8,9],win:'punch'} ],
+  '3_2':[ {n:'factory',  box:[0,1,0,.82],      hm:0.95,ex:{box:[0,.52,.82,1],hm:0.55},wd:[7,8],win:'punch'},
+          {n:'mill',     box:[.04,.96,0,.70],  hm:0.72,wd:[7,8],win:'punch'},
+          {n:'warehouse',box:[.02,.98,.04,.90],hm:0.48,wd:[8,9],win:'punch'},
+          {n:'stack',    box:[.12,.88,.08,.78],hm:1.12,wd:[7,8],win:'punch'} ],
+  '3_3':[ {n:'heavy',    box:[.04,.96,0,.86],  hm:1.25,ex:{box:[.58,1,.86,1],hm:0.70},wd:[8,9],win:'punch'},
+          {n:'mill3',    box:[.06,.94,0,.68],  hm:0.82,wd:[8,9],win:'punch'},
+          {n:'tankfarm', box:[.08,.72,.08,.88],hm:0.58,ex:{box:[.74,1,.10,.90],hm:0.95},wd:[8,9],win:'punch'},
+          {n:'chimneyHall',box:[.10,.90,.06,.80],hm:1.38,wd:[8,9],win:'punch'} ]
+};
+let chimNorm594=null;
+function chimVisible594(g,pts,tops){ // T613：立面繪製器畫完才知道煙囪有沒有被後畫的量體蓋掉（例：主街店屋戶界煙囪被右鄰較高的店屋牆蓋住）；蓋掉的不冒煙。只讀像素不寫
+  if(window.__noChimVis613||!pts.length)return pts;
+  if(!chimNorm594){const c=document.createElement('canvas');c.width=1;c.height=1;chimNorm594=c.getContext('2d');}
+  for(let i=pts.length-1;i>=0;i--){const top=tops[i];if(!top)continue;
+    chimNorm594.fillStyle='#000';chimNorm594.fillStyle=top;const want=String(chimNorm594.fillStyle).toLowerCase();
+    const d=g.getImageData(pts[i][0],pts[i][1]+1,1,1).data,got='#'+[d[0],d[1],d[2]].map(n=>n.toString(16).padStart(2,'0')).join('');
+    if(d[3]<255||got!==want){pts.splice(i,1);tops.splice(i,1);}}
+  return pts;
+}
+function facadeFor594(k,lv,bw,bh,v,ar){
+  if(window.__noFacade577)return null;
+  const R=FACADE594;if(!R)return null;
+  const name=window.__facadeForce577||(ar&&ar.fs);
+  const f=name&&R[name];return (f&&typeof f.draw==='function')?f:null;
+}
+function arche594(k,lv,v){
+  if(window.__noArche568)return null;
+  const L=ARCHE594[k+'_'+lv];if(!L||!L.length)return null;
+  const vv=Math.abs(v|0);
+  if(!window.__noUkMewsGROK2&&k===1&&(lv|0)===1&&vv===5)
+    return {n:'mews',fs:'ukMews',box:[.12,.88,.28,.86],hm:window.__noMewsBays681?0.58:1.35,wd:[8,9],win:'punch'}; // T681：馬廄兩層，高度係數 0.58→1.35；閥 __noMewsBays681
+  {const r=L[vv%L.length];if(!window.__noShopTall680&&r&&r.fs==='ukCornerShopGPT001')return Object.assign({},r,{hm:1.9});return r;} // T680：維多利亞街角店屋高度係數 0.88→1.9（業主決策單第十一批 11-4 選 C）；閥 __noShopTall680
+}
+function arNameVilla594(k,lv,v){const a=arche594(k,lv,v);return !!(a&&a.n==='villa');}
+function speciesPal594(pal,ar,k){
+  if(window.__noSpecies601||!ar||!pal)return pal;
+  const n=ar.n||'';
+  if(n.indexOf('modern')>=0)return Object.assign({},pal,{light:'#dce2e8',mid:'#9aa4ae',dark:'#44505c',roof:k===2?'#3a4652':'#6a7380',glass:'#6a8aa8',accent:'#c45a48'});
+  if(n.indexOf('town')>=0||n.indexOf('stone')>=0)return Object.assign({},pal,{light:'#d6c4a6',mid:'#a88c68',dark:'#5a4634',roof:'#8a3e32',glass:'#3a4a58',accent:'#c9a050'});
+  if(n==='mill'||n==='mill3'||n==='chimneyHall')return Object.assign({},pal,{light:'#b8a090',mid:'#7a6a58',dark:'#3a322c',roof:'#6a3a28',accent:'#c45a3a'});
+  if(n==='warehouse'||n==='tankfarm')return Object.assign({},pal,{light:'#b0b4b0',mid:'#6a706c',dark:'#3a403c',roof:'#5a5850',accent:'#c9a040'});
+  if(n==='stack')return Object.assign({},pal,{light:'#a8aab0',mid:'#686e78',dark:'#343840',roof:'#4a5058',accent:'#d98245'});
+  return pal;
+}
+function subPara594(C,b){
+  return {N:paraPt594(C,b[0],b[2]),E:paraPt594(C,b[1],b[2]),
+          S:paraPt594(C,b[1],b[3]),W:paraPt594(C,b[0],b[3])};
+}
+function exInFront594(ex,main){ // T624：兩個框都在同一個平行四邊形座標 [u0,u1,v0,v1]（subPara568：u 越大越往 E、v 越大越往 W，S 角最前）；第二量體整個落在主體前方才回 true。原型表 courtyard／courtC／factory／heavy 的側翼在前、卻一律先畫，主體的牆就蓋到側翼上（業主截圖「建築交疊」）
+  if(!ex||!main)return false;const e=1e-6;
+  return ex[2]>=main[3]-e||ex[0]>=main[1]-e;
+}
+function massHex594(C,h){return [C.W,C.S,C.E,[C.E[0],C.E[1]-h],[C.N[0],C.N[1]-h],[C.W[0],C.W[1]-h]];} // T624：量體在精靈裡的外輪廓（地面三角＋頂面三角），給貼牆層當遮擋
+function massBox594(g,ng,C,wallH,pal,cL,cR,k,rk){
+  fillPara594(g,C,k===3?'#6a6862':k===2?'#7a828c':'#8a7a68');
+  edgeWall594(g,C.W,C.S,wallH,cL);edgeWall594(g,C.E,C.S,wallH,cR);
+  const stepY=k===2?5:4,stepX=k===2?4:3,ww=k===2?3:2,skip645=window.__noMassWin645?1:2; // T645：窗距加倍＝原位置隔一扇畫一扇，排距不變
+  const face=(a,b,bandCol,litP)=>{
+    const dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(1,Math.hypot(dx,dy)|0);
+    for(let row=3;row<wallH-2;row+=stepY){
+      wallBand594(g,a,b,wallH,row+2,1,bandCol);
+      for(let i=2,col=0;i<n-2;i+=stepX,col++){
+        const x=a[0]+dx*i/n,y=a[1]+dy*i/n,rx=Math.round(x)-1,ry=Math.round(y-row),keep=col%skip645===0;
+        if(keep){g.fillStyle=pal&&pal.glass?pal.glass:'#4a6578';g.fillRect(rx,ry,ww,2);}
+        if(ng&&rk()<litP&&keep){ng.fillStyle=pal&&pal.lit?pal.lit:'#fffbe5';ng.fillRect(rx,ry,ww,2);} // T645：跳過的那扇也照抽亂數，留下的窗亮不亮、屋頂配件都跟改前一樣
+      }
+    }
+  };
+  face(C.W,C.S,'rgba(252,246,230,.32)',.46);
+  face(C.E,C.S,'rgba(252,246,230,.16)',.60);
+  const roof={N:[C.N[0],C.N[1]-wallH],E:[C.E[0],C.E[1]-wallH],S:[C.S[0],C.S[1]-wallH],W:[C.W[0],C.W[1]-wallH]};
+  fillPara594(g,roof,shade(pal&&pal.dark?pal.dark:'#5a6068',10));
+  roofKit594(g,ng,roof,rk,k,pal||{dark:'#5a6068',light:'#9aa1a7',accent:'#c8794a'},2);
+}
+function dockDoor594(g,G){
+  const a=lerp2_594(G.W,G.S,.36),b=lerp2_594(G.W,G.S,.54),HH=9,P=(p,dy)=>[p[0],p[1]-dy];
+  const poly=(pts,col)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();g.fill();};
+  poly([P(a,1),P(b,1),P(b,1+HH),P(a,1+HH)],'#7b8086');
+  g.strokeStyle='#646a70';g.lineWidth=1;for(let sl=3;sl<HH;sl+=2){g.beginPath();g.moveTo(a[0],a[1]-sl+.5);g.lineTo(b[0],b[1]-sl+.5);g.stroke();}
+  poly([P(a,1+HH),P(b,1+HH),P(b,3+HH),P(a,3+HH)],'#a3a8ad');poly([P(a,1),P(b,1),P(b,2),P(a,2)],'#4e5358');
+}
+function lotFull594(b){return b[0]<=.02&&b[1]>=.98&&b[2]<=.02&&b[3]>=.98;}
+function lotFill594(g,ng,C,box,k,rk,pal){
+  if(window.__noLotFill570)return;
+  const put=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h);};
+  const P=(u,v)=>paraPt594(C,u,v);
+  fillPara594(g,C,k===3?'#6d675d':k===2?'#87888c':'#6f8a58');
+  for(let i=0;i<30;i++){const p=P(.04+rk()*.92,.04+rk()*.92);
+    put(p[0],p[1],2,1,k===3?(rk()<.5?'#777166':'#635d54'):k===2?(rk()<.5?'#919296':'#7c7d81'):(rk()<.5?'#7d9a62':'#628050'));}
+  const free=()=>{
+    // 建築後畫，只有落在南側（畫面前方）的道具看得見 ⇒ 先取前庭
+    if(box[3]<.90)for(let t=0;t<8;t++){
+      const v=Math.min(.95,box[3]+.05+rk()*(.95-box[3]-.05));
+      const u=.08+rk()*.84;if(v>box[3]+.03)return P(u,v);}
+    for(let t=0;t<10;t++){const u=.06+rk()*.88,v=.30+rk()*.64;
+      if(u<box[0]-.05||u>box[1]+.05)return P(u,v);}
+    return null;};
+  const car=(p,col)=>{
+    put(p[0]-5,p[1]-2,11,4,'#5e5a53');
+    put(p[0]-4,p[1]-5,9,3,col);put(p[0]-4,p[1]-6,9,1,shade(col,24));
+    put(p[0]-2,p[1]-8,5,2,'#9fc4d8');put(p[0]-2,p[1]-9,5,1,shade(col,-16));
+    put(p[0]+4,p[1]-5,1,3,shade(col,-34));
+    put(p[0]-3,p[1]-2,2,1,'#221f1c');put(p[0]+2,p[1]-2,2,1,'#221f1c');
+    put(p[0]+4,p[1]-4,1,1,'#ffe9a8');
+  };
+  const CARC=['#b4544a','#3f6f9a','#c9a63f','#4d7f56','#8d5aa0','#c4c8cc'];
+  if(k===2){
+    for(let i=0;i<4;i++){const p=free();if(!p)break;
+      put(p[0]-6,p[1]-1,13,1,'rgba(240,240,236,.45)');
+      if(rk()<.72)car(p,CARC[(rk()*CARC.length)|0]);}
+    for(let i=0;i<3;i++){const p=free();if(!p)break;
+      put(p[0]-3,p[1]-3,7,4,'#7b6a52');put(p[0]-3,p[1]-4,7,1,'#95836a');
+      put(p[0]-2,p[1]-6,2,2,'#3f7a3c');put(p[0]+1,p[1]-6,2,2,'#4f9449');}
+    for(let i=0;i<4;i++){const p=free();if(!p)break;put(p[0],p[1]-3,1,3,'#b9bcc0');put(p[0],p[1]-4,1,1,'#e2e5e8');}
+  }else if(k===3){
+    for(let i=0;i<3;i++){const p=free();if(!p)break;
+      const col=['#3f6f6a','#8a4a3a','#4a5f8a'][(rk()*3)|0];
+      put(p[0]-7,p[1]-7,15,7,col);put(p[0]-7,p[1]-8,15,1,shade(col,26));
+      put(p[0]+7,p[1]-7,1,8,shade(col,-30));
+      for(let r=0;r<5;r++)put(p[0]-6+r*3,p[1]-7,1,7,shade(col,-14));
+      put(p[0]-7,p[1],16,1,'rgba(16,20,16,.34)');}
+    for(let i=0;i<2;i++){const p=free();if(!p)break;
+      put(p[0]-8,p[1]-5,16,5,'#8b8f93');put(p[0]-8,p[1]-6,16,1,'#a9adb1');
+      put(p[0]+5,p[1]-9,5,4,'#c05a46');put(p[0]+5,p[1]-10,5,1,'#d8735c');
+      put(p[0]-6,p[1],2,1,'#221f1c');put(p[0]+4,p[1],2,1,'#221f1c');}
+    for(let i=0;i<3;i++){const p=free();if(!p)break;
+      put(p[0]-3,p[1]-2,7,2,'#8a6a42');put(p[0]-3,p[1]-3,7,1,'#a5824f');}
+  }else{
+    for(let i=0;i<3;i++){const p=free();if(!p)break;
+      put(p[0],p[1]-6,2,6,'#5b3f2a');
+      put(p[0]-5,p[1]-13,12,8,'#2a5a2c');put(p[0]-4,p[1]-15,9,2,'#2f6531');
+      put(p[0]-5,p[1]-13,5,6,'#3f7c3c');put(p[0]-3,p[1]-14,3,3,'#55974a');
+      put(p[0]+4,p[1]-12,3,6,'#1f4522');put(p[0]-5,p[1]-5,13,1,'rgba(18,28,18,.34)');}
+    for(let i=0;i<4;i++){const p=free();if(!p)break;
+      put(p[0]-3,p[1]-1,7,2,'#b9b2a2');put(p[0]-3,p[1]+1,7,1,'#8d8878');}
+    for(let i=0;i<2;i++){const p=free();if(!p)break;
+      put(p[0]-3,p[1]-4,1,4,'#9aa1a7');put(p[0]+2,p[1]-4,1,4,'#9aa1a7');
+      put(p[0]-3,p[1]-4,6,1,'#c3c9ce');}
+  }
+  if(ng){for(let i=0;i<2;i++){const p=free();if(!p)break;
+    ng.fillStyle='rgba(255,236,176,.42)';ng.fillRect(Math.round(p[0])-2,Math.round(p[1])-5,5,5);
+    ng.fillStyle='rgba(255,244,206,.80)';ng.fillRect(Math.round(p[0]),Math.round(p[1])-6,1,1);}}
+}
+function villaYard594(g,ng,C,rk,pal){
+  const put=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h);};
+  const P=(u,v)=>paraPt594(C,u,v);
+  fillPara594(g,C,'#54833f');
+  for(let i=0;i<34;i++){const p=P(.05+rk()*.9,.05+rk()*.9);put(p[0],p[1],2,1,rk()<.5?'#659950':'#48733a');}
+  // 綠籬只圍北兩邊（背面），南兩邊用矮圍欄，前院才看得進去
+  const hedge=(a,b)=>{const n=Math.max(4,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/5));
+    for(let i=0;i<=n;i++){const t=i/n,x=Math.round(a[0]+(b[0]-a[0])*t),y=Math.round(a[1]+(b[1]-a[1])*t);
+      put(x-1,y-5,3,5,'#2f5a2c');put(x-1,y-6,3,1,'#437a3a');put(x-1,y,3,1,'rgba(18,28,18,.30)');}};
+  const fence=(a,b,gap)=>{const n=Math.max(4,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/7));
+    for(let i=0;i<=n;i++){const t=i/n;if(gap&&t>gap-.09&&t<gap+.09)continue;
+      const x=Math.round(a[0]+(b[0]-a[0])*t),y=Math.round(a[1]+(b[1]-a[1])*t);
+      put(x,y-4,1,4,'#cfc6b2');put(x,y-5,1,1,'#e8e1cf');}
+    g.strokeStyle='#b7ad98';g.lineWidth=1;g.beginPath();g.moveTo(a[0],a[1]-3);g.lineTo(b[0],b[1]-3);g.stroke();};
+  hedge(P(0,0),P(1,0));hedge(P(0,0),P(0,1));
+  fence(P(1,0),P(1,1),.72);fence(P(0,1),P(1,1));
+  // 石板小徑：屋前 → 圍欄門口（四塊，間距拉開，全在地界內）
+  for(let i=0;i<4;i++){const t=i/3,u=.70+t*.16,v=.70+t*.22,p=P(u,v);
+    put(p[0]-3,p[1]-1,6,2,'#bdb6a6');put(p[0]-3,p[1]+1,6,1,'#918b7c');}
+  // 車道＋車（東南自由帶）
+  const pk=P(.92,.60);
+  put(pk[0]-7,pk[1]-2,14,6,'#6b6760');put(pk[0]-7,pk[1]+4,14,1,'rgba(18,24,18,.34)');
+  const cc559=pal&&pal.accent?pal.accent:'#b4544a';
+  put(pk[0]-5,pk[1]-5,10,3,cc559);            // 車身
+  put(pk[0]-5,pk[1]-6,10,1,shade(cc559,22));  // 車頂受光（左亮）
+  put(pk[0]-2,pk[1]-8,5,2,'#9fc4d8');         // 車窗
+  put(pk[0]-2,pk[1]-9,5,1,shade(cc559,-18));  // 車頂
+  put(pk[0]+4,pk[1]-5,1,3,shade(cc559,-34));  // 右側暗面
+  put(pk[0]-4,pk[1]-2,2,1,'#2b2622');put(pk[0]+2,pk[1]-2,2,1,'#2b2622');  // 輪
+  put(pk[0]+4,pk[1]-4,1,1,'#ffe9a8');         // 頭燈
+  // 三棵樹＋一塊花圃（南／西南自由帶）
+  for(const[u,v]of[[.60,.94],[.90,.90],[.16,.92]]){
+    const p=P(u,v);
+    put(p[0],p[1]-6,2,6,'#5b3f2a');
+    put(p[0]-5,p[1]-13,12,8,'#2a5a2c');       // 樹冠
+    put(p[0]-4,p[1]-15,9,2,'#2f6531');        // 頂緣
+    put(p[0]-5,p[1]-13,5,6,'#3f7c3c');        // 左受光
+    put(p[0]-3,p[1]-14,3,3,'#55974a');        // 高光
+    put(p[0]+4,p[1]-12,3,6,'#1f4522');        // 右暗面
+    put(p[0]-5,p[1]-5,13,1,'rgba(18,28,18,.34)');
+  }
+  const fb=P(.30,.86);
+  put(fb[0]-5,fb[1]-2,11,3,'#6b4a33');
+  for(let i=0;i<5;i++)put(fb[0]-4+i*2,fb[1]-3,1,1,['#d4566a','#e08a4a','#d8a33f','#c0577f','#e0d05a'][i]);
+  if(ng){const p=P(.68,.70);ng.fillStyle='rgba(255,226,150,.65)';ng.fillRect(Math.round(p[0])-1,Math.round(p[1])-4,2,2);
+    ng.fillStyle='rgba(255,226,150,.30)';ng.fillRect(Math.round(p[0])-3,Math.round(p[1])-6,6,6);}
+}
+function sawtoothRoof594(g,C,n,rise,roofL,roofR,wallL,wallR,axis){
+  n=Math.max(1,Math.min(8,n|0));
+  // 參數化 P(a,b,h)：a 由後往前、b=0 是看得見的那面立面。axis=0：O=W、a 沿 W→S（+x）、b 沿 W→N，b=0＝前左牆；axis=1：O=E、a 沿 E→S（+y）、b 沿 E→N，b=0＝前右牆
+  const O=axis?C.E:C.W,A=axis?[C.S[0]-C.E[0],C.S[1]-C.E[1]]:[C.S[0]-C.W[0],C.S[1]-C.W[1]],B=axis?[C.N[0]-C.E[0],C.N[1]-C.E[1]]:[C.N[0]-C.W[0],C.N[1]-C.W[1]];
+  const P=(a,b,h)=>[O[0]+A[0]*a+B[0]*b,O[1]+A[1]*a+B[1]*b-h];
+  const poly=(pts,col)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();g.fill();};
+  const line=(p,q,col)=>{g.strokeStyle=col;g.lineWidth=1;g.beginPath();g.moveTo(Math.round(p[0])+.5,Math.round(p[1])+.5);g.lineTo(Math.round(q[0])+.5,Math.round(q[1])+.5);g.stroke();};
+  // 屋頂底板先鋪滿，保證齒間與兩端不留洞
+  poly([P(0,0,0),P(1,0,0),P(1,1,0),P(0,1,0)],shade(roofR,-10));
+  const glass=axis?['#6f8ea6','#9cb8cc']:['#45596b','#6f8aa0']; // 玻璃在齒的高端 a1、朝 +a：axis=0 朝前右（背光，較暗）；axis=1 朝前左（受光，較亮）
+  let top=null;
+  for(let i=0;i<n;i++){
+    const a0=i/n,a1=(i+1)/n;
+    // 斜屋面：a0 處貼底板、a1 處升到 rise
+    const rc=axis?roofR:roofL; // axis=0 屋面朝後左受光；axis=1 屋面朝後右背光
+    poly([P(a0,0,0),P(a1,0,rise),P(a1,1,rise),P(a0,1,0)],rc);
+    for(let s=1;s<4;s++){const bb=s/4;line(P(a0+(a1-a0)*.08,bb,rise*.08),P(a1-(a1-a0)*.04,bb,rise*.96),shade(rc,-14));} // 屋面浪板縫
+    // 直立採光玻璃：a1 處從 0 到 rise
+    poly([P(a1,0,0),P(a1,1,0),P(a1,1,rise),P(a1,0,rise)],glass[0]);
+    const nm=Math.max(2,Math.round(Math.hypot(B[0],B[1])/7));
+    for(let s=1;s<nm;s++){const bb=s/nm;line(P(a1,bb,1),P(a1,bb,rise-1),glass[1]);} // 窗框
+    line(P(a1,0,rise),P(a1,1,rise),shade(rc,24)); // 齒脊受光線
+    // 齒端三角（b=0 那一側是看得見的立面）：牆色
+    poly([P(a0,0,0),P(a1,0,0),P(a1,0,rise)],axis?wallR:wallL);
+    top={f:P(a1,0,rise),b:P(a1,1,rise)};
+  }
+  return {f:top.f,b:top.b,rise,axis:axis|0};
+}
+function sawRise594(C,n,axis,cap){ // 齒高跟齒寬走：約齒寬（螢幕 x 投影）一半
+  const A=axis?[C.S[0]-C.E[0],C.S[1]-C.E[1]]:[C.S[0]-C.W[0],C.S[1]-C.W[1]];
+  const w=Math.abs(A[0])/Math.max(1,n);return Math.max(6,Math.min(cap||14,Math.round(w*.5)));
+}
+function makeBlockSprite594(k,lv,bw,bh,v){
+  const span=Math.min(bw,bh),long=Math.max(bw,bh),axis=ridgeAxis594(bw,bh,v),pitchSpan=axis?long:span;
+  let wallH=lv===1?14+span*3:lv===2?20+span*4:26+span*5;const stepH=lv===1?10:lv===2?16:22,towH=window.__noOverlap555?(lv>=3?48+span*6:lv===2?28+span*4:0):0;
+  let pitchH=window.__noPitch553?0:(lv===1?14+pitchSpan*4:lv===2?18+pitchSpan*5:22+pitchSpan*6);
+  const typ=!window.__noTypology556,grain=typ&&!window.__noGrain557;
+  if(typ){if(k===2)pitchH=8;else if(k===1)pitchH=Math.max(12,8+span*3);}
+  let ar568=arche594(k,lv,v);
+  if(ar568)wallH=Math.max(8,Math.round(wallH*ar568.hm)); // T601：畫布高度跟著 hm，針塔不再畫出畫布頂被裁掉
+  const locS=[0,0],locN=[-(bw-bh)*32,-(bw+bh)*16],locE=[bh*32,-bh*16],locW=[-bw*32,-bw*16];
+  const xs=[locS[0],locN[0],locE[0],locW[0]],ys=[locS[1],locN[1],locE[1],locW[1]];
+  const pad=16,minX=Math.min(...xs)-pad,maxX=Math.max(...xs)+pad,minY=Math.min(...ys)-wallH-stepH-towH-pitchH-16,maxY=Math.max(...ys)+pad;
+  const W=Math.max(64,maxX-minX),H=Math.max(64,maxY-minY),ax=-minX,ay=-minY;
+  const rand=metroRand593('block557:'+k+':'+lv+':'+bw+'x'+bh+':'+v);
+  let pal=speciesPal594(metroPalette593(k,v,1,lv),ar568,k);
+  const rk559=metroRand593('roof559:'+k+':'+lv+':'+bw+'x'+bh+':'+v);
+  const[c,g0]=cv(W,H),[nc,ng0]=cv(W,H),occ653=occWin594On()?occWrap594(g0,ng0):null,g=occ653?occ653.g:g0,ng=occ653?occ653.ng:ng0; // T653：g 上不透明的塗畫同步擦掉 ng 同一塊（被蓋住的窗不亮燈）
+  const G0559=blockCorners594(ax,ay,bw,bh);
+  const villa559=!window.__noVilla559&&typ&&k===1&&lv===1&&bw*bh<=4&&arNameVilla594(k,lv,v);
+  if(villa559)villaYard594(g,ng,G0559,rk559,pal);
+  else if(ar568&&!lotFull594(ar568.box)&&!(ar568.ex&&lotFull594(ar568.ex.box)))
+    lotFill594(g,ng,G0559,ar568.box,k,rk559,pal);
+  /* T582 量體分割：大街廓（>=6 格）且原型無第二量體時，沿進深 v 切成前後兩棟、中間 0.08 巷道，
+     整街廓從「單一巨量體」讀成兩棟建築，lotFill 地坪自巷道露出。villa 與既有 ex 原型不動。__noParcel582 關閉。
+     T601：工業無第二量體時 4 格就切，避免整條廠房讀成一塊灰板。 */
+  if(ar568&&!ar568.ex&&!window.__noParcel582&&!villa559&&bw*bh>=(k===3?4:6)&&(ar568.box[3]-ar568.box[2])>=.5){
+    const vm582=(ar568.box[2]+ar568.box[3])*.5;
+    const back582=[ar568.box[0],ar568.box[1],ar568.box[2],Math.max(ar568.box[2]+.12,vm582-.04)],front582=[ar568.box[0],ar568.box[1],Math.min(ar568.box[3]-.06,vm582+.04),ar568.box[3]];
+    // T624：v 越大越靠畫面前方，原本主體框在後半、第二量體框在前半又先畫 ⇒ 後棟浮在前棟半腰。改成主體（有門窗細節）在前、第二量體在後；高度公式不變
+    ar568=window.__noMassOrder624?Object.assign({},ar568,{box:back582,ex:{box:front582,hm:ar568.hm*.85}}):Object.assign({},ar568,{box:front582,ex:{box:back582,hm:ar568.hm*.85}});
+  }
+  if(ar568&&ar568.ex&&!window.__noPodium602&&bw*bh>=4&&lotFull594(ar568.ex.box)){
+    ar568=Object.assign({},ar568,{ex:{box:[.08,.92,.06,.38],hm:Math.min(.40,ar568.ex.hm||.4)}});
+  }
+  const G=ar568?subPara594(G0559,ar568.box):G0559;
+  const smk608=[],chim608=(x,y)=>{metroChimney594(g,ng,x,y);smk608.push([x+2,y-15]);}; // T608：記下煙囪頂，煙羽從真的煙囪冒
+  const cLp=window.__noLeftLight541?pal.mid:pal.light,cRp=window.__noLeftLight541?pal.light:pal.dark;
+  const exC624=ar568&&ar568.ex?subPara594(G0559,ar568.ex.box):null,exH624=ar568&&ar568.ex?Math.max(6,Math.round(wallH*ar568.ex.hm)):0;
+  const exLate624=!!exC624&&!window.__noMassOrder624&&exInFront594(ar568.ex.box,ar568.box); // T624：第二量體在主體前方 ⇒ 主體畫完再畫
+  if(exC624&&!exLate624)massBox594(g,ng,exC624,exH624,pal,cLp,cRp,k,rk559);
+  const exLateDraw624=()=>{if(exLate624)massBox594(g,ng,exC624,exH624,pal,cLp,cRp,k,rk559);},occ624=exLate624?[massHex594(exC624,exH624)]:null;
+  const plate=k===3?'#6a6862':k===2?'#7a828c':'#8a7a68';
+  if(!window.__noGroundShadow559){
+    const so559=Math.max(5,Math.min(14,Math.round((wallH+stepH+towH+pitchH*.5)*.26))),sv559=Math.round(so559*.45);
+    const SH559=k2=>({N:[G.N[0]+k2,G.N[1]+Math.round(k2*.45)],E:[G.E[0]+k2,G.E[1]+Math.round(k2*.45)],
+                      S:[G.S[0]+k2,G.S[1]+Math.round(k2*.45)],W:[G.W[0]+k2,G.W[1]+Math.round(k2*.45)]});
+    fillPara594(g,SH559(so559),'rgba(20,28,22,.30)');
+    fillPara594(g,SH559(Math.max(1,so559>>1)),'rgba(16,24,18,.26)');
+    void sv559;
+  }
+  fillPara594(g,G,plate);
+  if(!window.__noGroundShadow559){
+    g.strokeStyle='rgba(16,22,18,.45)';g.lineWidth=1;g.beginPath();
+    g.moveTo(G.W[0],G.W[1]);g.lineTo(G.S[0],G.S[1]);g.lineTo(G.E[0],G.E[1]);g.stroke();
+  }
+  const cL=window.__noLeftLight541?pal.mid:pal.light,cR=window.__noLeftLight541?pal.light:pal.dark;
+  const fr577=facadeFor594(k,lv,bw,bh,v,ar568);
+  const bayRow604=k===1&&Math.min(bw,bh)>=2&&!window.__noBay604&&!window.__facadeForce577&&(window.__noMassOrder624||!(ar568&&ar568.flat)); // T624：平屋頂原型畫不出「一戶一尖」，不再因此擋掉英美立面（原本退回核心畫法的密格小窗） // T604：進深≥2 的住宅不用整棟立面，改一戶一尖；強制風格時仍交立面
+  if(fr577&&!bayRow604){ // T577：英美街景風格繪製器接手牆／窗／屋頂；地坪、陰影、前庭、裙樓已由核心畫好
+    const top613=[],n613=smk608.length;let res577=null;try{res577=fr577.draw({A:A594,g,ng,G,G0:G0559,wallH,pitchH,stepH,towH,k,lv,bw,bh,v,pal,rand:rk559,rand2:rand,cL,cR,long,span,axis,W,H,ax,ay,typ,grain,ar:ar568,
+      chim:window.__noFacadeSmoke613?null:(x,y,top)=>{smk608.push([Math.round(x),Math.round(y)]);top613.push(top||null);}});}
+    catch(e){console.error('facade577 '+fr577.name,e);res577=null;}
+    if(res577!==false){exLateDraw624();chimVisible594(g,smk608,top613);if(occ653)occ653.flush();outlineFlat590(c,22,26,34);return{img:c,night:nc,ax,ay,w:W,h:H,smoke:[],smoke608:smk608,__t547:{k,lv,bw,bh,v,pitch:!!(res577&&res577.pitch),sty:'f577:'+fr577.name,wall:{W:G.W,S:G.S,E:G.E,N:G.N,h:wallH},occ:occ624}};}
+    smk608.length=n613;
+  }
+  edgeWall594(g,G.W,G.S,wallH,cL);edgeWall594(g,G.E,G.S,wallH,cR);
+  if(typ&&k===1){wallCourse594(g,G.W,G.S,wallH,'rgba(80,40,28,.22)',4);wallCourse594(g,G.E,G.S,wallH,'rgba(40,20,16,.28)',4);}
+  if(typ&&k===3){wallCourse594(g,G.W,G.S,wallH,'rgba(20,18,14,.3)',5);g.fillStyle='rgba(160,70,40,.28)';g.fillRect(Math.round(G.W[0]),Math.round(G.W[1]-8),1,8);}
+  if(typ&&k===2){
+    const shopH=Math.min(11,Math.round(wallH*.36));
+    edgeWall594(g,G.W,G.S,shopH,shade(cL,-22));edgeWall594(g,G.E,G.S,shopH,shade(cR,-22));
+    const nAwn=Math.max(2,Math.min(8,long));
+    for(let i=0;i<nAwn;i++){
+      const a=lerp2_594(G.W,G.S,i/nAwn),b=lerp2_594(G.W,G.S,(i+.7)/nAwn);
+      g.fillStyle=i%2?pal.accent:shade(pal.accent,-24);
+      g.beginPath();g.moveTo(a[0],a[1]-shopH);g.lineTo(b[0],b[1]-shopH);g.lineTo(b[0]+5,b[1]-shopH+4);g.lineTo(a[0]+5,a[1]-shopH+4);g.closePath();g.fill();
+    }
+  }
+  const roof={N:[G.N[0],G.N[1]-wallH],E:[G.E[0],G.E[1]-wallH],S:[G.S[0],G.S[1]-wallH],W:[G.W[0],G.W[1]-wallH]};
+  const roofL=shade(k===1?'#c45a42':pal.roof,18),roofR=shade(k===1?'#8a3428':pal.roof,-22),ridgeCol=shade(pal.roof,30);
+  let ridge=null;
+  const nBay=Math.max(2,Math.min(8,long));
+  const flat568=!!(ar568&&ar568.flat);
+  if(window.__noPitch553||flat568){
+    fillPara594(g,roof,flat568?shade(pal.dark,6):pal.roof);
+    if(flat568&&k===1&&nBay>=2&&!window.__noBay604){
+      for(let i=1;i<nBay;i++){const p=lerp2_594(G.W,G.S,i/nBay);g.fillStyle='rgba(48,24,18,.55)';g.fillRect(Math.round(p[0])-1,Math.round(p[1]-wallH),2,wallH);}
+      for(let i=0;i<nBay;i++){const p=lerp2_594(G.W,G.S,(i+.5)/nBay);bayDoor594(g,p);}
+    }
+    if(flat568)roofKit594(g,ng,roof,rk559,k,pal,Math.max(2,bw*bh*.8)*(1+(lv-1)*.35));
+  } // T593：屋頂設備密度隨 lv 提升
+  else if(!typ){
+    if(k===3&&bw*bh>=4){const n608=Math.max(3,Math.min(7,Math.max(bw,bh)));ridge=window.__noSaw608?sawtoothPara594(g,roof,n608,Math.max(10,pitchH-4),roofL,roofR,ridgeCol,axis):sawtoothRoof594(g,roof,n608,sawRise594(roof,n608,axis),roofL,roofR,cL,cR,axis);} // T608
+    else{
+      if(axis){gableEnd594(g,roof.W,roof.N,pitchH,cL);gableEnd594(g,roof.S,roof.E,Math.max(6,pitchH-4),cR);}
+      else{gableEnd594(g,roof.W,roof.S,pitchH,cL);gableEnd594(g,roof.N,roof.E,Math.max(6,pitchH-4),cR);}
+      ridge=pitchPara594(g,roof,pitchH,roofL,roofR,ridgeCol,axis);
+    }
+  }else if(k===1){
+    for(let i=1;i<nBay;i++){const p=lerp2_594(G.W,G.S,i/nBay);g.fillStyle='rgba(48,24,18,.4)';g.fillRect(Math.round(p[0]),Math.round(p[1]-wallH),1,wallH);if(grain)downpipe594(g,p,wallH,'#6a6e72');}
+    const terra=['#c45a42','#b44a38','#d46848','#a04030','#c87850','#9a3830'];
+    if(grain){
+      for(let i=0;i<nBay;i++){
+        const t0=i/nBay,t1=(i+1)/nBay,col=terra[(i+v)%terra.length];
+        const sl={W:lerp2_594(roof.W,roof.S,t0),S:lerp2_594(roof.W,roof.S,t1),N:lerp2_594(roof.N,roof.E,t0),E:lerp2_594(roof.N,roof.E,t1)};
+        gableEnd594(g,sl.W,sl.S,pitchH,cL);
+        ridge=pitchPara594(g,sl,pitchH,shade(col,18),shade(col,-22),shade(col,30),0);
+        tileLines594(g,sl,pitchH,shade(col,-32));
+        chim608(Math.round(lerp2_594(sl.W,sl.S,.62)[0]),Math.round(lerp2_594(sl.W,sl.S,.62)[1]-pitchH+2));
+        bayDoor594(g,lerp2_594(G.W,G.S,(i+.48)/nBay));
+      }
+      g.strokeStyle='rgba(40,20,16,.55)';g.lineWidth=1;g.beginPath();g.moveTo(roof.W[0],roof.W[1]);g.lineTo(roof.S[0],roof.S[1]);g.stroke();
+    }else{
+      ridge=sawtoothPara594(g,roof,nBay,pitchH,roofL,roofR,ridgeCol,0);
+      for(let i=0;i<nBay;i++){const p=lerp2_594(roof.W,roof.S,(i+.62)/nBay);chim608(Math.round(p[0]),Math.round(p[1]-pitchH+2));}
+    }
+  }else if(k===2){
+    fillPara594(g,roof,shade(pal.dark,26)); // T587：k=2 legacy 平頂自暗藏青提亮（業主「全城同一暗灰」）
+    if(!(bw*bh>=4&&!window.__noMassing552))roofKit594(g,ng,roof,rk559,k,pal,bw*bh*(1+(lv-1)*.35)); // T593 同上
+    const innerP=shrinkPara594(roof,.07),para=4;
+    edgeWall594(g,innerP.W,innerP.S,para,shade(cL,-10));edgeWall594(g,innerP.E,innerP.S,para,shade(cR,-10));
+    const deck={N:[innerP.N[0],innerP.N[1]-para],E:[innerP.E[0],innerP.E[1]-para],S:[innerP.S[0],innerP.S[1]-para],W:[innerP.W[0],innerP.W[1]-para]};
+    fillPara594(g,deck,shade(pal.dark,14));
+    if(grain){g.strokeStyle=shade(pal.light,20);g.lineWidth=1;g.beginPath();g.moveTo(deck.W[0],deck.W[1]);g.lineTo(deck.S[0],deck.S[1]);g.lineTo(deck.E[0],deck.E[1]);g.stroke();}
+    const nHvac=1+(span>=3?1:0);
+    for(let i=0;i<nHvac;i++){const p=lerp2_594(deck.W,deck.E,(i+1)/(nHvac+1));g.fillStyle='#9aa3aa';g.fillRect(Math.round(p[0])-5,Math.round(p[1])-8,10,8);g.fillStyle='#c5ced4';g.fillRect(Math.round(p[0])-4,Math.round(p[1])-10,8,3);if(grain){g.fillStyle='#7a848c';for(let f=0;f<4;f++)g.fillRect(Math.round(p[0])-4+f*2,Math.round(p[1])-7,1,6);}}
+    ridge={f:lerp2_594(deck.W,deck.S,.5),b:lerp2_594(deck.N,deck.E,.5),rise:para,axis:0};
+  }else{
+    {const n608=Math.max(2,Math.min(7,bw*bh>=4?Math.max(bw,bh):2));if(!window.__noSaw608&&bw*bh>=4&&!window.__noMassing552){fillPara594(g,roof,shade(pal.roof,-6));roofKit594(g,ng,roof,rk559,k,pal,Math.max(2,bw*bh*.6));const c608=lerp2_594(lerp2_594(roof.S,roof.E,.5),lerp2_594(roof.N,roof.S,.5),.28);ridge={f:c608,b:c608,rise:0,axis:0};} // T608：有上層量體時下層是平頂裙樓，鋸齒不插進量體
+    else ridge=window.__noSaw608?sawtoothPara594(g,roof,n608,Math.max(8,ar568&&ar568.n==='warehouse'?8:pitchH),roofL,roofR,ridgeCol,axis):sawtoothRoof594(g,roof,n608,sawRise594(roof,n608,axis,ar568&&ar568.n==='warehouse'?8:14),roofL,roofR,cL,cR,axis);} // T608 真鋸齒
+    const dock=lerp2_594(G.W,G.S,.45),dock650=!window.__noDock650;
+    if(dock650)dockDoor594(g,G);else{g.fillStyle='#2a2620';g.fillRect(Math.round(dock[0])-8,Math.round(dock[1]-10),16,8);} // T650：貼牆灰色捲門（閥門＝舊的黑色方塊）
+    if(ar568&&(ar568.n==='stack'||ar568.n==='chimneyHall')){
+      const st=lerp2_594(roof.W,roof.E,.62);const sx2=Math.round(st[0]),sy2=Math.round(st[1]);
+      g.fillStyle='#4b5158';g.fillRect(sx2-3,sy2-48,7,50);g.fillStyle=pal.accent;g.fillRect(sx2-4,sy2-52,9,5);smk608.push([sx2,sy2-53]);
+      if(ng){ng.fillStyle='#ff7465';ng.fillRect(sx2-1,sy2-56,4,5);}
+    }
+    if(grain){
+      if(!dock650){g.fillStyle='#3a3630';for(let s=0;s<5;s++)g.fillRect(Math.round(dock[0])-7,Math.round(dock[1]-9)+s*2,14,1);
+      g.fillStyle='#5a5850';g.beginPath();g.moveTo(dock[0]-10,dock[1]-12);g.lineTo(dock[0]+10,dock[1]-12);g.lineTo(dock[0]+8,dock[1]-16);g.lineTo(dock[0]-8,dock[1]-16);g.closePath();g.fill();} // T650：舊門的橫條與遮雨棚只在閥門時畫
+      wallCourse594(g,G.W,G.S,wallH,'rgba(0,0,0,.22)',3);
+      if(ridge&&ridge.f){g.fillStyle='#8a8e92';g.fillRect(Math.round(ridge.f[0])-2,Math.round(ridge.f[1])-6,5,5);g.fillStyle='#c0c4c8';g.fillRect(Math.round(ridge.f[0])-1,Math.round(ridge.f[1])-8,3,3);}
+    }
+  }
+  const gx=typ&&k===2?3:2,gy=typ&&k===2?4:3;
+  const win=(a,b,h,face)=>{
+    const dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(1,Math.hypot(dx,dy)|0);
+    const isC=typ&&k===2,skipI=typ&&k===3;
+    const wdA=ar568&&ar568.wd?ar568.wd:null;
+    const stepX=wdA?wdA[0]:(isC?4:3),stepY=wdA?wdA[1]:(isC?5:4);
+    const wkind=ar568&&ar568.win?ar568.win:'grid';
+    const ww=wkind==='punch'?3:(wkind==='arch'?3:(isC?3:2)),wh=wkind==='arch'?3:2;
+    const shopH=isC?Math.min(11,Math.round(h*.36)):0;
+    const band=face==='L'?'rgba(252,246,230,.34)':'rgba(252,246,230,.17)';
+    const rail=face==='L'?'rgba(248,242,226,.55)':'rgba(248,242,226,.30)';
+    for(let row=gy;row<h-3;row+=stepY){
+      if(skipI&&row<h*.45)continue;
+      if(grain&&k===1&&row>h-11)continue;
+      wallBand594(g,a,b,h,row+wh,1,band);
+      if(k===1&&lv>=2)wallBand594(g,a,b,h,row-1,1,rail);
+      if(wkind==='ribbon'){
+        const gl=pal.glass||'#4a6578';
+        wallBand594(g,a,b,h,row,2,face==='L'?gl:shade(gl,-20));
+        wallBand594(g,a,b,h,row+2,1,face==='L'?'rgba(18,26,32,.42)':'rgba(18,26,32,.52)');
+        if(ng)wallBand594(ng,a,b,h,row,2,face==='L'?'rgba(255,251,229,.50)':'rgba(255,251,229,.30)');
+        continue;
+      }
+      for(let i2=gx;i2<n-gx;i2+=stepX){
+        const x=a[0]+dx*i2/n,y=a[1]+dy*i2/n;
+        const rx=Math.round(x)-1,ry=Math.round(y-row),isShop=grain&&k===2&&row>=h-shopH-1;
+        const w2=isShop?6:ww,h2=isShop?5:wh;
+        const trimC=face==='L'?shade(cL,24):shade(cR,14);
+        winShape593(g,ng,rx,ry,w2,h2,isShop?'shop':wkind,
+                    isShop?'#8ec4e0':(pal.glass||'#4a6578'),pal.lit||'#fffbe5',trimC,
+                    rand()<(face==='L'?.48:.62));
+      }
+    }
+  };
+  win(G.W,G.S,wallH,'L');win(G.E,G.S,wallH,'R');
+  if(grain&&k===2){
+    const nAwn=Math.max(2,Math.min(8,long)),shopH=Math.min(11,Math.round(wallH*.36));
+    for(let i=0;i<nAwn;i++){const p=lerp2_594(G.W,G.S,(i+.38)/nAwn);g.fillStyle=i%3===0?pal.accent:i%3===1?shade(pal.accent,20):'#d8c45a';g.fillRect(Math.round(p[0])-6,Math.round(p[1]-shopH-5),12,4);}
+  }
+  const placeOn=rk=>{
+    if(!rk)return [(roof.N[0]+roof.S[0])/2,(roof.N[1]+roof.S[1])/2];
+    return [(rk.f[0]+rk.b[0])/2,(rk.f[1]+rk.b[1])/2];
+  };
+  if(bw*bh>=4&&!window.__noMassing552&&!(typ&&k===1)){
+    const inner=shrinkPara594(roof,.32);
+    edgeWall594(g,inner.W,inner.S,stepH,cL);edgeWall594(g,inner.E,inner.S,stepH,cR);
+    const roof2={N:[inner.N[0],inner.N[1]-stepH],E:[inner.E[0],inner.E[1]-stepH],S:[inner.S[0],inner.S[1]-stepH],W:[inner.W[0],inner.W[1]-stepH]};
+    let ridge2=null;const innerRise=Math.round(pitchH*.7);
+    if(typ&&k===2){fillPara594(g,roof2,shade(pal.dark,18));const p=lerp2_594(roof2.W,roof2.E,.5);g.fillStyle='#9aa3aa';g.fillRect(Math.round(p[0])-6,Math.round(p[1])-9,12,9);roofKit594(g,ng,roof2,rk559,k,pal,Math.max(2,bw*bh*.7));}
+    else if(!window.__noPitch553&&k!==3&&!typ){
+      if(axis)gableEnd594(g,roof2.W,roof2.N,innerRise,cL);else gableEnd594(g,roof2.W,roof2.S,innerRise,cL);
+      ridge2=pitchPara594(g,roof2,innerRise,shade(pal.roof,10),shade(pal.roof,-16),ridgeCol,axis);
+    }
+    else{fillPara594(g,roof2,shade(pal.roof,lv===1?8:-6));roofKit594(g,ng,roof2,rk559,k,pal,Math.max(1,bw*bh*.5));}
+    if(!(typ&&k===3)) {win(inner.W,inner.S,stepH,'L');win(inner.E,inner.S,stepH,'R');}
+    const mid=placeOn(ridge2||ridge),midx=Math.round(mid[0]),midy=Math.round(mid[1]);
+    if(k===1)chim608(midx+6,midy);
+    else if(k===2){g.fillStyle=shade(pal.accent,-8);g.fillRect(midx-1,midy-14,3,14);ng.fillStyle='#ff6d5f';ng.fillRect(midx-1,midy-16,3,3);}
+    else{g.fillStyle='#4b5158';g.fillRect(midx+6,midy-28,5,30);g.fillStyle=pal.accent;g.fillRect(midx+5,midy-32,7,4);smk608.push([midx+8,midy-33]);}
+    if(towH>0){
+      const nTow=span>=5?2:1,rk=ridge2||ridge;
+      for(let i=0;i<nTow;i++){
+        const t=(i+1)/(nTow+1);
+        const cx=rk?Math.round(rk.f[0]+(rk.b[0]-rk.f[0])*t):Math.round(roof2.S[0]+(roof2.N[0]-roof2.S[0])*t);
+        const by2=(rk?Math.round(rk.f[1]+(rk.b[1]-rk.f[1])*t):Math.round(roof2.S[1]+(roof2.N[1]-roof2.S[1])*t))+2;
+        metroFacade593(g,ng,cx,by2,Math.max(6,Math.min(9,3+span)),towH-i*10,pal,rand,{gx:5,gy:6,vertical:k===2,glass:k===2?pal.glass:null,balcony:k===1,litP:k===2?.7:.5});
+      }
+    }
+  }else if(!(typ&&k===1)){
+    const mid=placeOn(ridge),midx=Math.round(mid[0]),midy=Math.round(mid[1]);
+    if(k===1)chim608(midx+6,midy);
+    else if(k===2){g.fillStyle=pal.accent;g.fillRect(midx-10,midy+2,20,3);}
+    else{g.fillStyle='#4b5158';g.fillRect(midx+4,midy-22,4,24);g.fillStyle=pal.accent;g.fillRect(midx+3,midy-25,6,3);smk608.push([midx+6,midy-26]);}
+  }
+  const sty565=window.__noStyle565?0:((v+k+bw)%3);
+  if(!villa559&&k!==3){
+    const nm=ar568&&ar568.n||'';
+    if(!window.__noSpecies601&&nm.indexOf('modern')>=0)modernTrim594(g,ng,G,wallH,pal);
+    else if(!window.__noSpecies601&&(nm.indexOf('town')>=0||nm.indexOf('stone')>=0))classicTrim594(g,G,wallH,cL,cR,'stone');
+    else if(sty565===1)classicTrim594(g,G,wallH,cL,cR,'stone');
+    else if(sty565===2){if(k===2)modernTrim594(g,ng,G,wallH,pal);
+                        else classicTrim594(g,G,wallH,cL,cR,'brick');}
+  }
+  exLateDraw624();
+  outlineFlat590(c,22,26,34);
+  if(occ653)occ653.flush(); // T653：畫完把最後累積的遮蓋擦掉
+  return{img:c,night:nc,ax,ay,w:W,h:H,smoke:[],smoke608:smk608,__t547:{k,lv,bw,bh,v,pitch:!!ridge,sty:sty565,wall:{W:G.W,S:G.S,E:G.E,N:G.N,h:wallH},occ:occ624}};
+}
+function getBlockSprite594(k,lv,bw,bh,v){
+  const key=k+'_'+lv+'_'+bw+'x'+bh+'_'+(window.__noVkey628?(v%6)+'_v6':(v|0))+ // T628：原本 v%6，但住商工 v 是 0–11、makeBlockSprite547 用原始 v 挑原型 ⇒ v 與 v+6 共用一張圖，畫誰看誰先被畫到；閥門另帶 _v6 尾碼，兩種鍵不互相污染
+    (window.__noPitch553?'_flat':'')+(window.__noMassing552?'_nomass':'')+(window.__noRidge554?'_noridge':'')+(window.__noOverlap555?'_tow':'')+(window.__noTypology556?'_oldtype':'')+(window.__noGrain557?'_nograin':'')+(window.__noSaw608?'_nosaw':'')+(window.__noGroundShadow559?'_noshadow':'')+(window.__noRoofKit559?'_nokit':'')+(window.__noVilla559?'_novilla':'')+(window.__noStyle565?'_nosty':'')+(window.__noArche568?'_noarch':'')+(window.__noParcel582?'_noparcel':'')+(window.__noLotFill570?'_nolot':'')+(window.__noFacade577?'_nofac':'')+(window.__noPodium602?'_nopod':'')+(window.__facadeForce577?'_f'+window.__facadeForce577:'')+(window.__noMassOrder624?'_mo0':'')+(window.__noMassWin645?'_mw1':'')+(window.__noDock650?'_dk0':'')+(window.__noOccWin653?'_ow0':'')+(window.__noUkMewsGROK2?'_nomews':'')+(window.__noIndVariety670?'_iv0':'')+(window.__noMewsSmoke671?'_ms0':'')+(window.__noGPTCornerShop001?'_gptcs0':'')+(window.__noShopTall680?'_st0':'')+(window.__noMewsBays681?'_mb0':''); // T680；T681
+  if(BLOCK_SPR594.has(key))return BLOCK_SPR594.get(key);
+  const sp=makeBlockSprite594(k,lv,bw,bh,v);BLOCK_SPR594.set(key,sp);return sp;
+}
+function occWin594On(){return !window.__noOccWin653;}
+let OCC594=null;
+const ALPHA594=new Map();
+function alpha594(v){if(typeof v!=='string')return 0;let a=ALPHA594.get(v);if(a!==undefined)return a;
+  const s=v.trim().toLowerCase();if(s==='transparent')a=0;else if(s[0]==='#')a=s.length===9?parseInt(s.slice(7,9),16)/255:s.length===5?parseInt(s[4]+s[4],16)/255:1;
+  else{const m=s.match(/^(?:rgba?|hsla?)\(([^)]*)\)/);if(m){const p=m[1].split(/[,\s\/]+/).filter(Boolean);a=p.length>=4?(p[3].endsWith('%')?parseFloat(p[3])/100:+p[3]):1;}else a=1;}
+  if(ALPHA594.size<4096)ALPHA594.set(v,a);return a;}
+function occClasses594(){
+  if(OCC594)return OCC594;
+  const P=CanvasRenderingContext2D.prototype,GEO=new Set(['lineWidth','lineCap','lineJoin','miterLimit','lineDashOffset','font','textAlign','textBaseline','direction']);
+  class G{constructor(t,st){this.t=t;this.st=st;}}class N{constructor(t,st){this.t=t;this.st=st;}}
+  for(const k of Object.getOwnPropertyNames(P)){if(k==='constructor')continue;const d=Object.getOwnPropertyDescriptor(P,k);
+    if(typeof d.value==='function'){G.prototype[k]=function(...a){return this.t[k](...a);};N.prototype[k]=function(...a){return this.t[k](...a);};}
+    else if(d.get){Object.defineProperty(G.prototype,k,{configurable:true,get(){return this.t[k];},set(v){this.t[k]=v;if(GEO.has(k))this.st.M[k]=v;}});Object.defineProperty(N.prototype,k,{configurable:true,get(){return this.t[k];},set(v){this.t[k]=v;}});}}
+  Object.defineProperty(G.prototype,'fillStyle',{get(){return this.t.fillStyle;},set(v){this.t.fillStyle=v;this.st.k.fa=alpha594(v);}});
+  Object.defineProperty(G.prototype,'strokeStyle',{get(){return this.t.strokeStyle;},set(v){this.t.strokeStyle=v;this.st.k.sa=alpha594(v);}});
+  Object.defineProperty(G.prototype,'globalAlpha',{get(){return this.t.globalAlpha;},set(v){this.t.globalAlpha=v;this.st.k.ga=this.t.globalAlpha;}});
+  Object.defineProperty(G.prototype,'globalCompositeOperation',{get(){return this.t.globalCompositeOperation;},set(v){this.t.globalCompositeOperation=v;this.st.k.so=this.t.globalCompositeOperation==='source-over';}});
+  for(const k of ['translate','rotate','scale','setTransform','resetTransform','transform','clip','setLineDash','beginPath','closePath','moveTo','lineTo','quadraticCurveTo','bezierCurveTo','rect','roundRect','arc','arcTo','ellipse'])
+    G.prototype[k]=function(...a){this.st.M[k](...a);return this.t[k](...a);};
+  G.prototype.save=function(){const st=this.st;st.ks.push(Object.assign({},st.k));st.M.save();return this.t.save();};
+  G.prototype.restore=function(){const st=this.st;if(st.ks.length)st.k=st.ks.pop();st.M.restore();st.mE=-1;return this.t.restore();};
+  const pen=st=>{if(st.mE!==st.E){st.M.fillStyle=st.M.strokeStyle=col594(st.E);st.mE=st.E;}};
+  G.prototype.fillRect=function(x,y,w,h){const st=this.st,k=st.k;this.t.fillRect(x,y,w,h);if(st.E&&k.so&&k.ga*k.fa>=.85){pen(st);st.M.fillRect(x,y,w,h);}};
+  G.prototype.fill=function(...a){const st=this.st,k=st.k;this.t.fill(...a);if(st.E&&k.so&&k.ga*k.fa>=.85){pen(st);st.M.fill(...a);}};
+  G.prototype.stroke=function(...a){const st=this.st,k=st.k;this.t.stroke(...a);if(st.E&&k.so&&k.ga*k.sa>=.85){pen(st);st.M.stroke(...a);}};
+  G.prototype.drawImage=function(...a){const t=this.t,st=this.st,k=st.k;t.drawImage(...a);if(st.E&&k.so&&k.ga>=.85){const W=st.W,H=st.H;
+    if(!st.S){const c=document.createElement('canvas');c.width=W;c.height=H;st.S=c.getContext('2d');}const S=st.S;
+    S.setTransform(1,0,0,1,0,0);S.globalCompositeOperation='source-over';S.clearRect(0,0,W,H);S.setTransform(t.getTransform());S.drawImage(...a);
+    S.setTransform(1,0,0,1,0,0);S.globalCompositeOperation='source-in';S.fillStyle=col594(st.E);S.fillRect(0,0,W,H);
+    st.M.save();st.M.setTransform(1,0,0,1,0,0);st.M.drawImage(S.canvas,0,0);st.M.restore();}};
+  const lt=(st,b)=>{st.E++;st.LT.fillStyle=col594(st.E);const x=Math.max(0,Math.floor(b[0])),y=Math.max(0,Math.floor(b[1])),x2=Math.min(st.W,Math.ceil(b[2])),y2=Math.min(st.H,Math.ceil(b[3]));if(x2>x&&y2>y){st.LT.fillRect(x,y,x2-x,y2-y);st.lb=uni594(st.lb,[x,y,x2,y2]);}};
+  N.prototype.fillRect=function(x,y,w,h){lt(this.st,tb594(this.t.getTransform(),x,y,w,h));return this.t.fillRect(x,y,w,h);};
+  N.prototype.strokeRect=function(x,y,w,h){lt(this.st,tb594(this.t.getTransform(),x-2,y-2,w+4,h+4));return this.t.strokeRect(x,y,w,h);};
+  N.prototype.drawImage=function(...a){const im=a[0],r=a.length>=9?[a[5],a[6],a[7],a[8]]:a.length>=5?[a[1],a[2],a[3],a[4]]:[a[1],a[2],im.width,im.height];lt(this.st,tb594(this.t.getTransform(),...r));return this.t.drawImage(...a);};
+  for(const k of ['fill','stroke'])N.prototype[k]=function(...a){const st=this.st,lw=k==='stroke'?this.t.lineWidth:0,b=!(a[0] instanceof Path2D)&&st.npb?[st.npb[0]-lw,st.npb[1]-lw,st.npb[2]+lw,st.npb[3]+lw]:[0,0,st.W,st.H];lt(st,b);return this.t[k](...a);};
+  for(const k of ['fillText','strokeText','putImageData'])N.prototype[k]=function(...a){lt(this.st,[0,0,this.st.W,this.st.H]);return this.t[k](...a);};
+  N.prototype.beginPath=function(){this.st.npb=null;return this.t.beginPath();};
+  for(const k of ['moveTo','lineTo','quadraticCurveTo','bezierCurveTo','rect','roundRect','arc','arcTo','ellipse'])N.prototype[k]=function(...a){const st=this.st,m=this.t.getTransform();for(const q of pathPts594(k,a))st.npb=uni594(st.npb,ptb594(m,q[0],q[1],q[2]));return this.t[k](...a);};
+  OCC594={G,N};return OCC594;
+}
+function col594(n){return '#'+(n&0xffffff).toString(16).padStart(6,'0');}
+function tb594(m,x,y,w,h){const xs=[m.a*x+m.c*y+m.e,m.a*(x+w)+m.c*y+m.e,m.a*x+m.c*(y+h)+m.e,m.a*(x+w)+m.c*(y+h)+m.e],ys=[m.b*x+m.d*y+m.f,m.b*(x+w)+m.d*y+m.f,m.b*x+m.d*(y+h)+m.f,m.b*(x+w)+m.d*(y+h)+m.f];return [Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];}
+function uni594(a,b){return a?[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[2],b[2]),Math.max(a[3],b[3])]:b;}
+function ptb594(m,x,y,r){const X=m.a*x+m.c*y+m.e,Y=m.b*x+m.d*y+m.f,R=r*Math.max(Math.abs(m.a)+Math.abs(m.c),Math.abs(m.b)+Math.abs(m.d));return [X-R,Y-R,X+R,Y+R];}
+function pathPts594(p,a){return p==='moveTo'||p==='lineTo'?[[a[0],a[1],0]]:p==='quadraticCurveTo'?[[a[0],a[1],0],[a[2],a[3],0]]:p==='bezierCurveTo'?[[a[0],a[1],0],[a[2],a[3],0],[a[4],a[5],0]]:
+  (p==='rect'||p==='roundRect')?[[a[0],a[1],0],[a[0]+a[2],a[1]+a[3],0],[a[0]+a[2],a[1],0],[a[0],a[1]+a[3],0]]:p==='arcTo'?[[a[0],a[1],0],[a[2],a[3],0]]:[[a[0],a[1],p==='ellipse'?Math.max(a[2],a[3]):a[2]]];}
+function occWrap594(g,ng){
+  // 精靈畫完時（flush）只讀有燈的範圍，逐像素比 M 與 LT：M ≥ LT（燈畫完之後被不透明塗畫蓋住）→ 擦掉那個燈像素。
+  // 前幾版（每筆當場擦、畫燈前先擦、Proxy、每筆換 M 的顏色）建城多 0.8 秒。斜邊反鋸齒的像素（M 不是完全不透明）不擦。
+  const W=ng.canvas.width,H=ng.canvas.height,mk=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;return c.getContext('2d',{willReadFrequently:true});};
+  const st={M:mk(),LT:mk(),E:0,mE:-1,npb:null,S:null,W,H,lb:null,k:{fa:1,sa:1,ga:1,so:true},ks:[]},C=occClasses594();
+  const flush=()=>{if(!st.E||!st.lb)return 0;const [x,y,x2,y2]=st.lb,w=x2-x,h=y2-y;
+    const Nd=ng.getImageData(x,y,w,h),n=Nd.data,m=st.M.getImageData(x,y,w,h).data,l=st.LT.getImageData(x,y,w,h).data;let k=0;
+    for(let i=0;i<n.length;i+=4){if(!n[i+3]||m[i+3]!==255||!l[i+3])continue;const tm=(m[i]<<16)|(m[i+1]<<8)|m[i+2],tl=(l[i]<<16)|(l[i+1]<<8)|l[i+2];if(tm>=tl){n[i]=n[i+1]=n[i+2]=n[i+3]=0;k++;}}
+    if(k){ng.save();ng.setTransform(1,0,0,1,0,0);ng.putImageData(Nd,x,y);ng.restore();}
+    window.__t653Erased=(window.__t653Erased||0)+k;return k;};
+  return {g:new C.G(g,st),ng:new C.N(ng,st),flush};
+}
+/* --- T594 立面繪製器（實驗線七支 <script> 原樣內嵌；登記進 FACADE594） --- */
+// facade_uk1.js — T577 英式街景立面繪製器（實驗線）
+// ukTerrace：維多利亞／愛德華連棟屋（套 cottage 原型）；ukSemi：1930 年代半獨立屋（套 bungalow 原型）
+// 登記：window.__facade577[name]={name,draw(ctx)}；只畫牆／窗／屋頂／沿街小件，地坪、接地線、前庭道具由核心畫好。
+// 座標：G.W→G.S 是受光正面（朝路），G.E→G.S 是背光端牆；u 沿正面、v 沿深度。全部整數像素、硬邊多邊形（像素中心取樣）。
+// 亂數只用 ctx.rand（決定性）；主磚色由 v 決定；每戶差異（門色、磚色微差、天窗、樹籬／鐵欄）由 rand 決定。
+(function(){
+'use strict';
+const REG=FACADE594;
+const R=Math.round,clampN=(x,a,b)=>x<a?a:x>b?b:x;
+
+function tools(ctx){
+  const A=ctx.A,sh=A.shade;
+  const rc=(cx,x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(R(x),R(y),w,h);};
+  // 硬邊多邊形：像素中心取樣掃描線，無抗鋸齒混色
+  const poly=(cx,pts,c)=>{let y0=1e9,y1=-1e9;for(const p of pts){if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];}
+    y0=Math.max(0,Math.floor(y0));y1=Math.min(cx.canvas.height-1,Math.ceil(y1));cx.fillStyle=c;const n=pts.length;
+    for(let y=y0;y<=y1;y++){const yc=y+.5,xs=[];
+      for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];if((a[1]<=yc&&b[1]>yc)||(b[1]<=yc&&a[1]>yc))xs.push(a[0]+(yc-a[1])*(b[0]-a[0])/(b[1]-a[1]));}
+      xs.sort((p,q)=>p-q);
+      for(let i=0;i+1<xs.length;i+=2){const xa=Math.ceil(xs[i]-.5),xb=Math.ceil(xs[i+1]-.5);if(xb>xa)cx.fillRect(xa,y,xb-xa,1);}}};
+  // 整數像素線（Bresenham）
+  const lineP=(cx,a,b,c)=>{let x0=R(a[0]),y0=R(a[1]);const x1=R(b[0]),y1=R(b[1]);const dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1;let err=dx+dy;cx.fillStyle=c;
+    for(let guard=0;guard<4096;guard++){cx.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>=dy){err+=dy;x0+=sx;}if(e2<=dx){err+=dx;y0+=sy;}}};
+  const fy=(a,b,x)=>a[1]+(x-a[0])*((b[1]-a[1])/(b[0]-a[0]));
+  const foot=(a,b,x)=>R(fy(a,b,x));
+  const cols=(a,b,fn)=>{const x0=R(Math.min(a[0],b[0])),x1=R(Math.max(a[0],b[0]));for(let x=x0;x<=x1;x++)fn(x,foot(a,b,x));};
+  const wall=(cx,a,b,h,c)=>{cx.fillStyle=c;cols(a,b,(x,y)=>cx.fillRect(x,y-h,1,h));};
+  const sub=(C,u0,u1,v0,v1)=>({N:A.paraPt559(C,u0,v0),E:A.paraPt559(C,u1,v0),S:A.paraPt559(C,u1,v1),W:A.paraPt559(C,u0,v1)});
+  const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
+  const lerp=A.lerp2;
+  // 牆頂四角（用與牆柱同一套取整的牆腳，屋頂邊線才會貼齊牆頂；-.02 讓簷口列不被掃描線吃掉）
+  const tops=(C,h)=>{const xW=R(C.W[0]),xS=R(C.S[0]),xE=R(C.E[0]);
+    return {W:[xW,foot(C.W,C.S,xW)-h-.02],S:[xS,foot(C.W,C.S,xS)-h-.02],E:[xE,foot(C.S,C.E,xE)-h-.02],N:[R(C.N[0]),R(C.N[1])-h-.02]};};
+  // 窗：外框 1px 上楣／下檻，玻璃，選配中挺／橫檔；夜光只畫玻璃
+  const win=(g,ng,x,y,w,h,glass,trim,lit,opt)=>{opt=opt||{};
+    rc(g,x,y-1,w,1,trim);rc(g,x,y+h,w,1,trim);rc(g,x,y,w,h,glass);
+    if(opt.rail)rc(g,x,y+(h>>1),w,1,trim);
+    if(opt.mull)rc(g,x+(w>>1),y,1,h,trim);
+    if(lit&&ng){ng.fillStyle=opt.litCol||'#ffd98c';ng.fillRect(R(x),R(y),w,h);
+      if(opt.rail){ng.fillStyle='rgba(60,40,20,.55)';ng.fillRect(R(x),R(y)+(h>>1),w,1);}
+      if(opt.mull){ng.fillStyle='rgba(60,40,20,.55)';ng.fillRect(R(x)+(w>>1),R(y),1,h);}}};
+  // 煙囪：立在屋脊上，左亮右暗，陶土煙囪帽
+  const chimney=(g,x,y,w,h,brick,pots,antenna)=>{
+    const bl=sh(brick,-6),br=sh(brick,-46);
+    rc(g,x,y-h,w>>1,h,bl);rc(g,x+(w>>1),y-h,w-(w>>1),h,br);
+    rc(g,x-1,y-h-1,w+2,1,'#4a423b');rc(g,x-1,y-h,w+2,1,sh(brick,-60));
+    for(let i=0;i<pots;i++){const px=x+(pots===2?[0,w-1][i]:[0,(w>>1),w-1][i]);rc(g,px,y-h-3,1,2,i%2?'#a35a37':'#b8653e');rc(g,px,y-h-4,1,1,'#6b3f2a');}
+    ctx.chim&&ctx.chim(x,pots?y-h-5:y-h-2,pots?'#6b3f2a':'#4a423b'); // T613：煙從第一支煙囪帽冒
+    if(antenna){rc(g,x+w-1,y-h-9,1,6,'#3a3d44');rc(g,x+w-3,y-h-9,5,1,'#3a3d44');rc(g,x+w-2,y-h-7,3,1,'#3a3d44');}
+  };
+  return {sh,rc,poly,lineP,fy,foot,cols,wall,sub,mid,lerp,tops,win,chimney};
+}
+
+// 前庭：矮磚牆／樹籬／鐵欄、每戶小徑與門口、垃圾桶。zone 在 G0 的 [u0,u1]×[vFront,~.95]。
+function frontGarden(ctx,T,opt){
+  const {A,g,ng,G0,rand}=ctx,{sh,rc,fy,foot}=T;
+  const P=(u,v)=>A.paraPt559(G0,u,v);
+  const box=opt.box,vw=Math.min(.955,1-.045);           // 圍牆線
+  if(box[3]>vw-.10)return;                              // 沒有前院
+  const pa=P(box[0],vw),pb=P(box[1],vw);
+  const gates=opt.doors.map(d=>d.u);
+  const gateAt=x=>{for(const u of gates){const gx=P(u,vw)[0];if(Math.abs(x-gx)<=1)return true;}return false;};
+  const houseOf=x=>{let best=0,bd=1e9;opt.doors.forEach((d,i)=>{const dd=Math.abs(P(d.u,vw)[0]-x);if(dd<bd){bd=dd;best=i;}});return best;};
+  const x0=R(pa[0]),x1=R(pb[0]);
+  for(let x=x0;x<=x1;x++){
+    const y=foot(pa,pb,x);if(gateAt(x))continue;
+    const h=opt.doors[houseOf(x)].fence;              // 0 樹籬 1 鐵欄 2 矮牆
+    rc(g,x,y,1,1,'rgba(16,22,18,.38)');
+    if(h===0){rc(g,x,y-2,1,2,opt.brick);rc(g,x,y-3,1,1,'#cbc2b0');
+      const hh=3+((x*7)%3===0?1:0);rc(g,x,y-3-hh,1,hh,'#37602f');rc(g,x,y-3-hh,1,1,'#4f8542');}
+    else if(h===1){rc(g,x,y-1,1,1,opt.brick);rc(g,x,y-2,1,1,'#b9b0a0');
+      if((x-x0)%2===0)rc(g,x,y-5,1,3,'#2b2b31');rc(g,x,y-4,1,1,'#2b2b31');}
+    else{rc(g,x,y-3,1,3,opt.brick);rc(g,x,y-4,1,1,'#cbc2b0');}
+  }
+  // 小徑：門腳 → 大門（每格 v 深度 = 16*bh 列，x 每列 -2）
+  for(const d of opt.doors){
+    const gp=P(d.u,vw),n=Math.max(1,R(gp[1]-d.y));
+    for(let k=0;k<=n;k++){rc(g,d.x-1-2*k,d.y+k,3,1,k%2?'#c9c1ae':'#bfb6a3');}
+    rc(g,d.x-1,d.y,3,1,'#d8d0bd');                      // 門階
+    if(d.bin){rc(g,d.x+3,d.y+1,2,3,d.binCol);rc(g,d.x+3,d.y,2,1,sh(d.binCol,26));}
+    if(ng&&d.litDoor){ng.fillStyle='rgba(255,214,140,.30)';ng.fillRect(d.x-2,d.y,5,2);}
+  }
+}
+
+// ---------------------------------------------------------------- ukTerrace
+REG.ukTerrace={name:'ukTerrace',draw(ctx){
+  const T=tools(ctx),{A,g,ng,G,G0,rand,v,bw,bh,span,k,lv,ar}=ctx,{sh,rc,poly,lineP,fy,foot,cols,wall,sub,mid,lerp,tops,win,chimney}=T;
+  const fh=span>=2?9:8,wallH=fh*2+1;                    // 兩層＋簷溝列
+  const LX=G.S[0]-G.W[0],DX=G.N[0]-G.W[0];
+  const nRows=clampN(R(DX/32/.72),1,3);                 // 深街區：背靠背多排（M 形屋頂），每排約 20–30px 深
+  const stock=(v%2===0);
+  const base=stock?['#b59c6a','#ad9668','#bea472'][v%3]:['#a0563f','#984f3b','#a85d45'][v%3];
+  const slateF='#66717f',slateB='#444c58',ridgeC='#8791a0',trimF='#efe6d2',trimR='#b7ae9c',glassF='#546878',glassR='#3e4c58';
+  const DOORS=['#1b1b20','#20407a','#8c2020','#25562f','#e6e0d0','#5a2a5c'];
+  const PAINT=['#e6dfcd','#d9dfe6','#ead9cf'];
+  const doorsOut=[];
+  const nH=Math.max(1,R(LX/16));
+  const villa=(k===1&&lv===1&&bw*bh<=4&&(Math.abs(v)%3)===0);
+  for(let r=0;r<nRows;r++){
+    const C=sub(G,0,1,r/nRows,(r+1)/nRows),isFront=(r===nRows-1);
+    const Ct=tops(C,wallH),dxRow=C.N[0]-C.W[0];
+    const rise=clampN(R(dxRow*.38),7,12);
+    const f=mid(Ct.W,Ct.N);f[1]-=rise;const b=mid(Ct.S,Ct.E);b[1]-=rise;
+    const endBrick=sh(base,-46);
+    // 端牆（背光）＋山牆
+    wall(g,C.S,C.E,wallH,endBrick);
+    rc(g,R(C.S[0]),foot(C.W,C.S,R(C.S[0]))-wallH,1,wallH,sh(base,-30));   // 轉角柱
+    cols(C.S,C.E,(x,y)=>{rc(g,x,y-1,1,1,sh(endBrick,-16));});                 // 勒腳
+    {const xp=R(C.S[0])+2;rc(g,xp,foot(C.S,C.E,xp)-wallH+1,1,wallH-1,'#3e4249');}   // 端牆落水管
+    if(rand()<.5){const p=lerp(C.S,C.E,.5);const x=R(p[0])-1,y=foot(C.S,C.E,R(p[0]));win(g,ng,x,y-fh-5,2,3,glassR,trimR,rand()<.4);}
+    // 屋頂：背坡→山牆三角→前坡→石板橫縫→屋脊→封簷
+    poly(g,[Ct.N,Ct.E,b,f],slateB);
+    poly(g,[Ct.S,Ct.E,b],endBrick);
+    poly(g,[Ct.W,Ct.S,b,f],slateF);
+    for(const s of[.34,.68]){lineP(g,lerp(Ct.W,f,s),lerp(Ct.S,b,s),'#5b6572');}
+    lineP(g,f,b,ridgeC);lineP(g,Ct.S,b,sh(slateF,18));
+    // 正面（只有前排看得到）
+    if(isFront){
+      const hw=LX/nH;
+      for(let i=0;i<nH;i++){
+        const xs=C.W[0]+hw*i,xi0=R(xs),xi1=R(xs+hw)-1;
+        const painted=rand()<.11;
+        const bcol=painted?PAINT[(rand()*3)|0]:sh(base,R((rand()-.5)*16));
+        const door=DOORS[(rand()*DOORS.length)|0];
+        const trim=painted?'#f6f1e6':trimF;
+        for(let x=xi0;x<=xi1;x++){const y=foot(C.W,C.S,x);
+          rc(g,x,y-wallH,1,wallH,bcol);
+          rc(g,x,y-wallH,1,1,'#3f444b');                        // 簷溝
+          rc(g,x,y-wallH+1,1,1,sh(bcol,22));                     // 簷口線
+          rc(g,x,y-fh-1,1,1,painted?sh(bcol,-14):sh(bcol,20));    // 樓層腰線
+          rc(g,x,y-1,1,1,sh(bcol,-26));                          // 勒腳
+        }
+        // 門（左）：扇形窗＋門色
+        const dx=xi0+2,dy=foot(C.W,C.S,dx+1);
+        rc(g,dx-1,dy-fh,5,1,trim);                               // 門楣
+        rc(g,dx,dy-fh+1,3,1,'#93a8b8');                          // 扇形窗
+        rc(g,dx,dy-fh+2,3,fh-2,door);
+        rc(g,dx+2,dy-3,1,1,sh(door,50));                         // 門把
+        const litDoor=rand()<.55;
+        if(ng&&litDoor){ng.fillStyle='#ffd27a';ng.fillRect(dx,dy-fh+1,3,1);}
+        // 樓上窗：門上 3 寬、凸窗上 5 寬（推拉窗：橫檔）
+        const wy=dy-wallH+3,uh=fh-4;                             // 簷口下留一列磚
+        win(g,ng,dx,wy,3,uh,glassF,trim,rand()<.42,{rail:1});
+        const bx=xi1-6;                                           // 凸窗牆柱 [bx,bx+4]
+        const by=foot(C.W,C.S,bx+2);
+        win(g,ng,bx,by-wallH+3,5,uh,glassF,trim,rand()<.42,{rail:1,mull:1});
+        // 一樓凸窗：向路面凸出 2px（-2,+1），自帶小屋頂與側面
+        const bf=by+1;
+        rc(g,bx-2,bf-fh+1,5,fh-1,bcol);
+        rc(g,bx-2,bf-fh+1,5,1,'#8f98a2');rc(g,bx-1,bf-fh,6,1,'#a9b2bb');  // 鉛皮小屋頂兩級
+        win(g,ng,bx-2,bf-fh+3,5,fh-5,glassF,trim,rand()<.5,{mull:1});
+        rc(g,bx-2,bf-1,5,1,sh(bcol,-26));
+        rc(g,bx+3,bf-fh+1,1,fh-1,sh(bcol,-40));rc(g,bx+4,bf-fh,1,fh-1,sh(bcol,-40));  // 凸窗側面
+        rc(g,bx-2,bf,5,1,'rgba(16,22,18,.45)');rc(g,bx+3,bf,2,1,'rgba(16,22,18,.45)');
+        // 落水管：每兩戶一支
+        if(i%2===1){rc(g,xi0,foot(C.W,C.S,xi0)-wallH+1,1,wallH-1,'#4b5058');}
+        // 天窗：前坡上、戶中央，三成
+        if(rand()<.3){const t=(i+.5)/nH,e=lerp(Ct.W,Ct.S,t),rp=lerp(f,b,t),d=lerp(e,rp,.42);
+          const x=R(d[0])-2,y=R(d[1]);rc(g,x,y-4,4,4,sh(bcol,-4));rc(g,x-1,y-5,6,1,'#7f8a97');rc(g,x,y-4,4,1,'#8f98a2');
+          rc(g,x+1,y-3,2,2,glassF);if(ng&&rand()<.4){ng.fillStyle='#ffd98c';ng.fillRect(x+1,y-3,2,2);}}
+        // 前庭資料
+        const uDoor=(ar&&ar.box)?ar.box[0]+((dx+1-G.W[0])/LX)*(ar.box[1]-ar.box[0]):0;
+        doorsOut.push({u:uDoor,x:dx+1,y:dy,fence:rand()<.45?0:(rand()<.6?1:2),bin:rand()<.55,binCol:rand()<.5?'#3d473d':'#4a4f57',litDoor});
+      }
+      // 正面左端牆角：前坡左緣
+      lineP(g,Ct.W,f,sh(slateF,10));
+    }
+    // 煙囪：每兩戶共牆一座；端牆上也有
+    const nStack=Math.max(1,Math.floor(nH/2)+1);
+    for(let j=0;j<=Math.floor(nH/2);j++){
+      const t=Math.min(1,(2*j)/nH);
+      if(nH===1&&j>0)break;
+      const rp=lerp(f,b,t);const pots=2+((rand()<.4)?1:0),sw=pots===3?5:4;
+      chimney(g,R(rp[0])-(sw>>1),R(rp[1])+2,sw,7,base,pots,rand()<.35);
+    }
+    void nStack;
+  }
+  if(!villa&&ar&&ar.box&&doorsOut.length)frontGarden(ctx,T,{box:ar.box,doors:doorsOut,brick:sh(base,-14)});
+  return {pitch:true};
+}};
+
+// ---------------------------------------------------------------- ukSemi
+// 1930 年代半獨立屋：兩戶鏡像成一對（[凸窗][門][門][凸窗]），四坡陶瓦屋頂、上層粉刷下層紅磚、兩層凸窗、門廊小雨遮，
+// 對與對之間留 3px 車道縫；煙囪在對中央屋脊；街區右側 u>.80 的空地是側邊車道＋車。
+REG.ukSemi={name:'ukSemi',draw(ctx){
+  const T=tools(ctx),{A,g,ng,G,G0,rand,v,bw,bh,span,k,lv,ar}=ctx,{sh,rc,poly,lineP,fy,foot,cols,wall,sub,mid,lerp,tops,win,chimney}=T;
+  const fh=span>=2?9:8,wallH=fh*2+1;
+  const LX=G.S[0]-G.W[0],DX=G.N[0]-G.W[0];
+  const nRows=clampN(R(DX/32/.72),1,3);
+  const brick=['#a4523f','#9c4d3c','#ad5a44'][v%3];
+  const RENDER=['#e9e3d6','#e2d8c2','#d8d3c6','#ece7dd'];
+  const tileF='#c26a44',tileB='#8a482e',tileH='#a4573a',ridgeC='#d68a63';
+  const DOORS=['#1f2a45','#8c2020','#25562f','#e6e0d0','#2b2b2f','#6a4a2a'];
+  const glassF='#5b6d7c',glassR='#3e4c58',trimB='#efe6d2',trimW='#8f8b83';
+  const gap=4,doorsOut=[];
+  const villa=(k===1&&lv===1&&bw*bh<=4&&(Math.abs(v)%3)===0);
+  const nP=Math.max(1,R((LX+gap)/(24+gap)));           // 每對 21–27px（每戶 11–13px）
+  const pw=(LX-gap*(nP-1))/nP;
+  for(let r=0;r<nRows;r++){
+    const C=sub(G,0,1,r/nRows,(r+1)/nRows),isFront=(r===nRows-1);
+    const dxRow=C.N[0]-C.W[0],rise=clampN(R(dxRow*.36),6,11);
+    for(let p=0;p<nP;p++){
+      const xs=C.W[0]+(pw+gap)*p,ua=(xs-C.W[0])/LX,ub=(xs+pw-C.W[0])/LX;
+      const Cp=sub(C,ua,ub,0,1),Ct=tops(Cp,wallH);
+      const render=RENDER[(rand()*RENDER.length)|0],tudor=rand()<.35;
+      const bcol=sh(brick,R((rand()-.5)*10));
+      const xi0=R(Cp.W[0]),xi1=R(Cp.S[0])-1;
+      // 端牆（背光）：下磚上粉刷
+      wall(g,Cp.S,Cp.E,wallH,sh(render,-62));
+      cols(Cp.S,Cp.E,(x,y)=>{rc(g,x,y-fh,1,fh,sh(bcol,-44));rc(g,x,y-1,1,1,sh(bcol,-58));rc(g,x,y-wallH,1,1,'#3a3d43');});
+      if(rand()<.5){const q=lerp(Cp.S,Cp.E,.5);const x=R(q[0])-1,y=foot(Cp.S,Cp.E,R(q[0]));win(g,ng,x,y-wallH+4,2,3,glassR,sh(trimW,-30),rand()<.4);}
+      // 四坡屋頂
+      const fm=mid(Ct.W,Ct.N),bm=mid(Ct.S,Ct.E),hipT=clampN(dxRow*.4/Math.max(8,pw),.12,.38);
+      const f=lerp(fm,bm,hipT);f[1]-=rise;const b=lerp(fm,bm,1-hipT);b[1]-=rise;
+      poly(g,[Ct.N,Ct.E,b,f],tileB);
+      poly(g,[Ct.S,Ct.E,b],tileH);
+      poly(g,[Ct.W,Ct.S,b,f],tileF);
+      for(const s of[.36,.7]){lineP(g,lerp(Ct.W,f,s),lerp(Ct.S,b,s),sh(tileF,-22));}
+      lineP(g,f,b,ridgeC);lineP(g,Ct.S,b,sh(tileF,16));lineP(g,Ct.W,f,sh(tileF,10));
+      // 正面
+      if(isFront){
+        const hw=pw/2;
+        for(let x=xi0;x<=xi1;x++){const y=foot(Cp.W,Cp.S,x);
+          rc(g,x,y-wallH,1,wallH,render);
+          rc(g,x,y-fh,1,fh,bcol);
+          rc(g,x,y-wallH,1,1,'#4a4e55');                        // 簷溝
+          rc(g,x,y-fh-1,1,1,sh(render,-34));                     // 粉刷下緣陰影
+          rc(g,x,y-1,1,1,sh(bcol,-28));                          // 勒腳
+        }
+        // 兩戶鏡像：h=0 左戶（凸窗左、門右），h=1 右戶（門左、凸窗右）
+        for(let h=0;h<2;h++){
+          const bx=h===0?xi0+1:xi1-5;                             // 凸窗牆柱 [bx,bx+4]
+          const dx=h===0?xi0+R(hw)-4:xi0+R(hw)+1;                 // 門 [dx,dx+2]
+          const door=DOORS[(rand()*DOORS.length)|0];
+          // 兩層凸窗：向路面凸 2px
+          const bf=foot(Cp.W,Cp.S,bx+2)+1,topY=bf-wallH+1;
+          const uc=tudor?'#f1ece2':render;
+          rc(g,bx-2,topY,5,wallH-1,uc);
+          rc(g,bx-2,bf-fh,5,fh,bcol);
+          rc(g,bx-2,bf-fh-1,5,1,sh(uc,-34));
+          rc(g,bx-2,bf-1,5,1,sh(bcol,-28));
+          rc(g,bx-2,topY-1,5,1,sh(tileF,-6));rc(g,bx-2,topY,5,1,sh(tileF,-28));   // 凸窗小屋頂（承接主屋簷）
+          if(tudor){rc(g,bx-2,topY+1,1,fh-2,'#2c2622');rc(g,bx+2,topY+1,1,fh-2,'#2c2622');rc(g,bx-2,topY+1,5,1,'#2c2622');}
+          win(g,ng,bx-1,topY+3,3,fh-5,glassF,tudor?'#2c2622':trimW,rand()<.42,{});
+          win(g,ng,bx-2,bf-fh+2,5,fh-5,glassF,trimB,rand()<.5,{mull:1});
+          rc(g,bx+3,topY,1,wallH-1,sh(uc,-52));rc(g,bx+4,topY-1,1,wallH-1,sh(uc,-52));   // 凸窗側面
+          rc(g,bx+3,bf-fh,1,fh,sh(bcol,-46));rc(g,bx+4,bf-fh-1,1,fh,sh(bcol,-46));
+          rc(g,bx-2,bf,5,1,'rgba(16,22,18,.45)');rc(g,bx+3,bf,2,1,'rgba(16,22,18,.45)');
+          // 門＋門廊雨遮
+          const dy=foot(Cp.W,Cp.S,dx+1);
+          rc(g,dx-1,dy-fh,5,1,'#cfcbc2');rc(g,dx-1,dy-fh+1,5,1,sh(bcol,-24));
+          rc(g,dx,dy-fh+2,3,1,'#93a8b8');rc(g,dx,dy-fh+3,3,fh-3,door);rc(g,dx+(h?0:2),dy-3,1,1,sh(door,50));
+          const litDoor=rand()<.5;
+          if(ng&&litDoor){ng.fillStyle='#ffd27a';ng.fillRect(dx,dy-fh+2,3,1);ng.fillStyle='rgba(255,220,150,.35)';ng.fillRect(dx-1,dy-fh+1,5,1);}
+          // 門上樓上窗
+          win(g,ng,dx,dy-wallH+3,3,fh-4,glassF,trimW,rand()<.4,{});
+          const uDoor=(ar&&ar.box)?ar.box[0]+((dx+1-G.W[0])/LX)*(ar.box[1]-ar.box[0]):0;
+          doorsOut.push({u:uDoor,x:dx+1,y:dy,fence:rand()<.7?0:2,bin:rand()<.4,binCol:rand()<.5?'#3d473d':'#4a4f57',litDoor});
+        }
+        // 對與對之間的車道縫：短車道往路面
+        if(p<nP-1){const gx=xi1+1,gy=foot(Cp.W,Cp.S,xi1+1);
+          for(let s=1;s<=4;s++)rc(g,gx-2*s,gy+s,3,1,s%2?'#8d8c86':'#96958f');}
+      }
+      // 煙囪：對中央屋脊
+      const rp=lerp(f,b,.5);chimney(g,R(rp[0])-2,R(rp[1])+2,4,6,bcol,2,rand()<.3);
+    }
+  }
+  // 側邊車道＋車（u>.80 的空地），只在原型真的留了空地時
+  if(!villa&&ar&&ar.box&&ar.box[1]<=.84){
+    const P=(u,vv)=>A.paraPt559(G0,u,vv);
+    const u0=ar.box[1]+.015,u1=Math.min(.97,u0+.11);
+    poly(g,[P(u0,.50),P(u1,.50),P(u1,.965),P(u0,.965)],'#83827c');
+    lineP(g,P(u0,.50),P(u0,.965),'#5f5e59');lineP(g,P(u1,.50),P(u1,.965),'#9a9993');
+    if(rand()<.85){const c=P((u0+u1)/2,.78),x=R(c[0])-3,y=R(c[1]);
+      const col=['#b4544a','#3f6f9a','#c9c9c4','#4d7f56','#2f3238'][(rand()*5)|0];
+      rc(g,x,y-3,7,3,col);rc(g,x+1,y-5,4,2,sh(col,20));rc(g,x+2,y-5,2,1,'#9fc4d8');rc(g,x+5,y-4,1,1,'#9fc4d8');
+      rc(g,x+6,y-3,1,3,sh(col,-36));rc(g,x+1,y,1,1,'#221f1c');rc(g,x+5,y,1,1,'#221f1c');rc(g,x,y+1,8,1,'rgba(16,22,18,.30)');}
+  }
+  if(!villa&&ar&&ar.box&&doorsOut.length)frontGarden(ctx,T,{box:ar.box,doors:doorsOut,brick:sh(brick,-14)});
+  return {pitch:true};
+}};
+})();
+// T577 facade_uk2：英式街景立面繪製器（住宅 lv2）
+//   ukVictorian —— 倫敦白灰泥聯排（Belgravia／Bloomsbury）：原型 terrace（G=[.08,.92]×[0,1]，牆高 1.38×）
+//   ukMansion   —— 愛德華紅磚公寓大樓（Kensington mansion block）：原型 courtyard（G=[0,1]×[0,.52]＋前左側翼）
+// 規約：整數像素；牆上的每一件東西（窗、帶、欄杆、門廊）都逐列貼著牆腳斜率畫；光從左（W→S 面亮、E→S 面暗）；
+//       只用 ctx.rand；夜光只畫白天畫出來的窗／門燈；所有東西落在 G0 之內、牆腳貼在 G 邊上。
+(function(){
+'use strict';
+const REG=FACADE594;
+const R=Math.round;
+function sh(hex,amt){const n=parseInt(hex.slice(1),16),c=x=>x<0?0:x>255?255:x;const r=c((n>>16)+amt),g=c(((n>>8)&255)+amt),b=c((n&255)+amt);return '#'+((r<<16|g<<8|b).toString(16).padStart(6,'0'));}
+function P(C,u,v){return [C.N[0]+u*(C.E[0]-C.N[0])+v*(C.W[0]-C.N[0]),C.N[1]+u*(C.E[1]-C.N[1])+v*(C.W[1]-C.N[1])];}
+function lift(C,h){return {N:[C.N[0],C.N[1]-h],E:[C.E[0],C.E[1]-h],S:[C.S[0],C.S[1]-h],W:[C.W[0],C.W[1]-h]};}
+function sub(C,u0,u1,v0,v1){return {N:P(C,u0,v0),E:P(C,u1,v0),S:P(C,u1,v1),W:P(C,u0,v1)};}
+// 牆面：a→b 是牆腳線（實數座標）；每個整數 x 列有自己的牆腳 y；z 從牆腳往上數（z=0 是牆腳上方第一列）
+function mkFace(a,b,H){const dx=b[0]-a[0],dy=b[1]-a[1],k=dx?dy/dx:0;const xa=R(a[0]),xb=R(b[0]);
+  const x0=Math.min(xa,xb),x1=Math.max(xa,xb);return {x0,x1,H,len:x1-x0+1,fy:x=>R(a[1]+(x-a[0])*k),a,b};}
+// 牆面 F 上，列 xs..xe、高度 z0..z1（不含 z1）填色 —— 一切牆上元素的基本筆
+function band(g,F,xs,xe,z0,z1,col){xs=Math.max(xs,F.x0);xe=Math.min(xe,F.x1);if(xe<xs||z1<=z0)return;g.fillStyle=col;for(let x=xs;x<=xe;x++)g.fillRect(x,F.fy(x)-z1,1,z1-z0);}
+// 硬邊平行四邊形（四邊斜率 ±1/2）；不含最下一列（留給牆頂／簷口），edgeCol 畫最下一列上方那一列（女兒牆內側陰影）
+function dia(g,C,col,edgeCol){const xa=Math.ceil(Math.min(C.W[0],C.N[0])),xb=Math.floor(Math.max(C.E[0],C.S[0]));
+  for(let x=xa;x<=xb;x++){const top=C.N[1]+Math.abs(x-C.N[0])/2,bot=C.S[1]-Math.abs(x-C.S[0])/2;const y0=R(top),y1=R(bot)-1;
+    if(y1<y0)continue;g.fillStyle=col;g.fillRect(x,y0,1,y1-y0+1);if(edgeCol){g.fillStyle=edgeCol;g.fillRect(x,y1,1,1);}}}
+// 硬邊線段（斜率 ±1/2 的屋脊／天溝線）
+function seg(g,a,b,col){const xa=R(a[0]),xb=R(b[0]),k=(b[1]-a[1])/(b[0]-a[0]||1);g.fillStyle=col;for(let x=Math.min(xa,xb);x<=Math.max(xa,xb);x++)g.fillRect(x,R(a[1]+(x-a[0])*k),1,1);}
+// 直立推拉窗單元（4 列寬：側框｜玻璃 2｜側框），zb=窗台列高度，wh=玻璃高；ngZ0 = 夜光從哪個高度起（陽台欄杆遮住的下半不亮）
+function sashWin(g,ng,F,x,zb,wh,C,lit,ngZ0){
+  band(g,F,x,x+3,zb,zb+1,C.trim);
+  band(g,F,x,x,zb+1,zb+1+wh,C.revL);band(g,F,x+3,x+3,zb+1,zb+1+wh,C.revR);
+  band(g,F,x+1,x+2,zb+1,zb+1+wh,C.glass);
+  band(g,F,x+1,x+2,zb+wh,zb+1+wh,C.sky);
+  if(wh>=5)band(g,F,x+1,x+2,zb+1+(wh>>1),zb+2+(wh>>1),C.bar);
+  band(g,F,x,x+3,zb+1+wh,zb+2+wh,C.trim);
+  if(lit&&ng)band(ng,F,x+1,x+2,Math.max(zb+1,ngZ0==null?zb+1:ngZ0),zb+1+wh,C.lit);
+}
+// 煙囪：立在 (x,y) 這一列上（y 為屋面列），3 寬 5 高＋帽＋兩支煙囪管
+function chimney(g,x,y,col,colD,cap,pot,cx){
+  g.fillStyle=col;g.fillRect(x,y-5,2,5);g.fillStyle=colD;g.fillRect(x+2,y-5,1,5);
+  g.fillStyle=cap;g.fillRect(x-1,y-6,5,1);
+  g.fillStyle=pot;g.fillRect(x,y-8,1,2);g.fillRect(x+2,y-8,1,2);
+  g.fillStyle='rgba(20,24,28,.30)';g.fillRect(x+3,y-3,2,3);
+  cx&&cx.chim&&cx.chim(x,y-9,pot); // T613：煙從左支煙囪管冒
+}
+
+/* ============================ ukVictorian ============================ */
+REG.ukVictorian={name:'ukVictorian',draw(ctx){
+  const {g,ng,G,G0,bw,bh,v,rand}=ctx,H=ctx.wallH;
+  // 採光井：建築腳印 B = G 沿 -v 內縮 d（畫面上每列高 2d 的一條帶），帶內畫地下室採光井＋黑鐵欄杆
+  const d=3;
+  const B={N:G.N,E:G.E,W:[G.W[0]+2*d,G.W[1]-d],S:[G.S[0]+2*d,G.S[1]-d]};
+  const brickUp=(((v/3)|0)%2)===1;        // 同一個原型下的第二個變體：上層倫敦黃磚
+  const base={
+    stucco:'#e6e0d1',groove:'#cec7b5',upper:brickUp?'#c9b28c':'#efe9db',course:brickUp?'#b39c77':'#dcd6c7',
+    revL:'#d9d2c1',revR:'#b7b09e',glass:'#33414f',sky:'#6f8496',bar:'#8a9aa8',trim:'#f8f4ea',frieze:'#d3ccbb',col:'#fbf8f0',
+    iron:'#26262a',slab:'#bdb6a5',corS:'#b3ac9c',corL:'#f8f4ea',parapet:'#e9e3d5',
+    lit:'#fffbe5',fan:'#9fbfd4',fanLit:'#ffd27a',knock:'#d8c070',pipe:'#7a7e82'};
+  const pal=dk=>{if(!dk)return base;const o={};for(const k in base)o[k]=sh(base[k],-40);
+    o.glass='#222c38';o.sky='#4d5f6e';o.bar='#5f6d7a';o.iron='#1c1c20';o.lit='#f4ecc8';o.fan='#6e8a9c';o.fanLit=base.fanLit;return o;};
+  const CL=pal(false),CR=pal(true);
+  const DOORS=['#161618','#1d3a2b','#20304f','#5a1c1c','#2b2b30','#3a2d5a'];
+  const PIT='#2b2927',PITW='#3d4a59',RAIL='#161618',STEP='#d2ccbe';
+  const RF='#5d636c',RB='#41464e',RIDGE='#767c84',VALLEY='#30343a',ROOFE='#383c43';
+  // 樓層節奏：地面層最高（灰泥溝縫）、一樓次之（陽台＋高窗）、往上遞減；頂上簷口＋女兒牆 3–4 列
+  const nF=H>=50?5:H>=38?4:3;
+  const fh=[11,10,8,7,7].slice(0,nF);
+  const sum=()=>fh.reduce((a,b)=>a+b,0);
+  while(sum()+3>H){fh[fh.indexOf(Math.max(...fh))]--;}
+  let extra=H-3-sum(),ii=0;while(extra>=2){fh[ii%nF]++;extra--;ii++;}
+  const zf=[0];for(let j=1;j<nF;j++)zf[j]=zf[j-1]+fh[j-1];
+  const zTop=zf[nF-1]+fh[nF-1],par=H-zTop;
+  const FL=mkFace(B.W,B.S,H);
+  const FR=mkFace(B.S,B.E,H);FR.x0++;FR.len--;
+  // ---- 屋頂：女兒牆後的淺石板屋頂（深的街區是 M 形雙脊＋中央天溝，淺的單脊）；先畫，讓牆頂壓在它前緣上 ----
+  const RP=lift(B,H);
+  const ridges=bh>=2?[.26,.74]:[.46];
+  if(bh>=2){dia(g,sub(RP,0,1,0,.26),RB);dia(g,sub(RP,0,1,.26,.5),RF);dia(g,sub(RP,0,1,.5,.74),RB);dia(g,sub(RP,0,1,.74,1),RF,ROOFE);
+    seg(g,P(RP,0,.5),P(RP,1,.5),VALLEY);}
+  else{dia(g,sub(RP,0,1,0,.46),RB);dia(g,sub(RP,0,1,.46,1),RF,ROOFE);}
+  for(const r of ridges)seg(g,P(RP,0,r),P(RP,1,r),RIDGE);
+  // ---- 牆體 ----
+  const wall=(F,C)=>{
+    band(g,F,F.x0,F.x1,0,fh[0],C.stucco);
+    for(let z=3;z<fh[0]-1;z+=3)band(g,F,F.x0,F.x1,z,z+1,C.groove);
+    band(g,F,F.x0,F.x1,fh[0],zTop,C.upper);
+    if(brickUp)for(let z=fh[0]+2;z<zTop-1;z+=3)band(g,F,F.x0,F.x1,z,z+1,sh(C.upper,-9));
+    for(let j=1;j<nF;j++)band(g,F,F.x0,F.x1,zf[j],zf[j]+1,C.course);
+    band(g,F,F.x0,F.x1,zTop,zTop+1,C.corS);
+    band(g,F,F.x0,F.x1,zTop+1,zTop+2,C.corL);
+    if(par>3)band(g,F,F.x0,F.x1,zTop+2,H-1,C.parapet);
+    band(g,F,F.x0,F.x1,H-1,H,C.corL);
+  };
+  wall(FL,CL);wall(FR,CR);
+  // ---- 採光井帶：G 前緣與 B 前緣之間（兩端斜切），黑鐵欄杆立在 G 邊上 ----
+  const fG=x=>G.W[1]+(x-G.W[0])/2;
+  const pitTop=x=>Math.max(fG(x)-2*d,G.W[1]-(x-G.W[0])/2),pitBot=x=>Math.min(fG(x),G.S[1]-(x-G.S[0])/2);
+  const xa=R(G.W[0]),xb=R(B.S[0]);
+  for(let x=xa;x<=xb;x++){const y0=R(pitTop(x)),y1=R(pitBot(x))-1;if(y1<y0)continue;
+    g.fillStyle=PIT;g.fillRect(x,y0,1,y1-y0+1);}
+  const railAt=(x)=>{const y0=R(pitTop(x)),y1=R(pitBot(x))-1;if(y1<y0)return;
+    const rt=Math.max(y0,y1-2);g.fillStyle=RAIL;g.fillRect(x,rt,1,1);if((x-xa)%3===0)g.fillRect(x,rt,1,y1-rt+1);};
+  // ---- 沿街分戶：每戶約 30 列，3 開間（門＋兩窗）或 2 開間 ----
+  const len=FL.len,nH=Math.max(1,Math.round(len/30));
+  const hx=[];for(let h=0;h<=nH;h++)hx.push(FL.x0+Math.round(len*h/nH));
+  const doorCols=[];
+  const portico=(F,c,door,C)=>{
+    band(g,F,c-2,c+2,0,1,STEP);
+    band(g,F,c-1,c+1,1,7,door);band(g,F,c,c,3,4,C.knock);
+    band(g,F,c-1,c+1,7,8,C.fan);
+    band(g,F,c-2,c-2,1,8,C.col);band(g,F,c+2,c+2,1,8,C.col);band(g,F,c+3,c+3,1,8,C.revR);
+    band(g,F,c-3,c+3,8,9,C.frieze);band(g,F,c-3,c+3,9,10,C.col);
+    if(ng)band(ng,F,c-1,c+1,7,8,C.fanLit);
+  };
+  for(let h=0;h<nH;h++){
+    const x0=hx[h],x1=hx[h+1]-1,w=x1-x0+1;
+    const bays=w>=22?[.2,.5,.8]:[.3,.7];
+    const cx=bays.map(t=>x0+R(w*t));
+    const doorBay=rand()<.5?0:bays.length-1;
+    const door=DOORS[(rand()*DOORS.length)|0];
+    cx.forEach((c,b)=>{if(b===doorBay){portico(FL,c,door,CL);doorCols.push(c);}
+      else sashWin(g,ng,FL,c-2,2,Math.min(5,fh[0]-5),CL,rand()<.42);});
+    for(let j=1;j<nF;j++){
+      const wh=Math.min(j===1?6:j===2?5:4,fh[j]-3),zb=j===1?zf[1]:zf[j]+1;
+      cx.forEach(c=>sashWin(g,ng,FL,c-2,zb,wh,CL,rand()<.42,j===1?zf[1]+4:null));
+    }
+  }
+  // 一樓連續鑄鐵陽台（整排連通）
+  if(nF>=2){band(g,FL,FL.x0,FL.x1,zf[1],zf[1]+1,CL.slab);
+    for(let x=FL.x0;x<=FL.x1;x+=3)band(g,FL,x,x,zf[1]+1,zf[1]+4,CL.iron);
+    band(g,FL,FL.x0,FL.x1,zf[1]+3,zf[1]+4,CL.iron);}
+  // 每隔一道分戶牆一支落水管（從一樓陽台上方到簷口）
+  for(let h=1;h<nH;h++)if(h%2===1)band(g,FL,hx[h],hx[h],zf[1]+4,zTop,CL.pipe);
+  // 採光井欄杆＋地下室窗＋門前台階（台階跨過採光井、打斷欄杆）
+  for(let x=xa;x<=xb;x++)railAt(x);
+  for(let h=0;h<nH;h++){const x0=hx[h],w=hx[h+1]-x0,c=x0+R(w*.5);
+    if(doorCols.indexOf(c)>=0)continue;const y0=R(pitTop(c)),y1=R(pitBot(c))-1;if(y1-y0>=4){g.fillStyle=PITW;g.fillRect(c-1,y0,2,2);
+      if(ng&&rand()<.3){ng.fillStyle='#c9b070';ng.fillRect(c-1,y0,2,2);}}}
+  for(const c of doorCols){for(let x=c-2;x<=c+2;x++){const y0=R(pitTop(x)),y1=R(pitBot(x))-1;if(y1<y0)continue;
+    g.fillStyle=(x===c-2||x===c+2)?sh(STEP,-26):STEP;g.fillRect(x,y0,1,y1-y0+1);}}
+  // ---- 山牆面（右）：同樣的樓層，窗少 ----
+  const nb=Math.max(1,R(FR.len/16));
+  for(let i=0;i<nb;i++){const c=FR.x0+R(FR.len*(i+.5)/nb);
+    sashWin(g,ng,FR,c-2,2,Math.min(5,fh[0]-5),CR,rand()<.5);
+    for(let j=1;j<nF;j++){const wh=Math.min(j===1?6:j===2?5:4,fh[j]-3);sashWin(g,ng,FR,c-2,zf[j]+1,wh,CR,rand()<.5);}}
+  // ---- 屋頂後方一排煙囪（每個分戶牆一支，立在後脊上）----
+  const rb=ridges[0];
+  for(let h=0;h<=nH;h++){const u=.05+.90*h/nH,p=P(RP,u,rb);chimney(g,R(p[0])-1,R(p[1]),'#a08c6c','#7c6b51','#d1c8b7','#a85a3e',ctx);}
+  // ---- 沿街偶有一棵行道樹（右端 G0 內的空地）----
+  if(bw>=3&&rand()<.6){const p=P(G0,.955,.84),x=R(p[0]),y=R(p[1]);
+    g.fillStyle='rgba(18,28,18,.30)';g.fillRect(x-2,y,5,1);
+    g.fillStyle='#5a4632';g.fillRect(x,y-3,1,3);
+    g.fillStyle='#3f7a3a';g.fillRect(x-2,y-8,5,5);g.fillStyle='#2c5a2a';g.fillRect(x+2,y-7,1,4);
+    g.fillStyle='#5fa050';g.fillRect(x-2,y-8,2,2);g.fillStyle='#3f7a3a';g.fillRect(x-1,y-9,3,1);}
+  return {pitch:false};
+}};
+
+/* ============================ ukMansion ============================ */
+REG.ukMansion={name:'ukMansion',draw(ctx){
+  const {g,ng,G,G0,bw,bh,v,rand,ar}=ctx,H=ctx.wallH;
+  const hasWing=!!(ar&&ar.ex&&ar.ex.box);
+  const bx=hasWing?ar.ex.box:null;
+  const Wg=hasWing?sub(G0,bx[0],bx[1],bx[2],bx[3]):null;
+  const Hw=hasWing?Math.max(6,R(H*ar.ex.hm)):0;
+  const base={brick:'#9e4f3e',stone:'#e4dfcf',stoneD:'#c3bdab',baseC:'#d2ccba',baseJ:'#b9b3a1',glass:'#33404d',sky:'#66798a',
+    corS:'#7e5a4d',corL:'#ece7d8',slate:'#4b5159',slateT:'#5c626b',curb:'#787e86',gutter:'#2c3035',dorm:'#d3cdbd',dormD:'#9a9484',dormCap:'#7d838b',
+    chim:'#8d4536',chimD:'#66302a',cap:'#d6d0c0',pot:'#7a5a4a',arch:'#141416',lamp:'#3e3e40',lampLit:'#ffd08a',hall:'#d9a24a',lit:'#fffbe5',pipe:'#3b3b3f',
+    porch:'#e4dfcf',porchL:'#f2ede0',porchD:'#c3bdab',step:'#cfc9b8'};
+  const dk=o=>{const r={};for(const k in o)r[k]=sh(o[k],-40);r.glass='#232c36';r.sky='#48586a';r.lit='#f4ecc8';r.lampLit=o.lampLit;r.hall=o.hall;return r;};
+  const CL=base,CR=dk(base);
+  const dkBrick=(((v/3)|0)%2)===1;     // 第二變體：更深的紫紅磚
+  if(dkBrick){CL.brick='#8c4238';CR.brick=sh(CL.brick,-40);}
+  const so=Math.max(5,Math.min(14,R((H+ctx.stepH+ctx.towH+ctx.pitchH*.5)*.26)));
+  // ---- 一個量體：石基座＋紅磚樓層（每層白石樓板帶）＋簷口＋石板 mansard（天窗一排）＋後緣煙囪 ----
+  const body=(Bx,Hb,o)=>{
+    let bH=Hb>=30?7:6,cor=2;
+    const avail=Hb-bH-cor,nFl=Math.max(1,Math.min(5,Math.floor(avail/6)));
+    const fh=Math.max(4,Math.min(8,Math.floor(avail/nFl)));
+    let left=Hb-bH-cor-nFl*fh;const ab=Math.max(0,Math.min(2,left));bH+=ab;left-=ab;cor+=Math.max(0,left);
+    const zC=bH+nFl*fh,mH=5,s=2,mB=mH+2*s;
+    const FL=mkFace(Bx.W,Bx.S,Hb),FR=mkFace(Bx.S,Bx.E,Hb);FR.x0++;FR.len--;
+    const PL={N:[Bx.N[0],Bx.N[1]-Hb-mH],E:[Bx.E[0]-2*s,Bx.E[1]-s-Hb-mH],S:[Bx.S[0],Bx.S[1]-2*s-Hb-mH],W:[Bx.W[0]+2*s,Bx.W[1]-s-Hb-mH]};
+    // 屋頂板
+    dia(g,PL,CL.slateT);
+    // 牆
+    const wall=(F,C)=>{
+      band(g,F,F.x0,F.x1,0,bH,C.baseC);
+      for(let z=2;z<bH-1;z+=3)band(g,F,F.x0,F.x1,z,z+1,C.baseJ);
+      band(g,F,F.x0,F.x1,bH,zC,C.brick);
+      for(let j=0;j<nFl;j++)band(g,F,F.x0,F.x1,bH+j*fh,bH+j*fh+1,C.stone);
+      band(g,F,F.x0,F.x1,zC,zC+1,C.corS);
+      band(g,F,F.x0,F.x1,zC+1,Hb,C.corL);
+    };
+    wall(FL,CL);wall(FR,CR);
+    // 窗：成對直立窗（2＋石中挺＋2），每 12 列一組；基座層單窗
+    const bays=F=>{const n=Math.max(1,Math.floor((F.len-3)/12)),tot=(n-1)*12+7,st=F.x0+Math.floor((F.len-tot)/2)+1;const a=[];for(let i=0;i<n;i++)a.push(st+i*12);return a;};
+    const sillZ=fh>=7?2:1,wh=fh>=8?fh-4:Math.min(3,fh-3);
+    const pairWin=(F,x,zb,C)=>{
+      band(g,F,x-1,x+5,zb,zb+1,C.stone);
+      band(g,F,x,x+1,zb+1,zb+1+wh,C.glass);band(g,F,x+3,x+4,zb+1,zb+1+wh,C.glass);
+      band(g,F,x,x+1,zb+wh,zb+1+wh,C.sky);band(g,F,x+3,x+4,zb+wh,zb+1+wh,C.sky);
+      band(g,F,x+2,x+2,zb+1,zb+1+wh,C.stone);
+      if(ng){if(rand()<.44)band(ng,F,x,x+1,zb+1,zb+1+wh,C.lit);if(rand()<.44)band(ng,F,x+3,x+4,zb+1,zb+1+wh,C.lit);}
+    };
+    const baseWin=(F,x,C)=>{band(g,F,x,x+1,2,5,C.glass);band(g,F,x+3,x+4,2,5,C.glass);
+      if(ng){if(rand()<.3)band(ng,F,x,x+1,2,5,C.lit);if(rand()<.3)band(ng,F,x+3,x+4,2,5,C.lit);}};
+    const face=(F,C,entX)=>{
+      const bl=bays(F);
+      for(const x of bl){
+        if(entX!=null&&x===entX)continue;
+        baseWin(F,x,C);
+        for(let j=0;j<nFl;j++)pairWin(F,x,bH+j*fh+sillZ,C);
+      }
+      return bl;
+    };
+    let entX=null;
+    if(o.entrance!=null){const bl=bays(FL),want=FL.x0+R(FL.len*o.entrance);let best=bl[0];for(const x of bl)if(Math.abs(x-want)<Math.abs(best-want))best=x;entX=best;}
+    const blL=face(FL,CL,entX);face(FR,CR,null);
+    // 入口：石造門廊（升到基座之上兩列）＋拱門＋兩盞門燈
+    if(entX!=null){const x=entX;
+      band(g,FL,x-1,x+5,0,bH+2,CL.porch);band(g,FL,x-1,x-1,0,bH+2,CL.porchL);band(g,FL,x+5,x+5,0,bH+2,CL.porchD);
+      band(g,FL,x-1,x+5,bH+1,bH+2,CL.porchL);band(g,FL,x,x+4,0,1,CL.step);
+      band(g,FL,x+1,x+3,1,6,CL.arch);band(g,FL,x+2,x+2,6,7,CL.arch);
+      // 門燈：托架（暗）＋燈頭（奶白），夜裡整支發光
+      for(const lx of [x,x+4]){band(g,FL,lx,lx,4,5,CL.lamp);band(g,FL,lx,lx,5,6,'#f1e2b0');}
+      for(let j=0;j<nFl;j++)pairWin(FL,x,bH+j*fh+sillZ,CL);
+      // 門廊頂上的石欄杆（一樓落地窗在它後面）
+      for(const px of [x-1,x+1,x+3,x+5])band(g,FL,px,px,bH+2,bH+3,CL.porchL);
+      band(g,FL,x-1,x+5,bH+3,bH+4,CL.porchL);
+      if(ng){for(const lx of [x,x+4])band(ng,FL,lx,lx,4,6,CL.lampLit);band(ng,FL,x+1,x+3,1,6,CL.hall);}
+      o.entFoot=[x+2,FL.fy(x+2)];
+    }
+    // 轉角石（南角上下交錯）＋右面落水管
+    for(let z=bH;z<zC-1;z+=4){band(g,FL,FL.x1,FL.x1,z,z+2,CL.stone);band(g,FR,FR.x0,FR.x0,z,z+2,CR.stoneD);}
+    band(g,FR,FR.x1-1,FR.x1-1,0,zC,CL.pipe);
+    // mansard 斜面帶（正面亮、右面暗），兩端往屋頂板內收成斜角
+    const mans=(F,C,corner,pcorner,isL)=>{
+      for(let x=F.x0;x<=F.x1;x++){
+        const wt=F.fy(x)-Hb;                     // 牆頂列
+        let yTop;
+        const t=isL?(x-corner[0]):(corner[0]-x);   // 離端角的距離（列）
+        if(t<2*s)yTop=R(corner[1]-Hb-t*(s+mH)/(2*s));else yTop=wt-mB;
+        const yBot=wt-1;if(yBot<yTop)continue;
+        g.fillStyle=C.slate;g.fillRect(x,yTop,1,yBot-yTop+1);
+        g.fillStyle=C.curb;g.fillRect(x,yTop,1,1);
+        if(yBot>yTop){g.fillStyle=C.gutter;g.fillRect(x,yBot,1,1);}
+      }
+    };
+    mans(FL,CL,Bx.W,PL.W,true);mans(FR,CR,Bx.E,PL.E,false);
+    // 天窗（正面，對齊成對窗的中線）
+    for(const x of blL){const c=x+2;if(c-1<R(PL.W[0])||c+2>FL.x1)continue;
+      band(g,FL,c-1,c+2,Hb+1,Hb+6,CL.dorm);band(g,FL,c+2,c+2,Hb+1,Hb+6,CL.dormD);
+      band(g,FL,c,c+1,Hb+2,Hb+5,CL.glass);band(g,FL,c-1,c+2,Hb+6,Hb+7,CL.dormCap);
+      if(ng&&rand()<.35)band(ng,FL,c,c+1,Hb+2,Hb+5,CL.lit);}
+    // 後緣一排煙囪
+    const nC=Math.max(2,R(FL.len/26));
+    for(let i=0;i<nC;i++){const p=P(PL,.08+.84*(i+.5)/nC,.16);chimney(g,R(p[0])-1,R(p[1]),CL.chim,CL.chimD,CL.cap,CL.pot,ctx);}
+    return {PL,FL,FR,entFoot:o.entFoot||null};
+  };
+  // ---- 主量體 ----
+  const main=body(G,H,{entrance:hasWing?.74:.5});
+  if(hasWing){
+    // 側翼的剪影底下清掉夜光（主量體被擋住的窗、核心前庭的燈），再畫側翼
+    const PLw={N:[Wg.N[0],Wg.N[1]-Hw-5],E:[Wg.E[0]-4,Wg.E[1]-2-Hw-5],S:[Wg.S[0],Wg.S[1]-4-Hw-5],W:[Wg.W[0]+4,Wg.W[1]-2-Hw-5]};
+    const fL=mkFace(Wg.W,Wg.S,Hw),fR=mkFace(Wg.S,Wg.E,Hw);
+    for(let x=R(Wg.W[0]);x<=R(Wg.E[0]);x++){const yt=R(PLw.N[1]+Math.abs(x-PLw.N[0])/2)-1;const yb=x<=R(Wg.S[0])?fL.fy(x):fR.fy(x);if(yb>=yt)ng.clearRect(x,yt,1,yb-yt+2);}
+    // 落影（向右下）＋地坪＋接地暗線
+    const SHW=k2=>({N:[Wg.N[0]+k2,Wg.N[1]+R(k2*.45)],E:[Wg.E[0]+k2,Wg.E[1]+R(k2*.45)],S:[Wg.S[0]+k2,Wg.S[1]+R(k2*.45)],W:[Wg.W[0]+k2,Wg.W[1]+R(k2*.45)]});
+    ctx.A.fillPara547(g,SHW(so),'rgba(20,28,22,.30)');ctx.A.fillPara547(g,SHW(Math.max(1,so>>1)),'rgba(16,24,18,.26)');
+    ctx.A.fillPara547(g,Wg,'#8a7a68');
+    seg(g,Wg.W,Wg.S,'rgba(16,22,18,.45)');seg(g,Wg.S,Wg.E,'rgba(16,22,18,.45)');
+    body(Wg,Hw,{entrance:null});
+    // 前庭：矮樹籬圍住前緣與右緣，入口到街的石板小徑打斷樹籬
+    const HG='#3a6a36',HT='#4f8a45';
+    const hedge=(a,b,skipX)=>{const xa=R(a[0]),xb=R(b[0]),k=(b[1]-a[1])/(b[0]-a[0]||1);
+      for(let x=Math.min(xa,xb);x<=Math.max(xa,xb);x++){if(skipX&&Math.abs(x-skipX)<=2)continue;const y=R(a[1]+(x-a[0])*k);
+        g.fillStyle=HG;g.fillRect(x,y-2,1,2);g.fillStyle=HT;g.fillRect(x,y-3,1,1);g.fillStyle='rgba(18,28,18,.30)';g.fillRect(x,y,1,1);}};
+    let gate=null;
+    // 小徑：從門廊腳往 +v（畫面左下）走到前緣，樹籬在小徑處留門
+    if(main.entFoot){const px0=main.entFoot[0],py0=main.entFoot[1];
+      const fG0=x=>G0.W[1]+(x-G0.W[0])/2;
+      for(let k=0;;k++){const x=px0-2*k,y=py0+k;if(y>=fG0(x)-1||k>40)break;g.fillStyle='#c9c2ae';g.fillRect(x-1,y,3,1);g.fillStyle='#a49d8a';g.fillRect(x+2,y,1,1);gate=x;}}
+    hedge(P(G0,bx[1]+.03,1),P(G0,.985,1),gate);
+    hedge(P(G0,1,bx[2]+.05),P(G0,1,.97),null);
+  }
+  return {pitch:false};
+}};
+})();
+// facade_ukhigh.js — T577 英國維多利亞高街（high street）立面繪製器（實驗線）
+// ukHighStreet：套在商業 lv1 cornerLot（轉角店屋：一樓木製店面＋兩到三層紅磚／灰泥住宅、板岩屋頂＋煙囪、轉角斜切入口／角樓）
+//               與商業 lv2 hotel（四到五層旅館：石砌一樓＋大門雨遮、整齊窗列＋一樓鐵欄陽台、頂部名牌＋孟莎屋頂＋旗桿）。
+// 登記：window.__facade577.ukHighStreet={name,draw(ctx)}；只畫牆／窗／屋頂／沿街小件，地坪、接地線、前庭道具由核心畫好。
+// 座標：G.W→G.S 是受光正面（朝路），G.S→G.E 是背光側面；「朝路的前方」在畫面上是 (-2,+1)。全部整數像素、硬邊多邊形。
+// 亂數只用 ctx.rand（決定性）；角樓有無由 v 決定；每店招牌色、門位、遮陽篷、酒吧與否由 rand 決定，重放一致。
+(function(){
+'use strict';
+const REG=FACADE594;
+const R=Math.round,clampN=(x,a,b)=>x<a?a:x>b?b:x;
+
+function tools(ctx){
+  const A=ctx.A,sh=A.shade;
+  const rc=(cx,x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(R(x),R(y),w,h);};
+  // 硬邊多邊形：像素中心取樣掃描線，無抗鋸齒混色
+  const poly=(cx,pts,c)=>{let y0=1e9,y1=-1e9;for(const p of pts){if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];}
+    y0=Math.max(0,Math.floor(y0));y1=Math.min(cx.canvas.height-1,Math.ceil(y1));cx.fillStyle=c;const n=pts.length;
+    for(let y=y0;y<=y1;y++){const yc=y+.5,xs=[];
+      for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];if((a[1]<=yc&&b[1]>yc)||(b[1]<=yc&&a[1]>yc))xs.push(a[0]+(yc-a[1])*(b[0]-a[0])/(b[1]-a[1]));}
+      xs.sort((p,q)=>p-q);
+      for(let i=0;i+1<xs.length;i+=2){const xa=Math.ceil(xs[i]-.5),xb=Math.ceil(xs[i+1]-.5);if(xb>xa)cx.fillRect(xa,y,xb-xa,1);}}};
+  // 整數像素線（Bresenham）
+  const lineP=(cx,a,b,c)=>{let x0=R(a[0]),y0=R(a[1]);const x1=R(b[0]),y1=R(b[1]);const dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1;let err=dx+dy;cx.fillStyle=c;
+    for(let guard=0;guard<4096;guard++){cx.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>=dy){err+=dy;x0+=sx;}if(e2<=dx){err+=dx;y0+=sy;}}};
+  const fy=(a,b,x)=>a[1]+(x-a[0])*((b[1]-a[1])/(b[0]-a[0]));
+  const foot=(a,b,x)=>R(fy(a,b,x));
+  // 沿牆帶：欄 x∈[x0,x1]，離地 d0（含）往上 h 列 ⇒ 每欄佔列 y-d0-h+1 … y-d0（d=1 是牆腳上第一列）
+  const band=(cx,a,b,x0,x1,d0,h,c)=>{cx.fillStyle=c;for(let x=x0;x<=x1;x++){const y=foot(a,b,x);cx.fillRect(x,y-d0-h+1,1,h);}};
+  const sub=(C,u0,u1,v0,v1)=>({N:A.paraPt559(C,u0,v0),E:A.paraPt559(C,u1,v0),S:A.paraPt559(C,u1,v1),W:A.paraPt559(C,u0,v1)});
+  const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
+  const lerp=A.lerp2;
+  // 牆頂四角（與牆柱同一套取整的牆腳；-.02 讓簷口列不被掃描線吃掉）
+  const tops=(C,h)=>{const xW=R(C.W[0]),xS=R(C.S[0]),xE=R(C.E[0]);
+    return {W:[xW,foot(C.W,C.S,xW)-h-.02],S:[xS,foot(C.W,C.S,xS)-h-.02],E:[xE,foot(C.S,C.E,xE)-h-.02],N:[R(C.N[0]),R(C.N[1])-h-.02]};};
+  // 直立推拉窗：x 左欄、y 該窗中欄的牆腳、d0 樓層底 d；窗台 d0+2（5 寬）、玻璃 d0+3..d0+6、窗楣 d0+7（headW 寬，預設 5；密排窗列給 3 免得連成條帶）；夜光只畫玻璃
+  const sash=(g,ng,x,y,d0,glass,trim,lit,rail,headW)=>{
+    const hw=headW||5;
+    rc(g,x-1,y-d0-2,5,1,trim);rc(g,x-1+((5-hw)>>1),y-d0-7,hw,1,trim);
+    rc(g,x,y-d0-6,3,4,glass);
+    if(rail)rc(g,x,y-d0-5,3,1,rail);
+    if(lit&&ng){rc(ng,x,y-d0-6,3,4,'#ffd98c');if(rail)rc(ng,x,y-d0-5,3,1,'rgba(70,45,20,.5)');}};
+  // 煙囪：立在屋脊點 (x,y) 上，左亮右暗，陶土煙囪帽
+  const stack=(g,x,y,w,h,brick,pots)=>{
+    const bl=sh(brick,-4),br=sh(brick,-44);
+    rc(g,x,y-h,w>>1,h,bl);rc(g,x+(w>>1),y-h,w-(w>>1),h,br);
+    rc(g,x-1,y-h-1,w+2,1,sh(brick,-58));
+    for(let i=0;i<pots;i++){const px=x+(pots===2?[0,w-1][i]:[0,(w>>1),w-1][i]);rc(g,px,y-h-3,1,2,i%2?'#a35a37':'#b8653e');rc(g,px,y-h-4,1,1,'#6b3f2a');}
+    ctx.chim&&ctx.chim(x,pots?y-h-5:y-h-2,pots?'#6b3f2a':sh(brick,-58));}; // T613：煙從第一支煙囪帽冒
+  return {sh,rc,poly,lineP,fy,foot,band,sub,mid,lerp,tops,sash,stack};
+}
+
+const BRICKS=['#ab8f66','#b59c6a','#9a5541','#a35a45','#8f4d3f','#b39c78'];
+const PAINT=['#e8e0cc','#dfe3e6','#e9d8cc','#d9dcc6'];
+const FASC=['#1f4d3a','#5e1c26','#1e2f57','#1b1b20','#2f5f8a','#7a3b1e','#2f4f4f','#8a2a2a'];
+const AWN=['#b8433a','#2f6b4a','#1e2f57','#c77a2a'];
+const SLATE_F='#5c6774',SLATE_B='#414a55',SLATE_L='#505b69',RIDGE='#8b95a3',COPING='#cfc8b8';
+const GLASS_U='#4b6070',GLASS_S='#8db2c2',GLASS_SH='#b7d3dd',STONE='#d8d0bc';
+
+// ---------------------------------------------------------------- 店屋（lv1 cornerLot）
+function drawShops(ctx,T){
+  const {A,g,ng,G,rand,v,span}=ctx,{sh,rc,poly,lineP,foot,band,sub,mid,lerp,tops,sash,stack}=T;
+  const xW=R(G.W[0]),xS=R(G.S[0]),xE=R(G.E[0]),yS=R(G.S[1]);
+  const LX=xS-xW,RX=xE-xS;
+  const yF=x=>foot(G.W,G.S,x),yR=x=>foot(G.S,G.E,x);
+  // ---- 量體：一樓店面 12 列 + 上層每層 8 列；深街區背靠背多排 M 形屋頂
+  const shopH=12,fh=8;
+  let nUp=span>=2?3:2;
+  const depthX=G.N[0]-G.W[0];
+  const nRows=clampN(R(depthX/28),1,3),rowDX=depthX/nRows;
+  let rise=clampN(R(rowDX*.27),5,9);
+  const ridgeTop=()=>A.paraPt559(G,0,.5/nRows)[1]-(shopH+fh*nUp)-rise;   // 最後排屋脊左端（最高點）
+  while(nUp>1&&ridgeTop()<12)nUp--;
+  while(rise>4&&ridgeTop()<12)rise--;
+  const wallH=shopH+fh*nUp;
+  // ---- 轉角：斜切面 5 欄 [xS-2,xS+2]，腳在 yS-1；角樓由 v 決定
+  const chamfer=LX>=14&&RX>=8,cW=chamfer?2:0;
+  const turret=chamfer&&(v%2===0);
+  const fx0=xW,fx1=xS-cW-1;
+  const nShop=Math.max(1,R((fx1-fx0+1)/19));
+  const bx=[];for(let i=0;i<=nShop;i++)bx.push(fx0+R(i*(fx1-fx0)/nShop));
+  // ---- 決定性抽籤（順序固定）
+  const base=BRICKS[(rand()*BRICKS.length)|0];
+  const units=[];
+  for(let i=0;i<nShop;i++){
+    const w=bx[i+1]-bx[i]+1,painted=rand()<.16;
+    const brick=painted?PAINT[(rand()*PAINT.length)|0]:sh(base,R((rand()-.5)*14));
+    const pub=w>=17&&rand()<.22;
+    const fascia=pub?(rand()<.5?'#1b1b20':'#1f4d3a'):FASC[(rand()*FASC.length)|0];
+    units.push({x0:bx[i],x1:bx[i+1],w,painted,brick,fascia,pub,
+      gold:rand()<.7,doorL:rand()<.5,awn:!pub&&w>=15&&rand()<.4,awnCol:AWN[(rand()*AWN.length)|0],
+      litShop:pub||rand()<.72,dormer:rand()<.3,trim:painted?'#f4efe4':STONE});
+  }
+  const uLast=units[units.length-1];
+  const sideBrick=sh(base,-42);
+  // ---- 正面牆體
+  for(const U of units){
+    for(let x=U.x0;x<=U.x1;x++){const y=yF(x);
+      rc(g,x,y-wallH,1,wallH,U.brick);
+      rc(g,x,y-wallH,1,1,'#3f444b');                                  // 簷溝
+      rc(g,x,y-wallH+1,1,1,U.painted?'#f6f1e6':sh(U.brick,30));        // 簷口線
+      for(let f=1;f<nUp;f++)rc(g,x,y-shopH-fh*f,1,1,sh(U.brick,U.painted?-10:16));  // 樓層腰線
+    }
+  }
+  // ---- 店面（d=1..12）
+  const shopFront=(a,b,x0,x1,U,side,withDoor)=>{
+    const yAt=x=>foot(a,b,x);
+    const F=side?sh(U.fascia,-24):U.fascia,gl=side?sh(GLASS_S,-34):GLASS_S,glh=side?sh(GLASS_SH,-34):GLASS_SH;
+    const wx0=x0+1,wx1=x1-1;
+    band(g,a,b,wx0,wx1,4,5,gl);band(g,a,b,wx0,wx1,8,1,glh);          // 櫥窗 d=4..8，頂列反光
+    band(g,a,b,wx0,wx1,2,2,sh(F,-14));band(g,a,b,wx0,wx1,1,1,'#26262a'); // 踢腳板、底
+    band(g,a,b,x0+1,x1-1,9,3,F);                                       // 招牌板 d=9..11
+    band(g,a,b,x0,x1,12,1,side?'#b9b2a2':'#ece4d0');                   // 簷板 d=12
+    for(const x of[x0,x1]){const y=yAt(x);rc(g,x,y-11,1,11,side?sh(F,-10):sh(F,12));rc(g,x,y-12,1,1,sh(F,-6));} // 壁柱＋托架
+    if(ng&&U.litShop){ng.fillStyle='#ffe2a8';for(let x=wx0;x<=wx1;x++){const y=yAt(x);ng.fillRect(x,y-8,1,5);}}
+    // 字：d=10，每 2px 一點、每五字空一格
+    const gold=U.gold?'#d9b55c':'#efe6cf';
+    const lx0=x0+3,lx1=Math.min(x1-3,x0+3+Math.max(4,R((x1-x0)*.5)));
+    for(let x=lx0,i=0;x<=lx1;x+=2,i++){if(i%5===4)continue;rc(g,x,yAt(x)-10,1,1,gold);if(ng&&U.litShop)rc(ng,x,yAt(x)-10,1,1,'#fff0c0');}
+    if(ng&&U.litShop){ng.fillStyle='rgba(255,214,150,.22)';for(let x=x0+1;x<=x1-1;x++){const y=yAt(x);ng.fillRect(x,y-11,1,3);}}
+    // 中挺：櫥窗寬 ≥ 9 就一根
+    let ww0=wx0,ww1=wx1,dx0=-1;
+    if(withDoor){dx0=U.doorL?x0+2:x1-4;if(U.doorL)ww0=dx0+4;else ww1=dx0-2;}
+    if(ww1-ww0>=8){const mx=(ww0+ww1)>>1;rc(g,mx,yAt(mx)-8,1,5,F);if(ng&&U.litShop)rc(ng,mx,yAt(mx)-8,1,5,'rgba(40,30,20,.55)');}
+    // 內縮店門：框 5 欄 d=1..8、門扇 d=2..6、氣窗 d=7..8、門檻、門把
+    if(withDoor){
+      const door=U.pub?'#2a2a30':(rand()<.5?F:['#1b1b20','#8c2020','#25562f','#e6e0d0','#20407a'][(rand()*5)|0]);
+      band(g,a,b,dx0-1,dx0+3,1,8,sh(F,-30));
+      band(g,a,b,dx0,dx0+2,2,5,door);
+      band(g,a,b,dx0,dx0+2,7,2,glh);
+      band(g,a,b,dx0,dx0+2,1,1,'#d8d0bd');
+      rc(g,dx0+(U.doorL?2:0),yAt(dx0+1)-4,1,1,sh(door,60));
+      if(ng&&U.litShop){ng.fillStyle='#ffd27a';for(let x=dx0;x<=dx0+2;x++)ng.fillRect(x,yAt(x)-8,1,2);}
+    }
+    // 遮陽篷：貼在招牌板下緣（d=8），往前 (-2,+1) 一列；條紋每 2px
+    if(U.awn&&!side){
+      const ax0=ww0,ax1=ww1;
+      // 條紋以畫面 x 取相位（前排 x-2 也用同一相位 ⇒ 直條而非棋盤）
+      const stripe=x=>(Math.floor(x/3)&1)?U.awnCol:'#efe9dc';
+      for(let x=ax0;x<=ax1;x++){const y=yAt(x);
+        rc(g,x,y-8,1,1,stripe(x));rc(g,x-2,y-7,1,1,sh(stripe(x-2),-16));rc(g,x-2,y-6,1,1,sh(stripe(x-2),-46));}
+      rc(g,ax0-2,yAt(ax0)-7,1,2,sh(U.awnCol,-40));rc(g,ax1-2,yAt(ax1)-7,1,2,sh(U.awnCol,-40));
+    }
+  };
+  for(const U of units)shopFront(G.W,G.S,U.x0,U.x1,U,false,true);
+  // ---- 上層窗（每戶 2–3 扇）、落水管、酒吧掛招與花籃、天窗資料
+  const winCols=[];
+  units.forEach((U,i)=>{
+    const frs=U.pub?[.24,.56]:(U.w>=20?[.22,.5,.78]:[.3,.7]);
+    const xcs=frs.map(fr=>clampN(U.x0+R(U.w*fr),U.x0+2,U.x1-2));
+    for(let f=0;f<nUp;f++){const d0=shopH+fh*f;
+      for(const xc of xcs)sash(g,ng,xc-1,yF(xc),d0,GLASS_U,U.trim,U.pub||rand()<.42,sh(GLASS_U,34));}
+    winCols.push(xcs);
+    if(i%2===1){const x=U.x0,y=yF(x);rc(g,x,y-wallH+2,1,wallH-14,'#3f444b');rc(g,x-1,y-wallH+2,2,1,'#4a4f57');}   // 落水管＋斗
+    if(U.pub){
+      const sx=clampN(U.x0+R(U.w*.84)-1,U.x0+2,U.x1-4),y=yF(sx+1);
+      rc(g,sx-1,y-18,4,1,'#2b2b31');rc(g,sx+1,y-17,1,1,'#2b2b31');                   // 托架
+      rc(g,sx,y-16,3,3,'#efe6cf');rc(g,sx+1,y-15,1,1,'#b8433a');rc(g,sx,y-13,3,1,'#2b2b31'); // 掛式招牌
+      if(ng)rc(ng,sx,y-16,3,3,'rgba(255,240,200,.75)');
+      for(const xc of xcs){const yb=yF(xc);rc(g,xc-1,yb-14,3,1,'#3f7a3c');rc(g,xc,yb-15,1,1,'#4f9449');rc(g,xc-1,yb-14,1,1,'#d46a8a');rc(g,xc+1,yb-14,1,1,'#e0a040');} // 花籃
+    }
+  });
+  // ---- 斜切轉角面（門在轉角，招牌板延續最後一戶）
+  const chTop=turret?wallH+3:wallH;
+  if(chamfer){
+    const yc=yS-1,cb=sh(uLast.brick,-18),F=sh(uLast.fascia,-12);
+    for(let dx=-2;dx<=2;dx++){const x=xS+dx;
+      const c=turret?sh(uLast.brick,[4,-6,-18,-30,-42][dx+2]):cb;
+      rc(g,x,yc-chTop,1,chTop,c);
+      if(!turret){rc(g,x,yc-wallH,1,1,'#3f444b');rc(g,x,yc-wallH+1,1,1,sh(cb,28));}
+      for(let f=1;f<nUp;f++)rc(g,x,yc-shopH-fh*f,1,1,sh(c,14));
+    }
+    rc(g,xS-2,yc-11,5,3,F);rc(g,xS-2,yc-12,5,1,'#cfc7b5');                       // 招牌板＋簷板
+    rc(g,xS-1,yc-10,1,1,'#d9b55c');rc(g,xS+1,yc-10,1,1,'#d9b55c');
+    rc(g,xS-2,yc-8,5,8,sh(F,-30));rc(g,xS-1,yc-6,3,5,'#2a2a30');rc(g,xS-1,yc-8,3,2,GLASS_SH); // 門框、門、氣窗
+    rc(g,xS-1,yc-1,3,1,'#d8d0bd');rc(g,xS+1,yc-4,1,1,'#c9a24a');
+    rc(g,xS-2,yc,5,1,'rgba(16,22,18,.45)');rc(g,xS-1,yc+1,3,1,'#d8d0bd');           // 接地暗線＋門階
+    if(ng&&uLast.litShop){rc(ng,xS-1,yc-8,3,2,'#ffd27a');rc(ng,xS-1,yc-10,1,1,'#fff0c0');rc(ng,xS+1,yc-10,1,1,'#fff0c0');}
+    for(let f=0;f<nUp;f++){const d0=shopH+fh*f;sash(g,ng,xS-1,yc,d0,GLASS_U,sh(uLast.trim,-16),rand()<.5,sh(GLASS_U,30));}
+  }
+  // ---- 側面（背光）：牆、轉角店回頭、上層窗、一樓小窗
+  const sx0=xS+cW+1;
+  for(let x=sx0;x<=xE;x++){const y=yR(x);
+    rc(g,x,y-wallH,1,wallH,sideBrick);
+    rc(g,x,y-1,1,1,sh(sideBrick,-16));
+    rc(g,x,y-wallH,1,1,'#33373d');rc(g,x,y-wallH+1,1,1,sh(sideBrick,22));
+    for(let f=1;f<nUp;f++)rc(g,x,y-shopH-fh*f,1,1,sh(sideBrick,12));
+  }
+  const retX1=Math.min(xE-1,sx0+11);
+  const hasRet=retX1-sx0>=5;
+  if(hasRet){const U2=Object.assign({},uLast,{x0:sx0-1,x1:retX1+1,awn:false});shopFront(G.S,G.E,sx0-1,retX1+1,U2,true,false);}
+  {const sTrim=sh(STONE,-40),sGl=sh(GLASS_U,-12);
+    for(let xc=sx0+3;xc<=xE-3;xc+=8){
+      for(let f=0;f<nUp;f++)sash(g,ng,xc-1,yR(xc),shopH+fh*f,sGl,sTrim,rand()<.4,sh(sGl,26));
+      if(!hasRet||xc>retX1+3){const y=yR(xc);rc(g,xc-1,y-8,3,1,sTrim);rc(g,xc,y-7,2,4,sGl);rc(g,xc-1,y-3,3,1,sTrim);if(ng&&rand()<.45)rc(ng,xc,y-7,2,4,'#ffd98c');}
+    }
+    if(hasRet&&xE-retX1>=4){const x=retX1+2,y=yR(x);rc(g,x,y-wallH+2,1,wallH-3,'#33373d');}
+  }
+  // ---- 屋頂：背排→前排，每排 背坡→側山牆→前坡→石板橫縫→屋脊→煙囪
+  const stone=sh(base,-58);
+  for(let r=0;r<nRows;r++){
+    const C=sub(G,0,1,r/nRows,(r+1)/nRows),Ct=tops(C,wallH),isFront=r===nRows-1;
+    const f=mid(Ct.W,Ct.N);f[1]-=rise;const b=mid(Ct.S,Ct.E);b[1]-=rise;
+    poly(g,[Ct.N,Ct.E,b,f],SLATE_B);
+    poly(g,[Ct.S,Ct.E,b],sideBrick);
+    lineP(g,Ct.S,b,COPING);lineP(g,b,Ct.E,sh(COPING,-50));
+    poly(g,[Ct.W,Ct.S,b,f],SLATE_F);
+    for(const s of[.34,.68])lineP(g,lerp(Ct.W,f,s),lerp(Ct.S,b,s),SLATE_L);
+    lineP(g,f,b,RIDGE);
+    lineP(g,Ct.W,f,sh(SLATE_F,12));
+    // 煙囪：每戶分界一座（後排每兩座取一），兩端各一
+    const ts=[.05];for(let i=1;i<nShop;i++)ts.push((bx[i]-xW)/Math.max(1,LX));ts.push(.94);
+    ts.forEach((t,i)=>{if(!isFront&&i%2===1)return;if(turret&&isFront&&t>.9)return;
+      const p=lerp(f,b,t),pots=2+((rand()<.4)?1:0),w=pots===3?5:4;
+      stack(g,R(p[0])-(w>>1),R(p[1])+1,w,6,base,pots);});
+    // 老虎窗（gabled dormer）：前排前坡、戶中央，三成。牆 4×3（右緣暗）＋窗台、玻璃 2×2，上面小山牆板岩頂 6/4/2 寬三列（左亮右暗）
+    if(isFront)units.forEach((U,i)=>{if(!U.dormer)return;const t=((U.x0+U.x1)/2-xW)/Math.max(1,LX),e=lerp(Ct.W,Ct.S,t),rp=lerp(f,b,t),d=lerp(e,rp,.42);
+      const x=R(d[0])-2,y=R(d[1]),dl=sh(SLATE_F,14),dr=SLATE_B;
+      rc(g,x,y-3,4,3,U.brick);rc(g,x+3,y-3,1,3,sh(U.brick,-30));rc(g,x,y-1,3,1,U.trim);
+      rc(g,x+1,y-3,2,2,GLASS_U);
+      rc(g,x-1,y-4,3,1,dl);rc(g,x+2,y-4,3,1,dr);rc(g,x,y-5,2,1,dl);rc(g,x+2,y-5,2,1,dr);rc(g,x+1,y-6,1,1,sh(SLATE_F,22));rc(g,x+2,y-6,1,1,dr);
+      if(ng&&rand()<.4)rc(ng,x+1,y-3,2,2,'#ffd98c');});
+  }
+  // ---- 角樓 / 轉角小山牆（畫在屋頂之後、蓋住角落）
+  if(chamfer){
+    const yc=yS-1;
+    if(turret){
+      const yT=yc-chTop;
+      for(let dx=-2;dx<=2;dx++)rc(g,xS+dx,yT,1,chTop-shopH,sh(uLast.brick,[4,-6,-18,-30,-42][dx+2]));   // 重畫圓柱（蓋住屋頂角）
+      for(let f=0;f<nUp;f++){const d0=shopH+fh*f;sash(g,ng,xS-1,yc,d0,GLASS_U,sh(uLast.trim,-16),rand()<.5,sh(GLASS_U,30));}
+      rc(g,xS-3,yc-shopH-1,7,1,STONE);                                              // 托座
+      rc(g,xS-3,yT-1,7,1,sh(SLATE_F,10));rc(g,xS,yT-1,4,1,SLATE_B);                  // 錐頂由下往上 7,7,5,5,3,3,1
+      rc(g,xS-3,yT-2,7,1,sh(SLATE_F,10));rc(g,xS,yT-2,4,1,SLATE_B);
+      rc(g,xS-2,yT-3,5,1,sh(SLATE_F,16));rc(g,xS,yT-3,3,1,SLATE_B);
+      rc(g,xS-2,yT-4,5,1,sh(SLATE_F,16));rc(g,xS,yT-4,3,1,SLATE_B);
+      rc(g,xS-1,yT-5,3,1,sh(SLATE_F,22));rc(g,xS,yT-5,2,1,SLATE_B);
+      rc(g,xS-1,yT-6,3,1,sh(SLATE_F,22));rc(g,xS,yT-6,2,1,SLATE_B);
+      rc(g,xS,yT-7,1,1,RIDGE);rc(g,xS,yT-8,1,1,'#c9a24a');
+    }else{
+      const yt=yc-wallH;
+      rc(g,xS-2,yt-1,5,1,sh(uLast.brick,-18));rc(g,xS-1,yt-2,3,1,sh(uLast.brick,-18));rc(g,xS,yt-3,1,1,STONE);
+      rc(g,xS-3,yt,7,1,STONE);
+    }
+  }
+  return {pitch:true};
+}
+
+// ---------------------------------------------------------------- 旅館（lv2 hotel）
+function drawHotel(ctx,T){
+  const {A,g,ng,G,rand,span,lv}=ctx,{sh,rc,poly,lineP,foot,band,mid,lerp,tops,sash,stack}=T;
+  const xW=R(G.W[0]),xS=R(G.S[0]),xE=R(G.E[0]);
+  const LX=xS-xW,RX=xE-xS;
+  const yF=x=>foot(G.W,G.S,x),yR=x=>foot(G.S,G.E,x);
+  const gH=13,fh=8;
+  let nUp=lv>=3?5:(span>=2?4:3);
+  const roofTop=()=>G.N[1]-(gH+fh*nUp+5)-8;
+  while(nUp>2&&roofTop()<16)nUp--;
+  const wallH=gH+fh*nUp,paraH=wallH+5;
+  // ---- 抽籤：石面／紅磚／黃磚；雨遮色
+  const sc=rand();
+  const stoneFront=sc<.4,base=stoneFront?'#cdc1a6':(sc<.72?'#9a5541':'#b09a6c');
+  const front=base,side=sh(base,-40);
+  const gfL='#d3cab4',gfR='#9d9482',trim=stoneFront?'#ece5d3':'#e2d9c4';
+  const accent=['#6b1f2a','#1f4d3a','#1e2f57'][(rand()*3)|0];
+  const dc=xW+R(LX/2);
+  const face=(a,b,x0,x1,isL)=>{
+    const yAt=x=>foot(a,b,x),wall=isL?front:side,gf=isL?gfL:gfR,tr=isL?trim:sh(trim,-40),gl=isL?GLASS_U:sh(GLASS_U,-12);
+    for(let x=x0;x<=x1;x++){const y=yAt(x);
+      rc(g,x,y-paraH,1,paraH,wall);
+      rc(g,x,y-gH,1,gH,gf);rc(g,x,y-1,1,1,sh(gf,-34));rc(g,x,y-4,1,1,sh(gf,-14));rc(g,x,y-8,1,1,sh(gf,-14));   // 一樓石砌＋粗石橫縫
+      rc(g,x,y-12,1,1,sh(gf,-12));rc(g,x,y-13,1,1,sh(gf,24));                                                     // 一樓楣梁
+      // 上層不畫樓層腰線：每層的石窗台已是樓層節奏，再加腰線會與窗楣連成兩列淺帶（iter3 拿掉）
+      rc(g,x,y-wallH-1,1,1,sh(tr,10));rc(g,x,y-wallH-2,1,1,tr);                                                  // 頂簷口兩列
+      rc(g,x,y-paraH,1,1,sh(wall,isL?22:14));                                                                    // 女兒牆壓頂
+    }
+    // 一樓拱窗：每 7 欄一扇，避開大門
+    for(let xc=x0+3;xc<=x1-2;xc+=7){
+      if(isL&&Math.abs(xc-dc)<=6)continue;
+      const y=yAt(xc);rc(g,xc-2,y-2,5,1,sh(gf,20));rc(g,xc-1,y-8,3,6,gl);rc(g,xc,y-9,1,1,gl);rc(g,xc-1,y-9,1,1,sh(gf,-6));rc(g,xc+1,y-9,1,1,sh(gf,-6));
+      if(ng&&rand()<.8){rc(ng,xc-1,y-8,3,6,'#ffe3ad');rc(ng,xc,y-9,1,1,'#ffe3ad');}
+    }
+    // 上層窗列：每 7 欄一扇；一樓上方鐵欄陽台帶
+    for(let f=0;f<nUp;f++){const d0=gH+fh*f;
+      for(let xc=x0+3;xc<=x1-2;xc+=7)sash(g,ng,xc-1,yAt(xc),d0,gl,tr,rand()<(isL?.5:.55),sh(gl,30),3);   // 窗楣 3 寬：密排窗列才不會連成條帶
+      if(f===0){for(let x=x0+1;x<=x1-1;x++){const y=yAt(x);rc(g,x,y-d0-1,1,1,sh(tr,-6));if((x&1)===0)rc(g,x,y-d0-3,1,2,'#2e3238');else rc(g,x,y-d0-3,1,1,'#2e3238');}}
+    }
+  };
+  face(G.W,G.S,xW,xS-1,true);
+  face(G.S,G.E,xS,xE,false);
+  // ---- 大門：石門套、雙開玻璃門、雨遮往前一格、兩根柱、紅地毯、門燈
+  {
+    const y=yF(dc);
+    rc(g,dc-3,y-10,7,10,sh(gfL,-22));rc(g,dc-2,y-9,5,8,'#3a2a22');
+    rc(g,dc-2,y-8,2,6,'#3c5262');rc(g,dc+1,y-8,2,6,'#3c5262');rc(g,dc-2,y-9,5,1,GLASS_SH);
+    rc(g,dc-2,y-1,5,1,'#d8d0bd');
+    if(ng){rc(ng,dc-2,y-8,2,6,'#ffe3ad');rc(ng,dc+1,y-8,2,6,'#ffe3ad');rc(ng,dc-2,y-9,5,1,'#fff0c0');}
+    for(let x=dc-5;x<=dc+5;x++){const yy=yF(x);rc(g,x,yy-11,1,2,accent);rc(g,x-2,yy-10,1,1,sh(accent,-18));rc(g,x-2,yy-9,1,1,sh(accent,34));}
+    for(const px of[dc-5,dc+5]){const yy=yF(px);rc(g,px-2,yy-8,1,10,'#2a2a2e');}
+    for(let k=1;k<=2;k++)rc(g,dc-1-2*k,y+k,3,1,k===1?'#9b2b2b':'#8a2525');
+    for(const lx of[dc-4,dc+4]){const yy=yF(lx);rc(g,lx,yy-7,1,1,'#2a2a2e');rc(g,lx,yy-8,1,1,'#f4e0a0');
+      if(ng){rc(ng,lx,yy-8,1,1,'#fff6d0');rc(ng,lx-1,yy-9,3,3,'rgba(255,225,160,.35)');}}
+  }
+  // ---- 名牌（女兒牆上、正面 20%–80%）＋轉角直立招牌
+  {
+    const px0=xW+R(LX*.2),px1=xW+R(LX*.8);
+    for(let x=px0;x<=px1;x++){const y=yF(x);rc(g,x,y-wallH-5,1,3,'#232a3a');}
+    rc(g,px0,yF(px0)-wallH-5,1,3,'#c9a24a');rc(g,px1,yF(px1)-wallH-5,1,3,'#c9a24a');
+    for(let x=px0+2,i=0;x<=px1-2;x+=2,i++){if(i%6===5)continue;const y=yF(x);rc(g,x,y-wallH-4,1,1,'#efe2b8');if(ng)rc(ng,x,y-wallH-4,1,1,'#fff3c8');}
+    if(ng){ng.fillStyle='rgba(255,230,170,.28)';for(let x=px0;x<=px1;x++){const y=yF(x);ng.fillRect(x,y-wallH-5,1,3);}}
+    const bs0=Math.max(gH+3,wallH-18),bs1=wallH-6,yc=R(G.S[1]);
+    rc(g,xS-1,yc-bs1-1,3,bs1-bs0+2,'#7a1f24');rc(g,xS-1,yc-bs1-2,3,1,'#2b2b31');
+    for(let d=bs0+1;d<=bs1-1;d+=2){rc(g,xS,yc-d,1,1,'#efe2b8');if(ng)rc(ng,xS,yc-d,1,1,'#fff3c8');}
+    if(ng)rc(ng,xS-1,yc-bs1-1,3,bs1-bs0+2,'rgba(255,230,170,.25)');
+  }
+  // ---- 轉角隅石（磚面旅館）：S 角每 4 列一塊淺石
+  if(!stoneFront){const yc=R(G.S[1]);for(let d=gH+2;d<wallH-1;d+=4){rc(g,xS-1,yc-d-1,1,2,sh(trim,-4));rc(g,xS,yc-d-1,1,2,sh(trim,-40));}}
+  // ---- 孟莎屋頂：前坡／側坡各內縮 3 格、升 9；老虎窗；平頂鉛皮＋接縫；煙囪列、電梯機房、天窗、旗桿
+  {
+    const Cb=tops(G,paraH),MR=9;
+    const du=6/Math.max(6,G.E[0]-G.N[0]),dv=6/Math.max(6,G.N[0]-G.W[0]);
+    const P=(u,vv)=>{const p=A.paraPt559(G,u,vv);return [R(p[0]),R(p[1])-paraH-MR-.02];};
+    const Ct={N:P(du,dv),E:P(1-du,dv),S:P(1-du,1-dv),W:P(du,1-dv)};
+    poly(g,[Cb.N,Cb.E,Ct.E,Ct.N],SLATE_B);
+    poly(g,[Cb.W,Cb.S,Ct.S,Ct.W],'#4f5967');
+    poly(g,[Cb.S,Cb.E,Ct.E,Ct.S],'#39414c');
+    for(const s of[.36,.7]){lineP(g,lerp(Cb.W,Ct.W,s),lerp(Cb.S,Ct.S,s),'#45505d');lineP(g,lerp(Cb.S,Ct.S,s),lerp(Cb.E,Ct.E,s),'#323a44');}   // 石板橫縫
+    poly(g,[Ct.N,Ct.E,Ct.S,Ct.W],'#5d6674');
+    // 鉛皮接縫：平行正面、每 8px 一道
+    {const n=Math.max(1,R((Ct.N[0]-Ct.W[0])/8));for(let i=1;i<n;i++){const t=i/n;lineP(g,lerp(Ct.N,Ct.W,t),lerp(Ct.E,Ct.S,t),'#56606d');}}
+    lineP(g,Ct.W,Ct.S,'#8791a0');lineP(g,Ct.S,Ct.E,'#6d7683');lineP(g,Cb.W,Ct.W,'#8791a0');lineP(g,Cb.S,Ct.S,'#7a8492');
+    // 老虎窗：沿前坡每 12 欄一座（避開兩端）：牆 4 寬 4 高、玻璃 2×3、小披簷 6 寬
+    for(let x=xW+7;x<=xS-6;x+=12){const y=foot(Cb.W,Cb.S,x);
+      rc(g,x-1,y-8,4,4,trim);rc(g,x,y-8,2,3,GLASS_U);rc(g,x+2,y-8,1,4,sh(trim,-40));
+      rc(g,x-2,y-9,6,1,'#8a94a2');rc(g,x-1,y-10,4,1,'#7a8492');
+      if(ng&&rand()<.45)rc(ng,x,y-8,2,3,'#ffd98c');}
+    // 煙囪列：平頂後緣，每 40px 正面一座（至少一座）；大面積再加電梯機房與天窗
+    {const n=Math.max(1,R(LX/40));for(let i=0;i<n;i++){const p=A.paraPt559(Ct,(i+.5)/n,.16);stack(g,R(p[0])-2,R(p[1]),4,7,stoneFront?'#a89a80':base,2);}}
+    if(span>=2){const p=A.paraPt559(Ct,.68,.55),x=R(p[0]),y=R(p[1]);
+      rc(g,x-3,y-6,3,6,'#8a9098');rc(g,x,y-6,3,6,'#5f666e');rc(g,x-3,y-7,6,1,'#aab0b6');rc(g,x-2,y-3,1,2,'#3a3f45');}
+    if(span>=2)for(const u of[.3,.45]){const p=A.paraPt559(Ct,u,.5),x=R(p[0]),y=R(p[1]);
+      rc(g,x-2,y-2,5,3,'#7d8794');rc(g,x-1,y-2,3,2,'#6f8ea0');if(ng&&rand()<.5)rc(ng,x-1,y-2,3,2,'rgba(255,225,160,.6)');}
+    // 旗桿：平頂前緣中央；聖喬治式小旗
+    const fp=lerp(Ct.W,Ct.S,.5),fx=R(fp[0]),fyy=R(fp[1]);
+    rc(g,fx,fyy-13,1,13,'#d8d8d8');rc(g,fx,fyy-14,1,1,'#c9a24a');rc(g,fx+1,fyy-13,4,3,'#f2f2f2');rc(g,fx+2,fyy-13,1,3,'#c4312c');rc(g,fx+1,fyy-12,4,1,'#c4312c');
+  }
+  return {pitch:false};
+}
+
+REG.ukHighStreet={name:'ukHighStreet',draw(ctx){
+  const T=tools(ctx);
+  return ctx.lv>=2?drawHotel(ctx,T):drawShops(ctx,T);
+}};
+})();
+// GPT-001 — Victorian / Edwardian High Street Corner Shop
+// 原創像素 facade。研究語彙：Historic England 傳統 shopfront（fascia/cornice/consoles/pilasters/stallriser/recessed doorway）
+// 不含任何外部圖片、貼圖或可識別品牌。
+(function(){
+'use strict';
+const REG=FACADE594, R=Math.round;
+const clamp=(x,a,b)=>x<a?a:x>b?b:x;
+
+function tools001(ctx){
+  const A=ctx.A, sh=A.shade;
+  const rc=(c,x,y,w,h,col)=>{ w=Math.max(1,R(w)); h=Math.max(1,R(h)); c.fillStyle=col; c.fillRect(R(x),R(y),w,h); };
+  const foot=(a,b,x)=>Math.abs(b[0]-a[0])<1e-6?a[1]:a[1]+(x-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+  const cols=(a,b,fn)=>{const x0=R(Math.min(a[0],b[0])),x1=R(Math.max(a[0],b[0]));for(let x=x0;x<=x1;x++)fn(x,R(foot(a,b,x)));};
+  const wall=(c,a,b,h,col)=>{c.fillStyle=col;cols(a,b,(x,y)=>c.fillRect(x,y-h,1,h));};
+  const band=(c,a,b,x0,x1,d0,h,col)=>{c.fillStyle=col;for(let x=Math.min(R(x0),R(x1));x<=Math.max(R(x0),R(x1));x++){const y=R(foot(a,b,x));c.fillRect(x,y-d0-h+1,1,h);}};
+  const poly=(c,pts,col)=>{let y0=1e9,y1=-1e9;for(const p of pts){y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);}
+    y0=Math.max(0,Math.floor(y0));y1=Math.min(c.canvas.height-1,Math.ceil(y1));c.fillStyle=col;
+    for(let y=y0;y<=y1;y++){const yc=y+.5,xs=[];for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];
+      if((a[1]<=yc&&b[1]>yc)||(b[1]<=yc&&a[1]>yc))xs.push(a[0]+(yc-a[1])*(b[0]-a[0])/(b[1]-a[1]));}
+      xs.sort((p,q)=>p-q);for(let i=0;i+1<xs.length;i+=2){const xa=Math.ceil(xs[i]-.5),xb=Math.ceil(xs[i+1]-.5);if(xb>xa)c.fillRect(xa,y,xb-xa,1);}}
+  };
+  return {A,sh,rc,foot,cols,wall,band,poly};
+}
+
+function drawCornerShop001(ctx){
+  if(window.__noGPTCornerShop001)return false;
+  const {A,sh,rc,foot,wall,band,poly}=tools001(ctx);
+  const {g,ng,G,v,wallH}=ctx,C680=!window.__noShopTall680; // T680（業主決策單第十一批 11-4 選 C）：三層、窗加高、孟莎屋頂老虎窗、戶界煙囪；照決策單原型碼（docs/proto-b11/patch11c.js ③，__x11Shop=2 那條路）
+  const xW=R(G.W[0]),xS=R(G.S[0]),xE=R(G.E[0]),yS=R(G.S[1]);
+  const fw=Math.max(8,Math.abs(xS-xW)), sw=Math.max(5,Math.abs(xE-xS));
+  const H=Math.max(24,wallH|0), shopH=clamp(R(H*.34),10,13);
+  const BRICK=['#97513f','#a45b46','#88483a','#b06b52'];
+  const WOOD=['#214c3b','#5b2028','#243554','#342922'];
+  const DOOR=['#1f3c32','#55242a','#1d3150','#36261f'];
+  const brick=BRICK[Math.abs(v|0)%BRICK.length], front=sh(brick,9), side=sh(brick,-24);
+  const trim='#d6ccb8', stone='#b9ad98', wood=WOOD[(Math.abs(v|0)+1)%WOOD.length], door=DOOR[Math.abs(v|0)%DOOR.length];
+  const glass='#668494', glassHi='#9fc2cf', glassSide=sh(glass,-26), lintel=sh(brick,20);
+
+  // 量體：紅磚正面＋陰面；平屋頂藏在 parapet 後，先畫屋面，再畫女兒牆。
+  wall(g,G.W,G.S,H,front); wall(g,G.S,G.E,H,side);
+  const roof={W:[G.W[0],G.W[1]-H],S:[G.S[0],G.S[1]-H],E:[G.E[0],G.E[1]-H],N:[G.N[0],G.N[1]-H]};
+  poly(g,[roof.N,roof.E,roof.S,roof.W],'#4c5158');
+  band(g,G.W,G.S,xW,xS,H-1,2,trim); band(g,G.S,G.E,xS,xE,H-1,2,sh(trim,-18));
+  band(g,G.W,G.S,xW,xS,H-4,1,stone); band(g,G.S,G.E,xS,xE,H-4,1,sh(stone,-22));
+
+  // 木製 shopfront：stallriser、plate glass、fascia、cornice、pilaster / console。
+  const resW=clamp(R(fw*.18),3,5), shopRight=xS-resW-1;
+  const glazeL=xW+2, glazeR=Math.max(glazeL+4,shopRight-2);
+  band(g,G.W,G.S,glazeL,glazeR,3,3,sh(wood,-18));
+  band(g,G.W,G.S,glazeL,glazeR,8,5,glass);
+  band(g,G.W,G.S,glazeL,glazeR,8,1,glassHi);
+  band(g,G.W,G.S,xW+1,shopRight,11,3,wood);
+  band(g,G.W,G.S,xW,shopRight+1,13,1,trim);
+  for(const x of [xW+1,shopRight]){const y=R(foot(G.W,G.S,x));rc(g,x,y-12,1,11,sh(wood,18));rc(g,x-1,y-13,3,1,trim);}
+
+  // Recessed shop door + 獨立樓上住宅門。
+  const shopDoor=clamp(R((glazeL+glazeR)*.52),glazeL+2,glazeR-2), yd=R(foot(G.W,G.S,shopDoor));
+  rc(g,shopDoor-1,yd-8,3,7,'#172027'); rc(g,shopDoor,yd-7,2,5,'#435866'); rc(g,shopDoor,yd-8,2,1,'#b9c8cb');
+  const rx=clamp(xS-resW+1,xW+3,xS-2), yr=R(foot(G.W,G.S,rx));
+  rc(g,rx,yr-9,Math.max(2,resW-1),8,door); rc(g,rx,yr-9,Math.max(2,resW-1),2,'#33475a'); rc(g,rx+1,yr-3,1,1,'#d5b36d');
+  rc(g,rx-1,yr-10,Math.max(4,resW+1),1,trim);
+
+  // 真正的街角回折：側牆也有櫥窗／fascia，而不是把平面店面貼在盒子上。
+  if(sw>=7){
+    const sx0=xS+2,sx1=xE-2;
+    band(g,G.S,G.E,sx0,sx1,3,3,sh(wood,-30));
+    band(g,G.S,G.E,sx0,sx1,8,5,glassSide);
+    band(g,G.S,G.E,sx0,sx1,8,1,sh(glassHi,-24));
+    band(g,G.S,G.E,xS+1,xE-1,11,3,sh(wood,-22));
+    band(g,G.S,G.E,xS,xE,13,1,sh(trim,-20));
+  }
+  // Canted-corner 語彙用 3px 深色入口提示；不超出 footprint。
+  if(fw>=14&&sw>=7){
+    rc(g,xS-1,yS-8,3,7,sh(door,-12)); rc(g,xS-2,yS-9,5,1,stone);
+    rc(g,xS,yS-6,1,4,'#506777'); rc(g,xS,yS-3,1,1,'#d8bd72');
+  }
+
+  // 夜光只畫在白天玻璃；T653 的 occlusion wrapper 仍會做 painter-order 遮擋。
+  if(ng){
+    band(ng,G.W,G.S,glazeL,glazeR,8,5,'#ffe1a2');
+    if(sw>=7)band(ng,G.S,G.E,xS+2,xE-2,8,5,'#d9c38f');
+  }
+
+  // 上層 sash windows：楣線／石窗台／橫檔。
+  const sash=(a,b,x,d,sideFace,lit)=>{
+    const y=R(foot(a,b,x)), gc=sideFace?sh(glass,-28):glass, tc=sideFace?sh(trim,-20):trim, lc=sideFace?sh(lintel,-20):lintel;
+    const wh=C680?wh680:4; rc(g,x-1,y-d-wh-1,5,1,lc); rc(g,x-1,y-d,5,1,tc); rc(g,x,y-d-wh,3,wh,gc); rc(g,x,y-d-(wh>>1),3,1,sh(tc,-20)); // T680：窗高 4→6（層距不到 10 用 5）
+    if(ng&&lit)rc(ng,x,y-d-wh,3,wh,sideFace?'#d9c78f':'#ffdca0');
+  };
+  const upper=H-shopH-4, nFloors=C680?Math.max(1,Math.min(3,Math.round(upper/9))):(upper>=16?2:1), step680=C680?Math.floor((upper-1)/nFloors):8; var wh680=step680>=10?6:5; // T680：層數依牆高、層距平均分
+  for(let f=0;f<nFloors;f++){
+    const d=shopH+3+f*step680, nF=clamp(Math.floor(fw/9),2,5), nS=clamp(Math.floor(sw/9),1,3);
+    for(let i=0;i<nF;i++)sash(G.W,G.S,R(xW+(i+1)*(xS-xW)/(nF+1)),d,false,((i+f+Math.abs(v|0))%3)!==0);
+    for(let i=0;i<nS;i++)sash(G.S,G.E,R(xS+(i+1)*(xE-xS)/(nS+1)),d,true,((i+f+1+Math.abs(v|0))%3)!==0);
+  }
+
+  // Corner quoin + rainwater downpipe，兼作兩立面的乾淨縫線。
+  rc(g,xS,yS-H+2,1,H-3,'#6d493d'); rc(g,xS+1,yS-H+2,1,H-3,'#51433d');
+  rc(g,xS+1,yS-5,1,4,'#2f3337');
+
+  // T680：屋頂內縮一圈石板孟莎屋頂（高 7、內縮 14%）＋正面 2–4、側面 1 扇老虎窗；兩座多煙囪管的戶界煙囪立在孟莎頂上；原本那根煙囪跟著抬高
+  let mh680=0;
+  if(C680){mh680=7;const ctr=[(roof.N[0]+roof.E[0]+roof.S[0]+roof.W[0])/4,(roof.N[1]+roof.E[1]+roof.S[1]+roof.W[1])/4];
+    const inn=p=>[p[0]+(ctr[0]-p[0])*.14,p[1]+(ctr[1]-p[1])*.14-mh680],iN=inn(roof.N),iE=inn(roof.E),iS=inn(roof.S),iW=inn(roof.W);
+    poly(g,[roof.W,roof.N,iN,iW],'#3e4650');poly(g,[roof.N,roof.E,iE,iN],'#3e4650');poly(g,[iN,iE,iS,iW],'#4c5158');
+    poly(g,[roof.W,roof.S,iS,iW],'#5c6772');poly(g,[roof.S,roof.E,iE,iS],'#48525c');
+    const lerp=(a,b,s)=>[a[0]+(b[0]-a[0])*s,a[1]+(b[1]-a[1])*s],nD=clamp(Math.floor(fw/16),2,4);
+    for(let i=0;i<nD;i++){const s=(i+.5)/nD,e=lerp(roof.W,roof.S,s),q=lerp(iW,iS,s),x=R((e[0]+q[0])/2),y=R((e[1]+q[1])/2)+1;
+      rc(g,x-2,y-6,5,6,'#d8d0bf');rc(g,x-1,y-5,3,4,glass);rc(g,x-3,y-7,7,1,'#3e4650');rc(g,x-2,y-8,5,1,'#4a5560');if(ng&&((i+v)%2===0))rc(ng,x-1,y-5,3,4,'#ffdca0');}
+    if(sw>=7){const e=lerp(roof.S,roof.E,.5),q=lerp(iS,iE,.5),x=R((e[0]+q[0])/2),y=R((e[1]+q[1])/2)+1;rc(g,x-2,y-6,5,6,'#bdb5a4');rc(g,x-1,y-5,3,4,glassSide);rc(g,x-3,y-7,7,1,'#3e4650');}
+    const stack=(u,vv)=>{const p=A.paraPt559(G,u,vv),x=R(p[0]),y=R(p[1])-H-mh680;
+      rc(g,x-3,y-8,3,8,sh(brick,4));rc(g,x,y-8,3,8,sh(brick,-28));rc(g,x-4,y-9,8,1,'#6c4a3a');rc(g,x-4,y-6,8,1,sh(brick,-40));
+      for(const dx of [-3,-1,1])rc(g,x+dx,y-11,1,2,dx<0?'#a55b3a':'#b46a43');};
+    stack(.16,.55);stack(.6,.16);}
+  // 後縮煙囪＋陶土 chimney pots，完全留在建築 footprint 內。
+  const cp=A.paraPt559(G,.28,.28), cx=R(cp[0]), cy=R(cp[1])-H-mh680;
+  rc(g,cx-2,cy-6,2,6,sh(brick,2)); rc(g,cx,cy-6,2,6,sh(brick,-30)); rc(g,cx-3,cy-7,6,1,'#6c4a3a');
+  rc(g,cx-2,cy-9,1,2,'#a55b3a'); rc(g,cx+1,cy-9,1,2,'#b46a43'); rc(g,cx-2,cy-10,1,1,'#6b3f2a'); rc(g,cx+1,cy-10,1,1,'#6b3f2a');
+  if(ctx.chim)ctx.chim(cx-2,cy-11,'#6b3f2a');
+
+  // 不做真品牌，只留稀疏招牌字點。
+  for(let x=xW+4,i=0;x<=Math.min(shopRight-3,xW+16);x+=3,i++)if(i%4!==3){const y=R(foot(G.W,G.S,x));rc(g,x,y-11,1,1,i%2?'#e8d8a7':'#c9b374');}
+  return {pitch:false,gpt001:true};
+}
+
+REG.ukCornerShopGPT001={name:'ukCornerShopGPT001',draw:drawCornerShop001};
+})();
+// facade_us1.js — T577 美式街景立面繪製器（實驗線）
+// usBrownstone：紐約布朗石排屋（套 walkup 原型 lv2）；usPrewar：戰前磚造公寓（套 slab／twin 原型 lv3）
+// 登記：window.__facade577[name]={name,draw(ctx)}；只畫牆／窗／屋頂／沿街小件，地坪、接地線、前庭道具由核心畫好。
+// 座標：G.W→G.S 是受光正面（朝路），G.E→G.S 是背光端牆；u 沿正面、v 沿深度（v=1 貼路）。
+// 全部整數像素、硬邊多邊形（像素中心取樣）；亂數只用 ctx.rand（決定性）。
+(function(){
+'use strict';
+const REG=FACADE594;
+const R=Math.round,clampN=(x,a,b)=>x<a?a:x>b?b:x;
+
+function tools(ctx){
+  const A=ctx.A,sh=A.shade,g=ctx.g,ng=ctx.ng;
+  const rc=(cx,x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(R(x),R(y),w,h);};
+  // scanline spans of a polygon (pixel-centre sampling, hard edges)
+  const spans=(cx,pts,fn)=>{let y0=1e9,y1=-1e9;for(const p of pts){if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];}
+    y0=Math.max(0,Math.floor(y0));y1=Math.min(cx.canvas.height-1,Math.ceil(y1));const n=pts.length;
+    for(let y=y0;y<=y1;y++){const yc=y+.5,xs=[];
+      for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];if((a[1]<=yc&&b[1]>yc)||(b[1]<=yc&&a[1]>yc))xs.push(a[0]+(yc-a[1])*(b[0]-a[0])/(b[1]-a[1]));}
+      xs.sort((p,q)=>p-q);
+      for(let i=0;i+1<xs.length;i+=2){const xa=Math.ceil(xs[i]-.5),xb=Math.ceil(xs[i+1]-.5);if(xb>xa)fn(xa,y,xb-xa);}}};
+  const poly=(cx,pts,c)=>{cx.fillStyle=c;spans(cx,pts,(x,y,w)=>cx.fillRect(x,y,w,1));};
+  const clearPoly=(cx,pts)=>{spans(cx,pts,(x,y,w)=>cx.clearRect(x,y,w,1));};
+  const lineP=(cx,a,b,c)=>{let x0=R(a[0]),y0=R(a[1]);const x1=R(b[0]),y1=R(b[1]);const dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1;let err=dx+dy;cx.fillStyle=c;
+    for(let guard=0;guard<4096;guard++){cx.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>=dy){err+=dy;x0+=sx;}if(e2<=dx){err+=dx;y0+=sy;}}};
+  const fy=(a,b,x)=>Math.abs(b[0]-a[0])<1e-6?a[1]:a[1]+(x-a[0])*((b[1]-a[1])/(b[0]-a[0]));
+  const foot=(a,b,x)=>R(fy(a,b,x));
+  const cols=(a,b,fn)=>{const x0=R(Math.min(a[0],b[0])),x1=R(Math.max(a[0],b[0]));for(let x=x0;x<=x1;x++)fn(x,foot(a,b,x));};
+  const wall=(cx,a,b,h,c)=>{cx.fillStyle=c;cols(a,b,(x,y)=>cx.fillRect(x,y-h,1,h));};
+  const sub=(C,u0,u1,v0,v1)=>({N:A.paraPt559(C,u0,v0),E:A.paraPt559(C,u1,v0),S:A.paraPt559(C,u1,v1),W:A.paraPt559(C,u0,v1)});
+  const lerp=A.lerp2;
+  // wall-top corners (same rounding as wall columns; -.02 keeps the top wall row out of the roof scanlines)
+  const tops=(C,h)=>{const xW=R(C.W[0]),xS=R(C.S[0]),xE=R(C.E[0]);
+    return {W:[xW,foot(C.W,C.S,xW)-h-.02],S:[xS,foot(C.W,C.S,xS)-h-.02],E:[xE,foot(C.S,C.E,xE)-h-.02],N:[R(C.N[0]),R(C.N[1])-h-.02]};};
+  // 盒子剪影（六邊形）；左右各放寬 1px，讓 edgeWall547 用 round() 畫在角柱上的那一欄也被涵蓋
+  const hex=(C,h,extra)=>{const e=extra||0;return [[C.W[0]-1,C.W[1]],[C.S[0],C.S[1]+1],[C.E[0]+1,C.E[1]],[C.E[0]+1,C.E[1]-h-e],[C.N[0],C.N[1]-h-e-1],[C.W[0]-1,C.W[1]-h-e]];};
+  // glass + optional night light; 1px sky highlight on the top row when h>=3
+  const glass=(x,y,w,h,col,lit,litCol)=>{rc(g,x,y,w,h,col);if(h>=3&&w>=2)rc(g,x,y,w-1,1,sh(col,12));
+    if(lit&&ng){ng.fillStyle=litCol||'#ffd98c';ng.fillRect(R(x),R(y),w,h);}};
+  const litCol=(r)=>r<.72?'#ffd98c':r<.9?'#ffe9b8':'#cfe0ff';
+  // street furniture (ground point p = where it stands)
+  const tree=(x,y)=>{rc(g,x-1,y,3,1,'#5e4a36');rc(g,x-2,y+1,5,1,'rgba(20,28,20,.28)');
+    rc(g,x,y-3,1,3,'#4a3626');rc(g,x-2,y-6,5,3,'#3a7436');rc(g,x-1,y-7,3,1,'#3a7436');
+    rc(g,x-1,y-6,2,1,'#57a04c');rc(g,x-2,y-5,1,1,'#57a04c');rc(g,x+1,y-4,2,1,'#2c5a2a');rc(g,x+2,y-6,1,1,'#2c5a2a');};
+  const hydrant=(x,y)=>{rc(g,x,y-3,1,3,'#c23b2c');rc(g,x-1,y-2,3,1,'#c23b2c');rc(g,x,y-4,1,1,'#8a2a20');rc(g,x,y,2,1,'rgba(20,28,20,.3)');};
+  const lamp=(x,y)=>{rc(g,x,y-9,1,9,'#2f3238');rc(g,x,y-10,3,1,'#2f3238');rc(g,x+2,y-9,1,1,'#efe6c0');rc(g,x,y,2,1,'rgba(20,28,20,.3)');
+    if(ng){ng.fillStyle='#fff2c8';ng.fillRect(R(x)+2,R(y)-9,1,1);ng.fillStyle='rgba(255,236,170,.22)';ng.fillRect(R(x)+1,R(y)-8,3,1);ng.fillRect(R(x),R(y)-1,5,2);}};
+  const bins=(x,y,n)=>{for(let i=0;i<n;i++){const c=i%2?'#4b5058':'#3f4a42';rc(g,x+i*3,y-2,2,2,c);rc(g,x+i*3,y-3,2,1,sh(c,30));}rc(g,x,y,n*3,1,'rgba(20,28,20,.28)');};
+  // 夜光畫布是疊加的：先畫的量體（後排、內側段、後棟）被之後的牆／屋頂蓋住時，白天看不見但窗燈仍留在 ng 上、變成屋頂上的浮光。
+  // 每個量體開畫前，把 ng 在「這個量體白天會蓋到的範圍」（正面牆柱、端牆柱、屋頂多邊形）清掉，讓夜光與白天的 painter order 一致。
+  const clearMass=(C,h)=>{if(!ng)return;cols(C.W,C.S,(x,y)=>ng.clearRect(x,y-h,1,h+1));cols(C.S,C.E,(x,y)=>ng.clearRect(x,y-h,1,h+1));
+    const Ct=tops(C,h);clearPoly(ng,[Ct.N,Ct.E,Ct.S,Ct.W]);};
+  return {sh,rc,spans,poly,clearPoly,lineP,fy,foot,cols,wall,sub,lerp,tops,hex,glass,litCol,tree,hydrant,lamp,bins,clearMass};
+}
+
+// 清掉核心前庭道具（樹冠／樹幹／長椅／鞦韆架）：人行道會蓋住樹幹，樹冠會浮在牆上；
+// 依顏色比值認樹（綠比紅高 1.55 倍），落在 G 內回填地坪、G0 內回填草地、G0 外清成透明。夜光畫布上核心的兩顆「無燈具的光斑」一併清掉。
+function scrubYard(ctx,clearNg){
+  const {g,ng,G0,G}=ctx,W=g.canvas.width,H=g.canvas.height;
+  const im=g.getImageData(0,0,W,H),d=im.data;
+  const inv=(C)=>{const ax=C.E[0]-C.N[0],ay=C.E[1]-C.N[1],bx=C.W[0]-C.N[0],by=C.W[1]-C.N[1],det=(ax*by-ay*bx)||1;
+    return (x,y)=>{const px=x+.5-C.N[0],py=y+.5-C.N[1];const u=(px*by-py*bx)/det,v=(ax*py-ay*px)/det;return u>=0&&u<=1&&v>=0&&v<=1;};};
+  const in0=inv(G0),inG=inv(G);
+  const EXACT=[[91,63,42],[154,161,167],[195,201,206],[185,178,162],[141,136,120]];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4,r=d[i],gg=d[i+1],b=d[i+2];if(d[i+3]<200)continue;
+    let hit=(gg>40&&gg>=r*1.55&&gg>=b*1.4);
+    if(!hit)for(const e of EXACT){if(r===e[0]&&gg===e[1]&&b===e[2]){hit=true;break;}}
+    if(!hit)continue;
+    if(inG(x,y)){d[i]=138;d[i+1]=122;d[i+2]=104;d[i+3]=255;}
+    else if(in0(x,y)){d[i]=111;d[i+1]=138;d[i+2]=88;d[i+3]=255;}
+    else{d[i]=0;d[i+1]=0;d[i+2]=0;d[i+3]=0;}
+  }
+  g.putImageData(im,0,0);
+  if(ng&&clearNg)ng.clearRect(0,0,ng.canvas.width,ng.canvas.height);
+}
+
+// 人行道：G0 的 v∈[vF,1] 全寬鋪水泥；路緣淺線、每 12px 一道細縫
+function sidewalk(ctx,T,vF){
+  const {A,g,G0,bw}=ctx,{poly,lineP}=T;
+  const P=(u,v)=>A.paraPt559(G0,u,v);
+  poly(g,[P(0,vF),P(1,vF),P(1,1),P(0,1)],'#a3a099');
+  const n=Math.max(2,R(bw*32/12));
+  for(let i=1;i<n;i++)lineP(g,P(i/n,vF),P(i/n,1),'#98958d');
+  lineP(g,P(0,vF+.004),P(1,vF+.004),'#94918a');
+  const vc=1-.6/(16*ctx.bh);lineP(g,P(0,vc),P(1,vc),'#b6b3ab');
+}
+
+// ---------------------------------------------------------------- usBrownstone
+// 布朗石排屋：半地下室＋抬高主樓層（parlor）＋兩三層；每戶 3 開間，門在鏡像成對的一側，門前石階（stoop）伸向人行道；
+// 托架簷口、女兒牆；深街區前後兩排背靠背、中間後院；人行道上行道樹／消防栓／路燈／垃圾桶。
+REG.usBrownstone={name:'usBrownstone',draw(ctx){
+  const T=tools(ctx),{A,g,ng,G0,rand,v,bw,bh,ar}=ctx,{sh,rc,poly,lineP,foot,cols,wall,lerp,tops,glass,litCol,tree,hydrant,lamp,bins,clearMass}=T;
+  const box=(ar&&ar.box)||[0,1,0,1];
+  const P0=(u,vv)=>A.paraPt559(G0,u,vv);
+  const para0=(u0,u1,v0,v1)=>({N:P0(u0,v0),E:P0(u1,v0),S:P0(u1,v1),W:P0(u0,v1)});
+  const hB=4,fhP=9,fh=7,nUp=2+(Math.abs(v)%2),H=hB+fhP+nUp*fh+3;
+  const BROWN=['#775444','#6e4d40','#805b4a','#66493c'],RED=['#905040','#844537','#9a5544'],GREY=['#90806c','#847866','#9c8b76'],PAINT=['#d9cdb8','#c9c3b5'];
+  const DOORS=['#2a2420','#3a2c22','#5a1f1f','#1f2f45','#2e4a2c','#1b1b20'];
+  const glassF='#42505c',glassB='#333d47',glassR='#2f3a44',iron='#25262b',stone='#9c8a74';
+  // 正面往後退到前庭夠放 4 級石階（4.6 單位＝4.6/16 格）
+  const vFront=Math.min(box[3],1-4.6/(16*bh));
+  const depthPx=(vFront-box[2])*bh*32;
+  const rows=[];
+  if(depthPx>=44){const rd=(depthPx>=70?28:20)/(bh*32);rows.push({v0:box[2],v1:box[2]+rd,front:false});rows.push({v0:vFront-rd,v1:vFront,front:true});}
+  else rows.push({v0:box[2],v1:vFront,front:true});
+  scrubYard(ctx,!(ar&&ar.ex));
+  if(vFront<.97)sidewalk(ctx,T,vFront);
+  // 後院（兩排之間）：草地、中線圍籬、每戶分隔籬、灌木
+  if(rows.length===2){
+    const ya=rows[0].v1,yb=rows[1].v0,Y=para0(box[0],box[1],ya,yb);
+    poly(g,[Y.N,Y.E,Y.S,Y.W],'#6a8a54');
+    for(let i=0;i<10;i++){const p=P0(box[0]+rand()*(box[1]-box[0]),ya+rand()*(yb-ya));rc(g,p[0],p[1],2,1,rand()<.5?'#7a9a60':'#5e7e4a');}
+    const vm=(ya+yb)/2;lineP(g,P0(box[0],vm),P0(box[1],vm),'#7a6a50');
+    const LX0=(box[1]-box[0])*bw*32,nL=Math.max(1,R(LX0/15.5));
+    for(let i=1;i<nL;i++){const u=box[0]+(box[1]-box[0])*i/nL;lineP(g,P0(u,ya+.01),P0(u,yb-.01),'#5c4a38');}
+    for(let i=0;i<nL;i++){if(rand()<.5)continue;const p=P0(box[0]+(box[1]-box[0])*(i+.3+rand()*.4)/nL,ya+.15+rand()*.6);
+      rc(g,p[0]-1,p[1]-2,3,2,'#3a6e36');rc(g,p[0],p[1]-3,1,1,'#4f8a44');}
+  }
+  const props=[];
+  const drawRow=(rw)=>{
+    const C=para0(box[0],box[1],rw.v0,rw.v1),front=rw.front;
+    clearMass(C,H);                                   // 前排蓋住後排的地方，先清掉後排留在 ng 上的窗燈
+    const LX=C.S[0]-C.W[0],nH=Math.max(1,R(LX/15.5)),hw=LX/nH;
+    const houses=[];
+    for(let i=0;i<nH;i++){
+      const r=rand();let col,trim;
+      if(r<.42){col=BROWN[(rand()*BROWN.length)|0];trim=sh(col,34);}
+      else if(r<.68){col=RED[(rand()*RED.length)|0];trim='#b8a283';}
+      else if(r<.88){col=GREY[(rand()*GREY.length)|0];trim=sh(col,30);}
+      else{col=PAINT[(rand()*PAINT.length)|0];trim='#f0e9da';}
+      col=sh(col,R((rand()-.5)*10));
+      houses.push({col,trim,door:DOORS[(rand()*DOORS.length)|0],side:(i%2===0)?1:0,bulk:rand()<.3,bins:rand()<.4,sky:rand()<.4,vent:rand()<.5,ant:rand()<.3});
+    }
+    // 端牆（背光）
+    const last=houses[nH-1],endCol=sh(last.col,-46);
+    wall(g,C.S,C.E,H,endCol);
+    cols(C.S,C.E,(x,y)=>{rc(g,x,y-hB,1,hB,sh(endCol,-8));rc(g,x,y-hB-1,1,1,sh(endCol,14));rc(g,x,y-1,1,1,sh(endCol,-20));rc(g,x,y-H,1,1,sh(last.trim,-40));rc(g,x,y-H+2,1,1,sh(endCol,-16));});
+    const DXe=C.E[0]-C.S[0];
+    if(DXe>=12){const xw=R(C.S[0]+DXe*.5)-1,yw=foot(C.S,C.E,xw+1);
+      for(let f=0;f<=nUp;f++){const yb=yw-hB-(f===0?0:fhP+(f-1)*fh),fhF=f===0?fhP:fh;
+        rc(g,xw,yb-fhF+1,2,1,sh(endCol,20));glass(xw,yb-fhF+2,2,fhF-4,glassR,rand()<.3,'#e8c47a');rc(g,xw,yb-2,2,1,sh(endCol,20));}}
+    {const xp=R(C.S[0])+1;rc(g,xp,foot(C.S,C.E,xp)-H+3,1,H-4,'#3e4249');}     // 落水管
+    // 正面（前排）／後牆（後排）
+    const stoops=[];
+    for(let i=0;i<nH;i++){
+      const h=houses[i],col=h.col,trim=h.trim,base=sh(col,-14);
+      const xi0=R(C.W[0]+hw*i),xi1=R(C.W[0]+hw*(i+1))-1,hwI=xi1-xi0+1;
+      for(let x=xi0;x<=xi1;x++){const y=foot(C.W,C.S,x);
+        rc(g,x,y-H,1,H,col);
+        rc(g,x,y-hB,1,hB,base);
+        rc(g,x,y-hB-1,1,1,sh(trim,-8));                       // 地下室頂石線
+        rc(g,x,y-1,1,1,sh(base,-26));                          // 勒腳
+        if(front){rc(g,x,y-H,1,1,trim);rc(g,x,y-H+1,1,1,(x&1)?trim:sh(col,-30));rc(g,x,y-H+2,1,1,sh(col,-34));}   // 托架簷口
+        else{rc(g,x,y-H,1,1,sh(trim,-18));}
+      }
+      {const y=foot(C.W,C.S,xi1);rc(g,xi1,y-H+3,1,H-3,sh(col,-12));}      // 戶界
+      // 開間
+      const nBay=hwI>=12?3:hwI>=8?2:1,bayW=Math.max(3,Math.floor((hwI-1)/nBay)),pad=Math.max(0,Math.floor((hwI-1-nBay*bayW+1)/2));
+      const doorJ=front?(h.side?nBay-1:0):-1;
+      for(let j=0;j<nBay;j++){
+        const bx=xi0+1+pad+j*bayW,yx=foot(C.W,C.S,bx+1);
+        // 地下室窗
+        if(j!==doorJ){glass(bx,yx-3,3,2,glassB,rand()<.2,'#e8c47a');}
+        else if(!front){rc(g,bx,yx-hB,3,hB,sh(h.door,-6));}
+        for(let f=0;f<=nUp;f++){
+          const yb=yx-hB-(f===0?0:fhP+(f-1)*fh),fhF=f===0?fhP:fh;
+          if(f===0&&j===doorJ){
+            // 門：門楣、扇形窗、雙開門、門把
+            if(bayW>=5){rc(g,bx-1,yb-fhF+1,5,1,trim);rc(g,bx-1,yb-fhF+2,1,fhF-2,sh(trim,-10));rc(g,bx+3,yb-fhF+2,1,fhF-2,sh(trim,-10));}
+            else rc(g,bx,yb-fhF+1,3,1,trim);
+            rc(g,bx,yb-fhF+2,3,1,'#9fb2c2');
+            rc(g,bx,yb-fhF+3,3,fhF-3,h.door);rc(g,bx+1,yb-fhF+3,1,fhF-3,sh(h.door,-18));rc(g,bx+(h.side?0:2),yb-3,1,1,sh(h.door,60));
+            const lit=rand()<.5;if(lit&&ng){ng.fillStyle='#ffd27a';ng.fillRect(bx,yb-fhF+2,3,1);}
+            stoops.push({dx:bx,dy:yx,lit,h});
+          }else{
+            rc(g,bx,yb-fhF+1,3,1,trim);                        // 石窗楣
+            glass(bx,yb-fhF+2,3,fhF-4,glassF,rand()<(f===0?.46:.38),litCol(rand()));
+            rc(g,bx,yb-2,3,1,trim);                            // 窗台
+            if(f>0&&rand()<.1)rc(g,bx+1,yb-3,2,1,'#b9bfc5');   // 窗型冷氣
+            if(front&&f===0&&rand()<.3)rc(g,bx,yb-1,3,1,'#2c2d31');   // 窗台鐵花架
+          }
+        }
+      }
+    }
+    // 屋頂：平屋頂、女兒牆、戶界矮牆、煙囪、樓梯間
+    const Ct=tops(C,H);
+    poly(g,[Ct.N,Ct.E,Ct.S,Ct.W],'#59544e');
+    const cop='#8d8377';
+    lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.S[0],Ct.S[1]-1],cop);
+    lineP(g,[Ct.S[0],Ct.S[1]-1],[Ct.E[0],Ct.E[1]-1],sh(cop,-26));
+    lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.N[0],Ct.N[1]-1],'#6c665f');
+    lineP(g,[Ct.N[0],Ct.N[1]-1],[Ct.E[0],Ct.E[1]-1],'#6c665f');
+    for(let i=1;i<nH;i++){const t=i/nH,a=lerp(Ct.W,Ct.S,t),b=lerp(Ct.N,Ct.E,t);
+      lineP(g,[a[0],a[1]-1],[b[0],b[1]-1],'#655f59');
+      if(i%2===1||nH<=2){const p=lerp(a,b,.5),px=R(p[0]),py=R(p[1])-1,bc=houses[i].col;
+        rc(g,px-1,py-4,1,4,sh(bc,4));rc(g,px,py-4,1,4,sh(bc,-38));rc(g,px-1,py-5,2,1,'#3a3a3c');rc(g,px-1,py,3,1,'rgba(20,26,22,.3)');ctx.chim&&ctx.chim(px-1,py-6,'#3a3a3c');
+        if(houses[i].ant){rc(g,px+1,py-11,1,7,'#3a3d44');rc(g,px-1,py-11,5,1,'#3a3d44');rc(g,px,py-9,3,1,'#3a3d44');}}
+    }
+    // 天窗、通風管、樓梯間（各戶由 rand 決定）
+    for(let i=0;i<nH;i++){const h=houses[i],t=(i+.5)/nH,a=lerp(Ct.W,Ct.S,t),b=lerp(Ct.N,Ct.E,t);
+      if(h.sky){const p=lerp(a,b,.64),px=R(p[0])-1,py=R(p[1])-1;rc(g,px,py-1,3,2,'#7d8791');rc(g,px,py-2,3,1,'#a3abb2');rc(g,px+2,py-1,1,2,'#5f6870');rc(g,px,py+1,4,1,'rgba(20,26,22,.3)');}
+      if(h.vent){const p=lerp(a,b,.42),px=R(p[0])+2,py=R(p[1])-1;rc(g,px,py-3,1,3,'#8e9499');rc(g,px-1,py-4,3,1,'#b9bec3');}
+      if(h.bulk){const p=lerp(a,b,.24),px=R(p[0])-2,py=R(p[1])-1;rc(g,px,py-3,4,3,'#6a6259');rc(g,px,py-4,4,1,'#8a8278');rc(g,px+3,py-3,1,3,'#4e4740');rc(g,px,py,5,1,'rgba(20,26,22,.3)');}}
+    // 石階與前院鐵欄（只有前排）
+    if(front){
+      const stX=stoops.map(s=>[s.dx-2*hB-1,s.dx+3]);
+      for(let i=0;i<nH;i++){const xi0=R(C.W[0]+hw*i),xi1=R(C.W[0]+hw*(i+1))-1;
+        for(let x=xi0;x<=xi1;x++){if(stX.some(r=>x>=r[0]&&x<=r[1]))continue;const y=foot(C.W,C.S,x)+2;
+          rc(g,x-4,y-2,1,2,iron);if((x-xi0)%4===0)rc(g,x-4,y-3,1,1,iron);}}
+      for(const s of stoops){
+        const dx=s.dx,dy=s.dy,st=sh(stone,R((rand()-.5)*8)),stL=sh(st,18),stD=sh(st,-40);
+        poly(g,[[dx+4,dy+1-hB],[dx+4,dy+2],[dx+4-2*hB,dy+2+hB]],stD);
+        for(let kk=0;kk<hB;kk++){rc(g,dx-2*kk,dy-hB+2*kk,3,1,stL);rc(g,dx-2*(kk+1),dy-hB+2*kk+1,3,1,st);}
+        rc(g,dx-2*hB,dy+hB,4,1,'rgba(16,22,18,.4)');
+        lineP(g,[dx+3,dy+1-hB-3],[dx+3-2*hB,dy+1+hB-3],iron);rc(g,dx+3,dy+1-hB-3,1,3,iron);rc(g,dx+3-2*hB,dy+1+hB-3,1,3,iron);
+        lineP(g,[dx-1,dy-hB-3],[dx-1-2*hB,dy+hB-3],iron);rc(g,dx-1,dy-hB-3,1,3,iron);rc(g,dx-1-2*hB,dy+hB-3,1,4,iron);
+        if(s.lit&&ng){ng.fillStyle='rgba(255,214,140,.32)';ng.fillRect(dx-1,dy-hB-1,5,2);}
+        if(s.h.bins)bins(dx+5,foot(C.W,C.S,dx+5)+2,1+(rand()<.5?1:0));
+      }
+      // 人行道道具：行道樹在成對戶之間、消防栓、路燈、垃圾桶
+      const vt=1-1.1/(16*bh);
+      for(let i=2;i<nH;i+=2){const u=box[0]+(box[1]-box[0])*(i/nH);props.push(['tree',P0(u,vt)]);}
+      if(nH>=2){const u=box[0]+(box[1]-box[0])*(.5/nH);props.push(['hyd',P0(u,vt-.02)]);}
+      const uL=box[1]-(box[1]-box[0])*(.45/nH);props.push(['lamp',P0(Math.min(uL,box[1]),vt-.01)]);
+      if(LX>=90)props.push(['lamp',P0(box[0]+(box[1]-box[0])*(.15/nH),vt-.01)]);
+    }
+  };
+  for(const rw of rows)drawRow(rw);
+  for(const [t,p] of props){const x=R(p[0]),y=R(p[1]);if(t==='tree')tree(x,y);else if(t==='hyd')hydrant(x,y);else lamp(x,y);}
+  return {pitch:false};
+}};
+
+// ---------------------------------------------------------------- usPrewar
+// 戰前公寓：沿街分成數段（各自磚色、窗型、入口、逃生梯、水塔），每層樓一條淺色窗台帶、3px 窗、5px 節距；
+// 一樓挑高石帶、雨遮入口或店面；轉角隅石；平屋頂上木水塔（圓桶＋錐頂立在鋼架）、樓梯間、通風管、鍋爐煙囪。
+// twin 原型：核心先畫的第二棟灰盒子清掉，用同一套語彙重畫成配對的磚樓（painter order：後棟先、前棟後）。
+REG.usPrewar={name:'usPrewar',draw(ctx){
+  const T=tools(ctx),{A,g,ng,G,G0,rand,v,bw,bh,ar,wallH}=ctx,{sh,rc,poly,clearPoly,lineP,foot,cols,wall,sub,lerp,tops,hex,glass,litCol,tree,hydrant,lamp,bins,clearMass}=T;
+  const box=(ar&&ar.box)||[0,1,0,1];
+  const P0=(u,vv)=>A.paraPt559(G0,u,vv);
+  const para0=(b)=>({N:P0(b[0],b[2]),E:P0(b[1],b[2]),S:P0(b[1],b[3]),W:P0(b[0],b[3])});
+  const gf=9,fh=7;
+  const BRICK=['#8c4b3b','#95553f','#7b4a3c','#a5744f','#6f4a3d','#8e5a46','#9a6a52'];
+  const CANOPY=['#2f5a3a','#5a2a2a','#2a3a5a','#3a3a3a'],SIGN=['#b8402f','#2f6a4a','#2b4a8a','#8a6a2a'],DOORS=['#2a2420','#3a2c22','#1f2f45','#4a2a2a'];
+  const iron='#24252a',glassF='#3f4d59',glassR='#2c3640';
+  const budget=(C)=>Math.max(3,Math.floor((C.N[1]-2-19-gf-4)/fh));   // 19 = 水塔 18px ＋ 1px 餘裕，保證塔尖 y≥2
+  let nF=clampN(R(wallH/6.5),5,12);
+  // 第二量體（twin）：與主量體不重疊才接手；判斷前後（u 或 v 較大者在前）
+  let exC=null,exFront=true;
+  if(ar&&ar.ex&&ar.ex.box){const e=ar.ex.box;
+    const disjoint=e[0]>=box[1]-.01||e[1]<=box[0]+.01||e[2]>=box[3]-.01||e[3]<=box[2]+.01;
+    if(disjoint){exC=para0(e);exFront=(e[0]>=box[1]-.01)||(e[2]>=box[3]-.01);}}
+  scrubYard(ctx,!(ar&&ar.ex)||!!exC);
+  if(exC){const exH0=Math.max(6,R(wallH*ar.ex.hm));clearPoly(g,hex(exC,exH0,12));if(ng)clearPoly(ng,hex(exC,exH0,12));}
+  if(box[3]<.95)sidewalk(ctx,T,box[3]);
+  const props=[];
+  // ---- 一棟（可多段）
+  const building=(C,nFb,seedShift)=>{
+    const LX=C.S[0]-C.W[0],nS=Math.max(1,R(LX/36));
+    let bi=(Math.abs(v)+seedShift)%BRICK.length;
+    const secs=[];
+    for(let s=0;s<nS;s++){
+      bi=(bi+1+((rand()*(BRICK.length-2))|0))%BRICK.length;
+      const brick=sh(BRICK[bi],R((rand()-.5)*8)),tan=BRICK[bi]==='#a5744f'||BRICK[bi]==='#9a6a52';
+      secs.push({u0:s/nS,u1:(s+1)/nS,brick,stone:tan?'#dfd3b8':'#cdbb9c',stoneBase:rand()<.4,
+        paired:rand()<.45,shop:rand()<.3,canopy:CANOPY[(rand()*CANOPY.length)|0],sign:SIGN[(rand()*SIGN.length)|0],door:DOORS[(rand()*DOORS.length)|0],
+        nF:nFb-((nS>=2&&rand()<.35)?1:0),tower:rand()<(nS===1?.85:.6),bulk:rand()<.6,chim:rand()<.5,brickPar:rand()<.4,escAt:rand()});
+    }
+    for(let s=0;s<nS;s++){
+      const S=secs[s],Cs=sub(C,S.u0,S.u1,0,1),Hs=gf+1+S.nF*fh+3;
+      clearMass(Cs,Hs);                               // 前一段的端牆窗燈被這一段蓋住的部分，從 ng 清掉（只剩退台露出的部分）
+      const brick=S.brick,stone=S.stone,base=S.stoneBase?'#a89578':sh(brick,-14),sill=sh(brick,16),brickR=sh(brick,-46);
+      const xs0=R(Cs.W[0]),xsS=R(Cs.S[0]),xsE=R(Cs.E[0]),hwI=xsS-xs0+1;
+      // 正面牆柱
+      for(let x=xs0;x<=xsS;x++){const y=foot(Cs.W,Cs.S,x);
+        rc(g,x,y-Hs,1,Hs,brick);rc(g,x,y-gf,1,gf,base);rc(g,x,y-gf-1,1,1,stone);rc(g,x,y-1,1,1,sh(base,-26));
+        for(let f=0;f<S.nF;f++)rc(g,x,y-gf-2-f*fh,1,1,sill);
+        rc(g,x,y-Hs,1,1,sh(stone,10));
+        rc(g,x,y-Hs+1,1,1,S.brickPar?((x&1)?sh(brick,-30):sh(brick,-6)):sh(stone,-14));
+        rc(g,x,y-Hs+2,1,1,sh(brick,-30));
+      }
+      // 窗位
+      const avail=hwI-2,wx=[];
+      if(S.paired){const nP=Math.max(1,Math.floor((avail+3)/10)),pad=Math.max(0,Math.floor((avail-(10*nP-3))/2));for(let p=0;p<nP;p++){wx.push(xs0+1+pad+10*p);wx.push(xs0+1+pad+10*p+4);}}
+      else{const nW=Math.max(1,Math.floor((avail+2)/5)),pad=Math.max(0,Math.floor((avail-(5*nW-2))/2));for(let j=0;j<nW;j++)wx.push(xs0+1+pad+5*j);}
+      const dx=xs0+(hwI>>1)-1,dy=foot(Cs.W,Cs.S,dx+1);
+      for(const x of wx){const yx=foot(Cs.W,Cs.S,x+1);
+        for(let f=0;f<S.nF;f++){const yb=yx-gf-2-f*fh;
+          rc(g,x,yb-4,3,1,stone);glass(x,yb-3,3,3,glassF,rand()<.36,litCol(rand()));rc(g,x,yb,3,1,sh(stone,-6));
+          if(rand()<.08)rc(g,x,yb-1,2,1,'#c3c8cd');}
+        if(!S.shop&&Math.abs(x-dx)>=4){rc(g,x,yx-7,3,1,sh(stone,-10));glass(x,yx-6,3,3,sh(glassF,-8),rand()<.3,litCol(rand()));}
+      }
+      // 一樓：店面或雨遮入口
+      if(S.shop&&hwI>=20){
+        const sc=S.sign;
+        for(let x=xs0+1;x<xsS;x++){const y=foot(Cs.W,Cs.S,x);rc(g,x,y-9,1,2,sc);if((x-xs0)%5===2)rc(g,x,y-9,1,1,sh(sc,50));rc(g,x,y-7,1,1,sh(sc,-40));}
+        for(let x=xs0+2;x+5<=xsS-1;x+=6){if(Math.abs(x+2-dx)<4)continue;const y=foot(Cs.W,Cs.S,x+2);
+          rc(g,x-1,y-6,7,1,'#4a4a4e');glass(x,y-6,5,4,'#4f6470',rand()<.7,'#e6efb8');rc(g,x+2,y-6,1,4,'#4a4a4e');}
+      }else{
+        const y0=dy-9,cp=S.canopy;
+        rc(g,dx-1,y0,5,1,cp);rc(g,dx-3,y0+1,5,1,cp);rc(g,dx-5,y0+2,5,1,sh(cp,22));
+        rc(g,dx-5,y0+3,1,5,'#3a3d44');rc(g,dx-1,y0+3,1,7,'#3a3d44');
+        if(ng){ng.fillStyle='rgba(255,225,160,.45)';ng.fillRect(dx-3,y0+1,5,1);}
+      }
+      rc(g,dx-1,dy-8,5,1,sh(stone,8));rc(g,dx,dy-7,3,1,'#9fb2c2');rc(g,dx,dy-6,3,5,S.door);rc(g,dx+1,dy-6,1,5,sh(S.door,-18));
+      rc(g,dx-1,dy-1,5,1,sh(stone,12));rc(g,dx-3,dy,5,1,sh(stone,-6));
+      if(ng){ng.fillStyle='#ffe0a0';ng.fillRect(dx,dy-7,3,1);}
+      // 逃生梯（Z 字）
+      {const nWin=wx.length;let ei=Math.floor(S.escAt*nWin);if(S.paired)ei=ei&~1;ei=clampN(ei,0,Math.max(0,nWin-1));
+        const ex0=wx[ei],ew=(S.paired&&ei+1<nWin)?7:3;
+        if(ex0!==undefined&&Math.abs(ex0+ew/2-dx-1)>=5){const yx=foot(Cs.W,Cs.S,ex0+1);
+          for(let f=0;f<S.nF;f++){const yb=yx-gf-2-f*fh;
+            rc(g,ex0-1,yb+1,ew+2,1,iron);for(let i=0;i<ew+2;i+=2)rc(g,ex0-1+i,yb-2,1,1,iron);rc(g,ex0-1,yb-2,1,3,iron);rc(g,ex0+ew,yb-2,1,3,iron);
+            if(f<S.nF-1){if(f%2===0)lineP(g,[ex0+ew,yb],[ex0-1,yb-fh+1],iron);else lineP(g,[ex0-1,yb],[ex0+ew,yb-fh+1],iron);}
+            else{for(let i=0;i<ew+2;i+=2)rc(g,ex0-1+i,yb-4,1,1,iron);}}
+          rc(g,ex0+ew,yx-gf-1,1,3,iron);}}
+      // 轉角隅石
+      {const y=foot(Cs.W,Cs.S,xsS);for(let yy=y-Hs+3;yy<y-1;yy++)rc(g,xsS,yy,1,1,((yy>>1)&1)?sh(stone,-16):sh(brick,-20));}
+      // 端牆（背光）
+      wall(g,Cs.S,Cs.E,Hs,brickR);
+      cols(Cs.S,Cs.E,(x,y)=>{if(x===xsS)return;rc(g,x,y-gf,1,gf,sh(base,-44));rc(g,x,y-gf-1,1,1,sh(stone,-50));rc(g,x,y-1,1,1,sh(brickR,-18));
+        for(let f=0;f<S.nF;f++)rc(g,x,y-gf-2-f*fh,1,1,sh(brickR,12));
+        rc(g,x,y-Hs,1,1,sh(stone,-38));rc(g,x,y-Hs+1,1,1,sh(brickR,-8));rc(g,x,y-Hs+2,1,1,sh(brickR,-22));});
+      for(let x=xsS+3;x+3<=xsE-2;x+=5){const yx=foot(Cs.S,Cs.E,x+1);
+        for(let f=0;f<S.nF;f++){const yb=yx-gf-2-f*fh;rc(g,x,yb-4,3,1,sh(stone,-44));glass(x,yb-3,3,3,glassR,rand()<.26,'#e8c47a');}
+        if(rand()<.6)glass(x,yx-6,3,3,sh(glassR,-6),rand()<.25,'#e8c47a');}
+      {const xp=xsS+1;rc(g,xp,foot(Cs.S,Cs.E,xp)-Hs+3,1,Hs-4,'#3e4249');}
+      // 屋頂
+      const Ct=tops(Cs,Hs);
+      poly(g,[Ct.N,Ct.E,Ct.S,Ct.W],'#4f4b47');
+      lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.S[0],Ct.S[1]-1],'#7a726a');lineP(g,[Ct.S[0],Ct.S[1]-1],[Ct.E[0],Ct.E[1]-1],'#5e5852');
+      lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.N[0],Ct.N[1]-1],'#666059');lineP(g,[Ct.N[0],Ct.N[1]-1],[Ct.E[0],Ct.E[1]-1],'#666059');
+      const RW=Ct.S[0]-Ct.W[0],RD=Ct.E[0]-Ct.S[0];
+      const rp=(u,vv)=>{const p=A.paraPt559(Ct,u,vv);return [R(p[0]),R(p[1])-1];};
+      // 屋面油毛氈接縫：平行正面、每 9px 一道（只在屋頂多邊形內，端點各縮 1px 免壓到女兒牆線）
+      {const nSeam=Math.floor(RD/9);for(let i=1;i<nSeam;i++){const t=i/nSeam,a=lerp(Ct.W,Ct.N,t),b=lerp(Ct.S,Ct.E,t);
+        lineP(g,[a[0]+1,a[1]],[b[0]-1,b[1]],'#56524e');}}
+      // 木水塔：鋼架（四腳＋X 撐）→ 平台 → 木桶（三階受光、兩道鐵箍）→ 錐頂＋頂針；桶身比屋面暖亮很多，遠看仍認得出
+      if(S.tower&&RW>=14&&RD>=12){const p=rp(.5+rand()*.25,.32+rand()*.2),px=p[0],py=p[1];
+        const leg='#3b3733';
+        rc(g,px-4,py+1,9,1,'rgba(20,26,22,.30)');
+        rc(g,px-3,py-6,1,6,leg);rc(g,px+3,py-6,1,6,leg);rc(g,px,py-5,1,5,sh(leg,-12));
+        lineP(g,[px-3,py-6],[px+3,py-1],sh(leg,-6));lineP(g,[px+3,py-6],[px-3,py-1],sh(leg,-6));
+        rc(g,px-3,py-7,7,1,'#2f2b28');                                    // 平台
+        rc(g,px-3,py-14,3,7,'#b48a5a');rc(g,px,py-14,2,7,'#8a6440');rc(g,px+2,py-14,2,7,'#5a3f2c');   // 桶身（左亮→右暗）
+        rc(g,px-3,py-12,7,1,'#3a2e24');rc(g,px-3,py-9,7,1,'#3a2e24');       // 鐵箍
+        rc(g,px-3,py-15,7,1,'#6d6863');rc(g,px-2,py-16,5,1,'#5c5854');rc(g,px-1,py-17,3,1,'#4e4a47');rc(g,px,py-18,1,1,'#2a2826');   // 錐頂＋頂針
+        rc(g,px-3,py-15,3,1,'#7e7973');rc(g,px-2,py-16,2,1,'#6a6661');}    // 錐頂受光面
+      // 天窗（鋼框＋玻璃，夜間偶爾透光）：放在前緣附近、避開樓梯間與水塔
+      if(rand()<.5&&RW>=16&&RD>=12){const p=rp(.34+rand()*.14,.68+rand()*.14),px=p[0],py=p[1];
+        rc(g,px-2,py-2,5,3,'#8d949a');rc(g,px-1,py-1,3,1,'#6b8898');rc(g,px-2,py+1,6,1,'rgba(20,26,22,.28)');rc(g,px+2,py-2,1,3,'#5f666c');
+        if(ng&&rand()<.4){ng.fillStyle='rgba(255,226,160,.55)';ng.fillRect(px-1,py-1,3,1);}}
+      if(S.bulk&&RW>=12&&RD>=10){const p=rp(.18+rand()*.15,.5+rand()*.15),px=p[0],py=p[1];
+        rc(g,px-3,py-4,6,4,sh(brick,-10));rc(g,px-3,py-5,6,1,sh(brick,10));rc(g,px+2,py-4,1,4,sh(brick,-40));rc(g,px-2,py-3,1,2,'#2a2420');rc(g,px-3,py,7,1,'rgba(20,26,22,.3)');}
+      if(S.chim&&RD>=10){const p=rp(.82,.2),px=p[0],py=p[1];rc(g,px-1,py-7,1,7,sh(brick,-6));rc(g,px,py-7,1,7,sh(brick,-40));rc(g,px-1,py-8,2,1,'#3a3a3c');ctx.chim&&ctx.chim(px-1,py-9,'#3a3a3c');}
+      for(let i=0;i<2;i++){if(rand()<.4)continue;const p=rp(.15+rand()*.7,.15+rand()*.7);rc(g,p[0],p[1]-3,1,3,'#8e9499');rc(g,p[0],p[1]-4,1,1,'#b9bec3');}
+    }
+    return secs;
+  };
+  const mainC=G;
+  const nFm=Math.min(nF,budget(mainC));
+  if(exC&&!exFront){building(exC,Math.min(nF+(rand()<.5?1:0),budget(exC)),3);}
+  building(mainC,nFm,0);
+  if(exC&&exFront){building(exC,Math.min(nF+(rand()<.5?1:0),budget(exC)),3);}
+  // 人行道道具
+  if(box[3]<.95){
+    const vt=1-1.1/(16*bh),n=Math.max(1,R(bw*32/40));
+    for(let i=0;i<n;i++)props.push(['tree',P0(box[0]+(box[1]-box[0])*((i+.27)/n),vt)]);
+    props.push(['lamp',P0(box[1]-.06/bw,vt-.01)]);
+    if(bw>=2)props.push(['hyd',P0(box[0]+.12/bw,vt-.02)]);
+    props.push(['bins',P0(box[0]+.3/bw,vt-.03)]);
+  }
+  for(const [t,p] of props){const x=R(p[0]),y=R(p[1]);if(t==='tree')tree(x,y);else if(t==='hyd')hydrant(x,y);else if(t==='bins')bins(x,y,2);else lamp(x,y);}
+  return {pitch:false};
+}};
+})();
+// facade_usmain.js — T577 美式主街立面繪製器（實驗線）
+// usMainStreet：美國 1900–1930 Main Street 磚造商業建築，一支繪製器套兩個原型（依 ctx.lv 分流）：
+//   shophouse（k2 lv1）：一排 2–3 層店屋。一樓整面大玻璃＋橫窗＋內縮入口＋條紋／素色遮陽篷；一二樓間招牌帶（店名色塊）；
+//                       上層雙懸窗配石楣石台；女兒牆＋托架簷口＋中央名牌方塊；戶與戶磚色／高度／篷色／店招各異；
+//                       側牆褪色油漆廣告（ghost sign）；人行道鑄鐵路燈、消防栓、郵筒、長椅、路緣停的老車。
+//   office（k2 lv2）：4–5 層芝加哥式商業樓。基座（店面＋石框主入口）／樓身（芝加哥三聯窗或成對雙懸窗、頂層拱窗、連續壁柱、樓板帶）／
+//                     厚簷口＋女兒牆＋名牌；轉角隅石；側牆逃生梯與 ghost sign；屋頂木水塔／看板／樓梯間／天窗。
+// 登記：window.__facade577.usMainStreet={name,draw(ctx)}；只畫牆／窗／屋頂／人行道小件，地坪與接地陰影由核心畫好。
+// 座標：C.W→C.S 受光正面（朝路），C.S→C.E 背光端牆；外凸方向（篷、招牌）在螢幕上是 (-2,+1)。
+// 全部整數像素；亂數只用 ctx.rand（決定性）。前景小件用 rcN：白天畫上、夜光畫布同位置清掉 ⇒ 夜裡只有白天畫出的窗／燈具／店招會亮。
+(function(){
+'use strict';
+const REG=FACADE594;
+const R=Math.round;
+
+function tools(ctx){
+  const A=ctx.A,sh=A.shade,g=ctx.g,ng=ctx.ng;
+  const rc=(cx,x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(R(x),R(y),w,h);};
+  const rcN=(x,y,w,h,c)=>{rc(g,x,y,w,h,c);if(ng)ng.clearRect(R(x),R(y),w,h);};
+  const lit=(x,y,w,h,c)=>{if(ng){ng.fillStyle=c;ng.fillRect(R(x),R(y),w,h);}};
+  // 多邊形掃描線（像素中心取樣、硬邊）
+  const spans=(cx,pts,fn)=>{let y0=1e9,y1=-1e9;for(const p of pts){if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];}
+    y0=Math.max(0,Math.floor(y0));y1=Math.min(cx.canvas.height-1,Math.ceil(y1));const n=pts.length;
+    for(let y=y0;y<=y1;y++){const yc=y+.5,xs=[];
+      for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];if((a[1]<=yc&&b[1]>yc)||(b[1]<=yc&&a[1]>yc))xs.push(a[0]+(yc-a[1])*(b[0]-a[0])/(b[1]-a[1]));}
+      xs.sort((p,q)=>p-q);
+      for(let i=0;i+1<xs.length;i+=2){const xa=Math.ceil(xs[i]-.5),xb=Math.ceil(xs[i+1]-.5);if(xb>xa)fn(xa,y,xb-xa);}}};
+  const poly=(cx,pts,c)=>{cx.fillStyle=c;spans(cx,pts,(x,y,w)=>cx.fillRect(x,y,w,1));};
+  const clearPoly=(cx,pts)=>{spans(cx,pts,(x,y,w)=>cx.clearRect(x,y,w,1));};
+  const lineP=(cx,a,b,c)=>{let x0=R(a[0]),y0=R(a[1]);const x1=R(b[0]),y1=R(b[1]);const dx=Math.abs(x1-x0),sx=x0<x1?1:-1,dy=-Math.abs(y1-y0),sy=y0<y1?1:-1;let err=dx+dy;cx.fillStyle=c;
+    for(let guard=0;guard<4096;guard++){cx.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>=dy){err+=dy;x0+=sx;}if(e2<=dx){err+=dx;y0+=sy;}}};
+  const fy=(a,b,x)=>Math.abs(b[0]-a[0])<1e-6?a[1]:a[1]+(x-a[0])*((b[1]-a[1])/(b[0]-a[0]));
+  const foot=(a,b,x)=>R(fy(a,b,x));
+  const cols=(a,b,fn)=>{const x0=R(Math.min(a[0],b[0])),x1=R(Math.max(a[0],b[0]));for(let x=x0;x<=x1;x++)fn(x,foot(a,b,x));};
+  const wall=(cx,a,b,h,c)=>{cx.fillStyle=c;cols(a,b,(x,y)=>cx.fillRect(x,y-h,1,h));};
+  const sub=(C,u0,u1,v0,v1)=>({N:A.paraPt559(C,u0,v0),E:A.paraPt559(C,u1,v0),S:A.paraPt559(C,u1,v1),W:A.paraPt559(C,u0,v1)});
+  const lerp=A.lerp2;
+  // 牆頂四角（與牆柱同一套 round；-.02 讓牆頂那列不落進屋頂掃描線）
+  const tops=(C,h)=>{const xW=R(C.W[0]),xS=R(C.S[0]),xE=R(C.E[0]);
+    return {W:[xW,foot(C.W,C.S,xW)-h-.02],S:[xS,foot(C.W,C.S,xS)-h-.02],E:[xE,foot(C.S,C.E,xE)-h-.02],N:[R(C.N[0]),R(C.N[1])-h-.02]};};
+  // 夜光畫布是疊加的：這個量體白天會蓋到的範圍（正面牆柱、端牆柱、屋頂）先把 ng 清掉，夜光才跟白天 painter order 一致
+  const clearMass=(C,h)=>{if(!ng)return;cols(C.W,C.S,(x,y)=>ng.clearRect(x,y-h,1,h+1));cols(C.S,C.E,(x,y)=>ng.clearRect(x,y-h,1,h+1));
+    const Ct=tops(C,h);clearPoly(ng,[[Ct.N[0],Ct.N[1]-1],[Ct.E[0]+1,Ct.E[1]-1],[Ct.S[0],Ct.S[1]],[Ct.W[0]-1,Ct.W[1]-1]]);};
+  // 雙懸窗：y=窗台列；玻璃 y-h..y-1；石楣 y-h-1；中間一列淺色＝上下扇交接橫檔
+  const dh=(x,y,w,h,glassC,stone,on,lc)=>{rc(g,x,y-h-1,w,1,stone);rc(g,x,y-h,w,h,glassC);if(w>=2)rc(g,x,y-h,w-1,1,sh(glassC,14));
+    rc(g,x,y-h+(h>>1),w,1,sh(glassC,26));rc(g,x,y,w,1,sh(stone,-8));if(on)lit(x,y-h,w,h,lc);};
+  const WARM=['#ffd98c','#ffe4a8','#ffcf78'],COOL='#d8e4ff';
+  const litCol=(r,office)=>office?(r<.5?WARM[0]:r<.78?WARM[1]:COOL):(r<.7?WARM[0]:r<.92?WARM[2]:WARM[1]);
+  // ---- 人行道小件（p=站立點）
+  const lampOld=(x,y)=>{const post='#2c3a30';
+    rcN(x-1,y-1,3,1,post);rcN(x,y-9,1,8,post);rcN(x-1,y-9,3,1,'#3d4d40');rcN(x-1,y-11,3,2,'#efe8cf');rcN(x,y-12,1,1,post);
+    rc(g,x-1,y,4,1,'rgba(20,26,22,.30)');
+    lit(x-1,y-11,3,2,'#fff3cc');lit(x-2,y-12,5,4,'rgba(255,236,170,.20)');lit(x-3,y-1,7,2,'rgba(255,236,170,.12)');};
+  const oldCar=(x,y,col)=>{const d=sh(col,-30),l=sh(col,18);
+    rcN(x-5,y-3,11,3,col);rcN(x-5,y-4,11,1,l);              // 車身＋引擎蓋／行李箱高光
+    rcN(x-3,y-7,6,3,col);rcN(x-3,y-8,6,1,l);                  // 高車廂＋車頂
+    rcN(x-2,y-7,4,2,'#8fb0c4');rcN(x,y-7,1,2,sh(col,-10));    // 車窗＋中柱
+    rcN(x+3,y-7,1,3,d);rcN(x+5,y-4,1,4,d);                    // 背光側
+    rcN(x-5,y-1,11,1,sh(col,-24));                            // 踏板／裙板
+    rcN(x-4,y,2,1,'#1c1a18');rcN(x+2,y,2,1,'#1c1a18');        // 輪
+    rcN(x+5,y-3,1,1,'#e9dca8');                               // 頭燈（停車不亮）
+    rc(g,x-5,y+1,12,1,'rgba(20,26,22,.30)');};
+  const hydrant=(x,y)=>{rcN(x,y-3,1,3,'#c23b2c');rcN(x-1,y-2,3,1,'#c23b2c');rcN(x,y-4,1,1,'#8a2a20');rc(g,x,y,2,1,'rgba(20,26,22,.3)');};
+  const mailbox=(x,y)=>{rcN(x,y-3,2,3,'#2f4a6a');rcN(x,y-4,2,1,'#4d6c8c');rcN(x+1,y-2,1,1,'#1e3248');rc(g,x,y,3,1,'rgba(20,26,22,.3)');};
+  const bench=(x,y)=>{rcN(x,y-3,5,1,'#7e5a38');rcN(x,y-2,5,1,'#6a4a2e');rcN(x,y-1,1,1,'#2a2a2e');rcN(x+4,y-1,1,1,'#2a2a2e');rc(g,x,y,6,1,'rgba(20,26,22,.28)');};
+  return {sh,rc,rcN,lit,spans,poly,clearPoly,lineP,fy,foot,cols,wall,sub,lerp,tops,clearMass,dh,litCol,lampOld,oldCar,hydrant,mailbox,bench};
+}
+
+// 核心 lotFill570 在 k=2 前庭畫的車／花台／柱子會戳出地界 1–3px；用精確色把 G0 外的清成透明（G0 內整塊稍後重鋪）。
+// 夜光畫布上核心那兩顆「無燈具的光斑」一併清掉（這兩個原型沒有 ex 裙樓，ng 上沒別的東西）。
+function scrub(ctx,T){
+  const {g,ng,G0}=ctx,sh=T.sh,W=g.canvas.width,H=g.canvas.height;
+  const ax=G0.E[0]-G0.N[0],ay=G0.E[1]-G0.N[1],bx=G0.W[0]-G0.N[0],by=G0.W[1]-G0.N[1],det=(ax*by-ay*bx)||1;
+  const in0=(x,y)=>{const px=x+.5-G0.N[0],py=y+.5-G0.N[1];const u=(px*by-py*bx)/det,v=(ax*py-ay*px)/det;return u>=-.02&&u<=1.02&&v>=-.02&&v<=1.02;};
+  const set=new Set();const add=h=>set.add(parseInt(h.slice(1),16));
+  for(const c of ['#b4544a','#3f6f9a','#c9a63f','#4d7f56','#8d5aa0','#c4c8cc']){add(c);add(sh(c,24));add(sh(c,-16));add(sh(c,-34));}
+  ['#5e5a53','#9fc4d8','#221f1c','#ffe9a8','#7b6a52','#95836a','#3f7a3c','#4f9449','#b9bcc0','#e2e5e8'].forEach(add);
+  const im=g.getImageData(0,0,W,H),d=im.data;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4,a=d[i+3];if(a===0||in0(x,y))continue;
+    const key=(d[i]<<16)|(d[i+1]<<8)|d[i+2];
+    if(a===255&&set.has(key))d[i+3]=0;
+    else if(a<200&&d[i]>200&&d[i+1]>200)d[i+3]=0;}
+  g.putImageData(im,0,0);
+  if(ng)ng.clearRect(0,0,W,H);
+}
+
+// 人行道帶（G0 的 v∈[vF,1] 全寬）：混凝土＋分縫、路緣線、停車帶柏油；回傳路緣 v
+function sidewalk(ctx,T,vF,kerbPx){
+  const {A,g,G0,bw,bh}=ctx,{poly,lineP}=T;
+  const P=(u,v)=>A.paraPt559(G0,u,v);
+  const vK=Math.min(1,vF+kerbPx/(16*bh));
+  poly(g,[P(0,vF),P(1,vF),P(1,1),P(0,1)],'#5d5c58');
+  poly(g,[P(0,vF),P(1,vF),P(1,vK),P(0,vK)],'#b3b0a7');
+  const n=Math.max(2,R(bw*32/11));
+  for(let i=1;i<n;i++)lineP(g,P(i/n,vF),P(i/n,vK),'#a5a299');
+  lineP(g,P(0,vK),P(1,vK),'#8c8981');
+  return vK;
+}
+
+// 褪色油漆廣告（畫在背光端牆上：faded 面板＋兩行「字」＋底線）；x0..x0+w 欄、從各欄牆腳算起 top..top+h 列
+function ghostSign(T,g,a,b,H,x0,w,top,h,pal){
+  const {rc,foot}=T;
+  for(let x=x0;x<x0+w;x++){const y=foot(a,b,x)-H+top,k=x-x0;
+    rc(g,x,y,1,h,pal[0]);
+    if(k>=1&&k<w-1&&(k%3)!==0)rc(g,x,y+2,1,2,pal[1]);
+    if(h>=9&&k>=2&&k<w-2&&(k%3)!==2)rc(g,x,y+6,1,1,pal[1]);
+    if(h>=12&&k>=1&&k<w-1)rc(g,x,y+h-3,1,1,pal[2]);}
+}
+const GHOST=[['rgba(28,40,80,.28)','rgba(238,232,214,.34)','rgba(238,232,214,.18)'],['rgba(150,32,26,.28)','rgba(242,232,200,.34)','rgba(242,232,200,.18)'],
+             ['rgba(20,20,24,.24)','rgba(236,228,200,.32)','rgba(236,228,200,.16)'],['rgba(236,226,196,.18)','rgba(22,20,18,.30)','rgba(22,20,18,.16)']];
+
+// 店面（兩個原型共用）：勒腳、大玻璃（櫥窗擺設）、橫窗、招牌帶＋店名色塊、內縮入口、遮陽篷、夜光
+// 參數：Cs 量體、x 範圍 [xa,xb]（不含柱）、sign=[bg,letter]、awn=[c1,c2|null]|null、door 側、rowSign=招牌帶起始列（自牆腳）、signH
+function storefront(T,g,Cs,xa,xb,o){
+  const {sh,rc,rcN,lit,foot}=T;
+  const GLASS='#4a6272',GLASS_T='#7d9cab';
+  const f=(x)=>foot(Cs.W,Cs.S,x);
+  const wi=xb-xa+1;
+  for(let x=xa;x<=xb;x++){const y=f(x);
+    rc(g,x,y-2,1,2,o.bulk);rc(g,x,y-8,1,6,GLASS);rc(g,x,y-8,1,1,sh(GLASS,16));rc(g,x,y-10,1,2,GLASS_T);
+    rc(g,x,y-10-o.signH,1,o.signH,o.sign[0]);}
+  // 櫥窗擺設：玻璃底兩列的幾個色點
+  const DISP=['#c94a3a','#d9b23a','#3a7a52','#e8dcc0','#2a4a8a','#c98a3a'];
+  for(let x=xa+1;x<xb;x+=2+(((x*7)>>1)&1)){if(o.rand()<.55)rc(g,x,f(x)-4,1,(o.rand()<.5?1:2),DISP[(o.rand()*DISP.length)|0]);}
+  // 店名色塊（2 亮 1 空）
+  const tw=Math.max(2,Math.min(wi-2,4+((o.rand()*9)|0))),tx=xa+((wi-tw)>>1),ry=o.signH>=3?11:11;
+  for(let x=tx;x<tx+tw;x++){if(((x-tx)%3)===2)continue;rc(g,x,f(x)-ry-1,1,1,o.sign[1]);}
+  // 中挺（玻璃夠寬）
+  if(wi>=12){const mx=xa+(wi>>1);rc(g,mx,f(mx)-8,1,6,sh(GLASS,-22));}
+  // 內縮入口：門扇 3 欄、左右門框暗 1 欄、門檻、把手；門上橫窗留著（夜裡會亮）
+  const dx=o.doorSide?xb-3:xa+1,dy=f(dx+1);
+  rc(g,dx-1,dy-8,1,8,'#1e2422');rc(g,dx+3,dy-8,1,8,'#1e2422');
+  rc(g,dx,dy-8,3,8,o.door);rc(g,dx+1,dy-8,1,7,sh(o.door,-18));rc(g,dx,dy-6,3,1,sh(o.door,14));rc(g,dx+(o.doorSide?0:2),dy-4,1,1,'#d8b860');
+  rc(g,dx,dy-1,3,1,'#9a9488');
+  // 夜光：玻璃、橫窗、門上橫窗、店招
+  const on=o.rand()<.72;
+  if(on){for(let x=xa;x<=xb;x++){if(x>=dx-1&&x<=dx+3)continue;const y=f(x);lit(x,y-8,1,6,'rgba(255,222,150,.88)');lit(x,y-10,1,2,'rgba(255,238,196,.92)');}}
+  if(on||o.rand()<.5)lit(dx,dy-10,3,2,'#ffe4a8');
+  if(o.signLit){for(let x=tx;x<tx+tw;x++){if(((x-tx)%3)===2)continue;lit(x,f(x)-ry-1,1,1,'#fff0c0');}lit(tx-1,f(tx)-10-o.signH,tw+2,o.signH,'rgba(255,230,170,.22)');}
+  // 遮陽篷：貼在 y-9 列，外凸 1 單位（-2,+1）：欄 x 的第 d 列對應牆位 u=x+d；條紋沿牆每 2px 換色；外緣稍暗、垂幕更暗；篷下玻璃變暗
+  if(o.awn){const [c1,c2]=o.awn,xlo=o.first?xa:xa-2;
+    const colAt=(u)=>c2?((((u-xa)>>1)&1)?c2:c1):c1;
+    for(let x=xlo;x<=xb;x++){const yx=f(x);
+      for(let d=0;d<=2;d++){const u=x+d;if(u<xa||u>xb)continue;rcN(x,yx-9+d,1,1,d===2?sh(colAt(u),-14):colAt(u));}
+      if(x+2>=xa&&x+2<=xb)rcN(x,yx-6,1,1,sh(colAt(x+2),-42));}
+    for(let x=xa;x+2<=xb;x++){if(x>=dx-1&&x<=dx+3)continue;rc(g,x,f(x)-5,1,1,sh(GLASS,-12));}}
+  return {dx,dy};
+}
+
+// 後翼（深街區的店屋後段矮一層）：只看得到端牆、屋頂；正面被前段蓋住（仍鋪素磚防止圓整縫隙）
+function rearWing(ctx,T,Cr,Hr,nFr,brick,stone,S){
+  const {A,g,rand}=ctx,{sh,rc,lit,poly,lineP,foot,cols,wall,lerp,tops,clearMass,dh}=T;
+  const brickR=sh(brick,-46);
+  clearMass(Cr,Hr);
+  wall(g,Cr.W,Cr.S,Hr,brick);
+  wall(g,Cr.S,Cr.E,Hr,brickR);
+  const xrS=R(Cr.S[0]),xrE=R(Cr.E[0]),DXr=xrE-xrS,fE=(x)=>foot(Cr.S,Cr.E,x);
+  cols(Cr.S,Cr.E,(x,y)=>{rc(g,x,y-1,1,1,sh(brickR,-16));rc(g,x,y-Hr,1,1,sh(stone,-40));rc(g,x,y-Hr+1,1,1,sh(brickR,-4));rc(g,x,y-Hr+3,1,1,sh(stone,-52));rc(g,x,y-Hr+4,1,1,sh(brickR,-14));});
+  if(DXr>=10){const wx=xrS+R(DXr*.5),yw=fE(wx+1);
+    for(let f=0;f<nFr;f++)dh(wx,yw-14-1-f*8,3,4,'#2e3c46',sh(stone,-56),rand()<.2,'#e8c47a');
+    if(rand()<.7)dh(wx,yw-3,3,4,'#2a3640',sh(stone,-56),rand()<.25,'#e8c47a');}
+  const Ct=tops(Cr,Hr);
+  poly(g,[Ct.N,Ct.E,Ct.S,Ct.W],S.roof);
+  lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.S[0],Ct.S[1]-1],sh(stone,-4));lineP(g,[Ct.S[0],Ct.S[1]-1],[Ct.E[0],Ct.E[1]-1],sh(stone,-30));
+  lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.N[0],Ct.N[1]-1],sh(stone,-12));lineP(g,[Ct.N[0],Ct.N[1]-1],[Ct.E[0],Ct.E[1]-1],sh(stone,-12));
+  if(Ct.S[1]-Ct.N[1]>=6){lineP(g,[Ct.W[0]+1,Ct.W[1]],[Ct.N[0]+1,Ct.N[1]],sh(brickR,-6));lineP(g,[Ct.N[0]+1,Ct.N[1]],[Ct.E[0]-1,Ct.E[1]],sh(brick,-8));}
+  const rp=(u,vv)=>{const p=A.paraPt559(Ct,u,vv);return [R(p[0]),R(p[1])-1];};
+  if(rand()<.6&&DXr>=8){const p=lerp(Ct.S,Ct.E,.5),px=R(p[0]),py=R(p[1])-1;if(py-6>=2){rc(g,px-1,py-4,1,4,sh(brick,2));rc(g,px,py-4,1,4,sh(brick,-40));rc(g,px-1,py-5,2,1,'#3a3a3c');ctx.chim&&ctx.chim(px-1,py-6,'#3a3a3c');}}
+  if(rand()<.5&&DXr>=10){const p=rp(.5,.5),px=p[0],py=p[1];if(py-3>=2){rc(g,px-1,py-2,3,2,'#8d959b');rc(g,px-1,py-1,3,1,'#6b8898');rc(g,px+2,py-2,1,2,'#5f666c');if(rand()<.4)lit(px-1,py-1,3,1,'rgba(255,226,160,.55)');}}
+  if(rand()<.5){const p=rp(.3,.3),px=p[0],py=p[1];if(py-4>=2){rc(g,px,py-3,1,3,'#8e9499');rc(g,px-1,py-4,3,1,'#b9bec3');}}
+}
+
+// ---------------------------------------------------------------- lv1：Main Street 店屋列
+function mainStreet(ctx,T,C,vFront){
+  const {A,g,ng,rand,bw,bh,G0}=ctx,{sh,rc,rcN,lit,poly,lineP,foot,cols,wall,sub,lerp,tops,clearMass,dh,litCol,lampOld,oldCar,hydrant,mailbox,bench}=T;
+  const gf=14,fh=8,cr=3;
+  const yN=R(C.N[1]);
+  const nFmax=Math.max(1,Math.floor((yN-2-gf-1-cr-2)/fh));
+  const DXall=R(C.E[0])-R(C.S[0]);
+  const BRICK=[['#9a4a3a','#e2d6bf'],['#b25a3e','#ead9bf'],['#7e3b30','#d9cbb2'],['#b8905e','#efe4cc'],['#d5c39d','#f4ead6'],['#8f5a48','#e6d8c0'],['#a3624a','#eedfc4'],['#c07a4a','#f0e2c8']];
+  const AWN=[['#3a7a52','#e9e3d3'],['#a83a34','#ece5d5'],['#2d4f7a','#e9e3d3'],['#6a4a2a','#dccaa8'],['#2f5a3a',null],['#6e2a2a',null],['#2a3a5a',null],['#8a6a2a',null],['#4a4a50',null]];
+  const SIGN=[['#1f2f45','#f0e6c0'],['#8a2a24','#f2d78a'],['#2d5a3a','#efe6cf'],['#e2d6bf','#2a2622'],['#3a2a20','#e6c98a'],['#24343c','#d8e6e2'],['#6a3a1a','#f0e0b0']];
+  const DOOR=['#2a2420','#3a2c22','#4a2a2a','#1f2f45','#2e4a2c','#5a3a1a'];
+  const IRON='#26302c',GLASS='#4a6272',GLASS_R='#2e3c46';
+  const LX=C.S[0]-C.W[0],nH=Math.max(1,R(LX/21));
+  const bx=[C.W[0]];for(let i=1;i<nH;i++)bx.push(R(C.W[0]+LX*i/nH+(rand()-.5)*4));bx.push(C.S[0]);
+  const stores=[];
+  let lastB=-1;
+  for(let i=0;i<nH;i++){
+    let bi=(rand()*BRICK.length)|0;if(bi===lastB)bi=(bi+1+((rand()*3)|0))%BRICK.length;lastB=bi;
+    const brick=sh(BRICK[bi][0],R((rand()-.5)*10)),stone=BRICK[bi][1];
+    const nF=Math.min(nFmax,1+(rand()<.65?1:0));
+    const tall=rand()<.25&&(gf+nF*fh+1+cr+4+3<=yN-2);
+    stores.push({brick,stone,nF,pp:tall?4:2,awn:rand()<.72?AWN[(rand()*AWN.length)|0]:null,sign:SIGN[(rand()*SIGN.length)|0],door:DOOR[(rand()*DOOR.length)|0],
+      doorSide:rand()<.5?0:1,belt:rand()<.45,name:rand()<.55,ghost:rand()<.65,barber:rand()<.12,blade:rand()<.4,sky:rand()<.5,chim:rand()<.7,vent:rand()<.4,
+      bulk:rand()<.5?'#3a3a3e':'#5a3a28',signLit:rand()<.5,roof:sh('#655a4c',R((rand()-.5)*28)),decor:rand()<.4,rear:DXall>=30&&rand()<.55});
+  }
+  for(let i=0;i<nH;i++){
+    const S=stores[i],u0=i===0?0:(bx[i]-C.W[0])/LX,u1=i===nH-1?1:(bx[i+1]-C.W[0])/LX;
+    const pp=S.pp,H=gf+S.nF*fh+1+cr+pp;
+    if(S.rear){rearWing(ctx,T,sub(C,u0,u1,0,.42),gf+Math.max(0,S.nF-1)*fh+1+cr+2,Math.max(0,S.nF-1),S.brick,S.stone,S);}
+    const Cs=S.rear?sub(C,u0,u1,.42,1):sub(C,u0,u1,0,1);
+    clearMass(Cs,H+3);
+    const xs0=R(Cs.W[0]),xsS=R(Cs.S[0]),xsE=R(Cs.E[0]),wI=xsS-xs0+1,DXe=xsE-xsS;
+    const brick=S.brick,stone=S.stone,brickR=sh(brick,-46);
+    const fF=(x)=>foot(Cs.W,Cs.S,x),fE=(x)=>foot(Cs.S,Cs.E,x);
+    // ---- 端牆（背光）先畫；正面之後蓋住轉角欄
+    wall(g,Cs.S,Cs.E,H,brickR);
+    cols(Cs.S,Cs.E,(x,y)=>{if(x===xsS)return;
+      rc(g,x,y-1,1,1,sh(brickR,-16));rc(g,x,y-gf,1,1,sh(stone,-60));
+      if(S.belt)for(let f=0;f<S.nF;f++)rc(g,x,y-gf-1-f*fh,1,1,sh(brickR,10));
+      rc(g,x,y-H,1,1,sh(stone,-40));rc(g,x,y-H+pp+1,1,1,sh(stone,-52));rc(g,x,y-H+pp+2,1,1,((x-xsS)%3===1)?sh(stone,-74):sh(stone,-56));rc(g,x,y-H+pp+3,1,1,sh(brickR,-14));});
+    if(S.ghost&&DXe>=12){const gw=Math.min(DXe-5,18),gh=Math.min(S.nF*fh-2,14);ghostSign(T,g,Cs.S,Cs.E,H,xsS+2,gw,pp+cr+2,gh,GHOST[(rand()*GHOST.length)|0]);}
+    if(DXe>=14){const wx=xsE-5,yw=fE(wx+1);for(let f=0;f<S.nF;f++)dh(wx,yw-gf-1-f*fh,3,4,GLASS_R,sh(stone,-56),rand()<.22,'#e8c47a');
+      if(rand()<.5){rc(g,wx,yw-7,3,1,sh(stone,-56));rc(g,wx,yw-6,3,5,'#2a2622');rc(g,wx+1,yw-6,1,5,'#1e1c1a');}}          // 後門
+    {const xp=xsS+1;rc(g,xp,fE(xp)-H+pp+cr+1,1,H-pp-cr-2,'#3a3d42');}                                                        // 落水管
+    // ---- 正面
+    for(let x=xs0;x<=xsS;x++){const y=fF(x);
+      rc(g,x,y-H,1,H,brick);
+      if(S.belt)for(let f=0;f<S.nF;f++)rc(g,x,y-gf-1-f*fh,1,1,sh(stone,-6));
+      rc(g,x,y-gf,1,1,stone);                                              // 店面簷
+      rc(g,x,y-H,1,1,sh(stone,10));                                        // 壓頂
+      rc(g,x,y-H+1,1,pp,S.decor?(((x-xs0)&1)?sh(brick,-22):sh(brick,-2)):sh(brick,-4));   // 女兒牆（部分戶有花磚）
+      rc(g,x,y-H+pp+1,1,1,stone);                                          // 簷板
+      rc(g,x,y-H+pp+2,1,1,((x-xs0)%3===1)?sh(stone,-44):sh(stone,-6));     // 托架
+      rc(g,x,y-H+pp+3,1,1,sh(brick,-36));                                  // 簷下陰影
+    }
+    const xa=xs0+1,xb=xsS-1;
+    const sf=storefront(T,g,Cs,xa,xb,{bulk:S.bulk,sign:S.sign,signH:3,door:S.door,doorSide:S.doorSide,awn:S.awn,signLit:S.signLit,rand,first:i===0});
+    // 鑄鐵柱（一樓）＋上層戶界
+    {const y0=fF(xs0),y1=fF(xsS);rc(g,xs0,y0-gf,1,gf,IRON);rc(g,xsS,y1-gf,1,gf,IRON);rc(g,xsS,y1-H+pp+cr+1,1,H-pp-cr-1-gf,sh(brick,-18));
+      if(S.barber){const BP=['#c8342a','#eeeeee','#2a4a8a','#eeeeee','#c8342a'];for(let k=0;k<5;k++)rc(g,xs0,y0-9+k,1,1,BP[k]);}}
+    // 上層雙懸窗（3×5，節距 5）
+    {const wi=xb-xa+1,nW=Math.max(1,Math.floor((wi+2)/5)),pad=Math.max(0,(wi-(5*nW-2))>>1);
+      for(let j=0;j<nW;j++){const wx=xa+pad+5*j,yx=fF(wx+1);
+        for(let f=0;f<S.nF;f++){dh(wx,yx-gf-1-f*fh,3,4,GLASS,stone,rand()<.32,litCol(rand()));if(f>0&&rand()<.08)rc(g,wx,yx-gf-2-f*fh,2,1,'#c3c8cd');}}}
+    // 側懸招牌（掛在左柱、凸向左＝外凸方向近似）；第一戶不掛（會出地界）
+    if(S.blade&&i>0){const ys=fF(xs0),sc=SIGN[(rand()*SIGN.length)|0];rcN(xs0-2,ys-20,2,1,IRON);rcN(xs0-3,ys-19,3,3,sc[0]);rcN(xs0-2,ys-18,1,1,sc[1]);
+      if(rand()<.5)lit(xs0-3,ys-19,3,3,'rgba(255,236,190,.85)');}
+    // 名牌方塊（女兒牆中央，凸出壓頂 3 列）
+    if(S.name&&wI>=10){const xc=(xs0+xsS)>>1,yc=fF(xc),hw=wI>=14?3:2;if(yc-H-3>=2){rc(g,xc-hw,yc-H-2,2*hw+1,3,stone);rc(g,xc-hw,yc-H-3,2*hw+1,1,sh(stone,12));rc(g,xc-hw+1,yc-H-1,2*hw-1,1,sh(stone,-34));rc(g,xc+hw,yc-H-2,1,3,sh(stone,-22));}}
+    // ---- 屋頂：油毛氈、壓頂線、後側女兒牆內面、煙囪（戶界後段）、天窗、通風管
+    const Ct=tops(Cs,H);
+    poly(g,[Ct.N,Ct.E,Ct.S,Ct.W],S.roof);
+    lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.S[0],Ct.S[1]-1],sh(stone,14));lineP(g,[Ct.S[0],Ct.S[1]-1],[Ct.E[0],Ct.E[1]-1],sh(stone,-30));
+    lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.N[0],Ct.N[1]-1],sh(stone,-12));lineP(g,[Ct.N[0],Ct.N[1]-1],[Ct.E[0],Ct.E[1]-1],sh(stone,-12));
+    if(Ct.S[1]-Ct.N[1]>=6){lineP(g,[Ct.W[0]+1,Ct.W[1]],[Ct.N[0]+1,Ct.N[1]],sh(brickR,-6));lineP(g,[Ct.N[0]+1,Ct.N[1]],[Ct.E[0]-1,Ct.E[1]],sh(brick,-8));}
+    const rp=(u,vv)=>{const p=A.paraPt559(Ct,u,vv);return [R(p[0]),R(p[1])-1];};
+    {const nSeam=Math.floor(DXe/9);for(let k=1;k<nSeam;k++){const t=k/nSeam,a=lerp(Ct.W,Ct.N,t),b=lerp(Ct.S,Ct.E,t);lineP(g,[a[0]+1,a[1]],[b[0]-1,b[1]],sh(S.roof,8));}}   // 油毛氈接縫
+    if(S.chim&&DXe>=8){const p=lerp(Ct.S,Ct.E,.68),px=R(p[0]),py=R(p[1])-1;if(py-6>=2){rc(g,px-1,py-4,1,4,sh(brick,2));rc(g,px,py-4,1,4,sh(brick,-40));rc(g,px-1,py-5,2,1,'#3a3a3c');rc(g,px-1,py,3,1,'rgba(20,26,22,.3)');ctx.chim&&ctx.chim(px-1,py-6,'#3a3a3c');}}
+    if(S.sky&&DXe>=10&&wI>=10){const p=rp(.5,.5),px=p[0],py=p[1];if(py-3>=2){rc(g,px-1,py-2,3,2,'#8d959b');rc(g,px-1,py-1,3,1,'#6b8898');rc(g,px+2,py-2,1,2,'#5f666c');rc(g,px-1,py,4,1,'rgba(20,26,22,.28)');if(rand()<.4)lit(px-1,py-1,3,1,'rgba(255,226,160,.6)');}}
+    if(S.vent&&DXe>=8){const p=rp(.25,.35),px=p[0],py=p[1];if(py-4>=2){rc(g,px,py-3,1,3,'#8e9499');rc(g,px-1,py-4,3,1,'#b9bec3');}}
+    S.xs0=xs0;S.xsS=xsS;S.u0=u0;S.u1=u1;S.door=sf;
+  }
+  // ---- 接地暗線
+  cols(C.W,C.S,(x,y)=>rc(g,x,y,1,1,'rgba(16,22,18,.42)'));cols(C.S,C.E,(x,y)=>rc(g,x,y,1,1,'rgba(16,22,18,.42)'));
+  return stores;
+}
+
+// ---------------------------------------------------------------- lv2：芝加哥式商業樓
+function chicago(ctx,T,C){
+  const {A,g,ng,rand,bw,bh}=ctx,{sh,rc,rcN,lit,poly,lineP,foot,cols,wall,sub,lerp,tops,clearMass,dh,litCol}=T;
+  const gf=13,fh=8,cr=4;
+  const yN=R(C.N[1]);
+  const nFmax=Math.max(2,Math.floor((yN-2-gf-1-cr-2)/fh));
+  const BRICK=[['#8e4a3a','#dccbb0',0],['#a7583f','#e4d4b8',0],['#c4a06e','#f0e6d0',1],['#d9ccae','#f6efe0',1],['#6e4a44','#d4c3a8',2],['#9a8a76','#e6dfd0',2],['#7d4335','#d9c8ad',0],['#b07a5a','#ecdcc0',1]];   // [磚,石,色系]
+  const AWN=[['#3a7a52','#e9e3d3'],['#a83a34','#ece5d5'],['#2d4f7a','#e9e3d3'],['#2f5a3a',null],['#6e2a2a',null],['#4a4a50',null]];
+  const SIGN=[['#1f2f45','#f0e6c0'],['#8a2a24','#f2d78a'],['#2d5a3a','#efe6cf'],['#e2d6bf','#2a2622'],['#24343c','#d8e6e2'],['#3a2a20','#e6c98a']];
+  const DOOR=['#2a2420','#3a2c22','#4a2a2a','#1f2f45'];
+  const GLASS='#48607a',GLASS_R='#2c3a4a',IRON='#3a3d44';
+  const LX=C.S[0]-C.W[0],nS=Math.max(1,R(LX/38));
+  const bx=[C.W[0]];for(let i=1;i<nS;i++)bx.push(R(C.W[0]+LX*i/nS+(rand()-.5)*6));bx.push(C.S[0]);
+  const DXall=R(C.E[0])-R(C.S[0]);
+  const secs=[];let lastFam=-1;
+  for(let s=0;s<nS;s++){
+    let bi=(rand()*BRICK.length)|0;
+    if(BRICK[bi][2]===lastFam){for(let t=0;t<4&&BRICK[bi][2]===lastFam;t++)bi=(rand()*BRICK.length)|0;}   // 相鄰段換色系（紅／黃褐／灰暗）
+    lastFam=BRICK[bi][2];
+    const brick=sh(BRICK[bi][0],R((rand()-.5)*8)),stone=BRICK[bi][1];
+    const nF=Math.min(nFmax,4+(((bw>=2||bh>=2)&&rand()<.5)?1:0));
+    const tall=rand()<.3&&(gf+nF*fh+1+cr+4+3<=yN-2);
+    const r=rand(),wt=r<.42?'chicago':r<.75?'paired':'arch';
+    secs.push({brick,stone,nF,pp:tall?4:2,wt,belt:wt==='chicago'||rand()<.5,name:rand()<.6,ghost:rand()<.7,esc:rand()<.55,tank:rand()<.4,board:rand()<.35,bulk:rand()<.5,
+      sky:rand()<.6,chim:rand()<.6,roof:sh('#61594e',R((rand()-.5)*28)),bulkC:rand()<.5?'#3a3a3e':'#2c3a3a',entrance:rand()<.5?0:1,quoin:rand()<.6,piers:rand()<.75,rear:DXall>=36&&rand()<.5});
+  }
+  for(let s=0;s<nS;s++){
+    const S=secs[s],u0=s===0?0:(bx[s]-C.W[0])/LX,u1=s===nS-1?1:(bx[s+1]-C.W[0])/LX;
+    const pp=S.pp,H=gf+S.nF*fh+1+cr+pp;
+    if(S.rear){rearWing(ctx,T,sub(C,u0,u1,0,.4),gf+(S.nF-1)*fh+1+cr+2,S.nF-1,S.brick,S.stone,S);}
+    const Cs=S.rear?sub(C,u0,u1,.4,1):sub(C,u0,u1,0,1);
+    clearMass(Cs,H+3);
+    const xs0=R(Cs.W[0]),xsS=R(Cs.S[0]),xsE=R(Cs.E[0]),wI=xsS-xs0+1,DXe=xsE-xsS;
+    const brick=S.brick,stone=S.stone,brickR=sh(brick,-46),stoneR=sh(stone,-56);
+    const fF=(x)=>foot(Cs.W,Cs.S,x),fE=(x)=>foot(Cs.S,Cs.E,x);
+    // ---- 端牆（背光）：窗列、逃生梯、ghost sign、落水管
+    wall(g,Cs.S,Cs.E,H,brickR);
+    cols(Cs.S,Cs.E,(x,y)=>{if(x===xsS)return;
+      rc(g,x,y-1,1,1,sh(brickR,-16));rc(g,x,y-gf,1,1,stoneR);
+      if(S.belt)for(let f=0;f<S.nF;f++)rc(g,x,y-gf-1-f*fh,1,1,sh(brickR,10));
+      rc(g,x,y-H,1,1,sh(stone,-40));rc(g,x,y-H+pp+1,1,1,sh(stone,-46));rc(g,x,y-H+pp+2,1,1,sh(stone,-54));rc(g,x,y-H+pp+3,1,1,((x-xsS)%3===1)?sh(stone,-76):sh(stone,-58));rc(g,x,y-H+pp+4,1,1,sh(brickR,-14));});
+    const wxs=[];if(DXe>=24){wxs.push(xsS+R(DXe*.62));wxs.push(xsS+R(DXe*.86));}else if(DXe>=12)wxs.push(xsS+R(DXe*.68));
+    for(const wx of wxs){const yw=fE(wx+1);for(let f=0;f<S.nF;f++)dh(wx,yw-gf-1-f*fh,3,5,GLASS_R,stoneR,rand()<.24,'#e8c47a');
+      dh(wx,yw-2,3,5,sh(GLASS_R,-6),stoneR,rand()<.3,'#e8c47a');}
+    if(S.ghost&&DXe>=14){const gw=Math.min(Math.max(8,(wxs.length?wxs[0]-xsS-4:DXe-5)),20),gh=Math.min(2*fh-2,14);ghostSign(T,g,Cs.S,Cs.E,H,xsS+2,gw,pp+cr+3,gh,GHOST[(rand()*GHOST.length)|0]);}
+    if(S.esc&&wxs.length){const ex=wxs[0]-1,ew=5,yw=fE(ex+2);
+      for(let f=0;f<S.nF;f++){const sb=yw-gf-1-f*fh;rc(g,ex,sb+1,ew,1,IRON);for(let k=0;k<ew;k+=2)rc(g,ex+k,sb-1,1,2,IRON);
+        if(f<S.nF-1){if(f%2===0)lineP(g,[ex+ew-1,sb],[ex,sb-fh+2],sh(IRON,10));else lineP(g,[ex,sb],[ex+ew-1,sb-fh+2],sh(IRON,10));}}
+      rc(g,ex+ew-1,yw-gf-1,1,gf-4,IRON);}
+    {const xp=xsS+1;rc(g,xp,fE(xp)-H+pp+cr+1,1,H-pp-cr-2,'#3a3d42');}
+    // ---- 正面：磚、樓板帶、店面簷、簷口（4 列）、女兒牆、壓頂
+    for(let x=xs0;x<=xsS;x++){const y=fF(x);
+      rc(g,x,y-H,1,H,brick);
+      if(S.belt)for(let f=0;f<S.nF;f++)rc(g,x,y-gf-1-f*fh,1,1,sh(stone,-8));
+      rc(g,x,y-gf,1,1,stone);
+      rc(g,x,y-H,1,1,sh(stone,12));
+      rc(g,x,y-H+1,1,pp,pp>=4?(((x-xs0)&1)?sh(brick,-20):sh(brick,-2)):sh(brick,-4));
+      rc(g,x,y-H+pp+1,1,1,sh(stone,16));rc(g,x,y-H+pp+2,1,1,stone);
+      rc(g,x,y-H+pp+3,1,1,((x-xs0)%3===1)?sh(stone,-46):sh(stone,-4));
+      rc(g,x,y-H+pp+4,1,1,sh(brick,-38));}
+    // 開間：芝加哥窗 9 寬（2｜3｜2，節距 11）；成對／拱窗 7 寬（3｜3，節距 9）
+    const bp=S.wt==='chicago'?11:9,bwid=bp-2,xa=xs0+1,xb=xsS-1,wi=xb-xa+1;
+    const nB=Math.max(1,Math.floor((wi+2)/bp)),pad=Math.max(0,(wi-(nB*bp-2))>>1);
+    const bayX=[];for(let j=0;j<nB;j++)bayX.push(xa+pad+j*bp);
+    if(S.piers){for(let j=0;j<=nB;j++){const px=j<nB?bayX[j]-1:bayX[nB-1]+bwid;if(px<xa||px>xb)continue;const y=fF(px);rc(g,px,y-H+pp+cr+1,1,H-pp-cr-1-gf,sh(brick,-14));}}
+    for(let j=0;j<nB;j++){const x0=bayX[j],yx=fF(x0+(bwid>>1));
+      for(let f=0;f<S.nF;f++){const sb=yx-gf-1-f*fh,top=(S.wt==='arch'&&f===S.nF-1);
+        if(S.wt==='chicago'){
+          rc(g,x0,sb-5,9,1,stone);rc(g,x0,sb-4,9,4,GLASS);rc(g,x0,sb-4,8,1,sh(GLASS,14));rc(g,x0+2,sb-4,1,4,sh(stone,-24));rc(g,x0+6,sb-4,1,4,sh(stone,-24));
+          rc(g,x0,sb-2,2,1,sh(GLASS,26));rc(g,x0+7,sb-2,2,1,sh(GLASS,26));rc(g,x0,sb,9,1,sh(stone,-8));rc(g,x0,sb-7,9,1,sh(brick,-8));
+          const lc=litCol(rand(),true);if(rand()<.4)lit(x0+3,sb-4,3,4,lc);if(rand()<.3)lit(x0,sb-4,2,4,lc);if(rand()<.3)lit(x0+7,sb-4,2,4,lc);
+        }else{
+          for(const ox of [0,4]){const x=x0+ox;dh(x,sb,3,5,GLASS,stone,rand()<.38,litCol(rand(),true));
+            if(top){rc(g,x,sb-6,3,1,GLASS);rc(g,x,sb-6,1,1,stone);rc(g,x+2,sb-6,1,1,stone);rc(g,x,sb-7,3,1,stone);}}
+          rc(g,x0+3,sb-5,1,5,sh(stone,-24));
+          if(S.wt==='arch'&&!top&&f>0)rc(g,x0,sb-7,7,1,sh(brick,-10));
+        }}}
+    // 一樓：店面分段（≈17px 一間）＋主入口（石框、門上橫窗、門牌）
+    const nSF=Math.max(1,R(wi/17)),ex=S.entrance&&nSF>=2?(nSF>>1):-1;
+    const sfb=[];for(let k=0;k<=nSF;k++)sfb.push(xa+R(wi*k/nSF));
+    let entrance=null;
+    for(let k=0;k<nSF;k++){let a=sfb[k],b=sfb[k+1]-1;
+      if(k===ex){const dx=a+((b-a-2)>>1);entrance={dx};a=dx+4;}
+      if(k===ex-1&&entrance===null){}
+      if(b-a+1<8)continue;
+      const y0=fF(a),y1=fF(b);rc(g,a,y0-gf,1,gf,sh(stone,-20));rc(g,b,y1-gf,1,gf,sh(stone,-20));
+      storefront(T,g,Cs,a+1,b-1,{bulk:S.bulkC,sign:SIGN[(rand()*SIGN.length)|0],signH:2,door:DOOR[(rand()*DOOR.length)|0],doorSide:rand()<.5?0:1,
+        awn:rand()<.5?AWN[(rand()*AWN.length)|0]:null,signLit:rand()<.45,rand,first:s===0&&k===0});}
+    if(entrance){const dx=entrance.dx,dy=fF(dx+1);
+      rc(g,dx-1,dy-12,5,12,stone);rc(g,dx-1,dy-12,5,1,sh(stone,14));
+      rc(g,dx,dy-10,3,2,'#9fb2c2');rc(g,dx,dy-8,3,8,'#2a2420');rc(g,dx+1,dy-8,1,7,'#1c1a18');rc(g,dx,dy-6,3,1,'#3a3430');rc(g,dx+2,dy-4,1,1,'#d8b860');
+      rc(g,dx,dy-11,3,1,sh(stone,-40));rc(g,dx+1,dy-11,1,1,'#2a2622');rc(g,dx-1,dy-1,5,1,'#9a9488');
+      lit(dx,dy-10,3,2,'#ffe4a8');}
+    // 轉角隅石（整列兩端）
+    if(S.quoin){for(const [x,isR] of [[xs0,s===0],[xsS,s===nS-1]]){if(!isR)continue;const y=fF(x);for(let yy=y-H+pp+cr+1;yy<y-gf;yy++)rc(g,x,yy,1,1,((yy>>1)&1)?sh(stone,-8):sh(brick,-14));}}
+    // 名牌
+    if(S.name&&wI>=14){const xc=(xs0+xsS)>>1,yc=fF(xc);if(yc-H-3>=2){rc(g,xc-3,yc-H-2,7,3,stone);rc(g,xc-3,yc-H-3,7,1,sh(stone,12));rc(g,xc-2,yc-H-1,5,1,sh(stone,-34));rc(g,xc+3,yc-H-2,1,3,sh(stone,-22));}}
+    // ---- 屋頂
+    const Ct=tops(Cs,H);
+    poly(g,[Ct.N,Ct.E,Ct.S,Ct.W],S.roof);
+    lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.S[0],Ct.S[1]-1],sh(stone,14));lineP(g,[Ct.S[0],Ct.S[1]-1],[Ct.E[0],Ct.E[1]-1],sh(stone,-30));
+    lineP(g,[Ct.W[0],Ct.W[1]-1],[Ct.N[0],Ct.N[1]-1],sh(stone,-12));lineP(g,[Ct.N[0],Ct.N[1]-1],[Ct.E[0],Ct.E[1]-1],sh(stone,-12));
+    if(Ct.S[1]-Ct.N[1]>=6){lineP(g,[Ct.W[0]+1,Ct.W[1]],[Ct.N[0]+1,Ct.N[1]],sh(brickR,-6));lineP(g,[Ct.N[0]+1,Ct.N[1]],[Ct.E[0]-1,Ct.E[1]],sh(brick,-8));
+      lineP(g,[Ct.W[0]+2,Ct.W[1]+1],[Ct.N[0]+2,Ct.N[1]+1],sh(brickR,-2));lineP(g,[Ct.N[0]+2,Ct.N[1]+1],[Ct.E[0]-2,Ct.E[1]+1],sh(brick,-4));}
+    const rp=(u,vv)=>{const p=A.paraPt559(Ct,u,vv);return [R(p[0]),R(p[1])-1];};
+    const RW=Ct.S[0]-Ct.W[0],RD=Ct.E[0]-Ct.S[0];
+    {const nSeam=Math.floor(RD/9);for(let i=1;i<nSeam;i++){const t=i/nSeam,a=lerp(Ct.W,Ct.N,t),b=lerp(Ct.S,Ct.E,t);lineP(g,[a[0]+1,a[1]],[b[0]-1,b[1]],sh(S.roof,8));}}
+    // 木水塔：四腳鋼架＋平台、木桶（左亮右暗、兩道鐵箍）、錐頂
+    if(S.tank&&RW>=16&&RD>=12){const p=rp(.3+rand()*.2,.3+rand()*.2),px=p[0],py=p[1];if(py-17>=2){
+      rc(g,px-4,py+1,9,1,'rgba(20,26,22,.30)');rc(g,px-3,py-5,1,5,'#3b3733');rc(g,px+3,py-5,1,5,'#3b3733');rc(g,px,py-4,1,4,'#2f2b28');
+      lineP(g,[px-3,py-5],[px+3,py-1],'#35312d');lineP(g,[px+3,py-5],[px-3,py-1],'#35312d');rc(g,px-3,py-6,7,1,'#2f2b28');
+      rc(g,px-3,py-13,3,7,'#a8825a');rc(g,px,py-13,2,7,'#805f3e');rc(g,px+2,py-13,2,7,'#5a4030');rc(g,px-3,py-11,7,1,'#3a2e24');rc(g,px-3,py-8,7,1,'#3a2e24');
+      rc(g,px-3,py-14,7,1,'#6d6863');rc(g,px-2,py-15,5,1,'#5c5854');rc(g,px-1,py-16,3,1,'#4e4a47');rc(g,px,py-17,1,1,'#2a2826');rc(g,px-3,py-14,3,1,'#7e7973');rc(g,px-2,py-15,2,1,'#6a6661');}}
+    // 屋頂看板：兩根柱＋沿正面方向傾斜的面板（底色＋兩行字＋色塊），頂上兩顆小燈（夜亮）
+    if(S.board&&RW>=18&&RD>=8){const p=rp(.62,.82),px=p[0],py=p[1];const BB=[['#e8dcc0','#b83a2a','#2a4a8a'],['#2a4a8a','#f0e6c0','#c9a63f'],['#8a2a24','#f2d78a','#e8dcc0'],['#2d5a3a','#efe6cf','#c94a3a']];const bc=BB[(rand()*BB.length)|0];
+      const y0=py-10;if(y0-3>=2){
+        rc(g,px-4,py-4,1,4,'#3b3733');rc(g,px+3,py-2,1,2,'#3b3733');rc(g,px-5,py+1,11,1,'rgba(20,26,22,.28)');
+        for(let x=px-5;x<=px+5;x++){const yy=y0+((x-px+5)>>1);rc(g,x,yy,1,6,bc[0]);rc(g,x,yy,1,1,sh(bc[0],-30));rc(g,x,yy+5,1,1,sh(bc[0],-30));
+          const k=x-px+5;if(k>=1&&k<10&&(k%3)!==0)rc(g,x,yy+2,1,1,bc[1]);if(k>=2&&k<9&&(k%3)!==1)rc(g,x,yy+4,1,1,bc[1]);if(k>=7&&k<=9)rc(g,x,yy+1,1,1,bc[2]);}
+        rc(g,px-5,y0,1,6,sh(bc[0],-30));rc(g,px+5,y0+5,1,6,sh(bc[0],-30));
+        rc(g,px-3,y0-1+1,1,1,'#e9dca8');rc(g,px+2,y0-1+3,1,1,'#e9dca8');lit(px-3,y0,1,1,'#fff3cc');lit(px+2,y0+2,1,1,'#fff3cc');lit(px-5,y0+1,11,7,'rgba(255,236,190,.16)');}}
+    // 樓梯間（磚盒＋門）、天窗、通風管、煙囪
+    if(S.bulk&&RW>=12&&RD>=10){const p=rp(.15+rand()*.1,.55+rand()*.15),px=p[0],py=p[1];if(py-6>=2){rc(g,px-3,py-4,6,4,sh(brick,-10));rc(g,px-3,py-5,6,1,sh(brick,10));rc(g,px+2,py-4,1,4,sh(brick,-40));rc(g,px-2,py-3,1,2,'#2a2420');rc(g,px-3,py,7,1,'rgba(20,26,22,.3)');}}
+    if(S.sky&&RW>=14&&RD>=10){for(const u of [.55,.78]){const p=rp(u,.52),px=p[0],py=p[1];if(py-3>=2){rc(g,px-1,py-2,3,2,'#8d959b');rc(g,px-1,py-1,3,1,'#6b8898');rc(g,px+2,py-2,1,2,'#5f666c');rc(g,px-1,py,4,1,'rgba(20,26,22,.28)');if(rand()<.35)lit(px-1,py-1,3,1,'rgba(255,226,160,.55)');}}}
+    if(S.chim&&RD>=10){const p=rp(.9,.22),px=p[0],py=p[1];if(py-8>=2){rc(g,px-1,py-7,1,7,sh(brick,-4));rc(g,px,py-7,1,7,sh(brick,-40));rc(g,px-1,py-8,2,1,'#3a3a3c');ctx.chim&&ctx.chim(px-1,py-9,'#3a3a3c');}}
+    for(let i=0;i<2;i++){if(rand()<.5)continue;const p=rp(.2+rand()*.6,.2+rand()*.3),px=p[0],py=p[1];if(py-4>=2){rc(g,px,py-3,1,3,'#8e9499');rc(g,px-1,py-4,3,1,'#b9bec3');}}
+    S.xs0=xs0;S.xsS=xsS;S.u0=u0;S.u1=u1;
+  }
+  cols(C.W,C.S,(x,y)=>rc(g,x,y,1,1,'rgba(16,22,18,.42)'));cols(C.S,C.E,(x,y)=>rc(g,x,y,1,1,'rgba(16,22,18,.42)'));
+  return secs;
+}
+
+// ---------------------------------------------------------------- 登記
+REG.usMainStreet={name:'usMainStreet',draw(ctx){
+  const T=tools(ctx),{A,g,G0,rand,lv,bw,bh,ar}=ctx,{rc,poly,foot,lampOld,oldCar,hydrant,mailbox,bench}=T;
+  const box=(ar&&ar.box)||[0,1,0,1],hi=lv>=2;
+  const P0=(u,vv)=>A.paraPt559(G0,u,vv);
+  const para0=(u0,u1,v0,v1)=>({N:P0(u0,v0),E:P0(u1,v0),S:P0(u1,v1),W:P0(u0,v1)});
+  // shophouse 原型貼到 v=1：退 3.5px 留人行道＋路緣停車帶；office 原型本身留 [.80,1]
+  const vFront=hi?box[3]:Math.min(box[3],1-3.5/(16*bh));
+  scrub(ctx,T);
+  poly(g,[G0.N,G0.E,G0.S,G0.W],'#87888c');
+  const vK=sidewalk(ctx,T,vFront,hi?2:1.5);
+  const C=para0(box[0],box[1],box[2],vFront);
+  const units=hi?chicago(ctx,T,C):mainStreet(ctx,T,C,vFront);
+  // ---- 人行道小件：路燈在戶界（隔一戶）、消防栓在左端、郵筒／長椅偶有；老車停在路緣（1920s，顏色深）
+  const LX=G0.S[0]-G0.W[0],vL=Math.max(vFront+.2/(16*bh),vK-.5/(16*bh));
+  const lamps=[];
+  for(let i=1;i<units.length;i+=2)lamps.push(units[i].u0);
+  if(!lamps.length||units.length<=2)lamps.push(Math.min(.94,1-5/LX));
+  if(bw>=3&&lamps[0]>.3)lamps.unshift(Math.max(.06,6/LX));
+  for(const u of lamps){const p=P0(u,vL);lampOld(R(p[0]),R(p[1]));}
+  {const p=P0(Math.max(.05,3/LX),vL);hydrant(R(p[0]),R(p[1]));}
+  if(bw>=2&&rand()<.6){const p=P0(Math.min(.9,lamps[0]+7/LX),vL);mailbox(R(p[0]),R(p[1]));}
+  if(rand()<.5){const u=.25+rand()*.5,p=P0(u,vL);bench(R(p[0]),R(p[1]));}
+  const CARS=['#23252b','#2f4a36','#5b2a2c','#3a3f58','#8a7a5a','#6a6a6e','#4a3a2a'];
+  const nSlot=Math.max(1,Math.floor(LX/34)),vC=1-1.1/(16*bh);
+  for(let s=0;s<nSlot;s++){if(rand()<(nSlot===1?.55:.42))continue;let u=(s+.5)/nSlot+(rand()-.5)*(.5/nSlot);u=Math.min(1-7/LX,Math.max(7/LX,u));
+    const p=P0(u,vC);oldCar(R(p[0]),R(p[1]),CARS[(rand()*CARS.length)|0]);}
+  return {pitch:false};
+}};
+})();
+/* GROK-002 倫敦馬廄街屋（Historic England HEAG277：兩層、地面馬車拱門、樓上住屋、磚、石板、戶界煙囪）。
+   不是連棟山牆、不是半獨立凸窗、不是白灰泥維多利亞、不是公寓大樓、不是店面。逃生閥 __noUkMewsGROK2。 */
+(function(){
+'use strict';
+const REG=FACADE594;
+const R=Math.round;
+function tools(ctx){
+  const A=ctx.A,sh=A.shade;
+  const rc=(cx,x,y,w,h,c)=>{cx.fillStyle=c;cx.fillRect(R(x),R(y),w,h);};
+  const fy=(a,b,x)=>a[1]+(x-a[0])*((b[1]-a[1])/(b[0]-a[0]||1));
+  const foot=(a,b,x)=>R(fy(a,b,x));
+  const cols=(a,b,fn)=>{const x0=R(Math.min(a[0],b[0])),x1=R(Math.max(a[0],b[0]));for(let x=x0;x<=x1;x++)fn(x,foot(a,b,x));};
+  const wall=(cx,a,b,h,c)=>{cx.fillStyle=c;cols(a,b,(x,y)=>cx.fillRect(x,y-h,1,h));};
+  const poly=(cx,pts,c)=>{let y0=1e9,y1=-1e9;for(const p of pts){if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];}
+    y0=Math.max(0,Math.floor(y0));y1=Math.min(cx.canvas.height-1,Math.ceil(y1));cx.fillStyle=c;const n=pts.length;
+    for(let y=y0;y<=y1;y++){const yc=y+.5,xs=[];
+      for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];if((a[1]<=yc&&b[1]>yc)||(b[1]<=yc&&a[1]>yc))xs.push(a[0]+(yc-a[1])*(b[0]-a[0])/(b[1]-a[1]));}
+      xs.sort((p,q)=>p-q);
+      for(let i=0;i+1<xs.length;i+=2){const xa=Math.ceil(xs[i]-.5),xb=Math.ceil(xs[i+1]-.5);if(xb>xa)cx.fillRect(xa,y,xb-xa,1);}}};
+  return {sh,rc,foot,cols,wall,poly};
+}
+function mewsBays681(ctx){ // T681（業主決策單第十一批 11-5 選 B）：兩層、每戶一開間（油漆立面、一樓馬車拱門／車庫門／馬房門輪替、二樓兩扇窗與花台、戶界煙囪）；照決策單原型碼（docs/proto-b11/mewsB.js）
+  const {g,ng,G}=ctx,T=tools(ctx),{sh,rc,foot,cols,wall,poly}=T;
+  const slate='#5c6772',ring='#efe6d2',trim='#efe9dc',glass='#6a8494';
+  const wallH=Math.max(16,ctx.wallH|0),gF=Math.min(12,Math.round(wallH*.5)),v=Math.abs(ctx.v|0);
+  const up=(p,h)=>[p[0],p[1]-h];
+  const roof={N:up(G.N,wallH),E:up(G.E,wallH),S:up(G.S,wallH),W:up(G.W,wallH)};
+  poly(g,[roof.N,roof.E,roof.S,roof.W],slate);
+  poly(g,[roof.N,roof.E,up(G.S,wallH-1),up(G.W,wallH-1)],'#4a5560');
+  const PAINT=['#c4a36a','#e6ddca','#d8c49c','#b9c6c8','#d6b2a4','#c9ad7e'],DOOR=['#1f3c32','#5b2028','#243554','#2a2522','#6a4a1f'];
+  const side='#8f7550';
+  wall(g,G.S,G.E,wallH,side);
+  cols(G.S,G.E,(x,y)=>{rc(g,x,y-3,1,3,sh(side,-18));rc(g,x,y-wallH,1,2,'#3e4650');rc(g,x,y-gF-1,1,1,sh(side,14));});
+  {const sx=R((G.S[0]*.6+G.E[0]*.4)),sy=foot(G.S,G.E,sx);rc(g,sx,sy-gF-8,3,5,sh(glass,-28));rc(g,sx-1,sy-gF-3,5,1,sh(trim,-24));if(ng)rc(ng,sx,sy-gF-8,3,5,'#d9c78f');
+    const dx=R((G.S[0]*.3+G.E[0]*.7)),dy=foot(G.S,G.E,dx);rc(g,dx,dy-9,3,8,sh(DOOR[v%DOOR.length],-20));}
+  const x0=R(Math.min(G.W[0],G.S[0])),x1=R(Math.max(G.W[0],G.S[0])),fw=x1-x0;
+  const nb=Math.max(1,Math.round(fw/15)),bw=fw/nb,dp=[(G.E[0]-G.S[0])*.5,(G.E[1]-G.S[1])*.5],stacks=[];
+  for(let b=0;b<nb;b++){
+    const col=PAINT[(b*7+v*3)%PAINT.length],door=DOOR[(b*3+v)%DOOR.length],bx0=R(x0+b*bw),bx1=b===nb-1?x1:R(x0+(b+1)*bw)-1;
+    for(let x=bx0;x<=bx1;x++){const y=foot(G.W,G.S,x);rc(g,x,y-wallH,1,wallH,col);rc(g,x,y-wallH,1,2,'#4a5560');rc(g,x,y-1,1,1,sh(col,-28));rc(g,x,y-gF-1,1,1,sh(col,18));}
+    if(b>0){const y=foot(G.W,G.S,bx0);rc(g,bx0,y-wallH,1,wallH,sh(col,-26));stacks.push([bx0+dp[0],y+dp[1]]);}
+    const mid=R((bx0+bx1)/2),kind=(b+v)%3;
+    if(kind===0){for(let x=mid-5;x<=mid+5;x++){const y=foot(G.W,G.S,x),adx=Math.abs(x-mid),rise=Math.round(Math.sqrt(Math.max(0,25-adx*adx))),lip=y-3-rise;
+        rc(g,x,lip,1,1,ring);if(adx<=4)rc(g,x,lip+1,1,Math.max(1,(y-2)-(lip+1)),'#241c16');if(adx===5)rc(g,x,lip+1,1,Math.max(1,(y-2)-(lip+1)),sh(col,-22));}
+      const lx=mid-7,ly=foot(G.W,G.S,lx);rc(g,lx,ly-7,1,3,'#2c3036');rc(g,lx,ly-8,2,1,'#efe6c0');if(ng){ng.fillStyle='#fff2c4';ng.fillRect(lx,ly-8,2,1);}}
+    else if(kind===1){for(let x=mid-4;x<=mid+3;x++){const y=foot(G.W,G.S,x);rc(g,x,y-10,1,1,trim);rc(g,x,y-9,1,8,door);rc(g,x,y-7,1,1,sh(door,22));rc(g,x,y-4,1,1,sh(door,22));}}
+    else{for(let x=mid-5;x<=mid-2;x++){const y=foot(G.W,G.S,x);rc(g,x,y-10,1,1,trim);rc(g,x,y-9,1,8,door);}
+      const wx=mid+1,wy=foot(G.W,G.S,wx);rc(g,wx,wy-8,3,4,glass);rc(g,wx-1,wy-4,5,1,trim);if(ng)rc(ng,wx,wy-8,3,4,'#ffdca0');}
+    for(const [i,f] of [[0,.28],[1,.7]]){const wx=R(bx0+bw*f)-1,y=foot(G.W,G.S,wx),wy=y-gF-8;
+      rc(g,wx-1,wy-1,5,1,sh(col,-24));rc(g,wx,wy,3,5,glass);rc(g,wx,wy+2,3,1,trim);rc(g,wx-1,wy+5,5,1,trim);
+      if(ng&&((b*2+i+v)%3)!==0)rc(ng,wx,wy,3,5,'#ffdca0');
+      if(((b+i+v)%2)===0){rc(g,wx-1,wy+6,5,1,'#3f6b35');rc(g,wx,wy+6,1,1,'#d85a7a');rc(g,wx+2,wy+6,1,1,'#f0d060');}}
+  }
+  for(const [px,py] of stacks){const cx=R(px),cy=R(py)-wallH;rc(g,cx-1,cy-6,2,6,'#a0704f');rc(g,cx+1,cy-6,1,6,'#6e4a36');rc(g,cx-2,cy-7,5,1,'#4a423b');rc(g,cx-1,cy-9,1,2,'#a35a37');rc(g,cx+1,cy-9,1,2,'#b46a43');}
+  const cx=R(G.E[0])-2, cy=foot(G.S,G.E,cx);
+  rc(g,cx,cy-wallH-7,3,8,sh('#c4a36a',-8));rc(g,cx+2,cy-wallH-7,1,8,sh('#8a6238',-30));rc(g,cx-1,cy-wallH-8,5,1,'#4a423b');rc(g,cx,cy-wallH-10,1,2,'#a35a37');
+  if(ctx.chim)ctx.chim(cx,cy-wallH-11,window.__noMewsSmoke671?'#6b3f2a':'#a35a37'); // T671 冒煙點照留（閥門跟原繪製器同一套）
+  return {pitch:true};
+}
+REG.ukMews={name:'ukMews',draw(ctx){
+  if(!window.__noMewsBays681)return mewsBays681(ctx); // T681
+  const {g,ng,G}=ctx,T=tools(ctx),{sh,rc,foot,cols,wall,poly}=T;
+  const stock='#c4a36a',dark='#8a6238',slate='#5c6772',ring='#efe6d2';
+  const wallH=Math.max(12,ctx.wallH|0);
+  const up=(p,h)=>[p[0],p[1]-h];
+  const roof={N:up(G.N,wallH),E:up(G.E,wallH),S:up(G.S,wallH),W:up(G.W,wallH)};
+  poly(g,[roof.N,roof.E,roof.S,roof.W],slate);
+  poly(g,[roof.N,roof.E,up(G.S,wallH-1),up(G.W,wallH-1)],'#4a5560');
+  wall(g,G.S,G.E,wallH,sh(dark,-18));
+  cols(G.S,G.E,(x,y)=>{rc(g,x,y-3,1,3,sh(dark,-36));rc(g,x,y-wallH,1,2,'#3e4650');});
+  const x0=R(Math.min(G.W[0],G.S[0])),x1=R(Math.max(G.W[0],G.S[0]));
+  const mid=R((x0+x1)/2);
+  for(let x=x0;x<=x1;x++){
+    const y=foot(G.W,G.S,x),dx=x-mid,adx=Math.abs(dx);
+    rc(g,x,y-wallH,1,wallH,stock);
+    rc(g,x,y-wallH,1,2,'#4a5560');
+    rc(g,x,y-1,1,1,sh(stock,-28));
+    if(adx<=5){
+      const rise=Math.round(Math.sqrt(Math.max(0,25-adx*adx)));
+      const lip=y-3-rise;
+      rc(g,x,lip,1,1,ring);
+      rc(g,x,lip-1,1,1,sh(stock,-8));
+      if(adx<=4)rc(g,x,lip+1,1,Math.max(1,(y-2)-(lip+1)),'#241c16');
+      if(adx===5)rc(g,x,lip+1,1,Math.max(1,(y-2)-(lip+1)),sh(stock,-22));
+    }
+  }
+  const sx=x0+2, sy=foot(G.W,G.S,sx);
+  rc(g,sx,sy-wallH+3,3,4,'#dfe7ee');
+  rc(g,sx,sy-wallH+5,3,1,'#c5d0da');
+  if(ng){ng.fillStyle='#fff2c4';ng.fillRect(sx,sy-wallH+3,3,3);}
+  const lx=mid-6, ly=foot(G.W,G.S,lx);
+  rc(g,lx,ly-6,1,5,'#2c3036');
+  rc(g,lx,ly-7,2,1,'#efe6c0');
+  if(ng){ng.fillStyle='#fff2c4';ng.fillRect(lx,ly-7,2,1);}
+  const cx=R(G.E[0])-2, cy=foot(G.S,G.E,cx);
+  rc(g,cx,cy-wallH-7,3,8,sh(stock,-8));
+  rc(g,cx+2,cy-wallH-7,1,8,sh(dark,-30));
+  rc(g,cx-1,cy-wallH-8,5,1,'#4a423b');
+  rc(g,cx,cy-wallH-10,1,2,'#a35a37');
+  if(ctx.chim)ctx.chim(cx,cy-wallH-11,window.__noMewsSmoke671?'#6b3f2a':'#a35a37'); // T671：登記色要等於煙囪帽最上面那一格（#a35a37），否則 chimVisible613 當成被蓋掉、整棟不冒煙；閥 __noMewsSmoke671＝舊色
+  const rx=R(G.S[0])-3, ry=foot(G.S,G.E,rx);
+  rc(g,rx,ry-wallH+3,2,3,'#c5d0da');
+  if(ng){ng.fillStyle='#fff2c4';ng.fillRect(rx,ry-wallH+3,2,2);}
+  return {pitch:true};
+}};
+})();
+/* ===== T594 區塊結束 ===== */
 /* ===== T593 都會巨廈新圖（105／106）：實驗線 T516 生成器＋b05 變體移植 =====
    業主 2026-09-26「下一步吧」。來源釘在實驗線 origin/main 15ac877。生成器與它用到的 isoBox／windows／winShape570
    全部照實驗線版本另存一份、加 593 尾碼（主線同名函式版本不同，不能共用）；描邊用 T590 的 outlineFlat590（與實驗線 outlineSprite 逐字相同）。
@@ -25097,6 +27757,9 @@ try{document.title=(townName||'微光小鎮')+' v'+GAME_VER;}catch(e){}
 
 function metroHash593(v){let h=2166136261>>>0;const s=String(v);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>16;h=Math.imul(h,2246822507);h^=h>>>13;return h>>>0;}
 function metroRand593(v){return mulberry32(metroHash593(v));}
+// T594 補宣告：metroPalette593 的工業分支（k===3）引用這兩個陣列，T593 移植時漏了（T593 只替 105／106 生圖，走不到）；照實驗線 d172e97 原樣
+const IND_ROOF593=['#8c4a36','#4f7466','#a9aeb0','#b8a888','#4f6f8f','#7a3e2e','#9aa39c','#c2b59a']; // T670：鏽紅、灰綠、淺灰金屬、米色水泥、藍灰、深鏽、灰、沙色
+const IND_WALL593=[['#c98a6e','#9c5a44','#5e3328'],['#e2d6bf','#b3a286','#6e604c'],['#c3d0d8','#8397a4','#4a5a66'],['#d8c49a','#a8905e','#62522e'],['#b9b4aa','#85807a','#4c4945'],['#bf7f63','#8a4f3c','#51302a']]; // T670：紅磚、米白、淺藍鐵皮、沙色、水泥灰、赭紅磚
 function metroPalette593(k,v,we=1,lv=1){
   const res=[['#e7c6a2','#ba795d','#77443c','#6f86a3'],['#d5c2a8','#8d9cad','#4d5f79','#79a5b8'],['#e7d7c5','#c48770','#8a5148','#8cb88a'],['#d7d2c3','#8c8b91','#444b5e','#c99a62'],['#d9c9b7','#9f7d68','#65504c','#80a6c7'],['#d6e0dd','#7da09c','#415d63','#d47b5e']];
   const com=[['#98bcd8','#4e708f','#263b55','#ef715f'],['#acd6d3','#4b888a','#254c58','#e6a34b'],['#b7b5d9','#665f9b','#343453','#e76880'],['#c7d8e5','#6581a7','#2f435f','#59c2c8'],['#c9c2ad','#8d795b','#534833','#f08a46'],['#a5c5db','#426b89','#243d59','#d7c35c']];

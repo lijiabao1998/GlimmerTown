@@ -1,8 +1,8 @@
 # glimmer-town 架構 ／ 代碼地圖（ARCH.md）
 
-**現況（測繪基準）**：單檔 `index.html`，v11.202，實測 43,181 行（LF 計數）。T593 把 105／106 巨廈換成實驗線 T516 生成器的新圖（S20，304×470，三款依格雜湊），與實驗線 15ac877 日夜逐位相同；`?noT593=1`／`window.__noPort593` 退回 T341 舊圖。T592 業主定稿：園區配置 A1 置中與 A2 靠後同城混用，依 `(k*7+v*3)` 奇偶固定在款上（不按格雜湊，快取條目不增加）。T591 讓 36 個移植類的新放置園區也看得到新圖：`bakeLot574` 把 T590 新圖 1:1 貼在原占地、置中，其餘補樹林／停車／廣場，`?noT591=1`／`window.__noT591` 走回 T574 配方；園區按需烘焙，指紋鍵數不變。T590 把實驗線 43 類重畫建築整鍵換進 `SPR.bld` 與 12 個家族（`buildSpritesS19`，兩條開機鏈各一次，零亂數），走舊路徑的建築（舊存檔與 6 個非園區類）直接顯示新圖；37 個園區類的新放置由 T591 在園區裡貼新圖（k5 電廠園區除外）；`?noT590=1`／`__noPort590` 整段回退。57 張有大片草坪的新圖另有冬側版（`winter590`，名單 `win590` 寫死）。像素指紋 1,441→1,548 鍵（新增 107／變更 108／移除 0，白名單外 0）。T586／T587 的舊單格地腳與道路接縫收腳仍在，分別可由 `__noFoundation586`／`?noT586=1` 與 `__noSeam587`／`?noT587=1` 回退其像素。T588 不動素材、建築占地、存檔 schema、渲染或亂數流；僅在 AI 已持續供電鎖且半徑過半圖時擴充電源合法接路，補助最多精確覆蓋該施工單，及在有資金但六格道路網格被完全堵住時試最短合法接橋。官方 12 城第 400／900 天低人口數 7→4／4→3，不能把這個改善冒稱恢復 T574 之前的絕對人口。像素指紋仍 1,441 鍵，T588 相對 v11.197 變更 0；園區按需快取的真 Chrome 量測與效能邊界見 T588 卡面，未宣稱已消除 T574 成熟城 CPU 欠帳。T585 的農場／食品廠／住宅／墓園美術與園區 3×3 新電廠仍在；舊電廠（plant 家族）與五式水塔已被 T590 換成實驗線新圖。
+**現況（測繪基準）**：單檔 `index.html`，v11.203，實測 45,844 行（LF 計數）。T594 把實驗線 d172e97 的住商工立面生成器原樣搬進主線（`getBlockSprite594`：51 個宣告＋七支英美立面繪製器，登記在本地 `FACADE594`），與實驗線 1,728 張日夜逐位相同，但**不接任何繪製路徑**、畫面與像素指紋零變化；順手補上 T593 漏宣告的 `IND_ROOF593／IND_WALL593`。T593 把 105／106 巨廈換成實驗線 T516 生成器的新圖（S20，304×470，三款依格雜湊），與實驗線 15ac877 日夜逐位相同；`?noT593=1`／`window.__noPort593` 退回 T341 舊圖。T592 業主定稿：園區配置 A1 置中與 A2 靠後同城混用，依 `(k*7+v*3)` 奇偶固定在款上（不按格雜湊，快取條目不增加）。T591 讓 36 個移植類的新放置園區也看得到新圖：`bakeLot574` 把 T590 新圖 1:1 貼在原占地、置中，其餘補樹林／停車／廣場，`?noT591=1`／`window.__noT591` 走回 T574 配方；園區按需烘焙，指紋鍵數不變。T590 把實驗線 43 類重畫建築整鍵換進 `SPR.bld` 與 12 個家族（`buildSpritesS19`，兩條開機鏈各一次，零亂數），走舊路徑的建築（舊存檔與 6 個非園區類）直接顯示新圖；37 個園區類的新放置由 T591 在園區裡貼新圖（k5 電廠園區除外）；`?noT590=1`／`__noPort590` 整段回退。57 張有大片草坪的新圖另有冬側版（`winter590`，名單 `win590` 寫死）。像素指紋 1,441→1,548 鍵（新增 107／變更 108／移除 0，白名單外 0）。T586／T587 的舊單格地腳與道路接縫收腳仍在，分別可由 `__noFoundation586`／`?noT586=1` 與 `__noSeam587`／`?noT587=1` 回退其像素。T588 不動素材、建築占地、存檔 schema、渲染或亂數流；僅在 AI 已持續供電鎖且半徑過半圖時擴充電源合法接路，補助最多精確覆蓋該施工單，及在有資金但六格道路網格被完全堵住時試最短合法接橋。官方 12 城第 400／900 天低人口數 7→4／4→3，不能把這個改善冒稱恢復 T574 之前的絕對人口。像素指紋仍 1,441 鍵，T588 相對 v11.197 變更 0；園區按需快取的真 Chrome 量測與效能邊界見 T588 卡面，未宣稱已消除 T574 成熟城 CPU 欠帳。T585 的農場／食品廠／住宅／墓園美術與園區 3×3 新電廠仍在；舊電廠（plant 家族）與五式水塔已被 T590 換成實驗線新圖。
 
-機械驗收行數口徑：實測檔案 43,181 行。
+機械驗收行數口徑：實測檔案 45,844 行。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
@@ -154,49 +154,60 @@
 | 自動存檔 | 24815 | `setInterval(()=>{if(tiles)save();},25000);` |
 | 主迴圈 `advance` / `frame` | 24828 | `while(simAcc>=DAYLEN&&steps<8){` |
 | `begin` / `toMainMenu` / 開始畫面注入 | 24972 | `function toMainMenu(){` |
-| ├ **T593 都會巨廈新圖**（105／106；S20） | 25089 | `/* ===== T593 都會巨廈新圖（105／106）` |
-|　├ makeTowerSprite593（實驗線 T516 巨廈生成器） | 25140 | `function makeTowerSprite593(` |
-|　├ port593_b05（實驗線 b05 批次，只收 105／106 v1／v2） | 25251 | `function port593_b05(A){` |
-|　│　（port593_b05 中段） | 25729 | `const clipN=L=>{L.ng.save();L.ng.globalCompositeOperation='d` |
-|　└ buildSpritesS20（兩條開機鏈各一次） | 26207 | `function buildSpritesS20(` |
-| ├ **T590 實驗線新圖移植**（43 類整鍵取代；S19） | 26225 | `/* ===== T590 實驗線新圖移植（建築精靈）` |
-|　├ 移植工具：makeIso590（實驗線 makeIso575）| 26251 | `function makeIso590(` |
-|　├ silhouette590（實驗線 T573 邊緣光，只套本段新圖）| 26340 | `function silhouette590(` |
-|　├ port590_civic_d1 | 26371 | `function port590_civic_d1(A){` |
-|　├ port590_civic_d2 | 26876 | `function port590_civic_d2(A){` |
-|　├ port590_civic_d3 | 27335 | `function port590_civic_d3(A){` |
-|　├ port590_trans_a | 27913 | `function port590_trans_a(A){` |
-|　├ port590_trans_b | 28602 | `function port590_trans_b(A){` |
-|　│　（port590_trans_b 中段）| 29048 | `bx(0,.06,0,Wd,1,5,'#f2f2ee','#e4e4de','#a6a8a4');bx(.065,.13` |
-|　├ port590_trans_c | 29495 | `function port590_trans_c(A){` |
-|　├ port590_trans_d | 30048 | `function port590_trans_d(A){` |
-|　├ port590_civ_a | 30691 | `function port590_civ_a(A){` |
-|　├ port590_civ_b | 31335 | `function port590_civ_b(A){` |
-|　├ port590_civ_c | 32063 | `function port590_civ_c(A){` |
-|　├ port590_civ_d | 32736 | `function port590_civ_d(A){` |
-|　│　（port590_civ_d 中段）| 33165 | `T.piers(S,[[X-.16,2.955,1],[X+.16,2.955,1],[2.56,2.955],[2.7` |
-|　├ port590_civ_e | 33594 | `function port590_civ_e(A){` |
-|　│　（port590_civ_e 中段）| 34036 | `boxZ(g,cu0,cv0,cu1-cu0,cv1-cv0,0,zC,null,'#bb8753','#86593a'` |
-|　├ port590_civ_f | 34478 | `function port590_civ_f(A){` |
-|　│　（port590_civ_f 中段）| 34885 | `Sc.o(1.12,g=>{boxZ(g,.34-3.5/32,v1,7/32,.08,0,1,C.concH,C.st` |
-|　├ port590_civ_g | 35293 | `function port590_civ_g(A){` |
-|　├ port590_civ_h | 36009 | `function port590_civ_h(A){` |
-|　│　（port590_civ_h 中段）| 36397 | `shadow(g,[['b',.12,.18,1.76,.98,ZB],['b',.16,.26,.5,.78,ZB+2` |
-|　├ port590_cul_a | 36785 | `function port590_cul_a(A){` |
-|　│　（port590_cul_a 中段）| 37217 | `faceL(g,vp,a0,b0,zE+2,zE+3,'#fffaf0');faceR(g,b0,vw,vp,zE+2,` |
-|　├ port590_cul_b | 37648 | `function port590_cul_b(A){` |
-|　├ port590_cul_c | 38302 | `function port590_cul_c(A){` |
-|　│　（port590_cul_c 中段）| 38785 | `// -------- v2 南角正面大門＋中軸大道＋鳥園網籠 --------` |
-|　├ port590_cul_d | 39269 | `function port590_cul_d(A){` |
-|　│　（port590_cul_d 中段）| 39790 | `const signL=(g2,n2,v,ua,ub,za,zb,str,bg)=>{faceL(g2,v,ua,ub,` |
-|　├ port590_cul_e | 40312 | `function port590_cul_e(A){` |
-|　│　（port590_cul_e 中段）| 40739 | `const under=(rin<2&&r>rin-.01&&h.z<zr-2&&w>.5);` |
-|　├ port590_cul_f | 41166 | `function port590_cul_f(A){` |
-|　├ port590_bay_a | 41819 | `function port590_bay_a(A){` |
-|　├ 冬側版 winter590（57 張草坪新圖，名單 win590）| 42520 | `function winter590(` |
-|　└ buildSpritesS19（兩條開機鏈各一次）| 42527 | `function buildSpritesS19(` |
-| `window.GV` 除錯鉤子（194 鍵） | 42551 | `window.GV={` |
-| └ `sprAtlas356()` 素材清冊／像素稽核入口 | 42713 | `sprAtlas356:()=>{` |
+| ├ **T594 住商工立面核心**（實驗線 d172e97 超街區生成器；不接繪製） | 25089 | `/* ===== T594 住商工立面核心` |
+|　├ ARCHE594（住商工原型表） | 25244 | `const ARCHE594={` |
+|　├ makeBlockSprite594（街區精靈核心，getBlockSprite594 快取） | 25503 | `function makeBlockSprite594(` |
+|　├ occClasses594（T653 遮窗包裝） | 25747 | `function occClasses594(` |
+|　├ 立面繪製器：英式 uk1（連棟／半獨立） | 25799 | `/* --- T594 立面繪製器` |
+|　├ 立面繪製器：英式 uk2（白灰泥聯排／紅磚公寓） | 26082 | `// T577 facade_uk2` |
+|　├ 立面繪製器：英式高街（店屋／旅館） | 26367 | `// facade_ukhigh.js — T577` |
+|　├ 立面繪製器：GPT-001 街角店屋 | 26719 | `// GPT-001 — Victorian` |
+|　├ 立面繪製器：美式 us1（布朗石／戰前公寓） | 26846 | `// facade_us1.js — T577` |
+|　├ 立面繪製器：美式主街 | 27221 | `// facade_usmain.js — T577` |
+|　└ 立面繪製器：GROK-002 馬廄 | 27642 | `/* GROK-002 倫敦馬廄街屋` |
+| ├ **T593 都會巨廈新圖**（105／106；S20） | 27749 | `/* ===== T593 都會巨廈新圖（105／106）` |
+|　├ makeTowerSprite593（實驗線 T516 巨廈生成器） | 27803 | `function makeTowerSprite593(` |
+|　├ port593_b05（實驗線 b05 批次，只收 105／106 v1／v2） | 27914 | `function port593_b05(A){` |
+|　│　（port593_b05 中段） | 28392 | `const clipN=L=>{L.ng.save();L.ng.globalCompositeOperation='d` |
+|　└ buildSpritesS20（兩條開機鏈各一次） | 28870 | `function buildSpritesS20(` |
+| ├ **T590 實驗線新圖移植**（43 類整鍵取代；S19） | 28888 | `/* ===== T590 實驗線新圖移植（建築精靈）` |
+|　├ 移植工具：makeIso590（實驗線 makeIso575）| 28914 | `function makeIso590(` |
+|　├ silhouette590（實驗線 T573 邊緣光，只套本段新圖）| 29003 | `function silhouette590(` |
+|　├ port590_civic_d1 | 29034 | `function port590_civic_d1(A){` |
+|　├ port590_civic_d2 | 29539 | `function port590_civic_d2(A){` |
+|　├ port590_civic_d3 | 29998 | `function port590_civic_d3(A){` |
+|　├ port590_trans_a | 30576 | `function port590_trans_a(A){` |
+|　├ port590_trans_b | 31265 | `function port590_trans_b(A){` |
+|　│　（port590_trans_b 中段）| 31711 | `bx(0,.06,0,Wd,1,5,'#f2f2ee','#e4e4de','#a6a8a4');bx(.065,.13` |
+|　├ port590_trans_c | 32158 | `function port590_trans_c(A){` |
+|　├ port590_trans_d | 32711 | `function port590_trans_d(A){` |
+|　├ port590_civ_a | 33354 | `function port590_civ_a(A){` |
+|　├ port590_civ_b | 33998 | `function port590_civ_b(A){` |
+|　├ port590_civ_c | 34726 | `function port590_civ_c(A){` |
+|　├ port590_civ_d | 35399 | `function port590_civ_d(A){` |
+|　│　（port590_civ_d 中段）| 35828 | `T.piers(S,[[X-.16,2.955,1],[X+.16,2.955,1],[2.56,2.955],[2.7` |
+|　├ port590_civ_e | 36257 | `function port590_civ_e(A){` |
+|　│　（port590_civ_e 中段）| 36699 | `boxZ(g,cu0,cv0,cu1-cu0,cv1-cv0,0,zC,null,'#bb8753','#86593a'` |
+|　├ port590_civ_f | 37141 | `function port590_civ_f(A){` |
+|　│　（port590_civ_f 中段）| 37548 | `Sc.o(1.12,g=>{boxZ(g,.34-3.5/32,v1,7/32,.08,0,1,C.concH,C.st` |
+|　├ port590_civ_g | 37956 | `function port590_civ_g(A){` |
+|　├ port590_civ_h | 38672 | `function port590_civ_h(A){` |
+|　│　（port590_civ_h 中段）| 39060 | `shadow(g,[['b',.12,.18,1.76,.98,ZB],['b',.16,.26,.5,.78,ZB+2` |
+|　├ port590_cul_a | 39448 | `function port590_cul_a(A){` |
+|　│　（port590_cul_a 中段）| 39880 | `faceL(g,vp,a0,b0,zE+2,zE+3,'#fffaf0');faceR(g,b0,vw,vp,zE+2,` |
+|　├ port590_cul_b | 40311 | `function port590_cul_b(A){` |
+|　├ port590_cul_c | 40965 | `function port590_cul_c(A){` |
+|　│　（port590_cul_c 中段）| 41448 | `// -------- v2 南角正面大門＋中軸大道＋鳥園網籠 --------` |
+|　├ port590_cul_d | 41932 | `function port590_cul_d(A){` |
+|　│　（port590_cul_d 中段）| 42453 | `const signL=(g2,n2,v,ua,ub,za,zb,str,bg)=>{faceL(g2,v,ua,ub,` |
+|　├ port590_cul_e | 42975 | `function port590_cul_e(A){` |
+|　│　（port590_cul_e 中段）| 43402 | `const under=(rin<2&&r>rin-.01&&h.z<zr-2&&w>.5);` |
+|　├ port590_cul_f | 43829 | `function port590_cul_f(A){` |
+|　├ port590_bay_a | 44482 | `function port590_bay_a(A){` |
+|　├ 冬側版 winter590（57 張草坪新圖，名單 win590）| 45183 | `function winter590(` |
+|　└ buildSpritesS19（兩條開機鏈各一次）| 45190 | `function buildSpritesS19(` |
+| `window.GV` 除錯鉤子（194 鍵） | 45214 | `window.GV={` |
+| └ `sprAtlas356()` 素材清冊／像素稽核入口 | 45376 | `sprAtlas356:()=>{` |
 
 外部檔：`sw.js`（APP_VER 於第 6 行）、`test_fixde.js`、`tools/{verify,merge_bay,bump,test_toolchain}.py`、`tools/gen_spr_baseline.js`、`tools/spr_families.json`、`.gitattributes`。
 
@@ -291,6 +302,7 @@
 - `lotSprite574` 的 LRU 同時受 128 組與 **12,000,000 日夜合計像素**限制。命中不重烘焙、淘汰扣像素帳、完整重建時歸零；新世界不需要丟棄與世界無關的純素材。
 - `lotFarFrame574` 對可見新園區的唯一變體估算完整日夜像素／條目；四作期預留，超任一原預算或進遠景時選半解析度最近鄰縮圖、沿既有 `sc=2` 還原原地塊幾何。遠景合併色票，近景未超限恢復原生圖；不是提高上限或每幀淘汰重烘。k5仍保留固定三種機組。
 - `lotHookCache574` 只存數字錨點／設備幾何，不持有canvas；農塵、摩天輪與夜燈讀幾何不因LRU淘汰而重烘圖片，完整buildSprites清空此表。G22以105種實建／1920與3840視口／日夜積雪四向暖幀0守住，另驗129合法鍵但像素未超限的條目分支。
+- **T594**：實驗線 d172e97 的住商工街區精靈生成器（`getBlockSprite594(k,lv,bw,bh,v)`，繪製時依街廓大小現場生圖並快取；符合原型的交給十支英美立面繪製器，登記在本地 `FACADE594`）已原樣搬進主線，但**沒有任何繪製路徑呼叫它**；與實驗線 1,728 張逐位相同。要接上畫面得等業主回決策單（接法、單格／超街區、財富與密度），接的時候記得：快取鍵帶實驗線閥門旗標、T653 遮窗包裝要真 Canvas（Node 樁沒有 `CanvasRenderingContext2D`）、`metroPalette593` 的工業分支依賴 T594 補的 `IND_ROOF593／IND_WALL593`。
 - **T592**：配置依類＋款混用 A1／A2；`window.__t591Mode` 只給出樣工具強制單一式（快取鍵帶 `_c591`／`_b591`）。
 - **T591**：36 個移植類（43 類扣掉 k5 與 6 個不走園區的類）的園區不再跑配方，改把 T590 換進的實驗線新圖 1:1 貼在原占地、置中，其餘地面補樹林／停車／廣場（k18 港口補港池）；冬天貼新圖的冬側版。`lotV591` 讓放置寫死 v:0 的類依格雜湊選款，繪製與縮略圖預算共用；遠景保留貼新圖園區的變體（配方園區照舊合併）。精靈快取與掛點快取共用 `lotKey591` 鍵尾，`?noT591=1`／`window.__noT591` 走回配方。
 - `lotMeta574` 把煙口、農田、摩天輪、航空燈、招牌等掛點與本體綁在一起。夜圖需本體 alpha 遮罩，泛光另走地坪橢圓，不能把高樓整張透明畫布塗成藍色長方形。

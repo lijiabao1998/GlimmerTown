@@ -470,6 +470,10 @@ window.__t411R=function(on){if(on){window.__t411Rold=R;R=()=>.999999;}else{R=win
 window.__t412Set=function(x,y,f,v){const b=T(idx(x,y)).bld;if(!b)return false;b[f]=v;return true;};
 window.__t571Mk=function(x,y,k,v){const t5=tiles[idx(x,y)];t5.bld={k:k,lv:1,v:v,age:9,pw:true,h:1};t5.zone=0;return true;}; // T571 測試橋：直造完工 1x1 建築（zone 自然生長不可控；__t412Set 同權）
 window.__t591V=function(x,y,b){return lotV591(x,y,b);}; window.__t591Hooks=function(k,v){return lotHooks574(k,v);}; window.__t591OnFn=t591On; window.__t591Ported=function(k){return portedLot591(k);}; // T591 測試橋：掛點快取、網址閥、移植判斷 // T591 測試橋：曝光園區繪製變體選擇（純函式）
+window.__t594={make:(k,lv,bw,bh,v)=>makeBlockSprite594(k,lv,bw,bh,v),get:(k,lv,bw,bh,v)=>getBlockSprite594(k,lv,bw,bh,v),cache:()=>BLOCK_SPR594,reg:()=>FACADE594,A:()=>A594,pal593:(k,v,we,lv)=>metroPalette593(k,v,we,lv),
+  rOn:on=>{if(on){const oR=R,oS=spriteTexRand,oG=rand,c={r:0,s:0,g:0,swapped:0};R=function(){c.r++;return oR.apply(this,arguments);};spriteTexRand=function(){c.s++;return oS.apply(this,arguments);};if(typeof oG==='function')rand=function(){c.g++;return oG.apply(this,arguments);};
+      window.__t594Rw={oR,oS,oG,wR:R,wS:spriteTexRand,wG:rand,c};return c;}
+    const w=window.__t594Rw;if(!w)return null;w.c.swapped=(R!==w.wR)+(spriteTexRand!==w.wS)+(rand!==w.wG);R=w.oR;spriteTexRand=w.oS;rand=w.oG;delete window.__t594Rw;return w.c;}}; // T594 測試橋：立面生成器／快取／登記表；rOn 量測期間把世界 R、spriteTexRand、建圖串流 rand 包一層計數（照呼原函式、串流不動），結束還原並回報量測期間有沒有被換掉（swapped）
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
@@ -13095,6 +13099,102 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const t593b=window.__t593,S5=window.__t420SPR;
   assert(t593b&&t593b.ok===1&&K593.every(k=>S5.bld[k]&&S5.bld[k].__t593===1),'T593 G5b 重新打開後六鍵全部回來');
 }
+{ // ===== T594 住商工立面核心（實驗線 d172e97 超街區生成器移植；只移植，不接繪製）的行為釘與原文釘 =====
+  const END594='/* ===== T594 區塊結束 ===== */\n';
+  const a594=html.indexOf('/* ===== T594 住商工立面核心'),b594=html.indexOf(END594),c594=html.indexOf('/* ===== T593 都會巨廈新圖（105／106）');
+  assert(a594>0&&b594>a594&&c594===b594+END594.length,'T594 G0 區塊邊界：T594 區塊緊接在 T593 區塊之前');
+  const blk594=html.slice(a594,b594),out594=html.slice(0,a594)+html.slice(b594+END594.length);
+  // G1 不接繪製：T594 的頂層名字（51 個移植宣告＋FACADE594＋A594）在區塊外一次都不准出現
+  const cut594=blk594.indexOf('/* --- T594 立面繪製器');assert(cut594>0,'T594 G1 找不到繪製器分段線');
+  const names594=[...new Set((blk594.slice(0,cut594).match(/^(?:function|const|let) [A-Za-z_$][\w$]*/mg)||[]).map(s=>s.split(' ')[1]))]; // 繪製器段是七個 IIFE，裡面第 0 欄的宣告是 IIFE 區域名，不算頂層
+  assert((blk594.slice(cut594).match(/^\(function\(\)\{$/mg)||[]).length===7&&(blk594.slice(cut594).match(/^\}\)\(\);$/mg)||[]).length===7,'T594 G1 繪製器段恰七個 IIFE（開頭 (function(){、結尾 })();）');
+  assert(names594.length===53&&names594.every(n=>/594/.test(n)),'T594 G1a 頂層宣告恰 53 個且全帶 594（實得 '+names594.length+'：'+names594.filter(n=>!/594/.test(n)).join(',')+'）');
+  const leak594=names594.filter(n=>new RegExp('(^|[^A-Za-z0-9_$])'+n+'(?![A-Za-z0-9_$])').test(out594)); // 前面是「.」也算（window.xxx594／GV.xxx594 這類別名）
+  assert(leak594.length===0,'T594 G1b 不接繪製：區塊外不得引用 T594 名字（含 obj.名字），實得 '+leak594.join(','));
+  // G2 十個立面都登記、都有 draw
+  const T594=window.__t594,REG594=T594.reg();
+  const FAC594=['ukCornerShopGPT001','ukHighStreet','ukMansion','ukMews','ukSemi','ukTerrace','ukVictorian','usBrownstone','usMainStreet','usPrewar'];
+  assert(JSON.stringify(Object.keys(REG594).sort())===JSON.stringify(FAC594)&&FAC594.every(n=>REG594[n].name===n&&typeof REG594[n].draw==='function'),'T594 G2 FACADE594 恰登記十個立面：'+Object.keys(REG594).sort().join(','));
+  const code594=blk594.replace(/\/\*[\s\S]*?\*\//g,'').replace(/(^|[\s;{}),])\/\/.*$/mg,'$1'); // 去掉區塊註解與行尾註解（區塊內沒有含 // 的字串，2026-09-26 查過）
+  assert(!/window\.__facade577|window\.GV\b|Selftest/.test(code594)&&/const R=FACADE594;/.test(code594)&&(code594.match(/const REG=FACADE594/g)||[]).length===7,'T594 G2b 區塊內不得再讀寫 window.__facade577／window.GV、不得留實驗線自測；facadeFor594 讀 FACADE594、七支繪製器都登記進 FACADE594');
+  // G2c 不往外掛：區塊程式碼唯一的 window 寫入是實驗線 T653 的擦燈計數器；不得有 window[…]／globalThis／self.／GV.／var 宣告（這些都能把生成器別名出去偷接繪製）
+  const wWrite594=[...new Set((code594.match(/window\.([A-Za-z_$][\w$]*)\s*=(?!=)/g)||[]).map(s=>s.replace(/\s*=$/,'')))];
+  assert(JSON.stringify(wWrite594)==='["window.__t653Erased"]'&&!/window\s*\[|globalThis|(^|[^A-Za-z0-9_$.])self\.|(^|[^A-Za-z0-9_$.])GV\.|^\s*var\s/m.test(code594),'T594 G2c 區塊不得往全域掛東西：window 寫入只准 __t653Erased，實得 '+JSON.stringify(wWrite594));
+  // G7 T593 補宣告：IND_ROOF593／IND_WALL593 各恰一次，metroPalette593 的工業分支可用（排在全格生圖之前，漏宣告時先在這裡紅）
+  assert((html.match(/\nconst IND_ROOF593=\[/g)||[]).length===1&&(html.match(/\nconst IND_WALL593=\[/g)||[]).length===1&&html.indexOf('\nconst IND_ROOF593=[')<html.indexOf('\nfunction metroPalette593('),'T594 G7a IND_ROOF593／IND_WALL593 各宣告一次、在 metroPalette593 之前');
+  let p594=null;try{p594=T594.pal593(3,1,1,2);}catch(e){p594={err:String(e&&e.message)};}
+  assert(p594&&p594.roof==='#9aa39c'&&p594.light==='#e2d6bf','T594 G7b metroPalette593(3,1,1,2) 工業分支取到 T670 配色（屋頂 #9aa39c、牆亮面 #e2d6bf），實得 '+JSON.stringify(p594&&{roof:p594.roof,light:p594.light,err:p594.err}));
+  // G3 ctx.A 介面：A594 恰四個成員，繪製器讀 A.x／ctx.A.x 只准這四個
+  const A594k=Object.keys(T594.A()).sort().join(',');
+  const useA594=[...new Set((blk594.match(/(?:^|[^A-Za-z0-9_$.])(?:ctx\.)?A\.([A-Za-z_$][\w$]*)/g)||[]).map(s=>s.split('A.').pop()))].sort().join(',');
+  assert(A594k==='fillPara547,lerp2,paraPt559,shade'&&useA594==='fillPara547,lerp2,paraPt559,shade','T594 G3 A594 成員 '+A594k+'／繪製器用到 '+useA594);
+  // G4／G5 全格生圖：k1–3 × lv1–3 × v0–11 × bw,bh∈1..4 共 1,728 張。Node 樁沒有 CanvasRenderingContext2D，T653 遮窗包裝關閉（__noOccWin653）；
+  //   遮窗在內的像素逐位相同由真 Chrome 對照檯承接（docs/tasks/T594 施工紀錄）。立面名分布是實驗線 d172e97 的規格，另抄一份在此。
+  const STY594={'0':452,'1':436,'2':452,'f577:ukCornerShopGPT001':32,'f577:ukHighStreet':80,'f577:ukMansion':21,'f577:ukMews':7,'f577:ukSemi':21,'f577:ukTerrace':14,'f577:ukVictorian':32,'f577:usBrownstone':21,'f577:usMainStreet':96,'f577:usPrewar':64};
+  //   另把每張的畫布呼叫（方法＋參數＋當下填色／線色／透明度／合成）錄成一條 FNV-1a 指紋：繪製器少畫、改畫、改吃別條亂數串流，指紋就變。
+  //   指紋與各立面的呼叫數是 2026-09-26 實測值；實驗線重新移植或共用函式（shade／cv／metroPalette593…）改動時要重新簽名，並重跑真 Chrome 對照檯。
+  const FP594='a6a045b9',OPS594={'0':1485048,'1':1524151,'2':1596589,'f577:ukCornerShopGPT001':75771,'f577:ukHighStreet':224326,'f577:ukMansion':70525,'f577:ukMews':4451,'f577:ukSemi':22642,'f577:ukTerrace':17656,'f577:ukVictorian':132634,'f577:usBrownstone':41693,'f577:usMainStreet':477274,'f577:usPrewar':700123}; // 2026-09-26 實測（共 6,372,883 次呼叫）
+  const bad594=[],sty594={},ops594={};let n594=0,nErr594=0,nMr594=0,rc594=null,h594=0x811c9dc5,nOp594=0,opNow594=0;
+  const ce594=console.error,mr594=Math.random,mk594=document.createElement,occ594=window.__noOccWin653;
+  const fnv594=s=>{for(let i=0;i<s.length;i++){h594^=s.charCodeAt(i);h594=Math.imul(h594,16777619)>>>0;}};
+  const arg594=a=>typeof a==='number'?String(Math.round(a*64)/64):typeof a==='string'?a:(a&&typeof a==='object'&&a.width!==undefined&&a.height!==undefined)?('C'+a.width+'x'+a.height):typeof a;
+  const rec594=c=>new Proxy(c,{get(t,p){const f=t[p];if(typeof f!=='function')return f;
+      return function(...a){nOp594++;opNow594++;fnv594(String(p)+'('+a.map(arg594).join(',')+')'+t.fillStyle+'|'+t.strokeStyle+'|'+t.globalAlpha+'|'+t.globalCompositeOperation+'|'+t.lineWidth+';');return f.apply(t,a);};},
+    set(t,p,v){t[p]=v;return true;}});
+  try{
+    console.error=function(){nErr594++;};Math.random=function(){nMr594++;return mr594();};window.__noOccWin653=true;
+    document.createElement=function(tag){const el=mk594.apply(this,arguments);if(String(tag).toLowerCase()==='canvas'&&el&&typeof el.getContext==='function'){const gc=el.getContext;el.getContext=function(){const c=gc.apply(this,arguments);return c?rec594(c):c;};}return el;};
+    T594.rOn(true);
+    for(let k=1;k<=3;k++)for(let lv=1;lv<=3;lv++)for(let v=0;v<12;v++)for(let bw=1;bw<=4;bw++)for(let bh=1;bh<=4;bh++){
+      const key=k+'_'+lv+'_'+bw+'x'+bh+'_'+v;let s=null;opNow594=0;fnv594('#'+key);
+      try{s=T594.make(k,lv,bw,bh,v);}catch(e){bad594.push(key+' 例外 '+(e&&e.message));continue;}
+      n594++;const t=s&&s.__t547;
+      if(!(s&&s.img&&s.night&&Number.isInteger(s.ax)&&Number.isInteger(s.ay)&&s.w>=64&&s.h>=64&&s.img.width===s.w&&s.img.height===s.h&&t&&t.k===k&&t.lv===lv&&t.bw===bw&&t.bh===bh&&t.v===v))bad594.push(key+' 形狀');
+      const st=String(t&&t.sty);sty594[st]=(sty594[st]||0)+1;ops594[st]=(ops594[st]||0)+opNow594;
+    }
+  }finally{console.error=ce594;Math.random=mr594;document.createElement=mk594;rc594=T594.rOn(false);if(occ594===undefined)delete window.__noOccWin653;else window.__noOccWin653=occ594;}
+  assert(bad594.length===0&&n594===1728,'T594 G4a 1,728 張全部生得出來、尺寸錨點整數、日夜圖齊、__t547 身分對：'+bad594.slice(0,5).join('｜'));
+  assert(nErr594===0,'T594 G4b 立面繪製器零例外（makeBlockSprite594 會吞例外退回核心畫法，console.error 次數必須 0），實得 '+nErr594);
+  const stS594=o=>JSON.stringify(Object.keys(o).sort().map(k=>[k,o[k]]));
+  assert(stS594(sty594)===stS594(STY594),'T594 G4c 立面名分布等於實驗線規格（十個立面都真的用到）：'+stS594(sty594));
+  assert(nMr594===0&&rc594&&rc594.r===0&&rc594.s===0&&rc594.g===0&&rc594.swapped===0,'T594 G5 零世界亂數：生圖期間世界 R／spriteTexRand／建圖串流 rand／Math.random 呼叫數必須 0、串流沒被換掉，實得 '+JSON.stringify({rc:rc594,mr:nMr594}));
+  const fpNow594=h594.toString(16);
+  assert(fpNow594===FP594&&stS594(ops594)===stS594(OPS594),'T594 G4d 畫布呼叫指紋（1,728 張、'+nOp594+' 次呼叫）與各立面呼叫數等於 2026-09-26 簽名值：實得 '+fpNow594+'／'+stS594(ops594));
+  assert(!/Math\.random|spriteTexRand|(^|[^A-Za-z0-9_$.])(ri|vri|rf|rnd)\s*\(/.test(code594)&&(blk594.match(/metroRand593\(/g)||[]).length===2&&blk594.includes("metroRand593('block557:'+k+':'+lv+':'+bw+'x'+bh+':'+v)")&&blk594.includes("metroRand593('roof559:'+k+':'+lv+':'+bw+'x'+bh+':'+v)"),
+    'T594 G5b 原文：區塊不得呼叫 ri／vri／瀏覽器亂數／spriteTexRand；局部亂數恰兩條 metroRand593，種子字串照實驗線');
+  // G5c 世界 R 在區塊裡叫不到：核心段（繪製器分段線之前）程式碼裡沒有 R(；七個繪製器 IIFE 開頭都以 const R=Math.round 遮蔽世界 R（繪製器裡的 R( 是取整）
+  const codeCore594=code594.slice(0,code594.indexOf('const REG=FACADE594'));
+  const iifes594=code594.split(/^\(function\(\)\{$/m).slice(1);
+  assert(!/(^|[^A-Za-z0-9_$.])R\s*\(/.test(codeCore594)&&iifes594.length===7&&iifes594.every(s=>/(^|[\s,])R=Math\.round[,;]/.test(s.split('\n').slice(0,5).join('\n'))),
+    'T594 G5c 核心段不得呼叫 R(；七個繪製器 IIFE 開頭都要 const R=Math.round（實得 '+iifes594.length+' 個 IIFE）');
+  // G6 快取：同鍵同物件；v 與 v+6 分開（實驗線 T628）；閥門進鍵
+  T594.cache().clear();window.__noOccWin653=true;
+  try{const g0=T594.get(1,1,2,2,0),g0b=T594.get(1,1,2,2,0),g6=T594.get(1,1,2,2,6),keys=[...T594.cache().keys()];
+    assert(g0===g0b&&g0!==g6&&JSON.stringify(keys)==='["1_1_2x2_0_ow0","1_1_2x2_6_ow0"]','T594 G6 街區快取：同鍵同物件、v 與 v+6 分開、閥門進鍵：'+keys.join(','));
+  }finally{delete window.__noOccWin653;T594.cache().clear();}
+  // G6b 快取鍵涵蓋閥門：區塊讀到的每個閥門旗標，不是在 getBlockSprite594 的鍵裡，就是在下面五個「實驗線原本就沒進鍵」的名單上（照實驗線 d172e97，不多不少）
+  const flags594=[...new Set((code594.match(/window\.(__(?:no[A-Za-z0-9_$]+|facadeForce577))/g)||[]).map(s=>s.slice(7)))].sort();
+  const gK594=code594.slice(code594.indexOf('function getBlockSprite594('),code594.indexOf('\n}',code594.indexOf('function getBlockSprite594(')));
+  const EXK594=['__noBay604','__noChimVis613','__noFacadeSmoke613','__noLeftLight541','__noSpecies601'];
+  const notKey594=flags594.filter(f=>gK594.indexOf('window.'+f)<0);
+  assert(flags594.length===33&&JSON.stringify(notKey594)===JSON.stringify(EXK594),'T594 G6b 區塊讀 33 個閥門，除五個實驗線原本就不進鍵的以外都要進快取鍵：讀到 '+flags594.length+'，不在鍵裡 '+JSON.stringify(notKey594));
+  // G8 逐閥門掃：33 個閥門逐一打開（__facadeForce577 逐一強制十個立面），在縮小格（k1–3 × lv1–3 × v∈{0,5,6,11} × 1×1／2×1／2×2／4×3）上生圖：
+  //   零例外、零世界亂數。閥門分支 G4 的全格掃不到，實驗線的閥門在主線預設全關，但只要有人打開就不能炸、不能動世界亂數流。
+  const f8bad594=[],f8err594={};let f8n594=0,rc8594=null,nMr8594=0;const ce8594=console.error,mr8594=Math.random,occ8594=window.__noOccWin653;let errNow8594=0;
+  try{
+    console.error=function(){errNow8594++;};Math.random=function(){nMr8594++;return mr8594();};window.__noOccWin653=true;T594.rOn(true);
+    const cases8594=flags594.filter(f=>f!=='__facadeForce577').map(f=>[f,true]).concat(FAC594.map(n=>['__facadeForce577',n]));
+    for(const [f,val] of cases8594){const had=Object.prototype.hasOwnProperty.call(window,f),old=window[f];window[f]=val;errNow8594=0;
+      try{for(let k=1;k<=3;k++)for(let lv=1;lv<=3;lv++)for(const v of [0,5,6,11])for(const [bw,bh] of [[1,1],[2,1],[2,2],[4,3]]){
+        try{const s=T594.make(k,lv,bw,bh,v);f8n594++;if(!(s&&s.img&&s.night&&s.__t547))f8bad594.push(f+'='+val+' '+k+'_'+lv+'_'+bw+'x'+bh+'_'+v+' 形狀');}
+        catch(e){f8bad594.push(f+'='+val+' '+k+'_'+lv+'_'+bw+'x'+bh+'_'+v+' 例外 '+(e&&e.message));}}}
+      finally{if(had)window[f]=old;else delete window[f];}
+      if(errNow8594)f8err594[f+'='+val]=errNow8594;}
+  }finally{console.error=ce8594;Math.random=mr8594;rc8594=T594.rOn(false);if(occ8594===undefined)delete window.__noOccWin653;else window.__noOccWin653=occ8594;}
+  assert(f8bad594.length===0&&f8n594===(32+10)*144,'T594 G8a 逐閥門掃 '+(32+10)*144+' 張零例外、形狀齊：實得 '+f8n594+' 張，壞 '+f8bad594.slice(0,4).join('｜'));
+  assert(nMr8594===0&&rc8594&&rc8594.r===0&&rc8594.s===0&&rc8594.g===0&&rc8594.swapped===0,'T594 G8b 逐閥門掃零世界亂數：'+JSON.stringify({rc:rc8594,mr:nMr8594}));
+  assert(Object.keys(f8err594).length===0,'T594 G8c 逐閥門掃繪製器零例外（makeBlockSprite594 吞掉的例外也算；2026-09-26 實測 0）：'+stS594(f8err594));
+}
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
@@ -16845,6 +16945,15 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(lo>=0&&htmlBare438.indexOf(key,lo+1)<0&&hi>open,'T445 G0 T590局部座標白名單必須唯一且完整：'+name);
     localSpans590.push([lo,hi]);
   }
+  // T594 精確增列：實驗線超街區精靈的街廓四角（blockCorners594）與畫布四角（makeBlockSprite594 的 locN／locE／locW），
+  // 都是「單張精靈畫布內」的格內座標，不是 world 座標直送螢幕；逐一具名，不以 594 後綴泛放行。T594 不接繪製。
+  const localSpans594=[];
+  for(const name of ['blockCorners594','makeBlockSprite594']){
+    const key='function '+name+'(',lo=htmlBare438.indexOf(key),open=htmlBare438.indexOf('{',lo);let hi=-1,depth=0;
+    if(lo>=0)for(let p=open;p<htmlBare438.length;p++){if(htmlBare438[p]==='{')depth++;else if(htmlBare438[p]==='}'&&!--depth){hi=p;break;}}
+    assert(lo>=0&&htmlBare438.indexOf(key,lo+1)<0&&hi>open,'T445 G0 T594局部座標白名單必須唯一且完整：'+name);
+    localSpans594.push([lo,hi]);
+  }
   // 原煙粒world spawn多了一行純資料lot574，viewDep不再落在原三行窗。只認完整這一筆，不放寬全檔窗寬。
   const smokeExpr574='const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;';
   const smokeLo574=htmlBare438.indexOf(smokeExpr574),smokeHi574=htmlBare438.indexOf('\n    }',smokeLo574);
@@ -16858,6 +16967,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   ];
   let nIso445 = 0, nLogo445 = 0, nSpawn445 = 0,nLocal574=0;
   let nLocal590=0; // T590
+  let nLocal594=0; const txt594=[]; // T594
   const spawnLines445 = new Set(), bad445 = [];
   for (const re of PATS445) {
     let m;
@@ -16867,6 +16977,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
       if (ln >= logoLo445 && ln <= logoHi445) { nLogo445++; continue; }
       if(localSpans574.some(s=>m.index>s[0]&&m.index<s[1])){nLocal574++;continue;}
       if(localSpans590.some(s=>m.index>s[0]&&m.index<s[1])){nLocal590++;continue;}
+      if(localSpans594.some(s=>m.index>s[0]&&m.index<s[1])){nLocal594++;txt594.push(m[0]);continue;}
       if(m.index>=smokeLo574&&m.index<smokeLo574+smokeExpr574.length){nSpawn445++;spawnLines445.add(ln);continue;}
       // ③ world 空間 spawn：同一行或相鄰兩行內有 viewDep(（深度鍵已跟轉，T389）
       const near = bareLines445.slice(Math.max(0, ln - 2), ln + 1).join('\n');
@@ -16897,6 +17008,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 46 變少，'
     + '代表有人把裸式從旋轉層裡搬出來了');
   assert(nLocal590===61,'T590 G445【計數釘】實驗線移植批次與 makeIso590 內的格內局部等距式應恰 61 處（2026-09-26 實測），實得 '+nLocal590+'；變動要有人簽名');
+  assert(nLocal594===4&&JSON.stringify(txt594.slice().sort())==='["(bw+bh)*16","(bw+bh)*16","(bw-bh)*32","(bw-bh)*32"]','T594 G445【原文釘】blockCorners594 與 makeBlockSprite594 內的畫布局部等距式應恰是 N 角與 locN 各一組 (bw-bh)*32／(bw+bh)*16（2026-09-26 實測；只釘數目的話，換掉一條再加一條世界座標式仍會是 4），實得 '+JSON.stringify(txt594)+'；變動要有人簽名');
 }
 
 /* ===== T444 種子哨兵行為化（ARCH §10.14）：守衛 ===== */
@@ -17271,10 +17383,19 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
 
   // 繪製區 = 函式名為 draw 或 draw* 的所有函式體聯集
   const render438 = [];
+  // T594 精確排除（判準放寬，已寫在 T594 卡面）：T594 區塊內的 drawShops／drawHotel／drawCornerShop001 是實驗線立面繪製器，
+  // 烘焙街區精靈、不是逐幀繪製；所屬 IIFE 開頭 `const R=Math.round` 遮蔽世界 R，裡面的 R( 是取整不是亂數。
+  // 零世界亂數改由 T594 G5 在 1,728 張全格生圖時實測 R／spriteTexRand／Math.random 呼叫數 0 承接。只排除這三個具名函式，多一個少一個都紅。
+  const a594x = rl438.findIndex(l => l.startsWith('/* ===== T594 住商工立面核心')) + 1, b594x = rl438.findIndex(l => l.startsWith('/* ===== T594 區塊結束')) + 1;
+  const ex594x = [];
   for (let i = 0; i < rl438.length; i++) {
     const m = /^function\s+(draw[A-Za-z0-9_$]*)\s*\(/.exec(rl438[i]);
+    if (m && i + 1 > a594x && i + 1 < b594x) { ex594x.push([m[1], i + 1]); continue; }
     if (m) render438.push([m[1], i + 1, bend438(i) + 1]);
   }
+  assert(a594x > 0 && b594x > a594x && JSON.stringify(ex594x.map(e => e[0])) === '["drawShops","drawHotel","drawCornerShop001"]'
+    && ex594x.every(([, ln]) => { let j = ln - 1; while (j >= a594x && bl438[j] !== '(function(){') j--; return j >= a594x && /(^|[\s,])R=Math\.round[,;]/.test(bl438.slice(j, j + 4).join('\n')); }), // 用剝掉註解字串後的 bl438：註解裡寫 R=Math.round 不算
+    'T438 G0c T594 排除名單必須恰是 drawShops／drawHotel／drawCornerShop001，都在 T594 區塊內、所屬 IIFE 開頭有 R=Math.round：' + JSON.stringify(ex594x));
   const renderLines438 = render438.reduce((p, r) => p + (r[2] - r[1] + 1), 0);
   assert(render438.length >= 25 && renderLines438 >= 2000,
     'T438 G0b 繪製區辨識異常（' + render438.length + ' 個 draw* 函式 / ' + renderLines438
