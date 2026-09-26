@@ -799,7 +799,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.204'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.205'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -3375,6 +3375,36 @@ function lotObjectOrder574(objs){
   const sorted=lotOrder574(records,true);let i=0;
   for(const r of sorted){objs[i++]=r.o;if(r.after574)for(const o of r.after574)objs[i++]=o;}
   return objs;
+}
+/* T596：住商工單格新圖預覽（預設關閉）。網址 ?T596=1 或主控台 window.__t596=true 才打開；關著的時候下面這幾支都不會碰到新圖。
+   打開時 1×1、非園區的 k1–3 改畫 T594 搬進來的實驗線街區生成器的單格圖，照實驗線預設：不看財富、不看密度、一律單格、款式就是 bd.v。
+   spr596 是全檔唯一呼叫生成器的地方：回傳帶 __t590／__t596 的檢視物件（WeakMap，不改生成器快取裡的原物件；雪帽等快取掛在檢視上）；
+   同一幀（trafClock 沒變）內用小表記住，生圖失敗記在 STAT596.fail 並退回舊圖。gen=false 只查已經生過的（給煙用，不在煙管線裡生圖）。 */
+function t596On(){if(t596On.u===undefined)t596On.u=/(?:^|[?&])T596=1(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return window.__t596===true||t596On.u;}
+const VIEW596=new WeakMap(),LAST596=new Map(),STAT596={views:0,fail:0,calls:0,clock:NaN,memo:new Map()};
+function spr596(bd,gen){
+  const k=bd.k,lv=Math.min(3,Math.max(1,bd.lv|0)),v=((bd.v|0)%12+12)%12,key=k*100+lv*16+v;
+  if(!gen)return LAST596.get(key)||null;
+  STAT596.calls++;
+  if(STAT596.clock!==trafClock){STAT596.clock=trafClock;STAT596.memo.clear();}
+  const m=STAT596.memo.get(key);if(m!==undefined)return m;
+  let sp=null;try{sp=getBlockSprite594(k,lv,1,1,v);}catch(e){STAT596.fail++;sp=null;}
+  let view=null;
+  if(sp&&sp.img){view=VIEW596.get(sp);if(!view){view=Object.assign({},sp,{__t590:1,__t596:1});VIEW596.set(sp,view);STAT596.views++;}LAST596.set(key,view);}
+  STAT596.memo.set(key,view);return view;
+}
+// 出煙點：新圖的煙囪頂 smoke608（畫布座標）換成相對格子最前角 S 的偏移，和舊精靈 smoke 同一個約定（煙囪點減錨點）；沒有煙囪就是空陣列＝不冒煙
+function smoke596(bd){const p=spr596(bd,false);if(!p)return null;if(!p.smoke596)p.smoke596=(p.smoke608||[]).map(q=>({dx:q[0]-p.ax,dy:q[1]-p.ay}));return p.smoke596;}
+// 商業霓虹釘在新圖正面 W–S 牆上（照實驗線 d172e97 的 neonRects625，精靈像素座標→畫面）；沒有牆面資訊回 null，走舊算式
+function neonRects596(s,lv,hs,bx,by,z){
+  const w=s&&s.__t547&&s.__t547.wall;if(!w||!w.W||!w.S||!(w.h>8))return null;
+  const L=Math.hypot(w.S[0]-w.W[0],w.S[1]-w.W[1]),ts=L>=90?[.22+hs[0]*.2,.62+hs[1]*.14]:[.3+hs[0]*.4],out=[];
+  for(const t of ts){
+    const px=w.W[0]+(w.S[0]-w.W[0])*t,py=w.W[1]+(w.S[1]-w.W[1])*t; // 牆腳上的一點
+    if(lv>=2){const nh=Math.min(w.h*.4,10+hs[2]*8),bot=Math.max(5,w.h*.22);if(bot+nh>w.h-2)continue;out.push([px-1.25,py-bot-nh,2.5,nh]);}
+    else{const ww=Math.min(8,4+hs[2]*4),up=Math.max(5,w.h*.3);if(up+2>w.h-2)continue;out.push([px-ww/2,py-up-1.25,ww,2.5]);}
+  }
+  return out.map(r=>[bx+r[0]*z,by+r[1]*z,Math.max(1,r[2]*z),Math.max(1,r[3]*z)]);
 }
 /* T591：園區接新圖的三支輔助。t591On 的網址判斷只算一次；執行期旗標 window.__noT591 可隨時撥（快取鍵另帶標記，撥回不會拿到舊烘焙）。 */
 function t591On(){if(t591On.u===undefined)t591On.u=/(?:^|[?&])noT591(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT591&&!t591On.u;}
@@ -12729,6 +12759,7 @@ function reflectSprite(bd){
   if(bd.k===11)return SPR.police;
   if(bd.k===12)return SPR.hospital;
   if(bd.k===13)return SPR.clinic;
+  if((bd.k===1||bd.k===2||bd.k===3)&&!bd.lot574&&t596On()){const p596=spr596(bd,true);if(p596)return p596;} // T596：預覽時倒影用同一張新圖
   if(bd.k===1)return wealthSpr(bd.k+'_'+bd.lv+'_'+(bd.v||0),bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0'];
   if(bd.k===2||bd.k===3)return SPR.bld[bd.k+'_'+bd.lv+'_'+(bd.v||0)]||SPR.bld[bd.k+'_'+bd.lv+'_0'];
   return null;
@@ -17140,11 +17171,12 @@ function updSmoke(dt){
       if(b.k===5&&!b.ref){const ps=(b.lot574&&SPR.lot574&&SPR.lot574['5_1_'+b.v])||(b.v&&SPR.plantVar&&SPR.plantVar[b.v])||SPR.plant;offs=ps.smoke;col='#e7edf2';big=true;} // T574：新廠區煙口只讀 root；舊廠煙口保持原值
       if(b.k===1&&b.riot){offs=[{dx:0,dy:-42}];col='#3a3530';} // T118：暴亂住宅複用既有煙粒繪製火把/騷亂煙霧（不新建 sprite，屋頂上方固定一點冒煙）
       if(sea===3&&b.k===1&&b.pw&&!b.riot&&!window.__noChimney){const sm=SPR.bld[b.k+'_'+b.lv+'_'+b.v];if(sm&&sm.smoke.length){offs=sm.smoke;col='#d8d2c6';}} // T185：冬季民居炊煙（Opus 親手）——入冬(sea===3)供電住宅(k=1,pw)非暴亂時自煙囪點冒暖灰輕煙（沿用既有 smoke 管線/上限，煙點含 chimneySmall(T185補)/chimneyBrick(lv2-3)）；非冬/未供電/暴亂/__noChimney 不繪＝該狀態零改動；讀既有 sea/建築態，spawn 用 Math.random 與模擬 R() 獨立（同 T159 粒子慣例）
+      let u596=false;if(!b.riot&&(b.k===1||b.k===3)&&!b.lot574&&!(b.sz>=2)&&t596On()&&(offs||(sea===3&&b.k===1&&b.pw&&!window.__noChimney))){const q596=smoke596(b);if(q596){offs=q596;u596=true;if(b.k===1)col='#d8d2c6';}} // T596：預覽新圖的出煙點（沒有煙囪就不冒；舊圖沒煙囪但新圖有的冬季住宅也冒）；u596 讓煙粒走下面 T574 的畫面錨定路徑，旋轉時偏移不會被當地面向量轉歪
       if(!offs||!offs.length)continue;
       if(Math.random()<.5)continue;
       const o=offs[vri(offs.length)];
       const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;
-      const lot574=b.lot574?{x,y,sz:b.sz,dx:o.dx,dy:o.dy}:null;
+      const lot574=(b.lot574||u596)?{x,y,sz:b.lot574?b.sz:1,dx:o.dx,dy:o.dy}:null;
       smokes.push({wx,wy,age:0,life:(2.2+Math.random())*(weather?.6:1),col,big,dep:viewDep(x,y),...(lot574?{lot574}:{})});
     }
   }
@@ -18154,6 +18186,7 @@ function drawNightCommNeon413(nd){
     if(streetHash(x,y,41370)>0.55)continue;
     let sx=_sx413(x,y)+32*z2,sy=_sy413(x,y)+10*z2;
     if(b.lot574){const p574=lotLightPoint574(x,y,b,'sign');sx=p574[0];sy=p574[1]+20*z2;}
+    else if(k===2&&t596On())sy=_sy413(x,y)+36*z2; // T596：預覽新圖的頂層招牌照實驗線單格定位（前角往上 36，不是舊圖的 10）
     if(!_visNight413(sx,sy))continue;
     const tier=_tier413(i),blink=0.45+0.55*((Math.sin(visT*3.1+streetHash(x,y,41371)*9)*.5+.5));
     let c;
@@ -19437,6 +19470,7 @@ function draw(dt){
     else if(bd.k===1)s=wealthSpr(bd.k+'_'+bd.lv+'_'+bd.v,bd.we)||SPR.bld[bd.k+'_'+bd.lv+'_0']; // T125：住宅財富色變；變體鍵兜底同 FIX-D
     else if(!bd.lot574&&bd.v===0&&(vark590().has(bd.k)||bd.k===105||bd.k===106)&&ported590(bd.k))s=SPR.bld[bd.k+'_1_'+vdraw590(o,bd)]||SPR.bld[bd.k+'_1_0']; // T593：巨廈同 T590 依格雜湊選款 // T590：新圖三款依格雜湊顯示（lv1 鍵，升級不換臉；不寫存檔）
     else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）；T239：服務升級 lv>1 無對應圖時退回 lv1（升級不改外觀、僅疊等級星）
+    if((bd.k===1||bd.k===2||bd.k===3)&&!(bd.sz>=2)&&!bd.lot574&&t596On()){const p596=spr596(bd,true);if(p596)s=p596;} // T596：預覽開關打開時單格住商工畫實驗線新圖（照實驗線預設，不看財富、密度）
     if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574); // T591：園區新圖依格雜湊選款
     if(win&&snowLvl>0&&s&&s.win563)s=s.win563; // T563：烘焙草坪冬側版（比照 k4 季節分派；一行、兜底自動繼承；k9 刻意除外見卡面）
     /* T364a sc sprite view：新波素材以 2× 畫布保存細節，僅在世界繪製時縮放。
@@ -19453,7 +19487,7 @@ function draw(dt){
     }
     else if(bd.k===9){bx=sxOf(o.x+1,o.y+1)+(32-s.ax)*z;by=syOf(o.x+1,o.y+1)+(32-s.ay)*z;}
     else{bx=o.sx+(32-s.ax)*z;by=o.sy+(32-s.ay)*z;}
-    if(!window.__noStagger571&&!lodFar&&z>=1&&bd&&!bd.ref&&bd.k===1&&(bd.lv||1)===1&&(bd.sz|0)<2&&(bd.age|0)>=9){ /* T571 連棟屋頂線錯落：
+    if(!window.__noStagger571&&!lodFar&&z>=1&&bd&&!bd.ref&&bd.k===1&&(bd.lv||1)===1&&(bd.sz|0)<2&&(bd.age|0)>=9&&!s.__t596){ /* T571 連棟屋頂線錯落：
        同族連棟鄰且 v 不同 → 整棟繪製 y 位移 ±1px（奇偶決定、零抽數）；by 在此統一調整＝
        夜圖/冬側版/雪帽/派對牆全鏈同步位移；零 census 零 fp（只動繪製參數） */
       let st571=0;
@@ -19604,7 +19638,7 @@ function draw(dt){
       ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=pg;ctx.beginPath();ctx.arc(gx,gy,pr,0,6.283);ctx.fill();ctx.restore();
     }
     const constrRise=(!window.__noConstr2&&!lodFar&&bd.k!==4&&bd.age>=4&&bd.age<9); // T259：樓體逐層升起期（age4-8，前置期已 continue，age>=9 完工）
-    if((bd.age|0)>=9&&!constrRise)drawLotFence565(ctx,o,bd,z,0,drawA); // T565 圍籬背半邊（籬在樓後，先畫讓建築蓋）——細節閘在函式內
+    if((bd.age|0)>=9&&!constrRise&&!s.__t596)drawLotFence565(ctx,o,bd,z,0,drawA); // T565 圍籬背半邊（籬在樓後，先畫讓建築蓋）——細節閘在函式內
     if(drawA<1)ctx.globalAlpha=drawA;
     if(constrRise){ // T259：樓體「蓋到哪露到哪」——只畫 sprite 底部 riseF 切片（源矩形裁切），頂緣加混凝土樓板線＋鋼筋頭＝逐層長高
       const riseF=[.30,.50,.68,.84,.96][bd.age-4];
@@ -19650,11 +19684,11 @@ function draw(dt){
       if(!s.__t590)drawMaterialResponse430(ctx,o,bd,s,bx,by,z,drawA,wetLvl,snowLvl,nightDepth); // T429
       if(!s.__t590)drawNightIdentity423(ctx,o,bd,s,bx,by,z,drawA,nightDepth);
       if(!s.__t590)drawNightMicro431(ctx,o,bd,s,bx,by,z,drawA,nightDepth); // T429
-      drawActivityPocket422(ctx,o,bd,s,bx,by,z,drawA,nightDepth);
-      drawMicroLife429(ctx,o,bd,s,bx,by,z,drawA,nightDepth); // T429
-      drawPartyWall565(ctx,o,bd,s,bx,by,z,drawA); // T565 連棟派對牆＋女兒牆帽線（鏡頭側同族鄰棟）
-      drawCorner571(ctx,o,bd,z,drawA); // T571 轉角地塊篷（恰兩正交鄰路的商業格）
-      drawLotFence565(ctx,o,bd,z,1,drawA);        // T565 圍籬前半邊＋路側大門（背半邊在 drawImage 前）
+      if(!s.__t596)drawActivityPocket422(ctx,o,bd,s,bx,by,z,drawA,nightDepth);
+      if(!s.__t596)drawMicroLife429(ctx,o,bd,s,bx,by,z,drawA,nightDepth); // T429
+      if(!s.__t596)drawPartyWall565(ctx,o,bd,s,bx,by,z,drawA); // T565 連棟派對牆＋女兒牆帽線（鏡頭側同族鄰棟）
+      if(!s.__t596)drawCorner571(ctx,o,bd,z,drawA); // T571 轉角地塊篷（恰兩正交鄰路的商業格）
+      if(!s.__t596)drawLotFence565(ctx,o,bd,z,1,drawA);        // T565 圍籬前半邊＋路側大門（背半邊在 drawImage 前）
     }
     /* ===== T363 垃圾焚化發電廠運轉視覺（k62）：draw-time 決定性排氣＋夜班辨識；
        不接入粒子管線；全程決定性（visT／streetHash／sin），零共用亂數消耗；不寫狀態／存檔。
@@ -19748,7 +19782,9 @@ function draw(dt){
     if(bd.k===2&&bd.pw&&!lodFar&&!window.__noNeon&&!constrRise){ // T259：施工期無霓虹 // T244 商業霓虹招牌（Opus 親手，夜景多樣化）——供電商業建築夜間亮彩色霓虹招牌：6 色由座標雜湊挑、位置/尺寸隨等級，push 進 nightSprites（暗halo+亮招牌雙 rect，夜燈層 'screen' 疊加＝夜間發光、日間閘不繪）；__noNeon 開關、streetHash 決定性不消耗 R()
       const NEON=['#ff4a8a','#4affd0','#ffd23a','#8a5aff','#ff6a3a','#3affff'];
       const nCol=NEON[Math.floor(streetHash(o.x,o.y,1900)*NEON.length)%NEON.length];
-      if((bd.lv||1)>=2){ // T368b 合流升級：lv≥2 改直式招牌（每建築仍恰一面；底錨定＝沿用 T261 不飄空教訓，與 lv1 同一守衛組 bd.pw/!constrRise/__noNeon）
+      const nr596=s.__t596?neonRects596(s,bd.lv||1,[streetHash(o.x,o.y,1901),streetHash(o.x,o.y,1902),streetHash(o.x,o.y,1903)],bx,by,z):null; // T596：預覽新圖的招牌釘在正面牆上（實驗線 T625）
+      if(nr596){nr596.forEach((r,i)=>{const col=i?NEON[(NEON.indexOf(nCol)+2)%NEON.length]:nCol;nightSprites.push({rect:[r[0]-2*z,r[1]-2*z,r[2]+4*z,r[3]+4*z],col:shade(col,-96)});nightSprites.push({rect:r,col});});}
+      else if((bd.lv||1)>=2){ // T368b 合流升級：lv≥2 改直式招牌（每建築仍恰一面；底錨定＝沿用 T261 不飄空教訓，與 lv1 同一守衛組 bd.pw/!constrRise/__noNeon）
         const nw2=Math.max(1,2.5*z), nh2=(10+streetHash(o.x,o.y,1901)*8)*z;
         const nx2=bx+s.w*z*(.16+streetHash(o.x,o.y,1902)*.2), ny2=by+s.h*z-(16*z+nh2+streetHash(o.x,o.y,1903)*8*z);
         nightSprites.push({rect:[nx2-2*z,ny2-2*z,nw2+4*z,nh2+4*z],col:shade(nCol,-96)});
