@@ -12948,7 +12948,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert((html.match(/\n  if\(!t591\)switch\(k\)\{\n/g)||[]).length===1,'T591 G1a 配方 switch 只在沒貼新圖時跑（恰一處）');
   assert(html.includes('if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574);')&&html.includes("const key=b.k+'_'+lotVariant574(b.k,lotV591(o.x,o.y,b));"),'T591 G1b 繪製與縮略圖預算用同一個變體');
   assert(html.includes('if(t591)out574.__t590=1;')&&html.includes("+lotKey591(k);let s=lotCache574.get(key);")&&html.includes("const key=k+'_'+v+lotKey591(k);")&&html.includes("lotHookCache574.set(k+'_'+v+lotKey591(k),{ax,ay,hooks});")
-    &&html.includes("function lotKey591(k){if(!portedLot591(k))return '';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
+    &&html.includes("function lotKey591(k){if(!portedLot591(k))return '';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
   assert(/function t591On\(\)\{if\(t591On\.u===undefined\)t591On\.u=\/\(\?:\^\|\[\?&\]\)noT591\(\?:=1\)\?\(\?:&\|\$\)\/\.test\(/.test(html)&&html.includes('return !window.__noT591&&!t591On.u;}'),'T591 G1d 網址 ?noT591=1 逃生閥原文');
   // G8c 原文（未剝字串）：三行貼圖含合成模式整行釘死（覆核抓到剝字串後改成等長別的模式不會紅）
   assert(html.includes("      cg.drawImage(S.img,x0,y0,sw,sh);\n      ng.globalCompositeOperation='destination-out';ng.drawImage(S.img,x0,y0,sw,sh);ng.globalCompositeOperation='source-over';\n      if(S.night)ng.drawImage(S.night,x0,y0,sw,sh);\n"),'T591 G1e 貼圖三行原文（含合成模式字串）');
@@ -12958,12 +12958,14 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
       fillRect(){},drawImage(im,x,y,ww,hh){rec.push({cv:id,mode,im,x,y,w:ww,h:hh});}};const c={width:w,height:h,getContext:()=>g};g.canvas=c;return[c,g];};return{rec,fac};};
   const behind591=(a,b)=>a[2]<=b[0]+1e-9||a[3]<=b[1]+1e-9;
   const src591=(k,v)=>k===11?((v&&S591.policeVar&&S591.policeVar[v])||S591.police):k===12?((v&&S591.hospitalVar&&S591.hospitalVar[v])||S591.hospital):(S591.bld[k+'_1_'+v]||S591.bld[k+'_1_0']);
-  let n591=0;const bad591=[],fill591={};
+  let n591=0;const bad591=[],fill591={},mix592={back:0,center:0};
   for(const k of K591){
     const vs=k===11||k===12?[0,1,2,3,4]:A.artVariants(k);
     for(const v of vs)for(const w of [false,true]){
       const {rec,fac}=bench591(),r=A.bakeTrace(k,v,w,fac),s=r.sprite,mt=s.lotMeta574;n591++;
-      const n=A.plan()[k][1],mm=Math.min(n-1,A.legacy(k)),u0=(n-mm)/2,S0=src591(k,v),S=w&&S0.win563?S0.win563:S0,q=S.sc||1;
+      // T592 業主定稿的混合規則（規格另抄一份）：(k*7+v*3) 奇數靠後（A2，後角留 .3 格），偶數置中（A1）
+      const n=A.plan()[k][1],mm=Math.min(n-1,A.legacy(k)),back592=((k*7+v*3)&1)===1,u0=back592?Math.min(.3,(n-mm)/2):(n-mm)/2,S0=src591(k,v),S=w&&S0.win563?S0.win563:S0,q=S.sc||1;
+      if(!w){if(back592&&(n-mm)/2>.3)mix592.back++;else if(!back592)mix592.center++;}
       const [ax,top]=mt.ground,Pf=[ax+((u0+mm)-(u0+mm))*32,top+((u0+mm)+(u0+mm))*16]; // 前角 P(fu,fv)，由園區地面錨點獨立算
       const x0=Math.round(Pf[0]-S.ax*q),y0=Math.round(Pf[1]-S.ay*q),sw=S.w*q,sh=S.h*q;
       const draws=rec.filter(d=>true),okDraw=draws.length===3&&draws[0].cv===0&&draws[0].mode==='source-over'&&draws[0].im===S.img
@@ -12978,13 +12980,15 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
         &&r.trace.every((p,i)=>i===mi||!(behind591(p.foot,mf)&&!behind591(mf,p.foot))||i<mi)&&r.trace.every((p,i)=>i===mi||!(behind591(mf,p.foot)&&!behind591(p.foot,mf))||i>mi);
       const ok=mt.t591===true&&s.__t590===1&&r.cycles===0&&okDraw&&okHook&&okOrder&&!mt.feet.some(f=>f.role==='main');
       if(!ok)bad591.push('k'+k+'v'+v+(w?'冬':'日')+(okDraw?'':'［貼圖］')+(okHook?'':'［掛點］')+(okOrder?'':'［排序］'));
-      if(!w&&v===0){const c=role=>r.trace.filter(p=>p.role===role).length;fill591[k]={n,r:n-mm,tree:c('tree'),car:c('car'),lamp:c('lamp')};}
+      if(!w&&v===0){const c=role=>r.trace.filter(p=>p.role===role).length;fill591[k]={n,r:n-mm,back:back592,tree:c('tree'),car:c('car'),lamp:c('lamp')};}
     }
   }
   assert(bad591.length===0&&n591>=250,'T591 G2 36 類每款日冬：貼的是該款自己的圖（冬天是它的雪景）、位置與三筆合成模式對、掛點換算對、本體在部件排序裡且前後關係對（實烘 '+n591+'）：'+bad591.slice(0,8).join(','));
+  assert(mix592.back>=40&&mix592.center>=40,'T592 G1 同城真的混用兩式（大於 2×2 的款日景各至少 40 次），實得 '+JSON.stringify(mix592));
   // G2f 補地內容（業主定案 A「剩下的地補停車／花園」）：下限取 2026-09-26 實測的保守值
   // 下限依「新圖四周剩幾格」分級（2026-09-26 實測最小值打折）：剩 1 格只補樹（離右立面留空後放不下停車場）；剩 2 格起要有停車；剩 3 格以上要成片
-  const fillBad591=Object.entries(fill591).filter(([k,f])=>f.lamp<1||f.tree<(f.r>=3?40:f.r>=2?8:4)||(f.r>=2&&f.car<(f.r>=3?8:2))).map(([k,f])=>'k'+k+JSON.stringify(f));
+  // T592：靠後（A2）的小園區前帶淺，只放廣場＋花圃、右帶樹林，下限另列
+  const fillBad591=Object.entries(fill591).filter(([k,f])=>f.lamp<1||(f.back?(f.tree<(f.r>=3?30:f.r>=2?8:2)||(f.r>=2&&f.car<(f.r>=3?12:4))):(f.tree<(f.r>=3?40:f.r>=2?8:4)||(f.r>=2&&f.car<(f.r>=3?8:2))))).map(([k,f])=>'k'+k+JSON.stringify(f));
   assert(fillBad591.length===0,'T591 G2f 園區剩下的地要真的補上樹林與停車（大園區更多），至少一盞燈：'+fillBad591.join(' '));
   // ---- G4 逃生閥真撥（快取與掛點快取都分開）----
   window.__noT591=true;

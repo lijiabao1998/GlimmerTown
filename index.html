@@ -799,7 +799,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.200'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.201'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -3379,7 +3379,7 @@ function lotObjectOrder574(objs){
 /* T591：園區接新圖的三支輔助。t591On 的網址判斷只算一次；執行期旗標 window.__noT591 可隨時撥（快取鍵另帶標記，撥回不會拿到舊烘焙）。 */
 function t591On(){if(t591On.u===undefined)t591On.u=/(?:^|[?&])noT591(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT591&&!t591On.u;}
 function portedLot591(k){if(k===5||!portK590().has(k))return false;const s=k===11?SPR.police:k===12?SPR.hospital:(SPR.bld&&SPR.bld[k+'_1_0']);return !!(s&&s.__t590);} // k5 電廠園區是 T585 的，不動；k11／k12 的新圖在家族
-function lotKey591(k){if(!portedLot591(k))return '';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':'';} // 園區精靈快取與掛點快取共用的鍵尾：關閥、A2 出樣各自一份，撥來撥去不會拿到另一條路的烘焙或掛點
+function lotKey591(k){if(!portedLot591(k))return '';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';} // 園區精靈快取與掛點快取共用的鍵尾（T592：出樣工具強制單一式時另帶標記）：關閥、A2 出樣各自一份，撥來撥去不會拿到另一條路的烘焙或掛點
 function lotV591(x,y,b){return b&&b.v===0&&vark590().has(b.k)&&t591On()&&portedLot591(b.k)?vdraw590({x,y},b):(b?b.v:0);} // 放置寫死 v:0 的園區，繪製期依格雜湊選款（同 T590）；繪製與縮略圖預算共用
 function bakeLot574(k,v,stage,winter){
   const n=LOT_PLAN574[k][1],w=n*64+16,h=n*32+144,ax=w/2,ay=h-8,top=ay-n*32;
@@ -3673,14 +3673,14 @@ function bakeLot574(k,v,stage,winter){
   /* ===== T591 園區接新圖（業主 2026-09-26 定案 A：新圖放進主線園區、占地不變，剩下的地補停車／花園） =====
      實驗線新圖（T590 換進 SPR.bld／家族）按它原本的占地 m×m 以前角對齊貼進 n×n 園區，其餘地面用本函式既有的地面件補滿。
      零亂數：配置只由 (k,v,n,m) 的整數運算決定，同鍵恆定。座標：u 往右下、v 往左下；(0,0) 後角、(n,n) 朝鏡頭的前角。
-     預設 A1 置中（業主看過的 A 圖）；A2 靠後只給出樣工具用（window.__t591Mode='back'）。 */
+     T592 業主定稿：A1 置中與 A2 靠後同城混用，依 (k*7+v*3) 的奇偶固定；window.__t591Mode='center'|'back' 只給出樣工具強制單一式。 */
   const t591=(()=>{
     if(!t591On()||!portedLot591(k))return false;
     const m=Math.min(n-1,MSZ[k]||1);
     const S0=k===11?((v&&SPR.policeVar&&SPR.policeVar[v])||SPR.police):k===12?((v&&SPR.hospitalVar&&SPR.hospitalVar[v])||SPR.hospital):(SPR.bld[k+'_1_'+v]||SPR.bld[k+'_1_0']);
     if(!S0||!S0.img||S0.__t590!==1)return false; // 只貼 T590 換進來的新圖；其他款（例如測試注入的鍵）走回配方
     const S=winter&&S0.win563?S0.win563:S0;   // 冬天貼 T590 winter590 烘的雪景
-    const mode=window.__t591Mode==='back'?'back':'center';
+    const mode=window.__t591Mode==='back'?'back':window.__t591Mode==='center'?'center':((k*7+v*3)&1?'back':'center'); // T592 業主定稿「混合甚至更好」：依類＋款固定一種擺法，同城兩式混用（不按格雜湊，快取條目不增加）
     const r=n-m,u0=mode==='back'?Math.min(.3,r/2):r/2,v0=u0,fu=u0+m,fv=v0+m;
     const q=S.sc||1,sw=S.w*q,sh=S.h*q,sax=S.ax*q,say=S.ay*q;
     const HH=(a,b)=>{let h=(k*73+v*31+Math.round(a*97)+Math.round(b*131))&1023;h^=h>>5;return h&255;}; // 決定性雜湊，非亂數
@@ -3717,9 +3717,13 @@ function bakeLot574(k,v,stage,winter){
     const grove=(u,vv,du,dv)=>{ // 樹林：草地＋錯落大樹＋花叢（2–3 個 2×1 小點，不是色條）
       if(du<.3||dv<.3)return;
       ground(u,vv,du,dv,'#6f9a5f');
-      for(let x=u+.22;x<u+du-.15;x+=.48)for(let y=vv+.22;y<vv+dv-.15;y+=.48){
+      const xs=[],ys=[]; // 窄帶（<.62 格）只排一列、放在帶子中線（T592：窄帶原本常常一棵樹都排不進去）
+      if(du<.62)xs.push(u+du/2);else for(let x=u+.22;x<u+du-.15;x+=.48)xs.push(x);
+      if(dv<.62)ys.push(vv+dv/2);else for(let y=vv+.22;y<vv+dv-.15;y+=.48)ys.push(y);
+      const few=xs.length*ys.length<=2;
+      for(const x of xs)for(const y of ys){
         const h=HH(x,y),jx=((h&7)-3.5)*.02,jy=(((h>>3)&7)-3.5)*.02;
-        if(h%5===0){if(!winter){const p=P(x+jx,y+jy),px=Math.round(p[0]),py=Math.round(p[1]);g.fillStyle=['#e0a3b8','#f0d27a','#c9a0dc'][h%3];
+        if(h%5===0&&!few){if(!winter){const p=P(x+jx,y+jy),px=Math.round(p[0]),py=Math.round(p[1]);g.fillStyle=['#e0a3b8','#f0d27a','#c9a0dc'][h%3];
           g.fillRect(px-2,py,2,1);g.fillRect(px+1,py+1,2,1);g.fillRect(px-1,py+2,2,1);}}
         else tree591(x+jx,y+jy);
       }
@@ -3731,16 +3735,31 @@ function bakeLot574(k,v,stage,winter){
       for(let y=vv+.3;y<vv+dv-.1;y+=.3)line(P(u+.04,y),P(u+du-.04,y),'#aca690',1);
       const pool=du>=.9&&dv>=.8,pc=u+du/2;
       if(pool)court(pc-.3,vv+dv/2-.3,.6,Math.min(.6,dv-.2),'pool');
-      if(du>=2&&dv>=.5)for(let x=u+.5;x<u+du-.5;x+=1.4){if(pool&&Math.abs(x+.2-pc)<.7)continue;
+      if(du>=2&&dv>=.7)for(let x=u+.5;x<u+du-.5;x+=1.4){ // 淺廣場不放花台（靠後配置時廣場就在新圖正前方，樹會擋立面）if(pool&&Math.abs(x+.2-pc)<.7)continue;
         ground(x,vv+dv/2-.2,.4,.4,'#6f9a5f');tree591(x+.2,vv+dv/2);}
+    };
+    const bed=(u,vv,du,dv)=>{ // 花圃：草地＋花叢點，不種樹（放在新圖正前方時不擋立面）
+      if(du<.2||dv<.2)return;
+      ground(u,vv,du,dv,'#6f9a5f');line(P(u,vv+dv),P(u+du,vv+dv),'#566f4b',1);
+      if(winter)return;
+      for(let x=u+.1;x<u+du-.05;x+=.2)for(let y=vv+.1;y<vv+dv-.05;y+=.2){const hh=HH(x,y);if(hh%3)continue;
+        const p=P(x,y),px=Math.round(p[0]),py=Math.round(p[1]);g.fillStyle=['#e0a3b8','#f0d27a','#c9a0dc','#f4f1e4'][hh%4];g.fillRect(px-1,py,2,1);g.fillRect(px+1,py+1,2,1);}
     };
     let lamps591=0;const lampL=(x,y)=>{if(x-y<-m-.15){lamp(x,y);lamps591++;}}; // 路燈只放在螢幕上新圖左立面的左側，不立在入口與前角上
     if(mode==='back'){
-      const fd=n-fv,rw=Math.min(.34,fd*.25),ry=fv+fd*.45;
-      if(k===18)ground(.1,fv+.06,fu-.1,fd*.45-.1,'#598eaa');else plaza(.1,fv+.06,fu-.1,fd*.45-.1);
-      road(0,ry,n,rw);
-      park(.1,ry+rw+.04,n-.2,n-(ry+rw+.04)-.1);
-      if(n-fu>.35)grove(fu+.2,.1,n-fu-.3,ry-.16);
+      const fd=n-fv;
+      if(fd<1){ // 小園區靠後（T592）：前帶太淺放不下廣場＋橫路＋停車——新圖正前方鋪廣場、右前是低矮花圃（不種樹，免得擋立面），右帶種樹林
+        if(k===18)ground(.1,fv+.06,fu-.1,fd-.16,'#598eaa');else plaza(.1,fv+.06,fu,fd-.16);
+        bed(fu+.14,fv+.06,n-fu-.24,fd-.16);
+        grove(fu+.2,.1,n-fu-.3,fv-.04);
+      }else{
+        const rw=Math.min(.34,fd*.25),ry=fv+fd*.45;
+        if(k===18)ground(.1,fv+.06,fu-.1,fd*.45-.1,'#598eaa');else plaza(.1,fv+.06,fu-.1,fd*.45-.1);
+        road(0,ry,n,rw);
+        if(!park(.1,ry+rw+.04,n-.2,n-(ry+rw+.04)-.1))grove(.1,ry+rw+.04,n-.2,n-(ry+rw+.04)-.1);
+        if(n-fu>.35)grove(fu+.2,.1,n-fu-.3,ry-.16);
+      }
+      if(k!==18)for(let x=.33;x<fu-.1;x+=.9)lampL(x,n-.2);
     }else{
       const fr=Math.min(.5,(n-fv)*.5),rw=n-fu-.28,fd=n-fv-fr-.12;
       grove(.08,.08,n-.16,v0-.12);                  // 右上帶（後）：樹林
