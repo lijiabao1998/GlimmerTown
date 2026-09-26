@@ -338,6 +338,13 @@ inject343(
   "else{if(window.__taxFbk)window.__taxFbk.push(b.k);const eduIndMul=b.lv===3",
   't383taxFbk'
 );
+/* T595 測試橋：把 tick() 死亡前置的區域 cemCap 抄到 window.__t595Cap（只在測試載入的這份副本；純賦值、零亂數），
+   讓 T595 守衛拿墓園面板的數字去對模擬真正在用的池。 */
+inject343(
+  "const cemCap=cemCount*3+bigCem*24+cremPre342*40;",
+  "const cemCap=cemCount*3+bigCem*24+cremPre342*40;window.__t595Cap=cemCap;",
+  'T595 tick cemCap'
+);
 t343IifeEnd = js.lastIndexOf('})();'); // 上方 probe 插入會改字串長度，注入點必須重新定位
 const t343Harness = `
 window.__t343Probe={};
@@ -13194,6 +13201,55 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert(f8bad594.length===0&&f8n594===(32+10)*144,'T594 G8a 逐閥門掃 '+(32+10)*144+' 張零例外、形狀齊：實得 '+f8n594+' 張，壞 '+f8bad594.slice(0,4).join('｜'));
   assert(nMr8594===0&&rc8594&&rc8594.r===0&&rc8594.s===0&&rc8594.g===0&&rc8594.swapped===0,'T594 G8b 逐閥門掃零世界亂數：'+JSON.stringify({rc:rc8594,mr:nMr8594}));
   assert(Object.keys(f8err594).length===0,'T594 G8c 逐閥門掃繪製器零例外（makeBlockSprite594 吞掉的例外也算；2026-09-26 實測 0）：'+stS594(f8err594));
+}
+
+
+/* ===== T595 墓園資訊面板：檢視墓園不得丟例外、容量列在場、數值＝tick() 死亡前置真正在用的池 =====
+   病灶：inspect() 墓園分支引用 tick() 主計數迴圈的區域變數 cemeteries（T38 起），一點墓園就 ReferenceError、面板打不開；
+   在這之前沒有任何測試點過墓園的面板。本塊自建新城（放置與過天都會動世界與亂數流），所以放在**執行**尾端：
+   runPwaTests().then(...) 裡、完成標記之前——檔案最後那一段（T426 起）是同步跑的，反而比這個 .then 早執行，
+   第一版放在那裡時實測先於後面約 8,400 條斷言執行（變異體首紅時 PASS≈3,905、當時全綠 12,354）。
+   期望值不在這裡另抄公式：面板數字直接對 tick 自己算出來的 cemCap（上方 inject343 測試橋抄出）。 */
+{
+  const G = window.GV;
+  G.setMapSize(72); G.newWorldSeeded(595); G.setDiff(1); G.ai(false); G.setSpeed(0); G.addMoney(999999);
+  const n595 = G.N(), c595 = (n595 / 2) | 0;
+  const put595 = tool => {
+    for (let r = 0; r < n595 / 2; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      const x = c595 + dx, y = c595 + dy;
+      if (x < 2 || y < 2 || x > n595 - 7 || y > n595 - 7) continue;
+      if (G.place(tool, x, y)) return [x, y];
+    }
+    return null;
+  };
+  const cap595 = h => { const m = /全城安撫容量 (\d+)/.exec(h || ''); return m ? +m[1] : null; };
+  // G1 造境：三種殯葬建築各一座，走真工具（T574 起墓園 3×3、大墓園 3×3、火葬場 2×2 地塊）
+  const cem595 = put595('cemetery'), big595 = put595('bigCemetery'), crem595 = put595('crematorium');
+  assert(cem595 && big595 && crem595, 'T595 G1 造境：墓園、大墓園、火葬場各放下一座：' + JSON.stringify([cem595, big595, crem595]));
+  G.step(1);
+  const tick595 = window.__t595Cap;
+  // G2 檢視墓園 root 與 ref 格（ref 會轉到 root，就是真點地塊邊角的路徑）
+  let h595root = null, h595ref = null, e595 = null;
+  try { h595root = G.inspectAt(cem595[0], cem595[1]); h595ref = G.inspectAt(cem595[0] + 2, cem595[1] + 2); }
+  catch (x) { e595 = String(x && x.message || x); }
+  assert(e595 === null, 'T595 G2a 檢視墓園不得丟例外（T38 起引用不在作用域的 cemeteries＝ReferenceError）：' + e595);
+  assert(/💀 墓園/.test(h595root) && /💀 墓園/.test(h595ref) && cap595(h595root) !== null && cap595(h595root) === cap595(h595ref),
+    'T595 G2b root 與 ref 格都打開墓園面板、全城安撫容量列在場且一致：' + String(h595root).slice(0, 160));
+  // G3 面板＝tick 真池：城裡同時有三種，任何一項漏算、或墓園只數 root（tick 逐格數）都對不上
+  assert(Number.isFinite(tick595) && tick595 > 0 && cap595(h595root) === tick595,
+    'T595 G3 面板全城安撫容量＝tick 死亡前置 cemCap：面板 ' + cap595(h595root) + '／tick ' + tick595);
+  // G4 即時：再放一座墓園、不過天，面板立刻反映（不得讀 tick 快照或 tickBld）；過一天後仍與 tick 相等
+  const cem595b = put595('cemetery');
+  const h595b = cem595b ? G.inspectAt(cem595[0], cem595[1]) : '';
+  assert(cem595b && cap595(h595b) > cap595(h595root),
+    'T595 G4a 第二座墓園不過天就反映在面板上：' + cap595(h595root) + '→' + cap595(h595b) + '（' + JSON.stringify(cem595b) + '）');
+  G.step(1);
+  assert(cap595(G.inspectAt(cem595b[0], cem595b[1])) === window.__t595Cap,
+    'T595 G4b 過一天後面板仍＝tick cemCap：面板 ' + cap595(G.inspectAt(cem595b[0], cem595b[1])) + '／tick ' + window.__t595Cap);
+  // G5 原文：輔助函式恰一處、墓園分支讀它（放在行為釘之後，紅源才會先打到行為釘）
+  assert((html.match(/function cemPool595\(/g) || []).length === 1 && html.split('全城安撫容量 ${cemPool595().cap}').length === 2,
+    'T595 G5 cemPool595 定義恰 1 處、墓園分支讀它');
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
