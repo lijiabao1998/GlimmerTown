@@ -13420,6 +13420,96 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   T6.reset();
 }
 
+
+/* ===== T598 統計面板「🔧 v3.0 維護」＝tick 真正扣的錢（多格地塊只算 root；救護站係數對齊 tick） =====
+   病灶：T574 起火車站／港口／輕軌站／風力／污水廠／救護站／回收中心／高級消防改成 2×2／3×3 實體地塊（ref 格帶 k），
+   showStats 這 8 個計數沒有 !b.ref ⇒ 一座算成 4／9 座；救護站係數 T95 起 tick 是 4、面板仍是 3。
+   本塊自建新城（放置與過天都動世界與亂數流），比照 T595 放在執行尾端。
+   期望值不在這裡另抄公式：根數用 GV.tile 普查（ref 不算）、係數從 tick 的 upkeep 原文抽，
+   再用 hist 的 net（tick 當天真正扣的錢）交叉驗證兩者，面板最後對它。 */
+{
+  const G = window.GV;
+  const SRC598 = htmlBare438; // 剝掉註解與字串、逐字元等長（T438）：係數與計數只從程式碼抽
+  G.setMapSize(72); G.newWorldSeeded(598); G.setDiff(1); G.ai(false); G.setSpeed(0); G.addMoney(9999999);
+  G.step(1);
+  const sb598 = G.svcBudget();
+  assert(G.hist().slice(-1)[0].net === 0 && Object.keys(sb598).every(c => sb598[c] === 1),
+    'T598 G0 前置：空城日淨額 0、服務預算全 1（net 交叉驗證的前提）：net ' + G.hist().slice(-1)[0].net + '／' + JSON.stringify(sb598));
+  const n598 = G.N(), c598 = (n598 / 2) | 0;
+  const put598 = tool => {
+    for (let r = 0; r < n598 / 2; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      const x = c598 + dx, y = c598 + dy;
+      if (x < 2 || y < 2 || x > n598 - 7 || y > n598 - 7) continue;
+      if (G.place(tool, x, y)) return [x, y];
+    }
+    return null;
+  };
+  // 工具 → [k, tick 計數變數]；地塊邊長讀 T574 測試橋（LOT_PLAN574 真表），不在這裡寫死
+  const K598 = { station: [17, 'st'], port: [18, 'po'], tramStation: [21, 'tr'], wind: [26, 'wi'],
+    sewage: [27, 'se'], ambulance: [28, 'am'], recycling: [29, 'rc'], fireStation2: [30, 'fs2'] };
+  const plan598 = window.__t574.plan(), at598 = {};
+  for (const t in K598) at598[t] = put598(t);
+  // 舊檔形態：沒有 lot574 的 1×1 root（無 ref 格）——擋「除以地塊面積」這種只對新地塊成立的假修法
+  const old598 = [];
+  for (let y = 4; y < n598 - 4 && old598.length < 8; y += 2) for (let x = 4; x < n598 - 4 && old598.length < 8; x += 2) {
+    const t = G.tile(x, y);
+    if (t && t.t === 2 && !t.bld && !t.road && !t.tree) { const k = Object.values(K598)[old598.length][0]; window.__t384Bld(k, x, y); old598.push([k, x, y]); }
+  }
+  const census598 = () => {
+    const c = {};
+    for (let y = 0; y < n598; y++) for (let x = 0; x < n598; x++) {
+      const b = (G.tile(x, y) || {}).bld; if (!b) continue;
+      const e = c[b.k] || (c[b.k] = { root: 0, ref: 0 }); if (b.ref) e.ref++; else e.root++;
+    }
+    return c;
+  };
+  const cen598 = census598();
+  for (const t in K598) {
+    const k = K598[t][0], lot = plan598[k][1], b = at598[t] && G.tile(at598[t][0], at598[t][1]).bld, e = cen598[k] || {};
+    assert(lot > 1 && b && !b.ref && b.k === k && b.sz === lot && e.root === 2 && e.ref === lot * lot - 1,
+      'T598 G1 造境：' + t + '（k' + k + '）新地塊 ' + lot + '×' + lot + ' 一座＋舊式 1×1 一座：' + JSON.stringify({ at: at598[t], sz: b && b.sz, e }));
+  }
+  // tick 係數：從 upkeep 原文逐項抽（每項恰 1 處）
+  const a598 = SRC598.indexOf('  upkeep=roadUpkeep+'), up598 = SRC598.slice(a598, SRC598.indexOf(';', a598));
+  const V598 = ['st', 'po', 'ai', 'pa', 'tr', 'fa', 'ra', 'la', 'so', 'wi', 'se', 'am', 'rc', 'fs2', 'pr', 'un'], co598 = {};
+  for (const v of V598) {
+    const ms = up598.match(new RegExp('\\+' + v + '\\*([0-9.]+)(?=\\+)', 'g')) || [];
+    assert(a598 > 0 && ms.length === 1, 'T598 G1b tick upkeep 原文找得到 ' + v + '*係數恰 1 處（實得 ' + ms.length + '）');
+    co598[v] = +ms[0].split('*')[1];
+  }
+  const exp598 = c => Object.values(K598).reduce((s, e) => s + ((c[e[0]] || {}).root || 0) * co598[e[1]], 0).toFixed(1);
+  const v3Of598 = h => { const m = /🔧 v3\.0 維護<\/div><div class="v[^"]*">-([0-9.]+)<\/div>/.exec(h || ''); return m ? m[1] : null; };
+  G.step(1);
+  const h598 = G.hist().slice(-1)[0], m598 = G.stats().money;
+  assert((-h598.net).toFixed(1) === exp598(census598()),
+    'T598 G2a tick 真扣款＝root 數×upkeep 係數（此城只有這 8 類）：net ' + h598.net + '／期望 -' + exp598(census598()));
+  const p598 = v3Of598(G.statsPanel546());
+  assert(p598 === exp598(census598()),
+    'T598 G2 面板「🔧 v3.0 維護」＝tick 真扣款：面板 -' + p598 + '／tick ' + h598.net + '（T574 地塊 ref 格被逐格計數＝×4／×9；救護站係數 3≠4）');
+  assert(G.stats().money === m598 && G.hist().slice(-1)[0].net === h598.net, 'T598 G5 開統計面板零副作用（money／net 不變）');
+  const st598 = put598('station'), p598b = v3Of598(G.statsPanel546());
+  assert(st598 && (+p598b - +p598).toFixed(1) === co598.st.toFixed(1),
+    'T598 G3 不過天再蓋一座 3×3 火車站，面板只多 ' + co598.st + '（一座），實得 ' + (+p598b - +p598).toFixed(1));
+  G.step(1);
+  assert(v3Of598(G.statsPanel546()) === (-G.hist().slice(-1)[0].net).toFixed(1),
+    'T598 G4 過一天後面板仍＝tick 真扣款：' + v3Of598(G.statsPanel546()) + '／' + G.hist().slice(-1)[0].net);
+  // G6 同步釘：面板 16 個係數與 tick 同名項逐一同值（沒蓋的 8 類也罩住；T546 G2 先例）
+  const b598 = SRC598.indexOf('const v3Up='), v3L598 = SRC598.slice(b598, SRC598.indexOf(';', b598));
+  const P598 = { nSt: 'st', nPt: 'po', nAi: 'ai', nPk: 'pa', nTs: 'tr', nFa: 'fa', nRa: 'ra', nLd: 'la', nSo: 'so', nWi: 'wi', nSe: 'se', nAm: 'am', nRc: 'rc', nF2: 'fs2', nPr: 'pr', nUn: 'un' };
+  const bad6 = Object.keys(P598).filter(pv => { const ms = v3L598.match(new RegExp('[=+]' + pv + '\\*([0-9.]+)(?=[+]|$)', 'g')) || []; return !(ms.length === 1 && +ms[0].split('*')[1] === co598[P598[pv]]); });
+  assert(b598 > 0 && bad6.length === 0, 'T598 G6 面板 v3Up 係數必須與 tick upkeep 同值：' + bad6.map(pv => pv + '≠' + P598[pv] + '*' + co598[P598[pv]]).join('、'));
+  // G7 原文：showStats 掃描迴圈裡每個逐種計數，只要該種是多格（LOT_PLAN574 或舊 MSZ >1）就必須帶 !b.ref
+  const s598 = SRC598.indexOf('const kCnt=Object.create(null);'), loop598 = SRC598.slice(s598, SRC598.indexOf('const v3Up=', s598));
+  const re598 = /if\((\(?b\.k===\d+(?:\|\|b\.k===\d+)*\)?)(&&!b\.ref)?\)\{?([A-Za-z0-9_]+)\+\+/g, rows598 = [], bad7 = [];
+  for (let m; (m = re598.exec(loop598));) {
+    const ks = m[1].match(/\d+/g).map(Number); rows598.push(m[3]);
+    if (!m[2] && ks.some(k => ((plan598[k] || [])[1] || 1) > 1 || window.__t574.legacy(k) > 1)) bad7.push(m[3] + '(k' + ks.join('/') + ')');
+  }
+  assert(s598 > 0 && rows598.length === 32 && bad7.length === 0,
+    'T598 G7 showStats 多格種類計數一律 !b.ref（掃到 ' + rows598.length + '/32 個計數）：' + bad7.join('、'));
+}
+
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
