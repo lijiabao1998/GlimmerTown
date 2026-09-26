@@ -13211,6 +13211,90 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
 }
 
 
+/* ===== T597 殯葬安撫池只數 root：一座墓園、大墓園、火葬場各算一份，與地塊大小無關（業主裁決 A） =====
+   病灶：T574 起墓園 3×3、火葬場 2×2 實體地塊的 ref 格也帶 k，tick() 死亡前置逐格數＝一座新墓園算 9 份、一座火葬場算 4 份；
+   T595 的 cemPool595 刻意與它同口徑。T597 兩邊同步加 !b.ref。
+   T595 G3／G4 只比「面板＝tick」，兩邊一起退回逐格它看不出來——本塊釘絕對值：
+   每座的份量從 tick 的 cemCap 原文抽（inject343 已把那一行釘成逐字），根數用 GV.tile 普查（ref 不算），
+   再用舊存檔形態的 1×1 root（__t384Bld：無 sz／lot574、無 ref 格）擋「依地塊面積縮放」「逐格數再除以面積」兩種假修法。
+   放在 T595 塊之前：單邊退回時要先紅在本塊，不是 T595 G3。自建新城（放置與過天都動世界與亂數流），同 T595 放執行尾端。 */
+{
+  const G = window.GV;
+  G.setMapSize(72); G.newWorldSeeded(597); G.setDiff(1); G.ai(false); G.setSpeed(0); G.addMoney(999999);
+  const n597 = G.N(), c597 = (n597 / 2) | 0;
+  const put597 = tool => {
+    for (let r = 0; r < n597 / 2; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      const x = c597 + dx, y = c597 + dy;
+      if (x < 2 || y < 2 || x > n597 - 7 || y > n597 - 7) continue;
+      if (G.place(tool, x, y)) return [x, y];
+    }
+    return null;
+  };
+  const free597 = () => { for (let y = 4; y < n597 - 4; y += 2) for (let x = 4; x < n597 - 4; x += 2) { const t = G.tile(x, y); if (t && t.t === 2 && !t.bld && !t.road && !t.tree) return [x, y]; } return null; };
+  const cap597 = h => { const m = /全城安撫容量 ([0-9.]+)/.exec(h || ''); return m ? +m[1] : null; }; // 不用 \d+：小數池（除以面積的假修法）不得被截成整數
+  const m597 = /const cemCap=cemCount\*(\d+)\+bigCem\*(\d+)\+cremPre342\*(\d+);/.exec(html);
+  const per597 = m597 ? { 16: +m597[1], 54: +m597[2], 107: +m597[3] } : {};
+  const plan597 = window.__t574.plan();
+  const census597 = () => {
+    const c = { 16: { root: 0, ref: 0 }, 54: { root: 0, ref: 0 }, 107: { root: 0, ref: 0 } };
+    for (let y = 0; y < n597; y++) for (let x = 0; x < n597; x++) { const b = (G.tile(x, y) || {}).bld; if (b && c[b.k]) { if (b.ref) c[b.k].ref++; else c[b.k].root++; } }
+    return c;
+  };
+  const pool597 = (c, perCell) => [16, 54, 107].reduce((s, k) => s + (c[k].root + (perCell ? c[k].ref : 0)) * per597[k], 0);
+  G.step(1);
+  assert(m597 && per597[16] > 0 && per597[54] > 0 && per597[107] > 0 && window.__t595Cap === 0,
+    'T597 G0 前置：tick cemCap 原文抽得出每座份量、空城 tick 池 0：' + JSON.stringify({ per597, cap: window.__t595Cap }));
+  // G1 造境：一座新墓園走真工具＝T574 實體地塊（1 root＋其餘 ref 格帶 k16）
+  const cem597 = put597('cemetery'), c1 = census597(), s16 = plan597[16][1];
+  assert(cem597 && s16 > 1 && c1[16].root === 1 && c1[16].ref === s16 * s16 - 1,
+    'T597 G1 造境：新墓園一座＝' + s16 + '×' + s16 + ' 地塊（1 root＋' + (s16 * s16 - 1) + ' ref）：' + JSON.stringify({ at: cem597, c: c1[16] }));
+  G.step(1);
+  // G2 tick：一座新墓園＝一份（逐格數＝地塊格數份）
+  assert(window.__t595Cap === per597[16],
+    'T597 G2 tick 死亡前置：一座 ' + s16 + '×' + s16 + ' 新墓園＝池 ' + per597[16] + '（ref 格不算；逐格數會是 ' + pool597(c1, true) + '）：實得 ' + window.__t595Cap);
+  // G3 面板：同一座墓園，點 root 與點 ref 格顯示同一個數，且等於一份
+  const h3r = G.inspectAt(cem597[0], cem597[1]), h3f = G.inspectAt(cem597[0] + 1, cem597[1] + 1);
+  assert(cap597(h3r) === per597[16] && cap597(h3f) === per597[16],
+    'T597 G3 墓園面板全城安撫容量＝' + per597[16] + '（cemPool595 與 tick 同步只數 root）：root ' + cap597(h3r) + '／ref ' + cap597(h3f));
+  // G4 舊存檔形態 1×1 墓園＝同一份：先看面板（不過天、當場掃），再過一天看 tick。
+  // 放兩座：只放一座時「逐格數再除以面積、無條件進位」會剛好湊對（ceil((9+1)/9)=2）——T597 對抗覆核實跑抓到；兩座就湊不對（ceil(11/9)=2≠3）
+  const leg16 = [free597()]; if (leg16[0]) window.__t384Bld(16, leg16[0][0], leg16[0][1]);
+  leg16.push(free597()); if (leg16[1]) window.__t384Bld(16, leg16[1][0], leg16[1][1]);
+  const p4 = cap597(G.inspectAt(cem597[0], cem597[1]));
+  G.step(1);
+  assert(leg16[0] && leg16[1] && window.__t595Cap === 3 * per597[16] && p4 === 3 * per597[16],
+    'T597 G4 舊式 1×1 墓園兩座與新 ' + s16 + '×' + s16 + ' 墓園同份量（容量與地塊大小無關）：tick ' + window.__t595Cap + '／面板 ' + p4 + '／期望 ' + 3 * per597[16] + '（' + JSON.stringify(leg16) + '）');
+  // G5 造境：大墓園（本來就只數 root）＋火葬場新地塊＋舊式 1×1 火葬場兩座（理由同 G4）
+  const big597 = put597('bigCemetery'), crem597 = put597('crematorium'), leg107 = [free597()];
+  if (leg107[0]) window.__t384Bld(107, leg107[0][0], leg107[0][1]);
+  leg107.push(free597()); if (leg107[1]) window.__t384Bld(107, leg107[1][0], leg107[1][1]);
+  const c5 = census597(), s54 = plan597[54][1], s107 = plan597[107][1];
+  assert(big597 && crem597 && leg107[0] && leg107[1] && s54 > 1 && s107 > 1 && c5[54].root === 1 && c5[54].ref === s54 * s54 - 1 && c5[107].root === 3 && c5[107].ref === s107 * s107 - 1,
+    'T597 G5 造境：大墓園 ' + s54 + '×' + s54 + '、火葬場 ' + s107 + '×' + s107 + ' 各一座＋舊式 1×1 火葬場兩座：' + JSON.stringify({ big597, crem597, leg107, c: c5 }));
+  // G6 三種混城：tick 與面板都＝root 數×每座份量（大墓園、火葬場逐格數各自會多出一截）
+  const p6 = cap597(G.inspectAt(cem597[0], cem597[1]));
+  G.step(1);
+  assert(window.__t595Cap === pool597(c5) && p6 === pool597(c5),
+    'T597 G6 殯葬混城：tick ' + window.__t595Cap + '／面板 ' + p6 + '／期望 root 數×每座份量 ' + pool597(c5) + '（全逐格會是 ' + pool597(c5, true) + '）');
+  // G7 原文（放在行為釘之後）：死亡前置與 cemPool595 的三種計數一律帶 ref 濾、各恰一處；計數變數除了宣告歸零與 ++ 之外不得再被賦值，
+  // 擋「逐格數、事後再除以面積」這一整族（行為釘只能用有限幾座建築去湊，湊得出的反例永遠有；T597 對抗覆核的 ceil 反例就是一例）。
+  // 這兩段程式碼裡沒有字串，直接在剝除器輸出（htmlBare438，註解換成空白、逐字元等長）上配對，註解寫什麼都替它作不了證。
+  const S597 = htmlBare438, n7 = (s, re) => (s.match(re) || []).length;
+  const ta7 = S597.indexOf('let cemCount=0,bigCem=0;'), tb7 = S597.indexOf('const cemCap=', ta7), tk7 = S597.slice(ta7, tb7);
+  const pa7 = S597.indexOf('function cemPool595(){'), pb7 = S597.indexOf('return {cem,big,crem,cap:', pa7), pn7 = S597.slice(pa7, pb7);
+  const bad7 = [];
+  if (!(ta7 > 0 && tb7 > ta7 && tb7 - ta7 < 600)) bad7.push('tick 區段 ' + ta7 + '..' + tb7);
+  if (!(pa7 > 0 && pb7 > pa7 && pb7 - pa7 < 400)) bad7.push('cemPool595 區段 ' + pa7 + '..' + pb7);
+  for (const [s, re, nm] of [[tk7, /b&&b\.k===16&&!b\.ref\)cemCount\+\+/g, 'tick k16'], [tk7, /b&&b\.k===54&&!b\.ref\)bigCem\+\+/g, 'tick k54'], [tk7, /b2&&b2\.k===107&&!b2\.ref\)cremPre342\+\+/g, 'tick k107'],
+    [pn7, /b\.k===16&&!b\.ref\)cem\+\+/g, '面板 k16'], [pn7, /b\.k===54&&!b\.ref\)big\+\+/g, '面板 k54'], [pn7, /b\.k===107&&!b\.ref\)crem\+\+/g, '面板 k107']])
+    if (n7(s, re) !== 1) bad7.push(nm + ' 帶 ref 濾的計數應恰 1 處（' + n7(s, re) + '）');
+  const w7t = n7(tk7, /\b(cemCount|bigCem|cremPre342)\s*([-+*\/%]?=(?!=)|\+\+|--)/g), w7p = n7(pn7, /\b(cem|big|crem)\s*([-+*\/%]?=(?!=)|\+\+|--)/g);
+  if (w7t !== 6) bad7.push('tick 計數變數被寫入 ' + w7t + ' 次（應 6：3 個宣告＋3 個 ++）');
+  if (w7p !== 6) bad7.push('cemPool595 計數變數被寫入 ' + w7p + ' 次（應 6）');
+  assert(bad7.length === 0, 'T597 G7 殯葬計數原文：三種都只數 root、計數不得事後改寫：' + bad7.join('；'));
+}
+
 /* ===== T595 墓園資訊面板：檢視墓園不得丟例外、容量列在場、數值＝tick() 死亡前置真正在用的池 =====
    病灶：inspect() 墓園分支引用 tick() 主計數迴圈的區域變數 cemeteries（T38 起），一點墓園就 ReferenceError、面板打不開；
    在這之前沒有任何測試點過墓園的面板。本塊自建新城（放置與過天都會動世界與亂數流），所以放在**執行**尾端：
@@ -13243,7 +13327,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert(e595 === null, 'T595 G2a 檢視墓園不得丟例外（T38 起引用不在作用域的 cemeteries＝ReferenceError）：' + e595);
   assert(/💀 墓園/.test(h595root) && /💀 墓園/.test(h595ref) && cap595(h595root) !== null && cap595(h595root) === cap595(h595ref),
     'T595 G2b root 與 ref 格都打開墓園面板、全城安撫容量列在場且一致：' + String(h595root).slice(0, 160));
-  // G3 面板＝tick 真池：城裡同時有三種，任何一項漏算、或墓園只數 root（tick 逐格數）都對不上
+  // G3 面板＝tick 真池：城裡同時有三種，任何一項漏算、或墓園只數 root（tick 逐格數）都對不上（T597 起兩邊都只數 root，括號內是 T595 當時的口徑；這裡仍擋單邊改動，絕對值由上方 T597 塊釘，本城 67→70）
   assert(Number.isFinite(tick595) && tick595 > 0 && cap595(h595root) === tick595,
     'T595 G3 面板全城安撫容量＝tick 死亡前置 cemCap：面板 ' + cap595(h595root) + '／tick ' + tick595);
   // G4 即時：再放一座墓園、不過天，面板立刻反映（不得讀 tick 快照或 tickBld）；過一天後仍與 tick 相等
