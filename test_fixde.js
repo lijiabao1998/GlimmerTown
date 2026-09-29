@@ -485,6 +485,7 @@ window.__t596T={stat:()=>({views:STAT596.views,fail:STAT596.fail,calls:STAT596.c
   smokeRun:(n,dt)=>{const out=[];for(let i=0;i<n;i++){smokes.length=0;smokeAcc=0;updSmoke(dt);for(const s of smokes)out.push({wx:s.wx,wy:s.wy,lot574:s.lot574?{...s.lot574}:null,col:s.col});}smokes.length=0;return out;}, // 每輪清空再撒，只收當輪新撒的（全城冬煙不會先把 130 顆上限吃滿）
   hits:(imgs,fn)=>{const old=ctx.drawImage,out=[];try{ctx.drawImage=function(im,...a){if(imgs.indexOf(im)>=0)out.push([imgs.indexOf(im),...a]);return old.apply(this,[im,...a]);};fn();}finally{ctx.drawImage=old;}return out;},
   reset:()=>{BLOCK_SPR594.clear();LAST596.clear();STAT596.memo.clear();STAT596.clock=NaN;STAT596.views=0;STAT596.fail=0;STAT596.calls=0;}}; // T596 測試橋：預覽開關的統計、網址判斷（onFn.u 可重設）、單格取圖／出煙點／霓虹牆位／倒影；reset 清掉生成器快取與預覽記憶
+window.__t599T={vt:(o,bd)=>vtower599(o,bd),on:k=>tower599(k),mk:(k,v,m)=>makeTowerSprite593(k,v,m)}; // T599 測試橋：摩天樓繪製期選款（存檔 v→四款）與「新圖在不在」判斷
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
@@ -5994,6 +5995,47 @@ runPwaTests().then(() => {
     assert(rawA5===rawB5,'T418b B5 往返位元恆等：4 格合法布局鏈城 save→load→save 逐位一致（2 格間距=讀檔非法城會互蓋樓，SK-8 布局契約），len '+rawA5.length+'/'+rawB5.length);
   }
 
+  { // ===== T599 摩天樓 33／34 換實驗線 T516 四款＋叢塔落地（行為釘排在 T421／T590 G421 計數之前，紅源才會先打到這裡） =====
+    const S599=window.__t420SPR,K599=[33,34].flatMap(k=>[0,1,2,3].map(v=>k+'_1_'+v)),r599=window.__t599;
+    // G1 開機：S20 尾端跑 towers599，零例外、恰生 8 鍵、夜暈有畫；八張的尺寸錨點照實驗線非巨廈規格（232×410、錨 116／406），規格另抄一份
+    assert(r599&&r599.ok===1&&r599.err.length===0&&JSON.stringify(r599.keys)===JSON.stringify(K599)&&Number.isInteger(r599.halo),'T599 G1a S20 尾端跑 towers599：零例外、恰生 8 鍵、各套一次夜暈（Node 樁讀不到像素，夜暈像素由真 Chrome 對照檯承接）：'+JSON.stringify(r599&&{ok:r599.ok,err:r599.err,keys:r599.keys,halo:r599.halo}));
+    const bad599=K599.filter(k=>{const s=S599.bld[k];return !(s&&s.__t599===1&&s.__t590===1&&s.w===232&&s.h===410&&s.ax===116&&s.ay===406&&!s.sc&&s.img&&s.night&&Array.isArray(s.warnAt)&&JSON.stringify(s.warnAt)===JSON.stringify([[116,28],[150,71],[116,174],[140,90]][+k.split('_')[2]])&&s.__t516&&s.__t516.family===['needle','twin-gap','pyramid','cluster'][+k.split('_')[2]]);});
+    assert(bad599.length===0,'T599 G1b 八張新塔 232×410、錨 116／406、1:1、日夜齊、警示燈掛點＝細針 116,28／雙塔 150,71／金字塔 116,174／叢塔 140,90（2026-09-27 實測）、四款依序是細針／雙塔／金字塔／叢塔：'+bad599.join(','));
+    assert(['105_1_0','105_1_1','105_1_2','106_1_0','106_1_1','106_1_2'].every(k=>S599.bld[k]&&S599.bld[k].__t593===1&&!S599.bld[k].__t599),'T599 G1c 105／106 六鍵仍是 T593 新圖、沒被 T599 碰到');
+    // G2 繪製期選款：存檔 v1（中心那一半）→ 細針或雙塔、v0 → 金字塔或叢塔；同類內依格雜湊、兩款都真的會出現；決定性
+    const V599=window.__t599T,seen599={};let wrong599=0;
+    for(const k of [33,34])for(const v of [0,1])for(let y=2;y<40;y++)for(let x=2;x<40;x++){const w=V599.vt({x,y},{k,v});const ok=v===1?(w===0||w===1):(w===2||w===3);if(!ok)wrong599++;seen599[k+'_'+v+'_'+w]=1;if(V599.vt({x,y},{k,v})!==w)wrong599++;}
+    assert(wrong599===0&&Object.keys(seen599).length===8&&V599.on(33)&&V599.on(34),'T599 G2 繪製期選款：v1→細針／雙塔、v0→金字塔／叢塔，兩類各兩款都出現、決定性：錯 '+wrong599+'、出現 '+Object.keys(seen599).sort().join(','));
+    // G6 生成器指紋：錄 makeTowerSprite593 的畫布呼叫（方法＋參數＋當下填色／線色／透明度／合成／線寬）FNV-1a；33／34 八張＋主線實際用到的 105(2,mega)、106(0,mega)
+    //   105／106 不變、叢塔呼叫順序等只有像素見證的承諾，靠這條在 Node 端守住；改動生成器要重新簽名並重跑真 Chrome 對照檯
+    const FP599={"33_0":"e97da0d8","33_1":"be428c72","33_2":"368fb49","33_3":"88297f31","34_0":"cda4f130","34_1":"35a997f","34_2":"650f47bc","34_3":"16a0e1f9","105_2m":"c0917d99","106_0m":"e6f2ecd8"}; // 2026-09-27 簽名
+    const mk0599=document.createElement,rec599={};let h599=0x811c9dc5,cur599='';
+    const fnv599=s=>{for(let i=0;i<s.length;i++){h599^=s.charCodeAt(i);h599=Math.imul(h599,16777619)>>>0;}};
+    const arg599=a=>typeof a==='number'?String(Math.round(a*64)/64):typeof a==='string'?a:(a&&typeof a==='object'&&a.width!==undefined&&a.height!==undefined)?('C'+a.width+'x'+a.height):typeof a;
+    try{document.createElement=function(tag){const el=mk0599.apply(this,arguments);if(String(tag).toLowerCase()==='canvas'&&el&&typeof el.getContext==='function'){const gc=el.getContext;el.getContext=function(){const c=gc.apply(this,arguments);return c?new Proxy(c,{get(t2,p){const f=t2[p];if(typeof f!=='function')return f;return function(...a){fnv599(String(p)+'('+a.map(arg599).join(',')+')'+t2.fillStyle+'|'+t2.strokeStyle+'|'+t2.globalAlpha+'|'+t2.globalCompositeOperation+'|'+t2.lineWidth+';');return f.apply(t2,a);};},set(t2,p,v){t2[p]=v;return true;}}):c;};}return el;};
+      for(const [k,v,m] of [[33,0,false],[33,1,false],[33,2,false],[33,3,false],[34,0,false],[34,1,false],[34,2,false],[34,3,false],[105,2,true],[106,0,true]]){h599=0x811c9dc5;V599.mk(k,v,m);rec599[k+'_'+v+(m?'m':'')]=h599.toString(16);}
+    }finally{document.createElement=mk0599;}
+    assert(JSON.stringify(rec599)===JSON.stringify(FP599),'T599 G6 生成器畫布呼叫指紋等於 2026-09-27 簽名值（105／106 巨廈不變、叢塔修法與呼叫順序不變）：'+JSON.stringify(rec599));
+    // G3 零世界亂數：T599 區塊不得呼叫 ri／R／rand／瀏覽器亂數／spriteTexRand
+    const a599=html.indexOf('/* ===== T599 摩天樓 33／34 換實驗線 T516 新款'),b599=html.indexOf('/* ===== T599 區塊結束 ===== */');
+    assert(a599>0&&b599>a599&&!/Math\.random|spriteTexRand|(^|[^A-Za-z0-9_$.])(ri|R|rand|vri)\s*\(/.test(html.slice(a599,b599).replace(/\/\*[\s\S]*?\*\//g,'')),'T599 G3 T599 區塊零世界亂數');
+    // G4（逃生閥真撥、要整套重建）放在 T593 區塊之後：放在這裡會讓 T417 開機計數多算兩次重建
+    // G5 原文：選圖行、剔除放寬、新 34 不疊寫死霓虹、警示燈掛 warnAt、叢塔落地（閥＝實驗線懸空原樣）
+    const pins599=["    else if((bd.k===33||bd.k===34)&&tower599(bd.k))s=SPR.bld[bd.k+'_1_'+vtower599(o,bd)]||SPR.bld[bd.k+'_1_0'];",
+      "&&tower599(t.bld.k)){if(!(sx>-pad&&sx<W+pad&&sy>-pad&&sy<H+pad+200*z))continue;} // T599：新塔最高點在 root 上方約 347px（rot2 最壞），pad 160＋200\n    else if(!vis(sx,sy))continue;",
+      "    if(k===106&&ported590(106))continue;","    if(k===34&&tower599(34))continue;",
+      "function vtower599(o,bd){return ((bd.v|0)===1?0:2)+(hashLocal590(o.x|0,o.y|0,bd.k*131)<.5?0:1);}",
+      "  if(window.__noTower599||/(?:^|[?&])noT599(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''))return;",
+      "rep.halo+=halo593(s);s.__t590=1;s.__t599=1;","location.search)||'')){towers599();return;} // T599：兩個閥各管各的",
+      "        const cutY=s.__t599?Math.round(s.ay-(s.ay-s.warnAt[1])*riseF):s.h*(1-riseF);","      if(!s.__t599){ // T599：新塔只靠切口表現逐層長高",
+      "mt2=s.__t599?Math.min(ccy-fhFull*1.28,slabY-18*z):ccy-fhFull*1.28;","        const hookY=s.__t599?slabY-(4+Math.sin(visT*1.3)*3)*z:by+s.h*z*hookT;",
+      "      if(!window.__noWinLit&&!s.__t599)nightSprites.push(","sc599=s.__t599?s.warnAt:null, cut599=sc599?Math.round(s.ay-(s.ay-sc599[1])*([.30,.50,.68,.84,.96][bd.age-4]||1)):0, bw=sc599?128*z:s.w*z, bh=sc599?(s.ay-cut599)*z:s.h*z, bx599=sc599?bx+(s.ax-64)*z:bx, by599=sc599?by+cut599*z:by,",
+      "      }else if((bd.k===33||bd.k===34)&&!(s.__t599&&constrRise)){","        const wa599=s.__t599?s.warnAt:null;","        const wby=wa599?wa599[1]:198-(bd.v===1?168:150)-14;","ctx.drawImage(wb.img,bx+((wa599?wa599[0]:58)-wb.ax)*z,by+(wby-wb.ay)*z,wb.w*z,wb.h*z);",
+      "if(window.__noCluster599)put(ax,top+16,mega?8:6,mega?80:60);else put(ax+1,p+10,mega?9:7,mega?190:150);","  window.__t593=rep;\n  towers599();"];
+    const miss599=pins599.filter(p=>html.split(p).length!==2);
+    assert(miss599.length===0,'T599 G5 原文：選圖、剔除（連同下一行）、霓虹（連同上一行）、選款、網址閥、夜暈、兩閥解耦、施工切線／樓板／塔吊／吊鉤／趕工燈、鷹架、警示燈（升起期不掛）、叢塔落地、S20 尾端呼叫各恰一處：缺 '+miss599.map(p=>p.trim().slice(0,40)).join('｜'));
+  }
+
   { // ===== T421 nightCity 指紋守衛（行為釘，非字面掃描；增量一，美術落筆前） =====
     // 1) 清冊帶 nightCity 欄（entries 數不變語意——仍一 entry 一 img）
     const at421=window.GV.sprAtlas356();
@@ -6013,7 +6055,7 @@ runPwaTests().then(() => {
     // T590：43 類整鍵換成實驗線新圖（S19，在夜之城烘焙之後）。被換掉的鍵不再有舊夜之城——這是預期：新圖自帶夜圖。
     // 被換掉的鍵數寫死 56（2026-09-26 實測 atlas 203→147），不從執行期推算；每個都要「有夜圖、沒有舊夜之城」。
     const rep421=Object.keys(refs421).filter(k=>{const o=obj421(k);return o&&o.__t590===1;});
-    assert(rep421.length===58,'T590 G421：被新圖取代的夜之城基線鍵應恰 58（T590 的 56＋T593 的 105_1_0、106_1_0），實得 '+rep421.length);
+    assert(rep421.length===62,'T590 G421：被新圖取代的夜之城基線鍵應恰 62（T590 的 56＋T593 的 105_1_0、106_1_0＋T599 的 33／34 v0–v1），實得 '+rep421.length);
     const bad421=rep421.filter(k=>{const o=obj421(k);return !o.night||o.nightCity;});
     assert(bad421.length===0,'T590 G421：新圖必須自帶夜圖且不得殘留舊夜之城（'+bad421.slice(0,5).join('、')+'）');
     assert(window.__t421NcN-rep421.length===ncEnt.length||(window.__t421NcN===0&&ncEnt.length===0),
@@ -13109,6 +13151,16 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   }finally{delete window.__noPort593;rebuild593();}
   const t593b=window.__t593,S5=window.__t420SPR;
   assert(t593b&&t593b.ok===1&&K593.every(k=>S5.bld[k]&&S5.bld[k].__t593===1),'T593 G5b 重新打開後六鍵全部回來');
+}
+{ // ===== T599 G4 逃生閥真撥（放在 T417 開機計數之後；與 T593 G5 的重建同一段） =====
+  const V599=window.__t599T,K599=[33,34].flatMap(k=>[0,1,2,3].map(v=>k+'_1_'+v));
+  // G4 逃生閥真撥：__noTower599 重建後 33／34 退回 T127 舊圖（只有 v0、v1）、__t599 為 null；打開後八張回來
+  const rb599=()=>{const had=Object.prototype.hasOwnProperty.call(global,'GV');global.GV=window.GV;try{return window.GV.buildAllSprites();}finally{if(!had)delete global.GV;}};
+  window.__noTower599=true;
+  try{rb599();const S=window.__t420SPR;
+    assert(window.__t599===null&&['33_1_0','33_1_1','34_1_0','34_1_1'].every(k=>S.bld[k]&&!S.bld[k].__t599&&S.bld[k].w!==232)&&!S.bld['33_1_2']&&!V599.on(33),'T599 G4a 關掉 T599 重建後 33／34 退回 T127 舊圖兩款、沒有 v2／v3');
+  }finally{delete window.__noTower599;rb599();}
+  assert(window.__t599&&window.__t599.ok===1&&K599.every(k=>window.__t420SPR.bld[k]&&window.__t420SPR.bld[k].__t599===1),'T599 G4b 重新打開後八張回來');
 }
 { // ===== T594 住商工立面核心（實驗線 d172e97 超街區生成器移植；只移植，不接繪製）的行為釘與原文釘 =====
   const END594='/* ===== T594 區塊結束 ===== */\n';
