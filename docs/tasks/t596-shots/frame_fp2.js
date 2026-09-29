@@ -4,6 +4,7 @@
 //  (2) 加岸邊場景（在臨水陸格擺住商工，讓 reflectSprite 真的被呼叫）；
 //  (3) 加煙粒場景（冬／夏各跑 updSmoke 若干步，指紋化 smokes 陣列）；
 //  (4) 加 lod 遠景（z .6）與 lodMini（z .4）幀。
+//  T600 補：倒影直呼帶建築那一格的座標（reflectSprite(bd,x,y)），--on 時才會和畫面同一款；關著時結果不變。
 // 用法：node frame_fp2.js <dir> [--on]
 'use strict';
 const fs = require('fs'), path = require('path');
@@ -15,7 +16,7 @@ src = src.slice(0, cut);
 if (src.split('\neval(js);').length !== 2) throw new Error('eval anchor');
 const PRE = `
 Math.random=(()=>{let s=4242;return ()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})();
-{ const e=js.lastIndexOf('})();'); js=js.slice(0,e)+"\\nwindow.__fp2={updSmoke:(dt)=>updSmoke(dt),smokes:()=>smokes,reflect:(bd)=>reflectSprite(bd)};\\n"+js.slice(e); }
+{ const e=js.lastIndexOf('})();'); js=js.slice(0,e)+"\\nwindow.__fp2={updSmoke:(dt)=>updSmoke(dt),smokes:()=>smokes,reflect:(bd,x,y)=>reflectSprite(bd,x,y)};\\n"+js.slice(e); }
 { let cid594=0;
   global.__REC={on:false,h:0x811c9dc5,n:0,byC:{},dump:null};
   const R=global.__REC, fnv=s=>{for(let i=0;i<s.length;i++){R.h^=s.charCodeAt(i);R.h=Math.imul(R.h,16777619)>>>0;}};
@@ -68,7 +69,7 @@ for(const [name,c] of conds)for(const z of [.4,.6,1,2])for(const rot of [0,1,2,3
 if(GV.setRot)GV.setRot(0);
 // 反射直呼：所有岸格建築
 {let h=0x811c9dc5;const fnv=s=>{for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}};
- for(const [x,y] of shore.concat(placed.map(p=>[p[0],p[1]]))){const t=GV.tile(x,y);const bd=t&&t.bld;const rs=bd&&window.__fp2.reflect(bd);fnv(rs?(rs.w+'x'+rs.h+'@'+rs.ax+','+rs.ay+':'+(rs.img&&rs.img.__cid)):'null');}
+ for(const [x,y] of shore.concat(placed.map(p=>[p[0],p[1]]))){const t=GV.tile(x,y);const bd=t&&t.bld;const rs=bd&&window.__fp2.reflect(bd,x,y);fnv(rs?(rs.w+'x'+rs.h+'@'+rs.ax+','+rs.ay+':'+(rs.img&&rs.img.__cid)):'null');}
  out.reflect=(h>>>0).toString(16);}
 // 煙：冬（住宅炊煙）與夏（工業），各 40 步
 for(const sea of [3,1]){GV.setSeason(sea);GV.weather(0);const S=window.__fp2.smokes();S.length=0;Math.random=mb(31+sea);
