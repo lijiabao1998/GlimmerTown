@@ -489,6 +489,14 @@ window.__t599T={vt:(o,bd)=>vtower599(o,bd),on:k=>tower599(k),mk:(k,v,m)=>makeTow
 window.__t600T={v:(bd,x,y)=>v600(bd,x,y),off:t600Off,ht:()=>JSON.parse(JSON.stringify(HT600)),rank:()=>JSON.parse(JSON.stringify(RANK600)),dec:()=>JSON.parse(JSON.stringify(DEC600)),vrank:()=>JSON.parse(JSON.stringify(VRANK406)),
   withVrank:(key,arr,fn)=>{const o=VRANK406[key],had=key in VRANK406;VRANK406[key]=arr;try{return fn();}finally{if(had)VRANK406[key]=o;else delete VRANK406[key];}},
   arche:(k,lv,v)=>{const a=arche594(k,lv,v);return a?JSON.parse(JSON.stringify(a)):null;},last:()=>[...LAST596.keys()]}; // T600 測試橋：v600 與三張表、t600Off（.u 可重設）、VRANK406 深拷貝與暫換（withVrank 結束一定還原）、arche594 深拷貝、LAST596 的鍵
+window.__t601T={rep:()=>window.__t601,reg:()=>Object.keys(ART601).filter(k=>k!=='ok').map(k=>[+k,ART601[k].variants,typeof ART601[k].draw,typeof ART601[k].name]),ok:()=>ART601.ok,on:t601On,v:(k,x,y,bd)=>v601(k,x,y,bd),hash:(x,y,s)=>hashLocal590(x,y,s),
+  bake:(k,v,w)=>bakeArt601(k,v,2,w),lot:(k,v,w,far)=>lotSprite574(k,v,2,w,far),lotV:(x,y,b)=>lotV591(x,y,b),key:k=>lotKey591(k),one:k=>SPR.art601&&SPR.art601[k],lot5:v=>SPR.lot601&&SPR.lot601['5_1_'+v],old5:v=>SPR.lot574['5_1_'+v],
+  park:()=>({park:SPR.park,parkS:SPR.parkS,parkA:SPR.parkA,parkW:SPR.parkW,ftn:SPR.parkFtn,ped:SPR.ped}),old:k=>SPR.bld[k+'_1_0'],reflect:(bd,x,y)=>reflectSprite(bd,x,y),S21:()=>buildSpritesS21(),hooks:(k,v)=>lotHooks574(k,v),
+  hits:(imgs,fn)=>{const old=ctx.drawImage,out=[];try{ctx.drawImage=function(im,...a){const i=imgs.indexOf(im);if(i>=0)out.push([i,...a]);return old.apply(this,[im,...a]);};fn();}finally{ctx.drawImage=old;}return out;},
+  rec:(names,fn)=>{const olds={},out=[];try{for(const nm of names){olds[nm]=ctx[nm];ctx[nm]=function(...a){out.push([nm,String(ctx.fillStyle),...a]);return olds[nm].apply(this,a);};}fn();}finally{for(const nm of names)ctx[nm]=olds[nm];}return out;},
+  facs:()=>({4:art601_k4,5:art601_k5,8:art601_k8,60:art601_k60,63:art601_k63,66:art601_k66,81:art601_k81,97:art601_k97}),art:k=>ART601[k],
+  clearLots:()=>{lotCache574.clear();lotCachePixels574=0;},scr:(x,y)=>[_sx413(x,y),_sy413(x,y),cam.z],
+  snow:on=>{rainDays=on?SNOW_ACC_DAYS+3:0;return rainDays;}}; // T601 測試橋：S21 回報、登記表、挑款、烘焙、園區取圖、k5／單格表、舊公園家族、倒影、S21 重跑、掛點、drawImage 錄影、ctx 呼叫錄影、樣張工廠、登記物件、清園區快取、格→螢幕、雪量
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
@@ -11140,9 +11148,11 @@ runPwaTests().then(() => {
         'T574 G12b k'+k+' v'+v+' winter='+winter+' 必須命中新地塊美術，不能退回舊一格');
       assert(s.w===s.img.width&&s.h===s.img.height&&s.night.width===s.w&&s.night.height===s.h&&s.w>=plan[k][1]*64,
         'T574 G12c k'+k+' 真畫布／日夜圖同尺寸，覆蓋完整 '+plan[k][1]+'×'+plan[k][1]+' 格');
-      const m=s.lotMeta574,[cx,ty,hw]=m.ground,cy=ty+hw/2;
-      assert(m.feet.length>=3&&m.feet.every(f=>f.points.every(([x,y])=>Number.isFinite(x+y)&&Math.abs(x-cx)/hw+Math.abs(y-cy)/(hw/2)<=1+1e-9)),
-        'T574 G12d k'+k+' v'+v+' 地腳必須全部在真實菱形內，不能把高度當占地或夾帶界外設備');
+      let m=s.lotMeta574;
+      if(s.__t601===1){window.__noT601=true;try{const r=A.art(k,v,2,winter);m=r&&!r.__t601?r.lotMeta574:null;}finally{delete window.__noT601;}} // T601：新圖沒有地腳中繼資料（落筆由 T601 G1e 逐像素驗）；配方是逃生閥的退路，照樣驗地腳
+      const [cx,ty,hw]=m?m.ground:[0,0,1],cy=ty+hw/2;
+      assert(m&&m.feet.length>=3&&m.feet.every(f=>f.points.every(([x,y])=>Number.isFinite(x+y)&&Math.abs(x-cx)/hw+Math.abs(y-cy)/(hw/2)<=1+1e-9)),
+        'T574 G12d k'+k+' v'+v+' 地腳必須全部在真實菱形內，不能把高度當占地或夾帶界外設備（T601 四類新圖：驗 __noT601 下的配方退路）');
       const stat=A.artCache();assert(stat.entries<=128&&stat.pixels<=12000000,
         'T574 G12e 園區快取必須同時守 128 組／12M 像素上限，實得 '+JSON.stringify(stat));
     }
@@ -11398,7 +11408,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     for(const p of kinds574){
       const full=A.art(p.k,0,2,false),small=A.art(p.k,0,2,false,true),q=small.sc||1;
       if(small.w*q===full.w&&small.h*q===full.h&&small.ax*q===full.ax&&small.ay*q===full.ay)exact574++;
-      if(p.k!==5){window.__noT591=true;try{if(A.art(p.k,0,2,false,true)===A.art(p.k,2,2,false,true))variants574++;}finally{delete window.__noT591;}} // T591：貼新圖的園區遠景保留變體（T591 G7），遠景合併是配方色票變體的契約，在 T591 關閉下數
+      if(p.k!==5){window.__noT591=true;window.__noT601=true;try{if(A.art(p.k,0,2,false,true)===A.art(p.k,2,2,false,true))variants574++;}finally{delete window.__noT591;delete window.__noT601;}} // T601 同 T591：新圖四類遠景保留款式，這裡數配方 // T591：貼新圖的園區遠景保留變體（T591 G7），遠景合併是配方色票變體的契約，在 T591 關閉下數
     }
     assert(exact574===105,'T574 G22f 105類縮略圖須以既有sc路徑精確還原w/h/ax/ay，地塊不得縮回一格；實得 '+exact574);
     assert(variants574===104,'T574 G22g 遠景合併色票變體鍵防128組抖動，但k5三種機組保持固定圖；實得 '+variants574);
@@ -11417,14 +11427,14 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(A.artCache().bakes===hookBefore,'T574 G22j 農場掛點讀取不得因畫布被LRU淘汰而重新烘焙；幾何不依賴圖片常駐');
     // T591：下面 G22l–n 用沒有座標的合成物件驗 T574 的條目／像素閥值算術（變體＝存檔的 v）。T591 開啟時 v=0 的園區按格雜湊選款，
     // 沒座標的合成物件會全擠到同一款、少算一組，所以在 T591 關閉下照樣驗算術；T591 的「按實際繪製變體計鍵」由 T591 G1b／G6 驗。
-    window.__noT591=true;try{
+    window.__noT591=true;window.__noT601=true;try{ // T601 同 T591：新圖四類按格雜湊挑款，合成物件沒有座標
     const smallObjects574=[];
     for(const p of [...kinds574].sort((a,b)=>a.n-b.n||a.k-b.k))if(p.n<=4&&p.k!==5&&p.k!==22)for(const v of A.artVariants(p.k))smallObjects574.push({t:{bld:{k:p.k,v,sz:p.n,lot574:p.n}}});
     const entryOnly574=smallObjects574.slice(0,129),entryPixels574=entryOnly574.reduce((n,o)=>n+(o.t.bld.sz*64+16)*(o.t.bld.sz*32+144)*2,0);
     assert(entryOnly574.length===129&&entryPixels574<12000000,'T574 G22l 條目閘造境須有129個合法小型變體鍵且像素低於12M，不得用像素超限冒充條目超限；實得 '+entryOnly574.length+'/'+entryPixels574);
     assert(A.farFrame(entryOnly574,false),'T574 G22m '+entryPixels574+'像素未滿12M但129鍵超128組，必須選縮略圖');
     assert(!A.farFrame(smallObjects574.slice(0,1),false),'T574 G22n 單座近景未超限必須保留完整畫布，不准一律降畫質');
-    }finally{delete window.__noT591;}
+    }finally{delete window.__noT591;delete window.__noT601;}
     console.log('T574 G22 CACHE_MATRIX '+JSON.stringify(checks574));
   }finally{
     [cv574.clientWidth,cv574.clientHeight,window.innerWidth,window.innerHeight]=oldView574;
@@ -11438,7 +11448,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const inversions=parts=>{const bad=[];for(let i=0;i<parts.length;i++)for(let j=i+1;j<parts.length;j++){
     const a=parts[i],b=parts[j];if(behind(b.foot,a.foot)&&!behind(a.foot,b.foot))bad.push(a.role+' > '+b.role);
   }return bad;};
-  let kinds=0,variants=0,strokes=0;
+  let kinds=0,variants=0,strokes=0;window.__noT601=true;try{ // T601：新圖不走配方（落筆由 T601 G1 驗），這裡照樣驗配方——它是逃生閥的退路
   for(let k=6;k<A.plan().length;k++){
     const p=A.plan()[k];if(!p||!p[0]||p[1]<=A.legacy(k))continue;kinds++;
     for(const v of A.artVariants(k))for(const winter of [false,true]){
@@ -11448,6 +11458,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
         ' 實際落筆必須滿足地腳前後關係且無循環，不能僅回傳排好的 metadata；筆數='+r.trace.length+' cycle='+r.cycles+' 反序='+bad.join(','));
     }
   }
+  }finally{delete window.__noT601;}
   assert(kinds===104&&variants>208&&strokes>1000,'T574 G23b 104種新園區所有既有變體的日／冬兩側都必須真跑；實得 '+kinds+'/'+variants+'/'+strokes);
   // T591：以下 G23c／G23d 驗的是 T574 配方本身（主樓與側翼的地腳、配方窗燈的夜光契約）。這幾類已貼新圖，配方只剩逃生閥路徑，
   // 所以在 T591 關閉下照樣守；貼新圖後的夜光遮擋由 T591 卡面的真 Chrome 逐像素稽核（208 次烘焙、零穿透）與 T591 G8c 原文釘承接。
@@ -12948,8 +12959,8 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const FAMK590={5:'plant',10:'waterTower',11:'police',12:'hospital',13:'clinic',52:'policeBox'};
   const S590=window.__t420SPR;
   // G1 兩條開機鏈各恰一次 S19（同步鏈緊接 S18；分段鏈在 checkpoint 96 與 97 之間）
-  assert((html.match(/buildSpritesS18\(\);buildSpritesS19\(\);buildSpritesS20\(\);\n\}/g)||[]).length===1,'T590 G1a 同步開機鏈 S18 之後恰一次 S19（T593 起其後接 S20）');
-  assert((html.match(/await bootCheckpoint426\(96,[^\n]*\n    buildSpritesS19\(\); \/\/ T590[^\n]*\n    buildSpritesS20\(\); \/\/ T593[^\n]*\n    await bootCheckpoint426\(97,/g)||[]).length===1,'T590 G1b 分段開機鏈在 checkpoint 96 與 97 之間恰一次 S19（T593 起其後接 S20）');
+  assert((html.match(/buildSpritesS18\(\);buildSpritesS19\(\);buildSpritesS20\(\);buildSpritesS21\(\);\n\}/g)||[]).length===1,'T590 G1a 同步開機鏈 S18 之後恰一次 S19（T593 起其後接 S20，T601 起再接 S21）');
+  assert((html.match(/await bootCheckpoint426\(96,[^\n]*\n    buildSpritesS19\(\); \/\/ T590[^\n]*\n    buildSpritesS20\(\); \/\/ T593[^\n]*\n    buildSpritesS21\(\); \/\/ T601[^\n]*\n    await bootCheckpoint426\(97,/g)||[]).length===1,'T590 G1b 分段開機鏈在 checkpoint 96 與 97 之間恰一次 S19（T593 起其後接 S20，T601 起再接 S21）');
   assert((html.match(/buildSpritesS19\(\);/g)||[]).length===2&&(html.match(/function buildSpritesS19\(/g)||[]).length===1,'T590 G1c S19 呼叫恰 2 處、定義恰 1 處');
   // G2 真開機（Node 替身）：22 批零例外；換上的新物件數寫死（bld 113、家族 26，2026-09-26 真 Chrome 實測同值）
   const t590=window.__t590;
@@ -13008,7 +13019,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert((html.match(/\n  if\(!t591\)switch\(k\)\{\n/g)||[]).length===1,'T591 G1a 配方 switch 只在沒貼新圖時跑（恰一處）');
   assert(html.includes('if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574);')&&html.includes("const key=b.k+'_'+lotVariant574(b.k,lotV591(o.x,o.y,b));"),'T591 G1b 繪製與縮略圖預算用同一個變體');
   assert(html.includes('if(t591)out574.__t590=1;')&&html.includes("+lotKey591(k);let s=lotCache574.get(key);")&&html.includes("const key=k+'_'+v+lotKey591(k);")&&html.includes("lotHookCache574.set(k+'_'+v+lotKey591(k),{ax,ay,hooks});")
-    &&html.includes("function lotKey591(k){if(!portedLot591(k))return '';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
+    &&html.includes("function lotKey591(k){if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
   assert(/function t591On\(\)\{if\(t591On\.u===undefined\)t591On\.u=\/\(\?:\^\|\[\?&\]\)noT591\(\?:=1\)\?\(\?:&\|\$\)\/\.test\(/.test(html)&&html.includes('return !window.__noT591&&!t591On.u;}'),'T591 G1d 網址 ?noT591=1 逃生閥原文');
   // G8c 原文（未剝字串）：三行貼圖含合成模式整行釘死（覆核抓到剝字串後改成等長別的模式不會紅）
   assert(html.includes("      cg.drawImage(S.img,x0,y0,sw,sh);\n      ng.globalCompositeOperation='destination-out';ng.drawImage(S.img,x0,y0,sw,sh);ng.globalCompositeOperation='source-over';\n      if(S.night)ng.drawImage(S.night,x0,y0,sw,sh);\n"),'T591 G1e 貼圖三行原文（含合成模式字串）');
@@ -13685,6 +13696,293 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   }
   assert(s598 > 0 && rows598.length === 32 && bad7.length === 0,
     'T598 G7 showStats 多格種類計數一律 !b.ref（掃到 ' + rows598.length + '/32 個計數）：' + bad7.join('、'));
+}
+
+/* ===== T601 藍灰重畫第一批：8 類滿版新圖（業主 2026-09-30 三款全收）的行為釘與原文釘 =====
+   本塊自建新城（放置會動世界與亂數流），比照 T595／T598 放在執行尾端（完成標記前）。
+   對抗覆核後改版：用真像素台架 px601 烘圖（Node 也看得到描邊迴圈讀回的像素、裁切、季節色），S21 的表一律拿「直接烘焙＋規格」逐像素對，
+   不拿被測的表當答案；畫面上的位置（遊人、園燈、光暈、落點）用格子的螢幕座標另算。 */
+{
+  const G=window.GV,T61=window.__t601T,T594=window.__t594,T6=window.__t596T;
+  const K601=[4,5,8,60,63,66,81,97],LOTK=[8,60,63,66],ONEK=[4,81,97],nOf=k=>ONEK.includes(k)?1:3; // 名單與地塊邊長寫死（另抄一份，不從 ART601／LOT_PLAN574 推算）
+  const CROP={4:56,81:88,97:60}; // 單格裁切窗：錨點以上留幾列（規格另抄一份，不讀 CROP601）；寬 64、錨點以下 2 列
+  // 真像素畫布台架（T601）：新圖全用 fillRect／clearRect／drawImage／getImageData／rect+clip 與四種合成（source-over、destination-out、destination-in、source-atop），
+  // 這裡逐像素照做（色值 #rgb／#rrggbb／rgb()／rgba()；最近鄰取樣），Node 就看得到描邊迴圈讀回像素、夜圖挖洞、裁切後的實際內容。不支援的呼叫一律丟錯（不默默略過）。
+  const px601=()=>{let W=0,H=0,buf=new Uint8ClampedArray(0);
+    const cnv={get width(){return W;},set width(v){W=Math.max(0,v|0);buf=new Uint8ClampedArray(W*H*4);},get height(){return H;},set height(v){H=Math.max(0,v|0);buf=new Uint8ClampedArray(W*H*4);},getContext(){return g;},__px601:()=>({W,H,buf})};
+    let st={fs:'#000000',gco:'source-over',ga:1,clip:null};const stack=[];let path=[];
+    const col=s=>{s=String(s).trim();let m;
+      if((m=/^#([0-9a-f]{3})$/i.exec(s)))return [...m[1]].map(c=>parseInt(c+c,16)).concat(1);
+      if((m=/^#([0-9a-f]{6})$/i.exec(s)))return [0,2,4].map(i=>parseInt(m[1].slice(i,i+2),16)).concat(1);
+      if((m=/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/i.exec(s)))return [+m[1],+m[2],+m[3],m[4]===undefined?1:+m[4]];
+      throw Error('px601 色值不支援：'+s);};
+    const put=(i,r,gg,b,a)=>{const mode=st.gco,da=buf[i+3]/255;
+      if(mode==='source-over'){if(a<=0)return;const oa=a+da*(1-a);buf[i]=Math.round((r*a+buf[i]*da*(1-a))/oa);buf[i+1]=Math.round((gg*a+buf[i+1]*da*(1-a))/oa);buf[i+2]=Math.round((b*a+buf[i+2]*da*(1-a))/oa);buf[i+3]=Math.round(oa*255);}
+      else if(mode==='destination-out')buf[i+3]=Math.round(da*(1-a)*255);
+      else if(mode==='destination-in')buf[i+3]=Math.round(da*a*255);
+      else if(mode==='source-atop'){if(da>0&&a>0){buf[i]=Math.round(r*a+buf[i]*(1-a));buf[i+1]=Math.round(gg*a+buf[i+1]*(1-a));buf[i+2]=Math.round(b*a+buf[i+2]*(1-a));}}
+      else throw Error('px601 合成模式不支援：'+mode);};
+    const span=(a,b,lim)=>{const lo=Math.round(Math.min(a,b)),hi=Math.round(Math.max(a,b));return [Math.max(0,lo),Math.min(lim,hi)];};
+    const clipOk=i=>!st.clip||st.clip[i];
+    const g={canvas:cnv,imageSmoothingEnabled:false,
+      get fillStyle(){return st.fs;},set fillStyle(v){st.fs=v;},get globalCompositeOperation(){return st.gco;},set globalCompositeOperation(v){st.gco=v;},get globalAlpha(){return st.ga;},set globalAlpha(v){st.ga=+v;},
+      save(){stack.push({...st});},restore(){if(stack.length)st=stack.pop();},
+      beginPath(){path=[];},rect(x,y,w,h){path.push([x,y,w,h]);},
+      clip(){const m=new Uint8Array(W*H);for(const [x,y,w,h] of path){const [x0,x1]=span(x,x+w,W),[y0,y1]=span(y,y+h,H);for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++)m[yy*W+xx]=1;}
+        if(st.clip)for(let i=0;i<m.length;i++)m[i]&=st.clip[i];st.clip=m;},
+      fillRect(x,y,w,h){const c=col(st.fs),a=c[3]*st.ga,[x0,x1]=span(x,x+w,W),[y0,y1]=span(y,y+h,H);
+        if(st.gco==='destination-in'){for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){const p=yy*W+xx;if(clipOk(p))put(p*4,0,0,0,(xx>=x0&&xx<x1&&yy>=y0&&yy<y1)?a:0);}return;}
+        for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++){const p=yy*W+xx;if(clipOk(p))put(p*4,c[0],c[1],c[2],a);}},
+      clearRect(x,y,w,h){const [x0,x1]=span(x,x+w,W),[y0,y1]=span(y,y+h,H);for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++){const p=yy*W+xx;if(clipOk(p)){const i=p*4;buf[i]=buf[i+1]=buf[i+2]=buf[i+3]=0;}}},
+      drawImage(src,...a){if(!src||typeof src.__px601!=='function')throw Error('px601 drawImage 來源不是台架畫布');const S=src.__px601();
+        let sx=0,sy=0,sw=S.W,sh=S.H,dx,dy,dw,dh;if(a.length===2){[dx,dy]=a;dw=sw;dh=sh;}else if(a.length===4){[dx,dy,dw,dh]=a;}else if(a.length===8){[sx,sy,sw,sh,dx,dy,dw,dh]=a;}else throw Error('px601 drawImage 參數數目 '+a.length);
+        const [x0,x1]=span(dx,dx+dw,W),[y0,y1]=span(dy,dy+dh,H),din=st.gco==='destination-in';
+        const X0=din?0:x0,X1=din?W:x1,Y0=din?0:y0,Y1=din?H:y1;
+        for(let yy=Y0;yy<Y1;yy++)for(let xx=X0;xx<X1;xx++){const p=yy*W+xx;if(!clipOk(p))continue;
+          const inside=xx>=x0&&xx<x1&&yy>=y0&&yy<y1;let r=0,gg=0,b=0,al=0;
+          if(inside){const qx=Math.floor(sx+(xx+.5-dx)*sw/dw),qy=Math.floor(sy+(yy+.5-dy)*sh/dh);if(qx>=0&&qy>=0&&qx<S.W&&qy<S.H){const j=(qy*S.W+qx)*4;r=S.buf[j];gg=S.buf[j+1];b=S.buf[j+2];al=S.buf[j+3]/255;}}
+          put(p*4,r,gg,b,al*st.ga);}},
+      getImageData(x,y,w,h){const out=new Uint8ClampedArray(w*h*4);for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){const X=x+xx,Y=y+yy;if(X<0||Y<0||X>=W||Y>=H)continue;const i=(Y*W+X)*4,o=(yy*w+xx)*4;out[o]=buf[i];out[o+1]=buf[i+1];out[o+2]=buf[i+2];out[o+3]=buf[i+3];}return {data:out,width:w,height:h};},
+      putImageData(img,x,y){for(let yy=0;yy<img.height;yy++)for(let xx=0;xx<img.width;xx++){const X=x+xx,Y=y+yy;if(X<0||Y<0||X>=W||Y>=H)continue;const i=(Y*W+X)*4,o=(yy*img.width+xx)*4;buf[i]=img.data[o];buf[i+1]=img.data[o+1];buf[i+2]=img.data[o+2];buf[i+3]=img.data[o+3];}}};
+    const gp=new Proxy(g,{get(t,p){if(p in t)return t[p];if(typeof p==='symbol')return undefined;throw Error('px601 不支援 ctx.'+String(p));},
+      set(t,p,v){const d=Object.getOwnPropertyDescriptor(t,p);if(p==='imageSmoothingEnabled'||(d&&d.set)){t[p]=v;return true;}throw Error('px601 不支援設定 ctx.'+String(p));}});
+    cnv.getContext=()=>gp;return cnv;};
+  // 在 fn 期間，document.createElement('canvas') 一律給真像素畫布；結束還原
+  const withPx601=fn=>{const ce=document.createElement;document.createElement=function(tag){return String(tag).toLowerCase()==='canvas'?px601():ce.apply(this,arguments);};try{return fn();}finally{document.createElement=ce;}};
+  // 像素內容指紋（FNV-1a，含尺寸；全透明像素的顏色不算——合成後殘色看不到）
+  const pxHash601=c=>{if(!c||typeof c.__px601!=='function')return 'no-px';const {W,H,buf}=c.__px601();let h=0x811c9dc5;const f=v=>{h^=v;h=Math.imul(h,16777619)>>>0;};f(W);f(H);for(let i=0;i<buf.length;i+=4){const a=buf[i+3];f(a);if(a){f(buf[i]);f(buf[i+1]);f(buf[i+2]);}}return h.toString(16);};
+  const PXW=c=>c.__px601();
+  const winEq=(small,big,sx,sy)=>{const A=PXW(small),B=PXW(big);let bad=0;for(let y=0;y<A.H;y++)for(let x=0;x<A.W;x++){const i=(y*A.W+x)*4,X=sx+x,Y=sy+y,inB=X>=0&&Y>=0&&X<B.W&&Y<B.H,j=(Y*B.W+X)*4,aa=A.buf[i+3],ba=inB?B.buf[j+3]:0;
+    if(aa!==ba||(aa&&(A.buf[i]!==B.buf[j]||A.buf[i+1]!==B.buf[j+1]||A.buf[i+2]!==B.buf[j+2])))bad++;}return bad;};
+  const outside=(c,sx,sy,w,h)=>{const B=PXW(c);let n=0;for(let y=0;y<B.H;y++)for(let x=0;x<B.W;x++)if(B.buf[(y*B.W+x)*4+3]&&(x<sx||y<sy||x>=sx+w||y>=sy+h))n++;return n;};
+  const tintEq=(t,base,col,a)=>{const A=PXW(t),B=PXW(base);if(A.W!==B.W||A.H!==B.H)return -1;const c=[1,3,5].map(i=>parseInt(col.slice(i,i+2),16));let bad=0;
+    for(let i=0;i<B.buf.length;i+=4){const al=B.buf[i+3];if(A.buf[i+3]!==al){bad++;continue;}if(!al)continue;for(let j=0;j<3;j++)if(A.buf[i+j]!==Math.round(c[j]*a+B.buf[i+j]*(1-a)))bad++;}return bad;}; // T204 的 source-atop 著色
+  const halfEq=(f,big)=>{const A=PXW(f),B=PXW(big);if(A.W*2!==B.W||A.H*2!==B.H)return -1;let bad=0;for(let y=0;y<A.H;y++)for(let x=0;x<A.W;x++){const i=(y*A.W+x)*4,j=((2*y+1)*B.W+2*x+1)*4;for(let q=0;q<4;q++)if(A.buf[i+q]!==B.buf[j+q]&&(q===3||A.buf[i+3]))bad++;}return bad;}; // 遠景＝半尺寸最近鄰
+  // ---- G1 開機與登記、烘焙規格、零亂數、落筆範圍、像素簽名；S21 的表逐像素對直接烘焙 ----
+  const rep=T61.rep();
+  assert(rep&&rep.ok===1&&rep.err===0&&JSON.stringify(rep.keys)===JSON.stringify(['lot601/5_1_0','lot601/5_1_1','lot601/5_1_2','art601/4.0','art601/4.1','art601/4.2','art601/81.0','art601/81.1','art601/81.2','art601/97.0','art601/97.1','art601/97.2'])&&T61.ok()===true&&T61.on()===true,
+    'T601 G1a 開機 S21 烘完 k5 三款＋單格三類各三款、零錯，開關打開：'+JSON.stringify(rep));
+  assert(JSON.stringify(T61.reg().sort((a,b)=>a[0]-b[0]))===JSON.stringify(K601.map(k=>[k,3,'function','string'])),'T601 G1b 登記表恰 8 類、每類三款、有繪製函式與名稱：'+JSON.stringify(T61.reg()));
+  const PX601={"4_0d":"fded3fe7.b9b08eed","4_0w":"ccbcd2f8.b9b08eed","4_1d":"d631f248.afb48bad","4_1w":"62918d8d.afb48bad","4_2d":"886e27c4.671fdb1","4_2w":"59cd0660.671fdb1","5_0d":"d79a134.c657eb59","5_0w":"62a07152.c657eb59","5_1d":"2a0e3317.10e9973e","5_1w":"847afe.10e9973e","5_2d":"a27dff01.fab7eb4e","5_2w":"3d1c303f.fab7eb4e","8_0d":"624729b8.4f16fa7c","8_0w":"572d9868.4f16fa7c","8_1d":"421a5cc1.9e3f904f","8_1w":"d5c0d0cd.9e3f904f","8_2d":"80f3428c.7c1dbf05","8_2w":"83663dcf.7c1dbf05","60_0d":"c7543cd7.23ecbc2c","60_0w":"a77d43a0.23ecbc2c","60_1d":"4ebc7e64.403d3578","60_1w":"256089e5.403d3578","60_2d":"be7c7ac5.5028191d","60_2w":"796f33c6.5028191d","63_0d":"b3d6160a.56d04abb","63_0w":"ae0aabc.56d04abb","63_1d":"c7a97423.39a5d6eb","63_1w":"eda8c2f.39a5d6eb","63_2d":"977a01e0.c4dac08b","63_2w":"877462ac.c4dac08b","66_0d":"f5adbdcc.ee26bd55","66_0w":"b628cb95.ee26bd55","66_1d":"e825cc38.509e20a8","66_1w":"d37eac71.509e20a8","66_2d":"20836ff3.d59eab9a","66_2w":"8dc6013a.d59eab9a","81_0d":"28281ca5.8a3750a0","81_0w":"465c33f8.a426e30d","81_1d":"7dbf389.4bd1a124","81_1w":"f86f99a1.4bd1a124","81_2d":"9b7a2d3f.8cc7180a","81_2w":"16a34a3a.8cc7180a","97_0d":"207b7c5e.8e9178bd","97_0w":"88d0da8c.8e9178bd","97_1d":"d7e6944a.f4580c77","97_1w":"b94b5aae.f4580c77","97_2d":"7d1324c1.bb16fd1d","97_2w":"d11f3472.bb16fd1d"}; // 2026-09-30 定稿像素簽名（業主看過的樣張＝這一版；覆核後由畫布呼叫指紋改成像素內容，描邊迴圈讀回像素也算進來）
+  const BK={},dims601=[],bad601=[],out601=[],sig601={};let mr601=0,rc601=null;const mr0601=Math.random;
+  try{Math.random=function(){mr601++;return mr0601.apply(this,arguments);};T594.rOn(true);
+    for(const k of K601)for(let v=0;v<3;v++)for(const w of [false,true]){
+      const n=nOf(k),W=n*64+16,H=n*32+144,key=k+'_'+v+(w?'w':'d'),s=withPx601(()=>T61.bake(k,v,w));BK[key]=s;
+      dims601.push(!!(s&&s.img&&s.night&&s.w===W&&s.h===H&&s.ax===W/2&&s.ay===H-8&&s.img.width===W&&s.img.height===H&&s.night.width===W&&s.night.height===H&&s.__t601===1&&s.__t590===1&&s.lotMeta574&&s.lotMeta574.sz===n&&s.lotMeta574.hooks&&typeof s.lotMeta574.hooks==='object'&&s.sc===undefined));
+      sig601[key]=pxHash601(s.img)+'.'+pxHash601(s.night);
+      for(const c of [s.img,s.night]){const {W:cw,H:ch,buf}=PXW(c);let worst=0,at=null; // 每個不透明像素都在地塊菱形裡：左右頂點、前兩條邊（容 3 像素＝掃描線與樹冠邊緣）
+        for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){if(!buf[(y*cw+x)*4+3])continue;const dx=Math.abs(x+.5-s.ax),o=Math.max(dx-n*32,y+.5-(s.ay-dx/2));if(o>worst){worst=o;at=[x,y];}}
+        if(worst>3)bad601.push(key+(c===s.night?'夜':'')+':'+worst.toFixed(2)+'@'+at);}
+      if(ONEK.includes(k)){const K=CROP[k];for(const c of [s.img,s.night]){const o=outside(c,s.ax-32,s.ay-K,64,K+2);if(o)out601.push(key+(c===s.night?'夜':'')+':'+o);}}
+    }
+  }finally{rc601=T594.rOn(false);Math.random=mr0601;}
+  const again601=pxHash601(withPx601(()=>T61.bake(66,1,false)).img)+'.'+pxHash601(BK['66_1d'].night);
+  let mrF=0,rcF=null;const facOk=[];
+  try{Math.random=function(){mrF++;return mr0601.apply(this,arguments);};T594.rOn(true);const F=T61.facs();for(const k of K601){const a=F[k]();facOk.push(!!(a&&a.variants===3&&typeof a.draw==='function'&&typeof a.name==='string'));}}
+  finally{rcF=T594.rOn(false);Math.random=mr0601;}
+  const bT601=html.indexOf('/* ===== T601 藍灰重畫第一批'),eT601=html.indexOf('/* ===== T601 區塊結束 ===== */');
+  const mrText601=(htmlBare438.slice(bT601,eT601).match(/Math\.random/g)||[]).length;
+  assert(dims601.length===48&&dims601.every(Boolean),'T601 G1c 8 類×三款×日冬 48 張：畫布照 bakeLot574 規格（w=n*64+16、h=n*32+144、錨點在菱形最下角）、日夜同尺寸、帶 __t601／__t590、地塊邊長、掛點物件、沒有 sc：'+dims601.map(Number).join(''));
+  assert(mr601===0&&rc601&&rc601.r===0&&rc601.s===0&&rc601.g===0&&rc601.swapped===0&&mrF===0&&rcF&&rcF.r===0&&rcF.s===0&&rcF.g===0&&facOk.length===8&&facOk.every(Boolean)&&mrText601===0,
+    'T601 G1d 烘焙與 8 支樣張工廠零 Math.random（'+mr601+'／'+mrF+'）、零世界 R／spriteTexRand／建圖 rand：'+JSON.stringify([rc601,rcF])+'；區塊原文 Math.random '+mrText601+' 處');
+  assert(bad601.length===0&&out601.length===0,'T601 G1e 逐像素：日圖與夜圖的每個不透明像素都在地塊菱形裡（左右頂點＋前兩條邊，容 3 像素；取代 T574 G12d 的地腳檢查），單格內容全在裁切窗裡（寬 64、錨點以上 56／88／60 列）：'+bad601.concat(out601).join(','));
+  assert(again601===sig601['66_1d']&&JSON.stringify(sig601)===JSON.stringify(PX601),'T601 G1f 像素簽名等於 2026-09-30 定稿（同一張烘兩次相同）；改新圖要重新簽名並重跑真 Chrome 實拍：'+JSON.stringify(sig601));
+  // S21 的表：在真像素台架上重跑一次，逐張對「直接烘焙」──單格＝裁切窗、公園季節色＝著色規格、k5＝整張＋煙口／閃燈照掛點
+  const rS=withPx601(()=>T61.S21()),tb=[];
+  for(const k of ONEK)for(let v=0;v<3;v++){const d=T61.one(k)&&T61.one(k)[v],K=CROP[k],bd=BK[k+'_'+v+'d'],bw=BK[k+'_'+v+'w'];
+    const shape=x=>!!(x&&x.w===64&&x.h===K+2&&x.ax===32&&x.ay===K&&x.__t590===1&&x.__t601===1&&x.v601===v&&Array.isArray(x.smoke)&&x.smoke.length===0&&x.img&&x.img.width===64&&x.img.height===K+2&&x.night&&x.night.width===64&&x.night.height===K+2&&x.sc===undefined);
+    if(!shape(d)||!shape(d.win563)){tb.push(k+'.'+v+' 形狀');continue;}
+    if(winEq(d.img,bd.img,bd.ax-32,bd.ay-K)||winEq(d.night,bd.night,bd.ax-32,bd.ay-K))tb.push(k+'.'+v+' 日');
+    if(winEq(d.win563.img,bw.img,bw.ax-32,bw.ay-K)||winEq(d.win563.night,bw.night,bw.ax-32,bw.ay-K))tb.push(k+'.'+v+' 冬');
+    if(d.win563.win563!==undefined||d.win563.sea601!==undefined)tb.push(k+'.'+v+' 冬天版帶了多餘欄位');
+    if(k===4){const sp=d.sea601;if(!(Array.isArray(sp)&&sp.length===3&&sp[0]==null))tb.push('4.'+v+' 季節表');
+      else for(const [i,col,a] of [[1,'#a8e070',.13],[2,'#b8863a',.26]]){const t=sp[i];if(!(t&&t.night===d.night&&t.w===d.w&&t.h===d.h&&t.ax===d.ax&&t.ay===d.ay&&t.__t601===1&&t.__t590===1&&t.v601===v&&tintEq(t.img,d.img,col,a)===0))tb.push('4.'+v+' 季'+i);}}
+    else if(d.sea601!==undefined)tb.push(k+'.'+v+' 多了季節色');
+    if(pxHash601(d.img)===pxHash601(d.win563.img))tb.push(k+'.'+v+' 冬＝日');}
+  for(const k of ONEK)if(T61.one(k)&&new Set([0,1,2].map(v=>pxHash601(T61.one(k)[v].img))).size!==3)tb.push(k+' 三款同圖');
+  for(let v=0;v<3;v++){const L=T61.lot5(v),bd=BK['5_'+v+'d'],bw=BK['5_'+v+'w'];
+    if(!(L&&L.win563&&pxHash601(L.img)===pxHash601(bd.img)&&pxHash601(L.night)===pxHash601(bd.night)&&pxHash601(L.win563.img)===pxHash601(bw.img)&&pxHash601(L.win563.night)===pxHash601(bw.night))){tb.push('5.'+v+' 圖');continue;}
+    for(const [S,B] of [[L,bd],[L.win563,bw]]){const hk=B.lotMeta574.hooks,want=(hk.smoke||[]).concat(hk.steam||[]).map(q=>(q[0]-B.ax)+','+(q[1]-B.ay)),got=(S.smoke||[]).map(o=>o.dx+','+o.dy);
+      if(!want.length||JSON.stringify(got)!==JSON.stringify(want))tb.push('5.'+v+' 煙口 '+got.join(' ')+' 應為 '+want.join(' '));
+      if(!(S.smoke||[]).every(o=>S.ax+o.dx>=0&&S.ax+o.dx<S.w&&S.ay+o.dy>=0&&S.ay+o.dy<S.h))tb.push('5.'+v+' 煙口在畫布外');
+      if(!(Array.isArray(hk.lamp)&&S.lamp&&S.lamp.dx===hk.lamp[0]-B.ax&&S.lamp.dy===hk.lamp[1]-B.ay))tb.push('5.'+v+' 閃燈');}
+    if(pxHash601(L.img)===pxHash601(L.win563.img))tb.push('5.'+v+' 冬＝日');}
+  if(T61.lot5(0)&&new Set([0,1,2].map(v=>pxHash601(T61.lot5(v).img))).size!==3)tb.push('5 三款同圖');
+  if(T61.lot5(1)&&!(BK['5_1d'].lotMeta574.hooks.steam||[]).length)tb.push('5.1 冷卻塔沒有蒸汽掛點');
+  const rS2=T61.S21(); // 換回一般畫布
+  assert(rS.ok===1&&rS.err===0&&rS2.ok===1&&rS2.err===0&&tb.length===0,'T601 G1g S21 的表逐像素等於直接烘焙：單格＝裁切窗（64×(K+2)、錨點 32／K、夜圖同裁、__t590、款號），公園夏秋＝T204 著色，冬天版、三款互不相同；k5 整張相同、煙口＝煙囪＋蒸汽掛點減錨點、閃燈＝掛點：'+tb.join('；'));
+  // S21 失敗要退回舊圖（不能讓開機當掉）：注入一支會丟錯的繪製函式
+  {const A81=T61.art(81),d0=A81.draw,ce=console.error;let ec=0,rF=null;A81.draw=()=>{throw Error('T601 G1h 注入')};console.error=()=>{ec++;};
+   try{rF=T61.S21();}finally{A81.draw=d0;console.error=ce;}
+   const offOk=rF&&rF.err===1&&rF.ok===0&&/注入/.test(rF.msg||'')&&T61.ok()===false&&T61.on()===false&&!T61.one(4)&&!T61.lot5(0)&&ec===1&&T61.key(63)==='_n601'&&!T61.lot(63,1,false,false).__t601&&T61.lot(5,1,false,false)===T61.old5(1);
+   const rB=T61.S21();
+   assert(offOk&&rB.ok===1&&T61.on()===true,'T601 G1h S21 丟錯：回報一錯、開關關上、表清掉、園區回配方、k5 回 T585、只記一次錯；修好重跑就回來：'+JSON.stringify(rF));}
+  // ---- G2 挑款 v601（規格副本）、不寫 bd、零亂數；碼頭照視角看真水 ----
+  const N2=G.N(),wet2=new Uint8Array(N2*N2);for(let y=0;y<N2;y++)for(let x=0;x<N2;x++){const t=G.tile(x,y);wet2[y*N2+x]=t&&t.t===0?1:0;}
+  const pierSpec=(x,y,rot,wet)=>{const w2v=(a,b)=>rot===0?[a,b]:rot===1?[N2-1-b,a]:rot===2?[N2-1-a,N2-1-b]:[b,N2-1-a],v2w=(a,b)=>rot===0?[a,b]:rot===1?[b,N2-1-a]:rot===2?[N2-1-a,N2-1-b]:[N2-1-b,a];
+    const p=w2v(x,y),W=(dx,dy)=>{const q=v2w(p[0]+dx,p[1]+dy);return q[0]>=0&&q[1]>=0&&q[0]<N2&&q[1]<N2&&wet[q[1]*N2+q[0]]===1;};const e=W(1,0),s=W(0,1);return e&&s?2:e?0:s?1:W(1,1)?2:-1;};
+  let miss602=0,n602=0;const H602=(x,y,k)=>Math.min(2,Math.floor(T61.hash(x,y,k*131)*3)),rot602=G.rot();
+  for(const k of K601)for(let x=0;x<72;x+=7)for(let y=0;y<72;y+=5)for(const v of [-4,-1,0,1,2,3,8,9,13]){n602++;
+    const pw=k===97?pierSpec(x,y,rot602,wet2):-1,want=k===4?((v%3)+3)%3:(k===5||k===8)?(v>=0&&v<=2?v:0):pw>=0?pw:H602(x,y,k);if(T61.v(k,x,y,{k,v})!==want)miss602++;}
+  const cnt602={};for(const k of [60,63,66,81]){const c=[0,0,0];for(let x=0;x<72;x++)for(let y=0;y<72;y++)c[T61.v(k,x,y,{k,v:0})]++;cnt602[k]=c;}
+  let w602=0;const px602=new Proxy({k:63,v:0},{set(){w602++;return true;},defineProperty(){w602++;return true;},deleteProperty(){w602++;return true;}});for(let i=0;i<50;i++){T61.v(63,i,i*3,px602);T61.v(97,i,i*3,px602);}
+  assert(miss602===0&&n602>1000&&Object.values(cnt602).every(c=>c.every(m=>m>=5184*.28&&m<=5184*.39))&&w602===0,'T601 G2 v601＝規格副本（k4 存檔 v%3、k5／k8 存檔 v 在 0–2、k97 先看真水、其餘格雜湊）、三款各約三分之一、不寫 bd：不一致 '+miss602+'／'+n602+'；分佈 '+JSON.stringify(cnt602)+'；寫入 '+w602);
+  // ---- G3 閥：網址只認 noT601、window.__noT601===真值、ART601.ok；關掉時四個接線函式回到舊值 ----
+  const onFn=T61.on,sv603=global.location.search;
+  try{global.location.search='?a=1&noT601=1';onFn.u=undefined;assert(onFn()===false,'T601 G3a 網址帶 noT601=1 關閉');
+    global.location.search='?noT6010=1';onFn.u=undefined;assert(onFn()===true,'T601 G3b 網址 noT6010 不算');
+    global.location.search='';onFn.u=undefined;window.__noT601=true;
+    assert(onFn()===false&&T61.lotV(3,4,{k:63,v:0})===0&&T61.key(63)==='_n601'&&T61.key(8)==='_n601'&&T61.key(5)===''&&!T61.lot(63,0,false,false).__t601&&!T61.lot(8,1,false,false).__t601&&T61.lot(5,1,false,false)===T61.old5(1),
+      'T601 G3c window.__noT601：挑款回存檔 v、鍵尾 _n601、園區回配方、k5 回 T585 電廠');
+  }finally{global.location.search=sv603;onFn.u=undefined;delete window.__noT601;}
+  assert(onFn()===true&&T61.key(63)===''&&T61.lot(63,1,false,false).__t601===1&&T61.lot(5,1,false,false)===T61.lot5(1),'T601 G3d 關回去之後新圖回來（鍵尾空、快取不串用）');
+  // ---- G4 真的畫：新城放五類園區（遊戲本身的放置）＋三類單格；四季、雪、遠景、閥、碼頭對水 ----
+  G.setMapSize(72);G.newWorldSeeded(601);G.setDiff(1);G.ai(false);G.setSpeed(0);G.addMoney(9999999);G.setSeason(1);G.weather(0);T61.snow(false);G.setVisT(55);
+  const N604=G.N(),c604=(N604/2)|0;
+  const put604=(tool)=>{for(let r=0;r<N604/2;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const x=c604+dx,y=c604+dy;
+    if(x<3||y<3||x>N604-8||y>N604-8)continue;if(G.place(tool,x,y)){const t=G.tile(x,y),b=t&&t.bld;const root=b&&b.ref?b.ref:[x,y];return root;}}return null;};
+  const lots604=[];for(const [tool,k] of [['plant',5],['dump',8],['geo',60],['greenhouse',63],['faithCenter',66],['plant',5],['greenhouse',63],['faithCenter',66]]){const r=put604(tool);if(r){window.__t412Set(r[0],r[1],'age',60);window.__t412Set(r[0],r[1],'pw',true);const b=G.tile(r[0],r[1]).bld;lots604.push({k,x:r[0],y:r[1],v:b.v|0,lot:!!b.lot574});}} // 放下去 age 0＝施工中不畫本體：直接完工
+  {const p2=lots604.filter(p=>p.k===5)[1];if(p2){window.__t412Set(p2.x,p2.y,'v',1);p2.v=1;}} // 第二座電廠設成 B 款（冷卻塔）：煙的行為測試要涵蓋蒸汽那一款（存檔本來就可能是 0–2）
+  assert(lots604.length===8&&lots604.every(p=>p.lot),'T601 G4 新城用遊戲的放置蓋好 8 座園區（電廠、垃圾場、地熱、溫室、信仰中心，各再一座），全部是 T574 地塊：'+JSON.stringify(lots604));
+  // 單格：3×3 緊密一塊。第一列公園 v3／v4／v5（v601＝0／1／2），第二列民宿、第三列碼頭（離水遠＝照格雜湊），位置挑到每類三棟剛好三種款、至少一棟民宿過得了舊霓虹的格雜湊
+  let cl604=null;
+  for(let y0=12;y0<N604-16&&!cl604;y0++)for(let x0=12;x0<N604-16&&!cl604;x0++){
+    let ok=true;for(let dy=-2;dy<5&&ok;dy++)for(let dx=-2;dx<5&&ok;dx++){const t=G.tile(x0+dx,y0+dy);ok=!!(t&&t.t!==0&&!t.road&&!t.bld&&!t.water&&!t.bridge&&!t.tree);} // 有樹的格子造格工具不會清樹，繪製端會把它當樹格
+    if(!ok)continue;
+    const three=(k,row)=>new Set([0,1,2].map(dx=>T61.v(k,x0+dx,y0+row,{k,v:0}))).size===3;
+    if(three(81,1)&&three(97,2)&&[0,1,2].some(dx=>window.__t571Hash(x0+dx,y0+1,41370)<=.55))cl604=[x0,y0];}
+  assert(!!cl604,'T601 G4 新城找得到 7×7 空地，民宿、碼頭兩列各三棟剛好三種款，且有民宿過得了舊霓虹的格雜湊');
+  const singles604=[];for(const [row,k] of [[0,4],[1,81],[2,97]])for(let dx=0;dx<3;dx++){const x=cl604[0]+dx,y=cl604[1]+row,v=k===4?dx+3:0;window.__t571Mk(x,y,k,v);singles604.push({k,x,y,v});}
+  const vOf=p=>T61.v(p.k,p.x,p.y,{k:p.k,v:p.v});
+  const wantS=(p,sea)=>{const d=T61.one(p.k)[vOf(p)];return sea===3?d.win563:(p.k===4&&sea?d.sea601[sea]:d);}; // 冬天看季節（不等積雪）；公園夏秋季節色（表已在 G1g 對過像素）
+  const wantL=(p,w)=>{const vv=vOf(p);return p.k===5?(w?T61.lot5(vv).win563:T61.lot5(vv)):T61.lot(p.k,vv,w,false);};
+  // 園區：清快取後在真像素台架上先烘（近景、冬、遠景），逐像素對直接烘焙——擋「園區取圖挑錯款」（lotVariant574／遠景壓款）
+  T61.clearLots();const lotBad=[];
+  for(const p of lots604){const vv=vOf(p);for(const w of [false,true]){
+    if(p.k===5){if(T61.lot(5,p.v,w,false)!==(w?T61.lot5(vv).win563:T61.lot5(vv)))lotBad.push('5@'+p.x+','+p.y+(w?'冬':''));continue;}
+    const s=withPx601(()=>T61.lot(p.k,vv,w,false)),B=BK[p.k+'_'+vv+(w?'w':'d')];
+    if(!(s&&s.lotMeta574.variant===vv&&pxHash601(s.img)===pxHash601(B.img)&&pxHash601(s.night)===pxHash601(B.night)))lotBad.push(p.k+'@'+p.x+','+p.y+(w?'冬':''));}
+    if(p.k!==5){const f=withPx601(()=>T61.lot(p.k,vv,false,true));if(!(f&&f.lotMeta574.variant===vv&&f.sc===2&&halfEq(f.img,BK[p.k+'_'+vv+'d'].img)===0))lotBad.push(p.k+'@'+p.x+','+p.y+'遠');}}
+  assert(lotBad.length===0,'T601 G4 園區取圖逐像素等於 v601 那一款的直接烘焙（近景、冬天版、遠景半尺寸縮圖）：'+lotBad.join(','));
+  const scr=T61.scr;
+  const shootS604=(sea)=>{const want=singles604.map(p=>wantS(p,sea)),imgs=want.map(s=>s.img),got=new Set(),badPos=[];G.lookAt(cl604[0]+1,cl604[1]+1);G.setZoom(1);G.forceDraw();
+    const hs=T61.hits(imgs,()=>G.forceDraw());
+    singles604.forEach((p,i)=>{const s=want[i],[sx,sy,z]=scr(p.x,p.y),mine=hs.filter(h=>h[0]===i);if(!mine.length)return;got.add(i);
+      if(!mine.some(h=>Math.abs(h[1]-(sx+(32-s.ax)*z))<1e-6&&Math.abs(h[2]-(sy+(32-s.ay)*z))<1e-6&&Math.abs(h[3]-s.w*z)<1e-6&&Math.abs(h[4]-s.h*z)<1e-6))badPos.push(p.k+'@'+p.x+','+p.y+':'+JSON.stringify(mine[0].slice(1)));});
+    return {got,badPos};};
+  const shootL604=(w)=>{const got=new Set();lots604.forEach((p,i)=>{const im=wantL(p,w).img;G.lookAt(p.x,p.y);G.setZoom(1);G.forceDraw();if(T61.hits([im],()=>G.forceDraw()).length)got.add(i);});return got;};
+  const occ604=window.__noOccWin653;window.__noOccWin653=true;let rcd604=null;
+  try{T594.rOn(true);
+    for(const [sea,snow] of [[0,false],[1,false],[2,false],[3,false],[3,true]]){G.setSeason(sea);T61.snow(snow);
+      const S=shootS604(sea),L=shootL604(sea===3&&snow);
+      assert(L.size===lots604.length&&S.got.size===singles604.length&&S.badPos.length===0,'T601 G4a 季節 '+sea+(snow?'（積雪）':'')+'：8 座園區與 9 棟單格都畫 v601 那一款（公園夏秋季節色、冬天看季節換冬天版、園區冬天等積雪），單格落點＝格子螢幕座標＋錨點（園區 '+L.size+'／8、單格 '+S.got.size+'／9；落點錯 '+S.badPos.join(' ')+'）');}
+    // 積雪：新圖冬天版自帶雪，本體落點矩形上不再疊雪帽／冰柱（覆核：雙層雪把招牌、釣客洗白）；看的是「同一落點矩形上本體以外的圖」
+    const dbl=[];G.setSeason(3);T61.snow(true);
+    const chk=(p,s,lx,ly)=>{G.lookAt(lx,ly);G.setZoom(1);G.forceDraw();const calls=T61.rec(['drawImage'],()=>G.forceDraw()).map(r=>r.slice(2)),own=calls.filter(a=>a[0]===s.img);if(!own.length){dbl.push(p.k+'@'+p.x+','+p.y+' 沒畫');return;}
+      const d=own[0],extra=calls.filter(a=>a[0]!==s.img&&a.length===5&&[1,2,3,4].every(i=>Math.abs(a[i]-d[i])<1e-6)).length;if(extra)dbl.push(p.k+'@'+p.x+','+p.y+'：'+extra);};
+    for(const p of singles604)chk(p,wantS(p,3),cl604[0]+1,cl604[1]+1);
+    for(const p of lots604)chk(p,wantL(p,true),p.x,p.y);
+    assert(dbl.length===0,'T601 G4d 積雪時新圖（單格與園區）本體落點上沒有疊雪帽／冰柱：'+dbl.join(' '));
+    G.setSeason(1);T61.snow(false);
+    // 同類三款都出現（同類兩座園區、同類三棟單格至少兩款不同）——擋「只畫第一款」
+    const vs604=k=>new Set(lots604.concat(singles604).filter(p=>p.k===k).map(vOf));
+    assert([4,81,97].every(k=>vs604(k).size===3)&&[63,66].some(k=>vs604(k).size>=2),'T601 G4b 城裡同類出現不同款（不是只畫第一款）：'+JSON.stringify(K601.map(k=>[k,[...vs604(k)]])));
+    // 遠景（縮放 0.6）園區保留款式：畫的是 v601 那一款的遠景縮圖（上面已逐像素對過）
+    let farOk=0;for(const p of lots604.filter(q=>q.k!==5)){const im=T61.lot(p.k,vOf(p),false,true).img;G.lookAt(p.x,p.y);G.setZoom(.6);G.forceDraw();if(T61.hits([im],()=>G.forceDraw()).length)farOk++;}
+    assert(farOk===lots604.filter(q=>q.k!==5).length,'T601 G4c 遠景園區畫 v601 那一款的縮圖（不壓回第一款）：'+farOk+'／'+lots604.filter(q=>q.k!==5).length);
+    G.setZoom(1);
+  }finally{rcd604=T594.rOn(false);}
+  assert(rcd604&&rcd604.r===0&&rcd604.s===0&&rcd604.g===0&&rcd604.swapped===0,'T601 G4e 畫幀期間世界 R／spriteTexRand／建圖 rand 零呼叫：'+JSON.stringify(rcd604));
+  // 閥在畫幀當下打開：畫回舊圖（園區回配方、k5 回 T585、單格回舊精靈、公園回舊夏季色的存檔款），新圖一張都不畫
+  {const newImgs=lots604.map(p=>wantL(p,false).img).concat(singles604.map(p=>wantS(p,1).img));let hitNew=0;window.__noT601=true;
+   try{for(const p of lots604.concat([{x:cl604[0]+1,y:cl604[1]+1}])){G.lookAt(p.x,p.y);G.forceDraw();hitNew+=T61.hits(newImgs,()=>G.forceDraw()).length;}
+     G.lookAt(cl604[0]+1,cl604[1]+1);G.forceDraw();const P0=T61.park(),oldHits=T61.hits([T61.old(81).img,T61.old(97).img,P0.parkS[3].img,P0.parkS[4].img,P0.parkS[5].img],()=>G.forceDraw());
+     const oldDrawn=[0,1].every(i=>oldHits.filter(h=>h[0]===i).length===3)&&[2,3,4].every(i=>oldHits.filter(h=>h[0]===i).length===1);
+     assert(hitNew===0&&oldDrawn,'T601 G4f 閥 __noT601 在畫幀當下打開：新圖零繪製（'+hitNew+'）、民宿與碼頭畫回舊圖、公園畫回舊夏季色的存檔款（'+oldDrawn+'）');}
+   finally{delete window.__noT601;}}
+  // 碼頭對真水：新城裡找右前臨水、左前臨水、兩側臨水、只有背後臨水的岸邊空地各一，照視角規格畫對款；轉 90° 再看一次
+  {const wet=new Uint8Array(N604*N604);for(let y=0;y<N604;y++)for(let x=0;x<N604;x++){const t=G.tile(x,y);wet[y*N604+x]=t&&t.t===0?1:0;}
+   const free=(x,y)=>{const t=G.tile(x,y);return !!(t&&t.t!==0&&!t.road&&!t.bld&&!t.tree&&!t.bridge&&!t.rail&&!t.tram);};
+   const pick={};for(let y=2;y<N604-2;y++)for(let x=2;x<N604-2;x++){if(!free(x,y))continue;const W=(dx,dy)=>wet[(y+dy)*N604+x+dx]===1; // 分類只看世界座標的水（視角 0＝世界），不經規格副本
+     const cat=W(1,0)&&!W(0,1)?'E':!W(1,0)&&W(0,1)?'S':W(1,0)&&W(0,1)?'ES':!W(1,0)&&!W(0,1)&&!W(1,1)&&(W(-1,0)||W(0,-1))?'back':null;if(cat&&!pick[cat])pick[cat]=[x,y];}
+   const cats=['E','S','ES','back'].filter(c=>pick[c]),piers=cats.map(c=>{const [x,y]=pick[c];window.__t571Mk(x,y,97,0);return {c,x,y};});
+   const miss=[];let nChk=0;
+   for(const rot of [0,1]){G.setRot(rot);for(const p of piers){const want=rot===0?{E:0,S:1,ES:2,back:-1}[p.c]:pierSpec(p.x,p.y,rot,wet),vv=want>=0?want:Math.min(2,Math.floor(T61.hash(p.x,p.y,97*131)*3)); // 視角 0：右前＝v0、左前＝v1、兩側＝v2、背後＝格雜湊；轉 90° 照規格副本
+       if(T61.v(97,p.x,p.y,{k:97,v:0})!==vv){miss.push(p.c+'/r'+rot+' 挑款');continue;}
+       G.lookAt(p.x,p.y);G.setZoom(1);G.forceDraw();nChk++;if(!T61.hits([T61.one(97)[vv].img],()=>G.forceDraw()).length)miss.push(p.c+'/r'+rot+' 沒畫');}}
+   G.setRot(0);
+   assert(cats.length===4&&miss.length===0&&nChk===8,'T601 G4g 釣魚碼頭對真水：視角右前臨水畫 v0、左前 v1、兩側 v2、只有背後臨水照格雜湊；轉 90° 照視角重挑（找到 '+cats.join('/')+'；錯 '+miss.join(' ')+'）');
+   for(const p of piers)G.place('doze',p.x,p.y);} // 拆掉：後面的測試不看碼頭
+  // ---- G5 發電廠煙與閃燈、公園疊層、倒影、園燈、遊人、霓虹 ----
+  {const p5s=lots604.filter(p=>p.k===5);
+   const wantSet=v=>{const B=BK['5_'+v+'d'],hk=B.lotMeta574.hooks;return new Set((hk.smoke||[]).concat(hk.steam||[]).map(q=>(q[0]-B.ax)+','+(q[1]-B.ay)));}; // 直接烘焙的掛點（不讀被測的表）
+   const run=()=>T6.smokeRun(40,.46).filter(s=>s.lot574&&p5s.some(p=>p.x===s.lot574.x&&p.y===s.lot574.y));
+   let sm=run();const badS=sm.filter(s=>{const p=p5s.find(q=>q.x===s.lot574.x&&q.y===s.lot574.y);return !wantSet(vOf(p)).has(s.lot574.dx+','+s.lot574.dy);});
+   const quiet=p5s.filter(p=>!sm.some(s=>s.lot574.x===p.x&&s.lot574.y===p.y)),steamSeen=sm.some(s=>{const p=p5s.find(q=>q.x===s.lot574.x&&q.y===s.lot574.y);const B=BK['5_1d'];return vOf(p)===1&&(B.lotMeta574.hooks.steam||[]).some(q=>q[0]-B.ax===s.lot574.dx&&q[1]-B.ay===s.lot574.dy);});
+   assert(sm.length>0&&badS.length===0&&quiet.length===0&&steamSeen,'T601 G5a 發電廠的煙全部從新圖煙口冒（直接烘焙的煙囪＋蒸汽掛點減錨點；'+sm.length+' 顆、錯位 '+badS.length+'、沒冒 '+quiet.length+'、冷卻塔蒸汽 '+steamSeen+'）');
+   // 存檔 v 超出 0–2 的電廠：畫新圖第一款、煙照第一款（v601），不退回舊圖
+   const p2=p5s[1],p1=p5s[0];window.__t412Set(p2.x,p2.y,'v',3);window.__t412Set(p1.x,p1.y,'v',2); // 另一座電廠暫設 C 款：畫面上的第一款只可能來自 v=3 那座
+   try{G.lookAt(p2.x,p2.y);G.forceDraw();const drew=T61.hits([T61.lot5(0).img],()=>G.forceDraw()).length,oldDrew=T61.hits([0,1,2].map(v=>T61.old5(v).img),()=>G.forceDraw()).length;sm=run().filter(s=>s.lot574.x===p2.x&&s.lot574.y===p2.y);
+     assert(drew>0&&oldDrew===0&&sm.length>0&&sm.every(s=>wantSet(0).has(s.lot574.dx+','+s.lot574.dy)),'T601 G5a2 存檔 v=3 的電廠畫新圖第一款、不退回舊電廠、煙從第一款的煙口冒（畫到 '+drew+'、舊圖 '+oldDrew+'、煙 '+sm.length+'）');}
+   finally{window.__t412Set(p2.x,p2.y,'v',1);window.__t412Set(p1.x,p1.y,'v',p1.v);}}
+  {const P=T61.park(),ftnImgs=P.ftn.map(f=>f.img),park3=singles604.find(p=>p.k===4);
+   // v=3 的公園（舊圖會疊噴泉水花）：新圖不疊，關掉 T601 才疊
+   const x3=park3.x,y3=park3.y;G.lookAt(x3,y3);G.setVisT(55);G.forceDraw();const fOn=T61.hits(ftnImgs,()=>G.forceDraw()).length;
+   window.__noT601=true;let fOff=0;try{G.forceDraw();fOff=T61.hits(ftnImgs,()=>G.forceDraw()).length;}finally{delete window.__noT601;}
+   assert(fOn===0&&fOff>0,'T601 G5b 新公園不疊舊噴泉水花（開著 '+fOn+'、關掉 '+fOff+'）');
+   const refl=[0,1,2,3].map(sea=>{G.setSeason(sea);return T61.reflect({k:4,v:3},x3,y3)===wantS(park3,sea);});G.setSeason(1);
+   assert(refl.every(Boolean)&&[0,1,2,3,4,5,6,7,8].every(i=>P.park[i]&&!P.park[i].__t601&&P.parkW[i]&&!P.parkW[i].__t601)&&P.park.length===9,'T601 G5c 公園倒影用同一款新圖、同季節（春原圖、夏秋季節色、冬天版：'+refl.join('/')+'）；舊公園四季家族 9 款原封不動');}
+  // 夜：園燈在格子地面中心（前頂點往上 18×z＝同舊公園），公園不多一團 T149 前角光暈（民宿照舊有）；民宿不疊寫死格位的舊霓虹
+  {G.setSeason(1);G.setVisT(100);G.lookAt(cl604[0]+1,cl604[1]+1);G.setZoom(1);G.forceDraw();
+   const gr=T61.rec(['createRadialGradient'],()=>G.forceDraw()).map(r=>r.slice(2)),lit=[],glow4=[],glow81=[];
+   for(const p of singles604){const [sx,sy,z]=scr(p.x,p.y),at=(cx,cy,r)=>gr.some(a=>Math.abs(a[0]-cx)<.01&&Math.abs(a[1]-cy)<.01&&Math.abs(a[5]-r)<.01);
+     if(p.k===4){lit.push(at(sx+32*z,sy+14*z,30*z));glow4.push(at(sx+32*z,sy+32*z,44*z));}if(p.k===81)glow81.push(at(sx+32*z,sy+32*z,44*z));}
+   const neon=T61.rec(['fillRect'],()=>G.forceDraw()).filter(r=>r[1].startsWith('rgba(160,112,255,')).length;
+   window.__noT601=true;let neonOff=0;try{G.forceDraw();neonOff=T61.rec(['fillRect'],()=>G.forceDraw()).filter(r=>r[1].startsWith('rgba(160,112,255,')).length;}finally{delete window.__noT601;}
+   assert(lit.length===3&&lit.every(Boolean)&&glow4.every(g=>!g)&&glow81.length===3&&glow81.every(Boolean)&&neon===0&&neonOff>0,
+     'T601 G5d 夜：三座新公園的園燈光暈在地面中心（'+lit.join('/')+'）、沒有 T149 前角光暈（'+glow4.join('/')+'；民宿照舊有 '+glow81.join('/')+'）；新民宿不疊舊霓虹（開著 '+neon+'、關掉 '+neonOff+'）');
+   G.setVisT(55);}
+  // 白天：公園遊人腳下都在步道上（照三款各自的步道規格另抄：v0 環徑 r .27–.36、v1 支徑 |u−.42|<.05 且 v>.6、v2 十字軸 |u−.5|或|v−.5|<.055）
+  {const P=T61.park(),frames=[...P.ped.adult,...P.ped.child,...P.ped.stroller],imgs=frames.map(f=>f.img),onPath=[p=>{const r=Math.hypot(p[0]-.5,p[1]-.5);return r>.27&&r<.36;},p=>Math.abs(p[0]-.42)<.05&&p[1]>.6,p=>Math.abs(p[0]-.5)<.055||Math.abs(p[1]-.5)<.055];
+   const parks=singles604.filter(p=>p.k===4),seen=[0,0,0],off=[];window.__noMicroLife429=true;window.__noActivity422=true;window.__noParkLife=true; // 只看 T246 遊人：T429／T422 小人、T368a 晨跑者（繞公園外圈，本卡沒動）先關
+   try{G.setSeason(1);G.lookAt(cl604[0]+1,cl604[1]+1);G.setZoom(1);
+     for(let t=40;t<=70;t+=1.5){G.setVisT(t);G.forceDraw();for(const h of T61.hits(imgs,()=>G.forceDraw())){const fr=frames[h[0]],z=scr(cl604[0],cl604[1])[2],fx=h[1]+fr.ax*z,fy=h[2]+fr.ay*z;
+       for(const p of parks){const [sx,sy]=scr(p.x,p.y),a=(fx-sx)/(32*z)-1,b=(fy-sy)/(16*z),u=(a+b)/2,v=(b-a)/2;if(u<-.02||v<-.02||u>1.02||v>1.02)continue;
+         const vv=vOf(p);seen[vv]++;if(!onPath[vv]([u,v]))off.push(vv+':'+u.toFixed(2)+','+v.toFixed(2));}}}}
+   finally{delete window.__noMicroLife429;delete window.__noActivity422;delete window.__noParkLife;G.setVisT(55);}
+   assert(seen.every(n=>n>=10)&&off.length===0,'T601 G5e 公園遊人腳下都在該款的步道上，不穿過噴泉、滑梯、花壇（三款各看到 '+seen.join('/')+' 次；踩出步道 '+off.slice(0,6).join(' ')+'）');}
+  // ---- G6 原文釘（行為釘之後）：接線逐行、開機鏈、區塊位置、放置不動 ----
+  const pins606=[
+    "function t601On(){if(t601On.u===undefined)t601On.u=/(?:^|[?&])noT601(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT601&&!t601On.u&&ART601.ok===true;}",
+    "  if(LOT601.has(k)&&t601On())return Math.max(0,Math.min(2,v|0)); // T601：新圖三款\n",
+    "  if(k===5){const s=(t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,{v})])||SPR.lot574['5_1_'+v]||SPR.lot574['5_1_0'];return winter?s.win563:s;}",
+    "  v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On()))?0:lotVariant574(k,v);",
+    "function lotKey591(k){if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';",
+    "function lotV591(x,y,b){if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590()",
+    "function bakeLot574(k,v,stage,winter){\n  if(LOT601.has(k)&&t601On()){const r601=bakeArt601(k,v,stage,winter);if(r601)return r601;}",
+    "if(b.k===5&&!b.ref){const ps=(b.lot574&&t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,b)])||(b.lot574&&SPR.lot574&&SPR.lot574['5_1_'+b.v])||",
+    "    if(bd.k===4)s=t601On()&&SPR.art601?one601(4,o.x,o.y,bd,win,sea):(win?SPR.parkW:",
+    "    else if((bd.k===81||bd.k===97)&&!bd.lot574&&t601On()&&SPR.art601)s=one601(bd.k,o.x,o.y,bd,win);",
+    "  if(bd.k===4){if(t601On()&&SPR.art601)return one601(4,x,y,bd,inWinter(),season());",
+    "      const gx=bx+s.w*z*.5, gy=s.__t601?by+(s.ay-18)*z:by+s.h*z*.62, gr=30*z;",
+    "          const q601=s.__t601?walk601(s.v601,vi,tt):null, px=q601?bx+(s.ax+(q601[0]-q601[1])*32)*z:bx+s.w*z*(.24+tt*.5), py=q601?by+(s.ay-32+(q601[0]+q601[1])*16)*z:by+s.h*z*(.56+streetHash(o.x,o.y,1957+vi)*.12);",
+    "      }else if(bd.k===4&&bd.v===3&&!win&&!s.__t601){",
+    "    if(k===81&&!b.lot574&&t601On())continue;",
+    "    if(win&&snowLvl>0&&!lodFar&&bd.k!==4&&!s.__t601&&!window.__noRoofSnow&&!constrRise){",
+    "    if(nightDepth>0&&s.night&&(bd.k===5||bd.pw)&&!(bd.k===4&&s.__t601)){",
+    "function v601(k,x,y,bd){const v=bd?(bd.v|0):0;\n  if(k===4)return ((v%3)+3)%3;",
+    "  if(k===97){const p=pier601(x,y);if(p>=0)return p;}",
+    "  return Math.min(2,Math.floor(hashLocal590(x|0,y|0,k*131)*3));",
+    "function one601(k,x,y,bd,winterNow,sea){const d=SPR.art601[k][v601(k,x,y,bd)];return winterNow&&d.win563?d.win563:(d.sea601&&d.sea601[sea])||d;}",
+    "      for(let v=0;v<3;v++){const d=crop601(bakeArt601(k,v,2,false),k,v);",
+    "        d.win563=crop601(bakeArt601(k,v,2,true),k,v);one[k].push(d);",
+    "  if(window.__noT601||/(?:^|[?&])noT601(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''))return rep;"];
+  const pmiss606=pins606.filter(p=>html.split(p).length!==2);
+  const boot606=html.indexOf("if(typeof requestAnimationFrame==='function'&&typeof document!=='undefined'&&document.getElementById&&document.getElementById('boot426')){bootstrap426();}");
+  const place606=["t.bld={k:4,lv:1,v:ri(9),","v:(x*7+y*13)%3","t.bld={k:8,lv:1,v:ri(3),","t.bld={k:60,lv:1,v:0,","t.bld={k:81,lv:1,v:0,","t.bld={k:97,lv:1,v:0,"].map(s=>html.split(s).length-1);
+  assert(pmiss606.length===0&&(htmlBare438.match(/buildSpritesS21\(\)/g)||[]).length===3&&bT601>html.indexOf('\nfunction wealthSpr(')&&eT601>bT601&&boot606>eT601&&bT601>html.indexOf('/* ===== T426 拆段')&&place606.every(n=>n>=1),
+    'T601 G6 原文：接線逐行、S21 一處定義兩處呼叫、區塊在 wealthSpr 之後且在同步開機呼叫之前（const 才初始化）、放置的 v 算式不動：缺 '+pmiss606.map(p=>p.slice(0,50).replace(/\n/g,'⏎')).join('｜')+'；S21 '+(htmlBare438.match(/buildSpritesS21\(\)/g)||[]).length+'；放置 '+place606.join('/'));
+  if(occ604===undefined)delete window.__noOccWin653;else window.__noOccWin653=occ604;
 }
 
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
@@ -17445,6 +17743,15 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(lo>=0&&htmlBare438.indexOf(key,lo+1)<0&&hi>open,'T445 G0 T594局部座標白名單必須唯一且完整：'+name);
     localSpans594.push([lo,hi]);
   }
+  // T601 精確增列：藍灰重畫的烘焙器與 8 支樣張工廠，全是「單張精靈畫布內的格內座標」（T.P(u,v,z) 的 u/v 是地塊內座標），
+  // 不是 world 座標直送螢幕；逐一具名、不以 601 後綴泛放行。名單寫死 9 個。
+  const localSpans601=[];
+  for(const name of ['bakeArt601','art601_k4','art601_k5','art601_k8','art601_k60','art601_k63','art601_k66','art601_k81','art601_k97']){
+    const key='function '+name+'(',lo=htmlBare438.indexOf(key),open=htmlBare438.indexOf('{',lo);let hi=-1,depth=0;
+    if(lo>=0)for(let p=open;p<htmlBare438.length;p++){if(htmlBare438[p]==='{')depth++;else if(htmlBare438[p]==='}'&&!--depth){hi=p;break;}}
+    assert(lo>=0&&htmlBare438.indexOf(key,lo+1)<0&&hi>open,'T445 G0 T601局部座標白名單必須唯一且完整：'+name);
+    localSpans601.push([lo,hi]);
+  }
   // 原煙粒world spawn多了一行純資料lot574，viewDep不再落在原三行窗。只認完整這一筆，不放寬全檔窗寬。
   const smokeExpr574='const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;';
   const smokeLo574=htmlBare438.indexOf(smokeExpr574),smokeHi574=htmlBare438.indexOf('\n    }',smokeLo574);
@@ -17459,6 +17766,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   let nIso445 = 0, nLogo445 = 0, nSpawn445 = 0,nLocal574=0;
   let nLocal590=0; // T590
   let nLocal594=0; const txt594=[]; // T594
+  let nLocal601=0; // T601
   const spawnLines445 = new Set(), bad445 = [];
   for (const re of PATS445) {
     let m;
@@ -17469,6 +17777,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
       if(localSpans574.some(s=>m.index>s[0]&&m.index<s[1])){nLocal574++;continue;}
       if(localSpans590.some(s=>m.index>s[0]&&m.index<s[1])){nLocal590++;continue;}
       if(localSpans594.some(s=>m.index>s[0]&&m.index<s[1])){nLocal594++;txt594.push(m[0]);continue;}
+      if(localSpans601.some(s=>m.index>s[0]&&m.index<s[1])){nLocal601++;continue;}
       if(m.index>=smokeLo574&&m.index<smokeLo574+smokeExpr574.length){nSpawn445++;spawnLines445.add(ln);continue;}
       // ③ world 空間 spawn：同一行或相鄰兩行內有 viewDep(（深度鍵已跟轉，T389）
       const near = bareLines445.slice(Math.max(0, ln - 2), ln + 1).join('\n');
@@ -17498,6 +17807,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + 'world spawn 10 行／T574局部式8處，實得 ' + nIso445 + '／' + nLogo445 + '／' + spawnLines445.size+'／'+nLocal574
     + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 46 變少，'
     + '代表有人把裸式從旋轉層裡搬出來了');
+  assert(nLocal601===13,'T601 G445【計數釘】藍灰重畫烘焙器與 8 支樣張工廠內的格內局部等距式應恰 13 處（2026-09-30 實測：烘焙器 2、k5 1、k8 3、k66 1、k97 6），實得 '+nLocal601+'；變動要有人簽名');
   assert(nLocal590===61,'T590 G445【計數釘】實驗線移植批次與 makeIso590 內的格內局部等距式應恰 61 處（2026-09-26 實測），實得 '+nLocal590+'；變動要有人簽名');
   assert(nLocal594===4&&JSON.stringify(txt594.slice().sort())==='["(bw+bh)*16","(bw+bh)*16","(bw-bh)*32","(bw-bh)*32"]','T594 G445【原文釘】blockCorners594 與 makeBlockSprite594 內的畫布局部等距式應恰是 N 角與 locN 各一組 (bw-bh)*32／(bw+bh)*16（2026-09-26 實測；只釘數目的話，換掉一條再加一條世界座標式仍會是 4），實得 '+JSON.stringify(txt594)+'；變動要有人簽名');
 }
