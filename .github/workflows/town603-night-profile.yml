@@ -1,0 +1,39 @@
+name: Town T603 night profile (diagnosis only)
+on:
+  push:
+    branches: [gpt/town-night-profile-603]
+    paths:
+      - docs/tasks/t603-shots/profile603.js
+      - .github/workflows/town603-night-profile.yml
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record frozen source and diagnostic-only contract
+        run: |
+          mkdir -p evidence
+          git rev-parse HEAD | tee evidence/source-commit.txt
+          shasum -a 256 index.html sw.js docs/tasks/t603-shots/profile603.js | tee evidence/source-sha256.txt
+          sw_vers | tee evidence/macos-version.txt
+          echo 'Diagnostic collection cannot clear failed acceptance run37535607860.' | tee evidence/acceptance-still-blocked.txt
+          node docs/tasks/t603-shots/profile603.js --check-profile
+      - name: Bounded native profiles and stable compositor snapshots
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t603-shots/profile603.js --port=8763 --out=evidence/chrome | tee evidence/profile.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T603-night-diagnostic-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
