@@ -24,12 +24,12 @@ jobs:
           sw_vers | tee evidence/macos-version.txt
           echo 'Diagnostic collection cannot clear failed acceptance run37535607860.' | tee evidence/acceptance-still-blocked.txt
           node docs/tasks/t603-shots/profile603.js --check-profile
-      - name: Bounded native profiles and stable compositor snapshots
+      - name: Complete stable compositor snapshots using existing bounded profiles
         env:
           CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
         run: |
           set -o pipefail
-          node docs/tasks/t603-shots/profile603.js --port=8763 --out=evidence/chrome | tee evidence/profile.log
+          node docs/tasks/t603-shots/profile603.js --snapshot-only --port=8763 --out=evidence/chrome | tee evidence/profile.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
