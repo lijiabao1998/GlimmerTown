@@ -18,6 +18,15 @@ function pngRgba603(bytes){
 }
 function pixelDelta603(a,b){if(a.w!==b.w||a.h!==b.h)throw Error('Screenshot dimensions differ');let n=0;for(let i=0;i<a.rgba.length;i+=4)if(a.rgba[i]!==b.rgba[i]||a.rgba[i+1]!==b.rgba[i+1]||a.rgba[i+2]!==b.rgba[i+2]||a.rgba[i+3]!==b.rgba[i+3])n++;return n;}
 replace("const PHASE='core';","const PHASE='profile';");
+replace("const nativeCandidateOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready(nativeCandidateOrigin603);",`const nativeCandidateOrigin603=await ev('performance.timeOrigin'),nativeCandidateURL603='http://127.0.0.1:'+PORT+'/index.html';
+    try{await send('Page.navigate',{url:nativeCandidateURL603});}catch(error){
+      if(!error||error.message!=='CDP timeout: Page.navigate')throw error;
+      const audit={error:String(error),expectedURL:nativeCandidateURL603,previousTimeOrigin:nativeCandidateOrigin603,recovered:false};
+      try{audit.observed=await ev('({url:location.href,timeOrigin:performance.timeOrigin,ready:document.readyState,identity:window.__s603?__s603.documentIdentity():null,flags:window.__s603?__s603.flags():null})');}catch(readError){audit.readError=String(readError);}
+      const s=audit.observed;audit.recovered=!!(s&&s.url===nativeCandidateURL603&&Number.isFinite(s.timeOrigin)&&Number.isFinite(nativeCandidateOrigin603)&&s.timeOrigin!==nativeCandidateOrigin603&&s.ready==='complete'&&s.identity&&s.identity.version==='11.212'&&s.identity.civicFactory==='function'&&s.identity.url==='/index.html'&&s.flags&&s.flags.T603===true);
+      report.nativeCandidateNavigation603=audit;persist();if(!audit.recovered)throw error;check(audit.recovered,'timed-out navigation independently reconciled to the fully committed exact candidate');
+    }
+    await ready(nativeCandidateOrigin603);`);
 replace("['full','core','world','neighbors','raster'].includes(PHASE)","['full','core','world','neighbors','raster','profile'].includes(PHASE)");
 replace('coverage:{core:false,world:false,neighbors:false,raster:false},diagnosticOnly:PHASE===\'raster\'','coverage:{core:false,world:false,neighbors:false,raster:false,profile:false},diagnosticOnly:true');
 replace("const check=(v,m)=>",pngRgba603.toString()+'\n'+pixelDelta603.toString()+"\nconst check=(v,m)=>");
