@@ -46,18 +46,34 @@ jobs:
         run: |
           set -o pipefail
           node docs/tasks/t602-shots/oldsave602.js . | tee evidence/oldsave.log
-      - name: Real Chromium day night seasons rotations and PNG evidence
-        if: always()
-        env:
-          CHROME_PATH: /usr/bin/google-chrome
-        run: |
-          set -o pipefail
-          node docs/tasks/t602-shots/scene602.js --port=8762 --out=evidence/chrome | tee evidence/chrome.log
       - name: Preserve full candidate evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Town-T602-${{ github.sha }}
+          name: Town-T602-regression-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Real Chromium day night seasons rotations and PNG evidence
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node docs/tasks/t602-shots/scene602.js --port=8762 --out=evidence/chrome | tee evidence/chrome.log
+      - name: Preserve real Chromium evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-T602-Chrome-${{ github.sha }}
           path: evidence/
           if-no-files-found: error
           retention-days: 14
