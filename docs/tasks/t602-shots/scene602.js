@@ -18,7 +18,16 @@ const persist=()=>fs.writeFileSync(path.join(OUT,'scene602-summary.json'),JSON.s
 for(const f of fs.readdirSync(ROOT)){const p=path.join(ROOT,f);if(fs.statSync(p).isFile()&&/\.(html|js|json|webmanifest|png|svg|css)$/.test(f))fs.copyFileSync(p,path.join(DIR,f));}
 // This function is string-injected inside the game's closure in the disposable copy.
 function bridge602(){
+  const inputEvents=[];
+  const canonicalSaved=raw=>{const d=saveInflate(JSON.parse(raw)),out={};for(const k of ['v','n','seed','money','day','df','bl','lots574','ter','tre','rd','zn','gvc'])out[k]=d[k];return JSON.stringify(out);};
+  const pointerSnapshot=()=>({pointers:[...pointers.entries()].map(([id,p])=>({id,...p})),down:downInfo?{...downInfo,elapsed:performance.now()-downInfo.t}:null,pan:panBase?{...panBase}:null,pinch:pinchBase?{...pinchBase}:null,selected:selTile?{...selTile}:null});
+  for(const type of ['pointerdown','pointermove','pointerup','pointercancel']){
+    const record=(phase,e)=>{const tile=toTile(e.clientX,e.clientY);inputEvents.push({type,phase,time:performance.now(),eventTime:e.timeStamp,x:e.clientX,y:e.clientY,button:e.button,buttons:e.buttons,pointerId:e.pointerId,pointerType:e.pointerType,trusted:e.isTrusted,tile,state:pointerSnapshot()});if(inputEvents.length>96)inputEvents.shift();};
+    cvs.addEventListener(type,e=>record('before',e),true);
+    cvs.addEventListener(type,e=>record('after',e));
+  }
   window.__s602={
+    pointerState:pointerSnapshot,pointTile:toTile,inputEvents:()=>inputEvents.slice(),clearInputEvents:()=>{inputEvents.length=0;},
     flags:()=>({T602:t602On(),T596:t596On(),T600:t596On()&&!t600Off(),T600Escape:t600Off()}),
     bake:bakeArt602,rep:()=>window.__t602,v:v602,pier:pier602,
     clear:()=>{lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;},
@@ -27,7 +36,9 @@ function bridge602(){
     point:(x,y)=>{const p=w2v(x,y);return {x:(W/2+((p[0]-p[1])*32-cam.x)*cam.z)/DPR,y:(H/2+((p[0]+p[1]+1)*16-cam.y)*cam.z)/DPR};},
     roots:()=>{const rows=[];let bad=0;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=T(idx(x,y)).bld;if(!b||b.ref)continue;rows.push([idx(x,y),b.k,b.lv,b.v,b.sz||1,!!b.lot574]);if(b.sz>=2)for(let yy=0;yy<b.sz;yy++)for(let xx=0;xx<b.sz;xx++){if(!xx&&!yy)continue;const q=inMap(x+xx,y+yy)&&T(idx(x+xx,y+yy)).bld;if(!q||!q.ref||q.ref[0]!==x||q.ref[1]!==y)bad++;}}return {rows,bad};},
     census:k=>{const out=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=T(idx(x,y)).bld;if(b&&!b.ref&&b.k===k)out.push([x,y,b.sz||1]);}return out;},
-    saved:()=>{const d=saveInflate(JSON.parse(localStorage.getItem(slotKey(3)))),out={};for(const k of ['v','n','seed','money','day','df','bl','lots574','ter','tre','rd','zn','gvc'])out[k]=d[k];return JSON.stringify(out);},
+    saved:()=>canonicalSaved(localStorage.getItem(slotKey(3))),sourceSaved:canonicalSaved,
+    // One synchronous task prevents RAF vehicle feedback between deterministic ticks.
+    grow22:()=>{GV.setMapSize(72);GV.newWorldSeeded(22);GV.setDiff(3);GV.setSpeed(0);GV.ai(true);for(let step=0;step<420;step++)GV.step(1);GV.ai(false);GV.setSpeed(0);updHud();return GV.stats();},
     snow:on=>{rainDays=on?SNOW_ACC_DAYS+3:0;},
     clearMap:()=>{for(const t of tiles){Object.assign(t,{t:2,tree:0,gv:0,road:0,rc:0,mask:0,bridge:0,zone:0,bld:null,deco:0,rail:0,tram:0,dock:0,el:0});}groundDirty=true;},
     prepare:(x,y,n)=>{for(let xx=x-1;xx<=x+n;xx++){const t=T(idx(xx,y-1));t.road=1;t.rc=1;t.bld=null;}RESOURCE[idx(x,y)]=1;money=1e9;},
@@ -68,7 +79,9 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const view=()=>ev('__s602.view()');
     const mouse=(type,x,y,extra={})=>send('Input.dispatchMouseEvent',{type,x,y,...extra});
     const touch=(type,points)=>send('Input.dispatchTouchEvent',{type,touchPoints:points});
-    const tap=async(x,y,mobile)=>{if(mobile){await touch('touchStart',[{x,y,id:1}]);await touch('touchEnd',[]);}else{await mouse('mousePressed',x,y,{button:'left',buttons:1,clickCount:1});await mouse('mouseReleased',x,y,{button:'left',buttons:0,clickCount:1});}await sleep(80);};
+    // Queue down then up on the ordered CDP socket before waiting for replies.
+    // This avoids adding a host roundtrip / expensive first frame to a short tap.
+    const tap=async(x,y,mobile)=>{const down=mobile?touch('touchStart',[{x,y,id:1}]):mouse('mousePressed',x,y,{button:'left',buttons:1,clickCount:1});const up=mobile?touch('touchEnd',[]):mouse('mouseReleased',x,y,{button:'left',buttons:0,clickCount:1});await Promise.all([down,up]);await sleep(80);};
     const click=async(selector,mobile=false)=>{const p=await ev('(()=>{const e='+selector+';if(!e)throw Error("UI target missing");e.scrollIntoView({block:"nearest",inline:"nearest"});const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;if(!r.width||!r.height||x<0||y<0||x>=innerWidth||y>=innerHeight)throw Error("UI target invisible "+e.id);const top=document.elementFromPoint(x,y);if(top!==e&&!e.contains(top))throw Error("UI target covered "+e.id);return {x,y};})()');await tap(p.x,p.y,mobile);};
     const el=id=>'document.getElementById('+JSON.stringify(id)+')';
     const slotButton=text=>'[...[...document.querySelectorAll("#infoBody .row")].find(r=>/^槽3[｜ ]/.test(r.textContent)).querySelectorAll("button")].find(b=>b.textContent==='+JSON.stringify(text)+')';
@@ -89,13 +102,18 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
       const z=(await view()).cam.z;if(mobile){await touch('touchStart',[{x:140,y:p.y,id:1},{x:230,y:p.y,id:2}]);for(let i=1;i<=5;i++)await touch('touchMove',[{x:140-i*5,y:p.y,id:1},{x:230+i*5,y:p.y,id:2}]);await touch('touchEnd',[]);}else await mouse('mouseWheel',p.x,p.y,{deltaX:0,deltaY:-100});
       await sleep(350);check((await view()).cam.z>z,label+' real '+(mobile?'pinch':'wheel')+' zoom');
       await ev('GV.setZoom(1);GV.lookAt('+target[0]+','+target[1]+');true');await sleep(400);
-      const point=await ev('__s602.point('+target[0]+','+target[1]+')');check(await ev('document.elementFromPoint('+point.x+','+point.y+').id==="game"'),label+' inspect point unobstructed');await tap(point.x,point.y,mobile);
-      let v=await view();check(v.info==='block'&&v.selected&&v.selected.x===target[0]&&v.selected.y===target[1],label+' real canvas inspect correct root');await shot(label+'-inspect');await click(el('infoX'),mobile);v=await view();check(v.info==='none'&&v.selected===null,label+' inspect close clears selection');
+      const point=await ev('__s602.point('+target[0]+','+target[1]+')');check(await ev('document.elementFromPoint('+point.x+','+point.y+').id==="game"'),label+' inspect point unobstructed');
+      report.inspectDiagnostics=report.inspectDiagnostics||{};
+      const diagnostic=report.inspectDiagnostics[label]={point,target:target.slice(),viewBefore:await view(),targetBefore:await ev('GV.tile('+target[0]+','+target[1]+')'),hitBefore:await ev('__s602.pointTile('+point.x+','+point.y+')'),pointerBefore:await ev('__s602.pointerState()')};
+      await ev('__s602.clearInputEvents();true');await tap(point.x,point.y,mobile);
+      let v=await view();Object.assign(diagnostic,{viewAfter:v,targetAfter:await ev('GV.tile('+target[0]+','+target[1]+')'),pointerAfter:await ev('__s602.pointerState()'),events:await ev('__s602.inputEvents()')});
+      await shot(label+'-inspect-attempt');
+      check(v.info==='block'&&v.selected&&v.selected.x===target[0]&&v.selected.y===target[1],label+' real canvas inspect correct root');await shot(label+'-inspect');await click(el('infoX'),mobile);v=await view();check(v.info==='none'&&v.selected===null,label+' inspect close clears selection');
       check(state===await ev('__s602.scene()'),label+' navigation city state unchanged');
       await click(el('bSave'),mobile);await click(slotButton('存到此'),mobile);check((await view()).slot===3,label+' saved only slot3');const saved=await ev('__s602.saved()'),roots=await ev('__s602.roots()');
       await click(slotButton('讀取'),mobile);await ev('GV.setSpeed(0);GV.save();true');check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),label+' UI load roots preserved');check(saved===await ev('__s602.saved()'),label+' UI load save preserved');
       const previousTimeOrigin=await ev('performance.timeOrigin');await send('Page.reload',{ignoreCache:true});await ready(previousTimeOrigin);check(await ev('localStorage.getItem("glimmerville.v1.slot")==="3"'),label+' reload slot3');await click(el('bContinue'),mobile);await ev('GV.setSpeed(0);GV.ai(false);GV.save();true');
-      check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),label+' full reload roots preserved');check(saved===await ev('__s602.saved()'),label+' full reload save preserved');check(await ev('!localStorage.getItem("glimmerville.v1.s1")&&!localStorage.getItem("glimmerville.v1.s2")'),label+' slots1/2 untouched');await shot(label+'-after-reload');return {roots:roots.rows.length,saveSHA256:hash(saved)};
+      check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),label+' full reload roots preserved');check(saved===await ev('__s602.saved()'),label+' full reload save preserved');check(await ev('!localStorage.getItem("glimmerville.v1.s1")&&!localStorage.getItem("glimmerville.v1.s2")'),label+' slots1/2 untouched');await shot(label+'-after-reload');return {roots:roots.rows.length,saveSHA256:hash(saved),postReloadStats:await ev('GV.stats()'),postReloadNote:'Existing load path does not recompute population/jobs until a simulation tick; reload screenshots preserve this behavior.'};
     };
     await send('Page.enable');await send('Runtime.enable');await send('Page.bringToFront');
     await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});
@@ -119,8 +137,11 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await ev('document.getElementById("bNewGame").click();GV.setSpeed(0);true');
     const loadRaw=async raw=>ev('localStorage.setItem("glimmerville.v1.s3",'+JSON.stringify(raw)+');if(!GV.load())throw Error("Save load failed");GV.setSpeed(0);GV.ai(false);true');
     for(const f of manifest.cities){const raw=fs.readFileSync(path.join(fixtures,f.file),'utf8');check(hash(raw)===f.saveSHA256,'fixture SHA '+f.seed);await loadRaw(raw);const roots=await ev('__s602.roots()'),saved=await ev('__s602.saved()');check(!roots.bad&&roots.rows.length===f.roots&&hash(JSON.stringify(roots.rows))===f.rootSHA256,'Chrome old-save root/ref '+f.seed);await ev('GV.save();true');check(saved===await ev('__s602.saved()'),'Chrome old-save fields '+f.seed);await ev('if(!GV.load())throw Error("Second load failed");GV.setSpeed(0);true');check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),'Chrome old-save roundtrip '+f.seed);await ev('GV.save();true');check(saved===await ev('__s602.saved()'),'Chrome old-save second-load fields '+f.seed);report.oldSaves.push({seed:f.seed,roots:roots.rows.length,rootSHA256:hash(JSON.stringify(roots.rows))});}
-    const cityRaw=fs.readFileSync(path.join(fixtures,manifest.cities.find(f=>f.seed===22).file),'utf8');await loadRaw(cityRaw);report.cityStats=await ev('GV.stats()');report.census={};
+    const cityFixture=manifest.cities.find(f=>f.seed===22),cityRaw=fs.readFileSync(path.join(fixtures,cityFixture.file),'utf8'),expectedCitySave=await ev('__s602.sourceSaved('+JSON.stringify(cityRaw)+')');
+    const growCity=async label=>{const stats=await ev('__s602.grow22()'),roots=await ev('__s602.roots()'),rootSHA256=hash(JSON.stringify(roots.rows));await ev('GV.save();true');const saved=await ev('__s602.saved()'),expected=JSON.parse(expectedCitySave),actual=JSON.parse(saved),changedFields=Object.keys(expected).filter(k=>JSON.stringify(expected[k])!==JSON.stringify(actual[k]));report.grownCities=report.grownCities||{};report.grownCities[label]={stats,roots:roots.rows.length,rootSHA256,changedFields};check(!roots.bad&&roots.rows.length===cityFixture.roots&&rootSHA256===cityFixture.rootSHA256,'grown city exact roots '+label);check(stats.pop===cityFixture.stats.pop&&stats.day===cityFixture.day,'grown city genuine derived population/day '+label);check(!changedFields.length,'grown city canonical save matches fixture '+label+': '+JSON.stringify(changedFields));await sleep(450);return stats;};
+    report.cityStats=await growCity('desktop-before');report.census={};
     for(const k of[53,104,117]){report.census[k]=await ev('__s602.census('+k+')');check(report.census[k].length>0,'mature city contains k'+k);}
+    report.desktop=await testUI('desktop',false,report.census[104][0]);await growCity('visual-and-performance');
     const state=await ev('__s602.scene()'),originalDay=(await view()).day;
     for(const k of[53,104,117]){const c=report.census[k][0];await camera(c[0]+c[2]/2,c[1]+c[2]/2,k===53?1.1:2,0,1,55,false);for(const off of[true,false]){await ev('window.__noT602='+off+';true');await shot('city-k'+k+(off?'-before':'-after'));}}
     // Full product of 3 kinds, 4 seasons, 2 lights, 4 rotations, 2 distances.
@@ -132,7 +153,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     report.performance={};report.performanceLimits={coldRatio:2,coldAddMs:250,warmP95Ratio:1.5,warmAddMs:5,rafP95Ratio:1.5,rafAddMs:5};
     const focus=report.census[53][0];for(const off of[true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT602='+off+';true');await camera(focus[0]+3,focus[1]+3,1,0,1,55,false);await ev('__s602.clear();true');const cold=await ev('__s602.drawMs()'),warm=[];for(let i=0;i<30;i++)warm.push(await ev('__s602.drawMs()'));report.performance[mode]={cold,warm,warmP95:pct(warm,.95),raf:await raf(5000)};}
     const b=report.performance.baseline,c=report.performance.candidate;check(c.cold<=b.cold*2+250,'cold draw relative budget');check(c.warmP95<=b.warmP95*1.5+5,'warm draw p95 relative budget');check(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=50,'foreground headless RAF relative budget');
-    await ev('window.__noT602=false;true');report.desktop=await testUI('desktop',false,report.census[104][0]);
+    await ev('window.__noT602=false;true');
     // Natural shoreline evidence, including front-water fallback after rotation.
     await ev('GV.newWorldSeeded(601);GV.ai(false);GV.setSpeed(0);true');const shores=await ev('__s602.shores()');check(shores.back&&shores.E&&shores.S,'natural rear/east/south shores found');for(const p of Object.values(shores))await ev('__s602.single(97,'+p+');true');report.shore=[];
     for(const [kind,p]of Object.entries(shores))for(let rot=0;rot<4;rot++){await camera(p[0],p[1],3,rot,1,55,false);const expected=await ev('__s602.shoreExpected('+p+')'),actual=await ev('__s602.pier('+p+')');check(expected.want===actual,'natural shoreline '+kind+'/r'+rot);report.shore.push({kind,rot,expected,actual});await shot('pier-'+kind+'-r'+rot);}
@@ -152,7 +173,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     report.occlusion=[];
     for(const [k,tool,n]of[[53,'bigFarm',7],[104,'cgarden',2],[117,'gaswell',2]])for(const neighbor of['residential','hospital591','guesthouse601','tree']){await fresh();await place(tool,25,25,n);await ev('__s602.finish();true');check(await ev('__s602.neighbor('+JSON.stringify(neighbor)+','+(25+n)+','+(24+n)+')'),'occlusion neighbor present '+neighbor);for(let rot=0;rot<4;rot++)for(const [light,time]of[['day',55],['night',100]]){await camera(25+n*.7,25+n*.7,k===53?1.3:3,rot,1,time,false);const trace=await ev('__s602.trace()');check(trace.some(t=>new RegExp('^(far:)?'+k+'_').test(t.key)),'occlusion target drawn '+k+'/'+neighbor+'/'+rot+'/'+light);await shot('occlusion-k'+k+'-'+neighbor+'-r'+rot+'-'+light);report.occlusion.push({k,neighbor,rot,light});}}
     check(report.occlusion.length===96,'all 96 adjacent-occlusion evidence scenes');
-    await loadRaw(cityRaw);await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});await sleep(500);
+    await growCity('mobile-before');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});await sleep(500);
     report.mobile=await testUI('mobile390',true,report.census[104][0]);const layout=await ev('({width:innerWidth,docWidth:document.documentElement.scrollWidth,canvas:document.getElementById("game").getBoundingClientRect().toJSON()})');report.mobile.layout=layout;check(layout.width===390&&layout.docWidth<=391&&layout.canvas.width>=389,'390px mobile has no horizontal document overflow');
     await ev('GV.setSpeed(0);GV.setRot(0);GV.setZoom(.7);true');const stableState=await ev('__s602.scene()');report.stability=await raf(60000);check(report.stability.elapsed>=60000&&report.stability.frames>=600&&report.stability.max<5000,'one-minute visible RAF stability and liveness');check(stableState===await ev('__s602.scene()'),'one-minute paused city unchanged');
     report.finalFlags=await ev('__s602.flags()');check(report.finalFlags.T602&&!report.finalFlags.T596&&!report.finalFlags.T600,'final preview flags preserved');report.errLog=await ev('(window.__errLog||[]).slice(-20)');check(!errors.length&&!consoleErrors.length&&!report.errLog.length,'zero runtime/console/app errors');report.status='passed';exitCode=0;
