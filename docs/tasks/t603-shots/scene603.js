@@ -19,8 +19,10 @@ for(const f of fs.readdirSync(ROOT)){const p=path.join(ROOT,f);if(fs.statSync(p)
 // This function is string-injected inside the game's closure in the disposable copy.
 function bridge603(){
   // Test-only steady light phase; retain every real advance/update and draw call.
-  let frozenVisT603=null;const advanceReal603=advance;
-  advance=function(dtReal){if(frozenVisT603!==null)visT=frozenVisT603;try{return advanceReal603(dtReal);}finally{if(frozenVisT603!==null)visT=frozenVisT603;}};
+  let frozenVisT603=null,measureWork603=false;const work603={advance:[],draw:[],hud:[]},advanceReal603=advance,drawReal603=draw,hudReal603=updHud;
+  const measured603=(name,fn,args)=>{if(!measureWork603)return fn(...args);const t=performance.now();try{return fn(...args);}finally{work603[name].push(performance.now()-t);}};
+  advance=function(dtReal){if(frozenVisT603!==null)visT=frozenVisT603;try{return measured603('advance',advanceReal603,[dtReal]);}finally{if(frozenVisT603!==null)visT=frozenVisT603;}};
+  draw=function(...args){return measured603('draw',drawReal603,args);};updHud=function(...args){return measured603('hud',hudReal603,args);};
   const inputEvents=[];
   const canonicalSaved=raw=>{const d=saveInflate(JSON.parse(raw)),out={};for(const k of ['v','n','seed','money','day','df','bl','lots574','ter','tre','rd','zn','gvc'])out[k]=d[k];return JSON.stringify(out);};
   const pointerSnapshot=()=>({pointers:[...pointers.entries()].map(([id,p])=>({id,...p})),down:downInfo?{...downInfo,elapsed:performance.now()-downInfo.t}:null,pan:panBase?{...panBase}:null,pinch:pinchBase?{...pinchBase}:null,selected:selTile?{...selTile}:null});
@@ -60,6 +62,8 @@ function bridge603(){
     shores:()=>{const water=(x,y)=>inMap(x,y)&&T(idx(x,y)).t===0,out={};for(let y=2;y<N-2;y++)for(let x=2;x<N-2;x++){const t=T(idx(x,y));if(t.t===0||t.bld||t.road||t.bridge||t.rail||t.tram)continue;const e=water(x+1,y),s=water(x,y+1),kind=e&&!s?'E':s&&!e?'S':e&&s?'ES':!water(x+1,y+1)&&(water(x-1,y)||water(x,y-1))?'back':null;if(kind&&!out[kind]&&!Object.values(out).some(p=>Math.abs(p[0]-x)+Math.abs(p[1]-y)<4))out[kind]=[x,y];}return out;},
     drawMs:()=>{const t=performance.now();GV.forceDraw();return performance.now()-t;},
     trace:()=>{const calls=[],old=ctx.drawImage;ctx.drawImage=function(img,...args){calls.push({img,args});return old.call(this,img,...args);};try{GV.forceDraw();}finally{ctx.drawImage=old;}const out=[];for(const c of calls)for(const [key,s]of lotCache574)if(c.img===s.img){out.push({key,args:c.args});break;}return out;},
+    perfStart:()=>{for(const k in work603)work603[k].length=0;measureWork603=true;return true;},
+    perfWork:()=>{measureWork603=false;const out={};for(const k in work603){const a=work603[k],b=[...a].sort((x,y)=>x-y);out[k]={calls:a.length,mean:a.length?a.reduce((x,y)=>x+y,0)/a.length:0,p95:b.length?b[Math.min(b.length-1,Math.floor(b.length*.95))]:0,max:b.length?b[b.length-1]:0};}return {work:out,state:{speed,running,quality,cars:cars.length,citizens:citizens.length,visT,day,visibility:document.visibilityState},heap:performance.memory?{used:performance.memory.usedJSHeapSize,total:performance.memory.totalJSHeapSize}:null};},
     documentIdentity:()=>({version:GAME_VER,civicFactory:typeof bakeArt603,url:location.pathname}),
     comparisonRig:()=>{document.getElementById('bNewGame').click();GV.setMapSize(72);GV.setRot(0);GV.newWorldSeeded(603);GV.setDiff(3);GV.setSpeed(0);GV.ai(false);__s603.clearMap();money=1e9;for(const [tool,x,y]of[['recycling',27,28],['seniorCenter',31,28],['dogpark',27,32],['compost',31,32]]){if(!GV.place(tool,x,y))throw Error('comparison placement '+tool);}__s603.finish();selTile=null;return __s603.roots();},
     comparisonFrame:(rot,sea,time)=>{GV.setRot(rot);GV.setSeason(sea);GV.weather(0);__s603.snow(sea===3);trafClock=time;waterF=0;waterT=0;__s603.freezeVis(time);GV.setZoom(2);GV.lookAt(30,31);groundDirty=true;ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';GV.forceDraw();GV.forceDraw();return {hash:__s603.imageHash(cvs),png:cvs.toDataURL('image/png'),state:{W,H,DPR,day,waterF,waterT,trafClock,visT,rot:viewRotEff(),cam:{...cam},roots:__s603.roots(),flags:__s603.flags()}};},
@@ -104,7 +108,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++nextId,timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP timeout: '+method));},150000);pending.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params}));});
     const ev=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
     const ready=async(previousTimeOrigin=null)=>{for(let i=0;i<240;i++){try{if(await ev('!!(window.GV&&window.__s603&&window.__boot426&&window.__boot426().ready&&(!document.getElementById("boot426")||document.getElementById("boot426").classList.contains("hide"))&&('+JSON.stringify(previousTimeOrigin)+'===null||performance.timeOrigin!=='+JSON.stringify(previousTimeOrigin)+'))'))return;}catch{}await sleep(500);}throw Error('New document boot/overlay incomplete');};
-    const shot=async name=>{await ev('if(!document.getElementById("sheet603"))GV.forceDraw();true');await sleep(100);const r=await send('Page.captureScreenshot',{format:'png'}),file='T603-'+name+'.png';fs.writeFileSync(path.join(OUT,file),Buffer.from(r.data,'base64'));report.screenshots.push(file);};
+    const shot=async name=>{await ev('if(!document.getElementById("sheet603"))GV.forceDraw();true');await sleep(100);const r=await send('Page.captureScreenshot',{format:'png'}),file='T603-'+name+'.png';fs.writeFileSync(path.join(OUT,file),Buffer.from(r.data,'base64'));report.screenshots.push(file);if(report.screenshots.length%25===0){persist();console.log('T603_PROGRESS '+JSON.stringify({checks:report.checks.length,screenshots:report.screenshots.length,last:file}));}};
     captureFailure=async()=>{if(!ws||ws.readyState!==1)throw Error('CDP socket unavailable for failure screenshot');const r=await send('Page.captureScreenshot',{format:'png'}),file='T603-failure-raw.png';fs.writeFileSync(path.join(OUT,file),Buffer.from(r.data,'base64'));report.failureScreenshot=file;report.screenshots.push(file);};
     const view=()=>ev('__s603.view()');
     const mouse=(type,x,y,extra={})=>send('Input.dispatchMouseEvent',{type,x,y,...extra});
@@ -233,7 +237,15 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await ev('window.__noT603=false;__s603.freezeVis(55);true');report.stabilityPhase='steady daylight55; same existing600-frame/5-second-gap gate';const stableState=await ev('__s603.scene()');report.stability=await raf(60000);check(report.stability.elapsed>=60000&&report.stability.frames>=600&&report.stability.max<5000,'one-minute visible RAF stability and liveness');check(stableState===await ev('__s603.scene()'),'one-minute paused city unchanged');
     await ev('__s603.freezeVis(null);true');
     await send('Emulation.setTouchEmulationEnabled',{enabled:false});await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});await sleep(500);
-    await growCity('visual-and-performance');
+    const beforePerfDocument=await ev('performance.timeOrigin');await send('Page.reload',{ignoreCache:true});await ready(beforePerfDocument);await ev('document.getElementById("bNewGame").click();true');await growCity('fresh-desktop-performance');
+    const performanceOriginalDay=(await view()).day;report.performance={};report.desktopPerformancePhaseContract='Fresh desktop document, same seed/camera/light, full real advance/draw/HUD; measured before exhaustive PNG capture.';report.performanceLimits={coldRatio:2,coldAddMs:250,warmP95Ratio:1.5,warmAddMs:5,rafP95Ratio:1.5,rafAddMs:5};
+    const focus=report.census[85][0];for(const [phase,time]of [['day',55],['night',100]]){
+      const pair=report.performance[phase]={};
+      for(const off of[true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT603='+off+';true');await camera(focus[0]+1,focus[1]+1,1,0,1,time,false);const first=await ev('(()=>{__s603.clear();const cold=__s603.drawMs();return {cold,cache:__s603.cacheStats()};})()'),cold=first.cold,warm=[];for(let i=0;i<30;i++)warm.push(await ev('__s603.drawMs()'));await ev('__s603.perfStart()');const frames=await raf(5000),work=await ev('__s603.perfWork()');pair[mode]={cold,firstCache:first.cache,warm,warmP95:pct(warm,.95),raf:frames,...work};}
+      const b=pair.baseline,c=pair.candidate;check(c.cold<=b.cold*2+250,'desktop '+phase+' cold draw relative budget');check(c.warmP95<=b.warmP95*1.5+5,'desktop '+phase+' warm draw p95 relative budget');check(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=(phase==='day'?50:Math.max(5,b.raf.frames/2)),'desktop '+phase+' foreground headless RAF relative budget');
+    }
+    await ev('window.__noT603=false;true');
+    await ev('GV.setDay('+performanceOriginalDay+');true');
     const state=await ev('__s603.scene()'),originalDay=(await view()).day;
     for(const k of[29,85,92,88]){const c=report.census[k][0];await camera(c[0]+c[2]/2,c[1]+c[2]/2,k===53?1.1:2,0,1,55,false);for(const off of[true,false]){await ev('window.__noT603='+off+';true');await shot('city-k'+k+(off?'-before':'-after'));}}
     // Full product of 4 kinds, 4 seasons, 2 lights, 4 rotations, 2 distances.
@@ -242,13 +254,6 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     check(report.matrix.length===256,'all 256 same-city season/light/rotation/distance scenes');
     // setSeason is a simulation test API and writes day. Restore explicitly.
     await ev('GV.setDay('+originalDay+');true');report.visualStateUnchanged=state===await ev('__s603.scene()');check(report.visualStateUnchanged,'visual-only city data unchanged after restoring test calendar');
-    report.performance={};report.performanceLimits={coldRatio:2,coldAddMs:250,warmP95Ratio:1.5,warmAddMs:5,rafP95Ratio:1.5,rafAddMs:5};
-    const focus=report.census[85][0];for(const [phase,time]of [['day',55],['night',100]]){
-      const pair=report.performance[phase]={};
-      for(const off of[true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT603='+off+';true');await camera(focus[0]+1,focus[1]+1,1,0,1,time,false);const first=await ev('(()=>{__s603.clear();const cold=__s603.drawMs();return {cold,cache:__s603.cacheStats()};})()'),cold=first.cold,warm=[];for(let i=0;i<30;i++)warm.push(await ev('__s603.drawMs()'));pair[mode]={cold,firstCache:first.cache,warm,warmP95:pct(warm,.95),raf:await raf(5000)};}
-      const b=pair.baseline,c=pair.candidate;check(c.cold<=b.cold*2+250,'desktop '+phase+' cold draw relative budget');check(c.warmP95<=b.warmP95*1.5+5,'desktop '+phase+' warm draw p95 relative budget');check(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=(phase==='day'?50:Math.max(5,b.raf.frames/2)),'desktop '+phase+' foreground headless RAF relative budget');
-    }
-    await ev('window.__noT603=false;true');
     // Disposable fixtures use genuine placement. All four civic footprints are unchanged.
     const fresh=async()=>ev('GV.newWorldSeeded(603);GV.setDiff(3);GV.setSpeed(0);GV.ai(false);__s603.clearMap();true');
     const place=async(tool,x,y,n)=>{await ev('__s603.prepare('+[x,y,n]+');true');check(await ev('GV.place('+JSON.stringify(tool)+','+x+','+y+')'),'real placement '+tool+' at '+x+','+y);};
