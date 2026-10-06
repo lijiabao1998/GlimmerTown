@@ -5,7 +5,7 @@
 const fs=require('fs'),os=require('os'),path=require('path'),http=require('http'),crypto=require('crypto');
 const {spawn}=require('child_process');
 const arg=(n,d)=>{const a=process.argv.find(x=>x.startsWith('--'+n+'='));return a?a.slice(n.length+3):d;};
-const PHASE=arg('phase','full');if(!['full','core','world','neighbors'].includes(PHASE))throw Error('Unknown T603 validation phase');
+const PHASE=arg('phase','full');if(!['full','core','world','neighbors','raster'].includes(PHASE))throw Error('Unknown T603 validation phase');
 const PORT=+arg('port',8763),DEV=PORT+1000,OUT=path.resolve(arg('out',path.join(os.tmpdir(),'scene603')));
 if([PORT,DEV].some(p=>[8123,8199].includes(p)))throw Error('Player ports 8123/8199 prohibited');
 const ROOT=path.resolve(__dirname,'../../..'),DIR=fs.mkdtempSync(path.join(os.tmpdir(),'scene603-'));
@@ -13,7 +13,7 @@ fs.mkdirSync(OUT,{recursive:true});
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const pct=(a,p)=>[...a].sort((x,y)=>x-y)[Math.min(a.length-1,Math.floor(a.length*p))];
-const report={status:'running',phase:PHASE,performanceFailures:[],coverage:{core:false,world:false,neighbors:false},baseSha:'637c8cc6d09306c1e17535ece6119d3ad78f1382',checks:[],screenshots:[],headless:true,performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'};
+const report={status:'running',phase:PHASE,performanceFailures:[],coverage:{core:false,world:false,neighbors:false,raster:false},diagnosticOnly:PHASE==='raster',baseSha:'637c8cc6d09306c1e17535ece6119d3ad78f1382',checks:[],screenshots:[],headless:true,performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'};
 const check=(v,m)=>{if(!v)throw Error(m);report.checks.push(m);};
 const perfCheck=(v,m)=>{if(v)report.checks.push(m);else{report.performanceFailures.push(m);console.log('T603_PERFORMANCE_FAILURE '+m);}}; // 延後彙總判紅，不能把失敗轉綠；獨立圖面仍完整驗收。
 const persist=()=>fs.writeFileSync(path.join(OUT,'scene603-summary.json'),JSON.stringify(report,null,2));
@@ -26,6 +26,16 @@ function bridge603(){
   advance=function(dtReal){if(frozenVisT603!==null)visT=frozenVisT603;try{return measured603('advance',advanceReal603,[dtReal]);}finally{if(frozenVisT603!==null)visT=frozenVisT603;}};
   draw=function(...args){return measured603('draw',drawReal603,args);};updHud=function(...args){return measured603('hud',hudReal603,args);};
   const inputEvents=[],lifeDepthReal603=typeof lifeDepth603==='function'?lifeDepth603:null;
+  let silhouetteOriginal603=null;const silhouetteCache603=new WeakMap(),silhouetteStats603={created:0,pixels:0,buildMs:0,uses:0};
+  const silhouetteMode603=on=>{
+    if(!on){if(silhouetteOriginal603){ctx.drawImage=silhouetteOriginal603;silhouetteOriginal603=null;}return {...silhouetteStats603};}
+    if(silhouetteOriginal603)return {...silhouetteStats603};silhouetteOriginal603=ctx.drawImage;
+    ctx.drawImage=function(img,...args){if(this.filter!=='brightness(0)'||!(img instanceof HTMLCanvasElement))return silhouetteOriginal603.call(this,img,...args);
+      let mask=silhouetteCache603.get(img);if(!mask){const t=performance.now(),c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(img,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#000';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='source-over';g.getImageData(0,0,c.width,c.height);mask=c;silhouetteCache603.set(img,c);silhouetteStats603.created++;silhouetteStats603.pixels+=c.width*c.height;silhouetteStats603.buildMs+=performance.now()-t;}
+      silhouetteStats603.uses++;const f=this.filter;this.filter='none';try{return silhouetteOriginal603.call(this,mask,...args);}finally{this.filter=f;}
+    };return {...silhouetteStats603};
+  };
+
   const canonicalSaved=raw=>{const d=saveInflate(JSON.parse(raw)),out={};for(const k of ['v','n','seed','money','day','df','bl','lots574','ter','tre','rd','zn','gvc'])out[k]=d[k];return JSON.stringify(out);};
   const pointerSnapshot=()=>({pointers:[...pointers.entries()].map(([id,p])=>({id,...p})),down:downInfo?{...downInfo,elapsed:performance.now()-downInfo.t}:null,pan:panBase?{...panBase}:null,pinch:pinchBase?{...pinchBase}:null,selected:selTile?{...selTile}:null});
   for(const type of ['pointerdown','pointermove','pointerup','pointercancel']){
@@ -81,6 +91,19 @@ function bridge603(){
       ctx.drawImage=function(img,...args){const kind=kindOf(img);if(kind&&collect){if(args.length!==4)throw Error('Unexpected actor draw signature');const [x,y,w,h]=args,x0=Math.max(0,Math.floor(x)-1),y0=Math.max(0,Math.floor(y)-1),x1=Math.min(cvs.width,Math.ceil(x+w)+1),y1=Math.min(cvs.height,Math.ceil(y+h)+1);if(x1<=x0||y1<=y0)throw Error('Actor outside test viewport');rects.push({kind,x:x0,y:y0,w:x1-x0,h:y1-y0});out[kind==='dog'?'dogs':'owners']++;out[kind+'Frames'].push((kind==='dog'?SPR.lifeDog:SPR.ped.adult).findIndex(s=>s.img===img));}if(kind&&skip===kind)return;return old.call(this,img,...args);};
       try{collect=true;render();collect=false;const normal=snap();render();out.unstablePixels=diffs(normal,snap()).reduce((a,b)=>a+b,0);for(const kind of ['dog','owner']){skip=kind;render();const d=diffs(normal,snap());out[kind+'VisiblePixels']=d.reduce((sum,n,i)=>sum+(rects[i].kind===kind?n:0),0);for(let i=0;i<rects.length;i++)if(rects[i].kind===kind)rects[i].visiblePixels=d[i];}out.rects=rects;return out;}finally{ctx.drawImage=old;render();[trafClock,waterT,waterF]=clock;}
     },
+    rasterAudit:kind=>{ // 拋棄式台架實驗，不改產品檔案、不關閉任何視覺效果。
+      if(!['observe','silhouette','read-lots','write-lots','write-visible'].includes(kind))throw Error('Unknown raster experiment');
+      silhouetteMode603(false);const clock=[trafClock,waterT,waterF],old=ctx.drawImage,visible=new Set(),lots=new Set();for(const s of lotCache574.values())for(const k of ['img','night'])if(s[k])lots.add(s[k]);
+      const render=()=>{[trafClock,waterT,waterF]=clock;GV.forceDraw();};
+      ctx.drawImage=function(img,...a){if(img instanceof HTMLCanvasElement&&img!==cvs)visible.add(img);return old.call(this,img,...a);};try{render();}finally{ctx.drawImage=old;}
+      render();const before=ctx.getImageData(0,0,cvs.width,cvs.height).data;render();const repeated=ctx.getImageData(0,0,cvs.width,cvs.height).data;
+      const delta=a=>{let n=0;for(let i=0;i<a.length;i+=4)if(a[i]!==before[i]||a[i+1]!==before[i+1]||a[i+2]!==before[i+2]||a[i+3]!==before[i+3])n++;return n;};
+      const selected=(kind==='observe'||kind==='silhouette')?[]:[...(kind==='write-visible'?visible:lots)],sizes=[],t=performance.now();let pixels=0;
+      for(const c of selected){const g=c.getContext('2d'),data=g.getImageData(0,0,c.width,c.height);if(kind.startsWith('write-'))g.putImageData(data,0,0);pixels+=c.width*c.height;sizes.push({w:c.width,h:c.height,lot:lots.has(c),ground:c===groundCache});}
+      if(kind==='silhouette')silhouetteMode603(true);const preparationMs=performance.now()-t;render();const changedPixels=delta(ctx.getImageData(0,0,cvs.width,cvs.height).data);[trafClock,waterT,waterF]=clock;
+      return {kind,preparationMs,sources:selected.length,pixels,sizes,visibleSources:visible.size,lotSources:lots.size,unstablePixels:delta(repeated),changedPixels,silhouette:{...silhouetteStats603}};
+    },
+    silhouetteStats:()=>({...silhouetteStats603}),
     imageHash:c=>{const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let h=0x811c9dc5;for(const b of a){h^=b;h=Math.imul(h,16777619)>>>0;}return h.toString(16);},
     pins:()=>{const tab=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;tab[n]=c;}const crc=c=>{const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let r=0xFFFFFFFF;for(const b of a)r=tab[(r^b)&255]^(r>>>8);return ((r^0xFFFFFFFF)>>>0).toString(16);},out={};for(const e of GV.sprAtlas356().entries){const p=[crc(e.img)];if(e.night)p.push(crc(e.night));if(e.nightCity)p.push(crc(e.nightCity));out[e.fam+'/'+e.key]=p;}return out;},
     sheet:(kind,night,winter)=>{const old=$('#sheet603');if(old)old.remove();const c=document.createElement('canvas');c.id='sheet603';c.width=1400;c.height=900;c.style='position:fixed;inset:0;z-index:999999;width:1400px;height:900px';document.body.append(c);const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle=night?'#101d2a':'#e7eee7';g.fillRect(0,0,1400,900);g.fillStyle=night?'#dde9e5':'#254653';g.font='bold 23px sans-serif';g.fillText('T603 BLUE-GREY | '+kind+' | '+(winter?'WINTER':night?'NIGHT':'DAY'),30,35);const out=[];for(let row=0;row<4;row++)for(let v=0;v<3;v++){const k=[29,85,92,88][row],stage=2,s=bakeArt603(k,v,stage,winter),scale=1.4,cropY=80,cropH=s.h-cropY,x=105+v*440,y=70+row*205;g.drawImage(s.img,0,cropY,s.w,cropH,x,y,s.w*scale,cropH*scale);if(night){g.fillStyle='#0a162a99';g.fillRect(x,y,s.w*scale,cropH*scale);g.drawImage(s.night,0,cropY,s.w,cropH,x,y,s.w*scale,cropH*scale);}g.fillStyle=night?'#dde9e5':'#254653';g.font='15px sans-serif';g.fillText('k'+k+' V'+(v+1)+' stage '+stage,x+240,y+120);const a=s.img.getContext('2d').getImageData(0,0,s.w,s.h).data,b=s.night.getContext('2d').getImageData(0,0,s.w,s.h).data;let ink=0,light=0,orphan=0,cropped=0;for(let i=3;i<a.length;i+=4){if(a[i]){ink++;if(i<cropY*s.w*4)cropped++;}if(b[i]){light++;if(!a[i])orphan++;}}out.push({k,v,stage,ink,light,orphan,cropped,hash:__s603.imageHash(s.img)});}return out;}
@@ -317,6 +340,16 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     for(const row of [9,16,25])for(let v=0;v<3;v++)check(new Set(report.dogActors.filter(r=>r.row===row&&r.variant===v).flatMap(r=>r.dogFrames)).size===2,'both real dog animation frames covered y'+row+'/v'+v);
 
     report.coverage.neighbors=true;persist();}
+    if(PHASE==='full'||PHASE==='raster'){
+      report.rasterDiagnostic={note:'Supplemental cache experiment only; original core performance gates still control acceptance.',samples:[]};
+      for(const [light,time] of [['day',55],['night',100]])for(const off of [true,false]){
+        const prev=await ev('performance.timeOrigin');await send('Page.reload',{ignoreCache:true});await ready(prev);await ev('document.getElementById("bNewGame").click();true');await growCity('raster-'+light+'-'+off);await ev('window.__noT603='+off+';true');const focus=report.census[85][0];await camera(focus[0]+1,focus[1]+1,1,0,1,time,false);await ev('__s603.clear();__s603.drawMs();true');for(let i=0;i<30;i++)await ev('__s603.drawMs()');
+        const sceneBefore=await ev('__s603.scene()');
+        for(const kind of ['observe','silhouette','read-lots','write-lots','write-visible']){const audit=await ev('__s603.rasterAudit('+JSON.stringify(kind)+')');check(audit.unstablePixels===0,'raster comparison frame stable '+light+'/'+off+'/'+kind);await ev('__s603.perfStart()');const timing=await raf(5000),work=await ev('__s603.perfWork()');report.rasterDiagnostic.samples.push({light,mode:off?'baseline':'candidate',...audit,raf:timing,...work,silhouetteAfter:await ev('__s603.silhouetteStats()')});persist();}
+        check(sceneBefore===await ev('__s603.scene()'),'raster diagnostic leaves city unchanged '+light+'/'+off);
+      }
+      report.rasterDiagnostic.acceptance='Observations only, not a waiver or replacement for any original predicate';await ev('window.__noT603=false;true');report.coverage.raster=true;persist();
+    }
     check(PHASE==='full'?Object.values(report.coverage).every(Boolean):report.coverage[PHASE]===true,'requested phase coverage complete: '+PHASE);
     check(report.performanceFailures.length===0,'all unchanged performance gates must pass: '+report.performanceFailures.join('; '));
     report.finalFlags=await ev('__s603.flags()');check(report.finalFlags.T603&&!report.finalFlags.T596&&!report.finalFlags.T600,'final preview flags preserved');report.errLog=await ev('(window.__errLog||[]).slice(-20)');check(!errors.length&&!consoleErrors.length&&!report.errLog.length,'zero runtime/console/app errors');report.status='passed';exitCode=0;

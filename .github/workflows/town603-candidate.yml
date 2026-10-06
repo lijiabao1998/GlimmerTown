@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        phase: [core, world, neighbors]
+        phase: [core, world, neighbors, raster]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
