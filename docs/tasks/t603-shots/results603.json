@@ -1,0 +1,145 @@
+{
+  "status": "local_checks_passed_candidate_ci_authorized",
+  "sourceBase": "637c8cc6d09306c1e17535ece6119d3ad78f1382",
+  "candidateBranch": "gpt/town-civic-art-603",
+  "candidateVersion": "11.212",
+  "remoteHeadAtRecord": "c31fa26a755671eb8b193c0cb4a6d7825cce2495",
+  "remoteScope": "baseline validation tooling only; artwork not published",
+  "baselineCI": {
+    "run": 37425187106,
+    "artifact": 11395375294,
+    "checks": 15,
+    "pngs": 9,
+    "status": "success",
+    "zipSHA256": "1d43affeab1d5dfe44aba8f8bdccb1d75b10a6e1d209409bd82807ba2f3bba18"
+  },
+  "local": {
+    "verifyPass": 12530,
+    "verifyFail": 0,
+    "toolchain": {
+      "passed": 63,
+      "total": 63
+    },
+    "sentinels": {
+      "seed22": 639,
+      "seed22m": 14523,
+      "seed301": 780,
+      "seed301m": 2297,
+      "seed7": 117,
+      "seed7m": 77
+    },
+    "oldSaves": [
+      {
+        "seed": 22,
+        "sourceVersion": "11.211",
+        "sourceDay": 421,
+        "roots": 956,
+        "rootSHA256": "bfb601802addb32048efa09bd0e3b81f7ea6d180df25465111fc5d0129a12004",
+        "expectedRootSHA256": "bfb601802addb32048efa09bd0e3b81f7ea6d180df25465111fc5d0129a12004",
+        "rootDataExact": true,
+        "footprintErrors": 0,
+        "changedSaveFields": [],
+        "roundtripRootsExact": true,
+        "flags": {
+          "preview596": false,
+          "t603": true
+        },
+        "stats": {
+          "day": 421,
+          "money": 3418,
+          "buildings": 2557,
+          "roads": 728,
+          "zones": 746
+        }
+      },
+      {
+        "seed": 777,
+        "sourceVersion": "11.211",
+        "sourceDay": 401,
+        "roots": 915,
+        "rootSHA256": "f2d567942a62fe48e601d06afd5b0b4802e87551387b2b194e34eaca1380cb87",
+        "expectedRootSHA256": "f2d567942a62fe48e601d06afd5b0b4802e87551387b2b194e34eaca1380cb87",
+        "rootDataExact": true,
+        "footprintErrors": 0,
+        "changedSaveFields": [],
+        "roundtripRootsExact": true,
+        "flags": {
+          "preview596": false,
+          "t603": true
+        },
+        "stats": {
+          "day": 401,
+          "money": 172816,
+          "buildings": 2481,
+          "roads": 746,
+          "zones": 736
+        }
+      },
+      {
+        "seed": 301,
+        "sourceVersion": "11.211",
+        "sourceDay": 401,
+        "roots": 334,
+        "rootSHA256": "e0542ad9259ed606bd393d54091145cc8f296ec1fa2be6cdedfc2a9fdf2b39b5",
+        "expectedRootSHA256": "e0542ad9259ed606bd393d54091145cc8f296ec1fa2be6cdedfc2a9fdf2b39b5",
+        "rootDataExact": true,
+        "footprintErrors": 0,
+        "changedSaveFields": [],
+        "roundtripRootsExact": true,
+        "flags": {
+          "preview596": false,
+          "t603": true
+        },
+        "stats": {
+          "day": 401,
+          "money": 2297,
+          "buildings": 613,
+          "roads": 199,
+          "zones": 221
+        }
+      }
+    ],
+    "mutationChecks": [
+      {
+        "case": "positive-control",
+        "exit": 0,
+        "expected": true
+      },
+      {
+        "case": "routing-removed",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "old-v-collapsed",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "random-consumed",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "dog-lane-obstacle",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "far-collapsed",
+        "exit": 1,
+        "expected": true
+      }
+    ],
+    "projectedActorPlacements": 157944,
+    "actorPaddingPixels": 1,
+    "legacyPinPayloads": 1586
+  },
+  "pending": [
+    "Real candidate Chrome and mobile interaction, save, exact rollback canvas, full season/light/view, shoreline and dog animation captures",
+    "Candidate same-camera fixed-day/fixed-night cold/warm and RAF performance measurements",
+    "Owner review of complete real PNGs and separate release approval"
+  ],
+  "safety": "No main change, merge, deployment, player-origin tests, gameplay/save/RNG changes or preview enablement.",
+  "ciFirstException": "Owner explicitly approved candidate-only push for first new-art Chrome CI on 2026-10-06; merge/deploy remain unapproved."
+}
