@@ -481,6 +481,9 @@ html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-
   #hud{font-size:11px;gap:4px;padding:4px 6px}
   .chip{padding:2px 6px;line-height:18px}
   .hbtn{padding:2px 7px;font-size:12px}
+  /* T602：窄屏分類列與展開工具列保留右側縮放鈕通道，不改桌機排版。 */
+  #toolcats{left:10px;transform:none;max-width:calc(100vw - 70px)}
+  body.toolsExp #tools{left:10px;transform:none;width:calc(100vw - 70px)}
 }
 /* ===== T426 啟動管線 overlay（源自移動線 T482 T453 Startup Pipeline 精神；純呈現、CSS 動畫零亂數） ===== */
 #boot426{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;

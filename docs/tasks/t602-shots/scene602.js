@@ -28,6 +28,10 @@ function bridge602(){
   }
   window.__s602={
     pointerState:pointerSnapshot,pointTile:toTile,inputEvents:()=>inputEvents.slice(),clearInputEvents:()=>{inputEvents.length=0;},
+    economy:()=>({money,diff}),
+    toolCategoryLabel:id=>{const t=TOOLS.find(t=>t.id===id);return t&&(TOOL_CATS.find(c=>c.id===t.cat)||{}).nm;},
+    freeGardenSite:()=>{const toolId='cgarden',n=plannedLotSize574(toolId),sites=[];for(let y=3;y<N-n-3;y++)for(let x=3;x<N-n-3;x++){if(canPlace(toolId,x,y))continue;let empty=true;for(let dy=0;dy<n;dy++)for(let dx=0;dx<n;dx++){const t=T(idx(x+dx,y+dy));if(t.bld||t.tree||t.zone||t.deco||t.road||t.rail||t.tram)empty=false;}if(empty)sites.push({x,y,n,cost:placeCost(toolId,x,y),money,diff});}sites.sort((a,b)=>(Math.abs(a.x-N/2)+Math.abs(a.y-N/2))-(Math.abs(b.x-N/2)+Math.abs(b.y-N/2))||a.y-b.y||a.x-b.x);return sites[0]||null;},
+    footprint:(x,y,n)=>{const out=[];for(let dy=0;dy<n;dy++)for(let dx=0;dx<n;dx++){const b=T(idx(x+dx,y+dy)).bld;out.push([x+dx,y+dy,b?b.k:null,b&&b.ref?b.ref.slice():null,b?(b.sz||1):0,b?(b.lot574||0):0]);}return out;},
     flags:()=>({T602:t602On(),T596:t596On(),T600:t596On()&&!t600Off(),T600Escape:t600Off()}),
     bake:bakeArt602,rep:()=>window.__t602,v:v602,pier:pier602,
     clear:()=>{lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;},
@@ -40,8 +44,8 @@ function bridge602(){
     // One synchronous task prevents RAF vehicle feedback between deterministic ticks.
     grow22:()=>{GV.setMapSize(72);GV.newWorldSeeded(22);GV.setDiff(3);GV.setSpeed(0);GV.ai(true);for(let step=0;step<420;step++)GV.step(1);GV.ai(false);GV.setSpeed(0);updHud();return GV.stats();},
     snow:on=>{rainDays=on?SNOW_ACC_DAYS+3:0;},
-    clearMap:()=>{for(const t of tiles){Object.assign(t,{t:2,tree:0,gv:0,road:0,rc:0,mask:0,bridge:0,zone:0,bld:null,deco:0,rail:0,tram:0,dock:0,el:0});}groundDirty=true;},
-    prepare:(x,y,n)=>{for(let xx=x-1;xx<=x+n;xx++){const t=T(idx(xx,y-1));t.road=1;t.rc=1;t.bld=null;}RESOURCE[idx(x,y)]=1;money=1e9;},
+    clearMap:()=>{for(const t of tiles){Object.assign(t,{t:2,tree:0,gv:0,road:0,rc:0,mask:0,bridge:0,zone:0,bld:null,deco:0,rail:0,tram:0,dock:0,el:0});}computeFoam();groundDirty=true;},
+    prepare:(x,y,n)=>{for(let xx=x-1;xx<=x+n;xx++){const t=T(idx(xx,y-1));t.road=1;t.rc=1;t.bld=null;}for(let yy=y-2;yy<=y;yy++)for(let xx=x-2;xx<=x+n+1;xx++)if(inMap(xx,yy))recalcMask(xx,yy);RESOURCE[idx(x,y)]=1;money=1e9;},
     finish:()=>{for(const t of tiles)if(t.bld&&!t.bld.ref){t.bld.age=60;t.bld.pw=true;t.bld.wa=true;}},
     age:(x,y,a)=>{const b=T(idx(x,y)).bld;if(!b||b.ref)throw Error('Missing root');b.age=a;},
     stage:(x,y,want)=>{cityEvent=null;for(let d=101;d<117;d++)if(Math.floor(((d+Math.floor(streetHash(x,y,777)*16))%16)/4)===want){day=d;return want;}throw Error('No crop stage');},
@@ -89,6 +93,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const camera=async(x,y,z,r,s,t,snow)=>ev('GV.setRot('+r+');GV.setSeason('+s+');GV.weather(0);GV.setVisT('+t+');__s602.snow('+snow+');GV.setZoom('+z+');GV.lookAt('+x+','+y+');true');
     const raf=async ms=>{const r=await ev('new Promise((resolve,reject)=>{if(document.visibilityState!=="visible"||!__s602.view().running){reject(Error("RAF needs a visible running page"));return;}const start=performance.now(),a=[];let last;const timer=setTimeout(()=>reject(Error("RAF stalled")),'+(ms+15000)+');function f(t){if(last!==undefined)a.push(t-last);last=t;if(t-start>='+ms+'){clearTimeout(timer);resolve({elapsed:t-start,frames:a.length,intervals:a,visibility:document.visibilityState});}else requestAnimationFrame(f);}requestAnimationFrame(f);})');return {elapsed:r.elapsed,frames:r.frames,mean:r.intervals.reduce((a,b)=>a+b,0)/r.frames,p95:pct(r.intervals,.95),max:Math.max(...r.intervals),visibility:r.visibility};};
     const testUI=async(label,mobile,target)=>{
+      let built=null;
       await ev('GV.setSpeed(0);GV.setRot(0);GV.setZoom(1);true');
       await click('document.querySelector("[data-tid=doze]")',mobile);check((await view()).tool==='doze',label+' real tool select');
       await click('document.querySelector("[data-tid=pan]")',mobile);check((await view()).tool==='pan',label+' real pan select');
@@ -111,10 +116,51 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
       await shot(label+'-inspect-attempt');
       check(v.info==='block'&&v.selected&&v.selected.x===target[0]&&v.selected.y===target[1],label+' real canvas inspect correct root');await shot(label+'-inspect');await click(el('infoX'),mobile);v=await view();check(v.info==='none'&&v.selected===null,label+' inspect close clears selection');
       check(state===await ev('__s602.scene()'),label+' navigation city state unchanged');
+      if(mobile){
+        const category=await ev('__s602.toolCategoryLabel("cgarden")');
+        await click('[...document.querySelectorAll("#toolcats button")].find(b=>b.textContent==='+JSON.stringify(category)+')',true);
+        await click('document.querySelector("[data-tid=cgarden]")',true);check((await view()).tool==='cgarden',label+' real touch selected community garden tool');
+        const site=await ev('__s602.freeGardenSite()');check(site&&site.n===2,label+' genuine canPlace empty garden site found');
+        await ev('GV.setRot(0);GV.setZoom(1);GV.lookAt('+site.x+','+site.y+');true');await sleep(400);
+        const point=await ev('__s602.point('+site.x+','+site.y+')'),beforeRoots=await ev('__s602.roots()'),before=await ev('__s602.economy()');
+        report.mobileConstruction={site,point,before,beforeRootCount:beforeRoots.rows.length};
+        check(await ev('document.elementFromPoint('+point.x+','+point.y+').id==="game"'),label+' new garden tap hits actual canvas');
+        await ev('__s602.clearInputEvents();true');await tap(point.x,point.y,true);
+        const root=await ev('GV.tile('+site.x+','+site.y+').bld'),after=await ev('__s602.economy()'),afterRoots=await ev('__s602.roots()'),footprint=await ev('__s602.footprint('+[site.x,site.y,site.n]+')');
+        Object.assign(report.mobileConstruction,{root,after,afterRootCount:afterRoots.rows.length,footprint,events:await ev('__s602.inputEvents()')});
+        await shot(label+'-new-garden-attempt');
+        check(root&&root.k===104&&!root.ref&&root.sz===site.n&&root.lot574===site.n,label+' real touch built new garden root');
+        check(footprint.length===site.n*site.n&&footprint.every((f,i)=>f[2]===104&&(i===0?f[3]===null&&f[4]===site.n&&f[5]===site.n:JSON.stringify(f[3])===JSON.stringify([site.x,site.y]))),label+' real touch garden complete root/ref footprint');
+        check(afterRoots.rows.length===beforeRoots.rows.length+1&&!afterRoots.bad&&JSON.stringify(afterRoots.rows.filter(r=>r[0]!==site.y*72+site.x))===JSON.stringify(beforeRoots.rows),label+' touch adds exactly one garden and preserves existing roots');
+        check(Number.isFinite(site.cost)&&Math.abs(before.money-after.money-site.cost)<1e-7&&(site.diff!==3||site.cost===0),label+' true placement cost or free sandbox contract');
+        built={x:site.x,y:site.y,n:site.n,footprint};
+        await click('document.querySelector("[data-tid=pan]")',true);check((await view()).tool==='pan',label+' touch returns to pan after building');
+      }
       await click(el('bSave'),mobile);await click(slotButton('存到此'),mobile);check((await view()).slot===3,label+' saved only slot3');const saved=await ev('__s602.saved()'),roots=await ev('__s602.roots()');
-      await click(slotButton('讀取'),mobile);await ev('GV.setSpeed(0);GV.save();true');check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),label+' UI load roots preserved');check(saved===await ev('__s602.saved()'),label+' UI load save preserved');
+      await click(slotButton('讀取'),mobile);await ev('GV.setSpeed(0);GV.save();true');check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),label+' UI load roots preserved');check(saved===await ev('__s602.saved()'),label+' UI load save preserved');if(built)check(JSON.stringify(built.footprint)===JSON.stringify(await ev('__s602.footprint('+[built.x,built.y,built.n]+')')),label+' new touch-built garden survives UI save/load');
       const previousTimeOrigin=await ev('performance.timeOrigin');await send('Page.reload',{ignoreCache:true});await ready(previousTimeOrigin);check(await ev('localStorage.getItem("glimmerville.v1.slot")==="3"'),label+' reload slot3');await click(el('bContinue'),mobile);await ev('GV.setSpeed(0);GV.ai(false);GV.save();true');
-      check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),label+' full reload roots preserved');check(saved===await ev('__s602.saved()'),label+' full reload save preserved');check(await ev('!localStorage.getItem("glimmerville.v1.s1")&&!localStorage.getItem("glimmerville.v1.s2")'),label+' slots1/2 untouched');await shot(label+'-after-reload');return {roots:roots.rows.length,saveSHA256:hash(saved),postReloadStats:await ev('GV.stats()'),postReloadNote:'Existing load path does not recompute population/jobs until a simulation tick; reload screenshots preserve this behavior.'};
+      check(JSON.stringify(roots)===JSON.stringify(await ev('__s602.roots()')),label+' full reload roots preserved');check(saved===await ev('__s602.saved()'),label+' full reload save preserved');if(built)check(JSON.stringify(built.footprint)===JSON.stringify(await ev('__s602.footprint('+[built.x,built.y,built.n]+')')),label+' new touch-built garden survives full reload');check(await ev('!localStorage.getItem("glimmerville.v1.s1")&&!localStorage.getItem("glimmerville.v1.s2")'),label+' slots1/2 untouched');await shot(label+'-after-reload');return {roots:roots.rows.length,saveSHA256:hash(saved),postReloadStats:await ev('GV.stats()'),postReloadNote:'Existing load path does not recompute population/jobs until a simulation tick; reload screenshots preserve this behavior.'};
+    };
+    const verifyMobileZoomLanes=async()=>{
+      report.mobileZoomWidths=[];
+      const category=await ev('__s602.toolCategoryLabel("cgarden")');
+      for(const width of [320,360,390,420]){
+        await send('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:true});await sleep(350);
+        await click('[...document.querySelectorAll("#toolcats button")].find(b=>b.textContent==='+JSON.stringify(category)+')',true);
+        if(await ev('document.body.classList.contains("toolsExp")'))await click(el('toolsExp'),true);
+        for(const state of ['collapsed','expanded','recollapsed']){
+          if(state!=='collapsed')await click(el('toolsExp'),true);
+          await sleep(250);check(await ev('document.body.classList.contains("toolsExp")==='+JSON.stringify(state==='expanded')),'mobile '+width+' toolbar '+state+' through real touch');
+          const geometry=await ev('(()=>{const rect=e=>e?e.getBoundingClientRect().toJSON():null;return {width:innerWidth,docWidth:document.documentElement.scrollWidth,expanded:document.body.classList.contains("toolsExp"),groups:{tools:rect(document.getElementById("tools")),toolcats:rect(document.getElementById("toolcats")),zoomer:rect(document.getElementById("zoomer"))},buttons:["zin","zout"].map(id=>{const e=document.getElementById(id),r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2,top=document.elementFromPoint(x,y);return {id,rect:r.toJSON(),center:{x,y},inViewport:x>=0&&y>=0&&x<innerWidth&&y<innerHeight,reachable:top===e||e.contains(top),top:top?{id:top.id,className:String(top.className||""),outerHTML:top.outerHTML.slice(0,500),rect:rect(top)}:null};})};})()');
+          report.mobileZoomWidths.push({width,state,...geometry});
+          check(geometry.width===width&&geometry.docWidth<=width+1&&geometry.buttons.every(b=>b.inViewport&&b.reachable&&b.rect.width>0&&b.rect.height>0),'mobile '+width+'/'+state+' both zoom centers unobstructed');
+          await ev('GV.setZoom(1);true');await click(el('zin'),true);await sleep(350);check((await view()).cam.z>1,'mobile '+width+'/'+state+' real touch zoom plus');await click(el('zout'),true);await sleep(350);check(Math.abs((await view()).cam.z-1)<.01,'mobile '+width+'/'+state+' real touch zoom minus');
+          await shot('mobile'+width+'-zoom-'+state);
+        }
+      }
+      check(report.mobileZoomWidths.length===12,'all 4 mobile widths and 3 toolbar states covered');
+      await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await sleep(350);
+      check(await ev('innerWidth===390&&!document.body.classList.contains("toolsExp")'),'390px collapsed viewport restored for stability');
     };
     await send('Page.enable');await send('Runtime.enable');await send('Page.bringToFront');
     await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});
@@ -146,6 +192,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await growCity('mobile-before');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});await sleep(500);
     report.mobileStartLayout=await ev('(()=>{const describe=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e),top=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {id:e.id,tid:e.dataset&&e.dataset.tid,className:String(e.className||""),text:e.textContent.slice(0,100),rect:r.toJSON(),zIndex:s.zIndex,position:s.position,pointerEvents:s.pointerEvents,centerHit:top?{id:top.id,className:String(top.className||""),tag:top.tagName}:null};};return {width:innerWidth,height:innerHeight,docWidth:document.documentElement.scrollWidth,scrollX,scrollY,visualViewport:visualViewport?{width:visualViewport.width,height:visualViewport.height,offsetLeft:visualViewport.offsetLeft,offsetTop:visualViewport.offsetTop,scale:visualViewport.scale}:null,groups:["hud","toolcats","tools","zoomer","mini","hint","info","start","boot426"].map(id=>document.getElementById(id)).filter(Boolean).map(describe),buttons:[...document.querySelectorAll("button")].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height;}).map(describe)};})()');
     report.mobile=await testUI('mobile390',true,report.census[104][0]);const layout=await ev('({width:innerWidth,docWidth:document.documentElement.scrollWidth,canvas:document.getElementById("game").getBoundingClientRect().toJSON()})');report.mobile.layout=layout;check(layout.width===390&&layout.docWidth<=391&&layout.canvas.width>=389,'390px mobile has no horizontal document overflow');
+    await verifyMobileZoomLanes();
     await ev('GV.setSpeed(0);GV.setRot(0);GV.setZoom(.7);true');const stableState=await ev('__s602.scene()');report.stability=await raf(60000);check(report.stability.elapsed>=60000&&report.stability.frames>=600&&report.stability.max<5000,'one-minute visible RAF stability and liveness');check(stableState===await ev('__s602.scene()'),'one-minute paused city unchanged');
     await send('Emulation.setTouchEmulationEnabled',{enabled:false});await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});await sleep(500);
     await growCity('visual-and-performance');
