@@ -1,0 +1,1 @@
+2026-10-06 | T603 | GPT | gpt/town-civic-art-603 | base 637c8cc6d09306c1e17535ece6119d3ad78f1382 | index.html lot render hooks + new T603 block; test_fixde.js; sw.js version; docs/ARCH.md; docs/SPR_PINS.json; docs/CHANGELOG.md; docs/tasks/T603* and t603-shots; .github/workflows/town603-candidate.yml | after T602 merged; no merge/deploy before image and release approval
