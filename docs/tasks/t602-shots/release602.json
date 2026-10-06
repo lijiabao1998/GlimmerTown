@@ -61,5 +61,6 @@
     "sixSeedPinsMatched": true,
     "toolchainTests": 63,
     "approvedRuntimeBytesUnchanged": true
-  }
+  },
+  "verificationHarnessFollowup": "Steady-light mobile benchmark: freeze visual clock in temporary browser harness only, preserve all real advance/update/draw calls; test day/night separately and keep the original600-frame/5-second liveness gate."
 }

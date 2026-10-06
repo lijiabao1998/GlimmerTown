@@ -18,6 +18,9 @@ const persist=()=>fs.writeFileSync(path.join(OUT,'scene602-summary.json'),JSON.s
 for(const f of fs.readdirSync(ROOT)){const p=path.join(ROOT,f);if(fs.statSync(p).isFile()&&/\.(html|js|json|webmanifest|png|svg|css)$/.test(f))fs.copyFileSync(p,path.join(DIR,f));}
 // This function is string-injected inside the game's closure in the disposable copy.
 function bridge602(){
+  // Test-only steady light phase; retain every real advance/update and draw call.
+  let frozenVisT602=null;const advanceReal602=advance;
+  advance=function(dtReal){if(frozenVisT602!==null)visT=frozenVisT602;try{return advanceReal602(dtReal);}finally{if(frozenVisT602!==null)visT=frozenVisT602;}};
   const inputEvents=[];
   const canonicalSaved=raw=>{const d=saveInflate(JSON.parse(raw)),out={};for(const k of ['v','n','seed','money','day','df','bl','lots574','ter','tre','rd','zn','gvc'])out[k]=d[k];return JSON.stringify(out);};
   const pointerSnapshot=()=>({pointers:[...pointers.entries()].map(([id,p])=>({id,...p})),down:downInfo?{...downInfo,elapsed:performance.now()-downInfo.t}:null,pan:panBase?{...panBase}:null,pinch:pinchBase?{...pinchBase}:null,selected:selTile?{...selTile}:null});
@@ -29,6 +32,7 @@ function bridge602(){
   window.__s602={
     pointerState:pointerSnapshot,pointTile:toTile,inputEvents:()=>inputEvents.slice(),clearInputEvents:()=>{inputEvents.length=0;},
     economy:()=>({money,diff}),
+    freezeVis:t=>{frozenVisT602=t===null?null:Number(t);if(frozenVisT602!==null)visT=frozenVisT602;return {time:visT,light:daylight()};},
     cacheStats:()=>({bakes:lotBakeN574,entries:lotCache574.size,pixels:lotCachePixels574,hooks:lotHookCache574.size,keys:[...lotCache574.keys()]}),
     toolCategoryLabel:id=>{const t=TOOLS.find(t=>t.id===id);return t&&(TOOL_CATS.find(c=>c.id===t.cat)||{}).nm;},
     freeGardenSite:()=>{const toolId='cgarden',n=plannedLotSize574(toolId),sites=[];for(let y=3;y<N-n-3;y++)for(let x=3;x<N-n-3;x++){if(canPlace(toolId,x,y))continue;let empty=true;for(let dy=0;dy<n;dy++)for(let dx=0;dx<n;dx++){const t=T(idx(x+dx,y+dy));if(t.bld||t.tree||t.zone||t.deco||t.road||t.rail||t.tram)empty=false;}if(empty)sites.push({x,y,n,cost:placeCost(toolId,x,y),money,diff});}sites.sort((a,b)=>(Math.abs(a.x-N/2)+Math.abs(a.y-N/2))-(Math.abs(b.x-N/2)+Math.abs(b.y-N/2))||a.y-b.y||a.x-b.x);return sites[0]||null;},
@@ -195,9 +199,15 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     report.mobile=await testUI('mobile390',true,report.census[104][0]);const layout=await ev('({width:innerWidth,docWidth:document.documentElement.scrollWidth,canvas:document.getElementById("game").getBoundingClientRect().toJSON()})');report.mobile.layout=layout;check(layout.width===390&&layout.docWidth<=391&&layout.canvas.width>=389,'390px mobile has no horizontal document overflow');
     await verifyMobileZoomLanes();
     await ev('GV.setSpeed(0);GV.setRot(0);GV.setZoom(.7);true');
-    report.mobilePerformance={};
-    for(const off of [true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT602='+off+';__s602.clear();true');const first=await ev('__s602.drawMs()'),before=await ev('__s602.cacheStats()'),warm=[];for(let i=0;i<10;i++)warm.push(await ev('__s602.drawMs()'));const after=await ev('__s602.cacheStats()'),frames=await raf(5000),last=await ev('__s602.cacheStats()');report.mobilePerformance[mode]={first,warm,before,after,last,warmBakeDelta:after.bakes-before.bakes,rafBakeDelta:last.bakes-after.bakes,raf:frames};}
-    await ev('window.__noT602=false;true');const stableState=await ev('__s602.scene()');report.stability=await raf(60000);check(report.stability.elapsed>=60000&&report.stability.frames>=600&&report.stability.max<5000,'one-minute visible RAF stability and liveness');check(stableState===await ev('__s602.scene()'),'one-minute paused city unchanged');
+    report.mobilePerformance={};report.mobilePerformancePhaseContract='Same camera, steady visual phase; all real advance/update calls retained.';
+    for(const [phase,time]of [['day',55],['night',100]]){
+      const pair=report.mobilePerformance[phase]={};
+      for(const off of [true,false]){const mode=off?'baseline':'candidate',light=await ev('window.__noT602='+off+';__s602.clear();__s602.freezeVis('+time+')');const first=await ev('__s602.drawMs()'),before=await ev('__s602.cacheStats()'),warm=[];for(let i=0;i<10;i++)warm.push(await ev('__s602.drawMs()'));const after=await ev('__s602.cacheStats()'),frames=await raf(5000),last=await ev('__s602.cacheStats()');pair[mode]={light,first,warm,warmP95:pct(warm,.95),before,after,last,warmBakeDelta:after.bakes-before.bakes,rafBakeDelta:last.bakes-after.bakes,raf:frames};}
+      check(pair.candidate.warmP95<=pair.baseline.warmP95*1.5+5,'mobile '+phase+' same-light warm draw relative budget');
+      check(pair.candidate.raf.p95<=pair.baseline.raf.p95*1.5+5&&pair.candidate.raf.frames>=Math.max(5,pair.baseline.raf.frames/2),'mobile '+phase+' same-light RAF relative budget');
+    }
+    await ev('window.__noT602=false;__s602.freezeVis(55);true');report.stabilityPhase='steady daylight55; same existing600-frame/5-second-gap gate';const stableState=await ev('__s602.scene()');report.stability=await raf(60000);check(report.stability.elapsed>=60000&&report.stability.frames>=600&&report.stability.max<5000,'one-minute visible RAF stability and liveness');check(stableState===await ev('__s602.scene()'),'one-minute paused city unchanged');
+    await ev('__s602.freezeVis(null);true');
     await send('Emulation.setTouchEmulationEnabled',{enabled:false});await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});await sleep(500);
     await growCity('visual-and-performance');
     const state=await ev('__s602.scene()'),originalDay=(await view()).day;
