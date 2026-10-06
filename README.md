@@ -148,8 +148,8 @@ python -m http.server 8123
 http://localhost:8123/
 ```
 
-手機若要使用完整 PWA / Service Worker，請使用固定的 **HTTPS** 網址。  
-LAN IP 的明文 HTTP 不等同於 localhost，也不保證完整 PWA 能力。
+手機若要使用完整 PWA / Service Worker，請使用固定的 HTTPS 網址。
+LAN IP 的明文 HTTP 並不等於 localhost，也不保證完整 PWA 能力。
 
 ### 存檔提醒
 

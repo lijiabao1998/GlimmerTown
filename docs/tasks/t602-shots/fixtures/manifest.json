@@ -1,0 +1,61 @@
+{
+  "sourceCommit": "bc2a064",
+  "sourceVersion": "11.210",
+  "note": "Generated seed cities only; no player save data. The day count is step count plus one. Root hash schema: [tile index,k,lv,v,sz,lot574 boolean] in row-major order.",
+  "cities": [
+    {
+      "file": "seed22-d3-s420-v11.210.json",
+      "seed": 22,
+      "diff": 3,
+      "steps": 420,
+      "size": 72,
+      "day": 421,
+      "roots": 956,
+      "rootSHA256": "bfb601802addb32048efa09bd0e3b81f7ea6d180df25465111fc5d0129a12004",
+      "saveSHA256": "8462ea3076e8603643790091534eec3ed642a6bd43356129175ab14143ad17ae",
+      "stats": {
+        "pop": 2397,
+        "money": 3418,
+        "buildings": 2557,
+        "roads": 728,
+        "zones": 746
+      }
+    },
+    {
+      "file": "seed777-d1-s400-v11.210.json",
+      "seed": 777,
+      "diff": 1,
+      "steps": 400,
+      "size": 72,
+      "day": 401,
+      "roots": 915,
+      "rootSHA256": "f2d567942a62fe48e601d06afd5b0b4802e87551387b2b194e34eaca1380cb87",
+      "saveSHA256": "2f1513ace15de38fc38ea5d82beb67c5bcfd23461a36939652e8dc51f8afc617",
+      "stats": {
+        "pop": 2639,
+        "money": 172816,
+        "buildings": 2481,
+        "roads": 746,
+        "zones": 736
+      }
+    },
+    {
+      "file": "seed301-d1-s400-v11.210.json",
+      "seed": 301,
+      "diff": 1,
+      "steps": 400,
+      "size": 72,
+      "day": 401,
+      "roots": 334,
+      "rootSHA256": "e0542ad9259ed606bd393d54091145cc8f296ec1fa2be6cdedfc2a9fdf2b39b5",
+      "saveSHA256": "d6fa081878bdd4fddcff4082382580b637aefc1474896f3c97e9508baced57e9",
+      "stats": {
+        "pop": 780,
+        "money": 2297,
+        "buildings": 613,
+        "roads": 199,
+        "zones": 221
+      }
+    }
+  ]
+}

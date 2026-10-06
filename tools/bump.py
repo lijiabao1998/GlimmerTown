@@ -21,7 +21,7 @@ def writeb(p,s):
     io.open(p,'wb').write(s.encode('utf-8'))
 
 def cur():
-    idx=readb(ROOT+r'\index.html'); sw=readb(ROOT+r'\sw.js')
+    idx=readb(os.path.join(ROOT,'index.html')); sw=readb(os.path.join(ROOT,'sw.js'))
     a=re.search(r"const GAME_VER='([\d.]+)'",idx)
     b=re.search(r"const APP_VER='([\d.]+)'",sw) or re.search(r"CACHE_PREFIX\+'v([\d.]+)'",sw)
     return (a.group(1) if a else None),(b.group(1) if b else None)
@@ -31,7 +31,7 @@ def bump(new):
     # 否則壞版本會讓 cur() 的 [\d.]+ 正則失配，下一次 bump 崩在讀舊版本＝工具自傷。
     if not re.fullmatch(r'\d+\.\d+(\.\d+)?', new):
         raise SystemExit('T564: 版本號格式必須是 N.N 或 N.N.N，收到 %r。用法：python tools/bump.py 11.179' % (new,))
-    ip=ROOT+r'\index.html'; sp=ROOT+r'\sw.js'
+    ip=os.path.join(ROOT,'index.html'); sp=os.path.join(ROOT,'sw.js')
     idx=readb(ip); sw=readb(sp)
     old=re.search(r"const GAME_VER='([\d.]+)'",idx).group(1)
     idx=re.sub(r"const GAME_VER='[\d.]+'","const GAME_VER='"+new+"'",idx,count=1)
