@@ -13992,6 +13992,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(!!m602&&m602[0].includes(cats602)&&m602[0].includes(tools602),'T602 手機縮放避讓在既有窄屏媒體規則內保留右側通道');
     assert(html.split(cats602).length===2&&html.split(tools602).length===2,'T602 縮放避讓規則各恰一處，未複製到桌機全域');}
 
+  assert(html.includes("objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso[2]:viewDep(x,y)),dog:{hx:ph369}")&&html.includes("objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso2[2]:viewDep(x,y)),ped:{ptype:'adult',hx:oh}"),'T603 G3 狗／主人兩處繪製深度接到限域列偏置；不改動作座標');
   // T602：歷史整套保持原配方；新路另以真像素台架完整開啟，不以mock或原文釘冒充Chrome驗收。
   {const q602=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t602-shots/test602.js')],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});
     assert(q602.status===0&&q602.stdout.includes('T602_RESULT ')&&!q602.stderr.includes('FAIL:'),'T602 G1 新圖行為台架完整通過：'+(q602.status===0?'3類三款、四作物階段、四向碼頭、遠景/季節/回退/亂數':q602.stderr.slice(-1400)));}

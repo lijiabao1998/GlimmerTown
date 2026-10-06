@@ -18918,12 +18918,12 @@ function draw(dt){
         for(let di=0;di<dn;di++){
           const ph369=streetHash(x,y,3689+di);
           const _iso=t.bld.lot574?lotGround574(x,y,t.bld.sz,1+Math.sin(visT*(.6+ph369*.3)+ph369*6.283)*.2,1+Math.cos(visT*(.9+ph369*.2)+ph369*4)*.4):isoW2V((x-y)*32+Math.sin(visT*(.6+ph369*.3)+ph369*6.283)*16,(x+y)*16+16+Math.cos(visT*(.9+ph369*.2)+ph369*4)*8);
-          objs.push({dep:(t.bld.lot574?_iso[2]:viewDep(x,y))+.016,dog:{hx:ph369},wx:_iso[0],wy:_iso[1]});
+          objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso[2]:viewDep(x,y)),dog:{hx:ph369},wx:_iso[0],wy:_iso[1]});
         }
         if(SPR.ped){
           const oh=streetHash(x,y,3691);
           const _iso2=t.bld.lot574?lotGround574(x,y,t.bld.sz,.95,1+Math.sin(visT*.4+oh*6.283)*.3):isoW2V((x-y)*32+Math.sin(visT*.4+oh*6.283)*8,(x+y)*16+16+Math.cos(visT*.5+oh*4)*5);
-          objs.push({dep:(t.bld.lot574?_iso2[2]:viewDep(x,y))+.016,ped:{ptype:'adult',hx:oh},wx:_iso2[0],wy:_iso2[1]});
+          objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso2[2]:viewDep(x,y)),ped:{ptype:'adult',hx:oh},wx:_iso2[0],wy:_iso2[1]});
         }
       }
     }
@@ -29759,6 +29759,7 @@ function buildSpritesS22(){ // 獨立新增家族；noT602 開機時零配置，
 const LOT603=new Set([29,85,92,88]);
 function t603On(){if(t603On.u===undefined)t603On.u=/(?:^|[?&])noT603(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT603&&!t603On.u;}
 function v603(k,x,y,b){if(k===29)return (((b?b.v:0)|0)%3+3)%3;return Math.min(2,Math.floor(hashLocal590(x|0,y|0,k*131+603)*3));}
+function lifeDepth603(x,y,b,base){return base+.016+(b&&b.k===92&&b.lot574&&t603On()?y*.001:0);} // T603：跟隨園區本體的列偏置，防止狗與主人先畫後被地坪蓋住；舊圖路徑原值。
 function kit603(T){
   const K=kit602(T),{P,quad,box,H}=T,{px,face,ln,ground,lamp,house,shrub}=K,W=T.winter;
   const yard=(green=false)=>{ground(0,0,2,2,green?'#95ad7c':'#aeb4a4');for(let u=.08;u<1.95;u+=.2)for(let v=.08;v<1.95;v+=.2)if(H(u,v,3)<.2){const p=P(u,v);px(p[0],p[1],W?'#cbd9d1':green?'#829e6d':'#939e94',2,1);}ln(P(0,2),P(2,2),W?'#baccc5':'#687f74',2);ln(P(2,2),P(2,0),W?'#dae5dc':'#8b9a8b',2);};

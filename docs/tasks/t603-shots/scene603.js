@@ -25,7 +25,7 @@ function bridge603(){
   const measured603=(name,fn,args)=>{if(!measureWork603)return fn(...args);const t=performance.now();try{return fn(...args);}finally{work603[name].push(performance.now()-t);}};
   advance=function(dtReal){if(frozenVisT603!==null)visT=frozenVisT603;try{return measured603('advance',advanceReal603,[dtReal]);}finally{if(frozenVisT603!==null)visT=frozenVisT603;}};
   draw=function(...args){return measured603('draw',drawReal603,args);};updHud=function(...args){return measured603('hud',hudReal603,args);};
-  const inputEvents=[];
+  const inputEvents=[],lifeDepthReal603=typeof lifeDepth603==='function'?lifeDepth603:null;
   const canonicalSaved=raw=>{const d=saveInflate(JSON.parse(raw)),out={};for(const k of ['v','n','seed','money','day','df','bl','lots574','ter','tre','rd','zn','gvc'])out[k]=d[k];return JSON.stringify(out);};
   const pointerSnapshot=()=>({pointers:[...pointers.entries()].map(([id,p])=>({id,...p})),down:downInfo?{...downInfo,elapsed:performance.now()-downInfo.t}:null,pan:panBase?{...panBase}:null,pinch:pinchBase?{...pinchBase}:null,selected:selTile?{...selTile}:null});
   for(const type of ['pointerdown','pointermove','pointerup','pointercancel']){
@@ -71,7 +71,16 @@ function bridge603(){
     comparisonFrame:(rot,sea,time)=>{GV.setRot(rot);GV.setSeason(sea);GV.weather(0);__s603.snow(sea===3);trafClock=time;waterF=0;waterT=0;__s603.freezeVis(time);GV.setZoom(2);GV.lookAt(30,31);groundDirty=true;ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';GV.forceDraw();GV.forceDraw();return {hash:__s603.imageHash(cvs),png:cvs.toDataURL('image/png'),state:{W,H,DPR,day,waterF,waterT,trafClock,visT,rot:viewRotEff(),cam:{...cam},roots:__s603.roots(),flags:__s603.flags()}};},
     makeShore:(x,y,n)=>{for(let yy=y-1;yy<=y+n;yy++)for(let xx=x-1;xx<=x+n;xx++){if(xx>=x&&xx<x+n&&yy>=y&&yy<y+n)continue;const t=T(idx(xx,yy));t.t=0;t.road=0;t.mask=0;for(const[a,b]of[[xx,yy],[xx-1,yy],[xx+1,yy],[xx,yy-1],[xx,yy+1]])if(inMap(a,b))recalcMask(a,b);}computeFoam();groundDirty=true;return T(idx(x+n,y)).t===0;},
     reflectionNull:(x,y)=>reflectSprite(T(idx(x,y)).bld,x,y)===null,
-    actors:()=>{const out={dogs:0,owners:0,dogFrames:[],ownerFrames:[]},old=ctx.drawImage;ctx.drawImage=function(img,...args){if(SPR.lifeDog.some(s=>s.img===img)){out.dogs++;out.dogFrames.push(SPR.lifeDog.findIndex(s=>s.img===img));}if(SPR.ped.adult.some(s=>s.img===img)){out.owners++;out.ownerFrames.push(SPR.ped.adult.findIndex(s=>s.img===img));}return old.call(this,img,...args);};try{GV.forceDraw();}finally{ctx.drawImage=old;}return out;},
+    badLifeDepth:on=>{if(!lifeDepthReal603)throw Error('Missing new depth helper');lifeDepth603=on?((x,y,b,base)=>base+.016):lifeDepthReal603;return true;},
+    actors:()=>{ // 最終畫布反事實像素：有畫呼叫不等於能看見；每次同步重畫固定時鐘。
+      const out={dogs:0,owners:0,dogFrames:[],ownerFrames:[],rects:[]},old=ctx.drawImage,clock=[trafClock,waterT,waterF],rects=[];let skip='',collect=false;
+      const kindOf=img=>SPR.lifeDog.some(s=>s.img===img)?'dog':SPR.ped.adult.some(s=>s.img===img)?'owner':null;
+      const snap=()=>rects.map(r=>ctx.getImageData(r.x,r.y,r.w,r.h).data);
+      const diffs=(a,b)=>a.map((buf,j)=>{let n=0;for(let i=0;i<buf.length;i+=4)if(buf[i]!==b[j][i]||buf[i+1]!==b[j][i+1]||buf[i+2]!==b[j][i+2]||buf[i+3]!==b[j][i+3])n++;return n;});
+      const render=()=>{[trafClock,waterT,waterF]=clock;GV.forceDraw();};
+      ctx.drawImage=function(img,...args){const kind=kindOf(img);if(kind&&collect){if(args.length!==4)throw Error('Unexpected actor draw signature');const [x,y,w,h]=args,x0=Math.max(0,Math.floor(x)-1),y0=Math.max(0,Math.floor(y)-1),x1=Math.min(cvs.width,Math.ceil(x+w)+1),y1=Math.min(cvs.height,Math.ceil(y+h)+1);if(x1<=x0||y1<=y0)throw Error('Actor outside test viewport');rects.push({kind,x:x0,y:y0,w:x1-x0,h:y1-y0});out[kind==='dog'?'dogs':'owners']++;out[kind+'Frames'].push((kind==='dog'?SPR.lifeDog:SPR.ped.adult).findIndex(s=>s.img===img));}if(kind&&skip===kind)return;return old.call(this,img,...args);};
+      try{collect=true;render();collect=false;const normal=snap();render();out.unstablePixels=diffs(normal,snap()).reduce((a,b)=>a+b,0);for(const kind of ['dog','owner']){skip=kind;render();const d=diffs(normal,snap());out[kind+'VisiblePixels']=d.reduce((sum,n,i)=>sum+(rects[i].kind===kind?n:0),0);for(let i=0;i<rects.length;i++)if(rects[i].kind===kind)rects[i].visiblePixels=d[i];}out.rects=rects;return out;}finally{ctx.drawImage=old;render();[trafClock,waterT,waterF]=clock;}
+    },
     imageHash:c=>{const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let h=0x811c9dc5;for(const b of a){h^=b;h=Math.imul(h,16777619)>>>0;}return h.toString(16);},
     pins:()=>{const tab=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;tab[n]=c;}const crc=c=>{const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let r=0xFFFFFFFF;for(const b of a)r=tab[(r^b)&255]^(r>>>8);return ((r^0xFFFFFFFF)>>>0).toString(16);},out={};for(const e of GV.sprAtlas356().entries){const p=[crc(e.img)];if(e.night)p.push(crc(e.night));if(e.nightCity)p.push(crc(e.nightCity));out[e.fam+'/'+e.key]=p;}return out;},
     sheet:(kind,night,winter)=>{const old=$('#sheet603');if(old)old.remove();const c=document.createElement('canvas');c.id='sheet603';c.width=1400;c.height=900;c.style='position:fixed;inset:0;z-index:999999;width:1400px;height:900px';document.body.append(c);const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle=night?'#101d2a':'#e7eee7';g.fillRect(0,0,1400,900);g.fillStyle=night?'#dde9e5':'#254653';g.font='bold 23px sans-serif';g.fillText('T603 BLUE-GREY | '+kind+' | '+(winter?'WINTER':night?'NIGHT':'DAY'),30,35);const out=[];for(let row=0;row<4;row++)for(let v=0;v<3;v++){const k=[29,85,92,88][row],stage=2,s=bakeArt603(k,v,stage,winter),scale=1.4,cropY=80,cropH=s.h-cropY,x=105+v*440,y=70+row*205;g.drawImage(s.img,0,cropY,s.w,cropH,x,y,s.w*scale,cropH*scale);if(night){g.fillStyle='#0a162a99';g.fillRect(x,y,s.w*scale,cropH*scale);g.drawImage(s.night,0,cropY,s.w,cropH,x,y,s.w*scale,cropH*scale);}g.fillStyle=night?'#dde9e5':'#254653';g.font='15px sans-serif';g.fillText('k'+k+' V'+(v+1)+' stage '+stage,x+240,y+120);const a=s.img.getContext('2d').getImageData(0,0,s.w,s.h).data,b=s.night.getContext('2d').getImageData(0,0,s.w,s.h).data;let ink=0,light=0,orphan=0,cropped=0;for(let i=3;i<a.length;i+=4){if(a[i]){ink++;if(i<cropY*s.w*4)cropped++;}if(b[i]){light++;if(!a[i])orphan++;}}out.push({k,v,stage,ink,light,orphan,cropped,hash:__s603.imageHash(s.img)});}return out;}
@@ -82,6 +91,8 @@ function sourceBaseline603(source){
   let base=source;const start='\n\n/* ===== T603 藍灰社區公共設施：',end='/* ===== T603 區塊結束 ===== */\n';const lo=base.indexOf(start),hi=base.indexOf(end,lo);check(lo>=0&&hi>lo,'unique new art block for exact-base reconstruction');base=base.slice(0,lo)+base.slice(hi+end.length);
   for(const [a,b]of [
     ["const GAME_VER='11.212'","const GAME_VER='11.211'"],
+    ['objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso[2]:viewDep(x,y)),dog:{hx:ph369}', 'objs.push({dep:(t.bld.lot574?_iso[2]:viewDep(x,y))+.016,dog:{hx:ph369}'],
+    ["objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso2[2]:viewDep(x,y)),ped:{ptype:'adult',hx:oh}", "objs.push({dep:(t.bld.lot574?_iso2[2]:viewDep(x,y))+.016,ped:{ptype:'adult',hx:oh}"],
     ['  if(LOT603.has(k)&&t603On())return Math.max(0,Math.min(2,v|0)); // T603：社區設施三款\n',''],
     ['&&!(LOT603.has(k)&&t603On())',''],
     ["if(LOT603.has(k)&&t603On())return '_t603_s'+season();",''],
@@ -288,11 +299,18 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     // Shore pads remain on land. Existing 2x2 reflection policy is null, unchanged.
     report.shore=[];for(const [k,tool]of[[29,'recycling'],[85,'seniorCenter'],[92,'dogpark'],[88,'compost']]){await fresh();await place(tool,25,25,2);await ev('__s603.finish();true');check(await ev('__s603.makeShore(25,25,2)'),'real water beside k'+k);for(let rot=0;rot<4;rot++)for(const [light,time]of[['day',55],['night',100]]){await camera(26,26,3,rot,1,time,false);check(await ev('__s603.reflectionNull(25,25)'),'existing no-reflection contract k'+k+'/r'+rot+'/'+light);check(await ev('__s603.trace().some(t=>new RegExp("^(far:)?'+k+'_").test(t.key))'),'shore rendering retains complete lot k'+k);report.shore.push({k,rot,light});await shot('shore-k'+k+'-r'+rot+'-'+light);}}check(report.shore.length===32,'all 32 four-view day/night shoreline scenes');
 
-    // Existing dog/owner animations rendered unchanged across all three real-placed variants.
+    // 三款 × 列偏置臨界點前/中/後 × 四視角 × 八相位，驗最終像素而不是呼叫數。
     report.dogActors=[];
-    for(let variant=0;variant<3;variant++){await fresh();let x=5;while(x<65&&(await ev('__s603.v(92,'+x+',25)'))!==variant)x++;await place('dogpark',x,25,2);await ev('__s603.finish();true');for(let rot=0;rot<4;rot++)for(let phase=0;phase<8;phase++){const time=52+phase*.375;await camera(x+1,26,4,rot,1,time,false);const actors=await ev('__s603.actors()');check(actors.dogs>=1&&actors.dogs<=2&&actors.owners===1,'real dog/owner draws v'+variant+'/r'+rot+'/p'+phase);report.dogActors.push({variant,rot,phase,time,...actors});await shot('dog-clearance-v'+variant+'-r'+rot+'-phase'+phase);}}
-    check(report.dogActors.length===96,'all 96 dog-park variant/rotation/animation scenes');
-    for(let v=0;v<3;v++)check(new Set(report.dogActors.filter(r=>r.variant===v).flatMap(r=>r.dogFrames)).size===2,'both real dog animation frames covered v'+v);
+    for(const row of [9,16,25])for(let variant=0;variant<3;variant++){
+      await fresh();let x=5;while(x<65&&(await ev('__s603.v(92,'+x+','+row+')'))!==variant)x++;check(x<65,'real dog variant site exists');await place('dogpark',x,row,2);await ev('__s603.finish();true');
+      for(let rot=0;rot<4;rot++)for(let phase=0;phase<8;phase++){
+        const time=52+phase*.375;await camera(x+1,row+1,4,rot,1,time,false);
+        if(row===25&&variant===0&&rot===0&&phase===0){report.dogDepthNegativeControl=await ev('(()=>{__s603.badLifeDepth(true);try{return __s603.actors();}finally{__s603.badLifeDepth(false);}})()');const bad=report.dogDepthNegativeControl;check(bad.dogs>=1&&bad.owners===1&&bad.unstablePixels===0&&bad.dogVisiblePixels===0&&bad.ownerVisiblePixels===0,'negative control: old depth still calls actors but hides final pixels');}
+        const actors=await ev('__s603.actors()');check(actors.dogs>=1&&actors.dogs<=2&&actors.owners===1&&actors.unstablePixels===0&&actors.dogVisiblePixels>0&&actors.ownerVisiblePixels>0&&actors.rects.every(r=>r.visiblePixels>0),'real visible dog/owner pixels y'+row+'/v'+variant+'/r'+rot+'/p'+phase);report.dogActors.push({row,variant,rot,phase,time,...actors});await shot('dog-clearance-v'+variant+'-y'+row+'-r'+rot+'-phase'+phase);
+      }
+    }
+    check(report.dogActors.length===288,'all 288 dog-park row/variant/rotation/animation scenes');
+    for(const row of [9,16,25])for(let v=0;v<3;v++)check(new Set(report.dogActors.filter(r=>r.row===row&&r.variant===v).flatMap(r=>r.dogFrames)).size===2,'both real dog animation frames covered y'+row+'/v'+v);
 
     report.coverage.neighbors=true;persist();}
     check(PHASE==='full'?Object.values(report.coverage).every(Boolean):report.coverage[PHASE]===true,'requested phase coverage complete: '+PHASE);

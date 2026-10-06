@@ -19,7 +19,7 @@ CHROME_PATH=/usr/bin/google-chrome node docs/tasks/t603-shots/baseline603.js --p
 
 ## 本地候選驗證
 
-本地完整回歸12,530 PASS／0 FAIL、六哨兵与63／63工具鏈已通過。`results603.json`明列完成與未驗部分，沒有把原景CI當成新圖Chrome通過。
+窄深度增補後本地完整回歸12,531 PASS／0 FAIL、六哨兵與63／63工具鏈已通過。`results603.json`明列完成與未驗部分，沒有把原景CI當成新圖Chrome通過。
 
 ```sh
 node docs/tasks/t603-shots/test603.js
@@ -30,4 +30,11 @@ CHROME_PATH=/usr/bin/google-chrome node docs/tasks/t603-shots/scene603.js --port
 
 `scene603.js`的逃生閥對照會從候選撤回明列的T603視覺差異，再強制匹配原main index SHA256，另開實際原碼頁比對16個game canvas指紋。回退源不相等即退出，不以自己造出的近似圖當基線。三款狗各覆蓋兩個真動畫幀；岸邊保留原2×2建築不繪倒影契約。
 
-業主已於2026-10-06明確批准本輪「候選先推送、由CI做首次新畫面驗收」。候選CI通過後交真PNG，圖片與本輪發布許可仍是獨立門檻。
+業主已於2026-10-06明確批准本輪「候選先推送、由CI做首次新畫面驗收」。真PNG可先附上未過項供看圖；CI與圖片及本輪發布許可仍各自是獨立門檻，不以看圖取代測試。
+
+
+## 已取得候選CI與深度補驗
+
+CI37439501213（62b6b781）完整執行core/world/neighbors獨立作業：世界矩陣通過，core195檢查／55PNG後仍因桌面日夜RAF原門檻失敗而判紅。舊新同樣受software compositing拖慢，既有失敗trace保留，沒有降低門檻。`results603.json`記錄精確SHA、artifact與未過項。
+
+原96張遛狗相位只驗drawImage呼叫，有最終被地坪蓋住的盲點；該結論已撤回。本次只接兩處新k92角色深度，加row9／16／25×3款×4向×8相位共288個真畫布反事實像素比較，另把深度暫時改回舊值，必須抓到「有呼叫、可見像素零」。新像素矩陣尚須CI完成。
