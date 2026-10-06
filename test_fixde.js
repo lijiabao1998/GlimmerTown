@@ -15996,7 +15996,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     'T447 G0 掃到的 .html/.js 只有 ' + files447.length + ' 個（預期 ≥20）——'
     + '檔案樹走訪壞了，下面兩條會變成空跑的假綠');
   const offenders447 = [];
-  let saveCallers447 = 0;
+  let saveCallers447 = 0;const saveCallerPaths447=[];
   for (const f of files447) {
     const rel = path.relative(__dirname, f).replace(/\\/g, '/');
     if (rel === 'index.html' || rel === 'sw.js') continue;
@@ -16004,7 +16004,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     let body;
     try { body = fs.readFileSync(f, 'utf8'); } catch (e) { continue; }
     if (body.indexOf('GV.save(') < 0) continue;
-    saveCallers447++;
+    saveCallers447++;saveCallerPaths447.push(rel);
     if (body.indexOf('glimmerville.v1.slot') < 0) offenders447.push(rel);
   }
   assert(offenders447.length === 0,
@@ -16012,11 +16012,13 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + JSON.stringify(offenders447.slice(0, 5))
     + '。在玩家目錄開它就會覆蓋一個真的存檔（`curSlot()` 遇不合法鍵回槽 1）。'
     + '在呼叫前加一行 `localStorage.setItem(\'glimmerville.v1.slot\',\'3\')`');
-  /* 今天沒有任何非豁免檔案呼叫 GV.save()，所以上面那條是**合法地空**——
-     把這個事實釘住，而不是假裝它是覆蓋率。數字變動不一定是壞事，但一定要有人知道。 */
-  assert(saveCallers447 === 0,
-    'T447 G1b【計數釘】非豁免檔案裡呼叫 `GV.save()` 的數量由 0 變成 ' + saveCallers447
-    + '。新檔案必須設槽 3（G1 會驗），這條只是要讓「有人新增了會寫存檔的工具」這件事被看見');
+  /* T602：唯一新增的真瀏覽器存檔台架，在任何導覽前透過 CDP 注入槽3。
+     登記精確路徑而非放寬上限；新增其他工具仍會紅。 */
+  assert(saveCallers447 === 1&&JSON.stringify(saveCallerPaths447)==='["docs/tasks/t602-shots/scene602.js"]',
+    'T447 G1b【計數釘】只有已審核T602瀏覽器工具可呼叫 `GV.save()`，實得 '+JSON.stringify(saveCallerPaths447));
+  const sceneSource447=fs.readFileSync(path.join(__dirname,'docs/tasks/t602-shots/scene602.js'),'utf8');
+  assert(sceneSource447.indexOf('Page.addScriptToEvaluateOnNewDocument')>=0&&sceneSource447.indexOf('Page.addScriptToEvaluateOnNewDocument')<sceneSource447.indexOf('Page.navigate')&&sceneSource447.includes('[8123,8199].includes(p)'),
+    'T602 G447 瀏覽器台架在導覽前注入槽3且禁止玩家埠');
   // G2 規則要真的寫在 RULES 裡，而且 VERIFY 要引對號碼
   {
     const rules447 = fs.readFileSync(path.join(__dirname, 'docs', 'RULES.md'), 'utf8');
