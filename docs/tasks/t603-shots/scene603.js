@@ -25,7 +25,7 @@ function bridge603(){
   const measured603=(name,fn,args)=>{if(!measureWork603)return fn(...args);const t=performance.now();try{return fn(...args);}finally{work603[name].push(performance.now()-t);}};
   advance=function(dtReal){if(frozenVisT603!==null)visT=frozenVisT603;try{return measured603('advance',advanceReal603,[dtReal]);}finally{if(frozenVisT603!==null)visT=frozenVisT603;}};
   draw=function(...args){return measured603('draw',drawReal603,args);};updHud=function(...args){return measured603('hud',hudReal603,args);};
-  const inputEvents=[],lifeDepthReal603=typeof lifeDepth603==='function'?lifeDepth603:null;
+  const inputEvents=[],lifeDepthReal603=typeof lifeDepth603==='function'?lifeDepth603:null,clipReal603=typeof clipFilter603==='function'?clipFilter603:null;
   let silhouetteOriginal603=null;const clipStats603={uses:0,skipped:0,pixels:0,maxRectPixels:0},silhouetteCache603=new WeakMap(),silhouetteFloatCache603=new WeakMap(),silhouetteStats603={created:0,pixels:0,buildMs:0,uses:0,formats:[]},projectedCache603=new WeakMap(),projectedStats603={created:0,pixels:0,buildMs:0,uses:0,skipped:0,formats:[]};
   const silhouetteMode603=on=>{
     if(!on){if(silhouetteOriginal603){ctx.drawImage=silhouetteOriginal603;silhouetteOriginal603=null;}return {...silhouetteStats603};}
@@ -98,6 +98,15 @@ function bridge603(){
       ctx.drawImage=function(img,...args){const kind=kindOf(img);if(kind&&collect){if(args.length!==4)throw Error('Unexpected actor draw signature');const [x,y,w,h]=args,x0=Math.max(0,Math.floor(x)-1),y0=Math.max(0,Math.floor(y)-1),x1=Math.min(cvs.width,Math.ceil(x+w)+1),y1=Math.min(cvs.height,Math.ceil(y+h)+1);if(x1<=x0||y1<=y0)throw Error('Actor outside test viewport');rects.push({kind,x:x0,y:y0,w:x1-x0,h:y1-y0});out[kind==='dog'?'dogs':'owners']++;out[kind+'Frames'].push((kind==='dog'?SPR.lifeDog:SPR.ped.adult).findIndex(s=>s.img===img));}if(kind&&skip===kind)return;return old.call(this,img,...args);};
       try{collect=true;render();collect=false;const normal=snap();render();out.unstablePixels=diffs(normal,snap()).reduce((a,b)=>a+b,0);for(const kind of ['dog','owner']){skip=kind;render();const d=diffs(normal,snap());out[kind+'VisiblePixels']=d.reduce((sum,n,i)=>sum+(rects[i].kind===kind?n:0),0);for(let i=0;i<rects.length;i++)if(rects[i].kind===kind)rects[i].visiblePixels=d[i];}out.rects=rects;return out;}finally{ctx.drawImage=old;render();[trafClock,waterT,waterF]=clock;}
     },
+    clipPixelPair:(badEdge=false)=>{ // 同一同步任務、固定時鐘；逐RGBA比較實際整幅遊戲畫布。
+      if(!clipReal603)throw Error('Missing native filter clip helper');
+      const prior=window.__noClip603,clock=[trafClock,waterT,waterF],counts={calls:0,used:0};
+      const render=()=>{[trafClock,waterT,waterF]=clock;GV.forceDraw();return ctx.getImageData(0,0,cvs.width,cvs.height).data;};
+      const delta=(a,b)=>{let n=0;for(let i=0;i<a.length;i+=4)if(a[i]!==b[i]||a[i+1]!==b[i+1]||a[i+2]!==b[i+2]||a[i+3]!==b[i+3])n++;return n;};
+      clipFilter603=function(g,img,x,y,w,h){counts.calls++;const used=clipReal603(g,img,x,y,w,h);if(used){counts.used++;if(badEdge){const m=g.getTransform(),a=m.a*x+m.e,b=m.a*(x+w)+m.e,p=new Path2D();p.rect((a+b)/2,0,Math.abs(b-a)/2,g.canvas.height);g.resetTransform();g.clip(p);g.setTransform(m);}}return used;};
+      try{window.__noClip603=true;render();const before=render(),repeat=render();window.__noClip603=false;counts.calls=counts.used=0;const after=render(),afterRepeat=render();return {width:cvs.width,height:cvs.height,badEdge,changedPixels:delta(before,after),unstablePixels:delta(before,repeat),optimizedUnstablePixels:delta(after,afterRepeat),...counts};}
+      finally{clipFilter603=clipReal603;if(prior===undefined)delete window.__noClip603;else window.__noClip603=prior;[trafClock,waterT,waterF]=clock;GV.forceDraw();[trafClock,waterT,waterF]=clock;}
+    },
     blendProbe:()=>{const make=options=>{const c=document.createElement('canvas');c.width=c.height=8;return[c,c.getContext('2d',options)];},[source,g]=make({});g.fillStyle='#e7b34f';g.fillRect(0,0,8,8);const cases=[];for(const kind of ['native-filter','mask-unorm8','mask-float16','projected-multiply']){const [target,t]=make({});t.fillStyle='#2e6ba2';t.fillRect(0,0,8,8);t.globalAlpha=.22;let img=source,attributes=null;if(kind==='native-filter')t.filter='brightness(0)';else{const [mask,m]=make({colorType:kind==='mask-float16'?'float16':'unorm8'});if(kind==='projected-multiply'){m.globalAlpha=.22;m.filter='brightness(0)';m.drawImage(source,0,0);t.globalAlpha=1;t.globalCompositeOperation='multiply';}else{m.fillStyle='#000';m.fillRect(0,0,8,8);}img=mask;attributes=m.getContextAttributes();}t.drawImage(img,0,0);cases.push({kind,attributes,rgba:[...t.getImageData(4,4,1,1).data]});}return cases;},
     rasterAudit:kind=>{ // 拋棄式台架實驗，不改產品檔案、不關閉任何視覺效果。
       if(!['observe','clipped-native','clipped-x','clipped-origin','silhouette','silhouette-float','projected','projected-float','projected-multiply','read-lots','write-lots','write-visible'].includes(kind))throw Error('Unknown raster experiment');
@@ -124,6 +133,8 @@ function sourceBaseline603(source){
   let base=source;const start='\n\n/* ===== T603 藍灰社區公共設施：',end='/* ===== T603 區塊結束 ===== */\n';const lo=base.indexOf(start),hi=base.indexOf(end,lo);check(lo>=0&&hi>lo,'unique new art block for exact-base reconstruction');base=base.slice(0,lo)+base.slice(hi+end.length);
   for(const [a,b]of [
     ["const GAME_VER='11.212'","const GAME_VER='11.211'"],
+    ['        clipFilter603(ctx,rs.img,-rs.ax*z,-rs.ay*z,rs.w*z,rs.h*z); // T603：只裁X，保留原生濾鏡與垂直取樣原點\n',''],
+    ['      clipFilter603(ctx,s.img,bx+SHOX*z,by+s.h*z-shH+SHOY*z,s.w*z,shH); // T603：只裁X，外層save/restore管理裁切狀態\n',''],
     ['objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso[2]:viewDep(x,y)),dog:{hx:ph369}', 'objs.push({dep:(t.bld.lot574?_iso[2]:viewDep(x,y))+.016,dog:{hx:ph369}'],
     ["objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso2[2]:viewDep(x,y)),ped:{ptype:'adult',hx:oh}", "objs.push({dep:(t.bld.lot574?_iso2[2]:viewDep(x,y))+.016,ped:{ptype:'adult',hx:oh}"],
     ['  if(LOT603.has(k)&&t603On())return Math.max(0,Math.min(2,v|0)); // T603：社區設施三款\n',''],
@@ -309,8 +320,14 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     for(const k of[29,85,92,88]){const c=report.census[k][0];await camera(c[0]+c[2]/2,c[1]+c[2]/2,k===53?1.1:2,0,1,55,false);for(const off of[true,false]){await ev('window.__noT603='+off+';true');await shot('city-k'+k+(off?'-before':'-after'));}}
     // Full product of 4 kinds, 4 seasons, 2 lights, 4 rotations, 2 distances.
     report.matrix=[];await ev('window.__noT603=false;true');
-    for(const k of[29,85,92,88])for(let rot=0;rot<4;rot++)for(let season=0;season<4;season++)for(const [light,time]of[['day',55],['night',100]])for(const [distance,zoom]of[['near',k===53?1.1:2],['far',.35]]){const c=report.census[k][0];await camera(c[0]+c[2]/2,c[1]+c[2]/2,zoom,rot,season,time,season===3);await shot('city-k'+k+'-r'+rot+'-s'+season+'-'+light+'-'+distance);report.matrix.push({k,rot,season,light,distance});}
+    for(const k of[29,85,92,88])for(let rot=0;rot<4;rot++)for(let season=0;season<4;season++)for(const [light,time]of[['day',55],['night',100]])for(const [distance,zoom]of[['near',k===53?1.1:2],['far',.35]]){const c=report.census[k][0];await camera(c[0]+c[2]/2,c[1]+c[2]/2,zoom,rot,season,time,season===3);const clip=await ev('__s603.clipPixelPair()');report.matrix.push({k,rot,season,light,distance,clip});check(clip.changedPixels===0&&clip.unstablePixels===0&&clip.optimizedUnstablePixels===0,'native X clip exact full-frame pixels k'+k+'/r'+rot+'/s'+season+'/'+light+'/'+distance);await shot('city-k'+k+'-r'+rot+'-s'+season+'-'+light+'-'+distance);persist();}
     check(report.matrix.length===256,'all 256 same-city season/light/rotation/distance scenes');
+    report.clipZoomMatrix=[];const clipFocus=report.census[85][0];
+    for(let rot=0;rot<4;rot++)for(const zoom of[.65,1,1.25,3])for(const [light,time]of[['day',55],['night',100]]){await camera(clipFocus[0]+1.125,clipFocus[1]+.875,zoom,rot,1,time,false);const clip=await ev('__s603.clipPixelPair()');report.clipZoomMatrix.push({rot,zoom,light,clip});check(clip.changedPixels===0&&clip.unstablePixels===0&&clip.optimizedUnstablePixels===0,'native X clip fractional camera/zoom full-frame pixels r'+rot+'/z'+zoom+'/'+light);persist();}
+    check(report.clipZoomMatrix.length===32&&report.clipZoomMatrix.some(r=>r.clip.used>0),'32 zoom/camera cases exercise actual native clip');
+    await camera(clipFocus[0]+1,clipFocus[1]+1,1,0,1,55,false);report.clipNegativeControl=await ev('__s603.clipPixelPair(true)');const badClip=report.clipNegativeControl;check(badClip.used>0&&badClip.changedPixels>0&&badClip.unstablePixels===0&&badClip.optimizedUnstablePixels===0,'negative control: wrong X edge produces detected final pixel loss');
+    report.clipPositiveControl=await ev('__s603.clipPixelPair()');check(report.clipPositiveControl.changedPixels===0&&report.clipPositiveControl.used>0,'positive control restored exact native clip pixels after mutation');
+
     // setSeason is a simulation test API and writes day. Restore explicitly.
     await ev('GV.setDay('+originalDay+');true');report.visualStateUnchanged=state===await ev('__s603.scene()');check(report.visualStateUnchanged,'visual-only city data unchanged after restoring test calendar');
     // Disposable fixtures use genuine placement. All four civic footprints are unchanged.
@@ -353,12 +370,12 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     if(PHASE==='full'||PHASE==='raster'){
       report.rasterDiagnostic={note:'Focused filter-origin follow-up with native-filter control; all previous negative experiments are retained in exact-SHA artifacts. Original acceptance predicates remain unchanged in core.',samples:[],blendProbe:await ev('__s603.blendProbe()')};
       for(const [light,time] of [['day',55],['night',100]])for(const off of [true,false]){
-        const prev=await ev('performance.timeOrigin');await send('Page.reload',{ignoreCache:true});await ready(prev);await ev('document.getElementById("bNewGame").click();true');await growCity('raster-'+light+'-'+off);await ev('window.__noT603='+off+';true');const focus=report.census[85][0];await camera(focus[0]+1,focus[1]+1,1,0,1,time,false);await ev('__s603.clear();__s603.drawMs();true');for(let i=0;i<30;i++)await ev('__s603.drawMs()');
+        const prev=await ev('performance.timeOrigin');await send('Page.reload',{ignoreCache:true});await ready(prev);await ev('document.getElementById("bNewGame").click();true');await growCity('raster-'+light+'-'+off);await ev('window.__noT603='+off+';window.__noClip603=true;true');const focus=report.census[85][0];await camera(focus[0]+1,focus[1]+1,1,0,1,time,false);await ev('__s603.clear();__s603.drawMs();true');for(let i=0;i<30;i++)await ev('__s603.drawMs()');
         const sceneBefore=await ev('__s603.scene()');
         for(const kind of ['observe','clipped-native','clipped-x','clipped-origin']){const audit=await ev('__s603.rasterAudit('+JSON.stringify(kind)+')');for(const side of ['before','after']){if(audit[side+'PNG']){const file='T603-raster-'+light+'-'+(off?'baseline':'candidate')+'-'+kind+'-'+side+'.png';fs.writeFileSync(path.join(OUT,file),Buffer.from(audit[side+'PNG'].split(',')[1],'base64'));report.screenshots.push(file);audit[side+'File']=file;}delete audit[side+'PNG'];}check(audit.unstablePixels===0,'raster comparison frame stable '+light+'/'+off+'/'+kind);await ev('__s603.perfStart()');const timing=await raf(5000),work=await ev('__s603.perfWork()');report.rasterDiagnostic.samples.push({light,mode:off?'baseline':'candidate',...audit,raf:timing,...work,silhouetteAfter:await ev('__s603.silhouetteStats()'),projectedAfter:await ev('__s603.projectedStats()'),clipAfter:await ev('__s603.clipStats()')});persist();}
         check(sceneBefore===await ev('__s603.scene()'),'raster diagnostic leaves city unchanged '+light+'/'+off);
       }
-      report.rasterDiagnostic.acceptance='Observations only, not a waiver or replacement for any original predicate';await ev('window.__noT603=false;true');report.coverage.raster=true;persist();
+      report.rasterDiagnostic.acceptance='Observations only, not a waiver or replacement for any original predicate';await ev('window.__noT603=false;delete window.__noClip603;true');report.coverage.raster=true;persist();
     }
     check(PHASE==='full'?Object.values(report.coverage).every(Boolean):report.coverage[PHASE]===true,'requested phase coverage complete: '+PHASE);
     check(report.performanceFailures.length===0,'all unchanged performance gates must pass: '+report.performanceFailures.join('; '));

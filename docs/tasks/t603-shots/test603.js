@@ -1,5 +1,6 @@
 // T603 原創社區設施像素台架；既有套件與真Chrome各自完整驗收。
 'use strict';
+require('./clip603.js');
 const fs=require('fs'),path=require('path');
 const ROOT=path.resolve(__dirname,'../../..');
 const src=fs.readFileSync(path.join(ROOT,'test_fixde.js'),'utf8'),cut=src.indexOf('\neval(js);');

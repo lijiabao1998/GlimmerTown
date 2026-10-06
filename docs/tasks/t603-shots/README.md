@@ -1,6 +1,6 @@
 # T603 可重現美術驗收
 
-唯一原始碼來源是 GitHub `lijiabao1998/GlimmerTown` main `637c8cc6d09306c1e17535ece6119d3ad78f1382`／v11.211。獨立分支只承載候選，沒有合併、部署或更改玩家存檔的權限。
+唯一原始碼來源是 GitHub `lijiabao1998/GlimmerTown` main `637c8cc6d09306c1e17535ece6119d3ad78f1382`／v11.211。獨立分支承載候選；業主已确认本輪10張圖與發布，仍須完整測試和獨立整合驗收通過才可合併／部署。玩家存檔不屬本卡範圍。
 
 ## 改動前基線
 
@@ -38,3 +38,16 @@ CHROME_PATH=/usr/bin/google-chrome node docs/tasks/t603-shots/scene603.js --port
 CI37439501213（62b6b781）完整執行core/world/neighbors獨立作業：世界矩陣通過，core195檢查／55PNG後仍因桌面日夜RAF原門檻失敗而判紅。舊新同樣受software compositing拖慢，既有失敗trace保留，沒有降低門檻。`results603.json`記錄精確SHA、artifact與未過項。
 
 原96張遛狗相位只驗drawImage呼叫，有最終被地坪蓋住的盲點；該結論已撤回。本次只接兩處新k92角色深度，加row9／16／25×3款×4向×8相位共288個真畫布反事實像素比較，另把深度暫時改回舊值，必須抓到「有呼叫、可見像素零」。新像素矩陣尚須CI完成。
+
+
+## 2026-10-06 原生濾鏡 X 軸裁切修復
+
+先前深度補驗已由fe0659a8的真Chrome完成：world171檢查／331PNG、neighbors636檢查／483PNG，288組狗／主人最終可見像素與故意舊深度負控制均通過。10張原PNG已由業主確認；core仍因原日夜RAF門檻判紅。16ed3c9的舊／新配對trace顯示主要耗時在Canvas的LayerTreeHost::DoUpdateLayers，不能據此降低門檻。
+
+31a155c的test-only實驗（run37494511542、raster artifact11427233201，ZIP SHA256 `3d1d2d64d6063ea8f5e1f339c4b2a98e0f5910b334d3a53efb7152b00fa7e914`）在同城同鏡頭舊／新×日夜四組，X軸裁切的全畫布像素差均為0，日間18–19幀提升至133–135幀／5秒、夜間3幀提升至29–30幀。完整Y軸必須保留；緊縮XY裁切曾造成6個倒影邊緣像素差，因此沒有採用。
+
+指定發卡方批准兩處原生brightness(0)前的X裁切增補，保留原filter／alpha／drawImage／save-restore。`window.__noClip603=true`可單獨停用優化，`?noT603=1`同樣走原路；非標準變換／合成或不支援API時保守回退。本次無額外影像快取。
+
+`clip603.js`的27項幾何、回退和原生接線守衛已通過，完整T603像素台架與63工具鏈亦通過；重建main SHA256仍逐bytes相同。完整本地Node先前遭SIGKILL，不計為通過，依已批准CI先行例外在候選執行完整回歸。新Chrome門檻另外要求256世界場景＋32分數鏡頭／縮放場景整幅RGBA零差、正控制與故意錯裁X邊界負控制。所有原效能predicate保持原文；尚未把本次候選記為驗收通過。
+
+以上全部是雲端headless瀏覽器資料，實體裝置55FPS仍未量得。若整幀差異非零，不能沿用已確認圖片作為本次修復的等價證明。

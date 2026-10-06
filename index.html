@@ -18829,6 +18829,7 @@ function draw(dt){
         const ax2=sx+32*z,ay2=sy+32*z;
         ctx.save();
         ctx.translate(ax2,ay2);ctx.scale(1,-.35);
+        clipFilter603(ctx,rs.img,-rs.ax*z,-rs.ay*z,rs.w*z,rs.h*z); // T603：只裁X，保留原生濾鏡與垂直取樣原點
         ctx.filter='brightness(0)';
         ctx.globalAlpha=.22;
         ctx.drawImage(rs.img,-rs.ax*z,-rs.ay*z,rs.w*z,rs.h*z);
@@ -19621,6 +19622,7 @@ function draw(dt){
     if(shadowA>0&&!(s&&s.__t590)){ // T590：新圖自帶落地影與地坪，不再疊壓扁剪影｜陰影：取既有 sprite 本體 alpha 剪影，垂直壓扁＋固定偏移模擬躺地投影，不新增 sprite、不消耗 R()
       const shH=Math.max(2,s.h*z*.32);
       ctx.save();
+      clipFilter603(ctx,s.img,bx+SHOX*z,by+s.h*z-shH+SHOY*z,s.w*z,shH); // T603：只裁X，外層save/restore管理裁切狀態
       ctx.filter='brightness(0)';
       ctx.globalAlpha=shadowA;
       ctx.drawImage(s.img,bx+SHOX*z,by+s.h*z-shH+SHOY*z,s.w*z,shH);
@@ -29760,6 +29762,14 @@ const LOT603=new Set([29,85,92,88]);
 function t603On(){if(t603On.u===undefined)t603On.u=/(?:^|[?&])noT603(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT603&&!t603On.u;}
 function v603(k,x,y,b){if(k===29)return (((b?b.v:0)|0)%3+3)%3;return Math.min(2,Math.floor(hashLocal590(x|0,y|0,k*131+603)*3));}
 function lifeDepth603(x,y,b,base){return base+.016+(b&&b.k===92&&b.lot574&&t603On()?y*.001:0);} // T603：跟隨園區本體的列偏置，防止狗與主人先畫後被地坪蓋住；舊圖路徑原值。
+function clipFilter603(g,img,x,y,w,h){
+  if(!t603On()||window.__noClip603||typeof Path2D!=='function'||typeof g.getTransform!=='function'||!g.canvas||!(w>0&&h>0)||g.shadowBlur!==0||g.globalCompositeOperation!=='source-over')return false;
+  const m=g.getTransform();if(m.b!==0||m.c!==0||!Number.isFinite(m.a)||!Number.isFinite(m.e))return false;
+  const a=m.a*x+m.e,b=m.a*(x+w)+m.e,left=Math.floor(Math.min(a,b))-2,right=Math.ceil(Math.max(a,b))+2;
+  if(!(right>left&&g.canvas.height>0))return false;
+  const p=new Path2D();p.rect(left,0,right-left,g.canvas.height); // Y維持全幅；brightness(0)不擴散，X留2實像素餘量
+  g.resetTransform();g.clip(p);g.setTransform(m);return true; // 呼叫處已save；既有restore完整復原
+}
 function kit603(T){
   const K=kit602(T),{P,quad,box,H}=T,{px,face,ln,ground,lamp,house,shrub}=K,W=T.winter;
   const yard=(green=false)=>{ground(0,0,2,2,green?'#95ad7c':'#aeb4a4');for(let u=.08;u<1.95;u+=.2)for(let v=.08;v<1.95;v+=.2)if(H(u,v,3)<.2){const p=P(u,v);px(p[0],p[1],W?'#cbd9d1':green?'#829e6d':'#939e94',2,1);}ln(P(0,2),P(2,2),W?'#baccc5':'#687f74',2);ln(P(2,2),P(2,0),W?'#dae5dc':'#8b9a8b',2);};
