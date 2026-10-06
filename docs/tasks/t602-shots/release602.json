@@ -1,0 +1,65 @@
+{
+  "card": "T602",
+  "version": "11.211",
+  "approvedRuntimeSource": "8a3da1cdbb68ab299f0fdd89eb41b12dfaf81aaa",
+  "sourceBase": "bc2a064d387eab1320c63c338f54b79bacfa8bfc",
+  "releaseMetadataOnly": true,
+  "ownerImageApproval": "2026-10-06: 16 original PNGs accepted; release requested",
+  "deploymentContract": "Canonical local master via tools/merge_bay.py; no manual runtime copy, no Lab Pages, no tests on player origin8123. Exact final source OID and deployment receipt must be verified after deployment.",
+  "files": [
+    {
+      "path": "index.html",
+      "bytes": 4452009,
+      "sha256": "b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265",
+      "deployedByMergeTool": true
+    },
+    {
+      "path": "sw.js",
+      "bytes": 3882,
+      "sha256": "3988245f393202d86dd6727d26fea99c9706943d87a75893faba1c32b3ad47ac",
+      "deployedByMergeTool": true
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 748,
+      "sha256": "21893d46de8bcf86645c964a7ed160237e4f3fa6c0d23055dc01daa98ee64e3e",
+      "deployedByMergeTool": false
+    },
+    {
+      "path": "icon.svg",
+      "bytes": 835,
+      "sha256": "31e67dd794b00928046ab48678aeae26763535ec3b40b94f679ddf37047eaf8b",
+      "deployedByMergeTool": false
+    },
+    {
+      "path": "icon-v1-192.png",
+      "bytes": 581,
+      "sha256": "a7252477296cc7704bd3d485c8a3a25bcfb6c36bcb5df2b0dca666bab4537951",
+      "deployedByMergeTool": false
+    },
+    {
+      "path": "icon-v1-512.png",
+      "bytes": 1688,
+      "sha256": "42d58a67cc90bac9f965dbe8497aa5913aa5907623d2f278c2ba6ccc45566d4d",
+      "deployedByMergeTool": false
+    },
+    {
+      "path": "icon-v1-maskable-512.png",
+      "bytes": 1679,
+      "sha256": "56ffc2b39731bacf19e121770fdce612c0cc915bb663c1a781d6e1e213005950",
+      "deployedByMergeTool": false
+    }
+  ],
+  "performanceLimits": [
+    "Headless mobile old/new short RAF about2.8/2.9FPS is not a physical-device guarantee.",
+    "Candidate cold first bake about150.6ms; warm desktop p95 about3.7ms."
+  ],
+  "localReleaseVerification": {
+    "passes": 12525,
+    "failures": 0,
+    "result": "ALL GREEN",
+    "sixSeedPinsMatched": true,
+    "toolchainTests": 63,
+    "approvedRuntimeBytesUnchanged": true
+  }
+}

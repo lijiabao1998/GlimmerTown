@@ -1,7 +1,7 @@
 name: Town T602 candidate validation
 on:
   push:
-    branches: [gpt/town-bluegrey-batch-602]
+    branches: [gpt/town-bluegrey-batch-602, main]
   workflow_dispatch:
 permissions:
   contents: read
