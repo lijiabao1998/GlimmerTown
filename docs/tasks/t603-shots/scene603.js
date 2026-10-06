@@ -5,15 +5,17 @@
 const fs=require('fs'),os=require('os'),path=require('path'),http=require('http'),crypto=require('crypto');
 const {spawn}=require('child_process');
 const arg=(n,d)=>{const a=process.argv.find(x=>x.startsWith('--'+n+'='));return a?a.slice(n.length+3):d;};
-const PORT=+arg('port',8762),DEV=PORT+1000,OUT=path.resolve(arg('out',path.join(os.tmpdir(),'scene603')));
+const PHASE=arg('phase','full');if(!['full','core','world','neighbors'].includes(PHASE))throw Error('Unknown T603 validation phase');
+const PORT=+arg('port',8763),DEV=PORT+1000,OUT=path.resolve(arg('out',path.join(os.tmpdir(),'scene603')));
 if([PORT,DEV].some(p=>[8123,8199].includes(p)))throw Error('Player ports 8123/8199 prohibited');
 const ROOT=path.resolve(__dirname,'../../..'),DIR=fs.mkdtempSync(path.join(os.tmpdir(),'scene603-'));
 fs.mkdirSync(OUT,{recursive:true});
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const pct=(a,p)=>[...a].sort((x,y)=>x-y)[Math.min(a.length-1,Math.floor(a.length*p))];
-const report={status:'running',baseSha:'637c8cc6d09306c1e17535ece6119d3ad78f1382',checks:[],screenshots:[],headless:true,performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'};
+const report={status:'running',phase:PHASE,performanceFailures:[],coverage:{core:false,world:false,neighbors:false},baseSha:'637c8cc6d09306c1e17535ece6119d3ad78f1382',checks:[],screenshots:[],headless:true,performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'};
 const check=(v,m)=>{if(!v)throw Error(m);report.checks.push(m);};
+const perfCheck=(v,m)=>{if(v)report.checks.push(m);else{report.performanceFailures.push(m);console.log('T603_PERFORMANCE_FAILURE '+m);}}; // 延後彙總判紅，不能把失敗轉綠；獨立圖面仍完整驗收。
 const persist=()=>fs.writeFileSync(path.join(OUT,'scene603-summary.json'),JSON.stringify(report,null,2));
 for(const f of fs.readdirSync(ROOT)){const p=path.join(ROOT,f);if(fs.statSync(p).isFile()&&/\.(html|js|json|webmanifest|png|svg|css)$/.test(f))fs.copyFileSync(p,path.join(DIR,f));}
 // This function is string-injected inside the game's closure in the disposable copy.
@@ -99,7 +101,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     server=http.createServer((req,res)=>{const file=path.resolve(DIR,'.'+decodeURIComponent((req.url||'/').split('?')[0]));const target=file===DIR?path.join(DIR,'index.html'):file;if(!target.startsWith(DIR+path.sep)){res.writeHead(403).end();return;}fs.readFile(target,(err,data)=>{if(err){res.writeHead(404).end();return;}res.writeHead(200,{'content-type':target.endsWith('.html')?'text/html; charset=utf-8':target.endsWith('.js')?'application/javascript':target.endsWith('.json')?'application/json':'application/octet-stream','cache-control':'no-store'});res.end(data);});});
     await new Promise((resolve,reject)=>{server.on('error',reject);server.listen(PORT,'127.0.0.1',resolve);});
     const executable=chromePath();check(executable,'Chrome executable exists');
-    browser=spawn(executable,['--headless=new',...(process.platform==='linux'?['--no-sandbox']:[]),'--no-first-run','--no-default-browser-check','--mute-audio','--hide-scrollbars','--window-size=1400,900','--user-data-dir='+path.join(DIR,'.profile'),'--remote-debugging-port='+DEV,'about:blank'],{stdio:['ignore','ignore','pipe']});
+    browser=spawn(executable,['--headless=new','--disable-gpu',...(process.platform==='linux'?['--no-sandbox']:[]),'--no-first-run','--no-default-browser-check','--mute-audio','--hide-scrollbars','--window-size=1400,900','--user-data-dir='+path.join(DIR,'.profile'),'--remote-debugging-port='+DEV,'about:blank'],{stdio:['ignore','ignore','pipe']});
     let chromeLog='';browser.stderr.on('data',b=>{chromeLog=(chromeLog+b).slice(-12000);});browser.on('error',e=>{chromeLog+=String(e);});
     let url;for(let i=0;i<120&&!url;i++){try{const tabs=await fetch('http://127.0.0.1:'+DEV+'/json/list').then(r=>r.json());url=tabs.find(t=>t.type==='page'&&t.webSocketDebuggerUrl)?.webSocketDebuggerUrl;}catch{}if(browser.exitCode!==null||browser.signalCode!==null)throw Error('Chrome exited '+(browser.exitCode??browser.signalCode)+': '+chromeLog);if(!url)await sleep(250);}check(url,'Chrome CDP unavailable: '+chromeLog);
     ws=new WebSocket(url);await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject;});
@@ -192,7 +194,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
       await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await sleep(350);
       check(await ev('innerWidth===390&&!document.body.classList.contains("toolsExp")'),'390px collapsed viewport restored for stability');
     };
-    report.browserVersion=await send('Browser.getVersion');report.graphicsLaunch='Chrome default graphics path; inherited --disable-gpu removed, no game or acceptance threshold changes';
+    report.browserVersion=await send('Browser.getVersion');report.graphicsLaunch='Original headless --disable-gpu configuration restored after default-graphics diagnostic; both modes failed the unchanged absolute RAF floor on software-only CI';
     try{const v=await fetch('http://127.0.0.1:'+DEV+'/json/version').then(r=>r.json());const bw=new WebSocket(v.webSocketDebuggerUrl);await new Promise((res,rej)=>{bw.onopen=res;bw.onerror=rej;});const info=await new Promise((res,rej)=>{const timer=setTimeout(()=>rej(Error('GPU info timeout')),10000);bw.onmessage=e=>{const m=JSON.parse(e.data);if(m.id===1){clearTimeout(timer);m.error?rej(Error(JSON.stringify(m.error))):res(m.result);}};bw.send(JSON.stringify({id:1,method:'SystemInfo.getInfo'}));});report.gpuInfo=info.gpu;bw.close();}catch(e){report.gpuInfoError=String(e);}
     await send('Page.enable');await send('Runtime.enable');await send('Page.bringToFront');
     await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});
@@ -224,6 +226,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const growCity=async label=>{const stats=await ev('__s603.grow22()'),roots=await ev('__s603.roots()'),rootSHA256=hash(JSON.stringify(roots.rows));await ev('GV.save();true');const saved=await ev('__s603.saved()'),expected=JSON.parse(expectedCitySave),actual=JSON.parse(saved),changedFields=Object.keys(expected).filter(k=>JSON.stringify(expected[k])!==JSON.stringify(actual[k]));report.grownCities=report.grownCities||{};report.grownCities[label]={stats,roots:roots.rows.length,rootSHA256,changedFields};check(!roots.bad&&roots.rows.length===cityFixture.roots&&rootSHA256===cityFixture.rootSHA256,'grown city exact roots '+label);check(stats.pop===cityFixture.stats.pop&&stats.day===cityFixture.day,'grown city genuine derived population/day '+label);check(!changedFields.length,'grown city canonical save matches fixture '+label+': '+JSON.stringify(changedFields));await sleep(450);return stats;};
     report.cityStats=await growCity('desktop-before');report.census={};
     for(const k of[29,85,92,88]){report.census[k]=await ev('__s603.census('+k+')');check(report.census[k].length>0,'mature city contains k'+k);}
+    if(PHASE==='full'||PHASE==='core'){
     report.desktop=await testUI('desktop',false,report.census[85][0]);
     await growCity('mobile-before');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});await sleep(500);
     report.mobileStartLayout=await ev('(()=>{const describe=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e),top=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {id:e.id,tid:e.dataset&&e.dataset.tid,className:String(e.className||""),text:e.textContent.slice(0,100),rect:r.toJSON(),zIndex:s.zIndex,position:s.position,pointerEvents:s.pointerEvents,centerHit:top?{id:top.id,className:String(top.className||""),tag:top.tagName}:null};};return {width:innerWidth,height:innerHeight,docWidth:document.documentElement.scrollWidth,scrollX,scrollY,visualViewport:visualViewport?{width:visualViewport.width,height:visualViewport.height,offsetLeft:visualViewport.offsetLeft,offsetTop:visualViewport.offsetTop,scale:visualViewport.scale}:null,groups:["hud","toolcats","tools","zoomer","mini","hint","info","start","boot426"].map(id=>document.getElementById(id)).filter(Boolean).map(describe),buttons:[...document.querySelectorAll("button")].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height;}).map(describe)};})()');
@@ -234,8 +237,8 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     for(const [phase,time]of [['day',55],['night',100]]){
       const pair=report.mobilePerformance[phase]={};
       for(const off of [true,false]){const mode=off?'baseline':'candidate',initial=await ev('(()=>{window.__noT603='+off+';const light=__s603.freezeVis('+time+');__s603.clear();const first=__s603.drawMs();return {light,first,before:__s603.cacheStats()};})()'),{light,first,before}=initial,warm=[];for(let i=0;i<10;i++)warm.push(await ev('__s603.drawMs()'));const after=await ev('__s603.cacheStats()'),frames=await raf(5000),last=await ev('__s603.cacheStats()');pair[mode]={light,first,warm,warmP95:pct(warm,.95),before,after,last,warmBakeDelta:after.bakes-before.bakes,rafBakeDelta:last.bakes-after.bakes,raf:frames};}
-      check(pair.candidate.warmP95<=pair.baseline.warmP95*1.5+5,'mobile '+phase+' same-light warm draw relative budget');
-      check(pair.candidate.raf.p95<=pair.baseline.raf.p95*1.5+5&&pair.candidate.raf.frames>=Math.max(5,pair.baseline.raf.frames/2),'mobile '+phase+' same-light RAF relative budget');
+      perfCheck(pair.candidate.warmP95<=pair.baseline.warmP95*1.5+5,'mobile '+phase+' same-light warm draw relative budget');
+      perfCheck(pair.candidate.raf.p95<=pair.baseline.raf.p95*1.5+5&&pair.candidate.raf.frames>=Math.max(5,pair.baseline.raf.frames/2),'mobile '+phase+' same-light RAF relative budget');
     }
     await ev('window.__noT603=false;__s603.freezeVis(55);true');report.stabilityPhase='steady daylight55; same existing600-frame/5-second-gap gate';const stableState=await ev('__s603.scene()');report.stability=await raf(60000);check(report.stability.elapsed>=60000&&report.stability.frames>=600&&report.stability.max<5000,'one-minute visible RAF stability and liveness');check(stableState===await ev('__s603.scene()'),'one-minute paused city unchanged');
     await ev('__s603.freezeVis(null);true');
@@ -245,10 +248,15 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const focus=report.census[85][0];for(const [phase,time]of [['day',55],['night',100]]){
       const pair=report.performance[phase]={};
       for(const off of[true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT603='+off+';true');await camera(focus[0]+1,focus[1]+1,1,0,1,time,false);const first=await ev('(()=>{__s603.clear();const cold=__s603.drawMs();return {cold,cache:__s603.cacheStats()};})()'),cold=first.cold,warm=[];for(let i=0;i<30;i++)warm.push(await ev('__s603.drawMs()'));await ev('__s603.perfStart()');const frames=await raf(5000),work=await ev('__s603.perfWork()');pair[mode]={cold,firstCache:first.cache,warm,warmP95:pct(warm,.95),raf:frames,...work};}
-      const b=pair.baseline,c=pair.candidate;if(!(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=(phase==='day'?50:Math.max(5,b.raf.frames/2)))){pair.failureTrace=await traceFrameWork603('desktop-'+phase+'-candidate');persist();}check(c.cold<=b.cold*2+250,'desktop '+phase+' cold draw relative budget');check(c.warmP95<=b.warmP95*1.5+5,'desktop '+phase+' warm draw p95 relative budget');check(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=(phase==='day'?50:Math.max(5,b.raf.frames/2)),'desktop '+phase+' foreground headless RAF relative budget');
+      const b=pair.baseline,c=pair.candidate;if(!(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=(phase==='day'?50:Math.max(5,b.raf.frames/2)))){pair.failureTrace=await traceFrameWork603('desktop-'+phase+'-candidate');persist();}perfCheck(c.cold<=b.cold*2+250,'desktop '+phase+' cold draw relative budget');perfCheck(c.warmP95<=b.warmP95*1.5+5,'desktop '+phase+' warm draw p95 relative budget');perfCheck(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=(phase==='day'?50:Math.max(5,b.raf.frames/2)),'desktop '+phase+' foreground headless RAF relative budget');
     }
     await ev('window.__noT603=false;true');
     await ev('GV.setDay('+performanceOriginalDay+');true');
+    report.coverage.core=true;persist();}
+    const fresh=async()=>ev('GV.newWorldSeeded(603);GV.setDiff(3);GV.setSpeed(0);GV.ai(false);__s603.clearMap();true');
+    const place=async(tool,x,y,n)=>{await ev('__s603.prepare('+[x,y,n]+');true');check(await ev('GV.place('+JSON.stringify(tool)+','+x+','+y+')'),'real placement '+tool+' at '+x+','+y);};
+    if(PHASE==='full'||PHASE==='world'){
+    await growCity('world-art-matrix');
     const state=await ev('__s603.scene()'),originalDay=(await view()).day;
     for(const k of[29,85,92,88]){const c=report.census[k][0];await camera(c[0]+c[2]/2,c[1]+c[2]/2,k===53?1.1:2,0,1,55,false);for(const off of[true,false]){await ev('window.__noT603='+off+';true');await shot('city-k'+k+(off?'-before':'-after'));}}
     // Full product of 4 kinds, 4 seasons, 2 lights, 4 rotations, 2 distances.
@@ -258,8 +266,6 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     // setSeason is a simulation test API and writes day. Restore explicitly.
     await ev('GV.setDay('+originalDay+');true');report.visualStateUnchanged=state===await ev('__s603.scene()');check(report.visualStateUnchanged,'visual-only city data unchanged after restoring test calendar');
     // Disposable fixtures use genuine placement. All four civic footprints are unchanged.
-    const fresh=async()=>ev('GV.newWorldSeeded(603);GV.setDiff(3);GV.setSpeed(0);GV.ai(false);__s603.clearMap();true');
-    const place=async(tool,x,y,n)=>{await ev('__s603.prepare('+[x,y,n]+');true');check(await ev('GV.place('+JSON.stringify(tool)+','+x+','+y+')'),'real placement '+tool+' at '+x+','+y);};
     await fresh();report.row=[];
     for(const [k,tool,n,y]of[[29,'recycling',2,8],[85,'seniorCenter',2,20],[92,'dogpark',2,32],[88,'compost',2,44]]){let x=5;const seen=new Set();for(let want=0;want<3;want++){
       if(k===29){while(x<66&&seen.size<3){await place(tool,x,y,n);const v=await ev('__s603.v('+[k,x,y]+')');if(!seen.has(v)){report.row.push({k,v,n,x,y});seen.add(v);}x+=n+2;}break;}
@@ -271,6 +277,8 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     for(const [k,tool,n,y]of[[29,'recycling',2,8],[85,'seniorCenter',2,20],[92,'dogpark',2,32],[88,'compost',2,44]])for(let age=4;age<=8;age++){const x=5+(age-4)*(n+2);await place(tool,x,y,n);await ev('__s603.age('+[x,y,age]+');true');report.construction.push({k,n,x,y,age});}
     check(report.construction.length===20&&new Set(report.construction.map(r=>r.k+'/'+r.age)).size===20,'all 20 construction roots placed');
     for(const r of report.construction){const b=await ev('GV.tile('+[r.x,r.y]+').bld');check(b.k===r.k&&b.age===r.age&&b.lot574===r.n,'construction root data '+r.k+'/'+r.age);await camera(r.x+r.n/2,r.y+r.n/2,r.k===53?1.15:2.5,0,1,55,false);await shot('construction-k'+r.k+'-age'+r.age);}
+    report.coverage.world=true;persist();}
+    if(PHASE==='full'||PHASE==='neighbors'){
     // Presence + renderer assertions, with 128 screenshots for manual occlusion QA.
     // These screenshots do not by themselves prove correct depth ordering.
     report.occlusion=[];
@@ -286,6 +294,9 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     check(report.dogActors.length===96,'all 96 dog-park variant/rotation/animation scenes');
     for(let v=0;v<3;v++)check(new Set(report.dogActors.filter(r=>r.variant===v).flatMap(r=>r.dogFrames)).size===2,'both real dog animation frames covered v'+v);
 
+    report.coverage.neighbors=true;persist();}
+    check(PHASE==='full'?Object.values(report.coverage).every(Boolean):report.coverage[PHASE]===true,'requested phase coverage complete: '+PHASE);
+    check(report.performanceFailures.length===0,'all unchanged performance gates must pass: '+report.performanceFailures.join('; '));
     report.finalFlags=await ev('__s603.flags()');check(report.finalFlags.T603&&!report.finalFlags.T596&&!report.finalFlags.T600,'final preview flags preserved');report.errLog=await ev('(window.__errLog||[]).slice(-20)');check(!errors.length&&!consoleErrors.length&&!report.errLog.length,'zero runtime/console/app errors');report.status='passed';exitCode=0;
   }catch(e){report.status='failed';report.error=e.stack;console.error('SCENE603 FAILED: '+e.stack);try{if(captureFailure)await captureFailure();else report.failureScreenshotError='Browser/CDP did not become available';}catch(captureError){report.failureScreenshotError=String(captureError&&captureError.stack||captureError);}}
   finally{report.exceptions=errors;report.consoleErrors=consoleErrors;persist();console.log('SCENE603 '+JSON.stringify({status:report.status,checks:report.checks.length,screenshots:report.screenshots.length,error:report.error}));try{ws?.close();}catch{}try{browser?.kill();}catch{}try{server?.close();}catch{}setTimeout(()=>{try{fs.rmSync(DIR,{recursive:true,force:true});}catch{}process.exit(exitCode);},1000);}

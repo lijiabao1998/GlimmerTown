@@ -51,6 +51,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   browser:
+    strategy:
+      fail-fast: false
+      matrix:
+        phase: [core, world, neighbors]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -66,11 +70,11 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p evidence
-          node docs/tasks/t603-shots/scene603.js --port=8763 --out=evidence/chrome | tee evidence/chrome.log
+          node docs/tasks/t603-shots/scene603.js --phase=${{ matrix.phase }} --port=8763 --out=evidence/chrome | tee evidence/chrome.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Town-T603-Chrome-${{ github.sha }}
+          name: Town-T603-Chrome-${{ matrix.phase }}-${{ github.sha }}
           path: evidence/
           if-no-files-found: error
           retention-days: 14
