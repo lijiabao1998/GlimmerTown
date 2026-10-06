@@ -29765,7 +29765,8 @@ function lifeDepth603(x,y,b,base){return base+.016+(b&&b.k===92&&b.lot574&&t603O
 function clipFilter603(g,img,x,y,w,h){
   if(!t603On()||window.__noClip603||typeof Path2D!=='function'||typeof g.getTransform!=='function'||!g.canvas||!(w>0&&h>0)||g.shadowBlur!==0||g.globalCompositeOperation!=='source-over')return false;
   const m=g.getTransform();if(m.b!==0||m.c!==0||!Number.isFinite(m.a)||!Number.isFinite(m.e))return false;
-  const a=m.a*x+m.e,b=m.a*(x+w)+m.e,left=Math.floor(Math.min(a,b))-2,right=Math.ceil(Math.max(a,b))+2;
+  const a=m.a*x+m.e,b=m.a*(x+w)+m.e;if(!Number.isInteger(a)||!Number.isInteger(b))return false; // 分數像素保留原路，避免濾鏡原點捨入差
+  const left=Math.min(a,b)-2,right=Math.max(a,b)+2;
   if(!(right>left&&g.canvas.height>0))return false;
   const p=new Path2D();p.rect(left,0,right-left,g.canvas.height); // Y維持全幅；brightness(0)不擴散，X留2實像素餘量
   g.resetTransform();g.clip(p);g.setTransform(m);return true; // 呼叫處已save；既有restore完整復原
