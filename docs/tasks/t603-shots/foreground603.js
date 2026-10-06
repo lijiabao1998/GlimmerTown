@@ -52,6 +52,17 @@ const gpuPixelPairs=`
     await ev('GV.setDay('+performanceOriginalDay+');true');
 `;
 replace('    report.coverage.core=true;persist();}',gpuPixelPairs+'    report.coverage.core=true;persist();}');
+const nativePinBaseline=`
+    // Compare original and candidate pixels on the same qualified GPU backend, never rebase from candidate output.
+    const nativeBaseOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/baseline603.html'});await ready(nativeBaseOrigin603);
+    const nativeBaseIdentity603=await ev('__s603.documentIdentity()');check(nativeBaseIdentity603.version==='11.211'&&nativeBaseIdentity603.civicFactory==='undefined'&&nativeBaseIdentity603.url==='/baseline603.html','native GPU pin baseline is exact immutable main document');
+    const nativeMainPins603=await ev('__s603.pins()');fs.writeFileSync(path.join(OUT,'native-main-sprite-pins.json'),JSON.stringify(nativeMainPins603));report.nativePinBaselineIdentity=nativeBaseIdentity603;
+    const nativeCandidateOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready(nativeCandidateOrigin603);check(await ev('__s603.flags().T603&&__s603.documentIdentity().version==="11.212"'),'candidate restored after native GPU pin baseline capture');
+`;
+replace('    // Baseline fixture is immutable v11.211, not the candidate pin file.',nativePinBaseline+'    // Baseline fixture is immutable v11.211, not the candidate pin file.');
+replace("const baseline=pinsOf(JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures','sprite-pins-v11.211.json'),'utf8'))),candidate=","const frozenPinManifest603=pinsOf(JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures','sprite-pins-v11.211.json'),'utf8'))),baseline=pinsOf(nativeMainPins603),candidate=");
+replace('report.candidatePinDiff=[...new Set([...Object.keys(candidate),...Object.keys(actual)])].filter(k=>JSON.stringify(candidate[k])!==JSON.stringify(actual[k]));','report.candidatePinDiff=[...new Set([...Object.keys(candidate),...Object.keys(frozenPinManifest603)])].filter(k=>JSON.stringify(candidate[k])!==JSON.stringify(frozenPinManifest603[k]));report.crossBackendPinDifference=Object.keys(frozenPinManifest603).filter(k=>JSON.stringify(frozenPinManifest603[k])!==JSON.stringify(baseline[k]));');
+replace("'candidate pins match Chromium: '","'candidate approved pin manifest remains frozen: '");
 const compile=new Function('require','__filename','__dirname',source);
 if(process.argv.includes('--check-overlay'))console.log('T603_FOREGROUND_OVERLAY_SYNTAX_OK '+crypto.createHash('sha256').update(source).digest('hex'));
 else compile(require,sourcePath,__dirname);
