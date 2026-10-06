@@ -1,0 +1,168 @@
+{
+  "candidateCommit": "8a3da1cdbb68ab299f0fdd89eb41b12dfaf81aaa",
+  "gameVersion": "11.211",
+  "runtimeSHA256": "b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265",
+  "workflowRun": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/37414898575",
+  "fullVerify": {
+    "passes": 12522,
+    "failures": 0,
+    "result": "ALL GREEN",
+    "seedPins": {
+      "seed22": 639,
+      "seed22m": 14523,
+      "seed301": 780,
+      "seed301m": 2297,
+      "seed7": 117,
+      "seed7m": 77
+    }
+  },
+  "toolchain": {
+    "tests": 63,
+    "result": "OK"
+  },
+  "browser": {
+    "checks": 390,
+    "screenshots": 366,
+    "exceptions": 0,
+    "consoleErrors": 0,
+    "appErrors": 0,
+    "originalSpriteKeys": 1580,
+    "newSpriteKeys": 6,
+    "independentBootsIdentical": true,
+    "oldSaveCities": [
+      {
+        "seed": 22,
+        "roots": 956,
+        "rootSHA256": "bfb601802addb32048efa09bd0e3b81f7ea6d180df25465111fc5d0129a12004"
+      },
+      {
+        "seed": 777,
+        "roots": 915,
+        "rootSHA256": "f2d567942a62fe48e601d06afd5b0b4802e87551387b2b194e34eaca1380cb87"
+      },
+      {
+        "seed": 301,
+        "roots": 334,
+        "rootSHA256": "e0542ad9259ed606bd393d54091145cc8f296ec1fa2be6cdedfc2a9fdf2b39b5"
+      }
+    ],
+    "seasonLightRotationDistanceScenes": 192,
+    "constructionCases": 15,
+    "adjacentOcclusionScenes": 96,
+    "mobileWidths": [
+      320,
+      360,
+      390,
+      420
+    ],
+    "toolbarStates": [
+      "collapsed",
+      "expanded",
+      "recollapsed"
+    ],
+    "newTouchBuiltGardenSurvivesReload": true
+  },
+  "desktopPerformance": {
+    "baseline": {
+      "cold": 2.599999999976717,
+      "warmP95": 4.699999999953434,
+      "raf": {
+        "elapsed": 5006.200000000012,
+        "frames": 301,
+        "mean": 16.666112956810633,
+        "p95": 16.70000000001164,
+        "max": 16.800000000046566,
+        "visibility": "visible"
+      }
+    },
+    "candidate": {
+      "cold": 150.59999999997672,
+      "warmP95": 3.700000000069849,
+      "raf": {
+        "elapsed": 5013.899999999907,
+        "frames": 301,
+        "mean": 16.666112956810633,
+        "p95": 16.79999999998836,
+        "max": 16.800000000046566,
+        "visibility": "visible"
+      }
+    }
+  },
+  "mobilePerformance": {
+    "baseline": {
+      "first": 18.70000000001164,
+      "warm": [
+        15.299999999988358,
+        15.400000000023283,
+        17,
+        16.400000000023283,
+        16.600000000034925,
+        15,
+        15.799999999988358,
+        17.600000000034925,
+        15.200000000011642,
+        16.100000000034925
+      ],
+      "warmBakeDelta": 0,
+      "rafBakeDelta": 0,
+      "raf": {
+        "elapsed": 5310.499999999985,
+        "frames": 15,
+        "mean": 354.4400000000004,
+        "p95": 366.70000000000437,
+        "max": 366.70000000000437,
+        "visibility": "visible"
+      }
+    },
+    "candidate": {
+      "first": 16.29999999998836,
+      "warm": [
+        15.700000000011642,
+        15.5,
+        14.899999999965075,
+        17.900000000023283,
+        14.900000000023283,
+        18.099999999976717,
+        12.599999999976717,
+        12.599999999976717,
+        12.699999999953434,
+        12.700000000011642
+      ],
+      "warmBakeDelta": 0,
+      "rafBakeDelta": 1,
+      "raf": {
+        "elapsed": 5214.500000000029,
+        "frames": 15,
+        "mean": 348.87333333333373,
+        "p95": 366.6999999999971,
+        "max": 366.6999999999971,
+        "visibility": "visible"
+      }
+    }
+  },
+  "mobileStability": {
+    "elapsed": 60013.600000000035,
+    "frames": 1513,
+    "mean": 39.67686715135493,
+    "p95": 350,
+    "max": 383.3000000000029,
+    "visibility": "visible"
+  },
+  "performanceLimitations": [
+    "Headless Chrome is not a physical-phone or physical-desktop FPS guarantee.",
+    "The same mobile view produced approximately 2.8 FPS in both old and candidate rendering during short RAF samples; no warm-frame cache rebaking was observed.",
+    "Candidate desktop cold first bake was 150.6ms versus baseline 2.6ms; warm rendering was comparable."
+  ],
+  "artArchive": {
+    "artifactId": 11391475197,
+    "sha256": "dc1f3025616e655108fc639633468fce26153325ef730eb47da926103057a5af",
+    "url": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/37414898575/artifacts/11391475197"
+  },
+  "releaseState": "Owner image approval received. Formal canonical integration, deployment and live source verification are separate pending steps.",
+  "imageApproval": {
+    "date": "2026-10-06",
+    "approvedOriginalPNGCount": 16,
+    "scope": "T602 v11.211 including the approved narrow-screen zoom lane",
+    "ownerDecision": "沒問題上線然後自己決定下一波美術素材"
+  }
+}

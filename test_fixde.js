@@ -489,6 +489,7 @@ window.__t599T={vt:(o,bd)=>vtower599(o,bd),on:k=>tower599(k),mk:(k,v,m)=>makeTow
 window.__t600T={v:(bd,x,y)=>v600(bd,x,y),off:t600Off,ht:()=>JSON.parse(JSON.stringify(HT600)),rank:()=>JSON.parse(JSON.stringify(RANK600)),dec:()=>JSON.parse(JSON.stringify(DEC600)),vrank:()=>JSON.parse(JSON.stringify(VRANK406)),
   withVrank:(key,arr,fn)=>{const o=VRANK406[key],had=key in VRANK406;VRANK406[key]=arr;try{return fn();}finally{if(had)VRANK406[key]=o;else delete VRANK406[key];}},
   arche:(k,lv,v)=>{const a=arche594(k,lv,v);return a?JSON.parse(JSON.stringify(a)):null;},last:()=>[...LAST596.keys()]}; // T600 測試橋：v600 與三張表、t600Off（.u 可重設）、VRANK406 深拷貝與暫換（withVrank 結束一定還原）、arche594 深拷貝、LAST596 的鍵
+window.__t602T={on:t602On,reg:()=>Object.keys(ART602).filter(k=>k!=='ok').map(Number),A:()=>ART602,S22:buildSpritesS22,bake:bakeArt602,v:v602,pier:pier602,sprite:pierSprite602,one:(x,y,w)=>one601(97,x,y,{k:97,v:0},w),lot:(k,v,st,w,f)=>lotSprite574(k,v,st,w,f),key:lotKey591,lotV:lotV591,clear:()=>{lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;},shore:(x,y,wet)=>{for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const p=w2v(x,y),q=v2w(p[0]+dx,p[1]+dy);T(idx(q[0],q[1])).t=wet.some(a=>a[0]===dx&&a[1]===dy)?0:2;}computeFoam();},data:()=>JSON.stringify({day,money,pop,tiles}),old:()=>[...LOT602].map(k=>portedLot591(k))};
 window.__t601T={rep:()=>window.__t601,reg:()=>Object.keys(ART601).filter(k=>k!=='ok').map(k=>[+k,ART601[k].variants,typeof ART601[k].draw,typeof ART601[k].name]),ok:()=>ART601.ok,on:t601On,v:(k,x,y,bd)=>v601(k,x,y,bd),hash:(x,y,s)=>hashLocal590(x,y,s),
   bake:(k,v,w)=>bakeArt601(k,v,2,w),lot:(k,v,w,far)=>lotSprite574(k,v,2,w,far),lotV:(x,y,b)=>lotV591(x,y,b),key:k=>lotKey591(k),one:k=>SPR.art601&&SPR.art601[k],lot5:v=>SPR.lot601&&SPR.lot601['5_1_'+v],old5:v=>SPR.lot574['5_1_'+v],
   park:()=>({park:SPR.park,parkS:SPR.parkS,parkA:SPR.parkA,parkW:SPR.parkW,ftn:SPR.parkFtn,ped:SPR.ped}),old:k=>SPR.bld[k+'_1_0'],reflect:(bd,x,y)=>reflectSprite(bd,x,y),S21:()=>buildSpritesS21(),hooks:(k,v)=>lotHooks574(k,v),
@@ -754,6 +755,7 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
    從此不再被實跑＝覆蓋率靜默退化。故在此顯式開啟，讓套件維持本卡之前的執行路徑；
    「預設關」本身改由 T405 的原文守衛驗證（產品碼與測試環境各證一半）。 */
 localStorage.setItem('glimmerville.v1.badge', '1');
+window.__noT602=true; // T602：既有整套契約驗原路徑；本卡尾端另開新圖逐項驗證
 eval(js);
 
 
@@ -12959,8 +12961,8 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const FAMK590={5:'plant',10:'waterTower',11:'police',12:'hospital',13:'clinic',52:'policeBox'};
   const S590=window.__t420SPR;
   // G1 兩條開機鏈各恰一次 S19（同步鏈緊接 S18；分段鏈在 checkpoint 96 與 97 之間）
-  assert((html.match(/buildSpritesS18\(\);buildSpritesS19\(\);buildSpritesS20\(\);buildSpritesS21\(\);\n\}/g)||[]).length===1,'T590 G1a 同步開機鏈 S18 之後恰一次 S19（T593 起其後接 S20，T601 起再接 S21）');
-  assert((html.match(/await bootCheckpoint426\(96,[^\n]*\n    buildSpritesS19\(\); \/\/ T590[^\n]*\n    buildSpritesS20\(\); \/\/ T593[^\n]*\n    buildSpritesS21\(\); \/\/ T601[^\n]*\n    await bootCheckpoint426\(97,/g)||[]).length===1,'T590 G1b 分段開機鏈在 checkpoint 96 與 97 之間恰一次 S19（T593 起其後接 S20，T601 起再接 S21）');
+  assert((html.match(/buildSpritesS18\(\);buildSpritesS19\(\);buildSpritesS20\(\);buildSpritesS21\(\);buildSpritesS22\(\);\n\}/g)||[]).length===1,'T590 G1a 同步開機鏈 S18 之後恰一次 S19（T593 起其後接 S20，T601 起再接 S21，T602 後接 S22）');
+  assert((html.match(/await bootCheckpoint426\(96,[^\n]*\n    buildSpritesS19\(\); \/\/ T590[^\n]*\n    buildSpritesS20\(\); \/\/ T593[^\n]*\n    buildSpritesS21\(\);buildSpritesS22\(\); \/\/ T602[^\n]*\n    await bootCheckpoint426\(97,/g)||[]).length===1,'T590 G1b 分段開機鏈在 checkpoint 96 與 97 之間恰一次 S19（T593 起其後接 S20，T601 起再接 S21，T602 後接 S22）');
   assert((html.match(/buildSpritesS19\(\);/g)||[]).length===2&&(html.match(/function buildSpritesS19\(/g)||[]).length===1,'T590 G1c S19 呼叫恰 2 處、定義恰 1 處');
   // G2 真開機（Node 替身）：22 批零例外；換上的新物件數寫死（bld 113、家族 26，2026-09-26 真 Chrome 實測同值）
   const t590=window.__t590;
@@ -13019,7 +13021,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert((html.match(/\n  if\(!t591\)switch\(k\)\{\n/g)||[]).length===1,'T591 G1a 配方 switch 只在沒貼新圖時跑（恰一處）');
   assert(html.includes('if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574);')&&html.includes("const key=b.k+'_'+lotVariant574(b.k,lotV591(o.x,o.y,b));"),'T591 G1b 繪製與縮略圖預算用同一個變體');
   assert(html.includes('if(t591)out574.__t590=1;')&&html.includes("+lotKey591(k);let s=lotCache574.get(key);")&&html.includes("const key=k+'_'+v+lotKey591(k);")&&html.includes("lotHookCache574.set(k+'_'+v+lotKey591(k),{ax,ay,hooks});")
-    &&html.includes("function lotKey591(k){if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
+    &&html.includes("function lotKey591(k){if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
   assert(/function t591On\(\)\{if\(t591On\.u===undefined\)t591On\.u=\/\(\?:\^\|\[\?&\]\)noT591\(\?:=1\)\?\(\?:&\|\$\)\/\.test\(/.test(html)&&html.includes('return !window.__noT591&&!t591On.u;}'),'T591 G1d 網址 ?noT591=1 逃生閥原文');
   // G8c 原文（未剝字串）：三行貼圖含合成模式整行釘死（覆核抓到剝字串後改成等長別的模式不會紅）
   assert(html.includes("      cg.drawImage(S.img,x0,y0,sw,sh);\n      ng.globalCompositeOperation='destination-out';ng.drawImage(S.img,x0,y0,sw,sh);ng.globalCompositeOperation='source-over';\n      if(S.night)ng.drawImage(S.night,x0,y0,sw,sh);\n"),'T591 G1e 貼圖三行原文（含合成模式字串）');
@@ -13956,10 +13958,10 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     "function t601On(){if(t601On.u===undefined)t601On.u=/(?:^|[?&])noT601(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT601&&!t601On.u&&ART601.ok===true;}",
     "  if(LOT601.has(k)&&t601On())return Math.max(0,Math.min(2,v|0)); // T601：新圖三款\n",
     "  if(k===5){const s=(t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,{v})])||SPR.lot574['5_1_'+v]||SPR.lot574['5_1_0'];return winter?s.win563:s;}",
-    "  v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On()))?0:lotVariant574(k,v);",
-    "function lotKey591(k){if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';",
-    "function lotV591(x,y,b){if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590()",
-    "function bakeLot574(k,v,stage,winter){\n  if(LOT601.has(k)&&t601On()){const r601=bakeArt601(k,v,stage,winter);if(r601)return r601;}",
+    "  v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On())&&!(LOT602.has(k)&&t602On()))?0:lotVariant574(k,v);",
+    "function lotKey591(k){if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';",
+    "function lotV591(x,y,b){if(b&&LOT602.has(b.k)&&t602On())return v602(b.k,x,y);if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590()",
+    "function bakeLot574(k,v,stage,winter){\n  if(LOT602.has(k)&&t602On()){const r602=bakeArt602(k,v,stage,winter);if(r602)return r602;} // T602：本批滿版新圖，原配方為回退路徑\n  if(LOT601.has(k)&&t601On()){const r601=bakeArt601(k,v,stage,winter);if(r601)return r601;}",
     "if(b.k===5&&!b.ref){const ps=(b.lot574&&t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,b)])||(b.lot574&&SPR.lot574&&SPR.lot574['5_1_'+b.v])||",
     "    if(bd.k===4)s=t601On()&&SPR.art601?one601(4,o.x,o.y,bd,win,sea):(win?SPR.parkW:",
     "    else if((bd.k===81||bd.k===97)&&!bd.lot574&&t601On()&&SPR.art601)s=one601(bd.k,o.x,o.y,bd,win);",
@@ -13973,7 +13975,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     "function v601(k,x,y,bd){const v=bd?(bd.v|0):0;\n  if(k===4)return ((v%3)+3)%3;",
     "  if(k===97){const p=pier601(x,y);if(p>=0)return p;}",
     "  return Math.min(2,Math.floor(hashLocal590(x|0,y|0,k*131)*3));",
-    "function one601(k,x,y,bd,winterNow,sea){const d=SPR.art601[k][v601(k,x,y,bd)];return winterNow&&d.win563?d.win563:(d.sea601&&d.sea601[sea])||d;}",
+    "function one601(k,x,y,bd,winterNow,sea){if(k===97){const p602=pierSprite602(x,y,winterNow);if(p602)return p602;}const d=SPR.art601[k][v601(k,x,y,bd)];return winterNow&&d.win563?d.win563:(d.sea601&&d.sea601[sea])||d;}",
     "      for(let v=0;v<3;v++){const d=crop601(bakeArt601(k,v,2,false),k,v);",
     "        d.win563=crop601(bakeArt601(k,v,2,true),k,v);one[k].push(d);",
     "  if(window.__noT601||/(?:^|[?&])noT601(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''))return rep;"];
@@ -13985,6 +13987,13 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   if(occ604===undefined)delete window.__noOccWin653;else window.__noOccWin653=occ604;
 }
 
+  {const m602=/@media \(max-width:420px\)\{\n  \.tool\{[^]*?\n\}/.exec(html),cats602='  #toolcats{left:10px;transform:none;max-width:calc(100vw - 70px)}',tools602='  body.toolsExp #tools{left:10px;transform:none;width:calc(100vw - 70px)}';
+    assert(!!m602&&m602[0].includes(cats602)&&m602[0].includes(tools602),'T602 手機縮放避讓在既有窄屏媒體規則內保留右側通道');
+    assert(html.split(cats602).length===2&&html.split(tools602).length===2,'T602 縮放避讓規則各恰一處，未複製到桌機全域');}
+
+  // T602：歷史整套保持原配方；新路另以真像素台架完整開啟，不以mock或原文釘冒充Chrome驗收。
+  {const q602=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t602-shots/test602.js')],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});
+    assert(q602.status===0&&q602.stdout.includes('T602_RESULT ')&&!q602.stderr.includes('FAIL:'),'T602 G1 新圖行為台架完整通過：'+(q602.status===0?'3類三款、四作物階段、四向碼頭、遠景/季節/回退/亂數':q602.stderr.slice(-1400)));}
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
@@ -15991,7 +16000,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     'T447 G0 掃到的 .html/.js 只有 ' + files447.length + ' 個（預期 ≥20）——'
     + '檔案樹走訪壞了，下面兩條會變成空跑的假綠');
   const offenders447 = [];
-  let saveCallers447 = 0;
+  let saveCallers447 = 0;const saveCallerPaths447=[];
   for (const f of files447) {
     const rel = path.relative(__dirname, f).replace(/\\/g, '/');
     if (rel === 'index.html' || rel === 'sw.js') continue;
@@ -15999,7 +16008,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     let body;
     try { body = fs.readFileSync(f, 'utf8'); } catch (e) { continue; }
     if (body.indexOf('GV.save(') < 0) continue;
-    saveCallers447++;
+    saveCallers447++;saveCallerPaths447.push(rel);
     if (body.indexOf('glimmerville.v1.slot') < 0) offenders447.push(rel);
   }
   assert(offenders447.length === 0,
@@ -16007,11 +16016,13 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + JSON.stringify(offenders447.slice(0, 5))
     + '。在玩家目錄開它就會覆蓋一個真的存檔（`curSlot()` 遇不合法鍵回槽 1）。'
     + '在呼叫前加一行 `localStorage.setItem(\'glimmerville.v1.slot\',\'3\')`');
-  /* 今天沒有任何非豁免檔案呼叫 GV.save()，所以上面那條是**合法地空**——
-     把這個事實釘住，而不是假裝它是覆蓋率。數字變動不一定是壞事，但一定要有人知道。 */
-  assert(saveCallers447 === 0,
-    'T447 G1b【計數釘】非豁免檔案裡呼叫 `GV.save()` 的數量由 0 變成 ' + saveCallers447
-    + '。新檔案必須設槽 3（G1 會驗），這條只是要讓「有人新增了會寫存檔的工具」這件事被看見');
+  /* T602：唯一新增的真瀏覽器存檔台架，在任何導覽前透過 CDP 注入槽3。
+     登記精確路徑而非放寬上限；新增其他工具仍會紅。 */
+  assert(saveCallers447 === 1&&JSON.stringify(saveCallerPaths447)==='["docs/tasks/t602-shots/scene602.js"]',
+    'T447 G1b【計數釘】只有已審核T602瀏覽器工具可呼叫 `GV.save()`，實得 '+JSON.stringify(saveCallerPaths447));
+  const sceneSource447=fs.readFileSync(path.join(__dirname,'docs/tasks/t602-shots/scene602.js'),'utf8');
+  assert(sceneSource447.indexOf('Page.addScriptToEvaluateOnNewDocument')>=0&&sceneSource447.indexOf('Page.addScriptToEvaluateOnNewDocument')<sceneSource447.indexOf('Page.navigate')&&sceneSource447.includes('[8123,8199].includes(p)'),
+    'T602 G447 瀏覽器台架在導覽前注入槽3且禁止玩家埠');
   // G2 規則要真的寫在 RULES 裡，而且 VERIFY 要引對號碼
   {
     const rules447 = fs.readFileSync(path.join(__dirname, 'docs', 'RULES.md'), 'utf8');
@@ -17752,6 +17763,8 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(lo>=0&&htmlBare438.indexOf(key,lo+1)<0&&hi>open,'T445 G0 T601局部座標白名單必須唯一且完整：'+name);
     localSpans601.push([lo,hi]);
   }
+  const localSpans602=[];for(const name of ['bakeArt602']){const key='function '+name+'(',lo=htmlBare438.indexOf(key),open=htmlBare438.indexOf('{',lo);let hi=-1,dep=0;for(let p=open;p<htmlBare438.length;p++){if(htmlBare438[p]==='{')dep++;else if(htmlBare438[p]==='}'&&!--dep){hi=p;break;}}assert(lo>=0&&hi>open&&htmlBare438.indexOf(key,lo+1)<0,'T602 G445 唯一局部烘焙器 '+name);localSpans602.push([lo,hi]);}
+  let nLocal602=0;
   // 原煙粒world spawn多了一行純資料lot574，viewDep不再落在原三行窗。只認完整這一筆，不放寬全檔窗寬。
   const smokeExpr574='const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;';
   const smokeLo574=htmlBare438.indexOf(smokeExpr574),smokeHi574=htmlBare438.indexOf('\n    }',smokeLo574);
@@ -17777,6 +17790,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
       if(localSpans574.some(s=>m.index>s[0]&&m.index<s[1])){nLocal574++;continue;}
       if(localSpans590.some(s=>m.index>s[0]&&m.index<s[1])){nLocal590++;continue;}
       if(localSpans594.some(s=>m.index>s[0]&&m.index<s[1])){nLocal594++;txt594.push(m[0]);continue;}
+      if(localSpans602.some(s=>m.index>s[0]&&m.index<s[1])){nLocal602++;continue;}
       if(localSpans601.some(s=>m.index>s[0]&&m.index<s[1])){nLocal601++;continue;}
       if(m.index>=smokeLo574&&m.index<smokeLo574+smokeExpr574.length){nSpawn445++;spawnLines445.add(ln);continue;}
       // ③ world 空間 spawn：同一行或相鄰兩行內有 viewDep(（深度鍵已跟轉，T389）
@@ -17807,6 +17821,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + 'world spawn 10 行／T574局部式8處，實得 ' + nIso445 + '／' + nLogo445 + '／' + spawnLines445.size+'／'+nLocal574
     + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 46 變少，'
     + '代表有人把裸式從旋轉層裡搬出來了');
+  assert(nLocal602===2,'T602 G445 畫布內局部投影精確2處，未新增世界裸式');
   assert(nLocal601===13,'T601 G445【計數釘】藍灰重畫烘焙器與 8 支樣張工廠內的格內局部等距式應恰 13 處（2026-09-30 實測：烘焙器 2、k5 1、k8 3、k66 1、k97 6），實得 '+nLocal601+'；變動要有人簽名');
   assert(nLocal590===61,'T590 G445【計數釘】實驗線移植批次與 makeIso590 內的格內局部等距式應恰 61 處（2026-09-26 實測），實得 '+nLocal590+'；變動要有人簽名');
   assert(nLocal594===4&&JSON.stringify(txt594.slice().sort())==='["(bw+bh)*16","(bw+bh)*16","(bw-bh)*32","(bw-bh)*32"]','T594 G445【原文釘】blockCorners594 與 makeBlockSprite594 內的畫布局部等距式應恰是 N 角與 locN 各一組 (bw-bh)*32／(bw+bh)*16（2026-09-26 實測；只釘數目的話，換掉一條再加一條世界座標式仍會是 4），實得 '+JSON.stringify(txt594)+'；變動要有人簽名');
