@@ -30,6 +30,17 @@ function captureBridge604(){
       function step(t){if(document.visibilityState!=='visible'||!document.hasFocus()){clearTimeout(timeout);reject(Error('Component window lost foreground'));return;}if(prev!==undefined)intervals.push(t-prev);prev=t;const t0=performance.now();render(mode,framesDrawn++);cpu.push(performance.now()-t0);if(t-start>=ms){clearTimeout(timeout);resolve({mode,elapsed:t-start,framesDrawn,intervals,cpu,sourceFrameCount:active.length});}else requestAnimationFrame(step);}requestAnimationFrame(step);
     });
   }
-  window.__gpu604={capture,prepare,render,measure,state:data,reset:()=>{if(gpu)gpu.dispose();if(layer)layer.remove();frames.length=0;active=gpu=layer=null;clonedBytes=0;return true;},info:()=>gpu&&gpu.info()};
+  function auditPoints(points){
+    if(!active||running)throw Error('Pixel audit requires a prepared frozen component');
+    const rows=active[0],native=document.getElementById('reference604').getContext('2d'),g=gpu.gl,ids=new Map(),assets={};
+    for(const c of rows)if(!ids.has(c.image))ids.set(c.image,ids.size);
+    const meta=(c,index)=>({index,sourceId:ids.get(c.image),size:[c.image.width,c.image.height],crop:c.crop,dst:c.dst,transform:c.transform,alpha:c.alpha,filter:c.filter,blend:c.blend,smoothing:c.smoothing});
+    const covers=(raw,x,y)=>{const c=Gpu604.normalize(raw),[a,b,d,e,tx,ty]=c.transform,[dx,dy,dw,dh]=c.dst;const v=[[dx,dy],[dx+dw,dy],[dx,dy+dh],[dx+dw,dy+dh]].map(([px,py])=>[a*px+d*py+tx,b*px+e*py+ty]);return x+1>=Math.min(...v.map(p=>p[0]))-2&&x<=Math.max(...v.map(p=>p[0]))+2&&y+1>=Math.min(...v.map(p=>p[1]))-2&&y<=Math.max(...v.map(p=>p[1]))+2;};
+    const sample=(commands,x,y)=>{Gpu604.reference(native,commands);const n=Array.from(native.getImageData(x,y,1,1).data);gpu.render(commands);const v=new Uint8Array(4);g.readPixels(x,g.drawingBufferHeight-1-y,1,1,g.RGBA,g.UNSIGNED_BYTE,v);return {native:n,gpu:Array.from(v),maxDelta:Math.max(...n.map((k,i)=>Math.abs(k-v[i])))};};
+    const coordinates=(c,x,y)=>{const[a,b,d,e,tx,ty]=c.transform,det=a*e-b*d;if(!det)return null;const px=(e*(x+.5-tx)-d*(y+.5-ty))/det,py=(-b*(x+.5-tx)+a*(y+.5-ty))/det;const[sx,sy,sw,sh]=c.crop,[dx,dy,dw,dh]=c.dst;return {local:[px,py],sourceCenter:[sx+(px-dx)/dw*sw,sy+(py-dy)/dh*sh],edgeDistance:[px-dx,dx+dw-px,py-dy,dy+dh-py]};};
+    const results=[];for(const[x,y]of points){const full=sample(rows,x,y),selected=rows.map((c,i)=>({c,i})).filter(({c})=>covers(c,x,y)),steps=[];let before=sample([],x,y);for(let i=0;i<selected.length;i++){const {c,index}= {c:selected[i].c,index:selected[i].i},after=sample(selected.slice(0,i+1).map(r=>r.c),x,y);if(after.maxDelta||before.maxDelta){const id=ids.get(c.image);if(!(id in assets))assets[id]=c.image.toDataURL('image/png');steps.push({command:meta(c,index),coordinates:coordinates(c,x,y),before,after});}before=after;}results.push({point:[x,y],full,selectedCommands:selected.length,selectedFinal:before,steps});}
+    return {points:results,assets,commands:rows.map(meta),glError:g.getError(),gpu:gpu.info(),note:'Synchronous post-timing pixel attribution only; no performance samples in this run.'};
+  }
+  window.__gpu604={capture,prepare,render,measure,auditPoints,state:data,reset:()=>{if(gpu)gpu.dispose();if(layer)layer.remove();frames.length=0;active=gpu=layer=null;clonedBytes=0;return true;},info:()=>gpu&&gpu.info()};
 }
 module.exports={captureBridge604};
