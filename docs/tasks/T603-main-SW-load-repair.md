@@ -62,3 +62,9 @@ Logs are grouped by worker boot/navigation ID and ordered by worker sequence, ne
 ## Rollback
 
 Revert this candidate's SW navigation block and the mock adaptation together, and remove its new test/workflow/task-card files. Main HTML, assets, save format, simulation and renderer require no rollback because they are unchanged.
+
+## First complete candidate run and retained failure
+
+Run37575267529 on `c4bcc12543d516aa921a83c171fda9dbb3462626` passed the37 contracts and original full regression12525 assertions, six pinned seed values and63 toolchain tests. The controlled browser passed23 checks, including delayed completion, rejected write and positively proven origin-outage cache fallback. Its final clean-online document received the successful SW response and committed; the background write completed in54ms. The actual boot-ready predicate did not pass within the unchanged polling bound. No page JS exception or console error was recorded. This remains a failed browser gate, not a complete load-repair acceptance.
+
+The retained failure artifact SHA256 is `2013f4b2c4cb28cca35330e17304d4a05c1f664b60c122339ccf0001f50b6b2d`. It did not record the rejected boot predicate, so the cause is unproven. Main bootstrap awaits native requestAnimationFrame checkpoints; its existing T434b source notes the need for a presented browser context. A harness-only amendment therefore activates the actual page and verifies visibility/focus before and after each navigation, and saves bounded full boot/identity observations and read errors. It does not synthesize frames, change product files, increase the boot timeout, skip a predicate or turn transport success into boot success. All existing functional/timing assertions remain, with visibility/focus now additionally required.

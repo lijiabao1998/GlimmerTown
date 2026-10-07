@@ -74,7 +74,7 @@ export async function run() {
     base: '637c8cc6d09306c1e17535ece6119d3ad78f1382', node: process.version,
     indexSHA256: sha(html), productSwSHA256: sha(sw), instrumentedSwSHA256: sha(instrumented),
     instrumentation: 'In-memory SW copy only. Non-awaited same-origin logging; controlled delayed/rejected cache write. No physical-device FPS claim.',
-    checks: [], stages: [], http: [], transport: [], cases: [], exceptions: [], consoleErrors: []
+    checks: [], stages: [], http: [], transport: [], cases: [], exceptions: [], consoleErrors: [], foreground: [], identityObservations: []
   };
   const persist = () => fs.writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify(report, null, 2));
   const check = (value, message) => { assert(value, message); report.checks.push(message); persist(); };
@@ -157,6 +157,24 @@ export async function run() {
       if (value.exceptionDetails) throw Error(value.exceptionDetails.exception?.description || value.exceptionDetails.text);
       return value.result.value;
     };
+    const readDocument = () => ev(`(()=>{const bootState=window.__boot426?.()??null;return {url:location.href,timeOrigin:performance.timeOrigin,readyState:document.readyState,complete:document.readyState==='complete',version:window.GV?.ver?.()??null,boot:bootState?.ready??false,bootState,visibility:document.visibilityState,hidden:document.hidden,focused:document.hasFocus(),slot:localStorage.getItem('glimmerville.v1.slot'),slotBeforeBoot:window.__swMainSlotBeforeBoot??null,otherSlots:[localStorage.getItem('glimmerville.v1.s1'),localStorage.getItem('glimmerville.v1.s2')],controller:navigator.serviceWorker.controller?.scriptURL??null,online:navigator.onLine};})()`);
+    const qualifyForeground = async label => {
+      const audit = { label, startedAt: Date.now(), observations: [], readErrors: [] };
+      report.foreground.push(audit); persist();
+      await send('Page.bringToFront');
+      // Activate the actual target; do not emulate visibility/focus or synthesize rAF.
+      for (let i = 0; i < 20; i++) {
+        try {
+          const state = await readDocument();
+          audit.observations.push({ observedAt: Date.now(), state }); persist();
+          if (state.visibility === 'visible' && !state.hidden && state.focused) {
+            audit.qualifiedAt = Date.now(); persist(); return;
+          }
+        } catch (error) { audit.readErrors.push({ observedAt: Date.now(), error: String(error).slice(0, 4096) }); persist(); }
+        await sleep(50);
+      }
+      throw Error('Real page visibility/focus qualification failed: ' + label);
+    };
     await send('Page.enable'); await send('Network.enable'); await send('Runtime.enable');
     report.browserVersion = await send('Browser.getVersion');
     await send('Page.addScriptToEvaluateOnNewDocument', { source: `if(location.origin===${JSON.stringify(ORIGIN)}){localStorage.setItem('glimmerville.v1.slot','3');window.__swMainSlotBeforeBoot=localStorage.getItem('glimmerville.v1.slot');}` });
@@ -172,6 +190,7 @@ export async function run() {
       return false;
     };
     check(await bootstrapReady(), 'exact bootstrap document committed and complete with preboot slot marker');
+    await qualifyForeground('bootstrap before first game navigation');
     check(await ev("localStorage.getItem('glimmerville.v1.slot')==='3'&&!window.GV&&!localStorage.getItem('glimmerville.v1.s1')&&!localStorage.getItem('glimmerville.v1.s2')"), 'slot 3 selected before first game boot in fresh isolated profile');
     await ev("(async()=>{await navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'});await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));return true;})()");
     check(await ev("navigator.serviceWorker.controller.scriptURL===location.origin+'/sw.js'"), 'real installed service worker controls browser before entry navigation');
@@ -191,22 +210,45 @@ export async function run() {
       throw Error('Incomplete stage set for ' + url + ': ' + required.join(','));
     };
     const identity = async (url, previous) => {
+      const audit = { expectedURL: url, previousTimeOrigin: previous, startedAt: Date.now(), pollCount: 0, changes: [], droppedChanges: 0, readErrorCount: 0, readErrors: [] };
+      report.identityObservations.push(audit); persist();
+      let lastSignature;
       for (let i = 0; i < 240; i++) {
+        audit.pollCount = i + 1;
         try {
-          const state = await ev(`({url:location.href,timeOrigin:performance.timeOrigin,complete:document.readyState==='complete',version:window.GV?.ver?.(),boot:window.__boot426?.().ready,slot:localStorage.getItem('glimmerville.v1.slot'),slotBeforeBoot:window.__swMainSlotBeforeBoot,otherSlots:[localStorage.getItem('glimmerville.v1.s1'),localStorage.getItem('glimmerville.v1.s2')],controller:navigator.serviceWorker.controller?.scriptURL,online:navigator.onLine})`);
-          if (state.url === url && state.timeOrigin !== previous && state.complete && state.boot && state.version === '11.211') {
-            check(state.slot === '3' && state.slotBeforeBoot === '3' && state.otherSlots.every(v => v === null), 'actual main boot preserves slot 3 and leaves slots 1/2 untouched');
-            return state;
+          const state = await readDocument();
+          const predicates = { exactURL: state.url === url, newTimeOrigin: state.timeOrigin !== previous, complete: state.complete, bootReady: state.boot, mainVersion: state.version === '11.211', visible: state.visibility === 'visible' && !state.hidden, focused: state.focused };
+          const rejectedPredicates = Object.keys(predicates).filter(key => !predicates[key]);
+          const observation = { observedAt: Date.now(), poll: i + 1, state, predicates, rejectedPredicates };
+          const signature = JSON.stringify({ state, predicates });
+          audit.last = observation;
+          if (signature !== lastSignature) {
+            audit.changes.push(observation); lastSignature = signature;
+            if (audit.changes.length > 32) { audit.changes.shift(); audit.droppedChanges++; }
           }
-        } catch (error) { if (/actual main boot/.test(error.message)) throw error; }
+          persist();
+          if (rejectedPredicates.length === 0) {
+            check(state.slot === '3' && state.slotBeforeBoot === '3' && state.otherSlots.every(v => v === null), 'actual main boot preserves slot 3 and leaves slots 1/2 untouched');
+            audit.completedAt = Date.now(); persist(); return state;
+          }
+        } catch (error) {
+          if (/actual main boot/.test(error.message)) throw error;
+          audit.readErrorCount++;
+          audit.readErrors.push({ observedAt: Date.now(), poll: i + 1, error: String(error).slice(0, 4096) });
+          if (audit.readErrors.length > 12) audit.readErrors.shift();
+          persist();
+        }
         await sleep(500);
       }
+      audit.failedAt = Date.now(); audit.failure = 'Actual main boot predicate did not pass; cause unproven. See exact observations and rejected predicates.'; persist();
       throw Error('Byte-exact main product did not finish boot: ' + url);
     };
     async function navigate(mode, required) {
       const url = ORIGIN + '/index.html' + (mode ? '?__swmain=' + mode : '');
+      await qualifyForeground('before ' + (mode || 'restored'));
       const previous = await ev('performance.timeOrigin'), since = Date.now();
       const result = await send('Page.navigate', { url }); assert(!result.errorText, result.errorText);
+      await qualifyForeground('committed ' + (mode || 'restored'));
       const document = await identity(url, previous);
       const rows = await waitStages(url, since, ['respondWith-registered', 'waitUntil-registered', ...required]);
       const commit = report.transport.find(r => r.method === 'Page.frameNavigated' && r.url === url && !r.parentId && r.time >= since);
