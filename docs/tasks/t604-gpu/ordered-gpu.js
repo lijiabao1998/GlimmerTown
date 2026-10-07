@@ -8,7 +8,7 @@
     let crop=c.crop||[0,0,w,h],dst=c.dst;const m=c.transform||[1,0,0,1,0,0],alpha=c.alpha??1,filter=c.filter||'none',blend=c.blend||'source-over';
     if(!finite(crop,4)||crop[2]<=0||crop[3]<=0)throw Error('Unsupported source crop');
     if(!finite(dst,4)||dst[2]<=0||dst[3]<=0||!finite(m,6)||!Number.isFinite(alpha)||alpha<0||alpha>1)throw Error('Unsupported image geometry/alpha');
-    if(!['none','brightness(0)'].includes(filter)||!['source-over','lighter','screen'].includes(blend)||c.clip)throw Error('Unsupported filter/blend/clip');
+    if(!['none','brightness(0)'].includes(filter)||!['source-over','lighter','screen','multiply'].includes(blend)||c.clip)throw Error('Unsupported filter/blend/clip');
     // Canvas clips an out-of-image source rectangle and proportionally adjusts
     // its destination. Do not let texture clamp-to-edge smear the missing area.
     const [sx,sy,sw,sh]=crop,x0=Math.max(0,sx),y0=Math.max(0,sy),x1=Math.min(w,sx+sw),y1=Math.min(h,sy+sh);
@@ -42,10 +42,10 @@
       const texture=old?old.texture:g.createTexture();g.bindTexture(g.TEXTURE_2D,texture);g.pixelStorei(g.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true);g.pixelStorei(g.UNPACK_FLIP_Y_WEBGL,false);g.pixelStorei(g.UNPACK_COLORSPACE_CONVERSION_WEBGL,g.BROWSER_DEFAULT_WEBGL);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_S,g.CLAMP_TO_EDGE);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_T,g.CLAMP_TO_EDGE);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MIN_FILTER,g.LINEAR);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MAG_FILTER,g.LINEAR);g.texImage2D(g.TEXTURE_2D,0,g.RGBA,g.RGBA,g.UNSIGNED_BYTE,image);this.bytes+=bytes-(old?old.bytes:0);this.textures.set(image,{texture,revision,bytes});return true;
     }
     render(commands,clear=[35/255,52/255,69/255,1]){
-      if(this.lost)throw Error('WebGL context lost');const g=this.gl,groups=batches(commands),data=new Float32Array(commands.length*36);for(let i=0;i<commands.length;i++)data.set(vertices(commands[i]),i*36);
+      if(this.lost)throw Error('WebGL context lost');const g=this.gl,groups=batches(commands),data=new Float32Array(commands.length*36);if(clear[3]!==1&&groups.some(b=>b.blend==='multiply'))throw Error('Multiply requires the explicitly opaque destination');for(let i=0;i<commands.length;i++)data.set(vertices(commands[i]),i*36);
       g.viewport(0,0,this.canvas.width,this.canvas.height);g.clearColor(...clear);g.clear(g.COLOR_BUFFER_BIT);g.useProgram(this.program);g.uniform2f(this.size,this.canvas.width,this.canvas.height);g.bindVertexArray(this.vao);g.bindBuffer(g.ARRAY_BUFFER,this.buffer);g.bufferData(g.ARRAY_BUFFER,data,g.STREAM_DRAW);g.activeTexture(g.TEXTURE0);
       for(const b of groups){const t=this.textures.get(b.image);if(!t||t.revision!==b.revision)throw Error('Texture revision not uploaded');g.bindTexture(g.TEXTURE_2D,t.texture);const sampling=b.smoothing?g.LINEAR:g.NEAREST;g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MIN_FILTER,sampling);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MAG_FILTER,sampling);
-        if(b.blend==='lighter')g.blendFunc(g.ONE,g.ONE);else if(b.blend==='screen')g.blendFuncSeparate(g.ONE,g.ONE_MINUS_SRC_COLOR,g.ONE,g.ONE_MINUS_SRC_ALPHA);else g.blendFunc(g.ONE,g.ONE_MINUS_SRC_ALPHA);g.drawArrays(g.TRIANGLES,b.first,b.count);
+        if(b.blend==='lighter')g.blendFunc(g.ONE,g.ONE);else if(b.blend==='screen')g.blendFuncSeparate(g.ONE,g.ONE_MINUS_SRC_COLOR,g.ONE,g.ONE_MINUS_SRC_ALPHA);else if(b.blend==='multiply')g.blendFuncSeparate(g.DST_COLOR,g.ONE_MINUS_SRC_ALPHA,g.ONE,g.ONE_MINUS_SRC_ALPHA);else g.blendFunc(g.ONE,g.ONE_MINUS_SRC_ALPHA);g.drawArrays(g.TRIANGLES,b.first,b.count);
       }
       return {commands:commands.length,drawCalls:groups.length,vertices:data.length/6,textureBytes:this.bytes};
     }

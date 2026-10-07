@@ -1,0 +1,29 @@
+'use strict';
+const fs=require('fs'),path=require('path'),{createRequire}=require('module'),{atlasBridge604,packRects604}=require('./atlas.js');
+let source=require('./transfer-run.js').source;
+const marker='}\n// Inverse only approved art changes,';if(source.split(marker).length!==2)throw Error('Atlas bridge anchor drift');source=source.replace(marker,'('+atlasBridge604.toString()+')(ctx,cvs,('+packRects604.toString()+'));\n'+marker);
+source=source.replace("path.join(OUT,'gpu604-transfer-summary.json')","path.join(OUT,'gpu604-atlas-summary.json')");
+const start=source.indexOf("    report.experiment='T604 conservative vector-batch transfer cost before full integration';"),end=source.indexOf('    report.finalFlags=await ev(',start);if(start<0||end<start)throw Error('Atlas run boundary drift');
+source=source.slice(0,start)+String.raw`
+    report.experiment='T604 native-vector atlas feasibility with raster, copy, update and sampling costs';report.releaseGatePassed=false;report.scope='Captured original vector operations with original gradients and state, rasterized every frame. Native image commands, HUD and simulation remain excluded. No claim of full-game FPS.';
+    report.predeclared={orders:['native','atlas','atlas','native'],windowMs:3000,maxAtlases:2,maxBytes:128*1024*1024,minimumComponentFPS:55,maxMedianCPUms:8,noUnsupportedSemantics:true};report.phases={};
+    await ev('document.getElementById("bNewGame").click();__s603.grow22()');const fixture=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures','manifest.json'),'utf8')).cities.find(f=>f.seed===22),roots=await ev('__s603.roots()');check(!roots.bad&&roots.rows.length===956&&hash(JSON.stringify(roots.rows))===fixture.rootSHA256,'exact original seed22 city');
+    const median=a=>{a=[...a].sort((a,b)=>a-b);return a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2;};
+    const take=async(label,mode,negative=false)=>{await ev('new Promise(r=>requestAnimationFrame(()=>{__atlas604.render('+JSON.stringify(mode)+','+negative+');r(true)}))');const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width:1400,height:900,scale:1}}),bytes=Buffer.from(shot.data,'base64'),file='T604-atlas-'+label+'.png',pixels=pngRgba603(bytes);fs.writeFileSync(path.join(OUT,file),bytes);report.screenshots.push(file);return {file,pixels,rgbaSHA256:hash(pixels.rgba)};};
+    const difference=(a,b)=>{let changed=0,max=0,over1=0,over5=0;for(let i=0;i<a.rgba.length;i+=4){let d=0;for(let k=0;k<4;k++)d=Math.max(d,Math.abs(a.rgba[i+k]-b.rgba[i+k]));if(d)changed++;if(d>1)over1++;if(d>5)over5++;max=Math.max(max,d);}return {changedPixels:changed,maxChannelDelta:max,over1,over5};};
+    for(const[phase,time]of[['day',55],['night',100]]){
+      await ev('__gpu604.reset();true');await camera(22,14,1,0,1,time,false);await sleep(500);await compositorBegin603();
+      try{
+        const p=report.phases[phase]={capture:await ev('__atlas604.capture()'),windows:[]};persist();check(p.capture.supported,'all observed blend/filter/style/path/text semantics supported '+phase);p.setup=await ev('__atlas604.prepare()');persist();check(p.setup.packing.pages.length<=2&&p.setup.packing.bytes<=128*1024*1024,'bounded atlas allocation '+phase);
+        for(const mode of ['native','atlas'])await ev('__atlas604.measure('+JSON.stringify(mode)+',1000)');
+        for(const mode of report.predeclared.orders){check((await foregroundState603(true)).valid,'foreground before atlas '+phase+'/'+mode);const w=await ev('__atlas604.measure('+JSON.stringify(mode)+',3000)');w.fps=w.intervals.length/(w.elapsed/1000);w.cpuMedian=median(w.rows.map(r=>r.totalMs));w.cpuP95=pct(w.rows.map(r=>r.totalMs),.95);w.rasterMedian=median(w.rows.map(r=>r.rasterMs));w.uploadMedian=median(w.rows.map(r=>r.uploadMs));w.drawMedian=median(w.rows.map(r=>r.drawMs));p.windows.push(w);persist();check((await foregroundState603()).valid,'foreground after atlas '+phase+'/'+mode);}
+        const a=await take(phase+'-native-a','native'),b=await take(phase+'-native-b','native'),g=await take(phase+'-gpu','atlas'),g2=await take(phase+'-gpu-repeat','atlas'),bad=await take(phase+'-wrong-position','atlas',true),restored=await take(phase+'-restored','atlas');p.pixels={nativeRepeat:difference(a.pixels,b.pixels),atlasRepeat:difference(g.pixels,g2.pixels),atlasVsNative:difference(b.pixels,g.pixels),negative:difference(g.pixels,bad.pixels),restored:difference(g.pixels,restored.pixels),files:[a,b,g,g2,bad,restored].map(({file,rgbaSHA256})=>({file,rgbaSHA256}))};persist();
+        check(p.pixels.nativeRepeat.changedPixels===0&&p.pixels.atlasRepeat.changedPixels===0&&p.pixels.restored.changedPixels===0,'exact reference/atlas repeat and restoration '+phase);check(p.pixels.negative.changedPixels>0,'original position negative control detected '+phase);
+        const ws=p.windows.filter(w=>w.mode==='atlas');p.costGo=ws.every(w=>w.fps>=55)&&median(ws.map(w=>w.cpuMedian))<=8;p.gpu=await ev('__atlas604.info()');persist();
+      }finally{await ev('__atlas604.dispose();__gpu604.reset();true');await compositorEnd603();}
+    }
+    report.costGo=Object.values(report.phases).every(p=>p.costGo);report.pixelDifferencesRequireReview=true;report.completeAtlasEvidence=true;persist();
+`+source.slice(end);
+new Function('require','__filename','__dirname',source);
+if(require.main===module){if(process.argv.includes('--check-overlay'))console.log('T604_ATLAS_OVERLAY_SYNTAX_OK');else{const dir=path.resolve(__dirname,'../t603-shots');new Function('require','__filename','__dirname',source)(createRequire(path.join(dir,'scene603.js')),path.join(dir,'scene603.js'),dir);}}
+module.exports={source};

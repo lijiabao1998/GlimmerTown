@@ -11,7 +11,7 @@ test('source crop UV preserved',()=>assert.deepEqual(vertices({...base,crop:[10,
 test('negative source extent rejected',()=>assert.throws(()=>normalize({...base,crop:[0,0,-1,1]})));
 test('negative destination extent rejected rather than flipped',()=>assert.throws(()=>normalize({...base,dst:[0,0,-1,1]})));
 test('partially outside source crops proportionally clip the destination',()=>{const c=normalize({...base,crop:[90,0,20,10]});assert.deepEqual(c.crop,[90,0,10,10]);assert.deepEqual(c.dst,[10,20,50,50]);});
-test('unsupported composite and clips fail closed',()=>{assert.throws(()=>normalize({...base,blend:'multiply'}));assert.throws(()=>normalize({...base,clip:[0,0,1,1]}));});
+test('unsupported composite and clips fail closed',()=>{assert.throws(()=>normalize({...base,blend:'destination-in'}));assert.throws(()=>normalize({...base,clip:[0,0,1,1]}));});
 test('unsupported blur fails closed',()=>assert.throws(()=>normalize({...base,filter:'blur(2px)'})));
 test('nonfinite transform rejected',()=>assert.throws(()=>normalize({...base,transform:[1,0,0,1,NaN,0]})));
 test('nonconsecutive textures never reordered into a batch',()=>assert.deepEqual(batches([base,{...base,image:b},base]).map(x=>[x.image===a,x.first,x.count]),[[true,0,6],[false,6,6],[true,12,6]]));
