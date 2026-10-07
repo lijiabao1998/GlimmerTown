@@ -1,0 +1,139 @@
+name: Town main Pages package validation
+on:
+  push:
+    branches: [gpt/town-main-pages]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: town-main-pages-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Match original PWA PNG compression environment
+        run: |
+          python -m pip install Pillow==12.2.0
+          source tools/setup_t602_zlib.sh "$RUNNER_TEMP/town602-zlib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          echo "PYTHONPATH=$PYTHONPATH" >> "$GITHUB_ENV"
+          mkdir -p evidence
+      - name: Full original regression and exact six sentinels
+        run: |
+          set -o pipefail
+          python tools/verify.py --min-pass 12513 | tee evidence/verify.log
+      - name: Toolchain regression
+        if: always()
+        run: |
+          set -o pipefail
+          python -B -m unittest tools.test_toolchain 2>&1 | tee evidence/toolchain.log
+      - name: New art focused pixel behavior
+        if: always()
+        run: |
+          set -o pipefail
+          node docs/tasks/t602-shots/test602.js | tee evidence/art-pixel.log
+      - name: Prior-version seeded save and simulation compatibility
+        if: always()
+        run: |
+          set -o pipefail
+          node docs/tasks/t602-shots/oldsave602.js . | tee evidence/oldsave.log
+      - name: Preserve full candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-main-Pages-T602-regression-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chinese UI fonts for faithful screenshots
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Real Chromium day night seasons rotations and PNG evidence
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node docs/tasks/t602-shots/scene602.js --port=8762 --out=evidence/chrome | tee evidence/chrome.log
+      - name: Preserve real Chromium evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-main-Pages-T602-Chrome-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build only verified main runtime with cloud-owned storage
+        run: |
+          mkdir -p evidence
+          node tools/pages/build-main.mjs _site/main > evidence/package-manifest.json
+      - name: Namespace, actual game storage and SW lifetime contracts
+        run: |
+          set -o pipefail
+          PAGES_SITE="$PWD/_site/main" node --test --test-reporter=tap tools/pages/*.test.mjs | tee evidence/pages-contracts.tap
+          node tools/pages/browser-main.mjs --site=_site/main --check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-main-Pages-package-evidence-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Town-main-Pages-runtime-${{ github.sha }}
+          path: _site/main/
+          if-no-files-found: error
+          retention-days: 14
+  pages-browser:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build pinned package and record native browser identity
+        run: |
+          mkdir -p evidence
+          git rev-parse HEAD | tee evidence/source-commit.txt
+          node tools/pages/build-main.mjs _site/main > evidence/package-manifest.json
+          shasum -a 256 index.html sw.js _site/main/index.html _site/main/sw.js | tee evidence/source-sha256.txt
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --version | tee evidence/chrome-version.txt
+      - name: Genuine first visit, save isolation and PWA offline navigation
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node tools/pages/browser-main.mjs --site=_site/main --port=8893 --out=evidence/pages-browser | tee evidence/pages-browser.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-main-Pages-browser-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
