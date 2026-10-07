@@ -27,7 +27,7 @@ The independent baseline matrix adds actual renders/captures, so the candidate w
 
 ## Pre-CI evidence
 
-- 70 source/comparator/snapshot/negative-control assertions pass, including normal draw-clock advancement and rejecting capture-time drift.
+- 83 source/comparator/snapshot/negative-control assertions pass, including normal draw-clock advancement, complete dust inputs, original object restoration and rejecting capture-time drift.
 - All37 candidate SW contracts pass.
 - All63 toolchain tests pass.
 - All12 approved art variants, winter/LOD/routing/escape/RNG cases pass; all6 actor-clearance sweeps have zero collisions; all3 historical saves preserve roots, footprint links and canonical fields through round trip.
@@ -41,3 +41,15 @@ No merge, release or deployment is permitted while a required gate remains faile
 Run37608725391 on4dd0fa4d passed12,534 original regression assertions,63 toolchain cases,37 SW contracts and658 neighbor checks/483 screenshots. Native Mac compositor repeats/restoration and all16 immutable-main escape frames had zero changed pixels. Its unchanged55FPS criterion remained red: candidate day39.0322FPS and night9.6263FPS; no release pass is claimed.
 
 The independent Linux world comparison stopped at the first night/far view:252 changed pixels were exactly63 isolated2x2 sky stars, all above y276; town pixels below were identical. Both unmodified documents initialize90 stars from unseeded Math.random. The revised snapshot fixture copies the immutable-main document's exact90-star input into only the frozen candidate comparison, checks full array equality and SHA, and restores original candidate stars on thaw. A deliberately different star must change actual full-frame RGBA and restoration must recover zero difference. Production source, Math.random, zero-pixel comparison and all live performance tests remain unchanged. The correction requires a new full candidate CI run; the initial failure stays recorded.
+
+## DPR2 construction-dust input correction
+
+[Run 37612097288](https://github.com/lijiabao1998/GlimmerTown/actions/runs/37612097288) on `753b0c1` completed 256 standard, 32 fractional-camera and eight mobile-DPR1 legacy comparisons with zero differences, then failed at the first mobile-DPR2 day view. The compact independent [reproduction 37615799265](https://github.com/lijiabao1998/GlimmerTown/actions/runs/37615799265) preserved all 24 unequal pixels and full particle inputs in [artifact 11480304529](https://github.com/lijiabao1998/GlimmerTown/actions/runs/37615799265/artifacts/11480304529).
+
+All 24 pixels lie on three native age-zero dust rectangles: world (-32,1056), (256,1232), (160,1248) map to backing pixels (30,1443), (390,1663), (270,1683), with size 3. The first nine pixels differ because identical dust positions carry frozen construction depths 72.015 versus 65.015 from different construction rotations. Another nine pixels are a candidate-only two-particle tail at the random pool cap; the last six differ between six and five coincident particles. These are unequal input records. The original filter calls, sky input, camera, dimensions and product source match.
+
+The snapshot fixture now shares only the complete 90-dust pool captured from independently booted immutable main, including all eight native fields and frozen depth. A separate FX fingerprint must match in every full-frame comparison; unrelated actors remain independent. It does not clear particles or override randomness. Exactly 90 age-zero dust records are validated before either pool changes, and the original array and particle object identities return on thaw. Restored copies are read synchronously in the thaw task before a live RAF can age them; cleanup preserves any primary pixel failure.
+
+The original DPR2 case requires zero full-frame difference with shared inputs. Moving one visible dust particle must change both full RGBA and its original affected support, and restoration must recover every pixel. Positive and negative evidence is persisted before assertions. A separate compact world artifact includes summary, actual failures and controls, while the original full screenshot artifact remains available. Corrected browser parity is pending the next complete run; no new pixel or performance pass is claimed.
+
+The latest formal Mac measurements remain failed: day 35.9059 FPS and night 9.9295 FPS versus same-scene main 37.9689/7.7630. The 55-FPS requirement and all original relative budgets remain unchanged. The independent off-canvas diagnostic is not included in this candidate.

@@ -77,6 +77,17 @@ jobs:
           set -o pipefail
           mkdir -p evidence
           node docs/tasks/t603-shots/scene603.js --phase=${{ matrix.phase }} --port=8763 --out=evidence/chrome | tee evidence/chrome.log
+      - name: Collect compact world input, pixel and negative-control evidence
+        if: always() && matrix.phase == 'world'
+        run: node docs/tasks/t603-shots/package-world-evidence603.js --source=evidence/chrome --out=evidence/world-review
+      - name: Preserve independently downloadable world review
+        uses: actions/upload-artifact@v4
+        if: always() && matrix.phase == 'world'
+        with:
+          name: Town-T603-clean-world-review-${{ github.sha }}
+          path: evidence/world-review/
+          if-no-files-found: error
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:

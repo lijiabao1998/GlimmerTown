@@ -35,15 +35,36 @@ function bridge603(){
     cvs.addEventListener(type,e=>record('after',e));
   }
   // Snapshot-only instrumentation. No wrappers or paused updates remain during RAF samples.
-  let compositorRunning603=null,compositorStars603=null;
+  let compositorRunning603=null,compositorStars603=null,compositorFx603=null;
   const snapshotHash603=value=>{const text=JSON.stringify(value);let h=2166136261;for(let i=0;i<text.length;i++)h=Math.imul(h^text.charCodeAt(i),16777619);return (h>>>0).toString(16);};
-  const compositorState603=()=>{const lists={cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,fxParts,confetti},rows={};for(const[k,arr]of Object.entries(lists))rows[k]=arr.map(o=>Object.fromEntries(Object.keys(o).sort().filter(k=>o[k]===null||['number','string','boolean'].includes(typeof o[k])).map(k=>[k,o[k]])));return {running,actors:snapshotHash603(rows),sky:snapshotHash603(stars),counts:Object.fromEntries(Object.entries(lists).map(([k,v])=>[k,v.length])),visT,trafClock,waterT,waterF};};
+  const compositorState603=()=>{const lists={cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,fxParts,confetti},rows={};for(const[k,arr]of Object.entries(lists))rows[k]=arr.map(o=>Object.fromEntries(Object.keys(o).sort().filter(k=>o[k]===null||['number','string','boolean'].includes(typeof o[k])).map(k=>[k,o[k]])));return {running,actors:snapshotHash603(rows),sky:snapshotHash603(stars),fx:snapshotHash603(fxParts.map(p=>Object.fromEntries(Object.keys(p).sort().map(k=>[k,p[k]])))),counts:Object.fromEntries(Object.entries(lists).map(([k,v])=>[k,v.length])),visT,trafClock,waterT,waterF};};
   function snapshotStars603(value){
     if(value===undefined)return stars.map(s=>s.slice());
     if(running||measureWork603||compositorRunning603===null)throw Error('Shared sky input requires a frozen post-performance snapshot');
     if(!Array.isArray(value)||value.length!==90||value.some(s=>!Array.isArray(s)||s.length!==3||s.some((v,i)=>!Number.isFinite(v)||v<0||v>=[1,.8,6.28][i])))throw Error('Invalid native 90-star input');
     const copy=value.map(s=>s.slice());if(compositorStars603===null)compositorStars603=stars.map(s=>s.slice());
     stars.splice(0,stars.length,...copy);return stars.map(s=>s.slice());
+  }
+  // Share only the proven construction-dust mismatch between independent city boots.
+  // Preserve every field, including frozen spawn depth; do not reseed or reset actors.
+  function snapshotFx603(value){
+    const fields=['age','dep','life','ty','vx','vy','wx','wy'];
+    const copy=rows=>{
+      if(!Array.isArray(rows)||rows.length!==90||Reflect.ownKeys(rows).length!==91)throw Error('Invalid complete 90-dust input');
+      return Array.from({length:rows.length},(_,i)=>{
+        const descriptor=Object.getOwnPropertyDescriptor(rows,String(i));
+        if(!descriptor||!Object.hasOwn(descriptor,'value'))throw Error('Invalid dust array entry');
+        const p=descriptor.value;
+        if(!p||typeof p!=='object'||Array.isArray(p)||Reflect.ownKeys(p).length!==fields.length||fields.some(k=>!Object.hasOwn(p,k)||!Object.hasOwn(Object.getOwnPropertyDescriptor(p,k),'value')))throw Error('Invalid complete dust fields');
+        if(p.ty!=='dust'||fields.some(k=>k!=='ty'&&!Number.isFinite(p[k]))||p.age!==0||p.life<=0)throw Error('Invalid frozen construction dust');
+        return Object.fromEntries(fields.map(k=>[k,p[k]]));
+      });
+    };
+    if(value===undefined)return copy(fxParts);
+    if(running||measureWork603||compositorRunning603===null)throw Error('Shared dust input requires a frozen post-performance snapshot');
+    const next=copy(value);copy(fxParts); // Validate both pools before saving or mutating either.
+    if(compositorFx603===null)compositorFx603=fxParts.slice(); // Retain original objects and all identities.
+    fxParts.splice(0,fxParts.length,...next);return copy(fxParts);
   }
   function nativeDraw603(g,render,mode='native'){
     if(!['native','wrong-edge'].includes(mode))throw Error('Unknown native test mode');
@@ -67,14 +88,15 @@ function bridge603(){
     compositorState:compositorState603,
     compositorUI:()=>({toasts:document.getElementById('toasts').children.length,tweenPending:tweenHudRAF!==null}),
     snapshotStars:snapshotStars603,
-    compositorFreeze:on=>{if(on){if(compositorRunning603===null)compositorRunning603=running;running=false;}else if(compositorRunning603!==null){if(compositorStars603!==null){stars.splice(0,stars.length,...compositorStars603);compositorStars603=null;}running=compositorRunning603;compositorRunning603=null;}return compositorState603();},
+    snapshotFx:snapshotFx603,
+    compositorFreeze:on=>{if(on){if(compositorRunning603===null)compositorRunning603=running;running=false;}else if(compositorRunning603!==null){if(compositorStars603!==null){stars.splice(0,stars.length,...compositorStars603);compositorStars603=null;}if(compositorFx603!==null){fxParts.splice(0,fxParts.length,...compositorFx603);compositorFx603=null;}running=compositorRunning603;compositorRunning603=null;}return compositorState603();},
     compositorFrame:(artOff,time,mode='native')=>{
       if(running||measureWork603)throw Error('Snapshot capture must be outside live performance samples');
       window.__noT603=artOff;trafClock=time;waterT=0;waterF=0;__s603.freezeVis(time);
       const before=compositorState603(),counts=nativeDraw603(ctx,()=>GV.forceDraw(),mode),after=compositorState603();
       // forceDraw retains the real draw(.016), including its deterministic clock increments.
       // The returned post-draw state must then stay still while the compositor presents it.
-      if(before.actors!==after.actors||before.sky!==after.sky)throw Error('Native render moved snapshot actors or sky');
+      if(before.actors!==after.actors||before.sky!==after.sky||before.fx!==after.fx)throw Error('Native render moved snapshot actors or sky');
       return {...after,actorCounts:after.counts,viewport:__s603.viewport(),cam:{...cam},flags:__s603.flags(),mode,counts};
     },
     nativeFrame:(artOff,time,mode='native')=>{
@@ -340,6 +362,8 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     // stars are unseeded, once-per-document visual input. Reuse the real immutable-main
     // input only in frozen snapshots; keep global Math.random and all renderer paths intact.
     const nativeStars603=await ev('__s603.snapshotStars()');
+    const nativeFx603=await ev('__s603.snapshotFx()');
+    report.nativeWorldFx={particles:nativeFx603,referenceSHA256:hash(JSON.stringify(nativeFx603)),contract:'Exact complete immutable-main construction-dust input, frozen after live performance only; original candidate array and particle identities restored on thaw. Other actor inputs remain independent.'};
     report.nativeWorldSky={stars:nativeStars603,referenceSHA256:hash(JSON.stringify(nativeStars603)),contract:'Exact immutable-main star input shared only after live performance; restored on thaw.'};
     for(const c of nativeCases603){await nativeCamera603(c);const r=await nativeImage603(c,true);report.nativeWorldBaseline[c.key]={...nativeRecord603(r),file:nativeSave603('native-main-'+c.key,r)};persist();}
     await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});
@@ -347,6 +371,12 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await growCity('world-art-matrix',true);
     const state=await ev('__s603.scene()'),originalDay=(await view()).day;
     report.nativeWorldSky.originalCandidateSHA256=hash(JSON.stringify(await ev('__s603.snapshotStars()')));
+    report.nativeWorldFx.originalCandidateSHA256=hash(JSON.stringify(await ev('__s603.snapshotFx()')));
+    let nativeWorldError603=null;
+    try{
+    const sharedFx603=await ev('__s603.snapshotFx('+JSON.stringify(nativeFx603)+')');
+    report.nativeWorldFx.candidateSHA256=hash(JSON.stringify(sharedFx603));
+    check(JSON.stringify(sharedFx603)===JSON.stringify(nativeFx603),'independent documents use exact complete construction-dust input including spawn depth');
     const sharedStars603=await ev('__s603.snapshotStars('+JSON.stringify(nativeStars603)+')');
     report.nativeWorldSky.candidateSHA256=hash(JSON.stringify(sharedStars603));
     check(JSON.stringify(sharedStars603)===JSON.stringify(nativeStars603),'independent documents use the exact same complete 90-star snapshot input');
@@ -358,6 +388,17 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await ev('__s603.snapshotStars('+JSON.stringify(nativeStars603)+')');const skyRestored603=await nativeImage603(skyCase603,true);
     report.nativeSkyNegativeControl={changedPixels:pixelDelta603(skyGood603.pixels,skyBad603.pixels),restoredPixels:pixelDelta603(skyGood603.pixels,skyRestored603.pixels),wrongInputSHA256:hash(JSON.stringify(wrongStars603)),bad:{...nativeRecord603(skyBad603),file:nativeSave603('native-wrong-sky-control',skyBad603)},restored:{...nativeRecord603(skyRestored603),file:nativeSave603('native-restored-sky-control',skyRestored603)}};persist();
     check(report.nativeSkyNegativeControl.changedPixels>0&&report.nativeSkyNegativeControl.restoredPixels===0,'wrong star input fails full RGBA parity and exact original input restores every pixel');
+    const fxCase603=nativeCases603.find(c=>c.key==='mobile-dpr2-r0-day');await nativeCamera603(fxCase603);
+    const fxGood603=await nativeImage603(fxCase603,true),fxReference603=pngRgba603(fs.readFileSync(path.join(OUT,report.nativeWorldBaseline[fxCase603.key].file)));
+    report.nativeFxPositiveControl={key:fxCase603.key,changedPixels:pixelDelta603(fxReference603,fxGood603.pixels),referenceFile:report.nativeWorldBaseline[fxCase603.key].file,actual:{...nativeRecord603(fxGood603),file:nativeSave603('native-dust-shared-input-control',fxGood603)}};persist();
+    check(report.nativeFxPositiveControl.changedPixels===0,'shared dust retains exact immutable-main full RGBA at original DPR2 failing case');
+    const wrongFx603=nativeFx603.map(p=>({...p})),fxIndex603=wrongFx603.findIndex(p=>p.wx===-32&&p.wy===1056);
+    check(fxIndex603>=0,'wrong-dust control targets the original visible mismatch support');wrongFx603[fxIndex603].wx+=8;
+    await ev('__s603.snapshotFx('+JSON.stringify(wrongFx603)+')');const fxBad603=await nativeImage603(fxCase603,true);
+    await ev('__s603.snapshotFx('+JSON.stringify(nativeFx603)+')');const fxRestored603=await nativeImage603(fxCase603,true);
+    let affectedPixels603=0;for(let y=1443;y<1446;y++)for(let x=30;x<33;x++){const i=(y*fxGood603.pixels.w+x)*4;if(fxGood603.pixels.rgba.subarray(i,i+4).compare(fxBad603.pixels.rgba.subarray(i,i+4)))affectedPixels603++;}
+    report.nativeFxNegativeControl={particleIndex:fxIndex603,changedPixels:pixelDelta603(fxGood603.pixels,fxBad603.pixels),originalSupportChangedPixels:affectedPixels603,restoredPixels:pixelDelta603(fxGood603.pixels,fxRestored603.pixels),wrongInputSHA256:hash(JSON.stringify(wrongFx603)),bad:{...nativeRecord603(fxBad603),file:nativeSave603('native-wrong-dust-control',fxBad603)},restored:{...nativeRecord603(fxRestored603),file:nativeSave603('native-restored-dust-control',fxRestored603)}};persist();
+    check(report.nativeFxNegativeControl.changedPixels>0&&affectedPixels603>0&&report.nativeFxNegativeControl.restoredPixels===0,'one wrong dust actor changes original affected pixels and exact input restores every full RGBA pixel');
     for(const k of[29,85,92,88]){const c=report.census[k][0];await camera(c[0]+c[2]/2,c[1]+c[2]/2,k===53?1.1:2,0,1,55,false);for(const off of[true,false]){await ev('window.__noT603='+off+';true');await shot('city-k'+k+(off?'-before':'-after'));}}
     for(const group of['matrix','nativeZoomMatrix','nativeMobileMatrix','nativeMobileAligned'])report[group]=[];
     nativeViewportKey603='';
@@ -366,6 +407,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
       if(changedPixels)row.legacy.failureFile=nativeSave603('native-legacy-mismatch-'+c.key,old);
       check(changedPixels===0,'candidate art-off equals actual immutable main full RGBA '+c.key);
       check(old.state.sky===reference.state.sky,'same complete sky input fingerprint as immutable main '+c.key);
+      check(old.state.fx===reference.state.fx,'same complete construction-dust fingerprint as immutable main '+c.key);
       check(JSON.stringify(old.state.counts)===JSON.stringify(reference.state.counts),'same native reflection/shadow draw counts as immutable main '+c.key);
       const art=await nativeImage603(c,false);row.art={...nativeRecord603(art),file:nativeSave603('native-art-'+c.key,art),changedFromLegacyPixels:pixelDelta603(old.pixels,art.pixels)};
       if(c.group==='matrix')await shot('city-'+c.key);persist();
@@ -383,8 +425,14 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const good=await nativeImage603(control,false),bad=await nativeImage603(control,false,'wrong-edge'),restored=await nativeImage603(control,false);
     report.nativeNegativeControl={wrongEdgePixels:pixelDelta603(good.pixels,bad.pixels),restoredPixels:pixelDelta603(good.pixels,restored.pixels),good:{...nativeRecord603(good),file:nativeSave603('native-control-good',good)},bad:{...nativeRecord603(bad),file:nativeSave603('native-control-wrong-edge',bad)},restored:{...nativeRecord603(restored),file:nativeSave603('native-control-restored',restored)}};persist();
     check(bad.state.counts.wrongEdges>0&&report.nativeNegativeControl.wrongEdgePixels>0&&report.nativeNegativeControl.restoredPixels===0,'wrong-edge test draw wrapper loses pixels and native renderer restores exactly');
-    await ev('__s603.compositorFreeze(false);window.__noT603=false;true');
-    check(hash(JSON.stringify(await ev('__s603.snapshotStars()')))===report.nativeWorldSky.originalCandidateSHA256,'thaw restores original candidate sky after frozen comparisons');
+    }catch(error){nativeWorldError603=error;throw error;}finally{
+      try{
+        // Read restored inputs in the thaw task, before a resumed RAF can age the real particles.
+        const restoredInputs603=await ev('(()=>{__s603.compositorFreeze(false);window.__noT603=false;return {stars:__s603.snapshotStars(),fx:__s603.snapshotFx()};})()');
+        check(hash(JSON.stringify(restoredInputs603.stars))===report.nativeWorldSky.originalCandidateSHA256,'thaw restores original candidate sky after frozen comparisons');
+        check(hash(JSON.stringify(restoredInputs603.fx))===report.nativeWorldFx.originalCandidateSHA256,'thaw restores every original candidate dust field after frozen comparisons');
+      }catch(error){report.nativeWorldRestoreError=String(error.stack||error);persist();if(!nativeWorldError603)throw error;}
+    }
 
     // setSeason is a simulation test API and writes day. Restore explicitly.
     await ev('GV.setDay('+originalDay+');true');report.visualStateUnchanged=state===await ev('__s603.scene()');check(report.visualStateUnchanged,'visual-only city data unchanged after restoring test calendar');

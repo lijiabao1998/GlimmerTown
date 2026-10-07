@@ -58,7 +58,7 @@ const starInit=html.slice(html.indexOf('const stars=[];'),html.indexOf('let wate
 const starDrawStart=html.indexOf('  if(b<.62){',html.indexOf('function draw(dt)')),starDraw=html.slice(starDrawStart,html.indexOf('  if(!window.__noSky)',starDrawStart));
 function skyContext(seed){
   let state=seed;const math=Object.create(Math);math.random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
-  const calls=[],g={fillRect(...rect){calls.push({rect,alpha:this.globalAlpha});}},box={Math:math,ctx:g,b:.34,visT:100,W:1400,H:900,running:true,measureWork603:false,compositorRunning603:null,compositorStars603:null};
+  const calls=[],g={fillRect(...rect){calls.push({rect,alpha:this.globalAlpha});}},box={Math:math,ctx:g,b:.34,visT:100,W:1400,H:900,running:true,measureWork603:false,compositorRunning603:null,compositorStars603:null,compositorFx603:null};
   vm.createContext(box);vm.runInContext(starInit+scene.slice(skyStart,skyEnd)+';this.sky=snapshotStars603;this.freeze='+freezeExpression+';this.compositorState603=()=>({running,sky:JSON.stringify(stars)});this.starArray=stars;',box);
   return {box,draw:()=>{calls.length=0;vm.runInContext(starDraw,box);return JSON.stringify(calls);}};
 }
@@ -76,4 +76,55 @@ shared[0][0]=.99;mainInput[0][0]=.98;ok(mainSky.draw()===candidateSky.draw(),'sh
 const wrongSky=mainSky.box.sky();wrongSky[0]=[0,0,0];candidateSky.box.sky(wrongSky);ok(mainSky.draw()!==candidateSky.draw(),'wrong star input remains detectable by unchanged native star renderer');
 candidateSky.box.sky(mainSky.box.sky());ok(mainSky.draw()===candidateSky.draw(),'restoring reference input recovers every native star draw command');
 candidateSky.box.freeze(false);ok(candidateSky.box.running&&candidateSky.box.compositorStars603===null&&candidateSky.box.starArray===originalArray&&JSON.stringify(candidateSky.box.sky())===originalCandidate,'thaw restores original star values, array identity and running state');
+// Execute the exact dust setter, freeze path and production dust draw branch.
+// Mock draw commands establish input/identity contracts; only Chrome proves full RGBA parity.
+const fxStart=scene.indexOf('  function snapshotFx603('),fxEnd=scene.indexOf('  function nativeDraw603(',fxStart);
+const fxDrawStart=html.indexOf('    if(o.fx){'),fxDrawEnd=html.indexOf('    const t=o.t;',fxDrawStart);
+const isoStart=html.indexOf('function viewRotEff(){'),isoEnd=html.indexOf('function rotMask(',isoStart);
+assert(fxStart>=0&&fxEnd>fxStart&&fxDrawStart>=0&&fxDrawEnd>fxDrawStart&&isoStart>=0&&isoEnd>isoStart);
+const particle=(i,variant=0)=>({ty:'dust',wx:i===0?-32:i*32,wy:i===0?1056:1136+i*16,vx:i*.01+variant,vy:-6,age:0,life:.5+i*.001,dep:72.015+i+variant});
+function fxContext(variant){
+  const calls=[],array=Array.from({length:90},(_,i)=>particle(i,variant)),g={fillRect(...rect){calls.push({rect,alpha:this.globalAlpha,color:this.fillStyle});}};
+  const box={window:{},N:72,viewRot:0,ctx:g,z:1.25,ox:70,oy:123,running:true,measureWork603:false,compositorRunning603:null,compositorStars603:null,compositorFx603:null,fxParts:array,compositorState603:()=>({})};
+  vm.createContext(box);vm.runInContext(html.slice(isoStart,isoEnd)+scene.slice(fxStart,fxEnd)+';this.fx=snapshotFx603;this.freeze='+freezeExpression+';',box);
+  return {box,array,draw:()=>{calls.length=0;box.objs=box.fxParts.map(fx=>({fx})).sort((a,b)=>a.fx.dep-b.fx.dep);vm.runInContext('for(const o of objs){'+html.slice(fxDrawStart,fxDrawEnd)+'}',box);return JSON.stringify(calls);}};
+}
+const mainFx=fxContext(0),candidateFx=fxContext(1),candidateArray=candidateFx.array,candidateObjects=candidateArray.slice(),originalFx=JSON.stringify(candidateFx.box.fx()),mainFxInput=mainFx.box.fx();
+assert.throws(()=>candidateFx.box.fx(mainFxInput));candidateFx.box.running=false;assert.throws(()=>candidateFx.box.fx(mainFxInput));candidateFx.box.running=true;ok(JSON.stringify(candidateFx.box.fx())===originalFx,'dust setter rejects live or unfrozen inputs atomically');
+candidateFx.box.freeze(true);candidateFx.box.measureWork603=true;assert.throws(()=>candidateFx.box.fx(mainFxInput));candidateFx.box.measureWork603=false;ok(candidateFx.box.compositorFx603===null,'dust setter rejects a live performance sample before saving state');
+const copyFx=()=>JSON.parse(JSON.stringify(mainFxInput));
+const invalidFx=[[],mainFxInput.slice(1)];
+for(const key of Object.keys(mainFxInput[0])){const value=copyFx();delete value[0][key];invalidFx.push(value);}
+for(const value of[undefined,null,NaN,Infinity,'4',{},[]]){const rows=copyFx();rows[0].wx=value;invalidFx.push(rows);}
+for(const [key,value]of[['ty','leaf'],['age',.01],['life',0],['unrecorded',{path:[1,2]}]]){const rows=copyFx();rows[0][key]=value;invalidFx.push(rows);}
+const sparse=copyFx();delete sparse[30];invalidFx.push(sparse);
+const extraArray=copyFx();extraArray.extra='unserialized';invalidFx.push(extraArray);
+const symbolRow=copyFx();symbolRow[0][Symbol('extra')]=1;invalidFx.push(symbolRow);
+const arrayAccessor=copyFx();Object.defineProperty(arrayAccessor,'0',{get(){throw Error('Array getter must never run');},enumerable:true});invalidFx.push(arrayAccessor);
+const accessor=copyFx();Object.defineProperty(accessor[0],'wx',{get(){throw Error('Getter must never run');},enumerable:true});invalidFx.push(accessor);
+for(const invalid of invalidFx){assert.throws(()=>candidateFx.box.fx(invalid));assert.equal(JSON.stringify(candidateFx.box.fx()),originalFx);assert.equal(candidateFx.box.compositorFx603,null);}
+ok(true,'complete dust schema rejects omitted, extra, nested, accessor, sparse, nonfinite and wrong-stage fields atomically');
+const sharedFx=candidateFx.box.fx(mainFxInput);ok(JSON.stringify(sharedFx)===JSON.stringify(mainFxInput)&&mainFx.draw()===candidateFx.draw(),'complete native dust input gives identical unchanged production draw commands');
+sharedFx[0].wx+=100;mainFxInput[0].dep+=100;ok(mainFx.draw()===candidateFx.draw(),'caller and returned dust objects cannot mutate the installed snapshot');
+const fxWrong=mainFx.box.fx();fxWrong[0].wx+=8;candidateFx.box.fx(fxWrong);const fxChangedDraw=candidateFx.draw();ok(fxChangedDraw!==mainFx.draw()&&fxChangedDraw.includes('[40,1443,3,3]')&&mainFx.draw().includes('[30,1443,3,3]'),'one wrong native dust actor changes the exact original visible support');
+candidateFx.box.fx(mainFx.box.fx());ok(candidateFx.draw()===mainFx.draw(),'restoring complete reference dust recovers every production draw command');
+const stateStart603=scene.indexOf('  const compositorState603='),stateEnd603=scene.indexOf('  function snapshotStars603(',stateStart603),hashStart603=scene.indexOf('  const snapshotHash603=');
+for(const key of['cars','citizens','smokes','trains','cargoShips','tramCars','ambulances','recycleTrucks','ladderTrucks','policeCars','schoolBuses','buses','rbuses','lifeShips','rain','confetti','stars'])candidateFx.box[key]=[];
+for(const key of['visT','trafClock','waterT','waterF'])candidateFx.box[key]=0;
+vm.runInContext(scene.slice(hashStart603,stateEnd603)+';this.fxState=compositorState603;',candidateFx.box);
+const fullFxFields=Object.keys(mainFx.box.fx()[0]);for(const key of fullFxFields){const before=candidateFx.box.fxState().fx,old=candidateFx.box.fxParts[0][key];candidateFx.box.fxParts[0][key]=key==='ty'?'debris':old+.001;assert.notEqual(candidateFx.box.fxState().fx,before,key+' is fingerprinted');candidateFx.box.fxParts[0][key]=old;assert.equal(candidateFx.box.fxState().fx,before);}
+ok(true,'actual complete FX fingerprint detects every native draw, update and depth dependency');
+try{candidateFx.box.fx(mainFx.box.fx());throw Error('simulated screenshot failure');}catch(error){assert.equal(error.message,'simulated screenshot failure');}finally{candidateFx.box.freeze(false);}
+ok(candidateFx.box.running&&candidateFx.box.compositorFx603===null&&candidateFx.box.fxParts===candidateArray&&candidateArray.every((p,i)=>p===candidateObjects[i])&&JSON.stringify(candidateFx.box.fx())===originalFx,'thaw after failure restores array, all particle object identities, every field and running state');
+candidateFx.box.freeze(true);candidateFx.box.fx(mainFx.box.fx());candidateFx.box.fx(mainFx.box.fx());candidateFx.box.freeze(false);ok(candidateArray.every((p,i)=>p===candidateObjects[i])&&JSON.stringify(candidateFx.box.fx())===originalFx,'repeated snapshot replacements retain the first original pool for thaw');
+const mutatedPool=fxContext(2);mutatedPool.box.freeze(true);mutatedPool.box.fxParts[0].hiddenDependency={path:[1,2]};assert.throws(()=>mutatedPool.box.fx(mainFx.box.fx()));ok(mutatedPool.box.compositorFx603===null&&mutatedPool.box.fxParts[0].hiddenDependency.path[0]===1,'unknown original pool dependencies fail closed before overwrite');
+// Exercise the actual synchronous thaw/read task, then simulate the next RAF aging dust.
+const thawTask603=/const restoredInputs603=await ev\('([^']+)'\);/.exec(scene);assert(thawTask603);
+const raceFx=fxContext(3);raceFx.box.freeze(true);raceFx.box.fx(mainFx.box.fx());raceFx.box.__s603={compositorFreeze:raceFx.box.freeze,snapshotStars:()=>[],snapshotFx:raceFx.box.fx};
+const readAtThaw603=vm.runInContext(thawTask603[1],raceFx.box),readAtThawJSON603=JSON.stringify(readAtThaw603.fx);
+raceFx.box.fxParts[0].age=.016;ok(readAtThaw603.fx[0].age===0&&raceFx.box.fxParts[0].age===.016&&readAtThawJSON603===JSON.stringify(readAtThaw603.fx),'same-task thaw verification captures detached originals before the next live RAF');
+const cleanupStart603=scene.indexOf('    }catch(error){nativeWorldError603=error;throw error;}finally{'),cleanupEnd603=scene.indexOf('    // setSeason is a simulation test API',cleanupStart603);
+assert(cleanupStart603>=0&&cleanupEnd603>cleanupStart603);const actualCleanup603=scene.slice(cleanupStart603,cleanupEnd603).replace('await ev(', 'ev('),cleanupReport603={};
+for(const primary of[true,false]){const cleanupBox603={report:cleanupReport603,persist:()=>{},ev:()=>{throw Error('thaw transport failed');}};assert.throws(()=>vm.runInNewContext('let nativeWorldError603=null;try{'+(primary?"throw Error('primary pixel mismatch');":'')+actualCleanup603,cleanupBox603),primary?/primary pixel mismatch/:/thaw transport failed/);assert.match(cleanupReport603.nativeWorldRestoreError,/thaw transport failed/);}
+ok(true,'actual cleanup preserves the primary comparison failure and records secondary thaw failures');
 console.log('T603_NATIVE_RESULT '+JSON.stringify({checks,baseIndexSHA256:result.baseSHA256,sourceSHA256:result.sourceSHA256}));
