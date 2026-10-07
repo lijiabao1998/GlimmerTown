@@ -1,0 +1,22 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {normalize,vertices,batches,reference}=require('./ordered-gpu.js');
+let n=0;function test(name,fn){fn();console.log('PASS '+name);n++;}
+const a={width:100,height:50},b={width:40,height:40},base={image:a,dst:[10,20,100,50]};
+test('identity and UV origin preserve six ordered vertices',()=>assert.deepEqual(vertices(base).slice(0,12),[10,20,0,0,1,1,110,20,1,0,1,1]));
+test('vertical reflection keeps original UV and negative transform',()=>assert.deepEqual(vertices({...base,transform:[1,0,0,-.35,12,30]}).slice(0,6),[22,23,0,0,1,1]));
+test('full affine transform includes both shear terms',()=>assert.deepEqual(vertices({...base,transform:[2,3,4,5,6,7]}).slice(0,2),[106,137]));
+test('filter blackens RGB only while alpha retained',()=>assert.deepEqual(vertices({...base,alpha:.22,filter:'brightness(0)'}).slice(4,6),[.22,0]));
+test('source crop UV preserved',()=>assert.deepEqual(vertices({...base,crop:[10,5,20,15]}).slice(2,4),[.1,.1]));
+test('negative source extent rejected',()=>assert.throws(()=>normalize({...base,crop:[0,0,-1,1]})));
+test('negative destination extent rejected rather than flipped',()=>assert.throws(()=>normalize({...base,dst:[0,0,-1,1]})));
+test('partially outside source crops proportionally clip the destination',()=>{const c=normalize({...base,crop:[90,0,20,10]});assert.deepEqual(c.crop,[90,0,10,10]);assert.deepEqual(c.dst,[10,20,50,50]);});
+test('unsupported composite and clips fail closed',()=>{assert.throws(()=>normalize({...base,blend:'multiply'}));assert.throws(()=>normalize({...base,clip:[0,0,1,1]}));});
+test('unsupported blur fails closed',()=>assert.throws(()=>normalize({...base,filter:'blur(2px)'})));
+test('nonfinite transform rejected',()=>assert.throws(()=>normalize({...base,transform:[1,0,0,1,NaN,0]})));
+test('nonconsecutive textures never reordered into a batch',()=>assert.deepEqual(batches([base,{...base,image:b},base]).map(x=>[x.image===a,x.first,x.count]),[[true,0,6],[false,6,6],[true,12,6]]));
+test('adjacent alpha/filter differences are vertex data in same batch',()=>assert.equal(batches([base,{...base,alpha:.2,filter:'brightness(0)'}])[0].count,12));
+test('blend/sampling/revision each split adjacent batches',()=>assert.equal(batches([base,{...base,blend:'screen'},{...base,smoothing:false},{...base,revision:1}]).length,4));
+test('native reference replays original crop/destination in order',()=>{const draws=[],ctx={canvas:{width:1400,height:900},save(){},restore(){},resetTransform(){},setTransform(){},clearRect(){},fillRect(){},drawImage(...a){draws.push(a);}};reference(ctx,[base,{...base,image:b,crop:[0,0,40,40]}]);assert.equal(draws[0][0],a);assert.equal(draws[1][0],b);assert.deepEqual(draws[0].slice(1),[0,0,100,50,10,20,100,50]);});
+test('product index and service worker are unchanged',()=>{for(const[f,sha]of Object.entries({'index.html':'99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d','sw.js':'79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2'}))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.resolve(__dirname,'../../..',f))).digest('hex'),sha);});
+console.log('T604_CONTRACTS '+n+' passed; native pixel/performance evidence requires CI');
