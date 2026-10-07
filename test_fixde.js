@@ -3408,13 +3408,22 @@ async function runPwaTests() {
         await lifetime;
       },
       async fireFetch(request) {
-        let responsePromise = null, calls = 0;
+        let responsePromise = null, calls = 0, dispatching = true;
+        const lifetimes = [];
         handlers.fetch({
           request,
-          respondWith(value) { calls++; responsePromise = Promise.resolve(value); }
+          respondWith(value) { calls++; responsePromise = Promise.resolve(value); },
+          waitUntil(value) {
+            if (!dispatching) throw new Error('FetchEvent.waitUntil 必須同步登記');
+            lifetimes.push(Promise.resolve(value));
+          }
         });
+        dispatching = false;
         if (!calls) return { intercepted: false, response: null };
-        return { intercepted: true, response: await responsePromise };
+        const response = await responsePromise;
+        /* T603：本組原斷言檢查事件完成後的快取；導航不阻塞另以延遲寫入專測。 */
+        await Promise.all(lifetimes);
+        return { intercepted: true, response };
       }
     };
   }
