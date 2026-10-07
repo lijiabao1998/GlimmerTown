@@ -2,7 +2,7 @@
 
 // Disposable diagnostic only. The product's draw function is never edited.
 function nativePrefixBridge604(ctx, cvs, getGroundCache) {
-  let boundary, sourcePrefix, prefix, compiledPrefix, parts, rows, views;
+  let boundary, sourcePrefix, prefix, compiledPrefix, parts, rows, views, proofBytes;
   let revision = 1000000;
   const make = () => {
     const canvas = document.createElement('canvas');
@@ -106,6 +106,8 @@ function nativePrefixBridge604(ctx, cvs, getGroundCache) {
     parts = __atlas604.nativePrefixParts();
     const old = parts.factorState;
     if (!old) throw Error('Original R/G/T/W evidence required first');
+    parts.gpu.render(old.rows);
+    const originalAtlasPixels = readGL();
     const again = make(); paintPrefix(); paintPrefix(again);
     const prefixPixels = bytes(prefix), prefixAgain = bytes(again);
     let nonOpaquePixels = 0;
@@ -133,6 +135,7 @@ function nativePrefixBridge604(ctx, cvs, getGroundCache) {
     parts.gpu.render(hybridRows); const restored = readGL();
     const R = old.views.R.getContext('2d').getImageData(0, 0, cvs.width, cvs.height).data;
     const data = { R, G: bytes(G), T: bytes(T), W, prefix: prefixPixels };
+    proofBytes = { atlas: originalAtlasPixels, prefix: W, nativePrefix: prefixPixels, R };
     const stages = { grouping: delta(R, data.G), translatedTiles: delta(data.G, data.T),
       GLAssembly: delta(data.T, W), total: delta(R, W) };
     const frameHashes = {};
@@ -209,7 +212,37 @@ function nativePrefixBridge604(ctx, cvs, getGroundCache) {
       requestAnimationFrame(frame);
     });
   }
+  // No clock/FPS sampling. Each condition starts with brand-new Canvas sources,
+  // performs a fixed number of paints/uploads, then makes one final read.
+  async function probeFresh(which, count) {
+    const setup = prepare();
+    for (let i = 0; i < count; i++) {
+      await new Promise(resolve => requestAnimationFrame(() => {
+        if (which === 'atlas') __atlas604.render('atlas'); else render();
+        resolve();
+      }));
+    }
+    const output = readGL();
+    const reference = make();
+    const actualRows = which === 'atlas' ? parts.commands : rows;
+    Gpu604.reference(reference.g, actualRows);
+    const samePixelsCanvas = bytes(reference);
+    let prefixAfterPaint = null;
+    if (which === 'prefix') prefixAfterPaint = delta(sourcePrefix, bytes(prefix));
+    const image = make(); image.g.putImageData(new ImageData(new Uint8ClampedArray(output), cvs.width, cvs.height), 0, 0);
+    return {
+      mode: which, draws: count, setup: setup.prefix, performanceSamples: 0,
+      previousProofDifference: delta(proofBytes[which], output),
+      actualSameSourceCanvasVsGL: delta(samePixelsCanvas, output),
+      originalNativeDifference: delta(proofBytes.R, output),
+      originalPrefixDifference: prefixAfterPaint,
+      rgbaSHA256: await sha(output), sourcePrefixSHA256: which === 'prefix' ? await sha(bytes(prefix)) : null,
+      assets: { output: image.canvas.toDataURL('image/png'), sameSourceCanvas: reference.canvas.toDataURL('image/png') },
+      glError: parts.gpu.gl.getError()
+    };
+  }
   window.__prefix604 = { capture, prepare, validate, show, measure,
+    probeFresh,
     renderMode: which => which === 'atlas' ? __atlas604.render('atlas') : render() };
 }
 module.exports = { nativePrefixBridge604 };

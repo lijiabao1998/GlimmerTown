@@ -22,13 +22,13 @@ jobs:
           node docs/tasks/t604-gpu/transfer.test.js | tee evidence/observer-contracts.log
           node docs/tasks/t604-gpu/atlas.test.js | tee evidence/atlas-contracts.log
           node docs/tasks/t604-gpu/compositing.test.js | tee evidence/blend-contracts.log
-          node docs/tasks/t604-gpu/prefix-run.js --check-overlay | tee evidence/prefix-overlay.log
-      - name: Prove prefix pixels before conditional paired component cost
+          node docs/tasks/t604-gpu/prefix-pixels-run.js --check-overlay | tee evidence/prefix-overlay.log
+      - name: Attribute both phases and fresh surfaces without FPS sampling
         env:
           CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
         run: |
           set -o pipefail
-          node docs/tasks/t604-gpu/prefix-run.js --port=8763 --out=evidence/native | tee evidence/prefix.log
+          node docs/tasks/t604-gpu/prefix-pixels-run.js --port=8763 --out=evidence/native | tee evidence/prefix.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
