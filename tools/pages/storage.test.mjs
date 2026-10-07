@@ -10,7 +10,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {packageFile,verifyPackagedFile,SAVE_NAMESPACE,sha256} from './build-main.mjs';
-import {browserPrepareSave,browserSaveRoundTrip} from './browser-main.mjs';
+import {browserPrepareSave,browserSaveRoundTrip,saveReloadObservation} from './browser-main.mjs';
 
 const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const NS=SAVE_NAMESPACE, SLOT=NS+'.s3', LAB='glimmerville.v1';
@@ -54,7 +54,7 @@ function boot({seed={},productHTML=html}={}){
     require:createRequire(import.meta.url),__dirname:ROOT,__filename:path.join(ROOT,'test_fixde.js'),
     console:{log(){},warn:(...args)=>warnings.push(args.map(String).join(' ')),error:(...args)=>errors.push(args.map(String).join(' '))},
     setTimeout:(fn,ms)=>{const id=++timerID;timers.set(id,{fn,ms});return id;},
-    clearTimeout:id=>timers.delete(id),setInterval:()=>++timerID,clearInterval(){},cancelAnimationFrame(){},
+    clearTimeout:id=>timers.delete(id),setInterval:(fn,ms)=>{const id=++timerID;timers.set(id,{fn,ms,interval:true});return id;},clearInterval:id=>timers.delete(id),cancelAnimationFrame(){},
     btoa,atob,URL,TextEncoder,TextDecoder,DOMException,Buffer,
     __initial:initial,__logs:logs
   };
@@ -74,7 +74,9 @@ function boot({seed={},productHTML=html}={}){
     localStorage.clear=()=>{trace('clear','*');for(const k of Object.keys(store))delete store[k];};
     localStorage.key=i=>{trace('enumerate','*');return Object.keys(store)[i]??null;};
     Object.defineProperty(localStorage,'length',{get(){trace('enumerate','*');return Object.keys(store).length;}});
-    global.__harness={store,elMap,window,localStorage};
+    const documentListeners={};
+    document.addEventListener=(name,fn)=>{(documentListeners[name]||=[]).push(fn);};
+    global.__harness={store,elMap,window,localStorage,documentListeners};
     const AudioContext=window.AudioContext,webkitAudioContext=window.webkitAudioContext;
   `+scripts.join('\n'))(...Object.values(host));
   const H=context.__harness;
@@ -169,20 +171,45 @@ test('actual preference and scenario writes stay inside main namespace',()=>{
   h.isolated();
 });
 
-test('browser save/export/import helper logic also passes against actual game code under the Node DOM mock',async()=>{
-  const h=boot(),doc=h.window.document;
+function browserHelpers(h,captureKind){
+  const doc=h.window.document;
   doc.getElementById=id=>h.elMap.get(id)??null;
   const originalQuery=doc.querySelectorAll;
   const descendants=element=>element.children.flatMap(child=>[child,...descendants(child)]);
   doc.querySelectorAll=selector=>selector==='#infoBody button'?descendants(h.elMap.get('infoBody')).filter(e=>e.tagName==='button'):originalQuery(selector);
   h.window.__pagesStorageProbe={snapshot:()=>({main:Object.fromEntries(Object.entries(h.store).filter(([k])=>k===NS||k.startsWith(NS+'.')).sort(([a],[b])=>a.localeCompare(b)))})};
   h.context.prompt=(...args)=>h.window.prompt(...args);
-  const invoke=fn=>new Function('GV','localStorage','document','navigator','window','namespace',`return (${fn.toString()})(namespace);`)(h.G,h.localStorage,doc,h.window.navigator,h.window,NS);
-  const prepared=invoke(browserPrepareSave);assert.equal(prepared.placed,3);assert.equal(prepared.raw,h.store[SLOT]);
-  const report=await invoke(browserSaveRoundTrip);
-  assert.equal(report.captureKind,'prompt');assert.equal(h.store[SLOT],report.rawB);
-  assert.equal(h.G.load(),true);assert.deepEqual(stats(h.G),{...report.coreB,pop:h.G.stats().pop});
-  assert(report.checks.length>=15,'all browser save helper assertions execute');h.isolated();
+  if(captureKind==='clipboard-writeText')h.window.navigator.clipboard={writeText:async()=>{throw Error('Test must never use the OS clipboard');}};
+  return fn=>new Function('GV','localStorage','document','navigator','window','namespace',`return (${fn.toString()})(namespace);`)(h.G,h.localStorage,doc,h.window.navigator,h.window,NS);
+}
+
+for(const captureKind of ['prompt','clipboard-writeText'])test(`actual browser helper ${captureKind} export survives two fresh boots and real visibility/25-second save callbacks`,async()=>{
+  const first=boot(),prepared=browserHelpers(first,captureKind)(browserPrepareSave);
+  assert.equal(prepared.placed,3);assert.equal(prepared.raw,first.store[SLOT]);first.isolated();
+  // Match both actual browser reload boundaries, not repeated load() calls in
+  // one already-initialized game closure.
+  const h=boot({seed:first.snapshot()});assert.equal(h.G.load(),true);
+  assert.equal(h.G.rawSave(),prepared.raw);assert.deepEqual(stats(h.G),{...prepared.core,pop:0});
+  const report=await browserHelpers(h,captureKind)(browserSaveRoundTrip);
+  assert.equal(report.captureKind,captureKind);assert.equal(h.store[SLOT],report.reloadRaw);
+  assert.notEqual(report.reloadRaw,report.rawB,'normal import notification must be persisted before fixing the reload baseline');
+  assert.equal(h.store[SLOT+'_bak'],report.rawB);
+  if(captureKind==='clipboard-writeText')assert.equal(sha256(report.rawB),'67686714d828582a6b2f1c71498392c138845370f3e9afb39f0175134fed7303','reproduce the exact initial CI rollback-save bytes');
+  const expected=JSON.parse(report.rawB);expected.nl.push({d:expected.day,m:'📥 匯入成功'});
+  assert.equal(report.reloadRaw,JSON.stringify(expected),'only the one exact import-success notification may differ');
+  const stable=()=>{assert.equal(h.G.rawSave(),report.reloadRaw);assert.deepEqual(stats(h.G),{...report.reloadCore,pop:0});h.isolated();};
+  h.G.save();stable();
+  assert(h.documentListeners.visibilitychange?.length,'actual visibility handler is registered');
+  h.window.document.hidden=true;
+  for(const callback of h.documentListeners.visibilitychange)callback({type:'visibilitychange'});
+  h.window.document.hidden=false;stable();
+  const periodic=[...h.timers.values()].filter(timer=>timer.interval&&timer.ms===25000);
+  assert.equal(periodic.length,1,'actual periodic save handler is registered');periodic[0].fn();stable();
+  const second=boot({seed:h.snapshot()}),loaded=second.G.load();
+  const observed=saveReloadObservation({expectedRaw:report.reloadRaw,expectedCore:report.reloadCore,actual:{loaded,raw:second.G.rawSave(),core:Object.fromEntries(Object.keys(report.reloadCore).map(key=>[key,second.G.stats()[key]]))}});
+  assert(observed.loaded&&observed.exactBytes&&observed.exactCore,JSON.stringify(observed));
+  assert.deepEqual(observed.changedFields,[]);second.G.save();assert.equal(second.G.rawSave(),report.reloadRaw);second.isolated();
+  assert(report.checks.length>=23,'all immediate rollback, strict notification and save assertions execute');
 });
 
 test('negative control: shared-namespace regression is caught by real game read/write sentinels',()=>{

@@ -234,7 +234,48 @@ export async function browserSaveRoundTrip(namespace) {
   ensure(GV.importCode(encode(rawB)) === true, 'rollback imports the pre-import main city through GV.importCode'); GV.setSpeed(0);
   ensure(JSON.stringify(main()) === JSON.stringify(beforeValid), 'rollback restores all main keys and backup bytes exactly');
   ensure(JSON.stringify(core()) === JSON.stringify(coreB), 'rollback restores the pre-import live city values');
-  return { checks, rawA, rawB, coreA, coreB, captureKind, exportCode: code };
+  // importShareCode() restores exact input bytes, then adds its normal success
+  // notification to the live log. A real visibility/25-second save persists that
+  // one entry. Save it explicitly so a later lifecycle save cannot move the
+  // reload byte baseline; reject every other save-field change.
+  const expectedReload = JSON.parse(rawB);
+  ensure(Array.isArray(expectedReload.nl) && expectedReload.nl.length < 100, 'synthetic rollback log has room for exactly one import notification');
+  expectedReload.nl.push({ d: expectedReload.day, m: '📥 匯入成功' });
+  GV.save();
+  const reloadRaw = GV.rawSave(), reloadCore = core();
+  ensure(reloadRaw === JSON.stringify(expectedReload), 'explicit rollback save changes only the exact expected import-success notification');
+  ensure(localStorage.getItem(key + '_bak') === rawB, 'explicit rollback save keeps the exact imported city as backup');
+  ensure(JSON.stringify(reloadCore) === JSON.stringify(coreB), 'explicit rollback save preserves every checked live city value');
+  return { checks, rawA, rawB, coreA, coreB, reloadRaw, reloadCore, captureKind, exportCode: code };
+}
+
+export function saveReloadObservation({expectedRaw,expectedCore,actual}) {
+  const stable = value => Array.isArray(value) ? value.map(stable) : value && typeof value === 'object'
+    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])])) : value;
+  const equal = (left, right) => JSON.stringify(stable(left)) === JSON.stringify(stable(right));
+  const row = {
+    loaded: actual.loaded, loadError: actual.loadError??null, coreError: actual.coreError??null,
+    expectedSHA256: sha(expectedRaw), actualSHA256: sha(actual.raw),
+    expectedBytes: Buffer.byteLength(expectedRaw), actualBytes: Buffer.byteLength(actual.raw),
+    exactBytes: actual.raw === expectedRaw, expectedCore, actualCore: actual.core,
+    exactCore: JSON.stringify(actual.core) === JSON.stringify(expectedCore), coreValuesEqual: equal(actual.core, expectedCore)
+  };
+  try {
+    const before = JSON.parse(expectedRaw), after = JSON.parse(actual.raw);
+    row.parsedEqual = equal(before, after);
+    row.changedFields = Object.keys({...before, ...after}).filter(key => !equal(before[key], after[key]));
+    row.fieldDifferences = row.changedFields.map(key => ({key, expected:before[key], actual:after[key]}));
+  } catch (error) { row.parseError = String(error); }
+  return row;
+}
+
+export function browserLoadObservation() {
+  let loaded=false, loadError=null, core=null, coreError=null;
+  try { loaded=GV.load(); GV.setSpeed(0); } catch (error) { loadError=String(error); }
+  const raw=GV.rawSave();
+  try { const stats=GV.stats(); core=Object.fromEntries(['money','day','buildings','roads','zones'].map(key=>[key,stats[key]])); }
+  catch (error) { coreError=String(error); }
+  return {loaded,raw,core,loadError,coreError};
 }
 
 export function assertFirstVisitEvidence({beforeWorker,url,expectedSHA,commit,response,bodySHA256,http}) {
@@ -638,25 +679,24 @@ export async function run() {
     report.saveChecks.push({ phase: 'save', bytes: Buffer.byteLength(saved.raw), sha256: sha(saved.raw), core: saved.core, seed: saved.seed, mapSize: saved.size }); persist();
     await assertIsolation('after actual main save');
     await navigate('cold-online', ['fetch-end', 'cache-put-end', 'reply-fresh'], { reload: true, root: true });
-    const loaded = await ev(`(()=>{
-      const loaded=GV.load();GV.setSpeed(0);const stats=GV.stats();
-      return {loaded,raw:GV.rawSave(),core:Object.fromEntries(['money','day','buildings','roads','zones'].map(key=>[key,stats[key]]))};
-    })()`);
-    check(loaded.loaded && loaded.raw === saved.raw && JSON.stringify(loaded.core) === JSON.stringify(saved.core), 'real page reload plus GV.load preserves main saved bytes and city values');
+    const loaded = await ev(`(${browserLoadObservation.toString()})()`);
+    const loadedObservation = saveReloadObservation({expectedRaw:saved.raw, expectedCore:saved.core, actual:loaded});
+    report.saveChecks.push({phase:'first-reload-observation', ...loadedObservation}); persist();
+    check(loadedObservation.loaded && loadedObservation.exactBytes && loadedObservation.exactCore, 'real page reload plus GV.load preserves main saved bytes and city values');
     await assertIsolation('after actual main save/reload');
     const imported = await ev(`(${browserSaveRoundTrip.toString()})(${JSON.stringify(SAVE_NAMESPACE)})`);
     for (const label of imported.checks) check(true, label);
     report.saveChecks.push({ phase: 'export-import-rollback', checks: imported.checks, exportCapture: imported.captureKind,
       exportBytes: Buffer.byteLength(imported.exportCode), exportSHA256: sha(imported.exportCode), exportedSaveSHA256: sha(imported.rawA),
-      restoredSaveSHA256: sha(imported.rawB), exportedCore: imported.coreA, restoredCore: imported.coreB }); persist();
+      restoredSaveSHA256: sha(imported.rawB), reloadExpectedSHA256: sha(imported.reloadRaw),
+      exportedCore: imported.coreA, restoredCore: imported.coreB, reloadExpectedCore: imported.reloadCore }); persist();
     await assertIsolation('after invalid import, valid export/import and rollback');
     await navigate('cold-online', ['fetch-end', 'cache-put-end', 'reply-fresh'], { reload: true, root: true });
-    const rollbackLoaded = await ev(`(()=>{
-      const loaded=GV.load();GV.setSpeed(0);const stats=GV.stats();
-      return {loaded,raw:GV.rawSave(),core:Object.fromEntries(['money','day','buildings','roads','zones'].map(key=>[key,stats[key]]))};
-    })()`);
-    check(rollbackLoaded.loaded && rollbackLoaded.raw === imported.rawB && JSON.stringify(rollbackLoaded.core) === JSON.stringify(imported.coreB), 'second real reload preserves rolled-back main save and live city values');
-    await assertIsolation('after rollback reload');
+    const rollbackLoaded = await ev(`(${browserLoadObservation.toString()})()`);
+    const rollbackObservation = saveReloadObservation({expectedRaw:imported.reloadRaw, expectedCore:imported.reloadCore, actual:rollbackLoaded});
+    report.saveChecks.push({phase:'rollback-reload-observation', ...rollbackObservation}); persist();
+    await assertIsolation('after rollback reload before byte/city comparison');
+    check(rollbackObservation.loaded && rollbackObservation.exactBytes && rollbackObservation.exactCore, 'second real reload preserves rolled-back main save and live city values');
     const delayed = await navigate('delay', ['fetch-end', 'clone-end', 'cache-open-end', 'cache-put-begin', 'cache-put-end', 'reply-fresh']);
     const stage = (row, name) => row.rows.find(r => r.stage === name);
     check(stage(delayed, 'cache-put-end').time - stage(delayed, 'cache-put-begin').time >= 7500, 'cache write is deliberately delayed at least 7.5 seconds');

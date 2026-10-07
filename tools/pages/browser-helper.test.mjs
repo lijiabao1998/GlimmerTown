@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
-import {instrumentWorker,storageProbeSource,foreignStorageFixture,assertFirstVisitEvidence} from './browser-main.mjs';
+import {instrumentWorker,storageProbeSource,foreignStorageFixture,assertFirstVisitEvidence,saveReloadObservation,browserLoadObservation} from './browser-main.mjs';
 import {packageFile,SAVE_NAMESPACE} from './build-main.mjs';
 
 function probe(){
@@ -106,4 +106,28 @@ test('browser source requires uncontrolled network first visit and app-managed p
   const cacheGate="await verifyAllShellBodies('app-managed first install complete before controlled navigation or outage')";
   const moved=source.replace(cacheGate,'null').replace('const firstVisitBefore = await ev(',cacheGate+'; const firstVisitBefore = await ev(');
   assert.throws(()=>validate(moved),/out-of-order/);
+});
+
+test('reload diagnostics retain strict byte/core guards and distinguish JSON order, city loss, notification changes and failed loads',()=>{
+  const expectedRaw='{"v":1,"money":2,"nl":[]}',expectedCore={money:2,day:1};
+  const observe=actual=>saveReloadObservation({expectedRaw,expectedCore,actual:{loaded:true,raw:expectedRaw,core:expectedCore,...actual}});
+  assert(observe({}).exactBytes&&observe({}).exactCore);
+  const order=observe({raw:'{"nl":[],"money":2,"v":1}',core:{day:1,money:2}});
+  assert(!order.exactBytes&&!order.exactCore);assert(order.parsedEqual&&order.coreValuesEqual);assert.deepEqual(order.changedFields,[]);
+  const lost=observe({raw:'{"v":1,"money":0,"nl":[]}',core:{money:0,day:1}});
+  assert(!lost.exactBytes&&!lost.exactCore&&!lost.parsedEqual);assert.deepEqual(lost.changedFields,['money']);
+  assert.deepEqual(lost.fieldDifferences,[{key:'money',expected:2,actual:0}]);
+  const notification=observe({raw:'{"v":1,"money":2,"nl":[{"d":1,"m":"unexpected"}]}'});
+  assert(!notification.exactBytes);assert.deepEqual(notification.changedFields,['nl']);
+  const failed=observe({loaded:false,raw:'bad-json',core:null,loadError:'load failure',coreError:'stats failure'});
+  assert(!failed.loaded&&!failed.exactBytes&&!failed.exactCore);assert(failed.parseError);
+  assert.equal(failed.loadError,'load failure');assert.equal(failed.coreError,'stats failure');assert.equal(failed.actualSHA256.length,64);
+  const capture=new Function('GV',`return (${browserLoadObservation.toString()})();`)({
+    load(){return false;},setSpeed(){},rawSave(){return 'broken-save';},stats(){throw Error('partial city');}
+  });
+  assert.equal(capture.raw,'broken-save');assert.equal(capture.loaded,false);assert.match(capture.coreError,/partial city/);
+  const source=readFileSync(new URL('./browser-main.mjs',import.meta.url),'utf8');
+  const observedAt=source.indexOf("report.saveChecks.push({phase:'rollback-reload-observation'");
+  const checkedAt=source.indexOf('check(rollbackObservation.loaded && rollbackObservation.exactBytes && rollbackObservation.exactCore');
+  assert(observedAt>=0&&checkedAt>observedAt);assert(source.slice(observedAt,checkedAt).includes('persist();'));
 });
