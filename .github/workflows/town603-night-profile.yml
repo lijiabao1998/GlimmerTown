@@ -1,7 +1,7 @@
-name: Town T603 SW stage probe (diagnosis only)
+name: Town T603 clip isolation (diagnosis only)
 on:
   push:
-    branches: [gpt/town-sw-stage-603]
+    branches: [gpt/town-clip-isolation-603]
     paths:
       - docs/tasks/t603-shots/profile603.js
       - .github/workflows/town603-night-profile.yml
@@ -24,7 +24,7 @@ jobs:
           sw_vers | tee evidence/macos-version.txt
           echo 'Diagnostic collection cannot clear failed acceptance run37535607860.' | tee evidence/acceptance-still-blocked.txt
           node docs/tasks/t603-shots/profile603.js --check-profile
-      - name: Trace copied Service Worker navigation stages without changing cache waits
+      - name: Separate clip sites and test origin/full-canvas controls
         env:
           CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
         run: |
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Town-T603-SW-stage-${{ github.sha }}
+          name: Town-T603-clip-isolation-${{ github.sha }}
           path: evidence/
           if-no-files-found: error
           retention-days: 14
