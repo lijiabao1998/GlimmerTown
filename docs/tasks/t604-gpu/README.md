@@ -52,3 +52,16 @@ Backdrop-dependent groups retain their original outer blend mode; they are never
 For multiply, define F=1−a+c and T=1−a. Composing same-mode sources multiplies both F and T, so a transparent group's resulting F is exactly the required product. Applying that group with multiply retains its dependency on the real background. The analogous same-mode source-over/screen/add identities also compose. Changing blend mode or encountering an image always ends a group. The [W3C compositing equations](https://www.w3.org/TR/compositing-1/) establish these ideal-arithmetic relations; they do not prove RGBA8 raster equality.
 
 The local algebra tests cover 4,000 deterministic same-mode groups with translucent sources and backgrounds. Before timing, the browser tests every mode using overlapping translucent solid/gradient sources over a colored checkerboard. That small two-layer control records RGBA differences and uses a predeclared three-level finite-rounding bound, exact repeats/restoration, and a deliberately wrong source-over composite of a multiply group. This is a component conformance check, not a change to any product pixel gate. Full scene differences remain unmasked and must be reviewed. The original 55 FPS / 8 ms cost screen remains unchanged.
+
+## Three-stage pixel attribution (no performance sampling)
+
+The next bounded diagnostic keeps the failed feasibility result unchanged. It captures one original day and one night vector stream, then compares four outputs from those exact commands:
+
+1. R: native sequential vector drawing.
+2. G: native homogeneous groups rasterized at original coordinates, then composed by Canvas with their original blend modes.
+3. T: native groups rasterized in translated atlas tiles, then composed by Canvas.
+4. W: those same unchanged T tile Canvas objects composed by WebGL.
+
+R→G includes native group isolation and intermediate bitmap composition; it does not by itself prove a particular quantization mechanism. G→T measures changed native tile rasterization while keeping the compositor native. T→W changes only the assembler consuming the identical source Canvas objects. Per-pixel overlap/cancellation masks prevent treating the three changed-pixel counts as additive causes. Every pre-upload tile is also compared in straight RGBA and reconstructed 8-bit premultiplied values. The six largest tile disagreements receive a fresh native-origin probe before any bitmap copy, separating copying from coordinate/clip changes.
+
+Every reference and native atlas is rerasterized independently for repeat controls. Wrong native/GL multiply and shifted-UV controls must change output, restoring GL must restore exact bytes, and actors/sky/dust/clocks must remain identical. Actual compositor PNGs must match the attributed framebuffer hashes. The diagnostic ends after these stage results for the fixed two inputs; unstable repeats invalidate attribution. It samples no FPS, changes no source/gameplay/artwork, starts no full integration, and does not relax any pixel or release criterion.
