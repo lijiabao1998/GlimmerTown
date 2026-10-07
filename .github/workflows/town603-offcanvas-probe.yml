@@ -1,0 +1,47 @@
+name: Town T603 one-shot offcanvas diagnostic
+on:
+  push:
+    branches: [gpt/town-offcanvas-probe-603]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: town603-offcanvas-probe
+  cancel-in-progress: false
+jobs:
+  native-mac:
+    # A failed/inconclusive experiment is retained. No rerun-to-green attempt.
+    if: github.run_attempt == 1
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify unchanged product and isolated diagnostic
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          git rev-parse HEAD | tee evidence/source-commit.txt
+          shasum -a 256 index.html sw.js docs/tasks/t603-shots/offcanvas603.js docs/tasks/t603-shots/offcanvas-run603.js | tee evidence/source-sha256.txt
+          node docs/tasks/t603-shots/native603.test.js | tee evidence/native-source.log
+          node docs/tasks/t603-shots/offcanvas603.test.js | tee evidence/offcanvas-tests.log
+          node docs/tasks/t603-shots/offcanvas-run603.js --check-overlay | tee evidence/overlay-syntax.log
+          sw_vers | tee evidence/macos-version.txt
+          uname -a | tee evidence/runner-system.txt
+          /usr/sbin/system_profiler SPDisplaysDataType > evidence/displays.txt
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --version | tee evidence/chrome-version.txt
+      - name: One bounded live native session then exact frozen comparisons
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t603-shots/offcanvas-run603.js --port=8763 --out=evidence/native | tee evidence/offcanvas.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T603-offcanvas-once-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
