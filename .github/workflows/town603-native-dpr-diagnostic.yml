@@ -1,0 +1,46 @@
+name: Town T603 native DPR difference evidence
+on:
+  push:
+    branches: [gpt/town-native-dpr-diagnostic-603]
+permissions:
+  contents: read
+concurrency:
+  group: town603-native-dpr-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  world:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Chinese UI fonts
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Record unchanged source and strict comparator identities
+        run: |
+          mkdir -p evidence
+          git rev-parse HEAD | tee evidence/source-commit.txt
+          sha256sum index.html docs/tasks/t603-shots/scene603.js docs/tasks/t603-shots/native603.js | tee evidence/source-sha256.txt
+          node docs/tasks/t603-shots/native603.test.js
+      - name: Reproduce the complete original world sequence without changing a gate
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t603-shots/scene603.js --phase=world --port=8762 --out=evidence/chrome | tee evidence/world.log
+      - name: Collect summary and only actual failure comparison PNGs
+        if: always()
+        run: node docs/tasks/t603-shots/package-world-evidence603.js --source=evidence/chrome --out=evidence/world-review
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T603-native-DPR-review-${{ github.sha }}
+          path: |
+            evidence/world-review/
+            evidence/world.log
+            evidence/source-commit.txt
+            evidence/source-sha256.txt
+          if-no-files-found: error
+          retention-days: 14

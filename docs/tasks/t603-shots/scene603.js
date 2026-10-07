@@ -64,6 +64,8 @@ function bridge603(){
     try{render();return counts;}finally{g.drawImage=old;}
   }
   window.__s603={
+    // Read-only diagnostic input evidence; no actor normalization or masking.
+    compositorInputs:()=>{const lists={cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,fxParts,confetti};return Object.fromEntries(Object.entries(lists).map(([key,arr])=>[key,arr.map(o=>Object.fromEntries(Object.keys(o).sort().filter(k=>o[k]===null||['number','string','boolean'].includes(typeof o[k])).map(k=>[k,o[k]])))]));},
     compositorState:compositorState603,
     compositorUI:()=>({toasts:document.getElementById('toasts').children.length,tweenPending:tweenHudRAF!==null}),
     snapshotStars:snapshotStars603,
@@ -337,6 +339,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const nativeBaseOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/baseline603.html'});await ready(nativeBaseOrigin603);
     report.nativeWorldBaseIdentity=await ev('__s603.documentIdentity()');check(report.nativeWorldBaseIdentity.version==='11.211'&&report.nativeWorldBaseIdentity.civicFactory==='undefined'&&report.nativeWorldBaseIdentity.url==='/baseline603.html','world reference is exact immutable main document');
     await growCity('world-native-main',true);report.nativeWorldBaseline={};nativeViewportKey603='';
+    report.nativeWorldBaselineInputs=await ev('__s603.compositorInputs()');persist();
     // stars are unseeded, once-per-document visual input. Reuse the real immutable-main
     // input only in frozen snapshots; keep global Math.random and all renderer paths intact.
     const nativeStars603=await ev('__s603.snapshotStars()');
@@ -345,6 +348,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});
     const nativeCandidateOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready(nativeCandidateOrigin603);check(await ev('__s603.flags().T603&&__s603.documentIdentity().version==="11.212"'),'candidate restored for independent world comparison');
     await growCity('world-art-matrix',true);
+    report.nativeWorldCandidateInputs=await ev('__s603.compositorInputs()');persist();
     const state=await ev('__s603.scene()'),originalDay=(await view()).day;
     report.nativeWorldSky.originalCandidateSHA256=hash(JSON.stringify(await ev('__s603.snapshotStars()')));
     const sharedStars603=await ev('__s603.snapshotStars('+JSON.stringify(nativeStars603)+')');
