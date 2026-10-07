@@ -1,0 +1,34 @@
+name: Town T604 explicit nearest pixel-center sampling
+on:
+  push:
+    branches: [gpt/town-gpu-center-sampling-604]
+permissions:
+  contents: read
+jobs:
+  native-mac:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Geometry and shader input contracts
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          git rev-parse HEAD | tee evidence/source-commit.txt
+          node docs/tasks/t604-gpu/ordered-gpu.test.js | tee evidence/contracts.log
+          node docs/tasks/t604-gpu/pixel-audit.js --check-overlay | tee evidence/overlay.log
+      - name: Recheck original nearest samples and deliberate negative controls
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-gpu/pixel-audit.js --port=8763 --out=evidence/native | tee evidence/audit.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T604-center-sampling-${{ github.sha }}
+          path: evidence/
+          retention-days: 14

@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {normalize,vertices,batches,reference}=require('./ordered-gpu.js');
+const {normalize,vertices,centerSampling,batches,reference}=require('./ordered-gpu.js');
 let n=0;function test(name,fn){fn();console.log('PASS '+name);n++;}
 const a={width:100,height:50},b={width:40,height:40},base={image:a,dst:[10,20,100,50]};
 test('identity and UV origin preserve six ordered vertices',()=>assert.deepEqual(vertices(base).slice(0,12),[10,20,0,0,1,1,110,20,1,0,1,1]));
@@ -23,4 +23,6 @@ test('observed 12x7 sprite at y247.6 excludes row247 without moving its samples'
 test('nearest coverage preserves pixel-center source mapping under negative scale and crop',()=>{const c={...base,crop:[10,5,20,15],dst:[10.3,20.7,19.2,13.6],transform:[-1.2,0,0,-.35,120,80],smoothing:false},v=vertices(c),[x0,y0,u0,v0]=v,[x1,,u1]=v.slice(6),[,y1,,v1]=v.slice(12);for(let y=Math.min(y0,y1);y<Math.max(y0,y1);y++)for(let x=Math.min(x0,x1);x<Math.max(x0,x1);x++){const lx=(x+.5-120)/-1.2,ly=(y+.5-80)/-.35,ux=(u0+(x+.5-x0)/(x1-x0)*(u1-u0))*100,vy=(v0+(y+.5-y0)/(y1-y0)*(v1-v0))*50;assert.ok(Math.abs(ux-(10+(lx-10.3)/19.2*20))<1e-9);assert.ok(Math.abs(vy-(5+(ly-20.7)/13.6*15))<1e-9);}});
 test('nearest rectangle support matches center inclusion across fractional extents',()=>{for(const x of [-2.6,-.5,0,.1,.49,.5,.51,.9])for(const w of [.2,.5,1,3.7]){const v=vertices({...base,dst:[x,1,w,4],smoothing:false});for(let p=-4;p<7;p++)assert.equal(p>=v[0]&&p<v[6],p+.5>=x&&p+.5<x+w);}});
 test('smooth, filtered and sheared image geometry keeps original subpixel support',()=>{for(const extra of [{smoothing:true},{smoothing:false,filter:'brightness(0)'},{smoothing:false,transform:[1,.1,.2,1,0,0]}]){const v=vertices({...base,dst:[10.3,20.7,19.2,13.6],...extra});assert.ok(!Number.isInteger(v[0])||!Number.isInteger(v[1]));}});
+test('nearest fragment mapping retains original device and source rectangles',()=>{const c={image:{width:16,height:28},dst:[635.2,150.3,17.6,30.8],smoothing:false};assert.deepEqual(centerSampling(c),[635.2,150.3,652.8000000000001,181.10000000000002,0,0,16,28,1]);});
+test('explicit Float32 pixel-center mapping retains diagnosed texel 2',()=>{const F=Math.fround,m=centerSampling({image:{width:16,height:28},dst:[635.2,150.3,17.6,30.8],smoothing:false}).map(F),x=F(F(F(638.5)-m[0])/F(m[2]-m[0]));assert.equal(Math.floor(F(x*16)),2);});
 console.log('T604_CONTRACTS '+n+' passed; native pixel/performance evidence requires CI');
