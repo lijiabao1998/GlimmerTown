@@ -1,0 +1,56 @@
+name: Town T603 observer-effect diagnostic only
+on:
+  push:
+    branches: [gpt/town-light-trace-603]
+    paths:
+      - docs/tasks/t603-shots/lighttrace603.js
+      - docs/tasks/t603-shots/lighttrace603.test.cjs
+      - docs/tasks/T603-light-trace-pairs.md
+      - .github/workflows/town603-light-trace.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: town603-light-trace-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  observer-effect-only:
+    # Existing standard Mac runner. No larger/paid runner or graphics flag changes.
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Freeze source and check observer contracts without launching Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          git rev-parse HEAD | tee evidence/source-commit.txt
+          printf '%s\n' '7714852495802233cdf41b7c1dcdd9f82950bfd5' > evidence/accepted-source-ref.txt
+          shasum -a 256 index.html sw.js test_fixde.js docs/SPR_PINS.json docs/tasks/t603-shots/{scene603,foreground603,lighttrace603}.js | tee evidence/source-sha256.txt
+          node docs/tasks/t603-shots/lighttrace603.js --check-light-trace | tee evidence/source-contracts.json
+          node --test --test-reporter=tap docs/tasks/t603-shots/lighttrace603.test.cjs | tee evidence/observer-contracts.tap
+          sw_vers | tee evidence/macos-version.txt
+          uname -a | tee evidence/runner-system.txt
+          /usr/sbin/system_profiler SPDisplaysDataType > evidence/displays.txt
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --version | tee evidence/chrome-version.txt
+      - name: Collect exactly six original-scene night windows, AB BA AB
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t603-shots/lighttrace603.js --port=8763 --out=evidence/chrome | tee evidence/lighttrace.log
+      - name: Keep release acceptance explicitly blocked
+        if: always()
+        run: |
+          mkdir -p evidence
+          printf '%s\n' 'DIAGNOSTIC ONLY. No 55 FPS or pixel-gate clearance. No product change, release, merge or deployment.' > evidence/acceptance-still-blocked.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T603-lighttrace-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
