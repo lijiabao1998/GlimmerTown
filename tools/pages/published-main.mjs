@@ -81,14 +81,27 @@ export function proxyTargetsOrigin(row,origin){
   try{return new URL(row.target).origin===target.origin;}catch{return false;}
 }
 
+export function assertDocumentProvenance(response,fromWorker){
+  assert.equal(response.fromServiceWorker,fromWorker);
+  assert.equal(response.fromPrefetchCache,false);
+  if(fromWorker){
+    // Chromium BuildResponse computes fromDiskCache from response age, so it
+    // can also be true for persistent Cache Storage. The explicit worker source
+    // distinguishes Cache Storage from HTTP cache, network and generated replies.
+    // https://raw.githubusercontent.com/chromium/chromium/main/content/browser/devtools/protocol/network_handler.cc
+    assert.equal(response.serviceWorkerResponseSource,'cache-storage','offline worker must return a Cache Storage response');
+  }else{
+    assert.equal(response.fromDiskCache,false,'first visit must come from the network');
+    assert(response.serviceWorkerResponseSource==null,'first visit must not carry worker response provenance');
+  }
+}
+
 export function assertOfflineEvidence({onlinePID,offlinePID,onlineExit,probes,document,proxyRows,localOriginRequests}){
   assert(onlinePID&&offlinePID&&onlinePID!==offlinePID,'offline must run in a second Chrome process');
   assert.equal(onlineExit.code,0,'online Chrome must exit cleanly before profile reuse');assert.equal(onlineExit.signal,null);
   assert(probes.length===2&&probes.every(p=>p.rejected&&!p.timedOut),'both uncached network probes must fail through the network stack');
   assert(proxyRows.length>0&&proxyRows.every(r=>r.deniedAt),'rejecting proxy must observe and deny browser traffic');
-  assert.equal(document.status,200);assert.equal(document.fromServiceWorker,true,'offline document must come from installed worker');
-  assert.equal(document.fromDiskCache,false);assert.equal(document.fromPrefetchCache,false);
-  if(document.serviceWorkerResponseSource!=null)assert.equal(document.serviceWorkerResponseSource,'cache-storage','worker response must not be supplied by the HTTP cache or network');
+  assert.equal(document.status,200);assertDocumentProvenance(document,true);
   if(localOriginRequests!==undefined)assert.equal(localOriginRequests,0,'local origin must receive no request from offline Chrome, including its worker');
 }
 
@@ -216,7 +229,8 @@ export async function run(config){
       else if(['Page.frameNavigated','Network.responseReceived','Network.loadingFailed','Network.requestWillBeSent'].includes(message.method)){
         const r=p.response||{};report.transport.push({phase,event:message.method,time:Date.now(),url:p.frame?.url||r.url||p.request?.url,
           requestId:p.requestId,frameId:p.frame?.id||p.frameId,parentId:p.frame?.parentId,type:p.type,status:r.status,mime:r.mimeType,
-          fromServiceWorker:r.fromServiceWorker??false,serviceWorkerResponseSource:r.serviceWorkerResponseSource??null,fromDiskCache:r.fromDiskCache??false,fromPrefetchCache:r.fromPrefetchCache??false,errorText:p.errorText});
+          fromServiceWorker:r.fromServiceWorker??false,serviceWorkerResponseSource:r.serviceWorkerResponseSource??null,cacheStorageCacheName:r.cacheStorageCacheName??null,fromDiskCache:r.fromDiskCache??false,fromPrefetchCache:r.fromPrefetchCache??false,errorText:p.errorText});
+        if(message.method==='Network.responseReceived')persist();
       }
     };
     ws.onclose=()=>{if(!session.closing)session.abort(Error('CDP closed unexpectedly'));};
@@ -260,11 +274,13 @@ export async function run(config){
     check(state.slot==='3'&&state.prebootSlot==='3','main slot 3 selected before scripts: '+session.row.phase);
     const response=report.transport.find(r=>r.phase===session.row.phase&&r.event==='Network.responseReceived'&&r.type==='Document'&&r.url===url&&r.time>=since);
     const commit=report.transport.find(r=>r.phase===session.row.phase&&r.event==='Page.frameNavigated'&&r.url===url&&!r.parentId&&r.time>=since);
+    audit.response=response??null;audit.commit=commit??null;audit.expectedFromWorker=fromWorker;persist();
     assert(commit&&response?.status===200,'successful committed document response required');
-    assert.equal(response.fromServiceWorker,fromWorker);assert.equal(response.fromDiskCache,false);assert.equal(response.fromPrefetchCache,false);
+    assertDocumentProvenance(response,fromWorker);
     const received=await session.send('Network.getResponseBody',{requestId:response.requestId});const body=Buffer.from(received.body,received.base64Encoded?'base64':'utf8');
-    const name=game?'index.html':'icon.svg';assert.equal(sha256(body),sha256(pack.files.get(name)),'actual document bytes differ: '+name);
-    audit.completedAt=Date.now();audit.response=response;audit.bodySHA256=sha256(body);persist();return {...response,state,bodySHA256:sha256(body)};
+    const name=game?'index.html':'icon.svg';audit.bodySHA256=sha256(body);audit.expectedBodySHA256=sha256(pack.files.get(name));persist();
+    assert.equal(audit.bodySHA256,audit.expectedBodySHA256,'actual document bytes differ: '+name);
+    audit.completedAt=Date.now();persist();return {...response,state,bodySHA256:audit.bodySHA256};
   }
   const fakeLab=foreignStorageFixture();let foreignBaseline;
   async function isolation(session,label){

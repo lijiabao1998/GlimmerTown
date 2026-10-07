@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test,{after} from 'node:test';
 import {readFileSync} from 'node:fs';
-import {options,chromeArgs,verifyAssetResponse,denyProxyRequest,proxyTargetsOrigin,assertOfflineEvidence,browserContinueSavedCity} from './published-main.mjs';
+import {options,chromeArgs,verifyAssetResponse,denyProxyRequest,proxyTargetsOrigin,assertDocumentProvenance,assertOfflineEvidence,browserContinueSavedCity} from './published-main.mjs';
 import {loadVerifiedPackage} from './browser-main.mjs';
 import {PINS,sha256} from './build-main.mjs';
 
@@ -67,13 +67,20 @@ test('proxy evidence recognizes default HTTPS CONNECT authority while excluding 
   assert(!proxyTargetsOrigin({method:'GET',target:'https://lijiabao1998.github.io.evil.test/GlimmerTown/'},origin));
 });
 
-test('offline proof rejects process reuse, timeout-only probes, missing proxy evidence, HTTP-cache documents and origin leaks',()=>{
+test('offline proof accepts persistent Cache Storage while rejecting network/HTTP-cache/fallback sources, process reuse and leaks',()=>{
   const good={onlinePID:101,offlinePID:202,onlineExit:{code:0,signal:null},probes:[{rejected:true,timedOut:false},{rejected:true,timedOut:false}],
-    document:{status:200,fromServiceWorker:true,fromDiskCache:false,fromPrefetchCache:false},proxyRows:[{deniedAt:123}],localOriginRequests:0};
+    // Exact provenance combination recorded by Chrome 154 in CI 37617861204.
+    document:{status:200,fromServiceWorker:true,serviceWorkerResponseSource:'cache-storage',fromDiskCache:true,fromPrefetchCache:false},proxyRows:[{deniedAt:123}],localOriginRequests:0};
   assert.doesNotThrow(()=>assertOfflineEvidence(good));
+  assert.doesNotThrow(()=>assertOfflineEvidence({...good,document:{...good.document,fromDiskCache:false}}));
+  const firstVisit={fromServiceWorker:false,serviceWorkerResponseSource:null,fromDiskCache:false,fromPrefetchCache:false};
+  assert.doesNotThrow(()=>assertDocumentProvenance(firstVisit,false));
+  assert.throws(()=>assertDocumentProvenance({...firstVisit,fromDiskCache:true},false));
+  assert.throws(()=>assertDocumentProvenance({...firstVisit,fromServiceWorker:true,serviceWorkerResponseSource:'cache-storage'},false));
   for(const mutate of [row=>row.offlinePID=101,row=>row.onlineExit.signal='SIGKILL',row=>row.onlineExit.code=1,row=>row.probes.pop(),row=>row.probes[0].rejected=false,
-    row=>row.probes[0].timedOut=true,row=>row.proxyRows=[],row=>row.document.fromServiceWorker=false,row=>row.document.fromDiskCache=true,
-    row=>row.document.serviceWorkerResponseSource='http-cache',row=>row.document.serviceWorkerResponseSource='network',row=>row.document.status=503,row=>row.localOriginRequests=1]){
+    row=>row.probes[0].timedOut=true,row=>row.proxyRows=[],row=>row.document.fromServiceWorker=false,row=>row.document.fromPrefetchCache=true,
+    row=>row.document.serviceWorkerResponseSource='http-cache',row=>row.document.serviceWorkerResponseSource='network',row=>row.document.serviceWorkerResponseSource='fallback-code',
+    row=>row.document.serviceWorkerResponseSource=null,row=>delete row.document.serviceWorkerResponseSource,row=>row.document.status=503,row=>row.localOriginRequests=1]){
     const broken=structuredClone(good);mutate(broken);assert.throws(()=>assertOfflineEvidence(broken));
   }
 });
@@ -124,4 +131,6 @@ test('source gate enforces full online shutdown before offline restart, with unc
   assert(source.includes('report.proxy.filter(row=>proxyTargetsOrigin(row,origin))'));
   assert(source.includes("if(phase==='offline'){await session.send('Network.clearBrowserCache')"));
   assert(source.includes("row.requestId===request?.requestId"),'each offline probe must have its own network failure evidence');
+  const observationAt=source.indexOf('audit.response=response??null;'),provenanceAt=source.indexOf('assertDocumentProvenance(response,fromWorker);');
+  assert(observationAt>=0&&provenanceAt>observationAt);assert(source.slice(observationAt,provenanceAt).includes('persist();'));
 });
