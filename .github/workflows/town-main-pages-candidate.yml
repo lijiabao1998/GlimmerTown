@@ -1,7 +1,7 @@
-name: Town main Pages package validation
+name: Town main Pages validation and publication
 on:
   push:
-    branches: [gpt/town-main-pages]
+    branches: [gpt/town-main-pages, main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -109,6 +109,10 @@ jobs:
           path: _site/main/
           if-no-files-found: error
           retention-days: 14
+      - name: Package the exact verified runtime for Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site/main/
   pages-browser:
     runs-on: macos-15
     timeout-minutes: 25
@@ -130,10 +134,66 @@ jobs:
         run: |
           set -o pipefail
           node tools/pages/browser-main.mjs --site=_site/main --port=8893 --out=evidence/pages-browser | tee evidence/pages-browser.log
+      - name: Full network outage and saved-city reopen on the exact package
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node tools/pages/published-main.mjs --site=_site/main --out=evidence/pages-reopen | tee evidence/pages-reopen.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Town-main-Pages-browser-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [validate, browser, package, pages-browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Read existing Pages configuration without enabling it
+        uses: actions/configure-pages@v5
+        with:
+          enablement: false
+      - name: Publish only after every original and package check succeeds
+        id: deployment
+        uses: actions/deploy-pages@v4
+  verify-published:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy
+    runs-on: macos-15
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify actual HTTPS assets, first visit and offline saved-city reopen
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+          PAGES_URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node tools/pages/build-main.mjs _site/main > evidence/package-manifest.json
+          node tools/pages/published-main.mjs --site=_site/main --url="$PAGES_URL" --out=evidence/pages-published | tee evidence/pages-published.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-main-Pages-published-${{ github.sha }}
           path: evidence/
           if-no-files-found: error
           retention-days: 14
