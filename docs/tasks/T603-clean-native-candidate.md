@@ -27,7 +27,7 @@ The independent baseline matrix adds actual renders/captures, so the candidate w
 
 ## Pre-CI evidence
 
-- 59 source/comparator/snapshot/negative-control assertions pass, including normal draw-clock advancement and rejecting capture-time drift.
+- 70 source/comparator/snapshot/negative-control assertions pass, including normal draw-clock advancement and rejecting capture-time drift.
 - All37 candidate SW contracts pass.
 - All63 toolchain tests pass.
 - All12 approved art variants, winter/LOD/routing/escape/RNG cases pass; all6 actor-clearance sweeps have zero collisions; all3 historical saves preserve roots, footprint links and canonical fields through round trip.
@@ -35,3 +35,9 @@ The independent baseline matrix adds actual renders/captures, so the candidate w
 - Full original regression and actual browser/55-FPS results are pending candidate CI. Local pinned PNG environment setup was cancelled twice; no result from a different Pillow version is substituted. CI retains the existing fixed dependency setup.
 
 No merge, release or deployment is permitted while a required gate remains failed or unrun. New visible changes need image review; the already-approved civic recipe has not been redrawn.
+
+## First complete candidate result and input correction
+
+Run37608725391 on4dd0fa4d passed12,534 original regression assertions,63 toolchain cases,37 SW contracts and658 neighbor checks/483 screenshots. Native Mac compositor repeats/restoration and all16 immutable-main escape frames had zero changed pixels. Its unchanged55FPS criterion remained red: candidate day39.0322FPS and night9.6263FPS; no release pass is claimed.
+
+The independent Linux world comparison stopped at the first night/far view:252 changed pixels were exactly63 isolated2x2 sky stars, all above y276; town pixels below were identical. Both unmodified documents initialize90 stars from unseeded Math.random. The revised snapshot fixture copies the immutable-main document's exact90-star input into only the frozen candidate comparison, checks full array equality and SHA, and restores original candidate stars on thaw. A deliberately different star must change actual full-frame RGBA and restoration must recover zero difference. Production source, Math.random, zero-pixel comparison and all live performance tests remain unchanged. The correction requires a new full candidate CI run; the initial failure stays recorded.

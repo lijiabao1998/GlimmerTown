@@ -37,7 +37,7 @@ const failedDraw=context(),failing=function(){throw Error('native draw failed');
 const frameStart=scene.indexOf('    compositorFrame:('),frameEnd=scene.indexOf('    nativeFrame:',frameStart);assert(frameStart>=0&&frameEnd>frameStart);
 const frameExpression=scene.slice(frameStart,frameEnd).trim().replace(/^compositorFrame:/,'').replace(/,$/,'');
 const frameBox={running:false,measureWork603:false,window:{},trafClock:0,waterT:0,waterF:0,visT:0,cam:{x:0,y:0,z:1},ctx:{},actorHash:'fixed',nativeDraw603:(g,render)=>{render();return{calls:1};}};
-frameBox.compositorState603=()=>({running:frameBox.running,actors:frameBox.actorHash,counts:{cars:1},visT:frameBox.visT,trafClock:frameBox.trafClock,waterT:frameBox.waterT,waterF:frameBox.waterF});
+frameBox.compositorState603=()=>({running:frameBox.running,actors:frameBox.actorHash,sky:'fixed-sky',counts:{cars:1},visT:frameBox.visT,trafClock:frameBox.trafClock,waterT:frameBox.waterT,waterF:frameBox.waterF});
 frameBox.__s603={freezeVis:t=>{frameBox.visT=t;},viewport:()=>({width:1400,height:900,dpr:1}),flags:()=>({T603:true})};
 frameBox.GV={forceDraw:()=>{frameBox.trafClock+=.016;frameBox.waterT+=.016;}};
 vm.createContext(frameBox);vm.runInContext('this.frame='+frameExpression,frameBox);
@@ -47,5 +47,33 @@ ok(snapshotUnchanged603(post,postRepeat),'reset plus native draw produces identi
 ok(snapshotUnchanged603(post,frameBox.compositorState603()),'stationary post-draw presentation passes');
 for(const key of['visT','trafClock','waterT','waterF'])ok(!snapshotUnchanged603(post,{...post,[key]:post[key]+.001}),'presentation-time clock drift rejected: '+key);
 ok(!snapshotUnchanged603(post,{...post,actors:'moved'})&&!snapshotUnchanged603(post,{...post,running:true}),'actor changes and resumed simulation rejected during presentation');
+ok(!snapshotUnchanged603(post,{...post,sky:'different'})&&!snapshotUnchanged603({...post,sky:undefined},{...post,sky:undefined}),'changed or missing sky input rejected during presentation');
 frameBox.running=true;assert.throws(()=>frameBox.frame(false,100));frameBox.running=false;frameBox.measureWork603=true;assert.throws(()=>frameBox.frame(false,100));ok(true,'frame snapshots reject live update and performance windows');
+// Exercise the actual snapshot input setter and thaw path. Only the disposable
+// test context has deterministic random streams; production Math.random is untouched.
+const skyStart=scene.indexOf('  function snapshotStars603('),skyEnd=scene.indexOf('  function nativeDraw603(',skyStart),freezeStart=scene.indexOf('    compositorFreeze:'),freezeEnd=scene.indexOf('    compositorFrame:',freezeStart);
+assert(skyStart>=0&&skyEnd>skyStart&&freezeStart>=0&&freezeEnd>freezeStart);
+const freezeExpression=scene.slice(freezeStart,freezeEnd).trim().replace(/^compositorFreeze:/,'').replace(/,$/,'');
+const starInit=html.slice(html.indexOf('const stars=[];'),html.indexOf('let waterF=0,waterT=0;'));
+const starDrawStart=html.indexOf('  if(b<.62){',html.indexOf('function draw(dt)')),starDraw=html.slice(starDrawStart,html.indexOf('  if(!window.__noSky)',starDrawStart));
+function skyContext(seed){
+  let state=seed;const math=Object.create(Math);math.random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
+  const calls=[],g={fillRect(...rect){calls.push({rect,alpha:this.globalAlpha});}},box={Math:math,ctx:g,b:.34,visT:100,W:1400,H:900,running:true,measureWork603:false,compositorRunning603:null,compositorStars603:null};
+  vm.createContext(box);vm.runInContext(starInit+scene.slice(skyStart,skyEnd)+';this.sky=snapshotStars603;this.freeze='+freezeExpression+';this.compositorState603=()=>({running,sky:JSON.stringify(stars)});this.starArray=stars;',box);
+  return {box,draw:()=>{calls.length=0;vm.runInContext(starDraw,box);return JSON.stringify(calls);}};
+}
+const mainSky=skyContext(603),candidateSky=skyContext(604),originalCandidate=JSON.stringify(candidateSky.box.sky()),originalArray=candidateSky.box.starArray,mainInput=mainSky.box.sky();
+ok(mainSky.draw()===mainSky.draw()&&mainSky.draw()!==candidateSky.draw(),'unchanged native star renderer is stable within a boot but differs across boot inputs');
+assert.throws(()=>candidateSky.box.sky(mainInput));ok(JSON.stringify(candidateSky.box.sky())===originalCandidate,'shared sky setter rejects live rendering without changing stars');
+candidateSky.box.running=false;assert.throws(()=>candidateSky.box.sky(mainInput));candidateSky.box.running=true;ok(true,'shared sky setter requires explicit compositor freeze');
+candidateSky.box.freeze(true);candidateSky.box.measureWork603=true;assert.throws(()=>candidateSky.box.sky(mainInput));candidateSky.box.measureWork603=false;ok(true,'shared sky setter rejects live performance sampling');
+for(const invalid of[[],mainInput.slice(1),mainInput.map((s,i)=>i?s:[NaN,0,0]),mainInput.map((s,i)=>i?s:[1,0,0]),mainInput.map((s,i)=>i?s:[0,.8,0]),mainInput.map((s,i)=>i?s:[0,0,6.28]),mainInput.map((s,i)=>i?s:[0,0])]){
+  assert.throws(()=>candidateSky.box.sky(invalid));assert.equal(JSON.stringify(candidateSky.box.sky()),originalCandidate);
+}
+ok(candidateSky.box.compositorStars603===null,'malformed complete sky input fails atomically before saving or changing state');
+const shared=candidateSky.box.sky(mainInput);ok(mainSky.draw()===candidateSky.draw(),'same 90-star input restores exact unchanged native star draw commands across boots');
+shared[0][0]=.99;mainInput[0][0]=.98;ok(mainSky.draw()===candidateSky.draw(),'shared input and returned copies cannot mutate the captured sky');
+const wrongSky=mainSky.box.sky();wrongSky[0]=[0,0,0];candidateSky.box.sky(wrongSky);ok(mainSky.draw()!==candidateSky.draw(),'wrong star input remains detectable by unchanged native star renderer');
+candidateSky.box.sky(mainSky.box.sky());ok(mainSky.draw()===candidateSky.draw(),'restoring reference input recovers every native star draw command');
+candidateSky.box.freeze(false);ok(candidateSky.box.running&&candidateSky.box.compositorStars603===null&&candidateSky.box.starArray===originalArray&&JSON.stringify(candidateSky.box.sky())===originalCandidate,'thaw restores original star values, array identity and running state');
 console.log('T603_NATIVE_RESULT '+JSON.stringify({checks,baseIndexSHA256:result.baseSHA256,sourceSHA256:result.sourceSHA256}));

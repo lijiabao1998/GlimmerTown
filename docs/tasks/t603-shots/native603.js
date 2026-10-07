@@ -41,6 +41,6 @@ function pngRgba603(bytes){
   for(let i=0,j=0;i<pixels.length;i+=bpp,j+=4){rgba[j]=pixels[i];rgba[j+1]=pixels[i+1];rgba[j+2]=pixels[i+2];rgba[j+3]=bpp===4?pixels[i+3]:255;}return {w,h,rgba};
 }
 function pixelDelta603(a,b){if(a.w!==b.w||a.h!==b.h)throw Error('Screenshot dimensions differ');let n=0;for(let i=0;i<a.rgba.length;i+=4)if(a.rgba[i]!==b.rgba[i]||a.rgba[i+1]!==b.rgba[i+1]||a.rgba[i+2]!==b.rgba[i+2]||a.rgba[i+3]!==b.rgba[i+3])n++;return n;}
-function snapshotUnchanged603(a,b){return !a.running&&!b.running&&a.actors===b.actors&&['visT','trafClock','waterT','waterF'].every(k=>a[k]===b[k]);}
+function snapshotUnchanged603(a,b){return !a.running&&!b.running&&a.actors===b.actors&&typeof a.sky==='string'&&a.sky===b.sky&&['visT','trafClock','waterT','waterF'].every(k=>a[k]===b[k]);}
 
 module.exports={APPROVED_NATIVE_SHA256,BASE_INDEX_SHA256,NATIVE_BLOCKS,assertNativeSource603,sourceBaseline603,pngRgba603,pixelDelta603,snapshotUnchanged603};
