@@ -46,18 +46,14 @@ self.addEventListener('fetch',e=>{
   if(!url.href.startsWith(SCOPE_URL.href))return;
 
   if(req.mode==='navigate'){
-    let cacheWrite=Promise.resolve();
-    const response=(async()=>{
+    e.respondWith((async()=>{
       try{
         const fresh=await fetch(req);
         if(fresh&&fresh.ok&&ENTRY_PATHS.has(url.pathname)){
           try{
-            // 在回傳 fresh 前複製，背景寫入不得阻塞成功的網路導航。
-            const copy=fresh.clone();
-            cacheWrite=caches.open(CACHE)
-              .then(cache=>cache.put(INDEX_URL,copy))
-              .catch(()=>{/* 快取額度／寫入失敗不應吞掉已成功的網路導航 */});
-          }catch(_){/* 複製或開啟快取失敗時仍保留成功的網路導航 */}
+            const cache=await caches.open(CACHE);
+            await cache.put(INDEX_URL,fresh.clone());
+          }catch(_){/* 快取額度／寫入失敗不應吞掉已成功的網路導航 */}
         }
         return fresh;
       }catch(err){
@@ -71,12 +67,7 @@ self.addEventListener('fetch',e=>{
           headers:{'Content-Type':'text/plain;charset=utf-8'}
         });
       }
-    })();
-    e.respondWith(response);
-    if(ENTRY_PATHS.has(url.pathname)){
-      // 同步登記事件生命週期，並等待 response 建立的完整背景寫入。
-      e.waitUntil(response.then(()=>cacheWrite).catch(()=>{}));
-    }
+    })());
     return;
   }
 
