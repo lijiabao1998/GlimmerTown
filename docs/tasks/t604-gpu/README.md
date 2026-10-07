@@ -29,3 +29,9 @@ An experiment can complete with no useful benefit or with visible differences. N
 Actual browser measurement uses `.github/workflows/town604-gpu-prototype.yml` on the existing free native Mac runner. The assistant cloud's browser launch denial is respected; no alternate local browser launch is used.
 
 The compositing reference is the [HTML Canvas drawing model](https://html.spec.whatwg.org/multipage/canvas.html#drawing-model). WebGL premultiplied alpha, texture unpack and presentation follow the [WebGL specification](https://registry.khronos.org/webgl/specs/latest/1.0/). Pixel equivalence remains an empirical question, especially at fractional sampling and antialiased edges.
+
+## Nearest-image coverage correction
+
+Run 37691458047 isolated 24 largest separated day/night differences. Each was introduced by an unfiltered, non-smoothed, axis-aligned small sprite whose rectangle did not contain the tested pixel center. Native Canvas left the underlying pixel unchanged; the multisampled GL quad partially covered it and sampled its clamped edge texel. This is a coverage mismatch, not a changed source image or painter order.
+
+The correction selects the integer raster support implied by the original pixel-center inclusion rule for that exact input state, compensating texture coordinates so included pixels continue sampling the original continuous source position. It retains the original destination and game coordinates. Smooth images, filtered images, and rotated/sheared images retain their original multisampled geometry. Global antialiasing remains enabled. Pixel comparisons and deliberate negative controls must verify the result; this correction is not a general image-difference exemption.

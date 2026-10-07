@@ -18,7 +18,14 @@
   }
   function vertices(c){
     c=normalize(c);const [x,y,w,h]=c.dst,[a,b,d,e,tx,ty]=c.transform,[sx,sy,sw,sh]=c.crop,out=[];
-    for(const [u,v]of [[0,0],[1,0],[0,1],[0,1],[1,0],[1,1]]){const px=x+u*w,py=y+v*h;out.push(a*px+d*py+tx,b*px+e*py+ty,(sx+u*sw)/c.image.width,(sy+v*sh)/c.image.height,c.alpha,c.filter==='brightness(0)'?0:1);}
+    // Native Canvas's axis-aligned, unfiltered nearest-image path chooses
+    // coverage at the pixel center. A multisampled GL quad otherwise paints
+    // outside that support and partially covers the inside edge pixels. Snap
+    // only the raster rectangle to that integer support, then compensate UVs
+    // so every included pixel samples the original continuous coordinates.
+    // Smooth images, filtered images and rotated/sheared paths retain MSAA.
+    const centerCoverage=!c.smoothing&&c.filter==='none'&&b===0&&d===0&&a!==0&&e!==0;
+    for(const [u,v]of [[0,0],[1,0],[0,1],[0,1],[1,0],[1,1]]){const px=x+u*w,py=y+v*h,ox=a*px+d*py+tx,oy=b*px+e*py+ty,nx=centerCoverage?Math.ceil(ox-.5):ox,ny=centerCoverage?Math.ceil(oy-.5):oy,du=centerCoverage?(nx-ox)/(a*w):0,dv=centerCoverage?(ny-oy)/(e*h):0;out.push(nx,ny,(sx+(u+du)*sw)/c.image.width,(sy+(v+dv)*sh)/c.image.height,c.alpha,c.filter==='brightness(0)'?0:1);}
     return out;
   }
   function batches(commands){const out=[];for(let i=0;i<commands.length;i++){const c=normalize(commands[i]),last=out[out.length-1];if(last&&last.image===c.image&&last.revision===c.revision&&last.blend===c.blend&&last.smoothing===c.smoothing)last.count+=6;else out.push({image:c.image,revision:c.revision,blend:c.blend,smoothing:c.smoothing,first:i*6,count:6});}return out;}

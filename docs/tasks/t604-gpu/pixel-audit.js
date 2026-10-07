@@ -14,7 +14,7 @@ const body=String.raw`
         const c=report.cases[phase]={capture:await ev('__gpu604.capture()'),setup:await ev('__gpu604.prepare("all-images")')};persist();
         for(const mode of ['native','gpu']){
           await ev('new Promise(r=>requestAnimationFrame(()=>{__gpu604.render('+JSON.stringify(mode)+',0);r(true)}))');
-          const s=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width:1400,height:900,scale:1}}),bytes=Buffer.from(s.data,'base64'),file='T604-audit-'+phase+'-'+mode+'.png';fs.writeFileSync(path.join(OUT,file),bytes);report.screenshots.push(file);c[mode]={file,pixels:pngRgba603(bytes)};
+          const s=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width:1400,height:900,scale:1}}),bytes=Buffer.from(s.data,'base64'),file='T604-audit-'+phase+'-'+mode+'.png',pixels=pngRgba603(bytes);fs.writeFileSync(path.join(OUT,file),bytes);report.screenshots.push(file);c[mode]={file,rgbaSHA256:hash(pixels.rgba),pixels};
         }
         const a=c.native.pixels.rgba,b=c.gpu.pixels.rgba,points=[];let changed=0,one=0;for(let i=0;i<a.length;i+=4){const d=Math.max(...[0,1,2,3].map(k=>Math.abs(a[i+k]-b[i+k])));if(d){changed++;if(d===1)one++;}if(d>5)points.push({x:i/4%1400,y:Math.floor(i/4/1400),delta:d});}
         points.sort((a,b)=>b.delta-a.delta);const selected=[];for(const p of points){if(selected.every(q=>Math.hypot(p.x-q.x,p.y-q.y)>12))selected.push(p);if(selected.length===12)break;}
@@ -23,6 +23,9 @@ const body=String.raw`
         for(const[id,uri]of Object.entries(assets)){const file='T604-audit-'+phase+'-source-'+id+'.png';fs.writeFileSync(path.join(OUT,file),Buffer.from(uri.split(',')[1],'base64'));}
         const file='T604-audit-'+phase+'-points.json';fs.writeFileSync(path.join(OUT,file),JSON.stringify(audit,null,2));c.attribution={file,selectedPoints:selected,sourceFiles:Object.keys(assets).length,glError:audit.glError};persist();
         check(audit.glError===0,'no WebGL API error '+phase);check(audit.points.every(p=>JSON.stringify(p.full)===JSON.stringify(p.selectedFinal)),'bounding candidates reproduce exact full-stream sampled pixels '+phase);
+        c.controls=[];for(const[mode,negative,label]of[['native',false,'native-repeat'],['gpu',false,'gpu-repeat'],['gpu',true,'wrong-position'],['gpu',false,'restored']]){
+          await ev('new Promise(r=>requestAnimationFrame(()=>{__gpu604.render('+JSON.stringify(mode)+',0,'+negative+');r(true)}))');const q=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width:1400,height:900,scale:1}}),bytes=Buffer.from(q.data,'base64'),file='T604-audit-'+phase+'-'+label+'.png',sha=hash(pngRgba603(bytes).rgba);fs.writeFileSync(path.join(OUT,file),bytes);report.screenshots.push(file);c.controls.push({label,file,rgbaSHA256:sha});check(negative?sha!==c[mode].rgbaSHA256:sha===c[mode].rgbaSHA256,'full pixels '+label+' control '+phase);persist();
+        }
       }finally{await ev('__gpu604.reset()');await compositorEnd603();}
     }
     report.completePixelAttribution=true;persist();
