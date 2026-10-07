@@ -9,7 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -119,7 +119,9 @@ export async function run() {
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(PORT, '127.0.0.1', resolve); });
     const chrome = [process.env.CHROME_PATH, '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'].filter(Boolean).find(p => fs.existsSync(p));
     check(chrome, 'installed Chrome/Chromium exists'); report.chromePath = chrome;
-    browser = spawn(chrome, ['--headless=new', '--disable-gpu', ...(process.platform === 'linux' ? ['--no-sandbox'] : []), '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--disable-extensions', '--mute-audio', '--window-size=800,600', '--disk-cache-size=1048576', `--user-data-dir=${profile}`, `--remote-debugging-port=${DEV}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+    check(process.platform === 'darwin', 'native foreground PWA probe requires the standard macOS desktop runner');
+    report.presentation = { platform: process.platform, headless: false, graphics: 'default', purpose: 'Functional rAF-driven startup only; no physical-device FPS claim or display-mode change' };
+    browser = spawn(chrome, [ '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--disable-extensions', '--mute-audio', '--window-size=800,600', '--disk-cache-size=1048576', `--user-data-dir=${profile}`, `--remote-debugging-port=${DEV}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
     browserClosed = new Promise(resolve => browser.once('close', resolve));
     browser.stderr.on('data', bytes => { chromeLog = (chromeLog + bytes).slice(-12000); });
     browser.on('error', error => { chromeLog += String(error); });
@@ -147,36 +149,62 @@ export async function run() {
         persist();
       }
     };
-    const send = (method, params = {}) => new Promise((resolve, reject) => {
+    const send = (method, params = {}, timeoutMs = 150000) => new Promise((resolve, reject) => {
       const id = ++nextID;
-      const timer = setTimeout(() => { pending.delete(id); reject(Error('CDP timeout: ' + method)); }, 150000);
+      const timer = setTimeout(() => { pending.delete(id); reject(Error('CDP timeout: ' + method)); }, timeoutMs);
       pending.set(id, { resolve, reject, timer }); ws.send(JSON.stringify({ id, method, params }));
     });
-    const ev = async expression => {
-      const value = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+    const ev = async (expression, timeoutMs = 150000) => {
+      const value = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }, timeoutMs);
       if (value.exceptionDetails) throw Error(value.exceptionDetails.exception?.description || value.exceptionDetails.text);
       return value.result.value;
     };
-    const readDocument = () => ev(`(()=>{const bootState=window.__boot426?.()??null;return {url:location.href,timeOrigin:performance.timeOrigin,readyState:document.readyState,complete:document.readyState==='complete',version:window.GV?.ver?.()??null,boot:bootState?.ready??false,bootState,visibility:document.visibilityState,hidden:document.hidden,focused:document.hasFocus(),slot:localStorage.getItem('glimmerville.v1.slot'),slotBeforeBoot:window.__swMainSlotBeforeBoot??null,otherSlots:[localStorage.getItem('glimmerville.v1.s1'),localStorage.getItem('glimmerville.v1.s2')],controller:navigator.serviceWorker.controller?.scriptURL??null,online:navigator.onLine};})()`);
-    const qualifyForeground = async label => {
-      const audit = { label, startedAt: Date.now(), observations: [], readErrors: [] };
+    const budget = (deadline, cap = 5000) => {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) throw Error('Foreground/boot observation deadline reached');
+      return Math.min(cap, remaining);
+    };
+    const readDocument = (timeoutMs = 150000) => ev(`(()=>{const bootState=window.__boot426?.()??null;return {url:location.href,timeOrigin:performance.timeOrigin,readyState:document.readyState,complete:document.readyState==='complete',version:window.GV?.ver?.()??null,boot:bootState?.ready??false,bootState,visibility:document.visibilityState,hidden:document.hidden,focused:document.hasFocus(),viewport:{innerWidth,innerHeight,outerWidth,outerHeight,screenX,screenY,availLeft:screen.availLeft,availTop:screen.availTop,availWidth:screen.availWidth,availHeight:screen.availHeight,dpr:devicePixelRatio},slot:localStorage.getItem('glimmerville.v1.slot'),slotBeforeBoot:window.__swMainSlotBeforeBoot??null,otherSlots:[localStorage.getItem('glimmerville.v1.s1'),localStorage.getItem('glimmerville.v1.s2')],controller:navigator.serviceWorker.controller?.scriptURL??null,online:navigator.onLine};})()`, timeoutMs);
+    const nativeForeground = deadline => {
+      const front = spawnSync('/usr/bin/lsappinfo', ['front'], { encoding: 'utf8', timeout: budget(deadline) });
+      const app = front.status === 0 ? spawnSync('/usr/bin/lsappinfo', ['info', '-only', 'bundleid,name', front.stdout.trim()], { encoding: 'utf8', timeout: budget(deadline) }) : { status: null, stdout: '', stderr: '' };
+      return { observedAt: Date.now(), frontExit: front.status, front: (front.stdout || '').slice(0, 2048), frontError: String(front.error || front.stderr || '').slice(0, 2048), appExit: app.status, app: (app.stdout || '').slice(0, 4096), appError: String(app.error || app.stderr || '').slice(0, 2048), valid: front.status === 0 && app.status === 0 && /com\.google\.Chrome(?="|\s|$)/.test(app.stdout) };
+    };
+    const viewportFits = state => {
+      const v = state.viewport;
+      return v.innerWidth > 0 && v.innerHeight > 0 && v.outerWidth <= v.availWidth && v.outerHeight <= v.availHeight && v.screenX >= v.availLeft && v.screenY >= v.availTop && v.screenX + v.outerWidth <= v.availLeft + v.availWidth && v.screenY + v.outerHeight <= v.availTop + v.availHeight;
+    };
+    const qualifyForeground = async (label, deadline = Date.now() + 10000) => {
+      const audit = { label, startedAt: Date.now(), deadline, observations: [], readErrors: [] };
       report.foreground.push(audit); persist();
-      await send('Page.bringToFront');
-      // Activate the actual target; do not emulate visibility/focus or synthesize rAF.
-      for (let i = 0; i < 20; i++) {
+      const opened = spawnSync('/usr/bin/open', ['-a', 'Google Chrome'], { encoding: 'utf8', timeout: budget(deadline) });
+      audit.open = { exit: opened.status, error: String(opened.error || opened.stderr || '').slice(0, 2048) }; persist();
+      assert.equal(opened.status, 0, 'Native Google Chrome activation must succeed');
+      await send('Page.bringToFront', {}, budget(deadline));
+      // Real OS activation + actual target focus only; no synthetic visibility/rAF.
+      for (let i = 0; i < 20 && Date.now() < deadline; i++) {
         try {
-          const state = await readDocument();
-          audit.observations.push({ observedAt: Date.now(), state }); persist();
-          if (state.visibility === 'visible' && !state.hidden && state.focused) {
+          const state = await readDocument(budget(deadline)), native = nativeForeground(deadline);
+          audit.observations.push({ observedAt: Date.now(), state, native, viewportFits: viewportFits(state) }); persist();
+          if (native.valid && state.visibility === 'visible' && !state.hidden && state.focused && viewportFits(state)) {
             audit.qualifiedAt = Date.now(); persist(); return;
           }
         } catch (error) { audit.readErrors.push({ observedAt: Date.now(), error: String(error).slice(0, 4096) }); persist(); }
-        await sleep(50);
+        await sleep(Math.max(0, Math.min(50, deadline - Date.now())));
       }
-      throw Error('Real page visibility/focus qualification failed: ' + label);
+      throw Error('Native and page foreground/viewport qualification failed: ' + label);
     };
     await send('Page.enable'); await send('Network.enable'); await send('Runtime.enable');
     report.browserVersion = await send('Browser.getVersion');
+    check(!/HeadlessChrome/.test(report.browserVersion.userAgent), 'PWA probe uses native headed Chrome');
+    const display = await ev('({availLeft:screen.availLeft,availTop:screen.availTop,availWidth:screen.availWidth,availHeight:screen.availHeight})');
+    check(display.availWidth >= 672 && display.availHeight >= 512, 'existing desktop fits a small functional probe window');
+    const window = await send('Browser.getWindowForTarget');
+    const bounds = { left: display.availLeft + 16, top: display.availTop + 16, width: Math.min(800, display.availWidth - 32), height: Math.min(600, display.availHeight - 32) };
+    await send('Browser.setWindowBounds', { windowId: window.windowId, bounds: { windowState: 'normal' } });
+    await send('Browser.setWindowBounds', { windowId: window.windowId, bounds });
+    report.presentation.display = display; report.presentation.requestedWindow = bounds;
+    report.presentation.actualWindow = await send('Browser.getWindowForTarget'); persist();
     await send('Page.addScriptToEvaluateOnNewDocument', { source: `if(location.origin===${JSON.stringify(ORIGIN)}){localStorage.setItem('glimmerville.v1.slot','3');window.__swMainSlotBeforeBoot=localStorage.getItem('glimmerville.v1.slot');}` });
     const bootstrapURL = ORIGIN + '/__swmain_bootstrap.html';
     await send('Page.navigate', { url: bootstrapURL });
@@ -210,17 +238,18 @@ export async function run() {
       throw Error('Incomplete stage set for ' + url + ': ' + required.join(','));
     };
     const identity = async (url, previous) => {
-      const audit = { expectedURL: url, previousTimeOrigin: previous, startedAt: Date.now(), pollCount: 0, changes: [], droppedChanges: 0, readErrorCount: 0, readErrors: [] };
+      const audit = { expectedURL: url, previousTimeOrigin: previous, startedAt: Date.now(), pollCount: 0, changes: [], droppedChanges: 0, readErrorCount: 0, readErrors: [], reactivations: [] };
+      audit.deadline = audit.startedAt + 240 * 500;
       report.identityObservations.push(audit); persist();
       let lastSignature;
-      for (let i = 0; i < 240; i++) {
+      for (let i = 0; i < 240 && Date.now() < audit.deadline; i++) {
         audit.pollCount = i + 1;
         try {
-          const state = await readDocument();
-          const predicates = { exactURL: state.url === url, newTimeOrigin: state.timeOrigin !== previous, complete: state.complete, bootReady: state.boot, mainVersion: state.version === '11.211', visible: state.visibility === 'visible' && !state.hidden, focused: state.focused };
+          const state = await readDocument(budget(audit.deadline, 150000)), native = nativeForeground(audit.deadline);
+          const predicates = { exactURL: state.url === url, newTimeOrigin: state.timeOrigin !== previous, complete: state.complete, bootReady: state.boot, mainVersion: state.version === '11.211', visible: state.visibility === 'visible' && !state.hidden, focused: state.focused, nativeForeground: native.valid, viewportFits: viewportFits(state) };
           const rejectedPredicates = Object.keys(predicates).filter(key => !predicates[key]);
-          const observation = { observedAt: Date.now(), poll: i + 1, state, predicates, rejectedPredicates };
-          const signature = JSON.stringify({ state, predicates });
+          const observation = { observedAt: Date.now(), poll: i + 1, state, native, predicates, rejectedPredicates };
+          const signature = JSON.stringify({ state, predicates, nativeApp: native.app });
           audit.last = observation;
           if (signature !== lastSignature) {
             audit.changes.push(observation); lastSignature = signature;
@@ -231,6 +260,15 @@ export async function run() {
             check(state.slot === '3' && state.slotBeforeBoot === '3' && state.otherSlots.every(v => v === null), 'actual main boot preserves slot 3 and leaves slots 1/2 untouched');
             audit.completedAt = Date.now(); persist(); return state;
           }
+          if ((!predicates.visible || !predicates.focused || !predicates.nativeForeground) && audit.reactivations.length < 2 && Date.now() < audit.deadline) {
+            const recovery = { poll: i + 1, startedAt: Date.now(), before: observation };
+            audit.reactivations.push(recovery); persist();
+            try {
+              await qualifyForeground('boot reactivation ' + audit.reactivations.length + ': ' + url, audit.deadline);
+              recovery.qualifiedAt = Date.now();
+            } catch (error) { recovery.error = String(error).slice(0, 4096); }
+            persist();
+          }
         } catch (error) {
           if (/actual main boot/.test(error.message)) throw error;
           audit.readErrorCount++;
@@ -238,7 +276,7 @@ export async function run() {
           if (audit.readErrors.length > 12) audit.readErrors.shift();
           persist();
         }
-        await sleep(500);
+        await sleep(Math.max(0, Math.min(500, audit.deadline - Date.now())));
       }
       audit.failedAt = Date.now(); audit.failure = 'Actual main boot predicate did not pass; cause unproven. See exact observations and rejected predicates.'; persist();
       throw Error('Byte-exact main product did not finish boot: ' + url);
