@@ -24,6 +24,7 @@
     const originalMicro604=fs.readFileSync(path.join(ROOT,'docs/tasks/t604-canvaskit/recorder-browser-contracts.js'),'utf8');
     report.cachedRecorderContracts604=await ev(`(()=>{const Original=TownRecorder604.Recorder,hooks=[];TownRecorder604.Recorder=function(...a){const r=new Original(...a);hooks.push(TownCost604.installStateCache(r));return r;};try{return (${originalMicro604});}finally{TownRecorder604.Recorder=Original;for(const hook of hooks.reverse())hook.restore();}})()`);
     check(report.cachedRecorderContracts604.every(r=>r.changedPixels===0),'state-read cache preserves original native recorder microcases exactly');
+    report.costInputs604=await ev('__audit604.startCostInputs()');
     report.costWindows604=[];let expectedSignature604=null,expectedCostImage604=null;
     for(const [windowIndex,mode]of report.costScope604.modes.entries()){
       await ev(`(()=>{const c=__townRenderer604;window.__costHooks604=[];${mode==='state-cache'||mode==='both'?'__costHooks604.push(TownCost604.installStateCache(c.recorder));':''}${mode==='paint-dedup'||mode==='both'?'__costHooks604.push(TownCost604.installPaintDedup(c.CK));':''}return true;})()`);
@@ -60,5 +61,7 @@
     report.costDecision604.remainingMeasuredCPUms=report.costSummary604.both.totalDrawMs;
     report.costDecision604.remainingCPUtoBudgetRatio=report.costSummary604.both.totalDrawMs/(1000/55);
     report.costDecision604.componentSavingsRatio=report.costSummary604.both.totalDrawMs/report.costSummary604.baseline.totalDrawMs;
+    report.costRestoredInputs604=await ev('__audit604.restoreCostInputs()');
+    check(JSON.stringify(report.costRestoredInputs604)===JSON.stringify(report.costInputs604.captured),'all captured diagnostic clocks including rainbow decay restored exactly');
     check(hash(JSON.stringify(await ev('__audit604.restoreActors()')))===report.sharedActorInput604.candidateBeforeSHA256,'original actor data restored after component audit');
     await compositorEnd603();report.coverage.core=true;persist();

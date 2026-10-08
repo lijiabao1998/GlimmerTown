@@ -37,7 +37,7 @@ replace("path.join(OUT,'scene603-summary.json')",costAudit604?"path.join(OUT,'ca
 replace("    await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready();","    await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html?renderer=canvaskit'});await ready();");
 replace('  window.__s603={',String.raw`
   const actorLists604=()=>({cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,confetti});
-  let originalActors604=null;
+  let originalActors604=null,costInputs604=null;
   const cloneActors604=value=>{
     const clone=v=>{if(v===null||typeof v==='string'||typeof v==='boolean')return v;if(typeof v==='number'&&Number.isFinite(v))return v;if(Array.isArray(v))return v.map(clone);if(v&&Object.getPrototypeOf(v)===Object.prototype)return Object.fromEntries(Object.entries(v).map(([k,x])=>[k,clone(x)]));throw Error('Non-data actor field in snapshot');};
     const lists=actorLists604();if(!value||Object.keys(value).sort().join()!==Object.keys(lists).sort().join())throw Error('Incomplete actor snapshot');
@@ -45,7 +45,9 @@ replace('  window.__s603={',String.raw`
     return clone(value);
   };
   window.__audit604={
-    costFrame:()=>{if(running||measureWork603)throw Error('Cost frame requires stopped diagnostic updates');trafClock=100;waterT=0;waterF=0;__s603.freezeVis(100);const c=__townRenderer604,before=__s603.scene(),old=R;let rngCalls=0;R=()=>{rngCalls++;return old();};try{GV.forceDraw();return {frame:c.lastFrame,rngCalls,sceneSame:before===__s603.scene(),actualGPU:c.surface.reportBackendTypeIsGPU()};}finally{R=old;}},
+    startCostInputs:()=>{if(running||costInputs604)throw Error('Cost input capture requires a new frozen diagnostic');costInputs604={rainbowT,trafClock,waterT,waterF,visT};return {captured:{...costInputs604},fixed:{rainbowT,trafClock:100,waterT:0,waterF:0,visT:100}};},
+    restoreCostInputs:()=>{if(running||!costInputs604)throw Error('Cost input restore requires a frozen diagnostic');({rainbowT,trafClock,waterT,waterF,visT}=costInputs604);costInputs604=null;return {rainbowT,trafClock,waterT,waterF,visT};},
+    costFrame:()=>{if(running||measureWork603||!costInputs604)throw Error('Cost frame requires stopped diagnostic updates and captured inputs');rainbowT=costInputs604.rainbowT;trafClock=100;waterT=0;waterF=0;__s603.freezeVis(100);const c=__townRenderer604,before=__s603.scene(),old=R;let rngCalls=0;R=()=>{rngCalls++;return old();};try{GV.forceDraw();return {frame:c.lastFrame,rngCalls,sceneSame:before===__s603.scene(),actualGPU:c.surface.reportBackendTypeIsGPU()};}finally{R=old;}},
     actors:value=>{
       if(value===undefined)return cloneActors604(actorLists604());
       if(running||measureWork603||compositorRunning603===null)throw Error('Actor input sharing requires a frozen snapshot');

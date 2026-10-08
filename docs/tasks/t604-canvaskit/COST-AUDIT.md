@@ -15,6 +15,8 @@ One original frozen night input is used to separate JavaScript/API cost from wor
 
 A second baseline proves input repeatability before any adapter is installed. A mismatch retains the first40 exact field differences and an adapter-free restoration control; it never turns into an accepted timing comparison.
 
+Run37791948395 identified baseline drift in the seven T248 rainbow alphas: the original draw decrements rainbowT by0.016 even with stopped updates. These paints are subsequently covered by the opaque T256 ocean, explaining the unchanged screenshot. This fixed-frame diagnostic now captures/resets that original rainbow time along with its other explicit clocks and restores all captured values afterward. It still executes every original rainbow command and decay operation. No dynamic product code, live FPS test, image masking or pixel criterion changes.
+
 Every window must preserve the full paint/geometry/gradient parameter digest, SHA256 of every source image's pixels, actual GPU surface, model/RNG state and entire compositor PNG. Only resource bookkeeping ids and revision counters are excluded from the parameter digest; their actual pixels and all rendering parameters remain included. The visible wrong-ocean negative control must change pixels and restore exactly. Native recorder microcases run again with the state adapter. All hooks restore before leaving the diagnostic.
 
 The output reports delegated/skipped calls, separate CPU timings, remaining CPU versus the unchanged18.18ms frame budget, and the previous original-backend pixel difference. A reduction here is not evidence that 55FPS or release acceptance passed. If the remaining cost remains far above budget, explain that evidence before a larger renderer redesign.
