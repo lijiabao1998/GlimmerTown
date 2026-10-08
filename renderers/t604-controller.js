@@ -29,7 +29,7 @@
       if(this.surface){try{this.surface.delete();}catch(error){this.failures.push('surface dispose: '+error);}this.surface=null;}
       this.gpuCanvas.width=width;this.gpuCanvas.height=height;
       this.surface=this.CK.MakeWebGLCanvasSurface(this.gpuCanvas,this.CK.ColorSpace.SRGB,{alpha:true,premultipliedAlpha:true,antialias:true,depth:false,stencil:true,preserveDrawingBuffer:false});
-      if(!this.surface)throw Error('CanvasKit did not create a GPU surface');
+      if(!this.surface||!this.surface.reportBackendTypeIsGPU())throw Error('CanvasKit did not create a GPU surface');
       this.player=new root.TownSkiaPlayer604(this.CK,this.surface,{maxTextureBytes:64*1024*1024,maxTextureCount:512});
       this.surfaceSize=key;
     }
@@ -60,7 +60,7 @@
     show(which){this.canvas.style.opacity=which==='gpu'?'0':this.originalOpacity;this.gpuCanvas.style.display=which==='gpu'?'block':'none';}
     info(){return {status:this.status,requested:this.requested,backend:this.backend,frames:this.frames,gpuFrames:this.gpuFrames,fallbackFrames:this.fallbackFrames,
       fallbackReasons:{...this.fallbackReasons},wasmReadyMs:this.wasmReadyMs??null,heapBytes:this.CK?.HEAPU8?.buffer.byteLength??0,
-      width:this.canvas.width,height:this.canvas.height,lastFrame:this.lastFrame||null,failures:this.failures.slice(),vendor:'canvaskit-wasm@0.42.0'};}
+      width:this.canvas.width,height:this.canvas.height,surfaceIsGPU:this.surface?this.surface.reportBackendTypeIsGPU():false,lastFrame:this.lastFrame||null,failures:this.failures.slice(),vendor:'canvaskit-wasm@0.42.0'};}
     setMode(which){if(!['gpu','native'].includes(which))throw Error('Unknown renderer mode');this.requested=which;return this.info();}
     measureStart(){this.rows=[];this.keepRows=true;return {frames:this.frames,gpuFrames:this.gpuFrames,fallbackFrames:this.fallbackFrames};}
     measureEnd(){this.keepRows=false;const rows=this.rows;this.rows=[];return {rows,info:this.info()};}

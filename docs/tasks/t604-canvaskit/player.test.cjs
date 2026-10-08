@@ -26,6 +26,19 @@ function near(actual, expected, tolerance = 1) {
 }
 
 init({wasmBinary: fs.readFileSync(path.join(packageDir, 'bin/canvaskit.wasm'))}).then(CK => {
+  test('controller rejects an actual software surface before claiming GPU rendering', () => {
+    const vm = require('node:vm'), source = fs.readFileSync(path.join(__dirname, '../../../renderers/t604-controller.js'), 'utf8');
+    const context = vm.createContext({TownSkiaPlayer604: function () { throw Error('Software surface reached GPU player'); }});
+    vm.runInContext(source.replace('root.TownRenderer604={', 'root.TestController604=Controller;root.TownRenderer604={'), context);
+    const surface = CK.MakeSurface(2, 2), controller = Object.create(context.TestController604.prototype);
+    controller.CK = {ColorSpace: CK.ColorSpace, MakeWebGLCanvasSurface: () => surface};
+    controller.gpuCanvas = {}; controller.failures = [];
+    try {
+      assert.equal(surface.reportBackendTypeIsGPU(), false);
+      assert.throws(() => controller.prepareSurface(2, 2), /did not create a GPU surface/);
+      assert.equal(controller.player, undefined);
+    } finally { surface.delete(); }
+  });
   function fixture(width = 32, height = 32, options, uploadShim = false) {
     const surface = CK.MakeSurface(width, height), events = [];
     const target = uploadShim ? {

@@ -40,11 +40,12 @@
     persist();
     if(report.gpuSnapshot604.renderer.backend!=='gpu')throw Error('Whole-night scene fell back: '+JSON.stringify(report.gpuSnapshot604.renderer.fallbackReasons));
     report.replayAudit604=await ev('__audit604.replay()');check(report.replayAudit604.rngCalls===0&&report.replayAudit604.sceneSame&&report.replayAudit604.clockSame,'GPU and native packet replay consumes zero game RNG and changes no model or clocks');
-    // A visible wrong sky is a genuine GPU negative control, using the same retained packet.
-    await ev('(()=>{const c=__townRenderer604,p=c.lastPacket,commands=p.commands.slice();commands[0]={...commands[0],state:{...commands[0].state,fillStyle:"#ff00ff"}};c.player.render({...p,commands});c.show("gpu");return true;})()');
+    // T256's opaque ocean covers the first sky paint in this camera. Perturb
+    // that actual visible background command, retaining all later commands.
+    report.negativeInput604=await ev('(()=>{const c=__townRenderer604,p=c.lastPacket,commands=p.commands.slice(),firstImage=commands.findIndex(x=>x.kind==="image"),index=commands.findIndex((x,i)=>i<firstImage&&x.kind==="fillRect"&&x.args[0]===0&&x.args[1]===0&&x.args[2]===p.width&&x.args[3]===p.height&&x.state.fillStyle?.type==="linear");if(index<1)throw Error("Visible opaque T256 background boundary missing");const original=commands[index];commands[index]={...original,state:{...original.state,fillStyle:"#ff00ff"}};c.player.render({...p,commands});c.show("gpu");return {index,firstImage,kind:original.kind,args:original.args,gradient:original.state.fillStyle,backendIsGPU:c.surface.reportBackendTypeIsGPU()};})()');
     const wrong604=await capture604('wrong-sky-control');await ev('__townRenderer604.player.render(__townRenderer604.lastPacket);__townRenderer604.show("gpu");true');const restored604=await capture604('restored-night');
     report.negative604={wrong:record604(wrong604),restored:record604(restored604),wrongDelta:delta604(gpu604.pixels,wrong604.pixels),restoreDelta:delta604(gpu604.pixels,restored604.pixels)};
-    check(report.negative604.wrongDelta.pixels>100&&report.negative604.restoreDelta.pixels===0,'actual GPU compositor catches wrong sky and exact restoration');
+    check(report.negativeInput604.backendIsGPU&&report.negative604.wrongDelta.pixels>100&&report.negative604.restoreDelta.pixels===0,'actual GPU compositor catches wrong visible ocean and exact restoration');
     report.fallback604=await ev('__audit604.fallback()');check(report.fallback604.draws===1&&report.fallback604.info.backend==='native'&&report.fallback604.info.lastFrame.reasons.some(s=>/text/i.test(s)),'unsupported text invokes whole-frame native fallback after one game draw');
     await shot('604-whole-frame-text-fallback');await ev('GV.forceDraw();true');check(await ev('__townRenderer604.info().backend==="gpu"'),'next supported frame returns to GPU');
     check(hash(JSON.stringify(await ev('__audit604.restoreActors()')))===report.sharedActorInput604.candidateBeforeSHA256,'original candidate actor objects and fields restored before live measurements');
