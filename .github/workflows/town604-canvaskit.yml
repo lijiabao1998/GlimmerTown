@@ -1,0 +1,42 @@
+name: Town T604 CanvasKit whole-night feasibility
+on:
+  push:
+    branches: [gpt/town-gpu-canvaskit-604]
+permissions:
+  contents: read
+concurrency:
+  group: town604-canvaskit-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  feasibility:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source and pinned official CanvasKit
+        run: |
+          mkdir -p evidence
+          git rev-parse HEAD > evidence/source-commit.txt
+          node docs/tasks/t604-canvaskit/source-contract.cjs > evidence/source-contract.json
+          node tools/vendor/fetch-canvaskit604.mjs
+          node docs/tasks/t604-canvaskit/run604.cjs --check-overlay
+          node tools/pages/build-canvaskit604.mjs evidence/package > evidence/package-manifest.json
+          mkdir -p "$RUNNER_TEMP/canvaskit-test/bin"
+          cp vendor/canvaskit-0.42.0/canvaskit.js vendor/canvaskit-0.42.0/canvaskit.wasm "$RUNNER_TEMP/canvaskit-test/bin/"
+          CANVASKIT_DIR="$RUNNER_TEMP/canvaskit-test" node docs/tasks/t604-canvaskit/player.test.cjs | tee evidence/player-contracts.log
+      - name: Qualified live whole-night comparison and offline shell
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-canvaskit/run604.cjs --port=8766 --out=evidence/native | tee evidence/whole-night.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T604-CanvasKit-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14

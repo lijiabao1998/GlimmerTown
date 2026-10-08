@@ -1,0 +1,9 @@
+{
+  "main": "329f660e3d5f011ac28454cb6d6a68f8525c69cc",
+  "approvedArtCandidate": "23564a810546e585758236553d1432c3aacb760b",
+  "runtimeSHA256": {
+    "index.html": "99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d",
+    "sw.js": "79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2"
+  },
+  "productionUnchanged": true
+}

@@ -1,0 +1,23 @@
+{
+  "name": "canvaskit-wasm",
+  "version": "0.42.0",
+  "license": "BSD-3-Clause",
+  "tarball": "https://registry.npmjs.org/canvaskit-wasm/-/canvaskit-wasm-0.42.0.tgz",
+  "integrity": "sha512-N3ikotmzYwDVAcpQKDMptBT2P5pIEWS9ywdmrQA2awwaMF9cxKEFuxZZHv9ay1Em9kDjxDsPtwUzDm1uNj136g==",
+  "shasum": "8b8d3f0a0e471795983891daf5098d9134334030",
+  "tarballSHA256": "ba667f46830ac2a70c6d76ab2c1ac790b0d15a2bf6ed2c842ce97231478b1f80",
+  "files": {
+    "bin/canvaskit.js": {
+      "bytes": 120877,
+      "sha256": "443777592179808354031cf411d8d43cac9f6b98d1227123c5c22d401b0fbf7f"
+    },
+    "bin/canvaskit.wasm": {
+      "bytes": 7317345,
+      "sha256": "25ebed8e60158c5854f8dc807b936daca21354f8bfb6a2231266b0a93812f301"
+    },
+    "LICENSE": {
+      "bytes": 1635,
+      "sha256": "d27678cba0d529e77201e2d2a053628143e986aad8f1e77f7039ad4366c8f978"
+    }
+  }
+}

@@ -756,6 +756,7 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
    「預設關」本身改由 T405 的原文守衛驗證（產品碼與測試環境各證一半）。 */
 localStorage.setItem('glimmerville.v1.badge', '1');
 window.__noT602=true; // T602：既有整套契約驗原路徑；本卡尾端另開新圖逐項驗證
+window.__noT603=true; // T603：舊契約保持原圖，新路另以完整像素與Chrome驗證
 eval(js);
 
 
@@ -13030,7 +13031,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert((html.match(/\n  if\(!t591\)switch\(k\)\{\n/g)||[]).length===1,'T591 G1a 配方 switch 只在沒貼新圖時跑（恰一處）');
   assert(html.includes('if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574);')&&html.includes("const key=b.k+'_'+lotVariant574(b.k,lotV591(o.x,o.y,b));"),'T591 G1b 繪製與縮略圖預算用同一個變體');
   assert(html.includes('if(t591)out574.__t590=1;')&&html.includes("+lotKey591(k);let s=lotCache574.get(key);")&&html.includes("const key=k+'_'+v+lotKey591(k);")&&html.includes("lotHookCache574.set(k+'_'+v+lotKey591(k),{ax,ay,hooks});")
-    &&html.includes("function lotKey591(k){if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
+    &&html.includes("function lotKey591(k){if(LOT603.has(k)&&t603On())return '_t603_s'+season();if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
   assert(/function t591On\(\)\{if\(t591On\.u===undefined\)t591On\.u=\/\(\?:\^\|\[\?&\]\)noT591\(\?:=1\)\?\(\?:&\|\$\)\/\.test\(/.test(html)&&html.includes('return !window.__noT591&&!t591On.u;}'),'T591 G1d 網址 ?noT591=1 逃生閥原文');
   // G8c 原文（未剝字串）：三行貼圖含合成模式整行釘死（覆核抓到剝字串後改成等長別的模式不會紅）
   assert(html.includes("      cg.drawImage(S.img,x0,y0,sw,sh);\n      ng.globalCompositeOperation='destination-out';ng.drawImage(S.img,x0,y0,sw,sh);ng.globalCompositeOperation='source-over';\n      if(S.night)ng.drawImage(S.night,x0,y0,sw,sh);\n"),'T591 G1e 貼圖三行原文（含合成模式字串）');
@@ -13967,10 +13968,10 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     "function t601On(){if(t601On.u===undefined)t601On.u=/(?:^|[?&])noT601(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT601&&!t601On.u&&ART601.ok===true;}",
     "  if(LOT601.has(k)&&t601On())return Math.max(0,Math.min(2,v|0)); // T601：新圖三款\n",
     "  if(k===5){const s=(t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,{v})])||SPR.lot574['5_1_'+v]||SPR.lot574['5_1_0'];return winter?s.win563:s;}",
-    "  v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On())&&!(LOT602.has(k)&&t602On()))?0:lotVariant574(k,v);",
-    "function lotKey591(k){if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';",
-    "function lotV591(x,y,b){if(b&&LOT602.has(b.k)&&t602On())return v602(b.k,x,y);if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590()",
-    "function bakeLot574(k,v,stage,winter){\n  if(LOT602.has(k)&&t602On()){const r602=bakeArt602(k,v,stage,winter);if(r602)return r602;} // T602：本批滿版新圖，原配方為回退路徑\n  if(LOT601.has(k)&&t601On()){const r601=bakeArt601(k,v,stage,winter);if(r601)return r601;}",
+    "  v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On())&&!(LOT602.has(k)&&t602On())&&!(LOT603.has(k)&&t603On()))?0:lotVariant574(k,v);",
+    "function lotKey591(k){if(LOT603.has(k)&&t603On())return '_t603_s'+season();if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';",
+    "function lotV591(x,y,b){if(b&&LOT603.has(b.k)&&t603On())return v603(b.k,x,y,b);if(b&&LOT602.has(b.k)&&t602On())return v602(b.k,x,y);if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590()",
+    "function bakeLot574(k,v,stage,winter){\n  if(LOT603.has(k)&&t603On()){const r603=bakeArt603(k,v,stage,winter);if(r603)return r603;} // T603：本批原創園區；獨立快取與回退\n  if(LOT602.has(k)&&t602On()){const r602=bakeArt602(k,v,stage,winter);if(r602)return r602;} // T602：本批滿版新圖，原配方為回退路徑\n  if(LOT601.has(k)&&t601On()){const r601=bakeArt601(k,v,stage,winter);if(r601)return r601;}",
     "if(b.k===5&&!b.ref){const ps=(b.lot574&&t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,b)])||(b.lot574&&SPR.lot574&&SPR.lot574['5_1_'+b.v])||",
     "    if(bd.k===4)s=t601On()&&SPR.art601?one601(4,o.x,o.y,bd,win,sea):(win?SPR.parkW:",
     "    else if((bd.k===81||bd.k===97)&&!bd.lot574&&t601On()&&SPR.art601)s=one601(bd.k,o.x,o.y,bd,win);",
@@ -14000,9 +14001,17 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     assert(!!m602&&m602[0].includes(cats602)&&m602[0].includes(tools602),'T602 手機縮放避讓在既有窄屏媒體規則內保留右側通道');
     assert(html.split(cats602).length===2&&html.split(tools602).length===2,'T602 縮放避讓規則各恰一處，未複製到桌機全域');}
 
+  assert(html.includes("objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso[2]:viewDep(x,y)),dog:{hx:ph369}")&&html.includes("objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso2[2]:viewDep(x,y)),ped:{ptype:'adult',hx:oh}"),'T603 G3 狗／主人兩處繪製深度接到限域列偏置；不改動作座標');
+  assert(!/\b(?:clipFilter603|__noClip603)\b/.test(html),'T603 G4 乾淨美術候選移除全域濾鏡裁切 helper 與呼叫／旗標');
+  assert(html.includes("        ctx.save();\n        ctx.translate(ax2,ay2);ctx.scale(1,-.35);\n        ctx.filter='brightness(0)';\n        ctx.globalAlpha=.22;\n        ctx.drawImage(rs.img,-rs.ax*z,-rs.ay*z,rs.w*z,rs.h*z);\n        ctx.restore();"),'T603 G4a 倒影保留原生 brightness(0)、alpha、座標與 save/restore 連續路徑');
+  assert(html.includes("      const shH=Math.max(2,s.h*z*.32);\n      ctx.save();\n      ctx.filter='brightness(0)';\n      ctx.globalAlpha=shadowA;\n      ctx.drawImage(s.img,bx+SHOX*z,by+s.h*z-shH+SHOY*z,s.w*z,shH);\n      ctx.restore();"),'T603 G4b 陰影保留原生 brightness(0)、alpha、尺寸與 save/restore 連續路徑');
   // T602：歷史整套保持原配方；新路另以真像素台架完整開啟，不以mock或原文釘冒充Chrome驗收。
   {const q602=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t602-shots/test602.js')],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});
     assert(q602.status===0&&q602.stdout.includes('T602_RESULT ')&&!q602.stderr.includes('FAIL:'),'T602 G1 新圖行為台架完整通過：'+(q602.status===0?'3類三款、四作物階段、四向碼頭、遠景/季節/回退/亂數':q602.stderr.slice(-1400)));}
+  {const q603=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t603-shots/test603.js')],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});
+    assert(q603.status===0&&q603.stdout.includes('T603_RESULT ')&&!q603.stderr.includes('FAIL:'),'T603 G1 四類三款真像素／冬季／遠景／回退／存檔映射／零亂數：'+(q603.status===0?'通過':q603.stderr.slice(-1200)));}
+  {const q603=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t603-shots/clearance603.js'),require('path').join(__dirname,'index.html'),'-','1'],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});
+    assert(q603.status===0&&q603.stdout.includes('T603_PROJECTED_RESULT ')&&q603.stdout.includes('"ok":true'),'T603 G2 狗與主人活動區投影留1px餘量／夜光依附／零煙：'+(q603.status===0?'通過':q603.stdout.slice(-800)+q603.stderr.slice(-800)));}
   console.log('\nFIX-D/FIX-E 回歸測試全部通過');
   process.exit(0);
 }).catch(err => {
@@ -16027,11 +16036,13 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + '在呼叫前加一行 `localStorage.setItem(\'glimmerville.v1.slot\',\'3\')`');
   /* T602：唯一新增的真瀏覽器存檔台架，在任何導覽前透過 CDP 注入槽3。
      登記精確路徑而非放寬上限；新增其他工具仍會紅。 */
-  assert(saveCallers447 === 1&&JSON.stringify(saveCallerPaths447)==='["docs/tasks/t602-shots/scene602.js"]',
-    'T447 G1b【計數釘】只有已審核T602瀏覽器工具可呼叫 `GV.save()`，實得 '+JSON.stringify(saveCallerPaths447));
+  assert(saveCallers447 === 2&&JSON.stringify(saveCallerPaths447)==='["docs/tasks/t602-shots/scene602.js","docs/tasks/t603-shots/scene603.js"]',
+    'T447 G1b【計數釘】只有具名T602／T603瀏覽器工具可呼叫 `GV.save()`，實得 '+JSON.stringify(saveCallerPaths447));
   const sceneSource447=fs.readFileSync(path.join(__dirname,'docs/tasks/t602-shots/scene602.js'),'utf8');
   assert(sceneSource447.indexOf('Page.addScriptToEvaluateOnNewDocument')>=0&&sceneSource447.indexOf('Page.addScriptToEvaluateOnNewDocument')<sceneSource447.indexOf('Page.navigate')&&sceneSource447.includes('[8123,8199].includes(p)'),
     'T602 G447 瀏覽器台架在導覽前注入槽3且禁止玩家埠');
+  const sceneSource603=fs.readFileSync(path.join(__dirname,'docs/tasks/t603-shots/scene603.js'),'utf8');
+  assert(sceneSource603.indexOf('Page.addScriptToEvaluateOnNewDocument')>=0&&sceneSource603.indexOf('Page.addScriptToEvaluateOnNewDocument')<sceneSource603.indexOf('Page.navigate')&&sceneSource603.includes('[8123,8199].includes(p)'),'T603 G447 新瀏覽器台架導覽前槽3且禁止玩家埠');
   // G2 規則要真的寫在 RULES 裡，而且 VERIFY 要引對號碼
   {
     const rules447 = fs.readFileSync(path.join(__dirname, 'docs', 'RULES.md'), 'utf8');
@@ -17774,6 +17785,8 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   }
   const localSpans602=[];for(const name of ['bakeArt602']){const key='function '+name+'(',lo=htmlBare438.indexOf(key),open=htmlBare438.indexOf('{',lo);let hi=-1,dep=0;for(let p=open;p<htmlBare438.length;p++){if(htmlBare438[p]==='{')dep++;else if(htmlBare438[p]==='}'&&!--dep){hi=p;break;}}assert(lo>=0&&hi>open&&htmlBare438.indexOf(key,lo+1)<0,'T602 G445 唯一局部烘焙器 '+name);localSpans602.push([lo,hi]);}
   let nLocal602=0;
+  const localSpans603=[];for(const name of ['bakeArt603']){const key='function '+name+'(',lo=htmlBare438.indexOf(key),open=htmlBare438.indexOf('{',lo);let hi=-1,dep=0;for(let p=open;p<htmlBare438.length;p++){if(htmlBare438[p]==='{')dep++;else if(htmlBare438[p]==='}'&&!--dep){hi=p;break;}}assert(lo>=0&&hi>open&&htmlBare438.indexOf(key,lo+1)<0,'T603 G445 唯一畫布內局部烘焙器 '+name);localSpans603.push([lo,hi]);}
+  let nLocal603=0;
   // 原煙粒world spawn多了一行純資料lot574，viewDep不再落在原三行窗。只認完整這一筆，不放寬全檔窗寬。
   const smokeExpr574='const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;';
   const smokeLo574=htmlBare438.indexOf(smokeExpr574),smokeHi574=htmlBare438.indexOf('\n    }',smokeLo574);
@@ -17800,6 +17813,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
       if(localSpans590.some(s=>m.index>s[0]&&m.index<s[1])){nLocal590++;continue;}
       if(localSpans594.some(s=>m.index>s[0]&&m.index<s[1])){nLocal594++;txt594.push(m[0]);continue;}
       if(localSpans602.some(s=>m.index>s[0]&&m.index<s[1])){nLocal602++;continue;}
+      if(localSpans603.some(s=>m.index>s[0]&&m.index<s[1])){nLocal603++;continue;}
       if(localSpans601.some(s=>m.index>s[0]&&m.index<s[1])){nLocal601++;continue;}
       if(m.index>=smokeLo574&&m.index<smokeLo574+smokeExpr574.length){nSpawn445++;spawnLines445.add(ln);continue;}
       // ③ world 空間 spawn：同一行或相鄰兩行內有 viewDep(（深度鍵已跟轉，T389）
@@ -17831,6 +17845,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     + '。**變動不一定是壞事，但一定要有人知道**——尤其 isoW2V 內的 46 變少，'
     + '代表有人把裸式從旋轉層裡搬出來了');
   assert(nLocal602===2,'T602 G445 畫布內局部投影精確2處，未新增世界裸式');
+  assert(nLocal603===2,'T603 G445 畫布內局部投影精確2處，未新增世界裸式');
   assert(nLocal601===13,'T601 G445【計數釘】藍灰重畫烘焙器與 8 支樣張工廠內的格內局部等距式應恰 13 處（2026-09-30 實測：烘焙器 2、k5 1、k8 3、k66 1、k97 6），實得 '+nLocal601+'；變動要有人簽名');
   assert(nLocal590===61,'T590 G445【計數釘】實驗線移植批次與 makeIso590 內的格內局部等距式應恰 61 處（2026-09-26 實測），實得 '+nLocal590+'；變動要有人簽名');
   assert(nLocal594===4&&JSON.stringify(txt594.slice().sort())==='["(bw+bh)*16","(bw+bh)*16","(bw-bh)*32","(bw-bh)*32"]','T594 G445【原文釘】blockCorners594 與 makeBlockSprite594 內的畫布局部等距式應恰是 N 角與 locN 各一組 (bw-bh)*32／(bw+bh)*16（2026-09-26 實測；只釘數目的話，換掉一條再加一條世界座標式仍會是 4），實得 '+JSON.stringify(txt594)+'；變動要有人簽名');

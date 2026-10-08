@@ -2,3 +2,5 @@
 *.log
 __pycache__/
 *.pyc
+vendor/canvaskit-0.42.0/
+evidence/
