@@ -11,7 +11,9 @@ Two temporary adapters are tested independently and together:
 - Reuse canonical native state reads until the corresponding setter, save/restore, reset or dimension transition invalidates them.
 - Skip exact redundant CanvasKit Paint setters within one Paint lifetime. Mutable/opaque resources keep native delegation.
 
-One original frozen night input is used to separate JavaScript/API cost from world evolution. This is an explicit CPU microbenchmark, not game FPS or a cached final-frame implementation. Order is baseline/state-cache/paint-dedup/both/both/paint-dedup/state-cache/baseline, with two warm and three measured original draw calls per window. All parameter generation and replay costs remain in the measured row.
+One original frozen night input is used to separate JavaScript/API cost from world evolution. This is an explicit CPU microbenchmark, not game FPS or a cached final-frame implementation. Order is baseline/baseline/state-cache/paint-dedup/both/both/paint-dedup/state-cache/baseline, with two warm and three measured original draw calls per window. All parameter generation and replay costs remain in the measured row.
+
+A second baseline proves input repeatability before any adapter is installed. A mismatch retains the first40 exact field differences and an adapter-free restoration control; it never turns into an accepted timing comparison.
 
 Every window must preserve the full paint/geometry/gradient parameter digest, SHA256 of every source image's pixels, actual GPU surface, model/RNG state and entire compositor PNG. Only resource bookkeeping ids and revision counters are excluded from the parameter digest; their actual pixels and all rendering parameters remain included. The visible wrong-ocean negative control must change pixels and restore exactly. Native recorder microcases run again with the state adapter. All hooks restore before leaving the diagnostic.
 
