@@ -1,0 +1,42 @@
+name: Town T604 exact typed-command feasibility
+on:
+  push:
+    branches: [gpt/town-gpu-buffer-proof-604]
+permissions:
+  contents: read
+concurrency:
+  group: town604-buffer-proof-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  buffer-proof:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify unchanged product and exact codec contracts
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          git rev-parse HEAD > evidence/source-commit.txt
+          git fetch --depth=1 origin a26fceaea8c8a42be4322e52f13ea1bbe7dced04
+          git diff --exit-code a26fceaea8c8a42be4322e52f13ea1bbe7dced04 -- index.html sw.js renderers/
+          node docs/tasks/t604-canvaskit/source-contract.cjs > evidence/source-contract.json
+          node tools/vendor/fetch-canvaskit604.mjs
+          node docs/tasks/t604-canvaskit/run604.cjs --buffer-audit --check-overlay
+          node docs/tasks/t604-canvaskit/buffer-codec604.test.cjs | tee evidence/buffer-contracts.log
+      - name: One real packet with exact GPU pixels and no FPS resampling
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-canvaskit/run604.cjs --buffer-audit --port=8766 --out=evidence/native | tee evidence/buffer-proof.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T604-Buffer-Proof-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
