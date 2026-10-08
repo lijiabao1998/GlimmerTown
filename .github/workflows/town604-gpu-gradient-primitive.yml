@@ -1,0 +1,35 @@
+name: Town T604 direct gradient semantics
+on:
+  push:
+    branches: [gpt/town-gpu-gradient-primitive-604]
+permissions:
+  contents: read
+jobs:
+  native-mac:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source and original geometry contracts
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          git rev-parse HEAD | tee evidence/source-commit.txt
+          node docs/tasks/t604-gpu/ordered-gpu.test.js | tee evidence/source-contracts.log
+          node docs/tasks/t604-gpu/transfer.test.js | tee evidence/observer-contracts.log
+          node docs/tasks/t604-gpu/gradient-primitive-run.js --check-overlay | tee evidence/gradient-overlay.log
+      - name: Original-coordinate direct gradient pixels without FPS samples
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-gpu/gradient-primitive-run.js --port=8763 --out=evidence/native | tee evidence/gradient.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T604-gradient-primitive-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
