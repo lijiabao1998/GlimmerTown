@@ -1,0 +1,193 @@
+{
+  "status": "candidate_ci_failed_performance_depth_visibility_fix_pending",
+  "sourceBase": "637c8cc6d09306c1e17535ece6119d3ad78f1382",
+  "candidateBranch": "gpt/town-civic-art-603",
+  "candidateVersion": "11.212",
+  "remoteHeadAtRecord": "62b6b7810d848e53a6adab1a8cd646e51c8b642a",
+  "remoteScope": "Art candidate and validation tooling on isolated Draft PR #2; no merge/deploy",
+  "baselineCI": {
+    "run": 37425187106,
+    "artifact": 11395375294,
+    "checks": 15,
+    "pngs": 9,
+    "status": "success",
+    "zipSHA256": "1d43affeab1d5dfe44aba8f8bdccb1d75b10a6e1d209409bd82807ba2f3bba18"
+  },
+  "local": {
+    "verifyPass": 12531,
+    "verifyFail": 0,
+    "toolchain": {
+      "passed": 63,
+      "total": 63
+    },
+    "sentinels": {
+      "seed22": 639,
+      "seed22m": 14523,
+      "seed301": 780,
+      "seed301m": 2297,
+      "seed7": 117,
+      "seed7m": 77
+    },
+    "oldSaves": [
+      {
+        "seed": 22,
+        "sourceVersion": "11.211",
+        "sourceDay": 421,
+        "roots": 956,
+        "rootSHA256": "bfb601802addb32048efa09bd0e3b81f7ea6d180df25465111fc5d0129a12004",
+        "expectedRootSHA256": "bfb601802addb32048efa09bd0e3b81f7ea6d180df25465111fc5d0129a12004",
+        "rootDataExact": true,
+        "footprintErrors": 0,
+        "changedSaveFields": [],
+        "roundtripRootsExact": true,
+        "flags": {
+          "preview596": false,
+          "t603": true
+        },
+        "stats": {
+          "day": 421,
+          "money": 3418,
+          "buildings": 2557,
+          "roads": 728,
+          "zones": 746
+        }
+      },
+      {
+        "seed": 777,
+        "sourceVersion": "11.211",
+        "sourceDay": 401,
+        "roots": 915,
+        "rootSHA256": "f2d567942a62fe48e601d06afd5b0b4802e87551387b2b194e34eaca1380cb87",
+        "expectedRootSHA256": "f2d567942a62fe48e601d06afd5b0b4802e87551387b2b194e34eaca1380cb87",
+        "rootDataExact": true,
+        "footprintErrors": 0,
+        "changedSaveFields": [],
+        "roundtripRootsExact": true,
+        "flags": {
+          "preview596": false,
+          "t603": true
+        },
+        "stats": {
+          "day": 401,
+          "money": 172816,
+          "buildings": 2481,
+          "roads": 746,
+          "zones": 736
+        }
+      },
+      {
+        "seed": 301,
+        "sourceVersion": "11.211",
+        "sourceDay": 401,
+        "roots": 334,
+        "rootSHA256": "e0542ad9259ed606bd393d54091145cc8f296ec1fa2be6cdedfc2a9fdf2b39b5",
+        "expectedRootSHA256": "e0542ad9259ed606bd393d54091145cc8f296ec1fa2be6cdedfc2a9fdf2b39b5",
+        "rootDataExact": true,
+        "footprintErrors": 0,
+        "changedSaveFields": [],
+        "roundtripRootsExact": true,
+        "flags": {
+          "preview596": false,
+          "t603": true
+        },
+        "stats": {
+          "day": 401,
+          "money": 2297,
+          "buildings": 613,
+          "roads": 199,
+          "zones": 221
+        }
+      }
+    ],
+    "mutationChecks": [
+      {
+        "case": "positive-control",
+        "exit": 0,
+        "expected": true
+      },
+      {
+        "case": "routing-removed",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "old-v-collapsed",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "random-consumed",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "dog-lane-obstacle",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "far-collapsed",
+        "exit": 1,
+        "expected": true
+      },
+      {
+        "case": "life-depth-removed",
+        "exit": 1,
+        "expected": true
+      }
+    ],
+    "projectedActorPlacements": 157944,
+    "actorPaddingPixels": 1,
+    "legacyPinPayloads": 1586
+  },
+  "pending": [
+    "Exact candidate CI after narrow dog/owner visibility correction",
+    "All unchanged performance gates must pass; software-rendered CI failure retained, physical-device 55 FPS not verified",
+    "Owner review of real PNGs and separate release approval"
+  ],
+  "safety": "No main change, merge, deployment, player-origin tests, gameplay/save/RNG changes or preview enablement.",
+  "ciFirstException": "Owner explicitly approved candidate-only push for first new-art Chrome CI on 2026-10-06; merge/deploy remain unapproved.",
+  "candidateCI": {
+    "run": 37439501213,
+    "sha": "62b6b7810d848e53a6adab1a8cd646e51c8b642a",
+    "status": "failure",
+    "jobs": {
+      "validate": "success",
+      "world": "success",
+      "neighbors": "success_with_actor_visibility_blind_spot_withdrawn",
+      "core": "failure"
+    },
+    "coreChecks": 195,
+    "corePNGs": 55,
+    "coreArtifact": 11401695860,
+    "coreArtifactSHA256": "d490da43ce8894afba5de1d79ec15224676626cc69ce4bf365f83a790b170aca",
+    "failedPredicates": [
+      "desktop day foreground headless RAF relative budget",
+      "desktop night foreground headless RAF relative budget"
+    ],
+    "dayFrames": {
+      "baseline": 17,
+      "candidate": 17
+    },
+    "nightFrames": {
+      "baseline": 2,
+      "candidate": 2
+    },
+    "browserExceptions": 0,
+    "consoleErrors": 0
+  },
+  "depthAmendment": {
+    "scope": "Only enabled T603 k92 lot dog/owner depth follows existing lot row bias; positions, frames, counts, simulation, save and RNG untouched",
+    "rows": [
+      9,
+      16,
+      25
+    ],
+    "rotations": 4,
+    "variants": 3,
+    "phases": 8,
+    "expectedPixelScenes": 288,
+    "proof": "Normal canvas versus omitted dog/owner pixels with stable repeated frame and deliberately old-depth negative control",
+    "status": "local 12531/0, 63 tools, six mutation negatives and positive control passed; Chrome pending"
+  }
+}
