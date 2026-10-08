@@ -1,0 +1,46 @@
+name: Town T604 recorder and replay cost audit
+on:
+  push:
+    branches: [gpt/town-gpu-cost-audit-604]
+permissions:
+  contents: read
+concurrency:
+  group: town604-cost-audit-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  cost-audit:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify unchanged renderer and diagnostic contracts
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          git rev-parse HEAD > evidence/source-commit.txt
+          git fetch --depth=1 origin a26fceaea8c8a42be4322e52f13ea1bbe7dced04
+          git diff --exit-code a26fceaea8c8a42be4322e52f13ea1bbe7dced04 -- index.html sw.js renderers/ || exit 1
+          node docs/tasks/t604-canvaskit/source-contract.cjs > evidence/source-contract.json
+          node tools/vendor/fetch-canvaskit604.mjs
+          node docs/tasks/t604-canvaskit/run604.cjs --cost-audit --check-overlay
+          mkdir -p "$RUNNER_TEMP/canvaskit-test/bin"
+          cp vendor/canvaskit-0.42.0/canvaskit.js vendor/canvaskit-0.42.0/canvaskit.wasm "$RUNNER_TEMP/canvaskit-test/bin/"
+          CANVASKIT_DIR="$RUNNER_TEMP/canvaskit-test" node docs/tasks/t604-canvaskit/cost-adapters604.test.cjs | tee evidence/cost-contracts.log
+      - name: Same-input component CPU and pixel controls with no FPS resample
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-canvaskit/run604.cjs --cost-audit --port=8766 --out=evidence/native | tee evidence/cost-audit.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T604-Cost-Audit-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14

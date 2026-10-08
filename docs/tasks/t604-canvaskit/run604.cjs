@@ -9,7 +9,14 @@ const replace=(from,to)=>{if(source.split(from).length!==2)throw Error('T604 har
 const start=source.indexOf("    report.flags=await ev('__s603.flags()');"),end=source.indexOf("    report.finalFlags=await ev('__s603.flags()');",start);
 if(start<0||end<=start)throw Error('Experiment boundary missing');
 // Test-only selectors follow the independently verified main package namespace.
-source=source.slice(0,start).replaceAll('glimmerville.v1','glimmerville.main.v1')+fs.readFileSync(path.join(__dirname,'experiment604.js'),'utf8')+source.slice(end).replaceAll('glimmerville.v1','glimmerville.main.v1');
+let experiment604=fs.readFileSync(path.join(__dirname,'experiment604.js'),'utf8');
+const costAudit604=process.argv.includes('--cost-audit');
+if(costAudit604){
+  const boundary="    check(hash(JSON.stringify(await ev('__audit604.restoreActors()')))";
+  if(experiment604.split(boundary).length!==2)throw Error('Cost-only experiment boundary drift');
+  experiment604=experiment604.slice(0,experiment604.indexOf(boundary))+fs.readFileSync(path.join(__dirname,'cost-experiment604.js'),'utf8');
+}
+source=source.slice(0,start).replaceAll('glimmerville.v1','glimmerville.main.v1')+experiment604+source.slice(end).replaceAll('glimmerville.v1','glimmerville.main.v1');
 replace("const nativeSource603=assertNativeSource603(html,check),exactBase603=nativeSource603.base;",String.raw`
 const contract604=require('../t604-canvaskit/source-contract.cjs');
 report.sourceContract604=contract604.verify(ROOT);
@@ -26,7 +33,7 @@ report.packageBytes604={};for(const name of ['index.html','sw.js','manifest.json
 replace("res.writeHead(200,{'content-type':","(report.assetHTTP604||(report.assetHTTP604=[])).push({path:new URL(req.url,'http://127.0.0.1').pathname,bytes:data.length,time:Date.now()});res.writeHead(200,{'content-type':");
 replace("target.endsWith('.json')?'application/json':'application/octet-stream'","target.endsWith('.json')?'application/json':target.endsWith('.wasm')?'application/wasm':'application/octet-stream'");
 replace("const report={status:'running',", "const report={candidate:'T604 CanvasKit 0.42 whole-night prototype',releaseGatePassed:false,fullRegressionRun:false,thresholdFPS:55,status:'running',");
-replace("path.join(OUT,'scene603-summary.json')","path.join(OUT,'canvaskit604-summary.json')");
+replace("path.join(OUT,'scene603-summary.json')",costAudit604?"path.join(OUT,'canvaskit604-cost-summary.json')":"path.join(OUT,'canvaskit604-summary.json')");
 replace("    await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready();","    await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html?renderer=canvaskit'});await ready();");
 replace('  window.__s603={',String.raw`
   const actorLists604=()=>({cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,confetti});
@@ -38,6 +45,7 @@ replace('  window.__s603={',String.raw`
     return clone(value);
   };
   window.__audit604={
+    costFrame:()=>{if(running||measureWork603)throw Error('Cost frame requires stopped diagnostic updates');trafClock=100;waterT=0;waterF=0;__s603.freezeVis(100);const c=__townRenderer604,before=__s603.scene(),old=R;let rngCalls=0;R=()=>{rngCalls++;return old();};try{GV.forceDraw();return {frame:c.lastFrame,rngCalls,sceneSame:before===__s603.scene(),actualGPU:c.surface.reportBackendTypeIsGPU()};}finally{R=old;}},
     actors:value=>{
       if(value===undefined)return cloneActors604(actorLists604());
       if(running||measureWork603||compositorRunning603===null)throw Error('Actor input sharing requires a frozen snapshot');
