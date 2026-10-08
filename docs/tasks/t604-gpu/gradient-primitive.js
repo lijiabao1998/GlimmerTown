@@ -187,15 +187,23 @@ function gradientPrimitive604(ctx, cvs) {
   const hash = async a => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', a))).map(n=>n.toString(16).padStart(2,'0')).join('');
   async function compare(rows, circleMode = false, includeImages = false) {
     nativePaint(rows,circleMode); const expected=native.getImageData(0,0,cvs.width,cvs.height).data;
-    nativePaint(rows,circleMode); const nativeRepeat=difference(expected,native.getImageData(0,0,cvs.width,cvs.height).data),results=[];let lastActual;
+    nativePaint(rows,circleMode); const nativeRepeat=difference(expected,native.getImageData(0,0,cvs.width,cvs.height).data),results=[],imagePixels=[];let lastActual;
     nativePaint(rows.map(p=>({...p,rebuildInput:true})),circleMode);
     const nativeParsedInput=difference(expected,native.getImageData(0,0,cvs.width,cvs.height).data);
     for(let mode=0;mode<modes.length;mode++){
-      gpuPaint(rows,mode,circleMode);const actual=readGPU();lastActual=actual;gpuPaint(rows,mode,circleMode);const repeat=difference(actual,readGPU());
+      gpuPaint(rows,mode,circleMode);const actual=readGPU();lastActual=actual;if(includeImages)imagePixels.push(actual);gpuPaint(rows,mode,circleMode);const repeat=difference(actual,readGPU());
       results.push({mode:modes[mode],difference:difference(expected,actual),repeat,rgbaSHA256:await hash(actual)});
     }
     const result={nativeRepeat,nativeParsedInput,nativeRGBA:await hash(expected),variants:results,shape:circleMode?'original-full-circle':'gradient-field'};
-    if(includeImages){const c=document.createElement('canvas');c.width=cvs.width;c.height=cvs.height;const g=c.getContext('2d');g.putImageData(new ImageData(new Uint8ClampedArray(lastActual),cvs.width,cvs.height),0,0);const gpuImage=c.toDataURL('image/png');g.putImageData(new ImageData(new Uint8ClampedArray(expected),cvs.width,cvs.height),0,0);const nativeImage=c.toDataURL('image/png');const mask=new Uint8ClampedArray(expected.length);for(let i=0;i<mask.length;i+=4){const d=Math.max(...[0,1,2,3].map(k=>Math.abs(expected[i+k]-lastActual[i+k])));mask[i]=Math.min(255,d*85);mask[i+3]=255;}g.putImageData(new ImageData(mask,cvs.width,cvs.height),0,0);result.images={native:nativeImage,gpu:gpuImage,difference85x:c.toDataURL('image/png')};}
+    if(includeImages){
+      const c=document.createElement('canvas');c.width=cvs.width;c.height=cvs.height;const g=c.getContext('2d');
+      g.putImageData(new ImageData(new Uint8ClampedArray(expected),cvs.width,cvs.height),0,0);result.images={native:c.toDataURL('image/png')};
+      for(let mode=0;mode<modes.length;mode++){
+        const actual=imagePixels[mode];g.putImageData(new ImageData(new Uint8ClampedArray(actual),cvs.width,cvs.height),0,0);result.images['gpu-'+modes[mode]]=c.toDataURL('image/png');
+        const mask=new Uint8ClampedArray(expected.length);for(let i=0;i<mask.length;i+=4){const d=Math.max(...[0,1,2,3].map(k=>Math.abs(expected[i+k]-actual[i+k])));mask[i]=Math.min(255,d*85);mask[i+3]=255;}
+        g.putImageData(new ImageData(mask,cvs.width,cvs.height),0,0);result.images['difference85x-'+modes[mode]]=c.toDataURL('image/png');
+      }
+    }
     return result;
   }
   async function prove() {
@@ -214,7 +222,7 @@ function gradientPrimitive604(ctx, cvs) {
       exactGo:cases.every(c=>c.field.variants[2].difference.changedPixels===0&&(!c.circle||c.circle.variants[2].difference.changedPixels===0))&&sequence.variants[2].difference.changedPixels===0&&circleSequence.variants[2].difference.changedPixels===0,
       note:'Direct ordered GPU radial fields and eligible original circle paints only. No atlas relocation, intermediate paint grouping, original image commands, HUD or simulation. All differences are retained; no tolerance change.'};
   }
-  function show(which){native.canvas.style.display=which==='native'?'block':'none';output.style.display=which==='gpu'?'block':'none';if(which==='gpu')gpuPaint(lastRows,lastMode,lastShape);}
+  function show(which,variant=lastMode){native.canvas.style.display=which==='native'?'block':'none';output.style.display=which==='gpu'?'block':'none';if(which==='gpu')gpuPaint(lastRows,variant,lastShape);}
   function dispose(){if(gl){gl.deleteProgram(program);gl.deleteVertexArray(vao);}if(layer)layer.remove();layer=native=output=gl=program=vao=null;}
   window.__gradient604={capture,setup,prove,show,dispose};
 }

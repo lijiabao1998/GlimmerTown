@@ -29,10 +29,10 @@ source=source.slice(0,begin)+String.raw`
       check(all.every(c=>c.nativeRepeat.changedPixels===0&&c.nativeParsedInput.changedPixels===0&&c.variants.every(v=>v.repeat.changedPixels===0)),'native repeats, parsed byte alpha inputs and all direct-gradient variants repeat exactly');
       check(report.proof.negative.wrongOrderNative.changedPixels>0&&report.proof.negative.wrongOrderGL.changedPixels>0&&report.proof.negative.wrongRadius.changedPixels>0&&report.proof.negative.restored.changedPixels===0,'original order and radial geometry negatives detect real errors with exact restoration');
       check(report.proof.negative.wrongRawAlpha.changedPixels>0,'raw CSS alpha without native byte conversion is detected');
-      report.compositor={};for(const mode of ['native','gpu']){
-        await ev('new Promise(r=>requestAnimationFrame(()=>{__gradient604.show('+JSON.stringify(mode)+');r(true)}))');
-        const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width:1400,height:900,scale:1}}),png=Buffer.from(shot.data,'base64'),file='T604-gradient-'+mode+'-compositor.png',pixels=pngRgba603(png);fs.writeFileSync(path.join(OUT,file),png);report.screenshots.push(file);report.compositor[mode]={file,rgbaSHA256:hash(pixels.rgba)};persist();
-        check(report.compositor[mode].rgbaSHA256===(mode==='native'?report.proof.circleSequence.nativeRGBA:report.proof.circleSequence.variants[2].rgbaSHA256),'actual compositor matches original nightlight circle sequence '+mode);
+      report.compositor={};for(const[mode,variant,label]of[['native',0,'native'],['gpu',0,'float-no-dither'],['gpu',1,'float-dither'],['gpu',2,'half-dither']]){
+        await ev('new Promise(r=>requestAnimationFrame(()=>{__gradient604.show('+JSON.stringify(mode)+','+variant+');r(true)}))');
+        const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:{x:0,y:0,width:1400,height:900,scale:1}}),png=Buffer.from(shot.data,'base64'),file='T604-gradient-'+label+'-compositor.png',pixels=pngRgba603(png);fs.writeFileSync(path.join(OUT,file),png);report.screenshots.push(file);report.compositor[label]={file,rgbaSHA256:hash(pixels.rgba)};persist();
+        check(report.compositor[label].rgbaSHA256===(mode==='native'?report.proof.circleSequence.nativeRGBA:report.proof.circleSequence.variants[variant].rgbaSHA256),'actual compositor matches original nightlight circle sequence '+label);
       }
       check(JSON.stringify(report.before)===JSON.stringify(await ev('__s603.compositorState()')),'source state unchanged after visible evidence');
       report.exactGo=report.proof.exactGo;report.completePrimitiveProof=true;report.scope='Captured gradient-field and eligible circle-paint component only. Original sprite commands, HUD and simulation are excluded. The original 55 FPS and image requirements remain unchanged.';persist();
