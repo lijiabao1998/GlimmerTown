@@ -36,7 +36,9 @@
         const shot=await capture604('cost-'+windowIndex+'-'+mode),stats=await ev('__costHooks604.map(h=>h.stats)');
         if(expectedCostImage604===null)expectedCostImage604=shot.pixels;
         const delta=delta604(expectedCostImage604,shot.pixels);
-        report.costWindows604.push({windowIndex,mode,frames,signature,stats,screenshot:record604(shot),delta});persist();
+        const row={windowIndex,mode,frames,signature,stats,screenshot:record604(shot),delta};
+        if(signature.sha256!==expectedSignature604||delta.pixels!==0)row.nativeStateOracle=await ev(`(()=>{const r=__townRenderer604.recorder,old=r.state,keys=['fillStyle','strokeStyle','globalAlpha','globalCompositeOperation','filter','imageSmoothingEnabled','imageSmoothingQuality','lineWidth','lineCap','lineJoin','miterLimit','lineDashOffset','shadowBlur','shadowColor','shadowOffsetX','shadowOffsetY','font','textAlign','textBaseline','direction'],differences=[];let calls=0;r.state=function(...args){const result=old.apply(this,args);calls++;for(const key of keys){const native=r.style(r.shadow[key]);if(JSON.stringify(result[key])!==JSON.stringify(native)&&differences.length<30)differences.push({call:calls,key,recorded:result[key],native});}return result;};try{const frame=__audit604.costFrame();return {calls,differences,rngCalls:frame.rngCalls,sceneSame:frame.sceneSame,note:'Untimed canonical native property reads, outside adapter state-cache depth'};}finally{r.state=old;}})()`);
+        report.costWindows604.push(row);persist();
       }finally{await ev('for(const h of __costHooks604.reverse())h.restore();delete window.__costHooks604;true');}
       const completed=report.costWindows604.at(-1);
       if(completed.signature.sha256!==expectedSignature604||completed.delta.pixels!==0){

@@ -124,7 +124,7 @@
             const previous = stack.pop();
             if (previous) { values = previous.values; valid = previous.valid; }
             else { clear(); stats.invalidations.unknownRestore++; }
-          }
+          } else { clear(); stats.invalidations.unknownRestore++; }
           return result;
         }));
       }
@@ -135,11 +135,17 @@
           set(value) {
             if (this !== canvas) return original.set.call(this, value);
             count(stats, entry, 'delegated'); stats.invalidations.dimensions++;
-            // A same-value assignment resets native state too. Invalidate before
-            // delegation so conversion/exception paths cannot leave stale data.
-            clear(); stack.length = 0;
-            try { return original.set.call(this, value); }
-            finally { clear(); stack.length = 0; }
+            // A successful same-value assignment resets native state too. A
+            // failed conversion may leave its native save stack intact, and can
+            // reenter our hooks. Retain that depth with unknown canonical values
+            // on failure; even an unmatched restore must reread native state.
+            clear();
+            try {
+              const result = original.set.call(this, value);
+              clear(); stack.length = 0; return result;
+            } catch (error) {
+              clear(); stack.fill(null); throw error;
+            }
           }
         });
       }

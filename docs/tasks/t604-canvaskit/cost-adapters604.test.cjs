@@ -145,7 +145,7 @@ test('nested native save/restore caches, dash and transforms follow Recorder sta
   r.context.restore(); assert.deepEqual(r.state(), first);
   assert.equal(h.stats.reads.lineWidth.delegated, delegated);
   r.context.restore(); assert.deepEqual(r.state(), first);
-  assert.equal(h.stats.reads.lineWidth.delegated, delegated, 'empty restore keeps the current cache');
+  assert.equal(h.stats.reads.lineWidth.delegated, delegated + 1, 'unmatched restore rereads native state safely');
 }));
 test('save before first cache fill and save predating installation restore safely', () => {
   const r = recorderFixture(); r.context.lineWidth = 3; r.context.save(); r.context.lineWidth = 9;
@@ -189,6 +189,27 @@ test('dimension conversion reentrancy and exceptions cannot retain stale cached 
   r.context.lineWidth = 8; r.state();
   assert.throws(() => { r.shadowCanvas.height = {valueOf() { throw Error('dimension failure'); }}; }, /dimension failure/);
   assert.equal(rebuild(r).lineWidth, 8);
+}));
+test('throwing dimensions preserve unknown saved states through nested and unmatched restores', () => withState((r, h) => {
+  r.context.lineWidth = 3; r.state(); r.context.save();
+  r.context.lineWidth = 5; r.state(); r.context.save();
+  r.context.lineWidth = 9; r.state();
+  assert.throws(() => { r.shadowCanvas.width = Symbol('invalid dimension'); }, TypeError);
+  assert.equal(rebuild(r).lineWidth, 9);
+  r.context.restore(); assert.equal(r.state().lineWidth, 5); assert.equal(r.shadow.lineWidth, 5);
+  r.context.restore(); assert.equal(r.state().lineWidth, 3); assert.equal(r.shadow.lineWidth, 3);
+  r.context.restore(); assert.equal(r.state().lineWidth, 3); assert.equal(r.shadow.lineWidth, 3);
+  assert.equal(h.stats.invalidations.unknownRestore, 3);
+}));
+test('throwing dimension conversion retains saves made during conversion', () => withState(r => {
+  r.context.lineWidth = 3; r.state();
+  assert.throws(() => {
+    r.shadowCanvas.height = {valueOf() {
+      r.context.save(); r.context.lineWidth = 7; r.state(); throw Error('conversion failed after save');
+    }};
+  }, /conversion failed after save/);
+  assert.equal(rebuild(r).lineWidth, 7);
+  r.context.restore(); assert.equal(r.state().lineWidth, 3); assert.equal(r.shadow.lineWidth, 3);
 }));
 test('all own descriptors restore exactly, with no lingering hooks or double installation', () => {
   const r = recorderFixture();
