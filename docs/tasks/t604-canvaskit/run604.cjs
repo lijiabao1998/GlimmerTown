@@ -29,7 +29,24 @@ replace("const report={status:'running',", "const report={candidate:'T604 Canvas
 replace("path.join(OUT,'scene603-summary.json')","path.join(OUT,'canvaskit604-summary.json')");
 replace("    await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready();","    await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html?renderer=canvaskit'});await ready();");
 replace('  window.__s603={',String.raw`
+  const actorLists604=()=>({cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,confetti});
+  let originalActors604=null;
+  const cloneActors604=value=>{
+    const clone=v=>{if(v===null||typeof v==='string'||typeof v==='boolean')return v;if(typeof v==='number'&&Number.isFinite(v))return v;if(Array.isArray(v))return v.map(clone);if(v&&Object.getPrototypeOf(v)===Object.prototype)return Object.fromEntries(Object.entries(v).map(([k,x])=>[k,clone(x)]));throw Error('Non-data actor field in snapshot');};
+    const lists=actorLists604();if(!value||Object.keys(value).sort().join()!==Object.keys(lists).sort().join())throw Error('Incomplete actor snapshot');
+    for(const[k,rows]of Object.entries(value))if(!Array.isArray(rows)||rows.length!==lists[k].length)throw Error('Actor count mismatch '+k);
+    return clone(value);
+  };
   window.__audit604={
+    actors:value=>{
+      if(value===undefined)return cloneActors604(actorLists604());
+      if(running||measureWork603||compositorRunning603===null)throw Error('Actor input sharing requires a frozen snapshot');
+      const next=cloneActors604(value),lists=actorLists604();
+      if(originalActors604===null)originalActors604=Object.fromEntries(Object.entries(lists).map(([k,rows])=>[k,rows.slice()]));
+      for(const[k,rows]of Object.entries(lists))rows.splice(0,rows.length,...next[k]);
+      return cloneActors604(lists);
+    },
+    restoreActors:()=>{if(running)throw Error('Actor restoration requires a frozen snapshot');if(originalActors604){for(const[k,rows]of Object.entries(actorLists604()))rows.splice(0,rows.length,...originalActors604[k]);originalActors604=null;}return cloneActors604(actorLists604());},
     replay:()=>{const c=window.__townRenderer604;if(!c||!c.lastPacket)throw Error('No retained packet');const old=R,before=__s603.scene(),clock=__s603.compositorState();let calls=0;R=()=>{calls++;return old();};try{c.player.render(c.lastPacket);c.recorder.replayNative(c.lastPacket);return {rngCalls:calls,sceneSame:before===__s603.scene(),clockSame:JSON.stringify(clock)===JSON.stringify(__s603.compositorState())};}finally{R=old;}},
     fallback:()=>{const c=window.__townRenderer604,end=c.recorder.end,oldDraw=draw;let draws=0;draw=function(...a){draws++;return oldDraw(...a);};c.recorder.end=function(){const p=end.call(this);p.commands.push({kind:'fillText',args:['T604 fallback',20,40],state:p.commands[0].state});return p;};try{GV.forceDraw();return {draws,info:c.info()};}finally{draw=oldDraw;c.recorder.end=end;}}
   };

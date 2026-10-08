@@ -17,7 +17,7 @@
     report.recorderContracts604=await ev(fs.readFileSync(path.join(ROOT,'docs/tasks/t604-canvaskit/recorder-browser-contracts.js'),'utf8'));check(report.recorderContracts604.every(r=>r.changedPixels===0),'native replay preserves all isolated recorder semantics');
     report.initialNative604=await navigate604('native',true);
     await compositorBegin603();
-    const shared604=await ev('({stars:__s603.snapshotStars(),fx:__s603.snapshotFx()})');
+    const shared604=await ev('({stars:__s603.snapshotStars(),fx:__s603.snapshotFx(),actors:__audit604.actors()})');
     const native604=await compositorStable603('604-original-night',false,100);
     report.nativeSnapshot604=compositorRecord603(native604);
     await compositorEnd603();
@@ -25,7 +25,10 @@
     report.candidateCity604=await navigate604('gpu',true);
     report.coldLoad604={...await ev('__townRenderer604.info()'),resources:await ev('performance.getEntriesByType("resource").filter(r=>/canvaskit|t604-/.test(r.name)).map(r=>({name:new URL(r.name).pathname,duration:r.duration,transferSize:r.transferSize,encodedBodySize:r.encodedBodySize,decodedBodySize:r.decodedBodySize}))')};
     persist();
-    await compositorBegin603();await ev('__s603.snapshotStars('+JSON.stringify(shared604.stars)+');__s603.snapshotFx('+JSON.stringify(shared604.fx)+');true');
+    await compositorBegin603();const originalActors604=await ev('__audit604.actors()');
+    report.sharedActorInput604={nativeSHA256:hash(JSON.stringify(shared604.actors)),candidateBeforeSHA256:hash(JSON.stringify(originalActors604)),source:'Complete native-boot actor data, including all citizen and confetti fields. Snapshot only; independent live performance boots remain unchanged.'};
+    await ev('__s603.snapshotStars('+JSON.stringify(shared604.stars)+');__s603.snapshotFx('+JSON.stringify(shared604.fx)+');__audit604.actors('+JSON.stringify(shared604.actors)+');true');
+    check(hash(JSON.stringify(await ev('__audit604.actors()')))===report.sharedActorInput604.nativeSHA256,'all native actor fields copied exactly for frozen image comparison');
     await ev('__townRenderer604.setMode("native");true');
     const recorded604=await compositorStable603('604-recorded-native-night',false,100);
     report.nativeReplay604={...compositorRecord603(recorded604),differenceFromOriginal:delta604(native604.pixels,recorded604.pixels)};
@@ -44,6 +47,7 @@
     check(report.negative604.wrongDelta.pixels>100&&report.negative604.restoreDelta.pixels===0,'actual GPU compositor catches wrong sky and exact restoration');
     report.fallback604=await ev('__audit604.fallback()');check(report.fallback604.draws===1&&report.fallback604.info.backend==='native'&&report.fallback604.info.lastFrame.reasons.some(s=>/text/i.test(s)),'unsupported text invokes whole-frame native fallback after one game draw');
     await shot('604-whole-frame-text-fallback');await ev('GV.forceDraw();true');check(await ev('__townRenderer604.info().backend==="gpu"'),'next supported frame returns to GPU');
+    check(hash(JSON.stringify(await ev('__audit604.restoreActors()')))===report.sharedActorInput604.candidateBeforeSHA256,'original candidate actor objects and fields restored before live measurements');
     await compositorEnd603();
     // Check real controls with the GPU canvas over the unchanged input canvas.
     const z604=(await view()).cam.z;await click(el('zin'));check((await view()).cam.z>z604,'real zoom button works with GPU presentation');await click(el('zout'));
