@@ -8,10 +8,13 @@ function gradientPrimitive604(ctx, cvs) {
   let lastRows, lastMode = 2, lastShape = false;
   const modes = ['float-no-dither', 'float-dither', 'half-dither'];
   const identity = m => JSON.stringify(m) === '[1,0,0,1,0,0]';
-  const rgba = value => {
+  const rgba = (value, quantized = true) => {
     const m = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/.exec(value);
     if (!m) throw Error('Unsupported proof stop color: ' + value);
-    return [Number(m[1]) / 255, Number(m[2]) / 255, Number(m[3]) / 255, m[4] === undefined ? 1 : Number(m[4])];
+    const raw = [Number(m[1]) / 255, Number(m[2]) / 255, Number(m[3]) / 255, m[4] === undefined ? 1 : Number(m[4])];
+    // Chromium 152 CSSParserFastPaths::ParseAlphaValue rounds legacy rgba()
+    // alpha to a byte before Color::FromRGBA. Preserve that input contract.
+    return quantized ? raw.map(v => Math.fround(Math.round(Math.max(0, Math.min(1, v)) * 255) / 255)) : raw;
   };
   function capture() {
     definitions = new Map(); paints = []; selected = [];
@@ -57,7 +60,7 @@ function gradientPrimitive604(ctx, cvs) {
         Math.fround(arc.args[0]) === a[0] && Math.fround(arc.args[1]) === a[1] && Math.fround(arc.args[2]) === a[5] &&
         arc.args[3] === 0 && arc.args[4] >= Math.PI * 2 && !arc.args[5] && colors.at(-1)[3] === 0;
       paints.push({ sourceIndex: index, op, gradient: op.state.fillStyle, definition: def,
-        circle: !!fullCircle, cx: a[0], cy: a[1], radius: a[5], colors,
+        circle: !!fullCircle, cx: a[0], cy: a[1], radius: a[5], colors, rawColors: def.stops.map(s => rgba(s.css, false)),
         offsets: def.stops.map(s => s.offset), alpha: op.state.globalAlpha, blend: op.state.globalCompositeOperation });
     }
     // Deterministic coverage: largest distinct fields, then exact native circles.
@@ -142,7 +145,12 @@ function gradientPrimitive604(ctx, cvs) {
     for (const p of rows) {
       native.globalAlpha = p.alpha; native.globalCompositeOperation = p.blend;
       if (p.sentinel) { native.fillStyle = '#905831'; native.fillRect(0, 0, cvs.width, cvs.height); continue; }
-      native.fillStyle = p.gradient;
+      if (p.rebuildInput) {
+        const gradient = native.createRadialGradient(...p.definition.args);
+        p.colors.forEach((color, i) => gradient.addColorStop(p.offsets[i],
+          'rgba(' + color.slice(0, 3).map(v => Math.round(v * 255)).join(',') + ',' + color[3] + ')'));
+        native.fillStyle = gradient;
+      } else native.fillStyle = p.gradient;
       if (circleMode) { for (const op of p.op.path) native[op.name](...op.args); native.fill(...p.op.args); }
       else native.fillRect(0, 0, cvs.width, cvs.height);
     }
@@ -180,27 +188,30 @@ function gradientPrimitive604(ctx, cvs) {
   async function compare(rows, circleMode = false, includeImages = false) {
     nativePaint(rows,circleMode); const expected=native.getImageData(0,0,cvs.width,cvs.height).data;
     nativePaint(rows,circleMode); const nativeRepeat=difference(expected,native.getImageData(0,0,cvs.width,cvs.height).data),results=[];let lastActual;
+    nativePaint(rows.map(p=>({...p,rebuildInput:true})),circleMode);
+    const nativeParsedInput=difference(expected,native.getImageData(0,0,cvs.width,cvs.height).data);
     for(let mode=0;mode<modes.length;mode++){
       gpuPaint(rows,mode,circleMode);const actual=readGPU();lastActual=actual;gpuPaint(rows,mode,circleMode);const repeat=difference(actual,readGPU());
       results.push({mode:modes[mode],difference:difference(expected,actual),repeat,rgbaSHA256:await hash(actual)});
     }
-    const result={nativeRepeat,nativeRGBA:await hash(expected),variants:results,shape:circleMode?'original-full-circle':'gradient-field'};
-    if(includeImages){const c=document.createElement('canvas');c.width=cvs.width;c.height=cvs.height;c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(lastActual),cvs.width,cvs.height),0,0);result.images={native:native.canvas.toDataURL('image/png'),gpu:c.toDataURL('image/png')};}
+    const result={nativeRepeat,nativeParsedInput,nativeRGBA:await hash(expected),variants:results,shape:circleMode?'original-full-circle':'gradient-field'};
+    if(includeImages){const c=document.createElement('canvas');c.width=cvs.width;c.height=cvs.height;const g=c.getContext('2d');g.putImageData(new ImageData(new Uint8ClampedArray(lastActual),cvs.width,cvs.height),0,0);const gpuImage=c.toDataURL('image/png');g.putImageData(new ImageData(new Uint8ClampedArray(expected),cvs.width,cvs.height),0,0);const nativeImage=c.toDataURL('image/png');const mask=new Uint8ClampedArray(expected.length);for(let i=0;i<mask.length;i+=4){const d=Math.max(...[0,1,2,3].map(k=>Math.abs(expected[i+k]-lastActual[i+k])));mask[i]=Math.min(255,d*85);mask[i+3]=255;}g.putImageData(new ImageData(mask,cvs.width,cvs.height),0,0);result.images={native:nativeImage,gpu:gpuImage,difference85x:c.toDataURL('image/png')};}
     return result;
   }
   async function prove() {
     const cases=[];
     for(const p of selected){cases.push({sourceIndex:p.sourceIndex,field:await compare([p])});if(p.circle)cases.at(-1).circle=await compare([p],true);}
-    const sequence=await compare(selected,false,true),sentinel={sentinel:true,alpha:1,blend:'source-over'},mid=Math.max(1,Math.floor(selected.length/2));
+    const sequence=await compare(selected,false,true),circleRows=selected.filter(p=>p.circle),circleSequence=await compare(circleRows,true,true),sentinel={sentinel:true,alpha:1,blend:'source-over'},mid=Math.max(1,Math.floor(selected.length/2));
     const ordered=[...selected.slice(0,mid),sentinel,...selected.slice(mid)],wrong=[...selected,sentinel];
     nativePaint(ordered);const goodNative=native.getImageData(0,0,cvs.width,cvs.height).data;
     nativePaint(wrong);const wrongNative=native.getImageData(0,0,cvs.width,cvs.height).data;
     gpuPaint(ordered,2);const goodGL=readGPU();gpuPaint(wrong,2);const wrongGL=readGPU();gpuPaint(ordered,2);const restored=readGPU();
     const radiusWrong=selected.map(p=>({...p,radius:p.radius*1.25}));gpuPaint(selected,2);const correct=readGPU();gpuPaint(radiusWrong,2);const wrongRadius=readGPU();gpuPaint(selected,2);
-    nativePaint(selected);
-    const negative={wrongOrderNative:difference(goodNative,wrongNative),wrongOrderGL:difference(goodGL,wrongGL),restored:difference(goodGL,restored),wrongRadius:difference(correct,wrongRadius)};
-    return {cases,sequence,negative,glError:gl.getError(),performanceSamples:0,
-      exactGo:cases.every(c=>c.field.variants[2].difference.changedPixels===0&&(!c.circle||c.circle.variants[2].difference.changedPixels===0))&&sequence.variants[2].difference.changedPixels===0,
+    gpuPaint(selected.map(p=>({...p,colors:p.rawColors})),2);const wrongRawAlpha=readGPU();
+    gpuPaint(circleRows,2,true);nativePaint(circleRows,true);
+    const negative={wrongOrderNative:difference(goodNative,wrongNative),wrongOrderGL:difference(goodGL,wrongGL),restored:difference(goodGL,restored),wrongRadius:difference(correct,wrongRadius),wrongRawAlpha:difference(correct,wrongRawAlpha)};
+    return {cases,sequence,circleSequence,negative,glError:gl.getError(),performanceSamples:0,
+      exactGo:cases.every(c=>c.field.variants[2].difference.changedPixels===0&&(!c.circle||c.circle.variants[2].difference.changedPixels===0))&&sequence.variants[2].difference.changedPixels===0&&circleSequence.variants[2].difference.changedPixels===0,
       note:'Direct ordered GPU radial fields and eligible original circle paints only. No atlas relocation, intermediate paint grouping, original image commands, HUD or simulation. All differences are retained; no tolerance change.'};
   }
   function show(which){native.canvas.style.display=which==='native'?'block':'none';output.style.display=which==='gpu'?'block':'none';if(which==='gpu')gpuPaint(lastRows,lastMode,lastShape);}

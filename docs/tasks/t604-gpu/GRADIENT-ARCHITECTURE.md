@@ -20,6 +20,7 @@ The exact browser implementation is available at Chromium `152.0.7977.83` and
 Skia `0873ec164a06966b90ae0d43ef783cfb180084ae`, matching the qualified runner.
 
 - [CanvasGradient chooses unpremultiplied stop interpolation](https://github.com/chromium/chromium/blob/152.0.7977.83/third_party/blink/renderer/modules/canvas/canvas2d/canvas_gradient.cc).
+- [Legacy rgba() alpha is rounded to a byte before gradient interpolation](https://github.com/chromium/chromium/blob/152.0.7977.83/third_party/blink/renderer/core/css/parser/css_parser_fast_paths.cc). The initial c8fb31e prototype omitted this input conversion; its results are retained and superseded by the corrected input proof.
 - [Blink enables dithering for gradient paints](https://github.com/chromium/chromium/blob/152.0.7977.83/third_party/blink/renderer/platform/graphics/gradient.cc).
 - [Skia's 8×8 dither table and 8-bit amplitude](https://github.com/google/skia/blob/0873ec164a06966b90ae0d43ef783cfb180084ae/src/gpu/DitherUtils.cpp).
 - [Graphite samples that table at device fragment coordinates and uses half color stages](https://github.com/google/skia/blob/0873ec164a06966b90ae0d43ef783cfb180084ae/src/sksl/sksl_graphite_frag.sksl).
