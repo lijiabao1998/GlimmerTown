@@ -1,5 +1,7 @@
 # Independent main Pages candidate
 
+> 2026-10-09 T618 integration: the user approved native T603 artwork and incremental release. The candidate now packages the exact approved T603 runtime (index SHA256 `99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d`, SW `79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2`) on current main. The historical T602-only scope below is retained as history, not the current release restriction. Current release requires the complete canonical checks, all original T603 relative timing/liveness blocks, package and namespace contracts, real old-to-new SW/save upgrade and offline reopen, then actual HTTPS verification. The separate T617 active diagnostics remain failed/unqualified where recorded; they are not relabelled passed or used to claim55FPS or acceleration. No experimental retention, observer or CanvasKit runtime is packaged. See `tools/pages/UPGRADE618.md`.
+
 Base source is the fully verified main `4e8823781178ea69e7862bbf3db2a74328080291` (v11.211, including PR #4's navigation lifetime repair). Branch: `gpt/town-main-pages`. This candidate excludes the T603 artwork and all of its unresolved pixel/performance changes.
 
 ## Why the package needs separate storage
@@ -48,7 +50,7 @@ The new HTTPS origin cannot see localhost/file saves. In the existing local game
 
 ## Publication boundary
 
-Pages remains disabled for the repository during candidate preparation. The expected project path is `/GlimmerTown/`; the actual HTTPS URL and assets must be verified after deployment. Only this tested main package may be published, with its exact commit and hash manifest recorded. Do not publish the repository root, backups, diagnostics or a T603 candidate.
+Pages remains disabled for the repository during candidate preparation. The expected project path is `/GlimmerTown/`; the actual HTTPS URL and assets must be verified after deployment. Only this tested main package may be published, with its exact commit and hash manifest recorded. Do not publish the repository root, backups, diagnostics or unverified experimental runtime. Only the exact approved native T603 seven-file package may replace the live T602 package after all current release jobs pass.
 
 The minimum platform configuration is Settings → Pages → Source: GitHub Actions. The owner has repository admin/maintainer permissions in repository metadata, but the available connector does not expose Pages administration and rejects even the Pages read endpoint. Do not infer permission to expand the connector or create a new credential. Resolve the supported settings action with the owner when the concrete candidate is ready.
 

@@ -1,8 +1,6 @@
-/** Packaged main-only SW lifetime regression: all 37 original adversarial cases.
- * Run: node --test tools/pages/sw-lifetime.test.mjs
- * Optional built artifact: PAGES_SITE=/absolute/package node --test ...
- * Original fixture bytes are pinned before applying only the namespace boundary.
- * No product source writes, browser execution, pixel or performance claims.
+/** Pure Node contract tests. No browser execution or pixel claim.
+ * Run: node --test docs/tasks/t603-shots/sw603.test.mjs
+ * Optional target: SW_TEST_TARGET=/absolute/path/to/sw.js node --test ...
  */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -10,26 +8,15 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import test from 'node:test';
-import path from 'node:path';
-import {packageFile,verifyPackagedFile,CACHE_PREFIX} from './build-main.mjs';
 
-const root = fileURLToPath(new URL('../../', import.meta.url));
-const target = path.join(process.env.PAGES_SITE || root, 'sw.js');
-const sourceBytes = process.env.PAGES_SITE ? readFileSync(target) : packageFile('sw.js', readFileSync(target));
-verifyPackagedFile('sw.js', sourceBytes);
-const source = sourceBytes.toString('utf8');
-const originalBytes = readFileSync(new URL('../../docs/tasks/sw-main603/fixtures/sw-main-before.js', import.meta.url));
-assert.equal(createHash('sha256').update(originalBytes).digest('hex'), '3988245f393202d86dd6727d26fea99c9706943d87a75893faba1c32b3ad47ac');
-// Normalize only the version in the already byte-pinned historical negative control.
-const original = originalBytes.toString('utf8')
-  .replace("const APP_VER='11.211';", "const APP_VER='11.212';")
-  .replace("const CACHE_PREFIX='glimmerville-shell-';", "const CACHE_PREFIX='" + CACHE_PREFIX + "';")
-  .replace("const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);", 'const LEGACY_CACHES=new Set([]);');
+const target = process.env.SW_TEST_TARGET ?? fileURLToPath(new URL('../../../sw.js', import.meta.url));
+const source = readFileSync(target, 'utf8');
+const original = readFileSync(new URL('./fixtures/sw-before-lifetime603.js', import.meta.url), 'utf8');
 const ORIGIN = 'https://example.test';
 const SCOPE = `${ORIGIN}/GlimmerTown/`;
 const INDEX = `${SCOPE}index.html`;
 const MANIFEST = `${SCOPE}manifest.json`;
-const CACHE = CACHE_PREFIX + 'v11.212';
+const CACHE = 'glimmerville-shell-v11.212';
 const turn = () => new Promise(resolve => setImmediate(resolve));
 
 function deferred() {
@@ -130,8 +117,8 @@ async function plain503(event) {
   if (event.lifetimes.length) await bounded(entryLifetime(event));
 }
 
-test('scope, versions, install/activate, manifest and assets match pinned original after only approved namespace substitutions', () => {
-  assert.equal(createHash('sha256').update(originalBytes).digest('hex'), '3988245f393202d86dd6727d26fea99c9706943d87a75893faba1c32b3ad47ac');
+test('scope, versions, install/activate, manifest and asset source stay byte-identical', () => {
+  assert.equal(createHash('sha256').update(original).digest('hex'), '37a150eb00a391630b76c0afb3b9176a846606dc57ef5a4d4e5111ae8044807c', 'immutable pre-repair SW fixture');
   const head = "  if(req.mode==='navigate'){";
   const tail = '  if(url.pathname===new URL(MANIFEST_URL).pathname){';
   assert.equal(source.slice(0, source.indexOf(head)), original.slice(0, original.indexOf(head)));

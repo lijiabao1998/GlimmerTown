@@ -4,8 +4,8 @@
 
 GlimmerTown 是一個從單檔瀏覽器城市建造遊戲一路演化而來的長期工程：核心玩法、城市系統、程序化美術、驗證工具與數百輪迭代都保留在同一條可追溯的開發歷史裡。
 
-目前主線：**v11.211 · T602**
-核心執行檔：`index.html`（約 **4.4 MB / 50,747 行**）
+目前原始碼：**v11.212 · T603**
+核心執行檔：`index.html`（約 **4.5 MB / 50,852 行**）
 
 > Build a city. Let it live. Keep the history.
 
@@ -30,7 +30,19 @@ GlimmerTown 是一個從單檔瀏覽器城市建造遊戲一路演化而來的�
 
 ---
 
-## 最新主線：T602
+## 本輪：T603 原生美術與雲端發布整合
+
+回收中心、長者中心、狗公園、堆肥站各三款已批准藍灰美術；保留完整原生 Canvas、日夜動畫、既有存檔、模擬與亂數契約。沒有採用實驗性的保留圖層、來源觀察器或 CanvasKit renderer。
+
+GitHub 本倉庫是本輪原始碼與驗收紀錄來源。雲端 Pages 只發布七個已核對的 runtime 檔案，沿用獨立主線存檔／快取空間，不讀写 Lab 或使用者電腦的城市。候選分支不會部署；main 必須通過完整驗證、原相對效能／存活檢查、套件契約與真瀏覽器升級／離線存檔重開，才可發布並驗實際 HTTPS。
+
+這是已批准美術的增量發布，不宣稱 55 FPS、速度提升或新效能架構完成。活躍整城診斷的未通過項與原始資料獨立保留。實際是否已部署，以 [Pages 工作流](https://github.com/lijiabao1998/GlimmerTown/actions/workflows/town-main-pages-candidate.yml) 和發布後驗證結果為準。
+
+- [T603 美術與歷史驗證](docs/tasks/t603-shots/README.md)
+- [雲端套件與發布邊界](docs/tasks/main-pages/README.md)
+- [T602 → T603 升級、存檔與離線重開契約](tools/pages/UPGRADE618.md)
+
+## 前輪已驗：T602
 
 **藍灰第二批：大農場、社區菜園、天然氣井，各三款新圖；補齊背水碼頭。**
 

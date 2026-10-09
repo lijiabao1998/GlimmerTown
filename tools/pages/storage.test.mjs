@@ -15,7 +15,7 @@ import {browserPrepareSave,browserSaveRoundTrip,saveReloadObservation} from './b
 const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const NS=SAVE_NAMESPACE, SLOT=NS+'.s3', LAB='glimmerville.v1';
 const rawHarness=readFileSync(path.join(ROOT,'test_fixde.js'),'utf8');
-assert.equal(sha256(rawHarness),'1902144f494d16e143badcc943b6d738f53c889c1146768e6134b2df68e2cd30','approved original DOM harness');
+assert.equal(sha256(rawHarness),'9d543c10e4dc2b00a686ef52ab3b1073bf1393f9cd8e8aa14c6d6583b9a10d98','approved T603 harness; DOM prefix unchanged by the verified PR diff');
 const prefixEnd=rawHarness.indexOf('// ---- 載入 index.html 中的 script ----');
 assert(prefixEnd>0);
 const domPrefix=rawHarness.slice(0,prefixEnd);
@@ -194,7 +194,12 @@ for(const captureKind of ['prompt','clipboard-writeText'])test(`actual browser h
   assert.equal(report.captureKind,captureKind);assert.equal(h.store[SLOT],report.reloadRaw);
   assert.notEqual(report.reloadRaw,report.rawB,'normal import notification must be persisted before fixing the reload baseline');
   assert.equal(h.store[SLOT+'_bak'],report.rawB);
-  if(captureKind==='clipboard-writeText')assert.equal(sha256(report.rawB),'67686714d828582a6b2f1c71498392c138845370f3e9afb39f0175134fed7303','reproduce the exact initial CI rollback-save bytes');
+  if(captureKind==='clipboard-writeText'){
+    const historical=JSON.parse(report.rawB);
+    assert.equal(historical.gameVer,'11.212','the current release is recorded in the real save');
+    historical.gameVer='11.211';
+    assert.equal(sha256(JSON.stringify(historical)),'67686714d828582a6b2f1c71498392c138845370f3e9afb39f0175134fed7303','exact historical rollback-save bytes after reverting only the declared release version');
+  }
   const expected=JSON.parse(report.rawB);expected.nl.push({d:expected.day,m:'📥 匯入成功'});
   assert.equal(report.reloadRaw,JSON.stringify(expected),'only the one exact import-success notification may differ');
   const stable=()=>{assert.equal(h.G.rawSave(),report.reloadRaw);assert.deepEqual(stats(h.G),{...report.reloadCore,pop:0});h.isolated();};
