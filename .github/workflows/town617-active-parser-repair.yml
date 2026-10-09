@@ -1,0 +1,98 @@
+name: Town T617 repaired active gameplay and compact evidence
+on:
+  push:
+    branches: [gpt/town-active-parser-repair-617]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: town617-active-parser-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preserve exact prior correctness and unchanged measurement protocol
+        run: |
+          mkdir -p evidence
+          git fetch --depth=1 origin 7e5b4a44e14a03fd7b50786913d1c6e51c2f62f3
+          git diff --name-only 7e5b4a44e14a03fd7b50786913d1c6e51c2f62f3 HEAD > evidence/changed-files.txt
+          node -e "const fs=require('fs'),allowed=new Set(['.github/workflows/town617-active-parser-repair.yml','docs/tasks/t604-canvaskit/active617-build.cjs','docs/tasks/t604-canvaskit/active617.test.cjs']);for(const p of fs.readFileSync('evidence/changed-files.txt','utf8').trim().split('\n'))if(!allowed.has(p))throw Error('Unexpected source change: '+p)"
+          curl --fail --silent --show-error --location 'https://api.github.com/repos/lijiabao1998/GlimmerTown/actions/runs/37922910690' > evidence/prior-run.json
+          curl --fail --silent --show-error --location 'https://api.github.com/repos/lijiabao1998/GlimmerTown/actions/runs/37922910690/jobs?per_page=100' > evidence/prior-jobs.json
+          node -e "const r=require('./evidence/prior-run.json'),j=require('./evidence/prior-jobs.json').jobs;if(r.head_sha!=='7e5b4a44e14a03fd7b50786913d1c6e51c2f62f3'||r.status!=='completed')throw Error('Wrong prior source/run');for(const n of ['contracts','regression (core)','regression (world)','regression (neighbors)'])if(!j.some(x=>x.name===n&&x.status==='completed'&&x.conclusion==='success'))throw Error('Prior correctness gate absent: '+n)"
+      - name: Exercise exact emitted compiler and unchanged active protocol
+        run: |
+          set -o pipefail
+          node --test docs/tasks/t604-canvaskit/active617.test.cjs | tee evidence/active-tests.log
+          node docs/tasks/t604-canvaskit/active617-run.cjs --check-overlay | tee evidence/overlay.log
+          node docs/tasks/t604-canvaskit/source-contract.cjs > evidence/source-contract.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T617-Parser-Repair-Contracts-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
+  compact-prior-world:
+    needs: source-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Retrieve existing accepted world artifact without rerunning rendering
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 37922910690
+          name: Town-T617-Regression-world-7e5b4a44e14a03fd7b50786913d1c6e51c2f62f3
+          path: prior-world
+      - name: Export unchanged summary and pixel controls below retrieval size limit
+        run: |
+          cp prior-world/regression/native617-summary.json prior-world/regression/scene603-summary.json
+          node -e "const r=require('./prior-world/regression/native617-summary.json');if(r.status!=='passed'||!r.coverage.world||r.native617.approvedRuntimeSHA256!=='99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d')throw Error('Unexpected prior world evidence')"
+          node docs/tasks/t603-shots/package-world-evidence603.js --source=prior-world/regression --out=evidence/world-review
+          sha256sum prior-world/regression/native617-summary.json evidence/world-review/scene603-summary.json > evidence/world-review/summary-identity.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T617-Compact-World-${{ github.sha }}
+          path: evidence/world-review/
+          if-no-files-found: error
+          retention-days: 14
+  gameplay:
+    needs: source-gate
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record machine and source identity
+        run: |
+          mkdir -p evidence/gameplay
+          git rev-parse HEAD > evidence/gameplay/source-commit.txt
+          sw_vers > evidence/gameplay/macos-version.txt
+          /usr/sbin/system_profiler SPDisplaysDataType > evidence/gameplay/displays.txt
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --version > evidence/gameplay/chrome-version.txt
+      - name: One bounded active gameplay attempt after parser repair
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-canvaskit/active617-net.cjs --out=evidence/gameplay | tee evidence/gameplay/run.log
+          node -e "const r=require('./evidence/gameplay/active617-net-summary.json');if(!r.accepted||!r.nonRegression||r.views.length!==2)process.exit(1)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T617-Repaired-Active-Gameplay-${{ github.sha }}
+          path: evidence/
+          retention-days: 14

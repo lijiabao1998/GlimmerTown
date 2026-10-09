@@ -157,6 +157,11 @@ test('generated harness and both real injected native game scripts compile with 
     const scripts = [...injected.matchAll(/<script>([\s\S]*?)<\/script>/g)];
     assert(scripts.length >= 1); for (const [, script] of scripts) new Function(script);
     assert(!/renderer604|source-revision612|retained614\.cjs/.test(injected));
+    const compiler = require('./active617-build.cjs').compileDocument617;
+    assert(built.source.includes('(' + compiler.toString() + ")(fs.readFileSync(path.join(DIR,'index.html'),'utf8'));"));
+    // Execute the exact emitted compiler against the actual served document.
+    new Function('fs', 'path', 'DIR', '(' + compiler.toString() + ")(fs.readFileSync(path.join(DIR,'index.html'),'utf8'));")(
+      { readFileSync: () => injected }, path, '/isolated');
   }
   assert.match(built.source, /slot3 set before game boot/);
   assert.match(built.source, /Player ports 8123\/8199 prohibited/);
@@ -164,4 +169,13 @@ test('generated harness and both real injected native game scripts compile with 
   const experiment = fs.readFileSync(path.join(__dirname, 'active617-experiment.js'), 'utf8');
   assert.doesNotMatch(experiment, /GV\.(?:setSeason|weather|setVisT|setDay)|freezeVis|Tracing\.start/);
   assert.match(built.source, /contract617\.invertSW/); assert.doesNotMatch(built.source, /fetch-canvaskit|assetHTTP604/);
+});
+test('actual emitted compiler accepts literal opening tags in comments and rejects malformed scripts', () => {
+  const { compileDocument617 } = require('./active617-build.cjs');
+  const html = '<html><script>/* native factory description includes <script> */ const sample=1;</script></html>';
+  assert.throws(() => new Function(html.split('<script>')[1].split('</script>')[0]), SyntaxError);
+  assert.equal(compileDocument617(html), true);
+  assert.throws(() => compileDocument617('<script>const x = ;</script>'), SyntaxError);
+  assert.throws(() => compileDocument617('<script>const x=1;'), /one complete/);
+  assert.throws(() => compileDocument617('<script>1</script><script>2</script>'), /one complete/);
 });

@@ -2,6 +2,14 @@
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const { createRequire } = require('node:module');
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+function compileDocument617(html) {
+  // A literal opening tag inside the game's JavaScript comment is ordinary
+  // script text. Splitting on every opening tag truncates that valid program.
+  const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  if (scripts.length !== 1) throw Error('T617 requires one complete native inline game script');
+  new Function(scripts[0][1]);
+  return true;
+}
 function build() {
   const scenes = path.resolve(__dirname, '../t603-shots'), foreground = path.join(scenes, 'foreground603.js');
   const text = fs.readFileSync(foreground, 'utf8'), tail = "const compile=new Function('require','__filename','__dirname',source);";
@@ -35,7 +43,7 @@ fs.writeFileSync(path.join(DIR,'sw.js'),nativeSW617);
 report.active617Document.serviceWorkerSHA256=hash(nativeSW617);
 `);
   const write = "fs.writeFileSync(path.join(DIR,'index.html'),html.replace('window.GV={','('+bridge603.toString()+')();window.GV={'));";
-  replace(write, write + "\nreport.active617Document.servedSHA256=hash(fs.readFileSync(path.join(DIR,'index.html')));\nnew Function(fs.readFileSync(path.join(DIR,'index.html'),'utf8').split('<script>')[1].split('</script>')[0]);");
+  replace(write, write + "\nreport.active617Document.servedSHA256=hash(fs.readFileSync(path.join(DIR,'index.html')));\n(" + compileDocument617.toString() + ")(fs.readFileSync(path.join(DIR,'index.html'),'utf8'));");
   replace("check(report.finalFlags.T603&&!report.finalFlags.T596&&!report.finalFlags.T600,'final preview flags preserved')", "check(report.finalFlags.T603===(process.env.T617_ARM==='native-t603')&&!report.finalFlags.T596&&!report.finalFlags.T600,'final T617 selected flags preserved')");
   replace("path.join(OUT,'scene603-summary.json')", "path.join(OUT,'active617-summary.json')");
   replace("const report={status:'running',", "const active617ChildStarted=Date.now();\nconst report={status:'running',");
@@ -46,4 +54,4 @@ report.active617Document.serviceWorkerSHA256=hash(nativeSW617);
   const metadata = { generatedSHA256: hash(source), sourceFiles: Object.fromEntries(files.map(f => [f, hash(fs.readFileSync(path.join(__dirname, f)))])) };
   return { source, metadata, scenes, bridge };
 }
-module.exports = { build, hash };
+module.exports = { build, hash, compileDocument617 };
