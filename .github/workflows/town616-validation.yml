@@ -1,0 +1,122 @@
+name: Town T616 native retention safety and net performance
+on:
+  push:
+    branches: [gpt/town-retention-validation-616]
+permissions:
+  contents: read
+concurrency:
+  group: town616-validation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Match the existing canonical PWA byte-generation environment
+        run: |
+          source tools/setup_t602_zlib.sh "$RUNNER_TEMP/town616-zlib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          echo "PYTHONPATH=$PYTHONPATH" >> "$GITHUB_ENV"
+      - name: Source and bounded protocol contracts
+        run: |
+          set -o pipefail
+          mkdir -p evidence/contracts
+          git rev-parse HEAD > evidence/contracts/source-commit.txt
+          git fetch --depth=1 origin a26fceaea8c8a42be4322e52f13ea1bbe7dced04
+          git diff --exit-code a26fceaea8c8a42be4322e52f13ea1bbe7dced04 -- index.html sw.js renderers/
+          git fetch --depth=1 origin 329f660e3d5f011ac28454cb6d6a68f8525c69cc
+          test "$(git rev-parse FETCH_HEAD:index.html)" = 3c065a4952706a51147c3f64080ba2489977fb16
+          node tools/vendor/fetch-canvaskit604.mjs
+          node docs/tasks/t604-canvaskit/source-contract.cjs
+          node --test docs/tasks/t604-canvaskit/source-revision612.test.cjs docs/tasks/t604-canvaskit/retained614.test.cjs docs/tasks/t604-canvaskit/approved616.test.cjs docs/tasks/t604-canvaskit/retained616-performance.test.cjs | tee evidence/contracts/unit.log
+          node docs/tasks/t604-canvaskit/run616-regression.cjs --self-test
+          node docs/tasks/t604-canvaskit/run616-transitions.cjs --check-overlay
+          T616_PERF_ARM=observer-free node docs/tasks/t604-canvaskit/run616-performance.cjs --check-overlay
+          T616_PERF_ARM=candidate-only node docs/tasks/t604-canvaskit/run616-performance.cjs --check-overlay
+          node docs/tasks/t604-canvaskit/run616-regression.cjs --support-only --out=evidence/contracts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T616-Contracts-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
+  transitions:
+    needs: contracts
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Candidate transitions without resetting retained history
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node tools/vendor/fetch-canvaskit604.mjs
+          mkdir -p evidence/transitions
+          node docs/tasks/t604-canvaskit/run616-transitions.cjs --port=8776 --out=evidence/transitions | tee evidence/transitions/run.log
+          node -e "const r=require('./evidence/transitions/retained616-transitions-summary.json').retained616;if(!r.safetyCasesCompleted)process.exit(1)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T616-Transitions-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
+  regression:
+    needs: contracts
+    runs-on: macos-15
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        phase: [core, world, neighbors]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Existing full native correctness with candidate enabled
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/regression
+          node docs/tasks/t604-canvaskit/run616-regression.cjs --phase=${{ matrix.phase }} --port=8806 --out=evidence/regression | tee evidence/regression/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T616-Regression-${{ matrix.phase }}-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
+  performance:
+    needs: [transitions, regression]
+    runs-on: macos-15
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Warm full-frame live-main candidate live-main comparison
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/performance
+          node tools/vendor/fetch-canvaskit604.mjs
+          node docs/tasks/t604-canvaskit/net616.cjs --out=evidence/performance | tee evidence/performance/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T616-Net-Performance-${{ github.sha }}
+          path: evidence/
+          retention-days: 14

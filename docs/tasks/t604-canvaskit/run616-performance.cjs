@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),{createRequire}=require('node:module');let runner=fs.readFileSync(path.join(__dirname,'run606.cjs'),'utf8');
+runner=runner.replace("'native606-experiment.js'","'retained616-performance.js'").replace('native606-summary.json','retained616-performance-summary.json');
+runner=runner.replace("fs.readFileSync(path.join(__dirname,'bridge606.js'),'utf8')","fs.readFileSync(path.join(__dirname,'bridge610.js'),'utf8').replace('T603:t603On()','T603:typeof t603On===\"function\"?t603On():false').replace('  window.__s603={',fs.readFileSync(path.join(__dirname,'retained616-performance-bridge.js'),'utf8')+'\\n  window.__s603={')");
+const anchor='source=source.slice(0,bridgeStart606)';if(runner.split(anchor).length!==2)throw Error('Retained runner boundary drift');
+runner=runner.replace(anchor,String.raw`const retainedWrite614="namespace604(native604).replace('window.GV={'";
+if(source.split(retainedWrite614).length!==2)throw Error('Retained native write boundary drift');
+const finalFlag616="check(report.finalFlags.T603&&!report.finalFlags.T596&&!report.finalFlags.T600,'final preview flags preserved')";
+if(source.split(finalFlag616).length!==2)throw Error('T616 final flag boundary drift');
+source=source.replace(finalFlag616,"check(report.finalFlags.T603===(process.env.T616_PERF_ARM!=='observer-free')&&!report.finalFlags.T596&&!report.finalFlags.T600,'final selected source flags preserved')");
+source=source.replace(retainedWrite614,"namespace604(process.env.T616_PERF_ARM==='observer-free'?exactBase603:native604).replace('<script>', '<script>'+fs.readFileSync(path.join(ROOT,'docs/tasks/t604-canvaskit/source-revision612.cjs'),'utf8')+(['observer-free','native-t603'].includes(process.env.T616_PERF_ARM)?'':';window.__source614=TownSourceRevision612.install(window);')+fs.readFileSync(path.join(ROOT,'docs/tasks/t604-canvaskit/retained614.cjs'),'utf8')).replace('window.GV={'");
+`+anchor);
+new Function('require','__filename','__dirname',runner)(createRequire(__filename),__filename,__dirname);
