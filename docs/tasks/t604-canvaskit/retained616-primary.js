@@ -22,7 +22,7 @@
         persist();if(restoreDelta.pixels||layerRestoreDelta.pixels){report.retained616.decision='Measurement limit: original/restored pixels changed; no candidate attribution.';rejected615=true;break;}
         if(pixelDelta.pixels||layerDelta.pixels){
           const layerEvidence=await ev('__retained616Primary.layerDifference()');row.layerEvidence=layerEvidence;
-          const classification=require(path.join(__dirname,'approved616.cjs')).classify({zoom:zoom615,index:i,width:a.pixels.w,height:a.pixels.h,pixelDelta,layerEvidence,controlsExact:restoreDelta.pixels===0&&layerRestoreDelta.pixels===0});
+          const classification=require('../t604-canvaskit/approved616.cjs').classify({zoom:zoom615,index:i,width:a.pixels.w,height:a.pixels.h,pixelDelta,layerEvidence,controlsExact:restoreDelta.pixels===0&&layerRestoreDelta.pixels===0});
           if(classification==='approved-known-visible-defect'){row.exception='approved-known-visible-defect';row.layerSignatureNote='Newly recorded associated layer signature, not historical raw bytes; relationship requires review and is not a general layer-count waiver.';report.retained616.acceptedExceptions.push({zoom:zoom615,index:i,pixelDelta,layerEvidence});}
           else if(classification==='tiny-unapproved'){row.exception='tiny-unapproved';report.retained616.pendingJudgment.push({zoom:zoom615,index:i,pixelDelta,layerEvidence});}
           else {report.retained616.decision='Material or unsupported new pixel difference: stop, preserve exact evidence and request judgment.';rejected615=true;break;}
