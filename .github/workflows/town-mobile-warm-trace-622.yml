@@ -1,0 +1,66 @@
+name: Town T622 one mobile night warm causal trace
+on:
+  push:
+    branches: [gpt/town-mobile-warm-trace-622]
+permissions:
+  contents: read
+concurrency:
+  group: town-mobile-warm-trace-622
+  cancel-in-progress: false
+jobs:
+  source-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact main parent and four additive diagnostic files only
+        run: |
+          node <<'NODE'
+          const {execFileSync}=require('node:child_process');
+          const assert=require('node:assert/strict');
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const base='107660752c2c8d09e1787e3d7c95f6e91da3d4bc';
+          assert.equal(git('rev-list','--parents','-n','1','HEAD').split(/\s+/).length,2);
+          assert.equal(git('rev-parse','HEAD^'),base);
+          const expected=['.github/workflows/town-mobile-warm-trace-622.yml','tools/pages/MOBILE-WARM-TRACE622.md','tools/pages/mobile-warm-trace622.cjs','tools/pages/mobile-warm-trace622.test.cjs'].sort();
+          const rows=git('diff','--name-status',base,'HEAD').split('\n').map(row=>row.split('\t'));
+          assert(rows.every(row=>row.length===2&&row[0]==='A'));
+          assert.deepEqual(rows.map(row=>row[1]).sort(),expected);
+          assert.equal(Number(process.env.GITHUB_RUN_ATTEMPT),1);
+          console.log('Exact main source and four additive diagnostic files verified');
+          NODE
+          node tools/pages/native-correctness.cjs --self-test
+          node tools/pages/native-correctness.cjs --check-overlay
+          node tools/pages/mobile-warm-trace622.cjs --check-overlay
+          node --test tools/pages/mobile-warm-trace622.test.cjs
+  mobile-night-trace:
+    needs: source-gate
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Start total diagnostic resource clock
+        run: echo "T619_JOB_START_MS=$(node -p 'Date.now()')" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: One original mobile night sequence with bounded causal trace
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/mobile-warm-trace
+          node tools/pages/mobile-warm-trace622.cjs --out=evidence/mobile-warm-trace | tee evidence/mobile-warm-trace.log
+      - name: Preserve original failure and diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-mobile-warm-trace-622-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
