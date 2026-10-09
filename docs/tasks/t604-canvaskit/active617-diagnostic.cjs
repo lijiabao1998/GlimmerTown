@@ -11,7 +11,7 @@ function continuation(result, summary, elapsedMs, expected) {
     finalSelectedMode:!!expected&&m?.endpoint?.status?.art===(expected.arm==='native-t603')&&m.endpoint.status.version===(expected.arm==='native-t603'?'11.212':'11.211')&&m?.finalFlags?.T603===(expected.arm==='native-t603')&&m.finalFlags.T596===false&&m.finalFlags.T600===false,
     childProcess:[0,2].includes(result.code)&&!result.timedOut&&!result.signal&&!result.spawnError&&elapsedMs<=240000,
     source:m?.sourceVerified===true&&m?.initialFixtureVerified===true,
-    setup:Number.isFinite(m?.setupElapsedMs)&&m.setupElapsedMs<=60000,
+    setup:Number.isFinite(m?.setupElapsedMs)&&m.setupElapsedMs>=0&&m.setupElapsedMs<240000&&m.preparationAdmission?.admitted===true&&m.preparationAdmission.wholeChildBoundMs===240000&&m.preparationAdmission.minimumObservationMs===140000&&m.preparationAdmission.remainingChildMs===240000-m.setupElapsedMs&&m.preparationAdmission.endpointReserveMs===20000&&m.preparationAdmission.terminationReserveMs===2000&&m.preparationAdmission.requiredKnownMs===162000&&m.preparationAdmission.remainingChildMs>162000&&m.preparationAdmission.original?.boundMs===60000&&m.preparationAdmission.original.elapsedMs===m.setupElapsedMs&&m.preparationAdmission.original.passed===(m.setupElapsedMs<=60000)&&(m.setupElapsedMs<=60000||m.preparationAdmission.diagnosticEnabled===true),
     foreground:m?.foregroundValid===true&&m.foregroundBefore?.valid===true&&m.foregroundAfter?.valid===true,
     complete:o?.complete===true&&o.warmMs===30000&&o.requestedMs===110000&&o.warmElapsed>=30000&&o.elapsed>=110000,
     samples:Array.isArray(o?.warm)&&Array.isArray(o?.samples)&&o.warm.length>=150&&o.samples.length>0&&o.warm.length+o.samples.length<=30000,
@@ -21,7 +21,7 @@ function continuation(result, summary, elapsedMs, expected) {
     restoration:summary?.displayRestore603?.ok===true&&summary.displayRestore603.exitCode===0&&!summary.displayRestoreError603,
     expectedVerdict:summary?.status==='passed'||(summary?.status==='failed'&&summary.error?.startsWith('Error: Invalid or incomplete active measurement; no nonregression inference.'))
   };
-  return {safe:Object.values(checks).every(Boolean),checks,observationIntegrity:observation,originalAccepted:m?.accepted===true,originalViolations:o?.violations||null,originalStrictValid:o?metrics.valid(o):false};
+  return {safe:Object.values(checks).every(Boolean),checks,observationIntegrity:observation,originalAccepted:m?.accepted===true,originalPreparationCheck:m?.preparationAdmission?.original||null,originalViolations:o?.violations||null,originalStrictValid:o?metrics.valid(o):false};
 }
 const environmentValid=c=>!!(c.environment?.browserVersion?.product&&c.environment.browserVersion.jsVersion&&Array.isArray(c.environment.gpuInfo?.devices)&&c.environment.gpuInfo.devices.length&&Object.keys(c.environment.gpuInfo.featureStatus||{}).length&&c.environment.foreground?.platform==='darwin'&&c.environment.foreground.arch&&/^[a-f0-9]{64}$/.test(c.environment.harness?.generatedSHA256||''));
 const environmentKey=c=>JSON.stringify([c.environment.browserVersion?.product,c.environment.browserVersion?.jsVersion,c.environment.gpuInfo?.devices,c.environment.gpuInfo?.featureStatus,c.environment.foreground?.platform,c.environment.foreground?.arch,c.environment.harness?.generatedSHA256]);
@@ -43,7 +43,7 @@ async function main(){
       for(const [index,arm] of ['main-t602','native-t603','main-t602'].entries()){
         if(deadline-Date.now()<242000)throw Error('Overall bound lacks complete child and termination reserve');
         const dir=path.join(out,'z'+zoom+'-'+index+'-'+arm);if(fs.existsSync(dir))throw Error('Refusing to overwrite existing child');fs.mkdirSync(dir);
-        const start=Date.now(),result=await launch([path.join(__dirname,'active617-run.cjs'),'--supervised-child','--port=8787','--out='+dir],{...process.env,T617_ARM:arm,T617_ZOOM:String(zoom),T617_DISPLAY_MANIFEST:report.displayPreparation.manifest},path.join(dir,'child.log'),240000);
+        const start=Date.now(),result=await launch([path.join(__dirname,'active617-run.cjs'),'--supervised-child','--port=8787','--out='+dir],{...process.env,T617_ARM:arm,T617_ZOOM:String(zoom),T617_DISPLAY_MANIFEST:report.displayPreparation.manifest,T617_DIAGNOSTIC_SETUP_ADMISSION:'1'},path.join(dir,'child.log'),240000);
         const file=path.join(dir,'active617-summary.json'),summary=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null,elapsedMs=Date.now()-start;
         const child={index,arm,zoom,...result,elapsedMs,continuation:continuation(result,summary,elapsedMs,{arm,zoom}),measurement:summary?.active617||null,environment:summary?{browserVersion:summary.browserVersion,gpuInfo:summary.gpuInfo,foreground:summary.foregroundEnvironment,harness:summary.active617Harness,document:summary.active617Document}:null};view.children.push(child);persist();
         console.log('T617_DIAGNOSTIC_CHILD '+JSON.stringify({zoom,index,arm,elapsedMs,continuation:child.continuation}));
@@ -54,7 +54,7 @@ async function main(){
       }
       view.strictScreen=metrics.screen(...view.children.map(c=>c.measurement));view.rawUnqualifiedRatios=rawRatios(view.children);persist();
     }
-    report.completed=true;report.originalStrictAcceptance=report.views.every(v=>v.strictScreen.accepted&&v.strictScreen.nonRegression);
+    report.completed=true;report.originalStrictAcceptance=report.views.every(v=>v.strictScreen.accepted&&v.strictScreen.nonRegression&&v.children.every(c=>c.continuation.originalAccepted));
     report.verdict='Diagnostic collection complete; independent evidence assessment required; no release acceptance granted';
   }catch(error){report.error=String(error);report.verdict='Incomplete diagnostic collection; no comparative conclusion';}
   finally{report.elapsedMs=Date.now()-started;persist();console.log('T617_DIAGNOSTIC '+JSON.stringify({completed:report.completed,accepted:false,verdict:report.verdict,error:report.error}));}

@@ -58,7 +58,7 @@ report.active617Document.serviceWorkerSHA256=hash(nativeSW617);
   replace("    browser=spawn(executable,", "    report.setupStages617.displayReadyMs=Date.now()-active617ChildStarted;\n    browser=spawn(executable,");
   replace("await ready();\n    check(await ev", "await ready();report.setupStages617.gameReadyMs=Date.now()-active617ChildStarted;\n    check(await ev");
   new Function('require', '__filename', '__dirname', 'metadata617', source);
-  const files = ['active617-build.cjs', 'active617-bridge.js', 'active617-experiment.js', 'active617-metrics.cjs', 'bridge610.js', 'active617-display.cjs'];
+  const files = ['active617-build.cjs', 'active617-bridge.js', 'active617-experiment.js', 'active617-metrics.cjs', 'bridge610.js', 'active617-display.cjs', 'active617-preparation-policy.cjs'];
   const metadata = { generatedSHA256: hash(source), sourceFiles: Object.fromEntries(files.map(f => [f, hash(fs.readFileSync(path.join(__dirname, f)))])) };
   return { source, metadata, scenes, bridge };
 }

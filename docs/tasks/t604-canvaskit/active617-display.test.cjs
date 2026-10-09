@@ -66,7 +66,7 @@ test('malformed helper output and invocation timeout fail closed', async t => {
 test('generated overlay has no Swift interpreter invocation and retains setup bound', () => {
   const s = build().source;
   assert(!s.includes('spawnSync("/usr/bin/xcrun",["swift"'));
-  assert(s.includes('p617.setupElapsedMs <= 60000'));
+  assert(s.includes('p617.preparationAdmission.original.passed'));assert(s.includes("T617 setup fits fixed 60-second bound"));
   assert(s.includes('setupStages617.gameReadyMs')); assert(s.includes('setupStages617.fixtureReadyMs'));
   assert.throws(() => display.sourceFromHarness(s + 'const displaySwift603=1;'), /boundary/);
   assert.throws(() => display.sourceFromHarness(s.replace('const displaySwift603=', 'const missing=')), /boundary/);

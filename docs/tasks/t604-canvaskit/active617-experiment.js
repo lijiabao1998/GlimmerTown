@@ -27,7 +27,9 @@
     p617.foregroundBefore = await foregroundState603(true);
     check(p617.foregroundBefore.valid, 'T617 initial foreground');
     p617.setupElapsedMs = Date.now() - active617ChildStarted;
-    check(p617.setupElapsedMs <= 60000, 'T617 setup fits fixed 60-second bound');
+    p617.preparationAdmission = require('../t604-canvaskit/active617-preparation-policy.cjs').admission(p617.setupElapsedMs, process.env.T617_DIAGNOSTIC_SETUP_ADMISSION === '1');
+    if (!p617.preparationAdmission.diagnosticEnabled || p617.preparationAdmission.original.passed) check(p617.preparationAdmission.original.passed, 'T617 setup fits fixed 60-second bound');
+    check(p617.preparationAdmission.admitted, 'T617 preparation fits supervised whole-child resource limit');
     persist();
     try {
       p617.observation = await ev('__active617.observe()');
@@ -43,7 +45,7 @@
         p617.endpoint.canonicalSHA256 = hash(p617.endpoint.canonical); delete p617.endpoint.canonical;
       }
       p617.endpointElapsedMs = Date.now() - endpointStart617;
-      p617.accepted = p617.summary.valid && p617.foregroundValid && !!p617.endpoint?.passed && p617.endpointElapsedMs <= 20000;
+      p617.accepted = p617.preparationAdmission.original.passed && p617.summary.valid && p617.foregroundValid && !!p617.endpoint?.passed && p617.endpointElapsedMs <= 20000;
       p617.decision = p617.accepted ? 'Valid fresh active arm; requires both bracketing main arms and the separate correctness/release gates.' : 'Invalid or incomplete active measurement; no nonregression inference.';
     } catch (error) {
       p617.error = String(error); p617.accepted = false;
