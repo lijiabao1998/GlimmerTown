@@ -49,8 +49,16 @@ report.active617Document.serviceWorkerSHA256=hash(nativeSW617);
   replace("const report={status:'running',", "const active617ChildStarted=Date.now();\nconst report={status:'running',");
   // The one continuous 140s observation has its own 155s browser watchdog.
   replace("reject(Error('CDP timeout: '+method));},150000)", "reject(Error('CDP timeout: '+method));},180000)");
+  const configureStart = source.indexOf('const configureDisplay603='), configureEnd = source.indexOf('\nconst check=', configureStart);
+  if (configureStart < 0 || configureEnd <= configureStart || source.split('const configureDisplay603=').length !== 2 || source.split('\nconst check=').length !== 2) throw Error('T617 display invocation boundary drift');
+  const expectedConfigure617 = 'const configureDisplay603=(action,id)=>{const nativePath=path.join(DIR,"display603.swift");fs.writeFileSync(nativePath,displaySwift603);const r=spawnSync("/usr/bin/xcrun",["swift",nativePath,action,...(id===undefined?[]:[String(id)])],{encoding:"utf8",timeout:60000});let data;try{data=JSON.parse(r.stdout);}catch{throw Error("Display helper did not return JSON: "+String(r.stderr).slice(-3000));}return {...data,exitCode:r.status,stderr:r.stderr};};';
+  if (source.slice(configureStart, configureEnd) !== expectedConfigure617) throw Error('T617 original display invocation changed');
+  source = source.slice(0, configureStart) + "const configureDisplay603=(action,id)=>require('../t604-canvaskit/active617-display.cjs').invoke(displaySwift603,process.env.T617_DISPLAY_MANIFEST,action,id);" + source.slice(configureEnd);
+  replace("    const executable=chromePath();", "    report.setupStages617={hostReadyMs:Date.now()-active617ChildStarted};\n    const executable=chromePath();");
+  replace("    browser=spawn(executable,", "    report.setupStages617.displayReadyMs=Date.now()-active617ChildStarted;\n    browser=spawn(executable,");
+  replace("await ready();\n    check(await ev", "await ready();report.setupStages617.gameReadyMs=Date.now()-active617ChildStarted;\n    check(await ev");
   new Function('require', '__filename', '__dirname', 'metadata617', source);
-  const files = ['active617-build.cjs', 'active617-bridge.js', 'active617-experiment.js', 'active617-metrics.cjs', 'bridge610.js'];
+  const files = ['active617-build.cjs', 'active617-bridge.js', 'active617-experiment.js', 'active617-metrics.cjs', 'bridge610.js', 'active617-display.cjs'];
   const metadata = { generatedSHA256: hash(source), sourceFiles: Object.fromEntries(files.map(f => [f, hash(fs.readFileSync(path.join(__dirname, f)))])) };
   return { source, metadata, scenes, bridge };
 }

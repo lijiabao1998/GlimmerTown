@@ -1,0 +1,11 @@
+# T617 bounded host preparation repair
+
+Prior evidence: original correctness run 37922910690 passed contracts and all three browser phases (4370 checks). Parser repair 5ae2aadac06fdd5793603d3d64caf20ba6b04851 / run37926230028 passed source qualification and compact evidence recovery, but original T602 setup took75974ms against the predeclared60000ms bound. No active sampling occurred and no FPS/regression inference is supported.
+
+The unchanged foreground adapter interpreted the same Swift display helper twice during setup and again at restoration. This repair compiles its exact bytes once before starting the six fresh browser profiles. Compilation is bounded to120000ms, then the detached process group receives SIGTERM and at most2000ms termination grace before group SIGKILL, recorded with source/binary hashes, and charged to the existing1800000ms overall deadline. Each child verifies both identities before every invocation. Compilation failure ends the run without any gameplay child; there is no interpreted fallback, retry or overwrite of a preparation directory.
+
+Display inspect, prepare and restore still run for every child, with the exact original mode selection, session-only configuration,500ms settling delay and restoration. The compiler uses its default unoptimized mode. Original source documents, browser profile freshness, model generation, graphics qualification, setup start,60000ms setup bound,240000ms child bound,30000ms warmup,110000ms observation and all statistical/quality/save gates are unchanged. Existing source qualification reuses the exact accepted correctness jobs and rejects unrelated file changes.
+
+Predeclared hypothesis: removing repeated interpreter startup may make each fresh child fit the existing setup bound. There is no claim it saves the15974ms needed: prior artifacts have no stage durations. New host milestones record host-ready, display-ready, game-ready and fixture-ready times; helper calls report their durations. If setup still exceeds the bound, stop on the first failure and report the observed preparation limit. No unchanged rerun or post-hoc gate relaxation.
+
+One preparation attempt and one attempt for each of six children, main/native/main at zoom1 and.7. No screenshots, trace or host polling during active sampling. The55FPS goal and honest incremental nonregression decision remain separate.

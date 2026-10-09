@@ -12,6 +12,7 @@
     const fixture617 = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/manifest.json'), 'utf8')).cities.find(c => c.seed === 22);
     const raw617 = fs.readFileSync(path.join(__dirname, 'fixtures', fixture617.file), 'utf8');
     const setup617 = await ev('(()=>{document.getElementById("bNewGame").click();const city=__s603.grow22();const focus=__s603.census(85)[0];if(!focus)throw Error("Missing canonical civic focus");GV.setRot(0);GV.setZoom(' + p617.zoom + ');GV.lookAt(focus[0]+1,focus[1]+1);GV.save();return {city,roots:__s603.roots(),canonical:__s603.saved(),status:__active617.status()};})()');
+    report.setupStages617.fixtureReadyMs=Date.now()-active617ChildStarted;
     p617.initial = setup617.status;
     p617.initialRootSHA256 = hash(JSON.stringify(setup617.roots.rows));
     p617.initialCanonicalSHA256 = hash(setup617.canonical);

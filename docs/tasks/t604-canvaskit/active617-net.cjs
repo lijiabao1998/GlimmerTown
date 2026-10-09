@@ -23,6 +23,9 @@ async function main() {
   const persist = () => fs.writeFileSync(path.join(out, 'active617-net-summary.json'), JSON.stringify(report, null, 2));
   persist();
   try {
+    const display = require('./active617-display.cjs');
+    report.displayPreparation = await display.prepare(path.join(out, 'prepared-display'), display.sourceFromHarness(require('./active617-build.cjs').build().source));
+    persist();
     for (const zoom of [1, .7]) {
       const view = { zoom, children: [] }; report.views.push(view);
       for (const [index, arm] of ['main-t602', 'native-t603', 'main-t602'].entries()) {
@@ -32,7 +35,7 @@ async function main() {
         fs.mkdirSync(dir, { recursive: true });
         const started = Date.now();
         const result = await launch([path.join(__dirname, 'active617-run.cjs'), '--supervised-child', '--port=8787', '--out=' + dir],
-          { ...process.env, T617_ARM: arm, T617_ZOOM: String(zoom) }, path.join(dir, 'child.log'), 240000);
+          { ...process.env, T617_ARM: arm, T617_ZOOM: String(zoom), T617_DISPLAY_MANIFEST: report.displayPreparation.manifest }, path.join(dir, 'child.log'), 240000);
         const file = path.join(dir, 'active617-summary.json');
         const summary = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
         const measurement = summary?.active617;
