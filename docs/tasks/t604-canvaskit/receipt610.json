@@ -1,0 +1,81 @@
+{
+  "commit": "0aa9d23ba196431bdcbea4d8fd90bd20f98248c8",
+  "run": 37890901630,
+  "job": 113691367852,
+  "artifact": 11598112506,
+  "artifactBytes": 2724106,
+  "artifactSHA256": "0faead019652ac4ba2402330e8c79b8ff128d6160716ff299e91759d581049e1",
+  "rawTraceSHA256": "5eda82073539e59016fc4ce4a411cb80936f22c253fd1dac9230bab84bee9d3f",
+  "browserChecks": 31,
+  "contractTests": 37,
+  "qualified": true,
+  "traceLaunched": true,
+  "traceAccepted": false,
+  "dataLossOccurred": false,
+  "availabilityPassed": true,
+  "profileScreen": {
+    "accepted": false,
+    "baselineMedian": 67.20000000001164,
+    "baselineP95": 99.89999999999418,
+    "profileMedian": 66.79999999998836,
+    "profileRatio": 0.9940476190472736,
+    "baselineMedianRatio": 0.9772893772893395,
+    "baselineP95Ratio": 1.1560693641618498,
+    "baselineFPSRatio": 1.0091886594893502,
+    "traceFPSRatio": 1.0394462624247898,
+    "traceP95Ratio": 0.8378378378377118
+  },
+  "qualificationWindows": [
+    {
+      "frames": 70,
+      "elapsedMs": 5020.500000000029,
+      "fps": 13.94283437904583,
+      "medianMs": 66.75000000000728,
+      "p95Ms": 99.60000000000582,
+      "nightRemaining": 49.901600000002276
+    },
+    {
+      "frames": 69,
+      "elapsedMs": 5014.8000000000175,
+      "fps": 13.759272553242354,
+      "medianMs": 67.5,
+      "p95Ms": 97.89999999999418,
+      "nightRemaining": 44.85330000000232
+    },
+    {
+      "frames": 70,
+      "elapsedMs": 5035.1999999999825,
+      "fps": 13.902129011757276,
+      "medianMs": 66.75,
+      "p95Ms": 99.40000000002328,
+      "nightRemaining": 39.78460000000234
+    }
+  ],
+  "baselineTraceBaseline": [
+    {
+      "frames": 69,
+      "elapsedMs": 5039.299999999959,
+      "fps": 13.692377909630416,
+      "medianMs": 66.70000000001164,
+      "p95Ms": 100,
+      "nightRemaining": 34.70360000000241
+    },
+    {
+      "frames": 71,
+      "elapsedMs": 5011.399999999965,
+      "fps": 14.167697649359559,
+      "medianMs": 66.79999999998836,
+      "p95Ms": 83.69999999998254,
+      "nightRemaining": 29.585000000002367
+    },
+    {
+      "frames": 68,
+      "elapsedMs": 5011.899999999936,
+      "fps": 13.567708852930199,
+      "medianMs": 68.25000000001455,
+      "p95Ms": 86.5,
+      "nightRemaining": 21.153600000002427
+    }
+  ],
+  "decision": "NO-GO quantitative bottleneck inference; baseline p95 drift exceeds predeclared1.15. Causal trace inspection may nominate hypotheses only. No unchanged rerun, no product change, no55FPS claim."
+}

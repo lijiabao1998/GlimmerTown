@@ -1,0 +1,29 @@
+    report.candidate='T611 opaque main-canvas exact-pixel feasibility';report.releaseGatePassed=false;
+    report.opaque611={scope:'Diagnostic only: alpha:false main canvas; synchronized presentation, original native drawing and offscreen masks unchanged. No timing in this readback proof.',pixelProof:[],accepted:false,performanceRun:false,releaseGatePassed:false};
+    report.flags=await ev('__s603.flags()');check(report.flags.T603&&!report.flags.T596&&!report.flags.T600,'approved art unchanged');
+    await ev('document.getElementById("bNewGame").click();__s603.grow22();true');
+    const fixture611=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/manifest.json'),'utf8')).cities.find(c=>c.seed===22),roots611=await ev('__s603.roots()');check(!roots611.bad&&roots611.rows.length===fixture611.roots&&hash(JSON.stringify(roots611.rows))===fixture611.rootSHA256,'exact seed22 roots before opaque proof');
+    const focus611=(await ev('__s603.census(85)'))[0];await ev('GV.setSeason(1);GV.weather(0);GV.lookAt('+(focus611[0]+1)+','+(focus611[1]+1)+');__opaque611.pause();GV.save();true');const saved611=await ev('__s603.saved()'),scene611=await ev('__s603.scene()');
+    const capture611=async(name)=>{const r=await ev('__opaque611.pixels()');const pixels=Buffer.from(r.base64,'base64');if(pixels.length!==r.width*r.height*4)throw Error('RGBA readback length mismatch');const screenshot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});fs.writeFileSync(path.join(OUT,name+'.png'),Buffer.from(screenshot.data,'base64'));report.screenshots.push(name+'.png');return {...r,base64:undefined,pixels,sha256:hash(pixels)};};
+    const delta611=(a,b)=>{if(a.width!==b.width||a.height!==b.height)throw Error('Opaque pixel dimensions changed');let pixels=0,maxChannelDelta=0;for(let i=0;i<a.pixels.length;i+=4){let changed=false;for(let j=0;j<4;j++){const d=Math.abs(a.pixels[i+j]-b.pixels[i+j]);changed||=d!==0;maxChannelDelta=Math.max(maxChannelDelta,d);}if(changed)pixels++;}return {pixels,maxChannelDelta};};
+    const settings611=[[1,0,100,1400,900],[.7,0,100,1400,900],[.95,1,100,1400,900],[1.25,2,100,1400,900],[2,3,100,1400,900],[1,0,55,1400,900],[.95,1,80,1400,900],[1.25,2,28,1400,900],[1,0,100.125,1100,760],[1,0,55,1400,900]];
+    try{for(const[index,[zoom,rot,phase,width,height]]of settings611.entries()){
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await sleep(100);await ev('GV.setRot('+rot+');GV.setZoom('+zoom+');true');
+      const original=await ev('__opaque611.frame(false,'+phase+')'),a=await capture611('T611-'+index+'-original');
+      const opaque=await ev('__opaque611.frame(true,'+phase+')'),b=await capture611('T611-'+index+'-opaque');
+      const restored=await ev('__opaque611.frame(false,'+phase+')'),c=await capture611('T611-'+index+'-restored');
+      const proof={index,setting:{zoom,rot,phase,width,height},original,opaque,restored,originalSHA256:a.sha256,opaqueSHA256:b.sha256,restoredSHA256:c.sha256,originalNonOpaque:a.nonOpaque,candidateNonOpaque:b.nonOpaque,delta:delta611(a,b),restoreDelta:delta611(a,c)};report.opaque611.pixelProof.push(proof);persist();
+      if(a.nonOpaque||proof.delta.pixels||proof.restoreDelta.pixels){report.opaque611.decision=proof.restoreDelta.pixels?'Measurement limit: original/restored pixels differ; no candidate attribution. Stop before timing.':a.nonOpaque?'NO-GO: original completed frame is not wholly opaque. Stop before timing.':'NO-GO: candidate zero RGBA equivalence failed. Stop before timing.';break;}
+    }
+      if(!report.opaque611.decision){
+        report.opaque611.lifecycle=[];
+        for(const opaque of [false,true,false]){const lifecycle=await ev('__opaque611.resizeOnly('+opaque+')');const r=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,clip:lifecycle.clip});const bytes=Buffer.from(r.data,'base64'),file='T611-resize-only-'+report.opaque611.lifecycle.length+'.png';fs.writeFileSync(path.join(OUT,file),bytes);report.screenshots.push(file);const decoded=pngRgba603(bytes);report.opaque611.lifecycle.push({opaque,file,lifecycle,width:decoded.w,height:decoded.h,pixels:decoded.rgba});}
+        const [a,b,c]=report.opaque611.lifecycle.map(r=>({...r,pixels:Buffer.from(r.pixels)}));report.opaque611.resizeOnlyDelta=delta611(a,b);report.opaque611.resizeOnlyRestoreDelta=delta611(a,c);for(const r of report.opaque611.lifecycle)delete r.pixels;
+        if(report.opaque611.resizeOnlyDelta.pixels||report.opaque611.resizeOnlyRestoreDelta.pixels)report.opaque611.decision=report.opaque611.resizeOnlyRestoreDelta.pixels?'Measurement limit: original/restored resize sample differs; no candidate attribution.':'NO-GO: exposed resize-before-redraw surface differs; conservative strict lifecycle rejection, not evidence of live flicker. Stop before timing.';
+      }
+    }finally{report.opaque611.restore=await ev('__opaque611.restore()');await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});}
+    check(report.opaque611.restore.originalCanvas&&report.opaque611.restore.originalContext,'original canvas/context restored');
+    check(scene611===await ev('__s603.scene()'),'model unchanged across original/opaque/restored proof');await ev('GV.save();true');check(saved611===await ev('__s603.saved()'),'canonical save unchanged across opaque proof');
+    report.opaque611.accepted=!report.opaque611.decision&&report.opaque611.pixelProof.length===settings611.length&&report.opaque611.pixelProof.every(p=>p.originalNonOpaque===0&&p.delta.pixels===0&&p.restoreDelta.pixels===0);
+    report.opaque611.decision ||= 'Exact pixel feasibility passed; fresh native live timing and complete regression still required. No performance or release claim.';
+    console.log('OPAQUE611 '+JSON.stringify(report.opaque611));report.coverage.core=true;persist();

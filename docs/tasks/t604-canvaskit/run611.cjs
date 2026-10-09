@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),{createRequire}=require('node:module');let runner=fs.readFileSync(path.join(__dirname,'run606.cjs'),'utf8');
+runner=runner.replace("'native606-experiment.js'","'opaque611-experiment.js'").replace('native606-summary.json','opaque611-summary.json');
+runner=runner.replace("fs.readFileSync(path.join(__dirname,'bridge606.js'),'utf8')","fs.readFileSync(path.join(__dirname,'bridge610.js'),'utf8').replace('  window.__s603={',fs.readFileSync(path.join(__dirname,'opaque611-bridge.js'),'utf8')+'\\n  window.__s603={')");
+const anchor="source=source.slice(0,bridgeStart606)";
+if(runner.split(anchor).length!==2)throw Error('Opaque runner bridge boundary drift');
+runner=runner.replace(anchor,String.raw`const opaqueWrite611="namespace604(native604).replace('window.GV={'";
+if(source.split(opaqueWrite611).length!==2)throw Error('Opaque native write boundary drift');
+source=source.replace(opaqueWrite611,"namespace604(native604).replace(\"const cvs=$('#game'), ctx=cvs.getContext('2d');\",\"let cvs=$('#game'), ctx=cvs.getContext('2d');\").replace('window.GV={'");
+`+anchor);
+new Function('require','__filename','__dirname',runner)(createRequire(__filename),__filename,__dirname);
