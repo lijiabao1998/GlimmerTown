@@ -1,0 +1,53 @@
+name: Town T620 one same-browser portability diagnostic
+on:
+  push:
+    branches: [gpt/town-native-portability-620]
+permissions:
+  contents: read
+concurrency:
+  group: town-native-portability-620
+  cancel-in-progress: false
+jobs:
+  source-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact release base and diagnostic-only changes
+        run: |
+          git fetch --depth=1 origin 16514fd27a2c143c0f0c79a3d08197150d72438f
+          node tools/pages/native-portability-source-gate.cjs
+          node tools/pages/native-correctness.cjs --self-test
+          node tools/pages/native-correctness.cjs --check-overlay
+          node --test tools/pages/native-portability-diagnostic.test.cjs
+  native-core:
+    needs: source-gate
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Start total diagnostic resource clock
+        run: echo "T619_JOB_START_MS=$(node -p 'Date.now()')" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: One same-browser control and timing collection preserving failed historical pins
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/native-portability
+          node tools/pages/native-portability-diagnostic.cjs --out=evidence/native-portability | tee evidence/native-portability.log
+      - name: Preserve success or failed diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-native-portability-620-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
