@@ -1,0 +1,53 @@
+name: Town T619 one native macOS core diagnostic
+on:
+  push:
+    branches: [gpt/town-native-mac-diagnostic-619]
+permissions:
+  contents: read
+concurrency:
+  group: town-native-mac-diagnostic-619
+  cancel-in-progress: false
+jobs:
+  source-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact release base and diagnostic-only changes
+        run: |
+          git fetch --depth=1 origin cbacfa220e3fb1c9356afdb1f9b916cbaa4eede3
+          node tools/pages/native-mac-source-gate.cjs
+          node tools/pages/native-correctness.cjs --self-test
+          node tools/pages/native-correctness.cjs --check-overlay
+          node --test tools/pages/native-mac-diagnostic.test.cjs
+  native-core:
+    needs: source-gate
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Start total diagnostic resource clock
+        run: echo "T619_JOB_START_MS=$(node -p 'Date.now()')" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: One headed native core diagnostic with unchanged thresholds
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/native-mac
+          node tools/pages/native-mac-diagnostic.cjs --out=evidence/native-mac | tee evidence/native-mac.log
+      - name: Preserve success or failed diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-native-mac-diagnostic-619-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
