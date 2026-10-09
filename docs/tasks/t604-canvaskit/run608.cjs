@@ -1,0 +1,3 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),{createRequire}=require('node:module');let runner=fs.readFileSync(path.join(__dirname,'run606.cjs'),'utf8');
+runner=runner.replace("'native606-experiment.js'","'order608-experiment.js'");runner=runner.replace("fs.readFileSync(path.join(__dirname,'bridge606.js'),'utf8')","fs.readFileSync(path.join(__dirname,'bridge606.js'),'utf8').replace('  window.__s603={',fs.readFileSync(path.join(__dirname,'order608-bridge.js'),'utf8')+'\\n  window.__s603={')");runner=runner.replace('native606-summary.json','order608-summary.json');new Function('require','__filename','__dirname',runner)(createRequire(__filename),__filename,__dirname);
