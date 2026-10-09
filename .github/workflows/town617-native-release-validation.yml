@@ -1,0 +1,105 @@
+name: Town T617 native art correctness and active gameplay
+on:
+  push:
+    branches: [gpt/town-native-release-validation-617]
+permissions:
+  contents: read
+concurrency:
+  group: town617-native-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Match canonical PWA byte generation
+        run: |
+          source tools/setup_t602_zlib.sh "$RUNNER_TEMP/town617-zlib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          echo "PYTHONPATH=$PYTHONPATH" >> "$GITHUB_ENV"
+      - name: Verify unchanged product and exact main baseline
+        run: |
+          mkdir -p evidence/contracts
+          git rev-parse HEAD > evidence/contracts/source-commit.txt
+          git fetch --depth=1 origin a26fceaea8c8a42be4322e52f13ea1bbe7dced04
+          git diff --exit-code a26fceaea8c8a42be4322e52f13ea1bbe7dced04 -- index.html sw.js renderers/
+          git fetch --depth=1 origin 329f660e3d5f011ac28454cb6d6a68f8525c69cc
+          test "$(git rev-parse FETCH_HEAD:index.html)" = 3c065a4952706a51147c3f64080ba2489977fb16
+          node docs/tasks/t604-canvaskit/source-contract.cjs > evidence/contracts/source-contract.json
+      - name: Native runtime, model, saves and harness contracts
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-canvaskit/native617.cjs --self-test | tee evidence/contracts/native617.log
+          node --test docs/tasks/t604-canvaskit/active617.test.cjs | tee evidence/contracts/active617-tests.log
+          node docs/tasks/t604-canvaskit/active617-run.cjs --check-overlay | tee evidence/contracts/active617-overlay.log
+          node docs/tasks/t604-canvaskit/run616-regression.cjs --support-only --out=evidence/contracts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T617-Contracts-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
+  regression:
+    needs: contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        phase: [core, world, neighbors]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Canonical Chinese UI fonts
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Full approved native art correctness and interactions
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/regression
+          node docs/tasks/t604-canvaskit/native617.cjs --phase=${{ matrix.phase }} --port=8807 --out=evidence/regression | tee evidence/regression/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T617-Regression-${{ matrix.phase }}-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
+  gameplay:
+    needs: regression
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record machine and source identity
+        run: |
+          mkdir -p evidence/gameplay
+          git rev-parse HEAD > evidence/gameplay/source-commit.txt
+          sw_vers > evidence/gameplay/macos-version.txt
+          /usr/sbin/system_profiler SPDisplaysDataType > evidence/gameplay/displays.txt
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --version > evidence/gameplay/chrome-version.txt
+      - name: Real speed-one main native main comparison at both views
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          node docs/tasks/t604-canvaskit/active617-net.cjs --out=evidence/gameplay | tee evidence/gameplay/run.log
+          node -e "const r=require('./evidence/gameplay/active617-net-summary.json');if(!r.accepted||!r.nonRegression||r.views.length!==2)process.exit(1)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T617-Active-Gameplay-${{ github.sha }}
+          path: evidence/
+          retention-days: 14
