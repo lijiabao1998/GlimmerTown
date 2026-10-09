@@ -1,0 +1,10 @@
+{
+  "commit": "4909c8ad55d669455ed97e44834fcf6526badc5d",
+  "run": 37884263224,
+  "conclusion": "diagnostic-success; no trace launched",
+  "qualification": false,
+  "traceLaunched": false,
+  "artifact": 11595622496,
+  "artifactSHA256": "ee95ba4e7eca79ee1f0196adb287fed1062078fd888866cc34abe95a8c959280",
+  "decision": "Scheduling and observed workload variation prevented qualified 23-second reserve. Not proof of GPU or hardware instability. No architecture inference."
+}
