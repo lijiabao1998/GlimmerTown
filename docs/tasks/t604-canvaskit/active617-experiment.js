@@ -50,6 +50,10 @@
       p617.decision = 'Active measurement or evolved endpoint failed; no release inference.';
       try { p617.observation ||= await ev('__active617.abort("host observation/endpoint failure");__active617.snapshot()'); } catch (partialError) { p617.partialEvidenceError = String(partialError); }
     }
+    p617.finalFlags = await ev('__s603.flags()');
+    check(p617.finalFlags.T603 === (p617.arm === 'native-t603') && !p617.finalFlags.T596 && !p617.finalFlags.T600, 'T617 final selected art and preview flags');
+    p617.appErrors = await ev('(window.__errLog||[]).slice(-20)');
+    check(!p617.appErrors.length, 'T617 zero application errors after active observation');
     p617.elapsedMs = Date.now() - active617ChildStarted;
     report.coverage.core = true; persist();
     console.log('T617_CHILD ' + JSON.stringify({ arm: p617.arm, zoom: p617.zoom, accepted: p617.accepted, decision: p617.decision, summary: p617.summary }));
