@@ -1,0 +1,2 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),{createRequire}=require('node:module');let runner=fs.readFileSync(path.join(__dirname,'run606.cjs'),'utf8');runner=runner.replace("'native606-experiment.js'","'native609-experiment.js'").replace('native606-summary.json','native609-summary.json');new Function('require','__filename','__dirname',runner)(createRequire(__filename),__filename,__dirname);
