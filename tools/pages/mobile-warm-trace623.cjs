@@ -38,7 +38,11 @@ function analyzeEvidence623(text, profile, arm, limits, totals = { events: 0, pr
       !profile.samples.length || profile.samples.length > limits.profileSamples || !Array.isArray(profile.timeDeltas) ||
       profile.samples.length !== profile.timeDeltas.length || !Number.isFinite(profile.startTime) ||
       !Number.isFinite(profile.endTime) || profile.endTime <= profile.startTime ||
-      !profile.timeDeltas.every(t => Number.isFinite(t) && t >= 0)) fail('missing/malformed CPU profile');
+      !profile.timeDeltas.every(Number.isFinite) ||
+      !profile.nodes.every(node => node && Number.isSafeInteger(node.id) && node.id >= 0 &&
+        node.callFrame && typeof node.callFrame.url === 'string' &&
+        (node.children === undefined || Array.isArray(node.children))) ||
+      !profile.samples.every(id => Number.isSafeInteger(id) && id >= 0)) fail('missing/malformed CPU profile');
   const nodes = new Map(profile.nodes.map(node => [node.id, node]));
   if (nodes.size !== profile.nodes.length || profile.samples.some(id => !nodes.has(id)) ||
       !profile.nodes.some(node => /^http:\/\/127\.0\.0\.1:\d+\/index\.html/.test(node.callFrame?.url || ''))) fail('CPU profile does not identify the candidate document');
@@ -47,6 +51,7 @@ function analyzeEvidence623(text, profile, arm, limits, totals = { events: 0, pr
     if (!nodes.has(child) || parents.has(child)) fail('CPU profile tree is malformed');
     parents.set(child, node.id);
   }
+  if (profile.nodes.filter(node => !parents.has(node.id)).length !== 1) fail('CPU profile tree must have one root');
   const urlsFor = id => {
     if (ancestors.has(id)) return ancestors.get(id);
     const seen = new Set(), urls = new Set(); let cursor = id;
@@ -57,8 +62,22 @@ function analyzeEvidence623(text, profile, arm, limits, totals = { events: 0, pr
     }
     ancestors.set(id, urls); return urls;
   };
+  // Validate the complete supplied tree, including nodes not hit by the sampler.
+  for (const node of profile.nodes) urlsFor(node.id);
   let time = profile.startTime;
-  const cpu = profile.samples.map((id, index) => ({ id, ts: time += profile.timeDeltas[index] }));
+  // Chrome DevTools CPUProfileDataModel.convertTimeDeltas()/sortSamples() keeps
+  // signed cumulative timestamps paired with their sample IDs. Do not apply its
+  // missing-sample heuristics, inferred bounds, clamping or timestamp extension.
+  const cpu = profile.samples.map((id, originalIndex) => {
+    time += profile.timeDeltas[originalIndex];
+    if (!Number.isFinite(time) || time < profile.startTime || time > profile.endTime) fail('CPU timestamp outside original profile bounds');
+    return { id, ts: time, originalIndex };
+  }).sort((a, b) => a.ts - b.ts || a.originalIndex - b.originalIndex);
+  const normalization = { method: 'signed-cumulative-microseconds; stable-sort(timestamp,originalIndex); sample-ID pairing preserved',
+    negativeDeltaCount: profile.timeDeltas.filter(delta => delta < 0).length,
+    reorderedCount: cpu.filter((sample, index) => sample.originalIndex !== index).length,
+    originalIndices: cpu.map(sample => sample.originalIndex),
+    originalProfileStartTimeUs: profile.startTime, originalProfileEndTimeUs: profile.endTime };
   const markers = new Map();
   for (const event of events) {
     const label = event.name === 'TimeStamp' ? event.args?.data?.message : null;
@@ -84,7 +103,7 @@ function analyzeEvidence623(text, profile, arm, limits, totals = { events: 0, pr
     if (event.pid !== first.pid || event.tid !== first.tid || event.ts < previous) fail('marker thread/order changed');
     previous = event.ts;
   }
-  if (profile.startTime > first.ts || profile.endTime < previous || cpu.at(-1).ts > profile.endTime + 2 * limits.samplingIntervalUs) fail('trace/profile clocks or coverage do not align');
+  if (profile.startTime > first.ts || profile.endTime < previous) fail('trace/profile clocks or coverage do not align');
   const js = events.filter(e => e.pid === first.pid && e.tid === first.tid && Number.isFinite(e.ts) && /^(FunctionCall|EvaluateScript|V8\.Execute|RunMicrotasks)$/.test(e.name));
   const gc = events.filter(e => e.pid === first.pid && Number.isFinite(e.ts) && /(?:^|[. ])(?:MinorGC|MajorGC|GC|Scavenge|MarkCompact)/i.test(e.name || ''));
   const allowedURLs = new Set(arm.samples.map(sample => sample.sourceURL));
@@ -111,13 +130,14 @@ function analyzeEvidence623(text, profile, arm, limits, totals = { events: 0, pr
       for (const s of selected) counts.set(s.id, (counts.get(s.id) || 0) + 1);
       rows.push({ mode: arm.mode, kind: sample.kind, index: sample.index, originalDurationMs: sample.durationMs,
         sourceURL: sample.sourceURL, firstCpuSampleUs: a, lastCpuSampleUs: b, sampledSpanUs: b - a, cpuSampleCount: selected.length,
+        cpuOriginalIndices: selected.map(sample => sample.originalIndex),
         sampledLeafNodes: [...counts].map(([id, samples]) => ({ id, samples, callFrame: nodes.get(id).callFrame })),
         matchingTraceURLRecords: events.filter(e => e.args?.data?.url === sample.sourceURL).length,
         javascriptEvents: js.filter(e => e.ts <= b && e.ts + Math.max(0, e.dur || 0) >= a).length,
         gcEvents: gc.filter(e => e.ts <= b && e.ts + Math.max(0, e.dur || 0) >= a).map(e => ({ name: e.name, ts: e.ts, dur: e.dur ?? null, tid: e.tid })) });
     }
   }
-  return { mode: arm.mode, markerCount: markers.size, eventCount: events.length, profileSamples: cpu.length, rendererPid: first.pid,
+  return { mode: arm.mode, markerCount: markers.size, eventCount: events.length, profileSamples: cpu.length, normalization, rendererPid: first.pid,
     rendererTid: first.tid, cpuClockCoverageChecked: true, gcEventCount: gc.length, graphics, samples: rows,
     interpretation: 'SourceURL ancestry identifies statistical CPU samples from each existing evaluation. First/last samples bound only observed execution, not exact evaluation boundaries or draw self time. Overlapping spans are not additive.' };
 }

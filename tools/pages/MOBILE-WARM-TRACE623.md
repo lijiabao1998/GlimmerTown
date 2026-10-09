@@ -35,6 +35,16 @@ Each arm writes `T623-mobile-night-{arm}-trace.json` (or `.partial`), `-profile.
 
 Baseline collection can change later candidate state and scheduling. Complete trace JSON is not proof of full GPU completion. Asynchronous work crossing capture boundaries remains unattributed, rather than zero cost. Indexed CPU samples cover sampled execution only, not exact evaluation boundaries or draw self time. Overlapping trace durations must not be summed. Missing graphics evidence cannot support a CPU-only cause, and zero GC does not establish absence of allocation pressure. The original failed main run remains failed.
 
+## CPU-profile ordering repair
+
+Run `37991297831` saved a complete 6,333,388-byte baseline trace and a 347-sample CPU profile, then stopped because the parser rejected 13 negative time deltas. The local parser repair follows the signed cumulative timestamp reconstruction and paired sample sorting used by [Chrome DevTools CPUProfileDataModel](https://github.com/ChromeDevTools/devtools-frontend/blob/main/front_end/models/cpu_profile/CPUProfileDataModel.ts).
+
+Every finite signed delta is accumulated from the supplied start time. Every reconstructed timestamp must lie inside the original start/end bounds. Timestamp, sample ID and original index stay paired; ordering uses timestamp, then original index for ties. Correlation records the method, negative-delta count, reordered-position count, original-index ordering and original bounds. No samples are dropped, clamped, replaced or inferred; no bounds are extended. ID, complete-tree, cycle, count, sourceURL, marker, graphics and cumulative-budget validation remain required. DevTools UI missing-sample heuristics are not applied.
+
+Offline parsing recovers all eleven saved baseline evaluation groups, with 13 negative deltas and 26 reordered positions. This does not qualify the saved arm: its closing latch is absent and `qualified` remains false. The original run stays failed, and no candidate evidence is inferred. The immutable published payload and raw artifacts remain unchanged. This local parser repair does not authorize another invocation.
+
+The permanent compact regression retains all 347 real sample IDs/deltas, all 266 node IDs/edges/URL ancestry, exact bounds and a minimal six-event trace subset. Full saved-artifact verification can also be enabled locally with `T623_OFFLINE_ARTIFACT_DIR` pointing to the unchanged artifact directory.
+
 Local checks:
 
 `node --test tools/pages/mobile-warm-trace623.test.cjs`
