@@ -51,3 +51,15 @@ requires full-city transition, interaction/edit/load, model/save/RNG and real
 lifecycle/regression proof before any performance run. Later timing must compare
 unwrapped original against the complete candidate cost including source tracking;
 component savings never imply 55 FPS. No release or adoption follows this test.
+
+## Negative-control fixture correction
+
+Initial run 37898606238 at 548e3ffd reached negative-control-initialize with
+zero pixel/raw/copy/restored differences but unequal context state even after
+both surfaces used the original renderer. The test had replaced only the
+candidate canvas while preserving the baseline's previous fill style. The
+image-only original correctly retains its incoming fill style, so those initial
+states were not equivalent. The corrected fixture starts this new negative
+control with two fresh surfaces, then requires a retained hit before mutation.
+This changes neither the cache helper nor the pixel/state gates. Preserve the
+failed receipt; city/reuse/timing had not run.
