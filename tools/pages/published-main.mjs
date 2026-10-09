@@ -1,6 +1,7 @@
 /** Published main Pages / full browser-network outage acceptance, Node 22+.
  * Local raw-package CI: --site=PATH --out=EVIDENCE [--port=8933]
  * Published HTTPS:      --site=PATH --url=https://HOST/GlimmerTown/ --out=EVIDENCE
+ * Local T602 upgrade:   --site=PATH --upgrade-from-main --out=EVIDENCE
  * --check performs only local package, option and helper-source validation.
  * Requires existing native macOS Chrome in an assistant-owned cloud runner.
  * No product/SW rewriting, synthetic visibility/rAF, TLS bypass, user profile or FPS claim.
@@ -15,30 +16,140 @@ import http from 'node:http';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {randomUUID} from 'node:crypto';
-import {PINS,SAVE_NAMESPACE,CACHE_PREFIX,sha256} from './build-main.mjs';
+import {PINS,SAVE_NAMESPACE,CACHE_PREFIX,sha256,verifyPackagedFile} from './build-main.mjs';
 import {loadVerifiedPackage,storageProbeSource,foreignStorageFixture,browserPrepareSave,browserLoadObservation,saveReloadObservation} from './browser-main.mjs';
+import native603 from '../../docs/tasks/t603-shots/native603.js';
 
-const PROJECT='/GlimmerTown/',CACHE=CACHE_PREFIX+'v11.211';
+const PROJECT='/GlimmerTown/',CACHE=CACHE_PREFIX+'v11.212';
 const FOREIGN_CACHES=['gv-v1','gv-v2','glimmerville-shell-v11.211'];
 const SHELL=Object.keys(PINS).filter(name=>name!=='sw.js');
+export const UPGRADE_SOURCE_PINS=Object.freeze({
+  'index.html':'b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265',
+  'sw.js':'836d1d867d10d6c63d71c722d3337e5b7119ad36006314f74872583ec029dd3b'
+});
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
 export function options(args){
   const out={port:8933,check:false},seen=new Set();
   for(const arg of args){
     if(arg==='--check'){out.check=true;continue;}
+    if(arg==='--upgrade-from-main'){assert(!out.upgradeFromMain,'Duplicate upgrade mode');out.upgradeFromMain=true;continue;}
     const match=arg.match(/^--(site|url|out|port)=(.+)$/);assert(match,'Unknown or empty option: '+arg);
     assert(!seen.has(match[1]),'Duplicate option: '+match[1]);seen.add(match[1]);
     out[match[1]]=match[1]==='port'?Number(match[2]):match[2];
   }
   for(const port of [out.port,out.port+1000,out.port+2000])assert(Number.isInteger(port)&&port>=8129&&port<=65535&&port!==8199,'isolated ports required');
   if(out.url){
+    assert(!out.upgradeFromMain,'upgrade mode requires the local raw-package server');
     const url=new URL(out.url);
     assert(url.protocol==='https:'&&!url.username&&!url.password&&!url.search&&!url.hash,'published URL must be ordinary HTTPS without credentials/query/fragment');
     assert.equal(url.origin,'https://lijiabao1998.github.io','published origin must be the verified GlimmerTown GitHub Pages account');
     assert(url.pathname===PROJECT,'published URL must end in /GlimmerTown/');out.url=url.href;
   }
   return out;
+}
+
+export function upgradeFromMain(files){
+  assert.deepEqual([...files.keys()].sort(),Object.keys(PINS).sort(),'upgrade requires exactly seven current package files');
+  for(const [name,bytes] of files)verifyPackagedFile(name,bytes);
+  const replace=(text,from,to)=>{assert.equal(text.split(from).length,2,'unique upgrade namespace/version anchor: '+from);return text.replace(from,to);};
+  // Reverse precisely the existing build-main namespace substitutions, verify the
+  // immutable native sources, reconstruct T602, then apply the same substitutions.
+  const index=replace(files.get('index.html').toString(),`const SAVEKEY='${SAVE_NAMESPACE}';`,"const SAVEKEY='glimmerville.v1';");
+  let worker=replace(files.get('sw.js').toString(),`const CACHE_PREFIX='${CACHE_PREFIX}';`,"const CACHE_PREFIX='glimmerville-shell-';");
+  worker=replace(worker,'const LEGACY_CACHES=new Set([]);',"const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);");
+  assert.equal(sha256(index),PINS['index.html']);assert.equal(sha256(worker),PINS['sw.js']);
+  const oldIndex=native603.sourceBaseline603(index),oldWorker=replace(worker,"const APP_VER='11.212';","const APP_VER='11.211';");
+  assert.equal(sha256(oldIndex),UPGRADE_SOURCE_PINS['index.html'],'exact immutable T602 native index');
+  assert.equal(sha256(oldWorker),UPGRADE_SOURCE_PINS['sw.js'],'exact T602 raw worker with only APP_VER changed');
+  const oldFiles=new Map([...files].map(([name,bytes])=>[name,Buffer.from(bytes)]));
+  oldFiles.set('index.html',Buffer.from(replace(oldIndex,"const SAVEKEY='glimmerville.v1';",`const SAVEKEY='${SAVE_NAMESPACE}';`)));
+  oldFiles.set('sw.js',Buffer.from(replace(replace(oldWorker,"const CACHE_PREFIX='glimmerville-shell-';",`const CACHE_PREFIX='${CACHE_PREFIX}';`),"const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);",'const LEGACY_CACHES=new Set([]);')));
+  return {files:oldFiles,version:'11.211',sourcePins:{...PINS,...UPGRADE_SOURCE_PINS},
+    bodies:Object.fromEntries([...oldFiles].map(([name,bytes])=>[name,{bytes:bytes.length,sha256:sha256(bytes)}]))};
+}
+
+export function assertUpgradeWorker(row,base){
+  assert.equal(row.ok,true,row.error||'real worker upgrade failed');
+  assert.equal(row.before.version,'11.211');assert.equal(row.before.scope,base);
+  assert.equal(row.before.controller,base+'sw.js');assert.equal(row.before.active,base+'sw.js');
+  assert.equal(row.before.activeState,'activated');assert.equal(row.before.sameController,true);
+  assert.equal(row.before.waiting,null);assert.equal(row.before.installing,null);
+  assert(row.updateCalled&&row.updateReturned&&row.sameRegistration,'same registration must complete its real update()');
+  assert(row.updateFound>=1&&row.controllerChanges>=1,'updatefound and controllerchange must be observed');
+  assert.equal(row.oldState,'redundant');assert.equal(row.activeState,'activated');
+  assert(row.replacedActive&&row.replacedController&&row.activeIsController,'new active worker must replace the old controller');
+  assert.equal(row.scope,base);assert.equal(row.active,base+'sw.js');assert.equal(row.controller,base+'sw.js');
+  assert.deepEqual(row.registrations,[base]);
+}
+
+export function assertUpgradeCaches({names,cache,files,base}){
+  assert.deepEqual([...names].sort(),[...FOREIGN_CACHES,CACHE].sort(),'only old main-owned version cache must be removed');
+  assert.equal(cache.name,CACHE);assert(!cache.missing);assert.equal(cache.entries.length,SHELL.length);
+  assert.deepEqual(cache.entries.map(row=>row.url).sort(),SHELL.map(name=>base+name).sort(),'new cache must contain the exact six shell URLs');
+  for(const name of SHELL){const row=cache.entries.find(value=>value.url===base+name);assert.equal(row.method,'GET');assert.equal(row.status,200);assert.equal(row.bytes,files.get(name).length);assert.equal(row.sha256,sha256(files.get(name)),'new cached full body: '+name);}
+}
+
+export function assertUpgradeSave({oldRaw,oldCore,oldModel,beforeLoad,loaded,migrated,stable,namespace=SAVE_NAMESPACE}){
+  const old=JSON.parse(oldRaw);assert.equal(old.gameVer,'11.211','fixture must be a real old-version save');assert.equal(old.v,1);
+  assert.equal(beforeLoad[namespace+'.slot'],'3');assert.equal(beforeLoad[namespace+'.s3'],oldRaw,'old save must survive activation and reload before load');
+  assert.equal(beforeLoad[namespace+'.s3_bak'],oldRaw,'old backup must survive activation and reload');
+  assert.equal(loaded.loaded,true);assert.equal(loaded.raw,oldRaw,'load must not silently rewrite old persisted bytes');
+  assert.deepEqual(loaded.core,oldCore,'loaded city values');assert.deepEqual(loaded.model,oldModel,'loaded live tile model');
+  const expected={...old,gameVer:'11.212'},expectedRaw=JSON.stringify(expected);
+  assert.equal(migrated.version,'11.212');assert.equal(migrated.raw,expectedRaw,'only gameVer may change in the real new-version save');
+  assert.equal(migrated.main[namespace+'.s3_bak'],oldRaw,'first new-version save must back up the old bytes');
+  assert.deepEqual(migrated.main,{...beforeLoad,[namespace+'.s3']:expectedRaw},'migration must preserve every other main key');
+  assert.deepEqual(migrated.core,oldCore);assert.deepEqual(migrated.model,oldModel);
+  assert.equal(stable.raw,expectedRaw,'repeat real save must be byte-stable');
+  assert.deepEqual(stable.main,{...migrated.main,[namespace+'.s3_bak']:expectedRaw},'repeat save may only advance the backup to the identical new save');
+  assert.deepEqual(stable.core,oldCore);assert.deepEqual(stable.model,oldModel);
+  return {oldSHA256:sha256(oldRaw),newSHA256:sha256(expectedRaw),oldBytes:Buffer.byteLength(oldRaw),newBytes:Buffer.byteLength(expectedRaw),changedFields:['gameVer'],modelSHA256:sha256(JSON.stringify(oldModel)),exactCore:true,oldSavePreservedBeforeLoad:true,oldBackupPreservedOnFirstSave:true};
+}
+
+export async function browserUpdateWorker(base){
+  const registration=await navigator.serviceWorker.getRegistration(base),old=navigator.serviceWorker.controller;
+  const row={ok:false,updateCalled:false,updateReturned:false,updateFound:0,controllerChanges:0,events:[]};
+  const state=()=>({scope:registration?.scope,active:registration?.active?.scriptURL??null,activeState:registration?.active?.state??null,
+    controller:navigator.serviceWorker.controller?.scriptURL??null,oldState:old?.state??null,
+    replacedActive:!!registration?.active&&registration.active!==old,replacedController:!!navigator.serviceWorker.controller&&navigator.serviceWorker.controller!==old,
+    activeIsController:!!registration?.active&&registration.active===navigator.serviceWorker.controller});
+  row.before={...state(),version:GV.ver(),sameController:!!old&&registration?.active===old,waiting:registration?.waiting?.state??null,installing:registration?.installing?.state??null};
+  if(!registration||!old||row.before.version!=='11.211'||!row.before.sameController||row.before.waiting||row.before.installing){row.error='old active registration not stable';return row;}
+  let timer,wake,stopped=false;const workers=new Set();
+  const record=(kind,worker)=>{row.events.push({kind,state:worker?.state??null,at:Date.now()});wake?.();};
+  const changed=event=>record('statechange',event.target);
+  const observe=worker=>{if(worker&&!workers.has(worker)){workers.add(worker);worker.addEventListener('statechange',changed);record('observed',worker);}};
+  const found=()=>{row.updateFound++;observe(registration.installing);record('updatefound',registration.installing);};
+  const controlled=()=>{row.controllerChanges++;observe(navigator.serviceWorker.controller);record('controllerchange',navigator.serviceWorker.controller);};
+  registration.addEventListener('updatefound',found);navigator.serviceWorker.addEventListener('controllerchange',controlled);observe(old);
+  try{
+    const finished=new Promise((resolve,reject)=>{
+      timer=setTimeout(()=>{stopped=true;reject(Error('worker activation deadline (60 seconds)'));},60000);
+      wake=()=>{const now=state();if(!stopped&&row.updateReturned&&row.updateFound&&row.controllerChanges&&now.replacedActive&&now.replacedController&&now.activeIsController&&now.activeState==='activated'&&now.oldState==='redundant')resolve();};
+    });
+    // Start the real update synchronously after listeners exist; the deadline also
+    // covers a hanging update() request rather than only its subsequent activation.
+    row.updateCalled=true;
+    const updated=registration.update().then(value=>{row.sameRegistration=value===registration;row.updateReturned=true;wake();});
+    await Promise.all([updated,finished]);
+    row.registrations=(await navigator.serviceWorker.getRegistrations()).map(value=>value.scope);row.ok=true;
+  }catch(error){row.error=String(error);}
+  finally{stopped=true;clearTimeout(timer);registration.removeEventListener('updatefound',found);navigator.serviceWorker.removeEventListener('controllerchange',controlled);for(const worker of workers)worker.removeEventListener('statechange',changed);}
+  return {...row,...state()};
+}
+
+export function browserCityModel(){
+  const n=GV.N(),tiles=[];
+  // Persistent terrain/road/zone data and full building identity/footprint are
+  // observed from the live world, independently of rawSave(). Transient masks,
+  // service coverage and actors are rebuilt by load and are not save fields.
+  const fields=['t','tree','gv','road','bridge','hw','zone','deco','ruin','rdec','rc','wp','el','bus','rail','railBridge','dock','oneway','light','parkMeter','busLane','tram','office','flood','levee','crater'];
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    const tile=GV.tile(x,y),b=tile.bld;
+    tiles.push([...fields.map(key=>Number(tile[key]||0)),b?[b.k,b.lv??null,b.v??null,b.age??null,b.sz??1,b.ref??null,!!b.lot574]:null]);
+  }
+  return {n,tiles};
 }
 
 export function chromeArgs({profile,debugPort,proxyPort}){
@@ -94,6 +205,12 @@ export function assertDocumentProvenance(response,fromWorker){
     assert.equal(response.fromDiskCache,false,'first visit must come from the network');
     assert(response.serviceWorkerResponseSource==null,'first visit must not carry worker response provenance');
   }
+}
+
+export function assertUpgradeDocument(response){
+  assert.equal(response.status,200);assert.equal(response.fromServiceWorker,true,'upgrade reload must use the replacement controller');
+  assert.equal(response.serviceWorkerResponseSource,'network','online upgraded worker must forward the raw origin document');
+  assert.equal(response.fromDiskCache,false);assert.equal(response.fromPrefetchCache,false);
 }
 
 export function assertOfflineEvidence({onlinePID,offlinePID,onlineExit,probes,document,proxyRows,localOriginRequests}){
@@ -169,9 +286,10 @@ export async function run(config){
   try{assert(out!==pack.site&&!out.startsWith(pack.site+path.sep),'evidence must stay outside runtime package');fs.mkdirSync(out,{recursive:true});profile=fs.mkdtempSync(path.join(os.tmpdir(),'town-published-profile-'));}
   catch(error){pack.cleanup();throw error;}
   const base=config.url||`http://127.0.0.1:${config.port}${PROJECT}`,origin=new URL(base).origin;
-  const report={status:'running',startedAt:started,deadline,mode:config.url?'published-https':'local-raw-package',url:base,
-    scope:config.url?'Actual published HTTPS bytes and isolated saved-city offline reopen':'Raw package on localhost; does not verify published HTTPS',
-    limitation:'Fail-closed proxy blocks browser HTTP(S)/WS(S), including workers; navigator.onLine may remain true. No worker-version upgrade, installed-PWA OS launch or FPS claim.',
+  let oldPack,servedFiles=pack.files,servedVersion='11.212';
+  const report={status:'running',startedAt:started,deadline,mode:config.upgradeFromMain?'local-raw-package-upgrade':config.url?'published-https':'local-raw-package',url:base,
+    scope:config.upgradeFromMain?'Exact T602 to T603 raw main package upgrade, same profile and registration, then new-process saved-city offline reopen':config.url?'Actual published HTTPS bytes and isolated saved-city offline reopen':'Raw package on localhost; does not verify published HTTPS',
+    limitation:'Fail-closed proxy blocks browser HTTP(S)/WS(S), including workers; navigator.onLine may remain true. '+(config.upgradeFromMain?'Local upgrade only; no published HTTPS, installed-PWA OS launch or FPS claim.':'No worker-version upgrade, installed-PWA OS launch or FPS claim.'),
     mechanism:{online:'fresh isolated profile, no proxy',offline:'new Chrome process, same isolated profile, one rejecting HTTP proxy, no direct fallback, implicit loopback bypass removed, QUIC disabled; HTTP cache cleared before shutdown and before reopen while Cache Storage is retained',
       source:'https://chromium.googlesource.com/chromium/src/+/HEAD/net/docs/proxy.md'},
     checks:[],assets:[],transport:[],storageEvents:[],proxy:[],originRequests:[],foreground:[],boot:[],isolation:[],exceptions:[],consoleErrors:[],processes:[]};
@@ -258,7 +376,7 @@ export async function run(config){
     while(Date.now()<until){guard();try{const state=await session.ev(`(${readState.toString()})()`,5000),app=native();audit.last={state,app};if(app.valid&&state.visibility==='visible'&&!state.hidden&&state.focused&&fits(state)){audit.qualifiedAt=Date.now();persist();return;}}catch(error){audit.error=String(error);}await sleep(100);}
     persist();throw Error('Native/page foreground qualification failed: '+label);
   }
-  async function navigate(session,url,{game,fromWorker}){
+  async function navigate(session,url,{game,fromWorker,workerNetwork=false}){
     guard();const since=Date.now(),previous=await session.ev('performance.timeOrigin');
     const nav=await session.send('Page.navigate',{url});assert(!nav.errorText,nav.errorText);
     await foreground(session,'navigation '+url);
@@ -266,7 +384,7 @@ export async function run(config){
     let state,ready=false;
     while(Date.now()<until){
       guard();try{state=await session.ev(`(${readState.toString()})()`,5000);audit.last=state;const app=native();audit.native=app;
-        ready=state.url===url&&state.timeOrigin!==previous&&state.complete&&state.visibility==='visible'&&!state.hidden&&state.focused&&fits(state)&&app.valid&&(!game||(state.version==='11.211'&&state.boot?.ready));
+        ready=state.url===url&&state.timeOrigin!==previous&&state.complete&&state.visibility==='visible'&&!state.hidden&&state.focused&&fits(state)&&app.valid&&(!game||(state.version===servedVersion&&state.boot?.ready));
         if(ready)break;
       }catch(error){audit.error=String(error);}await sleep(250);
     }
@@ -276,9 +394,10 @@ export async function run(config){
     const commit=report.transport.find(r=>r.phase===session.row.phase&&r.event==='Page.frameNavigated'&&r.url===url&&!r.parentId&&r.time>=since);
     audit.response=response??null;audit.commit=commit??null;audit.expectedFromWorker=fromWorker;persist();
     assert(commit&&response?.status===200,'successful committed document response required');
-    assertDocumentProvenance(response,fromWorker);
+    if(workerNetwork){assert(fromWorker,'worker network response requires a controller');assertUpgradeDocument(response);}
+    else assertDocumentProvenance(response,fromWorker);
     const received=await session.send('Network.getResponseBody',{requestId:response.requestId});const body=Buffer.from(received.body,received.base64Encoded?'base64':'utf8');
-    const name=game?'index.html':'icon.svg';audit.bodySHA256=sha256(body);audit.expectedBodySHA256=sha256(pack.files.get(name));persist();
+    const name=game?'index.html':'icon.svg';audit.bodySHA256=sha256(body);audit.expectedBodySHA256=sha256(servedFiles.get(name));audit.expectedVersion=servedVersion;persist();
     assert.equal(audit.bodySHA256,audit.expectedBodySHA256,'actual document bytes differ: '+name);
     audit.completedAt=Date.now();persist();return {...response,state,bodySHA256:audit.bodySHA256};
   }
@@ -292,24 +411,31 @@ export async function run(config){
     report.isolation.push({label,phase:session.row.phase,storageKeys:Object.keys(storage.foreign),foreignCaches:caches,at:Date.now()});persist();
   }
   async function shell(session,label){
-    const [cache]=await session.ev(`(${cacheSnapshot.toString()})(${JSON.stringify([CACHE])})`);assert(!cache.missing);assert.equal(cache.entries.length,6);
-    for(const name of SHELL){const row=cache.entries.find(r=>r.url===base+name);assert(row&&row.status===200&&row.bytes===pack.files.get(name).length&&row.sha256===sha256(pack.files.get(name)),'cached full body mismatch: '+name);}
+    const [cache]=await session.ev(`(${cacheSnapshot.toString()})(${JSON.stringify([CACHE_PREFIX+'v'+servedVersion])})`);assert(!cache.missing);assert.equal(cache.entries.length,6);
+    for(const name of SHELL){const row=cache.entries.find(r=>r.url===base+name);assert(row&&row.status===200&&row.bytes===servedFiles.get(name).length&&row.sha256===sha256(servedFiles.get(name)),'cached full body mismatch: '+name);}
     report.shell??=[];report.shell.push({label,...cache});check(true,'six complete cached package bodies: '+label);return cache;
   }
   try{
-    persist();assert.equal(process.platform,'darwin','native macOS cloud runner required');
+    persist();
+    if(config.upgradeFromMain){
+      assert(!config.url,'upgrade mode requires the local raw-package server');oldPack=upgradeFromMain(pack.files);servedFiles=oldPack.files;servedVersion=oldPack.version;
+      report.upgrade={status:'preparing',oldVersion:oldPack.version,newVersion:'11.212',oldSourcePins:oldPack.sourcePins,newSourcePins:PINS,oldBodies:oldPack.bodies,assets:[]};persist();
+    }
+    assert.equal(process.platform,'darwin','native macOS cloud runner required');
     report.chromePath=[process.env.CHROME_PATH,'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].filter(Boolean).find(file=>fs.existsSync(file));assert(report.chromePath,'installed Chrome required');
     if(!config.url){
       server=await ownServer((req,res)=>{
         const url=new URL(req.url,origin),name=url.pathname===PROJECT?'index.html':url.pathname.startsWith(PROJECT)?url.pathname.slice(PROJECT.length):'';
-        report.originRequests.push({url:url.href,method:req.method,at:Date.now(),phase:current?.row.phase??'asset-verification'});
-        if(!['GET','HEAD'].includes(req.method)){res.writeHead(405).end();return;}const data=pack.files.get(name);
-        if(!data){res.writeHead(404,{'cache-control':'no-store'}).end();return;}
+        const row={url:url.href,method:req.method,at:Date.now(),phase:current?.row.phase??'asset-verification',packageVersion:servedVersion,serviceWorker:req.headers['service-worker']??null};report.originRequests.push(row);
+        res.once('finish',()=>{row.finishedAt=Date.now();});
+        if(!['GET','HEAD'].includes(req.method)){row.status=405;res.writeHead(405).end();return;}const data=servedFiles.get(name);
+        if(!data){row.status=404;res.writeHead(404,{'cache-control':'no-store'}).end();return;}
+        row.status=200;row.bytes=data.length;row.sha256=sha256(data);
         const mime=name.endsWith('.html')?'text/html; charset=utf-8':name.endsWith('.js')?'application/javascript':name.endsWith('.json')?'application/json':name.endsWith('.svg')?'image/svg+xml':'image/png';
         res.writeHead(200,{'content-type':mime,'content-length':data.length,'cache-control':'no-store'});res.end(req.method==='HEAD'?undefined:data);
       });await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(config.port,'127.0.0.1',resolve);});
     }
-    for(const [name,expected] of pack.files){guard();const url=base+name;const response=await fetch(url,{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(remaining(30000))});report.assets.push(await verifyAssetResponse({name,url,response,expected}));persist();}
+    for(const [name,expected] of servedFiles){guard();const url=base+name;const response=await fetch(url,{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(remaining(30000))});report.assets.push(await verifyAssetResponse({name,url,response,expected}));persist();}
     check(report.assets.length===7,'all seven actual GET response bodies match pinned package');
     const online=await launch('online');
     // A verified script-free SVG at the same origin avoids publication test assets
@@ -324,8 +450,47 @@ export async function run(config){
     const installed=await online.ev(`(async()=>{const r=await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));return {scope:r.scope,active:r.active?.scriptURL,state:r.active?.state,controller:navigator.serviceWorker.controller?.scriptURL,registrations:(await navigator.serviceWorker.getRegistrations()).map(v=>v.scope)};})()`,120000);
     assert.deepEqual(installed,{scope:base,active:base+'sw.js',state:'activated',controller:base+'sw.js',registrations:[base]});report.installed=installed;
     await shell(online,'online app-owned installation');await isolation(online,'after installation');
-    const saved=await online.ev(`(${browserPrepareSave.toString()})(${JSON.stringify(SAVE_NAMESPACE)})`);assert.equal(saved.placed,3);
+    const saved=await online.ev(`(${browserPrepareSave.toString()})(${JSON.stringify(SAVE_NAMESPACE)},${JSON.stringify(servedVersion)})`);assert.equal(saved.placed,3);
     report.saved={sha256:sha256(saved.raw),bytes:Buffer.byteLength(saved.raw),core:saved.core,seed:saved.seed,size:saved.size};await isolation(online,'after synthetic main save');
+    if(config.upgradeFromMain){
+      const u=report.upgrade;u.status='old-installed';
+      // A second actual save stabilizes the backup before lifecycle callbacks.
+      // Neither the old nor new fixture is ever written directly to storage.
+      const oldState=await online.ev(`(()=>{GV.setSpeed(0);GV.save();return {raw:GV.rawSave(),main:window.__pagesStorageProbe.snapshot().main,model:(${browserCityModel.toString()})()};})()`);
+      assert.equal(oldState.raw,saved.raw);assert.equal(oldState.main[SAVE_NAMESPACE+'.s3_bak'],saved.raw);
+      u.oldSave={...report.saved,modelSHA256:sha256(JSON.stringify(oldState.model))};u.beforeMain=oldState.main;persist();
+      const oldRequests=report.originRequests.filter(row=>row.url===base+'sw.js'&&row.phase==='online'&&row.serviceWorker==='script'&&row.status===200&&row.finishedAt&&row.sha256===sha256(oldPack.files.get('sw.js')));
+      u.oldWorkerRequests=oldRequests;check(oldRequests.length>0,'browser installed exact old raw worker from the local origin');
+      // Only the server's immutable seven-file map changes. No response interception,
+      // worker rewriting, unregister, cache deletion or profile reset is used.
+      u.switchedAt=Date.now();servedFiles=pack.files;servedVersion='11.212';u.status='new-package-served';persist();
+      for(const [name,expected] of servedFiles){guard();const url=base+name;const response=await fetch(url,{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(remaining(30000))});u.assets.push(await verifyAssetResponse({name,url,response,expected}));persist();}
+      check(u.assets.length===7,'all seven switched GET bodies match the exact new package');
+      u.status='updating-worker';persist();
+      u.worker=await online.ev(`(${browserUpdateWorker.toString()})(${JSON.stringify(base)})`,90000);persist();assertUpgradeWorker(u.worker,base);
+      const newRequests=report.originRequests.filter(row=>row.url===base+'sw.js'&&row.phase==='online'&&row.serviceWorker==='script'&&row.at>=u.switchedAt&&row.status===200&&row.finishedAt&&row.sha256===sha256(pack.files.get('sw.js')));
+      u.newWorkerRequests=newRequests;check(newRequests.length>0,'real update fetched exact new raw worker bytes');
+      u.activatedMain=await online.ev('window.__pagesStorageProbe.snapshot().main');persist();assert.deepEqual(u.activatedMain,oldState.main,'activation must preserve all main storage before reload');
+      const replacementCache=await shell(online,'new worker activation before reload');
+      u.cacheNames=await online.ev('caches.keys()');persist();assertUpgradeCaches({names:u.cacheNames,cache:replacementCache,files:pack.files,base});
+      await isolation(online,'after real worker replacement');
+      u.status='reloading-new-version';persist();
+      u.document=await navigate(online,base,{game:true,fromWorker:true,workerNetwork:true});
+      const beforeLoad=await online.ev('window.__pagesStorageProbe.snapshot().main');u.beforeLoadMain=beforeLoad;persist();
+      assert.deepEqual(beforeLoad,oldState.main,'new-version boot must preserve every old main key before load');
+      u.status='loading-old-save';persist();
+      const loaded=await online.ev(`(()=>{const row=(${browserLoadObservation.toString()})();return {...row,model:(${browserCityModel.toString()})()};})()`);
+      u.load=saveReloadObservation({expectedRaw:saved.raw,expectedCore:saved.core,actual:loaded});u.load.modelSHA256=sha256(JSON.stringify(loaded.model));persist();
+      const saveState=`(()=>{GV.setSpeed(0);GV.save();const stats=GV.stats();return {version:GV.ver(),raw:GV.rawSave(),main:window.__pagesStorageProbe.snapshot().main,core:Object.fromEntries(['money','day','buildings','roads','zones'].map(key=>[key,stats[key]])),model:(${browserCityModel.toString()})()};})()`;
+      u.status='saving-new-version';persist();
+      const migrated=await online.ev(saveState);u.migration=saveReloadObservation({expectedRaw:saved.raw,expectedCore:saved.core,actual:{...migrated,loaded:loaded.loaded}});persist();
+      const stable=await online.ev(saveState);
+      u.migratedMain=migrated.main;u.stableMain=stable.main;u.stable={sha256:sha256(stable.raw),bytes:Buffer.byteLength(stable.raw),modelSHA256:sha256(JSON.stringify(stable.model)),core:stable.core};persist();
+      u.save=assertUpgradeSave({oldRaw:saved.raw,oldCore:saved.core,oldModel:oldState.model,beforeLoad,loaded,migrated,stable});
+      saved.raw=stable.raw;u.status='upgraded';report.offlineSaveBaseline={sha256:sha256(saved.raw),bytes:Buffer.byteLength(saved.raw),core:saved.core};persist();
+      check(true,'same-profile T602 save survives real T603 worker activation and load with only the exact release version changed');
+      await isolation(online,'after new-version save');await shell(online,'after upgrade save');
+    }
     await online.send('Network.clearBrowserCache');report.httpCacheClearedAt=Date.now();
     await shell(online,'Cache Storage retained after HTTP cache clear');await isolation(online,'after HTTP cache clear');
     const onlinePID=online.child.pid,onlineExit=await closeChrome(online,{requireClean:true});current=null;
@@ -352,6 +517,12 @@ export async function run(config){
     report.reopenedSave=observation;persist();await isolation(offline,'offline city load');
     check(observation.loaded&&observation.exactBytes&&observation.exactCore,'offline new process reopens exact saved bytes and city values');
     await shell(offline,'offline process reopen');
+    if(config.upgradeFromMain){
+      const model=await offline.ev(`(${browserCityModel.toString()})()`);report.upgrade.offlineModelSHA256=sha256(JSON.stringify(model));persist();
+      assert.equal(report.upgrade.offlineModelSHA256,report.upgrade.oldSave.modelSHA256,'offline live tile model must remain exact across versions');
+      assertUpgradeCaches({names:await offline.ev('caches.keys()'),cache:report.shell.at(-1),files:pack.files,base});
+      report.upgrade.status='offline-reopened';persist();
+    }
     const relevantProxy=report.proxy.filter(row=>proxyTargetsOrigin(row,origin));
     assertOfflineEvidence({onlinePID,offlinePID:offline.child.pid,onlineExit,probes,document:report.offlineDocument,proxyRows:relevantProxy,
       localOriginRequests:config.url?undefined:report.originRequests.length-originBefore});
@@ -367,8 +538,8 @@ export async function run(config){
     check(report.exceptions.length===0&&report.consoleErrors.length===0,'no page JavaScript exception or application console error');
     for(const [name,bytes] of pack.files)assert.equal(sha256(fs.readFileSync(path.join(pack.site,name))),sha256(bytes),'package modified: '+name);
     await closeChrome(offline,{requireClean:true});current=null;
-    report.status='passed';report.completedAt=Date.now();persist();console.log('MAIN_PAGES_REOPEN_PASS '+JSON.stringify({mode:report.mode,url:base,checks:report.checks.length,out}));
-  }catch(error){report.status='failed';report.error=error.stack||String(error);persist();throw error;}
+    report.status='passed';if(report.upgrade)report.upgrade.status='passed';report.completedAt=Date.now();persist();console.log('MAIN_PAGES_REOPEN_PASS '+JSON.stringify({mode:report.mode,url:base,checks:report.checks.length,out}));
+  }catch(error){report.status='failed';report.error=error.stack||String(error);if(report.upgrade){report.upgrade.failedStage=report.upgrade.status;report.upgrade.status='failed';}persist();throw error;}
   finally{
     try{await closeChrome(current);}catch(error){report.cleanupError=String(error);persist();}
     for(const socket of sockets)socket.destroy();for(const value of [server,proxy])if(value)await new Promise(resolve=>value.close(resolve));
@@ -381,7 +552,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   const config=options(process.argv.slice(2));
   if(config.check){
     const pack=loadVerifiedPackage(config.site);
-    try{for(const fn of [readState,cacheSnapshot,seedForeignCaches,uncachedProbe,browserContinueSavedCity,browserPrepareSave,browserLoadObservation])new Function('return ('+fn.toString()+')');new Function(storageProbeSource('http://127.0.0.1:8933'));console.log('MAIN_PAGES_REOPEN_SOURCE_OK (local package/helper checks only; no browser or published request)');}
+    try{if(config.upgradeFromMain)upgradeFromMain(pack.files);for(const fn of [readState,cacheSnapshot,seedForeignCaches,uncachedProbe,browserContinueSavedCity,browserPrepareSave,browserLoadObservation,browserUpdateWorker,browserCityModel])new Function('return ('+fn.toString()+')');new Function(storageProbeSource('http://127.0.0.1:8933'));console.log('MAIN_PAGES_REOPEN_SOURCE_OK (local package/helper checks only; no browser or published request)');}
     finally{pack.cleanup();}
   }else await run(config);
 }

@@ -18,10 +18,10 @@ import { buildMain, verifyPackagedFile, PINS, SAVE_NAMESPACE, CACHE_PREFIX, SOUR
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const arg = (name, fallback) => process.argv.find(x => x.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
-const INDEX_SHA = 'b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265';
-const SW_SHA = '836d1d867d10d6c63d71c722d3337e5b7119ad36006314f74872583ec029dd3b';
+const INDEX_SHA = '99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d';
+const SW_SHA = '79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2';
 const PROJECT = '/GlimmerTown/';
-const CACHE = CACHE_PREFIX + 'v11.211';
+const CACHE = CACHE_PREFIX + 'v11.212';
 const FOREIGN_NAMESPACE = 'glimmerville.v1';
 const FOREIGN_CACHES = ['gv-v1', 'gv-v2', 'glimmerville-shell-v11.211'];
 const SHELL_FILES = Object.keys(PINS).filter(name => name !== 'sw.js');
@@ -161,7 +161,8 @@ async function browserForeignCacheSnapshot(names) {
   return result;
 }
 
-export function browserPrepareSave(namespace) {
+export function browserPrepareSave(namespace, expectedVersion = '11.212') {
+  if (!['11.211', '11.212'].includes(expectedVersion) || GV.ver() !== expectedVersion) throw Error('Unexpected game version before fixture creation');
   if (localStorage.getItem(namespace + '.slot') !== '3') throw Error('Select main slot 3 before creating a fixture');
   GV.newWorldSeeded(301); GV.setSpeed(0); GV.addMoney(603000);
   let placed = 0;
@@ -174,7 +175,7 @@ export function browserPrepareSave(namespace) {
   if (placed !== 3) throw Error('Could not create the three-road synthetic city');
   GV.save();
   const raw = GV.rawSave(), data = GV.inflateSave(raw), stats = GV.stats();
-  if (raw !== localStorage.getItem(namespace + '.s3') || data.v !== 1 || data.gameVer !== '11.211' || data.ter.length !== data.n * data.n) throw Error('Real game did not save a valid main slot 3 city');
+  if (raw !== localStorage.getItem(namespace + '.s3') || data.v !== 1 || data.gameVer !== expectedVersion || data.ter.length !== data.n * data.n) throw Error('Real game did not save a valid main slot 3 city');
   return { raw, placed, seed: data.seed, size: data.n, core: Object.fromEntries(['money', 'day', 'buildings', 'roads', 'zones'].map(key => [key, stats[key]])) };
 }
 
@@ -573,7 +574,7 @@ export async function run() {
         audit.pollCount = i + 1;
         try {
           const state = await readDocument(budget(audit.deadline, 150000)), native = nativeForeground(audit.deadline);
-          const predicates = { exactURL: state.url === url, newTimeOrigin: state.timeOrigin !== previous, complete: state.complete, bootReady: state.boot, mainVersion: state.version === '11.211', visible: state.visibility === 'visible' && !state.hidden, focused: state.focused, nativeForeground: native.valid, viewportFits: viewportFits(state) };
+          const predicates = { exactURL: state.url === url, newTimeOrigin: state.timeOrigin !== previous, complete: state.complete, bootReady: state.boot, mainVersion: state.version === '11.212', visible: state.visibility === 'visible' && !state.hidden, focused: state.focused, nativeForeground: native.valid, viewportFits: viewportFits(state) };
           const rejectedPredicates = Object.keys(predicates).filter(key => !predicates[key]);
           const observation = { observedAt: Date.now(), poll: i + 1, state, native, predicates, rejectedPredicates };
           const signature = JSON.stringify({ state, predicates, nativeApp: native.app });

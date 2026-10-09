@@ -1,7 +1,7 @@
 name: Town main Pages validation and publication
 on:
   push:
-    branches: [gpt/town-main-pages, main]
+    branches: [gpt/town-main-pages, gpt/town-native-release-618, main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,7 +30,7 @@ jobs:
       - name: Full original regression and exact six sentinels
         run: |
           set -o pipefail
-          python tools/verify.py --min-pass 12513 | tee evidence/verify.log
+          python tools/verify.py --min-pass 12534 | tee evidence/verify.log
       - name: Toolchain regression
         if: always()
         run: |
@@ -40,23 +40,33 @@ jobs:
         if: always()
         run: |
           set -o pipefail
-          node docs/tasks/t602-shots/test602.js | tee evidence/art-pixel.log
+          node docs/tasks/t602-shots/test602.js | tee evidence/art-pixel602.log
+          node docs/tasks/t603-shots/test603.js | tee evidence/art-pixel603.log
+          node docs/tasks/t603-shots/clearance603.js index.html - 1 | tee evidence/clearance603.log
+          node tools/pages/native-correctness.cjs --self-test | tee evidence/native-correctness-contracts.log
+          node tools/pages/release-correctness.cjs --self-test | tee evidence/release-correctness-contracts.log
+          node --test tools/pages/native-mac-diagnostic.test.cjs tools/pages/native-portability-diagnostic.test.cjs | tee evidence/native-acceptance-contracts.log
       - name: Prior-version seeded save and simulation compatibility
         if: always()
         run: |
           set -o pipefail
-          node docs/tasks/t602-shots/oldsave602.js . | tee evidence/oldsave.log
+          node docs/tasks/t602-shots/oldsave602.js . | tee evidence/oldsave602.log
+          node docs/tasks/t603-shots/oldsave603.js --json=evidence/oldsave603.json | tee evidence/oldsave603.log
       - name: Preserve full candidate evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Town-main-Pages-T602-regression-${{ github.sha }}
+          name: Town-main-Pages-T603-regression-${{ github.sha }}
           path: evidence/
           if-no-files-found: error
           retention-days: 14
   browser:
+    strategy:
+      fail-fast: false
+      matrix:
+        phase: [core, world, neighbors]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -64,18 +74,30 @@ jobs:
           node-version: '22'
       - name: Install Chinese UI fonts for faithful screenshots
         run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
-      - name: Real Chromium day night seasons rotations and PNG evidence
+      - name: Complete Linux Chromium art state and PNG correctness evidence
         env:
           CHROME_PATH: /usr/bin/google-chrome
         run: |
           set -o pipefail
           mkdir -p evidence
-          node docs/tasks/t602-shots/scene602.js --port=8762 --out=evidence/chrome | tee evidence/chrome.log
+          node tools/pages/release-correctness.cjs --phase=${{ matrix.phase }} --port=8762 --out=evidence/chrome | tee evidence/chrome.log
+      - name: Compact complete world summary and pixel controls
+        if: always() && matrix.phase == 'world'
+        run: |
+          cp evidence/chrome/release-correctness-summary.json evidence/chrome/scene603-summary.json
+          node docs/tasks/t603-shots/package-world-evidence603.js --source=evidence/chrome --out=evidence/world-review
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.phase == 'world'
+        with:
+          name: Town-main-Pages-T603-world-review-${{ github.sha }}
+          path: evidence/world-review/
+          if-no-files-found: error
+          retention-days: 14
       - name: Preserve real Chromium evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Town-main-Pages-T602-Chrome-${{ github.sha }}
+          name: Town-main-Pages-T603-Chrome-${{ matrix.phase }}-${{ github.sha }}
           path: evidence/
           if-no-files-found: error
           retention-days: 14
@@ -134,12 +156,12 @@ jobs:
         run: |
           set -o pipefail
           node tools/pages/browser-main.mjs --site=_site/main --port=8893 --out=evidence/pages-browser | tee evidence/pages-browser.log
-      - name: Full network outage and saved-city reopen on the exact package
+      - name: Exact T602 to T603 worker and save upgrade then full outage reopen
         env:
           CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
         run: |
           set -o pipefail
-          node tools/pages/published-main.mjs --site=_site/main --out=evidence/pages-reopen | tee evidence/pages-reopen.log
+          node tools/pages/published-main.mjs --site=_site/main --upgrade-from-main --out=evidence/pages-reopen | tee evidence/pages-reopen.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -147,9 +169,34 @@ jobs:
           path: evidence/
           if-no-files-found: error
           retention-days: 14
+  native-acceptance:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Start total native acceptance resource clock
+        run: echo "T619_JOB_START_MS=$(node -p 'Date.now()')" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Native original timing and independent same-browser controls
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/native-acceptance
+          node tools/pages/release-native-acceptance.cjs --out=evidence/native-acceptance | tee evidence/native-acceptance.log
+      - name: Preserve native acceptance and all historical failed fields
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-main-Pages-native-acceptance-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [validate, browser, package, pages-browser]
+    needs: [validate, browser, package, pages-browser, native-acceptance]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

@@ -60,7 +60,7 @@ test('Node instrumentation helper accepts only namespace-transformed pinned SW b
   const output=instrumentWorker(sw);new Function(output);
   assert(output.includes("new URL('./__swmain_stage',self.location.href)"),'logging remains inside project subpath');
   assert.throws(()=>instrumentWorker(raw.toString('utf8')),/packaged namespace/);
-  const mutated=sw.replace("const APP_VER='11.211';","const APP_VER='99.0';");
+  const mutated=sw.replace("const APP_VER='11.212';","const APP_VER='99.0';");
   assert.notEqual(mutated,sw);assert.throws(()=>instrumentWorker(mutated),/Unexpected/);
 });
 
