@@ -31,12 +31,15 @@
     try{
       report.directMirror604={frame:await ev('__audit604.directFrame()')};
       await ev('window.__directPacket604=__directHook604.decode(__directFrame604);true');
+      // Match the product order: upload/render first. Canvas pixel reads can
+      // materialize a different source backing; never insert them before upload.
+      report.directMirror604.replay=await ev('__audit604.directReplay()');
+      const mirrorImage604=await capture604('direct-mirror');report.directMirror604.screenshot=record604(mirrorImage604);report.directMirror604.delta=delta604(gpu604.pixels,mirrorImage604.pixels);
       report.directMirror604.reference=await ev('__directCanonical604(__directFrame604.reference)');
       report.directMirror604.decoded=await ev('__directCanonical604(__directPacket604)');
       report.directMirror604.identity=await ev('(()=>{const a=__directFrame604.reference,b=__directPacket604,forward=new Map(),reverse=new Map();for(let i=0;i<a.commands.length;i++){const x=a.commands[i],y=b.commands[i];if(x.image&&x.image.source!==y.image.source)return false;if(forward.has(x.state)&&forward.get(x.state)!==y.state||reverse.has(y.state)&&reverse.get(y.state)!==x.state)return false;forward.set(x.state,y.state);reverse.set(y.state,x.state);}return true;})()');
       report.directMirror604.stats=await ev('__directHook604.inspect(__directFrame604)');
-      report.directMirror604.replay=await ev('__audit604.directReplay()');
-      const mirrorImage604=await capture604('direct-mirror');report.directMirror604.screenshot=record604(mirrorImage604);report.directMirror604.delta=delta604(gpu604.pixels,mirrorImage604.pixels);persist();
+      persist();
       check(frameGuard604(report.directMirror604.frame),'direct mirror runs complete original game draw exactly once without RNG or model mutation');
       check(report.directMirror604.reference.sha256===report.directMirror604.decoded.sha256&&report.directMirror604.identity,'same-draw mirror preserves every Float64, field, allocation id, source byte, state alias and painter order');
       check(replayGuard604(report.directMirror604.replay)&&report.directMirror604.delta.pixels===0,'direct mirror has zero additional full-compositor GPU pixel differences');
@@ -52,11 +55,11 @@
           const row=await ev('__audit604.directFrame()');
           check(frameGuard604(row),'complete single draw preserves model/RNG '+index+'/'+i);
           row.decode=await ev(`(()=>{const start=performance.now();window.__directPacket604=${mode==='direct'?'__directHook604.decode(__directFrame604)':'__directFrame604'};return {referenceDecodeMs:performance.now()-start,stats:${mode==='direct'?'__directHook604.inspect(__directFrame604)':'null'}};})()`);
+          row.replay=await ev('__audit604.directReplay()');
+          check(replayGuard604(row.replay),'unchanged GPU consumer preserves model/RNG/clocks '+index+'/'+i);
           row.signature=await ev('__directCanonical604(__directPacket604,true)');
           if(expectedDirectSignature604===null)expectedDirectSignature604=row.signature.sha256;
           if(row.signature.sha256!==expectedDirectSignature604){report.directMismatch604={index,mode,iteration:i,row};persist();throw Error('Direct writer changed complete render parameters or source pixels');}
-          row.replay=await ev('__audit604.directReplay()');
-          check(replayGuard604(row.replay),'unchanged GPU consumer preserves model/RNG/clocks '+index+'/'+i);
           row.currentConsumerTotalMs=row.producerWallMs+row.decode.referenceDecodeMs+row.replay.replayWallMs;
           if(i>=report.directScope604.warmFrames)samples.push(row);
         }
@@ -69,6 +72,14 @@
     const summarizeDirect604=rows=>{const values={producerWallMs:r=>r.producerWallMs,recorderProducerMs:r=>r.recorderProducerMs,referenceDecodeMs:r=>r.decode.referenceDecodeMs,unchangedReplayWallMs:r=>r.replay.replayWallMs,currentConsumerTotalMs:r=>r.currentConsumerTotalMs};const out={samples:rows.length};for(const [key,get]of Object.entries(values)){const a=rows.map(get);out[key]={median:medianDirect604(a),min:Math.min(...a),max:Math.max(...a)};}return out;};
     report.directSummary604={};for(const mode of ['baseline','direct'])report.directSummary604[mode]=summarizeDirect604(report.directWindows604.filter(w=>w.mode===mode).flatMap(w=>w.samples));
     for(const w of report.directWindows604)w.summary=summarizeDirect604(w.samples);
+    // Untimed readback/reupload attribution, after the complete ordered proof.
+    // Evict only this packet's canvas-sized image(s), without changing source
+    // pixels, command data or game draw. Preserve any mismatch as observer data.
+    const beforeReupload604=await capture604('direct-before-source-reupload');
+    report.directReadbackProbe604={evicted:await ev('(()=>{const p=__directPacket604,player=__townRenderer604.player,keys=[...new Set(p.commands.filter(c=>c.image&&c.image.width===p.width&&c.image.height===p.height).map(c=>c.image.id+":"+c.image.revision))],out=[];for(const key of keys){const entry=player.textures.get(key);if(entry){entry.image.delete();player.textures.delete(key);player.textureBytes-=entry.bytes;out.push({key,width:entry.width,height:entry.height,bytes:entry.bytes});}}return out;})()')};
+    report.directReadbackProbe604.replay=await ev('__audit604.directReplay()');
+    const afterReupload604=await capture604('direct-after-source-reupload');
+    Object.assign(report.directReadbackProbe604,{before:record604(beforeReupload604),after:record604(afterReupload604),delta:delta604(beforeReupload604.pixels,afterReupload604.pixels),scope:'Untimed reupload after exact source pixel hashing; not a changed direct writer packet or accepted performance sample.'});
     const directProducer604=report.directSummary604.direct.producerWallMs;
     report.directDecision604={exactSameDrawMirror:true,exactAcrossDrawRenderParameters:true,addedGPUFramePixels:0,wholeGamePerformanceSamples:0,original55Passed:false,nativeBatchConsumerAvailable:false,releaseGatePassed:false,fullProducerExceedsFrameBudget:directProducer604.median>1000/55,stableResearchScreen:directProducer604.max<=8,decision:directProducer604.median>1000/55?'NO-GO: complete direct producer alone exceeds 55 FPS frame budget. Stop this design; do not start consumer/WASM integration.':directProducer604.max<=8?'Producer-only research screen met; a real consumer still needs a separately justified feasibility proof.':'No stable 8 ms producer evidence; do not start larger consumer/WASM integration.',accounting:'Measured full forceDraw wall includes original offscreen and native/path work. One-time installation/initial arena allocations are separately reported outside steady-state draw timing. Source-write notifications are counts, not a complete operation or allocation profile. Reference decode and unchanged Player replay remain explicit costs; neither is claimed eliminated. Replay excludes presentation/compositor scheduling and is not a full-frame FPS measurement.'};
     report.directRestoredInputs604=await ev('__audit604.restoreCostInputs()');

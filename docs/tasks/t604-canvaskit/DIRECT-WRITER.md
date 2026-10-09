@@ -44,6 +44,21 @@ Image hashing/readback is outside the producer timer and explicitly validation
 work. Structural allocation and source-write counters are not total V8 heap or
 offscreen-operation profiles. All of that actual draw work remains timed.
 
+### Preserved first preflight failure
+
+`31c68ee` / run `37806292058` stopped before the interleaved samples. Its same-draw
+mirror matched all 5,873 commands, 4,783 states and 170 source images exactly, but
+the compositor differed by 3,406 pixels (maximum one channel level). The mirror's
+119.4 ms includes original plus direct emission and is not optimization evidence.
+
+That harness read all source Canvas pixels before the first GPU upload of the
+captured frame. Product ordering uploads before pixel readback. The corrected
+diagnostic preserves product ordering, still compares every source pixel after
+rendering, and records a final untimed reupload of only canvas-sized source(s)
+after pixel hashing. This tests the readback/backing hypothesis without hiding a
+pixel mismatch or accepting timing from the failed run. If the initial mirror
+still differs, the corrected run stops before interleaved timing as well.
+
 ## Predeclared decision
 
 Any exactness failure rejects timing acceptance. A direct full producer median
