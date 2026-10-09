@@ -1,0 +1,177 @@
+{
+  "commit": "6f90f182859d15dfc2f114ffe9a3d8fe15a11d86",
+  "tree": "b1c7834789b97cab4899a4b673bff5853c77cadb",
+  "run": 37872738379,
+  "artifact": 11590967743,
+  "artifactSHA256": "8379af119b8ba9e8f325fcc437ebf6f57278b965bde97f53bb1083db2660713d",
+  "summarySHA256": "023e654a92e3e5a81371e631fd159967443b8a60cdbbdacb8cf7658acc4108e9",
+  "checks": 229,
+  "contracts": 24,
+  "productChanged": false,
+  "fullRegressionRun": false,
+  "original55Passed": false,
+  "wholeGamePerformanceSamples": 0,
+  "decision": "Do not implement whole-layer cache (0/11 hits for both animated sequences). Quantitative phase attribution rejected by predeclared <=5% screen; substantial window drift confounds causal overhead. No larger cache/consumer inference.",
+  "directRepeat": {
+    "baseline": {
+      "samples": 10,
+      "producerWallMs": {
+        "median": 43.14999999999418,
+        "min": 30.79999999998836,
+        "max": 62.79999999998836
+      },
+      "recorderProducerMs": {
+        "median": 43.10000000000582,
+        "min": 30.79999999998836,
+        "max": 62.79999999998836
+      },
+      "referenceDecodeMs": {
+        "median": 0,
+        "min": 0,
+        "max": 0.10000000000582077
+      },
+      "unchangedReplayWallMs": {
+        "median": 61.85000000000582,
+        "min": 44.59999999997672,
+        "max": 98.29999999998836
+      },
+      "currentConsumerTotalMs": {
+        "median": 110.80000000001746,
+        "min": 81.90000000002328,
+        "max": 143.30000000001746
+      }
+    },
+    "direct": {
+      "samples": 10,
+      "producerWallMs": {
+        "median": 45.29999999998836,
+        "min": 31.70000000001164,
+        "max": 75.5
+      },
+      "recorderProducerMs": {
+        "median": 45.29999999998836,
+        "min": 31.70000000001164,
+        "max": 75.5
+      },
+      "referenceDecodeMs": {
+        "median": 11.25,
+        "min": 9,
+        "max": 20.599999999976717
+      },
+      "unchangedReplayWallMs": {
+        "median": 56.10000000000582,
+        "min": 44.40000000002328,
+        "max": 71.90000000002328
+      },
+      "currentConsumerTotalMs": {
+        "median": 119.20000000001164,
+        "min": 97,
+        "max": 165.70000000001164
+      }
+    }
+  },
+  "backends": [
+    {
+      "backend": "gpu",
+      "wrapperPixelProof": {
+        "plain": {
+          "file": "T604-605-gpu-plain.png",
+          "sha256": "221e9bc1f79cc186eeac4839dc99bf46f93fe1be6d553ce1f0802ef2032de8de"
+        },
+        "instrumented": {
+          "file": "T604-605-gpu-instrumented.png",
+          "sha256": "221e9bc1f79cc186eeac4839dc99bf46f93fe1be6d553ce1f0802ef2032de8de"
+        },
+        "delta": {
+          "pixels": 0,
+          "maxChannelDelta": 0,
+          "absoluteChannelSum": 0
+        }
+      },
+      "timing": {
+        "controlFullMedianMs": 80.19999999998254,
+        "instrumentedFullMedianMs": 114.35000000000582,
+        "phaseMediansMs": {
+          "nightLayer": 2.25,
+          "objectOrder": 0.75,
+          "farSelection": 0.1000000000349246,
+          "nightGround": 1.3500000000058208,
+          "nightTop": 0.9000000000232831
+        },
+        "measuredPhaseSumMedianMs": 6.400000000052387,
+        "instrumentationRatio": 1.4258104738158444,
+        "overheadWithin5Percent": false,
+        "controlProducerMedianMs": 34.34999999997672,
+        "instrumentedProducerMedianMs": 46.29999999998836
+      },
+      "reuse": {
+        "comparisons": 11,
+        "exactHits": 0,
+        "prefixLengths": [
+          975,
+          975,
+          975,
+          975,
+          369,
+          975,
+          975,
+          975,
+          975,
+          975,
+          975
+        ],
+        "scope": "Potential exact whole-night-layer reuse only; fixed-step progressing animation, no cache implemented."
+      }
+    },
+    {
+      "backend": "native",
+      "wrapperPixelProof": {
+        "plain": {
+          "file": "T604-605-native-plain.png",
+          "sha256": "77cf1f3557d741c5b2e02a189ee55fe474a896edda9099f38ead701f46e8df8f"
+        },
+        "instrumented": {
+          "file": "T604-605-native-instrumented.png",
+          "sha256": "77cf1f3557d741c5b2e02a189ee55fe474a896edda9099f38ead701f46e8df8f"
+        },
+        "delta": {
+          "pixels": 0,
+          "maxChannelDelta": 0,
+          "absoluteChannelSum": 0
+        }
+      },
+      "timing": {
+        "controlFullMedianMs": 49.85000000000582,
+        "instrumentedFullMedianMs": 53.649999999965075,
+        "phaseMediansMs": {
+          "nightLayer": 3.7000000000116415,
+          "objectOrder": 1.099999999976717,
+          "farSelection": 0.25,
+          "nightGround": 0.8000000000174623,
+          "nightTop": 1.8999999999941792
+        },
+        "measuredPhaseSumMedianMs": 7.049999999959255,
+        "instrumentationRatio": 1.0762286860573482,
+        "overheadWithin5Percent": false
+      },
+      "reuse": {
+        "comparisons": 11,
+        "exactHits": 0,
+        "prefixLengths": [
+          727,
+          727,
+          727,
+          727,
+          369,
+          727,
+          718,
+          718,
+          718,
+          718,
+          718
+        ],
+        "scope": "Potential exact whole-night-layer reuse only; fixed-step progressing animation, no cache implemented."
+      }
+    }
+  ]
+}
