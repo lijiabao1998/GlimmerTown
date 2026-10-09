@@ -174,3 +174,13 @@ cap; the preboot observer has a separate 65,536 WeakRef-entry hard cap, dead-ent
 pruning and global fail-closed exhaustion. Report weak entries explicitly; do
 not equate payload counters to total browser/GPU memory. One CI 10-minute bound,
 no unchanged rerun or threshold adjustment. Product files remain untouched.
+
+## Failure capture revision after first native result
+
+Run 37895423004 at 8cc432a3 stopped on adjacent-dirty: 2 copied-layer pixels,
+maximum channel delta 255, equal context state. No city or performance ran.
+This revision changes only evidence capture on the same first failure: bounded
+exact coordinates/bytes, raw-versus-copy checks, snapshots before repair, and
+original/restored controls. Helper implementation, inputs, clip, tile size,
+source observer and zero-RGBA gates are unchanged. It stops before city/timing
+on that mismatch. The first failure remains a failed exactness gate.
