@@ -63,9 +63,10 @@ export function upgradeSkipReason(previous,current){
 
 /** T627 (R3/R4): the upgrade starts from the release the live Pages site serves, found in git
  * by release-identity (fail closed at every step). `fetchLive` and `current` are injectable so a
- * frozen historical pair can exercise the same path; by default current is the checked-out HEAD. */
+ * frozen historical pair can exercise the same path; by default current is the checked-out HEAD.
+ * An injected current is also the commit the previous release must be an ancestor of. */
 export async function liveRelease(root=ROOT,{fetchLive,env=process.env,current}={}){
-  const previous=await identity.previousRelease(root,{env,...(fetchLive?{fetchLive}:{})});
+  const previous=await identity.previousRelease(root,{env,...(fetchLive?{fetchLive}:{}),...(current===undefined?{}:{head:current.commit})});
   if(current===undefined){
     current=identity.currentRelease(root,{env});
     assert.equal(current.commit,SOURCE_COMMIT,'upgrade target must be the packaged commit');

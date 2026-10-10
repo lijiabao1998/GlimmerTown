@@ -72,6 +72,11 @@ C.lower=branch('lower',C.main,runtime('1.0.9',{indexExtra:LIVE_EXTRA}),'lower ve
 C.icon=branch('icon',C.main,{'icon-v1-192.png':PNG('192-redrawn')},'icon only');
 C.badver=branch('badver',C.main,{'sw.js':runtime('1.3')['sw.js']},'APP_VER only');
 C.stale=branch('stale',C.v10,{'NOTES.md':'branched before the live release\n'},'stale branch');
+// Branches cut from older main commits that already carry the live runtime; main has since moved on
+// with runtime-neutral commits (C.docs -> C.main), so the newest match overall is not their ancestor.
+C.early=branch('early',C.docs,{'NOTES.md':'branched before a runtime-neutral main commit\n'},'early branch');
+C.earlycard=branch('earlycard',C.docs,runtime('1.2',{indexExtra:LIVE_EXTRA}),'card v1.2 cut before C.main');
+C.fromlive=branch('fromlive',C.v11,{'NOTES.md':'branched from the live commit itself\n'},'branch from the live commit');
 const work=path.join(scratch,'work');g(scratch,'clone','-q',up,work);
 const at=ref=>{g(work,'checkout','-q','--detach',ref);return work;};
 
@@ -226,6 +231,34 @@ test('6. live bytes matching no first-parent main commit, or only a side-branch 
   assert(noDepth(rec.calls));assert.equal(g(work,'rev-parse','--is-shallow-repository'),'false');
 });
 
+test('a branch behind runtime-neutral main commits resolves to its own newest ancestor match, without any fetch',async()=>{
+  const tip=identity.releaseAt(work,C.main);
+  assert.deepEqual(identity.releaseMatches(work,tip.blobIds),[C.main,C.docs,C.v11],'every first-parent match, newest first');
+  assert.equal(identity.findReleaseCommit(work,tip.blobIds),C.main);
+  for(const [head,expected] of [[C.early,C.docs],[C.earlycard,C.docs],[C.fromlive,C.v11],[C.card,C.main],[C.stale,null]])
+    assert.equal(identity.findReleaseCommit(work,tip.blobIds,undefined,{head}),expected,head);
+  for(const [ref,expected] of [[C.early,C.docs],[C.fromlive,C.v11]]){
+    at(ref);
+    const rec=recorder();
+    assert.equal(gitStatus(work,'merge-base','--is-ancestor',C.main,'HEAD'),1,'the newest match is not an ancestor here');
+    const prev=await identity.previousRelease(work,{fetchLive:fetchFrom(LIVE),env:LOCAL_ENV,fetchGit:rec.fetchGit});
+    assert.equal(prev.commit,expected);assert.equal(prev.source,'live');assert.deepEqual(rec.calls,[],'no history fetch');
+    assert.deepEqual({...prev.blobIds},{...tip.blobIds},'the same seven blobs as the newest match');
+    for(const name of RUNTIME_FILES)assert(prev.packagedFiles.get(name).equals(LIVE.get(name)),name);
+    assert.equal(identity.releaseDelta(prev,identity.currentRelease(work,{env:LOCAL_ENV})).runtimeChanged,false);
+  }
+  at(C.earlycard);
+  const prev=await identity.previousRelease(work,{fetchLive:fetchFrom(LIVE),env:LOCAL_ENV,fetchGit:recorder().fetchGit});
+  const delta=identity.releaseDelta(prev,identity.currentRelease(work,{env:LOCAL_ENV}));
+  assert.equal(prev.commit,C.docs);assert.equal(delta.runtimeChanged,true);assert.equal(delta.currentVersion,'1.2');
+  // An explicit target replaces HEAD for the ancestor rule (frozen historical pairs); it must be a full id.
+  at(C.main);
+  assert.equal((await identity.previousRelease(work,{fetchLive:fetchFrom(LIVE),env:LOCAL_ENV,head:C.early,fetchGit:recorder().fetchGit})).commit,C.docs);
+  await assert.rejects(identity.previousRelease(work,{fetchLive:fetchFrom(LIVE),env:LOCAL_ENV,head:C.stale,fetchGit:recorder().fetchGit}),new RegExp(`Previous release ${C.main} is not an ancestor of HEAD ${C.stale}`));
+  for(const bad of [C.early.slice(0,12),'HEAD','',C.early.toUpperCase(),null])
+    await assert.rejects(identity.previousRelease(work,{fetchLive:fetchFrom(LIVE),env:LOCAL_ENV,head:bad}),/head must be a full commit id/,String(bad));
+});
+
 test('7. a previous release that is not an ancestor of HEAD is refused',async()=>{
   at(C.stale);
   const rec=recorder();
@@ -295,6 +328,12 @@ test('shallow CI checkout: history is deepened by the script itself and PREV is 
   assert.deepEqual(rec2.calls,[['fetch','--no-tags','--depth=1','origin',C.v10]]);
   assert.equal(identity.releaseAt(objects,C.v10).version,'1.0');
   assert.throws(()=>identity.ensureObjects(objects,[C.v10.slice(0,12)]),/full commit ids/);
+  // A shallow branch cut before a runtime-neutral main commit: one deepening, then its own ancestor match.
+  const early=path.join(scratch,'shallow-early');
+  g(scratch,'clone','-q','--depth=1','--branch','early','--no-tags',pathToFileURL(up).href,early);
+  const rec3=recorder();
+  assert.equal((await identity.previousRelease(early,{fetchLive:fetchFrom(LIVE),env:LOCAL_ENV,fetchGit:rec3.fetchGit})).commit,C.docs);
+  assert.deepEqual(rec3.calls,[['fetch','--no-tags','--depth=100','origin','+refs/heads/main:refs/remotes/origin/main',C.early]]);
 });
 
 test('complete repository: missing objects are fetched without --depth',()=>{
@@ -306,8 +345,9 @@ test('complete repository: missing objects are fetched without --depth',()=>{
   assert.equal(g(work,'rev-parse','--is-shallow-repository'),'false');
 });
 
-test('live fetch: exact Pages URL, no-store, no redirects, 200 only, three tries',async()=>{
-  const seen=[],sleep=async()=>{};
+test('live fetch: exact Pages URL, no-store, no redirects, 200 only, six tries about 30 s apart in all',async()=>{
+  assert.equal(identity.LIVE_TRIES,6);assert.deepEqual([...identity.LIVE_BACKOFF_MS],[1000,2000,4000,8000,15000]);
+  const seen=[],slept=[],sleep=async ms=>{slept.push(ms);};
   const body=await identity.fetchLiveFile('sw.js',{sleep,fetchImpl:async(url,init)=>{seen.push({url,init});return new Response('worker');}});
   assert.equal(String(body),'worker');
   const url=new URL(seen[0].url);
@@ -315,12 +355,14 @@ test('live fetch: exact Pages URL, no-store, no redirects, 200 only, three tries
   assert.match(url.searchParams.get('release-probe'),/^[0-9a-f-]{36}$/);
   assert.equal(seen[0].init.cache,'no-store');assert.equal(seen[0].init.redirect,'error');assert(seen[0].init.signal instanceof AbortSignal);
   let tries=0;const urls=new Set();
-  const flaky=await identity.fetchLiveFile('index.html',{sleep,fetchImpl:async u=>{urls.add(u);if(++tries<3)throw Error('ECONNRESET');return new Response('page');}});
-  assert.equal(String(flaky),'page');assert.equal(tries,3);assert.equal(urls.size,3,'fresh cache-busting nonce per try');
+  assert.deepEqual(slept,[],'no wait before the first try');
+  const flaky=await identity.fetchLiveFile('index.html',{sleep,fetchImpl:async u=>{urls.add(u);if(++tries<6)throw Error('ECONNRESET');return new Response('page');}});
+  assert.equal(String(flaky),'page');assert.equal(tries,6);assert.equal(urls.size,6,'fresh cache-busting nonce per try');
+  assert.deepEqual(slept,[1000,2000,4000,8000,15000]);
   for(const status of [203,404,500]){
     let n=0;
-    await assert.rejects(identity.fetchLiveFile('icon.svg',{sleep,fetchImpl:async()=>{n++;return new Response('x',{status});}}),new RegExp(`after 3 tries: icon\\.svg: HTTP ${status}`));
-    assert.equal(n,3);
+    await assert.rejects(identity.fetchLiveFile('icon.svg',{sleep,fetchImpl:async()=>{n++;return new Response('x',{status});}}),new RegExp(`after 6 tries: icon\\.svg: HTTP ${status}`));
+    assert.equal(n,6);
   }
   await assert.rejects(identity.fetchLiveFile('icon.svg',{sleep,fetchImpl:async()=>({status:200,redirected:true,arrayBuffer:async()=>new ArrayBuffer(1)})}),/redirected/);
   await assert.rejects(identity.fetchLiveFile('../secret',{sleep,fetchImpl:async()=>new Response('x')}),/Not a runtime file/);

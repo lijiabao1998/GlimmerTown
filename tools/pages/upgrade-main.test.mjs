@@ -1,10 +1,12 @@
 /** Upgrade contracts and real product save round-trip in the pinned Node DOM mock.
  * These tests do not launch Chrome or establish browser/OS offline evidence.
- * T627: the old side is the release the live Pages site serves (release-identity R3), so loading
- * this file reads the live site and git; set PAGES_PREV_COMMIT only when offline (refused in CI).
+ * T627: the old side is the release the live Pages site serves (release-identity R3). The tests
+ * that need it resolve it once, on first use, from the live site and git; set PAGES_PREV_COMMIT
+ * only when offline (refused in CI). A failed live lookup fails those tests and nothing else.
  * With no runtime change the real-pair boot test is skipped with its reason, and a never-skipped
  * test proves that skip happens only when all seven source pins are equal. The frozen pair
- * 329f660 (live on 2026-10-07, 11.211) -> T603 4dd0fa4 always exercises the change path.
+ * 329f660 (live on 2026-10-07, 11.211) -> 1076607 (main's T603 runtime, the blobs of 4dd0fa4)
+ * always exercises the change path, with its own injected live bytes.
  */
 import assert from 'node:assert/strict';
 import test,{after} from 'node:test';
@@ -19,23 +21,27 @@ import {options,liveRelease,upgradePlan,upgradeSkipReason,UPGRADE_NOT_APPLICABLE
 
 const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const pack=loadVerifiedPackage(process.env.PAGES_SITE);after(()=>pack.cleanup());
-const prev=await liveRelease(ROOT),plan=upgradePlan(pack.files,prev);
-// The real-pair boot test's skip option; it may only ever come from the resolved pair's skipReason.
+// The real pair, resolved lazily so the frozen pair and the synthetic receipts never depend on the network.
+let realPair=null;
+const livePair=()=>realPair??=liveRelease(ROOT).then(prev=>({prev,plan:upgradePlan(pack.files,prev)}));
+// The real-pair boot test's skip reason; it may only ever come from the resolved pair's skipReason.
 const bootSkip=pair=>pair.skipReason?`${pair.skipReason}: live ${pair.commit} (${pair.version}) has the same seven runtime files as ${pair.current.commit} (${pair.current.version})`:false;
-const realBootSkip=bootSkip(prev);
 const base='http://127.0.0.1:8933/GlimmerTown/',NS=SAVE_NAMESPACE,slot=NS+'.s3';
 const foreignCaches=['gv-v1','gv-v2','glimmerville-shell-v11.211'];
 // Synthetic receipts use fixed versions, independent of the network and of this release.
 const OLD='1.0',NEW='1.1';
 // Frozen history (R6): 329f660 is what Pages served on 2026-10-07 (package afa22141/7a6d32d4 from
-// source b9190da5/836d1d86); 4dd0fa4 is the approved T603 runtime. Commit ids pin all their bytes.
+// source b9190da5/836d1d86); 4dd0fa4 is the approved T603 runtime and 1076607 is the main commit that
+// carries exactly its seven blobs and descends from 329f660. Commit ids pin all their bytes.
 const T602_LIVE_COMMIT='329f660e3d5f011ac28454cb6d6a68f8525c69cc',T603_COMMIT='4dd0fa4dfd27f56680e0d1b37e57842e90a45060';
+const T603_MAIN_COMMIT='107660752c2c8d09e1787e3d7c95f6e91da3d4bc',T602_SOURCE_TWIN='4e8823781178ea69e7862bbf3db2a74328080291';
 const T602_SOURCE_SHA256={'index.html':'b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265','sw.js':'836d1d867d10d6c63d71c722d3337e5b7119ad36006314f74872583ec029dd3b'};
 const T602_LIVE_PACKAGE_SHA256={'index.html':'afa22141eade4c222d7cee48dcfb1ea815e6e47befc4b0206b9b2f614063d2db','sw.js':'7a6d32d4607c62d42f197950a6d54ac4d0febfc5de9bde27bb2c3a4f83221cff'};
 
-test('upgrade is explicit, local-only, and starts from the exact release the live Pages site serves',t=>{
+test('upgrade is explicit, local-only, and starts from the exact release the live Pages site serves',async t=>{
   assert.equal(options(['--upgrade-from-main']).upgradeFromMain,true);
   for(const args of [['--upgrade-from-main','--upgrade-from-main'],['--upgrade-from-main','--url=https://lijiabao1998.github.io/GlimmerTown/'],['--url=https://lijiabao1998.github.io/GlimmerTown/','--upgrade-from-main']])assert.throws(()=>options(args));
+  const {prev,plan}=await livePair();
   assert.equal(prev.current.commit,SOURCE_COMMIT);assert.deepEqual({...prev.current.sourcePins},{...PINS});assert.equal(prev.current.version,APP_VERSION);
   const found=identity.releaseAt(ROOT,prev.commit);
   assert.deepEqual({...found.sourcePins},{...prev.sourcePins});assert.deepEqual({...found.blobIds},{...prev.blobIds});assert.equal(found.version,prev.version);
@@ -51,7 +57,8 @@ test('upgrade is explicit, local-only, and starts from the exact release the liv
   t.diagnostic(`previous ${prev.commit} (${prev.source}, ${prev.version}) -> current ${prev.current.commit} (${APP_VERSION}); changed: ${prev.delta.changedFiles.join(',')||'none'}; ${prev.skipReason||'applicable'}`);
 });
 
-test('upgrade pairing rejects wrong current versions, runtime drift, shared namespaces, missing/added files and an unverified old side',()=>{
+test('upgrade pairing rejects wrong current versions, runtime drift, shared namespaces, missing/added files and an unverified old side',async()=>{
+  const {prev}=await livePair();
   const changed=(files,name,mutate)=>{const out=new Map(files),before=out.get(name).toString(),value=mutate(before);assert.notEqual(value,before,'mutation must change '+name);out.set(name,Buffer.from(value));return out;};
   const wrongVersions=[...new Set([prev.version,'0.0.1'])].filter(version=>version!==APP_VERSION);assert(wrongVersions.length>0);
   for(const files of [
@@ -76,10 +83,11 @@ test('upgrade pairing rejects wrong current versions, runtime drift, shared name
   assert.doesNotThrow(()=>upgradePlan(pack.files,prev));
 });
 
-test('upgrade skip happens only when all seven source pins are equal (never skipped)',()=>{
+test('upgrade skip happens only when all seven source pins are equal (never skipped)',async()=>{
+  const {prev,plan}=await livePair();
   const identical=identity.RUNTIME_FILES.every(name=>prev.sourcePins[name]===prev.current.sourcePins[name]);
   assert.equal(prev.delta.runtimeChanged,!identical);assert.equal(prev.skipReason,identical?UPGRADE_NOT_APPLICABLE:null);
-  assert.equal(plan.skip,prev.skipReason);assert.equal(Boolean(realBootSkip),identical,'the real-pair boot test may be skipped only when all seven pins are equal');
+  assert.equal(plan.skip,prev.skipReason);assert.equal(Boolean(bootSkip(prev)),identical,'the real-pair boot test may be skipped only when all seven pins are equal');
   const pins=Object.fromEntries(identity.RUNTIME_FILES.map((name,i)=>[name,sha256('synthetic pin '+i)]));
   const release=(version,changes={})=>({version,sourcePins:{...pins,...changes}});
   assert.equal(upgradeSkipReason(release(OLD),release(OLD)),UPGRADE_NOT_APPLICABLE);
@@ -223,31 +231,39 @@ function upgradeBoots({oldFiles,newFiles,oldVersion,newVersion}){
   return result;
 }
 
-test('real live game creates slot 3 and this release loads/resaves it with exact model/core and only gameVer changed',{skip:realBootSkip},()=>{
+test('real live game creates slot 3 and this release loads/resaves it with exact model/core and only gameVer changed',async t=>{
+  const {prev,plan}=await livePair(),skip=bootSkip(prev);
+  if(skip){t.skip(skip);return;}
   assert.equal(plan.skip,null);
   upgradeBoots(plan);
 });
 
 test('frozen pair: the 2026-10-07 live 329f660 package upgrades to the T603 runtime through the same live lookup and real boots',async t=>{
-  identity.ensureObjects(ROOT,[T602_LIVE_COMMIT,T603_COMMIT]);
-  const served=identity.packageRelease(identity.releaseAt(ROOT,T602_LIVE_COMMIT)),candidate=identity.releaseAt(ROOT,T603_COMMIT);
+  identity.ensureObjects(ROOT,[T602_LIVE_COMMIT,T602_SOURCE_TWIN,T603_COMMIT,T603_MAIN_COMMIT]);
+  const served=identity.packageRelease(identity.releaseAt(ROOT,T602_LIVE_COMMIT)),candidate=identity.releaseAt(ROOT,T603_MAIN_COMMIT);
+  assert.deepEqual({...candidate.blobIds},{...identity.releaseAt(ROOT,T603_COMMIT).blobIds},'1076607 carries exactly the approved T603 runtime of 4dd0fa4');
   for(const [name,hash] of Object.entries(T602_LIVE_PACKAGE_SHA256))assert.equal(sha256(served.get(name)),hash,'frozen 2026-10-07 live bytes: '+name);
   const env={...process.env};delete env.PAGES_PREV_COMMIT;
   const asked=[];
   const live=await liveRelease(ROOT,{env,current:candidate,fetchLive:async name=>{asked.push(name);return Buffer.from(served.get(name));}});
   assert.deepEqual(asked,[...identity.RUNTIME_FILES]);
-  assert.equal(live.commit,T602_LIVE_COMMIT,'newest first-parent main commit carrying the live blobs');assert.equal(live.source,'live');assert.equal(live.version,'11.211');
+  assert.equal(live.commit,T602_LIVE_COMMIT,'newest first-parent main commit carrying the live blobs that is an ancestor of the candidate');assert.equal(live.source,'live');assert.equal(live.version,'11.211');
   for(const name of ['index.html','sw.js']){
     assert.equal(live.sourcePins[name],T602_SOURCE_SHA256[name]);assert.equal(live.liveSHA256[name],T602_LIVE_PACKAGE_SHA256[name]);
     assert.equal(sha256(live.files.get(name)),T602_LIVE_PACKAGE_SHA256[name]);
   }
-  assert.equal(live.current.commit,T603_COMMIT);
+  assert.equal(live.current.commit,T603_MAIN_COMMIT);
+  // The ancestor rule is checked against the candidate itself. 4dd0fa4 (T603's side-branch commit) does not
+  // descend from 329f660, so the same live bytes resolve to 4e88237: the newest main commit it does descend
+  // from, carrying the same seven blobs as 329f660.
+  const side=await liveRelease(ROOT,{env,current:identity.releaseAt(ROOT,T603_COMMIT),fetchLive:async name=>Buffer.from(served.get(name))});
+  assert.equal(side.commit,T602_SOURCE_TWIN);assert.deepEqual({...side.blobIds},{...live.blobIds});
   assert.deepEqual({...live.delta,changedFiles:[...live.delta.changedFiles]},{runtimeChanged:true,changedFiles:['index.html','sw.js'],previousVersion:'11.211',currentVersion:candidate.version});
   assert.equal(identity.compareVersions(candidate.version,live.version),1);assert.equal(live.skipReason,null);assert.equal(bootSkip(live),false,'a real runtime change is never skipped');
   const frozen=upgradePlan(identity.packageRelease(candidate),live);
   assert.equal(frozen.skip,null);assert.equal(frozen.oldVersion,'11.211');assert.equal(frozen.newVersion,candidate.version);
   const result=upgradeBoots(frozen);
-  t.diagnostic(`frozen pair ${T602_LIVE_COMMIT.slice(0,7)} ${frozen.oldVersion} (package ${sha256(frozen.oldFiles.get('index.html')).slice(0,8)}/${sha256(frozen.oldFiles.get('sw.js')).slice(0,8)}, source ${live.sourcePins['index.html'].slice(0,8)}) -> ${T603_COMMIT.slice(0,7)} ${frozen.newVersion}; save ${result.oldSHA256.slice(0,8)} -> ${result.newSHA256.slice(0,8)}`);
+  t.diagnostic(`frozen pair ${T602_LIVE_COMMIT.slice(0,7)} ${frozen.oldVersion} (package ${sha256(frozen.oldFiles.get('index.html')).slice(0,8)}/${sha256(frozen.oldFiles.get('sw.js')).slice(0,8)}, source ${live.sourcePins['index.html'].slice(0,8)}) -> ${T603_MAIN_COMMIT.slice(0,7)} ${frozen.newVersion}; save ${result.oldSHA256.slice(0,8)} -> ${result.newSHA256.slice(0,8)}`);
 });
 
 test('upgrade wiring preserves raw-worker installation, strict migration and existing new-process outage gates',()=>{

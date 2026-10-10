@@ -6,9 +6,11 @@
  * set, must be HEAD. GAME_VER (index.html) and APP_VER (sw.js) must each occur exactly once
  * and agree.
  * Previous release (R3): what https://lijiabao1998.github.io/GlimmerTown/ serves now. The
- * live bytes are un-namespaced, matched by git blob id against the first-parent history of
- * origin/main (newest match wins), the match must be an ancestor of HEAD, and packaging it
- * must reproduce the live bytes exactly. Every step fails closed; there is no fallback.
+ * live bytes are un-namespaced and matched by git blob id against the first-parent history of
+ * origin/main; PREV is the newest match that is an ancestor of HEAD (every match carries the same
+ * seven blobs, so a runtime-neutral commit landing on main later does not move PREV off a branch's
+ * own history), and packaging it must reproduce the live bytes exactly. Every step fails closed;
+ * there is no fallback.
  * Local-only override: PAGES_PREV_COMMIT=<sha> (refused under CI, recorded as unverified).
  * Release delta (R4): if any runtime file differs, sw.js must differ and the version rise.
  *
@@ -41,7 +43,10 @@ const HARNESS_DOM_PREFIX_SHA256 = '5a6bf931394f4ba4858f8e60cba7e692be8b8f9fe2d59
 const MAIN_REF = 'refs/remotes/origin/main';
 const MAIN_REFSPEC = '+refs/heads/main:refs/remotes/origin/main';
 const HISTORY_DEPTHS = Object.freeze([100, 400]);
-const LIVE_TRIES = 3;
+// Six tries, 1+2+4+8+15 s apart: a ~30 s window, because a lookup now runs in several jobs per run
+// and native-acceptance cannot be rerun (GITHUB_RUN_ATTEMPT==1). Every try still needs an exact 200.
+const LIVE_TRIES = 6;
+const LIVE_BACKOFF_MS = Object.freeze([1000, 2000, 4000, 8000, 15000]);
 const LIVE_TIMEOUT_MS = 60 * 1000;
 const FROZEN_ESCAPE_FLAG = '__noT603';
 const GAME_VER_RE = /const GAME_VER='(\d+(?:\.\d+){1,2})'/g;
@@ -267,27 +272,30 @@ function ensureMainHistory(root, { satisfied, head, fetchGit: fetcher = fetchGit
     fetcher(root, ['fetch', '--no-tags', ...steps[attempt], 'origin', ...wants]);
   }
 }
-/** Newest commit on the first-parent chain of `ref` whose seven blob ids all equal blobIds. */
-function findReleaseCommit(root, blobIds, ref = MAIN_REF) {
-  if (!refExists(root, ref)) return null;
+/** Every commit on the first-parent chain of `ref` whose seven blob ids all equal blobIds, newest first. */
+function releaseMatches(root, blobIds, ref = MAIN_REF) {
+  if (!refExists(root, ref)) return [];
   const chain = gitOut(root, ['rev-list', '--first-parent', ref, '--']).toString().split('\n').filter(Boolean);
-  if (!chain.length) return null;
+  if (!chain.length) return [];
   const input = chain.flatMap(c => RUNTIME_FILES.map(n => `${c}:${n}`)).join('\n') + '\n';
   const lines = gitOut(root, ['cat-file', '--batch-check=%(objectname) %(objecttype)'], { input }).toString().split('\n');
   if (lines.length !== chain.length * RUNTIME_FILES.length + 1) throw Error('Unexpected cat-file batch output');
-  for (let i = 0; i < chain.length; i++) {
-    const hit = RUNTIME_FILES.every((name, j) => {
-      const [oid, type] = lines[i * RUNTIME_FILES.length + j].split(' ');
-      return type === 'blob' && oid === blobIds[name];
-    });
-    if (hit) return chain[i];
-  }
-  return null;
+  return chain.filter((commit, i) => RUNTIME_FILES.every((name, j) => {
+    const [oid, type] = lines[i * RUNTIME_FILES.length + j].split(' ');
+    return type === 'blob' && oid === blobIds[name];
+  }));
+}
+/** Newest first-parent match of `ref`; with `head`, the newest match that is also an ancestor of head. */
+function findReleaseCommit(root, blobIds, ref = MAIN_REF, { head } = {}) {
+  const matches = releaseMatches(root, blobIds, ref);
+  if (head === undefined) return matches[0] || null;
+  // Along one first-parent chain ancestry is monotonic, so the first ancestor from the tip is the newest.
+  return matches.find(commit => isAncestor(root, commit, head)) || null;
 }
 
 // ---- R3: the live release ----
 const defaultSleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-/** GET one runtime file from the Pages site: no-store, no redirects, 200 only, 3 tries. */
+/** GET one runtime file from the Pages site: no-store, no redirects, 200 only, LIVE_TRIES tries. */
 async function fetchLiveFile(name, { fetchImpl = globalThis.fetch, sleep = defaultSleep } = {}) {
   if (!RUNTIME_FILES.includes(name)) throw Error('Not a runtime file: ' + name);
   let last;
@@ -303,7 +311,7 @@ async function fetchLiveFile(name, { fetchImpl = globalThis.fetch, sleep = defau
       return Buffer.from(await res.arrayBuffer());
     } catch (error) {
       last = error;
-      if (attempt < LIVE_TRIES) await sleep(500 * 2 ** (attempt - 1));
+      if (attempt < LIVE_TRIES) await sleep(LIVE_BACKOFF_MS[attempt - 1]);
     }
   }
   throw Error(`Live fetch failed after ${LIVE_TRIES} tries: ${name}: ${last && last.message}`);
@@ -322,9 +330,18 @@ function overrideRelease(root, value, head, env, fetcher) {
   return Object.freeze({ ...release, source: 'override-unverified', liveSHA256: null, liveFiles: null,
     packagedFiles: packageRelease(release) });
 }
-async function previousRelease(root, { fetchLive = fetchLiveFile, env = process.env, fetchGit: fetcher = fetchGit, mainRef = MAIN_REF } = {}) {
+/** `head` (a full commit id) replaces HEAD as the release PREV must be an ancestor of; only tests that
+ * replay a frozen historical pair pass it. */
+async function previousRelease(root, { fetchLive = fetchLiveFile, env = process.env, fetchGit: fetcher = fetchGit, mainRef = MAIN_REF, head: target } = {}) {
   root = path.resolve(root);
-  const head = resolveCommit(root, 'HEAD');
+  let head;
+  if (target === undefined) head = resolveCommit(root, 'HEAD');
+  else {
+    if (typeof target !== 'string' || !FULL_SHA.test(target)) throw Error('previousRelease head must be a full commit id: ' + JSON.stringify(target));
+    ensureObjects(root, [target], { fetchGit: fetcher });
+    head = resolveCommit(root, target);
+    if (head !== target) throw Error('previousRelease head does not name a commit: ' + target);
+  }
   const override = env.PAGES_PREV_COMMIT;
   if (override !== undefined && override !== '') return overrideRelease(root, override, head, env, fetcher);
   // 1. the seven live files
@@ -337,11 +354,12 @@ async function previousRelease(root, { fetchLive = fetchLiveFile, env = process.
   // 2-3. undo the namespace substitutions, then blob ids
   const blobIds = {};
   for (const [name, bytes] of live) blobIds[name] = gitBlobId(unpackageFile(name, bytes));
-  // 4-5. newest first-parent origin/main match that is an ancestor of HEAD
+  // 4-5. the newest first-parent origin/main match that is an ancestor of HEAD
   const prev = ensureMainHistory(root, { head, fetchGit: fetcher, satisfied: () => {
-    const found = findReleaseCommit(root, blobIds, mainRef);
-    if (!found) return { done: false, reason: 'Live release matches no first-parent commit on origin/main' };
-    if (!isAncestor(root, found, head)) return { done: false, reason: `Previous release ${found} is not an ancestor of HEAD ${head}` };
+    const matches = releaseMatches(root, blobIds, mainRef);
+    if (!matches.length) return { done: false, reason: 'Live release matches no first-parent commit on origin/main' };
+    const found = matches.find(commit => isAncestor(root, commit, head));
+    if (!found) return { done: false, reason: `Previous release ${matches[0]} is not an ancestor of HEAD ${head}` };
     return { done: true, value: found };
   } });
   const release = releaseAt(root, prev);
@@ -446,10 +464,10 @@ async function main(args) {
 
 module.exports = {
   RUNTIME_FILES, PAGES_ORIGIN, PAGES_PATH, PAGES_BASE, SAVE_NAMESPACE, CACHE_PREFIX, substitutions,
-  HARNESS_FILE, HARNESS_DOM_ANCHOR, HARNESS_DOM_PREFIX_SHA256, MAIN_REF, FROZEN_ESCAPE_FLAG,
+  HARNESS_FILE, HARNESS_DOM_ANCHOR, HARNESS_DOM_PREFIX_SHA256, MAIN_REF, FROZEN_ESCAPE_FLAG, LIVE_TRIES, LIVE_BACKOFF_MS,
   sha256, gitBlobId, cacheName, parseVersion, compareVersions,
   packageFile, verifyPackagedFile, unpackageFile, packageRelease,
-  releaseAt, currentRelease, ensureObjects, ensureMainHistory, findReleaseCommit, fetchGit,
+  releaseAt, currentRelease, ensureObjects, ensureMainHistory, releaseMatches, findReleaseCommit, fetchGit,
   fetchLiveFile, previousRelease, releaseDelta, newEscapeFlags, harnessDomPrefix, harnessDomPrefixOf,
   describeRelease, releasePairSync
 };

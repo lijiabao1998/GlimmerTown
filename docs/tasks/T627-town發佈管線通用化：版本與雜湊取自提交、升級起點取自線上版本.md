@@ -14,7 +14,7 @@
 
 ## 做法（照盤點出的計畫，七步，每步一個提交）
 
-1. 新模組 `tools/pages/release-identity.cjs`（＋測試）：七個執行檔名單、命名空間替換表、版本解析（`GAME_VER`＝`APP_VER`，各恰一處）、版本比較、`currentRelease`（雜湊取自 `git cat-file blob HEAD:<檔>`，工作樹必須與提交逐位相同）、`previousRelease`（抓線上七個檔、還原命名空間、在 main 第一父鏈上找七個 blob 都對得上的最新提交、必須是 HEAD 的祖先、打包後與線上逐位相同；每一步失敗就停，不默默退回）、`releaseDelta`（七檔有任何一個變了 → `sw.js` 必須變、版本必須升）。
+1. 新模組 `tools/pages/release-identity.cjs`（＋測試）：七個執行檔名單、命名空間替換表、版本解析（`GAME_VER`＝`APP_VER`，各恰一處）、版本比較、`currentRelease`（雜湊取自 `git cat-file blob HEAD:<檔>`，工作樹必須與提交逐位相同）、`previousRelease`（抓線上七個檔、還原命名空間、在 main 第一父鏈上找七個 blob 都對得上、且是 HEAD 祖先的最新提交（覆核後修正：原本先取最新的再驗祖先，main 上多一個不動執行檔的提交就讓所有落後的分支變紅）、打包後與線上逐位相同；每一步失敗就停，不默默退回）、`releaseDelta`（七檔有任何一個變了 → `sw.js` 必須變、版本必須升）。
 2. 「這一版」改取自提交：`build-main.mjs`、`browser-main.mjs`、`published-main.mjs` 與測試（版本／快取名照 `APP_VERSION`）。
 3. 升級測試改從線上版本升：刪掉反向補丁重建；沒有執行檔變動時記「不適用」並通過。
 4. `native603.js` 拆開：T603 的出處檢查只對凍結的 `4dd0fa4` 跑（歷史），結構檢查對現在的 `index.html` 跑。

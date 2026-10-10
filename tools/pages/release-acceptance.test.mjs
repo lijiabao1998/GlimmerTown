@@ -172,7 +172,7 @@ const mutations = {
   'incomplete original checks': r => { r.innerSummary.portability620.originalChecksComplete = false; },
   'historical failure erased': r => { r.innerSummary.portability620.historical[0].passed = true; },
   'wrong approved runtime': r => { r.innerSummary.native617.approvedRuntimeSHA256 = 'other'; },
-  'wrong original source': r => { r.innerSummary.portability620.captures[1].sourceSHA256 = native.IDENTITY.runtime; },
+  'wrong original source': r => { r.innerSummary.portability620.captures[1].sourceSHA256 = PAIR.current.runtime; },
   'wrong original version': r => { r.innerSummary.portability620.captures[1].identity.version = PAIR.current.version; },
   'wrong candidate version': r => { r.innerSummary.portability620.captures[0].identity.version = PAIR.previous.version; },
   'candidate served as the old document': r => { r.innerSummary.portability620.captures[1].identity.doc = 'candidate'; },
