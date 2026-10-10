@@ -8,13 +8,25 @@ const raw = fs.readFileSync(path.join(SCENES, 'scene603.js'), 'utf8'), built = p
 const clone = value => JSON.parse(JSON.stringify(value));
 const pinsOf = value => value.pins || Object.fromEntries(Object.entries(value).filter(([key]) => key !== '__meta'));
 const baseline = pinsOf(JSON.parse(fs.readFileSync(path.join(SCENES, 'fixtures/sprite-pins-v11.211.json'), 'utf8')));
-const source = require(path.join(SCENES, 'native603.js')).assertNativeSource603(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'));
+// T627: an injected frozen pair (329f660 old, 4dd0fa4 candidate) from git objects, so this validate
+// test is deterministic and never touches the live site or depends on what HEAD currently ships.
+const native603 = require(path.join(SCENES, 'native603.js'));
+const frozenPrevious = native603.frozenRelease603(native603.T602_LIVE_COMMIT);
+const source = native603.releaseBaseline603(native603.frozenT603Index(), undefined, frozenPrevious);
 const changedMap = () => { const map = clone(baseline), key = Object.keys(map)[0]; map[key][0] = map[key][0] === 'abcdef' ? 'abcdef0' : 'abcdef'; return map; };
 const failCheck = (value, message) => { if (!value) throw Error(message); };
 function temporary(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'native-portability-test-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true })); return dir;
 }
+
+test('fixture source is the injected frozen pair 329f660 -> 4dd0fa4 read from git objects', () => {
+  assert.equal(source.previousCommit, native603.T602_LIVE_COMMIT); assert.equal(source.previousVersion, '11.211');
+  assert.equal(source.baseSHA256, probe.BASE_SHA256); assert.equal(source.baseSHA256, frozenPrevious.sourcePins['index.html']);
+  assert.equal(mac.sha256(source.base), source.baseSHA256);
+  assert.equal(source.sourceSHA256, native603.APPROVED_NATIVE_SHA256);
+  assert.equal(source.base, native603.assertNativeSource603(native603.frozenT603Index()).base, 'historical inverse and frozen live release agree');
+});
 
 test('exact seven-edit allowlist reverses to reviewed T619 and only two assertions are deferred', () => {
   assert.equal(built.parentCommit, '16514fd27a2c143c0f0c79a3d08197150d72438f');
