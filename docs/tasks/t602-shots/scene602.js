@@ -12,6 +12,7 @@ fs.mkdirSync(OUT,{recursive:true});
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const pct=(a,p)=>[...a].sort((x,y)=>x-y)[Math.min(a.length-1,Math.floor(a.length*p))];
+const WARM626={mobile:30,desktop:40}; // T626：交錯暖畫每組樣本數
 const report={status:'running',baseSha:'bc2a064d387eab1320c63c338f54b79bacfa8bfc',checks:[],screenshots:[],headless:true,performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'};
 const check=(v,m)=>{if(!v)throw Error(m);report.checks.push(m);};
 const persist=()=>fs.writeFileSync(path.join(OUT,'scene602-summary.json'),JSON.stringify(report,null,2));
@@ -59,6 +60,8 @@ function bridge602(){
     shoreExpected:(x,y)=>{const p=w2v(x,y),wet=(a,b)=>{const q=v2w(p[0]+a,p[1]+b);return inMap(q[0],q[1])&&T(idx(q[0],q[1])).t===0;};const f=wet(1,0)||wet(0,1)||wet(1,1),l=wet(-1,0),r=wet(0,-1),c=wet(-1,-1);return {front:f,left:l,right:r,corner:c,want:f?-1:l&&r?2:l?0:r?1:c?2:-1};},
     shores:()=>{const water=(x,y)=>inMap(x,y)&&T(idx(x,y)).t===0,out={};for(let y=2;y<N-2;y++)for(let x=2;x<N-2;x++){const t=T(idx(x,y));if(t.t===0||t.bld||t.road||t.bridge||t.rail||t.tram)continue;const e=water(x+1,y),s=water(x,y+1),kind=e&&!s?'E':s&&!e?'S':e&&s?'ES':!water(x+1,y+1)&&(water(x-1,y)||water(x,y-1))?'back':null;if(kind&&!out[kind]&&!Object.values(out).some(p=>Math.abs(p[0]-x)+Math.abs(p[1]-y)<4))out[kind]=[x,y];}return out;},
     drawMs:()=>{const t=performance.now();GV.forceDraw();return performance.now()-t;},
+    clearDraw626:()=>{lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;const t=performance.now();GV.forceDraw();return performance.now()-t;}, // T626：清快取與冷畫同一次求值（中間不會插進遊戲幀先把圖烘好）
+    drawWarm626:()=>{waterT=0;const t=performance.now();GV.forceDraw();return performance.now()-t;}, // T626：量測的那一次不讓水面換幀（每 32 次換一幀會整張重建地面，與新圖無關）；兩次量測之間遊戲幀照常走水面
     trace:()=>{const calls=[],old=ctx.drawImage;ctx.drawImage=function(img,...args){calls.push({img,args});return old.call(this,img,...args);};try{GV.forceDraw();}finally{ctx.drawImage=old;}const out=[];for(const c of calls)for(const [key,s]of lotCache574)if(c.img===s.img){out.push({key,args:c.args});break;}return out;},
     imageHash:c=>{const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let h=0x811c9dc5;for(const b of a){h^=b;h=Math.imul(h,16777619)>>>0;}return h.toString(16);},
     pins:()=>{const tab=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;tab[n]=c;}const crc=c=>{const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let r=0xFFFFFFFF;for(const b of a)r=tab[(r^b)&255]^(r>>>8);return ((r^0xFFFFFFFF)>>>0).toString(16);},out={};for(const e of GV.sprAtlas356().entries){const p=[crc(e.img)];if(e.night)p.push(crc(e.night));if(e.nightCity)p.push(crc(e.nightCity));out[e.fam+'/'+e.key]=p;}return out;},
@@ -202,8 +205,14 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     report.mobilePerformance={};report.mobilePerformancePhaseContract='Same camera, steady visual phase; all real advance/update calls retained.';
     for(const [phase,time]of [['day',55],['night',100]]){
       const pair=report.mobilePerformance[phase]={};
-      for(const off of [true,false]){const mode=off?'baseline':'candidate',light=await ev('window.__noT602='+off+';__s602.clear();__s602.freezeVis('+time+')');const first=await ev('__s602.drawMs()'),before=await ev('__s602.cacheStats()'),warm=[];for(let i=0;i<10;i++)warm.push(await ev('__s602.drawMs()'));const after=await ev('__s602.cacheStats()'),frames=await raf(5000),last=await ev('__s602.cacheStats()');pair[mode]={light,first,warm,warmP95:pct(warm,.95),before,after,last,warmBakeDelta:after.bakes-before.bakes,rafBakeDelta:last.bakes-after.bakes,raf:frames};}
-      check(pair.candidate.warmP95<=pair.baseline.warmP95*1.5+5,'mobile '+phase+' same-light warm draw relative budget');
+      // T626：冷畫照舊各量一次；暖畫兩組都先預熱，再交錯量（每輪新舊各一次、先後每輪對調），比中位數與 p90（30 個樣本的 p95 會被「多一個尖峰」決定）
+      for(const off of [true,false]){const mode=off?'baseline':'candidate',light=await ev('window.__noT602='+off+';__s602.freezeVis('+time+')');const first=await ev('__s602.clearDraw626()');pair[mode]={light,first};}
+      for(const off of [true,false,true,false])await ev('window.__noT602='+off+';__s602.drawWarm626()');
+      {const warmB=[],warmC=[],before=await ev('__s602.cacheStats()');for(let i=0;i<WARM626.mobile;i++)for(const off of(i%2?[false,true]:[true,false])){const ms=await ev('window.__noT602='+off+';__s602.drawWarm626()');(off?warmB:warmC).push(ms);}const after=await ev('__s602.cacheStats()');
+       check(after.bakes===before.bakes,'mobile '+phase+' interleaved warm draws stay warm (both arms cached together; bakes '+before.bakes+'->'+after.bakes+')');
+       for(const [mode,warm] of [['baseline',warmB],['candidate',warmC]])Object.assign(pair[mode],{warm,warmP95:pct(warm,.95),warmMedian:pct(warm,.5),warmP90:pct(warm,.9),protocol:'T626 interleaved',before,after,warmBakeDelta:after.bakes-before.bakes});}
+      for(const off of [true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT602='+off+';true');const before=await ev('__s602.cacheStats()'),frames=await raf(5000),last=await ev('__s602.cacheStats()');Object.assign(pair[mode],{last,rafBakeDelta:last.bakes-before.bakes,raf:frames});}
+      check(pair.candidate.warmMedian<=pair.baseline.warmMedian*1.5+5&&pair.candidate.warmP90<=pair.baseline.warmP90*1.5+5,'mobile '+phase+' same-light warm draw relative budget (T626 interleaved median/p90)');
       check(pair.candidate.raf.p95<=pair.baseline.raf.p95*1.5+5&&pair.candidate.raf.frames>=Math.max(5,pair.baseline.raf.frames/2),'mobile '+phase+' same-light RAF relative budget');
     }
     await ev('window.__noT602=false;__s602.freezeVis(55);true');report.stabilityPhase='steady daylight55; same existing600-frame/5-second-gap gate';const stableState=await ev('__s602.scene()');report.stability=await raf(60000);check(report.stability.elapsed>=60000&&report.stability.frames>=600&&report.stability.max<5000,'one-minute visible RAF stability and liveness');check(stableState===await ev('__s602.scene()'),'one-minute paused city unchanged');
@@ -218,9 +227,15 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     check(report.matrix.length===192,'all 192 same-city season/light/rotation/distance scenes');
     // setSeason is a simulation test API and writes day. Restore explicitly.
     await ev('GV.setDay('+originalDay+');true');report.visualStateUnchanged=state===await ev('__s602.scene()');check(report.visualStateUnchanged,'visual-only city data unchanged after restoring test calendar');
-    report.performance={};report.performanceLimits={coldRatio:2,coldAddMs:250,warmP95Ratio:1.5,warmAddMs:5,rafP95Ratio:1.5,rafAddMs:5};
-    const focus=report.census[53][0];for(const off of[true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT602='+off+';true');await camera(focus[0]+3,focus[1]+3,1,0,1,55,false);await ev('__s602.clear();true');const cold=await ev('__s602.drawMs()'),warm=[];for(let i=0;i<30;i++)warm.push(await ev('__s602.drawMs()'));report.performance[mode]={cold,warm,warmP95:pct(warm,.95),raf:await raf(5000)};}
-    const b=report.performance.baseline,c=report.performance.candidate;check(c.cold<=b.cold*2+250,'cold draw relative budget');check(c.warmP95<=b.warmP95*1.5+5,'warm draw p95 relative budget');check(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=50,'foreground headless RAF relative budget');
+    report.performance={};report.performanceLimits={coldRatio:2,coldAddMs:250,warmMedianRatio:1.5,warmP90Ratio:1.5,warmAddMs:5,rafP95Ratio:1.5,rafAddMs:5,warmSamples:WARM626,warmProtocol:'T626 interleaved, both arms prewarmed, water frame pinned during measured draws, zero bakes required'};
+    const focus=report.census[53][0];for(const off of[true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT602='+off+';true');await camera(focus[0]+3,focus[1]+3,1,0,1,55,false);const cold=await ev('__s602.clearDraw626()');report.performance[mode]={cold};}
+    // T626：暖畫交錯量（兩組先預熱；每輪新舊各一次、先後每輪對調），比中位數與 p90；冷畫、RAF 照舊
+    for(const off of [true,false,true,false])await ev('window.__noT602='+off+';__s602.drawWarm626()');
+    {const warmB=[],warmC=[],before=await ev('__s602.cacheStats()');for(let i=0;i<WARM626.desktop;i++)for(const off of(i%2?[false,true]:[true,false])){const ms=await ev('window.__noT602='+off+';__s602.drawWarm626()');(off?warmB:warmC).push(ms);}const after=await ev('__s602.cacheStats()');
+     check(after.bakes===before.bakes,'desktop interleaved warm draws stay warm (both arms cached together; bakes '+before.bakes+'->'+after.bakes+')');report.performance.warmBakeDelta=after.bakes-before.bakes;
+     for(const [mode,warm] of [['baseline',warmB],['candidate',warmC]])Object.assign(report.performance[mode],{warm,warmP95:pct(warm,.95),warmMedian:pct(warm,.5),warmP90:pct(warm,.9),protocol:'T626 interleaved'});}
+    for(const off of[true,false]){const mode=off?'baseline':'candidate';await ev('window.__noT602='+off+';true');report.performance[mode].raf=await raf(5000);}
+    const b=report.performance.baseline,c=report.performance.candidate;check(c.cold<=b.cold*2+250,'cold draw relative budget');check(c.warmMedian<=b.warmMedian*1.5+5&&c.warmP90<=b.warmP90*1.5+5,'warm draw relative budget (T626 interleaved median/p90)');check(c.raf.p95<=b.raf.p95*1.5+5&&c.raf.frames>=50,'foreground headless RAF relative budget');
     await ev('window.__noT602=false;true');
     // Natural shoreline evidence, including front-water fallback after rotation.
     await ev('GV.newWorldSeeded(601);GV.ai(false);GV.setSpeed(0);true');const shores=await ev('__s602.shores()');check(shores.back&&shores.E&&shores.S,'natural rear/east/south shores found');for(const p of Object.values(shores))await ev('__s602.single(97,'+p+');true');report.shore=[];
