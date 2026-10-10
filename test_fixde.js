@@ -498,6 +498,7 @@ window.__t601T={rep:()=>window.__t601,reg:()=>Object.keys(ART601).filter(k=>k!==
   facs:()=>({4:art601_k4,5:art601_k5,8:art601_k8,60:art601_k60,63:art601_k63,66:art601_k66,81:art601_k81,97:art601_k97}),art:k=>ART601[k],
   clearLots:()=>{lotCache574.clear();lotCachePixels574=0;},scr:(x,y)=>[_sx413(x,y),_sy413(x,y),cam.z],
   snow:on=>{rainDays=on?SNOW_ACC_DAYS+3:0;return rainDays;}}; // T601 測試橋：S21 回報、登記表、挑款、烘焙、園區取圖、k5／單格表、舊公園家族、倒影、S21 重跑、掛點、drawImage 錄影、ctx 呼叫錄影、樣張工廠、登記物件、清園區快取、格→螢幕、雪量
+window.__t629T={start:(f,g)=>{tweenHud={money:f.money,pop:f.pop,jobs:f.jobs};tweenHudTarget={money:g.money,pop:g.pop,jobs:g.jobs};tweenHudStart();},val:()=>({money:tweenHud.money,pop:tweenHud.pop,jobs:tweenHud.jobs})}; // T629 測試橋：設定 HUD 補間起點／目標並啟動、讀目前顯示值
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
@@ -6304,6 +6305,23 @@ runPwaTests().then(() => {
       'T423 R01 HUD tween 寫入：動畫只寫 textContent（顯示層），不碰模擬變數');
     assert(!/updHud\(\).*?tick\(\)/s.test(html.slice(iUpd423,iUpd423+600)),
       'T423 R01 HUD 純顯示：updHud 內不得呼叫 tick（UI 不得觸發模擬）');
+  }
+
+  { // ===== T629 守衛：HUD 補間進度夾在 0–1（rAF 時間戳早於起點時不得外推成負值） =====
+    const T9=window.__t629T,raf0=global.requestAnimationFrame,caf0=global.cancelAnimationFrame;let cb629=null;
+    try{
+      global.requestAnimationFrame=f=>{cb629=f;return 1;};global.cancelAnimationFrame=()=>{};
+      const t0=performance.now();T9.start({money:1000,pop:200,jobs:300},{money:5000,pop:900,jobs:100});
+      const step=cb629;assert(typeof step==='function','T629 G0 補間有排進 requestAnimationFrame');
+      const inRange=v=>v.money>=1000&&v.money<=5000&&v.pop>=200&&v.pop<=900&&v.jobs>=100&&v.jobs<=300;
+      step(t0-5000);const early=T9.val();
+      assert(early.money===1000&&early.pop===200&&early.jobs===300,'T629 G1 rAF 時間戳早於補間起點 5 秒（長幀／背景分頁）：顯示值停在起點、不外推成負數：'+JSON.stringify(early));
+      step(t0+175);const mid=T9.val();
+      assert(inRange(mid)&&mid.money>1000&&mid.money<5000&&mid.pop>200&&mid.pop<900&&mid.jobs<300&&mid.jobs>100,'T629 G2 補間中途介於起點與目標之間：'+JSON.stringify(mid));
+      step(t0+10000);const end=T9.val();
+      assert(end.money===5000&&end.pop===900&&end.jobs===100,'T629 G3 補間結束停在目標：'+JSON.stringify(end));
+    }finally{global.requestAnimationFrame=raf0;global.cancelAnimationFrame=caf0;}
+    assert(html.split('const k=Math.max(0,Math.min(1,(now-t0)/dur)),e=1-Math.pow(1-k,3);').length===2,'T629 G4 原文：補間進度夾在 0–1');
   }
 
   { // ===== T423 R02 守衛：統一面板頭＋空態（面板現代化） =====
