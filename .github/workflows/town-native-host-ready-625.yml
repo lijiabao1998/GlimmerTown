@@ -1,0 +1,67 @@
+name: Town T625 bounded native startup readiness
+on:
+  push:
+    branches: [gpt/town-native-host-ready-625]
+permissions:
+  contents: read
+concurrency:
+  group: town-native-host-ready-625
+  cancel-in-progress: false
+jobs:
+  source-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact failed diagnostic parent and four added preparation files only
+        run: |
+          node <<'NODE'
+          const {execFileSync}=require('node:child_process');
+          const assert=require('node:assert/strict');
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const base='689545e5d8f205a16f5e67704edfaaf01aca230e';
+          assert.equal(git('rev-list','--parents','-n','1','HEAD').split(/\s+/).length,2);
+          assert.equal(git('rev-parse','HEAD^'),base);
+          const expected=['.github/workflows/town-native-host-ready-625.yml','tools/pages/NATIVE-HOST-READY625.md','tools/pages/native-host-ready625.cjs','tools/pages/native-host-ready625.test.cjs'].sort();
+          const rows=git('diff','--name-status',base,'HEAD').split('\n').map(row=>row.split('\t'));
+          assert(rows.every(row=>row.length===2&&row[0]==='A'));
+          assert.deepEqual(rows.map(row=>row[1]).sort(),expected);
+          assert.equal(Number(process.env.GITHUB_RUN_ATTEMPT),1);
+          console.log('Exact failed diagnostic parent and four preparation-only additions verified');
+          NODE
+          node tools/pages/native-correctness.cjs --self-test
+          node tools/pages/native-correctness.cjs --check-overlay
+          node tools/pages/mobile-warm-trace623.cjs --check-overlay
+          node tools/pages/native-host-ready625.cjs --check-overlay
+          node --test tools/pages/native-mac-diagnostic.test.cjs tools/pages/native-portability-diagnostic.test.cjs tools/pages/mobile-warm-trace623.test.cjs tools/pages/native-host-ready625.test.cjs
+  mobile-night-trace:
+    needs: source-gate
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Start total diagnostic resource clock
+        run: echo "T619_JOB_START_MS=$(node -p 'Date.now()')" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Two focused cold and warm captures with cumulative bounds
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+        run: |
+          set -o pipefail
+          mkdir -p evidence/mobile-warm-trace
+          node tools/pages/native-host-ready625.cjs --out=evidence/mobile-warm-trace | tee evidence/mobile-warm-trace.log
+      - name: Preserve original failure and diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-native-host-ready-625-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
