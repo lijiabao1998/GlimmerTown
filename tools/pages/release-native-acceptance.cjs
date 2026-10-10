@@ -8,7 +8,7 @@ const ROOT = path.resolve(__dirname, '../..');
 // T627: only the reviewed T620 adapter is pinned here. The runtime under test is HEAD's committed index.html/sw.js
 // and the old document is the release the live site serves; supervise() resolves that pair itself (or takes an
 // injected one in tests) and the inner evidence must be about exactly the same pair.
-const IDENTITY = Object.freeze({ portabilityAdapter: '4278d4557cca33e01721ce7bb3f00719f680538434427117e0ec55ee8b76a3f6' });
+const IDENTITY = Object.freeze({ portabilityAdapter: 'a5e07c818c5a58a2c8fd9da0d1359b697d3c023ee7abf63ba14b06e7411cc0d4' });
 const SHA256 = /^[0-9a-f]{64}$/;
 const LIMITATION = 'Acceptance is limited to the user-approved Linux-correctness/native-original-timing release policy. Historical native CRC failures and prior Linux timing failures remain failures. CRC-map equality is not exhaustive per-sprite RGBA equality. Native foreground is checked at boundaries with a passive loss latch; the changed boot/readback protocol establishes neither Metal causality, physical-device 55 FPS, nor active-gameplay speedup. Linux correctness remains separately required.';
 const LIMITS = Object.freeze({ coldRatio: 2, coldAddMs: 250, warmP95Ratio: 1.5, warmAddMs: 5, rafP95Ratio: 1.5, rafAddMs: 5 });
