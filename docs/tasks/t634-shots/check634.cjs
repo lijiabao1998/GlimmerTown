@@ -43,9 +43,9 @@ const BLOCK=SOURCE.slice(bi+START.length,ei).trim();
 function canvas(w,h){const c=createCanvas(w,h),g=c.getContext('2d');g.imageSmoothingEnabled=false;return[c,g];}
 function makeAPI(options={}){
  const win={},location={search:options.search||''},state={sea:0,alloc:0,rng:0,legacyCalls:[],canvases:[]};
- const cv=(w,h)=>{state.alloc++;const pair=canvas(w,h);state.canvases.push(pair[0]);return pair;},rng=()=>{state.rng++;fail('G07_RNG','rendering consumed a random stream');},safeMath=Object.create(Math);safeMath.random=rng;
+ const cv=(w,h)=>{state.alloc++;if(options.noArt)fail('G11_SMOKE_PURITY','smoke ordering attempted canvas allocation');const pair=canvas(w,h);state.canvases.push(pair[0]);return pair;},rng=()=>{state.rng++;fail('G07_RNG','rendering consumed a random stream');},safeMath=Object.create(Math);safeMath.random=rng;
  const fixture=(which,k,v,stage,winter)=>{state.legacyCalls.push({which,k,v,stage,winter});const[c,g]=cv(96,120),[nc,ng]=cv(96,120);g.fillStyle='#897252';g.fillRect(8,8,80,110);ng.fillStyle='#e9cb8f';ng.fillRect(20,20,3,4);return{img:c,night:nc,w:96,h:120,ax:48,ay:112,lotMeta574:{sz:BASE_PLAN[k][1],kind:k,variant:v,stage,winter,hooks:{smoke:[[30,22]],steam:[[50,32]],sign:[62,42],work:[20,26,10,5]}}};};
- const body=helpers+'\n'+(options.block||BLOCK)+'\nreturn {bake:bake634,spr:spr634,on:t634On,variant:v634,legacy:legacyArt634,reg:ART634,rcis:RCI_CATALOG634,remain:REMAIN634,legacyIds:LEGACY634,cache:CACHE634,stats:STAT634,limit:LIMIT634};';
+ const body=helpers+'\n'+(options.block||BLOCK)+'\nreturn {bake:bake634,spr:spr634,on:t634On,variant:v634,legacy:legacyArt634,reg:ART634,rcis:RCI_CATALOG634,remain:REMAIN634,legacyIds:LEGACY634,cache:CACHE634,stats:STAT634,limit:LIMIT634,orderSmoke:orderSmoke634};';
  const names=['cv','season','clamp','window','location','Math','R','ri','rand','spriteTexRand','LOT_PLAN574','LOT603','LOT602','bakeArt601','bakeArt602','bakeArt603'];
  const api=new Function(...names,body)(cv,()=>state.sea,(x,a,b)=>Math.max(a,Math.min(b,x)),win,location,safeMath,rng,rng,rng,rng,BASE_PLAN,new Set([29,85,88,92]),new Set([53,104,117]),(...a)=>fixture(601,...a),(...a)=>fixture(602,...a),(...a)=>fixture(603,...a));
  const release=(keep=[])=>{const retained=new Set(keep);for(const c of state.canvases)if(!retained.has(c)){c.width=1;c.height=1;}state.canvases=state.canvases.filter(c=>retained.has(c));};return {...api,win,state,release};
@@ -65,6 +65,26 @@ function checkSprite(s,k,n,label,requireLight=true){
 }
 function unique(rows,code='G04_RCI_DISTINCT'){const seen=new Map();for(const r of rows){need(!seen.has(r.hash),code,r.key+' duplicates '+seen.get(r.hash));seen.set(r.hash,r.key);}}
 function immovable(obj){return new Proxy(Object.freeze(obj),{set(){fail('G07_STATE_WRITE','bd set');},deleteProperty(){fail('G07_STATE_WRITE','bd delete');},defineProperty(){fail('G07_STATE_WRITE','bd define');}});}
+/* 獨立煙序真值：以物件身分和手寫次序驗本體→煙→前景，不拿 renderer 的排序當答案。 */
+function smokeReadonly634(value,label='object'){
+ if(!value||typeof value!=='object')return value;
+ for(const key of Object.keys(value))value[key]=smokeReadonly634(value[key],label+'.'+key);
+ return new Proxy(Object.freeze(value),{set(){fail('G07_STATE_WRITE',label+' set');},deleteProperty(){fail('G07_STATE_WRITE',label+' delete');},defineProperty(){fail('G07_STATE_WRITE',label+' define');}});
+}
+function smokeRoot634(id,x,y,k,sz,extra={}){return smokeReadonly634({id,x,y,dep:40-x,t:{bld:{k,...(sz===undefined?{}:{sz}),v:0,age:12,pw:1,...extra}}},id);}
+function smokeParticle634(id,x,y,sz,extra={}){return smokeReadonly634({id,dep:-10,smoke:{wx:21,wy:32,age:0,life:2.8,col:'#c9ccc4',big:false,dep:7,...(x===undefined?{}:{lot574:{x,y,sz,dx:2,dy:-30}}),...extra}},id);}
+function smokeBirth634(k=3,n=1){
+ const root=smokeRoot634('root',4,7,k,n),front=smokeRoot634('foreground',5,9,4,1),back=smokeReadonly634({id:'background',dep:90,ped:{at:2}}),p=smokeParticle634('birth',4,7,n);
+ return {input:[p,back,root,front],expected:[back,root,p,front]};
+}
+function checkSmokeOrder634(a,input,expected,label,off=false){
+ const original=input.slice(),snapshots=original.map(o=>JSON.stringify(o)),before=JSON.stringify(a.stats),alloc=a.state.alloc,rng=a.state.rng,cache=a.cache.size;
+ const result=a.orderSmoke(input);
+ if(off)need(result===input,'G06_FLAGS',label+' did not return original array');
+ need(input.length===expected.length&&input.every((o,i)=>o===expected[i]),'G11_SMOKE_ATTACHMENT',label+' expected '+expected.map(o=>o.id).join(',')+'; got '+input.map(o=>o.id).join(','));
+ need(original.every((o,i)=>JSON.stringify(o)===snapshots[i]),'G07_STATE_WRITE',label+' mutated building, particle, drift, age or color');
+ need(a.state.alloc===alloc&&a.state.rng===rng&&JSON.stringify(a.stats)===before&&a.cache.size===cache,'G11_SMOKE_PURITY',label+' allocated/baked art, used random or touched the sprite cache');
+}
 function test(name,run){try{const detail=run();report.passed.push({name,detail:detail||true});console.log('PASS '+name);}catch(e){report.failed.push({name,guard:e.guard||'UNEXPECTED',message:e.message});console.error('FAIL '+name+': '+e.message);}}
 function red(name,guard,run){try{run();report.negativeControls.push({name,passed:false,expected:guard,actual:'no failure'});fail('G10_RED_CONTROL',name+' did not fail');}catch(e){if(e.guard===guard){report.negativeControls.push({name,passed:true,firstGuard:e.guard});return;}if(e.guard==='G10_RED_CONTROL')throw e;report.negativeControls.push({name,passed:false,expected:guard,actual:e.guard||e.message});throw e;}}
 const api=makeAPI();
@@ -74,6 +94,30 @@ test('Default-off, strict opt-in, both escape valves, and no cold rendering',()=
  for(const search of['','?T634=0','?T634=10','?xT634=1','?T634=1&noT634=1','?noT634&T634=1']){const a=makeAPI({search});need(a.on()===false,'G06_FLAGS','unexpected opt-in '+search);a.win.__t634={};need(a.on()===false,'G06_FLAGS','truthy object enabled candidate');for(const k of[1,3,22,8,53])need(a.spr(immovable({k,lv:2,v:1,we:1}),4,5)===null,'G06_FLAGS','default returned candidate');need(a.state.alloc===0&&a.stats.bakes===0&&a.cache.size===0,'G06_FLAGS','default path allocated art');}
  for(const search of['?T634=1','?x=1&T634=1','?T634=1&noT634=0']){const a=makeAPI({search});need(a.on()===true,'G06_FLAGS','explicit opt-in failed');a.win.__noT634=true;need(a.on()===false&&a.spr({k:1,lv:1,v:0})===null,'G06_FLAGS','runtime escape failed');}
  const a=makeAPI();a.win.__t634=true;need(a.on()===true,'G06_FLAGS','runtime opt-in failed');a.win.__noT634=true;need(a.spr({k:1,lv:1,v:0})===null,'G06_FLAGS','runtime escape did not win');return'12 URL/runtime cases plus no-allocation reads';
+});
+test('Candidate smoke attaches after actual n1/n3 owners and before foreground without side effects',()=>{
+ const a=makeAPI({search:'?T634=1',noArt:true});let cases=0;
+ for(const k of[3,58,53])for(const n of[1,3]){const f=smokeBirth634(k,n);checkSmokeOrder634(a,f.input,f.expected,'k'+k+'/n'+n);checkSmokeOrder634(a,f.input,f.expected,'idempotent k'+k+'/n'+n);cases+=2;}
+ const rootA=smokeRoot634('A-default-n1',4,7,3),rootB=smokeRoot634('B-n3',14,17,58,3),rootC=smokeRoot634('C-legacy-n1',24,27,53,1),front=smokeRoot634('foreground',15,21,4,1);
+ const a1=smokeParticle634('A-first',4,7,1),a2=smokeParticle634('A-second',4,7,1,{age:1.1,wx:29,wy:9,col:'#e1e7e3',big:true}),b1=smokeParticle634('B-first',14,17,3),b2=smokeParticle634('B-second',14,17,3),c1=smokeParticle634('C-first',24,27,1),world=smokeParticle634('world'),ped=smokeReadonly634({id:'pedestrian',dep:500,ped:{at:2}});
+ const input=[b1,a1,world,rootA,ped,c1,rootB,a2,front,rootC,b2],expected=[world,rootA,a1,a2,ped,rootB,b1,b2,front,rootC,c1];
+ checkSmokeOrder634(a,input,expected,'interleaved owners and stable particle order');cases++;
+ const zero=smokeRoot634('zero-size-fallback',30,31,3,0),z=smokeParticle634('zero-size-smoke',30,31,1);checkSmokeOrder634(a,[z,zero,front],[zero,z,front],'bd.sz || 1 fallback');cases++;
+ const source=fn('orderSmoke634');need(!/\b(?:cv|bake634|legacyArt634|getContext|getImageData|putImageData)\s*\(/.test(source),'G11_SMOKE_PURITY','ordering includes canvas/baking work');
+ need(/lotObjectOrder574\(objs\);[^\n]*\n\s*orderSmoke634\(objs\);/.test(fn('draw')),'G11_SMOKE_ATTACHMENT','draw does not apply candidate attachment immediately after existing lot ordering');
+ return{cases,owners:'k3, k58, legacy k53',footprints:[1,3],allocation:a.state.alloc,randomCalls:a.state.rng};
+});
+test('Smoke ordering preserves default-off, escape valves, protected roots and unmatched particles',()=>{
+ let disabled=0;for(const [search,flags]of[['',{}],['?T634=0',{}],['?T634=10',{}],['?xT634=1',{}],['?T634=1&noT634=1',{}],['?noT634&T634=1',{}],['',{__t634:{}}],['?T634=1',{__noT634:true}],['',{__t634:true,__noT634:true}]]){
+  const a=makeAPI({search,noArt:true});Object.assign(a.win,flags);const f=smokeBirth634();checkSmokeOrder634(a,f.input,f.input.slice(),'disabled '+search,true);disabled++;
+ }
+ const a=makeAPI({search:'?T634=1',noArt:true}),candidate=smokeRoot634('candidate',4,7,3,1),protectedRoot=smokeRoot634('protected-k5',14,17,5,3),trueLot=smokeRoot634('true-lot',24,27,58,3,{lot574:true}),legacyLot=smokeRoot634('legacy-true-lot',34,37,53,3,{lot574:true}),ref=smokeRoot634('ref',44,47,3,1,{ref:1}),front=smokeRoot634('foreground',7,10,4,1);
+ const protectedSmoke=smokeParticle634('protected-smoke',14,17,3),lotSmoke=smokeParticle634('true-lot-smoke',24,27,3),legacySmoke=smokeParticle634('legacy-lot-smoke',34,37,3),refSmoke=smokeParticle634('ref-smoke',44,47,1),wrongSize=smokeParticle634('wrong-size',4,7,3),wrongX=smokeParticle634('wrong-x',5,7,1),wrongY=smokeParticle634('wrong-y',4,8,1),absent=smokeParticle634('absent-root',54,57,1),world=smokeParticle634('world-smoke'),riot=smokeParticle634('riot-smoke',undefined,undefined,undefined,{riot:true,col:'#4c4b49'}),good=smokeParticle634('candidate-smoke',4,7,1);
+ const untouched=[protectedSmoke,lotSmoke,legacySmoke,refSmoke,wrongSize,wrongX,wrongY,absent,world,riot,candidate,front,protectedRoot,trueLot,legacyLot,ref];
+ checkSmokeOrder634(a,untouched.slice(),untouched,'all excluded ownership paths');
+ const input=[good,...untouched],expected=[...untouched.slice(0,11),good,...untouched.slice(11)];checkSmokeOrder634(a,input,expected,'eligible smoke mixed with all excluded paths');
+ checkSmokeOrder634(a,[],[],'empty array');const runtime=makeAPI({noArt:true});runtime.win.__t634=true;const f=smokeBirth634();checkSmokeOrder634(runtime,f.input,f.expected,'runtime opt-in');
+ return{disabled,excludedCases:10,mixedOwners:6,canvasAllocations:a.state.alloc};
 });
 test('Four seasons, snow/no-snow, wealth, geometry, night occlusion, hooks and distinct designs',()=>{
  const groups=new Map();let rci=0,facilities=0;
@@ -114,6 +158,9 @@ test('Negative controls first fail at their intended behavioral guards',()=>{
  red('Draw residential v1 as v0','G04_RCI_DISTINCT',()=>{const a=makeAPI(),draw=a.reg[1].draw;a.reg[1].draw=T=>draw({...T,v:0});const rows=[0,1].map(v=>({key:'1_1_'+v,hash:checkSprite(a.bake(1,v,1,1,1,2,false,1),1,1,'duplicate').hash}));unique(rows);});
  red('Inject orphan night pixel','G03_ORPHAN_LIGHT',()=>{const a=makeAPI(),s=a.bake(1,0,1,1,1,2,false,1);s.night.getContext('2d').fillStyle='#fff';s.night.getContext('2d').fillRect(0,0,1,1);checkSprite(s,1,1,'orphan mutation');});
  red('Consume Math.random in rendering','G07_RNG',()=>{const bad=BLOCK.replace('draw(T){drawRCI634(T);}','draw(T){Math.random();drawRCI634(T);}');need(bad!==BLOCK,'G00_HARNESS','random mutation anchor absent');makeAPI({block:bad}).bake(1,0,1);});
+ red('Remove candidate smoke attachment','G11_SMOKE_ATTACHMENT',()=>{const old=fn('orderSmoke634',BLOCK),bad=BLOCK.replace(old,'function orderSmoke634(objs){return objs;}');need(bad!==BLOCK,'G00_HARNESS','smoke attachment mutation anchor absent');const a=makeAPI({block:bad,search:'?T634=1',noArt:true}),f=smokeBirth634();checkSmokeOrder634(a,f.input,f.expected,'missing attachment');});
+ red('Allocate art while ordering smoke','G11_SMOKE_PURITY',()=>{const old=fn('orderSmoke634',BLOCK),bad=BLOCK.replace(old,old.replace('{','{cv(1,1);'));need(bad!==BLOCK,'G00_HARNESS','smoke allocation mutation anchor absent');const a=makeAPI({block:bad,search:'?T634=1',noArt:true}),f=smokeBirth634();checkSmokeOrder634(a,f.input,f.expected,'allocation mutation');});
+ red('Mutate particle age while ordering smoke','G07_STATE_WRITE',()=>{const old=fn('orderSmoke634',BLOCK),bad=BLOCK.replace(old,old.replace('{','{objs[0].smoke.age++;'));need(bad!==BLOCK,'G00_HARNESS','smoke state mutation anchor absent');const a=makeAPI({block:bad,search:'?T634=1',noArt:true}),f=smokeBirth634();checkSmokeOrder634(a,f.input,f.expected,'age mutation');});
  red('Omit ferris-wheel anchor','G05_REQUIRED_HOOK',()=>{const a=makeAPI(),s=a.bake(76,0,BASE_PLAN[76][1]);delete s.lotMeta574.hooks.wheel;checkSprite(s,76,BASE_PLAN[76][1],'wheel mutation');});
  return{controls:report.negativeControls.length};
 });

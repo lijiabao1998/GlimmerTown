@@ -3,6 +3,17 @@ const REMAIN634=new Set([1,2,3,9,16,22,24,25,26,27,31,45,46,49,50,51,54,57,58,59
 const LEGACY634=new Set([8,29,53,60,63,66,85,88,92,104,117]);
 function t634On(){if(t634On.u===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t634On.u=/(?:^|[?&])T634=1(?:&|$)/.test(q);t634On.off=/(?:^|[?&])noT634(?:=1)?(?:&|$)/.test(q);}return !window.__noT634&&!t634On.off&&(window.__t634===true||t634On.u);}
 function v634(k,x,y,bd){if(k<=3)return ((bd.v|0)%12+12)%12;return bd.v?((bd.v|0)%3+3)%3:Math.min(2,Math.floor(hashLocal590(x|0,y|0,k*131+634)*3));}
+/* T634 舊足跡的煙粒跟在所屬本體之後，仍在前景鄰樓之前；不改任何粒子/建築欄位。 */
+function orderSmoke634(objs){
+  if(!t634On()||!objs.some(o=>o.smoke&&o.smoke.lot574))return objs;
+  const owners=new Map(),attached=new Set();
+  for(const o of objs){const b=o.t&&o.t.bld;if(b&&!b.ref&&!b.lot574&&(REMAIN634.has(b.k)||LEGACY634.has(b.k)))owners.set(o.x+','+o.y,{node:o,sz:b.sz||1,after:[]});}
+  for(const o of objs){const q=o.smoke&&o.smoke.lot574,owner=q&&owners.get(q.x+','+q.y);if(owner&&owner.sz===q.sz){owner.after.push(o);attached.add(o);}}
+  if(!attached.size)return objs;
+  const after=new Map([...owners.values()].filter(r=>r.after.length).map(r=>[r.node,r.after])),out=[];
+  for(const o of objs)if(!attached.has(o)){out.push(o);const children=after.get(o);if(children)for(const child of children)out.push(child);}
+  for(let i=0;i<out.length;i++)objs[i]=out[i];return objs;
+}
 const CACHE634=new Map(),STAT634={bakes:0,hits:0,fail:0,pixels:0},LIMIT634={entries:192,pixels:16000000};
 function kit634(T){
   const {g,ng,P,quad,poly,line,ell,LIT,box,occlude}=T,W=T.winter,sea=T.sea;

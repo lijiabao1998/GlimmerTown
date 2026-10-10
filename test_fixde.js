@@ -11266,8 +11266,8 @@ runPwaTests().then(() => {
   const old={wx:7,wy:666,age:0};A.farmSmoke(old,{k:53,v:0,sz:5},20,20,26);
   assert(JSON.stringify(old)==='{"wx":7,"wy":666,"age":0}','T574 G14f 舊農場煙粒逐欄不變');
   const draw574=html.slice(html.indexOf('/* ===== T368a 公園有人'),html.indexOf('/* ===== T368c 魚躍'));
-  assert((draw574.match(/lotGround574\(/g)||[]).length===3&&(draw574.match(/t\.bld\.lot574\?_iso[2]?\[2\]/g)||[]).length===3,
-    'T574 G14g 孩童／狗／主人三條實際推送皆用園內座標和園區深度，不得只留未呼叫helper');
+  assert((draw574.match(/lotGround574\(/g)||[]).length===5&&(draw574.match(/\(t634On\(\)&&t\.bld\.k===92\)\?lotGround574\(x,y,t\.bld\.sz\|\|1,/g)||[]).length===2&&(draw574.match(/t\.bld\.lot574\?_iso[2]?\[2\]/g)||[]).length===3,
+    'T574 G14g 原三條園內座標與深度推送保留，另恰兩條T634舊狗公園實際足跡座標，不得只留未呼叫helper');
 }
 /* T574 G15 rendered night contracts */
 {
