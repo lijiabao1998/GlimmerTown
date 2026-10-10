@@ -1,0 +1,243 @@
+{
+ "gpu": "{\"code\":-32000,\"message\":\"SystemInfo.getInfo is only supported on the browser target\"}",
+ "stats": {
+  "money": 3418,
+  "pop": 2397,
+  "jobs": 5549,
+  "day": 421,
+  "buildings": 2557,
+  "poweredBld": 956,
+  "roads": 728,
+  "zones": 746,
+  "happy": 0.57,
+  "dem": {
+   "1": 0.6899141213629586,
+   "2": 0.7217125382262997,
+   "3": 1
+  },
+  "cars": 0,
+  "fires": 0,
+  "ruins": 0,
+  "weather": 0,
+  "buses": 0
+ },
+ "census": {
+  "k53": 11,
+  "k104": 3,
+  "k117": 2
+ },
+ "runs": [
+  {
+   "vp": "mobile",
+   "light": "day",
+   "mode": "baseline",
+   "cold": 6.5,
+   "med": 6.2,
+   "p95": 6.9,
+   "max": 6.9,
+   "bakesDuringWarm": 0,
+   "warm": [
+    6.4,
+    6.2,
+    5.7,
+    6.9,
+    6.1
+   ],
+   "top": null,
+   "bk": {
+    "n": 0,
+    "ms": 0,
+    "top": []
+   }
+  },
+  {
+   "vp": "mobile",
+   "light": "day",
+   "mode": "candidate",
+   "cold": 15.4,
+   "med": 9.2,
+   "p95": 19.5,
+   "max": 19.5,
+   "bakesDuringWarm": 0,
+   "warm": [
+    8,
+    7.7,
+    9.2,
+    19.5,
+    11.3
+   ],
+   "top": null,
+   "bk": {
+    "n": 0,
+    "ms": 0,
+    "top": []
+   }
+  },
+  {
+   "vp": "mobile",
+   "light": "night",
+   "mode": "baseline",
+   "cold": 20.7,
+   "med": 30.4,
+   "p95": 39.6,
+   "max": 39.6,
+   "bakesDuringWarm": 0,
+   "warm": [
+    19.3,
+    39.6,
+    28.3,
+    30.4,
+    36.1
+   ],
+   "top": null,
+   "bk": {
+    "n": 0,
+    "ms": 0,
+    "top": []
+   }
+  },
+  {
+   "vp": "mobile",
+   "light": "night",
+   "mode": "candidate",
+   "cold": 189.1,
+   "med": 22.2,
+   "p95": 23.8,
+   "max": 23.8,
+   "bakesDuringWarm": 0,
+   "warm": [
+    22.2,
+    23.8,
+    13.7,
+    15.9,
+    22.7
+   ],
+   "top": null,
+   "bk": {
+    "n": 23,
+    "ms": 114.6,
+    "top": [
+     "8:27",
+     "63:22",
+     "66:14",
+     "53:9",
+     "60:6",
+     "31:6",
+     "65:4",
+     "9:3"
+    ]
+   }
+  },
+  {
+   "vp": "desktop",
+   "light": "day",
+   "mode": "baseline",
+   "cold": 395.2,
+   "med": 24.8,
+   "p95": 50.7,
+   "max": 50.7,
+   "bakesDuringWarm": 0,
+   "warm": [
+    50.7,
+    31,
+    22.8,
+    24.8,
+    22.7
+   ],
+   "top": null,
+   "bk": {
+    "n": 44,
+    "ms": 174.5,
+    "top": [
+     "66:36",
+     "8:29",
+     "63:22",
+     "53:18",
+     "60:8",
+     "29:4",
+     "118:4",
+     "7:4"
+    ]
+   }
+  },
+  {
+   "vp": "desktop",
+   "light": "day",
+   "mode": "candidate",
+   "cold": 52.5,
+   "med": 27.6,
+   "p95": 35.5,
+   "max": 35.5,
+   "bakesDuringWarm": 0,
+   "warm": [
+    26.4,
+    27.3,
+    27.6,
+    30.2,
+    35.5
+   ],
+   "top": null,
+   "bk": {
+    "n": 0,
+    "ms": 0,
+    "top": []
+   }
+  },
+  {
+   "vp": "desktop",
+   "light": "night",
+   "mode": "baseline",
+   "cold": 55.5,
+   "med": 70,
+   "p95": 104.4,
+   "max": 104.4,
+   "bakesDuringWarm": 0,
+   "warm": [
+    78.3,
+    104.4,
+    62.1,
+    70,
+    66.3
+   ],
+   "top": null,
+   "bk": {
+    "n": 0,
+    "ms": 0,
+    "top": []
+   }
+  },
+  {
+   "vp": "desktop",
+   "light": "night",
+   "mode": "candidate",
+   "cold": 542.4,
+   "med": 63.3,
+   "p95": 82.7,
+   "max": 82.7,
+   "bakesDuringWarm": 0,
+   "warm": [
+    61.2,
+    65.2,
+    63.3,
+    82.7,
+    48.8
+   ],
+   "top": null,
+   "bk": {
+    "n": 46,
+    "ms": 216.5,
+    "top": [
+     "66:44",
+     "53:39",
+     "8:28",
+     "63:24",
+     "110:9",
+     "60:9",
+     "29:5",
+     "65:4"
+    ]
+   }
+  }
+ ],
+ "exceptions": []
+}

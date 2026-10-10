@@ -25948,7 +25948,7 @@ return (function () {
   }
   // ---------- 車輛與機具（離屏圖層：零件不描邊，整體輪廓描 1px 深邊） ----------
   const YEL = '#dba52c', DKY = '#b98b27';
-  function S0(T) { const c = document.createElement('canvas'); c.width = T.w; c.height = T.h; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return { c, x, T, lit: [] }; }
+  function S0(T) { const c = document.createElement('canvas'); c.width = T.w; c.height = T.h; const x = c.getContext('2d', { willReadFrequently: true }); x.imageSmoothingEnabled = false; return { c, x, T, lit: [] }; }
   function sb(S, u, v, du, dv, h, base, z0, o) {
     const T = S.T, x = S.x; z0 = z0 || 0; o = o || {};
     const b = T.quad(u, v, du, dv, z0), t = T.quad(u, v, du, dv, z0 + h);
@@ -28821,7 +28821,7 @@ return { variants: 3, name: '民宿三款：維多利亞海濱灰泥樓／英式
   }
   const litK = (a, b, z) => H(a * 3 + z, b * 5 + z, 11) < .64;
   // 圖層：建築主體先畫在離屏畫布，再在外圍描 1px 深色輪廓後貼回日圖
-  function layer() { const c = document.createElement('canvas'); c.width = T.w; c.height = T.h; C = c.getContext('2d'); return c; }
+  function layer() { const c = document.createElement('canvas'); c.width = T.w; c.height = T.h; C = c.getContext('2d', { willReadFrequently: true }); return c; }
   function flatten(c, oc) {
     const w = T.w, h = T.h, d = C.getImageData(0, 0, w, h).data; C = G;
     const A = (x, y) => x >= 0 && y >= 0 && x < w && y < h && d[(y * w + x) * 4 + 3] > 0;
