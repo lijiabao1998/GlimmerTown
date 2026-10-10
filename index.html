@@ -22574,7 +22574,7 @@ function tweenHudStart(){
   const from={money:tweenHud.money,pop:tweenHud.pop,jobs:tweenHud.jobs};
   const to={money:tweenHudTarget.money,pop:tweenHudTarget.pop,jobs:tweenHudTarget.jobs};
   const step=(now)=>{
-    const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3); // ease-out cubic
+    const k=Math.max(0,Math.min(1,(now-t0)/dur)),e=1-Math.pow(1-k,3); // ease-out cubic；T629：rAF 時間戳可能早於 t0（長幀、背景分頁），夾下限，否則三次緩出外推成負幾十億
     tweenHud.money=from.money+(to.money-from.money)*e;
     tweenHud.pop=from.pop+(to.pop-from.pop)*e;
     tweenHud.jobs=from.jobs+(to.jobs-from.jobs)*e;
