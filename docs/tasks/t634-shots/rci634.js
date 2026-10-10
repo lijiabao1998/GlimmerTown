@@ -118,10 +118,18 @@ function rciPainter634(T){
   const glass=(ps,c='#587481',lit='#f5d59a')=>{K.face(ps,c);ng.save();ng.globalCompositeOperation='source-over';poly(ng,ps,lit);ng.restore();};
   const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
   const plate=(u,v,du,dv,z,col)=>K.face(quad(u,v,du,dv,z),col);
+  /* 保留既有煙口錨點，只補煙囪石帽、灰縫、陶土煙管唇口與暗孔。 */
+  const domesticChimney=(u,v,z)=>{
+    K.chimney(u,v,z);
+    for(const dz of[3,6]){K.ln(P(u,v+.07,z+dz),P(u+.07,v+.07,z+dz),'#805b49');K.ln(P(u+.07,v,z+dz),P(u+.07,v+.07,z+dz),'#593f35');}
+    K.face(quad(u-.008,v-.008,.086,.086,z+9),W?'#e9ede5':'#c29a76');
+    K.ln(P(u-.008,v+.078,z+8),P(u+.078,v+.078,z+8),'#70513f');
+    for(const d of[.014,.05]){const q=P(u+d,v+.04,z+11);K.px(q[0]-1,q[1]-2,'#bd8466',2,2);K.px(q[0]-1,q[1]-3,'#3c3931',2,1);K.px(q[0]-1,q[1],'#875740',2,1);}
+  };
   const stack=(u,v,h,width=.075,smoke=true)=>{
     box(u,v,width,width,h,{left:'#8a5e49',right:'#634535',top:W?'#e8eae2':'#ad8060'});
     for(let z=5;z<h;z+=7){K.ln(P(u,v+width,z),P(u+width,v+width,z),'#72503e');K.ln(P(u+width,v,z),P(u+width,v+width,z),'#4b392f');}
-    box(u-.015,v-.015,width+.03,width+.03,2,{left:'#a77a56',right:'#765941',top:W?'#e8eae2':'#443d36'},h);
+    box(u-.015,v-.015,width+.03,width+.03,2,{left:'#b18a63',right:'#765941',top:W?'#e8eae2':'#8f775b'},h);K.face(quad(u+.018,v+.018,Math.max(.025,width-.036),Math.max(.025,width-.036),h+2),'#363c34');K.ln(P(u-.015,v+width+.015,h),P(u+width+.015,v+width+.015,h),'#5b4536');
     if(smoke){const p=P(u+width*.5,v+width*.5,h+2);(T.hooks.smoke||(T.hooks.smoke=[])).push(p);if(T.k===3&&(!T.hooks.aviation||p[1]<T.hooks.aviation[1]))T.hooks.aviation=p.slice();}
   };
   const bottle=(u,v,r,h)=>{
@@ -135,6 +143,11 @@ function rciPainter634(T){
   const rail=(u,v,du,dv=0)=>{for(const z of[2,5])K.ln(P(u,v,z),P(u+du,v+dv,z),'#354444');const steps=Math.ceil(Math.hypot(du,dv)/.07);for(let i=0;i<=steps;i++)K.ln(P(u+du*i/steps,v+dv*i/steps),P(u+du*i/steps,v+dv*i/steps,7),'#3e4b48');};
   const wall=(u,v,du,dv=0)=>{const w=.028;if(dv)box(u,v,w,dv,5,{left:'#9d8a70',right:'#6b6556',top:W?'#e5e9e0':'#cbb998'});else box(u,v,du,w,5,{left:'#9d8a70',right:'#6b6556',top:W?'#e5e9e0':'#cbb998'});};
   const flower=(u,v,z)=>{const p=P(u,v,z);K.px(p[0]-2,p[1],'#76563e',5,2);if(!W){K.px(p[0]-2,p[1]-1,T.sea===2?'#9a8149':'#4b7350',5,1);if(T.sea!==3)K.px(p[0]-1,p[1]-2,T.sea===0?'#dab8bd':'#cba86a',1,1);}};
+  const slates=(a,b,c,d,tone)=>{
+    if(W)return;const at=(s,t)=>mix(mix(a,b,s),mix(d,c,s),t);
+    for(let row=1;row<4;row++)K.ln(at(row/4,0),at(row/4,1),tone);
+    for(let row=0;row<4;row++)for(let j=1;j<4;j++){const t=(j+(row%2)*.4)/4;K.ln(at(row/4+.04,t),at((row+1)/4-.03,t),T.shade(tone,-8));}
+  };
   const shell=(m,annex=false)=>{
     const [u,v,du,dv,h,fl,material,rt,detail='']=m,has=s=>detail.split(' ').includes(s),shop=(detail.match(/shop:([A-Z]+)/)||[])[1],mill=has('mill'),timber=material==='tudor'||has('tudor'),pitch=rt==='flat'?0:rt==='spire'?11:rt==='mansard'?9:rt==='saw'?7:rt==='glass'?8:rt==='barrel'?7:Math.max(6,Math.min(11,du*17));
     const base=mat[material]||mat.brick,front=T.shade(base,we===0?-7:we===2?5:0),side=T.shade(front,-28),cols=[front,side];
@@ -143,12 +156,30 @@ function rciPainter634(T){
     const panel=(s,a,b,z0,z1,c)=>K.face([wp(s,a,z0),wp(s,b,z0),wp(s,b,z1),wp(s,a,z1)],c);
     const band=(z,col=trim,width=1)=>{K.ln(wp(0,0,z),wp(0,1,z),col,width);K.ln(wp(1,0,z),wp(1,1,z),T.shade(col,-16),width);};
     const lite=(s,a,b,z0,z1,lit)=>glass([wp(s,a,z0),wp(s,b,z0),wp(s,b,z1),wp(s,a,z1)],s?'#425c69':'#5c7781',lit);
+    const proud=(s,t,z,e=.025)=>s===0?P(u+du*t,v+dv+e,z):P(u+du+e,v+dv*(1-t),z);
+    const stoneLike=['stone','sandstone','stucco','gothic'].includes(material),recess=s=>s?'#35483f':'#4b5448';
+    const sill=(s,a,b,z)=>{K.face([wp(s,a,z),wp(s,b,z),proud(s,b,z),proud(s,a,z)],W?'#e7e9dc':trim);K.ln(proud(s,a,z-1),proud(s,b,z-1),T.shade(trim,-38));};
+    /* 一層暗凹口、一層窗框；淺色只放在受光框沿，不把整面牆灑亮點。 */
+    const sash=(s,a,b,z0,z1,lit)=>{
+      panel(s,a-.035,b+.035,z0-1,z1+1,T.shade(trim,-18));
+      panel(s,a-.012,b+.012,z0,z1,recess(s));
+      lite(s,a+.014,b-.014,z0+.45,z1-.65,lit);
+      K.ln(wp(s,a-.008,z0),wp(s,a-.008,z1),trim);
+      K.ln(wp(s,b+.010,z0),wp(s,b+.010,z1),T.shade(trim,-34));
+      K.ln(wp(s,a,z1-.5),wp(s,b,z1-.5),T.shade(trim,-44));
+      K.ln(wp(s,a,(z0+z1)*.5),wp(s,b,(z0+z1)*.5),trim);
+      if(mill||timber||material==='gothic')K.ln(wp(s,(a+b)*.5,z0+.5),wp(s,(a+b)*.5,z1-.7),T.shade(trim,-9));
+      if(mill||material==='brick'||material==='stock'){
+        K.ln(wp(s,a-.025,z1+1),wp(s,(a+b)*.5,z1+2),T.shade(front,18));K.ln(wp(s,(a+b)*.5,z1+2),wp(s,b+.025,z1+1),T.shade(front,10));
+      }else K.ln(wp(s,a-.035,z1+1),wp(s,b+.035,z1+1),trim);
+      sill(s,a-.045,b+.045,z0-1);
+    };
     const floorH=h/Math.max(1,fl),winH=Math.max(3,Math.min(mill?8:7,floorH-4));
     /* 磚的交錯灰縫、木板或石材水平分縫，不使用雜訊流。 */
-    for(let z=3;z<h-1;z+=material==='weatherboard'?3:4){
-      band(z,T.shade(front,material==='weatherboard'?11:-8));
+    for(let z=3;z<h-1;z+=material==='weatherboard'?3:stoneLike?5:4){
+      band(z,T.shade(front,material==='weatherboard'?7:-4));
       if(material!=='render'&&material!=='stucco'&&material!=='deco'&&material!=='weatherboard')for(let s=0;s<2;s++){
-        const width=s?dv:du,step=.12/width;for(let a=.04+((z/4|0)&1)*step*.5;a<.99;a+=step)K.ln(wp(s,a,z),wp(s,a,z-2),T.shade(cols[s],8));
+        const width=s?dv:du,step=(stoneLike?.18:.12)/width;for(let a=.04+((z/4|0)&1)*step*.5;a<.99;a+=step)K.ln(wp(s,a,z),wp(s,a,z-2),T.shade(cols[s],3));
       }
     }
     for(let s=0;s<2;s++){
@@ -158,16 +189,15 @@ function rciPainter634(T){
         const z0=f*floorH+3,z1=Math.min(h-2,z0+winH),ww=Math.min(.61,.14/width*columns);
         for(let j=0;j<columns;j++){
           const mid=(j+.5)/columns,a=mid-ww/(2*columns),b=mid+ww/(2*columns),lit=(f*7+j*3+T.v+s)%5===0?'#947f5b':T.k===3?'#dbcea5':'#f4d498';
-          panel(s,a-.024,b+.024,z0-1,z1+1,material==='gothic'?'#bfab88':trim);
-          lite(s,a,b,z0,z1,lit);
-          K.ln(wp(s,a,(z0+z1)*.5),wp(s,b,(z0+z1)*.5),trim);
-          if(mill||material==='tudor'||material==='gothic')K.ln(wp(s,mid,z0),wp(s,mid,z1),trim);
-          K.ln(wp(s,a-.035,z0-1),wp(s,b+.035,z0-1),T.shade(trim,-7));
+          sash(s,a,b,z0,z1,lit);
           if(material==='gothic')K.face([wp(s,a-.03,z1+1),wp(s,b+.03,z1+1),wp(s,mid,z1+3)],'#d6c3a2');
           if(we===2&&f===0&&s===0&&T.k===1)flower(u+du*mid,v+dv+.012,z0-2);
         }
       }
     }
+    /* 連續基座、暗防潮層、石材轉角交錯塊：有秩序的體積線索。 */
+    for(let s=0;s<2;s++){panel(s,0,1,0,2.2,T.shade(cols[s],-16));K.ln(wp(s,0,2.2),wp(s,1,2.2),T.shade(cols[s],15));}
+    if(stoneLike&&!annex)for(let z=3;z<h-2;z+=5){const w=(Math.floor(z/5)%2?.055:.080);panel(0,1-w,1,z,z+2.8,T.shade(trim,-16));panel(1,0,w,z,z+2.8,T.shade(trim,-31));}
     if(timber){
       for(let s=0;s<2;s++){
         const cols=Math.max(2,Math.round((s?dv:du)*7));for(let i=0;i<=cols;i++)K.ln(wp(s,i/cols,0),wp(s,i/cols,h),'#514d40',1.5);
@@ -182,9 +212,15 @@ function rciPainter634(T){
     if(shop){
       const signCol=shop==='ALE'||shop==='INN'?'#345650':shop==='POST'||shop==='MEAT'?'#733e38':shop==='BOOK'?'#355361':'#385d56';
       for(let s=0;s<2;s++){
-        const cols=Math.max(1,Math.round((s?dv:du)*4));for(let j=0;j<cols;j++){const a=(j+.11)/cols,b=(j+.87)/cols;panel(s,a-.018,b+.018,1,11,trim);lite(s,a,b,2,10,'#f4d395');K.ln(wp(s,(a+b)/2,2),wp(s,(a+b)/2,10),'#d7c69e');}
-        panel(s,.015,.985,12,16,signCol);K.ln(wp(s,.02,16),wp(s,.98,16),trim);
+        const cols=Math.max(1,Math.round((s?dv:du)*4));for(let j=0;j<cols;j++){
+          const a=(j+.11)/cols,b=(j+.87)/cols;panel(s,a-.035,b+.035,0,11.5,T.shade(signCol,-16));panel(s,a-.012,b+.012,1.5,10.5,trim);lite(s,a+.012,b-.012,2.5,9.8,'#f4d395');
+          K.ln(wp(s,a,2),wp(s,a,10),T.shade(trim,8));K.ln(wp(s,b,2),wp(s,b,10),T.shade(trim,-35));K.ln(wp(s,(a+b)/2,2),wp(s,(a+b)/2,10),'#cdbd96');K.ln(wp(s,a,8),wp(s,b,8),'#d7c69e');
+          K.ln(wp(s,a+.015,9),wp(s,a+(b-a)*.42,7.5),'#a4bbc0');panel(s,a-.025,b+.025,0,1.8,signCol);sill(s,a-.02,b+.02,1.8);
+        }
+        panel(s,.015,.985,11.3,12.4,T.shade(signCol,-25));panel(s,.015,.985,12.4,16,signCol);K.ln(wp(s,.02,16),wp(s,.98,16),trim);K.ln(proud(s,.02,16.5),proud(s,.98,16.5),T.shade(trim,8));
       }
+      /* 嵌入式店門、上亮窗與門檻，櫥窗不再是一整排無入口的玻璃。 */
+      {const a=.43,b=.57;panel(0,a-.025,b+.025,0,11.5,T.shade(signCol,-24));panel(0,a,b,0,10.7,signCol);lite(0,a+.018,b-.018,2.5,9.7,'#f1d5a0');K.ln(wp(0,a,0),wp(0,a,11),trim);K.ln(wp(0,b,0),wp(0,b,11),T.shade(trim,-20));K.ln(wp(0,a,8),wp(0,b,8),trim);sill(0,a-.025,b+.025,.6);const q=wp(0,b-.025,5);K.px(q[0],q[1],'#c5ad73',1,2);}
       const p=wp(0,.5,14);for(let i=0;i<Math.min(shop.length,5);i++){const x=p[0]+(i-(Math.min(shop.length,5)-1)/2)*3,y=p[1]+(i-(Math.min(shop.length,5)-1)/2)*1.5;K.px(x-1,y-1,'#ecddb8',2,2);}
       if(du>.43)K.sign(u+du*.42,v+dv,17,shop,signCol);if(T.k===2&&!T.hooks.sign)T.hooks.sign=P(u+du*.42,v+dv,17);
       if(has('awning')){const a=P(u+.02,v+dv,12),b=P(u+du-.02,v+dv,12),c=P(u+du-.02,v+dv+.08,10),d=P(u+.02,v+dv+.08,10);K.face([a,b,c,d],W?'#e6ebe3':'#c6b888');for(let i=0;i<6;i+=2)K.face([mix(a,b,i/6),mix(a,b,(i+1)/6),mix(d,c,(i+1)/6),mix(d,c,i/6)],W?'#d5ded5':signCol);K.ln(d,c,trim);}
@@ -192,13 +228,19 @@ function rciPainter634(T){
     if(has('loading')||has('arch')||has('arcade')){
       const count=has('arcade')?Math.max(2,Math.round(du*5)):has('loading')&&du>.62?2:1;
       for(let i=0;i<count;i++){
-        const t=(i+.5)/count,half=Math.min(.135,.095/du),z=Math.min(has('arcade')?15:12,h-3);panel(0,t-half-.025,t+half+.025,0,z+2,trim);panel(0,t-half,t+half,0,z,'#3a4342');
+        const t=(i+.5)/count,half=Math.min(.135,.095/du),z=Math.min(has('arcade')?15:12,h-3);panel(0,t-half-.038,t+half+.038,0,z+2,T.shade(trim,-15));panel(0,t-half-.014,t+half+.014,0,z+.5,'#303e3b');panel(0,t-half+.012,t+half-.012,0,z,'#48564e');K.ln(wp(0,t-half-.012,0),wp(0,t-half-.012,z+1),trim);K.ln(wp(0,t+half+.010,0),wp(0,t+half+.010,z+1),T.shade(trim,-35));sill(0,t-half-.025,t+half+.025,.5);
         if(has('arcade'))lite(0,t-half+.01,t+half-.01,2,z-1,'#dec795');
         else{for(let a=t-half+.02;a<t+half;a+=.045)K.ln(wp(0,a,0),wp(0,a,z),'#677068');K.ln(wp(0,t-half,2),wp(0,t+half,z-1),'#8c9280');}
         if(has('arch')||has('arcade')){const a=wp(0,t-half-.025,z),b=wp(0,t,z+4),c=wp(0,t+half+.025,z);K.ln(a,b,trim,2);K.ln(b,c,trim,2);}
       }
     }else if(!shop&&!annex){
-      const doors=has('doors')?3:1;for(let i=0;i<doors;i++){const t=(i+.5)/doors,half=Math.min(.065,.048/du);panel(0,t-half-.025,t+half+.025,0,10,trim);panel(0,t-half,t+half,0,9,we===0?'#5a5b4e':we===2?'#315448':'#3e5652');lite(0,t-half,t+half,8,9,'#ddc99b');const p=wp(0,t+half*.5,4);K.px(p[0],p[1],'#bda472');}
+      const doors=has('doors')?3:1;for(let i=0;i<doors;i++){
+        const t=(i+.5)/doors,half=Math.min(.075,.052/du),a=t-half,b=t+half,door=we===0?'#5a5b4e':we===2?'#315448':'#3e5652';
+        panel(0,a-.030,b+.030,0,10.7,T.shade(trim,-17));panel(0,a-.012,b+.012,0,10,recess(0));panel(0,a+.012,b-.012,.5,8.4,door);lite(0,a+.012,b-.012,8.4,9.6,'#ddc99b');
+        K.ln(wp(0,a,0),wp(0,a,10),trim);K.ln(wp(0,b,0),wp(0,b,10),T.shade(trim,-37));K.ln(wp(0,a,10.5),wp(0,b,10.5),trim);
+        for(const z of[2.5,6.3])K.ln(wp(0,a+.025,z),wp(0,b-.025,z),T.shade(door,23));K.ln(wp(0,t,1.2),wp(0,t,7.2),T.shade(door,-17));sill(0,a-.04,b+.04,.5);
+        const q=wp(0,b-.022,4.2);K.px(q[0],q[1],'#c5ad73');
+      }
     }
     for(const z of[h-1,h])band(z,trim,1);
     if(fl>2&&!mill)for(let f=1;f<fl;f++)band(f*floorH-.5,material==='brick'?'#c5ad8c':T.shade(front,13));
@@ -208,22 +250,22 @@ function rciPainter634(T){
       if(rt==='glass'){glass([a,r0,r1,d],W?'#bfceca':'#668995','#bcb99a');glass([r0,b,c,r1],W?'#b4c9c7':'#446d7d','#939c8d');}
       else{K.face([a,r0,r1,d],roof);K.face([r0,b,c,r1],roofDark);}
       K.face([d,c,r1],front);K.ln(d,r1,trim);K.ln(r1,c,trim);K.ln(r0,r1,W?'#f2f4ef':'#8b9190');
-      for(const f of[.25,.5,.75]){K.ln(mix(a,r0,f),mix(d,r1,f),W?'#d5dfd8':'#5d6b70');K.ln(mix(r0,b,f),mix(r1,c,f),W?'#baccc6':'#42545d');}
+      if(rt!=='glass'){slates(a,r0,r1,d,'#52626a');slates(r0,b,c,r1,'#3e5059');}
       if(rt==='glass')for(let f=.14;f<1;f+=.14){K.ln(mix(a,d,f),mix(r0,r1,f),trim);K.ln(mix(r0,r1,f),mix(b,c,f),trim);}
       if(timber){K.ln(P(u+du*.5,v+dv,h),r1,'#534c3f',2);K.ln(d,P(u+du*.5,v+dv,h+pitch*.6),'#5f5441');K.ln(c,P(u+du*.5,v+dv,h+pitch*.6),'#5f5441');}
       if(du>.37&&!annex){const p=P(u+du*.5,v+dv,h+pitch*.33);K.px(p[0]-2,p[1]-2,trim,5,5);T.LIT(p[0]-1,p[1]-1,3,3,'#526e77','#dec899');K.px(p[0],p[1]-1,trim,1,3);}
     }else if(rt==='hip'||rt==='spire'){
       const q0=P(u+du*.5,v+dv*.23,h+pitch),q1=P(u+du*.5,v+dv*.77,h+pitch),peak=P(u+du*.5,v+dv*.5,h+pitch);
       if(rt==='spire'){K.face([a,b,peak],roof);K.face([a,peak,d],roof);K.face([b,c,peak],roofDark);K.face([d,peak,c],W?'#e7eee7':'#5c6970');K.ln(peak,P(u+du*.5,v+dv*.5,h+pitch+4),'#6b6c5e');}
-      else{K.face([a,b,q0],roofDark);K.face([a,q0,q1,d],roof);K.face([b,c,q1,q0],roofDark);K.face([d,q1,c],W?'#eaf0e8':'#66737a');K.ln(q0,q1,W?'#f2f4ef':'#92948b');K.ln(d,q1,W?'#f2f4ef':'#7d888b');}
+      else{K.face([a,b,q0],roofDark);K.face([a,q0,q1,d],roof);K.face([b,c,q1,q0],roofDark);K.face([d,q1,c],W?'#eaf0e8':'#66737a');K.ln(q0,q1,W?'#f2f4ef':'#92948b');K.ln(d,q1,W?'#f2f4ef':'#7d888b');slates(a,q0,q1,d,'#52636a');slates(b,q0,q1,c,'#3d5058');}
     }else if(rt==='mansard'){
       const inset=Math.min(.08,du*.19,dv*.19),q=quad(u+inset,v+inset,du-2*inset,dv-2*inset,h+pitch);
-      K.face([a,q[0],q[3],d],roof);K.face([b,c,q[2],q[1]],roofDark);K.face([d,q[3],q[2],c],W?'#edf1e9':'#596972');K.face(q,W?'#e3eae4':'#727878');K.ln(q[3],q[2],trim);
+      K.face([a,q[0],q[3],d],roof);K.face([b,c,q[2],q[1]],roofDark);K.face([d,q[3],q[2],c],W?'#edf1e9':'#596972');K.face(q,W?'#e3eae4':'#727878');K.ln(q[3],q[2],trim);slates(a,q[0],q[3],d,'#52636a');slates(b,q[1],q[2],c,'#40545b');slates(d,q[3],q[2],c,'#65757a');
       for(let i=0;i<Math.max(1,Math.round(du*4));i++){const t=(i+.5)/Math.max(1,Math.round(du*4)),p=P(u+du*t,v+dv-.025,h+4);K.px(p[0]-2,p[1]-4,trim,5,6);T.LIT(p[0]-1,p[1]-3,3,4,'#4f6d78','#efd4a0');K.face([[p[0]-3,p[1]-4],[p[0],p[1]-7],[p[0]+3,p[1]-4]],roofDark);}
     }else if(rt==='saw'){
       const teeth=Math.max(2,Math.round(du*5));for(let i=0;i<teeth;i++){
         const x=u+du*i/teeth,w=du/teeth,qa=P(x,v,h),qb=P(x+w,v,h),qc=P(x+w,v+dv,h),qd=P(x,v+dv,h),q0=P(x+w*.75,v,h+pitch),q1=P(x+w*.75,v+dv,h+pitch);
-        K.face([qa,q0,q1,qd],roof);glass([q0,qb,qc,q1],W?'#c4d3ce':'#4f7b86','#b3bda6');K.face([qd,qc,q1],front);K.ln(q0,q1,trim);K.ln(qd,q1,trim);
+        K.face([qa,q0,q1,qd],roof);glass([q0,qb,qc,q1],W?'#c4d3ce':'#4f7b86','#b3bda6');K.face([qd,qc,q1],front);K.ln(q0,q1,trim);K.ln(qd,q1,trim);slates(qa,q0,q1,qd,'#53656b');
         for(const f of[.3,.6,.9])K.ln(mix(q0,q1,f),mix(qb,qc,f),trim);
       }
     }else if(rt==='barrel'){
@@ -233,19 +275,23 @@ function rciPainter634(T){
     }else if(rt==='butterfly'){
       const valley0=P(u+du*.5,v,h-3),valley1=P(u+du*.5,v+dv,h-3);K.face([a,valley0,valley1,d],roof);K.face([valley0,b,c,valley1],roofDark);K.ln(d,c,trim,2);K.ln(a,d,trim,2);K.ln(b,c,trim,2);
     }else if(rt==='lean'){
-      const q0=P(u,v,h+5),q1=P(u+du,v,h+5);K.face([q0,q1,c,d],roof);K.face([b,c,q1],side);K.ln(d,c,trim);
+      const q0=P(u,v,h+5),q1=P(u+du,v,h+5);K.face([q0,q1,c,d],roof);K.face([b,c,q1],side);K.ln(d,c,trim);slates(d,q0,q1,c,'#56676b');
     }else{
       plate(u+.018,v+.018,du-.036,dv-.036,h+.5,W?'#dfe7df':'#70776f');for(const [x,y]of[[a,d],[d,c],[c,b]])K.ln([x[0],x[1]-3],[y[0],y[1]-3],trim,2);K.ln(d,c,T.shade(trim,-15));
       if(material==='deco')for(let i=0;i<3;i++)K.ln(P(u+.035,v+dv,h+i),P(u+du-.035,v+dv,h+i),i===1?'#747e75':trim);
     }
+    /* 暗檐底、亮滴水緣與細雨管構成前後深度；積雪不被瓦縫切成條紋。 */
+    band(h-1.5,T.shade(front,-31));band(h-.1,T.shade(trim,-11));
+    if(!annex&&du>.31){K.ln(wp(0,.974,2),wp(0,.974,h-2),'#51605a');K.ln(wp(0,.974,2),wp(0,.94,.5),'#51605a');}
+    if(rt==='flat'||rt==='butterfly'){K.ln([d[0],d[1]-2],[c[0],c[1]-2],W?'#f0f2e9':'#d1c5a4');K.ln([c[0],c[1]-2],[b[0],b[1]-2],W?'#dce5dc':'#aca58f');}
     if(has('dormer')&&rt!=='mansard'&&du>.39){const p=P(u+du*.55,v+dv*.78,h+pitch*.55);K.px(p[0]-3,p[1]-5,trim,6,6);T.LIT(p[0]-2,p[1]-4,4,4,'#57717b','#ead099');K.face([[p[0]-4,p[1]-5],[p[0],p[1]-9],[p[0]+4,p[1]-5]],roofDark);}
-    if(has('pediment')){const z=shop?18:11;K.face([wp(0,.32,z),wp(0,.68,z),wp(0,.5,z+4)],trim);K.ln(wp(0,.34,z+1),wp(0,.66,z+1),T.shade(trim,-23));}
+    if(has('pediment')){const z=shop?18:11;K.face([wp(0,.32,z),wp(0,.68,z),wp(0,.5,z+4)],trim);K.ln(wp(0,.34,z+1),wp(0,.66,z+1),T.shade(trim,-23));if(!shop){for(const t of[.34,.66]){K.ln(wp(0,t,1),wp(0,t,z-1),T.shade(trim,-35),2);K.ln(wp(0,t-.01,1),wp(0,t-.01,z-1),trim);sill(0,t-.025,t+.025,2);}K.ln(proud(0,.31,z),proud(0,.69,z),T.shade(trim,-20));}}
     if(has('clock')){const p=wp(0,.5,h-8);K.px(p[0]-3,p[1]-4,'#5b5f55',7,8);K.px(p[0]-2,p[1]-3,'#e0d4ac',5,6);K.ln([p[0],p[1]],[p[0],p[1]-3],'#394642');K.ln([p[0],p[1]],[p[0]+2,p[1]+1],'#394642');}
     if(has('crane')){const q=P(u+du*.52,v+dv+.03,h-2),r=P(u+du*.52,v+dv+.16,h-2);K.ln(q,r,'#454e49',2);K.ln(r,[r[0],r[1]+15],'#5c6159');K.ln([r[0],r[1]+15],[r[0]+2,r[1]+16],'#383f3b');}
     if(has('balcony')){const z=Math.min(22,h*.6);K.face(quad(u+.04,v+dv-.01,du-.08,.075,z),'#78837a');for(let t=.08;t<.94;t+=.12)K.ln(P(u+du*t,v+dv+.065,z),P(u+du*t,v+dv+.065,z+5),'#455852');K.ln(P(u+.04,v+dv+.065,z+5),P(u+du-.04,v+dv+.065,z+5),'#455852');}
     if(has('bay')&&du>.2&&!annex){const count=du>.63?2:1,bw=Math.min(.18,du*.42);for(let i=0;i<count;i++){const bu=u+du*(i+.5)/count-bw*.5,bv=v+dv-.014;shell([bu,bv,bw,.085,Math.max(12,h-5),fl,material,'hip',''],true);}}
     if(has('porch')&&!annex){const x=u+du*.47,y=v+dv+.015,w=.11;for(const xx of[x-w*.5,x+w*.5])K.ln(P(xx,y+.07),P(xx,y+.07,10),trim,2);K.face([P(x-w*.8,y,10),P(x+w*.8,y,10),P(x+w*.8,y+.10,10),P(x-w*.8,y+.10,10)],roof);}
-    if(!annex&&T.k!==3&&rt!=='glass'&&rt!=='spire'&&rt!=='saw'&&material!=='deco'){K.chimney(u+du*.13,v+dv*.17,h+pitch*.12);if(du>.65&&h>40)K.chimney(u+du*.77,v+dv*.22,h+pitch*.24);}
+    if(!annex&&T.k!==3&&rt!=='glass'&&rt!=='spire'&&rt!=='saw'&&material!=='deco'){domesticChimney(u+du*.13,v+dv*.17,h+pitch*.12);if(du>.65&&h>40)domesticChimney(u+du*.77,v+dv*.22,h+pitch*.24);}
     if(we===0&&T.k===1){panel(1,.14,.27,2,4,T.shade(side,-12));panel(0,.08,.17,Math.min(14,h-3),Math.min(16,h-1),T.shade(front,-9));}
   };
   return {K,shell,plate,stack,bottle,crate,rail,wall,flower,glass};

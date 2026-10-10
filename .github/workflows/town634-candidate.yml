@@ -108,3 +108,31 @@ jobs:
           name: Town-T634-candidate-${{ matrix.phase }}-${{ github.sha }}
           path: evidence/
           retention-days: 14
+
+  detail-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare browser driver and fonts
+        run: |
+          npm install --prefix "$RUNNER_TEMP/town634-browser" playwright
+          echo "NODE_PATH=$RUNNER_TEMP/town634-browser/node_modules" >> "$GITHUB_ENV"
+          sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Same-camera first candidate versus architectural detail revision
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+          REVIEW_BASE634: 136e3532b32b8e30821a514bdf22cd277fb8b5c0
+        run: node docs/tasks/t634-shots/detail634.cjs
+      - name: Preserve all315 comparisons and street previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-T634-detail-comparison-${{ github.sha }}
+          path: evidence/
+          retention-days: 14

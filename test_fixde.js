@@ -13014,7 +13014,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     'T590 G4b 區塊內 R( 只准是 port590_cul_c 的局部極座標函式（定義 1 處、呼叫 3 處），實得區塊 '+nR590);
   assert(blk590.indexOf('__variants574')<0,'T590 G4c 實驗線的佇列延後邏輯必須全部拿掉（改固定順序）');
   // G5 繪製端原文釘（只動舊路徑）
-  assert(html.includes("if(!constrRise&&((!bd.lot574&&s.__t590&&s.flagAt)||(bd.lot574&&s.__t590&&s.lotMeta574.hooks.flag)||((bd.k===7||bd.k===9||bd.k===42)&&!s.__t590))){")&&html.includes('const fa590=!bd.lot574&&s.__t590?s.flagAt:null;'),'T590 G5a 旗子：新圖帶 flagAt 就掛，沒帶的新圖不掛寫死旗（T591：園區新圖讀換算後的 hooks.flag）');
+  assert(html.includes("if(!constrRise&&((s.__t634&&s.lotMeta574.hooks.flag)||(!bd.lot574&&s.__t590&&s.flagAt)||(bd.lot574&&s.__t590&&s.lotMeta574.hooks.flag)||((bd.k===7||bd.k===9||bd.k===42)&&!s.__t590))){")&&html.includes('const fa590=!bd.lot574&&s.__t590?s.flagAt:null;'),'T590 G5a 旗子：新圖帶 flagAt 就掛，沒帶的新圖不掛寫死旗（T591：園區新圖讀換算後的 hooks.flag）');
   assert(html.includes('(s.radarAt?s.radarAt[0]:(bd.k===46?36:136))')&&html.includes('(s.hen403||[62,114])'),'T590 G5b 雷達與雞群讀新圖自帶掛點');
   assert(html.includes("else if(!bd.lot574&&bd.v===0&&(vark590().has(bd.k)||bd.k===105||bd.k===106)&&ported590(bd.k))s=SPR.bld[bd.k+'_1_'+vdraw590(o,bd)]||SPR.bld[bd.k+'_1_0'];")&&/function vdraw590\(o,bd\)\{[^}]*bd\.k\+'_1_2'/.test(html),'T590 G5c 新變體依格雜湊，只讀 lv1 鍵');
   assert((html.match(/      if\(!s\.__t590\)draw(DistrictTexture424|FacadeMemory426|LivedIn421|Rooftop425|MaterialResponse430|NightIdentity423|NightMicro431)\(/g)||[]).length===7,'T590 G5d 七個外框比例牆面層對新圖跳過（人物層照畫）');
