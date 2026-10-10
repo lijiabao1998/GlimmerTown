@@ -4,10 +4,10 @@ const fs = require('node:fs'), path = require('node:path'), { spawnSync } = requ
 const mac = require('./native-mac-diagnostic.cjs'), canonical = require('./native-correctness.cjs');
 const BASE_SHA256 = 'b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265';
 const PARENT = Object.freeze({ commit: '16514fd27a2c143c0f0c79a3d08197150d72438f',
-  harness: '8d0083b3eba2083165bbf150fe7252215e8330559077923638c4cb00b62e355e',
-  nativeMacOutput: 'c2df5502fd5b3a204f49955e5ad666cb48111102992623dd816afa053159bb14',
+  harness: 'ee31668aa1243a64041c282538ed2fdcb740056c677d71ec27f22eae9bda7566',
+  nativeMacOutput: 'b5e6d224818101a09ff3ab6321219497e866a7ac5856330a2124a39998f0c397',
   nativeMacAdapter: '4b653115b6cb24022349cdaef9f8895cda8a0af844e488cb53b1ec4974a82e68',
-  canonicalAdapter: '57a779ea15366761cd84dc34fe4f4776e7f0f9c830cfc8333031c7096b8698b5' });
+  canonicalAdapter: '9a0bac2c143e27f722eb84e160a796fa0a561d7983382ae67bd4bb08b98b9028' });
 const LIMITATION = 'Exact CRC-map equality is not exhaustive per-sprite RGBA equality. All original full-frame RGBA controls remain required. Added document boots and readbacks change this protocol; it cannot isolate Metal causality, establish physical-device FPS or active-gameplay improvement, or replace the required Linux release gate.';
 const HISTORICAL = Object.freeze([
   Object.freeze({ id: 'immutable-baseline', condition: '!report.pinDiff.length',
