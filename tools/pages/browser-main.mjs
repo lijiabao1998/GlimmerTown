@@ -14,23 +14,20 @@ import crypto from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { buildMain, verifyPackagedFile, PINS, SAVE_NAMESPACE, CACHE_PREFIX, SOURCE_COMMIT } from './build-main.mjs';
+import { buildMain, verifyPackagedFile, PINS, SAVE_NAMESPACE, SOURCE_COMMIT, APP_VERSION, CACHE_NAME } from './build-main.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const arg = (name, fallback) => process.argv.find(x => x.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
-const INDEX_SHA = '99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d';
-const SW_SHA = '79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2';
 const PROJECT = '/GlimmerTown/';
-const CACHE = CACHE_PREFIX + 'v11.212';
+const CACHE = CACHE_NAME;
 const FOREIGN_NAMESPACE = 'glimmerville.v1';
-const FOREIGN_CACHES = ['gv-v1', 'gv-v2', 'glimmerville-shell-v11.211'];
+// Lab (shared-origin) sentinels: the historical Lab shell plus the Lab shell of this release's version.
+const FOREIGN_CACHES = [...new Set(['gv-v1', 'gv-v2', 'glimmerville-shell-v11.211', 'glimmerville-shell-v' + APP_VERSION])];
 const SHELL_FILES = Object.keys(PINS).filter(name => name !== 'sw.js');
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export function loadVerifiedPackage(selectedSite) {
-  assert.equal(PINS['index.html'], INDEX_SHA, 'original index source pin remains fixed');
-  assert.equal(PINS['sw.js'], SW_SHA, 'original SW source pin remains fixed');
   let temporary;
   try {
     const site = selectedSite ? path.resolve(selectedSite) : path.join(temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'town-pages-package-')), 'site');
@@ -161,8 +158,8 @@ async function browserForeignCacheSnapshot(names) {
   return result;
 }
 
-export function browserPrepareSave(namespace, expectedVersion = '11.212') {
-  if (!['11.211', '11.212'].includes(expectedVersion) || GV.ver() !== expectedVersion) throw Error('Unexpected game version before fixture creation');
+export function browserPrepareSave(namespace, expectedVersion) {
+  if (typeof expectedVersion !== 'string' || !/^\d+(?:\.\d+){1,2}$/.test(expectedVersion) || GV.ver() !== expectedVersion) throw Error('Unexpected game version before fixture creation');
   if (localStorage.getItem(namespace + '.slot') !== '3') throw Error('Select main slot 3 before creating a fixture');
   GV.newWorldSeeded(301); GV.setSpeed(0); GV.addMoney(603000);
   let placed = 0;
@@ -293,7 +290,6 @@ export function assertFirstVisitEvidence({beforeWorker,url,expectedSHA,commit,re
 }
 
 export function instrumentWorker(original) {
-  assert.equal(PINS['sw.js'], SW_SHA, 'original SW source pin remains fixed');
   verifyPackagedFile('sw.js', Buffer.from(original));
   const start = "  if(req.mode==='navigate'){";
   const end = "\n  if(url.pathname===new URL(MANIFEST_URL).pathname){";
@@ -347,7 +343,7 @@ export async function run() {
     status: 'running', scope: 'Local same-origin /GlimmerTown/ Pages package simulation; no real published HTTPS verification, renderer or art changes',
     browserWorkerVersionUpdate: 'not-run; cache-version activation behavior is covered only by separate Node contracts',
     sourceCommit: SOURCE_COMMIT, node: process.version, site: SITE, origin: ORIGIN, projectPath: PROJECT, saveNamespace: SAVE_NAMESPACE, cacheName: CACHE,
-    sourceIndexSHA256: INDEX_SHA, sourceSwSHA256: SW_SHA, packageFiles: Object.fromEntries([...pack.files].map(([name, bytes]) => [name, { bytes: bytes.length, sha256: sha(bytes) }])),
+    appVersion: APP_VERSION, sourceIndexSHA256: PINS['index.html'], sourceSwSHA256: PINS['sw.js'], packageFiles: Object.fromEntries([...pack.files].map(([name, bytes]) => [name, { bytes: bytes.length, sha256: sha(bytes) }])),
     indexSHA256: packageIndexSHA, productSwSHA256: packageSwSHA, instrumentedSwSHA256: sha(instrumented),
     instrumentation: 'Verified package served unchanged except an in-memory SW observation copy. Before-boot localStorage observation, non-awaited SW stage logging, controlled delayed/rejected cache write and origin-entry transport outage. No physical-device FPS claim.',
     checks: [], stages: [], http: [], transport: [], cases: [], exceptions: [], consoleErrors: [], foreground: [], identityObservations: [], storageEvents: [], isolation: [], saveChecks: []
@@ -574,7 +570,7 @@ export async function run() {
         audit.pollCount = i + 1;
         try {
           const state = await readDocument(budget(audit.deadline, 150000)), native = nativeForeground(audit.deadline);
-          const predicates = { exactURL: state.url === url, newTimeOrigin: state.timeOrigin !== previous, complete: state.complete, bootReady: state.boot, mainVersion: state.version === '11.212', visible: state.visibility === 'visible' && !state.hidden, focused: state.focused, nativeForeground: native.valid, viewportFits: viewportFits(state) };
+          const predicates = { exactURL: state.url === url, newTimeOrigin: state.timeOrigin !== previous, complete: state.complete, bootReady: state.boot, mainVersion: state.version === APP_VERSION, visible: state.visibility === 'visible' && !state.hidden, focused: state.focused, nativeForeground: native.valid, viewportFits: viewportFits(state) };
           const rejectedPredicates = Object.keys(predicates).filter(key => !predicates[key]);
           const observation = { observedAt: Date.now(), poll: i + 1, state, native, predicates, rejectedPredicates };
           const signature = JSON.stringify({ state, predicates, nativeApp: native.app });
@@ -675,7 +671,7 @@ export async function run() {
     await assertIsolation('after genuine first visit and app-managed installation');
     persist();
     await navigate('cold-online', ['fetch-end', 'cache-put-end', 'reply-fresh'], { root: true });
-    const saved = await ev(`(${browserPrepareSave.toString()})(${JSON.stringify(SAVE_NAMESPACE)})`);
+    const saved = await ev(`(${browserPrepareSave.toString()})(${JSON.stringify(SAVE_NAMESPACE)},${JSON.stringify(APP_VERSION)})`);
     check(saved.raw.length > 0 && saved.placed === 3, 'actual game creates and saves a synthetic main slot 3 city');
     report.saveChecks.push({ phase: 'save', bytes: Buffer.byteLength(saved.raw), sha256: sha(saved.raw), core: saved.core, seed: saved.seed, mapSize: saved.size }); persist();
     await assertIsolation('after actual main save');
@@ -723,7 +719,7 @@ export async function run() {
       const current = fs.readFileSync(path.join(SITE, name)); verifyPackagedFile(name, current);
       check(sha(current) === sha(bytes), 'packaged runtime file remains byte-identical after probe: ' + name);
     }
-    check(sha(fs.readFileSync(path.join(ROOT, 'index.html'))) === INDEX_SHA && sha(fs.readFileSync(path.join(ROOT, 'sw.js'))) === SW_SHA, 'raw source index and SW remain byte-identical after probe');
+    check(sha(fs.readFileSync(path.join(ROOT, 'index.html'))) === PINS['index.html'] && sha(fs.readFileSync(path.join(ROOT, 'sw.js'))) === PINS['sw.js'], 'raw source index and SW remain byte-identical after probe');
     report.status = 'passed'; persist(); console.log('MAIN_PAGES_BROWSER_PASS ' + JSON.stringify({ checks: report.checks.length, out: OUT, cases: report.cases.map(r => r.mode) }));
   } catch (error) {
     report.status = 'failed'; report.error = error.stack || String(error); report.chromeLog = chromeLog; persist(); throw error;
@@ -750,8 +746,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       new Function('return (' + browserForeignCacheSnapshot.toString() + ')');
       new Function('return (' + browserPrepareSave.toString() + ')');
       new Function('return (' + browserSaveRoundTrip.toString() + ')');
-      assert.equal(sha(fs.readFileSync(path.join(ROOT, 'index.html'))), INDEX_SHA);
-      assert.equal(sha(fs.readFileSync(path.join(ROOT, 'sw.js'))), SW_SHA);
+      assert.equal(sha(fs.readFileSync(path.join(ROOT, 'index.html'))), PINS['index.html']);
+      assert.equal(sha(fs.readFileSync(path.join(ROOT, 'sw.js'))), PINS['sw.js']);
       console.log('MAIN_PAGES_BROWSER_SOURCE_OK (source/package and helper syntax only; browser acceptance not run)');
     } finally { pack.cleanup(); }
   } else { await run(); }

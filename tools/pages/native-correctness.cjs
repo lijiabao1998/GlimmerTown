@@ -12,6 +12,14 @@ const TIMING = Object.freeze({
   desktop: { start: "    const beforePerfDocument=await ev('performance.timeOrigin');", end: '    report.coverage.core=true;persist();}',
     sha256: '2c35952e5b590c3dbbc735dda0eb321ea7afe45ef2c88deb668bb27b378482cc' }
 });
+// T627: the release under test is HEAD's committed runtime (release603, resolved by scene603 through
+// tools/pages/release-identity.cjs); the tested bytes must equal it. No hash literal appears here.
+const RELEASE_ANCHOR = "const nativeSource603=releaseBaseline603(html,check,release603.previous),exactBase603=nativeSource603.base;";
+const RELEASE_CHECKS = `check(hash(html)===release603.current.sourcePins['index.html'],'exact approved T603 release index');
+check(hash(fs.readFileSync(path.join(DIR,'sw.js')))===release603.current.sourcePins['sw.js'],'exact approved T603 release service worker');
+report.release=(describe=>({current:describe(release603.current),previous:describe(release603.previous),runtimeChanged:release603.delta.runtimeChanged,newEscapeFlags:release603.newEscapeFlags}))(require(path.join(ROOT,'tools/pages/release-identity.cjs')).describeRelease);
+report.native617={approvedRuntimeSHA256:hash(html),retentionInstalled:false,observerInstalled:false,qualityTolerance:0,timingRun:true,releaseGatePassed:false};
+`;
 const CHROME_LAUNCH = "browser=spawn(executable,['--headless=new','--disable-gpu',...(process.platform==='linux'?['--no-sandbox']:[]),'--no-first-run','--no-default-browser-check','--mute-audio','--hide-scrollbars','--window-size=1400,900','--user-data-dir='+path.join(DIR,'.profile'),'--remote-debugging-port='+DEV,'about:blank'],{stdio:['ignore','ignore','pipe']});";
 
 // Test APIs only. No rendering function, Canvas prototype, or write path is replaced.
@@ -96,10 +104,7 @@ function build(input = fs.readFileSync(path.join(SCENES, 'scene603.js'), 'utf8')
   if (input.split(CHROME_LAUNCH).length !== 2) throw Error('T617 canonical Chrome launch drift');
   verifyTiming('mobile');
   verifyTiming('desktop');
-  replace("const nativeSource603=assertNativeSource603(html,check),exactBase603=nativeSource603.base;", `check(hash(html)==='99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d','exact approved T603 release index');
-check(hash(fs.readFileSync(path.join(DIR,'sw.js')))==='79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2','exact approved T603 release service worker');
-report.native617={approvedRuntimeSHA256:hash(html),retentionInstalled:false,observerInstalled:false,qualityTolerance:0,timingRun:true,releaseGatePassed:false};
-const nativeSource603=assertNativeSource603(html,check),exactBase603=nativeSource603.base;`);
+  replace(RELEASE_ANCHOR, RELEASE_CHECKS + RELEASE_ANCHOR);
   replace('  window.__s603={', '  (' + bridge617.toString() + ')();\n  window.__s603={');
   replace("path.join(OUT,'scene603-summary.json')", "path.join(OUT,'native617-summary.json')");
   replace("path.join(os.tmpdir(),'scene603')", "path.join(os.tmpdir(),'native617')");
@@ -145,6 +150,28 @@ const nativeSource603=assertNativeSource603(html,check),exactBase603=nativeSourc
 function selfTest() {
   const assert = require('node:assert/strict'), vm = require('node:vm');
   const original = fs.readFileSync(path.join(SCENES, 'scene603.js'), 'utf8'), built = build(original);
+  // T627: the inserted release checks carry no hash literal, the release anchor is unique, and the
+  // checks bind the tested bytes to release603.current (a mismatch in either file is rejected).
+  assert.doesNotMatch(RELEASE_CHECKS, /[0-9a-f]{64}/);
+  assert.equal(original.split(RELEASE_ANCHOR).length, 2);
+  assert.equal(built.source.split(RELEASE_CHECKS + RELEASE_ANCHOR).length, 2);
+  assert.throws(() => build(original.replace(RELEASE_ANCHOR, RELEASE_ANCHOR + '\n' + RELEASE_ANCHOR)), /exact anchor drift/);
+  for (const message of ['exact approved T603 release index', 'exact approved T603 release service worker'])
+    assert.equal(built.source.split("'" + message + "');").length, 2, message);
+  const releaseChecks = (indexText, swText, pins) => {
+    const passed = [], report = {}, release603 = { current: { sourcePins: pins }, previous: { commit: 'p' }, delta: { runtimeChanged: true }, newEscapeFlags: [] };
+    new Function('hash', 'html', 'fs', 'path', 'DIR', 'ROOT', 'require', 'report', 'check', 'release603', RELEASE_CHECKS)(
+      sha256, indexText, { readFileSync: () => Buffer.from(swText) }, path, 'dir', 'root', () => ({ describeRelease: r => r }), report,
+      (ok, message) => { if (!ok) throw Error(message); passed.push(message); }, release603);
+    return { passed, report };
+  };
+  const pins = { 'index.html': sha256('index'), 'sw.js': sha256('sw') };
+  const good = releaseChecks('index', 'sw', pins);
+  assert.deepEqual(good.passed, ['exact approved T603 release index', 'exact approved T603 release service worker']);
+  assert.equal(good.report.release.runtimeChanged, true); assert.equal(good.report.release.previous.commit, 'p');
+  assert.equal(good.report.native617.approvedRuntimeSHA256, pins['index.html']);
+  assert.throws(() => releaseChecks('index!', 'sw', pins), /exact approved T603 release index/);
+  assert.throws(() => releaseChecks('index', 'sw!', pins), /exact approved T603 release service worker/);
   for (const span of Object.values(TIMING)) assert.throws(() => build(original.replace(span.start, span.start + '\n    check(false,"new correctness assertion");')), /timing byte drift/);
   assert.throws(() => build(original.replace('--disable-gpu', '--different-graphics')), /Chrome launch drift/);
   assert.throws(() => build(original.replace('  window.__s603={', '  window.__s603 = {')), /anchor drift/);
@@ -209,5 +236,5 @@ async function main() {
   if (process.platform !== 'linux') throw Error('T617 canonical correctness requires the original Ubuntu/Linux headless environment');
   new Function('require', '__filename', '__dirname', built.source)(createRequire(path.join(SCENES, 'scene603.js')), path.join(SCENES, 'scene603.js'), SCENES);
 }
-module.exports = { build, bridge617, selfTest, SLOT_KEYS, TIMING, CHROME_LAUNCH };
+module.exports = { build, bridge617, selfTest, SLOT_KEYS, TIMING, CHROME_LAUNCH, RELEASE_ANCHOR, RELEASE_CHECKS };
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
