@@ -2,10 +2,12 @@ import {createHash} from 'node:crypto';
 import {mkdirSync,readFileSync,readdirSync,writeFileSync,lstatSync,existsSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import identity from './release-identity.cjs';
 
 export const SOURCE_COMMIT='23564a810546e585758236553d1432c3aacb760b';
-export const SAVE_NAMESPACE='glimmerville.main.v1';
-export const CACHE_PREFIX='glimmerville-main-shell-';
+// T627: the namespace table lives in release-identity.cjs; re-exported so import sites stay unchanged.
+export const {SAVE_NAMESPACE,CACHE_PREFIX}=identity;
+const {substitutions}=identity;
 export const PINS=Object.freeze({
   'index.html':'99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d',
   'sw.js':'79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2',
@@ -16,11 +18,6 @@ export const PINS=Object.freeze({
   'icon-v1-maskable-512.png':'56ffc2b39731bacf19e121770fdce612c0cc915bb663c1a781d6e1e213005950'
 });
 export const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
-const substitutions=Object.freeze({
-  'index.html':[["const SAVEKEY='glimmerville.v1';",`const SAVEKEY='${SAVE_NAMESPACE}';`]],
-  'sw.js':[["const CACHE_PREFIX='glimmerville-shell-';",`const CACHE_PREFIX='${CACHE_PREFIX}';`],
-    ["const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);","const LEGACY_CACHES=new Set([]);"]]
-});
 export function packageFile(name,bytes){
   if(!(name in PINS)||sha256(bytes)!==PINS[name])throw Error('Unverified main source: '+name);
   let text=bytes.toString('utf8');
