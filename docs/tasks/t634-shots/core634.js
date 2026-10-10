@@ -39,6 +39,22 @@ function kit634(T){
   const court=(u,v,du,dv,type)=>{ground(u,v,du,dv,type==='ice'?'#bed5d6':type==='tennis'?'#71836a':'#977d67');const p=quad(u+.03,v+.03,du-.06,dv-.06);for(let i=0;i<4;i++)ln(p[i],p[(i+1)%4],'#e5dfc7');ln(P(u+du*.5,v),P(u+du*.5,v+dv),'#e6e3cc');if(type==='tennis')ln(P(u+du*.5,v),P(u+du*.5,v+dv),'#354847',2);};
   return {px,face,ln,ground,house,tower,chimney,sign,fence,hedge,water,tank,court,tree,lamp,text};
 }
+/* 同一支純繪圖三葉轉子：烘焙定格、真實動畫、倒影與接觸表共用輪廓。 */
+function paintRotor634(ctx,x,y,radius,angle,z=1,winter=false){
+  if(![x,y,radius,angle,z].every(Number.isFinite)||radius<=0||z<=0)return;
+  const p=(a,d,q)=>[x+(Math.cos(a)*d-Math.sin(a)*q)*z,y+(Math.sin(a)*d+Math.cos(a)*q)*z],fill=ctx.fillStyle;
+  ctx.save();
+  for(let j=0;j<3;j++){
+    const a=angle+j*Math.PI*2/3,ps=[p(a,1.2,-1.3),p(a,radius*.3,-2),p(a,radius-.8,-.65),p(a,radius,0),p(a,radius*.34,1.8)];
+    lotPoly574(ctx,ps,winter?'#e9eee7':'#d4ded7');
+    lotLine574(ctx,p(a,radius*.23,1.45),p(a,radius*.84,.27),winter?'#c2d3cf':'#a0b5b0',Math.max(1,Math.round(z)));
+  }
+  lotEllipse574(ctx,Math.round(x),Math.round(y),Math.max(1,Math.round(3*z)),Math.max(1,Math.round(3*z)),'#829b9a');
+  lotEllipse574(ctx,Math.round(x-z*.5),Math.round(y-z*.5),Math.max(1,Math.round(1.4*z)),Math.max(1,Math.round(1.4*z)),winter?'#e6ece4':'#bfcfc5');
+  ctx.restore();ctx.fillStyle=fill;
+}
+/* 額外轉子底圖也計入留存像素，不能只算日／夜兩張。 */
+function spritePixels634(s){return s.w*s.h*(s.rotorBase634?3:2);}
 function bake634(k,v,n,lv=1,we=1,stage=2,winter=false,sea=season()){
   const art=ART634[k];if(!art)return null;
   const w=n*64+16,h=n*32+192,ax=w/2,ay=h-8,top=ay-n*32,[c,g]=cv(w,h),[nc,ng]=cv(w,h);
@@ -50,12 +66,20 @@ function bake634(k,v,n,lv=1,we=1,stage=2,winter=false,sea=season()){
   const H=(a,b,s=0)=>hashLocal590(Math.round(a*997)+k*13,Math.round(b*991)+v*17,s+634),hooks={};
   const T={k,v,n,lv,we,stage,sea,winter,g,ng,P,quad,poly,line,ell,LIT,H,box,occlude,shade,hooks};T.tree=(...a)=>kit634(T).tree(...a);T.car=(u,v,col)=>box(u,v,.2,.12,4,{left:shade(col,-25),right:col,top:shade(col,12)});
   art.draw(T);
+  let rotorRaw634=null;
+  if(hooks.rotors&&hooks.rotors.length&&!hooks.rotorStatic){
+    const[rc,rg]=cv(w,h);rg.drawImage(c,0,0);rotorRaw634=rc;
+    for(const p of hooks.rotors){paintRotor634(g,p[0],p[1],p[2],-.4,1,winter);ng.save();ng.globalCompositeOperation='destination-out';paintRotor634(ng,p[0],p[1],p[2],-.4,1,winter);ng.restore();}
+  }
   /* 只在烘焙時裁掉透明天際；錨點與全部掛點一起移動，施工樓板與懸停不用虛假的空白高度。 */
   const pixels=g.getImageData(0,0,w,h).data;let y0=h;for(let y=0;y<h&&y0===h;y++)for(let x=0;x<w;x++)if(pixels[(y*w+x)*4+3]){y0=Math.max(0,y-2);break;}
-  if(y0===h)throw Error('T634 empty sprite '+k);const nh=h-y0,[ic,ig]=cv(w,nh),[lc,lg]=cv(w,nh);ig.drawImage(c,0,y0,w,nh,0,0,w,nh);lg.drawImage(nc,0,y0,w,nh,0,0,w,nh);
+  if(y0===h)throw Error('T634 empty sprite '+k);
+  if(rotorRaw634)for(const p of hooks.rotors)y0=Math.min(y0,Math.max(0,Math.floor(p[1]-p[2]-3))); /* 留足整圈葉尖，不能只按定格角度裁切。 */
+  const nh=h-y0,[ic,ig]=cv(w,nh),[lc,lg]=cv(w,nh);ig.drawImage(c,0,y0,w,nh,0,0,w,nh);lg.drawImage(nc,0,y0,w,nh,0,0,w,nh);
+  let rotorBase634=null;if(rotorRaw634){const[bc,bg]=cv(w,nh);bg.drawImage(rotorRaw634,0,y0,w,nh,0,0,w,nh);rotorBase634=bc;}
   const move=p=>[p[0],p[1]-y0,...p.slice(2)],hh={};for(const key in hooks){const a=hooks[key];hh[key]=Array.isArray(a)&&typeof a[0]==='number'?move(a):Array.isArray(a)?a.map(move):a;}
   const smoke=[...(hh.smoke||[]),...(hh.steam||[])].map(p=>({dx:p[0]-ax,dy:p[1]-(ay-y0)}));
-  return {img:ic,night:lc,w,h:nh,ax,ay:ay-y0,__t590:1,__t601:1,__t596:1,__t634:1,smoke,lotMeta574:{sz:n,kind:k,variant:v,stage,winter,ground:[ax,top-y0,n*32],feet:[],hooks:hh,order574:[],cycles574:0,t591:false}};
+  return {img:ic,night:lc,...(rotorBase634?{rotorBase634}:{}),w,h:nh,ax,ay:ay-y0,__t590:1,__t601:1,__t596:1,__t634:1,smoke,lotMeta574:{sz:n,kind:k,variant:v,stage,winter,ground:[ax,top-y0,n*32],feet:[],hooks:hh,order574:[],cycles574:0,t591:false}};
 }
 function legacyArt634(k,v,n,winter,stage){
   const src=LOT603.has(k)?bakeArt603(k,v,stage,winter):LOT602.has(k)?bakeArt602(k,v,stage,winter):bakeArt601(k,v,stage,winter);if(!src)return null;
@@ -68,5 +92,5 @@ function spr634(bd,x=0,y=0,winter=false,stage=2,gen=true){
   const k=bd.k,n=bd.sz||1,lv=k<=3?Math.min(3,Math.max(1,bd.lv|0)):1,we=k===1?Math.max(0,Math.min(2,bd.we===undefined?1:bd.we)):1,v=v634(k,x,y,bd),sea=season(),key=[k,v,n,lv,we,stage,+winter,sea].join('_');
   if(CACHE634.has(key)){const s=CACHE634.get(key);CACHE634.delete(key);CACHE634.set(key,s);STAT634.hits++;return s;}if(!gen)return null;
   let s;try{s=LEGACY634.has(k)?legacyArt634(k,v,n,winter,stage):bake634(k,v,n,lv,we,stage,winter,sea);}catch(e){STAT634.fail++;return null;}if(!s)return null;
-  const pixels=s.w*s.h*2;while(CACHE634.size&&(CACHE634.size>=LIMIT634.entries||STAT634.pixels+pixels>LIMIT634.pixels)){const first=CACHE634.keys().next().value,old=CACHE634.get(first);STAT634.pixels-=old.w*old.h*2;CACHE634.delete(first);}CACHE634.set(key,s);STAT634.pixels+=pixels;STAT634.bakes++;return s;
+  const pixels=spritePixels634(s);while(CACHE634.size&&(CACHE634.size>=LIMIT634.entries||STAT634.pixels+pixels>LIMIT634.pixels)){const first=CACHE634.keys().next().value,old=CACHE634.get(first);STAT634.pixels-=spritePixels634(old);CACHE634.delete(first);}CACHE634.set(key,s);STAT634.pixels+=pixels;STAT634.bakes++;return s;
 }

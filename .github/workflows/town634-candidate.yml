@@ -37,6 +37,12 @@ jobs:
         run: |
           set -o pipefail
           python -B -m unittest tools.test_toolchain 2>&1 | tee evidence/toolchain.log
+      - name: Independent art contracts and targeted negative controls
+        if: always()
+        run: |
+          npm install --prefix "$RUNNER_TEMP/town634-canvas" @napi-rs/canvas
+          set -o pipefail
+          NODE_PATH="$RUNNER_TEMP/town634-canvas/node_modules" node docs/tasks/t634-shots/check634.cjs | tee evidence/check634.log
       - name: Preserve regression evidence
         if: always()
         uses: actions/upload-artifact@v4

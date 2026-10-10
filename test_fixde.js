@@ -13507,7 +13507,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const chainLast596=html.split('\n').find(l=>l.startsWith("    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0'];"));
   assert(chainLast596&&html.includes(chainLast596+'\n'+selLine596),'T596 G2c 選圖行緊接在舊選圖鏈最後一行之後');
   const pins596=["    else if(k===2&&t596On())sy=_sy413(x,y)+36*z2;","let u596=false;if(!b.riot&&(b.k===1||b.k===3)&&!b.lot574&&!(b.sz>=2)&&t596On()&&(offs||(sea===3&&b.k===1&&b.pw&&!window.__noChimney))){const q596=smoke596(b,x,y);if(q596){offs=q596;u596=true;if(b.k===1)col='#d8d2c6';}}",
-    "      const lot574=(b.lot574||u596)?{x,y,sz:b.lot574?b.sz:1,dx:o.dx,dy:o.dy}:null;","function smoke596(bd,x,y){const p=spr596(bd,false,x,y);",
+    "      const lot574=(b.lot574||u596)?{x,y,sz:b.lot574?b.sz:t634On()?(b.sz||1):1,dx:o.dx,dy:o.dy}:null;","function smoke596(bd,x,y){const p=spr596(bd,false,x,y);",
     "      const nr596=s.__t596?neonRects596(s,bd.lv||1,[streetHash(o.x,o.y,1901),streetHash(o.x,o.y,1902),streetHash(o.x,o.y,1903)],bx,by,z):null;",
     "      if(nr596){nr596.forEach((r,i)=>{const col=i?NEON[(NEON.indexOf(nCol)+2)%NEON.length]:nCol;nightSprites.push({rect:[r[0]-2*z,r[1]-2*z,r[2]+4*z,r[3]+4*z],col:shade(col,-96)});nightSprites.push({rect:r,col});});}\n      else if((bd.lv||1)>=2){ // T368b 合流升級",
     "  if((bd.k===1||bd.k===2||bd.k===3)&&!bd.lot574&&t596On()){const p596=spr596(bd,true,x,y);if(p596)return p596;}"];
@@ -17809,7 +17809,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const smokeExpr574='const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;';
   const smokeLo574=htmlBare438.indexOf(smokeExpr574),smokeHi574=htmlBare438.indexOf('\n    }',smokeLo574);
   assert(smokeLo574>=0&&htmlBare438.indexOf(smokeExpr574,smokeLo574+1)<0&&smokeHi574>smokeLo574
-    &&/const lot574=\(b\.lot574\|\|u596\)\?\{x,y,sz:b\.lot574\?b\.sz:1,dx:o\.dx,dy:o\.dy\}:null;\s*smokes\.push\(\{wx,wy,[^\n]*dep:viewDep\(x,y\)/.test(htmlBare438.slice(smokeLo574,smokeHi574)), // T596 放寬（寫在 T596 卡面）：預覽新圖的煙粒也借 lot574 走畫面錨定路徑（sz 1），仍是同一筆帶 viewDep 的 world spawn
+    &&/const lot574=\(b\.lot574\|\|u596\)\?\{x,y,sz:b\.lot574\?b\.sz:t634On\(\)\?\(b\.sz\|\|1\):1,dx:o\.dx,dy:o\.dy\}:null;\s*smokes\.push\(\{wx,wy,[^\n]*dep:viewDep\(x,y\)/.test(htmlBare438.slice(smokeLo574,smokeHi574)), // T596 放寬（寫在 T596 卡面）：預覽新圖的煙粒也借 lot574 走畫面錨定路徑（sz 1），仍是同一筆帶 viewDep 的 world spawn
     'T445 G0 T574煙粒例外必須仍是帶viewDep的同一world spawn，不能放行任意相鄰裸式');
 
   const PATS445 = [

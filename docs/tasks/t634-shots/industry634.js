@@ -96,7 +96,8 @@ const INDUSTRY634={
   }},
   26:{name:'英式風力站',draw(T){
     const I=industryKit634(T),{P,L,F,tank,box}=I,v=T.v%3;
-    const turbine=(u,w,h,r)=>{const c=tank(u,w,.025,h,'#b8c5c1'),rad=Math.min(r,12+T.n*6);for(let j=0;j<3;j++){const a=j*2.094-.4,tip=[c[0]+Math.cos(a)*rad,c[1]+Math.sin(a)*rad];F([[c[0]-1,c[1]-1],[tip[0]-Math.sin(a)*2,tip[1]+Math.cos(a)*2],[tip[0],tip[1]],[c[0]+Math.sin(a)*3,c[1]-Math.cos(a)*3]],'#dde3d9');}I.ell(c[0],c[1],3,3,'#839d9e');return c;};
+    /* 水平葉片由繪製端依同一掛點畫三葉；本體只留塔柱、機艙與輪轂，避免靜態葉片重影。 */
+    const turbine=(u,w,h,r)=>{const c=tank(u,w,.025,h,'#b8c5c1'),rad=Math.min(r,12+T.n*6);I.px(c[0]-6,c[1]-2,'#b9c9c5',8,4);I.px(c[0]-5,c[1]-2,'#d3ddd3',6,1);I.ell(c[0],c[1],3,3,'#839d9e');(T.hooks.rotors||(T.hooks.rotors=[])).push([c[0],c[1],rad]);return c;};
     if(v===0){T.hooks.rotor=turbine(.46,.4,73,29);I.shed(.65,.73,.22,.15,12,'gable',true);}
     else if(v===1){turbine(.18,.5,52,20);T.hooks.rotor=turbine(.75,.35,67,24);I.shed(.1,.72,.26,.13,12,'gable');}
     else{const p=tank(.49,.43,.028,65,'#aebebb');for(const s of[-1,1]){F([[p[0],p[1]-3],[p[0]+s*12,p[1]+11],[p[0]+s*8,p[1]+44],[p[0],p[1]+56],[p[0]+s*4,p[1]+27]],'#a9c2c1');L([p[0],p[1]],[p[0],p[1]+58],'#566f74',2);}T.hooks.rotor=p;T.hooks.rotorStatic=true;I.shed(.1,.73,.32,.13,12,'gable',true);box(.66,.71,.2,.12,9,'#73938c');}
@@ -114,7 +115,7 @@ const INDUSTRY634={
     if(v===0){I.shed(.08,.12,.38,.29,21,'gable',true);const p=I.lattice(.72,.34,65,.07);I.L([p[0]-9,p[1]+9],[p[0]+9,p[1]+9],'#b9c8c2',2);I.ell(p[0]-9,p[1]+7,3,2,'#657e85');I.ell(p[0]+9,p[1]+10,3,2,'#657e85');T.hooks.radar=p;I.box(.22,.7,.12,.13,11,'#d9ddd2',6);}
     else if(v===1){I.shed(.1,.12,.27,.54,27,'gable');const p=I.dome(.69,.38,.16,32,'#c4d1ce');T.hooks.radar=p;I.box(.58,.66,.23,.12,7,'#729391');}
     else{I.shed(.1,.64,.56,.2,19,'flat',true);I.dish(.57,.24,51,.16);I.lattice(.17,.22,37,.035);I.pond(.76,.7,.11,.12);}
-    const p=I.P(.32,.58,9);for(let j=0;j<4;j++)I.px(p[0]-4,p[1]+j*2,'#e7e8dc',9,1);I.fence();I.sign(.43,.91,7,'MET');
+    const p=I.P(.32,.58,9);for(let j=0;j<4;j++)I.px(p[0]-4,p[1]+j*2,'#e7e8dc',9,1);I.fence();I.sign(.43,.91,7,'MET');T.hooks.radarStatic=true;
   }},
   49:{name:'英式油井',draw(T){
     const I=industryKit634(T),v=T.v%3;
