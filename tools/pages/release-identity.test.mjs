@@ -1,12 +1,13 @@
 /** T627 release identity: current release from the commit, previous release from the live site,
- * and the negative controls showing every guard still bites (plan section 4, tests 1-10 and 13).
+ * and the negative controls showing every guard still bites (plan section 4, tests 1-10, 13 and 16).
  * Temporary git repositories and injected live fetches only: no network, no runtime-file writes.
+ * Test 16 reads the real checkout read-only: no pipeline script may carry the current release values.
  * Run: node --test tools/pages/release-identity.test.mjs
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {spawnSync} from 'node:child_process';
-import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,readdirSync,readFileSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
@@ -380,6 +381,92 @@ test('13. harness DOM prefix: one anchor, pinned prefix bytes, free suffix',()=>
   }
   assert.throws(()=>check(Buffer.concat([real,Buffer.from('\n'),anchor,Buffer.from('\n')])),/exactly one harness DOM anchor/);
   assert.throws(()=>check(Buffer.concat([real.subarray(0,cut),real.subarray(cut+anchor.length)])),/exactly one harness DOM anchor/);
+});
+
+// ---- 16. No current-release literal in the pipeline (plan step 7) ----
+// The current runtime's hashes and version are derived from HEAD at run time; writing them back
+// into a pipeline script or test would re-pin the next release. The scan covers every
+// tools/pages/*.mjs and *.cjs (tests included) plus scene603.js. native603.js is frozen T603
+// history: it legitimately carries 4dd0fa4's hashes, which today also equal HEAD's.
+const RELEASE_LITERAL_EXTRA=Object.freeze(['docs/tasks/t603-shots/scene603.js']);
+const RELEASE_LITERAL_REQUIRED=Object.freeze(['build-main.mjs','browser-main.mjs','published-main.mjs','native-correctness.cjs',
+  'native-portability-diagnostic.cjs','native-mac-diagnostic.cjs','release-correctness.cjs','release-native-acceptance.cjs',
+  'release-identity.cjs','release-identity.test.mjs','upgrade-main.test.mjs','release-acceptance.test.mjs'].map(n=>'tools/pages/'+n));
+function releaseLiteralScanFiles(root){
+  const pages=readdirSync(path.join(root,'tools/pages')).filter(n=>/\.(?:mjs|cjs)$/.test(n)).sort().map(n=>'tools/pages/'+n);
+  return [...pages,...RELEASE_LITERAL_EXTRA];
+}
+/** Needles for one release: both runtime hashes (full and 8-hex short form, any letter case) and the
+ * version as a quoted string ('…', "…", `…`) or with the cache-name `v` prefix. */
+function releaseLiteralNeedles(release){
+  const needles=[];
+  for(const name of ['index.html','sw.js']){
+    const hex=release.sourcePins[name];
+    assert.match(hex,/^[0-9a-f]{64}$/,name+' pin');
+    needles.push({label:name+' sha256',text:hex,fold:true},{label:name+' sha256 short',text:hex.slice(0,8),fold:true});
+  }
+  assert.match(release.version,/^\d+(?:\.\d+){1,2}$/);
+  for(const q of ["'",'"','`'])needles.push({label:'version '+q+'…'+q,text:q+release.version+q});
+  needles.push({label:'version v…',text:'v'+release.version});
+  return needles;
+}
+function releaseLiteralHits(text,needles){
+  const folded=text.toLowerCase();
+  return needles.filter(n=>(n.fold?folded:text).includes(n.text)).map(n=>n.label);
+}
+
+test('16. no pipeline script or test carries the current release hashes or version',()=>{
+  const cur=identity.currentRelease(ROOT);
+  // The needles are the real HEAD values, cross-checked without the module under test.
+  const blob=name=>{
+    const r=spawnSync('git',['-C',ROOT,'cat-file','blob','HEAD:'+name],{windowsHide:true,maxBuffer:64<<20});
+    assert.equal(r.status,0,'git cat-file HEAD:'+name);return r.stdout;
+  };
+  const headIndex=blob('index.html'),headSw=blob('sw.js');
+  assert.equal(cur.sourcePins['index.html'],sha256(headIndex));assert.equal(cur.sourcePins['sw.js'],sha256(headSw));
+  assert.equal(cur.version,/const GAME_VER='([^']*)'/.exec(headIndex.toString('utf8'))[1]);
+  const needles=releaseLiteralNeedles(cur);
+  assert.equal(needles.length,8);
+  // Positive control: the runtime itself declares its version as a quoted literal (R2).
+  assert(releaseLiteralHits(headIndex.toString('utf8'),needles).includes("version '…'"),'index.html GAME_VER must be seen');
+  assert(releaseLiteralHits(headSw.toString('utf8'),needles).includes("version '…'"),'sw.js APP_VER must be seen');
+  // Each needle bites on its own, in the real text of a scanned file.
+  const host=readFileSync(path.join(ROOT,'tools/pages/build-main.mjs'),'utf8');
+  assert.deepEqual(releaseLiteralHits(host,needles),[]);
+  const [ix,ixShort,sw,swShort,single,double,backtick,vee]=needles.map(n=>n.label);
+  const injections=[
+    [`const INDEX_SHA='${cur.sourcePins['index.html']}';`,[ix,ixShort]],
+    [`// ${cur.sourcePins['index.html'].toUpperCase()}`,[ix,ixShort]],
+    [`assert(h.startsWith('${cur.sourcePins['index.html'].slice(0,8)}'))`,[ixShort]],
+    [`const SW_SHA="${cur.sourcePins['sw.js']}";`,[sw,swShort]],
+    [`// sw ${cur.sourcePins['sw.js'].slice(0,8).toUpperCase()}`,[swShort]],
+    [`const V='${cur.version}';`,[single]],
+    [`expect("${cur.version}")`,[double]],
+    ['const label=`'+cur.version+'`;',[backtick]],
+    [`caches.has('${cur.cacheName}')`,[vee]]
+  ];
+  for(const [snippet,expected] of injections){
+    const at=host.indexOf('\n',host.length>>1)+1;
+    assert.deepEqual(releaseLiteralHits(host.slice(0,at)+snippet+'\n'+host.slice(at),needles),expected,snippet);
+  }
+  // Near misses that are not this release stay clean.
+  const [major,...rest]=cur.version.split('.');
+  const later=[major,...rest.slice(0,-1),String(Number(rest[rest.length-1])+1)].join('.');
+  assert.deepEqual(releaseLiteralHits(`const GAME_VER='${later}'; cache v${later}; "${cur.version}1"`,needles),[]);
+  // The scan itself.
+  const files=releaseLiteralScanFiles(ROOT);
+  for(const required of RELEASE_LITERAL_REQUIRED)assert(files.includes(required),'scan must cover '+required);
+  assert(files.includes('docs/tasks/t603-shots/scene603.js'),'scan must cover scene603.js');
+  assert(!files.some(f=>/native603\.js$/.test(f)),'native603.js is frozen history and is not scanned');
+  assert(files.length>=RELEASE_LITERAL_REQUIRED.length+RELEASE_LITERAL_EXTRA.length);
+  const offenders=[];
+  for(const file of files){
+    const text=readFileSync(path.join(ROOT,file),'utf8');
+    assert(text.length>0,file+' is empty');
+    const hits=releaseLiteralHits(text,needles);
+    if(hits.length)offenders.push(file+': '+hits.join(', '));
+  }
+  assert.deepEqual(offenders,[],'current-release literals must be derived from HEAD, not written into the pipeline');
 });
 
 test.after(()=>rmSync(scratch,{recursive:true,force:true,maxRetries:3}));
