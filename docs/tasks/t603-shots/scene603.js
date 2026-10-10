@@ -4,7 +4,7 @@
 'use strict';
 const fs=require('fs'),os=require('os'),path=require('path'),http=require('http'),crypto=require('crypto');
 const {spawn}=require('child_process');
-const {assertNativeSource603,pngRgba603,pixelDelta603,snapshotUnchanged603}=require('./native603.js');
+const {releaseBaseline603,pngRgba603,pixelDelta603,snapshotUnchanged603}=require('./native603.js');
 const arg=(n,d)=>{const a=process.argv.find(x=>x.startsWith('--'+n+'='));return a?a.slice(n.length+3):d;};
 const PHASE=arg('phase','full');if(!['full','core','world','neighbors'].includes(PHASE))throw Error('Unknown T603 validation phase');
 const PORT=+arg('port',8763),DEV=PORT+1000,OUT=path.resolve(arg('out',path.join(os.tmpdir(),'scene603')));
@@ -14,7 +14,7 @@ fs.mkdirSync(OUT,{recursive:true});
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const pct=(a,p)=>[...a].sort((x,y)=>x-y)[Math.min(a.length-1,Math.floor(a.length*p))];
-const report={status:'running',phase:PHASE,performanceFailures:[],coverage:{core:false,world:false,neighbors:false},baseSha:'637c8cc6d09306c1e17535ece6119d3ad78f1382',checks:[],screenshots:[],headless:true,performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'};
+const report={status:'running',phase:PHASE,performanceFailures:[],coverage:{core:false,world:false,neighbors:false},baseSha:null,checks:[],screenshots:[],headless:true,performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'};
 const check=(v,m)=>{if(!v)throw Error(m);report.checks.push(m);};
 const perfCheck=(v,m)=>{if(v)report.checks.push(m);else{report.performanceFailures.push(m);console.log('T603_PERFORMANCE_FAILURE '+m);}}; // 延後彙總判紅，不能把失敗轉綠；獨立圖面仍完整驗收。
 const persist=()=>fs.writeFileSync(path.join(OUT,'scene603-summary.json'),JSON.stringify(report,null,2));
@@ -142,7 +142,7 @@ function bridge603(){
     trace:()=>{const calls=[],old=ctx.drawImage;ctx.drawImage=function(img,...args){calls.push({img,args});return old.call(this,img,...args);};try{GV.forceDraw();}finally{ctx.drawImage=old;}const out=[];for(const c of calls)for(const [key,s]of lotCache574)if(c.img===s.img){out.push({key,args:c.args});break;}return out;},
     perfStart:()=>{for(const k in work603)work603[k].length=0;measureWork603=true;return true;},
     perfWork:()=>{measureWork603=false;const out={};for(const k in work603){const a=work603[k],b=[...a].sort((x,y)=>x-y);out[k]={calls:a.length,mean:a.length?a.reduce((x,y)=>x+y,0)/a.length:0,p95:b.length?b[Math.min(b.length-1,Math.floor(b.length*.95))]:0,max:b.length?b[b.length-1]:0};}return {work:out,state:{speed,running,quality,cars:cars.length,citizens:citizens.length,visT,day,visibility:document.visibilityState},heap:performance.memory?{used:performance.memory.usedJSHeapSize,total:performance.memory.totalJSHeapSize}:null};},
-    documentIdentity:()=>({version:GAME_VER,civicFactory:typeof bakeArt603,url:location.pathname}),
+    documentIdentity:()=>({version:GAME_VER,civicFactory:typeof bakeArt603,url:location.pathname,doc:window.__doc603||null}),
     comparisonRig:()=>{document.getElementById('bNewGame').click();GV.setMapSize(72);GV.setRot(0);GV.newWorldSeeded(603);GV.setDiff(3);GV.setSpeed(0);GV.ai(false);__s603.clearMap();money=1e9;for(const [tool,x,y]of[['recycling',27,28],['seniorCenter',31,28],['dogpark',27,32],['compost',31,32]]){if(!GV.place(tool,x,y))throw Error('comparison placement '+tool);}__s603.finish();selTile=null;return __s603.roots();},
     comparisonFrame:(rot,sea,time)=>{GV.setRot(rot);GV.setSeason(sea);GV.weather(0);__s603.snow(sea===3);trafClock=time;waterF=0;waterT=0;__s603.freezeVis(time);GV.setZoom(2);GV.lookAt(30,31);groundDirty=true;ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';GV.forceDraw();GV.forceDraw();return {hash:__s603.imageHash(cvs),png:cvs.toDataURL('image/png'),state:{W,H,DPR,day,waterF,waterT,trafClock,visT,rot:viewRotEff(),cam:{...cam},roots:__s603.roots(),flags:__s603.flags()}};},
     makeShore:(x,y,n)=>{for(let yy=y-1;yy<=y+n;yy++)for(let xx=x-1;xx<=x+n;xx++){if(xx>=x&&xx<x+n&&yy>=y&&yy<y+n)continue;const t=T(idx(xx,yy));t.t=0;t.road=0;t.mask=0;for(const[a,b]of[[xx,yy],[xx-1,yy],[xx+1,yy],[xx,yy-1],[xx,yy+1]])if(inMap(a,b))recalcMask(a,b);}computeFoam();groundDirty=true;return T(idx(x+n,y)).t===0;},
@@ -162,13 +162,19 @@ function bridge603(){
     sheet:(kind,night,winter)=>{const old=$('#sheet603');if(old)old.remove();const c=document.createElement('canvas');c.id='sheet603';c.width=1400;c.height=900;c.style='position:fixed;inset:0;z-index:999999;width:1400px;height:900px';document.body.append(c);const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle=night?'#101d2a':'#e7eee7';g.fillRect(0,0,1400,900);g.fillStyle=night?'#dde9e5':'#254653';g.font='bold 23px sans-serif';g.fillText('T603 BLUE-GREY | '+kind+' | '+(winter?'WINTER':night?'NIGHT':'DAY'),30,35);const out=[];for(let row=0;row<4;row++)for(let v=0;v<3;v++){const k=[29,85,92,88][row],stage=2,s=bakeArt603(k,v,stage,winter),scale=1.4,cropY=80,cropH=s.h-cropY,x=105+v*440,y=70+row*205;g.drawImage(s.img,0,cropY,s.w,cropH,x,y,s.w*scale,cropH*scale);if(night){g.fillStyle='#0a162a99';g.fillRect(x,y,s.w*scale,cropH*scale);g.drawImage(s.night,0,cropY,s.w,cropH,x,y,s.w*scale,cropH*scale);}g.fillStyle=night?'#dde9e5':'#254653';g.font='15px sans-serif';g.fillText('k'+k+' V'+(v+1)+' stage '+stage,x+240,y+120);const a=s.img.getContext('2d').getImageData(0,0,s.w,s.h).data,b=s.night.getContext('2d').getImageData(0,0,s.w,s.h).data;let ink=0,light=0,orphan=0,cropped=0;for(let i=3;i<a.length;i+=4){if(a[i]){ink++;if(i<cropY*s.w*4)cropped++;}if(b[i]){light++;if(!a[i])orphan++;}}out.push({k,v,stage,ink,light,orphan,cropped,hash:__s603.imageHash(s.img)});}return out;}
   };
 }
-// Inverse only approved art changes, then bind every remaining byte to immutable main.
+// T627 release pair: the candidate is HEAD's committed runtime; the baseline page is the index.html of the
+// release the live site serves, read from git objects (release-identity), never a reconstruction.
 let html=fs.readFileSync(path.join(DIR,'index.html'),'utf8');
-const nativeSource603=assertNativeSource603(html,check),exactBase603=nativeSource603.base;
+const release603=require(path.join(ROOT,'tools/pages/release-identity.cjs')).releasePairSync(ROOT);report.baseSha=release603.previous.commit;
+const nativeSource603=releaseBaseline603(html,check,release603.previous),exactBase603=nativeSource603.base;
 report.nativeSource603={...nativeSource603,base:undefined};report.baseIndexSHA256=nativeSource603.baseSHA256;
-fs.writeFileSync(path.join(DIR,'baseline603.html'),exactBase603.replace('window.GV={','('+bridge603.toString()+')();window.GV={'));
+// Each document names itself, and setting window.__noT603 also sets every escape flag this release adds over the old one.
+function escapeFlags603(flags){let off=window.__noT603;Object.defineProperty(window,'__noT603',{configurable:true,enumerable:true,get(){return off;},set(value){off=value;for(const flag of flags)window[flag]=value;}});}
+const documentPrefix603=doc=>'window.__doc603='+JSON.stringify(doc)+';('+escapeFlags603.toString()+')('+JSON.stringify(release603.newEscapeFlags)+');('+bridge603.toString()+')();window.GV={';
+check(exactBase603.split('window.GV={').length===2,'unique baseline game bridge anchor');
+fs.writeFileSync(path.join(DIR,'baseline603.html'),exactBase603.replace('window.GV={',()=>documentPrefix603('baseline')));
 check(html.split('window.GV={').length===2,'unique game bridge anchor');
-fs.writeFileSync(path.join(DIR,'index.html'),html.replace('window.GV={','('+bridge603.toString()+')();window.GV={'));
+fs.writeFileSync(path.join(DIR,'index.html'),html.replace('window.GV={',()=>documentPrefix603('candidate')));
 const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','/usr/bin/google-chrome','/usr/bin/chromium'].filter(Boolean).find(p=>fs.existsSync(p));
 (async()=>{
   let browser,ws,exitCode=2,server,captureFailure=null;const errors=[],consoleErrors=[];
@@ -277,9 +283,9 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready();
     check(await ev('localStorage.getItem("glimmerville.v1.slot")==="3"'),'slot3 set before game boot');
     report.flags=await ev('__s603.flags()');check(report.flags.T603&&!report.flags.T596&&!report.flags.T600&&(await ev('__s603.rep()')).ok===1,'T603 enabled; T596/T600 effective previews off');
-    // Baseline fixture is immutable v11.211, not the candidate pin file.
+    // Baseline is the previous release's committed pin file (git objects), not the candidate pin file.
     const pinsOf=p=>p.pins||Object.fromEntries(Object.entries(p).filter(([k])=>k!=='__meta'));
-    const baseline=pinsOf(JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures','sprite-pins-v11.211.json'),'utf8'))),candidate=pinsOf(JSON.parse(fs.readFileSync(path.join(ROOT,'docs/SPR_PINS.json'),'utf8'))),actual=await ev('__s603.pins()');
+    const baseline=pinsOf(JSON.parse(release603.previous.readFile('docs/SPR_PINS.json').toString('utf8'))),candidate=pinsOf(JSON.parse(fs.readFileSync(path.join(ROOT,'docs/SPR_PINS.json'),'utf8'))),actual=await ev('__s603.pins()');
     report.pinDiff=Object.keys(baseline).filter(k=>JSON.stringify(baseline[k])!==JSON.stringify(actual[k]));report.newPins=Object.keys(actual).filter(k=>!(k in baseline));report.candidatePinDiff=[...new Set([...Object.keys(candidate),...Object.keys(actual)])].filter(k=>JSON.stringify(candidate[k])!==JSON.stringify(actual[k]));
     fs.writeFileSync(path.join(OUT,'sprite-pins.json'),JSON.stringify(actual));
     check(Object.keys(baseline).length===1586,'immutable baseline has 1586 keys');check(!report.pinDiff.length,'approved 1586 keys unchanged: '+JSON.stringify(report.pinDiff));check(report.newPins.length===0,'no legacy SPR keys added or replaced');check(!report.candidatePinDiff.length,'candidate pins match Chromium: '+JSON.stringify(report.candidatePinDiff));
@@ -288,9 +294,9 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     check(JSON.stringify(actual)===JSON.stringify(repeated),'two independent Chrome boots have identical complete sprite pins');
     // Compare actual game canvas bytes against a separate exact-base source page.
     const compareFrames=async label=>{const rows=await ev('(()=>{window.__noT603=true;__s603.comparisonRig();const out=[];for(let r=0;r<4;r++)for(const se of[0,3])for(const t of[55,100])out.push({key:r+"/"+se+"/"+t,...__s603.comparisonFrame(r,se,t)});return out;})()'),out={};report.comparisonDiagnostics=report.comparisonDiagnostics||{};report.comparisonDiagnostics[label]=rows.map(({png,...r})=>r);for(const r of rows){out[r.key]=r.hash;const file='T603-'+label+'-canvas-'+r.key.replaceAll('/','-')+'.png';fs.writeFileSync(path.join(OUT,file),Buffer.from(r.png.split(',')[1],'base64'));report.screenshots.push(file);}return out;};
-    const escapeFrames=await compareFrames('escape');const beforeBase=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/baseline603.html'});await ready(beforeBase);const baseIdentity=await ev('__s603.documentIdentity()');check(baseIdentity.version==='11.211'&&baseIdentity.civicFactory==='undefined'&&baseIdentity.url==='/baseline603.html','actual baseline document identity excludes service-worker candidate fallback');report.baseDocumentIdentity=baseIdentity;const baseFrames=await compareFrames('base');report.escapeFrameComparison={base:baseFrames,escape:escapeFrames};check(JSON.stringify(baseFrames)===JSON.stringify(escapeFrames),'all 16 actual escape-valve canvas frames equal exact-main source');
+    const escapeFrames=await compareFrames('escape');const beforeBase=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/baseline603.html'});await ready(beforeBase);const baseIdentity=await ev('__s603.documentIdentity()');check(baseIdentity.doc==='baseline'&&baseIdentity.version===release603.previous.version&&baseIdentity.civicFactory===(/function bakeArt603\(/.test(exactBase603)?'function':'undefined')&&baseIdentity.url==='/baseline603.html','actual baseline document identity excludes service-worker candidate fallback');report.baseDocumentIdentity=baseIdentity;const baseFrames=await compareFrames('base');report.escapeFrameComparison={base:baseFrames,escape:escapeFrames};check(JSON.stringify(baseFrames)===JSON.stringify(escapeFrames),'all 16 actual escape-valve canvas frames equal exact-main source');
     report.escapeFrameComparison.changedPixels={};for(const key of Object.keys(baseFrames)){const stem=key.replaceAll('/','-'),base=pngRgba603(fs.readFileSync(path.join(OUT,'T603-base-canvas-'+stem+'.png'))),escape=pngRgba603(fs.readFileSync(path.join(OUT,'T603-escape-canvas-'+stem+'.png'))),delta=pixelDelta603(base,escape);report.escapeFrameComparison.changedPixels[key]=delta;check(delta===0,'exact full RGBA legacy escape pixels '+key);}check(Object.keys(report.escapeFrameComparison.changedPixels).length===16,'all 16 legacy escape frames checked without hash-only shortcut');
-    const beforeCandidate=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready(beforeCandidate);check(await ev('__s603.flags().T603&&__s603.documentIdentity().version==="11.212"&&__s603.documentIdentity().civicFactory==="function"'),'candidate identity and enabled state restored after exact-base comparison');
+    const beforeCandidate=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready(beforeCandidate);check(await ev('__s603.flags().T603&&__s603.documentIdentity().doc==="candidate"&&__s603.documentIdentity().version==='+JSON.stringify(release603.current.version)+'&&__s603.documentIdentity().civicFactory==="function"'),'candidate identity and enabled state restored after exact-base comparison');
     report.pixelCases=[];for(const [name,night,winter]of[['day',false,false],['night',true,false],['winter',false,true]]){await ev('GV.setSeason('+(winter?3:1)+');true');const rows=await ev('__s603.sheet("variants",'+night+','+winter+')');for(const r of rows)check(r.ink>400&&r.light>0&&!r.orphan&&!r.cropped,'Chrome pixels '+name+'/'+r.k+'/'+r.v);report.pixelCases.push(...rows.map(r=>({...r,mode:name})));await shot('sheet-'+name);}
     await ev('document.getElementById("sheet603").remove();true');
     // Browser old-save roundtrip for all three pre-change seeded cities.
@@ -357,7 +363,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     const nativeRecord603=({png,pixels,...r})=>({...r,rgbaSHA256:hash(pixels.rgba)});
     // Independent source and boot. No deleted clip flag, alternate renderer, or candidate-derived baseline.
     const nativeBaseOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/baseline603.html'});await ready(nativeBaseOrigin603);
-    report.nativeWorldBaseIdentity=await ev('__s603.documentIdentity()');check(report.nativeWorldBaseIdentity.version==='11.211'&&report.nativeWorldBaseIdentity.civicFactory==='undefined'&&report.nativeWorldBaseIdentity.url==='/baseline603.html','world reference is exact immutable main document');
+    report.nativeWorldBaseIdentity=await ev('__s603.documentIdentity()');check(report.nativeWorldBaseIdentity.doc==='baseline'&&report.nativeWorldBaseIdentity.version===release603.previous.version&&report.nativeWorldBaseIdentity.civicFactory===(/function bakeArt603\(/.test(exactBase603)?'function':'undefined')&&report.nativeWorldBaseIdentity.url==='/baseline603.html','world reference is exact immutable main document');
     await growCity('world-native-main',true);report.nativeWorldBaseline={};nativeViewportKey603='';
     // stars are unseeded, once-per-document visual input. Reuse the real immutable-main
     // input only in frozen snapshots; keep global Math.random and all renderer paths intact.
@@ -367,7 +373,7 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     report.nativeWorldSky={stars:nativeStars603,referenceSHA256:hash(JSON.stringify(nativeStars603)),contract:'Exact immutable-main star input shared only after live performance; restored on thaw.'};
     for(const c of nativeCases603){await nativeCamera603(c);const r=await nativeImage603(c,true);report.nativeWorldBaseline[c.key]={...nativeRecord603(r),file:nativeSave603('native-main-'+c.key,r)};persist();}
     await send('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});
-    const nativeCandidateOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready(nativeCandidateOrigin603);check(await ev('__s603.flags().T603&&__s603.documentIdentity().version==="11.212"'),'candidate restored for independent world comparison');
+    const nativeCandidateOrigin603=await ev('performance.timeOrigin');await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready(nativeCandidateOrigin603);check(await ev('__s603.flags().T603&&__s603.documentIdentity().doc==="candidate"&&__s603.documentIdentity().version==='+JSON.stringify(release603.current.version)),'candidate restored for independent world comparison');
     await growCity('world-art-matrix',true);
     const state=await ev('__s603.scene()'),originalDay=(await view()).day;
     report.nativeWorldSky.originalCandidateSHA256=hash(JSON.stringify(await ev('__s603.snapshotStars()')));
