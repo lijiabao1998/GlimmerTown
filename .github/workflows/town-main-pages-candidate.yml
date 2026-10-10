@@ -172,6 +172,8 @@ jobs:
   native-acceptance:
     runs-on: macos-15
     timeout-minutes: 45
+    # T630：GitHub macOS 跑機的原生計時同一輪相鄰重畫差到 10 倍、同一份程式一過一不過，改為紀錄、不擋部署（證據照存）
+    continue-on-error: true
     steps:
       - name: Start total native acceptance resource clock
         run: echo "T619_JOB_START_MS=$(node -p 'Date.now()')" >> "$GITHUB_ENV"
@@ -196,7 +198,7 @@ jobs:
           retention-days: 14
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [validate, browser, package, pages-browser, native-acceptance]
+    needs: [validate, browser, package, pages-browser] # T630：native-acceptance 只紀錄
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

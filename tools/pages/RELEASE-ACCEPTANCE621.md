@@ -1,5 +1,7 @@
 # T603 native artwork release acceptance
 
+> **Historical (T627, 2026-10-10).** This page records the T603 release policy approved on 2026-10-09. Since T627 no script pins the T603 runtime: the current release is read from the checked-out commit, the previous release (PREV) is the one the live site serves, and approval is a commit on main that passed every release job. The required gates below still apply, with the current release and PREV in place of T603 and T602. The preserved failed evidence stays failed as recorded. T603 provenance (the index hash below and the inverse patch) is checked only against frozen commit 4dd0fa4. Current rules: `docs/tasks/main-pages/README.md`, section "Release identity (T627)".
+
 The owner approved this round's native same-browser comparison, the following workflow change, and normal PR #7 merge/publication on 2026-10-09. This is an incremental artwork release, not a 55 FPS or speedup claim. The approved runtime remains exactly index SHA-256 `99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d` and worker `79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2` before the existing cloud namespace substitutions.
 
 ## Required gates

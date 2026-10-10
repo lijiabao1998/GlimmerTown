@@ -3,11 +3,13 @@
 // exit 2, original thresholds, supervisor and controls remain untouched.
 const fs = require('node:fs'), path = require('node:path'), { spawnSync } = require('node:child_process');
 const portability = require('./native-portability-diagnostic.cjs'), mac = require('./native-mac-diagnostic.cjs');
-const linux = require('./release-correctness.cjs');
+const linux = require('./release-correctness.cjs'), identity = require('./release-identity.cjs');
 const ROOT = path.resolve(__dirname, '../..');
-const IDENTITY = Object.freeze({ runtime: '99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d',
-  serviceWorker: '79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2',
-  portabilityAdapter: 'b8097a2fd68966b826e29e121a07fc3a7bc3d9a7321302a150f8107f203f2bd5' });
+// T627: only the reviewed T620 adapter is pinned here. The runtime under test is HEAD's committed index.html/sw.js
+// and the old document is the release the live site serves; supervise() resolves that pair itself (or takes an
+// injected one in tests) and the inner evidence must be about exactly the same pair.
+const IDENTITY = Object.freeze({ portabilityAdapter: 'a5e07c818c5a58a2c8fd9da0d1359b697d3c023ee7abf63ba14b06e7411cc0d4' });
+const SHA256 = /^[0-9a-f]{64}$/;
 const LIMITATION = 'Acceptance is limited to the user-approved Linux-correctness/native-original-timing release policy. Historical native CRC failures and prior Linux timing failures remain failures. CRC-map equality is not exhaustive per-sprite RGBA equality. Native foreground is checked at boundaries with a passive loss latch; the changed boot/readback protocol establishes neither Metal causality, physical-device 55 FPS, nor active-gameplay speedup. Linux correctness remains separately required.';
 const LIMITS = Object.freeze({ coldRatio: 2, coldAddMs: 250, warmP95Ratio: 1.5, warmAddMs: 5, rafP95Ratio: 1.5, rafAddMs: 5 });
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -15,11 +17,18 @@ const empty = value => Array.isArray(value) && value.length === 0;
 const finite = value => Number.isFinite(value) && value >= 0;
 const percentile = values => [...values].sort((a, b) => a - b)[Math.min(values.length - 1, Math.floor(values.length * .95))];
 
-function assertSources() {
+// HEAD's committed runtime (release-identity currentRelease: the working tree must equal the commit).
+function currentIdentity(release = identity.currentRelease(ROOT)) {
+  return Object.freeze({ commit: release.commit, version: release.version,
+    runtime: release.sourcePins['index.html'], serviceWorker: release.sourcePins['sw.js'] });
+}
+
+function assertSources(current) {
   const built = portability.build();
-  if (built.portabilityAdapterSHA256 !== IDENTITY.portabilityAdapter ||
-    mac.sha256(fs.readFileSync(path.join(ROOT, 'index.html'))) !== IDENTITY.runtime ||
-    mac.sha256(fs.readFileSync(path.join(ROOT, 'sw.js'))) !== IDENTITY.serviceWorker) throw Error('Native release approved source identity drift');
+  if (!current || !SHA256.test(current.runtime) || !SHA256.test(current.serviceWorker) ||
+    built.portabilityAdapterSHA256 !== IDENTITY.portabilityAdapter ||
+    mac.sha256(fs.readFileSync(path.join(ROOT, 'index.html'))) !== current.runtime ||
+    mac.sha256(fs.readFileSync(path.join(ROOT, 'sw.js'))) !== current.serviceWorker) throw Error('Native release approved source identity drift');
   return built;
 }
 
@@ -91,12 +100,22 @@ function resourcesValid(report) {
     r.after?.id === b.restoreID);
 }
 
-function sourceControlsValid(inner) {
+// The pair scene603 resolved inside (report.release, written by native-correctness) is the outer pair.
+function innerReleaseValid(release, pair) {
+  const sameRelease = (row, expected, pins) => Boolean(row && row.commit === expected.commit && row.version === expected.version &&
+    Object.entries(pins).every(([name, value]) => row.sourcePins?.[name] === value));
+  return Boolean(release && release.runtimeChanged === pair.runtimeChanged &&
+    sameRelease(release.current, pair.current, { 'index.html': pair.current.runtime, 'sw.js': pair.current.serviceWorker }) &&
+    sameRelease(release.previous, pair.previous, { 'index.html': pair.previous.base, 'sw.js': pair.previous.serviceWorker }));
+}
+
+function sourceControlsValid(inner, pair) {
   const state = inner?.portability620, native = inner?.native617, final = native?.final;
-  if (native?.approvedRuntimeSHA256 !== IDENTITY.runtime || native.retentionInstalled !== false || native.observerInstalled !== false ||
+  if (native?.approvedRuntimeSHA256 !== pair.current.runtime || native.retentionInstalled !== false || native.observerInstalled !== false ||
     native.qualityTolerance !== 0 || native.timingRun !== true || native.releaseGatePassed !== false ||
-    inner.nativeSource603?.sourceSHA256 !== IDENTITY.runtime || inner.nativeSource603?.baseSHA256 !== portability.BASE_SHA256 ||
-    inner.baseIndexSHA256 !== portability.BASE_SHA256 || inner.phase !== 'core' || !empty(inner.newPins) ||
+    inner.nativeSource603?.sourceSHA256 !== pair.current.runtime || inner.nativeSource603?.baseSHA256 !== pair.previous.base ||
+    inner.nativeSource603?.previousCommit !== pair.previous.commit || inner.nativeSource603?.previousVersion !== pair.previous.version ||
+    inner.baseIndexSHA256 !== pair.previous.base || !innerReleaseValid(inner.release, pair) || inner.phase !== 'core' || !empty(inner.newPins) ||
     !final?.native || !final.unchangedNightHelper || !empty(final.retiredGlobals) || final.slot !== 3 || final.url !== '/index.html' ||
     !same(inner.slotIsolation617?.keys, require('./native-correctness.cjs').SLOT_KEYS) || !(inner.slotIsolation617?.checks > 0) ||
     !Array.isArray(inner.transitions617) || inner.transitions617.length !== 26 ||
@@ -114,20 +133,22 @@ function sourceControlsValid(inner) {
   if (!requiredChecks.every(check => inner.checks.includes(check))) return false;
   return state.captures.every((row, i) => {
     const old = [1, 2, 5].includes(i);
-    return row.kind === (old ? 'old' : 'candidate') && row.sourceSHA256 === (old ? portability.BASE_SHA256 : IDENTITY.runtime) &&
-      row.identity?.version === (old ? '11.211' : '11.212') && row.identity?.url === (old ? '/baseline603.html' : '/index.html') &&
-      row.identity?.civicFactory === (old ? 'undefined' : 'function') && row.flags?.T603 === !old &&
+    return row.kind === (old ? 'old' : 'candidate') && row.sourceSHA256 === (old ? pair.previous.base : pair.current.runtime) &&
+      row.identity?.doc === (old ? 'baseline' : 'candidate') &&
+      row.identity.version === (old ? pair.previous.version : pair.current.version) && row.identity.url === (old ? '/baseline603.html' : '/index.html') &&
+      row.identity.civicFactory === (old ? pair.previous.civicFactory : 'function') && row.flags?.T603 === (old ? pair.previous.T603 : true) &&
       row.flags.T596 === false && row.flags.T600 === false;
   });
 }
 
-function acceptance(report) {
+function acceptance(report, pair) {
   const failures = [], requireGate = (value, label) => { if (!value) failures.push(label); };
   try {
-    requireGate(portability.collectionComplete(report) && report.collectionCompleted === true, 'complete unchanged T620 collection');
+    if (!pair?.current || !pair.previous) throw Error('outer-resolved release pair is required');
+    requireGate(portability.collectionComplete(report, pair) && report.collectionCompleted === true, 'complete unchanged T620 collection');
     requireGate(report.portabilityAdapterSHA256 === IDENTITY.portabilityAdapter && report.releaseGatePassed === false, 'exact T620 identity and original release verdict');
     requireGate(resourcesValid(report), 'one attempt, original resource bounds, child cleanup and display restoration');
-    requireGate(sourceControlsValid(report.innerSummary), 'approved runtime, independent source, model/RNG, save and final controls');
+    requireGate(sourceControlsValid(report.innerSummary, pair), 'approved runtime, independent source, model/RNG, save and final controls');
     requireGate(qualificationValid(report.innerSummary), 'all original native foreground, viewport and passive loss-latch controls');
     requireGate(timingValid(report.innerSummary), 'all unchanged original timing thresholds and nine raw sample windows');
     const failedHistory = report.innerSummary?.portability620?.historical?.some(row => !row.value);
@@ -136,7 +157,7 @@ function acceptance(report) {
   } catch (error) { failures.push('malformed or missing required evidence: ' + error.message); }
   return { policy: linux.POLICY, scope: 'native-original-timing-and-same-browser-controls',
     status: failures.length ? 'rejected' : 'accepted', nativeLaneAccepted: failures.length === 0, failures,
-    linuxCorrectness: 'separately-required', approvedRuntimeSHA256: IDENTITY.runtime,
+    linuxCorrectness: 'separately-required', approvedRuntimeSHA256: pair?.current?.runtime ?? null, release: pair ?? null,
     originalDiagnostic: { status: report?.status, innerStatus: report?.innerSummary?.status, exitCode: report?.inner?.status,
       historical: report?.innerSummary?.portability620?.historical?.map(row => ({ id: row.id, passed: row.passed,
         differences: row.differences?.length, originalDifferences: row.originalDifferences?.length })) },
@@ -144,16 +165,18 @@ function acceptance(report) {
 }
 
 async function supervise(options = {}) {
-  assertSources();
-  const report = await portability.supervise(options); // Does not modify T620, its report, or its exit verdict.
-  const result = acceptance(report), rawPath = path.join(path.resolve(options.out), 'native-portability-supervisor.json');
+  // The outer acceptance resolves the pair itself; T620 is handed the same pair, never one read from evidence.
+  const release = options.release || identity.releasePairSync(ROOT), pair = portability.releasePair620(release);
+  assertSources(pair.current);
+  const report = await portability.supervise({ ...options, release }); // Does not modify T620, its report, or its exit verdict.
+  const result = acceptance(report, pair), rawPath = path.join(path.resolve(options.out), 'native-portability-supervisor.json');
   result.rawDiagnostic = { file: path.basename(rawPath), sha256: mac.sha256(fs.readFileSync(rawPath)) };
   fs.writeFileSync(path.join(path.resolve(options.out), 'release-native-acceptance.json'), JSON.stringify(result, null, 2));
   return result;
 }
 
 async function main() {
-  if (process.argv.includes('--check-overlay')) { console.log('RELEASE_NATIVE_ACCEPTANCE_OVERLAY_OK ' + assertSources().sha256); return; }
+  if (process.argv.includes('--check-overlay')) { console.log('RELEASE_NATIVE_ACCEPTANCE_OVERLAY_OK ' + assertSources(currentIdentity()).sha256); return; }
   if (process.argv.includes('--self-test')) {
     const r = spawnSync(process.execPath, ['--test', path.join(__dirname, 'release-acceptance.test.mjs')], { stdio: 'inherit' });
     process.exitCode = r.status === 0 ? 0 : 1; return;
@@ -170,6 +193,6 @@ async function main() {
     process.exitCode = result.nativeLaneAccepted ? 0 : 2;
   } finally { process.removeListener('SIGTERM', stop); process.removeListener('SIGINT', stop); }
 }
-module.exports = { IDENTITY, LIMITATION, LIMITS, assertSources, rafSummaryValid, timingValid, qualificationValid,
-  resourcesValid, sourceControlsValid, acceptance, supervise };
+module.exports = { IDENTITY, LIMITATION, LIMITS, currentIdentity, assertSources, rafSummaryValid, timingValid, qualificationValid,
+  resourcesValid, innerReleaseValid, sourceControlsValid, acceptance, supervise };
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 2; });

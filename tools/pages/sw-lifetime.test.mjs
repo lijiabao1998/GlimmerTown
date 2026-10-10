@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import test from 'node:test';
 import path from 'node:path';
-import {packageFile,verifyPackagedFile,CACHE_PREFIX} from './build-main.mjs';
+import {packageFile,verifyPackagedFile,CACHE_PREFIX,APP_VERSION,CACHE_NAME} from './build-main.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const target = path.join(process.env.PAGES_SITE || root, 'sw.js');
@@ -20,16 +20,22 @@ verifyPackagedFile('sw.js', sourceBytes);
 const source = sourceBytes.toString('utf8');
 const originalBytes = readFileSync(new URL('../../docs/tasks/sw-main603/fixtures/sw-main-before.js', import.meta.url));
 assert.equal(createHash('sha256').update(originalBytes).digest('hex'), '3988245f393202d86dd6727d26fea99c9706943d87a75893faba1c32b3ad47ac');
-// Normalize only the version in the already byte-pinned historical negative control.
-const original = originalBytes.toString('utf8')
-  .replace("const APP_VER='11.211';", "const APP_VER='11.212';")
-  .replace("const CACHE_PREFIX='glimmerville-shell-';", "const CACHE_PREFIX='" + CACHE_PREFIX + "';")
-  .replace("const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);", 'const LEGACY_CACHES=new Set([]);');
+// Normalize only the version in the already byte-pinned historical negative control:
+// the fixture's frozen APP_VER becomes this release's version, then the namespace boundary.
+const uniqueReplace = (text, from, to) => {
+  assert.equal(text.split(from).length, 2, 'unique fixture anchor: ' + from);
+  return text.replace(from, () => to);
+};
+const original = [
+  ["const APP_VER='11.211';", "const APP_VER='" + APP_VERSION + "';"],
+  ["const CACHE_PREFIX='glimmerville-shell-';", "const CACHE_PREFIX='" + CACHE_PREFIX + "';"],
+  ["const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);", 'const LEGACY_CACHES=new Set([]);']
+].reduce((text, [from, to]) => uniqueReplace(text, from, to), originalBytes.toString('utf8'));
 const ORIGIN = 'https://example.test';
 const SCOPE = `${ORIGIN}/GlimmerTown/`;
 const INDEX = `${SCOPE}index.html`;
 const MANIFEST = `${SCOPE}manifest.json`;
-const CACHE = CACHE_PREFIX + 'v11.212';
+const CACHE = CACHE_NAME;
 const turn = () => new Promise(resolve => setImmediate(resolve));
 
 function deferred() {

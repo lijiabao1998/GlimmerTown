@@ -1,20 +1,63 @@
 // Focused tests only: source provenance, PNG decoding, and the test-only wrong-edge wrapper.
 'use strict';
-const assert=require('assert/strict'),fs=require('fs'),path=require('path'),vm=require('vm'),zlib=require('zlib');
-const {assertNativeSource603,pngRgba603,pixelDelta603,snapshotUnchanged603,NATIVE_BLOCKS,BASE_INDEX_SHA256}=require('./native603.js');
+const assert=require('assert/strict'),crypto=require('crypto'),fs=require('fs'),path=require('path'),vm=require('vm'),zlib=require('zlib');
+const {assertNativeStructure603,assertNativeSource603,releaseBaseline603,frozenRelease603,frozenT603Index,T603_COMMIT,T602_LIVE_COMMIT,
+  pngRgba603,pixelDelta603,snapshotUnchanged603,NATIVE_BLOCKS,APPROVED_NATIVE_SHA256,BASE_INDEX_SHA256}=require('./native603.js');
 const ROOT=path.resolve(__dirname,'../../..'),html=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
+const sha256=value=>crypto.createHash('sha256').update(value).digest('hex');
 let checks=0;const ok=(value,message)=>{assert(value,message);checks++;console.log('PASS: T603 native '+message);};
-const result=assertNativeSource603(html,ok);ok(result.baseSHA256===BASE_INDEX_SHA256,'clean art inverse matches immutable main hash');
-for(const [name,change]of[
-  ['reflection alpha',s=>s.replace(NATIVE_BLOCKS[0],NATIVE_BLOCKS[0].replace('globalAlpha=.22','globalAlpha=.23'))],
-  ['shadow draw bounds',s=>s.replace(NATIVE_BLOCKS[1],NATIVE_BLOCKS[1].replace('s.w*z,shH','s.w*z-1,shH'))],
-  ['added native clip',s=>s.replace(NATIVE_BLOCKS[0],NATIVE_BLOCKS[0].replace("ctx.filter='brightness(0)';","ctx.clip();ctx.filter='brightness(0)';"))],
-  ['removed-helper reintroduction',s=>s+'\nfunction clipFilter603(){}'],
-  ['obsolete clip escape reintroduction',s=>s+'\nwindow.__noClip603=true;'],
-  ['approved art block drift',s=>s.replace('function kit603', '/* unintended artwork edit */function kit603')],
-  ['unapproved code outside art inverse',s=>s+'\nwindow.extraRenderer603=true;'],
-  ['missing approved depth hook',s=>s.replace('objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso[2]:viewDep(x,y)),dog:{hx:ph369}','objs.push({dep:0,dog:{hx:ph369}')]
-]){assert.throws(()=>assertNativeSource603(change(html)));ok(true,'source contract rejects '+name);}
+// The message of the first failing check, or null: a rejection counts only when it is the targeted check.
+const firstRed=run=>{try{run((value,message)=>{if(!value)throw Error(message);});}catch(error){return error.message;}return null;};
+// T627: T603 provenance is frozen history. It runs only on 4dd0fa4:index.html read from git objects,
+// never on HEAD. The structural contract runs on both the frozen bytes and the current index.html.
+const frozen=frozenT603Index(),frozenT602=frozenRelease603(T602_LIVE_COMMIT);
+ok(sha256(frozen)===APPROVED_NATIVE_SHA256&&frozenRelease603(T603_COMMIT).commit===T603_COMMIT,'frozen T603 candidate is 4dd0fa4 index.html from git objects');
+for(const other of['HEAD',T603_COMMIT.slice(0,7),'0'.repeat(40)])assert.throws(()=>frozenRelease603(other),/Frozen T603 history covers only/);
+ok(true,'frozen history refuses any commit other than 329f660 and 4dd0fa4');
+const result=assertNativeSource603(frozen,ok);ok(result.baseSHA256===BASE_INDEX_SHA256,'clean art inverse matches immutable main hash');
+ok(result.base===frozenT602.files.get('index.html').toString('utf8')&&frozenT602.sourcePins['index.html']===BASE_INDEX_SHA256&&frozenT602.version==='11.211','frozen inverse reproduces the 329f660 live release index.html exactly (11.211)');
+assertNativeStructure603(html,(value,message)=>ok(value,'current index.html: '+message));
+const STRUCTURAL=[
+  ['reflection alpha',s=>s.replace(NATIVE_BLOCKS[0],NATIVE_BLOCKS[0].replace('globalAlpha=.22','globalAlpha=.23')),'unchanged native reflection save/filter/alpha/draw/restore block'],
+  ['shadow draw bounds',s=>s.replace(NATIVE_BLOCKS[1],NATIVE_BLOCKS[1].replace('s.w*z,shH','s.w*z-1,shH')),'unchanged native shadow save/filter/alpha/draw/restore block'],
+  ['added native clip',s=>s.replace(NATIVE_BLOCKS[0],NATIVE_BLOCKS[0].replace("ctx.filter='brightness(0)';","ctx.clip();ctx.filter='brightness(0)';")),'unchanged native reflection save/filter/alpha/draw/restore block'],
+  ['removed-helper reintroduction',s=>s+'\nfunction clipFilter603(){}','production has no T603 clip helper, calls, or clip-mode escape'],
+  ['obsolete clip escape reintroduction',s=>s+'\nwindow.__noClip603=true;','production has no T603 clip helper, calls, or clip-mode escape'],
+  ['third native filter site',s=>s+"\nctx.filter='brightness(0)';",'exactly two original native filter sites']
+];
+const depthHook603='objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.lot574?_iso[2]:viewDep(x,y)),dog:{hx:ph369}';
+const PROVENANCE=[
+  ['approved art block drift',s=>s.replace('function kit603', '/* unintended artwork edit */function kit603'),'approved art, variant hooks and owner/dog depth preserved in exact clean native candidate'],
+  ['unapproved code outside art inverse',s=>s+'\nwindow.extraRenderer603=true;','reconstructed base exactly matches immutable main index SHA256'],
+  ['missing approved depth hook',s=>s.replace(depthHook603,'objs.push({dep:0,dog:{hx:ph369}'),'exact-base inverse anchor '+depthHook603.slice(0,45)]
+];
+for(const [name,change,red]of STRUCTURAL){
+  for(const [label,doc]of[['frozen T603',frozen],['current index.html',html]]){
+    const mutated=change(doc);assert.notEqual(mutated,doc,name+' mutation must change '+label);
+    assert.equal(firstRed(c=>assertNativeStructure603(mutated,c)),red,name+' on '+label);
+    assert.equal(firstRed(c=>releaseBaseline603(mutated,c,frozenT602)),red,name+' release pair on '+label);
+    ok(true,'structural contract rejects '+name+' on '+label);
+  }
+  assert.equal(firstRed(c=>assertNativeSource603(change(frozen),c)),red,name);ok(true,'source contract rejects '+name);
+}
+for(const [name,change,red]of PROVENANCE){
+  const mutated=change(frozen);assert.notEqual(mutated,frozen,name+' mutation must change the frozen bytes');
+  assert.equal(firstRed(c=>assertNativeStructure603(mutated,c)),null,name+' is provenance, not structure');
+  assert.equal(firstRed(c=>assertNativeSource603(mutated,c)),red,name);ok(true,'source contract rejects '+name);
+}
+// Release pair: the old side is the previous release's committed index.html, never a reconstruction.
+const pair=releaseBaseline603(frozen,ok,frozenT602);
+ok(pair.base===result.base&&pair.baseSHA256===BASE_INDEX_SHA256&&pair.sourceSHA256===APPROVED_NATIVE_SHA256&&pair.previousCommit===T602_LIVE_COMMIT&&pair.previousVersion==='11.211'&&JSON.stringify(pair.nativeBlockSHA256)===JSON.stringify(result.nativeBlockSHA256),'frozen pair 329f660 -> 4dd0fa4 gives the same baseline evidence as the historical inverse');
+const currentPair=releaseBaseline603(html,(value,message)=>ok(value,'current index.html: '+message),frozenT602);
+ok(currentPair.sourceSHA256===sha256(html)&&currentPair.base===pair.base,'release pair binds the current index.html and reads the old side from git objects');
+const previousWith=(index,extra={})=>{const files=new Map(frozenT602.files);files.set('index.html',Buffer.from(index,'utf8'));return {...frozenT602,files,sourcePins:{...frozenT602.sourcePins,'index.html':sha256(Buffer.from(index,'utf8'))},...extra};};
+assert.equal(firstRed(c=>releaseBaseline603(html,c,{...frozenT602,sourcePins:{...frozenT602.sourcePins,'index.html':'0'.repeat(64)}})),'previous release index.html matches its committed source pin');
+assert.equal(firstRed(c=>releaseBaseline603(html,c,{...frozenT602,version:'11.212'})),'previous release version is parsed from its own files');
+assert.equal(firstRed(c=>releaseBaseline603(html,c,{...frozenT602,commit:T602_LIVE_COMMIT.slice(0,7)})),'previous release is a full commit id');
+for(const [name,change,red]of STRUCTURAL)assert.equal(firstRed(c=>releaseBaseline603(html,c,previousWith(change(pair.base)))),'previous release: '+red,name);
+assert.equal(firstRed(c=>releaseBaseline603(html,c,previousWith(pair.base))),null,'re-wrapped unchanged previous release passes');
+for(const bad of[undefined,null,{},{...frozenT602,files:new Map()}])assert.throws(()=>releaseBaseline603(html,undefined,bad),/releaseBaseline603 needs|lacks index.html/);
+ok(true,'release pair rejects a wrong pin, version or commit id, a structurally changed old side, and a missing previous release');
 // Independent PNG fixtures encode all five row filters, RGB and RGBA, including Paeth edge cases.
 const crc32=bytes=>{let r=0xffffffff;for(const x of bytes){r^=x;for(let k=0;k<8;k++)r=r&1?0xedb88320^(r>>>1):r>>>1;}return (r^0xffffffff)>>>0;};
 const chunk=(kind,data)=>{const b=Buffer.alloc(data.length+12);b.writeUInt32BE(data.length,0);b.write(kind,4,4,'ascii');data.copy(b,8);b.writeUInt32BE(crc32(b.subarray(4,-4)),b.length-4);return b;};
@@ -127,4 +170,4 @@ const cleanupStart603=scene.indexOf('    }catch(error){nativeWorldError603=error
 assert(cleanupStart603>=0&&cleanupEnd603>cleanupStart603);const actualCleanup603=scene.slice(cleanupStart603,cleanupEnd603).replace('await ev(', 'ev('),cleanupReport603={};
 for(const primary of[true,false]){const cleanupBox603={report:cleanupReport603,persist:()=>{},ev:()=>{throw Error('thaw transport failed');}};assert.throws(()=>vm.runInNewContext('let nativeWorldError603=null;try{'+(primary?"throw Error('primary pixel mismatch');":'')+actualCleanup603,cleanupBox603),primary?/primary pixel mismatch/:/thaw transport failed/);assert.match(cleanupReport603.nativeWorldRestoreError,/thaw transport failed/);}
 ok(true,'actual cleanup preserves the primary comparison failure and records secondary thaw failures');
-console.log('T603_NATIVE_RESULT '+JSON.stringify({checks,baseIndexSHA256:result.baseSHA256,sourceSHA256:result.sourceSHA256}));
+console.log('T603_NATIVE_RESULT '+JSON.stringify({checks,baseIndexSHA256:result.baseSHA256,sourceSHA256:result.sourceSHA256,frozenCommit:T603_COMMIT,frozenPreviousCommit:T602_LIVE_COMMIT,currentIndexSHA256:sha256(html)}));

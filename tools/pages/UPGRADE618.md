@@ -1,5 +1,7 @@
 # T618 main Pages upgrade acceptance
 
+> **Historical (T627, 2026-10-10).** This page records the T602 to T603 upgrade as T618 first built it. Since T627, `--upgrade-from-main` keeps its name but upgrades from the release the live site serves (PREV, resolved by `tools/pages/release-identity.cjs`); it no longer rebuilds T602 with `native603.sourceBaseline603`. The old version, hashes and cache name come from PREV's git objects and must match the live bytes, and the new ones come from HEAD. When PREV and HEAD have the same seven runtime files, the mode records `report.upgrade.status='not-applicable-no-runtime-change'` and exits 0 before Chrome starts. The 329f660 (v11.211) to 4dd0fa4 (v11.212) upgrade described below is kept as an injected frozen-pair test in `tools/pages/upgrade-main.test.mjs`. The browser stages below still run as described, with the versions taken from PREV and HEAD and an added check that PREV's cache is gone. The hashes and versions named below are history. Current rules: `docs/tasks/main-pages/README.md`, section "Release identity (T627)".
+
 Run on the existing assistant-owned native macOS Chrome runner:
 
 ```sh

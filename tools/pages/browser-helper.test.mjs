@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
-import {instrumentWorker,storageProbeSource,foreignStorageFixture,assertFirstVisitEvidence,saveReloadObservation,browserLoadObservation} from './browser-main.mjs';
-import {packageFile,SAVE_NAMESPACE} from './build-main.mjs';
+import {instrumentWorker,storageProbeSource,foreignStorageFixture,assertFirstVisitEvidence,saveReloadObservation,browserLoadObservation,browserPrepareSave} from './browser-main.mjs';
+import {packageFile,SAVE_NAMESPACE,APP_VERSION} from './build-main.mjs';
 
 function probe(){
   // Real browser behavior is still gated separately in browser-main.mjs. This
@@ -60,8 +60,18 @@ test('Node instrumentation helper accepts only namespace-transformed pinned SW b
   const output=instrumentWorker(sw);new Function(output);
   assert(output.includes("new URL('./__swmain_stage',self.location.href)"),'logging remains inside project subpath');
   assert.throws(()=>instrumentWorker(raw.toString('utf8')),/packaged namespace/);
-  const mutated=sw.replace("const APP_VER='11.212';","const APP_VER='99.0';");
+  const mutated=sw.replace(/const APP_VER='[\d.]+';/,"const APP_VER='99.0';");
   assert.notEqual(mutated,sw);assert.throws(()=>instrumentWorker(mutated),/Unexpected/);
+});
+
+test('save fixture helper needs an explicit well-formed version equal to the running game (no default, no allowlist)',()=>{
+  const run=(args,running=APP_VERSION)=>()=>new Function('GV','localStorage','args',`return (${browserPrepareSave.toString()})(...args);`)(
+    {ver:()=>running,newWorldSeeded(){throw Error('fixture creation must not start');}},{getItem:()=>null},args);
+  // Passing the version gate reaches the next gate (slot 3 not selected) without touching the game.
+  assert.throws(run([SAVE_NAMESPACE,APP_VERSION]),/Select main slot 3/);
+  for(const args of [[SAVE_NAMESPACE],[SAVE_NAMESPACE,undefined],[SAVE_NAMESPACE,''],[SAVE_NAMESPACE,Number(APP_VERSION)],
+    [SAVE_NAMESPACE,'v'+APP_VERSION],[SAVE_NAMESPACE,APP_VERSION+' '],[SAVE_NAMESPACE,'99.0']])assert.throws(run(args),/Unexpected game version/);
+  assert.throws(run([SAVE_NAMESPACE,APP_VERSION+'x'],APP_VERSION+'x'),/Unexpected game version/,'a malformed version is refused even when the game reports it');
 });
 
 test('first-visit evidence rejects worker-controlled, cached, stale, partial and unproven network loads',()=>{
