@@ -9,16 +9,15 @@ import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {packageFile,verifyPackagedFile,SAVE_NAMESPACE,sha256} from './build-main.mjs';
+import {packageFile,verifyPackagedFile,SAVE_NAMESPACE,APP_VERSION,sha256} from './build-main.mjs';
+import identity from './release-identity.cjs';
 import {browserPrepareSave,browserSaveRoundTrip,saveReloadObservation} from './browser-main.mjs';
 
 const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const NS=SAVE_NAMESPACE, SLOT=NS+'.s3', LAB='glimmerville.v1';
-const rawHarness=readFileSync(path.join(ROOT,'test_fixde.js'),'utf8');
-assert.equal(sha256(rawHarness),'9d543c10e4dc2b00a686ef52ab3b1073bf1393f9cd8e8aa14c6d6583b9a10d98','approved T603 harness; DOM prefix unchanged by the verified PR diff');
-const prefixEnd=rawHarness.indexOf('// ---- 載入 index.html 中的 script ----');
-assert(prefixEnd>0);
-const domPrefix=rawHarness.slice(0,prefixEnd);
+// T627: only the DOM/BOM mock prefix of test_fixde.js is used here, so only that prefix is
+// pinned (unique anchor, exact SHA-256); tests appended after the anchor do not change it.
+const domPrefix=identity.harnessDomPrefix(ROOT);
 const sourceHTML=readFileSync(path.join(ROOT,'index.html'));
 const htmlBytes=process.env.PAGES_SITE?readFileSync(path.join(process.env.PAGES_SITE,'index.html')):packageFile('index.html',sourceHTML);
 verifyPackagedFile('index.html',htmlBytes);
@@ -180,11 +179,11 @@ function browserHelpers(h,captureKind){
   h.window.__pagesStorageProbe={snapshot:()=>({main:Object.fromEntries(Object.entries(h.store).filter(([k])=>k===NS||k.startsWith(NS+'.')).sort(([a],[b])=>a.localeCompare(b)))})};
   h.context.prompt=(...args)=>h.window.prompt(...args);
   if(captureKind==='clipboard-writeText')h.window.navigator.clipboard={writeText:async()=>{throw Error('Test must never use the OS clipboard');}};
-  return fn=>new Function('GV','localStorage','document','navigator','window','namespace',`return (${fn.toString()})(namespace);`)(h.G,h.localStorage,doc,h.window.navigator,h.window,NS);
+  return (fn,...args)=>new Function('GV','localStorage','document','navigator','window','namespace','args',`return (${fn.toString()})(namespace,...args);`)(h.G,h.localStorage,doc,h.window.navigator,h.window,NS,args);
 }
 
 for(const captureKind of ['prompt','clipboard-writeText'])test(`actual browser helper ${captureKind} export survives two fresh boots and real visibility/25-second save callbacks`,async()=>{
-  const first=boot(),prepared=browserHelpers(first,captureKind)(browserPrepareSave);
+  const first=boot(),prepared=browserHelpers(first,captureKind)(browserPrepareSave,APP_VERSION);
   assert.equal(prepared.placed,3);assert.equal(prepared.raw,first.store[SLOT]);first.isolated();
   // Match both actual browser reload boundaries, not repeated load() calls in
   // one already-initialized game closure.
@@ -196,7 +195,7 @@ for(const captureKind of ['prompt','clipboard-writeText'])test(`actual browser h
   assert.equal(h.store[SLOT+'_bak'],report.rawB);
   if(captureKind==='clipboard-writeText'){
     const historical=JSON.parse(report.rawB);
-    assert.equal(historical.gameVer,'11.212','the current release is recorded in the real save');
+    assert.equal(historical.gameVer,APP_VERSION,'the current release is recorded in the real save');
     historical.gameVer='11.211';
     assert.equal(sha256(JSON.stringify(historical)),'67686714d828582a6b2f1c71498392c138845370f3e9afb39f0175134fed7303','exact historical rollback-save bytes after reverting only the declared release version');
   }
