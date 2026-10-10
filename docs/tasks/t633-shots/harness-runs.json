@@ -1,0 +1,658 @@
+[
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38058621019",
+  "commit": "135bcbb",
+  "note": "main T632 合併（本體不變）",
+  "current": "11.212",
+  "previous": "11.212",
+  "runtimeChanged": false,
+  "firstError": "Error: approved 1586 keys unchanged: [\"bld/100_1_0\",\"bld/101_1_0\",\"bld/102_1_0\",\"bld/102_1_1\",\"bld/102_1_2\",\"bld/103_1_0\",\"bld/104_1_0\",\"bld/105_1_0\",\"bld/105_1",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 5.4,
+     "p95": 7.4,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 300
+    },
+    "on": {
+     "med": 4.7,
+     "p95": 8.3,
+     "n": 10,
+     "rafP95": 19,
+     "frames": 299
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 21.6,
+     "p95": 27.3,
+     "n": 10,
+     "rafP95": 83.6,
+     "frames": 96
+    },
+    "on": {
+     "med": 21.1,
+     "p95": 31.4,
+     "n": 10,
+     "rafP95": 68.7,
+     "frames": 114
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 12,
+     "p95": 19.9,
+     "n": 30,
+     "rafP95": 33.1,
+     "frames": 276
+    },
+    "on": {
+     "med": 11.1,
+     "p95": 22.2,
+     "n": 30,
+     "rafP95": 35.3,
+     "frames": 251
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 30.2,
+     "p95": 63,
+     "n": 30,
+     "rafP95": 135.4,
+     "frames": 67
+    },
+    "on": {
+     "med": 33.6,
+     "p95": 60.9,
+     "n": 30,
+     "rafP95": 83.3,
+     "frames": 76
+    }
+   }
+  }
+ },
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38059590061",
+  "commit": "4cc35a9",
+  "note": "main T628 合併",
+  "current": "11.213",
+  "previous": "11.212",
+  "runtimeChanged": true,
+  "firstError": "Error: all unchanged performance gates must pass: mobile day same-light warm draw relative budget",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 4.9,
+     "p95": 10.5,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 301
+    },
+    "on": {
+     "med": 4.9,
+     "p95": 23.1,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 300
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 22.5,
+     "p95": 47.8,
+     "n": 10,
+     "rafP95": 84.5,
+     "frames": 101
+    },
+    "on": {
+     "med": 17.5,
+     "p95": 63.3,
+     "n": 10,
+     "rafP95": 100,
+     "frames": 112
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 17.2,
+     "p95": 32.5,
+     "n": 30,
+     "rafP95": 66,
+     "frames": 164
+    },
+    "on": {
+     "med": 24.6,
+     "p95": 43.6,
+     "n": 30,
+     "rafP95": 66.8,
+     "frames": 147
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 52.7,
+     "p95": 100.3,
+     "n": 30,
+     "rafP95": 581.5,
+     "frames": 24
+    },
+    "on": {
+     "med": 71.1,
+     "p95": 151.8,
+     "n": 30,
+     "rafP95": 200,
+     "frames": 39
+    }
+   }
+  }
+ },
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38055337693",
+  "commit": "d3e8b39",
+  "note": "T628 分支",
+  "current": "11.213",
+  "previous": "11.212",
+  "runtimeChanged": true,
+  "firstError": "Error: all unchanged performance gates must pass: desktop night foreground headless RAF relative budget",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 6.7,
+     "p95": 21.8,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 298
+    },
+    "on": {
+     "med": 4.5,
+     "p95": 5.2,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 298
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 30.9,
+     "p95": 39.1,
+     "n": 10,
+     "rafP95": 66.6,
+     "frames": 123
+    },
+    "on": {
+     "med": 10.2,
+     "p95": 32.1,
+     "n": 10,
+     "rafP95": 66.6,
+     "frames": 125
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 17.9,
+     "p95": 58.8,
+     "n": 30,
+     "rafP95": 50,
+     "frames": 178
+    },
+    "on": {
+     "med": 13.9,
+     "p95": 28.5,
+     "n": 30,
+     "rafP95": 49.4,
+     "frames": 189
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 47,
+     "p95": 113.2,
+     "n": 30,
+     "rafP95": 101.6,
+     "frames": 59
+    },
+    "on": {
+     "med": 34.6,
+     "p95": 70.5,
+     "n": 30,
+     "rafP95": 187.5,
+     "frames": 44
+    }
+   }
+  }
+ },
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38059844229",
+  "commit": "396c921",
+  "note": "T629 分支",
+  "current": "11.214",
+  "previous": "11.212",
+  "runtimeChanged": true,
+  "firstError": "Error: all unchanged performance gates must pass: desktop night foreground headless RAF relative budget",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 5,
+     "p95": 7.8,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 297
+    },
+    "on": {
+     "med": 4.6,
+     "p95": 6.6,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 300
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 15.1,
+     "p95": 32.4,
+     "n": 10,
+     "rafP95": 83.2,
+     "frames": 106
+    },
+    "on": {
+     "med": 20.9,
+     "p95": 31.3,
+     "n": 10,
+     "rafP95": 64.6,
+     "frames": 121
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 19.5,
+     "p95": 33.4,
+     "n": 30,
+     "rafP95": 66.3,
+     "frames": 150
+    },
+    "on": {
+     "med": 17.5,
+     "p95": 38.7,
+     "n": 30,
+     "rafP95": 65.3,
+     "frames": 173
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 62.5,
+     "p95": 117.3,
+     "n": 30,
+     "rafP95": 183.3,
+     "frames": 43
+    },
+    "on": {
+     "med": 58.8,
+     "p95": 135.6,
+     "n": 30,
+     "rafP95": 283.3,
+     "frames": 37
+    }
+   }
+  }
+ },
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38064847027",
+  "commit": "50dcc14",
+  "note": "對照 A1：拿掉 T628、11.214；舊版頁＝11.213",
+  "current": "11.214",
+  "previous": "11.213",
+  "runtimeChanged": true,
+  "firstError": "Error: all unchanged performance gates must pass: mobile day same-light warm draw relative budget",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 4.9,
+     "p95": 10.6,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 296
+    },
+    "on": {
+     "med": 5.9,
+     "p95": 34.7,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 300
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 21.1,
+     "p95": 32.6,
+     "n": 10,
+     "rafP95": 99.9,
+     "frames": 85
+    },
+    "on": {
+     "med": 17.9,
+     "p95": 30.1,
+     "n": 10,
+     "rafP95": 84.3,
+     "frames": 81
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 16.7,
+     "p95": 37.4,
+     "n": 30,
+     "rafP95": 48.2,
+     "frames": 187
+    },
+    "on": {
+     "med": 15.9,
+     "p95": 27,
+     "n": 30,
+     "rafP95": 35.7,
+     "frames": 204
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 51.4,
+     "p95": 121.8,
+     "n": 30,
+     "rafP95": 183.2,
+     "frames": 43
+    },
+    "on": {
+     "med": 52.6,
+     "p95": 87.8,
+     "n": 30,
+     "rafP95": 185,
+     "frames": 39
+    }
+   }
+  }
+ },
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38064847027",
+  "commit": "50dcc14",
+  "note": "對照 A2",
+  "current": "11.214",
+  "previous": "11.213",
+  "runtimeChanged": true,
+  "firstError": "Error: all unchanged performance gates must pass: mobile day same-light warm draw relative budget",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 5.3,
+     "p95": 8.3,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 298
+    },
+    "on": {
+     "med": 7,
+     "p95": 18.1,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 299
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 36.4,
+     "p95": 59.2,
+     "n": 10,
+     "rafP95": 133.3,
+     "frames": 80
+    },
+    "on": {
+     "med": 19.6,
+     "p95": 37.9,
+     "n": 10,
+     "rafP95": 116.9,
+     "frames": 77
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 15.3,
+     "p95": 26.9,
+     "n": 30,
+     "rafP95": 49.9,
+     "frames": 201
+    },
+    "on": {
+     "med": 14.9,
+     "p95": 30.1,
+     "n": 30,
+     "rafP95": 35.4,
+     "frames": 212
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 43.6,
+     "p95": 93.3,
+     "n": 30,
+     "rafP95": 166.7,
+     "frames": 49
+    },
+    "on": {
+     "med": 42,
+     "p95": 141.7,
+     "n": 30,
+     "rafP95": 183.3,
+     "frames": 50
+    }
+   }
+  }
+ },
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38064844614",
+  "commit": "6a52e6c",
+  "note": "對照 C1：本體＝線上 11.213（含 T628）、本體不變",
+  "current": "11.213",
+  "previous": "11.213",
+  "runtimeChanged": false,
+  "firstError": "Error: all unchanged performance gates must pass: mobile day same-light warm draw relative budget; desktop night warm draw p95 relative budget",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 6,
+     "p95": 14.7,
+     "n": 10,
+     "rafP95": 26.2,
+     "frames": 280
+    },
+    "on": {
+     "med": 11.6,
+     "p95": 33.2,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 300
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 18.6,
+     "p95": 32.1,
+     "n": 10,
+     "rafP95": 116.7,
+     "frames": 73
+    },
+    "on": {
+     "med": 17.4,
+     "p95": 35.5,
+     "n": 10,
+     "rafP95": 115,
+     "frames": 73
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 17.2,
+     "p95": 31.2,
+     "n": 30,
+     "rafP95": 83.2,
+     "frames": 128
+    },
+    "on": {
+     "med": 15.7,
+     "p95": 41.3,
+     "n": 30,
+     "rafP95": 64.6,
+     "frames": 149
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 60.4,
+     "p95": 101.2,
+     "n": 30,
+     "rafP95": 350,
+     "frames": 28
+    },
+    "on": {
+     "med": 54.5,
+     "p95": 185.2,
+     "n": 30,
+     "rafP95": 249.6,
+     "frames": 31
+    }
+   }
+  }
+ },
+ {
+  "run": "https://github.com/lijiabao1998/GlimmerTown/actions/runs/38064844614",
+  "commit": "6a52e6c",
+  "note": "對照 C2",
+  "current": "11.213",
+  "previous": "11.213",
+  "runtimeChanged": false,
+  "firstError": "Error: all unchanged performance gates must pass: desktop day warm draw p95 relative budget",
+  "oldVsCandidateCRC": [
+   "independent-old-reloads:equal",
+   "old-source-to-inherited-candidate:equal",
+   "returned-candidate-to-original:equal",
+   "original-candidate-repeat-to-old-source:equal",
+   "later-old-to-independent-old:equal"
+  ],
+  "lanes": {
+   "mobile-day": {
+    "off": {
+     "med": 5.3,
+     "p95": 38.2,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 300
+    },
+    "on": {
+     "med": 3.8,
+     "p95": 5.3,
+     "n": 10,
+     "rafP95": 18.7,
+     "frames": 299
+    }
+   },
+   "mobile-night": {
+    "off": {
+     "med": 22.1,
+     "p95": 30.5,
+     "n": 10,
+     "rafP95": 66.7,
+     "frames": 113
+    },
+    "on": {
+     "med": 17.1,
+     "p95": 27,
+     "n": 10,
+     "rafP95": 66.1,
+     "frames": 117
+    }
+   },
+   "desktop-day": {
+    "off": {
+     "med": 19.6,
+     "p95": 31,
+     "n": 30,
+     "rafP95": 65.2,
+     "frames": 142
+    },
+    "on": {
+     "med": 17.8,
+     "p95": 59.5,
+     "n": 30,
+     "rafP95": 50.2,
+     "frames": 191
+    }
+   },
+   "desktop-night": {
+    "off": {
+     "med": 44.3,
+     "p95": 103.4,
+     "n": 30,
+     "rafP95": 150.8,
+     "frames": 46
+    },
+    "on": {
+     "med": 41.7,
+     "p95": 84.7,
+     "n": 30,
+     "rafP95": 135.3,
+     "frames": 51
+    }
+   }
+  }
+ }
+]
