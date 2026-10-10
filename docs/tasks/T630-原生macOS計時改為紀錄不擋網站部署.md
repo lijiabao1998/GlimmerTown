@@ -37,4 +37,11 @@
 
 ## 施工紀錄
 
-（施工後補）
+**2026-10-10（Claude）**
+
+- 業主給了 `workflow` 權限後，這台機器的 `gh` 權杖從 `gist, read:org, repo` 變成含 `workflow`，改工作流的推送才被 GitHub 接受（第一次授權沒落到這台的權杖上，推送仍被拒，業主重做一次）。
+- 改動照卡面兩處，YAML 解析正確。
+- 分支手動觸發 Pages 工作流 run 38039990523：validate、browser（core／world／neighbors）、package、pages-browser 全綠；`native-acceptance` 這次剛好也過；`deploy`／`verify-published` 依規定在分支上跳過。
+- 合併後 main 會再跑一次並部署（遊戲本體沒變，網站內容仍是 v11.212）。
+
+**聲明**：Claude 出卡＝施工同一方，未經第三方覆核，如實聲明。
