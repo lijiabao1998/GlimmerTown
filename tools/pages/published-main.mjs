@@ -1,8 +1,11 @@
 /** Published main Pages / full browser-network outage acceptance, Node 22+.
  * Local raw-package CI: --site=PATH --out=EVIDENCE [--port=8933]
  * Published HTTPS:      --site=PATH --url=https://HOST/GlimmerTown/ --out=EVIDENCE
- * Local T602 upgrade:   --site=PATH --upgrade-from-main --out=EVIDENCE
- * --check performs only local package, option and helper-source validation.
+ * Local upgrade:        --site=PATH --upgrade-from-main --out=EVIDENCE
+ *   (T627: "from main" now means from the release the live Pages site serves, found in git;
+ *   with no runtime change it records not-applicable-no-runtime-change and exits 0 before Chrome.)
+ * --check performs only local package, option and helper-source validation (with the upgrade
+ * flag it also resolves the live previous release by read-only GETs and git).
  * Requires existing native macOS Chrome in an assistant-owned cloud runner.
  * No product/SW rewriting, synthetic visibility/rAF, TLS bypass, user profile or FPS claim.
  * Offline means denied browser HTTP(S)/WS(S), including worker requests, not OS radio state.
@@ -16,18 +19,17 @@ import http from 'node:http';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {randomUUID} from 'node:crypto';
-import {PINS,SAVE_NAMESPACE,CACHE_PREFIX,APP_VERSION,CACHE_NAME,sha256,verifyPackagedFile} from './build-main.mjs';
+import {PINS,SAVE_NAMESPACE,CACHE_PREFIX,APP_VERSION,CACHE_NAME,SOURCE_COMMIT,sha256,verifyPackagedFile} from './build-main.mjs';
 import {loadVerifiedPackage,storageProbeSource,foreignStorageFixture,browserPrepareSave,browserLoadObservation,saveReloadObservation} from './browser-main.mjs';
-import native603 from '../../docs/tasks/t603-shots/native603.js';
+import identity from './release-identity.cjs';
 
+const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const PROJECT='/GlimmerTown/',CACHE=CACHE_NAME;
 const FOREIGN_CACHES=['gv-v1','gv-v2','glimmerville-shell-v11.211'];
 const SHELL=Object.keys(PINS).filter(name=>name!=='sw.js');
-export const UPGRADE_SOURCE_PINS=Object.freeze({
-  'index.html':'b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265',
-  'sw.js':'836d1d867d10d6c63d71c722d3337e5b7119ad36006314f74872583ec029dd3b'
-});
+export const UPGRADE_NOT_APPLICABLE='not-applicable-no-runtime-change';
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const releaseVersion=(value,label)=>{assert(typeof value==='string'&&/^\d+(?:\.\d+){1,2}$/.test(value),'explicit '+label+' release version required');return value;};
 const upgradeScope=oldVersion=>`Exact ${oldVersion} to ${APP_VERSION} raw main package upgrade, same profile and registration, then new-process saved-city offline reopen`;
 
 export function options(args){
@@ -50,29 +52,54 @@ export function options(args){
   return out;
 }
 
-export function upgradeFromMain(files){
-  assert.deepEqual([...files.keys()].sort(),Object.keys(PINS).sort(),'upgrade requires exactly seven current package files');
-  for(const [name,bytes] of files)verifyPackagedFile(name,bytes);
-  const replace=(text,from,to)=>{assert.equal(text.split(from).length,2,'unique upgrade namespace/version anchor: '+from);return text.replace(from,to);};
-  // Reverse precisely the existing build-main namespace substitutions, verify the
-  // immutable native sources, reconstruct T602, then apply the same substitutions.
-  const index=replace(files.get('index.html').toString(),`const SAVEKEY='${SAVE_NAMESPACE}';`,"const SAVEKEY='glimmerville.v1';");
-  let worker=replace(files.get('sw.js').toString(),`const CACHE_PREFIX='${CACHE_PREFIX}';`,"const CACHE_PREFIX='glimmerville-shell-';");
-  worker=replace(worker,'const LEGACY_CACHES=new Set([]);',"const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);");
-  assert.equal(sha256(index),PINS['index.html']);assert.equal(sha256(worker),PINS['sw.js']);
-  const oldIndex=native603.sourceBaseline603(index),oldWorker=replace(worker,"const APP_VER='11.212';","const APP_VER='11.211';");
-  assert.equal(sha256(oldIndex),UPGRADE_SOURCE_PINS['index.html'],'exact immutable T602 native index');
-  assert.equal(sha256(oldWorker),UPGRADE_SOURCE_PINS['sw.js'],'exact T602 raw worker with only APP_VER changed');
-  const oldFiles=new Map([...files].map(([name,bytes])=>[name,Buffer.from(bytes)]));
-  oldFiles.set('index.html',Buffer.from(replace(oldIndex,"const SAVEKEY='glimmerville.v1';",`const SAVEKEY='${SAVE_NAMESPACE}';`)));
-  oldFiles.set('sw.js',Buffer.from(replace(replace(oldWorker,"const CACHE_PREFIX='glimmerville-shell-';",`const CACHE_PREFIX='${CACHE_PREFIX}';`),"const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);",'const LEGACY_CACHES=new Set([]);')));
-  return {files:oldFiles,version:'11.211',sourcePins:{...PINS,...UPGRADE_SOURCE_PINS},
-    bodies:Object.fromEntries([...oldFiles].map(([name,bytes])=>[name,{bytes:bytes.length,sha256:sha256(bytes)}]))};
+/** R4: the real upgrade is skipped only when all seven source pins are equal. Any runtime
+ * change must already satisfy releaseDelta (sw.js changed, version raised), otherwise it throws. */
+export function upgradeSkipReason(previous,current){
+  const delta=identity.releaseDelta(previous,current);
+  const identical=identity.RUNTIME_FILES.every(name=>previous.sourcePins[name]===current.sourcePins[name]);
+  assert.equal(delta.runtimeChanged,!identical,'a runtime change must be exactly a differing source pin');
+  return identical?UPGRADE_NOT_APPLICABLE:null;
 }
 
-export function assertUpgradeWorker(row,base){
+/** T627 (R3/R4): the upgrade starts from the release the live Pages site serves, found in git
+ * by release-identity (fail closed at every step). `fetchLive` and `current` are injectable so a
+ * frozen historical pair can exercise the same path; by default current is the checked-out HEAD. */
+export async function liveRelease(root=ROOT,{fetchLive,env=process.env,current}={}){
+  const previous=await identity.previousRelease(root,{env,...(fetchLive?{fetchLive}:{})});
+  if(current===undefined){
+    current=identity.currentRelease(root,{env});
+    assert.equal(current.commit,SOURCE_COMMIT,'upgrade target must be the packaged commit');
+    assert.deepEqual({...current.sourcePins},{...PINS},'upgrade target pins must be the packaged pins');
+    assert.equal(current.version,APP_VERSION,'upgrade target version must be the packaged version');
+  }
+  const delta=identity.releaseDelta(previous,current),files=previous.packagedFiles;
+  return Object.freeze({commit:previous.commit,source:previous.source,version:previous.version,sourcePins:previous.sourcePins,
+    blobIds:previous.blobIds,liveSHA256:previous.liveSHA256,files,sourceFiles:previous.files,
+    bodies:Object.fromEntries([...files].map(([name,bytes])=>[name,{bytes:bytes.length,sha256:sha256(bytes)}])),
+    current:Object.freeze({commit:current.commit,version:current.version,sourcePins:current.sourcePins}),
+    delta,skipReason:upgradeSkipReason(previous,current)});
+}
+
+/** Pair the exact current package with the resolved previous release. Both sides are verified
+ * against their own source pins; the old side must also equal the live bytes it was found from. */
+export function upgradePlan(files,live){
+  const current=live.current,runtime=[...identity.RUNTIME_FILES].sort();
+  assert.deepEqual([...files.keys()].sort(),runtime,'upgrade requires exactly seven current package files');
+  for(const [name,bytes] of files)verifyPackagedFile(name,bytes,current.sourcePins);
+  assert.equal(identity.parseVersion(files.get('index.html'),files.get('sw.js')),releaseVersion(current.version,'current'),'current package version');
+  assert.deepEqual([...live.files.keys()].sort(),runtime,'previous release must be exactly seven package files');
+  if(live.source==='live')for(const name of runtime)assert.equal(sha256(live.files.get(name)),live.liveSHA256[name],'previous package must equal the live bytes: '+name);
+  else assert(live.source==='override-unverified'&&live.liveSHA256===null,'a previous release not read from the live site must be marked unverified');
+  for(const [name,bytes] of live.files)verifyPackagedFile(name,bytes,live.sourcePins);
+  assert.equal(identity.parseVersion(live.files.get('index.html'),live.files.get('sw.js')),releaseVersion(live.version,'previous'),'previous package version');
+  const skip=upgradeSkipReason(live,current);
+  assert.equal(skip,live.skipReason,'skip decision must match the resolved release pair');
+  return {skip,oldFiles:live.files,newFiles:files,oldVersion:live.version,newVersion:current.version};
+}
+
+export function assertUpgradeWorker(row,base,oldVersion){
   assert.equal(row.ok,true,row.error||'real worker upgrade failed');
-  assert.equal(row.before.version,'11.211');assert.equal(row.before.scope,base);
+  assert.equal(row.before.version,releaseVersion(oldVersion,'old'));assert.equal(row.before.scope,base);
   assert.equal(row.before.controller,base+'sw.js');assert.equal(row.before.active,base+'sw.js');
   assert.equal(row.before.activeState,'activated');assert.equal(row.before.sameController,true);
   assert.equal(row.before.waiting,null);assert.equal(row.before.installing,null);
@@ -84,21 +111,25 @@ export function assertUpgradeWorker(row,base){
   assert.deepEqual(row.registrations,[base]);
 }
 
-export function assertUpgradeCaches({names,cache,files,base}){
+export function assertUpgradeCaches({names,cache,files,base,oldVersion}){
+  const oldCache=CACHE_PREFIX+'v'+releaseVersion(oldVersion,'old');assert.notEqual(oldCache,CACHE,'upgrade must change the main cache version');
+  assert(!names.includes(oldCache),'old main-owned version cache must be gone: '+oldCache);
   assert.deepEqual([...names].sort(),[...FOREIGN_CACHES,CACHE].sort(),'only old main-owned version cache must be removed');
   assert.equal(cache.name,CACHE);assert(!cache.missing);assert.equal(cache.entries.length,SHELL.length);
   assert.deepEqual(cache.entries.map(row=>row.url).sort(),SHELL.map(name=>base+name).sort(),'new cache must contain the exact six shell URLs');
   for(const name of SHELL){const row=cache.entries.find(value=>value.url===base+name);assert.equal(row.method,'GET');assert.equal(row.status,200);assert.equal(row.bytes,files.get(name).length);assert.equal(row.sha256,sha256(files.get(name)),'new cached full body: '+name);}
 }
 
-export function assertUpgradeSave({oldRaw,oldCore,oldModel,beforeLoad,loaded,migrated,stable,namespace=SAVE_NAMESPACE}){
-  const old=JSON.parse(oldRaw);assert.equal(old.gameVer,'11.211','fixture must be a real old-version save');assert.equal(old.v,1);
+export function assertUpgradeSave({oldRaw,oldCore,oldModel,beforeLoad,loaded,migrated,stable,oldVersion,newVersion,namespace=SAVE_NAMESPACE}){
+  releaseVersion(oldVersion,'old');releaseVersion(newVersion,'new');
+  assert(identity.compareVersions(newVersion,oldVersion)>0,'upgrade must raise the version: '+oldVersion+' -> '+newVersion);
+  const old=JSON.parse(oldRaw);assert.equal(old.gameVer,oldVersion,'fixture must be a real old-version save');assert.equal(old.v,1);
   assert.equal(beforeLoad[namespace+'.slot'],'3');assert.equal(beforeLoad[namespace+'.s3'],oldRaw,'old save must survive activation and reload before load');
   assert.equal(beforeLoad[namespace+'.s3_bak'],oldRaw,'old backup must survive activation and reload');
   assert.equal(loaded.loaded,true);assert.equal(loaded.raw,oldRaw,'load must not silently rewrite old persisted bytes');
   assert.deepEqual(loaded.core,oldCore,'loaded city values');assert.deepEqual(loaded.model,oldModel,'loaded live tile model');
-  const expected={...old,gameVer:'11.212'},expectedRaw=JSON.stringify(expected);
-  assert.equal(migrated.version,'11.212');assert.equal(migrated.raw,expectedRaw,'only gameVer may change in the real new-version save');
+  const expected={...old,gameVer:newVersion},expectedRaw=JSON.stringify(expected);
+  assert.equal(migrated.version,newVersion);assert.equal(migrated.raw,expectedRaw,'only gameVer may change in the real new-version save');
   assert.equal(migrated.main[namespace+'.s3_bak'],oldRaw,'first new-version save must back up the old bytes');
   assert.deepEqual(migrated.main,{...beforeLoad,[namespace+'.s3']:expectedRaw},'migration must preserve every other main key');
   assert.deepEqual(migrated.core,oldCore);assert.deepEqual(migrated.model,oldModel);
@@ -108,7 +139,9 @@ export function assertUpgradeSave({oldRaw,oldCore,oldModel,beforeLoad,loaded,mig
   return {oldSHA256:sha256(oldRaw),newSHA256:sha256(expectedRaw),oldBytes:Buffer.byteLength(oldRaw),newBytes:Buffer.byteLength(expectedRaw),changedFields:['gameVer'],modelSHA256:sha256(JSON.stringify(oldModel)),exactCore:true,oldSavePreservedBeforeLoad:true,oldBackupPreservedOnFirstSave:true};
 }
 
-export async function browserUpdateWorker(base){
+export async function browserUpdateWorker(base,oldVersion){
+  // Evaluated in the page: the old release version arrives as an argument, never a literal.
+  if(typeof oldVersion!=='string'||!/^\d+(?:\.\d+){1,2}$/.test(oldVersion))return {ok:false,updateCalled:false,updateReturned:false,updateFound:0,controllerChanges:0,events:[],error:'explicit old release version required'};
   const registration=await navigator.serviceWorker.getRegistration(base),old=navigator.serviceWorker.controller;
   const row={ok:false,updateCalled:false,updateReturned:false,updateFound:0,controllerChanges:0,events:[]};
   const state=()=>({scope:registration?.scope,active:registration?.active?.scriptURL??null,activeState:registration?.active?.state??null,
@@ -116,7 +149,7 @@ export async function browserUpdateWorker(base){
     replacedActive:!!registration?.active&&registration.active!==old,replacedController:!!navigator.serviceWorker.controller&&navigator.serviceWorker.controller!==old,
     activeIsController:!!registration?.active&&registration.active===navigator.serviceWorker.controller});
   row.before={...state(),version:GV.ver(),sameController:!!old&&registration?.active===old,waiting:registration?.waiting?.state??null,installing:registration?.installing?.state??null};
-  if(!registration||!old||row.before.version!=='11.211'||!row.before.sameController||row.before.waiting||row.before.installing){row.error='old active registration not stable';return row;}
+  if(!registration||!old||row.before.version!==oldVersion||!row.before.sameController||row.before.waiting||row.before.installing){row.error='old active registration not stable';return row;}
   let timer,wake,stopped=false;const workers=new Set();
   const record=(kind,worker)=>{row.events.push({kind,state:worker?.state??null,at:Date.now()});wake?.();};
   const changed=event=>record('statechange',event.target);
@@ -419,8 +452,21 @@ export async function run(config){
   try{
     persist();
     if(config.upgradeFromMain){
-      assert(!config.url,'upgrade mode requires the local raw-package server');oldPack=upgradeFromMain(pack.files);servedFiles=oldPack.files;servedVersion=oldPack.version;report.scope=upgradeScope(oldPack.version);
-      report.upgrade={status:'preparing',oldVersion:oldPack.version,newVersion:APP_VERSION,oldSourcePins:oldPack.sourcePins,newSourcePins:PINS,oldBodies:oldPack.bodies,assets:[]};persist();
+      assert(!config.url,'upgrade mode requires the local raw-package server');
+      // T627: the old side is what the live Pages site serves, resolved in git and re-packaged
+      // byte-for-byte; never a reconstruction. Every step of the lookup fails closed.
+      const live=await liveRelease(ROOT),plan=upgradePlan(pack.files,live);
+      const pair={previousCommit:live.commit,previousSource:live.source,previousLiveSHA256:live.liveSHA256,currentCommit:live.current.commit,
+        oldVersion:plan.oldVersion,newVersion:plan.newVersion,changedFiles:live.delta.changedFiles};
+      if(plan.skip){
+        // R4: all seven source pins equal the live release, so there is no upgrade to exercise.
+        report.upgrade={status:plan.skip,...pair};report.status=plan.skip;report.scope='No runtime change from the live release; real-browser upgrade not applicable';
+        report.completedAt=Date.now();persist();console.log('MAIN_PAGES_UPGRADE_NOT_APPLICABLE '+JSON.stringify({previousCommit:live.commit,currentCommit:live.current.commit,version:plan.newVersion,out}));
+        return report;
+      }
+      oldPack={files:plan.oldFiles,version:plan.oldVersion,sourcePins:live.sourcePins,bodies:live.bodies};
+      servedFiles=oldPack.files;servedVersion=oldPack.version;report.scope=upgradeScope(oldPack.version);
+      report.upgrade={status:'preparing',...pair,oldSourcePins:oldPack.sourcePins,newSourcePins:PINS,oldBodies:oldPack.bodies,assets:[]};persist();
     }
     assert.equal(process.platform,'darwin','native macOS cloud runner required');
     report.chromePath=[process.env.CHROME_PATH,'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].filter(Boolean).find(file=>fs.existsSync(file));assert(report.chromePath,'installed Chrome required');
@@ -468,12 +514,12 @@ export async function run(config){
       for(const [name,expected] of servedFiles){guard();const url=base+name;const response=await fetch(url,{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(remaining(30000))});u.assets.push(await verifyAssetResponse({name,url,response,expected}));persist();}
       check(u.assets.length===7,'all seven switched GET bodies match the exact new package');
       u.status='updating-worker';persist();
-      u.worker=await online.ev(`(${browserUpdateWorker.toString()})(${JSON.stringify(base)})`,90000);persist();assertUpgradeWorker(u.worker,base);
+      u.worker=await online.ev(`(${browserUpdateWorker.toString()})(${JSON.stringify(base)},${JSON.stringify(oldPack.version)})`,90000);persist();assertUpgradeWorker(u.worker,base,oldPack.version);
       const newRequests=report.originRequests.filter(row=>row.url===base+'sw.js'&&row.phase==='online'&&row.serviceWorker==='script'&&row.at>=u.switchedAt&&row.status===200&&row.finishedAt&&row.sha256===sha256(pack.files.get('sw.js')));
       u.newWorkerRequests=newRequests;check(newRequests.length>0,'real update fetched exact new raw worker bytes');
       u.activatedMain=await online.ev('window.__pagesStorageProbe.snapshot().main');persist();assert.deepEqual(u.activatedMain,oldState.main,'activation must preserve all main storage before reload');
       const replacementCache=await shell(online,'new worker activation before reload');
-      u.cacheNames=await online.ev('caches.keys()');persist();assertUpgradeCaches({names:u.cacheNames,cache:replacementCache,files:pack.files,base});
+      u.cacheNames=await online.ev('caches.keys()');persist();assertUpgradeCaches({names:u.cacheNames,cache:replacementCache,files:pack.files,base,oldVersion:oldPack.version});
       await isolation(online,'after real worker replacement');
       u.status='reloading-new-version';persist();
       u.document=await navigate(online,base,{game:true,fromWorker:true,workerNetwork:true});
@@ -487,7 +533,7 @@ export async function run(config){
       const migrated=await online.ev(saveState);u.migration=saveReloadObservation({expectedRaw:saved.raw,expectedCore:saved.core,actual:{...migrated,loaded:loaded.loaded}});persist();
       const stable=await online.ev(saveState);
       u.migratedMain=migrated.main;u.stableMain=stable.main;u.stable={sha256:sha256(stable.raw),bytes:Buffer.byteLength(stable.raw),modelSHA256:sha256(JSON.stringify(stable.model)),core:stable.core};persist();
-      u.save=assertUpgradeSave({oldRaw:saved.raw,oldCore:saved.core,oldModel:oldState.model,beforeLoad,loaded,migrated,stable});
+      u.save=assertUpgradeSave({oldRaw:saved.raw,oldCore:saved.core,oldModel:oldState.model,beforeLoad,loaded,migrated,stable,oldVersion:oldPack.version,newVersion:APP_VERSION});
       saved.raw=stable.raw;u.status='upgraded';report.offlineSaveBaseline={sha256:sha256(saved.raw),bytes:Buffer.byteLength(saved.raw),core:saved.core};persist();
       check(true,`same-profile ${oldPack.version} save survives real ${APP_VERSION} worker activation and load with only the exact release version changed`);
       await isolation(online,'after new-version save');await shell(online,'after upgrade save');
@@ -521,7 +567,7 @@ export async function run(config){
     if(config.upgradeFromMain){
       const model=await offline.ev(`(${browserCityModel.toString()})()`);report.upgrade.offlineModelSHA256=sha256(JSON.stringify(model));persist();
       assert.equal(report.upgrade.offlineModelSHA256,report.upgrade.oldSave.modelSHA256,'offline live tile model must remain exact across versions');
-      assertUpgradeCaches({names:await offline.ev('caches.keys()'),cache:report.shell.at(-1),files:pack.files,base});
+      assertUpgradeCaches({names:await offline.ev('caches.keys()'),cache:report.shell.at(-1),files:pack.files,base,oldVersion:oldPack.version});
       report.upgrade.status='offline-reopened';persist();
     }
     const relevantProxy=report.proxy.filter(row=>proxyTargetsOrigin(row,origin));
@@ -553,7 +599,8 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   const config=options(process.argv.slice(2));
   if(config.check){
     const pack=loadVerifiedPackage(config.site);
-    try{if(config.upgradeFromMain)upgradeFromMain(pack.files);for(const fn of [readState,cacheSnapshot,seedForeignCaches,uncachedProbe,browserContinueSavedCity,browserPrepareSave,browserLoadObservation,browserUpdateWorker,browserCityModel])new Function('return ('+fn.toString()+')');new Function(storageProbeSource('http://127.0.0.1:8933'));console.log('MAIN_PAGES_REOPEN_SOURCE_OK (local package/helper checks only; no browser or published request)');}
+    try{if(config.upgradeFromMain){const live=await liveRelease(ROOT),plan=upgradePlan(pack.files,live);console.log('MAIN_PAGES_UPGRADE_PAIR '+JSON.stringify({previousCommit:live.commit,previousSource:live.source,oldVersion:plan.oldVersion,currentCommit:live.current.commit,newVersion:plan.newVersion,changedFiles:live.delta.changedFiles,status:plan.skip||'applicable'})+(live.source==='live'?' (read-only live GETs and git)':' (local override; live bytes not verified)'));}
+      for(const fn of [readState,cacheSnapshot,seedForeignCaches,uncachedProbe,browserContinueSavedCity,browserPrepareSave,browserLoadObservation,browserUpdateWorker,browserCityModel])new Function('return ('+fn.toString()+')');new Function(storageProbeSource('http://127.0.0.1:8933'));console.log('MAIN_PAGES_REOPEN_SOURCE_OK (local package/helper checks only; no browser or published request)');}
     finally{pack.cleanup();}
   }else await run(config);
 }
