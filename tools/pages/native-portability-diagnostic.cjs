@@ -2,7 +2,11 @@
 // Opt-in T620 diagnostic. Historical pins remain fatal; the Linux release gate is unchanged.
 const fs = require('node:fs'), path = require('node:path'), { spawnSync } = require('node:child_process');
 const mac = require('./native-mac-diagnostic.cjs'), canonical = require('./native-correctness.cjs');
-const BASE_SHA256 = 'b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265';
+const identity = require('./release-identity.cjs');
+const ROOT = path.resolve(__dirname, '../..');
+// T627: no release is named here. The old document is the release the live site serves and the candidate
+// is HEAD's committed runtime, both resolved by release-identity (scene603 resolves the same pair inside).
+const VERSION = /^\d+(?:\.\d+){1,2}$/, SHA256 = /^[0-9a-f]{64}$/, COMMIT = /^[0-9a-f]{40}$/;
 const PARENT = Object.freeze({ commit: '16514fd27a2c143c0f0c79a3d08197150d72438f',
   harness: 'ee31668aa1243a64041c282538ed2fdcb740056c677d71ec27f22eae9bda7566',
   nativeMacOutput: 'b5e6d224818101a09ff3ab6321219497e866a7ac5856330a2124a39998f0c397',
@@ -21,12 +25,15 @@ const HISTORICAL = Object.freeze([
 // This self-contained host controller is embedded into the identity-checked emitted
 // source. It does not replace browser APIs, rendering, sampling or original checks.
 function createPortability620({ report, persist, check, ev, send, ready, port,
-  baseline, candidate, actual, baseSource, baseHash, hash, save, expectedBaseHash, limitation }) {
+  baseline, candidate, actual, baseSource, baseHash, hash, save, expectedBaseHash, oldVersion, candidateVersion, limitation }) {
   const copy = value => JSON.parse(JSON.stringify(value));
   const freezeMap = value => Object.freeze(Object.fromEntries(Object.entries(value).map(([k, v]) => [k, Object.freeze([...v])])));
   const expectedKeys = Object.keys(baseline).sort();
+  // The old document's T603 traits follow from its own source, derived as scene603 derives civicFactory.
+  const oldDocument = { civicFactory: /function bakeArt603\(/.test(baseSource) ? 'function' : 'undefined', T603: /function t603On\(/.test(baseSource) };
   const state = report.portability620 = { protocol: 'T620-same-browser-CRC', limitation,
     baseSourceSHA256: hash(baseSource), inverseSourceSHA256: baseHash,
+    expectedBaseSHA256: expectedBaseHash, oldVersion, candidateVersion, oldDocument: copy(oldDocument),
     historical: [], captures: [], comparisons: [], preTimingControlsPassed: false,
     candidateRepeatPassed: false, laterOldPassed: false, originalChecksComplete: false };
   let oldPins, preflightStarted = false;
@@ -64,8 +71,9 @@ function createPortability620({ report, persist, check, ev, send, ready, port,
     const row = { label, kind, identity, flags, timeOrigin, sourceSHA256: old ? state.baseSourceSHA256 : report.nativeSource603?.sourceSHA256,
       file: 'T620-' + label + '-pins.json', keyCount: pins && typeof pins === 'object' ? Object.keys(pins).length : null };
     state.captures.push(row); save(row.file, pins); persist();
-    check(identity && identity.version === (old ? '11.211' : '11.212') && identity.url === (old ? '/baseline603.html' : '/index.html') &&
-      identity.civicFactory === (old ? 'undefined' : 'function') && flags && flags.T603 === !old && !flags.T596 && !flags.T600,
+    check(identity && identity.doc === (old ? 'baseline' : 'candidate') && identity.version === (old ? oldVersion : candidateVersion) &&
+      identity.url === (old ? '/baseline603.html' : '/index.html') && identity.civicFactory === (old ? oldDocument.civicFactory : 'function') &&
+      flags && flags.T603 === (old ? oldDocument.T603 : true) && !flags.T596 && !flags.T600,
       'T620 document identity and flags: ' + label);
     check(Number.isFinite(timeOrigin) && timeOrigin > 0 && !origins.has(timeOrigin), 'T620 fresh independent timeOrigin: ' + label);
     origins.add(timeOrigin); row.keySet = completeMap(pins, label); row.verified = true; persist();
@@ -88,6 +96,7 @@ function createPortability620({ report, persist, check, ev, send, ready, port,
     async preflight() {
       check(!preflightStarted, 'T620 one pre-timing control attempt only'); preflightStarted = true;
       check(state.historical.length === 2, 'T620 both original historical comparisons recorded');
+      check([oldVersion, candidateVersion].every(v => typeof v === 'string' && /^\d+(?:\.\d+){1,2}$/.test(v)), 'T620 explicit old and candidate release versions');
       check(state.baseSourceSHA256 === expectedBaseHash && baseHash === expectedBaseHash, 'T620 immutable reconstructed T602 source SHA256');
       check(expectedKeys.length === 1586, 'T620 immutable baseline key count');
       completeMap(baseline, 'historical-baseline'); completeMap(candidate, 'historical-candidate'); completeMap(actual, 'initial-candidate');
@@ -136,7 +145,9 @@ function createPortability620({ report, persist, check, ev, send, ready, port,
 // This is the entire explicit transformation allowlist, applied once per anchor.
 function transformations() {
   const writePins = "    fs.writeFileSync(path.join(OUT,'sprite-pins.json'),JSON.stringify(actual));";
-  const initialization = '    const portability620=(' + createPortability620.toString() + ')({report,persist,check,ev,send,ready,port:PORT,baseline,candidate,actual,baseSource:exactBase603,baseHash:nativeSource603.baseSHA256,hash,save:(name,pins)=>fs.writeFileSync(path.join(OUT,name),JSON.stringify(pins)),expectedBaseHash:' + JSON.stringify(BASE_SHA256) + ',limitation:' + JSON.stringify(LIMITATION) + '});';
+  // The release values are runtime expressions on scene603's release603, never literals, so this text is the same for every release.
+  const initialization = '    const portability620=(' + createPortability620.toString() + ')({report,persist,check,ev,send,ready,port:PORT,baseline,candidate,actual,baseSource:exactBase603,baseHash:nativeSource603.baseSHA256,hash,save:(name,pins)=>fs.writeFileSync(path.join(OUT,name),JSON.stringify(pins)),' +
+    "expectedBaseHash:release603.previous.sourcePins['index.html'],oldVersion:release603.previous.version,candidateVersion:release603.current.version,limitation:" + JSON.stringify(LIMITATION) + '});';
   const repeat = "    check(JSON.stringify(actual)===JSON.stringify(repeated),'two independent Chrome boots have identical complete sprite pins');";
   const finalRuntime = "check(!errors.length&&!consoleErrors.length&&!report.errLog.length,'zero runtime/console/app errors');";
   return [
@@ -182,12 +193,32 @@ function build(input) {
   new Function('require', '__filename', '__dirname', source);
   return { ...original, source, sha256: mac.sha256(source), nativeMacOutputSHA256: original.sha256,
     portabilityAdapterSHA256: mac.sha256(fs.readFileSync(__filename)), portabilityChanges: changes,
-    browserRAFExpressionSHA256: mac.sha256(browserExpression), baseSourceSHA256: BASE_SHA256,
+    browserRAFExpressionSHA256: mac.sha256(browserExpression),
     parentCommit: PARENT.commit, limitation620: LIMITATION };
 }
 
-function collectionComplete(report) {
+// The release pair as the outer processes compare it: {current, previous} from release-identity
+// (releasePairSync, or the same shape injected by tests), checked and reduced to plain values.
+function releasePair620(pair) {
+  const { current, previous } = pair || {};
+  for (const [label, row] of [['current', current], ['previous', previous]]) {
+    if (!row || !COMMIT.test(row.commit) || !VERSION.test(row.version) || !row.sourcePins ||
+      !SHA256.test(row.sourcePins['index.html']) || !SHA256.test(row.sourcePins['sw.js'])) throw Error('T620 release pair is incomplete: ' + label);
+  }
+  const text = previous.files instanceof Map ? previous.files.get('index.html') : undefined;
+  if (!Buffer.isBuffer(text) || mac.sha256(text) !== previous.sourcePins['index.html']) throw Error('T620 previous release index.html does not match its source pin');
+  const delta = identity.releaseDelta(previous, current), base = text.toString('utf8');
+  return Object.freeze({ runtimeChanged: delta.runtimeChanged,
+    current: Object.freeze({ commit: current.commit, version: current.version,
+      runtime: current.sourcePins['index.html'], serviceWorker: current.sourcePins['sw.js'] }),
+    previous: Object.freeze({ commit: previous.commit, version: previous.version,
+      base: previous.sourcePins['index.html'], serviceWorker: previous.sourcePins['sw.js'],
+      civicFactory: /function bakeArt603\(/.test(base) ? 'function' : 'undefined', T603: /function t603On\(/.test(base) }) });
+}
+
+function collectionComplete(report, pair) {
   const inner = report.innerSummary, state = inner?.portability620, verdict = state?.finalHistoricalVerdict;
+  const previous = pair?.previous, current = pair?.current;
   const windows = inner?.nativeMac619?.windows;
   const sequence = [
     ['mobile-day-baseline', 390, 844, 5000], ['mobile-day-candidate', 390, 844, 5000],
@@ -219,7 +250,9 @@ function collectionComplete(report) {
       inner.status === 'passed' && report.inner?.status === 0);
   return Boolean(report.completed && report.cleanupVerified && report.profileRemoved && report.restored &&
     !report.inner?.timedOut && !report.inner?.aborted && !report.inner?.error && verdictMatches && capturesValid && comparisonsValid &&
-    state.baseSourceSHA256 === BASE_SHA256 && state.inverseSourceSHA256 === BASE_SHA256 &&
+    SHA256.test(previous?.base) && state.baseSourceSHA256 === previous.base && state.inverseSourceSHA256 === previous.base &&
+    state.expectedBaseSHA256 === previous.base && state.oldVersion === previous.version && state.candidateVersion === current?.version &&
+    state.oldDocument?.civicFactory === previous.civicFactory && state.oldDocument.T603 === previous.T603 &&
     state.preTimingControlsPassed && state.candidateRepeatPassed && state.laterOldPassed && state.originalChecksComplete &&
     inner.nativeMac619.complete && inner.browserVersion && inner.gpuInfo?.devices?.length &&
     windows?.length === 9 && windows.every((row, i) => row.qualified === true && row.label === sequence[i][0] &&
@@ -232,12 +265,15 @@ async function supervise(options = {}) {
   const expected = build(), built = options.built || expected;
   if (built.sha256 !== expected.sha256 || built.sha256 !== mac.sha256(built.source) || built.adapterSHA256 !== PARENT.nativeMacAdapter ||
     built.portabilityAdapterSHA256 !== mac.sha256(fs.readFileSync(__filename))) throw Error('T620 adapter identity mismatch');
+  // T627: the pair this collection is about, resolved here (or handed down by release-native-acceptance),
+  // never read back from the inner evidence it is compared with.
+  const pair = releasePair620(options.release || identity.releasePairSync(ROOT));
   const report = await mac.supervise({ ...options, built });
   // Only after the original supervisor has verified child cleanup, profile removal,
   // display restoration and the overall deadline may collection be called complete.
-  const collectionCompleted = collectionComplete(report);
+  const collectionCompleted = collectionComplete(report, pair);
   const result = { ...report, status: report.status === 'passed' && !collectionCompleted ? 'incomplete' : report.status,
-    collectionCompleted, releaseGatePassed: false,
+    collectionCompleted, releaseGatePassed: false, release620: pair,
     limitation620: LIMITATION, portabilityAdapterSHA256: built.portabilityAdapterSHA256 };
   fs.writeFileSync(path.join(path.resolve(options.out), 'native-portability-supervisor.json'), JSON.stringify(result, null, 2));
   return result;
@@ -263,5 +299,5 @@ async function main() {
   } finally { process.removeListener('SIGTERM', stop); process.removeListener('SIGINT', stop); }
 }
 
-module.exports = { BASE_SHA256, PARENT, LIMITATION, HISTORICAL, createPortability620, transformations, build, collectionComplete, supervise };
+module.exports = { PARENT, LIMITATION, HISTORICAL, createPortability620, transformations, build, releasePair620, collectionComplete, supervise };
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 2; });

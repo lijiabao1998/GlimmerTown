@@ -2,7 +2,7 @@
 const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
 const probe = require('./native-portability-diagnostic.cjs'), mac = require('./native-mac-diagnostic.cjs');
-const canonical = require('./native-correctness.cjs');
+const canonical = require('./native-correctness.cjs'), identity = require('./release-identity.cjs');
 const ROOT = path.resolve(__dirname, '../..'), SCENES = path.join(ROOT, 'docs/tasks/t603-shots');
 const raw = fs.readFileSync(path.join(SCENES, 'scene603.js'), 'utf8'), built = probe.build(raw), native = mac.build(raw);
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -11,8 +11,13 @@ const baseline = pinsOf(JSON.parse(fs.readFileSync(path.join(SCENES, 'fixtures/s
 // T627: an injected frozen pair (329f660 old, 4dd0fa4 candidate) from git objects, so this validate
 // test is deterministic and never touches the live site or depends on what HEAD currently ships.
 const native603 = require(path.join(SCENES, 'native603.js'));
-const frozenPrevious = native603.frozenRelease603(native603.T602_LIVE_COMMIT);
+const frozenPrevious = native603.frozenRelease603(native603.T602_LIVE_COMMIT), frozenCandidate = native603.frozenRelease603(native603.T603_COMMIT);
 const source = native603.releaseBaseline603(native603.frozenT603Index(), undefined, frozenPrevious);
+// The pair the outer processes compare with, and the versions the documents report, all derived from that frozen pair.
+const frozenPair = { current: frozenCandidate, previous: frozenPrevious }, pair = probe.releasePair620(frozenPair);
+const OLD = frozenPrevious.version, NEW = frozenCandidate.version;
+// No runtime change (what the live site serves today): the old document is the candidate's own runtime.
+const samePair = { current: frozenCandidate, previous: frozenCandidate }, same = probe.releasePair620(samePair);
 const changedMap = () => { const map = clone(baseline), key = Object.keys(map)[0]; map[key][0] = map[key][0] === 'abcdef' ? 'abcdef0' : 'abcdef'; return map; };
 const failCheck = (value, message) => { if (!value) throw Error(message); };
 function temporary(t) {
@@ -22,10 +27,40 @@ function temporary(t) {
 
 test('fixture source is the injected frozen pair 329f660 -> 4dd0fa4 read from git objects', () => {
   assert.equal(source.previousCommit, native603.T602_LIVE_COMMIT); assert.equal(source.previousVersion, '11.211');
-  assert.equal(source.baseSHA256, probe.BASE_SHA256); assert.equal(source.baseSHA256, frozenPrevious.sourcePins['index.html']);
+  assert.equal(source.baseSHA256, native603.BASE_INDEX_SHA256); assert.equal(source.baseSHA256, frozenPrevious.sourcePins['index.html']);
+  assert.equal(Object.hasOwn(probe, 'BASE_SHA256'), false, 'no release hash is pinned in the T620 adapter');
   assert.equal(mac.sha256(source.base), source.baseSHA256);
   assert.equal(source.sourceSHA256, native603.APPROVED_NATIVE_SHA256);
   assert.equal(source.base, native603.assertNativeSource603(native603.frozenT603Index()).base, 'historical inverse and frozen live release agree');
+});
+
+test('the release pair is checked and reduced from release-identity objects; old-document traits come from the old source', () => {
+  assert.deepEqual(clone(pair), { runtimeChanged: true,
+    current: { commit: native603.T603_COMMIT, version: NEW, runtime: native603.APPROVED_NATIVE_SHA256, serviceWorker: frozenCandidate.sourcePins['sw.js'] },
+    previous: { commit: native603.T602_LIVE_COMMIT, version: OLD, base: source.baseSHA256, serviceWorker: frozenPrevious.sourcePins['sw.js'],
+      civicFactory: 'undefined', T603: false } });
+  assert(Object.isFrozen(pair) && Object.isFrozen(pair.current) && Object.isFrozen(pair.previous));
+  assert.equal(same.runtimeChanged, false); assert.equal(same.previous.version, same.current.version);
+  assert.equal(same.previous.civicFactory, 'function'); assert.equal(same.previous.T603, true);
+  const without = (row, key) => { const copy = { ...row }; delete copy[key]; return copy; };
+  for (const [label, broken] of [
+    ['missing pair', undefined], ['missing previous', { current: frozenCandidate }],
+    ['short commit', { ...frozenPair, previous: { ...frozenPrevious, commit: frozenPrevious.commit.slice(0, 7) } }],
+    ['malformed version', { ...frozenPair, current: { ...frozenCandidate, version: 'v' + NEW } }],
+    ['missing sw.js pin', { ...frozenPair, current: { ...frozenCandidate, sourcePins: without(frozenCandidate.sourcePins, 'sw.js') } }],
+    ['missing old index bytes', { ...frozenPair, previous: without(frozenPrevious, 'files') }],
+    ['old index bytes differ from their pin', { ...frozenPair, previous: { ...frozenPrevious, files: new Map([['index.html', Buffer.from(source.base + ' ')]]) } }],
+    ['runtime changed without a higher version', { ...frozenPair, current: { ...frozenCandidate, version: OLD } }]
+  ]) assert.throws(() => probe.releasePair620(broken), /T620 release pair is incomplete|does not match its source pin|version must increase/, label);
+});
+
+test('the emitted T620 initialization names no release: its values are release603 expressions', () => {
+  const init = probe.transformations()[0].to;
+  assert(init.includes(",baseSource:exactBase603,baseHash:nativeSource603.baseSHA256,"));
+  assert(init.includes(",expectedBaseHash:release603.previous.sourcePins['index.html'],oldVersion:release603.previous.version,candidateVersion:release603.current.version,limitation:"));
+  assert.doesNotMatch(init, /[0-9a-f]{64}/); assert.doesNotMatch(init, /(['"])\d+\.\d+(?:\.\d+)?\1/);
+  assert.equal(built.source.split(init).length, 2);
+  assert.equal(Object.hasOwn(built, 'baseSourceSHA256'), false);
 });
 
 test('exact seven-edit allowlist reverses to reviewed T619 and only two assertions are deferred', () => {
@@ -83,13 +118,14 @@ function fixture(options = {}) {
   const snapshots = [], commands = [], readyCalls = [], files = new Map(), report = { status: 'running', checks: [],
     nativeSource603: { sourceSHA256: source.sourceSHA256 } };
   let document = 'candidate', timeOrigin = 100, snapshotIndex = 0;
-  const changes = options.changes || {};
+  const changes = options.changes || {}, sameRuntime = !!options.sameRuntime, expected = sameRuntime ? same : pair;
+  const baseSource = options.baseSource ?? (sameRuntime ? native603.frozenT603Index() : source.base);
   const labels = ['candidate-initial', 'old-first', 'old-repeat', 'candidate-return', 'candidate-repeat', 'later-old'];
   const ev = async expression => {
-    const label = labels[snapshotIndex++];
-    const snapshot = { identity: { version: document === 'old' ? '11.211' : '11.212',
-      civicFactory: document === 'old' ? 'undefined' : 'function', url: document === 'old' ? '/baseline603.html' : '/index.html' },
-      flags: { T603: document !== 'old', T596: false, T600: false }, timeOrigin };
+    const label = labels[snapshotIndex++], old = document === 'old';
+    const snapshot = { identity: { doc: old ? 'baseline' : 'candidate', version: old ? expected.previous.version : expected.current.version,
+      civicFactory: old ? expected.previous.civicFactory : 'function', url: old ? '/baseline603.html' : '/index.html' },
+      flags: { T603: old ? expected.previous.T603 : true, T596: false, T600: false }, timeOrigin };
     if (expression.includes(',pins:')) snapshot.pins = clone(actual);
     if (changes[label]) changes[label](snapshot);
     snapshots.push({ label, expression, snapshot: clone(snapshot) }); return snapshot;
@@ -106,8 +142,10 @@ function fixture(options = {}) {
   // Deserialize the exact self-contained function that is embedded in the emitted source.
   const create = new Function('return (' + probe.createPortability620.toString() + ');')();
   const control = create({ report, persist: () => persists++, check, ev, send, ready, port: 8763,
-    baseline: clone(baseline), candidate: clone(baseline), actual, baseSource: options.baseSource ?? source.base,
-    baseHash: options.baseHash ?? source.baseSHA256, expectedBaseHash: probe.BASE_SHA256, hash: mac.sha256,
+    baseline: clone(baseline), candidate: clone(baseline), actual, baseSource,
+    baseHash: options.baseHash ?? expected.previous.base, expectedBaseHash: expected.previous.base, hash: mac.sha256,
+    oldVersion: 'oldVersion' in options ? options.oldVersion : expected.previous.version,
+    candidateVersion: 'candidateVersion' in options ? options.candidateVersion : expected.current.version,
     save: (name, pins) => files.set(name, clone(pins)), limitation: probe.LIMITATION });
   const originalDiff = Object.keys(baseline).filter(k => JSON.stringify(baseline[k]) !== JSON.stringify(actual[k]));
   function defer() {
@@ -134,7 +172,9 @@ async function completedControl(options = {}) {
 test('independent old source repeats exactly, historical mismatches retain all raw differences and stay fatal', async () => {
   const f = await completedControl(), state = f.report.portability620;
   assert.equal(state.preTimingControlsPassed, true); assert.equal(state.candidateRepeatPassed, true); assert.equal(state.laterOldPassed, true);
-  assert.equal(state.baseSourceSHA256, probe.BASE_SHA256); assert.equal(state.inverseSourceSHA256, probe.BASE_SHA256);
+  assert.equal(state.baseSourceSHA256, pair.previous.base); assert.equal(state.inverseSourceSHA256, pair.previous.base);
+  assert.deepEqual([state.expectedBaseSHA256, state.oldVersion, state.candidateVersion], [pair.previous.base, OLD, NEW]);
+  assert.deepEqual(state.oldDocument, { civicFactory: 'undefined', T603: false });
   assert.deepEqual(f.commands.map(row => [row.method, row.params.url || 'reload']), [
     ['Page.navigate', 'http://127.0.0.1:8763/baseline603.html'], ['Page.reload', 'reload'],
     ['Page.navigate', 'http://127.0.0.1:8763/index.html'], ['Page.reload', 'reload'],
@@ -165,6 +205,26 @@ test('matching history preserves both original passing assertions at the final v
   }
 });
 
+test('with no runtime change the old document is the same runtime, told apart only by its own marker and URL', async () => {
+  const f = await completedControl({ sameRuntime: true, historyMatches: true }), state = f.report.portability620;
+  f.control.finishOriginal();
+  assert.equal(state.baseSourceSHA256, same.previous.base); assert.equal(state.oldVersion, state.candidateVersion);
+  assert.deepEqual(state.oldDocument, { civicFactory: 'function', T603: true });
+  assert(state.captures.every(row => row.verified));
+  for (const [label, change] of [['candidate served as the old document', snapshot => { snapshot.identity.doc = 'candidate'; }],
+    ['old document without T603 traits', snapshot => { snapshot.identity.civicFactory = 'undefined'; snapshot.flags.T603 = false; }]]) {
+    const g = fixture({ sameRuntime: true, changes: { 'old-first': change } }); g.defer();
+    await assert.rejects(g.control.preflight(), /T620 document identity and flags: old-first/, label);
+    assert.equal(g.report.portability620.preTimingControlsPassed, false);
+  }
+});
+
+for (const [label, options] of [['missing old version', { oldVersion: undefined }], ['malformed candidate version', { candidateVersion: 'v' + NEW }],
+  ['missing candidate version', { candidateVersion: undefined }]]) test('preflight rejects ' + label + ' before navigation', async () => {
+  const f = fixture(options); f.defer(); await assert.rejects(f.control.preflight(), /explicit old and candidate release versions/);
+  assert.equal(f.commands.length, 0); assert.equal(f.report.portability620.preTimingControlsPassed, false);
+});
+
 test('exactly two ordered historical conditions are recorded without swallowing other checks', async () => {
   const f = fixture();
   assert.throws(() => f.control.defer('candidate-fixture', false, 'wrong order', ['x']), /exactly two ordered/);
@@ -185,12 +245,15 @@ for (const [label, options] of [
 });
 
 const identityFailures = [
-  ['old version', 'old-first', snapshot => snapshot.identity.version = '11.212'],
+  ['old version', 'old-first', snapshot => snapshot.identity.version = NEW],
+  ['old document marker', 'old-first', snapshot => snapshot.identity.doc = 'candidate'],
+  ['missing old document marker', 'old-repeat', snapshot => { delete snapshot.identity.doc; }],
+  ['candidate document marker', 'candidate-return', snapshot => snapshot.identity.doc = 'baseline'],
   ['old candidate fallback URL', 'old-first', snapshot => snapshot.identity.url = '/index.html'],
   ['old T603 factory', 'old-first', snapshot => snapshot.identity.civicFactory = 'function'],
   ['old T603 flag', 'old-first', snapshot => snapshot.flags.T603 = true],
   ['old preview flags', 'old-repeat', snapshot => snapshot.flags.T596 = true],
-  ['candidate return version', 'candidate-return', snapshot => snapshot.identity.version = '11.211'],
+  ['candidate return version', 'candidate-return', snapshot => snapshot.identity.version = OLD],
   ['candidate return factory', 'candidate-return', snapshot => snapshot.identity.civicFactory = 'undefined'],
   ['candidate return flags', 'candidate-return', snapshot => snapshot.flags.T603 = false],
   ['initial candidate identity', 'candidate-initial', snapshot => snapshot.identity.url = '/baseline603.html'],
@@ -240,7 +303,7 @@ test('original candidate repeat remains fatal and cannot be bypassed by portabil
 });
 
 test('candidate repeat identity and later old full-map consistency are mandatory before timing', async () => {
-  const badCandidate = fixture({ changes: { 'candidate-repeat': snapshot => snapshot.identity.version = '11.211' } });
+  const badCandidate = fixture({ changes: { 'candidate-repeat': snapshot => snapshot.identity.version = OLD } });
   badCandidate.defer(); await badCandidate.control.preflight();
   await assert.rejects(badCandidate.originalRepeat(), /document identity and flags/);
   const later = fixture({ changes: { 'later-old': snapshot => snapshot.pins = clone(baseline) } });
@@ -305,8 +368,15 @@ function outerFixture(innerSummary) {
 
 test('only complete outer evidence distinguishes collection success from historical/release failure', async () => {
   const summary = await completedSummary(), report = outerFixture(summary);
-  assert.equal(probe.collectionComplete(report), true); assert.equal(summary.status, 'failed'); assert.equal(report.inner.status, 2);
-  const passed = outerFixture(await completedSummary(true)); assert.equal(probe.collectionComplete(passed), true);
+  assert.equal(probe.collectionComplete(report, pair), true); assert.equal(summary.status, 'failed'); assert.equal(report.inner.status, 2);
+  const passed = outerFixture(await completedSummary(true)); assert.equal(probe.collectionComplete(passed, pair), true);
+  // The expected old source is the outer pair's, never the inner evidence's own claim.
+  assert.equal(probe.collectionComplete(report), false, 'no outer pair');
+  assert.equal(probe.collectionComplete(report, same), false, 'a different old release');
+  for (const [label, other] of [['other base', { ...pair, previous: { ...pair.previous, base: '0'.repeat(64) } }],
+    ['other old version', { ...pair, previous: { ...pair.previous, version: NEW } }], ['other candidate version', { ...pair, current: { ...pair.current, version: OLD } }],
+    ['other old traits', { ...pair, previous: { ...pair.previous, civicFactory: 'function' } }], ['other old T603 flag', { ...pair, previous: { ...pair.previous, T603: true } }]])
+    assert.equal(probe.collectionComplete(report, other), false, label);
   for (const mutate of [
     r => r.completed = false, r => r.cleanupVerified = false, r => r.profileRemoved = false, r => r.restored = false,
     r => r.inner.timedOut = true, r => r.inner.aborted = true, r => r.inner.error = 'child cleanup error', r => r.inner.status = 0,
@@ -314,6 +384,10 @@ test('only complete outer evidence distinguishes collection success from histori
     r => r.innerSummary.portability620.originalChecksComplete = false,
     r => r.innerSummary.portability620.laterOldPassed = false,
     r => r.innerSummary.portability620.baseSourceSHA256 = 'wrong',
+    r => r.innerSummary.portability620.inverseSourceSHA256 = 'wrong',
+    r => r.innerSummary.portability620.expectedBaseSHA256 = '0'.repeat(64),
+    r => r.innerSummary.portability620.oldVersion = NEW, r => r.innerSummary.portability620.candidateVersion = OLD,
+    r => r.innerSummary.portability620.oldDocument.T603 = true,
     r => r.innerSummary.portability620.historical[0].value = true,
     r => r.innerSummary.portability620.historical[1].message = 'changed historical message',
     r => r.innerSummary.portability620.historical[1].differences = [],
@@ -329,7 +403,7 @@ test('only complete outer evidence distinguishes collection success from histori
     r => r.innerSummary.browserVersion = null, r => r.innerSummary.gpuInfo.devices = [],
     r => r.innerSummary.coverage.core = false, r => r.innerSummary.performanceFailures.push('floor failed'),
     r => r.innerSummary.exceptions.push('exception'), r => r.innerSummary.consoleErrors.push('console'), r => r.innerSummary.errLog.push('app')
-  ]) { const broken = clone(report); mutate(broken); assert.equal(probe.collectionComplete(broken), false, mutate.toString()); }
+  ]) { const broken = clone(report); mutate(broken); assert.equal(probe.collectionComplete(broken, pair), false, mutate.toString()); }
 });
 
 async function supervisorFixture(t, change = {}) {
@@ -354,12 +428,27 @@ async function supervisorFixture(t, change = {}) {
     fs.writeFileSync(path.join(out, 'native-mac-inner-summary.json'), JSON.stringify(summary));
     return { status: change.exitStatus ?? (summary.status === 'passed' ? 0 : 2), cleanupVerified: !change.badCleanup, timedOut: !!change.timeout };
   };
-  return { out, actions, options: { out, jobStart, platform: 'darwin', now: () => jobStart + 1000, compile, invoke, run, built, env: {} } };
+  return { out, actions, options: { out, jobStart, platform: 'darwin', now: () => jobStart + 1000, compile, invoke, run, built, env: {},
+    release: change.release || frozenPair } };
 }
+
+test('without an injected pair the supervisor resolves one itself through release-identity before any external work', async t => {
+  const f = await supervisorFixture(t), original = identity.releasePairSync, roots = [];
+  identity.releasePairSync = root => { roots.push(root); return frozenPair; };
+  t.after(() => { identity.releasePairSync = original; });
+  const { release, ...options } = f.options; assert.equal(release, frozenPair);
+  const report = await probe.supervise(options);
+  assert.deepEqual(roots, [path.resolve(__dirname, '../..')]); assert.deepEqual(report.release620, pair);
+  assert.equal(report.collectionCompleted, true);
+  identity.releasePairSync = () => { throw Error('Live fetch failed after 3 tries: index.html'); };
+  const g = await supervisorFixture(t), { release: unused, ...withoutPair } = g.options;
+  await assert.rejects(probe.supervise(withoutPair), /Live fetch failed/); assert.deepEqual(g.actions, []);
+});
 
 test('unchanged supervisor owns one run, resource bounds, original contract and cleanup; historical failure stays nonzero', async t => {
   const f = await supervisorFixture(t), report = await probe.supervise(f.options);
   assert.equal(report.status, 'failed'); assert.equal(report.inner.status, 2); assert.equal(report.collectionCompleted, true);
+  assert.deepEqual(report.release620, pair);
   assert.equal(report.releaseGatePassed, false); assert.equal(report.completed, true); assert.equal(report.profileRemoved, true);
   assert.deepEqual(f.actions, ['compile', 'inspect', 'prepare', 'inner', 'restore']);
   const outer = JSON.parse(fs.readFileSync(path.join(f.out, 'native-portability-supervisor.json'), 'utf8'));
@@ -374,7 +463,8 @@ for (const [label, change, expected] of [
   ['runtime failure', { summary: s => { s.exceptions.push('runtime'); s.portability620.originalChecksComplete = false; } }, 'failed'],
   ['child timeout', { timeout: true }, 'incomplete'], ['unverified cleanup', { badCleanup: true }, 'incomplete'],
   ['wrong restored display', { wrongRestore: true }, 'incomplete'],
-  ['counterfeit successful inner with incomplete controls', { historyMatches: true, summary: s => s.portability620.laterOldPassed = false }, 'incomplete']
+  ['counterfeit successful inner with incomplete controls', { historyMatches: true, summary: s => s.portability620.laterOldPassed = false }, 'incomplete'],
+  ['inner evidence about a different old release', { historyMatches: true, release: samePair }, 'incomplete']
 ]) test('outer cannot call collection complete after ' + label, async t => {
   const f = await supervisorFixture(t, change), report = await probe.supervise(f.options);
   assert.equal(report.status, expected); assert.equal(report.collectionCompleted, false); assert.equal(report.releaseGatePassed, false);
@@ -388,5 +478,6 @@ test('adapter source tampering and platform/retry/start constraints fail before 
   await assert.rejects(probe.supervise({ ...f.options, platform: 'linux' }), /darwin-only/);
   await assert.rejects(probe.supervise({ ...f.options, jobStart: 0 }), /T619_JOB_START_MS/);
   await assert.rejects(probe.supervise({ ...f.options, env: { GITHUB_RUN_ATTEMPT: '2' } }), /reruns prohibited/);
+  await assert.rejects(probe.supervise({ ...f.options, release: { current: frozenCandidate } }), /T620 release pair is incomplete: previous/);
   assert.deepEqual(f.actions, []);
 });
