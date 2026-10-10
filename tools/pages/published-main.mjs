@@ -16,11 +16,11 @@ import http from 'node:http';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {randomUUID} from 'node:crypto';
-import {PINS,SAVE_NAMESPACE,CACHE_PREFIX,sha256,verifyPackagedFile} from './build-main.mjs';
+import {PINS,SAVE_NAMESPACE,CACHE_PREFIX,APP_VERSION,CACHE_NAME,sha256,verifyPackagedFile} from './build-main.mjs';
 import {loadVerifiedPackage,storageProbeSource,foreignStorageFixture,browserPrepareSave,browserLoadObservation,saveReloadObservation} from './browser-main.mjs';
 import native603 from '../../docs/tasks/t603-shots/native603.js';
 
-const PROJECT='/GlimmerTown/',CACHE=CACHE_PREFIX+'v11.212';
+const PROJECT='/GlimmerTown/',CACHE=CACHE_NAME;
 const FOREIGN_CACHES=['gv-v1','gv-v2','glimmerville-shell-v11.211'];
 const SHELL=Object.keys(PINS).filter(name=>name!=='sw.js');
 export const UPGRADE_SOURCE_PINS=Object.freeze({
@@ -28,6 +28,7 @@ export const UPGRADE_SOURCE_PINS=Object.freeze({
   'sw.js':'836d1d867d10d6c63d71c722d3337e5b7119ad36006314f74872583ec029dd3b'
 });
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const upgradeScope=oldVersion=>`Exact ${oldVersion} to ${APP_VERSION} raw main package upgrade, same profile and registration, then new-process saved-city offline reopen`;
 
 export function options(args){
   const out={port:8933,check:false},seen=new Set();
@@ -286,9 +287,9 @@ export async function run(config){
   try{assert(out!==pack.site&&!out.startsWith(pack.site+path.sep),'evidence must stay outside runtime package');fs.mkdirSync(out,{recursive:true});profile=fs.mkdtempSync(path.join(os.tmpdir(),'town-published-profile-'));}
   catch(error){pack.cleanup();throw error;}
   const base=config.url||`http://127.0.0.1:${config.port}${PROJECT}`,origin=new URL(base).origin;
-  let oldPack,servedFiles=pack.files,servedVersion='11.212';
+  let oldPack,servedFiles=pack.files,servedVersion=APP_VERSION;
   const report={status:'running',startedAt:started,deadline,mode:config.upgradeFromMain?'local-raw-package-upgrade':config.url?'published-https':'local-raw-package',url:base,
-    scope:config.upgradeFromMain?'Exact T602 to T603 raw main package upgrade, same profile and registration, then new-process saved-city offline reopen':config.url?'Actual published HTTPS bytes and isolated saved-city offline reopen':'Raw package on localhost; does not verify published HTTPS',
+    scope:config.upgradeFromMain?upgradeScope('previous release (not yet resolved)'):config.url?'Actual published HTTPS bytes and isolated saved-city offline reopen':'Raw package on localhost; does not verify published HTTPS',
     limitation:'Fail-closed proxy blocks browser HTTP(S)/WS(S), including workers; navigator.onLine may remain true. '+(config.upgradeFromMain?'Local upgrade only; no published HTTPS, installed-PWA OS launch or FPS claim.':'No worker-version upgrade, installed-PWA OS launch or FPS claim.'),
     mechanism:{online:'fresh isolated profile, no proxy',offline:'new Chrome process, same isolated profile, one rejecting HTTP proxy, no direct fallback, implicit loopback bypass removed, QUIC disabled; HTTP cache cleared before shutdown and before reopen while Cache Storage is retained',
       source:'https://chromium.googlesource.com/chromium/src/+/HEAD/net/docs/proxy.md'},
@@ -418,8 +419,8 @@ export async function run(config){
   try{
     persist();
     if(config.upgradeFromMain){
-      assert(!config.url,'upgrade mode requires the local raw-package server');oldPack=upgradeFromMain(pack.files);servedFiles=oldPack.files;servedVersion=oldPack.version;
-      report.upgrade={status:'preparing',oldVersion:oldPack.version,newVersion:'11.212',oldSourcePins:oldPack.sourcePins,newSourcePins:PINS,oldBodies:oldPack.bodies,assets:[]};persist();
+      assert(!config.url,'upgrade mode requires the local raw-package server');oldPack=upgradeFromMain(pack.files);servedFiles=oldPack.files;servedVersion=oldPack.version;report.scope=upgradeScope(oldPack.version);
+      report.upgrade={status:'preparing',oldVersion:oldPack.version,newVersion:APP_VERSION,oldSourcePins:oldPack.sourcePins,newSourcePins:PINS,oldBodies:oldPack.bodies,assets:[]};persist();
     }
     assert.equal(process.platform,'darwin','native macOS cloud runner required');
     report.chromePath=[process.env.CHROME_PATH,'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].filter(Boolean).find(file=>fs.existsSync(file));assert(report.chromePath,'installed Chrome required');
@@ -463,7 +464,7 @@ export async function run(config){
       u.oldWorkerRequests=oldRequests;check(oldRequests.length>0,'browser installed exact old raw worker from the local origin');
       // Only the server's immutable seven-file map changes. No response interception,
       // worker rewriting, unregister, cache deletion or profile reset is used.
-      u.switchedAt=Date.now();servedFiles=pack.files;servedVersion='11.212';u.status='new-package-served';persist();
+      u.switchedAt=Date.now();servedFiles=pack.files;servedVersion=APP_VERSION;u.status='new-package-served';persist();
       for(const [name,expected] of servedFiles){guard();const url=base+name;const response=await fetch(url,{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(remaining(30000))});u.assets.push(await verifyAssetResponse({name,url,response,expected}));persist();}
       check(u.assets.length===7,'all seven switched GET bodies match the exact new package');
       u.status='updating-worker';persist();
@@ -488,7 +489,7 @@ export async function run(config){
       u.migratedMain=migrated.main;u.stableMain=stable.main;u.stable={sha256:sha256(stable.raw),bytes:Buffer.byteLength(stable.raw),modelSHA256:sha256(JSON.stringify(stable.model)),core:stable.core};persist();
       u.save=assertUpgradeSave({oldRaw:saved.raw,oldCore:saved.core,oldModel:oldState.model,beforeLoad,loaded,migrated,stable});
       saved.raw=stable.raw;u.status='upgraded';report.offlineSaveBaseline={sha256:sha256(saved.raw),bytes:Buffer.byteLength(saved.raw),core:saved.core};persist();
-      check(true,'same-profile T602 save survives real T603 worker activation and load with only the exact release version changed');
+      check(true,`same-profile ${oldPack.version} save survives real ${APP_VERSION} worker activation and load with only the exact release version changed`);
       await isolation(online,'after new-version save');await shell(online,'after upgrade save');
     }
     await online.send('Network.clearBrowserCache');report.httpCacheClearedAt=Date.now();
