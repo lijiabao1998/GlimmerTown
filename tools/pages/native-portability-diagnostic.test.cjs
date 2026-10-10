@@ -436,7 +436,7 @@ test('without an injected pair the supervisor resolves one itself through releas
   const f = await supervisorFixture(t), original = identity.releasePairSync, roots = [];
   identity.releasePairSync = root => { roots.push(root); return frozenPair; };
   t.after(() => { identity.releasePairSync = original; });
-  const { release, ...options } = f.options; assert.equal(release, frozenPair);
+  const { release, ...options } = f.options; assert(release === frozenPair);
   const report = await probe.supervise(options);
   assert.deepEqual(roots, [path.resolve(__dirname, '../..')]); assert.deepEqual(report.release620, pair);
   assert.equal(report.collectionCompleted, true);

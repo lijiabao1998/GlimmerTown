@@ -294,7 +294,7 @@ test('wrapper uses unchanged T620 supervisor and writes only a separate scoped a
   const report = fixture(pair, release), bytes = JSON.stringify(report, null, 2), original = portability.supervise;
   const resolve = identity.releasePairSync, roots = [];
   let calls = 0;
-  portability.supervise = async options => { calls++; assert.equal(options.out, out); assert.equal(options.release, release, 'T620 gets the same pair');
+  portability.supervise = async options => { calls++; assert.equal(options.out, out); assert(options.release === release, 'T620 gets the same pair'); // identity, not a diff of 4 MB release files
     fs.writeFileSync(path.join(out, 'native-portability-supervisor.json'), bytes); return report; };
   // Without an injected pair the outer acceptance resolves it itself, once, through release-identity.
   identity.releasePairSync = at => { roots.push(at); return release; };
