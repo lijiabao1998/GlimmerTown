@@ -8,8 +8,8 @@ const ROOT = path.resolve(__dirname, '../..');
 // is HEAD's committed runtime, both resolved by release-identity (scene603 resolves the same pair inside).
 const VERSION = /^\d+(?:\.\d+){1,2}$/, SHA256 = /^[0-9a-f]{64}$/, COMMIT = /^[0-9a-f]{40}$/;
 const PARENT = Object.freeze({ commit: '16514fd27a2c143c0f0c79a3d08197150d72438f',
-  harness: 'ee31668aa1243a64041c282538ed2fdcb740056c677d71ec27f22eae9bda7566',
-  nativeMacOutput: 'b5e6d224818101a09ff3ab6321219497e866a7ac5856330a2124a39998f0c397',
+  harness: '4a98357cffa0a1489f16284b4f540cf611c356e64b16680163ca331b7a4a513e',
+  nativeMacOutput: '397c20f3697b2b9ea20ccccc28416fa0a395e2762b0d9e88f0805d7ab98a2bbb',
   nativeMacAdapter: '4b653115b6cb24022349cdaef9f8895cda8a0af844e488cb53b1ec4974a82e68',
   canonicalAdapter: '9a0bac2c143e27f722eb84e160a796fa0a561d7983382ae67bd4bb08b98b9028' });
 const LIMITATION = 'Exact CRC-map equality is not exhaustive per-sprite RGBA equality. All original full-frame RGBA controls remain required. Added document boots and readbacks change this protocol; it cannot isolate Metal causality, establish physical-device FPS or active-gameplay improvement, or replace the required Linux release gate.';

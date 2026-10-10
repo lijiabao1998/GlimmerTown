@@ -6,7 +6,7 @@ const { createRequire } = require('node:module'), { spawnSync } = require('node:
 const canonical = require('./native-correctness.cjs'), mac = require('./native-mac-diagnostic.cjs');
 const SCENES = path.resolve(__dirname, '../../docs/tasks/t603-shots');
 const POLICY = 'T621-linux-correctness-native-original-timing';
-const HARNESS_SHA256 = 'ee31668aa1243a64041c282538ed2fdcb740056c677d71ec27f22eae9bda7566';
+const HARNESS_SHA256 = '4a98357cffa0a1489f16284b4f540cf611c356e64b16680163ca331b7a4a513e';
 const CANONICAL_ADAPTER_SHA256 = '9a0bac2c143e27f722eb84e160a796fa0a561d7983382ae67bd4bb08b98b9028';
 const TIMING_SPANS = Object.freeze(Object.entries(canonical.TIMING).map(([name, span]) => Object.freeze({ name, sha256: span.sha256 })));
 const ORIGINAL_VERDICT = "    check(report.performanceFailures.length===0,'all unchanged performance gates must pass: '+report.performanceFailures.join('; '));";
