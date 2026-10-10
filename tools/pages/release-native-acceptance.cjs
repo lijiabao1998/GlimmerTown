@@ -7,7 +7,7 @@ const linux = require('./release-correctness.cjs');
 const ROOT = path.resolve(__dirname, '../..');
 const IDENTITY = Object.freeze({ runtime: '99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d',
   serviceWorker: '79cfb7a690f85d42b9ff81e32b4e591c1525c9ee43f660f8a6c8a23b856955e2',
-  portabilityAdapter: 'b8097a2fd68966b826e29e121a07fc3a7bc3d9a7321302a150f8107f203f2bd5' });
+  portabilityAdapter: 'c427c288a7617313de834ae451ed6b84b8f8d1d51c62496ad7d5d1da900c4880' });
 const LIMITATION = 'Acceptance is limited to the user-approved Linux-correctness/native-original-timing release policy. Historical native CRC failures and prior Linux timing failures remain failures. CRC-map equality is not exhaustive per-sprite RGBA equality. Native foreground is checked at boundaries with a passive loss latch; the changed boot/readback protocol establishes neither Metal causality, physical-device 55 FPS, nor active-gameplay speedup. Linux correctness remains separately required.';
 const LIMITS = Object.freeze({ coldRatio: 2, coldAddMs: 250, warmP95Ratio: 1.5, warmAddMs: 5, rafP95Ratio: 1.5, rafAddMs: 5 });
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
