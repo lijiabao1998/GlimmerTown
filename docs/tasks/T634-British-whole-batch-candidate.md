@@ -157,3 +157,11 @@ tick／AI／經濟／成本／容量／放置邏輯／MSZ／存檔格式與內�
 固定驗收：在原grow22同一evaluate task剛結束、任何matrix draw前，只讀取得immutable PREV真實rainbowT，有限且大於0，否則停止，不造9/清零/關彩虹。candidate即時值也記錄。fallback36每次canonical原有三draw前套同PREV值；每次draw後必保留原自然遞減，finally精確還原caller值及原method descriptor/ownership，exception亦然。live/performance/原308完全不套wrapper。獨立PREV與candidate-only-new-escape仍全RGBA零差。共享值、pre/post/final值與來源全記錄。
 
 新增三項真Chrome對照：恢復原自然倒數必在原stablePixels守衛紅，另一個非零共享值必有真像素差，恢復原值全RGBA零差；原陰影wrong-edge仍完整。測試只能新增，不降低原判準；透明3draw/2read守衛仍保留。先同隔離最小Chrome驗證有證據修復，再回PR16做原全套精確SHA驗證。舊兩輪紅證據保留；本段尚未聲稱修復通過。
+
+
+### 彩虹自然衰減紅源的固定四相位覆蓋（施工前固定）
+ec3b / run38139520638 的最小Chrome實測：PREV與candidate同task grow後rainbowT皆9；36配對全RGBA/state通過、原陰影wrong-edge949像素差且恢復0。新增自然倒數紅源實際9→8.984→8.968→8.952，但原兩次RGBA完全相同，原守衛沒有紅；負控制可見性守衛因此正確攔下。此零差結果与原失敗證據保留，不冒充可見紅源。
+
+兩位獨立覆核與非作者發佈方批准固定4相位覆盖：樣本必須恰為當次觀測PREV正值及原3draw真實post值，共四個；本次來源數列9/8.984/8.968/8.952，未來由實測trace直接派生，不寫死值、不搜尋。四相位一律全跑，不因命中或零差提前結束。每相位都有同時計shared對照（原3draw2read、unstablePixels0）及原自然倒數（不改dt/不補draw）。每個自然倒數樣本須保持所有非stability判準、精確時計/復原；只要有像素變化，必須由原stablePixels守衛首次拒絕。全部四相位至少一個真正可見紅源，否則保留紅燈停止回報，不能增試到過。四個相位的PNG/A/B/判準與零差全部保存。
+
+原36配對、原308矩陣、零像素容差及任何產品/批准圖不改；非零錯時計有像素差、恢復共享時計全RGBA零差仍保留。新增unit紅源證明少相位、選擇性早停、全不可見、錯讀數或復原不完整都不能通過。允許觸碰僅helper及其tests、本卡/claim；原自然衰減函數、原frameValid/coverage/negativeValid不改。這是覆蓋修復，不是降低正式像素驗收門檻。
