@@ -11266,8 +11266,8 @@ runPwaTests().then(() => {
   const old={wx:7,wy:666,age:0};A.farmSmoke(old,{k:53,v:0,sz:5},20,20,26);
   assert(JSON.stringify(old)==='{"wx":7,"wy":666,"age":0}','T574 G14f 舊農場煙粒逐欄不變');
   const draw574=html.slice(html.indexOf('/* ===== T368a 公園有人'),html.indexOf('/* ===== T368c 魚躍'));
-  assert((draw574.match(/lotGround574\(/g)||[]).length===3&&(draw574.match(/t\.bld\.lot574\?_iso[2]?\[2\]/g)||[]).length===3,
-    'T574 G14g 孩童／狗／主人三條實際推送皆用園內座標和園區深度，不得只留未呼叫helper');
+  assert((draw574.match(/lotGround574\(/g)||[]).length===5&&(draw574.match(/\(t634On\(\)&&t\.bld\.k===92\)\?lotGround574\(x,y,t\.bld\.sz\|\|1,/g)||[]).length===2&&(draw574.match(/t\.bld\.lot574\?_iso[2]?\[2\]/g)||[]).length===3,
+    'T574 G14g 原三條園內座標與深度推送保留，另恰兩條T634舊狗公園實際足跡座標，不得只留未呼叫helper');
 }
 /* T574 G15 rendered night contracts */
 {
@@ -13014,7 +13014,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     'T590 G4b 區塊內 R( 只准是 port590_cul_c 的局部極座標函式（定義 1 處、呼叫 3 處），實得區塊 '+nR590);
   assert(blk590.indexOf('__variants574')<0,'T590 G4c 實驗線的佇列延後邏輯必須全部拿掉（改固定順序）');
   // G5 繪製端原文釘（只動舊路徑）
-  assert(html.includes("if(!constrRise&&((!bd.lot574&&s.__t590&&s.flagAt)||(bd.lot574&&s.__t590&&s.lotMeta574.hooks.flag)||((bd.k===7||bd.k===9||bd.k===42)&&!s.__t590))){")&&html.includes('const fa590=!bd.lot574&&s.__t590?s.flagAt:null;'),'T590 G5a 旗子：新圖帶 flagAt 就掛，沒帶的新圖不掛寫死旗（T591：園區新圖讀換算後的 hooks.flag）');
+  assert(html.includes("if(!constrRise&&((s.__t634&&s.lotMeta574.hooks.flag)||(!bd.lot574&&s.__t590&&s.flagAt)||(bd.lot574&&s.__t590&&s.lotMeta574.hooks.flag)||((bd.k===7||bd.k===9||bd.k===42)&&!s.__t590))){")&&html.includes('const fa590=!bd.lot574&&s.__t590?s.flagAt:null;'),'T590 G5a 旗子：新圖帶 flagAt 就掛，沒帶的新圖不掛寫死旗（T591：園區新圖讀換算後的 hooks.flag）');
   assert(html.includes('(s.radarAt?s.radarAt[0]:(bd.k===46?36:136))')&&html.includes('(s.hen403||[62,114])'),'T590 G5b 雷達與雞群讀新圖自帶掛點');
   assert(html.includes("else if(!bd.lot574&&bd.v===0&&(vark590().has(bd.k)||bd.k===105||bd.k===106)&&ported590(bd.k))s=SPR.bld[bd.k+'_1_'+vdraw590(o,bd)]||SPR.bld[bd.k+'_1_0'];")&&/function vdraw590\(o,bd\)\{[^}]*bd\.k\+'_1_2'/.test(html),'T590 G5c 新變體依格雜湊，只讀 lv1 鍵');
   assert((html.match(/      if\(!s\.__t590\)draw(DistrictTexture424|FacadeMemory426|LivedIn421|Rooftop425|MaterialResponse430|NightIdentity423|NightMicro431)\(/g)||[]).length===7,'T590 G5d 七個外框比例牆面層對新圖跳過（人物層照畫）');
@@ -13049,7 +13049,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert((html.match(/\n  if\(!t591\)switch\(k\)\{\n/g)||[]).length===1,'T591 G1a 配方 switch 只在沒貼新圖時跑（恰一處）');
   assert(html.includes('if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574);')&&html.includes("const key=b.k+'_'+lotVariant574(b.k,lotV591(o.x,o.y,b));"),'T591 G1b 繪製與縮略圖預算用同一個變體');
   assert(html.includes('if(t591)out574.__t590=1;')&&html.includes("+lotKey591(k);let s=lotCache574.get(key);")&&html.includes("const key=k+'_'+v+lotKey591(k);")&&html.includes("lotHookCache574.set(k+'_'+v+lotKey591(k),{ax,ay,hooks});")
-    &&html.includes("function lotKey591(k){if(LOT603.has(k)&&t603On())return '_t603_s'+season();if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
+    &&html.includes("function lotKey591(k){if(t634On()&&REMAIN634.has(k))return '_t634_s'+season();if(LOT603.has(k)&&t603On())return '_t603_s'+season();if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';if(!t591On())return '_n591';return window.__t591Mode==='back'?'_b591':window.__t591Mode==='center'?'_c591':'';}"),'T591 G1c 貼了新圖的園區帶 __t590；精靈快取與掛點快取共用同一個鍵尾');
   assert(/function t591On\(\)\{if\(t591On\.u===undefined\)t591On\.u=\/\(\?:\^\|\[\?&\]\)noT591\(\?:=1\)\?\(\?:&\|\$\)\/\.test\(/.test(html)&&html.includes('return !window.__noT591&&!t591On.u;}'),'T591 G1d 網址 ?noT591=1 逃生閥原文');
   // G8c 原文（未剝字串）：三行貼圖含合成模式整行釘死（覆核抓到剝字串後改成等長別的模式不會紅）
   assert(html.includes("      cg.drawImage(S.img,x0,y0,sw,sh);\n      ng.globalCompositeOperation='destination-out';ng.drawImage(S.img,x0,y0,sw,sh);ng.globalCompositeOperation='source-over';\n      if(S.night)ng.drawImage(S.night,x0,y0,sw,sh);\n"),'T591 G1e 貼圖三行原文（含合成模式字串）');
@@ -13507,7 +13507,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const chainLast596=html.split('\n').find(l=>l.startsWith("    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0'];"));
   assert(chainLast596&&html.includes(chainLast596+'\n'+selLine596),'T596 G2c 選圖行緊接在舊選圖鏈最後一行之後');
   const pins596=["    else if(k===2&&t596On())sy=_sy413(x,y)+36*z2;","let u596=false;if(!b.riot&&(b.k===1||b.k===3)&&!b.lot574&&!(b.sz>=2)&&t596On()&&(offs||(sea===3&&b.k===1&&b.pw&&!window.__noChimney))){const q596=smoke596(b,x,y);if(q596){offs=q596;u596=true;if(b.k===1)col='#d8d2c6';}}",
-    "      const lot574=(b.lot574||u596)?{x,y,sz:b.lot574?b.sz:1,dx:o.dx,dy:o.dy}:null;","function smoke596(bd,x,y){const p=spr596(bd,false,x,y);",
+    "      const lot574=(b.lot574||u596)?{x,y,sz:b.lot574?b.sz:t634On()?(b.sz||1):1,dx:o.dx,dy:o.dy}:null;","function smoke596(bd,x,y){const p=spr596(bd,false,x,y);",
     "      const nr596=s.__t596?neonRects596(s,bd.lv||1,[streetHash(o.x,o.y,1901),streetHash(o.x,o.y,1902),streetHash(o.x,o.y,1903)],bx,by,z):null;",
     "      if(nr596){nr596.forEach((r,i)=>{const col=i?NEON[(NEON.indexOf(nCol)+2)%NEON.length]:nCol;nightSprites.push({rect:[r[0]-2*z,r[1]-2*z,r[2]+4*z,r[3]+4*z],col:shade(col,-96)});nightSprites.push({rect:r,col});});}\n      else if((bd.lv||1)>=2){ // T368b 合流升級",
     "  if((bd.k===1||bd.k===2||bd.k===3)&&!bd.lot574&&t596On()){const p596=spr596(bd,true,x,y);if(p596)return p596;}"];
@@ -13986,10 +13986,10 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     "function t601On(){if(t601On.u===undefined)t601On.u=/(?:^|[?&])noT601(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return !window.__noT601&&!t601On.u&&ART601.ok===true;}",
     "  if(LOT601.has(k)&&t601On())return Math.max(0,Math.min(2,v|0)); // T601：新圖三款\n",
     "  if(k===5){const s=(t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,{v})])||SPR.lot574['5_1_'+v]||SPR.lot574['5_1_0'];return winter?s.win563:s;}",
-    "  v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On())&&!(LOT602.has(k)&&t602On())&&!(LOT603.has(k)&&t603On()))?0:lotVariant574(k,v);",
-    "function lotKey591(k){if(LOT603.has(k)&&t603On())return '_t603_s'+season();if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';",
-    "function lotV591(x,y,b){if(b&&LOT603.has(b.k)&&t603On())return v603(b.k,x,y,b);if(b&&LOT602.has(b.k)&&t602On())return v602(b.k,x,y);if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590()",
-    "function bakeLot574(k,v,stage,winter){\n  if(LOT603.has(k)&&t603On()){const r603=bakeArt603(k,v,stage,winter);if(r603)return r603;} // T603：本批原創園區；獨立快取與回退\n  if(LOT602.has(k)&&t602On()){const r602=bakeArt602(k,v,stage,winter);if(r602)return r602;} // T602：本批滿版新圖，原配方為回退路徑\n  if(LOT601.has(k)&&t601On()){const r601=bakeArt601(k,v,stage,winter);if(r601)return r601;}",
+    "  v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On())&&!(LOT602.has(k)&&t602On())&&!(LOT603.has(k)&&t603On())&&!(t634On()&&REMAIN634.has(k)))?0:lotVariant574(k,v);",
+    "function lotKey591(k){if(t634On()&&REMAIN634.has(k))return '_t634_s'+season();if(LOT603.has(k)&&t603On())return '_t603_s'+season();if(LOT602.has(k)&&t602On())return '_t602_s'+season();if(!portedLot591(k))return LOT601.has(k)&&!t601On()?'_n601':'';",
+    "function lotV591(x,y,b){if(t634On()&&b&&REMAIN634.has(b.k))return v634(b.k,x,y,b);if(b&&LOT603.has(b.k)&&t603On())return v603(b.k,x,y,b);if(b&&LOT602.has(b.k)&&t602On())return v602(b.k,x,y);if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590()",
+    "function bakeLot574(k,v,stage,winter){\n  if(t634On()&&REMAIN634.has(k)){const s634=bake634(k,v,LOT_PLAN574[k][1],1,1,stage,winter);if(s634){lotHookCache574.set(k+'_'+v+lotKey591(k),{ax:s634.ax,ay:s634.ay,hooks:s634.lotMeta574.hooks});return s634;}} // T634：保持原配方作逐位回退\n  if(LOT603.has(k)&&t603On()){const r603=bakeArt603(k,v,stage,winter);if(r603)return r603;} // T603：本批原創園區；獨立快取與回退\n  if(LOT602.has(k)&&t602On()){const r602=bakeArt602(k,v,stage,winter);if(r602)return r602;} // T602：本批滿版新圖，原配方為回退路徑\n  if(LOT601.has(k)&&t601On()){const r601=bakeArt601(k,v,stage,winter);if(r601)return r601;}",
     "if(b.k===5&&!b.ref){const ps=(b.lot574&&t601On()&&SPR.lot601&&SPR.lot601['5_1_'+v601(5,0,0,b)])||(b.lot574&&SPR.lot574&&SPR.lot574['5_1_'+b.v])||",
     "    if(bd.k===4)s=t601On()&&SPR.art601?one601(4,o.x,o.y,bd,win,sea):(win?SPR.parkW:",
     "    else if((bd.k===81||bd.k===97)&&!bd.lot574&&t601On()&&SPR.art601)s=one601(bd.k,o.x,o.y,bd,win);",
@@ -17809,7 +17809,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const smokeExpr574='const wx=(x-y)*32+o.dx, wy=(x+y)*16+32+o.dy;';
   const smokeLo574=htmlBare438.indexOf(smokeExpr574),smokeHi574=htmlBare438.indexOf('\n    }',smokeLo574);
   assert(smokeLo574>=0&&htmlBare438.indexOf(smokeExpr574,smokeLo574+1)<0&&smokeHi574>smokeLo574
-    &&/const lot574=\(b\.lot574\|\|u596\)\?\{x,y,sz:b\.lot574\?b\.sz:1,dx:o\.dx,dy:o\.dy\}:null;\s*smokes\.push\(\{wx,wy,[^\n]*dep:viewDep\(x,y\)/.test(htmlBare438.slice(smokeLo574,smokeHi574)), // T596 放寬（寫在 T596 卡面）：預覽新圖的煙粒也借 lot574 走畫面錨定路徑（sz 1），仍是同一筆帶 viewDep 的 world spawn
+    &&/const lot574=\(b\.lot574\|\|u596\)\?\{x,y,sz:b\.lot574\?b\.sz:t634On\(\)\?\(b\.sz\|\|1\):1,dx:o\.dx,dy:o\.dy\}:null;\s*smokes\.push\(\{wx,wy,[^\n]*dep:viewDep\(x,y\)/.test(htmlBare438.slice(smokeLo574,smokeHi574)), // T596 放寬（寫在 T596 卡面）：預覽新圖的煙粒也借 lot574 走畫面錨定路徑（sz 1），仍是同一筆帶 viewDep 的 world spawn
     'T445 G0 T574煙粒例外必須仍是帶viewDep的同一world spawn，不能放行任意相鄰裸式');
 
   const PATS445 = [
