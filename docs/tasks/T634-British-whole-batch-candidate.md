@@ -130,3 +130,20 @@ tick／AI／經濟／成本／容量／放置邏輯／MSZ／存檔格式與內�
 6. 完整本地工具／回歸及精確新提交候選與Pages required CI重驗；舊紅與advisory均保留。沒有全部required綠不合併，非作者負責merge。
 
 回滾：還原本補充測試overlay及接線即可；產品來源維持同一批准版本。當前為施工前卡面，尚未聲稱修正CI通過。
+
+
+### DPR2 首紅證據隔離診斷（施工前固定；非驗收）
+178007 的候選7項成功，但正式 Pages world 在 aligned-dpr2-day 正常新圖／T591 fallback 的 frameValid 綜合判準首次失敗；失敗 frame 原先尚未保存，不能猜測 unstablePixels 或將候選綠燈當發布成功。原178007紅證據、PR16及正式閘門不動。
+
+非作者發佈方已同意從178007建立 gpt/town-634-dpr2-diagnostic，僅 contents:read、無deploy 的隔離診斷。此為同一問題的第一輪針對性DPR2診斷，不新建美術或效能追蹤工程。
+
+允許觸碰：本卡與claim；tools/pages/release-world-filters634.cjs及其測試，僅首紅證據／逐项子判準／透傳保留原兩次getImageData之RGBA；新增 tools/pages/release-dpr2-diagnostic634.cjs與測試；新增 .github/workflows/town634-dpr2-diagnostic.yml；本卡追加實測結果。不得修改 index/sw、批准315圖、凍結scene603/native-correctness、現有workflows、正式frameValid或三條filter門檻。
+
+固定驗收：
+1. 首個失敗frame須在原check前保存：原PNG、原兩次readback的A/B RGBA、差異像素數/bbox/具體RGBA、逐項判準、旗標與相機、精確來源身份。
+2. 透傳spy不得新增getImageData、forceDraw、warmup、重畫、重試或容差；finally恢復原方法descriptor/value/own-property。保留原first-failure與門檻。
+3. 最小真Chrome診斷先重現同36組fallback前序及DPR2首紅；可只略去無關原正常308長矩陣，明示不等同驗收，未重現不算修復。輸出manifest列出每個精確省略段並可反向還原，保留固定city/相機/順序。
+4. 任一修復必須由實測根因導出，先獨立覆核；產品/批准圖若需更動先回報。回候選後原全套required CI全部重跑且全綠，再由非作者決定merge。
+5. 隔離workflow只有特定診斷分支push觸發、contents:read、無deploy/外部服務/安全設定變動。來源漂移與診斷本身失敗必須明示；本輪沒有正式release通過語義。
+
+回滾：不移動PR16，拋棄隔離診斷分支即可；此段為施工前卡面，尚未取得首紅frame。
