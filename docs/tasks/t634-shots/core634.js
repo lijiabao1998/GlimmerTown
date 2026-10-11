@@ -1,7 +1,7 @@
-/* T634：全批英式美術候選。只讀視覺，不改模擬／舊精靈；預設關閉，逐家族按需烘焙。 */
+/* T634：全批英式美術（業主已批准）。只讀視覺，不改模擬／舊精靈；預設開啟，逐家族按需烘焙。 */
 const REMAIN634=new Set([1,2,3,9,16,22,24,25,26,27,31,45,46,49,50,51,54,57,58,59,62,64,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,86,89,90,91,93,94,96,98,99,100,101,103,107,109,110,111,112,115,116,118,119,120,121,122,123,124,125,126,127,128,129,131,132,133]);
 const LEGACY634=new Set([8,29,53,60,63,66,85,88,92,104,117]);
-function t634On(){if(t634On.u===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t634On.u=/(?:^|[?&])T634=1(?:&|$)/.test(q);t634On.off=/(?:^|[?&])noT634(?:=1)?(?:&|$)/.test(q);}return !window.__noT634&&!t634On.off&&(window.__t634===true||t634On.u);}
+function t634On(){if(t634On.u===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t634On.u=/(?:^|[?&])T634=1(?:&|$)/.test(q);t634On.off=/(?:^|[?&])noT634(?:=1)?(?:&|$)/.test(q);}return !window.__noT634&&!t634On.off&&(window.__t634!==false||t634On.u);}
 function v634(k,x,y,bd){if(k<=3)return ((bd.v|0)%12+12)%12;return bd.v?((bd.v|0)%3+3)%3:Math.min(2,Math.floor(hashLocal590(x|0,y|0,k*131+634)*3));}
 /* T634 舊足跡的煙粒跟在所屬本體之後，仍在前景鄰樓之前；不改任何粒子/建築欄位。 */
 function orderSmoke634(objs){

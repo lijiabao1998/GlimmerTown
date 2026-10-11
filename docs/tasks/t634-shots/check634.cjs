@@ -157,11 +157,13 @@ test('All315 designs and all new/old sizes stay within their actual ground footp
 test('Actual nested-shell bay calls never occupy another wing base',()=>checkGeneratedBays634(traceBayAPI634()));
 test('Contained upper-storey windows survive while buried walls stay under the roof',()=>checkRoofTowers634(makeAPI()));
 test('Approved 601/602/603 original renderers remain byte-identical',()=>{const names=['bakeArt601','bakeArt602','bakeArt603','art601_k4','art601_k5','art601_k8','art601_k60','art601_k63','art601_k66','art601_k81','art601_k97','kit602','art602_k53','art602_k104','art602_k117','art602_k97','kit603','art603_k29','art603_k85','art603_k92','art603_k88'];for(const n of names)need(fn(n)===fn(n,BASE_SOURCE),'G01_APPROVED_SOURCE',n+' changed from baseline');return{functions:names.length};});
-test('Default-off, strict opt-in, both escape valves, and no cold rendering',()=>{
- for(const search of['','?T634=0','?T634=10','?xT634=1','?T634=1&noT634=1','?noT634&T634=1']){const a=makeAPI({search});need(a.on()===false,'G06_FLAGS','unexpected opt-in '+search);a.win.__t634={};need(a.on()===false,'G06_FLAGS','truthy object enabled candidate');for(const k of[1,3,22,8,53])need(a.spr(immovable({k,lv:2,v:1,we:1}),4,5)===null,'G06_FLAGS','default returned candidate');need(a.state.alloc===0&&a.stats.bakes===0&&a.cache.size===0,'G06_FLAGS','default path allocated art');}
- for(const search of['?T634=1','?x=1&T634=1','?T634=1&noT634=0']){const a=makeAPI({search});need(a.on()===true,'G06_FLAGS','explicit opt-in failed');a.win.__noT634=true;need(a.on()===false&&a.spr({k:1,lv:1,v:0})===null,'G06_FLAGS','runtime escape failed');}
- const a=makeAPI();a.win.__t634=true;need(a.on()===true,'G06_FLAGS','runtime opt-in failed');a.win.__noT634=true;need(a.spr({k:1,lv:1,v:0})===null,'G06_FLAGS','runtime escape did not win');return'12 URL/runtime cases plus no-allocation reads';
-});
+function checkReleaseFlags634(block=BLOCK){
+ for(const search of['','?T634=0','?T634=10','?xT634=1','?T634=1','?x=1&T634=1','?T634=1&noT634=0']){const a=makeAPI({search,block});need(a.on()===true,'G18_RELEASE_DEFAULT','normal visit or compatible query did not enable approved art '+search);need(a.state.alloc===0&&a.stats.bakes===0,'G06_FLAGS','flag read allocated art');a.win.__noT634=true;need(a.on()===false&&a.spr({k:1,lv:1,v:0})===null,'G18_RELEASE_ESCAPE','runtime escape failed');}
+ for(const [search,flags]of[['',{__t634:false}],['?T634=0',{__t634:false}],['?T634=10',{__t634:false}],['?xT634=1',{__t634:false}],['?noT634',{}],['?noT634=1',{}],['?T634=1&noT634=1',{}],['?noT634&T634=1',{__t634:true}],['',{__t634:true,__noT634:true}]]){const a=makeAPI({search,block});Object.assign(a.win,flags);need(a.on()===false,'G18_RELEASE_ESCAPE','explicit old-art path enabled '+search);for(const k of[1,3,22,8,53])need(a.spr(immovable({k,lv:2,v:1,we:1}),4,5)===null,'G06_FLAGS','escape returned candidate');need(a.state.alloc===0&&a.stats.bakes===0&&a.cache.size===0,'G06_FLAGS','escape path allocated art');}
+ const compat=makeAPI({block,search:'?T634=1'});compat.win.__t634=false;need(compat.on(),'G18_RELEASE_DEFAULT','old explicit query opt-in lost precedence');const escaped=makeAPI({block,search:'?noT634=1'});escaped.win.__t634=true;delete escaped.win.__noT634;need(!escaped.on(),'G18_RELEASE_ESCAPE','runtime flags overrode URL escape');
+ const a=makeAPI({block});a.win.__t634=false;need(!a.on(),'G18_RELEASE_ESCAPE','runtime explicit false failed');delete a.win.__t634;need(a.on(),'G18_RELEASE_DEFAULT','delete override did not restore normal release');a.win.__noT634=true;need(!a.on(),'G18_RELEASE_ESCAPE','runtime escape did not win');delete a.win.__noT634;need(a.on(),'G18_RELEASE_DEFAULT','delete escape did not restore release');return'16 URL/runtime cases, live restoration and zero flag-read allocation';
+}
+test('Owner-approved default-on, explicit old-art control and both escape valves',()=>checkReleaseFlags634());
 test('Candidate smoke attaches after actual n1/n3 owners and before foreground without side effects',()=>{
  const a=makeAPI({search:'?T634=1',noArt:true});let cases=0;
  for(const k of[3,58,53])for(const n of[1,3]){const f=smokeBirth634(k,n);checkSmokeOrder634(a,f.input,f.expected,'k'+k+'/n'+n);checkSmokeOrder634(a,f.input,f.expected,'idempotent k'+k+'/n'+n);cases+=2;}
@@ -174,8 +176,8 @@ test('Candidate smoke attaches after actual n1/n3 owners and before foreground w
  need(/lotObjectOrder574\(objs\);[^\n]*\n\s*orderSmoke634\(objs\);/.test(fn('draw')),'G11_SMOKE_ATTACHMENT','draw does not apply candidate attachment immediately after existing lot ordering');
  return{cases,owners:'k3, k58, legacy k53',footprints:[1,3],allocation:a.state.alloc,randomCalls:a.state.rng};
 });
-test('Smoke ordering preserves default-off, escape valves, protected roots and unmatched particles',()=>{
- let disabled=0;for(const [search,flags]of[['',{}],['?T634=0',{}],['?T634=10',{}],['?xT634=1',{}],['?T634=1&noT634=1',{}],['?noT634&T634=1',{}],['',{__t634:{}}],['?T634=1',{__noT634:true}],['',{__t634:true,__noT634:true}]]){
+test('Smoke ordering preserves explicit disable, escape valves, protected roots and unmatched particles',()=>{
+ let disabled=0;for(const [search,flags]of[['',{__t634:false}],['?T634=0',{__t634:false}],['?T634=10',{__t634:false}],['?xT634=1',{__t634:false}],['?T634=1&noT634=1',{}],['?noT634&T634=1',{}],['?noT634',{}],['?T634=1',{__noT634:true}],['',{__t634:true,__noT634:true}]]){
   const a=makeAPI({search,noArt:true});Object.assign(a.win,flags);const f=smokeBirth634();checkSmokeOrder634(a,f.input,f.input.slice(),'disabled '+search,true);disabled++;
  }
  const a=makeAPI({search:'?T634=1',noArt:true}),candidate=smokeRoot634('candidate',4,7,3,1),protectedRoot=smokeRoot634('protected-k5',14,17,5,3),trueLot=smokeRoot634('true-lot',24,27,58,3,{lot574:true}),legacyLot=smokeRoot634('legacy-true-lot',34,37,53,3,{lot574:true}),ref=smokeRoot634('ref',44,47,3,1,{ref:1}),front=smokeRoot634('foreground',7,10,4,1);
@@ -221,6 +223,8 @@ test('Legacy adapters select approved renderer and preserve requested old footpr
  }a.release();return{cases:report.counts.legacyFixtures,scope:'synthetic source canvases; approved original renderers checked separately for byte identity'};
 });
 test('Negative controls first fail at their intended behavioral guards',()=>{
+ red('Restore candidate-only default-off','G18_RELEASE_DEFAULT',()=>{const bad=BLOCK.replace('window.__t634!==false||t634On.u','window.__t634===true||t634On.u');need(bad!==BLOCK,'G00_HARNESS','release default mutation anchor absent');checkReleaseFlags634(bad);});
+ red('Ignore runtime escape valve','G18_RELEASE_ESCAPE',()=>{const bad=BLOCK.replace('!window.__noT634&&!t634On.off','!t634On.off');need(bad!==BLOCK,'G00_HARNESS','release escape mutation anchor absent');checkReleaseFlags634(bad);});
  red('Remove required family 133','G01_FAMILY_SET',()=>{const a=makeAPI();delete a.reg[133];checkFamilies(a);});
  red('Draw residential v1 as v0','G04_RCI_DISTINCT',()=>{const a=makeAPI(),draw=a.reg[1].draw;a.reg[1].draw=T=>draw({...T,v:0});const rows=[0,1].map(v=>({key:'1_1_'+v,hash:checkSprite(a.bake(1,v,1,1,1,2,false,1),1,1,'duplicate').hash}));unique(rows);});
  red('Inject orphan night pixel','G03_ORPHAN_LIGHT',()=>{const a=makeAPI(),s=a.bake(1,0,1,1,1,2,false,1);s.night.getContext('2d').fillStyle='#fff';s.night.getContext('2d').fillRect(0,0,1,1);checkSprite(s,1,1,'orphan mutation');});

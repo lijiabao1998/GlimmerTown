@@ -758,6 +758,7 @@ window.__t343Probe = {}; // T343c：初始化早於 IIFE 啟動期可能發生�
 localStorage.setItem('glimmerville.v1.badge', '1');
 window.__noT602=true; // T602：既有整套契約驗原路徑；本卡尾端另開新圖逐項驗證
 window.__noT603=true; // T603：舊契約保持原圖，新路另以完整像素與Chrome驗證
+window.__noT634=true; // T634：4位元組透明Canvas台架只驗保留舊路；普通URL的新路六哨兵／存讀／315像素由release634真Chrome獨立必驗，不能拿此lane代替。
 eval(js);
 
 
