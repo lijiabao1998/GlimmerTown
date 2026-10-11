@@ -45,7 +45,7 @@ function makeAPI(options={}){
  const win={},location={search:options.search||''},state={sea:0,alloc:0,rng:0,legacyCalls:[],canvases:[]};
  const cv=(w,h)=>{state.alloc++;if(options.noArt)fail('G11_SMOKE_PURITY','smoke ordering attempted canvas allocation');const pair=canvas(w,h);state.canvases.push(pair[0]);return pair;},rng=()=>{state.rng++;fail('G07_RNG','rendering consumed a random stream');},safeMath=Object.create(Math);safeMath.random=rng;
  const fixture=(which,k,v,stage,winter)=>{state.legacyCalls.push({which,k,v,stage,winter});const[c,g]=cv(96,120),[nc,ng]=cv(96,120);g.fillStyle='#897252';g.fillRect(8,8,80,110);ng.fillStyle='#e9cb8f';ng.fillRect(20,20,3,4);return{img:c,night:nc,w:96,h:120,ax:48,ay:112,lotMeta574:{sz:BASE_PLAN[k][1],kind:k,variant:v,stage,winter,hooks:{smoke:[[30,22]],steam:[[50,32]],sign:[62,42],work:[20,26,10,5]}}};};
- const body=helpers+'\n'+(options.block||BLOCK)+'\nreturn {bake:bake634,spr:spr634,on:t634On,variant:v634,legacy:legacyArt634,reg:ART634,rcis:RCI_CATALOG634,remain:REMAIN634,legacyIds:LEGACY634,cache:CACHE634,stats:STAT634,limit:LIMIT634,orderSmoke:orderSmoke634};';
+ const body=helpers+'\n'+(options.block||BLOCK)+'\nreturn {bake:bake634,spr:spr634,on:t634On,variant:v634,legacy:legacyArt634,reg:ART634,rcis:RCI_CATALOG634,remain:REMAIN634,legacyIds:LEGACY634,cache:CACHE634,stats:STAT634,limit:LIMIT634,orderSmoke:orderSmoke634,orderMasses:orderRCIMasses634,roofPitch:rciRoofPitch634};';
  const names=['cv','season','clamp','window','location','Math','R','ri','rand','spriteTexRand','LOT_PLAN574','LOT603','LOT602','bakeArt601','bakeArt602','bakeArt603'];
  const api=new Function(...names,body)(cv,()=>state.sea,(x,a,b)=>Math.max(a,Math.min(b,x)),win,location,safeMath,rng,rng,rng,rng,BASE_PLAN,new Set([29,85,88,92]),new Set([53,104,117]),(...a)=>fixture(601,...a),(...a)=>fixture(602,...a),(...a)=>fixture(603,...a));
  const release=(keep=[])=>{const retained=new Set(keep);for(const c of state.canvases)if(!retained.has(c)){c.width=1;c.height=1;}state.canvases=state.canvases.filter(c=>retained.has(c));};return {...api,win,state,release};
@@ -96,9 +96,66 @@ function checkProportions634(a){
  for(const id of['1_1_0','1_1_6','1_2_0','1_2_1'])need(a.rcis[id].m.length===1&&a.rcis[id].m[0][2]>=.8,'G12_RCI_TERRACE','terrace roof fragmented into tiny towers');
  return{caps,meanEaveHeightByLevel:means,continuousTerraces:4};
 }
+/* Physical prism/ray oracle is independent of the painter's depth heuristic. */
+function geometryOverlap634(a,b){return[Math.max(0,Math.min(a[0]+a[2],b[0]+b[2])-Math.max(a[0],b[0])),Math.max(0,Math.min(a[1]+a[3],b[1]+b[3])-Math.max(a[1],b[1]))];}
+function checkJoins634(api){
+ const allowedStacks=new Set(['1_3_7','2_2_1','2_3_3','2_3_11']);let contacts=0,pairs=0;
+ for(const id of EXPECTED_RCI){const ms=api.rcis[id].m;for(let i=0;i<ms.length;i++)for(let j=i+1;j<ms.length;j++){
+  pairs++;const a=ms[i],b=ms[j],o=geometryOverlap634(a,b);if(o[0]>.002&&o[1]>.002){const inside=b[0]>=a[0]-.001&&b[1]>=a[1]-.001&&b[0]+b[2]<=a[0]+a[2]+.001&&b[1]+b[3]<=a[1]+a[3]+.001;need(allowedStacks.has(id)&&i===0&&inside&&b[4]>a[4]&&b[9]&&b[9].stack===i,'G13_INTERSECTION',id+' has visible interpenetrating masses');}
+ }
+ for(let j=1;j<ms.length;j++){const m=ms[j],join=m[9];if(!join||join.attach===undefined)continue;const a=ms[join.attach];need(a&&join.attach!==j,'G13_JOIN','missing parent '+id);const axis=join.face==='u'?0:1,other=1-axis,overlap=Math.min(a[other]+a[other+2],m[other]+m[other+2])-Math.max(a[other],m[other]);need(Math.abs(a[axis]+a[axis+2]-m[axis])<=.002&&overlap>.025,'G13_JOIN',id+' detached or buried attachment');contacts++;}
+ }
+ for(const [id,face,maxHeight,maxPitch]of[['1_1_5','v',10,2],['3_2_4','u',13,3],['1_1_8','u',11,2],['2_1_9','v',12,2],['3_3_3','u',14,3]]){
+  const ms=api.rcis[id].m,m=ms[1],j=m[9];need(j&&j.attach===0&&j.face===face&&j.chimney===false,'G13_JOIN',id+' is not an explicit shared-wall annex');
+  need(m[5]===1&&m[4]<=maxHeight&&m[4]<ms[0][4]&&m[4]<=ms[0][4]/Math.max(1,ms[0][5])*1.35,'G13_ANNEX_PROPORTIONS',id+' single-storey annex towers above its parent storey rhythm');
+  need(api.roofPitch(m)<=maxPitch&&api.roofPitch(m,true)<=3,'G13_ANNEX_ROOF',id+' annex retained standalone main-roof pitch');
+ }
+ return{catalogs:108,pairs,contacts,intentionalContainedRoofTowers:4};
+}
+function checkMassOrder634(api){
+ let pairs=0;const rayHit=(p,b)=>{const[u,v,z]=p,[a,c,du,dv,h]=b,lo=Math.max(0,a-u,c-v,-z/32),hi=Math.min(a+du-u,c+dv-v,(h-z)/32);return hi>lo+.0001&&hi>.0001;};
+ for(const id of EXPECTED_RCI){const rows=api.orderMasses(api.rcis[id].m);need(rows.length===api.rcis[id].m.length&&new Set(rows.map(x=>x.i)).size===rows.length,'G14_MASS_ORDER',id+' omitted a mass');
+  for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++){const early=rows[i].m,late=rows[j].m,o=geometryOverlap634(early,late);if(o[0]>.002&&o[1]>.002)continue;pairs++;
+   const[u,v,du,dv,h]=late;for(let x=1;x<8;x++)for(let y=1;y<8;y++)for(const p of[[u+du*x/8,v+dv,h*y/8],[u+du,v+dv*x/8,h*y/8],[u+du*x/8,v+dv*y/8,h]])need(!rayHit(p,early),'G14_MASS_ORDER',id+' later-painted rear wall crosses nearer solid at '+p.join(','));
+  }
+ }
+ return{catalogs:108,nonintersectingPairs:pairs,rayDirection:[1,1,32]};
+}
+function checkGroundFootprints634(api){
+ const inv=JSON.parse(fs.readFileSync(path.join(__dirname,'asset-coverage-baseline.json'))),noop=()=>{},g=new Proxy({},{get:()=>noop,set:()=>true});let primary=0,draws=0,points=0;
+ for(const row of inv.building_types.filter(r=>r.remaining_new)){primary+=(row.k<=3?3:1)*(row.k<=3?12:3);for(const n of new Set([row.new_size,row.old_size]))for(let lv=1;lv<=(row.k<=3?3:1);lv++)for(let v=0;v<(row.k<=3?12:3);v++){
+  const P=(u,v,z=0)=>{if(z<=.01){points++;need(u>=-.001&&v>=-.001&&u<=n+.001&&v<=n+.001,'G15_GROUND_FOOTPRINT',row.k+'/'+lv+'/'+v+' real ground point exceeds lot');}return[(u-v)*32,(u+v)*16-z];},quad=(u,v,du,dv,z=0)=>[P(u,v,z),P(u+du,v,z),P(u+du,v+dv,z),P(u,v+dv,z)];
+  const T={k:row.k,v,n,lv,we:1,stage:2,sea:0,winter:false,g,ng:g,P,quad,poly:noop,line:noop,ell:noop,LIT:noop,H:()=>.5,box:(u,v,du,dv,h,c,z=0)=>{quad(u,v,du,dv,z);return quad(u,v,du,dv,h+z);},occlude:noop,shade:x=>x,hooks:{}};api.reg[row.k].draw(T);draws++;
+ }}need(primary===315,'G15_GROUND_FOOTPRINT','did not examine every primary design');return{primary,draws,points};
+}
+function traceBayAPI634(block=BLOCK){
+ const old='const shell=(m,annex=false)=>{',injected='const shell=(m,annex=false)=>{if(annex)window.__bayTrace634.push({m,parent:window.__bayParent634});else window.__bayParent634=m;';need(block.includes(old),'G00_HARNESS','shell trace anchor absent');return makeAPI({block:block.replace(old,injected)});
+}
+function checkGeneratedBays634(a){
+ let bays=0;for(const id of EXPECTED_RCI){const[k,lv,v]=id.split('_').map(Number);a.win.__bayTrace634=[];a.bake(k,v,1,lv,1,2,false,1);
+  for(const row of a.win.__bayTrace634){bays++;const m=row.m;need(m[0]>=0&&m[1]>=0&&m[0]+m[2]<=1&&m[1]+m[3]<=1,'G16_GENERATED_BAY','generated bay exceeds lot '+id);for(const q of a.rcis[id].m){if(q===row.parent)continue;const o=geometryOverlap634(m,q);need(o[0]<=.001||o[1]<=.001,'G16_GENERATED_BAY',id+' procedural bay penetrates another wing');}}
+  a.release();
+ }need(bays>=30,'G16_GENERATED_BAY','all projecting bays were removed instead of repairing blocked wall segments');return{catalogs:108,actualGeneratedBays:bays};
+}
+/* Immutable physical witness points above the parent's maximum roof, recorded
+   before repair. These are pixels that an opaque rear roof must never erase. */
+function checkRoofTowers634(a){
+ const probes=[['1_3_7',33,155],['2_3_3',32,154],['2_3_11',33,141]];let buried=0;
+ const sample=(s,x,rawY,layer='img')=>Array.from(s[layer].getContext('2d').getImageData(x,rawY-(224-s.h),1,1).data);
+ for(const[id,x,y]of probes){const[k,lv,v]=id.split('_').map(Number),ms=a.rcis[id].m,s=a.bake(k,v,1,lv,1,2,false,1);need(sample(s,x,y,'night')[3]>100,'G17_EXPOSED_TOWER',id+' exposed upper window erased by a rear roof');
+  const parent=ms[0],tower=ms[1];a.rcis[id].m=[parent];const base=a.bake(k,v,1,lv,1,2,false,1);a.rcis[id].m=ms;
+  for(const f of[.25,.5,.75])for(const dz of[4,8]){const u=tower[0]+tower[2]*f,vv=tower[1]+tower[3],z=parent[4]-dz,xx=Math.round(40+32*(u-vv)),yy=Math.round(184+16*(u+vv)-z);need(same(sample(s,xx,yy),sample(base,xx,yy))&&same(sample(s,xx,yy,'night'),sample(base,xx,yy,'night')),'G17_BURIED_TOWER',id+' buried tower wall or light painted through parent roof');buried++;}a.release();
+ }
+ return{exposedWindows:probes.length,buriedSurfaceComparisons:buried};
+}
 const api=makeAPI();
 test('Literal coverage, integrated source equality, and baseline lot sizes',()=>{checkFamilies(api);const fragments=PARTS.map(p=>fs.readFileSync(path.join(__dirname,p),'utf8')).join('\n')+'\nconst ART634={...CIVIC634,...INDUSTRY634,...RCI634};';need(BLOCK===fragments.trim(),'G01_INTEGRATION','integrated block differs from submitted fragments');need(same(lotPlan(SOURCE),BASE_PLAN),'G01_FOOTPRINT_SOURCE','candidate changed baseline lot plan');for(const key of EXPECTED_RCI){const a=api.rcis[key];need(typeof a.name==='string'&&a.name&&typeof a.archetype==='string'&&a.archetype&&Array.isArray(a.m)&&a.m.length,'G01_RCI_KEYS','incomplete '+key);for(const m of a.m)need(m.slice(0,6).every(Number.isFinite)&&m[0]>=0&&m[1]>=0&&m[2]>0&&m[3]>0&&m[0]+m[2]<=1&&m[1]+m[3]<=1,'G02_GEOMETRY','RCI mass outside one tile '+key);}return{families:72,rciKeys:108,legacy:11};});
 test('Lab-referenced RCI mass limits retain a readable three-level hierarchy',()=>checkProportions634(api));
+test('Every RCI attachment is an exterior shared-wall join or an intentional contained roof tower',()=>checkJoins634(api));
+test('Mass paint order agrees with independent isometric solid-ray occlusion',()=>checkMassOrder634(api));
+test('All315 designs and all new/old sizes stay within their actual ground footprint',()=>checkGroundFootprints634(api));
+test('Actual nested-shell bay calls never occupy another wing base',()=>checkGeneratedBays634(traceBayAPI634()));
+test('Contained upper-storey windows survive while buried walls stay under the roof',()=>checkRoofTowers634(makeAPI()));
 test('Approved 601/602/603 original renderers remain byte-identical',()=>{const names=['bakeArt601','bakeArt602','bakeArt603','art601_k4','art601_k5','art601_k8','art601_k60','art601_k63','art601_k66','art601_k81','art601_k97','kit602','art602_k53','art602_k104','art602_k117','art602_k97','kit603','art603_k29','art603_k85','art603_k92','art603_k88'];for(const n of names)need(fn(n)===fn(n,BASE_SOURCE),'G01_APPROVED_SOURCE',n+' changed from baseline');return{functions:names.length};});
 test('Default-off, strict opt-in, both escape valves, and no cold rendering',()=>{
  for(const search of['','?T634=0','?T634=10','?xT634=1','?T634=1&noT634=1','?noT634&T634=1']){const a=makeAPI({search});need(a.on()===false,'G06_FLAGS','unexpected opt-in '+search);a.win.__t634={};need(a.on()===false,'G06_FLAGS','truthy object enabled candidate');for(const k of[1,3,22,8,53])need(a.spr(immovable({k,lv:2,v:1,we:1}),4,5)===null,'G06_FLAGS','default returned candidate');need(a.state.alloc===0&&a.stats.bakes===0&&a.cache.size===0,'G06_FLAGS','default path allocated art');}
@@ -174,6 +231,14 @@ test('Negative controls first fail at their intended behavioral guards',()=>{
  red('Omit ferris-wheel anchor','G05_REQUIRED_HOOK',()=>{const a=makeAPI(),s=a.bake(76,0,BASE_PLAN[76][1]);delete s.lotMeta574.hooks.wheel;checkSprite(s,76,BASE_PLAN[76][1],'wheel mutation');});
  red('Restore old 66px residential tower mass','G12_RCI_PROPORTIONS',()=>{const a=makeAPI();a.rcis['1_3_0'].m[0][4]=66;checkProportions634(a);});
  red('Split broad worker terrace back into three towers','G12_RCI_TERRACE',()=>{const a=makeAPI(),m=a.rcis['1_1_0'].m[0];a.rcis['1_1_0'].m=[m.slice(),m.slice(),m.slice()];checkProportions634(a);});
+ red('Restore cottage annex buried inside main walls','G13_INTERSECTION',()=>{const a=makeAPI();a.rcis['1_1_5'].m[1]=[.5211,.6254,.2004,.1985,9,0,'brick','gable','door'];checkJoins634(a);});
+ red('Restore a 23px single-storey brewery annex','G13_ANNEX_PROPORTIONS',()=>{const a=makeAPI();a.rcis['3_2_4'].m[1][4]=23;checkJoins634(a);});
+ red('Give low annexes standalone 8px roofs','G13_ANNEX_ROOF',()=>{const a=makeAPI();a.roofPitch=()=>8;checkJoins634(a);});
+ red('Restore right-bottom-sum ordering','G14_MASS_ORDER',()=>{const a=makeAPI();a.orderMasses=ms=>ms.map((m,i)=>({m,i})).sort((a,b)=>a.m[0]+a.m[1]+a.m[2]+a.m[3]-b.m[0]-b.m[1]-b.m[2]-b.m[3]||a.i-b.i);checkMassOrder634(a);});
+ red('Place a base corner across the lot boundary','G15_GROUND_FOOTPRINT',()=>{const a=makeAPI(),old=a.reg[1].draw;a.reg[1].draw=T=>{old(T);T.P(1.1,.5,0);};checkGroundFootprints634(a);});
+ red('Allow procedural bays through attached wings','G16_GENERATED_BAY',()=>{const bad=BLOCK.replace('if(!collision)out.push(b);','out.push(b);');need(bad!==BLOCK,'G00_HARNESS','bay mutation anchor absent');checkGeneratedBays634(traceBayAPI634(bad));});
+ red('Paint contained towers before the entire rear roof','G17_EXPOSED_TOWER',()=>{const bad=BLOCK.replace('else if(a[9]&&a[9].stack===j)edge(j,i);else if(b[9]&&b[9].stack===i)edge(i,j);','else if(a[9]&&a[9].stack===j)edge(i,j);else if(b[9]&&b[9].stack===i)edge(j,i);');need(bad!==BLOCK,'G00_HARNESS','stack-order mutation anchor absent');checkRoofTowers634(makeAPI({block:bad}));});
+ red('Remove roof-intersection masking from upper towers','G17_BURIED_TOWER',()=>{const old=fn('clipRCITower634',BLOCK),bad=BLOCK.replace(old,'function clipRCITower634(T,m,parent){T.g.save();T.ng.save();}');need(bad!==BLOCK,'G00_HARNESS','tower-clip mutation absent');checkRoofTowers634(makeAPI({block:bad}));});
  return{controls:report.negativeControls.length};
 });
 report.status=report.failed.length?'failed':'passed';console.log(JSON.stringify(report,null,2));process.exitCode=report.failed.length?1:0;

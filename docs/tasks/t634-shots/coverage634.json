@@ -1,11 +1,11 @@
 {
   "schema": "town634-coverage-ledger-v1",
   "title": "T634 英式全批候選交付清冊",
-  "recorded_at_utc": "2026-10-11T04:00:00+00:00",
+  "recorded_at_utc": "2026-10-11T04:35:00+00:00",
   "baseline_commit": "d88e36d866226ac182dd92ecab63c29a540a4ef8",
-  "worktree_parent_commit": "873ea1d4ad62fb92a286a02068e4fceaee314214",
-  "source_snapshot_sha256": "a340a4b90c8d3f3ef44f980b77426b7eb4568268d1719b1f8367d5592d8e00ab",
-  "source_snapshot_note": "Lab-referenced redesign working-tree source; exact source identity and final CI are recorded by the eventual commit-bound artifacts. This ledger is not visual approval.",
+  "worktree_parent_commit": "fd7a6df31f3b3baf136ac63a50cae97d62a8788f",
+  "source_snapshot_sha256": "aaac53dd81d7dc381b2984c8498b0244c9cf9b9aac451f4258f0f7d258d25aac",
+  "source_snapshot_note": "Attachment/adjacency repair of fd7a6df. Exact source identity and CI are recorded by commit-bound artifacts; unchanged315-design entries remain listed. Not visual approval.",
   "activation": {
     "default": "off",
     "enable": [
@@ -6419,7 +6419,21 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.09,
+          0.16,
+          0.82,
+          0.63,
+          21,
+          2,
+          "brick",
+          "gable",
+          "doors"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_1_1",
@@ -6461,7 +6475,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1656,
+          0.3587,
+          0.5852,
+          23,
+          2,
+          "brick",
+          "gable",
+          "bay porch"
+        ],
+        [
+          0.4894,
+          0.1656,
+          0.3587,
+          0.5852,
+          23,
+          2,
+          "brick",
+          "gable",
+          "bay porch"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_1_2",
@@ -6492,6 +6531,38 @@
         ],
         [
           0.5528,
+          0.5836,
+          0.2637,
+          0.2194,
+          17,
+          2,
+          "tudor",
+          "gable",
+          "porch",
+          {
+            "attach": 0,
+            "face": "v",
+            "pitch": 4,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1624,
+          0.1343,
+          0.5486,
+          0.4493,
+          21,
+          2,
+          "tudor",
+          "gable",
+          "door"
+        ],
+        [
+          0.5528,
           0.4164,
           0.2637,
           0.3866,
@@ -6502,8 +6573,7 @@
           "porch"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_1_3",
@@ -6534,7 +6604,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1624,
+          0.1865,
+          0.6646,
+          0.5329,
+          18,
+          2,
+          "stone",
+          "gable",
+          "dormer porch"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_1_4",
@@ -6576,7 +6660,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1413,
+          0.1447,
+          0.3376,
+          0.6688,
+          28,
+          2,
+          "stock",
+          "flat",
+          "door pediment"
+        ],
+        [
+          0.4894,
+          0.1447,
+          0.3376,
+          0.6688,
+          28,
+          2,
+          "stock",
+          "flat",
+          "door pediment"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_1_5",
@@ -6606,6 +6715,38 @@
           "bay"
         ],
         [
+          0.48,
+          0.6881,
+          0.25,
+          0.1358,
+          9,
+          1,
+          "brick",
+          "lean-v",
+          "door",
+          {
+            "attach": 0,
+            "face": "v",
+            "pitch": 2,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1519,
+          0.1656,
+          0.6435,
+          0.5225,
+          20,
+          2,
+          "render",
+          "hip",
+          "bay"
+        ],
+        [
           0.5211,
           0.6254,
           0.2004,
@@ -6617,8 +6758,7 @@
           "door"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_1_6",
@@ -6649,7 +6789,21 @@
         ]
       ],
       "previous_mass_count": 4,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.08,
+          0.2,
+          0.84,
+          0.6,
+          17,
+          1,
+          "stone",
+          "gable",
+          "doors:4"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_1_7",
@@ -6680,7 +6834,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1552,
+          0.7701,
+          0.6061,
+          25,
+          2,
+          "sandstone",
+          "hip",
+          "bay door"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_1_8",
@@ -6710,6 +6878,38 @@
           "porch"
         ],
         [
+          0.6899,
+          0.3851,
+          0.1583,
+          0.2822,
+          10,
+          1,
+          "brick",
+          "lean-u",
+          "door",
+          {
+            "attach": 0,
+            "face": "u",
+            "pitch": 2,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1941,
+          0.1552,
+          0.4958,
+          0.5956,
+          19,
+          2,
+          "weatherboard",
+          "gable",
+          "porch"
+        ],
+        [
           0.6688,
           0.3851,
           0.1794,
@@ -6721,8 +6921,7 @@
           "door"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_1_9",
@@ -6740,6 +6939,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.1941,
+          0.1029,
+          0.3059,
+          0.2403,
+          17,
+          2,
+          "brick",
+          "gable",
+          ""
+        ],
+        [
+          0.1202,
+          0.3432,
+          0.6435,
+          0.4075,
+          28,
+          2,
+          "brick",
+          "hip",
+          "bay pediment",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1941,
           0.1029,
@@ -6763,8 +6992,7 @@
           "bay pediment"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_1_10",
@@ -6802,11 +7030,40 @@
           2,
           "stock",
           "gable",
-          "door"
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1343,
+          0.7279,
+          0.2717,
+          17,
+          2,
+          "stock",
+          "gable",
+          "arch"
+        ],
+        [
+          0.1202,
+          0.4059,
+          0.2743,
+          0.4284,
+          17,
+          2,
+          "stock",
+          "gable",
+          "door"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_1_11",
@@ -6824,6 +7081,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.1624,
+          0.1343,
+          0.5908,
+          0.4911,
+          25,
+          2,
+          "brick",
+          "hip",
+          "bay"
+        ],
+        [
+          0.6477,
+          0.6254,
+          0.2004,
+          0.1985,
+          30,
+          2,
+          "render",
+          "spire",
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1624,
           0.1343,
@@ -6847,8 +7134,7 @@
           "door"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_2_0",
@@ -6879,7 +7165,21 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.08,
+          0.12,
+          0.84,
+          0.7,
+          31,
+          3,
+          "stock",
+          "butterfly",
+          "doors"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_1",
@@ -6910,7 +7210,21 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.08,
+          0.12,
+          0.84,
+          0.68,
+          33,
+          3,
+          "brick",
+          "gable",
+          "bay:3 doors"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_2",
@@ -6941,7 +7255,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1343,
+          0.8018,
+          0.6793,
+          27,
+          2,
+          "stone",
+          "gable",
+          "doors dormer"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_3",
@@ -6983,7 +7311,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1134,
+          0.3692,
+          0.6793,
+          27,
+          2,
+          "tudor",
+          "gable",
+          "bay"
+        ],
+        [
+          0.5106,
+          0.1134,
+          0.3692,
+          0.6793,
+          27,
+          2,
+          "tudor",
+          "gable",
+          "bay"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_4",
@@ -7036,7 +7389,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1029,
+          0.2637,
+          0.6688,
+          31,
+          3,
+          "stucco",
+          "flat",
+          "pediment"
+        ],
+        [
+          0.3417,
+          0.1552,
+          0.3165,
+          0.6688,
+          32,
+          3,
+          "stucco",
+          "flat",
+          "pediment"
+        ],
+        [
+          0.6583,
+          0.2074,
+          0.2637,
+          0.6688,
+          31,
+          3,
+          "stucco",
+          "flat",
+          "pediment"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_5",
@@ -7074,11 +7463,40 @@
           3,
           "brick",
           "gable",
-          "door"
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1029,
+          0.8018,
+          0.303,
+          33,
+          3,
+          "brick",
+          "mansard",
+          "dormer"
+        ],
+        [
+          0.0991,
+          0.4059,
+          0.327,
+          0.4493,
+          31,
+          3,
+          "brick",
+          "gable",
+          "door"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_2_6",
@@ -7109,7 +7527,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1134,
+          0.7913,
+          0.7001,
+          35,
+          3,
+          "sandstone",
+          "hip",
+          "bay doors dormer"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_7",
@@ -7127,6 +7559,51 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 3,
       "masses": [
+        [
+          0.1308,
+          0.1029,
+          0.749,
+          0.4598,
+          34,
+          3,
+          "brick",
+          "hip",
+          "dormer"
+        ],
+        [
+          0.2152,
+          0.5627,
+          0.2427,
+          0.2717,
+          36,
+          3,
+          "brick",
+          "gable",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6266,
+          0.5627,
+          0.2215,
+          0.2717,
+          36,
+          3,
+          "brick",
+          "gable",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 3,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1308,
           0.1029,
@@ -7161,8 +7638,7 @@
           "bay"
         ]
       ],
-      "previous_mass_count": 3,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_2_8",
@@ -7204,7 +7680,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1134,
+          0.3165,
+          0.721,
+          27,
+          2,
+          "render",
+          "gable",
+          "tudor"
+        ],
+        [
+          0.4578,
+          0.1134,
+          0.4009,
+          0.4284,
+          25,
+          2,
+          "brick",
+          "hip",
+          "bay"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_9",
@@ -7235,7 +7736,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1519,
+          0.1029,
+          0.6435,
+          0.721,
+          36,
+          3,
+          "stucco",
+          "mansard",
+          "bay dormer pediment"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_10",
@@ -7277,7 +7792,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1865,
+          0.3798,
+          0.6165,
+          23,
+          2,
+          "stock",
+          "gable",
+          "arch"
+        ],
+        [
+          0.5106,
+          0.1865,
+          0.3798,
+          0.6165,
+          26,
+          2,
+          "brick",
+          "gable",
+          "arch"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_2_11",
@@ -7295,6 +7835,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.1202,
+          0.1134,
+          0.7385,
+          0.5433,
+          34,
+          3,
+          "brick",
+          "hip",
+          "bay dormer"
+        ],
+        [
+          0.6583,
+          0.6567,
+          0.2215,
+          0.2194,
+          42,
+          3,
+          "sandstone",
+          "spire",
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1202,
           0.1134,
@@ -7318,8 +7888,7 @@
           "door"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_0",
@@ -7350,7 +7919,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1029,
+          0.844,
+          0.6793,
+          41,
+          4,
+          "brick",
+          "mansard",
+          "bay dormer pediment"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_3_1",
@@ -7388,11 +7971,40 @@
           3,
           "sandstone",
           "hip",
-          "bay"
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.0925,
+          0.8229,
+          0.3344,
+          40,
+          4,
+          "sandstone",
+          "hip",
+          "dormer"
+        ],
+        [
+          0.078,
+          0.4269,
+          0.3692,
+          0.4493,
+          38,
+          3,
+          "sandstone",
+          "hip",
+          "bay"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_2",
@@ -7430,6 +8042,51 @@
           3,
           "brick",
           "gable",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6583,
+          0.3432,
+          0.2427,
+          0.5121,
+          40,
+          4,
+          "brick",
+          "gable",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 3,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.082,
+          0.8229,
+          0.2612,
+          42,
+          4,
+          "stock",
+          "gable",
+          ""
+        ],
+        [
+          0.078,
+          0.3432,
+          0.2532,
+          0.5121,
+          38,
+          3,
+          "brick",
+          "gable",
           "bay"
         ],
         [
@@ -7444,8 +8101,7 @@
           "bay"
         ]
       ],
-      "previous_mass_count": 3,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_3",
@@ -7463,6 +8119,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0991,
+          0.0925,
+          0.7596,
+          0.5747,
+          43,
+          4,
+          "brick",
+          "hip",
+          "bay dormer"
+        ],
+        [
+          0.6477,
+          0.6672,
+          0.2427,
+          0.2403,
+          51,
+          4,
+          "sandstone",
+          "spire",
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0991,
           0.0925,
@@ -7486,8 +8172,7 @@
           "door"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_4",
@@ -7540,7 +8225,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0675,
+          0.0925,
+          0.2954,
+          0.7628,
+          35,
+          3,
+          "stock",
+          "mansard",
+          "dormer"
+        ],
+        [
+          0.3629,
+          0.0925,
+          0.2848,
+          0.7628,
+          40,
+          4,
+          "stucco",
+          "flat",
+          "pediment"
+        ],
+        [
+          0.6477,
+          0.0925,
+          0.2848,
+          0.7628,
+          38,
+          3,
+          "stock",
+          "mansard",
+          "dormer"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_3_5",
@@ -7558,6 +8279,66 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 4,
       "masses": [
+        [
+          0.0886,
+          0.1029,
+          0.8124,
+          0.4389,
+          42,
+          4,
+          "brick",
+          "hip",
+          "dormer"
+        ],
+        [
+          0.1202,
+          0.5418,
+          0.2321,
+          0.2822,
+          45,
+          4,
+          "brick",
+          "gable",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.3945,
+          0.5418,
+          0.2321,
+          0.2822,
+          46,
+          4,
+          "brick",
+          "gable",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6688,
+          0.5418,
+          0.211,
+          0.2822,
+          45,
+          4,
+          "brick",
+          "gable",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 4,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0886,
           0.1029,
@@ -7603,8 +8384,7 @@
           "bay"
         ]
       ],
-      "previous_mass_count": 4,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_6",
@@ -7635,7 +8415,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.0925,
+          0.844,
+          0.7315,
+          46,
+          4,
+          "stock",
+          "saw",
+          "mill doors"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_3_7",
@@ -7673,11 +8467,39 @@
           4,
           "deco",
           "flat",
-          "door"
+          "door",
+          {
+            "stack": 0
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1029,
+          0.8018,
+          0.721,
+          35,
+          3,
+          "deco",
+          "flat",
+          "bay"
+        ],
+        [
+          0.2679,
+          0.1656,
+          0.4536,
+          0.3971,
+          48,
+          4,
+          "deco",
+          "flat",
+          "door"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_8",
@@ -7708,7 +8530,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1308,
+          0.1134,
+          0.7385,
+          0.6793,
+          51,
+          4,
+          "stucco",
+          "mansard",
+          "bay dormer pediment"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "1_3_9",
@@ -7726,6 +8562,51 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 3,
       "masses": [
+        [
+          0.1202,
+          0.0925,
+          0.7385,
+          0.5224,
+          44,
+          4,
+          "gothic",
+          "gable",
+          "bay"
+        ],
+        [
+          0.2257,
+          0.6149,
+          0.2215,
+          0.2299,
+          49,
+          4,
+          "gothic",
+          "gable",
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6266,
+          0.6149,
+          0.2004,
+          0.2299,
+          47,
+          4,
+          "gothic",
+          "gable",
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 3,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1202,
           0.0925,
@@ -7760,8 +8641,7 @@
           "door"
         ]
       ],
-      "previous_mass_count": 3,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_10",
@@ -7779,6 +8659,62 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 4,
       "masses": [
+        [
+          0.078,
+          0.082,
+          0.8335,
+          0.2403,
+          41,
+          4,
+          "brick",
+          "hip",
+          ""
+        ],
+        [
+          0.078,
+          0.3224,
+          0.2427,
+          0.5538,
+          40,
+          4,
+          "brick",
+          "hip",
+          "",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6688,
+          0.3224,
+          0.2427,
+          0.5538,
+          43,
+          4,
+          "brick",
+          "hip",
+          "bay",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.3206,
+          0.6672,
+          0.3482,
+          0.209,
+          30,
+          2,
+          "stock",
+          "flat",
+          "arch"
+        ]
+      ],
+      "previous_mass_count": 4,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.078,
           0.082,
@@ -7824,8 +8760,7 @@
           "arch"
         ]
       ],
-      "previous_mass_count": 4,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "1_3_11",
@@ -7878,7 +8813,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1029,
+          0.2743,
+          0.7315,
+          37,
+          3,
+          "brick",
+          "gable",
+          "bay"
+        ],
+        [
+          0.3523,
+          0.1029,
+          0.2848,
+          0.7315,
+          42,
+          4,
+          "stock",
+          "mansard",
+          "dormer"
+        ],
+        [
+          0.6371,
+          0.1029,
+          0.2848,
+          0.7315,
+          46,
+          4,
+          "brick",
+          "hip",
+          "bay"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_1_0",
@@ -7920,7 +8891,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1552,
+          0.3587,
+          0.627,
+          23,
+          2,
+          "stock",
+          "gable",
+          "shop:BAKE"
+        ],
+        [
+          0.5,
+          0.1552,
+          0.3482,
+          0.627,
+          23,
+          2,
+          "brick",
+          "gable",
+          "shop:TEA"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_1_1",
@@ -7951,7 +8947,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1413,
+          0.1656,
+          0.7279,
+          0.6165,
+          23,
+          2,
+          "brick",
+          "hip",
+          "shop:MEAT bay"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_1_2",
@@ -7989,11 +8999,40 @@
           2,
           "tudor",
           "gable",
-          "shop:INN arch"
+          "shop:INN arch",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1134,
+          0.7385,
+          0.3135,
+          24,
+          2,
+          "tudor",
+          "gable",
+          ""
+        ],
+        [
+          0.1097,
+          0.4269,
+          0.3903,
+          0.4075,
+          26,
+          2,
+          "tudor",
+          "gable",
+          "shop:INN arch"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_1_3",
@@ -8011,6 +9050,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.2046,
+          0.1134,
+          0.4958,
+          0.2717,
+          10,
+          1,
+          "stock",
+          "lean",
+          "loading"
+        ],
+        [
+          0.1413,
+          0.3851,
+          0.6963,
+          0.418,
+          23,
+          2,
+          "render",
+          "gable",
+          "shop:FISH awning",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.2046,
           0.1134,
@@ -8034,8 +9103,7 @@
           "shop:FISH awning"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_1_4",
@@ -8066,6 +9134,38 @@
         ],
         [
           0.6055,
+          0.6568,
+          0.2427,
+          0.1777,
+          18,
+          2,
+          "tudor",
+          "gable",
+          "shop:INN",
+          {
+            "attach": 0,
+            "face": "v",
+            "pitch": 4,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1447,
+          0.6752,
+          0.5121,
+          26,
+          2,
+          "brick",
+          "hip",
+          "shop:ALE"
+        ],
+        [
+          0.6055,
           0.5523,
           0.2427,
           0.2822,
@@ -8076,8 +9176,7 @@
           "shop:INN"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_1_5",
@@ -8108,7 +9207,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.173,
+          0.1552,
+          0.6541,
+          0.6165,
+          24,
+          2,
+          "stone",
+          "hip",
+          "bank pediment"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_1_6",
@@ -8126,6 +9239,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.09,
+          0.17,
+          0.82,
+          0.5,
+          24,
+          2,
+          "brick",
+          "gable",
+          "shop:TEA doors"
+        ],
+        [
+          0.27,
+          0.67,
+          0.2,
+          0.13,
+          27,
+          2,
+          "stock",
+          "gable",
+          "shop:SHOP",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 3,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.09,
           0.17,
@@ -8149,8 +9292,7 @@
           "shop:SHOP"
         ]
       ],
-      "previous_mass_count": 3,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_1_7",
@@ -8181,7 +9323,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.2363,
+          0.1029,
+          0.4853,
+          0.7106,
+          30,
+          2,
+          "stock",
+          "mansard",
+          "shop:BOOK dormer"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_1_8",
@@ -8212,7 +9368,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1413,
+          0.1656,
+          0.7174,
+          0.6061,
+          23,
+          2,
+          "brick",
+          "gable",
+          "shop:FOOD awning"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_1_9",
@@ -8246,6 +9416,38 @@
           0.5313,
           0.2743,
           0.2717,
+          11,
+          1,
+          "stone",
+          "lean-v",
+          "door",
+          {
+            "attach": 0,
+            "face": "v",
+            "pitch": 2,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1519,
+          0.1447,
+          0.633,
+          0.3866,
+          23,
+          2,
+          "stone",
+          "gable",
+          "shop:TEA"
+        ],
+        [
+          0.1519,
+          0.5313,
+          0.2743,
+          0.2717,
           23,
           1,
           "stone",
@@ -8253,8 +9455,7 @@
           "shop:TEA"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_1_10",
@@ -8285,7 +9486,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1941,
+          0.1238,
+          0.6224,
+          0.6688,
+          28,
+          2,
+          "brick",
+          "hip",
+          "shop:OLD bay"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_1_11",
@@ -8316,7 +9531,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1761,
+          0.7807,
+          0.6061,
+          25,
+          2,
+          "brick",
+          "gable",
+          "shop:POST pediment"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_2_0",
@@ -8369,7 +9598,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0675,
+          0.1238,
+          0.2954,
+          0.6793,
+          28,
+          2,
+          "brick",
+          "gable",
+          "shop:BAKE"
+        ],
+        [
+          0.3629,
+          0.1238,
+          0.2954,
+          0.6793,
+          33,
+          3,
+          "stock",
+          "mansard",
+          "shop:BOOK dormer"
+        ],
+        [
+          0.6583,
+          0.1238,
+          0.2743,
+          0.6793,
+          30,
+          2,
+          "brick",
+          "hip",
+          "shop:TEA"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_2_1",
@@ -8396,6 +9661,38 @@
           2,
           "sandstone",
           "hip",
+          "bank pediment",
+          {
+            "chimney": false
+          }
+        ],
+        [
+          0.384,
+          0.3224,
+          0.2427,
+          0.2403,
+          49,
+          3,
+          "stone",
+          "spire",
+          "clock",
+          {
+            "stack": 0
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1134,
+          0.7807,
+          0.6897,
+          31,
+          2,
+          "sandstone",
+          "hip",
           "bank pediment"
         ],
         [
@@ -8410,8 +9707,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_2_2",
@@ -8464,7 +9760,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1238,
+          0.2637,
+          0.7106,
+          30,
+          2,
+          "brick",
+          "mansard",
+          "shop:SHOP"
+        ],
+        [
+          0.3523,
+          0.1343,
+          0.3059,
+          0.6897,
+          18,
+          1,
+          "stone",
+          "glass",
+          "arcade"
+        ],
+        [
+          0.6688,
+          0.1238,
+          0.2532,
+          0.7106,
+          32,
+          3,
+          "brick",
+          "mansard",
+          "shop:TEA"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_2_3",
@@ -8482,6 +9814,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0991,
+          0.1029,
+          0.7807,
+          0.5643,
+          34,
+          3,
+          "stock",
+          "mansard",
+          "shop:STORE"
+        ],
+        [
+          0.6583,
+          0.6672,
+          0.2321,
+          0.2299,
+          43,
+          3,
+          "brick",
+          "hip",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0991,
           0.1029,
@@ -8505,8 +9867,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_2_4",
@@ -8524,6 +9885,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0991,
+          0.1029,
+          0.8018,
+          0.5538,
+          21,
+          1,
+          "brick",
+          "glass",
+          "arcade"
+        ],
+        [
+          0.3629,
+          0.6567,
+          0.2743,
+          0.2194,
+          34,
+          2,
+          "stone",
+          "hip",
+          "clock arch",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0991,
           0.1029,
@@ -8547,8 +9938,7 @@
           "clock arch"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_2_5",
@@ -8586,11 +9976,40 @@
           3,
           "stock",
           "hip",
-          "shop:HOTEL arch"
+          "shop:HOTEL arch",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.0925,
+          0.7807,
+          0.3239,
+          34,
+          3,
+          "stock",
+          "hip",
+          "dormer"
+        ],
+        [
+          0.0991,
+          0.4164,
+          0.3482,
+          0.418,
+          31,
+          3,
+          "stock",
+          "hip",
+          "shop:HOTEL arch"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_2_6",
@@ -8643,7 +10062,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1238,
+          0.2743,
+          0.6688,
+          27,
+          2,
+          "tudor",
+          "gable",
+          "shop:ALE"
+        ],
+        [
+          0.3629,
+          0.1238,
+          0.2848,
+          0.6688,
+          31,
+          2,
+          "tudor",
+          "gable",
+          "shop:INN"
+        ],
+        [
+          0.6583,
+          0.1238,
+          0.2637,
+          0.6688,
+          27,
+          2,
+          "tudor",
+          "gable",
+          "shop:TEA"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_2_7",
@@ -8674,7 +10129,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1413,
+          0.1029,
+          0.7174,
+          0.7001,
+          35,
+          3,
+          "stucco",
+          "mansard",
+          "pediment dormer"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_2_8",
@@ -8692,6 +10161,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0886,
+          0.1134,
+          0.7913,
+          0.5538,
+          36,
+          3,
+          "brick",
+          "hip",
+          "shop:HOTEL dormer"
+        ],
+        [
+          0.6583,
+          0.6672,
+          0.2427,
+          0.2299,
+          46,
+          3,
+          "sandstone",
+          "spire",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0886,
           0.1134,
@@ -8715,8 +10214,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_2_9",
@@ -8747,7 +10245,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1238,
+          0.8018,
+          0.6793,
+          30,
+          2,
+          "render",
+          "hip",
+          "shop:SHOP balcony awning"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_2_10",
@@ -8765,6 +10277,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.1097,
+          0.1134,
+          0.7807,
+          0.4493,
+          32,
+          3,
+          "brick",
+          "flat",
+          "shop:COOP"
+        ],
+        [
+          0.289,
+          0.5627,
+          0.422,
+          0.2612,
+          35,
+          3,
+          "stone",
+          "gable",
+          "shop:COOP",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1097,
           0.1134,
@@ -8788,8 +10330,7 @@
           "shop:COOP"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_2_11",
@@ -8820,7 +10361,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1029,
+          0.7807,
+          0.721,
+          37,
+          3,
+          "stock",
+          "flat",
+          "mill shop:WORK crane"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_3_0",
@@ -8851,7 +10406,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0886,
+          0.1029,
+          0.8229,
+          0.721,
+          43,
+          4,
+          "stucco",
+          "mansard",
+          "shop:STORE pediment dormer"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_3_1",
@@ -8869,6 +10438,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0886,
+          0.1029,
+          0.7913,
+          0.5643,
+          47,
+          4,
+          "sandstone",
+          "hip",
+          "bank"
+        ],
+        [
+          0.6583,
+          0.6672,
+          0.2427,
+          0.2403,
+          57,
+          5,
+          "stone",
+          "spire",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0886,
           0.1029,
@@ -8892,8 +10491,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_2",
@@ -8946,7 +10544,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.082,
+          0.2637,
+          0.7837,
+          40,
+          3,
+          "brick",
+          "mansard",
+          "shop:WORK"
+        ],
+        [
+          0.3417,
+          0.1447,
+          0.3165,
+          0.5956,
+          23,
+          1,
+          "stone",
+          "glass",
+          "arcade"
+        ],
+        [
+          0.6583,
+          0.082,
+          0.2637,
+          0.7837,
+          45,
+          4,
+          "brick",
+          "mansard",
+          "shop:WORK"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_3_3",
@@ -8984,11 +10618,39 @@
           4,
           "deco",
           "flat",
-          "clock"
+          "clock",
+          {
+            "stack": 0
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1029,
+          0.844,
+          0.7315,
+          37,
+          3,
+          "deco",
+          "flat",
+          "shop:STORE"
+        ],
+        [
+          0.2574,
+          0.1865,
+          0.4958,
+          0.4075,
+          50,
+          4,
+          "deco",
+          "flat",
+          "clock"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_4",
@@ -9006,6 +10668,51 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 3,
       "masses": [
+        [
+          0.1308,
+          0.1029,
+          0.7385,
+          0.5538,
+          45,
+          4,
+          "gothic",
+          "gable",
+          "bank"
+        ],
+        [
+          0.1519,
+          0.6567,
+          0.1899,
+          0.2194,
+          53,
+          4,
+          "gothic",
+          "spire",
+          "",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6794,
+          0.6567,
+          0.1794,
+          0.2194,
+          53,
+          4,
+          "gothic",
+          "spire",
+          "",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 3,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1308,
           0.1029,
@@ -9040,8 +10747,7 @@
           ""
         ]
       ],
-      "previous_mass_count": 3,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_5",
@@ -9079,6 +10785,51 @@
           3,
           "stucco",
           "hip",
+          "shop:HOTEL",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6583,
+          0.3537,
+          0.2532,
+          0.4911,
+          41,
+          4,
+          "stucco",
+          "hip",
+          "shop:HOTEL",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 3,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.082,
+          0.8335,
+          0.2717,
+          42,
+          4,
+          "stucco",
+          "mansard",
+          "dormer"
+        ],
+        [
+          0.078,
+          0.3537,
+          0.2637,
+          0.4911,
+          39,
+          3,
+          "stucco",
+          "hip",
           "shop:HOTEL"
         ],
         [
@@ -9093,8 +10844,7 @@
           "shop:HOTEL"
         ]
       ],
-      "previous_mass_count": 3,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_6",
@@ -9147,7 +10897,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0569,
+          0.1134,
+          0.2954,
+          0.721,
+          37,
+          3,
+          "brick",
+          "gable",
+          "shop:BAKE"
+        ],
+        [
+          0.3523,
+          0.1134,
+          0.3059,
+          0.721,
+          43,
+          4,
+          "stock",
+          "mansard",
+          "shop:STORE dormer"
+        ],
+        [
+          0.6583,
+          0.1134,
+          0.2848,
+          0.721,
+          40,
+          3,
+          "brick",
+          "hip",
+          "shop:BOOK"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "2_3_7",
@@ -9165,6 +10951,66 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 4,
       "masses": [
+        [
+          0.0991,
+          0.082,
+          0.7913,
+          0.2612,
+          46,
+          4,
+          "sandstone",
+          "mansard",
+          "dormer"
+        ],
+        [
+          0.1097,
+          0.3432,
+          0.2427,
+          0.4807,
+          38,
+          3,
+          "brick",
+          "hip",
+          "shop:SHOP",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.3523,
+          0.3432,
+          0.3059,
+          0.4911,
+          22,
+          1,
+          "stone",
+          "glass",
+          "arcade",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6583,
+          0.3432,
+          0.2321,
+          0.4807,
+          40,
+          3,
+          "brick",
+          "hip",
+          "shop:TEA",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 4,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0991,
           0.082,
@@ -9210,8 +11056,7 @@
           "shop:TEA"
         ]
       ],
-      "previous_mass_count": 4,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_8",
@@ -9229,6 +11074,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0886,
+          0.1134,
+          0.8229,
+          0.4702,
+          48,
+          4,
+          "sandstone",
+          "mansard",
+          "bank dormer"
+        ],
+        [
+          0.3734,
+          0.5836,
+          0.2532,
+          0.2822,
+          61,
+          5,
+          "stone",
+          "hip",
+          "clock arch",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0886,
           0.1134,
@@ -9252,8 +11127,7 @@
           "clock arch"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_9",
@@ -9291,11 +11165,40 @@
           2,
           "brick",
           "glass",
-          "arcade shop:SHOP"
+          "arcade shop:SHOP",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0886,
+          0.1029,
+          0.8124,
+          0.2926,
+          45,
+          4,
+          "brick",
+          "gable",
+          "mill"
+        ],
+        [
+          0.0991,
+          0.3955,
+          0.8018,
+          0.3971,
+          26,
+          2,
+          "brick",
+          "glass",
+          "arcade shop:SHOP"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_10",
@@ -9313,6 +11216,51 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 3,
       "masses": [
+        [
+          0.0991,
+          0.1134,
+          0.8018,
+          0.5538,
+          52,
+          4,
+          "brick",
+          "mansard",
+          "shop:HOTEL dormer"
+        ],
+        [
+          0.1624,
+          0.6672,
+          0.2321,
+          0.2299,
+          60,
+          5,
+          "sandstone",
+          "spire",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ],
+        [
+          0.6688,
+          0.6672,
+          0.2004,
+          0.2194,
+          56,
+          5,
+          "brick",
+          "spire",
+          "",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 3,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0991,
           0.1134,
@@ -9347,8 +11295,7 @@
           ""
         ]
       ],
-      "previous_mass_count": 3,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "2_3_11",
@@ -9375,6 +11322,40 @@
           5,
           "stone",
           "flat",
+          "bank",
+          {
+            "chimneys": [
+              1
+            ]
+          }
+        ],
+        [
+          0.2784,
+          0.2283,
+          0.4536,
+          0.3657,
+          63,
+          5,
+          "stone",
+          "flat",
+          "pediment",
+          {
+            "stack": 0
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1029,
+          0.7596,
+          0.7106,
+          54,
+          5,
+          "stone",
+          "flat",
           "bank"
         ],
         [
@@ -9389,8 +11370,7 @@
           "pediment"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_1_0",
@@ -9421,7 +11401,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1238,
+          0.6963,
+          0.5434,
+          16,
+          1,
+          "brick",
+          "gable",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_1",
@@ -9459,11 +11453,40 @@
           1,
           "brick",
           "lean",
-          "loading"
+          "loading",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1343,
+          0.5803,
+          0.3762,
+          19,
+          2,
+          "brick",
+          "gable",
+          "mill"
+        ],
+        [
+          0.1202,
+          0.5104,
+          0.327,
+          0.303,
+          14,
+          1,
+          "brick",
+          "lean",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_1_2",
@@ -9494,7 +11517,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1343,
+          0.8124,
+          0.4389,
+          17,
+          1,
+          "weatherboard",
+          "saw",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_3",
@@ -9525,7 +11562,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1238,
+          0.4642,
+          0.5121,
+          17,
+          1,
+          "brick",
+          "hip",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_4",
@@ -9556,7 +11607,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1413,
+          0.1343,
+          0.6963,
+          0.627,
+          27,
+          2,
+          "stock",
+          "gable",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_5",
@@ -9587,7 +11652,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1835,
+          0.1134,
+          0.5592,
+          0.6793,
+          28,
+          2,
+          "brick",
+          "gable",
+          "mill crane loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_6",
@@ -9618,7 +11697,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1308,
+          0.1447,
+          0.5908,
+          0.5956,
+          20,
+          2,
+          "render",
+          "hip",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_7",
@@ -9649,7 +11742,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1097,
+          0.1552,
+          0.7701,
+          0.6374,
+          21,
+          1,
+          "brick",
+          "barrel",
+          "loading arch"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_8",
@@ -9680,7 +11787,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1134,
+          0.5275,
+          0.5434,
+          21,
+          2,
+          "brick",
+          "gable",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_9",
@@ -9711,7 +11832,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1202,
+          0.1343,
+          0.4853,
+          0.418,
+          17,
+          1,
+          "stone",
+          "lean",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_10",
@@ -9753,7 +11888,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1134,
+          0.5275,
+          0.4911,
+          17,
+          1,
+          "brick",
+          "gable",
+          "loading"
+        ],
+        [
+          0.6794,
+          0.1656,
+          0.211,
+          0.2612,
+          10,
+          1,
+          "weatherboard",
+          "lean",
+          "door"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_1_11",
@@ -9795,7 +11955,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1343,
+          0.3798,
+          0.6479,
+          25,
+          2,
+          "stock",
+          "gable",
+          "mill loading"
+        ],
+        [
+          0.5,
+          0.1343,
+          0.3798,
+          0.6479,
+          28,
+          2,
+          "brick",
+          "gable",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_2_0",
@@ -9826,7 +12011,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1029,
+          0.8018,
+          0.7106,
+          34,
+          3,
+          "brick",
+          "gable",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_2_1",
@@ -9857,6 +12056,38 @@
         ],
         [
           0.1097,
+          0.709,
+          0.2637,
+          0.1463,
+          12,
+          1,
+          "brick",
+          "lean-v",
+          "loading",
+          {
+            "attach": 0,
+            "face": "v",
+            "pitch": 3,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0886,
+          0.1238,
+          0.8124,
+          0.5852,
+          24,
+          1,
+          "brick",
+          "barrel",
+          "mill loading"
+        ],
+        [
+          0.1097,
           0.6672,
           0.2637,
           0.1881,
@@ -9867,8 +12098,7 @@
           "loading"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_2_2",
@@ -9886,6 +12116,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0886,
+          0.1029,
+          0.8018,
+          0.5434,
+          22,
+          1,
+          "brick",
+          "saw",
+          "mill loading"
+        ],
+        [
+          0.6477,
+          0.6463,
+          0.2532,
+          0.2403,
+          31,
+          3,
+          "stock",
+          "flat",
+          "door",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0886,
           0.1029,
@@ -9909,8 +12169,7 @@
           "door"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_2_3",
@@ -9941,7 +12200,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1134,
+          0.7913,
+          0.303,
+          19,
+          1,
+          "brick",
+          "gable",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_2_4",
@@ -9971,6 +12244,38 @@
           "mill"
         ],
         [
+          0.6583,
+          0.21,
+          0.2532,
+          0.4399,
+          12,
+          1,
+          "brick",
+          "lean-u",
+          "loading",
+          {
+            "attach": 0,
+            "face": "u",
+            "pitch": 3,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1029,
+          0.5592,
+          0.627,
+          32,
+          3,
+          "stock",
+          "gable",
+          "mill"
+        ],
+        [
           0.6794,
           0.1343,
           0.2321,
@@ -9982,8 +12287,7 @@
           "loading"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_2_5",
@@ -10025,7 +12329,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1343,
+          0.4009,
+          0.6374,
+          23,
+          1,
+          "brick",
+          "barrel",
+          "loading"
+        ],
+        [
+          0.5,
+          0.1343,
+          0.4114,
+          0.6374,
+          26,
+          1,
+          "brick",
+          "barrel",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_2_6",
@@ -10067,7 +12396,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1134,
+          0.844,
+          0.2926,
+          28,
+          2,
+          "stock",
+          "gable",
+          "mill"
+        ],
+        [
+          0.1308,
+          0.4686,
+          0.7596,
+          0.2508,
+          15,
+          1,
+          "weatherboard",
+          "lean",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_2_7",
@@ -10098,7 +12452,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1238,
+          0.6752,
+          0.5643,
+          27,
+          2,
+          "brick",
+          "saw",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_2_8",
@@ -10136,11 +12504,40 @@
           2,
           "stone",
           "gable",
-          "mill loading"
+          "mill loading",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1029,
+          0.8018,
+          0.2926,
+          33,
+          3,
+          "stone",
+          "gable",
+          "mill"
+        ],
+        [
+          0.078,
+          0.3955,
+          0.3376,
+          0.4389,
+          29,
+          2,
+          "stone",
+          "gable",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_2_9",
@@ -10171,7 +12568,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1134,
+          0.5381,
+          0.6793,
+          26,
+          2,
+          "stock",
+          "gable",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_2_10",
@@ -10189,6 +12600,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0991,
+          0.1134,
+          0.7913,
+          0.5225,
+          34,
+          3,
+          "brick",
+          "flat",
+          "mill loading"
+        ],
+        [
+          0.173,
+          0.6359,
+          0.2532,
+          0.209,
+          39,
+          3,
+          "stone",
+          "flat",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0991,
           0.1134,
@@ -10212,8 +12653,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_2_11",
@@ -10244,7 +12684,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.1413,
+          0.0925,
+          0.7174,
+          0.7419,
+          38,
+          3,
+          "stock",
+          "gable",
+          "mill crane loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_3_0",
@@ -10275,7 +12729,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0675,
+          0.0925,
+          0.844,
+          0.7419,
+          45,
+          4,
+          "brick",
+          "flat",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_3_1",
@@ -10293,6 +12761,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.078,
+          0.1029,
+          0.8335,
+          0.5434,
+          27,
+          2,
+          "brick",
+          "saw",
+          "mill loading"
+        ],
+        [
+          0.6688,
+          0.6463,
+          0.2321,
+          0.2299,
+          51,
+          4,
+          "stock",
+          "flat",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.078,
           0.1029,
@@ -10316,8 +12814,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_3_2",
@@ -10355,7 +12852,11 @@
           2,
           "stock",
           "saw",
-          "mill loading"
+          "mill loading",
+          {
+            "attach": 0,
+            "face": "v"
+          }
         ],
         [
           0.6583,
@@ -10370,7 +12871,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0886,
+          0.1029,
+          0.8018,
+          0.3239,
+          40,
+          3,
+          "brick",
+          "gable",
+          "mill"
+        ],
+        [
+          0.0991,
+          0.4269,
+          0.3376,
+          0.4075,
+          28,
+          2,
+          "stock",
+          "saw",
+          "mill loading"
+        ],
+        [
+          0.6583,
+          0.5731,
+          0.2321,
+          0.2612,
+          56,
+          5,
+          "brick",
+          "hip",
+          "clock"
+        ]
+      ],
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_3_3",
@@ -10400,6 +12937,38 @@
           "mill dormer"
         ],
         [
+          0.711,
+          0.32,
+          0.19,
+          0.389,
+          13,
+          1,
+          "brick",
+          "lean-u",
+          "loading",
+          {
+            "attach": 0,
+            "face": "u",
+            "pitch": 3,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.0925,
+          0.633,
+          0.6165,
+          41,
+          4,
+          "stock",
+          "mansard",
+          "mill dormer"
+        ],
+        [
           0.6583,
           0.4582,
           0.2427,
@@ -10411,8 +12980,7 @@
           "loading"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_3_4",
@@ -10454,7 +13022,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.082,
+          0.8335,
+          0.2926,
+          39,
+          4,
+          "brick",
+          "flat",
+          "mill"
+        ],
+        [
+          0.078,
+          0.3851,
+          0.8335,
+          0.418,
+          21,
+          1,
+          "brick",
+          "saw",
+          "mill loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_3_5",
@@ -10472,6 +13065,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.1097,
+          0.1029,
+          0.6541,
+          0.5225,
+          38,
+          2,
+          "brick",
+          "barrel",
+          "mill loading"
+        ],
+        [
+          0.6477,
+          0.6254,
+          0.2427,
+          0.2403,
+          49,
+          4,
+          "stone",
+          "flat",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.1097,
           0.1029,
@@ -10495,8 +13118,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_3_6",
@@ -10527,6 +13149,38 @@
         ],
         [
           0.0991,
+          0.6881,
+          0.2743,
+          0.1672,
+          12,
+          1,
+          "stock",
+          "lean-v",
+          "loading",
+          {
+            "attach": 0,
+            "face": "v",
+            "pitch": 3,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0886,
+          0.1029,
+          0.8018,
+          0.5852,
+          29,
+          2,
+          "brick",
+          "saw",
+          "mill loading"
+        ],
+        [
+          0.0991,
           0.6672,
           0.2743,
           0.1881,
@@ -10537,8 +13191,7 @@
           "mill"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_3_7",
@@ -10580,7 +13233,32 @@
         ]
       ],
       "previous_mass_count": 2,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.0925,
+          0.3692,
+          0.7524,
+          45,
+          4,
+          "stock",
+          "gable",
+          "mill crane loading"
+        ],
+        [
+          0.5528,
+          0.0925,
+          0.3692,
+          0.7524,
+          41,
+          4,
+          "brick",
+          "gable",
+          "mill crane loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_3_8",
@@ -10598,6 +13276,36 @@
       "source_fragment": "docs/tasks/t634-shots/rci634.js",
       "mass_count": 2,
       "masses": [
+        [
+          0.0886,
+          0.1029,
+          0.8124,
+          0.5016,
+          43,
+          4,
+          "brick",
+          "flat",
+          "mill loading"
+        ],
+        [
+          0.173,
+          0.6045,
+          0.2532,
+          0.2403,
+          52,
+          4,
+          "stone",
+          "flat",
+          "clock",
+          {
+            "attach": 0,
+            "face": "v"
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
         [
           0.0886,
           0.1029,
@@ -10621,8 +13329,7 @@
           "clock"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     },
     {
       "id": "3_3_9",
@@ -10675,7 +13382,43 @@
         ]
       ],
       "previous_mass_count": 3,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.078,
+          0.1029,
+          0.844,
+          0.5329,
+          30,
+          2,
+          "brick",
+          "saw",
+          "mill loading"
+        ],
+        [
+          0.0991,
+          0.6567,
+          0.327,
+          0.209,
+          43,
+          4,
+          "stock",
+          "hip",
+          "mill"
+        ],
+        [
+          0.5106,
+          0.6567,
+          0.3903,
+          0.209,
+          16,
+          1,
+          "brick",
+          "barrel",
+          "loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_3_10",
@@ -10706,7 +13449,21 @@
         ]
       ],
       "previous_mass_count": 1,
-      "massing_changed": true
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0886,
+          0.0925,
+          0.6646,
+          0.6688,
+          49,
+          4,
+          "stock",
+          "gable",
+          "mill crane loading"
+        ]
+      ],
+      "overlap_repair_geometry_changed": false
     },
     {
       "id": "3_3_11",
@@ -10740,6 +13497,38 @@
           0.1865,
           0.2848,
           0.5643,
+          24,
+          2,
+          "stock",
+          "saw",
+          "mill loading",
+          {
+            "attach": 0,
+            "face": "u",
+            "pitch": 4,
+            "chimney": false
+          }
+        ]
+      ],
+      "previous_mass_count": 2,
+      "massing_changed": true,
+      "before_overlap_repair_masses": [
+        [
+          0.0991,
+          0.1029,
+          0.5169,
+          0.6479,
+          58,
+          5,
+          "brick",
+          "flat",
+          "mill clock"
+        ],
+        [
+          0.616,
+          0.1865,
+          0.2848,
+          0.5643,
           35,
           2,
           "stock",
@@ -10747,8 +13536,7 @@
           "mill loading"
         ]
       ],
-      "previous_mass_count": 2,
-      "massing_changed": true
+      "overlap_repair_geometry_changed": true
     }
   ],
   "non_rci_variants": [
@@ -13242,5 +16030,22 @@
     "lab_read_only_main": "54ecba5e186c1b2a8b258aae2be2ebe11d13efe6",
     "historical_lab_game_screenshots": "95f7d430 T717, labelled as historical references",
     "principles": "Broad readable massing, continuous low-contrast slate rows, solid brick/stone surfaces, recessed openings and substantial eaves; adapt to original Town footprint."
+  },
+  "overlap_repair": {
+    "reported_roots": [
+      {
+        "id": "3_2_4",
+        "x": 28,
+        "y": 29
+      },
+      {
+        "id": "1_1_5",
+        "x": 34,
+        "y": 23
+      }
+    ],
+    "scope": "shared-wall joins, physically ordered separate masses, width-dependent roof pitch and generated bays; civic/industry fragments unchanged; contained roof-tower surfaces clipped to the exact flat/hip intersection and painted after parent roof",
+    "geometry_only_catalogs_changed": 49,
+    "source_render_change_counts": "pending exact-commit Chrome comparison"
   }
 }
