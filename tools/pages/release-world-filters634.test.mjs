@@ -37,11 +37,13 @@ const snapshot = (T634, onlyNewEscape = false) => {
       __newEscapeOff603: { own: true, type: 'boolean', value: onlyNewEscape } }, after: copy(before), restored: true,
     effective: { T591: false, T603: true, T634 }, sceneUnchanged: true };
 };
-function frame(c, candidate, onlyNewEscape, mode) {
+function frame(c, candidate, onlyNewEscape, mode, clockInput = 5, clockMode = 'shared') {
   const shadowCalls = c.time === 100 ? (candidate && !onlyNewEscape ? 1 : 2) : 0;
   const fractional = c.zoom === .65, reflectionCalls = fractional ? 0 : 1;
-  const value = mode === 'wrong-edge' ? 'bad' : candidate && !onlyNewEscape ? 'approved-new-art' : 'immutable-prev';
-  return { unstablePixels: 0, fixture634: snapshot(candidate ? !onlyNewEscape : null, onlyNewEscape),
+  let value = mode === 'wrong-edge' ? 'bad' : candidate && !onlyNewEscape ? 'approved-new-art' : 'immutable-prev';
+  if (clockInput !== 5 || clockMode !== 'shared') value += '/' + clockInput + '/' + clockMode;
+  let next = clockInput; const calls = Array.from({ length: 3 }, (_, i) => { const before = clockMode === 'shared' || i === 0 ? 6 : next, pre = clockMode === 'shared' ? clockInput : next; next = Math.max(0, pre - .016); return { before, pre, post: next, restored: clockMode === 'shared' ? before : next }; });
+  return { unstablePixels: clockMode === 'original-drift' ? 1 : 0, clock634: { input: clockInput, mode: clockMode, callerBefore: 6, callerAfter: 6, restored: true, compositorRestored: true, calls }, diagnostic634: { readCount: 2 }, fixture634: snapshot(candidate ? !onlyNewEscape : null, onlyNewEscape),
     state: { mode, flags: { T603: true }, sky: 'same-sky', fx: 'same-dust', cam: { x: 256.375, y: 576.625, z: c.zoom },
       viewport: { dpr: c.dpr, width: c.width * c.dpr, height: c.height * c.dpr },
       counts: { calls: reflectionCalls + shadowCalls, reflectionCalls, shadowCalls,
@@ -49,18 +51,19 @@ function frame(c, candidate, onlyNewEscape, mode) {
         wrongEdges: mode === 'wrong-edge' ? shadowCalls : 0 } },
     png: 'data:image/png;base64,' + Buffer.from(JSON.stringify({ w: c.width * c.dpr, h: c.height * c.dpr, value })).toString('base64') };
 }
-function rig(t, mutateFrame = () => {}, onPersist = () => {}, diagnosticError = null) {
+function rig(t, mutateFrame = () => {}, onPersist = () => {}, diagnosticError = null, mutateOrigin = () => {}) {
   const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'filters634-contract-'));
   t.after(() => fs.rmSync(OUT, { recursive: true, force: true }));
-  const nativeCases603 = cases(), report = { release: { current: { commit: 'current' }, previous: { commit: 'immutable-prev' } } };
+  const nativeCases603 = cases(), report = { release: { current: { commit: 'current', version: 'new' }, previous: { commit: 'immutable-prev', version: 'old' } } };
   let c, candidate = false, calls = 0;
   const controller = filters.createController({ report, check, persist() { onPersist(report, OUT); }, OUT, nativeCases603,
     release603: { newEscapeFlags: ['__noT634'] }, nativeCamera603: async next => { c = next; },
     ev: async expression => {
+      if (expression === '__s603.rainbowOrigin634()') { const origin = { value: candidate ? 6 : 5, document: { doc: candidate ? 'candidate' : 'baseline', version: candidate ? 'new' : 'old' }, phase: 'same-task-after-grow22-before-matrix-draw' }; mutateOrigin(origin, candidate); return origin; }
       if (expression === '__s603.filterReadbacks634()') { if (diagnosticError) throw diagnosticError; return { readCount: 2, reads: [{ rgbaBase64: 'AA==' }, { rgbaBase64: 'AQ==' }] }; }
-      const [time, mode, onlyNewEscape, flags] = JSON.parse('[' + expression.slice(expression.indexOf('(') + 1, -1) + ']');
-      assert.equal(time, c.time); assert.deepEqual(flags, ['__noT634']); calls++;
-      const out = frame(c, candidate, onlyNewEscape, mode); mutateFrame(out, { c, candidate, onlyNewEscape, mode }); return out;
+      const [time, mode, onlyNewEscape, flags, clockInput, clockMode] = JSON.parse('[' + expression.slice(expression.indexOf('(') + 1, -1) + ']');
+      assert.equal(time, c.time); assert.deepEqual(flags, ['__noT634'], 5); calls++;
+      const out = frame(c, candidate, onlyNewEscape, mode, clockInput, clockMode); mutateFrame(out, { c, candidate, onlyNewEscape, mode, clockInput, clockMode }); return out;
     },
     nativeSave603: (name, r) => { const file = name + '.png'; fs.writeFileSync(path.join(OUT, file), Buffer.from(r.png.split(',')[1], 'base64')); return file; },
     nativeRecord603: ({ png, pixels, ...r }) => ({ ...r, rgbaSHA256: pixels.value }),
@@ -75,7 +78,7 @@ function rig(t, mutateFrame = () => {}, onPersist = () => {}, diagnosticError = 
 test('overlay is exact/reversible, keeps the frozen launch/timing pins and each original predicate once', () => {
   const original = canonical.build(raw), edits = []; let source = original.source;
   filters.install((from, to, label) => { assert.equal(source.split(from).length, 2, label); source = source.replace(from, to); edits.push({ from, to }); });
-  assert.equal(edits.length, 5);
+  assert.equal(edits.length, 6);
   for (const line of filters.COVERAGE_BLOCK.split('\n')) assert.equal(source.split(line).length, 2);
   assert.equal(source.split(canonical.CHROME_LAUNCH).length, 2);
   for (const span of Object.values(canonical.TIMING)) {
@@ -107,10 +110,10 @@ function browser(flags = {}, throws = false) {
   const apply = () => { window.__noT634 = pinned ? true : off; };
   Object.defineProperty(window, '__noT603', { configurable: true, enumerable: true, get: () => off, set: value => { off = value; apply(); } });
   Object.defineProperty(window, '__newEscapeOff603', { configurable: true, enumerable: true, get: () => pinned, set: value => { pinned = value === true; apply(); } });
-  const box = { window, running: false, measureWork603: false, ctx: Object.create({ getImageData() {} }),
+  const box = { window, running: false, measureWork603: false, rainbowT: 6, ctx: Object.create({ getImageData() {} }),
     btoa: value => Buffer.from(value, 'binary').toString('base64'),
     t591On: () => !window.__noT591, t603On: () => !window.__noT603, t634On: () => !window.__noT634 };
-  box.__s603 = { scene: () => 'unchanged city', nativeFrame(artOff, time, mode) {
+  box.__s603 = { scene: () => 'unchanged city', compositorFrame() { box.rainbowT = Math.max(0, box.rainbowT - .016); }, nativeFrame(artOff, time, mode) {
     window.__noT603 = artOff; if (throws) throw Error('native failure'); return { state: { time, mode } };
   } };
   box.capture = vm.runInNewContext('(' + filters.filterFrame634.toString() + ')', box);
@@ -120,7 +123,7 @@ function browser(flags = {}, throws = false) {
 test('browser fixture calls genuine nativeFrame and restores undefined/false/own/inherited flags after success or failure', () => {
   for (const initial of [{}, { __noT591: undefined, __noT634: false }, { __noT591: false, __noT634: true }]) for (const escape of [false, true]) {
     const b = browser(initial), before = Object.getOwnPropertyNames(b.window).sort(), values = before.map(k => b.window[k]);
-    const got = b.capture(100, 'native', escape, ['__noT634']);
+    const got = b.capture(100, 'native', escape, ['__noT634'], 5);
     assert.equal(got.fixture634.effective.T591, false); assert.equal(got.fixture634.effective.T603, true);
     assert.equal(got.fixture634.effective.T634, !escape); assert.equal(got.fixture634.restored, true);
     assert.deepEqual(Object.getOwnPropertyNames(b.window).sort(), before); assert.deepEqual(before.map(k => b.window[k]), values);
@@ -128,18 +131,18 @@ test('browser fixture calls genuine nativeFrame and restores undefined/false/own
   const inherited = browser(); Object.setPrototypeOf(inherited.window, { __noT591: false, __noT634: undefined });
   inherited.window.__newEscapeOff603 = true; inherited.window.__noT603 = true;
   const inheritedBefore = Object.keys(inherited.window).map(k => [k, inherited.window[k]]);
-  assert.equal(inherited.capture(100, 'native', false, ['__noT634']).fixture634.restored, true);
+  assert.equal(inherited.capture(100, 'native', false, ['__noT634'], 5).fixture634.restored, true);
   assert.equal(Object.hasOwn(inherited.window, '__noT591'), false);
   assert.deepEqual(Object.keys(inherited.window).map(k => [k, inherited.window[k]]), inheritedBefore);
   const failed = browser({}, true); const keys = Object.keys(failed.window);
-  assert.throws(() => failed.capture(100, 'native', false, ['__noT634']), /native failure/);
+  assert.throws(() => failed.capture(100, 'native', false, ['__noT634'], 5), /native failure/);
   assert.deepEqual(Object.keys(failed.window), keys); assert.equal(Object.hasOwn(failed.window, '__noT591'), false);
   const b = browser(); b.running = true; assert.throws(() => b.capture(100), /frozen snapshot/);
 });
 
 test('36 independent references and both candidate arms pass before normal308, without changing normal arrays', async t => {
   const r = rig(t); await r.controller.baseline(); r.setCandidate(); await r.controller.candidate();
-  assert.equal(r.calls(), 111); assert.equal(r.report.nativeFilterFallback634.earlyPassed, true);
+  assert.equal(r.calls(), 115); assert.equal(r.report.nativeFilterFallback634.earlyPassed, true);
   assert.equal(r.report.matrix, undefined); assert.throws(() => r.controller.finish(), /308 original/);
   r.normal(); const before = JSON.stringify([r.report.matrix, r.report.nativeZoomMatrix, r.report.nativeMobileMatrix, r.report.nativeMobileAligned]);
   r.controller.finish(); assert.equal(r.report.nativeFilterFallback634.finalPassed, true);
@@ -256,8 +259,10 @@ function readbackBrowser({ unstable = true, shape = 'inherited', nativeError, re
   const before = Object.getOwnPropertyDescriptor(b.ctx, 'getImageData');
   b.__s603.nativeFrame = function (off, time, mode) {
     b.window.__noT603 = off;
+    b.__s603.compositorFrame(off, time, mode); b.__s603.compositorFrame(off, time, mode);
     returns.push(b.ctx.getImageData(0, 0, width, height));
     if (nativeError) throw nativeError;
+    b.__s603.compositorFrame(off, time, mode);
     returns.push(b.ctx.getImageData(0, 0, width, height));
     return { state: { time, mode }, unstablePixels: unstable ? 2 : 0, png: 'unchanged original PNG' };
   };
@@ -268,7 +273,7 @@ function readbackBrowser({ unstable = true, shape = 'inherited', nativeError, re
 test('readback spy preserves exact two reads, receivers, arguments and ImageData identities; encoding adds no reads', () => {
   for (const shape of ['inherited', 'own', 'accessor', 'nonconfigurable']) {
     const r = readbackBrowser({ shape, large: true });
-    const out = r.b.capture(55, 'native', false, ['__noT634']);
+    const out = r.b.capture(55, 'native', false, ['__noT634'], 5);
     assert.equal(out.png, 'unchanged original PNG'); assert.equal(out.diagnostic634.readCount, 2);
     assert.equal(r.calls.length, 2); assert.deepEqual(r.returns, r.images);
     assert.ok(r.returns.every((image, i) => image === r.images[i]));
@@ -288,12 +293,12 @@ test('readback spy preserves exact two reads, receivers, arguments and ImageData
 test('readback instrumentation restores descriptor/ownership and preserves original native/read exception identity', () => {
   for (const kind of ['nativeError', 'readError']) for (const shape of ['inherited', 'own', 'accessor', 'nonconfigurable']) {
     const error = Error('original ' + kind), r = readbackBrowser({ [kind]: error, shape });
-    assert.throws(() => r.b.capture(55, 'native', false, ['__noT634']), caught => caught === error);
+    assert.throws(() => r.b.capture(55, 'native', false, ['__noT634'], 5), caught => caught === error);
     assert.equal(r.calls.length, 1); assert.deepEqual(Object.getOwnPropertyDescriptor(r.b.ctx, 'getImageData'), r.before);
     assert.equal(r.b.ctx.getImageData, r.originalRead); assert.equal(Object.hasOwn(r.b.window, '__noT591'), false);
   }
   const r = readbackBrowser({ unstable: false }); r.b.__s603.cacheStats = () => { throw Error('diagnostic metadata unavailable'); };
-  const out = r.b.capture(55, 'native', false, ['__noT634']);
+  const out = r.b.capture(55, 'native', false, ['__noT634'], 5);
   assert.equal(out.unstablePixels, 0); assert.equal(r.calls.length, 2);
   assert.match(out.diagnostic634.reads[0].metadata.error, /metadata unavailable/);
   assert.equal(r.b.__s603.filterReadbacks634().delta.changedPixels, 0);
@@ -331,7 +336,7 @@ test('first failed returned frame, original PNG, named clauses and readbacks per
 test('diagnostic retrieval or persistence failure cannot replace the original first-failure guard', async t => {
   for (const fail of ['serialization', 'persist']) {
     const error = Error('diagnostic ' + fail), r = rig(t, out => { out.unstablePixels = 2; },
-      () => { if (fail === 'persist') throw error; }, fail === 'serialization' ? error : null);
+      report => { if (fail === 'persist' && report.nativeFilterFallback634.firstFailure) throw error; }, fail === 'serialization' ? error : null);
     await assert.rejects(r.controller.baseline(), /T634 explicit filter fixture state and restored flag ownership/);
     const first = r.report.nativeFilterFallback634.firstFailure;
     assert.equal(r.calls(), 1); assert.equal(first.frame.unstablePixels, 2);
@@ -342,14 +347,133 @@ test('diagnostic retrieval or persistence failure cannot replace the original fi
 test('the actual frozen nativeFrame still performs exactly three draws and its original two readbacks', () => {
   const r = readbackBrowser(), b = r.b; let draws = 0, pngCalls = 0;
   b.cvs = { width: 2, height: 2, toDataURL(type) { assert.equal(type, 'image/png'); pngCalls++; return 'original frozen PNG'; } };
-  b.__s603.compositorFrame = (off, time, mode) => { b.window.__noT603 = off; draws++; return { time, mode, ordinal: draws }; };
+  b.__s603.compositorFrame = (off, time, mode) => { b.window.__noT603 = off; draws++; b.rainbowT = Math.max(0, b.rainbowT - .016); return { time, mode, ordinal: draws }; };
   const start = raw.indexOf('    nativeFrame:') + '    nativeFrame:'.length;
   const end = raw.indexOf('\n    snapshotCanvasOnly:', start);
   b.__s603.nativeFrame = vm.runInNewContext('(' + raw.slice(start, end).trim().replace(/,$/, '') + ')', b);
-  const result = b.capture(55, 'native', false, ['__noT634']);
+  const result = b.capture(55, 'native', false, ['__noT634'], 5);
   assert.equal(draws, 3); assert.equal(r.calls.length, 2); assert.equal(pngCalls, 1);
   assert.equal(result.state.ordinal, 2); assert.equal(result.unstablePixels, 2); assert.equal(result.png, 'original frozen PNG');
   assert.equal(b.__s603.filterReadbacks634().delta.changedPixels, result.unstablePixels);
   assert.equal(draws, 3); assert.equal(r.calls.length, 2); assert.equal(pngCalls, 1);
   assert.deepEqual(Object.getOwnPropertyDescriptor(b.ctx, 'getImageData'), r.before);
+});
+
+
+test('rainbow origin is captured in the original grow evaluate task without calls or mutation', () => {
+  const built = linux.build(raw).source;
+  assert.ok(built.includes("const stats=__s603.grow22();if('+snapshot+'){__s603.compositorFreeze(true);__s603.captureRainbow634();}return stats;"));
+  assert.equal(built.split('__s603.captureRainbow634();').length, 2);
+  const b = browser(); b.__s603.documentIdentity = () => ({ doc: 'baseline', version: 'immutable' });
+  b.origin = vm.runInNewContext('(' + filters.captureRainbow634.toString() + ')', b);
+  const before = b.rainbowT, origin = b.origin();
+  assert.equal(origin.value, before); assert.equal(b.rainbowT, before);
+  assert.equal(origin.phase, 'same-task-after-grow22-before-matrix-draw');
+  b.rainbowT = 1; assert.equal(b.__s603.rainbowOrigin634().value, before);
+  b.running = true; assert.throws(() => b.origin(), /frozen snapshot/);
+  b.running = false; b.measureWork603 = true; assert.throws(() => b.origin(), /frozen snapshot/);
+});
+
+test('PREV positive-clock and document-source guards fail closed before any fallback capture', async t => {
+  for (const mutate of [o => { o.value = 0; }, o => { o.value = -1; }, o => { o.value = NaN; },
+    o => { o.value = Infinity; }, o => { o.document.doc = 'candidate'; }, o => { o.document.version = 'wrong'; }, o => { o.phase = 'after-draw'; }]) {
+    const r = rig(t, undefined, undefined, null, mutate);
+    await assert.rejects(r.controller.baseline(), /real positive same-task/); assert.equal(r.calls(), 0);
+  }
+  const r = rig(t, undefined, undefined, null, (o, candidate) => { if (candidate) o.document.version = 'wrong'; });
+  await r.controller.baseline(); r.setCandidate(); await assert.rejects(r.controller.candidate(), /candidate original same-task/);
+  assert.equal(r.calls(), 36);
+});
+
+test('clock guard rejects changed input, hidden draws/reads, missing natural decay or failed restoration', () => {
+  const c = cases().find(c => c.key === 'aligned-dpr2-day'), good = frame(c, true, false, 'native');
+  assert.equal(filters.clockValid634(good, 5), true);
+  for (const mutate of [r => { r.clock634.input = 6; }, r => { r.clock634.calls.pop(); }, r => { r.diagnostic634.readCount++; },
+    r => { r.clock634.callerAfter--; }, r => { r.clock634.restored = false; }, r => { r.clock634.compositorRestored = false; },
+    r => { r.clock634.calls[1].pre = 4; }, r => { r.clock634.calls[1].post = 5; }, r => { r.clock634.calls[1].restored = 5; }]) {
+    const bad = copy(good); mutate(bad); assert.equal(filters.clockValid634(bad, 5), false);
+  }
+  const b = browser();
+  for (const value of [undefined, 0, -1, NaN, Infinity]) assert.throws(() => b.capture(55, 'native', false, ['__noT634'], value), /observed positive finite/);
+  b.measureWork603 = true; assert.throws(() => b.capture(55, 'native', false, ['__noT634'], 5), /frozen snapshot/);
+});
+
+test('compositor method keeps receiver/arguments and descriptor ownership, restores clock on success and exact native errors', () => {
+  for (const shape of ['own', 'inherited', 'accessor', 'nonconfigurable']) for (const throws of [false, true]) {
+    const r = readbackBrowser(), b = r.b, calls = [], error = Error('original compositor failure');
+    const original = function (...args) { calls.push({ receiver: this, args, clock: b.rainbowT }); b.rainbowT = Math.max(0, b.rainbowT - .016); if (throws) throw error; return 'original return'; };
+    delete b.__s603.compositorFrame;
+    if (shape === 'inherited') Object.setPrototypeOf(b.__s603, { compositorFrame: original });
+    else Object.defineProperty(b.__s603, 'compositorFrame', shape === 'accessor' ? { configurable: true, enumerable: false, get: () => original } :
+      { configurable: shape !== 'nonconfigurable', enumerable: false, writable: true, value: original });
+    const descriptor = Object.getOwnPropertyDescriptor(b.__s603, 'compositorFrame');
+    if (throws) assert.throws(() => b.capture(55, 'native', false, ['__noT634'], 5), caught => caught === error);
+    else {
+      const got = b.capture(55, 'native', false, ['__noT634'], 5);
+      assert.equal(filters.clockValid634(got, 5), true); assert.equal(calls.length, 3); assert.equal(r.calls.length, 2);
+    }
+    assert.ok(calls.every(c => c.receiver === b.__s603 && c.clock === 5));
+    assert.deepEqual(calls[0].args, [false, 55, 'native']);
+    assert.equal(b.rainbowT, 6); assert.equal(b.__s603.compositorFrame, original);
+    assert.deepEqual(Object.getOwnPropertyDescriptor(b.__s603, 'compositorFrame'), descriptor);
+    if (!throws) { b.__s603.compositorFrame(false, 55, 'native'); assert.equal(b.rainbowT, 6 - .016); }
+  }
+});
+
+test('genuine frozen nativeFrame is stable with shared input, unstable with original countdown, and restores exact RGBA', () => {
+  const b = browser(); let draws = 0, reads = 0, rendered = 0; const captures = [];
+  b.ctx = { getImageData() { reads++; const v = Math.round(rendered * 1000) % 256; return { width: 1, height: 1, data: new Uint8ClampedArray([v, 0, 0, 255]) }; } };
+  b.cvs = { width: 1, height: 1, toDataURL() { return String(Math.round(rendered * 1000) % 256); } };
+  b.__s603.compositorFrame = (off, time, mode) => { b.window.__noT603 = off; draws++; rendered = b.rainbowT; b.rainbowT = Math.max(0, b.rainbowT - .016); return { time, mode }; };
+  const start = raw.indexOf('    nativeFrame:') + '    nativeFrame:'.length, end = raw.indexOf('\n    snapshotCanvasOnly:', start);
+  b.__s603.nativeFrame = vm.runInNewContext('(' + raw.slice(start, end).trim().replace(/,$/, '') + ')', b);
+  for (const [input, mode] of [[5, 'shared'], [5, 'original-drift'], [2.5, 'shared'], [5, 'shared']]) {
+    const beforeD = draws, beforeR = reads;
+    const out = b.capture(55, 'native', false, ['__noT634'], input, mode);
+    captures.push({ out, rgba: b.__s603.filterReadbacks634().reads[1].rgbaBase64 });
+    assert.equal(draws - beforeD, 3); assert.equal(reads - beforeR, 2); assert.equal(b.rainbowT, 6);
+    assert.equal(filters.clockValid634(out, input, mode), true);
+  }
+  assert.equal(captures[0].out.unstablePixels, 0); assert.equal(captures[1].out.unstablePixels, 1);
+  assert.notEqual(captures[0].rgba, captures[2].rgba); assert.equal(captures[0].rgba, captures[3].rgba);
+});
+
+for (const [name, mutate, expected] of [
+  ['clock metadata corruption', (out, info) => { if (info.candidate) out.clock634.calls[0].post = 5; }, /exact three-draw rainbow/],
+  ['countdown red source is invisible', (out, info) => { if (info.clockMode === 'original-drift') out.unstablePixels = 0; }, /original stablePixels guard/],
+  ['wrong nonzero input has no pixel effect', (out, info) => { if (info.clockInput === 2.5) { const p = JSON.parse(Buffer.from(out.png.split(',')[1], 'base64')); p.value = 'approved-new-art'; out.png = 'data:image/png;base64,' + Buffer.from(JSON.stringify(p)).toString('base64'); } }, /rainbow original-drift and nonzero/]
+]) test('clock red source: ' + name, async t => {
+  const r = rig(t, mutate); await r.controller.baseline(); r.setCandidate();
+  await assert.rejects(r.controller.candidate(), expected); assert.equal(r.report.nativeFilterFallback634.earlyPassed, false);
+});
+
+
+test('expected original-drift evidence persists immediately before a later wrong-clock control can fail', async t => {
+  let persistedAtCalls = null, saved;
+  const r = rig(t, (out, info) => {
+    if (info.clockInput === 2.5) {
+      assert.ok(saved); assert.equal(persistedAtCalls, 113);
+      out.clock634.calls[0].post = out.clock634.input;
+    }
+  }, (report, OUT) => {
+    const first = report.nativeFilterFallback634.rainbow.originalDriftEvidence;
+    if (first && !saved) {
+      persistedAtCalls = r.calls(); saved = copy(first);
+      assert.match(first.frame.originalGuardError, /explicit filter fixture state/);
+      assert.equal(first.frame.unstablePixels, 1); assert.equal(first.failedPredicates.join(','), 'stablePixels');
+      assert.equal(first.readbacks.readCount, 2);
+      for (const file of [first.file, first.frame.file, ...first.readbacks.reads.map(read => read.file)]) assert.ok(fs.existsSync(path.join(OUT, file)));
+      assert.equal(report.nativeFilterFallback634.firstFailure, undefined);
+    }
+  });
+  await r.controller.baseline(); r.setCandidate();
+  await assert.rejects(r.controller.candidate(), /exact three-draw rainbow/);
+  assert.ok(saved); assert.equal(r.report.nativeFilterFallback634.rainbow.originalDriftEvidence.frame.originalGuardError, saved.frame.originalGuardError);
+});
+
+test('original dimension guard retains precedence over the added clock guard', async t => {
+  const r = rig(t, out => { out.state.viewport.dpr = 999; out.clock634.restored = false; });
+  await assert.rejects(r.controller.baseline(), /complete native dimensions/);
+  assert.equal(r.report.nativeFilterFallback634.firstFailure.dimensionsValid, false);
+  assert.equal(r.report.nativeFilterFallback634.firstFailure.clockValid, false);
 });

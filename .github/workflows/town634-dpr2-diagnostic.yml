@@ -39,6 +39,7 @@ jobs:
             evidence/dpr2/*summary.json
             evidence/dpr2/*overlay.json
             evidence/dpr2/*first-failure*
+            evidence/dpr2/*rainbow*
             evidence/dpr2.log
             evidence/contracts.log
           if-no-files-found: error
