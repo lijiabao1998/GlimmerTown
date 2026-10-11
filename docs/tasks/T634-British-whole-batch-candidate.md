@@ -147,3 +147,13 @@ tick／AI／經濟／成本／容量／放置邏輯／MSZ／存檔格式與內�
 5. 隔離workflow只有特定診斷分支push觸發、contents:read、無deploy/外部服務/安全設定變動。來源漂移與診斷本身失敗必須明示；本輪沒有正式release通過語義。
 
 回滾：不移動PR16，拋棄隔離診斷分支即可；此段為施工前卡面，尚未取得首紅frame。
+
+
+### DPR2 彩虹快照邊界修復（施工前固定）
+隔離1db4/38120974678精確重現原首紅。首對原RGBA3351差異全部在T248紅色虹帶 x188–592/y260–273，通道最大差1、alpha相同；source幾何外緣y260.796、海面y274，sprite/ground快取與城市其餘像素不變。rainbowT實值尚未記錄，但原draw(.016)會遞減它，現有snapshot沒有重套此純視覺時鐘。兩位獨立覆核同意且非作者發佈方批准只修fallback快照。
+
+允許觸碰僅既有helper/test與其exact overlay接線（均在helper中）；本卡/claim；隔離workflow僅加tools/pages路徑觸發以免文檔卡重跑已知紅Chrome。產品、凍結源、正式workflow及原308矩陣不改。
+
+固定驗收：在原grow22同一evaluate task剛結束、任何matrix draw前，只讀取得immutable PREV真實rainbowT，有限且大於0，否則停止，不造9/清零/關彩虹。candidate即時值也記錄。fallback36每次canonical原有三draw前套同PREV值；每次draw後必保留原自然遞減，finally精確還原caller值及原method descriptor/ownership，exception亦然。live/performance/原308完全不套wrapper。獨立PREV與candidate-only-new-escape仍全RGBA零差。共享值、pre/post/final值與來源全記錄。
+
+新增三項真Chrome對照：恢復原自然倒數必在原stablePixels守衛紅，另一個非零共享值必有真像素差，恢復原值全RGBA零差；原陰影wrong-edge仍完整。測試只能新增，不降低原判準；透明3draw/2read守衛仍保留。先同隔離最小Chrome驗證有證據修復，再回PR16做原全套精確SHA驗證。舊兩輪紅證據保留；本段尚未聲稱修復通過。

@@ -2,6 +2,7 @@ name: Town T634 isolated DPR2 diagnostic (not release acceptance)
 on:
   push:
     branches: [gpt/town-634-dpr2-diagnostic]
+    paths: ['tools/pages/**']
 permissions:
   contents: read
 concurrency:
