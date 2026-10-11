@@ -114,3 +114,19 @@ tick／AI／經濟／成本／容量／放置邏輯／MSZ／存檔格式與內�
 
 ### main正式發佈閘門補充（工作流改動前固定）
 獨立覆核要求新增default-on證據不只在候選分支跑一次：允許main Pages工作流新增required approved-art-release job，執行同一release634真Chrome無query/六哨兵/存檔/批准圖恆等；deploy.needs必須包含此job。既有validate/browser/package/pages-browser全數保留，原native計時參考規則不改。候選分支先跑相同所有閘門，main合併SHA再跑一次才可部署。baseline634辅助圖明示?noT634舊路與escape baseline標籤，不能冒充新正式預設。
+
+
+### 原生濾鏡覆蓋台架修正（施工前固定）
+68c3的7項候選CI已通過；此前acafd的Pages world在完成308正常新圖／308舊路／308only-new-escape畫面後，因舊的三條濾鏡覆蓋判準而失敗。實測正常新圖308幀全部shadowCalls=0、fractionalCalls=0；舊路與only-new-escape各有90幀真正陰影，且全部像素與immutable main相同。原因是目前133類正常新圖均帶既有__t590標記和落地影，原renderer有意不重疊壓扁陰影；不能改批准圖來製造呼叫。失敗原樣保留。
+
+獨立覆核及非作者發佈方已確認：這是路徑覆蓋修復，不降低像素或行為閾值。追加claim僅tools/pages/release-world-filters634.cjs及其測試、tools/pages/release-correctness.cjs的exact allowlist接線、tools/pages/release-acceptance.test.mjs的附加守衛；T634 release634.cjs/md與CHANGELOG。禁止修改凍結scene603.js、native-correctness.cjs及其身份釘；index/sw/315美術完全不改、無版本變更。
+
+固定驗收：
+1. 原正常308矩陣、原逐像素／state／draw count比較和固定種子存檔不動；不可覆寫或追加fallback資料到原256/32/16/4陣列。
+2. 額外同城同鏡頭32組fractional＋4組aligned mobile，僅同步設置真正支持的window.__noT591=true，T634新圖仍開啟。每幀記錄實際T591/T634/T603狀態，finally恢復旗標值及own-property，不改快取或city資料。
+3. baseline和candidate使用相同fallback fixture；candidate只設新escape的對照必須與immutable main全RGBA零差，原state/draw count要求保留。三條原native filter覆蓋謂詞原样在明示fallback資料上執行；沒有假計數或換低門檻。
+4. 保留原正常反射wrong-edge紅源，再加夜間fallback陰影專屬wrong-edge紅源，要求真像素受損、恢復後零差。exact-anchor與反向還原測試证明overlay無旁改。
+5. release634的原360幀另加透傳native filter計數，直接比較批准7105與release的實際呼叫；原315日夜／6哨兵／存讀／3紅源與零錯誤完整保留。
+6. 完整本地工具／回歸及精確新提交候選與Pages required CI重驗；舊紅與advisory均保留。沒有全部required綠不合併，非作者負責merge。
+
+回滾：還原本補充測試overlay及接線即可；產品來源維持同一批准版本。當前為施工前卡面，尚未聲稱修正CI通過。
