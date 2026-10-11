@@ -26,10 +26,16 @@ function redSource(s,kind){
   return s.replace(old,old.replace(anchor,replacement));
 }
 function scriptsParse(html,label){const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]);need(scripts.length>0,'No inline scripts in '+label);for(const s of scripts)new Function(s);}
+// 只讀原生繪製狀態；計數與實際 drawImage 完整透傳，任何退出路徑均復原原函式。
+function countFilterDraws634(g,draw){
+  const original=g.drawImage,counts={reflection:0,shadow:0};
+  g.drawImage=function(...args){if(this.filter==='brightness(0)')counts[this.getTransform().d<0?'reflection':'shadow']++;return original.apply(this,args);};
+  try{return{value:draw(),counts};}finally{g.drawImage=original;}
+}
 function inject(s,sharedBridge){
   once(s,'window.GV={','GV injection anchor');const count=s.split('requestAnimationFrame(frame);').length-1;
   need(count===2,'Expected both initial and recurring frame-loop anchors');
-  return s.replace('window.GV={','('+sharedBridge+')();('+releaseBridge634.toString()+')();window.GV={').replaceAll('requestAnimationFrame(frame);','if(!window.__freeze634)requestAnimationFrame(frame);');
+  return s.replace('window.GV={','('+sharedBridge+')();('+releaseBridge634.toString()+')('+countFilterDraws634.toString()+');window.GV={').replaceAll('requestAnimationFrame(frame);','if(!window.__freeze634)requestAnimationFrame(frame);');
 }
 function rawPixels(c){
   need(Number.isInteger(c.width)&&c.width>0&&Number.isInteger(c.height)&&c.height>0&&typeof c.rgba==='string','Missing native canvas RGBA');
@@ -46,7 +52,7 @@ function firstModeFailure({boot,frame,expectedOn,expectedExplicit,guard,pixelsEq
   if(boot.on!==expectedOn||frame.on!==expectedOn||!pixelsEqual)return guard;
   return null;
 }
-function releaseBridge634(){
+function releaseBridge634(countFilterDraws){
   // 所有設施／街景建立沿用 immutable scene bridge；這個 wrapper 從不寫 __t634。
   const freeze=()=>{window.__freeze634=true;running=false;speed=0;for(const a of[cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,fxParts,confetti])a.length=0;for(let i=0;i<stars.length;i++)stars[i]=[(i*37%100)/100,(i*13%80)/100,(i*19%628)/100];};
   const flags=()=>({on:typeof t634On==='function'?t634On():false,slot:curSlot(),freeze:window.__freeze634===true,explicit:Object.prototype.hasOwnProperty.call(window,'__t634')?String(window.__t634):'absent',escape:window.__noT634===true,escapeExplicit:Object.prototype.hasOwnProperty.call(window,'__noT634')?String(window.__noT634):'absent',query:location.search});
@@ -74,9 +80,9 @@ function releaseBridge634(){
     frame:({center,zoom,rotation,night})=>{
       baseState();GV.setRot(rotation);GV.setZoom(zoom);GV.lookAt(center[0],center[1]);
       const draw=()=>{visT=night?5:55;trafClock=12;waterT=waterF=0;shakeT=0;groundDirty=true;ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';GV.forceDraw();};
-      const before=signature();draw();const first=ctx.getImageData(0,0,cvs.width,cvs.height).data;draw();const second=ctx.getImageData(0,0,cvs.width,cvs.height).data;
+      const before=signature(),firstDraw=countFilterDraws(ctx,draw),first=ctx.getImageData(0,0,cvs.width,cvs.height).data,secondDraw=countFilterDraws(ctx,draw),second=ctx.getImageData(0,0,cvs.width,cvs.height).data;
       let unstableBytes=0;for(let i=0;i<first.length;i++)if(first[i]!==second[i])unstableBytes++;
-      return{...raw(cvs),png:cvs.toDataURL('image/png'),flags:flags(),unstableBytes,stateUnchanged:before===signature(),state:{N,day,season:season(),rotation:viewRotEff(),zoom:cam.z,camX:cam.x,camY:cam.y,visT,rainDays,weather}};
+      return{...raw(cvs),png:cvs.toDataURL('image/png'),flags:flags(),filterDraws:firstDraw.counts,repeatFilterDraws:secondDraw.counts,unstableBytes,stateUnchanged:before===signature(),state:{N,day,season:season(),rotation:viewRotEff(),zoom:cam.z,camX:cam.x,camY:cam.y,visT,rainDays,weather}};
     },
     simulation:({seed})=>{
       if(!window.__release634Simulation)throw Error('Simulation lane was not explicitly enabled in this disposable context');
@@ -117,7 +123,7 @@ function lifecycleSelfTest(source){
   let listenerCall,realSaves=0;
   const counters=()=>({blockedSaveCalls:0,allowedSaveCalls:0});
   const context=vm.createContext({window:{__release634Simulation:false,__release634Saving:false,__release634Safety:counters()},tiles:[{}],running:true,speed:1,save:()=>{realSaves++;},document:{hidden:true,addEventListener:(type,fn)=>{need(type==='visibilitychange','Unexpected lifecycle event');listenerCall=fn;}}});
-  vm.runInContext('('+releaseBridge634.toString()+')();'+listener,context);
+  vm.runInContext('('+releaseBridge634.toString()+')('+countFilterDraws634.toString()+');'+listener,context);
   // 紅源一：若關頁發生在量測期間，真實 listener 仍碰到原有 fail-closed 存檔守衛。
   let activeFailure='';try{listenerCall();}catch(e){activeFailure=e.message;}
   need(activeFailure==='Only the explicit disposable simulation lane may save'&&context.window.__release634Safety.blockedSaveCalls===1&&realSaves===0,'Active visibility autosave must remain rejected');
@@ -133,9 +139,39 @@ function lifecycleSelfTest(source){
   need(closedSaveFailure==='Only the explicit disposable simulation lane may save'&&realSaves===0&&closedMeasureFailure==='Measurement requested after disposable world closure','Disposed save and measurement red controls must fail closed');
   return{activeVisibilityRejected:true,liveSaveDisposalRejected:true,disposedVisibilityInert:true,saveGuardUnchanged:true,disposedSaveRejected:true,disposedMeasurementRejected:true};
 }
+// 同一實際 spy 的独立規格測試；紅源只在記憶體中改 helper，不能修改測試期望值。
+function filterSpyFirstFailure(spy){
+  const image={},result={},sentinel={},calls=[],returns=[],cases=[
+    {filter:'none',d:-1,args:[image,-.75,2.25]},
+    {filter:'brightness(0)',d:-.35,args:[image,-1.5,2.75,31.5,15.25]},
+    {filter:'brightness(0)',d:1,args:[image,1.25,2.5,3.75,4.25,-5.5,6.75,7.25,8.5]},
+    {filter:'brightness(0)',d:0,args:[image,1,2]}
+  ];
+  let transformReads=0;const g={filter:'none',d:1,getTransform(){transformReads++;return{d:this.d};},drawImage:function(...args){calls.push({receiver:this,args});return result;}},original=g.drawImage;
+  const measured=spy(g,()=>{for(const c of cases){g.filter=c.filter;g.d=c.d;returns.push(g.drawImage(...c.args));}return sentinel;});
+  if(calls.length!==cases.length||calls.some((c,i)=>c.receiver!==g||c.args.length!==cases[i].args.length||c.args.some((v,j)=>v!==cases[i].args[j]))||returns.some(v=>v!==result)||measured.value!==sentinel)return 'filter-spy-forwarding';
+  if(g.drawImage!==original)return 'filter-spy-restoration';
+  if(measured.counts.reflection!==1||measured.counts.shadow!==2||transformReads!==3)return 'filter-spy-branch';
+  for(const fromDrawImage of[true,false]){
+    const error=Error('intentional spy exception'),throwing={filter:'brightness(0)',getTransform:()=>({d:-1}),drawImage(){if(fromDrawImage)throw error;return result;}},prior=throwing.drawImage;let caught;
+    try{spy(throwing,()=>{if(fromDrawImage)return throwing.drawImage(image,0,0);throw error;});}catch(e){caught=e;}
+    if(caught!==error||throwing.drawImage!==prior)return 'filter-spy-exception-restoration';
+  }
+  return null;
+}
+function filterSpySelfTest(){
+  need(filterSpyFirstFailure(countFilterDraws634)===null,'Filter spy must preserve all drawImage overloads, receiver, return values, classification and restoration');
+  const source=countFilterDraws634.toString(),mutations=[
+    {name:'changed-forwarded-coordinate',anchor:'original.apply(this,args)',replacement:'original.apply(this,args.map((v,i)=>i===1?v+1:v))',expected:'filter-spy-forwarding'},
+    {name:'inverted-transform-classification',anchor:'this.getTransform().d<0',replacement:'this.getTransform().d>=0',expected:'filter-spy-branch'},
+    {name:'omitted-original-restoration',anchor:'g.drawImage=original;',replacement:'void original;',expected:'filter-spy-restoration'}
+  ];
+  const redControls=[];for(const r of mutations){once(source,r.anchor,'spy red-source '+r.name);const broken=vm.runInNewContext('('+source.replace(r.anchor,r.replacement)+')'),firstFailure=filterSpyFirstFailure(broken);need(firstFailure===r.expected,'Spy red-source first failure must be '+r.expected);redControls.push({mutation:r.name,firstFailure});}
+  return{overloads:[3,5,9],receiverAndReturnPreserved:true,classification:{reflection:1,shadow:2,nonFilterIgnored:1},normalAndExceptionalRestoration:true,redControls};
+}
 function selfTest(){
   const source=fs.readFileSync(path.join(ROOT,SOURCE_PATH),'utf8'),shared=bridgeFrom(fs.readFileSync(path.join(ROOT,BRIDGE_PATH),'utf8'));
-  const lifecycle=lifecycleSelfTest(source);scriptsParse(inject(source,shared),'local injected source');
+  const lifecycle=lifecycleSelfTest(source),filterSpy=filterSpySelfTest();scriptsParse(inject(source,shared),'local injected source');
   for(const kind of['default-off','url-bypass','runtime-bypass'])scriptsParse(inject(redSource(source,kind),shared),kind);
   const flag=flagLine(source),probe=(line,query='',values={})=>vm.runInNewContext(line+';t634On()', {window:{...values},location:{search:query}});
   need(probe(flag)===true&&probe(flag,'',{__t634:true})===true&&probe(flag,'',{__t634:false})===false,'Activation static behavior self-test');
@@ -146,7 +182,7 @@ function selfTest(){
   const boot={slot:3,freeze:true,explicit:'absent',on:true};
   need(firstModeFailure({boot,frame:boot,expectedOn:true,expectedExplicit:'absent',guard:'default-activation',pixelsEqual:true})===null,'Positive first-guard self-test');
   for(const guard of['default-activation','url-escape','runtime-escape'])need(firstModeFailure({boot,frame:boot,expectedOn:true,expectedExplicit:'absent',guard,pixelsEqual:false})===guard,'Pixel red first-guard self-test '+guard);
-  console.log(JSON.stringify({status:'static-tool-self-test-only',browserStarted:false,socketOpened:false,immutableApprovalChecked:false,renderParityVerified:false,lifecycle}));
+  console.log(JSON.stringify({status:'static-tool-self-test-only',browserStarted:false,socketOpened:false,immutableApprovalChecked:false,renderParityVerified:false,lifecycle,filterSpy}));
 }
 async function main(){
   if(process.argv.includes('--self-test')){selfTest();return;}
@@ -164,12 +200,12 @@ async function main(){
   const baselineSource=gitRaw('show',baseline+':'+SOURCE_PATH);need(sha(baselineSource)===inventory.audit.source_sha256,'Pre-T634 git source differs from the independently recorded inventory hash');
   const rows=inventory.building_types.filter(r=>r.remaining_new).sort((a,b)=>a.k-b.k).flatMap(r=>Array.from({length:r.k<=3?3:1},(_,l)=>Array.from({length:r.k<=3?12:3},(_,v)=>({id:r.k+'_'+(l+1)+'_'+v,k:r.k,lv:l+1,v,n:r.new_size}))).flat());
   need(rows.length===315&&new Set(rows.map(r=>r.id)).size===315&&rows.filter(r=>r.k<=3).length===108&&rows.filter(r=>r.k>3).length===207,'Immutable inventory must enumerate exactly 108 RCI plus 207 facility designs');
-  const lifecycle=lifecycleSelfTest(releaseSource);
+  const lifecycle=lifecycleSelfTest(releaseSource),filterSpy=filterSpySelfTest();
   const sources={approved:approvedSource,baseline:baselineSource,release:releaseSource,'red-default-off':redSource(releaseSource,'default-off'),'red-url-bypass':redSource(releaseSource,'url-bypass'),'red-runtime-bypass':redSource(releaseSource,'runtime-bypass')};
   const pagesHTML=Object.fromEntries(Object.entries(sources).map(([name,source])=>[name,inject(source,sharedBridge)]));
   for(const[name,html]of Object.entries(pagesHTML))scriptsParse(html,name);
   if(process.argv.includes('--check')){console.log(JSON.stringify({status:'immutable-source-and-syntax-check-only',head,approved,baseline,designs:rows.length,browserStarted:false,socketOpened:false,renderParityVerified:false}));return;}
-  const report={kind:'T634 approved-art release activation exact native RGBA parity',status:'running',head,approved,baseline,checks:[],failures:[],errors:[],contexts:[],assets:[],worlds:[],redControls:[],sentinels:[],screenshots:[],lifecycleSelfTest:lifecycle,
+  const report={kind:'T634 approved-art release activation exact native RGBA parity',status:'running',head,approved,baseline,checks:[],failures:[],errors:[],contexts:[],assets:[],worlds:[],redControls:[],sentinels:[],screenshots:[],lifecycleSelfTest:lifecycle,filterSpySelfTest:filterSpy,
     source:{head,approved,baseline,releaseSHA256:sha(releaseSource),approvedSHA256:sha(approvedSource),baselineSHA256:sha(baselineSource),releaseBlob:git('rev-parse',head+':'+SOURCE_PATH),approvedBlob:git('rev-parse',approved+':'+SOURCE_PATH),baselineBlob:git('rev-parse',baseline+':'+SOURCE_PATH),harnessSHA256:sha(fs.readFileSync(__filename)),immutableSceneSHA256:sha(bridgeSource),sharedBridgeSHA256:sha(sharedBridge),inventorySHA256:sha(inventoryRaw),fixtureSHA256:sha(fixture),sentinelSource:{commit:baseline,path:'test_fixde.js',sha256:sha(sentinelSource),expected:SENTINELS},servedHTMLSHA256:Object.fromEntries(Object.entries(pagesHTML).map(([k,s])=>[k,sha(s)]))},
     safety:{disposableOrigin:true,isolatedContexts:true,slotSelectedBeforeLoad:3,playerOriginUsed:false,simulationAdvanced:'only the separate three-seed normal-URL lane',gameplaySaveAllowed:'only explicit disposable slot3 save/load checks in the simulation lane',serviceWorkersBlocked:true},
     scope:'Supplemental release activation only. Full six-job seasonal, overlay, save, geometry and regression acceptance remains independently required.'};
@@ -229,7 +265,11 @@ async function main(){
         else{pixels=pixelResult(c,expected(key));check(sceneRefs.get('state/'+suffix)===JSON.stringify(c.state),label+' exact camera/lighting '+suffix);}
         const first=firstModeFailure({boot:run.boot,frame:c.flags,expectedOn,expectedExplicit,guard,pixelsEqual:pixels.equal});
         check(first===null,label+' '+guard+' exact RGBA r'+rotation+'/'+night+(first?' first='+first:''));
-        const record={mode:run.spec.name,scene,rotation,night,state:c.state,flags:c.flags,pixels,file:png(run.spec.name+'-'+suffix,c)};report.worlds.push(record);count++;persist();
+        // 原像素/啟用首紅守衛先判；此處只追加與 immutable 參考的實際 filter 呼叫計數。
+        check(JSON.stringify(c.filterDraws)===JSON.stringify(c.repeatFilterDraws),label+' repeated real filter draw counts stay identical '+suffix);
+        const filterKey=(reference||(expectedOn?'approved':'baseline'))+'-filter/'+suffix;
+        if(reference)sceneRefs.set(filterKey,JSON.stringify(c.filterDraws));else check(sceneRefs.get(filterKey)===JSON.stringify(c.filterDraws),label+' actual reflection/shadow draw counts equal immutable '+(expectedOn?'approved art':'original route')+' '+suffix);
+        const record={mode:run.spec.name,scene,rotation,night,state:c.state,flags:c.flags,pixels,filterDraws:c.filterDraws,repeatFilterDraws:c.repeatFilterDraws,file:png(run.spec.name+'-'+suffix,c)};report.worlds.push(record);count++;persist();
       }
       check(setup.signature===await run.page.evaluate(()=>__release634.signature()),label+' rendering leaves all fixture fields unchanged');
     }
