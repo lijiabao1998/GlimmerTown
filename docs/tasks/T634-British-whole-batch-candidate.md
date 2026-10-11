@@ -111,3 +111,6 @@ tick／AI／經濟／成本／容量／放置邏輯／MSZ／存檔格式與內�
 獨立覆核與實跑確認：test_fixde.js 的通用 Canvas getImageData只回4個透明位元組，原套件已將T602/T603全局關閉以驗舊路；T634預設開啟時在第1114項的普通forceDraw得到空圖拒絕。這是台架不能造新像素，不把它修成產品允許空圖。
 追加允許觸碰test_fixde.js：只在既有T602/T603舊路設定旁加入T634舊路設定與明示此lane範圍；原全部斷言／六哨兵／完成標記保留。T603獨立舊配方測試因此照原路運行。沒有把它當成default-on驗收。
 新增不可豁免的補償閘門：release634在真正Chrome、普通無query網址且無__t634/__noT634 override，重跑相同72格/難度1/AI400天的seed301、7、22人口與金流六哨兵（780/2297，117/77，639/14523）；並檢查開圖/畫圖/存讀前後新圖始終開啟，正常新圖存檔重開保真。全315已批准像素／四向日夜逐位恆等與既有T634世界3500級真Chrome行為驗證仍必須通過。此明示舊路Node lane＋新路Chrome lane不得合稱只靠逃生閥安全，也不更改模擬或像素預期值。
+
+### main正式發佈閘門補充（工作流改動前固定）
+獨立覆核要求新增default-on證據不只在候選分支跑一次：允許main Pages工作流新增required approved-art-release job，執行同一release634真Chrome無query/六哨兵/存檔/批准圖恆等；deploy.needs必須包含此job。既有validate/browser/package/pages-browser全數保留，原native計時參考規則不改。候選分支先跑相同所有閘門，main合併SHA再跑一次才可部署。baseline634辅助圖明示?noT634舊路與escape baseline標籤，不能冒充新正式預設。
