@@ -26,11 +26,63 @@ function filterFrame634(time, mode = 'native', onlyNewEscape = false, newFlags =
     ...(window[name] === undefined ? {} : { value: window[name] })
   }]));
   const before = snapshot(), sceneBefore = __s603.scene();
-  let result;
+  // Retain the TWO existing nativeFrame readbacks, without adding a read or draw.
+  // The host requests their bytes only after a failed verdict; the closure is
+  // replaced at the next capture, so successful captures retain at most one pair.
+  const readbacks = [], descriptor = Object.getOwnPropertyDescriptor(ctx, 'getImageData');
+  const originalRead = ctx.getImageData;
+  const metadata = () => ({
+    viewport: __s603.viewport ? __s603.viewport() : null,
+    ground: { dirty: typeof groundDirty === 'undefined' ? null : groundDirty,
+      key: typeof groundCacheKey === 'undefined' ? null : groundCacheKey,
+      width: typeof groundCache === 'undefined' || !groundCache ? null : groundCache.width,
+      height: typeof groundCache === 'undefined' || !groundCache ? null : groundCache.height },
+    lotCache: __s603.cacheStats ? __s603.cacheStats() : null,
+    artworkCache: typeof STAT634 === 'undefined' ? null : { ...STAT634,
+      entries: typeof CACHE634 === 'undefined' ? null : CACHE634.size },
+    context: { alpha: ctx.globalAlpha, composite: ctx.globalCompositeOperation,
+      filter: ctx.filter, smoothing: ctx.imageSmoothingEnabled }
+  });
+  const encode = bytes => {
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 16384) binary += String.fromCharCode(...bytes.subarray(i, i + 16384));
+    return btoa(binary);
+  };
+  const serializeReadbacks = () => {
+    const out = { expectedReadCount: 2, readCount: readbacks.length,
+      reads: readbacks.map(({ image, ...rest }) => ({ ...rest, width: image.width, height: image.height,
+        byteLength: image.data.byteLength, rgbaBase64: encode(image.data) })) };
+    const a = readbacks[0]?.image, b = readbacks[1]?.image;
+    if (a && b && a.width === b.width && a.height === b.height && a.data.length === b.data.length) {
+      let changedPixels = 0, minX = a.width, minY = a.height, maxX = -1, maxY = -1;
+      const firstDifferences = [];
+      for (let i = 0; i < a.data.length; i += 4) {
+        if (a.data[i] === b.data[i] && a.data[i + 1] === b.data[i + 1] && a.data[i + 2] === b.data[i + 2] && a.data[i + 3] === b.data[i + 3]) continue;
+        const x = (i / 4) % a.width, y = Math.floor(i / 4 / a.width); changedPixels++;
+        minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+        if (firstDifferences.length < 32) firstDifferences.push({ x, y, a: Array.from(a.data.subarray(i, i + 4)), b: Array.from(b.data.subarray(i, i + 4)) });
+      }
+      out.delta = { changedPixels, bbox: changedPixels ? { minX, minY, maxX, maxY } : null, firstDifferences };
+    } else out.delta = { error: 'The original two readbacks are missing or have different dimensions' };
+    return out;
+  };
+  __s603.filterReadbacks634 = serializeReadbacks;
+  let result, thrown, spyInstalled = false;
   try {
+    Object.defineProperty(ctx, 'getImageData', { configurable: descriptor?.configurable ?? true, writable: true,
+      enumerable: descriptor?.enumerable ?? false, value: function (...args) {
+        const image = Reflect.apply(originalRead, this, args);
+        if (this === ctx) {
+          let state; try { state = metadata(); } catch (error) { state = { error: String(error) }; }
+          readbacks.push({ image, args: args.slice(), metadata: state });
+        }
+        return image;
+      } });
+    spyInstalled = true;
     window.__noT591 = true;
     window.__newEscapeOff603 = onlyNewEscape;
     result = __s603.nativeFrame(false, time, mode);
+    result.diagnostic634 = { expectedReadCount: 2, readCount: readbacks.length, reads: readbacks.map(({ image, ...rest }) => ({ ...rest, width: image.width, height: image.height, byteLength: image.data.byteLength })) };
     result.fixture634 = { protocol: 'T634-normal-world-and-explicit-T591-filter-fixture-v1',
       onlyNewEscape, newEscapeFlags: newFlags.slice(), before, during: snapshot(),
       effective: { T591: t591On(), T603: t603On(), T634: typeof t634On === 'function' ? t634On() : null },
@@ -38,16 +90,23 @@ function filterFrame634(time, mode = 'native', onlyNewEscape = false, newFlags =
     if (result.fixture634.effective.T591 !== false || result.fixture634.effective.T603 !== true ||
       !result.fixture634.sceneUnchanged) throw Error('T634 filter fixture changed its requested path or city');
     return result;
+  } catch (error) { thrown = error; throw error;
   } finally {
+    let restoreError;
+    try { if (spyInstalled) { if (descriptor) Object.defineProperty(ctx, 'getImageData', descriptor); else delete ctx.getImageData; } } catch (error) { restoreError = error; }
     // Restore the two accessors first, then their dependent escape values. Their
     // setters intentionally propagate, so reversing arbitrary key order is wrong.
     for (const name of ['__newEscapeOff603', '__noT603', ...newFlags, '__noT591']) {
       const prior = saved.find(row => row.name === name);
-      if (prior.own) window[name] = prior.value; else delete window[name];
+      try { if (prior.own) window[name] = prior.value; else delete window[name]; }
+      catch (error) { restoreError ||= error; }
     }
-    const after = snapshot(), restored = JSON.stringify(after) === JSON.stringify(before);
+    let after, restored = false;
+    try { after = snapshot(); restored = JSON.stringify(after) === JSON.stringify(before); }
+    catch (error) { restoreError ||= error; }
     if (result?.fixture634) Object.assign(result.fixture634, { after, restored });
-    if (!restored) throw Error('T634 filter fixture did not restore exact flag values and ownership');
+    if (restoreError && !thrown) throw restoreError;
+    if (!restored && !thrown) throw Error('T634 filter fixture did not restore exact flag values and ownership');
   }
 }
 
@@ -82,6 +141,42 @@ function frameValid(frame, { candidate, onlyNewEscape, newFlags, requireT634, mo
     counts.calls === counts.reflectionCalls + counts.shadowCalls &&
     counts.fractionalCalls <= counts.calls && counts.fractionalScaleCalls <= counts.calls &&
     counts.wrongEdges === (mode === 'wrong-edge' ? counts.calls : 0));
+}
+// Diagnostic only. frameValid below/above remains the original acceptance
+// predicate, byte-for-byte; these named clauses never replace its verdict.
+function framePredicates634(frame, { candidate, onlyNewEscape, newFlags, requireT634, mode = 'native' }) {
+  const f = frame?.fixture634, counts = frame?.state?.counts;
+  const clauses = {
+    framePresent: () => !!frame,
+    stablePixels: () => frame.unstablePixels === 0,
+    protocol: () => f?.protocol === PROTOCOL,
+    onlyNewEscape: () => f.onlyNewEscape === onlyNewEscape,
+    newEscapeFlags: () => JSON.stringify(f.newEscapeFlags) === JSON.stringify(newFlags),
+    sceneUnchanged: () => f.sceneUnchanged === true,
+    restored: () => f.restored === true,
+    exactBeforeAfterFlags: () => JSON.stringify(f.before) === JSON.stringify(f.after),
+    duringT591Own: () => f.during?.__noT591?.own === true,
+    duringT591Value: () => f.during.__noT591.value === true,
+    duringT603Own: () => f.during?.__noT603?.own === true,
+    duringT603Value: () => f.during.__noT603.value === false,
+    duringNewEscapeOwn: () => f.during?.__newEscapeOff603?.own === true,
+    duringNewEscapeValue: () => f.during.__newEscapeOff603.value === onlyNewEscape,
+    duringNewFlags: () => newFlags.every(name => f.during[name]?.own === true && f.during[name].value === onlyNewEscape),
+    effectiveT591: () => f.effective?.T591 === false,
+    effectiveT603: () => f.effective.T603 === true,
+    effectiveT634: () => !candidate || !requireT634 || f.effective.T634 === !(onlyNewEscape && newFlags.includes('__noT634')),
+    stateT603: () => frame.state.flags?.T603 === true,
+    mode: () => frame.state.mode === mode,
+    countsPresent: () => !!counts,
+    safeNonnegativeCounts: () => ['calls', 'reflectionCalls', 'shadowCalls', 'fractionalCalls', 'fractionalScaleCalls', 'wrongEdges'].every(k => Number.isSafeInteger(counts[k]) && counts[k] >= 0),
+    totalCalls: () => counts.calls === counts.reflectionCalls + counts.shadowCalls,
+    fractionalCalls: () => counts.fractionalCalls <= counts.calls,
+    fractionalScaleCalls: () => counts.fractionalScaleCalls <= counts.calls,
+    wrongEdges: () => counts.wrongEdges === (mode === 'wrong-edge' ? counts.calls : 0)
+  };
+  return Object.fromEntries(Object.entries(clauses).map(([name, evaluate]) => {
+    try { return [name, Boolean(evaluate())]; } catch { return [name, false]; }
+  }));
 }
 function comparisonValid(reference, current, changedPixels) {
   return changedPixels === 0 && reference.state.sky === current.state.sky && reference.state.fx === current.state.fx &&
@@ -119,6 +214,38 @@ function createController({ report, check, persist, ev, nativeCases603, nativeCa
     const frame = await ev('__s603.filterFrame634(' + JSON.stringify(c.time) + ',' + JSON.stringify(mode) + ',' +
       JSON.stringify(onlyNewEscape) + ',' + JSON.stringify(newFlags) + ')');
     const pixels = pngRgba603(Buffer.from(frame.png.split(',')[1], 'base64'));
+    const options = { candidate, onlyNewEscape, newFlags, requireT634: true, mode };
+    const predicates = framePredicates634(frame, options);
+    const dimensionsValid = pixels.w === c.width * c.dpr && pixels.h === c.height * c.dpr && frame.state.viewport.dpr === c.dpr;
+    if ((!frameValid(frame, options) || !dimensionsValid) && !evidence.firstFailure) {
+      // Preserve the original verdict even if optional serialization or IO fails.
+      const prefix = 'T634-filter-first-failure-' + c.key + '-' + (candidate ? onlyNewEscape ? 'escape' : 'normal-art' : 'previous') + '-' + mode;
+      const first = evidence.firstFailure = { case: { ...c }, options, predicates,
+        failedPredicates: Object.keys(predicates).filter(k => !predicates[k]), dimensionsValid,
+        decodedDimensions: { width: pixels.w, height: pixels.h }, sources: evidence.sources,
+        frame: nativeRecord603({ ...frame, pixels }), diagnosticErrors: [] };
+      const recordError = error => first.diagnosticErrors.push(String(error.stack || error));
+      try {
+        first.frame.file = prefix + '.png';
+        fs.writeFileSync(path.join(OUT, first.frame.file), Buffer.from(frame.png.split(',')[1], 'base64'));
+        (report.screenshots ||= []).push(first.frame.file);
+      } catch (error) { recordError(error); }
+      try {
+        // This only serializes the retained readbacks; it never redraws/rereads.
+        const readbacks = await ev('__s603.filterReadbacks634()');
+        first.readbacks = { ...readbacks, reads: [] };
+        for (const [i, read] of readbacks.reads.entries()) {
+          const { rgbaBase64, ...metadata } = read;
+          const bytes = Buffer.from(rgbaBase64, 'base64'), file = prefix + '-' + (i === 0 ? 'A' : i === 1 ? 'B' : i) + '.rgba';
+          fs.writeFileSync(path.join(OUT, file), bytes);
+          first.readbacks.reads.push({ ...metadata, file, savedBytes: bytes.length,
+            sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
+        }
+      } catch (error) { recordError(error); }
+      first.file = prefix + '.json';
+      try { fs.writeFileSync(path.join(OUT, first.file), JSON.stringify(first, null, 2)); } catch (error) { recordError(error); }
+      try { persist(); } catch (error) { recordError(error); }
+    }
     check(frameValid(frame, { candidate, onlyNewEscape, newFlags, requireT634: true, mode }), 'T634 explicit filter fixture state and restored flag ownership ' + c.key + '/' + candidate + '/' + onlyNewEscape + '/' + mode);
     check(pixels.w === c.width * c.dpr && pixels.h === c.height * c.dpr && frame.state.viewport.dpr === c.dpr,
       'T634 filter fixture complete native dimensions ' + c.key);
@@ -191,4 +318,4 @@ function install(replace, helperIdentity = sourceIdentity()) {
   replace(candidate, '    await filterWorld634.candidate();\n' + candidate, 'T634 fail-fast supplemental coverage before original normal matrix');
 }
 module.exports = { PROTOCOL, sourceIdentity, GROUPS, COUNTS, COVERAGE_BLOCK, filterFrame634, verifyNativeFilterCoverage634,
-  selectedCases, frameValid, comparisonValid, negativeValid, createController, install };
+  selectedCases, frameValid, framePredicates634, comparisonValid, negativeValid, createController, install };

@@ -1,0 +1,52 @@
+name: Town T634 isolated DPR2 diagnostic (not release acceptance)
+on:
+  push:
+    branches: [gpt/town-634-dpr2-diagnostic]
+permissions:
+  contents: read
+concurrency:
+  group: town634-dpr2-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  first-failure-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install same original Chrome screenshot fonts
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Transparent diagnostics and exact overlay contracts
+        run: |
+          mkdir -p evidence
+          set -o pipefail
+          node --test tools/pages/release-world-filters634.test.mjs tools/pages/release-dpr2-diagnostic634.test.mjs | tee evidence/contracts.log
+      - name: Reproduce original first failure with no retry or warmup (not acceptance)
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set -o pipefail
+          node tools/pages/release-dpr2-diagnostic634.cjs --phase=world --port=8868 --out=evidence/dpr2 | tee evidence/dpr2.log
+      - name: Preserve compact first failure for immediate diagnosis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-T634-DPR2-first-failure-${{ github.sha }}
+          path: |
+            evidence/dpr2/*summary.json
+            evidence/dpr2/*overlay.json
+            evidence/dpr2/*first-failure*
+            evidence/dpr2.log
+            evidence/contracts.log
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve failed frame, exact original readbacks and source manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-T634-DPR2-diagnostic-not-acceptance-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14

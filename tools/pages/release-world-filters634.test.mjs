@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const filters = require('./release-world-filters634.cjs');
@@ -48,14 +49,15 @@ function frame(c, candidate, onlyNewEscape, mode) {
         wrongEdges: mode === 'wrong-edge' ? shadowCalls : 0 } },
     png: 'data:image/png;base64,' + Buffer.from(JSON.stringify({ w: c.width * c.dpr, h: c.height * c.dpr, value })).toString('base64') };
 }
-function rig(t, mutateFrame = () => {}) {
+function rig(t, mutateFrame = () => {}, onPersist = () => {}, diagnosticError = null) {
   const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'filters634-contract-'));
   t.after(() => fs.rmSync(OUT, { recursive: true, force: true }));
   const nativeCases603 = cases(), report = { release: { current: { commit: 'current' }, previous: { commit: 'immutable-prev' } } };
   let c, candidate = false, calls = 0;
-  const controller = filters.createController({ report, check, persist() {}, OUT, nativeCases603,
+  const controller = filters.createController({ report, check, persist() { onPersist(report, OUT); }, OUT, nativeCases603,
     release603: { newEscapeFlags: ['__noT634'] }, nativeCamera603: async next => { c = next; },
     ev: async expression => {
+      if (expression === '__s603.filterReadbacks634()') { if (diagnosticError) throw diagnosticError; return { readCount: 2, reads: [{ rgbaBase64: 'AA==' }, { rgbaBase64: 'AQ==' }] }; }
       const [time, mode, onlyNewEscape, flags] = JSON.parse('[' + expression.slice(expression.indexOf('(') + 1, -1) + ']');
       assert.equal(time, c.time); assert.deepEqual(flags, ['__noT634']); calls++;
       const out = frame(c, candidate, onlyNewEscape, mode); mutateFrame(out, { c, candidate, onlyNewEscape, mode }); return out;
@@ -105,7 +107,8 @@ function browser(flags = {}, throws = false) {
   const apply = () => { window.__noT634 = pinned ? true : off; };
   Object.defineProperty(window, '__noT603', { configurable: true, enumerable: true, get: () => off, set: value => { off = value; apply(); } });
   Object.defineProperty(window, '__newEscapeOff603', { configurable: true, enumerable: true, get: () => pinned, set: value => { pinned = value === true; apply(); } });
-  const box = { window, running: false, measureWork603: false,
+  const box = { window, running: false, measureWork603: false, ctx: Object.create({ getImageData() {} }),
+    btoa: value => Buffer.from(value, 'binary').toString('base64'),
     t591On: () => !window.__noT591, t603On: () => !window.__noT603, t634On: () => !window.__noT634 };
   box.__s603 = { scene: () => 'unchanged city', nativeFrame(artOff, time, mode) {
     window.__noT603 = artOff; if (throws) throw Error('native failure'); return { state: { time, mode } };
@@ -208,4 +211,145 @@ test('when T634 is already in PREV, neither supplemental arm may silently disabl
     r.fixture634.effective.T634 = false; assert.equal(filters.frameValid(r, options), false);
     r.fixture634.effective.T634 = null; assert.equal(filters.frameValid(r, options), false);
   }
+});
+
+
+test('original frameValid acceptance function remains byte-for-byte frozen', () => {
+  assert.equal(crypto.createHash('sha256').update(filters.frameValid.toString()).digest('hex'), 'b627bad3f48048ec7f7e46f7516d2ba725b95b7c778980b35b7f06d0c6473aeb');
+});
+
+test('named diagnostics are equivalent to the unchanged predicate across independent red clauses', () => {
+  const c = cases().find(c => c.key === 'fractional-r0-z0.65-night');
+  const options = { candidate: true, onlyNewEscape: false, newFlags: ['__noT634'], requireT634: true };
+  const changes = [() => {}, r => { r.unstablePixels = 1; }, r => { r.fixture634.protocol = 'wrong'; },
+    r => { r.fixture634.onlyNewEscape = true; }, r => { r.fixture634.newEscapeFlags = []; },
+    r => { r.fixture634.sceneUnchanged = false; }, r => { r.fixture634.restored = false; },
+    r => { r.fixture634.after.__noT591.own = true; },
+    ...['__noT591', '__noT603', '__newEscapeOff603', '__noT634'].flatMap(name => [
+      r => { r.fixture634.during[name].own = false; }, r => { r.fixture634.during[name].value = null; }]),
+    ...['T591', 'T603', 'T634'].map(name => r => { r.fixture634.effective[name] = null; }),
+    r => { r.state.flags.T603 = false; }, r => { r.state.mode = 'wrong'; }, r => { delete r.state.counts; },
+    ...['calls', 'reflectionCalls', 'shadowCalls', 'fractionalCalls', 'fractionalScaleCalls', 'wrongEdges'].map(name => r => { r.state.counts[name] = -1; }),
+    r => { r.state.counts.calls++; }, r => { r.state.counts.fractionalCalls = 50; },
+    r => { r.state.counts.fractionalScaleCalls = 50; }, r => { r.state.counts.wrongEdges = 1; }];
+  for (const mutate of changes) {
+    const r = frame(c, true, false, 'native'); mutate(r);
+    const named = filters.framePredicates634(r, options);
+    assert.equal(Object.values(named).every(Boolean), filters.frameValid(r, options), JSON.stringify(named));
+  }
+  assert.equal(Object.values(filters.framePredicates634(null, options)).every(Boolean), false);
+});
+
+function readbackBrowser({ unstable = true, shape = 'inherited', nativeError, readError, large = false } = {}) {
+  const b = browser(), width = large ? 200 : 2, height = large ? 100 : 2;
+  const a = { width, height, data: new Uint8ClampedArray(width * height * 4) };
+  for (let i = 0; i < a.data.length; i++) a.data[i] = i % 256;
+  const z = { width, height, data: a.data.slice() }; if (unstable) { z.data[4] = 255; z.data[z.data.length - 1] = 0; }
+  const images = [a, z], calls = [], returns = [];
+  const originalRead = function (...args) { calls.push({ receiver: this, args }); if (readError) throw readError; return images[calls.length - 1]; };
+  if (shape === 'inherited') b.ctx = Object.create({ getImageData: originalRead });
+  else {
+    b.ctx = {};
+    Object.defineProperty(b.ctx, 'getImageData', shape === 'accessor' ? { configurable: true, enumerable: true, get: () => originalRead } :
+      { configurable: shape !== 'nonconfigurable', enumerable: true, writable: true, value: originalRead });
+  }
+  const before = Object.getOwnPropertyDescriptor(b.ctx, 'getImageData');
+  b.__s603.nativeFrame = function (off, time, mode) {
+    b.window.__noT603 = off;
+    returns.push(b.ctx.getImageData(0, 0, width, height));
+    if (nativeError) throw nativeError;
+    returns.push(b.ctx.getImageData(0, 0, width, height));
+    return { state: { time, mode }, unstablePixels: unstable ? 2 : 0, png: 'unchanged original PNG' };
+  };
+  b.capture = vm.runInNewContext('(' + filters.filterFrame634.toString() + ')', b);
+  return { b, before, calls, returns, images, originalRead };
+}
+
+test('readback spy preserves exact two reads, receivers, arguments and ImageData identities; encoding adds no reads', () => {
+  for (const shape of ['inherited', 'own', 'accessor', 'nonconfigurable']) {
+    const r = readbackBrowser({ shape, large: true });
+    const out = r.b.capture(55, 'native', false, ['__noT634']);
+    assert.equal(out.png, 'unchanged original PNG'); assert.equal(out.diagnostic634.readCount, 2);
+    assert.equal(r.calls.length, 2); assert.deepEqual(r.returns, r.images);
+    assert.ok(r.returns.every((image, i) => image === r.images[i]));
+    assert.ok(r.calls.every(call => call.receiver === r.b.ctx));
+    assert.deepEqual(r.calls.map(call => call.args), [[0, 0, 200, 100], [0, 0, 200, 100]]);
+    assert.deepEqual(Object.getOwnPropertyDescriptor(r.b.ctx, 'getImageData'), r.before);
+    assert.equal(r.b.ctx.getImageData, r.originalRead);
+    const captured = r.b.__s603.filterReadbacks634();
+    assert.equal(r.calls.length, 2); assert.equal(captured.readCount, 2);
+    for (let i = 0; i < 2; i++) assert.deepEqual(Buffer.from(captured.reads[i].rgbaBase64, 'base64'), Buffer.from(r.images[i].data));
+    assert.equal(captured.delta.changedPixels, 2);
+    assert.deepEqual(copy(captured.delta.bbox), { minX: 1, minY: 0, maxX: 199, maxY: 99 });
+    assert.deepEqual(copy(captured.delta.firstDifferences[0]), { x: 1, y: 0, a: [4, 5, 6, 7], b: [255, 5, 6, 7] });
+  }
+});
+
+test('readback instrumentation restores descriptor/ownership and preserves original native/read exception identity', () => {
+  for (const kind of ['nativeError', 'readError']) for (const shape of ['inherited', 'own', 'accessor', 'nonconfigurable']) {
+    const error = Error('original ' + kind), r = readbackBrowser({ [kind]: error, shape });
+    assert.throws(() => r.b.capture(55, 'native', false, ['__noT634']), caught => caught === error);
+    assert.equal(r.calls.length, 1); assert.deepEqual(Object.getOwnPropertyDescriptor(r.b.ctx, 'getImageData'), r.before);
+    assert.equal(r.b.ctx.getImageData, r.originalRead); assert.equal(Object.hasOwn(r.b.window, '__noT591'), false);
+  }
+  const r = readbackBrowser({ unstable: false }); r.b.__s603.cacheStats = () => { throw Error('diagnostic metadata unavailable'); };
+  const out = r.b.capture(55, 'native', false, ['__noT634']);
+  assert.equal(out.unstablePixels, 0); assert.equal(r.calls.length, 2);
+  assert.match(out.diagnostic634.reads[0].metadata.error, /metadata unavailable/);
+  assert.equal(r.b.__s603.filterReadbacks634().delta.changedPixels, 0);
+});
+
+test('first failed returned frame, original PNG, named clauses and readbacks persist before the unchanged gate throws', async t => {
+  let saved;
+  const r = rig(t, (out, info) => { if (info.candidate && !info.onlyNewEscape) out.unstablePixels = 7; }, (report, OUT) => {
+    if (!report.nativeFilterFallback634.firstFailure) return;
+    const first = report.nativeFilterFallback634.firstFailure;
+    assert.equal(first.frame.unstablePixels, 7);
+    assert.equal(first.failedPredicates.join(','), 'stablePixels');
+    assert.equal(first.readbacks.readCount, 2);
+    assert.equal(first.sources.helper.sha256, filters.sourceIdentity().sha256);
+    assert.match(first.frame.file, /^T634-filter-first-failure-.*\.png$/);
+    assert.equal(fs.existsSync(path.join(OUT, first.frame.file)), true);
+    assert.equal(fs.existsSync(path.join(OUT, first.file)), true);
+    for (const [i, read] of first.readbacks.reads.entries()) {
+      assert.equal(read.rgbaBase64, undefined);
+      const bytes = fs.readFileSync(path.join(OUT, read.file));
+      assert.deepEqual(bytes, Buffer.from([i]));
+      assert.equal(read.sha256, crypto.createHash('sha256').update(bytes).digest('hex'));
+    }
+    saved = copy(first);
+  });
+  await r.controller.baseline(); r.setCandidate();
+  await assert.rejects(r.controller.candidate(), /T634 explicit filter fixture state and restored flag ownership/);
+  assert.ok(saved); assert.equal(r.calls(), 37);
+  assert.deepEqual(r.report.nativeFilterFallback634.firstFailure, saved);
+  assert.equal(r.report.nativeFilterFallback634.nativeZoomMatrix.length, 0);
+  assert.equal(r.report.nativeFilterFallback634.earlyPassed, false);
+});
+
+
+test('diagnostic retrieval or persistence failure cannot replace the original first-failure guard', async t => {
+  for (const fail of ['serialization', 'persist']) {
+    const error = Error('diagnostic ' + fail), r = rig(t, out => { out.unstablePixels = 2; },
+      () => { if (fail === 'persist') throw error; }, fail === 'serialization' ? error : null);
+    await assert.rejects(r.controller.baseline(), /T634 explicit filter fixture state and restored flag ownership/);
+    const first = r.report.nativeFilterFallback634.firstFailure;
+    assert.equal(r.calls(), 1); assert.equal(first.frame.unstablePixels, 2);
+    assert.ok(first.diagnosticErrors.some(message => message.includes('diagnostic ' + fail)));
+  }
+});
+
+test('the actual frozen nativeFrame still performs exactly three draws and its original two readbacks', () => {
+  const r = readbackBrowser(), b = r.b; let draws = 0, pngCalls = 0;
+  b.cvs = { width: 2, height: 2, toDataURL(type) { assert.equal(type, 'image/png'); pngCalls++; return 'original frozen PNG'; } };
+  b.__s603.compositorFrame = (off, time, mode) => { b.window.__noT603 = off; draws++; return { time, mode, ordinal: draws }; };
+  const start = raw.indexOf('    nativeFrame:') + '    nativeFrame:'.length;
+  const end = raw.indexOf('\n    snapshotCanvasOnly:', start);
+  b.__s603.nativeFrame = vm.runInNewContext('(' + raw.slice(start, end).trim().replace(/,$/, '') + ')', b);
+  const result = b.capture(55, 'native', false, ['__noT634']);
+  assert.equal(draws, 3); assert.equal(r.calls.length, 2); assert.equal(pngCalls, 1);
+  assert.equal(result.state.ordinal, 2); assert.equal(result.unstablePixels, 2); assert.equal(result.png, 'original frozen PNG');
+  assert.equal(b.__s603.filterReadbacks634().delta.changedPixels, result.unstablePixels);
+  assert.equal(draws, 3); assert.equal(r.calls.length, 2); assert.equal(pngCalls, 1);
+  assert.deepEqual(Object.getOwnPropertyDescriptor(b.ctx, 'getImageData'), r.before);
 });
