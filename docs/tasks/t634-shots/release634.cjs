@@ -53,7 +53,8 @@ function releaseBridge634(){
   const raw=c=>{if(!(c instanceof HTMLCanvasElement))throw Error('Expected native HTMLCanvasElement');const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let s='';for(let i=0;i<a.length;i+=32768)s+=String.fromCharCode(...a.subarray(i,i+32768));return{width:c.width,height:c.height,rgba:btoa(s)};};
   const signature=()=>JSON.stringify({N,day,running,speed,tiles});
   const baseState=()=>{freeze();quality=1;window.__noAnim=false;window.__noParkLife=false;window.__noChimney=false;window.__noT596=true;selTile=null;hover.x=hover.y=-1;tool='pan';weather=0;rainDays=0;};
-  const realSave=save;save=()=>{if(!window.__release634Simulation||!window.__release634Saving){window.__release634Safety.blockedSaveCalls++;throw Error('Only the explicit disposable simulation lane may save');}window.__release634Safety.allowedSaveCalls++;return realSave();};
+  let lifecycle='measuring';
+  const realSave=save;save=()=>{if(lifecycle!=='measuring'||!window.__release634Simulation||!window.__release634Saving){window.__release634Safety.blockedSaveCalls++;throw Error('Only the explicit disposable simulation lane may save');}window.__release634Safety.allowedSaveCalls++;return realSave();};
   window.__release634={
     flags,
     assets:rows=>{baseState();GV.setSeason(1);return rows.map(r=>{const s=bake634(r.k,r.v,r.n,r.lv,1,2,false,1);if(!s||!s.img||!s.night||!s.__t634)throw Error('Missing actual T634 sprite '+r.id);return{id:r.id,k:r.k,lv:r.lv,v:r.v,n:r.n,w:s.w,h:s.h,ax:s.ax,ay:s.ay,hooks:s.lotMeta574.hooks,day:raw(s.img),night:raw(s.night)};});},
@@ -93,13 +94,48 @@ function releaseBridge634(){
         return{seed,mapSize:N,steps:400,stats:{pop:stats.pop,money:Math.round(stats.money)},beforeFlags,afterSimulationFlags,drawFlags,finalFlags,target,candidateDraws,renderUnchanged,drawChanges:changed(before,afterDraw),roundTripChanges:changed(afterDraw,afterLoad),before,afterDraw,afterLoad};
       }finally{localStorage.removeItem('glimmerville.v1.s3');localStorage.removeItem('glimmerville.v1.s3_bak');}
     },
+    // 完成量測與安全計數核對後才銷毀測試世界。原 visibilitychange listener 留在場；
+    // 關頁時它按原有 `document.hidden&&tiles` 條件自然不儲存，不吞例外、不放行 save。
+    disposeWorld:()=>{
+      if(lifecycle!=='measuring')throw Error('Disposable world was already closed');
+      if(window.__release634Loading||window.__release634Saving)throw Error('Cannot dispose a live fixture load/save');
+      const countersBefore={...window.__release634Safety},guard=save,worldWasPresent=!!tiles;
+      lifecycle='disposed';running=false;speed=0;tiles=null;
+      return{phase:lifecycle,worldWasPresent,worldCleared:tiles===null,saveGuardUnchanged:save===guard,countersBefore,countersAfter:{...window.__release634Safety}};
+    },
     runtimeEscape:value=>{window.__noT634=value;return flags();},
-    safety:()=>({...window.__release634Safety,slot:curSlot(),savePresent:localStorage.getItem('glimmerville.v1.s3')!==null,failedBakes:typeof STAT634==='undefined'?0:STAT634.fail})
+    safety:()=>({...window.__release634Safety,slot:curSlot(),savePresent:localStorage.getItem('glimmerville.v1.s3')!==null,backupPresent:localStorage.getItem('glimmerville.v1.s3_bak')!==null,failedBakes:typeof STAT634==='undefined'?0:STAT634.fail})
   };
+  // 量測結束後不得再用這個 context 產生新證據，也不能把銷毀世界當成禁存檔的替代品。
+  for(const name of['assets','catalog','setup','signature','frame','simulation','runtimeEscape']){
+    const call=window.__release634[name];window.__release634[name]=(...args)=>{if(lifecycle!=='measuring')throw Error('Measurement requested after disposable world closure');return call(...args);};
+  }
+}
+function lifecycleSelfTest(source){
+  const listener="document.addEventListener('visibilitychange',()=>{if(document.hidden&&tiles)save();});";
+  once(source,listener,'original visibility autosave listener');
+  let listenerCall,realSaves=0;
+  const counters=()=>({blockedSaveCalls:0,allowedSaveCalls:0});
+  const context=vm.createContext({window:{__release634Simulation:false,__release634Saving:false,__release634Safety:counters()},tiles:[{}],running:true,speed:1,save:()=>{realSaves++;},document:{hidden:true,addEventListener:(type,fn)=>{need(type==='visibilitychange','Unexpected lifecycle event');listenerCall=fn;}}});
+  vm.runInContext('('+releaseBridge634.toString()+')();'+listener,context);
+  // 紅源一：若關頁發生在量測期間，真實 listener 仍碰到原有 fail-closed 存檔守衛。
+  let activeFailure='';try{listenerCall();}catch(e){activeFailure=e.message;}
+  need(activeFailure==='Only the explicit disposable simulation lane may save'&&context.window.__release634Safety.blockedSaveCalls===1&&realSaves===0,'Active visibility autosave must remain rejected');
+  // 活躍 save/load 中不能提前清世界來繞過安全檢查。
+  context.window.__release634Saving=true;let earlyFailure='';try{context.window.__release634.disposeWorld();}catch(e){earlyFailure=e.message;}
+  need(earlyFailure==='Cannot dispose a live fixture load/save'&&context.tiles!==null,'Active save teardown must fail closed');context.window.__release634Saving=false;
+  const disposal=context.window.__release634.disposeWorld();listenerCall();
+  need(disposal.phase==='disposed'&&disposal.worldWasPresent&&disposal.worldCleared&&disposal.saveGuardUnchanged&&JSON.stringify(disposal.countersBefore)===JSON.stringify(disposal.countersAfter)&&context.window.__release634Safety.blockedSaveCalls===1&&realSaves===0,'Completed disposal must make original visibility autosave inert without changing counters or its save guard');
+  // 紅源二：銷毀後即使偽造 simulation/save 旗標，也不能重新寫檔或產生量測。
+  context.window.__release634Simulation=true;context.window.__release634Saving=true;let closedSaveFailure='',closedMeasureFailure='';
+  try{vm.runInContext('save()',context);}catch(e){closedSaveFailure=e.message;}
+  try{context.window.__release634.assets([]);}catch(e){closedMeasureFailure=e.message;}
+  need(closedSaveFailure==='Only the explicit disposable simulation lane may save'&&realSaves===0&&closedMeasureFailure==='Measurement requested after disposable world closure','Disposed save and measurement red controls must fail closed');
+  return{activeVisibilityRejected:true,liveSaveDisposalRejected:true,disposedVisibilityInert:true,saveGuardUnchanged:true,disposedSaveRejected:true,disposedMeasurementRejected:true};
 }
 function selfTest(){
   const source=fs.readFileSync(path.join(ROOT,SOURCE_PATH),'utf8'),shared=bridgeFrom(fs.readFileSync(path.join(ROOT,BRIDGE_PATH),'utf8'));
-  scriptsParse(inject(source,shared),'local injected source');
+  const lifecycle=lifecycleSelfTest(source);scriptsParse(inject(source,shared),'local injected source');
   for(const kind of['default-off','url-bypass','runtime-bypass'])scriptsParse(inject(redSource(source,kind),shared),kind);
   const flag=flagLine(source),probe=(line,query='',values={})=>vm.runInNewContext(line+';t634On()', {window:{...values},location:{search:query}});
   need(probe(flag)===true&&probe(flag,'',{__t634:true})===true&&probe(flag,'',{__t634:false})===false,'Activation static behavior self-test');
@@ -110,7 +146,7 @@ function selfTest(){
   const boot={slot:3,freeze:true,explicit:'absent',on:true};
   need(firstModeFailure({boot,frame:boot,expectedOn:true,expectedExplicit:'absent',guard:'default-activation',pixelsEqual:true})===null,'Positive first-guard self-test');
   for(const guard of['default-activation','url-escape','runtime-escape'])need(firstModeFailure({boot,frame:boot,expectedOn:true,expectedExplicit:'absent',guard,pixelsEqual:false})===guard,'Pixel red first-guard self-test '+guard);
-  console.log(JSON.stringify({status:'static-tool-self-test-only',browserStarted:false,socketOpened:false,immutableApprovalChecked:false,renderParityVerified:false}));
+  console.log(JSON.stringify({status:'static-tool-self-test-only',browserStarted:false,socketOpened:false,immutableApprovalChecked:false,renderParityVerified:false,lifecycle}));
 }
 async function main(){
   if(process.argv.includes('--self-test')){selfTest();return;}
@@ -128,11 +164,12 @@ async function main(){
   const baselineSource=gitRaw('show',baseline+':'+SOURCE_PATH);need(sha(baselineSource)===inventory.audit.source_sha256,'Pre-T634 git source differs from the independently recorded inventory hash');
   const rows=inventory.building_types.filter(r=>r.remaining_new).sort((a,b)=>a.k-b.k).flatMap(r=>Array.from({length:r.k<=3?3:1},(_,l)=>Array.from({length:r.k<=3?12:3},(_,v)=>({id:r.k+'_'+(l+1)+'_'+v,k:r.k,lv:l+1,v,n:r.new_size}))).flat());
   need(rows.length===315&&new Set(rows.map(r=>r.id)).size===315&&rows.filter(r=>r.k<=3).length===108&&rows.filter(r=>r.k>3).length===207,'Immutable inventory must enumerate exactly 108 RCI plus 207 facility designs');
+  const lifecycle=lifecycleSelfTest(releaseSource);
   const sources={approved:approvedSource,baseline:baselineSource,release:releaseSource,'red-default-off':redSource(releaseSource,'default-off'),'red-url-bypass':redSource(releaseSource,'url-bypass'),'red-runtime-bypass':redSource(releaseSource,'runtime-bypass')};
   const pagesHTML=Object.fromEntries(Object.entries(sources).map(([name,source])=>[name,inject(source,sharedBridge)]));
   for(const[name,html]of Object.entries(pagesHTML))scriptsParse(html,name);
   if(process.argv.includes('--check')){console.log(JSON.stringify({status:'immutable-source-and-syntax-check-only',head,approved,baseline,designs:rows.length,browserStarted:false,socketOpened:false,renderParityVerified:false}));return;}
-  const report={kind:'T634 approved-art release activation exact native RGBA parity',status:'running',head,approved,baseline,checks:[],failures:[],errors:[],contexts:[],assets:[],worlds:[],redControls:[],sentinels:[],screenshots:[],
+  const report={kind:'T634 approved-art release activation exact native RGBA parity',status:'running',head,approved,baseline,checks:[],failures:[],errors:[],contexts:[],assets:[],worlds:[],redControls:[],sentinels:[],screenshots:[],lifecycleSelfTest:lifecycle,
     source:{head,approved,baseline,releaseSHA256:sha(releaseSource),approvedSHA256:sha(approvedSource),baselineSHA256:sha(baselineSource),releaseBlob:git('rev-parse',head+':'+SOURCE_PATH),approvedBlob:git('rev-parse',approved+':'+SOURCE_PATH),baselineBlob:git('rev-parse',baseline+':'+SOURCE_PATH),harnessSHA256:sha(fs.readFileSync(__filename)),immutableSceneSHA256:sha(bridgeSource),sharedBridgeSHA256:sha(sharedBridge),inventorySHA256:sha(inventoryRaw),fixtureSHA256:sha(fixture),sentinelSource:{commit:baseline,path:'test_fixde.js',sha256:sha(sentinelSource),expected:SENTINELS},servedHTMLSHA256:Object.fromEntries(Object.entries(pagesHTML).map(([k,s])=>[k,sha(s)]))},
     safety:{disposableOrigin:true,isolatedContexts:true,slotSelectedBeforeLoad:3,playerOriginUsed:false,simulationAdvanced:'only the separate three-seed normal-URL lane',gameplaySaveAllowed:'only explicit disposable slot3 save/load checks in the simulation lane',serviceWorkersBlocked:true},
     scope:'Supplemental release activation only. Full six-job seasonal, overlay, save, geometry and regression acceptance remains independently required.'};
@@ -163,7 +200,9 @@ async function main(){
   }
   async function close(run,fixtureWrites,saveCalls=0,backupWrites=0){
     const safety=await run.page.evaluate(()=>__release634.safety());report.contexts.find(r=>r.name===run.spec.name).safety=safety;
-    check(safety.slot===3&&!safety.savePresent&&safety.wrongSlotWrites===0&&safety.blockedSaveWrites===0&&safety.blockedSaveCalls===0&&safety.fixtureWrites===fixtureWrites&&safety.allowedSaveCalls===saveCalls&&safety.allowedSaveWrites===saveCalls&&safety.allowedBackupWrites===backupWrites&&safety.blockedAutosaveRegistrations===1&&safety.failedBakes===0,run.spec.name+' strictly scoped slot3 writes and no-fallback safety');
+    check(safety.slot===3&&!safety.savePresent&&!safety.backupPresent&&safety.wrongSlotWrites===0&&safety.blockedSaveWrites===0&&safety.blockedSaveCalls===0&&safety.fixtureWrites===fixtureWrites&&safety.allowedSaveCalls===saveCalls&&safety.allowedSaveWrites===saveCalls&&safety.allowedBackupWrites===backupWrites&&safety.blockedAutosaveRegistrations===1&&safety.failedBakes===0,run.spec.name+' strictly scoped slot3 writes and no-fallback safety');
+    const disposal=await run.page.evaluate(()=>__release634.disposeWorld());report.contexts.find(r=>r.name===run.spec.name).disposal=disposal;
+    check(disposal.phase==='disposed'&&disposal.worldWasPresent&&disposal.worldCleared&&disposal.saveGuardUnchanged&&JSON.stringify(disposal.countersBefore)===JSON.stringify(disposal.countersAfter),run.spec.name+' bounded post-measurement world disposal preserves active save guard and all safety counters');
     await run.context.close();openContexts.delete(run.context);persist();
   }
   async function assets(run,reference){

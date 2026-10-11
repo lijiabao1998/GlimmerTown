@@ -21,3 +21,11 @@ The main Pages workflow retains every original blocking gate and adds `approved-
 
 ## Evidence status
 Implementation-time record only. Exact release commit, CI results and published HTTPS verification will be recorded after they actually complete. The prior 7105 candidate had six green jobs; that does not substitute for release-default or main deployment checks.
+
+## First exact-release CI result and bounded fixture correction
+
+The first default-on source, `acafd287`, completed 3,471 release checks: 945 approved/default/explicit-on day/night sprite pairs, all360 world frames, all six original simulation pins and all three save/draw/load roundtrips (identical save hashes). All three deliberate wrong-source pixel controls reached their intended first guard. It nevertheless correctly failed the final zero-page-exception check: closing each of12 disposable contexts invoked the game's original visibility-change autosave, which the parity fixture intentionally forbade. This failed run remains failed.
+
+The correction is limited to the supplemental test's post-measurement disposal. Every measured contract and active-page save denial remains; after evidence and storage checks, the completed disposable world is cleared before context closure. Static lifecycle controls and the rerun must prove no teardown storage writes, no resumed measurements after disposal, and zero page exceptions. No error filtering, threshold relaxation, runtime or artwork change is allowed. Real background-save behavior remains covered separately by the unchanged Pages browser tests.
+
+The same run's existing advisory macOS native lane also failed its unchanged daytime cold-draw limit: 718.3ms versus 137.6ms art-off, limit525.2ms. Its seven live SPR pin tables are identical to each other; the860 historical-key differences are common to baseline and candidate, with no new-versus-old CRC differences. The315 new CACHE634 designs are outside that SPR table and require the separate exact-RGBA gate. One cold sample cannot establish or dismiss a new performance regression; this advisory failure is retained under the existing T630 policy, without a retry or relaxed limit.
