@@ -73,7 +73,7 @@
 
 曾抓到並修正的本卡問題：①測試插入字串中$'遭replace解讀，改callback，原main語法本來正常；②建路瞬時粒子造成135像素差，固定已完工拍攝時鐘與粒子初態後7場景全恆等；③本卡局部畫點函式叫R，撞到T590字面守衛，改名pixel635，沒有放寬舊守衛；④最初全頁截圖仍有開機罩，已等原生完成後重拍，舊失敗圖不交付。
 
-## 未驗與待確認（不得省略）
+## 第一輪交付時的未驗與待確認（後續覆核／修正見下節）
 
 - **未經第三方覆核與業主圖審**。目前為作者目視自檢、凍結原檔作獨立來源的行為／像素對照與兩個定向紅源；沒有把同作者自檢冒充第三方審查。交父端／業主看圖選定後才能另談整合。
 - 沒有推送，所以沒有新CI／部署驗收；本地完整verify保留原有T602紅燈，此提交只是可審的本地候選，不是可發布綠燈。
@@ -83,3 +83,25 @@
 - 使用者一般存檔沒有讀取：只用隔離slot3合成新舊fixture，非玩家私人城的實測。
 
 **本地提交界線**：依本次業主明示「提交本地候選」保存可審快照。已知未改main同樣紅的Windows台架限制仍保留，不能把本地備份解讀成CI通過／發布授權。遠端收口前再次ls-remote仍是7ad6931，沒有覆蓋任何Claude／main成果；所有執行程序只關自身隔離profile。
+
+## 日夜遮擋覆核與修正（後續委派）
+
+未參與繪製的 `/root/fire_visual_review` 直接看原生單體、整街、日夜、雪、四方向、遠景、施工／淡出／濕膜、同色剪影與官方 Huntingdon 像素，並自讀英國官方資料、全部 diff、原程式及 1586 素材值。確認三款結構不同且批准 main 保留，但找到 P2：後畫的山牆／塔身／辦公翼只遮日層，夜層燈光透過不透明實體。原報告在 evidence635/Independent-visual-review635.md，三個 PNG 樣本為舊 k30 `(735,637)`／171 像素、新 k30 `(902,237)`／50、舊 k61 `(1300,682)`／48。作者另以獨立 PNG 取樣程式重現相同三組數量；不能以天空 orphan=0 冒稱無穿牆。
+
+使用者明確授權修正及同一 Library 預覽更新。本地修正只在 T635 自含繪圖區塊：每個後畫不透明面、線、像素與樹冠，先以相同原生光柵足跡 destination-out 清除被遮住的夜燈，再照原日層配方繪製；直接夜燈筆畫不清除自己。日層幾何／顏色／順序、footprint、入口、SPR、能力與存檔不變，原 noT635 回退保留。local candidate 版號改為 v11.220，未發布。
+
+修正前 index、所有 preview／behavior、已交 Library 圖、獨立 finding 及逐像素樣本完整保存在 evidence635/pre-fix635-5fc3ff3/，不覆寫；Library 舊圖 SHA256 033eb79156ee02f384ff438ce713075437d3c5b4ef27c9ced9976777b33567db。
+
+T602 原始 FAIL 保留：舊台架把 Windows root 文字插進另一層模板，`\2026` 在 strict eval 成八進位 escape；native inline syntax 本身正常。僅記憶體將 __dirname/__filename 作函式參數傳入，原 body 所有 175 assertions 及 main/candidate T602_RESULT 完全相同。未改 repo 測試、門檻或執行環境；診斷不抵消正式 verify 紅燈。詳細證據 evidence635/t602-diagnosis/。
+
+修正後已執行的原生回歸：Chrome155，slot3，單一瀏覽器序列作業；新／舊 fixture 各13狀態（四方向日／夜／積雪＋遠景），合計26組 base=default=escaped 全PNG逐位相同。1586原圖集鍵零增刪、零pixel變動。六種 footprint 的day/night/snow/snow-night：裁邊0、sky orphan0、已確認三色 opaqueWarm0、真實燈光仍>0。白天與白天雪景 single PNG 對封存前圖逐位相同。原三個PNG缺陷樣本夜RGB變為 `(97,80,77)`／`(104,88,79)`／`(128,141,143)`；171／50／48變0／0／0。新增負向來源只把occlude635改no-op，原生Chrome重現三種穿牆（native mask11／19／12點），第一失敗 opaque-night-occlusion，同時舊sky orphan檢查仍0，證實新守衛非假綠。
+
+原生行為 lane：新建2／3／4占地、原費400／800／1600、refs3／8／15、實際step施工age0／4／8／9／12、Lv2／舊Lv3升級、save-load-save語義、三次真ignite與80次派車更新（到達sample8／13／27）、完整模擬tiles／finance／coverage／車軌跡對冻结main一致；R／rand／Math.random0；反射仍按原不支援處理，沒有新增功能。瀏覽器錯誤0。詳見 evidence635/preview/preview635.json、behavior/behavior635.json、night-occlusion-fixed635.json。下一節將以真正再覆核與正式守衛結果收口。
+
+修正後收口：獨立再覆核 `/root/fire_visual_review` 未參與繪製／修正，直接實看新舊四方向24張日夜雪、2遠景、HUD、day/night/snow/snow-night單體、施工／hover／wet及原前圖／負控制；自行逐像素驗原三座標與171／50／48→0。負控制整PNG與封存舊夜景逐位相同；有效玻璃亮像素189／979／721／36／324／801仍在，未見整窗或入口燈被误清。獨立再覆核 No findings，原P2解決；並自行驗26組base=default=escaped、day/snow原圖、整份批准碼及1586釘值均保留。完整原文 evidence635/Independent-visual-rereview635.md。這是獨立代理覆核，不是業主圖審或外部人類第三方批准。
+
+原正式 verify.py 最終仍 RED：12590 PASS／1 FAIL，只剩原main同現的T602 Windows octal escape；六哨兵780／2297／117／77／639／14523全匹配、syntax／CRLF／版號／184地圖錨全通過。verify-fix-closed635.log保留真實輸出。收口前兩次326 PASS早停為作者漏寫CHANGELOG `驗收:` 欄，原失敗log仍保留；補回具名欄後才恢復12590，不修改守衛／門檻。工具鏈來源未變，本輪未重跑無關63工具鏈／benchmark，第一輪63 tests仍為已執行歷史證據。
+
+Library同一項目 `/Town-fire-three-native-preview.png` 已正常replace到version1，libfile_ace20b91341c81919947bd3cfa56a43e保持不變；新file_id=file_00000000dd7081fd858e4c50a66b2d4c，717192bytes，1560×2952，SHA256 b45ed6a0c10ea55029b6f51fd29a71c58a36f772de82225b484b6c5bb2466a58。native Library read可正常返回新版。原version0及原PNG封存；没有另建Library文件。Windows缺os.setxattr，官方metadata helper失敗，身份／version／xattrs及錯誤存JSON；沒有繞過環境或冒稱本地metadata已套用。
+
+目前candidate index SHA256=4a89ed0c069211fe1967102ebe11eb9a9d9f917bbae4496d628c75c8e7e1b751。遠端main再次核對仍7ad6931；既有Claude工作區未動。新版仍預設關閉、只有本地候選；無push／PR／合併／部署，待使用者新版預覽確認。手機／Mac／前景FPS／冷啟動與長時效能未驗；pointer拖曳／滾輪未另測；已測原生GV旋轉／縮放。靜態取樣不代表每個可能遮擋情境已窮盡，但原三例與四方向鄰街已覆核。
