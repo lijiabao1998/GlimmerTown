@@ -55,15 +55,15 @@ function rig(t, mutateFrame = () => {}, onPersist = () => {}, diagnosticError = 
   const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'filters634-contract-'));
   t.after(() => fs.rmSync(OUT, { recursive: true, force: true }));
   const nativeCases603 = cases(), report = { release: { current: { commit: 'current', version: 'new' }, previous: { commit: 'immutable-prev', version: 'old' } } };
-  let c, candidate = false, calls = 0;
+  let c, candidate = false, calls = 0, lastFrame;
   const controller = filters.createController({ report, check, persist() { onPersist(report, OUT); }, OUT, nativeCases603,
     release603: { newEscapeFlags: ['__noT634'] }, nativeCamera603: async next => { c = next; },
     ev: async expression => {
       if (expression === '__s603.rainbowOrigin634()') { const origin = { value: candidate ? 6 : 5, document: { doc: candidate ? 'candidate' : 'baseline', version: candidate ? 'new' : 'old' }, phase: 'same-task-after-grow22-before-matrix-draw' }; mutateOrigin(origin, candidate); return origin; }
-      if (expression === '__s603.filterReadbacks634()') { if (diagnosticError) throw diagnosticError; return { readCount: 2, reads: [{ rgbaBase64: 'AA==' }, { rgbaBase64: 'AQ==' }] }; }
+      if (expression === '__s603.filterReadbacks634()') { if (diagnosticError) throw diagnosticError; return { readCount: 2, delta: { changedPixels: lastFrame?.unstablePixels ?? 0 }, reads: [{ rgbaBase64: 'AA==' }, { rgbaBase64: lastFrame?.unstablePixels ? 'AQ==' : 'AA==' }] }; }
       const [time, mode, onlyNewEscape, flags, clockInput, clockMode] = JSON.parse('[' + expression.slice(expression.indexOf('(') + 1, -1) + ']');
       assert.equal(time, c.time); assert.deepEqual(flags, ['__noT634'], 5); calls++;
-      const out = frame(c, candidate, onlyNewEscape, mode, clockInput, clockMode); mutateFrame(out, { c, candidate, onlyNewEscape, mode, clockInput, clockMode }); return out;
+      const out = frame(c, candidate, onlyNewEscape, mode, clockInput, clockMode); mutateFrame(out, { c, candidate, onlyNewEscape, mode, clockInput, clockMode }); lastFrame = out; return out;
     },
     nativeSave603: (name, r) => { const file = name + '.png'; fs.writeFileSync(path.join(OUT, file), Buffer.from(r.png.split(',')[1], 'base64')); return file; },
     nativeRecord603: ({ png, pixels, ...r }) => ({ ...r, rgbaSHA256: pixels.value }),
@@ -142,7 +142,7 @@ test('browser fixture calls genuine nativeFrame and restores undefined/false/own
 
 test('36 independent references and both candidate arms pass before normal308, without changing normal arrays', async t => {
   const r = rig(t); await r.controller.baseline(); r.setCandidate(); await r.controller.candidate();
-  assert.equal(r.calls(), 115); assert.equal(r.report.nativeFilterFallback634.earlyPassed, true);
+  assert.equal(r.calls(), 121); assert.equal(r.report.nativeFilterFallback634.earlyPassed, true);
   assert.equal(r.report.matrix, undefined); assert.throws(() => r.controller.finish(), /308 original/);
   r.normal(); const before = JSON.stringify([r.report.matrix, r.report.nativeZoomMatrix, r.report.nativeMobileMatrix, r.report.nativeMobileAligned]);
   r.controller.finish(); assert.equal(r.report.nativeFilterFallback634.finalPassed, true);
@@ -440,8 +440,8 @@ test('genuine frozen nativeFrame is stable with shared input, unstable with orig
 
 for (const [name, mutate, expected] of [
   ['clock metadata corruption', (out, info) => { if (info.candidate) out.clock634.calls[0].post = 5; }, /exact three-draw rainbow/],
-  ['countdown red source is invisible', (out, info) => { if (info.clockMode === 'original-drift') out.unstablePixels = 0; }, /original stablePixels guard/],
-  ['wrong nonzero input has no pixel effect', (out, info) => { if (info.clockInput === 2.5) { const p = JSON.parse(Buffer.from(out.png.split(',')[1], 'base64')); p.value = 'approved-new-art'; out.png = 'data:image/png;base64,' + Buffer.from(JSON.stringify(p)).toString('base64'); } }, /rainbow original-drift and nonzero/]
+  ['countdown red source is invisible', (out, info) => { if (info.clockMode === 'original-drift') out.unstablePixels = 0; }, /all four observed rainbow phases/],
+  ['wrong nonzero input has no pixel effect', (out, info) => { if (info.clockInput === 2.5) { const p = JSON.parse(Buffer.from(out.png.split(',')[1], 'base64')); p.value = 'approved-new-art'; out.png = 'data:image/png;base64,' + Buffer.from(JSON.stringify(p)).toString('base64'); } }, /all four observed rainbow phases/]
 ]) test('clock red source: ' + name, async t => {
   const r = rig(t, mutate); await r.controller.baseline(); r.setCandidate();
   await assert.rejects(r.controller.candidate(), expected); assert.equal(r.report.nativeFilterFallback634.earlyPassed, false);
@@ -476,4 +476,82 @@ test('original dimension guard retains precedence over the added clock guard', a
   await assert.rejects(r.controller.baseline(), /complete native dimensions/);
   assert.equal(r.report.nativeFilterFallback634.firstFailure.dimensionsValid, false);
   assert.equal(r.report.nativeFilterFallback634.firstFailure.clockValid, false);
+});
+
+test('fixed four phases derive only from the original trace and all run when only the middle phase is visible', async t => {
+  const driftInputs = [], observedFiles = new Set();
+  const middle = Math.max(0, Math.max(0, 5 - .016) - .016);
+  const r = rig(t, (out, info) => {
+    if (info.clockMode === 'original-drift') { driftInputs.push(info.clockInput); out.unstablePixels = info.clockInput === middle ? 1 : 0; }
+  }, (report, OUT) => {
+    for (const [key, proof] of Object.entries(report.nativeFilterFallback634.rainbow.phaseEvidence || {})) {
+      for (const file of [proof.file, proof.frame.file, ...proof.readbacks.reads.map(read => read.file)]) {
+        assert.ok(fs.existsSync(path.join(OUT, file)), key + ': persisted immediately'); observedFiles.add(file);
+      }
+    }
+  });
+  await r.controller.baseline(); r.setCandidate(); await r.controller.candidate();
+  const rainbow = r.report.nativeFilterFallback634.rainbow, row = rainbow.negativeControl;
+  const expected = [5, ...row.phases[0].drift.clock634.calls.map(call => call.post)];
+  assert.deepEqual(driftInputs, expected); assert.equal(r.calls(), 121);
+  assert.deepEqual(row.phases.map(p => p.input), expected); assert.deepEqual(row.phases.map(p => p.index), [0, 1, 2, 3]);
+  assert.deepEqual(row.phases.map(p => p.visible), [false, false, true, false]);
+  assert.equal(Object.keys(rainbow.phaseEvidence).length, 8); assert.equal(observedFiles.size, 32);
+  assert.equal(rainbow.originalDriftEvidence.frame.unstablePixels, 0);
+  assert.equal(rainbow.originalDriftEvidence.frame.originalGuardError, undefined);
+  assert.equal(row.phases[2].drift.originalGuardError, 'T634 explicit filter fixture state and restored flag ownership aligned-dpr2-day/true/false/native');
+  assert.equal(filters.rainbowNegativeValid634(row, 5, ['__noT634']), true);
+});
+
+test('all four neutral phases still finish the fixed table and fail the visible-negative requirement', async t => {
+  const inputs = [];
+  const r = rig(t, (out, info) => { if (info.clockMode === 'original-drift') { inputs.push(info.clockInput); out.unstablePixels = 0; } });
+  await r.controller.baseline(); r.setCandidate();
+  await assert.rejects(r.controller.candidate(), /all four observed rainbow phases/);
+  assert.equal(inputs.length, 4); assert.equal(r.calls(), 121);
+  const rainbow = r.report.nativeFilterFallback634.rainbow;
+  assert.equal(rainbow.phases.length, 4); assert.ok(rainbow.phases.every(p => !p.visible));
+  assert.equal(Object.keys(rainbow.phaseEvidence).length, 8);
+  assert.equal(r.report.nativeFilterFallback634.earlyPassed, false);
+});
+
+test('phase validator rejects omissions, duplicate/reordered/extra phases, forged source or guard/pixel metadata', async t => {
+  const r = rig(t); await r.controller.baseline(); r.setCandidate(); await r.controller.candidate();
+  const good = r.report.nativeFilterFallback634.rainbow.negativeControl;
+  for (const mutate of [
+    row => { row.phases.pop(); }, row => { row.phases = row.phases.slice(0, 1); },
+    row => { row.phases[2] = copy(row.phases[1]); }, row => { row.phases.reverse(); }, row => { row.phases.push(copy(row.phases[3])); },
+    row => { row.phases[1].input = 4.7; }, row => { row.phases[1].source = 'hand-selected'; }, row => { row.phases[1].index = 8; },
+    row => { row.phases[1].drift.originalGuardError = 'invented'; }, row => { delete row.phases[1].drift.originalGuardError; },
+    row => { row.phases[1].drift.unstablePixels = 0; }, row => { row.phases[1].drift.unstablePixels = 2; },
+    row => { row.phases[1].drift.phaseEvidence634.changedPixels = 2; },
+    row => { row.phases[1].drift.phaseEvidence634.reads[1].sha256 = row.phases[1].drift.phaseEvidence634.reads[0].sha256; },
+    row => { row.phases[1].shared.unstablePixels = 1; }, row => { row.phases[1].drift.clock634.callerAfter = 0; }
+  ]) { const bad = copy(good); mutate(bad); assert.equal(filters.rainbowNegativeValid634(bad, 5, ['__noT634']), false); }
+});
+
+test('neutral phases cannot carry a fabricated original-guard error, and unrelated drift failures preserve the original error', async t => {
+  const r = rig(t, (out, info) => { if (info.clockMode === 'original-drift') out.unstablePixels = 0; });
+  await r.controller.baseline(); r.setCandidate(); await assert.rejects(r.controller.candidate(), /all four observed/);
+  const frame = copy(r.report.nativeFilterFallback634.rainbow.phases[0].drift);
+  assert.equal(filters.driftProbeValid634(frame, 5, ['__noT634']), true);
+  frame.originalGuardError = 'T634 explicit filter fixture state and restored flag ownership aligned-dpr2-day/true/false/native';
+  assert.equal(filters.driftProbeValid634(frame, 5, ['__noT634']), false);
+  const bad = rig(t, (out, info) => { if (info.clockMode === 'original-drift') out.fixture634.effective.T634 = false; });
+  await bad.controller.baseline(); bad.setCandidate();
+  await assert.rejects(bad.controller.candidate(), /^AssertionError.*T634 explicit filter fixture state/s);
+  assert.equal(bad.calls(), 113);
+  assert.equal(bad.report.nativeFilterFallback634.rainbow.originalDriftEvidence.predicates.effectiveT634, false);
+});
+
+
+test('phase-zero alias persistence failure cannot replace an unrelated original frame guard error', async t => {
+  const r = rig(t, (out, info) => { if (info.clockMode === 'original-drift') out.fixture634.restored = false; }, report => {
+    if (report.nativeFilterFallback634.rainbow.originalDriftEvidence) throw Error('alias persistence failed');
+  });
+  await r.controller.baseline(); r.setCandidate();
+  await assert.rejects(r.controller.candidate(), /^AssertionError.*T634 explicit filter fixture state/s);
+  const proof = r.report.nativeFilterFallback634.rainbow.originalDriftEvidence;
+  assert.match(proof.frame.originalGuardError, /T634 explicit filter fixture state/);
+  assert.ok(proof.diagnosticErrors.some(error => error.includes('alias persistence failed')));
 });

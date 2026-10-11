@@ -234,12 +234,37 @@ function clockValid634(frame, input, mode = 'shared') {
     return call.before === before && call.pre === pre && call.post === post && call.restored === (mode === 'shared' ? before : post);
   });
 }
-function rainbowNegativeValid634(row, input, newFlags) {
-  if (!row || row.wrongPixels <= 0 || row.restoredPixels !== 0 || row.drift?.unstablePixels <= 0 || !row.drift?.originalGuardError) return false;
+function rainbowPhases634(seed, input) {
+  if (!clockValid634(seed, input, 'original-drift')) throw Error('T634 phase inputs require the original three-draw trace');
+  const phases = [{ index: 0, source: 'PREV-input', input },
+    ...seed.clock634.calls.map((call, index) => ({ index: index + 1, source: 'original-post-' + (index + 1), input: call.post }))];
+  if (phases.some(p => !Number.isFinite(p.input) || p.input <= 0)) throw Error('T634 all four observed phase clocks must remain positive');
+  return phases;
+}
+function driftProbeValid634(frame, input, newFlags) {
   const options = { candidate: true, onlyNewEscape: false, newFlags, requireT634: true };
-  const clauses = framePredicates634(row.drift, options);
-  return !frameValid(row.drift, options) && Object.entries(clauses).every(([key, value]) => key === 'stablePixels' ? !value : value) &&
-    clockValid634(row.drift, input, 'original-drift') &&
+  if (!Number.isSafeInteger(frame?.unstablePixels) || frame.unstablePixels < 0 || !clockValid634(frame, input, 'original-drift')) return false;
+  const clauses = framePredicates634(frame, options), visible = frame.unstablePixels > 0;
+  return Object.entries(clauses).every(([key, value]) => key === 'stablePixels' ? value === !visible : value) &&
+    (visible ? !frameValid(frame, options) && frame.originalGuardError === 'T634 explicit filter fixture state and restored flag ownership aligned-dpr2-day/true/false/native'
+      : frameValid(frame, options) && !Object.hasOwn(frame, 'originalGuardError'));
+}
+function phaseReadbacksValid634(frame) {
+  const e = frame?.phaseEvidence634;
+  return !!(e && e.file && e.pngFile && e.readCount === 2 && e.changedPixels === frame.unstablePixels &&
+    e.reads?.length === 2 && e.reads.every(read => read.file && /^[a-f0-9]{64}$/.test(read.sha256)) &&
+    (frame.unstablePixels === 0 ? e.reads[0].sha256 === e.reads[1].sha256 : e.reads[0].sha256 !== e.reads[1].sha256));
+}
+function rainbowNegativeValid634(row, input, newFlags) {
+  if (!row || row.key !== 'aligned-dpr2-day' || row.input !== input || row.wrongInput !== input / 2 ||
+    row.wrongPixels <= 0 || row.restoredPixels !== 0 || !Array.isArray(row.phases) || row.phases.length !== 4) return false;
+  let declared; try { declared = rainbowPhases634(row.phases[0]?.drift, input); } catch { return false; }
+  const options = { candidate: true, onlyNewEscape: false, newFlags, requireT634: true };
+  return row.phases.every((phase, i) => phase.index === declared[i].index && phase.source === declared[i].source && phase.input === declared[i].input &&
+    phase.visible === (phase.drift?.unstablePixels > 0) &&
+    frameValid(phase.shared, options) && clockValid634(phase.shared, phase.input) && phaseReadbacksValid634(phase.shared) &&
+    driftProbeValid634(phase.drift, phase.input, newFlags) && phaseReadbacksValid634(phase.drift)) &&
+    row.phases.some(phase => phase.visible) &&
     [[row.good, input], [row.wrong, input / 2], [row.restored, input]].every(([frame, value]) => frameValid(frame, options) && clockValid634(frame, value));
 }
 
@@ -288,7 +313,7 @@ function createController({ report, check, persist, ev, nativeCases603, nativeCa
   try { persist(); } catch (error) { recordError(error); }
     return first;
   }
-  async function capture(c, candidate, onlyNewEscape = false, mode = 'native', clockInput = evidence.rainbow.previous.value, clockMode = 'shared') {
+  async function capture(c, candidate, onlyNewEscape = false, mode = 'native', clockInput = evidence.rainbow.previous.value, clockMode = 'shared', phase = null) {
     await nativeCamera603(c);
     const frame = await ev('__s603.filterFrame634(' + JSON.stringify(c.time) + ',' + JSON.stringify(mode) + ',' +
       JSON.stringify(onlyNewEscape) + ',' + JSON.stringify(newFlags) + ',' + JSON.stringify(clockInput) + ',' + JSON.stringify(clockMode) + ')');
@@ -300,16 +325,23 @@ function createController({ report, check, persist, ev, nativeCases603, nativeCa
       const prefix = 'T634-filter-first-failure-' + c.key + '-' + (candidate ? onlyNewEscape ? 'escape' : 'normal-art' : 'previous') + '-' + mode;
       await saveDiagnostic634(evidence, 'firstFailure', prefix, c, frame, pixels, options, predicates, dimensionsValid, clockInput, clockMode);
     }
+    let originalGuardError, phaseSaved;
     try {
     check(frameValid(frame, { candidate, onlyNewEscape, newFlags, requireT634: true, mode }), 'T634 explicit filter fixture state and restored flag ownership ' + c.key + '/' + candidate + '/' + onlyNewEscape + '/' + mode);
-    } catch (error) { if (clockMode !== 'original-drift') throw error; frame.originalGuardError = String(error.message || error); }
-    if (clockMode === 'original-drift') await saveDiagnostic634(evidence.rainbow, 'originalDriftEvidence', 'T634-rainbow-expected-drift-' + c.key, c, frame, pixels, options, predicates, dimensionsValid, clockInput, clockMode);
+    } catch (error) { if (clockMode !== 'original-drift') throw error; originalGuardError = error; frame.originalGuardError = String(error.message || error); }
+    if (phase) {
+      const key = 'phase-' + phase.index + '-' + clockMode;
+      evidence.rainbow.phaseEvidence ||= {};
+      const saved = phaseSaved = await saveDiagnostic634(evidence.rainbow.phaseEvidence, key, 'T634-rainbow-' + key + '-' + c.key, c, frame, pixels, options, predicates, dimensionsValid, clockInput, clockMode);
+      frame.phaseEvidence634 = { file: saved.file, pngFile: saved.frame.file, readCount: saved.readbacks?.readCount,
+        changedPixels: saved.readbacks?.delta?.changedPixels, reads: saved.readbacks?.reads?.map(({ file, sha256 }) => ({ file, sha256 })) };
+      if (phase.index === 0 && clockMode === 'original-drift') { evidence.rainbow.originalDriftEvidence = saved; try { persist(); } catch (error) { saved.diagnosticErrors.push(String(error.stack || error)); } }
+    }
+    if (originalGuardError && Object.entries(predicates).some(([key, value]) => key !== 'stablePixels' && !value)) throw originalGuardError;
     check(pixels.w === c.width * c.dpr && pixels.h === c.height * c.dpr && frame.state.viewport.dpr === c.dpr,
       'T634 filter fixture complete native dimensions ' + c.key);
-    if (clockMode === 'original-drift') {
-      check(!!frame.originalGuardError && frame.unstablePixels > 0 && Object.entries(predicates).every(([key, value]) => key === 'stablePixels' ? !value : value), 'T634 original countdown is rejected only by the original stablePixels guard ' + c.key);
-      check(evidence.rainbow.originalDriftEvidence.diagnosticErrors.length === 0, 'T634 original countdown red retains its complete first frame and readbacks');
-    }
+    if (phase) check(phaseSaved.diagnosticErrors.length === 0 && phaseReadbacksValid634(frame), 'T634 every fixed rainbow phase retains exact PNG and both original RGBA readbacks phase-' + phase.index + '-' + clockMode);
+    if (clockMode === 'original-drift') check(driftProbeValid634(frame, clockInput, newFlags), 'T634 natural countdown phase preserves every nonstability guard and reports the actual original stability verdict ' + c.key);
     check(clockValid634(frame, clockInput, clockMode), 'T634 exact three-draw rainbow input, natural decay and caller/method restoration ' + c.key);
     return { ...frame, pixels };
   }
@@ -359,13 +391,27 @@ function createController({ report, check, persist, ev, nativeCases603, nativeCa
       persist(); check(negativeValid(evidence.shadowNegativeControl), 'T634 shadow-only fractional native wrong-edge control loses pixels and restores exact full RGBA');
       const rainbowCase = cases.find(c => c.key === 'aligned-dpr2-day'), input = evidence.rainbow.previous.value;
       check(!!rainbowCase, 'T634 visible DPR2 rainbow control camera exists');
-      const rainbowGood = await capture(rainbowCase, true), drift = await capture(rainbowCase, true, false, 'native', input, 'original-drift');
+      const firstPhase = { index: 0, source: 'PREV-input', input };
+      const rainbowGood = await capture(rainbowCase, true, false, 'native', input, 'shared', firstPhase);
+      const drift = await capture(rainbowCase, true, false, 'native', input, 'original-drift', firstPhase);
+      const declared = evidence.rainbow.declaredPhases = rainbowPhases634(drift, input);
+      const phases = evidence.rainbow.phases = [];
+      const phaseRecord = (phase, shared, natural) => ({ ...phase, visible: natural.unstablePixels > 0,
+        shared: { ...nativeRecord603(shared), file: shared.phaseEvidence634.pngFile },
+        drift: { ...nativeRecord603(natural), file: natural.phaseEvidence634.pngFile } });
+      phases.push(phaseRecord(firstPhase, rainbowGood, drift)); persist();
+      // Fixed coverage, never stop on a hit or append extra samples to find one.
+      for (const phase of declared.slice(1)) {
+        const shared = await capture(rainbowCase, true, false, 'native', phase.input, 'shared', phase);
+        const natural = await capture(rainbowCase, true, false, 'native', phase.input, 'original-drift', phase);
+        phases.push(phaseRecord(phase, shared, natural)); persist();
+      }
       const wrong = await capture(rainbowCase, true, false, 'native', input / 2), rainbowRestored = await capture(rainbowCase, true);
-      evidence.rainbow.negativeControl = { key: rainbowCase.key, input, wrongInput: input / 2,
+      evidence.rainbow.negativeControl = { key: rainbowCase.key, input, wrongInput: input / 2, phases,
         wrongPixels: pixelDelta603(rainbowGood.pixels, wrong.pixels), restoredPixels: pixelDelta603(rainbowGood.pixels, rainbowRestored.pixels),
-        good: stored('filter634-rainbow-good', rainbowGood), drift: stored('filter634-rainbow-original-drift', drift),
+        good: phases[0].shared,
         wrong: stored('filter634-rainbow-wrong-clock', wrong), restored: stored('filter634-rainbow-restored', rainbowRestored) };
-      persist(); check(rainbowNegativeValid634(evidence.rainbow.negativeControl, input, newFlags), 'T634 visible rainbow original-drift and nonzero wrong-clock red sources restore exact RGBA');
+      persist(); check(rainbowNegativeValid634(evidence.rainbow.negativeControl, input, newFlags), 'T634 all four observed rainbow phases include a real original stability rejection and nonzero wrong-clock pixels restore exact RGBA');
       evidence.earlyPassed = true; persist();
     },
     finish() {
@@ -396,4 +442,4 @@ function install(replace, helperIdentity = sourceIdentity()) {
   replace(candidate, '    await filterWorld634.candidate();\n' + candidate, 'T634 fail-fast supplemental coverage before original normal matrix');
 }
 module.exports = { PROTOCOL, sourceIdentity, GROUPS, COUNTS, COVERAGE_BLOCK, captureRainbow634, filterFrame634, verifyNativeFilterCoverage634,
-  selectedCases, frameValid, framePredicates634, clockValid634, rainbowNegativeValid634, comparisonValid, negativeValid, createController, install };
+  selectedCases, frameValid, framePredicates634, clockValid634, rainbowPhases634, driftProbeValid634, phaseReadbacksValid634, rainbowNegativeValid634, comparisonValid, negativeValid, createController, install };
