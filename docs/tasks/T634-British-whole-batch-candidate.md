@@ -130,3 +130,44 @@ tick／AI／經濟／成本／容量／放置邏輯／MSZ／存檔格式與內�
 6. 完整本地工具／回歸及精確新提交候選與Pages required CI重驗；舊紅與advisory均保留。沒有全部required綠不合併，非作者負責merge。
 
 回滾：還原本補充測試overlay及接線即可；產品來源維持同一批准版本。當前為施工前卡面，尚未聲稱修正CI通過。
+
+
+### DPR2 首紅證據隔離診斷（施工前固定；非驗收）
+178007 的候選7項成功，但正式 Pages world 在 aligned-dpr2-day 正常新圖／T591 fallback 的 frameValid 綜合判準首次失敗；失敗 frame 原先尚未保存，不能猜測 unstablePixels 或將候選綠燈當發布成功。原178007紅證據、PR16及正式閘門不動。
+
+非作者發佈方已同意從178007建立 gpt/town-634-dpr2-diagnostic，僅 contents:read、無deploy 的隔離診斷。此為同一問題的第一輪針對性DPR2診斷，不新建美術或效能追蹤工程。
+
+允許觸碰：本卡與claim；tools/pages/release-world-filters634.cjs及其測試，僅首紅證據／逐项子判準／透傳保留原兩次getImageData之RGBA；新增 tools/pages/release-dpr2-diagnostic634.cjs與測試；新增 .github/workflows/town634-dpr2-diagnostic.yml；本卡追加實測結果。不得修改 index/sw、批准315圖、凍結scene603/native-correctness、現有workflows、正式frameValid或三條filter門檻。
+
+固定驗收：
+1. 首個失敗frame須在原check前保存：原PNG、原兩次readback的A/B RGBA、差異像素數/bbox/具體RGBA、逐項判準、旗標與相機、精確來源身份。
+2. 透傳spy不得新增getImageData、forceDraw、warmup、重畫、重試或容差；finally恢復原方法descriptor/value/own-property。保留原first-failure與門檻。
+3. 最小真Chrome診斷先重現同36組fallback前序及DPR2首紅；可只略去無關原正常308長矩陣，明示不等同驗收，未重現不算修復。輸出manifest列出每個精確省略段並可反向還原，保留固定city/相機/順序。
+4. 任一修復必須由實測根因導出，先獨立覆核；產品/批准圖若需更動先回報。回候選後原全套required CI全部重跑且全綠，再由非作者決定merge。
+5. 隔離workflow只有特定診斷分支push觸發、contents:read、無deploy/外部服務/安全設定變動。來源漂移與診斷本身失敗必須明示；本輪沒有正式release通過語義。
+
+回滾：不移動PR16，拋棄隔離診斷分支即可；此段為施工前卡面，尚未取得首紅frame。
+
+
+### DPR2 彩虹快照邊界修復（施工前固定）
+隔離1db4/38120974678精確重現原首紅。首對原RGBA3351差異全部在T248紅色虹帶 x188–592/y260–273，通道最大差1、alpha相同；source幾何外緣y260.796、海面y274，sprite/ground快取與城市其餘像素不變。rainbowT實值尚未記錄，但原draw(.016)會遞減它，現有snapshot沒有重套此純視覺時鐘。兩位獨立覆核同意且非作者發佈方批准只修fallback快照。
+
+允許觸碰僅既有helper/test與其exact overlay接線（均在helper中）；本卡/claim；隔離workflow僅加tools/pages路徑觸發以免文檔卡重跑已知紅Chrome。產品、凍結源、正式workflow及原308矩陣不改。
+
+固定驗收：在原grow22同一evaluate task剛結束、任何matrix draw前，只讀取得immutable PREV真實rainbowT，有限且大於0，否則停止，不造9/清零/關彩虹。candidate即時值也記錄。fallback36每次canonical原有三draw前套同PREV值；每次draw後必保留原自然遞減，finally精確還原caller值及原method descriptor/ownership，exception亦然。live/performance/原308完全不套wrapper。獨立PREV與candidate-only-new-escape仍全RGBA零差。共享值、pre/post/final值與來源全記錄。
+
+新增三項真Chrome對照：恢復原自然倒數必在原stablePixels守衛紅，另一個非零共享值必有真像素差，恢復原值全RGBA零差；原陰影wrong-edge仍完整。測試只能新增，不降低原判準；透明3draw/2read守衛仍保留。先同隔離最小Chrome驗證有證據修復，再回PR16做原全套精確SHA驗證。舊兩輪紅證據保留；本段尚未聲稱修復通過。
+
+
+### 彩虹自然衰減紅源的固定四相位覆蓋（施工前固定）
+ec3b / run38139520638 的最小Chrome實測：PREV與candidate同task grow後rainbowT皆9；36配對全RGBA/state通過、原陰影wrong-edge949像素差且恢復0。新增自然倒數紅源實際9→8.984→8.968→8.952，但原兩次RGBA完全相同，原守衛沒有紅；負控制可見性守衛因此正確攔下。此零差結果与原失敗證據保留，不冒充可見紅源。
+
+兩位獨立覆核與非作者發佈方批准固定4相位覆盖：樣本必須恰為當次觀測PREV正值及原3draw真實post值，共四個；本次來源數列9/8.984/8.968/8.952，未來由實測trace直接派生，不寫死值、不搜尋。四相位一律全跑，不因命中或零差提前結束。每相位都有同時計shared對照（原3draw2read、unstablePixels0）及原自然倒數（不改dt/不補draw）。每個自然倒數樣本須保持所有非stability判準、精確時計/復原；只要有像素變化，必須由原stablePixels守衛首次拒絕。全部四相位至少一個真正可見紅源，否則保留紅燈停止回報，不能增試到過。四個相位的PNG/A/B/判準與零差全部保存。
+
+原36配對、原308矩陣、零像素容差及任何產品/批准圖不改；非零錯時計有像素差、恢復共享時計全RGBA零差仍保留。新增unit紅源證明少相位、選擇性早停、全不可見、錯讀數或復原不完整都不能通過。允許觸碰僅helper及其tests、本卡/claim；原自然衰減函數、原frameValid/coverage/negativeValid不改。這是覆蓋修復，不是降低正式像素驗收門檻。
+
+
+### 已驗診斷整合回候選（2026-10-11 12:57 UTC）
+36d81e6 / run38140790689 已完成真正Chrome最小診斷，731 checks、188 PNG、零runtime/console/app錯誤；實測PREV/candidate正值均9，36配對全RGBA/state通過。四個固定phase9/8.984/8.968/8.952的shared不穩定像素全0；natural drift為0/0/3594/0，唯一可見樣本被原stablePixels守衛拒絕，零差不改稱red。錯誤非零時計3772像素差、恢復0；陰影wrong-edge949差、恢復0。16份raw A/B與SHA均保留，原178007及1db4/ec3b紅報告不改。
+
+僅將已驗helper/test、完整卡/claim、release634.md及CHANGELOG整合回PR16。診斷runner/workflow留隔離分支，不進候選。產品仍v11.218與原批准圖像同一bytes，原308/正式CI/workflow依賴不變；此最小731checks不是release通過，精確候選必須重新全套required CI、非作者覆核後才由非作者merge。
