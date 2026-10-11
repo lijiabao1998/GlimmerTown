@@ -124,10 +124,10 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/town634-browser" playwright
           echo "NODE_PATH=$RUNNER_TEMP/town634-browser/node_modules" >> "$GITHUB_ENV"
           sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
-      - name: Same-camera first candidate versus architectural detail revision
+      - name: Same-camera approved reference snapshot versus Lab-referenced whole-batch redesign
         env:
           CHROME_PATH: /usr/bin/google-chrome
-          REVIEW_BASE634: 136e3532b32b8e30821a514bdf22cd277fb8b5c0
+          REVIEW_BASE634: 873ea1d4ad62fb92a286a02068e4fceaee314214
         run: node docs/tasks/t634-shots/detail634.cjs
       - name: Preserve all315 comparisons and street previews
         if: always()

@@ -1,5 +1,5 @@
 // T634 detail revision: real Chrome compares two immutable candidate snapshots.
-// REVIEW_BASE634 supplies the owner-requested first-candidate commit. No release hash is embedded here.
+// REVIEW_BASE634 supplies the owner-requested previous-candidate commit. No release hash is embedded here.
 // Disposable browser contexts and slot3 only; this script never advances simulation or calls GV.save.
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http'),crypto=require('crypto'),{execFileSync}=require('child_process');
@@ -9,7 +9,7 @@ const git=(...args)=>gitRaw(...args).trimEnd();
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 function requireThat(ok,message){if(!ok)throw Error(message);}
 const reviewRef=process.env.REVIEW_BASE634;
-requireThat(reviewRef&&/^[0-9a-f]{40}$/i.test(reviewRef),'REVIEW_BASE634 must be the full immutable first-candidate commit supplied by the workflow.');
+requireThat(reviewRef&&/^[0-9a-f]{40}$/i.test(reviewRef),'REVIEW_BASE634 must be the full immutable previous-candidate commit supplied by the workflow.');
 const reviewBase=git('rev-parse',reviewRef+'^{commit}'),head=git('rev-parse','HEAD');
 const beforeSource=gitRaw('show',reviewBase+':index.html'),afterSource=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
 const sceneSource=fs.readFileSync(path.join(__dirname,'scene634.cjs'),'utf8');
@@ -21,7 +21,7 @@ const fixturePath=path.join(__dirname,'../t603-shots/fixtures/seed22-d3-420-v11.
 const ledgerPath=path.join(__dirname,'coverage634.json'),ledger=fs.existsSync(ledgerPath)?JSON.parse(fs.readFileSync(ledgerPath,'utf8')):null;
 const variantNames=new Map((ledger?ledger.non_rci_variants:[]).map(r=>[r.id,r.name]));
 const GROUPS=[{id:'rci',name:'住宅・高街商業・工業街屋'},{id:'civic',name:'公共建築・休閒與地標'},{id:'industry',name:'能源・工業與基礎設施'}];
-const report={kind:'real-Chrome first-candidate versus detail-revision',status:'running',reviewBase,head,
+const report={kind:'real-Chrome previous-candidate versus Lab-referenced redesign',status:'running',reviewBase,head,
   source:{before:{commit:reviewBase,sha256:sha(beforeSource)},after:{commit:head,sha256:sha(afterSource),matchesCommit:afterSource===gitRaw('show',head+':index.html')},harnessSHA256:sha(fs.readFileSync(__filename)),sharedBridgeSHA256:sha(sharedBridge)},
   fixture:{path:path.relative(ROOT,fixturePath),sha256:sha(fixtureRaw),seed:22},variantLabelLedgerSHA256:ledger?sha(fs.readFileSync(ledgerPath)):null,
   scope:'Source-rendered primary315 designs at summer/stage2/wealth1, plus paired frozen synthetic and actual seed22 streets. Not full seasonal or simulation acceptance.',
@@ -103,9 +103,9 @@ async function main(){
     report.changeCounts={all:count(report.assets),byGroup:Object.fromEntries(GROUPS.map(g=>[g.id,count(report.assets.filter(r=>r.group===g.id))])),byType:Object.fromEntries([...new Set(report.assets.map(r=>r.k))].map(k=>[k,count(report.assets.filter(r=>r.k===k))]))};
     check(report.assets.length===315,'315 primary source-render comparisons recorded individually');check(report.changeCounts.all.changed>0,'revision changes at least one primary rendered design; unchanged designs remain explicitly listed');persist();
     const pairedScale=(rows,w,h,max)=>rows.map(r=>({...r,reviewScale:Math.min(max,(w-20)/Math.max(bySide.before.get(r.id).w,bySide.after.get(r.id).w),(h-58)/Math.max(bySide.before.get(r.id).h,bySide.after.get(r.id).h))}));
-    for(const group of GROUPS)for(const night of[false,true])for(const side of['before','after']){const rows=pairedScale(catalogs[side].filter(r=>r.group===group.id),200,250,1.8),r=await pages[side].evaluate(a=>__detail634.sheet(a),{rows,night,title:(side==='before'?'前版':'細化版')+' / '+group.name});png(`overview-${group.id}-${night?'night':'day'}-${side}.png`,r.png,{kind:'complete-source-overview',group:group.id,side,night,count:rows.length,width:r.width,height:r.height});}
+    for(const group of GROUPS)for(const night of[false,true])for(const side of['before','after']){const rows=pairedScale(catalogs[side].filter(r=>r.group===group.id),200,250,1.8),r=await pages[side].evaluate(a=>__detail634.sheet(a),{rows,night,title:(side==='before'?'前版873ea1':'Lab參考重製')+' / '+group.name});png(`overview-${group.id}-${night?'night':'day'}-${side}.png`,r.png,{kind:'complete-source-overview',group:group.id,side,night,count:rows.length,width:r.width,height:r.height});}
     const selected={rci:['1_1_1','1_2_5','1_3_9','2_2_4','2_3_3','3_3_3'],civic:['24_1_0','67_1_1','75_1_2','82_1_0','86_1_1','115_1_0'],industry:['46_1_1','50_1_0','57_1_1','58_1_2','100_1_0','122_1_1']};report.selectedSourceDetails=selected;
-    for(const group of GROUPS)for(const night of[false,true])for(const side of['before','after']){const rows=selected[group.id].map(id=>catalogs[side].find(r=>r.id===id));requireThat(rows.every(Boolean),'Missing named selected detail in '+group.id);const r=await pages[side].evaluate(a=>__detail634.sheet(a),{rows:pairedScale(rows,600,500,4),night,title:(side==='before'?'前版':'細化版')+' / '+group.name+' / 建築細節',columns:3,cellW:600,cellH:500,maxScale:4});png(`selected-${group.id}-${night?'night':'day'}-${side}.png`,r.png,{kind:'named-source-closeups',group:group.id,side,night,designs:rows.map(r=>({id:r.id,name:r.name})),width:r.width,height:r.height});}
+    for(const group of GROUPS)for(const night of[false,true])for(const side of['before','after']){const rows=selected[group.id].map(id=>catalogs[side].find(r=>r.id===id));requireThat(rows.every(Boolean),'Missing named selected detail in '+group.id);const r=await pages[side].evaluate(a=>__detail634.sheet(a),{rows:pairedScale(rows,600,500,4),night,title:(side==='before'?'前版873ea1':'Lab參考重製')+' / '+group.name+' / 建築細節',columns:3,cellW:600,cellH:500,maxScale:4});png(`selected-${group.id}-${night?'night':'day'}-${side}.png`,r.png,{kind:'named-source-closeups',group:group.id,side,night,designs:rows.map(r=>({id:r.id,name:r.name})),width:r.width,height:r.height});}
     async function pairedWorld(kind,center,zoom,subject){
       for(const night of[false,true]){const captures={};for(const side of['before','after'])captures[side]=await pages[side].evaluate(a=>__detail634.worldFrame(a),{center,zoom,night,rotation:0});const a=captures.before,b=captures.after;check(JSON.stringify(a.state)===JSON.stringify(b.state),kind+' '+(night?'night':'day')+' exact paired camera and visual state');const files={};for(const side of['before','after'])files[side]=png(`${captionName(kind)}-${night?'night':'day'}-${side}.png`,captures[side].png,{kind,side,night,center,zoom:captures[side].state.zoom,subject});report.pairs.push({kind,night,center,zoom:b.state.zoom,subject,files,beforeSHA256:a.sha256,afterSHA256:b.sha256,changed:a.sha256!==b.sha256,state:b.state});}
     }
@@ -129,7 +129,7 @@ async function main(){
   }finally{for(const context of contexts)await context.close().catch(()=>{});if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));persist();}
 }
 function writeReviewIndex(){
-  const c=report.changeCounts.all,lines=['# T634 建築細化：前版與本版實拍對照','',`前版：${reviewBase}`,`本版：${head}`,`瀏覽器：${report.browser.version}；同一執行環境、分開頁面、相同相機。`,'',`逐款比較315張主設計：日／夜任一層改變 ${c.changed} 款；兩層都未變 ${c.unchanged} 款。這是精確源圖像素比較，不把未改款式說成已細化。`,'','工程與美術定稿仍以完整驗收及業主判斷為準。本工具只交付本次修訂對照，不代替四季、疊層與模擬回歸。','','## 建議觀看順序','','1. synthetic-street-normal 與 seed22-dense-street-normal：同鏡頭日／夜正常街景。','2. 兩組 street-close：實際建築座標、目錄名稱與近景日／夜。','3. selected-rci/civic/industry：具名選取建築的源圖細節。','4. overview-rci/civic/industry：全部315款源圖的三組完整總覽。','','## 每類實際變動數','','| k | 主設計數 | 有變 | 未變 | 日圖變 | 夜圖變 |','|---:|---:|---:|---:|---:|---:|'];
+  const c=report.changeCounts.all,lines=['# T634 Lab參考重製：前版與本版實拍對照','',`前版：${reviewBase}`,`本版：${head}`,`瀏覽器：${report.browser.version}；同一執行環境、分開頁面、相同相機。`,'',`逐款比較315張主設計：日／夜任一層改變 ${c.changed} 款；兩層都未變 ${c.unchanged} 款。這是精確源圖像素比較，不把未改款式說成已重製。`,'','工程與美術定稿仍以完整驗收及業主判斷為準。本工具只交付本次修訂對照，不代替四季、疊層與模擬回歸。','','## 建議觀看順序','','1. synthetic-street-normal 與 seed22-dense-street-normal：同鏡頭日／夜正常街景。','2. 兩組 street-close：實際建築座標、目錄名稱與近景日／夜。','3. selected-rci/civic/industry：具名選取建築的源圖細節。','4. overview-rci/civic/industry：全部315款源圖的三組完整總覽。','','## 每類實際變動數','','| k | 主設計數 | 有變 | 未變 | 日圖變 | 夜圖變 |','|---:|---:|---:|---:|---:|---:|'];
   for(const [k,v]of Object.entries(report.changeCounts.byType))lines.push(`| ${k} | ${v.total} | ${v.changed} | ${v.unchanged} | ${v.dayChanged} | ${v.nightChanged} |`);
   lines.push('','## 未變款式（完整列出）','',c.unchangedIDs.length?c.unchangedIDs.join(', '):'本次比較未發現日／夜兩層均未變的款式。','','## 真實街景配對','');
   for(const p of report.pairs)lines.push(`- ${p.kind} / ${p.night?'夜':'日'} / ${p.subject.name} / 相機(${p.center.join(',')}) zoom=${p.zoom}： [前版](${p.files.before}) / [本版](${p.files.after})`);

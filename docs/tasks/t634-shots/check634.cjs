@@ -87,8 +87,18 @@ function checkSmokeOrder634(a,input,expected,label,off=false){
 }
 function test(name,run){try{const detail=run();report.passed.push({name,detail:detail||true});console.log('PASS '+name);}catch(e){report.failed.push({name,guard:e.guard||'UNEXPECTED',message:e.message});console.error('FAIL '+name+': '+e.message);}}
 function red(name,guard,run){try{run();report.negativeControls.push({name,passed:false,expected:guard,actual:'no failure'});fail('G10_RED_CONTROL',name+' did not fail');}catch(e){if(e.guard===guard){report.negativeControls.push({name,passed:true,firstGuard:e.guard});return;}if(e.guard==='G10_RED_CONTROL')throw e;report.negativeControls.push({name,passed:false,expected:guard,actual:e.guard||e.message});throw e;}}
+/* Lab 修訂的獨立比例規格：只守已約定的級別與退回高瘦版，不取烘圖結果反推門檻。 */
+function checkProportions634(a){
+ const caps={1:{height:34,floors:2},2:{height:50,floors:3},3:{height:65,floors:5}},levels={1:[],2:[],3:[]};
+ for(const id of EXPECTED_RCI){const lv=Number(id.split('_')[1]),row=a.rcis[id];for(const m of row.m){need(m[4]<=caps[lv].height&&m[5]<=caps[lv].floors,'G12_RCI_PROPORTIONS',id+' restored excessive height or storey count');}levels[lv].push(Math.max(...row.m.map(m=>m[4])));}
+ const means={};for(const lv of[1,2,3])means[lv]=levels[lv].reduce((x,y)=>x+y,0)/levels[lv].length;
+ need(means[1]+4<means[2]&&means[2]+6<means[3],'G12_RCI_PROPORTIONS','levels flattened into the same silhouette height');
+ for(const id of['1_1_0','1_1_6','1_2_0','1_2_1'])need(a.rcis[id].m.length===1&&a.rcis[id].m[0][2]>=.8,'G12_RCI_TERRACE','terrace roof fragmented into tiny towers');
+ return{caps,meanEaveHeightByLevel:means,continuousTerraces:4};
+}
 const api=makeAPI();
 test('Literal coverage, integrated source equality, and baseline lot sizes',()=>{checkFamilies(api);const fragments=PARTS.map(p=>fs.readFileSync(path.join(__dirname,p),'utf8')).join('\n')+'\nconst ART634={...CIVIC634,...INDUSTRY634,...RCI634};';need(BLOCK===fragments.trim(),'G01_INTEGRATION','integrated block differs from submitted fragments');need(same(lotPlan(SOURCE),BASE_PLAN),'G01_FOOTPRINT_SOURCE','candidate changed baseline lot plan');for(const key of EXPECTED_RCI){const a=api.rcis[key];need(typeof a.name==='string'&&a.name&&typeof a.archetype==='string'&&a.archetype&&Array.isArray(a.m)&&a.m.length,'G01_RCI_KEYS','incomplete '+key);for(const m of a.m)need(m.slice(0,6).every(Number.isFinite)&&m[0]>=0&&m[1]>=0&&m[2]>0&&m[3]>0&&m[0]+m[2]<=1&&m[1]+m[3]<=1,'G02_GEOMETRY','RCI mass outside one tile '+key);}return{families:72,rciKeys:108,legacy:11};});
+test('Lab-referenced RCI mass limits retain a readable three-level hierarchy',()=>checkProportions634(api));
 test('Approved 601/602/603 original renderers remain byte-identical',()=>{const names=['bakeArt601','bakeArt602','bakeArt603','art601_k4','art601_k5','art601_k8','art601_k60','art601_k63','art601_k66','art601_k81','art601_k97','kit602','art602_k53','art602_k104','art602_k117','art602_k97','kit603','art603_k29','art603_k85','art603_k92','art603_k88'];for(const n of names)need(fn(n)===fn(n,BASE_SOURCE),'G01_APPROVED_SOURCE',n+' changed from baseline');return{functions:names.length};});
 test('Default-off, strict opt-in, both escape valves, and no cold rendering',()=>{
  for(const search of['','?T634=0','?T634=10','?xT634=1','?T634=1&noT634=1','?noT634&T634=1']){const a=makeAPI({search});need(a.on()===false,'G06_FLAGS','unexpected opt-in '+search);a.win.__t634={};need(a.on()===false,'G06_FLAGS','truthy object enabled candidate');for(const k of[1,3,22,8,53])need(a.spr(immovable({k,lv:2,v:1,we:1}),4,5)===null,'G06_FLAGS','default returned candidate');need(a.state.alloc===0&&a.stats.bakes===0&&a.cache.size===0,'G06_FLAGS','default path allocated art');}
@@ -162,6 +172,8 @@ test('Negative controls first fail at their intended behavioral guards',()=>{
  red('Allocate art while ordering smoke','G11_SMOKE_PURITY',()=>{const old=fn('orderSmoke634',BLOCK),bad=BLOCK.replace(old,old.replace('{','{cv(1,1);'));need(bad!==BLOCK,'G00_HARNESS','smoke allocation mutation anchor absent');const a=makeAPI({block:bad,search:'?T634=1',noArt:true}),f=smokeBirth634();checkSmokeOrder634(a,f.input,f.expected,'allocation mutation');});
  red('Mutate particle age while ordering smoke','G07_STATE_WRITE',()=>{const old=fn('orderSmoke634',BLOCK),bad=BLOCK.replace(old,old.replace('{','{objs[0].smoke.age++;'));need(bad!==BLOCK,'G00_HARNESS','smoke state mutation anchor absent');const a=makeAPI({block:bad,search:'?T634=1',noArt:true}),f=smokeBirth634();checkSmokeOrder634(a,f.input,f.expected,'age mutation');});
  red('Omit ferris-wheel anchor','G05_REQUIRED_HOOK',()=>{const a=makeAPI(),s=a.bake(76,0,BASE_PLAN[76][1]);delete s.lotMeta574.hooks.wheel;checkSprite(s,76,BASE_PLAN[76][1],'wheel mutation');});
+ red('Restore old 66px residential tower mass','G12_RCI_PROPORTIONS',()=>{const a=makeAPI();a.rcis['1_3_0'].m[0][4]=66;checkProportions634(a);});
+ red('Split broad worker terrace back into three towers','G12_RCI_TERRACE',()=>{const a=makeAPI(),m=a.rcis['1_1_0'].m[0];a.rcis['1_1_0'].m=[m.slice(),m.slice(),m.slice()];checkProportions634(a);});
  return{controls:report.negativeControls.length};
 });
 report.status=report.failed.length?'failed':'passed';console.log(JSON.stringify(report,null,2));process.exitCode=report.failed.length?1:0;

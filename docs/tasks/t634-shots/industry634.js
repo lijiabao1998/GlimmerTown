@@ -1,59 +1,74 @@
 /* T634 英式工業／基礎設施：正規化院落，各款以設備與量體區分；零亂數。 */
 function industryKit634(T){
   const K=kit634(T),n=T.n,P=(u,v,h=0)=>T.P(u*n,v*n,h),F=K.face,L=K.ln,px=K.px;
-  const C={brick:'#a05e49',dark:'#77483f',stone:'#b8ad91',stoneD:'#948970',slate:'#4d5a61',slateL:'#68747b',steel:'#8c9c9c',steelD:'#566a70',cream:'#d4c5a8',water:'#527f8b',glass:'#334e5c',gold:'#c2a058'};
+  const C={brick:'#ad6652',dark:'#824d43',stone:'#d4c5a8',stoneD:'#b5a88f',slate:'#55636d',slateL:'#64717a',slateD:'#424e59',trim:'#39464f',steel:'#92a3a0',steelD:'#5b7075',cream:'#d4c5a8',water:'#507e8a',glass:'#314b59',gold:'#b39a63'};
   const snow=c=>T.winter?'#e5e9e4':c;
   const ground=(u,v,du,dv,col)=>K.ground(u*n,v*n,du*n,dv*n,col);
-  const box=(u,v,du,dv,h,col=C.brick,z=0)=>T.box(u*n,v*n,du*n,dv*n,h,{left:T.shade(col,-22),right:col,top:snow(T.shade(col,18)),edge:'#4a4942'},z);
+  const box=(u,v,du,dv,h,col=C.brick,z=0)=>T.box(u*n,v*n,du*n,dv*n,h,{left:col,right:T.shade(col,-30),top:snow(T.shade(col,14)),edge:C.trim},z);
   const plate=(u,v,du,dv,h,c)=>F([P(u,v,h),P(u+du,v,h),P(u+du,v+dv,h),P(u,v+dv,h)],c);
   const lit=(p,w=2,h=3,warm=true)=>T.LIT(p[0],p[1],w,h,C.glass,warm?'#ffdba0':'#b9dae0');
   const beacon=(u,v,h)=>{const p=P(u,v,h);px(p[0]-1,p[1]-1,'#c36d54',3,2);if(!T.hooks.aviation||p[1]<T.hooks.aviation[1])T.hooks.aviation=p;};
   const shed=(u,v,du,dv,h=24,roof='gable',stone=false)=>{
-    box(u,v,du,dv,h,stone?C.stone:C.brick);const rh=Math.min(12,5+n*1.4),wall=stone?C.stone:C.brick;
+    const wall=stone?C.stone:C.brick,side=stone?C.stoneD:C.dark,rh=Math.min(12,5+n*1.4),frontBays=Math.max(1,Math.floor(du*n*32/15)),sideBays=Math.max(1,Math.floor(dv*n*32/16));
+    T.box(u*n,v*n,du*n,dv*n,h,{left:wall,right:side,top:snow(C.slateD),edge:C.trim});
     /* 廠房承重分節：石勒腳、扶壁與腰線保留大片牆面，不用散點假裝細節。 */
-    for(const z of[1,3]){L(P(u,v+dv,z),P(u+du,v+dv,z),z===1?'#605b50':C.stone,2);L(P(u+du,v,z),P(u+du,v+dv,z),z===1?'#55574f':C.stoneD,2);}
-    for(let z=7;z<h-3;z+=stone?7:5){L(P(u,v+dv,z),P(u+du,v+dv,z),T.shade(wall,-8));L(P(u+du,v,z),P(u+du,v+dv,z),T.shade(wall,-26));}
-    const pi=Math.min(du*.1,.065/n),pj=Math.min(dv*.1,.065/n);
-    for(let z=3;z<h-3;z+=6){const zh=Math.min(4,h-z-2),col=stone?T.shade(C.cream,-14):T.shade(C.brick,18);F([P(u+du-pi,v+dv,z),P(u+du,v+dv,z),P(u+du,v+dv,z+zh),P(u+du-pi,v+dv,z+zh)],col);F([P(u+du,v+dv-pj,z),P(u+du,v+dv,z),P(u+du,v+dv,z+zh),P(u+du,v+dv-pj,z+zh)],T.shade(col,-21));}
-    if(du*n>.65)for(let j=1;j<3;j++){const pu=u+du*j/3;F([P(pu-pi*.5,v+dv,3),P(pu+pi*.5,v+dv,3),P(pu+pi*.5,v+dv,h-2),P(pu-pi*.5,v+dv,h-2)],stone?'#c4b99e':'#b07257');}
+    for(const right of[false,true]){const at=(a,z)=>right?P(u+du,v+dv*a,z):P(u+du*a,v+dv,z),base=right?side:wall;
+      F([at(0,0),at(1,0),at(1,3),at(0,3)],right?'#72766c':'#96968a');L(at(0,3),at(1,3),right?'#555c58':'#71776b');
+      for(let z=7;z<h-3;z+=stone?8:5)L(at(0,z),at(1,z),T.shade(base,stone?-12:-10));
+      const bays=right?sideBays:frontBays,pw=Math.min(.035,1.5/((right?dv:du)*n*32));
+      for(let j=0;j<=bays;j++){const q=j/bays,lo=Math.max(0,q-pw),hi=Math.min(1,q+pw);F([at(lo,3),at(hi,3),at(hi,h-2),at(lo,h-2)],T.shade(base,6));L(at(hi,3),at(hi,h-2),T.shade(base,-16));}
+    }
+    /* Lab 的板岩大面與連續瓦列；厚簷和暗色山牆邊界取代淺色描框。 */
     if(roof==='gable'){
+      F([P(u+du,v,h),P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h)],side);
       F([P(u,v,h),P(u+du,v,h),P(u+du,v+dv*.5,h+rh),P(u,v+dv*.5,h+rh)],snow(C.slateL));
       F([P(u,v+dv*.5,h+rh),P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h),P(u,v+dv,h)],snow(C.slate));
-      F([P(u+du,v,h),P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h)],stone?C.stone:C.brick);
-      L(P(u,v+dv*.5,h+rh),P(u+du,v+dv*.5,h+rh),snow('#919a97'));
-      for(let i=1;i<4;i++){const va=v+dv*(.5+i*.12),zz=h+rh*(1-i*.24);L(P(u,va,zz),P(u+du,va,zz),T.winter?'#c7d3d3':'#687780');if(du*n>.9)for(let j=1;j<Math.floor(du*n*3);j++){const uu=u+du*j/Math.floor(du*n*3);L(P(uu,va,zz),P(uu,va-dv*.04,zz+rh*.08),T.winter?'#d9e2dc':'#3b4e58');}}
-      L(P(u+du,v,h),P(u+du,v+dv*.5,h+rh),C.cream);L(P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h),C.cream);
+      const rows=Math.max(3,Math.min(6,Math.round(dv*n*3)));
+      for(let j=1;j<rows;j++){const q=j/rows;L(P(u,v+dv*.5*q,h+rh*q),P(u+du,v+dv*.5*q,h+rh*q),T.winter?'#cbd8d3':'#53616b');L(P(u,v+dv*(.5+.5*q),h+rh*(1-q)),P(u+du,v+dv*(.5+.5*q),h+rh*(1-q)),T.winter?'#cbd8d3':C.slateD);}
+      L(P(u,v+dv*.5,h+rh),P(u+du,v+dv*.5,h+rh),snow('#7c898f'),2);
+      L(P(u+du,v,h),P(u+du,v+dv*.5,h+rh),C.trim,2);L(P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h),C.trim,2);
+      L(P(u,v+dv,h),P(u+du,v+dv,h),C.trim,3);
     }else if(roof==='saw'){
       const count=n<2?2:3;
-      for(let j=0;j<count;j++){const va=v+dv*j/count,d= dv/count;
-        F([P(u,va,h),P(u+du,va,h),P(u+du,va+d*.77,h+rh),P(u,va+d*.77,h+rh)],snow(C.slateL));
-        F([P(u,va+d*.77,h+rh),P(u+du,va+d*.77,h+rh),P(u+du,va+d,h),P(u,va+d,h)],'#88a9af');
-        L(P(u,va+d*.77,h+rh),P(u+du,va+d*.77,h+rh),C.cream);
-        const bars=Math.max(2,Math.floor(du*n*4));for(let i=1;i<bars;i++)L(P(u+du*i/bars,va+d*.77,h+rh),P(u+du*i/bars,va+d,h),'#4c6873');
-        F([P(u+du,va,h),P(u+du,va+d*.77,h+rh),P(u+du,va+d,h)],C.dark);
+      for(let j=0;j<count;j++){const va=v+dv*j/count,d=dv/count;
+        F([P(u+du,va,h),P(u+du,va+d*.77,h+rh),P(u+du,va+d,h)],side);
+        F([P(u,va,h),P(u+du,va,h),P(u+du,va+d*.77,h+rh),P(u,va+d*.77,h+rh)],snow(C.slate));
+        for(const q of[.33,.66])L(P(u,va+d*.77*q,h+rh*q),P(u+du,va+d*.77*q,h+rh*q),T.winter?'#cbd8d3':C.slateD);
+        F([P(u,va+d*.77,h+rh),P(u+du,va+d*.77,h+rh),P(u+du,va+d,h),P(u,va+d,h)],T.winter?'#c5d6d8':'#557880');
+        const bars=Math.max(2,Math.ceil(du*n*32/18));for(let i=0;i<=bars;i++)L(P(u+du*i/bars,va+d*.77,h+rh),P(u+du*i/bars,va+d,h),C.trim);
+        L(P(u,va+d*.77,h+rh),P(u+du,va+d*.77,h+rh),snow('#7d8d90'),2);L(P(u,va+d,h),P(u+du,va+d,h),C.trim,2);
       }
     }else{
-      plate(u,v,du,dv,h+1,snow(C.slate));L(P(u,v+dv,h+2),P(u+du,v+dv,h+2),C.cream,2);L(P(u+du,v,h+2),P(u+du,v+dv,h+2),C.cream,2);
+      const e=Math.min(du*.09,dv*.09,.028);plate(u,v,du,dv,h+1,snow(C.slateD));plate(u+e,v+e,du-e*2,dv-e*2,h+2,snow(C.slate));
+      L(P(u,v+dv,h+2),P(u+du,v+dv,h+2),C.trim,3);L(P(u+du,v,h+2),P(u+du,v+dv,h+2),C.trim,3);L(P(u,v+dv,h+3),P(u+du,v+dv,h+3),snow('#77838a'));
     }
-    const bands=Math.max(1,Math.floor(h/12));
-    const millWindow=(p,tall,right=false)=>{const x=Math.round(p[0]),y=Math.round(p[1]),hh=tall?7:5,fr=right?'#a8ad9d':'#c4c6b0';px(x-3,y-2,stone?C.cream:'#c2926c',7,2);px(x-2,y,'#32484f',5,hh+1);px(x-2,y,fr,1,hh);px(x+2,y,fr,1,hh);lit([x-1,y+1],3,hh-2,false);px(x,y+1,'#9fb1ac',1,hh-2);px(x-1,y+Math.floor(hh/2),fr,3,1);px(x-3,y+hh,fr,7,1);px(x-2,y+hh+1,right?'#5a534a':'#715747',6,1);};
-    for(let j=1;j<=bands;j++){const hh=5+j*(h-8)/(bands+1);
-      L(P(u,v+dv,hh-2),P(u+du,v+dv,hh-2),stone?'#a1967e':'#925743');
-      for(let i=1;i<=Math.max(1,Math.round(du*n*4));i++){const p=P(u+du*i/(Math.max(1,Math.round(du*n*4))+1),v+dv,hh+4);millWindow(p,h>26);}
-      for(let i=1;i<=Math.max(1,Math.round(dv*n*3.5));i++){const p=P(u+du,v+dv*i/(Math.max(1,Math.round(dv*n*3.5))+1),hh+4);millWindow(p,h>26,true);}
+    /* 工業窗按承重開間縮減數量，暗凹口、薄金屬中梃和磚拱楣留下可讀牆面。 */
+    const floors=Math.max(1,Math.round(h/18)),story=(h-6)/floors;
+    const millWindow=(a,b,z,span,hh,right=false)=>{const q=(d,k)=>right?P(a,b+d,k):P(a+d,b,k),e=Math.min(span*.15,1/(n*32)),r=span*.5,frame=right?'#607578':'#849894',ps=[q(-r+e,z+1),q(r-e,z+1),q(r-e,z+hh-1),q(-r+e,z+hh-1)];
+      F([q(-r,z),q(r,z),q(r,z+hh),q(-r,z+hh)],'#283c44');F(ps,right?'#344b56':'#466570');T.poly(T.ng,ps,'#c5d8ca');
+      L(q(-r,z+1),q(-r,z+hh-1),frame);L(q(0,z+1),q(0,z+hh-1),C.trim);if(hh>7)L(q(-r+e,z+hh*.52),q(r-e,z+hh*.52),C.trim);
+      L(q(-r,z+hh+1),q(r,z+hh+1),stone?T.shade(right?side:wall,-13):T.shade(right?side:wall,12));L(q(-r,z),q(r,z),right?'#8c9686':'#b4b29c');
+    };
+    for(let j=0;j<floors;j++){const z=5+j*story,wh=Math.max(3,Math.min(10,story-5));
+      for(let i=0;i<frontBays;i++)millWindow(u+du*(i+.5)/frontBays,v+dv,z,du/frontBays*.52,wh);
+      for(let i=0;i<sideBays;i++)millWindow(u+du,v+dv*(i+.5)/sideBays,z,dv/sideBays*.49,wh,true);
     }
-    L(P(u,v+dv,h-2),P(u+du,v+dv,h-2),C.cream);L(P(u+du,v,h-2),P(u+du,v+dv,h-2),C.cream);L(P(u,v+dv,h),P(u+du,v+dv,h),'#34474d',2);L(P(u+du,v,h),P(u+du,v+dv,h),'#34474d',2);
-    if(du*n*32>=9&&h>=15){const dw=Math.min(du*.23,.11/n);door(u+du*.12,v+dv,dw,Math.min(11,h-5),'#42645f');}
-    L(P(u+du-pi*.3,v+dv,h-1),P(u+du-pi*.3,v+dv,3),'#596763');
+    L(P(u,v+dv,h-2),P(u+du,v+dv,h-2),T.shade(wall,-21));L(P(u+du,v,h-2),P(u+du,v+dv,h-2),T.shade(side,-18));
+    L(P(u,v+dv,h),P(u+du,v+dv,h),C.trim,2);L(P(u+du,v,h),P(u+du,v+dv,h),C.trim,2);
+    if(du*n*32>=9&&h>=15){const dw=Math.min(du*.23,.17/n);door(u+du*.1,v+dv,dw,Math.min(11,h-5),'#496568');}
+    L(P(u+du-.018/n,v+dv,h-1),P(u+du-.018/n,v+dv,3),C.trim);
     return P(u+du*.5,v+dv*.5,h+rh);
   };
-  const door=(u,v,du,h=10,col='#4d6264')=>{const e=Math.min(du*.16,.035/n);F([P(u,v),P(u+du,v),P(u+du,v,h),P(u,v,h)],'#273e44');F([P(u+e,v,1),P(u+du-e,v,1),P(u+du-e,v,h-1),P(u+e,v,h-1)],col);for(let j=3;j<h-1;j+=3)L(P(u+e,v,j),P(u+du-e,v,j),'#7e9290');L(P(u,v),P(u,v,h+1),C.stoneD,2);L(P(u+du,v),P(u+du,v,h+1),C.stone,2);L(P(u,v,h+1),P(u+du,v,h+1),C.cream,2);L(P(u+e,v,h-1),P(u+du-e,v,h-1),'#2d4448');L(P(u,v,1),P(u+du,v,1),'#b6b49b',2);if(du*n*32>7){L(P(u+du*.5,v,2),P(u+du*.5,v,h-2),'#385158');const p=P(u+du*.52,v,h*.4);px(p[0],p[1],'#d0b373',2,1);}};
+  const door=(u,v,du,h=10,col='#4d6264')=>{const e=Math.min(du*.16,.035/n);F([P(u,v),P(u+du,v),P(u+du,v,h),P(u,v,h)],'#273c43');F([P(u+e,v,1),P(u+du-e,v,1),P(u+du-e,v,h-1),P(u+e,v,h-1)],col);for(let j=3;j<h-1;j+=4)L(P(u+e,v,j),P(u+du-e,v,j),T.shade(col,-15));L(P(u,v),P(u,v,h+1),C.trim,2);L(P(u+du,v),P(u+du,v,h+1),C.trim);L(P(u,v,h+1),P(u+du,v,h+1),'#9c6a53',2);L(P(u+e,v,h-1),P(u+du-e,v,h-1),'#273e44');L(P(u,v,1),P(u+du,v,1),'#a5a594',2);if(du*n*32>7){L(P(u+du*.5,v,2),P(u+du*.5,v,h-2),'#314a52');const p=P(u+du*.52,v,h*.4);px(p[0],p[1],'#c2a475',2,1);}};
   const ell=(x,y,rx,ry,col)=>{rx=Math.max(1,rx);ry=Math.max(1,ry);for(let j=-Math.ceil(ry);j<=ry;j++){const r=rx*Math.sqrt(Math.max(0,1-j*j/(ry*ry)));px(x-r,y+j,col,Math.max(1,r*2),1);}};
   const tank=(u,v,r,h=20,col=C.steel,open=false,z0=0)=>{const b=P(u,v,z0),rx=Math.max(3,r*n*32),ry=Math.max(2,rx*.43);
-    ell(b[0],b[1]+1,rx+1,ry+1,'#647671');ell(b[0],b[1],rx,ry,C.steelD);px(b[0]-rx,b[1]-h,col,rx*2,h);px(b[0]+rx*.38,b[1]-h,T.shade(col,-22),rx*.62,h);px(b[0]-rx*.7,b[1]-h,T.shade(col,18),Math.max(1,rx*.19),h);
-    ell(b[0],b[1]-h,rx,ry,snow(T.shade(col,20)));if(open)ell(b[0],b[1]-h,rx-2,ry-1,T.winter?'#b2d1d7':C.water);
-    for(let j=10;j<h;j+=13){for(let t=0;t<6;t++){const a=t*Math.PI/6,c=(t+1)*Math.PI/6;L([b[0]+Math.cos(a)*rx,b[1]-j+Math.sin(a)*ry*.5],[b[0]+Math.cos(c)*rx,b[1]-j+Math.sin(c)*ry*.5],T.shade(col,-20));}L([b[0]-rx,b[1]-j-1],[b[0]+rx*.7,b[1]-j-1],T.shade(col,7));}
-    if(rx>=6&&h>=18&&!open){ell(b[0]-rx*.25,b[1]-h,Math.min(4,rx*.27),Math.max(1,ry*.22),T.winter?'#f0f3eb':'#829b98');const lx=b[0]+rx*.58;L([lx,b[1]-3],[lx,b[1]-h+4],'#566d74');L([lx+3,b[1]-3],[lx+3,b[1]-h+4],'#b6c5ba');for(let j=5;j<h-3;j+=6)L([lx,b[1]-j],[lx+3,b[1]-j],'#d0d8c9');}
+    /* 圓槽以大塊明暗表現曲面，焊縫服從分段；底圈、頂口與檢修梯各有實際功能。 */
+    ell(b[0],b[1]+1,rx+1,ry+1,'#586c6b');ell(b[0],b[1],rx,ry,T.shade(col,-25));px(b[0]-rx,b[1]-h,col,rx*2,h);
+    px(b[0]+rx*.32,b[1]-h,T.shade(col,-24),rx*.68,h);px(b[0]-rx*.76,b[1]-h,T.shade(col,15),Math.max(1,rx*.28),h);px(b[0]-rx,b[1]-h,T.shade(col,-10),Math.max(1,rx*.15),h);
+    for(let j=16;j<h-4;j+=19){for(let t=0;t<6;t++){const a=t*Math.PI/6,c=(t+1)*Math.PI/6;L([b[0]+Math.cos(a)*rx,b[1]-j+Math.sin(a)*ry*.5],[b[0]+Math.cos(c)*rx,b[1]-j+Math.sin(c)*ry*.5],T.shade(col,-16));}}
+    ell(b[0],b[1]-h,rx,ry,T.shade(col,-24));ell(b[0],b[1]-h-1,Math.max(2,rx-1),Math.max(1,ry-1),snow(T.shade(col,16)));
+    if(open){ell(b[0],b[1]-h,Math.max(1,rx-2),Math.max(1,ry-1),T.winter?'#b2d1d7':C.water);L([b[0]-rx*.55,b[1]-h],[b[0]+rx*.36,b[1]-h],T.winter?'#d2deda':'#7298a0');}
+    if(rx>=6&&h>=18&&!open){ell(b[0]-rx*.23,b[1]-h-2,Math.min(4,rx*.24),Math.max(1,ry*.2),T.winter?'#eef2eb':'#6c8385');const lx=b[0]+rx*.56;L([lx,b[1]-3],[lx,b[1]-h+4],'#526a70');L([lx+3,b[1]-3],[lx+3,b[1]-h+4],'#acbbb1');for(let j=5;j<h-3;j+=6)L([lx,b[1]-j],[lx+3,b[1]-j],'#bbc5b5');}
     return[b[0],b[1]-h];};
   const dome=(u,v,r,h=20,col='#c6ceca')=>{const p=tank(u,v,r,h,col),rx=Math.max(3,r*n*32);ell(p[0],p[1]-rx*.3,rx,rx*.58,snow(col));ell(p[0]-rx*.19,p[1]-rx*.4,rx*.52,rx*.36,snow(T.shade(col,14)));return[p[0],p[1]-rx*.84];};
   const stack=(u,v,h=55,r=.035,steam=false)=>{const p=tank(u,v,r,h,C.brick);const rp=Math.max(3,r*n*32);px(p[0]-rp-1,p[1]-2,C.cream,rp*2+2,3);ell(p[0],p[1]-2,rp-1,2,'#393b3d');const key=steam?'steam':'smoke';(T.hooks[key]||(T.hooks[key]=[])).push([p[0],p[1]-3]);T.hooks.exhaust=[p[0],p[1]-3];beacon(u,v,h+1);return p;};
@@ -64,27 +79,29 @@ function industryKit634(T){
     return c;
   };
   const crane=(u,v,span=.36,h=52,gantry=false)=>{
-    const col='#b3985e';if(gantry){lattice(u-span*.5,v,h,.035,col);lattice(u+span*.5,v,h,.035,col);L(P(u-span*.5,v,h),P(u+span*.5,v,h),col,4);L(P(u-span*.5,v,h+6),P(u+span*.5,v,h+6),'#d6c080',2);for(let j=0;j<5;j++)L(P(u-span*.5+span*j/5,v,h),P(u-span*.5+span*(j+1)/5,v,h+6),col);}
-    else{lattice(u,v,h,.055,col);L(P(u-span*.22,v,h),P(u+span*.7,v,h),col,4);L(P(u,v,h+13),P(u+span*.7,v,h),col);box(u-.055,v-.035,.11,.09,7,'#667f7d',h-9);}
-    const hu=gantry?u+span*.18:u+span*.58;L(P(hu,v,h),P(hu,v,h*.45),'#454d50');L(P(hu,v,h*.45),P(hu+.025,v,h*.45-3),'#454d50',2);
+    const col='#a28b59';if(gantry){lattice(u-span*.5,v,h,.035,col);lattice(u+span*.5,v,h,.035,col);box(u-span*.5,v-.018,span,.045,3,'#788784',h-3);L(P(u-span*.5,v,h+6),P(u+span*.5,v,h+6),'#c8b67f',2);for(let j=0;j<5;j++)L(P(u-span*.5+span*j/5,v,h),P(u-span*.5+span*(j+1)/5,v,h+6),col);box(u-span*.31,v-.025,.075,.07,8,'#617f81',h-11);const p=P(u-span*.27,v+.045,h-5);px(p[0]-2,p[1]-2,C.glass,5,3);}
+    else{lattice(u,v,h,.055,col);L(P(u-span*.22,v,h),P(u+span*.7,v,h),col,4);L(P(u,v,h+13),P(u+span*.7,v,h),col);box(u-.055,v-.035,.11,.09,7,'#667f7d',h-9);box(u-span*.23,v-.028,.055,.058,5,'#7f8172',h-3);const p=P(u+.02,v+.055,h-4);px(p[0]-2,p[1]-2,C.glass,5,3);}
+    const hu=gantry?u+span*.18:u+span*.58;L(P(hu,v,h),P(hu,v,h*.45),'#3d4b50');L(P(hu,v,h*.45),P(hu+.025,v,h*.45-3),'#3d4b50',2);
   };
-  const container=(u,v,du=.2,dv=.1,h=10,col='#5b7b80')=>{box(u,v,du,dv,h,col);for(let j=1;j<6;j++)L(P(u+du*j/6,v+dv,1),P(u+du*j/6,v+dv,h-1),T.shade(col,25));L(P(u,v+dv,h),P(u+du,v+dv,h),'#b4beb0');for(const t of[.25,.75]){L(P(u+du,v+dv*t,1),P(u+du,v+dv*t,h-1),'#b5c0b7');const p=P(u+du,v+dv*t,h*.43);px(p[0]-1,p[1],'#354d54',3,1);}L(P(u+du,v,h-1),P(u+du,v+dv,h-1),T.shade(col,-20));};
+  /* 裝卸月台貼真實牆腳，面板、卸貨唇與斜坡分層，不能在空地畫一扇懸空門。 */
+  const dock=(u,v,du,dv=.06)=>{box(u,v,du,dv,4,'#a2a593');L(P(u,v+dv,4),P(u+du,v+dv,4),'#646f6b',2);for(const q of[.12,.88])L(P(u+du*q,v+dv),P(u+du*q,v+dv,4),'#3b4b4f',2);const a=u+du*.3,b=u+du*.7;F([P(a,v+dv,4),P(b,v+dv,4),P(b,v+dv+.025),P(a,v+dv+.025)],'#8c9589');};
+  const container=(u,v,du=.2,dv=.1,h=10,col='#5b7b80')=>{box(u,v,du,dv,h,col);for(let j=1;j<6;j++)L(P(u+du*j/6,v+dv,1),P(u+du*j/6,v+dv,h-1),T.shade(col,-17));L(P(u,v+dv,h),P(u+du,v+dv,h),'#98a49a');for(const t of[.25,.75]){L(P(u+du,v+dv*t,1),P(u+du,v+dv*t,h-1),'#b5c0b7');const p=P(u+du,v+dv*t,h*.43);px(p[0]-1,p[1],'#354d54',3,1);}L(P(u+du,v,h-1),P(u+du,v+dv,h-1),T.shade(col,-20));};
   const truck=(u,v,col='#547277',long=true)=>{const du=long?.19:.12,dv=.085;box(u,v,du,dv,7,col);box(u+du,v,.055,dv,6,C.cream);for(const f of[.04,du-.02,du+.035]){const p=P(u+f,v+dv);ell(p[0],p[1]+1,2,2,'#303b40');}const p=P(u+du+.025,v,7);px(p[0],p[1],'#375665',3,3);};
-  const road=(u=.055,v=.83,du=.89,dv=.11)=>{ground(u,v,du,dv,'#777e79');L(P(u,v+dv*.5),P(u+du,v+dv*.5),'#d3c9aa');};
-  const railFence=(a,b)=>{const steps=Math.max(2,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])*n/.11));L(P(a[0],a[1],5),P(b[0],b[1],5),'#394446');L(P(a[0],a[1],2),P(b[0],b[1],2),'#53605c');for(let j=0;j<=steps;j++){const f=j/steps,u=a[0]+(b[0]-a[0])*f,v=a[1]+(b[1]-a[1])*f;L(P(u,v),P(u,v,7),'#303c3e');}};
+  const road=(u=.055,v=.83,du=.89,dv=.11)=>{ground(u,v,du,dv,'#747a75');L(P(u,v),P(u+du,v),'#92968a');L(P(u,v+dv),P(u+du,v+dv),'#5b6864');for(let j=0;j<4;j++)L(P(u+du*(j+.15)/4,v+dv*.5),P(u+du*(j+.6)/4,v+dv*.5),T.winter?'#d6ded5':'#b5b299');};
+  const railFence=(a,b)=>{const steps=Math.max(2,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])*n/.17));L(P(a[0],a[1],5),P(b[0],b[1],5),'#394446');L(P(a[0],a[1],2),P(b[0],b[1],2),'#53605c');for(let j=0;j<=steps;j++){const f=j/steps,u=a[0]+(b[0]-a[0])*f,v=a[1]+(b[1]-a[1])*f;L(P(u,v),P(u,v,7),'#303c3e');}};
   const fence=(u=.035,v=.035,du=.93,dv=.93)=>{railFence([u+du,v],[u+du,v+dv]);railFence([u+du,v+dv],[u,v+dv]);};
   const sign=(u,v,h,text)=>{K.sign(u*n,v*n,h,text,'#305651');T.hooks.sign=P(u,v,h);};
   const lamp=(u,v,h=18)=>K.lamp(u*n,v*n,h);
-  const pond=(u,v,du,dv)=>{box(u,v,du,dv,3,'#a6ada3');plate(u+.008,v+.008,du-.016,dv-.016,4,T.winter?'#b6d4da':C.water);for(let j=1;j<4;j++)L(P(u+du*.1,v+dv*j/4,4),P(u+du*.83,v+dv*j/4,4),'#7ca8b1');};
+  const pond=(u,v,du,dv)=>{const e=Math.min(.026,du*.1,dv*.1);box(u,v,du,dv,4,'#a5aa9c');plate(u+e,v+e,du-e*2,dv-e*2,4,'#3c626d');plate(u+e*1.6,v+e*1.6,du-e*3.2,dv-e*3.2,4,T.winter?'#b6d4da':C.water);L(P(u,v,5),P(u+du,v,5),snow('#c2c4b2'));L(P(u,v,5),P(u,v+dv,5),snow('#b7bdad'));for(const q of[.35,.7])L(P(u+du*.2,v+dv*q,4),P(u+du*.68,v+dv*q,4),T.winter?'#d5e1dc':'#7399a0');};
   const rail=(u,v,du)=>{ground(u,v,du,.09,'#6f716b');for(let j=0;j<Math.max(5,n*5);j++){const x=u+du*j/Math.max(5,n*5);L(P(x,v),P(x+.018,v+.09),'#988d73',2);}L(P(u,v+.023),P(u+du,v+.023),'#b8c2bf',2);L(P(u,v+.068),P(u+du,v+.068),'#b8c2bf',2);};
   const dish=(u,v,h=47,r=.095)=>{const p=lattice(u,v,h-5,.055);const rx=Math.max(5,r*n*32);ell(p[0],p[1]-6,rx,Math.max(3,rx*.35),snow('#c5cec8'));L([p[0]-rx*.65,p[1]-8],[p[0]+rx*.48,p[1]-2],'#839a9b');L([p[0],p[1]-6],[p[0]+rx*.65,p[1]-19],'#536e76',2);px(p[0]+rx*.65,p[1]-20,'#e1bb72',3,3);T.hooks.radar=[p[0],p[1]-7];return T.hooks.radar;};
   const fan=(u,v,h=25,r=.05)=>{const p=P(u,v,h),rx=Math.max(3,r*n*32);ell(p[0],p[1],rx,rx*.48,'#293f47');for(let a=0;a<4;a++){const c=a*Math.PI/2+.4;L(p,[p[0]+Math.cos(c)*rx*.8,p[1]+Math.sin(c)*rx*.38],'#a7b8b8',2);}};
   const finish=()=>{lamp(.88,.87,15);};
-  const grass=[22,25,26,46,109,120,133].includes(T.k);ground(.025,.025,.95,.95,grass?(T.sea===2?'#929466':T.sea===0?'#82956c':'#82956c'):'#9b9d8c');
+  const grass=[22,25,26,46,109,120,133].includes(T.k);ground(.025,.025,.95,.95,grass?(T.sea===2?'#929466':T.sea===0?'#82956c':'#82956c'):'#9b9f92');
   L(P(.025,.975),P(.975,.975),T.winter?'#b9c8c5':'#657267',2);L(P(.975,.025),P(.975,.975),T.winter?'#c3ceca':'#7b8575',2);
   /* 遠邊欄杆先畫，近邊欄杆最後畫；不可把後欄硬蓋在廠房屋頂。 */
   if(T.k!==109){const q=T.k===22?[.025,.025,.95,.78]:T.k===26?[.055,.08,.89,.88]:[.035,.035,.93,.93];railFence([q[0],q[1]],[q[0]+q[2],q[1]]);railFence([q[0],q[1]],[q[0],q[1]+q[3]]);}
-  return {K,n,P,F,L,px,C,snow,ground,box,plate,lit,beacon,shed,door,ell,tank,dome,stack,pipe,lattice,crane,container,truck,road,fence,sign,lamp,pond,rail,dish,fan,finish};
+  return {K,n,P,F,L,px,C,snow,ground,box,plate,lit,beacon,shed,door,ell,tank,dome,stack,pipe,lattice,crane,dock,container,truck,road,fence,sign,lamp,pond,rail,dish,fan,finish};
 }
 const INDUSTRY634={
   22:{name:'英式農場',draw(T){
@@ -104,7 +121,9 @@ const INDUSTRY634={
   }},
   25:{name:'英式太陽能場',draw(T){
     const I=industryKit634(T),{P,F,L,box,shed}=I,v=T.v%3;
-    const panel=(u,w,du,dv,h=7)=>{for(const a of[.08,.88])L(P(u+du*a,w+dv*.7),P(u+du*a,w+dv*.7,h),'#737d76',2);F([P(u,w,h+5),P(u+du,w,h+5),P(u+du,w+dv,h),P(u,w+dv,h)],T.winter?'#c8d5d7':'#31516b');for(let j=1;j<4;j++)L(P(u+du*j/4,w,h+5),P(u+du*j/4,w+dv,h),'#7395a6');L(P(u,w+dv*.5,h+2.5),P(u+du,w+dv*.5,h+2.5),'#839fab');};
+    const panel=(u,w,du,dv,h=7)=>{for(const a of[.1,.86]){L(P(u+du*a,w+dv*.72),P(u+du*a,w+dv*.72,h),'#657775',2);L(P(u+du*a,w+dv*.72,2),P(u+du*a,w+dv*.13,h+3),'#80928a');}L(P(u+du*.1,w+dv*.72,3),P(u+du*.86,w+dv*.72,3),'#647c79');
+      F([P(u,w+dv,h),P(u+du,w+dv,h),P(u+du,w+dv,h-2),P(u,w+dv,h-2)],'#334a56');F([P(u,w,h+5),P(u+du,w,h+5),P(u+du,w+dv,h),P(u,w+dv,h)],T.winter?'#c8d5d7':'#304f66');
+      for(let j=1;j<4;j++)L(P(u+du*j/4,w,h+5),P(u+du*j/4,w+dv,h),T.winter?'#aabfc1':'#5e8297');L(P(u,w+dv*.5,h+2.5),P(u+du,w+dv*.5,h+2.5),T.winter?'#b4c9ca':'#678d9d');L(P(u,w,h+5),P(u+du,w,h+5),T.winter?'#e3ebe4':'#8ea7ad');L(P(u+du,w,h+5),P(u+du,w+dv,h),'#3f5c6b');};
     if(v===0){for(let j=0;j<3;j++)for(let k=0;k<2;k++)panel(.08+k*.4,.1+j*.22,.33,.14);shed(.68,.79,.22,.11,10,'gable');}
     else if(v===1){shed(.08,.09,.21,.26,17,'gable',true);for(let j=0;j<3;j++)panel(.37,.1+j*.25,.52-j*.07,.17,5+j*4);box(.13,.55,.13,.13,11,'#91a3a0');}
     else{for(let k=0;k<2;k++)panel(.1+k*.42,.15,.31,.46,22);I.truck(.15,.55);I.truck(.58,.55,'#8c6250',false);shed(.13,.76,.24,.12,12,'flat');box(.6,.79,.21,.09,8,'#889894');}
@@ -113,10 +132,12 @@ const INDUSTRY634={
   26:{name:'英式風力站',draw(T){
     const I=industryKit634(T),{P,L,F,tank,box}=I,v=T.v%3;
     /* 水平葉片由繪製端依同一掛點畫三葉；本體只留塔柱、機艙與輪轂，避免靜態葉片重影。 */
-    const turbine=(u,w,h,r)=>{const c=tank(u,w,.025,h,'#b8c5c1'),rad=Math.min(r,12+T.n*6);I.px(c[0]-6,c[1]-2,'#b9c9c5',8,4);I.px(c[0]-5,c[1]-2,'#d3ddd3',6,1);I.ell(c[0],c[1],3,3,'#839d9e');(T.hooks.rotors||(T.hooks.rotors=[])).push([c[0],c[1],rad]);return c;};
+    const turbine=(u,w,h,r)=>{box(u-.044,w-.044,.088,.088,3,'#a6b4a3');const c=tank(u,w,.025,h,'#b8c5c1'),rad=Math.min(r,12+T.n*6);
+      F([[c[0]-10,c[1]-3],[c[0]-4,c[1]-5],[c[0]+4,c[1]-2],[c[0]-2,c[1]]],I.snow('#d4ded4'));F([[c[0]-10,c[1]-3],[c[0]-2,c[1]],[c[0]-2,c[1]+4],[c[0]-10,c[1]+1]],'#92aaa8');F([[c[0]-2,c[1]],[c[0]+4,c[1]-2],[c[0]+4,c[1]+2],[c[0]-2,c[1]+4]],'#acbeb7');I.ell(c[0],c[1],3,3,'#789395');const door=P(u,w,7);I.px(door[0]-1,door[1],'#6d8585',2,5);
+      (T.hooks.rotors||(T.hooks.rotors=[])).push([c[0],c[1],rad]);return c;};
     if(v===0){T.hooks.rotor=turbine(.46,.4,73,29);I.shed(.65,.73,.22,.15,12,'gable',true);}
     else if(v===1){turbine(.18,.5,52,20);T.hooks.rotor=turbine(.75,.35,67,24);I.shed(.1,.72,.26,.13,12,'gable');}
-    else{const p=tank(.49,.43,.028,65,'#aebebb');for(const s of[-1,1]){F([[p[0],p[1]-3],[p[0]+s*12,p[1]+11],[p[0]+s*8,p[1]+44],[p[0],p[1]+56],[p[0]+s*4,p[1]+27]],'#a9c2c1');L([p[0],p[1]],[p[0],p[1]+58],'#566f74',2);}T.hooks.rotor=p;T.hooks.rotorStatic=true;I.shed(.1,.73,.32,.13,12,'gable',true);box(.66,.71,.2,.12,9,'#73938c');}
+    else{box(.435,.375,.11,.11,3,'#a6b4a3');const p=tank(.49,.43,.028,65,'#aebebb');for(const s of[-1,1]){F([[p[0],p[1]-3],[p[0]+s*12,p[1]+11],[p[0]+s*8,p[1]+44],[p[0],p[1]+56],[p[0]+s*4,p[1]+27]],'#a9c2c1');L([p[0],p[1]],[p[0],p[1]+58],'#566f74',2);}for(const y of[14,44])L([p[0]-8,p[1]+y],[p[0]+8,p[1]+y],'#6b8a8e',2);T.hooks.rotor=p;T.hooks.rotorStatic=true;I.shed(.1,.73,.32,.13,12,'gable',true);box(.66,.71,.2,.12,9,'#73938c');}
     I.road(.08,.89,.8,.06);I.fence(.055,.08,.89,.88);
   }},
   27:{name:'英式污水處理',draw(T){
@@ -161,11 +182,11 @@ const INDUSTRY634={
     if(v===0){I.shed(.08,.1,.58,.4,31,'saw');I.tank(.8,.23,.07,37,'#c0c5b8');I.tank(.8,.48,.07,32,'#bac1b5');I.shed(.12,.62,.3,.17,20,'gable');I.stack(.2,.18,58,.026,true);}
     else if(v===1){I.shed(.07,.1,.34,.58,39,'gable');I.shed(.47,.1,.37,.25,23,'flat');for(let j=0;j<3;j++)I.tank(.5+j*.16,.64,.055,24,'#bdc7c0');I.pipe([[.33,.43,26],[.6,.43,26],[.6,.6,26]]);I.stack(.19,.22,58,.025,true);}
     else{I.shed(.1,.1,.69,.24,25,'saw');I.shed(.1,.39,.46,.26,26,'saw');I.tank(.76,.6,.12,35,'#abbab2');I.box(.6,.76,.22,.09,10,'#a4b8b6');I.stack(.76,.6,47,.022,true);}
-    I.door(.22,.79,.15,12);I.road();I.truck(.53,.86);I.fence();I.sign(.29,.7,24,'FOODS');
+    const dockV=v===0?.79:v===1?.68:.65;I.dock(v===1?.07:.1,dockV,v===1?.34:v===0?.32:.46,v===0?.04:.065);I.door(v===1?.16:.22,dockV,.15,12);I.road();I.truck(.53,.86);I.fence();I.sign(.29,.7,24,'FOODS');
   }},
   58:{name:'英式核電廠',draw(T){
     const I=industryKit634(T),v=T.v%3;
-    const cooling=(u,w,r,h)=>{const b=I.P(u,w),rx=r*T.n*32;for(let y=0;y<h;y++){const p=y/h,rr=rx*(.5+.48*Math.pow(Math.abs(p-.52)/.52,1.45));I.px(b[0]-rr,b[1]-h+y,'#aab9b5',rr*2,1);I.px(b[0]-rr,b[1]-h+y,'#ccd3c7',rr*.75,1);}I.ell(b[0],b[1]-h,rx*.97,rx*.29,'#d0d8cf');I.ell(b[0],b[1]-h,rx*.72,rx*.2,'#536b72');(T.hooks.steam||(T.hooks.steam=[])).push([b[0],b[1]-h-1]);};
+    const cooling=(u,w,r,h)=>{const b=I.P(u,w),rx=r*T.n*32;for(let y=0;y<h;y++){const p=y/h,rr=rx*(.5+.48*Math.pow(Math.abs(p-.52)/.52,1.45));I.px(b[0]-rr,b[1]-h+y,'#aab9b5',rr*2,1);I.px(b[0]-rr,b[1]-h+y,'#ccd3c7',rr*.75,1);}I.ell(b[0],b[1],rx*.94,rx*.16,'#7b8f8e');for(const q of[-.65,-.2,.25,.68])I.L([b[0]+rx*q,b[1]-3],[b[0]+rx*q,b[1]+1],'#52696e',2);I.ell(b[0],b[1]-h,rx*.97,rx*.29,I.snow('#cbd4c9'));I.ell(b[0],b[1]-h,rx*.72,rx*.2,'#455d65');(T.hooks.steam||(T.hooks.steam=[])).push([b[0],b[1]-h-1]);};
     if(v===0){I.dome(.24,.25,.16,35);cooling(.68,.23,.13,69);cooling(.74,.59,.13,63);I.shed(.08,.57,.4,.24,27,'gable');}
     else if(v===1){cooling(.28,.27,.18,82);I.dome(.7,.26,.15,42);I.shed(.14,.63,.69,.22,27,'saw');I.pipe([[.29,.38,11],[.29,.55,11],[.72,.55,11]]);}
     else{I.dome(.27,.23,.14,38);I.dome(.66,.23,.14,38);I.shed(.1,.54,.69,.28,30,'flat');for(let j=0;j<3;j++){I.box(.2+j*.2,.61,.12,.12,10,'#a9b8b5',31);I.fan(.26+j*.2,.67,43,.055);}I.stack(.85,.52,67,.035,true);}
@@ -190,7 +211,7 @@ const INDUSTRY634={
     if(v===0){I.shed(.08,.1,.63,.51,31,'saw');for(let j=0;j<3;j++)I.door(.14+j*.17,.61,.12,14);I.container(.77,.19,.13,.19,17,'#857e60');}
     else if(v===1){I.shed(.07,.12,.29,.54,47,'gable');I.shed(.42,.13,.45,.24,24,'gable');for(let j=0;j<3;j++)I.container(.47,.47+j*.12,.35,.09,10,['#6e8e88','#9d755b','#7a8390'][j]);}
     else{I.shed(.09,.11,.32,.5,28,'gable');I.shed(.52,.11,.32,.5,28,'gable');I.box(.4,.26,.13,.13,8,'#a6b5ad',19);I.container(.55,.7,.29,.11,11,'#8c9a84');}
-    I.road(.07,.79,.86,.14);I.truck(.17,.84);I.truck(.56,.85,'#985f4d',false);I.fence();I.sign(.26,.67,24,'WAREHOUSE');
+    if(v===0)I.dock(.1,.61,.57,.065);else if(v===1)I.dock(.07,.66,.29,.065);else{I.dock(.09,.61,.32,.06);I.dock(.52,.61,.32,.06);}I.road(.07,.79,.86,.14);I.truck(.17,.84);I.truck(.56,.85,'#985f4d',false);I.fence();I.sign(.26,.67,24,'WAREHOUSE');
   }},
   89:{name:'英式電視塔',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -226,7 +247,7 @@ const INDUSTRY634={
     if(v===0){I.crane(.56,.38,.67,66,true);I.shed(.1,.57,.31,.24,27,'gable');for(let j=0;j<3;j++)I.container(.49,.55+j*.105,.35,.085,10,['#6b8c82','#a2765d','#85978d'][j]);}
     else if(v===1){I.shed(.09,.44,.59,.26,42,'saw');I.crane(.8,.6,.2,47);I.container(.17,.17,.24,.1,12,'#96745a');I.container(.54,.17,.25,.1,12,'#759293');}
     else{I.shed(.09,.45,.27,.33,32,'gable',true);I.crane(.62,.52,.39,48,true);I.container(.46,.65,.2,.11,22,'#859476');I.container(.69,.68,.2,.11,11,'#ab775d');I.container(.23,.17,.46,.09,12,'#737f8e');}
-    I.road(.06,.85,.88,.095);I.truck(.51,.88);I.sign(.23,.82,24,'FREIGHT');I.fence();
+    if(v===0)I.dock(.1,.81,.31,.025);else if(v===1)I.dock(.09,.7,.59,.06);else I.dock(.09,.78,.27,.04);I.road(.06,.85,.88,.095);I.truck(.51,.88);I.sign(.23,.82,24,'FREIGHT');I.fence();
   }},
   111:{name:'英式資源回收廠',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -237,7 +258,7 @@ const INDUSTRY634={
   }},
   116:{name:'英式數據中心',draw(T){
     const I=industryKit634(T),v=T.v%3;
-    const units=(u,w,du,dv,h,count)=>{I.shed(u,w,du,dv,h,'flat');for(let j=0;j<count;j++){const x=u+du*(j+.5)/count;I.box(x-du/count*.3,w+dv*.32,du/count*.6,dv*.36,8,'#8fa6a5',h+2);I.fan(x,w+dv*.5,h+11,.035);}for(let j=0;j<3;j++)I.L(I.P(u,w+dv,9+j*7),I.P(u+du,w+dv,9+j*7),'#426474',2);};
+    const units=(u,w,du,dv,h,count)=>{I.shed(u,w,du,dv,h,'flat');for(let j=0;j<count;j++){const x=u+du*(j+.5)/count;I.box(x-du/count*.3,w+dv*.32,du/count*.6,dv*.36,8,'#8fa6a5',h+2);I.fan(x,w+dv*.5,h+11,.035);}for(let j=0;j<count;j++){const x=u+du*(j+.5)/count,p=I.P(x,w+dv,4);I.px(p[0]-3,p[1]-4,'#394e55',6,4);I.px(p[0]-2,p[1]-3,'#70878a',4,1);}};
     if(v===0){units(.1,.1,.69,.38,35,4);I.shed(.1,.63,.24,.16,20,'gable');for(let j=0;j<3;j++)I.container(.48+j*.14,.66,.1,.13,15,'#8f9d90');}
     else if(v===1){units(.08,.12,.29,.59,46,2);units(.49,.12,.34,.36,30,2);I.pipe([[.34,.44,28],[.55,.44,28],[.55,.62,10]],'#a8b6a7');I.tank(.71,.7,.095,24,'#a8b5ac');}
     else{units(.1,.11,.32,.24,37,2);units(.53,.11,.32,.24,37,2);units(.16,.55,.62,.21,28,3);I.box(.4,.22,.15,.08,9,'#94a9a7',23);}
@@ -282,7 +303,7 @@ const INDUSTRY634={
   }},
   123:{name:'英式造船廠',draw(T){
     const I=industryKit634(T),v=T.v%3;
-    const hull=(u,w,du,dv,h=14)=>{I.F([I.P(u,w,h),I.P(u+du*.82,w,h),I.P(u+du,w+dv*.5,h),I.P(u+du*.8,w+dv,h),I.P(u,w+dv,h)],'#738c8b');I.F([I.P(u,w+dv,h),I.P(u+du*.8,w+dv,h),I.P(u+du,w+dv*.5,h),I.P(u+du*.83,w+dv*.88,2),I.P(u+.04,w+dv,2)],'#4a636d');I.box(u+du*.14,w+dv*.18,du*.3,dv*.54,9,'#c7c9b4',h);I.box(u+du*.28,w+dv*.3,du*.08,dv*.22,10,'#997d58',h+9);I.L(I.P(u+.02,w+dv,h+2),I.P(u+du*.78,w+dv,h+2),'#d2c4a3');};
+    const hull=(u,w,du,dv,h=14)=>{I.F([I.P(u,w,h),I.P(u+du*.82,w,h),I.P(u+du,w+dv*.5,h),I.P(u+du*.8,w+dv,h),I.P(u,w+dv,h)],'#738c8b');I.F([I.P(u,w+dv,h),I.P(u+du*.8,w+dv,h),I.P(u+du,w+dv*.5,h),I.P(u+du*.83,w+dv*.88,2),I.P(u+.04,w+dv,2)],'#4a636d');I.box(u+du*.14,w+dv*.18,du*.3,dv*.54,9,'#c7c9b4',h);I.box(u+du*.28,w+dv*.3,du*.08,dv*.22,10,'#997d58',h+9);I.L(I.P(u+.02,w+dv,h+2),I.P(u+du*.78,w+dv,h+2),'#aab5a7');for(const q of[.12,.35,.58,.77]){I.L(I.P(u+du*q,w+dv,h),I.P(u+du*q,w+dv,h+4),'#435a62');const p=I.P(u+du*q,w+dv,h*.53);I.px(p[0],p[1],'#283e4c',2,2);}I.L(I.P(u+du*.1,w+dv,h+4),I.P(u+du*.78,w+dv,h+4),'#aebaae');};
     if(v===0){I.pond(.38,.12,.52,.68);I.crane(.56,.44,.59,78,true);hull(.43,.44,.4,.16,16);I.shed(.08,.13,.23,.47,28,'saw');}
     else if(v===1){I.pond(.1,.41,.8,.39);I.shed(.1,.1,.36,.23,31,'gable');I.crane(.72,.25,.36,86);hull(.23,.54,.51,.18,19);I.container(.12,.86,.3,.07,10,'#98785c');}
     else{I.pond(.35,.08,.25,.75);I.pond(.66,.13,.22,.7);I.crane(.61,.39,.56,75,true);hull(.37,.38,.19,.28,16);hull(.68,.54,.17,.2,12);I.shed(.06,.13,.22,.57,35,'saw');}

@@ -1,120 +1,120 @@
 /* T634：英式住商工候選；108 款明列。座標為真實一格，純繪圖、不寫入 bd／存檔、不取亂數。 */
 /* m 每項：[u,v,du,dv,簷高,樓層,材料,屋頂,細節]；每款的量體、屋脊、退台與庭院皆明示。 */
 const RCI_CATALOG634={
-  '1_1_0':{name:'紅磚工人連排屋',archetype:'three-bay-workers-terrace',yard:'rail',m:[[.12,.18,.25,.57,21,2,'brick','gable','door'],[.37,.18,.25,.57,21,2,'brick','gable','door'],[.62,.18,.25,.57,21,2,'brick','gable','door']]},
-  '1_1_1':{name:'凸窗半獨立住宅',archetype:'bay-fronted-semi-detached',yard:'garden',m:[[.13,.18,.34,.56,26,2,'brick','gable','bay porch'],[.49,.18,.34,.56,26,2,'brick','gable','bay porch']]},
-  '1_1_2':{name:'都鐸木構小屋',archetype:'tudor-cross-wing-cottage',yard:'garden',m:[[.18,.15,.52,.43,24,2,'tudor','gable','door'],[.55,.42,.25,.37,19,1,'tudor','gable','porch']]},
-  '1_1_3':{name:'科茨沃爾德石屋',archetype:'cotswold-stone-cottage',yard:'wall',m:[[.18,.20,.63,.51,21,2,'stone','gable','dormer porch']]},
-  '1_1_4':{name:'喬治式雙聯排屋',archetype:'georgian-paired-townhouses',yard:'rail',m:[[.16,.16,.32,.64,32,3,'stock','flat','door pediment'],[.49,.16,.32,.64,32,3,'stock','flat','door pediment']]},
-  '1_1_5':{name:'花園郊區坡頂屋',archetype:'garden-suburb-hipped-house',yard:'garden',m:[[.17,.18,.61,.50,23,2,'render','hip','bay'],[.52,.62,.19,.19,10,0,'brick','gable','door']]},
-  '1_1_6':{name:'威爾斯礦工連排屋',archetype:'welsh-miners-four-cottages',yard:'wall',m:[[.10,.23,.20,.54,17,1,'stone','gable','door'],[.30,.23,.20,.54,17,1,'stone','gable','door'],[.50,.23,.20,.54,17,1,'stone','gable','door'],[.70,.23,.20,.54,17,1,'stone','gable','door']]},
-  '1_1_7':{name:'蘇格蘭砂岩雙戶屋',archetype:'scottish-sandstone-double-villa',yard:'rail',m:[[.14,.17,.73,.58,29,2,'sandstone','hip','bay door']]},
-  '1_1_8':{name:'肯特白木板小屋',archetype:'kent-weatherboard-cottage',yard:'garden',m:[[.21,.17,.47,.57,22,2,'weatherboard','gable','porch'],[.66,.39,.17,.27,12,1,'brick','lean','door']]},
-  '1_1_9':{name:'維多利亞別墅',archetype:'victorian-villa-rear-wing',yard:'garden',m:[[.21,.12,.29,.35,20,2,'brick','gable',''],[.14,.35,.61,.39,32,3,'brick','hip','bay pediment']]},
-  '1_1_10':{name:'馬廄改建庭院屋',archetype:'stable-conversion-l-court',yard:'court',m:[[.14,.15,.69,.26,20,2,'stock','gable','arch'],[.14,.41,.26,.41,20,2,'stock','gable','door']]},
-  '1_1_11':{name:'愛德華街角尖塔屋',archetype:'edwardian-corner-villa-turret',yard:'rail',m:[[.18,.15,.56,.58,29,2,'brick','hip','bay'],[.64,.62,.19,.19,35,3,'render','spire','door']]},
-  '1_2_0':{name:'倫敦蝶形屋頂排屋',archetype:'london-butterfly-roof-terrace',yard:'rail',m:[[.11,.13,.26,.67,38,3,'stock','butterfly','door'],[.37,.13,.26,.67,38,3,'stock','butterfly','door'],[.63,.13,.26,.67,38,3,'stock','butterfly','door']]},
-  '1_2_1':{name:'愛德華凸窗連排屋',archetype:'edwardian-triple-bay-terrace',yard:'rail',m:[[.10,.14,.27,.62,37,3,'brick','gable','bay'],[.37,.14,.27,.62,40,3,'brick','gable','bay'],[.64,.14,.26,.62,37,3,'brick','gable','bay']]},
-  '1_2_2':{name:'約克郡石砌街屋',archetype:'yorkshire-stone-terrace',yard:'wall',m:[[.12,.15,.76,.65,37,3,'stone','gable','doors dormer']]},
-  '1_2_3':{name:'都鐸復興雙山牆住宅',archetype:'tudor-revival-twin-gables',yard:'garden',m:[[.12,.13,.35,.65,37,3,'tudor','gable','bay'],[.51,.13,.35,.65,37,3,'tudor','gable','bay']]},
-  '1_2_4':{name:'喬治式粉飾錯落排屋',archetype:'georgian-stucco-stepped-terrace',yard:'rail',m:[[.10,.12,.25,.64,42,4,'stucco','flat','pediment'],[.35,.17,.30,.64,44,4,'stucco','flat','pediment'],[.65,.22,.25,.64,42,4,'stucco','flat','pediment']]},
-  '1_2_5':{name:'維多利亞庭院公寓',archetype:'victorian-l-plan-courtyard-flats',yard:'court',m:[[.12,.12,.76,.29,45,4,'brick','mansard','dormer'],[.12,.41,.31,.43,42,4,'brick','gable','door']]},
-  '1_2_6':{name:'格拉斯哥砂岩公寓',archetype:'glasgow-sandstone-tenement',yard:'rail',m:[[.13,.13,.75,.67,48,4,'sandstone','hip','bay doors dormer']]},
-  '1_2_7':{name:'安妮女王式宅邸公寓',archetype:'queen-anne-gabled-mansion-flats',yard:'garden',m:[[.15,.12,.71,.49,46,4,'brick','hip','dormer'],[.23,.56,.23,.26,49,4,'brick','gable','bay'],[.62,.56,.21,.26,49,4,'brick','gable','bay']]},
-  '1_2_8':{name:'工藝美術庭院住宅',archetype:'arts-and-crafts-courtyard',yard:'garden',m:[[.13,.13,.30,.69,37,3,'render','gable','tudor'],[.46,.13,.38,.41,34,3,'brick','hip','bay']]},
-  '1_2_9':{name:'花園廣場端部排屋',archetype:'garden-square-end-terrace',yard:'rail',m:[[.17,.12,.61,.69,49,4,'stucco','mansard','bay dormer pediment']]},
-  '1_2_10':{name:'倫敦馬廄巷複式住宅',archetype:'london-mews-maisonettes',yard:'court',m:[[.13,.20,.36,.59,32,3,'stock','gable','arch'],[.51,.20,.36,.59,35,3,'brick','gable','arch']]},
-  '1_2_11':{name:'愛德華轉角公寓',archetype:'edwardian-turret-corner-tenement',yard:'rail',m:[[.14,.13,.70,.59,46,4,'brick','hip','bay dormer'],[.65,.65,.21,.21,57,5,'sandstone','spire','door']]},
-  '1_3_0':{name:'倫敦紅磚宅邸公寓',archetype:'london-redbrick-mansion-block',yard:'rail',m:[[.10,.12,.80,.65,66,6,'brick','mansard','bay dormer pediment']]},
-  '1_3_1':{name:'格拉斯哥街角高密公寓',archetype:'glasgow-l-plan-tenement-block',yard:'court',m:[[.10,.11,.78,.32,65,6,'sandstone','hip','dormer'],[.10,.43,.35,.43,62,5,'sandstone','hip','bay']]},
-  '1_3_2':{name:'維多利亞周邊式庭院公寓',archetype:'victorian-u-court-housing',yard:'court',m:[[.10,.10,.78,.25,67,6,'stock','gable',''],[.10,.35,.24,.49,61,5,'brick','gable','bay'],[.65,.35,.23,.49,64,6,'brick','gable','bay']]},
-  '1_3_3':{name:'愛德華尖塔宅邸街廓',archetype:'edwardian-corner-turret-mansions',yard:'rail',m:[[.12,.11,.72,.61,70,6,'brick','hip','bay dormer'],[.64,.66,.23,.23,83,7,'sandstone','spire','door']]},
-  '1_3_4':{name:'喬治式都市高排屋',archetype:'georgian-tall-urban-terrace',yard:'rail',m:[[.09,.11,.28,.73,57,5,'stock','mansard','dormer'],[.37,.11,.27,.73,65,6,'stucco','flat','pediment'],[.64,.11,.27,.73,61,5,'stock','mansard','dormer']]},
-  '1_3_5':{name:'安妮女王多山牆公寓',archetype:'queen-anne-three-gable-mansions',yard:'rail',m:[[.11,.12,.77,.45,68,6,'brick','hip','dormer'],[.14,.54,.22,.27,72,6,'brick','gable','bay'],[.40,.54,.22,.27,75,6,'brick','gable','bay'],[.66,.54,.20,.27,72,6,'brick','gable','bay']]},
-  '1_3_6':{name:'維多利亞倉庫改建公寓',archetype:'victorian-warehouse-loft-conversion',yard:'court',m:[[.10,.11,.80,.70,74,6,'stock','saw','mill doors']]},
-  '1_3_7':{name:'三十年代裝飾藝術公寓',archetype:'interwar-art-deco-stepped-flats',yard:'rail',m:[[.12,.12,.76,.69,57,5,'deco','flat','bay'],[.28,.18,.43,.38,77,7,'deco','flat','door']]},
-  '1_3_8':{name:'波特蘭石高層宅邸',archetype:'portland-stone-mansard-mansions',yard:'rail',m:[[.15,.13,.70,.65,82,7,'stucco','mansard','bay dormer pediment']]},
-  '1_3_9':{name:'維多利亞哥德式公寓',archetype:'victorian-gothic-mansion-flats',yard:'wall',m:[[.14,.11,.70,.62,71,6,'gothic','gable','bay'],[.24,.61,.21,.22,79,7,'gothic','gable','door'],[.62,.61,.19,.22,76,6,'gothic','gable','door']]},
-  '1_3_10':{name:'愛德華四合院宅邸',archetype:'edwardian-quadrangle-mansion-flats',yard:'court',m:[[.10,.10,.79,.23,66,6,'brick','hip',''],[.10,.33,.23,.53,64,6,'brick','hip',''],[.66,.33,.23,.53,69,6,'brick','hip','bay'],[.33,.66,.33,.20,48,4,'stock','flat','arch']]},
-  '1_3_11':{name:'北部工業城密集街廓',archetype:'northern-stepped-urban-tenements',yard:'rail',m:[[.10,.12,.26,.70,59,5,'brick','gable','bay'],[.36,.12,.27,.70,67,6,'stock','mansard','dormer'],[.63,.12,.27,.70,75,7,'brick','hip','bay']]},
-  '2_1_0':{name:'高街麵包店',archetype:'high-street-paired-bakery',yard:'pave',m:[[.14,.17,.34,.60,23,2,'stock','gable','shop:BAKE'],[.50,.17,.33,.60,26,2,'brick','gable','shop:TEA']]},
-  '2_1_1':{name:'街角肉舖',archetype:'corner-butcher-shop',yard:'pave',m:[[.16,.18,.69,.59,25,2,'brick','hip','shop:MEAT bay']]},
-  '2_1_2':{name:'都鐸驛站旅店',archetype:'tudor-coaching-inn',yard:'court',m:[[.13,.13,.70,.30,28,2,'tudor','gable',''],[.13,.43,.37,.39,30,2,'tudor','gable','shop:INN arch']]},
-  '2_1_3':{name:'炸魚薯條小店',archetype:'fish-and-chip-shop-rear-shed',yard:'pave',m:[[.22,.13,.47,.28,12,1,'stock','lean','loading'],[.16,.39,.66,.40,23,2,'render','gable','shop:FISH awning']]},
-  '2_1_4':{name:'紅獅鄰里酒館',archetype:'red-lion-corner-public-house',yard:'pub',m:[[.14,.16,.64,.49,30,2,'brick','hip','shop:ALE'],[.60,.55,.23,.27,26,2,'tudor','gable','shop:INN']]},
-  '2_1_5':{name:'石砌小鎮銀行',archetype:'stone-pediment-town-bank',yard:'pave',m:[[.19,.17,.62,.59,28,2,'stone','hip','bank pediment']]},
-  '2_1_6':{name:'三山牆集市店屋',archetype:'triple-gable-market-shops',yard:'market',m:[[.12,.17,.25,.54,21,2,'brick','gable','shop:TEA'],[.37,.17,.26,.54,23,2,'stock','gable','shop:SHOP'],[.63,.17,.25,.54,21,2,'brick','gable','shop:ALE']]},
-  '2_1_7':{name:'窄面文具書店',archetype:'narrow-stationer-townhouse',yard:'pave',m:[[.25,.12,.46,.68,34,3,'stock','mansard','shop:BOOK dormer']]},
-  '2_1_8':{name:'高街蔬果店',archetype:'greengrocer-awning-shop',yard:'produce',m:[[.16,.18,.68,.58,26,2,'brick','gable','shop:FOOD awning']]},
-  '2_1_9':{name:'石屋茶室',archetype:'village-stone-tearoom',yard:'pub',m:[[.17,.16,.60,.37,24,2,'stone','gable','shop:TEA'],[.17,.53,.26,.26,18,1,'stone','hip','shop:TEA']]},
-  '2_1_10':{name:'維多利亞凸窗古董店',archetype:'victorian-bay-front-antique-shop',yard:'pave',m:[[.21,.14,.59,.64,32,3,'brick','hip','shop:OLD bay']]},
-  '2_1_11':{name:'紅磚街角郵局',archetype:'corner-sub-post-office',yard:'post',m:[[.13,.19,.74,.58,29,2,'brick','gable','shop:POST pediment']]},
-  '2_2_0':{name:'維多利亞高街商店排屋',archetype:'victorian-mixed-height-shop-parade',yard:'pave',m:[[.09,.14,.28,.65,39,3,'brick','gable','shop:BAKE'],[.37,.14,.28,.65,45,4,'stock','mansard','shop:BOOK dormer'],[.65,.14,.26,.65,41,3,'brick','hip','shop:TEA']]},
-  '2_2_1':{name:'愛德華石砌銀行',archetype:'edwardian-bank-cupola',yard:'pave',m:[[.13,.13,.74,.66,43,3,'sandstone','hip','bank pediment'],[.39,.33,.23,.23,59,4,'stone','spire','clock']]},
-  '2_2_2':{name:'倫敦玻璃拱廊商場',archetype:'london-covered-shopping-arcade',yard:'court',m:[[.10,.14,.25,.68,41,3,'brick','mansard','shop:SHOP'],[.36,.15,.29,.66,24,1,'stone','glass','arcade'],[.66,.14,.24,.68,44,4,'brick','mansard','shop:TEA']]},
-  '2_2_3':{name:'維多利亞街角百貨',archetype:'victorian-corner-department-store',yard:'pave',m:[[.12,.12,.74,.64,47,4,'stock','mansard','shop:STORE'],[.65,.66,.22,.22,59,5,'brick','hip','clock']]},
-  '2_2_4':{name:'鐘樓集市大廳',archetype:'clock-tower-covered-market',yard:'market',m:[[.12,.12,.76,.56,29,2,'brick','glass','arcade'],[.37,.65,.26,.21,46,3,'stone','hip','clock arch']]},
-  '2_2_5':{name:'喬治式驛站酒店',archetype:'georgian-coaching-hotel-court',yard:'court',m:[[.12,.11,.74,.31,46,4,'stock','hip','dormer'],[.12,.42,.33,.40,43,4,'stock','hip','shop:HOTEL arch']]},
-  '2_2_6':{name:'都鐸復興高街商樓',archetype:'tudor-revival-three-gable-shops',yard:'pave',m:[[.10,.14,.26,.64,37,3,'tudor','gable','shop:ALE'],[.37,.14,.27,.64,42,3,'tudor','gable','shop:INN'],[.65,.14,.25,.64,37,3,'tudor','gable','shop:TEA']]},
-  '2_2_7':{name:'喬治式辦公事務所',archetype:'georgian-mansard-office-chambers',yard:'rail',m:[[.16,.12,.68,.67,48,4,'stucco','mansard','pediment dormer']]},
-  '2_2_8':{name:'鐵路街角旅館',archetype:'railway-hotel-turret-corner',yard:'pave',m:[[.11,.13,.75,.61,49,4,'brick','hip','shop:HOTEL dormer'],[.65,.66,.23,.22,63,5,'sandstone','spire','clock']]},
-  '2_2_9':{name:'海濱玻璃櫥窗商廊',archetype:'seaside-cast-iron-shop-gallery',yard:'pave',m:[[.12,.14,.76,.65,41,3,'render','hip','shop:SHOP balcony awning']]},
-  '2_2_10':{name:'合作社百貨商樓',archetype:'cooperative-emporium-gabled',yard:'pave',m:[[.13,.13,.74,.58,44,4,'brick','flat','shop:COOP'],[.30,.56,.40,.25,48,4,'stone','gable','shop:COOP']]},
-  '2_2_11':{name:'運河倉庫辦公樓',archetype:'canal-warehouse-office-conversion',yard:'court',m:[[.13,.12,.74,.69,51,4,'stock','flat','mill shop:WORK crane']]},
-  '2_3_0':{name:'波特蘭石旗艦百貨',archetype:'portland-stone-grand-department-store',yard:'pave',m:[[.11,.12,.78,.69,69,6,'stucco','mansard','shop:STORE pediment dormer']]},
-  '2_3_1':{name:'愛德華保險會社大樓',archetype:'edwardian-insurance-chambers-tower',yard:'pave',m:[[.11,.12,.75,.62,76,6,'sandstone','hip','bank'],[.65,.66,.23,.23,92,8,'stone','spire','clock']]},
-  '2_3_2':{name:'維多利亞有頂交易所',archetype:'victorian-covered-commercial-exchange',yard:'court',m:[[.10,.10,.25,.75,65,5,'brick','mansard','shop:WORK'],[.35,.16,.30,.57,37,2,'stone','glass','arcade'],[.65,.10,.25,.75,72,6,'brick','mansard','shop:WORK']]},
-  '2_3_3':{name:'裝飾藝術百貨大樓',archetype:'art-deco-stepped-department-store',yard:'pave',m:[[.10,.12,.80,.70,60,5,'deco','flat','shop:STORE'],[.27,.20,.47,.39,81,7,'deco','flat','clock']]},
-  '2_3_4':{name:'哥德復興銀行總部',archetype:'gothic-revival-bank-headquarters',yard:'pave',m:[[.15,.12,.70,.67,73,6,'gothic','gable','bank'],[.17,.65,.18,.21,86,7,'gothic','spire',''],[.67,.65,.17,.21,86,7,'gothic','spire','']]},
-  '2_3_5':{name:'喬治式庭院大酒店',archetype:'georgian-courtyard-grand-hotel',yard:'court',m:[[.10,.10,.79,.26,68,6,'stucco','mansard','dormer'],[.10,.36,.25,.47,63,5,'stucco','hip','shop:HOTEL'],[.65,.36,.24,.47,66,6,'stucco','hip','shop:HOTEL']]},
-  '2_3_6':{name:'都市維多利亞商業街廓',archetype:'victorian-tall-high-street-block',yard:'pave',m:[[.08,.13,.28,.69,59,5,'brick','gable','shop:BAKE'],[.36,.13,.29,.69,69,6,'stock','mansard','shop:STORE dormer'],[.65,.13,.27,.69,64,5,'brick','hip','shop:BOOK']]},
-  '2_3_7':{name:'愛德華玻璃購物拱廊',archetype:'edwardian-grand-shopping-arcade',yard:'pave',m:[[.12,.10,.75,.25,75,6,'sandstone','mansard','dormer'],[.13,.35,.23,.46,62,5,'brick','hip','shop:SHOP'],[.36,.35,.29,.47,36,2,'stone','glass','arcade'],[.65,.35,.22,.46,64,5,'brick','hip','shop:TEA']]},
-  '2_3_8':{name:'北部紡織交易所',archetype:'northern-textile-exchange-clock-tower',yard:'pave',m:[[.11,.13,.78,.66,77,6,'sandstone','mansard','bank dormer'],[.38,.58,.24,.27,98,8,'stone','hip','clock arch']]},
-  '2_3_9':{name:'紅磚市場與商務大樓',archetype:'redbrick-market-and-office-block',yard:'market',m:[[.11,.12,.77,.28,73,6,'brick','gable','mill'],[.12,.40,.76,.38,42,3,'brick','glass','arcade shop:SHOP']]},
-  '2_3_10':{name:'英式鐵路大酒店',archetype:'british-grand-railway-hotel',yard:'pave',m:[[.12,.13,.76,.61,84,7,'brick','mansard','shop:HOTEL dormer'],[.18,.66,.22,.22,97,8,'sandstone','spire','clock'],[.66,.66,.19,.21,91,8,'brick','spire','']]},
-  '2_3_11':{name:'兩戰間石砌辦公大樓',archetype:'interwar-stone-stepped-office-block',yard:'pave',m:[[.14,.12,.72,.68,87,8,'stone','flat','bank'],[.29,.24,.43,.35,101,9,'stone','flat','pediment']]},
-  '3_1_0':{name:'木匠作坊',archetype:'joiners-gabled-workshop',yard:'timber',m:[[.14,.14,.66,.52,18,1,'brick','gable','loading']]},
-  '3_1_1':{name:'小鎮鐵匠鋪',archetype:'blacksmith-l-plan-forge',yard:'forge',m:[[.14,.15,.55,.36,22,2,'brick','gable','mill'],[.14,.51,.31,.29,16,1,'brick','lean','loading']]},
-  '3_1_2':{name:'北向天窗鋸木廠',archetype:'northlight-sawmill',yard:'logs',m:[[.12,.15,.77,.42,20,1,'weatherboard','saw','loading']]},
-  '3_1_3':{name:'小型磚窯場',archetype:'small-brickyard-kiln',yard:'bricks',m:[[.14,.14,.44,.49,20,1,'brick','hip','loading']]},
-  '3_1_4':{name:'鄰里織布作坊',archetype:'weavers-three-storey-workshop',yard:'pave',m:[[.16,.15,.66,.60,31,3,'stock','gable','mill loading']]},
-  '3_1_5':{name:'運河裝卸小倉庫',archetype:'canal-hoist-warehouse',yard:'crates',m:[[.20,.13,.53,.65,32,3,'brick','gable','mill crane loading']]},
-  '3_1_6':{name:'牛奶處理工坊',archetype:'small-dairy-processing-workshop',yard:'dairy',m:[[.15,.16,.56,.57,23,2,'render','hip','mill loading']]},
-  '3_1_7':{name:'拱門修車工坊',archetype:'twin-bay-motor-works',yard:'garage',m:[[.13,.17,.73,.61,24,1,'brick','barrel','loading arch']]},
-  '3_1_8':{name:'史托克陶器工坊',archetype:'stoke-pottery-bottle-kiln',yard:'pottery',m:[[.12,.13,.50,.52,24,2,'brick','gable','mill loading']]},
-  '3_1_9':{name:'石匠切石作坊',archetype:'stonemasons-open-yard',yard:'stoneworks',m:[[.14,.15,.46,.40,20,1,'stone','lean','loading']]},
-  '3_1_10':{name:'煤商堆料場',archetype:'coal-merchants-yard',yard:'coal',m:[[.12,.13,.50,.47,20,1,'brick','gable','loading'],[.67,.18,.20,.25,12,1,'weatherboard','lean','door']]},
-  '3_1_11':{name:'雙山牆印刷工坊',archetype:'twin-gable-printing-workshop',yard:'crates',m:[[.12,.15,.36,.62,29,2,'stock','gable','mill loading'],[.50,.15,.36,.62,32,3,'brick','gable','mill loading']]},
-  '3_2_0':{name:'蘭開夏紡織廠',archetype:'lancashire-four-storey-textile-mill',yard:'mill',m:[[.12,.12,.76,.68,46,4,'brick','gable','mill loading']]},
-  '3_2_1':{name:'黑鄉鐵鑄造廠',archetype:'black-country-iron-foundry',yard:'foundry',m:[[.11,.14,.77,.56,33,2,'brick','barrel','mill loading'],[.13,.66,.25,.18,19,1,'brick','lean','loading']]},
-  '3_2_2':{name:'北向天窗機械工廠',archetype:'northlight-engineering-works',yard:'engineering',m:[[.11,.12,.76,.59,30,2,'brick','saw','mill loading'],[.64,.64,.24,.23,43,4,'stock','flat','door']]},
-  '3_2_3':{name:'雙窯磚瓦工廠',archetype:'twin-kiln-brickworks',yard:'doublekiln',m:[[.12,.13,.75,.29,26,2,'brick','gable','mill loading']]},
-  '3_2_4':{name:'維多利亞啤酒廠',archetype:'victorian-brewery-maltings',yard:'brewery',m:[[.12,.12,.53,.60,44,4,'stock','gable','mill'],[.67,.15,.22,.42,31,2,'brick','hip','loading']]},
-  '3_2_5':{name:'雙跨鐵路貨運庫',archetype:'twin-span-railway-goods-depot',yard:'depot',m:[[.10,.15,.38,.61,31,1,'brick','barrel','loading'],[.50,.15,.39,.61,35,2,'brick','barrel','loading']]},
-  '3_2_6':{name:'長形繩索工廠',archetype:'long-ropewalk-factory',yard:'timber',m:[[.10,.13,.80,.28,39,3,'stock','gable','mill'],[.15,.47,.72,.24,21,1,'weatherboard','lean','loading']]},
-  '3_2_7':{name:'造紙廠與水箱',archetype:'paper-mill-water-tank',yard:'paper',m:[[.12,.14,.64,.54,37,3,'brick','saw','mill loading']]},
-  '3_2_8':{name:'約克郡毛紡織廠',archetype:'yorkshire-l-plan-woollen-mill',yard:'mill',m:[[.10,.12,.76,.28,45,4,'stone','gable','mill'],[.10,.40,.32,.42,40,3,'stone','gable','mill loading']]},
-  '3_2_9':{name:'皮革加工工廠',archetype:'tannery-courtyard-works',yard:'tannery',m:[[.12,.13,.51,.65,36,3,'stock','gable','mill loading']]},
-  '3_2_10':{name:'電機製造工廠',archetype:'edwardian-electrical-manufacturing-works',yard:'engineering',m:[[.12,.13,.75,.63,47,4,'brick','flat','mill loading'],[.19,.63,.24,.20,54,4,'stone','flat','clock']]},
-  '3_2_11':{name:'運河穀物倉庫',archetype:'canal-grain-hoist-warehouse',yard:'crates',m:[[.16,.11,.68,.71,52,5,'stock','gable','mill crane loading']]},
-  '3_3_0':{name:'蘭開夏大型棉紡廠',archetype:'lancashire-cotton-mill-chimney',yard:'tallmill',m:[[.09,.11,.80,.71,73,7,'brick','flat','mill loading']]},
-  '3_3_1':{name:'重型機械製造廠',archetype:'heavy-engineering-northlight-complex',yard:'heavy',m:[[.10,.12,.79,.58,43,3,'brick','saw','mill loading'],[.66,.64,.22,.22,83,7,'stock','flat','clock']]},
-  '3_3_2':{name:'維多利亞鐘樓工業街廓',archetype:'victorian-clock-tower-industrial-complex',yard:'engineering',m:[[.11,.12,.76,.31,64,5,'brick','gable','mill'],[.12,.43,.32,.39,45,4,'stock','saw','mill loading'],[.65,.57,.22,.25,91,8,'brick','hip','clock']]},
-  '3_3_3':{name:'城市大型釀酒廠',archetype:'urban-brewery-malt-house-complex',yard:'bigbrewery',m:[[.10,.11,.60,.59,66,6,'stock','mansard','mill dormer'],[.65,.46,.23,.33,33,2,'brick','hip','loading']]},
-  '3_3_4':{name:'密集織布與紡紗工廠',archetype:'textile-spinning-and-weaving-mill',yard:'tallmill',m:[[.10,.10,.79,.28,63,6,'brick','flat','mill'],[.10,.39,.79,.40,34,2,'brick','saw','mill loading']]},
-  '3_3_5':{name:'渦輪機械製造大廳',archetype:'turbine-engineering-hall',yard:'powerworks',m:[[.13,.12,.62,.62,62,4,'brick','barrel','mill loading'],[.64,.62,.23,.23,79,6,'stone','flat','clock']]},
-  '3_3_6':{name:'鋼鐵鑄造與橋式吊車廠',archetype:'steel-foundry-gantry-works',yard:'gantry',m:[[.11,.12,.76,.56,47,3,'brick','saw','mill loading'],[.12,.66,.26,.18,31,2,'stock','flat','mill']]},
-  '3_3_7':{name:'運河雙排保稅倉庫',archetype:'paired-canal-bonded-warehouses',yard:'crates',m:[[.10,.11,.35,.72,73,7,'stock','gable','mill crane loading'],[.55,.11,.35,.72,66,6,'brick','gable','mill crane loading']]},
-  '3_3_8':{name:'大型報業印刷工廠',archetype:'metropolitan-newspaper-printing-works',yard:'engineering',m:[[.11,.12,.77,.68,70,6,'brick','flat','mill loading'],[.19,.60,.24,.23,84,7,'stone','flat','clock']]},
-  '3_3_9':{name:'機車與車廂製造工廠',archetype:'locomotive-and-carriage-works',yard:'depot',m:[[.10,.12,.80,.51,49,3,'brick','saw','mill loading'],[.12,.65,.31,.20,69,6,'stock','hip','mill'],[.51,.65,.37,.20,26,1,'brick','barrel','loading']]},
-  '3_3_10':{name:'大型麵粉磨坊',archetype:'industrial-flour-mill-silos',yard:'flour',m:[[.11,.11,.63,.64,79,7,'stock','gable','mill crane loading']]},
-  '3_3_11':{name:'北部高塔機械工業廠',archetype:'northern-tower-engineering-works',yard:'towerworks',m:[[.12,.12,.49,.62,93,8,'brick','flat','mill clock'],[.61,.20,.27,.54,56,4,'stock','saw','mill loading']]}
+  '1_1_0':{name:'紅磚工人連排屋',archetype:'three-bay-workers-terrace',yard:'rail',m:[[.09,.16,.82,.63,21,2,'brick','gable','doors']]},
+  '1_1_1':{name:'凸窗半獨立住宅',archetype:'bay-fronted-semi-detached',yard:'garden',m:[[0.1097,0.1656,0.3587,0.5852,23,2,'brick','gable','bay porch'],[0.4894,0.1656,0.3587,0.5852,23,2,'brick','gable','bay porch']]},
+  '1_1_2':{name:'都鐸木構小屋',archetype:'tudor-cross-wing-cottage',yard:'garden',m:[[0.1624,0.1343,0.5486,0.4493,21,2,'tudor','gable','door'],[0.5528,0.4164,0.2637,0.3866,17,1,'tudor','gable','porch']]},
+  '1_1_3':{name:'科茨沃爾德石屋',archetype:'cotswold-stone-cottage',yard:'wall',m:[[0.1624,0.1865,0.6646,0.5329,18,2,'stone','gable','dormer porch']]},
+  '1_1_4':{name:'喬治式雙聯排屋',archetype:'georgian-paired-townhouses',yard:'rail',m:[[0.1413,0.1447,0.3376,0.6688,28,2,'stock','flat','door pediment'],[0.4894,0.1447,0.3376,0.6688,28,2,'stock','flat','door pediment']]},
+  '1_1_5':{name:'花園郊區坡頂屋',archetype:'garden-suburb-hipped-house',yard:'garden',m:[[0.1519,0.1656,0.6435,0.5225,20,2,'render','hip','bay'],[0.5211,0.6254,0.2004,0.1985,9,0,'brick','gable','door']]},
+  '1_1_6':{name:'威爾斯礦工連排屋',archetype:'welsh-miners-four-cottages',yard:'wall',m:[[.08,.20,.84,.60,17,1,'stone','gable','doors:4']]},
+  '1_1_7':{name:'蘇格蘭砂岩雙戶屋',archetype:'scottish-sandstone-double-villa',yard:'rail',m:[[0.1202,0.1552,0.7701,0.6061,25,2,'sandstone','hip','bay door']]},
+  '1_1_8':{name:'肯特白木板小屋',archetype:'kent-weatherboard-cottage',yard:'garden',m:[[0.1941,0.1552,0.4958,0.5956,19,2,'weatherboard','gable','porch'],[0.6688,0.3851,0.1794,0.2822,10,1,'brick','lean','door']]},
+  '1_1_9':{name:'維多利亞別墅',archetype:'victorian-villa-rear-wing',yard:'garden',m:[[0.1941,0.1029,0.3059,0.3657,17,2,'brick','gable',''],[0.1202,0.3432,0.6435,0.4075,28,2,'brick','hip','bay pediment']]},
+  '1_1_10':{name:'馬廄改建庭院屋',archetype:'stable-conversion-l-court',yard:'court',m:[[0.1202,0.1343,0.7279,0.2717,17,2,'stock','gable','arch'],[0.1202,0.4059,0.2743,0.4284,17,2,'stock','gable','door']]},
+  '1_1_11':{name:'愛德華街角尖塔屋',archetype:'edwardian-corner-villa-turret',yard:'rail',m:[[0.1624,0.1343,0.5908,0.6061,25,2,'brick','hip','bay'],[0.6477,0.6254,0.2004,0.1985,30,2,'render','spire','door']]},
+  '1_2_0':{name:'倫敦蝶形屋頂排屋',archetype:'london-butterfly-roof-terrace',yard:'rail',m:[[.08,.12,.84,.70,31,3,'stock','butterfly','doors']]},
+  '1_2_1':{name:'愛德華凸窗連排屋',archetype:'edwardian-triple-bay-terrace',yard:'rail',m:[[.08,.12,.84,.68,33,3,'brick','gable','bay:3 doors']]},
+  '1_2_2':{name:'約克郡石砌街屋',archetype:'yorkshire-stone-terrace',yard:'wall',m:[[0.0991,0.1343,0.8018,0.6793,27,2,'stone','gable','doors dormer']]},
+  '1_2_3':{name:'都鐸復興雙山牆住宅',archetype:'tudor-revival-twin-gables',yard:'garden',m:[[0.0991,0.1134,0.3692,0.6793,27,2,'tudor','gable','bay'],[0.5106,0.1134,0.3692,0.6793,27,2,'tudor','gable','bay']]},
+  '1_2_4':{name:'喬治式粉飾錯落排屋',archetype:'georgian-stucco-stepped-terrace',yard:'rail',m:[[0.078,0.1029,0.2637,0.6688,31,3,'stucco','flat','pediment'],[0.3417,0.1552,0.3165,0.6688,32,3,'stucco','flat','pediment'],[0.6583,0.2074,0.2637,0.6688,31,3,'stucco','flat','pediment']]},
+  '1_2_5':{name:'維多利亞庭院公寓',archetype:'victorian-l-plan-courtyard-flats',yard:'court',m:[[0.0991,0.1029,0.8018,0.303,33,3,'brick','mansard','dormer'],[0.0991,0.4059,0.327,0.4493,31,3,'brick','gable','door']]},
+  '1_2_6':{name:'格拉斯哥砂岩公寓',archetype:'glasgow-sandstone-tenement',yard:'rail',m:[[0.1097,0.1134,0.7913,0.7001,35,3,'sandstone','hip','bay doors dormer']]},
+  '1_2_7':{name:'安妮女王式宅邸公寓',archetype:'queen-anne-gabled-mansion-flats',yard:'garden',m:[[0.1308,0.1029,0.749,0.5121,34,3,'brick','hip','dormer'],[0.2152,0.5627,0.2427,0.2717,36,3,'brick','gable','bay'],[0.6266,0.5627,0.2215,0.2717,36,3,'brick','gable','bay']]},
+  '1_2_8':{name:'工藝美術庭院住宅',archetype:'arts-and-crafts-courtyard',yard:'garden',m:[[0.1097,0.1134,0.3165,0.721,27,2,'render','gable','tudor'],[0.4578,0.1134,0.4009,0.4284,25,2,'brick','hip','bay']]},
+  '1_2_9':{name:'花園廣場端部排屋',archetype:'garden-square-end-terrace',yard:'rail',m:[[0.1519,0.1029,0.6435,0.721,36,3,'stucco','mansard','bay dormer pediment']]},
+  '1_2_10':{name:'倫敦馬廄巷複式住宅',archetype:'london-mews-maisonettes',yard:'court',m:[[0.1097,0.1865,0.3798,0.6165,23,2,'stock','gable','arch'],[0.5106,0.1865,0.3798,0.6165,26,2,'brick','gable','arch']]},
+  '1_2_11':{name:'愛德華轉角公寓',archetype:'edwardian-turret-corner-tenement',yard:'rail',m:[[0.1202,0.1134,0.7385,0.6165,34,3,'brick','hip','bay dormer'],[0.6583,0.6567,0.2215,0.2194,42,3,'sandstone','spire','door']]},
+  '1_3_0':{name:'倫敦紅磚宅邸公寓',archetype:'london-redbrick-mansion-block',yard:'rail',m:[[0.078,0.1029,0.844,0.6793,41,4,'brick','mansard','bay dormer pediment']]},
+  '1_3_1':{name:'格拉斯哥街角高密公寓',archetype:'glasgow-l-plan-tenement-block',yard:'court',m:[[0.078,0.0925,0.8229,0.3344,40,4,'sandstone','hip','dormer'],[0.078,0.4269,0.3692,0.4493,38,3,'sandstone','hip','bay']]},
+  '1_3_2':{name:'維多利亞周邊式庭院公寓',archetype:'victorian-u-court-housing',yard:'court',m:[[0.078,0.082,0.8229,0.2612,42,4,'stock','gable',''],[0.078,0.3432,0.2532,0.5121,38,3,'brick','gable','bay'],[0.6583,0.3432,0.2427,0.5121,40,4,'brick','gable','bay']]},
+  '1_3_3':{name:'愛德華尖塔宅邸街廓',archetype:'edwardian-corner-turret-mansions',yard:'rail',m:[[0.0991,0.0925,0.7596,0.6374,43,4,'brick','hip','bay dormer'],[0.6477,0.6672,0.2427,0.2403,51,4,'sandstone','spire','door']]},
+  '1_3_4':{name:'喬治式都市高排屋',archetype:'georgian-tall-urban-terrace',yard:'rail',m:[[0.0675,0.0925,0.2954,0.7628,35,3,'stock','mansard','dormer'],[0.3629,0.0925,0.2848,0.7628,40,4,'stucco','flat','pediment'],[0.6477,0.0925,0.2848,0.7628,38,3,'stock','mansard','dormer']]},
+  '1_3_5':{name:'安妮女王多山牆公寓',archetype:'queen-anne-three-gable-mansions',yard:'rail',m:[[0.0886,0.1029,0.8124,0.4703,42,4,'brick','hip','dormer'],[0.1202,0.5418,0.2321,0.2822,45,4,'brick','gable','bay'],[0.3945,0.5418,0.2321,0.2822,46,4,'brick','gable','bay'],[0.6688,0.5418,0.211,0.2822,45,4,'brick','gable','bay']]},
+  '1_3_6':{name:'維多利亞倉庫改建公寓',archetype:'victorian-warehouse-loft-conversion',yard:'court',m:[[0.078,0.0925,0.844,0.7315,46,4,'stock','saw','mill doors']]},
+  '1_3_7':{name:'三十年代裝飾藝術公寓',archetype:'interwar-art-deco-stepped-flats',yard:'rail',m:[[0.0991,0.1029,0.8018,0.721,35,3,'deco','flat','bay'],[0.2679,0.1656,0.4536,0.3971,48,4,'deco','flat','door']]},
+  '1_3_8':{name:'波特蘭石高層宅邸',archetype:'portland-stone-mansard-mansions',yard:'rail',m:[[0.1308,0.1134,0.7385,0.6793,51,4,'stucco','mansard','bay dormer pediment']]},
+  '1_3_9':{name:'維多利亞哥德式公寓',archetype:'victorian-gothic-mansion-flats',yard:'wall',m:[[0.1202,0.0925,0.7385,0.6479,44,4,'gothic','gable','bay'],[0.2257,0.6149,0.2215,0.2299,49,4,'gothic','gable','door'],[0.6266,0.6149,0.2004,0.2299,47,4,'gothic','gable','door']]},
+  '1_3_10':{name:'愛德華四合院宅邸',archetype:'edwardian-quadrangle-mansion-flats',yard:'court',m:[[0.078,0.082,0.8335,0.2403,41,4,'brick','hip',''],[0.078,0.3224,0.2427,0.5538,40,4,'brick','hip',''],[0.6688,0.3224,0.2427,0.5538,43,4,'brick','hip','bay'],[0.3206,0.6672,0.3482,0.209,30,2,'stock','flat','arch']]},
+  '1_3_11':{name:'北部工業城密集街廓',archetype:'northern-stepped-urban-tenements',yard:'rail',m:[[0.078,0.1029,0.2743,0.7315,37,3,'brick','gable','bay'],[0.3523,0.1029,0.2848,0.7315,42,4,'stock','mansard','dormer'],[0.6371,0.1029,0.2848,0.7315,46,4,'brick','hip','bay']]},
+  '2_1_0':{name:'高街麵包店',archetype:'high-street-paired-bakery',yard:'pave',m:[[0.1202,0.1552,0.3587,0.627,23,2,'stock','gable','shop:BAKE'],[0.5,0.1552,0.3482,0.627,23,2,'brick','gable','shop:TEA']]},
+  '2_1_1':{name:'街角肉舖',archetype:'corner-butcher-shop',yard:'pave',m:[[0.1413,0.1656,0.7279,0.6165,23,2,'brick','hip','shop:MEAT bay']]},
+  '2_1_2':{name:'都鐸驛站旅店',archetype:'tudor-coaching-inn',yard:'court',m:[[0.1097,0.1134,0.7385,0.3135,24,2,'tudor','gable',''],[0.1097,0.4269,0.3903,0.4075,26,2,'tudor','gable','shop:INN arch']]},
+  '2_1_3':{name:'炸魚薯條小店',archetype:'fish-and-chip-shop-rear-shed',yard:'pave',m:[[0.2046,0.1134,0.4958,0.2926,10,1,'stock','lean','loading'],[0.1413,0.3851,0.6963,0.418,23,2,'render','gable','shop:FISH awning']]},
+  '2_1_4':{name:'紅獅鄰里酒館',archetype:'red-lion-corner-public-house',yard:'pub',m:[[0.1202,0.1447,0.6752,0.5121,26,2,'brick','hip','shop:ALE'],[0.6055,0.5523,0.2427,0.2822,23,2,'tudor','gable','shop:INN']]},
+  '2_1_5':{name:'石砌小鎮銀行',archetype:'stone-pediment-town-bank',yard:'pave',m:[[0.173,0.1552,0.6541,0.6165,24,2,'stone','hip','bank pediment']]},
+  '2_1_6':{name:'三山牆集市店屋',archetype:'triple-gable-market-shops',yard:'market',m:[[.09,.17,.82,.58,24,2,'brick','gable','shop:TEA doors'],[.27,.67,.20,.13,27,2,'stock','gable','shop:SHOP']]},
+  '2_1_7':{name:'窄面文具書店',archetype:'narrow-stationer-townhouse',yard:'pave',m:[[0.2363,0.1029,0.4853,0.7106,30,2,'stock','mansard','shop:BOOK dormer']]},
+  '2_1_8':{name:'高街蔬果店',archetype:'greengrocer-awning-shop',yard:'produce',m:[[0.1413,0.1656,0.7174,0.6061,23,2,'brick','gable','shop:FOOD awning']]},
+  '2_1_9':{name:'石屋茶室',archetype:'village-stone-tearoom',yard:'pub',m:[[0.1519,0.1447,0.633,0.3866,23,2,'stone','gable','shop:TEA'],[0.1519,0.5313,0.2743,0.2717,23,1,'stone','hip','shop:TEA']]},
+  '2_1_10':{name:'維多利亞凸窗古董店',archetype:'victorian-bay-front-antique-shop',yard:'pave',m:[[0.1941,0.1238,0.6224,0.6688,28,2,'brick','hip','shop:OLD bay']]},
+  '2_1_11':{name:'紅磚街角郵局',archetype:'corner-sub-post-office',yard:'post',m:[[0.1097,0.1761,0.7807,0.6061,25,2,'brick','gable','shop:POST pediment']]},
+  '2_2_0':{name:'維多利亞高街商店排屋',archetype:'victorian-mixed-height-shop-parade',yard:'pave',m:[[0.0675,0.1238,0.2954,0.6793,28,2,'brick','gable','shop:BAKE'],[0.3629,0.1238,0.2954,0.6793,33,3,'stock','mansard','shop:BOOK dormer'],[0.6583,0.1238,0.2743,0.6793,30,2,'brick','hip','shop:TEA']]},
+  '2_2_1':{name:'愛德華石砌銀行',archetype:'edwardian-bank-cupola',yard:'pave',m:[[0.1097,0.1134,0.7807,0.6897,31,2,'sandstone','hip','bank pediment'],[0.384,0.3224,0.2427,0.2403,43,3,'stone','spire','clock']]},
+  '2_2_2':{name:'倫敦玻璃拱廊商場',archetype:'london-covered-shopping-arcade',yard:'court',m:[[0.078,0.1238,0.2637,0.7106,30,2,'brick','mansard','shop:SHOP'],[0.3523,0.1343,0.3059,0.6897,18,1,'stone','glass','arcade'],[0.6688,0.1238,0.2532,0.7106,32,3,'brick','mansard','shop:TEA']]},
+  '2_2_3':{name:'維多利亞街角百貨',archetype:'victorian-corner-department-store',yard:'pave',m:[[0.0991,0.1029,0.7807,0.6688,34,3,'stock','mansard','shop:STORE'],[0.6583,0.6672,0.2321,0.2299,43,3,'brick','hip','clock']]},
+  '2_2_4':{name:'鐘樓集市大廳',archetype:'clock-tower-covered-market',yard:'market',m:[[0.0991,0.1029,0.8018,0.5852,21,1,'brick','glass','arcade'],[0.3629,0.6567,0.2743,0.2194,34,2,'stone','hip','clock arch']]},
+  '2_2_5':{name:'喬治式驛站酒店',archetype:'georgian-coaching-hotel-court',yard:'court',m:[[0.0991,0.0925,0.7807,0.3239,34,3,'stock','hip','dormer'],[0.0991,0.4164,0.3482,0.418,31,3,'stock','hip','shop:HOTEL arch']]},
+  '2_2_6':{name:'都鐸復興高街商樓',archetype:'tudor-revival-three-gable-shops',yard:'pave',m:[[0.078,0.1238,0.2743,0.6688,27,2,'tudor','gable','shop:ALE'],[0.3629,0.1238,0.2848,0.6688,31,2,'tudor','gable','shop:INN'],[0.6583,0.1238,0.2637,0.6688,27,2,'tudor','gable','shop:TEA']]},
+  '2_2_7':{name:'喬治式辦公事務所',archetype:'georgian-mansard-office-chambers',yard:'rail',m:[[0.1413,0.1029,0.7174,0.7001,35,3,'stucco','mansard','pediment dormer']]},
+  '2_2_8':{name:'鐵路街角旅館',archetype:'railway-hotel-turret-corner',yard:'pave',m:[[0.0886,0.1134,0.7913,0.6374,36,3,'brick','hip','shop:HOTEL dormer'],[0.6583,0.6672,0.2427,0.2299,46,3,'sandstone','spire','clock']]},
+  '2_2_9':{name:'海濱玻璃櫥窗商廊',archetype:'seaside-cast-iron-shop-gallery',yard:'pave',m:[[0.0991,0.1238,0.8018,0.6793,30,2,'render','hip','shop:SHOP balcony awning']]},
+  '2_2_10':{name:'合作社百貨商樓',archetype:'cooperative-emporium-gabled',yard:'pave',m:[[0.1097,0.1134,0.7807,0.6061,32,3,'brick','flat','shop:COOP'],[0.289,0.5627,0.422,0.2612,35,3,'stone','gable','shop:COOP']]},
+  '2_2_11':{name:'運河倉庫辦公樓',archetype:'canal-warehouse-office-conversion',yard:'court',m:[[0.1097,0.1029,0.7807,0.721,37,3,'stock','flat','mill shop:WORK crane']]},
+  '2_3_0':{name:'波特蘭石旗艦百貨',archetype:'portland-stone-grand-department-store',yard:'pave',m:[[0.0886,0.1029,0.8229,0.721,43,4,'stucco','mansard','shop:STORE pediment dormer']]},
+  '2_3_1':{name:'愛德華保險會社大樓',archetype:'edwardian-insurance-chambers-tower',yard:'pave',m:[[0.0886,0.1029,0.7913,0.6479,47,4,'sandstone','hip','bank'],[0.6583,0.6672,0.2427,0.2403,57,5,'stone','spire','clock']]},
+  '2_3_2':{name:'維多利亞有頂交易所',archetype:'victorian-covered-commercial-exchange',yard:'court',m:[[0.078,0.082,0.2637,0.7837,40,3,'brick','mansard','shop:WORK'],[0.3417,0.1447,0.3165,0.5956,23,1,'stone','glass','arcade'],[0.6583,0.082,0.2637,0.7837,45,4,'brick','mansard','shop:WORK']]},
+  '2_3_3':{name:'裝飾藝術百貨大樓',archetype:'art-deco-stepped-department-store',yard:'pave',m:[[0.078,0.1029,0.844,0.7315,37,3,'deco','flat','shop:STORE'],[0.2574,0.1865,0.4958,0.4075,50,4,'deco','flat','clock']]},
+  '2_3_4':{name:'哥德復興銀行總部',archetype:'gothic-revival-bank-headquarters',yard:'pave',m:[[0.1308,0.1029,0.7385,0.7001,45,4,'gothic','gable','bank'],[0.1519,0.6567,0.1899,0.2194,53,4,'gothic','spire',''],[0.6794,0.6567,0.1794,0.2194,53,4,'gothic','spire','']]},
+  '2_3_5':{name:'喬治式庭院大酒店',archetype:'georgian-courtyard-grand-hotel',yard:'court',m:[[0.078,0.082,0.8335,0.2717,42,4,'stucco','mansard','dormer'],[0.078,0.3537,0.2637,0.4911,39,3,'stucco','hip','shop:HOTEL'],[0.6583,0.3537,0.2532,0.4911,41,4,'stucco','hip','shop:HOTEL']]},
+  '2_3_6':{name:'都市維多利亞商業街廓',archetype:'victorian-tall-high-street-block',yard:'pave',m:[[0.0569,0.1134,0.2954,0.721,37,3,'brick','gable','shop:BAKE'],[0.3523,0.1134,0.3059,0.721,43,4,'stock','mansard','shop:STORE dormer'],[0.6583,0.1134,0.2848,0.721,40,3,'brick','hip','shop:BOOK']]},
+  '2_3_7':{name:'愛德華玻璃購物拱廊',archetype:'edwardian-grand-shopping-arcade',yard:'pave',m:[[0.0991,0.082,0.7913,0.2612,46,4,'sandstone','mansard','dormer'],[0.1097,0.3432,0.2427,0.4807,38,3,'brick','hip','shop:SHOP'],[0.3523,0.3432,0.3059,0.4911,22,1,'stone','glass','arcade'],[0.6583,0.3432,0.2321,0.4807,40,3,'brick','hip','shop:TEA']]},
+  '2_3_8':{name:'北部紡織交易所',archetype:'northern-textile-exchange-clock-tower',yard:'pave',m:[[0.0886,0.1134,0.8229,0.6897,48,4,'sandstone','mansard','bank dormer'],[0.3734,0.5836,0.2532,0.2822,61,5,'stone','hip','clock arch']]},
+  '2_3_9':{name:'紅磚市場與商務大樓',archetype:'redbrick-market-and-office-block',yard:'market',m:[[0.0886,0.1029,0.8124,0.2926,45,4,'brick','gable','mill'],[0.0991,0.3955,0.8018,0.3971,26,2,'brick','glass','arcade shop:SHOP']]},
+  '2_3_10':{name:'英式鐵路大酒店',archetype:'british-grand-railway-hotel',yard:'pave',m:[[0.0991,0.1134,0.8018,0.6374,52,4,'brick','mansard','shop:HOTEL dormer'],[0.1624,0.6672,0.2321,0.2299,60,5,'sandstone','spire','clock'],[0.6688,0.6672,0.2004,0.2194,56,5,'brick','spire','']]},
+  '2_3_11':{name:'兩戰間石砌辦公大樓',archetype:'interwar-stone-stepped-office-block',yard:'pave',m:[[0.1202,0.1029,0.7596,0.7106,54,5,'stone','flat','bank'],[0.2784,0.2283,0.4536,0.3657,63,5,'stone','flat','pediment']]},
+  '3_1_0':{name:'木匠作坊',archetype:'joiners-gabled-workshop',yard:'timber',m:[[0.1202,0.1238,0.6963,0.5434,16,1,'brick','gable','loading']]},
+  '3_1_1':{name:'小鎮鐵匠鋪',archetype:'blacksmith-l-plan-forge',yard:'forge',m:[[0.1202,0.1343,0.5803,0.3762,19,2,'brick','gable','mill'],[0.1202,0.5104,0.327,0.303,14,1,'brick','lean','loading']]},
+  '3_1_2':{name:'北向天窗鋸木廠',archetype:'northlight-sawmill',yard:'logs',m:[[0.0991,0.1343,0.8124,0.4389,17,1,'weatherboard','saw','loading']]},
+  '3_1_3':{name:'小型磚窯場',archetype:'small-brickyard-kiln',yard:'bricks',m:[[0.1202,0.1238,0.4642,0.5121,17,1,'brick','hip','loading']]},
+  '3_1_4':{name:'鄰里織布作坊',archetype:'weavers-three-storey-workshop',yard:'pave',m:[[0.1413,0.1343,0.6963,0.627,27,2,'stock','gable','mill loading']]},
+  '3_1_5':{name:'運河裝卸小倉庫',archetype:'canal-hoist-warehouse',yard:'crates',m:[[0.1835,0.1134,0.5592,0.6793,28,2,'brick','gable','mill crane loading']]},
+  '3_1_6':{name:'牛奶處理工坊',archetype:'small-dairy-processing-workshop',yard:'dairy',m:[[0.1308,0.1447,0.5908,0.5956,20,2,'render','hip','mill loading']]},
+  '3_1_7':{name:'拱門修車工坊',archetype:'twin-bay-motor-works',yard:'garage',m:[[0.1097,0.1552,0.7701,0.6374,21,1,'brick','barrel','loading arch']]},
+  '3_1_8':{name:'史托克陶器工坊',archetype:'stoke-pottery-bottle-kiln',yard:'pottery',m:[[0.0991,0.1134,0.5275,0.5434,21,2,'brick','gable','mill loading']]},
+  '3_1_9':{name:'石匠切石作坊',archetype:'stonemasons-open-yard',yard:'stoneworks',m:[[0.1202,0.1343,0.4853,0.418,17,1,'stone','lean','loading']]},
+  '3_1_10':{name:'煤商堆料場',archetype:'coal-merchants-yard',yard:'coal',m:[[0.0991,0.1134,0.5275,0.4911,17,1,'brick','gable','loading'],[0.6794,0.1656,0.211,0.2612,10,1,'weatherboard','lean','door']]},
+  '3_1_11':{name:'雙山牆印刷工坊',archetype:'twin-gable-printing-workshop',yard:'crates',m:[[0.0991,0.1343,0.3798,0.6479,25,2,'stock','gable','mill loading'],[0.5,0.1343,0.3798,0.6479,28,2,'brick','gable','mill loading']]},
+  '3_2_0':{name:'蘭開夏紡織廠',archetype:'lancashire-four-storey-textile-mill',yard:'mill',m:[[0.0991,0.1029,0.8018,0.7106,34,3,'brick','gable','mill loading']]},
+  '3_2_1':{name:'黑鄉鐵鑄造廠',archetype:'black-country-iron-foundry',yard:'foundry',m:[[0.0886,0.1238,0.8124,0.5852,24,1,'brick','barrel','mill loading'],[0.1097,0.6672,0.2637,0.1881,14,1,'brick','lean','loading']]},
+  '3_2_2':{name:'北向天窗機械工廠',archetype:'northlight-engineering-works',yard:'engineering',m:[[0.0886,0.1029,0.8018,0.6165,22,1,'brick','saw','mill loading'],[0.6477,0.6463,0.2532,0.2403,31,3,'stock','flat','door']]},
+  '3_2_3':{name:'雙窯磚瓦工廠',archetype:'twin-kiln-brickworks',yard:'doublekiln',m:[[0.0991,0.1134,0.7913,0.303,19,1,'brick','gable','mill loading']]},
+  '3_2_4':{name:'維多利亞啤酒廠',archetype:'victorian-brewery-maltings',yard:'brewery',m:[[0.0991,0.1029,0.5592,0.627,32,3,'stock','gable','mill'],[0.6794,0.1343,0.2321,0.4389,23,1,'brick','hip','loading']]},
+  '3_2_5':{name:'雙跨鐵路貨運庫',archetype:'twin-span-railway-goods-depot',yard:'depot',m:[[0.078,0.1343,0.4009,0.6374,23,1,'brick','barrel','loading'],[0.5,0.1343,0.4114,0.6374,26,1,'brick','barrel','loading']]},
+  '3_2_6':{name:'長形繩索工廠',archetype:'long-ropewalk-factory',yard:'timber',m:[[0.078,0.1134,0.844,0.2926,28,2,'stock','gable','mill'],[0.1308,0.4686,0.7596,0.2508,15,1,'weatherboard','lean','loading']]},
+  '3_2_7':{name:'造紙廠與水箱',archetype:'paper-mill-water-tank',yard:'paper',m:[[0.0991,0.1238,0.6752,0.5643,27,2,'brick','saw','mill loading']]},
+  '3_2_8':{name:'約克郡毛紡織廠',archetype:'yorkshire-l-plan-woollen-mill',yard:'mill',m:[[0.078,0.1029,0.8018,0.2926,33,3,'stone','gable','mill'],[0.078,0.3955,0.3376,0.4389,29,2,'stone','gable','mill loading']]},
+  '3_2_9':{name:'皮革加工工廠',archetype:'tannery-courtyard-works',yard:'tannery',m:[[0.0991,0.1134,0.5381,0.6793,26,2,'stock','gable','mill loading']]},
+  '3_2_10':{name:'電機製造工廠',archetype:'edwardian-electrical-manufacturing-works',yard:'engineering',m:[[0.0991,0.1134,0.7913,0.6583,34,3,'brick','flat','mill loading'],[0.173,0.6359,0.2532,0.209,39,3,'stone','flat','clock']]},
+  '3_2_11':{name:'運河穀物倉庫',archetype:'canal-grain-hoist-warehouse',yard:'crates',m:[[0.1413,0.0925,0.7174,0.7419,38,3,'stock','gable','mill crane loading']]},
+  '3_3_0':{name:'蘭開夏大型棉紡廠',archetype:'lancashire-cotton-mill-chimney',yard:'tallmill',m:[[0.0675,0.0925,0.844,0.7419,45,4,'brick','flat','mill loading']]},
+  '3_3_1':{name:'重型機械製造廠',archetype:'heavy-engineering-northlight-complex',yard:'heavy',m:[[0.078,0.1029,0.8335,0.6061,27,2,'brick','saw','mill loading'],[0.6688,0.6463,0.2321,0.2299,51,4,'stock','flat','clock']]},
+  '3_3_2':{name:'維多利亞鐘樓工業街廓',archetype:'victorian-clock-tower-industrial-complex',yard:'engineering',m:[[0.0886,0.1029,0.8018,0.3239,40,3,'brick','gable','mill'],[0.0991,0.4269,0.3376,0.4075,28,2,'stock','saw','mill loading'],[0.6583,0.5731,0.2321,0.2612,56,5,'brick','hip','clock']]},
+  '3_3_3':{name:'城市大型釀酒廠',archetype:'urban-brewery-malt-house-complex',yard:'bigbrewery',m:[[0.078,0.0925,0.633,0.6165,41,4,'stock','mansard','mill dormer'],[0.6583,0.4582,0.2427,0.3448,20,1,'brick','hip','loading']]},
+  '3_3_4':{name:'密集織布與紡紗工廠',archetype:'textile-spinning-and-weaving-mill',yard:'tallmill',m:[[0.078,0.082,0.8335,0.2926,39,4,'brick','flat','mill'],[0.078,0.3851,0.8335,0.418,21,1,'brick','saw','mill loading']]},
+  '3_3_5':{name:'渦輪機械製造大廳',archetype:'turbine-engineering-hall',yard:'powerworks',m:[[0.1097,0.1029,0.6541,0.6479,38,2,'brick','barrel','mill loading'],[0.6477,0.6254,0.2427,0.2403,49,4,'stone','flat','clock']]},
+  '3_3_6':{name:'鋼鐵鑄造與橋式吊車廠',archetype:'steel-foundry-gantry-works',yard:'gantry',m:[[0.0886,0.1029,0.8018,0.5852,29,2,'brick','saw','mill loading'],[0.0991,0.6672,0.2743,0.1881,19,1,'stock','flat','mill']]},
+  '3_3_7':{name:'運河雙排保稅倉庫',archetype:'paired-canal-bonded-warehouses',yard:'crates',m:[[0.078,0.0925,0.3692,0.7524,45,4,'stock','gable','mill crane loading'],[0.5528,0.0925,0.3692,0.7524,41,4,'brick','gable','mill crane loading']]},
+  '3_3_8':{name:'大型報業印刷工廠',archetype:'metropolitan-newspaper-printing-works',yard:'engineering',m:[[0.0886,0.1029,0.8124,0.7106,43,4,'brick','flat','mill loading'],[0.173,0.6045,0.2532,0.2403,52,4,'stone','flat','clock']]},
+  '3_3_9':{name:'機車與車廂製造工廠',archetype:'locomotive-and-carriage-works',yard:'depot',m:[[0.078,0.1029,0.844,0.5329,30,2,'brick','saw','mill loading'],[0.0991,0.6567,0.327,0.209,43,4,'stock','hip','mill'],[0.5106,0.6567,0.3903,0.209,16,1,'brick','barrel','loading']]},
+  '3_3_10':{name:'大型麵粉磨坊',archetype:'industrial-flour-mill-silos',yard:'flour',m:[[0.0886,0.0925,0.6646,0.6688,49,4,'stock','gable','mill crane loading']]},
+  '3_3_11':{name:'北部高塔機械工業廠',archetype:'northern-tower-engineering-works',yard:'towerworks',m:[[0.0991,0.1029,0.5169,0.6479,58,5,'brick','flat','mill clock'],[0.616,0.1865,0.2848,0.5643,35,2,'stock','saw','mill loading']]}
 };
 /* 立面所有實體筆畫先清夜層；玻璃只把真正窗洞寫入夜層，後來量體可正常遮擋。 */
 function rciPainter634(T){
   const K=kit634(T),{P,quad,g,ng,poly,box}=T,W=T.winter,we=T.k===1?(T.we===undefined?1:T.we):1;
-  const mat={brick:'#ac715a',stock:'#b4a080',stone:'#b9ad94',sandstone:'#c0a17e',render:'#d1c7ae',stucco:'#dcd5c2',weatherboard:'#c9c3ad',tudor:'#d6c8aa',deco:'#d0cbb8',gothic:'#a57760'};
-  const roof=W?'#e7ece8':'#465760',roofDark=W?'#cbd8d3':'#35464f',trim=we===2?'#ede0c7':we===0?'#c5b89d':'#dfcfad';
+  const mat={brick:'#ad6652',stock:'#b49b74',stone:'#d0bea0',sandstone:'#c2a17b',render:'#c9bda4',stucco:'#d5ccb6',weatherboard:'#c8bea6',tudor:'#c9bea3',deco:'#c8c6b3',gothic:'#a75f4d'};
+  const roof=W?'#e7ece8':'#55636d',roofDark=W?'#cbd8d3':'#424e59',trim=we===2?'#d8c9ad':we===0?'#b5a284':'#c8b79a';
   const glass=(ps,c='#587481',lit='#f5d59a')=>{K.face(ps,c);ng.save();ng.globalCompositeOperation='source-over';poly(ng,ps,lit);ng.restore();};
   const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
   const plate=(u,v,du,dv,z,col)=>K.face(quad(u,v,du,dv,z),col);
@@ -146,11 +146,12 @@ function rciPainter634(T){
   const slates=(a,b,c,d,tone)=>{
     if(W)return;const at=(s,t)=>mix(mix(a,b,s),mix(d,c,s),t);
     for(let row=1;row<4;row++)K.ln(at(row/4,0),at(row/4,1),tone);
-    for(let row=0;row<4;row++)for(let j=1;j<4;j++){const t=(j+(row%2)*.4)/4;K.ln(at(row/4+.04,t),at((row+1)/4-.03,t),T.shade(tone,-8));}
+    /* 只在少數瓦片接縫補暗短線，保留屋頂完整色面。 */
+    for(let row=0;row<3;row++){const t=.28+row*.19;K.ln(at(row/4+.03,t),at((row+1)/4-.03,t),T.shade(tone,-4));}
   };
   const shell=(m,annex=false)=>{
-    const [u,v,du,dv,h,fl,material,rt,detail='']=m,has=s=>detail.split(' ').includes(s),shop=(detail.match(/shop:([A-Z]+)/)||[])[1],mill=has('mill'),timber=material==='tudor'||has('tudor'),pitch=rt==='flat'?0:rt==='spire'?11:rt==='mansard'?9:rt==='saw'?7:rt==='glass'?8:rt==='barrel'?7:Math.max(6,Math.min(11,du*17));
-    const base=mat[material]||mat.brick,front=T.shade(base,we===0?-7:we===2?5:0),side=T.shade(front,-28),cols=[front,side];
+    const [u,v,du,dv,h,fl,material,rt,detail='']=m,has=s=>detail.split(' ').some(x=>x===s||x.startsWith(s+':')),shop=(detail.match(/shop:([A-Z]+)/)||[])[1],mill=has('mill'),timber=material==='tudor'||has('tudor'),pitch=rt==='flat'?0:rt==='spire'?11:rt==='mansard'?9:rt==='saw'?7:rt==='glass'?8:rt==='barrel'?7:Math.max(8,Math.min(13,du*19));
+    const base=mat[material]||mat.brick,front=T.shade(base,we===0?-7:we===2?5:0),side=T.shade(front,-35),cols=[front,side];
     box(u,v,du,dv,h,{left:front,right:side,top:roof,edge:'#655b4d'});
     const wp=(s,t,z)=>s===0?P(u+du*t,v+dv,z):P(u+du,v+dv*(1-t),z);
     const panel=(s,a,b,z0,z1,c)=>K.face([wp(s,a,z0),wp(s,b,z0),wp(s,b,z1),wp(s,a,z1)],c);
@@ -161,32 +162,32 @@ function rciPainter634(T){
     const sill=(s,a,b,z)=>{K.face([wp(s,a,z),wp(s,b,z),proud(s,b,z),proud(s,a,z)],W?'#e7e9dc':trim);K.ln(proud(s,a,z-1),proud(s,b,z-1),T.shade(trim,-38));};
     /* 一層暗凹口、一層窗框；淺色只放在受光框沿，不把整面牆灑亮點。 */
     const sash=(s,a,b,z0,z1,lit)=>{
-      panel(s,a-.035,b+.035,z0-1,z1+1,T.shade(trim,-18));
-      panel(s,a-.012,b+.012,z0,z1,recess(s));
-      lite(s,a+.014,b-.014,z0+.45,z1-.65,lit);
-      K.ln(wp(s,a-.008,z0),wp(s,a-.008,z1),trim);
-      K.ln(wp(s,b+.010,z0),wp(s,b+.010,z1),T.shade(trim,-34));
-      K.ln(wp(s,a,z1-.5),wp(s,b,z1-.5),T.shade(trim,-44));
-      K.ln(wp(s,a,(z0+z1)*.5),wp(s,b,(z0+z1)*.5),trim);
-      if(mill||timber||material==='gothic')K.ln(wp(s,(a+b)*.5,z0+.5),wp(s,(a+b)*.5,z1-.7),T.shade(trim,-9));
-      if(mill||material==='brick'||material==='stock'){
-        K.ln(wp(s,a-.025,z1+1),wp(s,(a+b)*.5,z1+2),T.shade(front,18));K.ln(wp(s,(a+b)*.5,z1+2),wp(s,b+.025,z1+1),T.shade(front,10));
-      }else K.ln(wp(s,a-.035,z1+1),wp(s,b+.035,z1+1),trim);
-      sill(s,a-.045,b+.045,z0-1);
+      /* 暗凹口比窄窗框優先；只讓受光左沿、外伸窗臺連成亮邊。 */
+      panel(s,a-.020,b+.020,z0-.7,z1+.8,T.shade(cols[s],-23));
+      panel(s,a,b,z0,z1,s?'#2d404a':'#344852');
+      lite(s,a+.025,b-.022,z0+.6,z1-.7,lit);
+      K.ln(wp(s,a,z0),wp(s,a,z1),T.shade(trim,s?-32:-3));
+      K.ln(wp(s,a,z1-.2),wp(s,b,z1-.2),T.shade(trim,-39));
+      if(z1-z0>4.5)K.ln(wp(s,a,z0+(z1-z0)*.53),wp(s,b,z0+(z1-z0)*.53),T.shade(trim,s?-32:-14));
+      if((mill||timber)&&((b-a)*(s?dv:du)*32>5))K.ln(wp(s,(a+b)*.5,z0+.6),wp(s,(a+b)*.5,z1-.7),T.shade(trim,-30));
+      if(material==='brick'||material==='stock'){
+        K.ln(wp(s,a-.012,z1+1),wp(s,(a+b)*.5,z1+1.8),T.shade(cols[s],12));K.ln(wp(s,(a+b)*.5,z1+1.8),wp(s,b+.012,z1+1),T.shade(cols[s],7));
+      }else K.ln(wp(s,a-.02,z1+1),wp(s,b+.02,z1+1),T.shade(trim,s?-35:-15));
+      sill(s,a-.02,b+.022,z0-.8);
     };
-    const floorH=h/Math.max(1,fl),winH=Math.max(3,Math.min(mill?8:7,floorH-4));
+    const floorH=h/Math.max(1,fl),winH=Math.max(3,Math.min(mill?7:6,floorH-4));
     /* 磚的交錯灰縫、木板或石材水平分縫，不使用雜訊流。 */
-    for(let z=3;z<h-1;z+=material==='weatherboard'?3:stoneLike?5:4){
-      band(z,T.shade(front,material==='weatherboard'?7:-4));
+    for(let z=3;z<h-1;z+=material==='weatherboard'?4:stoneLike?7:5){
+      for(let side=0;side<2;side++)K.ln(wp(side,0,z),wp(side,1,z),T.shade(cols[side],material==='weatherboard'?5:-7));
       if(material!=='render'&&material!=='stucco'&&material!=='deco'&&material!=='weatherboard')for(let s=0;s<2;s++){
-        const width=s?dv:du,step=(stoneLike?.18:.12)/width;for(let a=.04+((z/4|0)&1)*step*.5;a<.99;a+=step)K.ln(wp(s,a,z),wp(s,a,z-2),T.shade(cols[s],3));
+        const width=s?dv:du,step=(stoneLike?.18:.12)/width;for(let a=.04+((z/4|0)&1)*step*.5;a<.99;a+=step)K.ln(wp(s,a,z),wp(s,a,z-2),T.shade(cols[s],-6));
       }
     }
     for(let s=0;s<2;s++){
-      const width=s?dv:du,columns=Math.max(1,Math.round(width*(mill?5.5:4.6)));
+      const width=s?dv:du,columns=Math.max(1,Math.round(width*(mill?4.5:4)));
       for(let f=0;f<fl;f++){
         if(f===0&&(shop||(has('loading')&&s===0)||has('arcade')||has('bank')))continue;
-        const z0=f*floorH+3,z1=Math.min(h-2,z0+winH),ww=Math.min(.61,.14/width*columns);
+        const z0=f*floorH+3,z1=Math.min(h-2,z0+winH),ww=Math.min(.53,.125/width*columns);
         for(let j=0;j<columns;j++){
           const mid=(j+.5)/columns,a=mid-ww/(2*columns),b=mid+ww/(2*columns),lit=(f*7+j*3+T.v+s)%5===0?'#947f5b':T.k===3?'#dbcea5':'#f4d498';
           sash(s,a,b,z0,z1,lit);
@@ -197,7 +198,7 @@ function rciPainter634(T){
     }
     /* 連續基座、暗防潮層、石材轉角交錯塊：有秩序的體積線索。 */
     for(let s=0;s<2;s++){panel(s,0,1,0,2.2,T.shade(cols[s],-16));K.ln(wp(s,0,2.2),wp(s,1,2.2),T.shade(cols[s],15));}
-    if(stoneLike&&!annex)for(let z=3;z<h-2;z+=5){const w=(Math.floor(z/5)%2?.055:.080);panel(0,1-w,1,z,z+2.8,T.shade(trim,-16));panel(1,0,w,z,z+2.8,T.shade(trim,-31));}
+    if(stoneLike&&!annex&&du>.62)for(let z=3;z<h-2;z+=7){const w=(Math.floor(z/5)%2?.055:.080);panel(0,1-w,1,z,z+2.8,T.shade(trim,-16));panel(1,0,w,z,z+2.8,T.shade(trim,-31));}
     if(timber){
       for(let s=0;s<2;s++){
         const cols=Math.max(2,Math.round((s?dv:du)*7));for(let i=0;i<=cols;i++)K.ln(wp(s,i/cols,0),wp(s,i/cols,h),'#514d40',1.5);
@@ -222,7 +223,8 @@ function rciPainter634(T){
       /* 嵌入式店門、上亮窗與門檻，櫥窗不再是一整排無入口的玻璃。 */
       {const a=.43,b=.57;panel(0,a-.025,b+.025,0,11.5,T.shade(signCol,-24));panel(0,a,b,0,10.7,signCol);lite(0,a+.018,b-.018,2.5,9.7,'#f1d5a0');K.ln(wp(0,a,0),wp(0,a,11),trim);K.ln(wp(0,b,0),wp(0,b,11),T.shade(trim,-20));K.ln(wp(0,a,8),wp(0,b,8),trim);sill(0,a-.025,b+.025,.6);const q=wp(0,b-.025,5);K.px(q[0],q[1],'#c5ad73',1,2);}
       const p=wp(0,.5,14);for(let i=0;i<Math.min(shop.length,5);i++){const x=p[0]+(i-(Math.min(shop.length,5)-1)/2)*3,y=p[1]+(i-(Math.min(shop.length,5)-1)/2)*1.5;K.px(x-1,y-1,'#ecddb8',2,2);}
-      if(du>.43)K.sign(u+du*.42,v+dv,17,shop,signCol);if(T.k===2&&!T.hooks.sign)T.hooks.sign=P(u+du*.42,v+dv,17);
+      /* 店名嵌在立面的窄牌帶，不在單格屋外掛一整棟寬的字幕。 */
+      if(T.k===2&&!T.hooks.sign)T.hooks.sign=P(u+du*.42,v+dv,14);
       if(has('awning')){const a=P(u+.02,v+dv,12),b=P(u+du-.02,v+dv,12),c=P(u+du-.02,v+dv+.08,10),d=P(u+.02,v+dv+.08,10);K.face([a,b,c,d],W?'#e6ebe3':'#c6b888');for(let i=0;i<6;i+=2)K.face([mix(a,b,i/6),mix(a,b,(i+1)/6),mix(d,c,(i+1)/6),mix(d,c,i/6)],W?'#d5ded5':signCol);K.ln(d,c,trim);}
     }
     if(has('loading')||has('arch')||has('arcade')){
@@ -234,7 +236,7 @@ function rciPainter634(T){
         if(has('arch')||has('arcade')){const a=wp(0,t-half-.025,z),b=wp(0,t,z+4),c=wp(0,t+half+.025,z);K.ln(a,b,trim,2);K.ln(b,c,trim,2);}
       }
     }else if(!shop&&!annex){
-      const doors=has('doors')?3:1;for(let i=0;i<doors;i++){
+      const doors=Number((detail.match(/doors:(\d)/)||[])[1])||(has('doors')?3:1);for(let i=0;i<doors;i++){
         const t=(i+.5)/doors,half=Math.min(.075,.052/du),a=t-half,b=t+half,door=we===0?'#5a5b4e':we===2?'#315448':'#3e5652';
         panel(0,a-.030,b+.030,0,10.7,T.shade(trim,-17));panel(0,a-.012,b+.012,0,10,recess(0));panel(0,a+.012,b-.012,.5,8.4,door);lite(0,a+.012,b-.012,8.4,9.6,'#ddc99b');
         K.ln(wp(0,a,0),wp(0,a,10),trim);K.ln(wp(0,b,0),wp(0,b,10),T.shade(trim,-37));K.ln(wp(0,a,10.5),wp(0,b,10.5),trim);
@@ -242,18 +244,19 @@ function rciPainter634(T){
         const q=wp(0,b-.022,4.2);K.px(q[0],q[1],'#c5ad73');
       }
     }
-    for(const z of[h-1,h])band(z,trim,1);
-    if(fl>2&&!mill)for(let f=1;f<fl;f++)band(f*floorH-.5,material==='brick'?'#c5ad8c':T.shade(front,13));
+    band(h,T.shade(trim,-26),1);
+    if(fl>2&&!mill)for(let f=1;f<fl;f++)band(f*floorH-.5,T.shade(front,8));
     /* 英式板岩山牆、四坡頂、蝶形谷頂、北向採光鋸齒頂與有頂拱廊。 */
+    box(u-.012,v-.012,du+.024,dv+.024,1.6,{left:'#3b4851',right:'#2b3b45',top:roof},h-1);
     const a=P(u,v,h),b=P(u+du,v,h),c=P(u+du,v+dv,h),d=P(u,v+dv,h),r0=P(u+du*.5,v,h+pitch),r1=P(u+du*.5,v+dv,h+pitch);
     if(rt==='gable'||rt==='glass'){
       if(rt==='glass'){glass([a,r0,r1,d],W?'#bfceca':'#668995','#bcb99a');glass([r0,b,c,r1],W?'#b4c9c7':'#446d7d','#939c8d');}
       else{K.face([a,r0,r1,d],roof);K.face([r0,b,c,r1],roofDark);}
-      K.face([d,c,r1],front);K.ln(d,r1,trim);K.ln(r1,c,trim);K.ln(r0,r1,W?'#f2f4ef':'#8b9190');
+      K.face([d,c,r1],front);K.ln(d,r1,T.shade(trim,-20));K.ln(r1,c,T.shade(trim,-37));K.ln(r0,r1,W?'#f2f4ef':'#8b9190');
       if(rt!=='glass'){slates(a,r0,r1,d,'#52626a');slates(r0,b,c,r1,'#3e5059');}
       if(rt==='glass')for(let f=.14;f<1;f+=.14){K.ln(mix(a,d,f),mix(r0,r1,f),trim);K.ln(mix(r0,r1,f),mix(b,c,f),trim);}
       if(timber){K.ln(P(u+du*.5,v+dv,h),r1,'#534c3f',2);K.ln(d,P(u+du*.5,v+dv,h+pitch*.6),'#5f5441');K.ln(c,P(u+du*.5,v+dv,h+pitch*.6),'#5f5441');}
-      if(du>.37&&!annex){const p=P(u+du*.5,v+dv,h+pitch*.33);K.px(p[0]-2,p[1]-2,trim,5,5);T.LIT(p[0]-1,p[1]-1,3,3,'#526e77','#dec899');K.px(p[0],p[1]-1,trim,1,3);}
+      if(du>.37&&!annex){const p=P(u+du*.5,v+dv,h+pitch*.33);K.px(p[0]-1,p[1]-1,'#354a54',3,3);T.LIT(p[0],p[1],1,1,'#526e77','#dec899');K.px(p[0]-2,p[1]+2,T.shade(trim,-20),5,1);}
     }else if(rt==='hip'||rt==='spire'){
       const q0=P(u+du*.5,v+dv*.23,h+pitch),q1=P(u+du*.5,v+dv*.77,h+pitch),peak=P(u+du*.5,v+dv*.5,h+pitch);
       if(rt==='spire'){K.face([a,b,peak],roof);K.face([a,peak,d],roof);K.face([b,c,peak],roofDark);K.face([d,peak,c],W?'#e7eee7':'#5c6970');K.ln(peak,P(u+du*.5,v+dv*.5,h+pitch+4),'#6b6c5e');}
@@ -281,7 +284,7 @@ function rciPainter634(T){
       if(material==='deco')for(let i=0;i<3;i++)K.ln(P(u+.035,v+dv,h+i),P(u+du-.035,v+dv,h+i),i===1?'#747e75':trim);
     }
     /* 暗檐底、亮滴水緣與細雨管構成前後深度；積雪不被瓦縫切成條紋。 */
-    band(h-1.5,T.shade(front,-31));band(h-.1,T.shade(trim,-11));
+    band(h-1.5,'#35424a',2);band(h-.1,T.shade(roof,8));
     if(!annex&&du>.31){K.ln(wp(0,.974,2),wp(0,.974,h-2),'#51605a');K.ln(wp(0,.974,2),wp(0,.94,.5),'#51605a');}
     if(rt==='flat'||rt==='butterfly'){K.ln([d[0],d[1]-2],[c[0],c[1]-2],W?'#f0f2e9':'#d1c5a4');K.ln([c[0],c[1]-2],[b[0],b[1]-2],W?'#dce5dc':'#aca58f');}
     if(has('dormer')&&rt!=='mansard'&&du>.39){const p=P(u+du*.55,v+dv*.78,h+pitch*.55);K.px(p[0]-3,p[1]-5,trim,6,6);T.LIT(p[0]-2,p[1]-4,4,4,'#57717b','#ead099');K.face([[p[0]-4,p[1]-5],[p[0],p[1]-9],[p[0]+4,p[1]-5]],roofDark);}
@@ -289,7 +292,7 @@ function rciPainter634(T){
     if(has('clock')){const p=wp(0,.5,h-8);K.px(p[0]-3,p[1]-4,'#5b5f55',7,8);K.px(p[0]-2,p[1]-3,'#e0d4ac',5,6);K.ln([p[0],p[1]],[p[0],p[1]-3],'#394642');K.ln([p[0],p[1]],[p[0]+2,p[1]+1],'#394642');}
     if(has('crane')){const q=P(u+du*.52,v+dv+.03,h-2),r=P(u+du*.52,v+dv+.16,h-2);K.ln(q,r,'#454e49',2);K.ln(r,[r[0],r[1]+15],'#5c6159');K.ln([r[0],r[1]+15],[r[0]+2,r[1]+16],'#383f3b');}
     if(has('balcony')){const z=Math.min(22,h*.6);K.face(quad(u+.04,v+dv-.01,du-.08,.075,z),'#78837a');for(let t=.08;t<.94;t+=.12)K.ln(P(u+du*t,v+dv+.065,z),P(u+du*t,v+dv+.065,z+5),'#455852');K.ln(P(u+.04,v+dv+.065,z+5),P(u+du-.04,v+dv+.065,z+5),'#455852');}
-    if(has('bay')&&du>.2&&!annex){const count=du>.63?2:1,bw=Math.min(.18,du*.42);for(let i=0;i<count;i++){const bu=u+du*(i+.5)/count-bw*.5,bv=v+dv-.014;shell([bu,bv,bw,.085,Math.max(12,h-5),fl,material,'hip',''],true);}}
+    if(has('bay')&&du>.2&&!annex){const count=Number((detail.match(/bay:(\d)/)||[])[1])||(du>.63?2:1),bw=Math.min(.18,du*.42);for(let i=0;i<count;i++){const bu=u+du*(i+.5)/count-bw*.5,bv=v+dv-.014;shell([bu,bv,bw,.085,Math.max(10,Math.min(h-5,fl>2?19:12)),Math.max(1,Math.min(2,fl)),material,'hip',''],true);}}
     if(has('porch')&&!annex){const x=u+du*.47,y=v+dv+.015,w=.11;for(const xx of[x-w*.5,x+w*.5])K.ln(P(xx,y+.07),P(xx,y+.07,10),trim,2);K.face([P(x-w*.8,y,10),P(x+w*.8,y,10),P(x+w*.8,y+.10,10),P(x-w*.8,y+.10,10)],roof);}
     if(!annex&&T.k!==3&&rt!=='glass'&&rt!=='spire'&&rt!=='saw'&&material!=='deco'){domesticChimney(u+du*.13,v+dv*.17,h+pitch*.12);if(du>.65&&h>40)domesticChimney(u+du*.77,v+dv*.22,h+pitch*.24);}
     if(we===0&&T.k===1){panel(1,.14,.27,2,4,T.shade(side,-12));panel(0,.08,.17,Math.min(14,h-3),Math.min(16,h-1),T.shade(front,-9));}
@@ -298,7 +301,7 @@ function rciPainter634(T){
 }
 function drawRCI634(T){
   const lv=Math.max(1,Math.min(3,T.lv|0)),v=((T.v|0)%12+12)%12,A=RCI_CATALOG634[T.k+'_'+lv+'_'+v];if(!A)return;
-  const R=rciPainter634(T),{K,shell,plate,stack,bottle,crate,rail,wall,flower}=R,{P,quad,box}=T,W=T.winter,grass=T.sea===2?'#9b9668':T.sea===1?'#789067':T.sea===3?'#8a9276':'#8c9b6e';
+  const R=rciPainter634(T),{K,shell,plate,bottle,crate,rail,wall,flower}=R,stack=(u,v,h,w,smoke)=>R.stack(u,v,Math.round(h*.72),w,smoke),{P,quad,box}=T,W=T.winter,grass=T.sea===2?'#9b9668':T.sea===1?'#789067':T.sea===3?'#8a9276':'#8c9b6e';
   const residential=T.k===1,industrial=T.k===3,garden=A.yard==='garden',paving=industrial?'#8e8d7d':A.yard==='court'?'#bbb298':'#b6b4a2';
   K.ground(.035,.035,.93,.93,residential&&A.yard!=='court'?grass:paving);
   if(!W){
@@ -310,8 +313,8 @@ function drawRCI634(T){
   const smokestacks={forge:[.78,.09,36,.075],bricks:[.80,.08,42,.085],mill:[.84,.055,lv===3?92:64,.07],foundry:[.84,.06,65,.085],engineering:[.85,.06,lv===3?91:67,.065],doublekiln:[.84,.065,58,.085],brewery:[.84,.06,66,.07],paper:[.085,.08,57,.065],tallmill:[.85,.055,105,.075],heavy:[.86,.055,103,.08],bigbrewery:[.84,.06,100,.08],powerworks:[.855,.055,112,.085],gantry:[.84,.065,90,.08],towerworks:[.86,.055,117,.07]};
   if(smokestacks[A.yard])stack(...smokestacks[A.yard]);
   if(A.yard==='paper'){
-    for(const [u,vv]of[[.79,.17],[.88,.17],[.79,.28],[.88,.28]])K.ln(P(u,vv),P(u,vv,40),'#5a6962',2);
-    K.tank(.835,.225,.10,48,'#8b9994');
+    for(const [u,vv]of[[.79,.17],[.88,.17],[.79,.28],[.88,.28]])K.ln(P(u,vv),P(u,vv,28),'#5a6962',2);
+    K.tank(.835,.225,.10,35,'#8b9994');
   }
   /* 等深時依原清冊順序；退台上樓先畫、低處前樓自然遮住其底部。 */
   const masses=A.m.map((m,i)=>({m,i,d:m[0]+m[1]+m[2]+m[3]})).sort((a,b)=>a.d-b.d||a.i-b.i);for(const a of masses)shell(a.m);
@@ -324,7 +327,7 @@ function drawRCI634(T){
     if(A.yard==='rail'){rail(.09,.91,.29);rail(.62,.91,.29);}
     if(A.yard==='pub'){
       for(const [u,vv]of[[.62,.83],[.79,.86]]){box(u-.03,vv-.03,.09,.09,5,{left:'#806548',right:'#564f3a',top:W?'#e9eee7':'#b09667'});for(const off of[-.045,.09])box(u+off,vv-.025,.035,.085,3,{left:'#786a4c',right:'#5a533c',top:W?'#e0e6dd':'#998862'});}
-      K.sign(.82,.78,22,'ALE','#34534b');
+      {const q=P(.82,.78,16);K.ln(P(.82,.78),q,'#424e47');K.px(q[0]-3,q[1]-5,'#a79573',7,8);K.px(q[0]-2,q[1]-4,'#315448',5,6);K.px(q[0]-1,q[1]-2,'#c4a566',3,2);}
     }
     if(A.yard==='market'){
       for(const [u,vv,c]of[[.16,.83,'#755444'],[.69,.83,'#45625b']]){
@@ -355,10 +358,10 @@ function drawRCI634(T){
       case 'foundry':coal(.61,.78,.19);crate(.18,.86,.13,.08,4,'#6b776d');pipe(.81,.76,9,.83,.53,20);break;
       case 'depot':for(const y of[.84,.93]){K.ln(P(.07,y),P(.93,y),'#696e60');for(let x=.10;x<.94;x+=.08)K.ln(P(x,y-.023),P(x,y+.023),'#94856a');}box(.53,.835,.24,.08,5,{left:'#7f7353',right:'#535e50',top:W?'#dfe5dc':'#9f9171'});break;
       case 'heavy':case 'gantry':{
-        const h=A.yard==='heavy'?37:43;for(const x of[.14,.85]){K.ln(P(x,.89),P(x,.89,h),'#697668',3);K.ln(P(x-.03,.89),P(x-.03,.89,h),'#a9ae92');}
+        const h=A.yard==='heavy'?29:34;for(const x of[.14,.85]){K.ln(P(x,.89),P(x,.89,h),'#697668',3);K.ln(P(x-.03,.89),P(x-.03,.89,h),'#a9ae92');}
         K.ln(P(.14,.89,h),P(.85,.89,h),'#737f6c',4);K.ln(P(.14,.89,h+2),P(.85,.89,h+2),'#adb296');for(let x=.16;x<.82;x+=.10)K.ln(P(x,.89,h-1),P(x+.08,.89,h+2),'#4a6054');K.ln(P(.54,.89,h),P(.54,.89,h-17),'#5c6657');crate(.50,.84,.16,.11,7,'#757b6a');break;}
       case 'powerworks':K.tank(.86,.83,.065,23,'#a5b0a1');pipe(.82,.69,26,.86,.83,18);crate(.24,.85,.13,.08,6,'#6c776a');break;
-      case 'flour':for(const [x,y,h]of[[.85,.36,57],[.85,.58,62],[.85,.80,66]])K.tank(x,y,.077,h,'#c4c2a7');pipe(.83,.37,50,.83,.77,50);break;
+      case 'flour':for(const [x,y,h]of[[.85,.36,39],[.85,.58,43],[.85,.80,46]])K.tank(x,y,.077,h,'#c4c2a7');pipe(.83,.37,35,.83,.77,35);break;
       case 'towerworks':crate(.72,.83,.14,.10,7,'#7e8674');pipe(.78,.66,17,.85,.84,17);break;
       default:crate(.18,.86,.14,.08,5);crate(.68,.85,.14,.09,7,'#9a8d6c');
     }
