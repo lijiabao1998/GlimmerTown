@@ -55,7 +55,7 @@ function firstModeFailure({boot,frame,expectedOn,expectedExplicit,guard,pixelsEq
 function releaseBridge634(countFilterDraws){
   // 所有設施／街景建立沿用 immutable scene bridge；這個 wrapper 從不寫 __t634。
   const freeze=()=>{window.__freeze634=true;running=false;speed=0;for(const a of[cars,citizens,smokes,trains,cargoShips,tramCars,ambulances,recycleTrucks,ladderTrucks,policeCars,schoolBuses,buses,rbuses,lifeShips,rain,fxParts,confetti])a.length=0;for(let i=0;i<stars.length;i++)stars[i]=[(i*37%100)/100,(i*13%80)/100,(i*19%628)/100];};
-  const flags=()=>({on:typeof t634On==='function'?t634On():false,slot:curSlot(),freeze:window.__freeze634===true,explicit:Object.prototype.hasOwnProperty.call(window,'__t634')?String(window.__t634):'absent',escape:window.__noT634===true,escapeExplicit:Object.prototype.hasOwnProperty.call(window,'__noT634')?String(window.__noT634):'absent',query:location.search});
+  const flags=()=>({on:typeof t634On==='function'?t634On():false,slot:curSlot(),freeze:window.__freeze634===true,explicit:Object.prototype.hasOwnProperty.call(window,'__t634')?String(window.__t634):'absent',escape:window.__noT634===true,escapeExplicit:Object.prototype.hasOwnProperty.call(window,'__noT634')?String(window.__noT634):'absent',query:location.search,fire635Isolated:window.__noT635===true,fire635On:typeof t635On==='function'?t635On():false});
   const raw=c=>{if(!(c instanceof HTMLCanvasElement))throw Error('Expected native HTMLCanvasElement');const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let s='';for(let i=0;i<a.length;i+=32768)s+=String.fromCharCode(...a.subarray(i,i+32768));return{width:c.width,height:c.height,rgba:btoa(s)};};
   const signature=()=>JSON.stringify({N,day,running,speed,tiles});
   const baseState=()=>{freeze();quality=1;window.__noAnim=false;window.__noParkLife=false;window.__noChimney=false;window.__noT596=true;selTile=null;hover.x=hover.y=-1;tool='pan';weather=0;rainDays=0;};
@@ -222,6 +222,9 @@ async function main(){
     await context.addInitScript(({explicit,simulation})=>{
       // 第一個 storage 操作就是選 slot3；頁面載入前阻擋自動儲存及所有非 fixture 寫檔。
       localStorage.setItem('glimmerville.v1.slot','3');localStorage.setItem('glimmerville.v1.snd','0');window.__freeze634=true;
+       // T635: preserve every immutable 315-design/world assertion in this historical lane.
+       // The separate required approved-fire-release job verifies ordinary-URL fire activation and pixels.
+       window.__noT635=true;
       if(explicit==='true')window.__t634=true;else if(explicit==='false')window.__t634=false;
       window.__release634Simulation=simulation;window.__release634Safety={allowedSaveCalls:0,allowedSaveWrites:0,allowedBackupWrites:0,fixtureWrites:0,blockedSaveWrites:0,wrongSlotWrites:0,blockedSaveCalls:0,blockedAutosaveRegistrations:0};
       const interval=window.setInterval;window.setInterval=function(fn,delay,...args){if(delay===25000&&typeof fn==='function'&&/if\(tiles\)save\(\)/.test(String(fn))){window.__release634Safety.blockedAutosaveRegistrations++;return 0;}return interval.call(this,fn,delay,...args);};
@@ -232,6 +235,7 @@ async function main(){
     const url=origin+'/'+spec.source+'.html'+(spec.query||'');await page.goto(url,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.GV&&window.__release634&&window.__qa634&&window.__boot426&&__boot426().ready,null,{timeout:180000});
     const boot=await page.evaluate(()=>__release634.flags());report.contexts.push({name:spec.name,url,source:spec.source,boot});persist();
+     check(boot.fire635Isolated===true&&boot.fire635On===false,spec.name+' explicitly isolates separately verified T635 fire art');
     return{context,page,boot,spec};
   }
   async function close(run,fixtureWrites,saveCalls=0,backupWrites=0){
