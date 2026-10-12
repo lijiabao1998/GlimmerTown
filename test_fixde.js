@@ -759,6 +759,7 @@ localStorage.setItem('glimmerville.v1.badge', '1');
 window.__noT602=true; // T602：既有整套契約驗原路徑；本卡尾端另開新圖逐項驗證
 window.__noT603=true; // T603：舊契約保持原圖，新路另以完整像素與Chrome驗證
 window.__noT634=true; // T634：4位元組透明Canvas台架只驗保留舊路；普通URL的新路六哨兵／存讀／315像素由release634真Chrome獨立必驗，不能拿此lane代替。
+window.__noT635=true; // T635：歷史DOM-mock契約保留舊圖；普通URL新消防由mandatory release635原生lane驗收，不能以此lane代替。
 eval(js);
 
 
@@ -14027,6 +14028,8 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   // T602：歷史整套保持原配方；新路另以真像素台架完整開啟，不以mock或原文釘冒充Chrome驗收。
   {const q602=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t602-shots/test602.js')],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});
     assert(q602.status===0&&q602.stdout.includes('T602_RESULT ')&&!q602.stderr.includes('FAIL:'),'T602 G1 新圖行為台架完整通過：'+(q602.status===0?'3類三款、四作物階段、四向碼頭、遠景/季節/回退/亂數':q602.stderr.slice(-1400)));}
+  {const q635=require('child_process').spawnSync(process.execPath,['--test','--test-reporter=tap',require('path').join(__dirname,'docs/tasks/t602-shots/bootstrap-portability602.test.cjs')],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:60000});
+    assert(q635.status===0&&q635.stdout.includes('# fail 0')&&!q635.stderr.includes('Error:'),'T635 G1 T602/T603 portable bootstrap and retained original assertion bodies：'+(q635.status===0?'跨平台參數绑定與定向紅源通過':q635.stderr.slice(-1200)+q635.stdout.slice(-1200)));}
   {const q603=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t603-shots/test603.js')],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});
     assert(q603.status===0&&q603.stdout.includes('T603_RESULT ')&&!q603.stderr.includes('FAIL:'),'T603 G1 四類三款真像素／冬季／遠景／回退／存檔映射／零亂數：'+(q603.status===0?'通過':q603.stderr.slice(-1200)));}
   {const q603=require('child_process').spawnSync(process.execPath,[require('path').join(__dirname,'docs/tasks/t603-shots/clearance603.js'),require('path').join(__dirname,'index.html'),'-','1'],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:120000});

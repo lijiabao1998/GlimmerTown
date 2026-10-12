@@ -1,7 +1,7 @@
 name: Town main Pages validation and publication
 on:
   push:
-    branches: [gpt/town-main-pages, gpt/town-native-release-618, gpt/town-british-whole-batch-634, main]
+    branches: [gpt/town-main-pages, gpt/town-native-release-618, gpt/town-british-whole-batch-634, gpt/town-fire-three-candidates-635, main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -223,9 +223,35 @@ jobs:
           path: evidence/
           if-no-files-found: error
           retention-days: 14
+  approved-fire-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare genuine Chrome driver and fonts
+        run: |
+          npm install --prefix "$RUNNER_TEMP/town635-browser" playwright
+          echo "NODE_PATH=$RUNNER_TEMP/town635-browser/node_modules" >> "$GITHUB_ENV"
+          sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Required default fire art, inherited atlas and real behavior acceptance
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node docs/tasks/t635-shots/release635.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-main-approved-fire-release-${{ github.sha }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 14
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [validate, browser, package, pages-browser, approved-art-release] # T630：native-acceptance 只紀錄
+    needs: [validate, browser, package, pages-browser, approved-art-release, approved-fire-release] # T630：native-acceptance 只紀錄
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

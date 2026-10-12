@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "7ad6931eaa1bed87af053f8097b05a0e669656a6",
+  "bodySHA256": {
+    "docs/tasks/t602-shots/test602.js": "22919318fbf91cca1f901bd0adbfca0459cc04fca9dc7de3830324fce019877f",
+    "docs/tasks/t603-shots/test603.js": "46c8df51e1d165adda0ac66e5a7f505fc13967cc33a3d22cb6af7fa9f1934d79"
+  }
+}
