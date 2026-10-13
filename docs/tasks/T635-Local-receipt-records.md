@@ -13,7 +13,7 @@
 
 ## 允許觸碰
 
-僅 README.md、docs/ARCH.md 的現況文字、docs/COLLAB.md 的歷史規約適用提醒、docs/CHANGELOG.md、T634／T635 卡面及發布說明、本補充卡。補記原已發布提交、實際本機驗證與玩家版本邊界；不改 ARCH 定位表或任何驗收門檻。
+僅 README.md、docs/ARCH.md 的現況文字、docs/COLLAB.md 的歷史規約適用提醒、docs/CHANGELOG.md、T634／T635 卡面及發布說明（含 docs/tasks/main-pages/README.md 的發布歷史／依賴敘述）、本補充卡。補記原已發布提交、實際本機驗證與玩家版本邊界；不改 ARCH 定位表或任何驗收門檻。
 
 文件在獨立遠端分支 `gpt/town-635-local-receipt-records` 交付，不直推 main。先推本補充卡，再更新記錄。CHANGELOG 更正只限本機 master 尚未包含的 T634／T635 新條目；原施工時驗收欄完整保存在本補充，舊失敗證據、卡面與 master 已有條目保留。不得只刪未完成用字假裝驗收通過。
 
