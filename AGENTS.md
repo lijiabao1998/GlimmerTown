@@ -13,6 +13,7 @@
 ## 最常被忘的幾條
 
 - 分支 → CI 綠 → PR → 合併；**能直推 `main` 也不直推**，main 隨時要綠，不准帶紅合併、不准靠重跑賭過。
+- **開分支就開 draft PR**，CI 自動跑（T640）；不准再把分支名寫進工作流，也不要拿手動 dispatch 代替 PR 的自動 CI（例外：動繪製迴圈或宣稱效能的卡，要手動 dispatch 一次跑只紀錄的 native-acceptance，結果寫進卡面）；轉 ready 會重跑一輪；合併前把 Codex 的 P0／P1 在 PR 上一行回覆（修了附 commit，不修寫理由）。
 - **GPT 可以自己合併自己的 PR**（業主 2026-10-14「自己合就行」）：分支 CI 綠、PR 接在最新 `main` 上、`docs/迭代不改壞標準.md` 第 8 節自檢逐條打勾才合；美術要業主看圖的，照舊等業主點頭再合。
 - **main 紅了**：讓它變紅的那次合併，由作者先開純 `git revert -m 1 <合併提交>` 的 PR，不在 main 上疊修補賭綠（T639）。
 - **提交身分**：Claude 提交一律 `git -c user.name=Claude -c user.email=noreply@anthropic.com commit`；GPT 在自己的工作樹設 repo-local `user.name="GPT (Codex)"`；不動全域設定（T639）。
