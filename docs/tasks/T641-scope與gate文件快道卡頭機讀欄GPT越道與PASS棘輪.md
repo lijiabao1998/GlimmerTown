@@ -59,6 +59,6 @@
 - **文件快道實測（2026-10-15，合併後補記，PR #26 → e4d9402）**：
   - **紅**：本來要開一個丟棄用的 PR 推「改卡頭凍結欄」的違規提交，結果因為 `push.default=upstream` 誤推進了 main（0a2b1d8）。push run 38621256674 的結果：scope 紅（`card-frozen`：families 從「無」改成 fire），validate 綠，重的 7 道全 skipped，gate 紅，deploy／verify-published skipped。經過與補洞見 T650。
   - **純 revert**：撤銷 PR #28（run 38633257417）走 docs 道，判為純 revert（`ratchet_base`＝e4d9402），重的 7 道 skipped，gate 綠。合併後推 main（run 38636351981）gate 綠、**不部署**，「純文件推 main 不重新部署」成立。
-  - **綠**：本筆補記所在的純文件 PR 自己，結果見下一條。
+  - **綠**：本筆補記所在的純文件 PR #30，第一版提交 c99d41c（run 38637658773）：docs 道，scope 綠、無違規（只動了 T641 這一張有卡頭的卡），validate 綠，重的 7 道 skipped，gate 綠。第一版在 CI 跑之前就先寫了「綠」，Codex 指出這等於替還沒跑的結果背書（#30 P2）；這一版換成實際的 run 號與結果。
 
 **聲明**：Claude 出卡＝施工同一方，未經第三方覆核，如實聲明。
