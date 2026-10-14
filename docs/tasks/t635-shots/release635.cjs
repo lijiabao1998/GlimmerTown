@@ -31,8 +31,12 @@ async function main(){
  const approved=git('show',APPROVED+':index.html').toString('utf8'),base=git('show',BASE+':index.html').toString('utf8'),source=fs.readFileSync(path.join(ROOT,'index.html'),'utf8'),head=git('rev-parse','HEAD').toString().trim();
  need(sha(approved)===APPROVED_HASH,'immutable user-approved art source hash');
  const version=s=>{const m=s.match(/const GAME_VER='[\d.]+'/g);need(m&&m.length===1,'one version anchor');return m[0];};
- need(source.replace(line(source),line(approved)).replace(version(source),version(approved))===approved,'all approved art and unrelated program bytes unchanged except default and version');
- need(source.replace(/\/\* ===== T635 FIRE CANDIDATE BEGIN =====[\s\S]*?\/\* ===== T635 FIRE CANDIDATE END ===== \*\/\n\n/,'').replace(/    if\(t635On\(\)\)\{const p635=spr635\(bd,win&&snowLvl>0\);if\(p635\)s=p635;\}[^\n]*\n/,'').replace(version(source),version(base))===base,'all inherited main code preserved');
+ // T638：原本兩條「整份 index.html 逐位元組等於批准提交／7ad6931」的斷言，會讓之後任何改到本體的卡都發不出去（業主 2026-10-14 補變體時發現）。
+ // 改成只驗 T635 自己的部分：T635 區塊除啟用行外逐字等於批准提交、T635 繪製呼叫原樣只有一行；其他程式碼交給 verify.py 全套、六哨兵與各道瀏覽器驗收。卡面 T638 寫明放寬了什麼。
+ const block635=s=>{const m=s.match(/\/\* ===== T635 FIRE CANDIDATE BEGIN =====[\s\S]*?\/\* ===== T635 FIRE CANDIDATE END ===== \*\//g);need(m&&m.length===1,'exactly one T635 block');return m[0];};
+ const call635=s=>{const a=s.split('\n').filter(x=>x.includes('if(t635On()){const p635=spr635(bd,win&&snowLvl>0);if(p635)s=p635;}'));need(a.length===1,'exactly one T635 draw call');return a[0];};
+ need(block635(source).replace(line(source),line(approved))===block635(approved),'approved T635 art block unchanged except default activation');
+ need(call635(source)===call635(approved),'approved T635 draw call unchanged');
  const flag=line(source),test=q=>vm.runInNewContext(flag+';t635On()',{window:{},location:{search:q}});
  need(test('')&&test('?T635=1')&&!test('?noT635=1'),'approved fire default and URL escape semantics');
  const reds={off:source.replace(line(source),line(source).replace('window.__t635!==false','window.__t635===true')),url:source.replace('!t635On.off&&','true&&'),runtime:source.replace('!window.__noT635&&','true&&'),occlusion:source.replace("const occlude635=paint=>{ng.save();ng.globalCompositeOperation='destination-out';paint(ng);ng.restore();};",'const occlude635=paint=>{};')};
@@ -42,14 +46,14 @@ async function main(){
  need(git('show','HEAD:index.html').toString('utf8')===source,'runtime equals committed exact HEAD');
  for(const p of['docs/tasks/t635-shots/release635.cjs','docs/tasks/t635-shots/native635.cjs'])need(fs.readFileSync(path.join(ROOT,p),'utf8')===git('show','HEAD:'+p).toString('utf8'),'release acceptance tool equals exact HEAD '+p);
  git('merge-base','--is-ancestor',APPROVED,head);git('merge-base','--is-ancestor',BASE,head);
- fs.mkdirSync(OUT,{recursive:true});const report={status:'running',head,approved:APPROVED,baseline:BASE,sourceSHA256:sha(source),approvedSourceSHA256:sha(approved),errors:[],frames:[],sheets:[],negativeControls:[],behavior:[],sourcePreserved:true};
+ fs.mkdirSync(OUT,{recursive:true});const report={status:'running',head,approved:APPROVED,baseline:BASE,isolated:{T638:'window.__noT638=true'},sourceScope:'T635 block and draw call only (T638)',sourceSHA256:sha(source),approvedSourceSHA256:sha(approved),errors:[],frames:[],sheets:[],negativeControls:[],behavior:[],sourcePreserved:true};
  const save=(name,png)=>{const b=Buffer.from(png.split(',')[1],'base64');fs.writeFileSync(path.join(OUT,name+'.png'),b);return sha(b);};
  const server=http.createServer((req,res)=>{const k=new URL(req.url,'http://127.0.0.1').pathname.slice(1);res.setHeader('Content-Type','text/html;charset=utf-8');res.end(sources[k]?inject(sources[k]):'<!doctype html>');});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const origin='http://127.0.0.1:'+server.address().port,{chromium}=require('playwright');let browser;
  try{
   browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--disable-background-networking','--mute-audio']});report.browser=await browser.version();
   const page=await browser.newPage({viewport:{width:1560,height:1000},serviceWorkers:'block'});page.on('pageerror',e=>report.errors.push(e.stack||e.message));page.on('console',m=>{if(m.type()==='error')report.errors.push(m.text());});
-  await page.addInitScript(()=>{localStorage.setItem('glimmerville.v1.slot','3');localStorage.setItem('glimmerville.v1.snd','0');});
+  await page.addInitScript(()=>{localStorage.setItem('glimmerville.v1.slot','3');localStorage.setItem('glimmerville.v1.snd','0');window.__noT638=true;}); // T638：本檢查驗的是 T635 批准款；後來疊上的消防局變體關掉（比照 release634 用 __noT635 隔離 T635）
   const boot=async(k,q='')=>{await page.goto(origin+'/'+k+q);await page.waitForFunction(()=>window.GV&&window.__boot426&&__boot426().ready,null,{timeout:90000});await page.locator('#boot426').waitFor({state:'hidden',timeout:15000});console.log('T635 boot '+k+q);return page.evaluate(()=>__fireQA635.flags());};
   const captures=new Map(),pins={};
   for(const [label,q]of[['base',''],['approved','?T635=1'],['release','']]){
