@@ -79,13 +79,18 @@ def registered(findings_text, n, c):
     return any(re.search(pr, row) and re.search(loc, row) for row in (findings_text or '').splitlines())
 
 
+def is_codex_summary(c):
+    """Codex 的審查摘要：作者必須是 Codex 本身。公開倉庫任何人都能貼一則帶同樣標記的留言冒充（Codex #29 P1）。"""
+    return c.get('user', {}).get('login') == CODEX and SUMMARY_TAG in (c.get('body') or '')
+
+
 def codex_reviewed(api, repo, n, sha):
     """Codex 有沒有審完當前 head：(True, 訊號) 或 (False, 原因)。
     三種訊號任一即可：摘要的 headSha＝head 且 completed；Codex 審查物件的 commit_id＝head；
     Codex 留言裡的「Reviewed commit: `前綴`」對得上 head。`@codex review` 重審時，Codex 只回後兩種，不更新摘要
     （#29、#30 實測：照只認摘要的寫法，兩個都被誤擋 45 分鐘）。"""
     issue = api.get('repos/%s/issues/%d/comments' % (repo, n), paginate=True) or []
-    summaries = [c for c in issue if SUMMARY_TAG in (c.get('body') or '')]
+    summaries = [c for c in issue if is_codex_summary(c)]
     head, status = summary_state(summaries[-1].get('body')) if summaries else (None, None)
     if head == sha and status == 'completed':
         return True, 'summary'
@@ -176,7 +181,7 @@ def audit(api, repo, since, findings_text=''):
         row['gate'] = cr[0].get('conclusion') if cr else '無'
         if row['gate'] != 'success':  # Codex #29 P2：沒綠就合的要報出來，這正是繞過保護的痕跡
             flags.append({'kind': 'gate-not-green', 'detail': '#%d 合併時 head 的 gate：%s' % (n, row['gate'])})
-        summary = [c for c in api.get('repos/%s/issues/%d/comments' % (repo, n), paginate=True) or [] if SUMMARY_TAG in (c.get('body') or '')]
+        summary = [c for c in api.get('repos/%s/issues/%d/comments' % (repo, n), paginate=True) or [] if is_codex_summary(c)]
         row['codex_summary_at'] = summary[0]['created_at'] if summary else None
         if summary and _t(pr['merged_at']) < _t(summary[0]['created_at']):
             flags.append({'kind': 'merged-before-codex', 'detail': '#%d 在 Codex 摘要之前就合了（合 %s、摘要 %s）' % (n, pr['merged_at'], summary[0]['created_at'])})

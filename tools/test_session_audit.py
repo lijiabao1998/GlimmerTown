@@ -192,6 +192,15 @@ class AuditTests(unittest.TestCase):
         f['repos/%s/issues/52/comments' % R][-1]['body'] = "**Reviewed commit:** `%s`" % SHA[51][:10]  # 審的是別的提交
         self.assertEqual(len(sa.premerge(Fake(f), R, 52)), 1)
 
+    def test_spoofed_summary_by_other_user_is_ignored(self):
+        # 公開倉庫任何人都能貼帶摘要標記、headSha 正確的留言冒充「Codex 已審」（Codex #29 P1）
+        f = base_fixture()
+        fake = summary(SHA[52]); fake['user'] = {'login': 'someone'}
+        f['repos/%s/issues/52/comments' % R] = [summary(SHA[51]), fake]
+        self.assertEqual(len(sa.premerge(Fake(f), R, 52)), 1)
+        f['repos/%s/issues/50/comments' % R] = [dict(summary(SHA[50], at='2026-10-15T02:00:00Z'), user={'login': 'someone'})]
+        self.assertNotIn('merged-before-codex', kinds(sa.audit(Fake(f), R, SINCE)))
+
     def test_audit_flags_merged_head_codex_never_reviewed(self):
         # #26、#27 的情形：摘要早於合併，但合併時的 head 是之後推的修補提交，Codex 沒審過（Codex #29 P2）
         f = base_fixture()

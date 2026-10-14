@@ -21,4 +21,6 @@
 | #29 | P2 | tools/session_audit.py:137 | 照改：rule-suites 分頁 |
 | #29 | P2 | tools/session_audit.py:164 | 照改：line 為空時訊息退回 original_line |
 | #29 | P1 | tools/session_audit.py:236 | 照改：premerge 通過時 stdout 只印驗過的 SHA，合併加 `--match-head-commit`，堵住檢查後到合併前的競態 |
+| #29 | P1 | tools/session_audit.py:88 | 照改：Codex 摘要要驗作者是 Codex，防冒充 |
+| #29 | P1 | tools/session_audit.py:118 | 不成立（刻意設計）：T639 與業主同意的 require-gate 不要求 up to date；合併後 main 跑 full 道、gate 綠才部署，壞了就 revert |
 | #29 | P2 | tools/session_audit.py:177 | → T644：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
