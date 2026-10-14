@@ -9,7 +9,7 @@ const git=(...a)=>execFileSync('git',a,{cwd:ROOT,maxBuffer:20e6});
 const need=(v,m)=>{if(!v)throw Error(m);};
 const line=s=>{const a=s.split('\n').filter(x=>x.startsWith('function t635On(){'));need(a.length===1,'one T635 activation function');return a[0];};
 function probeBridge635(){
- const flags=()=>({on:typeof t635On==='function'?t635On():false,slot:curSlot(),query:location.search,activationExplicit:Object.prototype.hasOwnProperty.call(window,'__t635'),escapeExplicit:Object.prototype.hasOwnProperty.call(window,'__noT635')});
+ const flags=()=>({on:typeof t635On==='function'?t635On():false,slot:curSlot(),query:location.search,activationExplicit:Object.prototype.hasOwnProperty.call(window,'__t635'),escapeExplicit:Object.prototype.hasOwnProperty.call(window,'__noT635'),isolatedT638:window.__noT638===true});
  window.__fireQA635.flags=flags;
  window.__fireQA635.drawChecked=(...args)=>{const old=ctx.drawImage,hits={6:0,30:0,61:0},before=JSON.stringify(tiles);ctx.drawImage=function(img,...a){if(typeof spr635==='function'&&spr635.cache)for(const s of spr635.cache.values())if(img===s.img)hits[s.lotMeta574.kind]++;return old.call(this,img,...a);};try{return{png:window.__fireQA635.draw(...args),hits,flags:flags(),modelUnchanged:before===JSON.stringify(tiles)};}finally{ctx.drawImage=old;}};
  window.__fireQA635.saveFixture=()=>{GV.save();return localStorage.getItem(slotKey(3));};
@@ -57,7 +57,7 @@ async function main(){
   const boot=async(k,q='')=>{await page.goto(origin+'/'+k+q);await page.waitForFunction(()=>window.GV&&window.__boot426&&__boot426().ready,null,{timeout:90000});await page.locator('#boot426').waitFor({state:'hidden',timeout:15000});console.log('T635 boot '+k+q);return page.evaluate(()=>__fireQA635.flags());};
   const captures=new Map(),pins={};
   for(const [label,q]of[['base',''],['approved','?T635=1'],['release','']]){
-   const flags=await boot(label,q);if(label==='release')need(flags.on&&flags.slot===3&&flags.query===''&&!flags.activationExplicit&&!flags.escapeExplicit,'normal URL genuinely defaults on without hidden override');
+   const flags=await boot(label,q);if(label==='release')need(flags.on&&flags.slot===3&&flags.query===''&&!flags.activationExplicit&&!flags.escapeExplicit&&flags.isolatedT638===true,'normal URL genuinely defaults T635 on without hidden T635 override (T638 isolated by window.__noT638 for this whole script)');
    pins[label]=await page.evaluate(()=>__fireQA635.pins());
    for(const legacy of[false,true]){await page.evaluate(v=>__fireQA635.scene(v),legacy);for(const[name,...args]of CASES){const r=await page.evaluate(a=>__fireQA635.drawChecked(...a),args),id=(legacy?'legacy-':'')+name,digest=save(label+'-'+id,r.png);need(r.modelUnchanged,'drawing does not alter tile model');if(label!=='base')need(Object.values(r.hits).every(n=>n>0),'all three real candidate canvases actually drawn '+id);if(label==='release')need(digest===captures.get('approved/'+id),'normal URL exact immutable approved full frame '+id);captures.set(label+'/'+id,digest);report.frames.push({label,id,sha256:digest,hits:r.hits,flags:r.flags});}}
   }

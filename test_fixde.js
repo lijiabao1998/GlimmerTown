@@ -499,7 +499,7 @@ window.__t601T={rep:()=>window.__t601,reg:()=>Object.keys(ART601).filter(k=>k!==
   clearLots:()=>{lotCache574.clear();lotCachePixels574=0;},scr:(x,y)=>[_sx413(x,y),_sy413(x,y),cam.z],
   snow:on=>{rainDays=on?SNOW_ACC_DAYS+3:0;return rainDays;}}; // T601 測試橋：S21 回報、登記表、挑款、烘焙、園區取圖、k5／單格表、舊公園家族、倒影、S21 重跑、掛點、drawImage 錄影、ctx 呼叫錄影、樣張工廠、登記物件、清園區快取、格→螢幕、雪量
 window.__t629T={start:(f,g)=>{tweenHud={money:f.money,pop:f.pop,jobs:f.jobs};tweenHudTarget={money:g.money,pop:g.pop,jobs:g.jobs};tweenHudStart();},val:()=>({money:tweenHud.money,pop:tweenHud.pop,jobs:tweenHud.jobs})}; // T629 測試橋：設定 HUD 補間起點／目標並啟動、讀目前顯示值
-window.__t638T={bake:(k,n,w,vi)=>bakeFire638(k,n,w,vi),spr:(b,w,x,y)=>spr638(b,w,x,y),vi:(b,x,y)=>vi638(b,x,y),on:()=>t638On(),reset:()=>{if(spr638.cache)spr638.cache.clear();spr638.pixels=0;}}; // T638 測試橋：烘新款、走 spr638 選圖、挑款、逃生閥；只在 Node harness 存在，正式 GV API 不增面
+window.__t638T={bake:(k,n,w,vi)=>bakeFire638(k,n,w,vi),bake635:(k,n,w)=>bakeFire635(k,n,w),spr:(b,w,x,y)=>spr638(b,w,x,y),vi:(b,x,y)=>vi638(b,x,y),on:()=>t638On(),reset:()=>{if(spr638.cache)spr638.cache.clear();spr638.pixels=0;}}; // T638 測試橋：烘新款、走 spr638 選圖、挑款、逃生閥；只在 Node harness 存在，正式 GV API 不增面
 window.__t571Hash=function(x,y,s){return streetHash(x,y,s);}; // T571 測試橋：曝光決定性雜湊（守衛動態挑過閥造境格，零機率假紅） // T412 測試橋：直寫建築欄位——GV.tile 是深拷貝（19135），對其寫入不落地
 window.__t572Street=function(x,y,t){return{lamp:drawStreetLampPick572(x,y,t),occupied:drawStreetOccupied572(x,y,t),allow:drawStreetDetailAllowed572(x,y,t)};}; // T572 測試橋：街燈／小件互斥純函式；正式 GV 不增面
 window.__t573Helpers={plate,isoBox,outlineSprite,shade}; // T573 僅測試注入：用正式 helper 跑隔離真像素台架
@@ -14018,25 +14018,26 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   if(occ604===undefined)delete window.__noOccWin653;else window.__noOccWin653=occ604;
   // ===== T638 守衛：消防局 v1／v2（業主 2026-10-14「補變體」；真像素台架 px601，簽名＝挑款頁定稿） =====
   // 首紅對照：改新設計任一筆→G1；挑款恆為同一款→G2；v0 也走 T638 或 vi 沒傳進去→G3；拿掉逃生閥→G4；T635 關了 T638 還畫→G5；
-  // 畫出地塊或夜燈漏到本體外→G6；改到 T635 區塊任一字、繪製處那一行不見或重複→G7。
+  // 畫出地塊或夜燈漏到本體外→先紅在 G1（像素簽名），連簽名一起重釘後 G6 才出面當語意守衛；錨點跑掉→G1；改到 T635 區塊任一字、繪製處那一行不見或重複→G7。
   {
     const T8=window.__t638T,SZ638={6:[1,2],30:[1,3],61:[3,4]},sig638={};
     const pxSig638=s=>pxHash601(s.img)+'.'+pxHash601(s.night)+'.'+s.w+'x'+s.h;
-    const BK638={};
+    const BK638={},anchor638=[];
     for(const k of [6,30,61])for(const n of SZ638[k])for(const vi of [1,2])for(const w of [false,true]){
-      const key=k+'_'+n+'_'+vi+(w?'w':'d'),s=withPx601(()=>T8.bake(k,n,w,vi));BK638[key]=s;sig638[key]=pxSig638(s);}
+      const key=k+'_'+n+'_'+vi+(w?'w':'d'),s=withPx601(()=>T8.bake(k,n,w,vi));BK638[key]=s;sig638[key]=pxSig638(s);
+      const s0=withPx601(()=>T8.bake635(k,n,w));if(!(s.ax===s.w/2&&s.h-s.ay===8&&s.lotMeta574.ground[0]===s.ax&&s.ax===s0.ax&&s.h-s.ay===s0.h-s0.ay&&s.lotMeta574.sz===n&&s.lotMeta574.kind===k&&s.lotMeta574.variant===vi))anchor638.push(key);}
     const PX638={"6_1_1d":"b06b1852.ec4bffbf.80x71","6_1_1w":"3b477bd5.ec4bffbf.80x71","6_1_2d":"8ab3ea02.8356c3b2.80x62","6_1_2w":"eede81a0.8356c3b2.80x62","6_2_1d":"befd4956.f276df7.144x92","6_2_1w":"5e782930.f276df7.144x92","6_2_2d":"307467d9.12e269ad.144x89","6_2_2w":"cde37336.12e269ad.144x89","30_1_1d":"13fc9f11.df727d6a.80x78","30_1_1w":"c8819aa2.df727d6a.80x78","30_1_2d":"65d9a0c1.33da0f27.80x77","30_1_2w":"71a46a70.33da0f27.80x77","30_3_1d":"b91fbf6b.a401f7c8.208x162","30_3_1w":"582c98ba.a401f7c8.208x162","30_3_2d":"c51782bb.713a122b.208x146","30_3_2w":"f196cd34.713a122b.208x146","61_3_1d":"dbb25e4.822f9c7f.208x164","61_3_1w":"d9219e7.822f9c7f.208x164","61_3_2d":"8dfcf73c.f4cd422.208x152","61_3_2w":"2dab13dc.a1f1e028.208x152","61_4_1d":"510483a2.26321906.272x191","61_4_1w":"75f53a6e.26321906.272x191","61_4_2d":"52d1c8cf.945d8b46.272x183","61_4_2w":"893b8534.b51f614b.272x183"};
     const again638=pxSig638(withPx601(()=>T8.bake(30,3,false,2)));
     const bad638=Object.keys(sig638).filter(k=>sig638[k]!==PX638[k]);
-    assert(bad638.length===0&&Object.keys(PX638).length===24&&again638===sig638['30_3_2d'],
-      'T638 G1 六款新消防局像素簽名等於 2026-10-14 挑款頁定稿（24 張日夜；同一張烘兩次相同）：'+(bad638.length?bad638.join('、')+' '+JSON.stringify(sig638):'重烘不同'));
+    assert(bad638.length===0&&anchor638.length===0&&Object.keys(PX638).length===24&&again638===sig638['30_3_2d'],
+      'T638 G1 六款新消防局像素簽名等於 2026-10-14 挑款頁定稿（24 張日夜；同一張烘兩次相同；錨點在畫布中線底下 8 列、與 v0 對齊、meta 對）：'+(bad638.length?bad638.join('、')+' '+JSON.stringify(sig638):anchor638.length?'錨點／meta：'+anchor638.join('、'):'重烘不同'));
 
     const cnt638=[0,0,0];for(let y=0;y<72;y++)for(let x=0;x<72;x++)cnt638[T8.vi({k:6},x,y)]++;
     assert(cnt638.every(c=>c>=72*72*.25&&c<=72*72*.42),'T638 G2 挑款依根格雜湊、三款都會出現（72×72 格各佔 25–42%）：'+cnt638.join('/'));
 
     const at638=vi=>{for(let y=0;y<72;y++)for(let x=0;x<72;x++)if(T8.vi({k:30},x,y)===vi)return [x,y];return null;};
     const p0=at638(0),p1=at638(1),p2=at638(2),old635=window.__noT635;
-    let r0,r1,r2,rEsc,rOff,rRef,r6;
+    let r0,r1,r2,rEsc,rOff,rRef,r6,r1b,r2b,rK1,rK13,r6n,r30n;
     try{
       window.__noT635=false;T8.reset();
       r0=withPx601(()=>T8.spr({k:30,sz:3,v:0},false,p0[0],p0[1]));
@@ -14044,12 +14045,17 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
       r2=withPx601(()=>T8.spr({k:61,sz:4,v:0},true,p2[0],p2[1]));
       r6=withPx601(()=>T8.spr({k:6,sz:2,v:4},false,p1[0],p1[1]));
       rRef=withPx601(()=>T8.spr({k:30,ref:[p1[0],p1[1]]},false,p1[0],p1[1]));
+      T8.reset();r1b=withPx601(()=>T8.spr({k:30,sz:3,v:0},false,p1[0],p1[1]));r2b=withPx601(()=>T8.spr({k:30,sz:3,v:0},false,p2[0],p2[1]));
+      rK1=withPx601(()=>T8.spr({k:1,lv:1,v:0},false,p1[0],p1[1]));rK13=withPx601(()=>T8.spr({k:13,lv:1,v:0},false,p1[0],p1[1]));
+      r6n=withPx601(()=>T8.spr({k:6,v:0},false,p1[0],p1[1]));r30n=withPx601(()=>T8.spr({k:30,v:0},false,p1[0],p1[1]));
       window.__noT638=true;rEsc=withPx601(()=>T8.spr({k:30,sz:3,v:0},false,p1[0],p1[1]));delete window.__noT638;
       window.__noT635=true;T8.reset();rOff=withPx601(()=>T8.spr({k:30,sz:3,v:0},false,p1[0],p1[1]));
     }finally{window.__noT635=old635;delete window.__noT638;T8.reset();}
     assert(r0===null&&r1&&r1.lotMeta574.variant===1&&r1.__t638===1&&pxSig638(r1)===PX638['30_3_1d']&&r2&&r2.lotMeta574.variant===2&&pxSig638(r2)===PX638['61_4_2w']
-      &&r6&&pxSig638(r6)===PX638['6_2_1d']&&rRef===null,
-      'T638 G3 選到 v0 回 null（畫面＝T635 原圖），v1／v2 回對應變體且與定稿相同；附屬格不畫：'+[r0===null,!!r1,!!r2,!!r6,rRef===null].join('/'));
+      &&r6&&pxSig638(r6)===PX638['6_2_1d']&&rRef===null
+      &&r1b&&r2b&&r1b!==r2b&&r1b.lotMeta574.variant===1&&r2b.lotMeta574.variant===2&&pxSig638(r1b)===PX638['30_3_1d']&&pxSig638(r2b)===PX638['30_3_2d']
+      &&rK1===null&&rK13===null&&r6n&&pxSig638(r6n)===PX638['6_1_1d']&&r30n&&pxSig638(r30n)===PX638['30_1_1d'],
+      'T638 G3 選到 v0 回 null（畫面＝T635 原圖），v1／v2 回對應變體且與定稿相同；附屬格與非消防類別不畫；快取鍵分得出 v1／v2；舊存檔缺 sz 時畫 1 格：'+[r0===null,!!r1,!!r2,!!r6,rRef===null,!!(r1b&&r2b&&r1b!==r2b),rK1===null&&rK13===null,!!r6n,!!r30n].join('/'));
 
     const line638=html.split('\n').filter(l=>l.startsWith('function t638On(){'));
     const vmOn638=(q,win)=>require('vm').runInNewContext(line638[0]+';t638On()',{window:win||{},location:{search:q}});
@@ -14060,7 +14066,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     let out638=[],night638=[];
     for(const [key,s] of Object.entries(BK638)){
       // 地塊菱形（像素單位、固定 2px 邊距，角尖也有）：左右不超過中心 ±(32n+2)；中心以下 |dx|/2+dy ≤ 16n+2。往上長的建築不算出界。
-      const n=+key.split('_')[1],D=PXW(s.img),Nn=PXW(s.night),cx=s.ax,cy=s.ay-16*n;let o=0,nl=0;
+      const n=+key.split('_')[1],D=PXW(s.img),Nn=PXW(s.night),cx=D.W/2,cy=D.H-8-16*n;let o=0,nl=0;
       for(let y=0;y<D.H;y++)for(let x=0;x<D.W;x++){const i=(y*D.W+x)*4,dx=Math.abs(x+.5-cx),dy=y+.5-cy;
         if(D.buf[i+3]>0&&(dx>32*n+2||(dy>0&&dx/2+dy>16*n+2)))o++;if(Nn.buf[i+3]>0&&D.buf[i+3]===0)nl++;}
       if(o)out638.push(key+':'+o);if(nl)night638.push(key+':'+nl);}
@@ -14068,11 +14074,12 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
 
     const fnv638=t=>{let h=0x811c9dc5;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h.toString(16);};
     const b635=html.indexOf('/* ===== T635 FIRE CANDIDATE BEGIN ====='),e635=html.indexOf('/* ===== T635 FIRE CANDIDATE END ===== */');
-    const call638=html.split('\n').filter(l=>l.includes('if(t638On()){const p638=spr638(bd,win&&snowLvl>0,o.x,o.y);if(p638)s=p638;}'));
+    const CALL638='    if(t638On()){const p638=spr638(bd,win&&snowLvl>0,o.x,o.y);if(p638)s=p638;} // T638：消防局 v1／v2 依根格雜湊選款，v0 回 null 保留 T635 原圖；?noT638=1 退回';
+    const call638=html.split('\n').filter(l=>l===CALL638),hasCall638=html.split('\n').filter(l=>l.includes('spr638(bd'));
     const call635=html.split('\n').filter(l=>l.includes('if(t635On()){const p635=spr635(bd,win&&snowLvl>0);if(p635)s=p635;}'));
     const k635=html.split('\n').findIndex(l=>l===call635[0]);
-    assert(b635>0&&e635>b635&&fnv638(html.slice(b635,e635))==='ab1bf61a'&&call638.length===1&&call635.length===1&&html.split('\n')[k635+1]===call638[0],
-      'T638 G7 T635 區塊逐字未動（批准款原封）、繪製處 T638 一行緊接在 T635 那一行之後且只有一行');
+    assert(b635>0&&e635>b635&&fnv638(html.slice(b635,e635))==='ab1bf61a'&&call638.length===1&&hasCall638.length===1&&call635.length===1&&html.split('\n')[k635+1]===CALL638&&html.split('\n')[k635+2].startsWith('    if(win&&snowLvl>0&&s&&s.win563)'),
+      'T638 G7 T635 區塊逐字未動（批准款原封）、繪製處 T638 那一行整行全等、緊接在 T635 那一行之後、下一行就是雪帽（中間不准插行覆寫）且全檔只有一處呼叫');
   }
 }
 
