@@ -23,4 +23,6 @@
 | #29 | P1 | tools/session_audit.py:236 | 照改：premerge 通過時 stdout 只印驗過的 SHA，合併加 `--match-head-commit`，堵住檢查後到合併前的競態 |
 | #29 | P1 | tools/session_audit.py:88 | 照改：Codex 摘要要驗作者是 Codex，防冒充 |
 | #29 | P1 | tools/session_audit.py:118 | 不成立（刻意設計）：T639 與業主同意的 require-gate 不要求 up to date；合併後 main 跑 full 道、gate 綠才部署，壞了就 revert |
+| #29 | P1 | tools/session_audit.py:59 | 照改：只認 OWNER／MEMBER／COLLABORATOR 的回覆，外人回覆不能清掉 P0／P1 |
+| #29 | P2 | tools/session_audit.py:79 | → T644：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
 | #29 | P2 | tools/session_audit.py:177 | → T644：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |

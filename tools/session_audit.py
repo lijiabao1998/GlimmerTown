@@ -54,9 +54,13 @@ def _t(s):
     return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)  # --since 只給日期時沒有時區，一律當 UTC
 
 
+TRUSTED = {'OWNER', 'MEMBER', 'COLLABORATOR'}
+
+
 def unanswered_p01(comments):
-    """Codex 的 P0／P1 審查意見裡，PR 上還沒有人回覆的：[(等級, 意見)]。"""
-    replied = {c.get('in_reply_to_id') for c in comments if c.get('in_reply_to_id')}
+    """Codex 的 P0／P1 審查意見裡，還沒有被倉庫自己人（OWNER／MEMBER／COLLABORATOR）回覆的：[(等級, 意見)]。
+    公開 PR 上外人的回覆不算，否則誰都能替我們把 P1 清掉（Codex #29 P1）。"""
+    replied = {c.get('in_reply_to_id') for c in comments if c.get('in_reply_to_id') and c.get('author_association') in TRUSTED}
     out = []
     for c in comments:
         m = BADGE.search(c.get('body') or '')

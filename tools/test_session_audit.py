@@ -111,7 +111,7 @@ class AuditTests(unittest.TestCase):
 
     def test_replied_p1_is_not_flagged(self):
         f = base_fixture()
-        f['repos/%s/pulls/52/comments' % R] = [p1_at(7, 'a.yml', 1), {'id': 8, 'user': {'login': 'x'}, 'body': '修了 abc123', 'in_reply_to_id': 7}]
+        f['repos/%s/pulls/52/comments' % R] = [p1_at(7, 'a.yml', 1), {'id': 8, 'user': {'login': 'x'}, 'body': '修了 abc123', 'in_reply_to_id': 7, 'author_association': 'OWNER'}]
         self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), [])
 
     def test_merged_with_red_or_missing_gate_is_flagged(self):
@@ -149,7 +149,10 @@ class AuditTests(unittest.TestCase):
         f['repos/%s/pulls/52/comments' % R] = [p1_at(7, 'AGENTS.md', 20)]
         bad = sa.premerge(Fake(f), R, 52)
         self.assertEqual(len(bad), 1); self.assertIn('P1', bad[0])
-        f['repos/%s/pulls/52/comments' % R].append({'id': 8, 'user': {'login': 'x'}, 'body': '不成立：作者是 Claude', 'in_reply_to_id': 7})
+        # 外人的回覆不算（Codex #29 P1：公開 PR 誰都能回）
+        f['repos/%s/pulls/52/comments' % R].append({'id': 9, 'user': {'login': 'stranger'}, 'body': 'fixed', 'in_reply_to_id': 7, 'author_association': 'NONE'})
+        self.assertEqual(len(sa.premerge(Fake(f), R, 52)), 1)
+        f['repos/%s/pulls/52/comments' % R].append({'id': 8, 'user': {'login': 'x'}, 'body': '不成立：作者是 Claude', 'in_reply_to_id': 7, 'author_association': 'OWNER'})
         self.assertEqual(sa.premerge(Fake(f), R, 52), [])
 
     def test_premerge_sees_p1_past_first_page(self):
