@@ -44,6 +44,13 @@
 
 ## 施工紀錄
 
-（施工後補）
+**2026-10-15（Claude）**
+
+- 卡面先推（47f4eff，帶卡頭機讀欄）；實作：`tools/scope.py`、`tools/test_scope.py`（由 `test_toolchain.py` 匯入，工具鏈 63→79 例全綠）、工作流加 `scope`／`ratchet`／`gate`、重的各道 `if: !cancelled() && lane=='full'`、deploy `needs: [scope, gate]`、AGENTS 卡頭寫法。分支名與各 SHA 一律經環境變數傳進指令，不嵌入。
+- 自己的規則先咬到自己：判斷「推 main 時 before 全零」原本寫了 40 個 0，會被「守衛程式新增 40 位十六進位」判紅，改成用正規式判全零。
+- **紅源（本機突變）**：把 scope.py 的規則逐一改鬆，跑 16 例：道別恆為 docs→4 例紅（含目標 full 道要卡、shots 腳本走 full）；新卡不要卡頭→「新卡沒卡頭」紅；凍結欄不檢查→「families 改動」紅；owner_ok 不單向→「owner_ok 只准從空」紅；不查撞號→撞號例紅；gpt 可動 tools→對應例紅；gpt 可改既有斷言→對應例紅；不查寫死 SHA→對應例紅；不認純 revert→純 revert 例紅；一次兩張新卡也行→對應例紅。10／10 都首紅在目標測試。
+- **CI 實跑**（PR #26，run 38608580871）：scope 判 full、無違規；ratchet base PASS 12,622 → head 12,622（removed_asserts 0）；gate 綠；其餘各道全綠。
+- 「純文件 commit 走快道」沒辦法在本卡 PR 裡實測（scope 看整個 PR 的改動，本 PR 有程式改動一定是 full）——改在合併後的純文件後續 PR 實測，並在那裡推一個改卡頭凍結欄的違規提交看 scope／gate 紅（結果補在下方）。
+- `verify.py` ALL GREEN。
 
 **聲明**：Claude 出卡＝施工同一方，未經第三方覆核，如實聲明。
