@@ -88,6 +88,29 @@ class ScopeTests(unittest.TestCase):
         self.r.write('docs/tasks/T641-x.md', card(641)); self.r.write('docs/tasks/T642-y.md', card(642)); self.r.commit('x')
         self.assertIn('one-card', self.rules(self.r.run()))
 
+    def test_docs_lane_two_new_cards_is_red(self):
+        self.r.branch('claude/a'); self.r.write('docs/tasks/T641-x.md', card(641)); self.r.write('docs/tasks/T642-y.md', card(642)); self.r.commit('x')
+        res = self.r.run()
+        self.assertEqual(res['lane'], 'docs'); self.assertIn('one-card', self.rules(res))
+
+    def test_new_card_plus_modified_headered_card_is_red(self):
+        # base 有一張帶卡頭、removed_asserts=5 的舊卡；新 PR 加自己的卡又碰那張，不能借它的 5
+        self.r.write('docs/tasks/T630-舊有頭.md', card(630, r='5')); self.r.commit('old headered')
+        self.r.branch('claude/a'); self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T641-x.md', card(641))
+        self.r.write('docs/tasks/T630-舊有頭.md', card(630, r='5', body='補一句')); self.r.commit('x')
+        res = self.r.run()
+        self.assertIn('one-card', self.rules(res))
+
+    def test_header_removed_after_first_commit_is_red(self):
+        self.r.branch('claude/a'); self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T641-x.md', card(641)); self.r.commit('with header')
+        self.r.write('docs/tasks/T641-x.md', '# T641 x\n\n卡頭拿掉了\n'); self.r.commit('header gone')
+        self.assertIn('card-header', self.rules(self.r.run()))
+
+    def test_first_commit_without_header_is_red(self):
+        self.r.branch('claude/a'); self.r.write('docs/tasks/T641-x.md', '# T641 x\n\n沒卡頭\n'); self.r.commit('card without header')
+        self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T641-x.md', card(641)); self.r.commit('header added later')
+        self.assertIn('card-header', self.rules(self.r.run()))
+
     def test_new_card_without_header_is_red(self):
         self.r.branch('claude/a'); self.r.write('index.html', 'v2\n')
         self.r.write('docs/tasks/T641-x.md', '# T641 x\n\n沒卡頭\n'); self.r.commit('x')

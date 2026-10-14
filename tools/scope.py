@@ -155,8 +155,12 @@ def analyse(repo, base, head, head_ref=''):
                 v.append({'rule': 'card-header', 'path': p, 'detail': '卡頭被拿掉了'})
         # 凍結欄位與 owner_ok 單向：從 base（或第一個加入這張卡的 commit）一路走到 head
         prev = bh
+        first = True
         for c in card_history(repo, base, head, p):
             ch, cerr = parse_header(show(repo, c, p))
+            if first and base_text is None and ch is None:  # 卡頭要從第一個加入這張卡的 commit 就有（Codex #26 P2）
+                v.append({'rule': 'card-header', 'path': p, 'detail': '第一個加入這張卡的 commit（%s）沒有合法卡頭；卡頭要從第一個 commit 就有，之後才凍結得住' % c[:7]})
+            first = False
             if ch is None:
                 continue
             if prev is not None:
@@ -168,16 +172,16 @@ def analyse(repo, base, head, head_ref=''):
             prev = ch
 
     revert = None
-    if lane == 'full':
-        if len(added_cards) > 1:
-            v.append({'rule': 'one-card', 'path': '', 'detail': '一個 PR 一張卡，這次新增了 %d 張：%s' % (len(added_cards), '、'.join(c['path'] for c in added_cards))})
-        elif not added_cards and len(headered_mod) != 1:
-            revert = is_pure_revert(repo, base, head)
-            if not revert:
-                v.append({'rule': 'one-card', 'path': '', 'detail': 'full 道的 PR 要帶一張卡（新增一張，或修改恰好一張已有卡頭的卡）；純 revert 例外'})
+    own = added_cards + headered_mod  # 新增的卡與動到的有卡頭舊卡一起算（Codex #26 P2），任何道都最多一張；否則碰一下別張舊卡就能借它的 removed_asserts
+    if len(own) > 1:
+        v.append({'rule': 'one-card', 'path': '', 'detail': '一個 PR 一張卡，這次新增或修改了 %d 張有卡頭的卡：%s' % (len(own), '、'.join(c['path'] for c in own))})
+    elif lane == 'full' and not own:
+        revert = is_pure_revert(repo, base, head)
+        if not revert:
+            v.append({'rule': 'one-card', 'path': '', 'detail': 'full 道的 PR 要帶一張卡（新增一張，或修改恰好一張已有卡頭的卡）；純 revert 例外'})
 
     removed = 0
-    for c in added_cards + headered_mod:
+    for c in own:
         if c['header']:
             removed = max(removed, int(c['header']['removed_asserts']))
 
