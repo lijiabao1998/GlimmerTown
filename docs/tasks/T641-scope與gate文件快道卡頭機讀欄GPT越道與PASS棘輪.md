@@ -1,0 +1,49 @@
+# T641 scope／gate：文件快道、卡頭機讀欄、gpt/ 越道判紅、PASS 棘輪
+<!-- card: families=無; valve=; owner_ok=; removed_asserts=0 -->
+
+**發卡／施工**：Claude。T639 主線跑法總綱第二張施工卡（業主 2026-10-14「你決定主綫怎麽加」「方案出來之後直接施工就行」）。
+**claim**：Claude；分支 `claude/town-scope-gate-641`。
+**合併權**：Claude（守衛／規則道）；Claude 出卡＝施工同一方，如實聲明。
+
+## 起因
+
+「誰能合、要跑哪些閘門」現在全靠文字：`protect-main` 沒有必要檢查、核准數 0；5 個純文件 PR 各跑了約 23＋9 分鐘；CI 的 `--min-pass 12534` 比實際 PASS（約 12,616）低約 80 條，刪幾十條斷言照樣綠；AGENTS「不准寫死雜湊」兩天內被寫回兩次。實驗線的同類條件也只停在文字（T744 卡自承靠 GPT 自律）。對應文章：語意核准規則、審意圖多於逐行。
+
+## 做法
+
+1. 新 `tools/scope.py`（只讀、只用標準庫）：輸入 base、head、head_ref，輸出 JSON 與工作摘要。
+   - **道別**：改動全部以 `.md` 結尾＝docs，否則 full（所以 `docs/tasks/*-shots/*.cjs`、`SPR_PINS.json` 自然走 full）。
+   - **卡頭機讀欄**：這次新增的 `docs/tasks/T*.md`，標題下一行必須是 `<!-- card: families=…; valve=…; owner_ok=…; removed_asserts=… -->`。`families`、`valve`、`removed_asserts`（與可選的 `cont`）從第一個加入這張卡的 commit 起凍結；`owner_ok` 只准從空變成業主原話，有字之後不准再改。base 已經有卡頭的卡，同樣不准改凍結欄。新卡號在 base 已存在＝撞號。舊卡（沒有卡頭）照舊可以補記。
+   - **一 PR 一卡**：full 道要帶一張卡（新增一張，或沒新增時恰好修改一張已有卡頭的卡）；純 revert（diff 的 `git patch-id` 等於某個 main 合併提交第一父的反向 diff）免卡。
+   - **gpt/ 越道**：`head_ref` 是 `gpt/**` 時，碰 `.github/`、`tools/`、`test_fixde.js` 的刪改行（只新增不算）、不屬於本卡的 `docs/tasks/*-shots/`、`docs/SPR_PINS.json`（T643 起另有例外）、規則檔（AGENTS.md、docs/RULES.md、docs/COLLAB.md、docs/迭代不改壞標準.md）＝紅，訊息寫「交 main 寫入者」。
+   - **寫死提交 SHA**：守衛程式（`.github/`、`tools/`、`docs/tasks/*-shots/`、`test_fixde.js` 裡的 .js/.cjs/.mjs/.py/.yml/.yaml/.sh）新增行出現 40 位十六進位＝紅；`docs/APPROVED_ART.json` 例外（T647 建立）；JSON 證據不算；64 位只警告。
+2. 工作流：
+   - 第一個 job `scope`；`scope.py` 取自 base（`git show $BASE:tools/scope.py`），base 沒有才用 head 的——PR 改 scope.py 要合併後才生效。分支名經環境變數傳入，不嵌進指令。
+   - browser、package、pages-browser、兩個 release、scene602 加 `if: !cancelled() && lane=='full'`；validate 兩道都跑。
+   - 新 `ratchet`（full 道）：同一台跑機上 base 與 head 各跑一次完整 test_fixde，head 的 PASS 不准少於 base 減卡頭 `removed_asserts`。
+   - 新 `gate`（`if: always()`）：docs 道要 scope＋validate 綠、其他 skipped；full 道每一道都要綠。**它是唯一的必要檢查**（業主在 GitHub 規則集只要求它，見總綱）。
+   - deploy 改成 `needs: [scope, gate]`，純文件推 main 不重新部署。
+3. 單元測試 `tools/test_scope.py`（臨時 git 倉庫當夾具，不開遠端測試分支），由 `tools/test_toolchain.py` 匯入，所以既有的「Toolchain regression」一步就會跑到。
+4. `AGENTS.md`：卡頭欄位寫法與一 PR 一卡。
+
+## 放寬了什麼
+
+- 純文件道不跑瀏覽器各道與兩個 release；純文件推 main 不重新部署（畫面與執行檔沒變）。
+- **變嚴**：PASS 下限從寫死的 12534 改成「不准少於 base」；gpt/ 越道、卡頭改宣告、撞號、守衛程式寫死 SHA 由機器判紅。
+
+## 驗收
+
+1. `tools/test_scope.py` 16 個案例：只改 README＝docs；改 shots 腳本＝full；full 沒卡紅、加卡綠；一次兩張新卡紅；新卡沒卡頭紅；第二個 commit 改 families 紅；owner_ok 空→有字綠、有字→空紅；撞號紅；gpt/ 改 tools 紅、只在 test_fixde 新增一行不紅、改既有斷言紅、改規則檔與別張卡的 shots 紅；守衛 yml 新增 40 位 SHA 紅、APPROVED_ART.json 與 shots JSON 不紅；64 位只警告；純 revert 免卡、revert 夾帶改動要卡；removed_asserts 回報；舊卡補記走 docs 道。
+2. 紅源（突變）：把 scope.py 的各條規則逐一改鬆，對應的測試要首紅。
+3. 活測：本卡 PR 推一個純文件 commit，gate 綠、重的各道 skipped；全道那一輪 gate 綠、棘輪 base 與 head 的 PASS 數寫在摘要。
+4. `verify.py` ALL GREEN。
+
+## 回滾
+
+`git revert`。
+
+## 施工紀錄
+
+（施工後補）
+
+**聲明**：Claude 出卡＝施工同一方，未經第三方覆核，如實聲明。
