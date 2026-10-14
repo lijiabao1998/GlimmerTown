@@ -12,7 +12,7 @@ T635 三款消防局已經業主圖審批准（2026-10-12「按照Claude的標�
 
 **T603 已整合美術**：回收中心k29、樂齡中心k85、遛狗公園k92、堆肥場k88，各三款原創藍灰園區。`bakeArt603`獨立烘焙，`v603`只讀舊v或格雜湊，`lotKey591`加季節鍵尾，遠景保留款式。狗／主人活動帶與1px投影餘量由專項守衛驗證；`lifeDepth603`僅為新k92角色補園區列偏置，三列四向真畫布可見像素另驗；不新增煙、不改舊SPR／模擬／保存。全域濾鏡裁切 helper 與兩處呼叫已移除；倒影與陰影完整保留原生`brightness(0)`、alpha、座標及save/restore路徑。獨立`?noT603=1`逃生閥。本批已在 v11.212／T626 整合發布；歷史紅燈與原生效能診斷保留，不把已發布誤寫成未合併候選，也不宣稱所有性能判準通過。
 
-**2026-10-13 接收邊界**：上述 v11.221 是遠端 main 8d79bc42 與 Pages 的版本。已核對同提交 CI／deploy／verify-published 與七檔 HTTPS 來源；本機 bay/codex 完整回歸遇 T635 bootstrap 10 秒 VM 逾時（12594 PASS／1 FAIL），canonical 仍 v11.214、玩家仍 v11.210，未部署。原生 Mac diagnostic 仍紅。詳見 T635-Local-receipt-records.md；本補記不改本體或定位表。
+**2026-10-13 接收邊界**：上述 v11.221 是遠端 main 8d79bc42 與 Pages 的版本。已核對同提交 CI／deploy／verify-published 與七檔 HTTPS 來源；本機 bay/codex 完整回歸遇 T635 bootstrap 10 秒 VM 逾時（12594 PASS／1 FAIL），canonical 仍 v11.214、玩家仍 v11.210，未部署。原生 Mac diagnostic 仍紅。詳見 T635-Local-receipt-records.md；本補記不改本體或定位表。 **2026-10-14**：T636 修台架後本機收件完成，merge_bay 三道全綠（B=12569、S=M=12606），canonical master 2c0fab7、玩家 8123 升到 v11.221，receipt=match。
 
 **讀完本文件你應該能回答：任何一個功能在第幾節、動它要遵守什麼不變量。**
 
