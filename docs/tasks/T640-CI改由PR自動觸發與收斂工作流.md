@@ -53,6 +53,14 @@
 
 ## 施工紀錄
 
-（施工後補）
+**2026-10-14～15（Claude）**
+
+- 卡面先推（9a14893）；實作 956cae0：主工作流觸發改成 `push: [main]`、`pull_request`（opened／synchronize／reopened／ready_for_review）、`workflow_dispatch`；concurrency 依 PR 號、PR 上取消舊輪；native 加 `if: workflow_dispatch`；scene602 原樣搬入並加進 deploy needs；Playwright 釘 `1.64.0`（npm 上最新的 1.64.1 是 10-14 才發佈，太新；主線 CI 從 10-07 起一直用 1.64.0）；`@napi-rs/canvas` 釘 `1.0.11`；小檔附件 90 天；`git rm` 六個綁死分支的工作流；AGENTS 加「開分支就開 draft PR」。刪掉的六個檔，倉庫裡沒有任何程式讀它們（grep 過）。
+- **自動觸發證實**：開 PR #24 沒有手動 dispatch，CI 就以 `pull_request` 事件自動跑（run 38594564941）；native-acceptance 照設計 skipped。
+- **check634 試跑**：第一輪紅，原因不是 T634 美術——check634 寫死讀 T634 之前的凍結基準提交 `d88e36d`，validate 預設淺複製讀不到。本機用完整歷史跑 69 秒全過，所以**留在 validate**，validate 的 checkout 改 `fetch-depth: 0`（e277a8e）；之後那一輪（run 38597766228）全綠。
+- **合併提交上跑**：release634／635、release-identity 在 `refs/pull/24/merge` 上全綠，沒有 HEAD 假設的問題。
+- **紅源**（45f9783，驗完 revert）：同時改 test_fixde 的 seed22 期望 639→640、SPR_PINS 的 `ambulance/.A` 一個 CRC（run 38600076897）。validate 首紅落在「Full original regression and exact six sentinels」；scene602 首紅「candidate pins match Chromium: ["ambulance/.A"]」，都顯示在 PR 上。
+- **更正卡面一個說法**：卡面（與 T639 總綱引用的方案）寫 scene602 是「CI 上唯一的全量像素指紋比對」——**不對**。同一個紅源也讓 browser core／world／neighbors 紅在同一條「candidate pins match Chromium」（scene603 也比對 SPR_PINS），而它們本來就擋部署。所以 SPR 指紋早就有部署閘；scene602 升閘多擋的是它自己的內容：舊存檔來回、手機版面、T602 新圖像素、T626 計時判準。卡面驗收第 2 條「其他 job 照綠」也因此不成立，照實記。
+- `verify.py` ALL GREEN（revert 後）。
 
 **聲明**：Claude 出卡＝施工同一方，未經第三方覆核，如實聲明。
