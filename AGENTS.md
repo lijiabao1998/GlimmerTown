@@ -18,6 +18,7 @@
 - **main 紅了**：讓它變紅的那次合併，由作者先開純 `git revert -m 1 <合併提交>` 的 PR，不在 main 上疊修補賭綠（T639）。
 - **提交身分**：Claude 提交一律 `git -c user.name=Claude -c user.email=noreply@anthropic.com commit`；GPT 在自己的工作樹設 repo-local `user.name="GPT (Codex)"`；不動全域設定（T639）。
 - 卡面（`docs/tasks/Txxx-*.md`）動手前先推，驗收條件之後不准改鬆；**claim 寫在卡頭**，不另開 `.claim` 檔（T639）。
+- **新卡標題下一行要有卡頭機讀欄**（T641，CI 的 scope 會核）：`<!-- card: families=無; valve=; owner_ok=; removed_asserts=0 -->`。`families`（改哪些美術家族，沒有寫「無」）、`valve`（逃生閥）、`removed_asserts`（有意刪掉幾條既有斷言）從卡面第一個 commit 起不准改；`owner_ok` 只准從空變成業主原話（附日期），有字之後不准改。一個 PR 一張卡；純文件（全部 `.md`）走快道，不跑瀏覽器各道。`gpt/` 分支動 `.github/`、`tools/`、規則檔、改既有斷言，CI 直接判紅，交 main 寫入者。
 - 美術先給業主看樣張、業主點頭才接；每張新圖要有逃生閥，閥關時整幀與改前相同；既有像素指紋零變動。
 - 玩法：六哨兵恆等、舊存檔來回不變、平衡數字前後多城配對比較並由業主決定。
 - 量測先用最簡單的新舊交錯對比確認是不是真問題；**同一個問題診斷卡最多連開 2 張**，再來就交業主。

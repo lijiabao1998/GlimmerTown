@@ -13,9 +13,54 @@ concurrency:
   group: town-main-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  scope:
+    # T641：判道別（全部 .md＝docs，否則 full）、卡頭機讀欄、gpt/ 越道、守衛程式新寫死的提交 SHA。scope.py 取自 base（PR 改它要合併後才生效）。
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      lane: ${{ steps.scope.outputs.lane }}
+      ok: ${{ steps.scope.outputs.ok }}
+      removed_asserts: ${{ steps.scope.outputs.removed_asserts }}
+      base: ${{ steps.base.outputs.base }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Resolve base commit
+        id: base
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then BASE="$PR_BASE"
+          elif [ "$EVENT" = "push" ] && [ -n "$BEFORE" ] && ! printf '%s' "$BEFORE" | grep -qE '^0+$'; then BASE="$BEFORE"
+          else git fetch -q origin main && BASE=$(git merge-base origin/main HEAD); fi
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE"
+      - name: Scope (lane, card header, gpt lane, hardcoded SHA)
+        id: scope
+        env:
+          BASE: ${{ steps.base.outputs.base }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          mkdir -p evidence
+          if git cat-file -e "$BASE:tools/scope.py" 2>/dev/null; then git show "$BASE:tools/scope.py" > "$RUNNER_TEMP/scope.py"; else cp tools/scope.py "$RUNNER_TEMP/scope.py"; fi
+          python "$RUNNER_TEMP/scope.py" --base "$BASE" --head HEAD --head-ref "$HEAD_REF" > evidence/scope.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-main-scope-${{ github.sha }}
+          path: evidence/
+          retention-days: 90
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      pass: ${{ steps.verify.outputs.pass }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,9 +79,11 @@ jobs:
           echo "PYTHONPATH=$PYTHONPATH" >> "$GITHUB_ENV"
           mkdir -p evidence
       - name: Full original regression and exact six sentinels
+        id: verify
         run: |
           set -o pipefail
           python tools/verify.py --min-pass 12534 | tee evidence/verify.log
+          echo "pass=$(grep -oE 'PASS=[0-9]+' evidence/verify.log | tail -1 | cut -d= -f2)" >> "$GITHUB_OUTPUT"
       - name: Toolchain regression
         if: always()
         run: |
@@ -73,6 +120,8 @@ jobs:
           if-no-files-found: error
           retention-days: 90  # T640：小檔留 90 天
   browser:
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     strategy:
       fail-fast: false
       matrix:
@@ -114,6 +163,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   package:
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -148,6 +199,8 @@ jobs:
         with:
           path: _site/main/
   pages-browser:
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     runs-on: macos-15
     timeout-minutes: 25
     steps:
@@ -211,6 +264,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   approved-art-release:
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -238,6 +293,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   approved-fire-release:
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -264,6 +321,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   scene602:
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     # T640：由 town602-candidate.yml 原樣搬入並升為部署閘——CI 上唯一的全量 SPR 指紋（1586 鍵）比對
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -289,9 +348,82 @@ jobs:
           path: evidence/
           if-no-files-found: error
           retention-days: 14
+  ratchet:
+    # T641：PASS 棘輪——同一台跑機上 base 與 head 各跑一次完整 test_fixde，head 不准少於 base 減卡頭宣告的 removed_asserts（取代寫死的 --min-pass 下限）。
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Match original PWA PNG compression environment
+        run: |
+          python -m pip install Pillow==12.2.0
+          source tools/setup_t602_zlib.sh "$RUNNER_TEMP/town602-zlib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          echo "PYTHONPATH=$PYTHONPATH" >> "$GITHUB_ENV"
+      - name: PASS ratchet against base
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+          REMOVED: ${{ needs.scope.outputs.removed_asserts }}
+        run: |
+          mkdir -p evidence
+          git worktree add -q "$RUNNER_TEMP/base" "$BASE"
+          (cd "$RUNNER_TEMP/base" && node test_fixde.js > "$GITHUB_WORKSPACE/evidence/base.out" 2>&1) || true
+          (node test_fixde.js > evidence/head.out 2>&1) || true
+          B=$(grep -c '^PASS' evidence/base.out || true); H=$(grep -c '^PASS' evidence/head.out || true); R=${REMOVED:-0}
+          echo "base PASS=$B head PASS=$H removed_asserts=$R" | tee evidence/ratchet.txt
+          echo "### PASS 棘輪（T641）：base $B → head $H（卡頭 removed_asserts=$R）" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$H" -lt $((B - R)) ]; then echo "PASS 少了：head $H < base $B - removed_asserts $R" | tee -a evidence/ratchet.txt; exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-main-ratchet-${{ github.sha }}
+          path: evidence/ratchet.txt
+          retention-days: 90
+  gate:
+    # T641：唯一的必要檢查（業主在 GitHub 規則集只要求它）。docs 道：scope＋validate 綠；full 道：每一道都要綠。
+    if: ${{ always() }}
+    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, ratchet]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Gate
+        env:
+          LANE: ${{ needs.scope.outputs.lane }}
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          lane, needs = os.environ.get('LANE', ''), json.loads(os.environ['NEEDS'])
+          res = {k: v['result'] for k, v in needs.items()}
+          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'ratchet']
+          bad = [k for k in ('scope', 'validate') if res.get(k) != 'success']
+          if lane == 'full':
+              bad += [k for k in heavy if res.get(k) != 'success']
+          elif lane == 'docs':
+              bad += [k for k in heavy if res.get(k) not in ('skipped', 'success')]
+          else:
+              bad.append('scope 沒給出道別')
+          lines = ['## gate（T641）', '', '- 道別：**%s**' % (lane or '？')] + ['- %s：%s' % (k, v) for k, v in sorted(res.items())]
+          lines.append('- 結論：' + ('綠' if not bad else '**紅**：' + '、'.join(bad)))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as f:
+              f.write('\n'.join(lines) + '\n')
+          print('\n'.join(lines))
+          sys.exit(1 if bad else 0)
+          PY
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602] # T630：native-acceptance 只紀錄；T640：scene602 升為部署閘
+    # T641：部署只認 gate；純文件推 main 不重新部署（畫面與執行檔沒變）。T630：native-acceptance 只紀錄；T640：scene602 已在 gate 裡。
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.scope.outputs.lane == 'full'
+    needs: [scope, gate]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

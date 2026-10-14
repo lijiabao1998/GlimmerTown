@@ -21,6 +21,9 @@ from tools import merge_bay
 from tools import verify
 
 
+from tools.test_scope import ScopeTests  # noqa: E402,F401  T641：scope.py 的單元測試跟著工具鏈一起跑
+
+
 class TempRepo:
     def __init__(self):
         self.temp = None
