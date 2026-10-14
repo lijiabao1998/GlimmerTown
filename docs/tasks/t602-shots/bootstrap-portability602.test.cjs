@@ -7,16 +7,18 @@ const cases=[{root:'C:\\fixtures\\2026-10-12\\town',path:path.win32},{root:'C:\\
 for(const[rel,expected]of Object.entries(fixture.bodySHA256)){
   const source=fs.readFileSync(path.join(ROOT,rel),'utf8');
   test(rel+' retains original immutable assertion body',()=>{const a=source.indexOf('const body='),b=source.indexOf('\ntry{',a);assert.ok(a>=0&&b>a);assert.equal(sha(source.slice(a,b)),expected);});
-  function generated(sourceText,c){
+  function generated(sourceText,c,timeout=10000){
     const actualRead=fs.readFileSync,root=c.root;
     const portablePath={...c.path,resolve:()=>root};
     const read=(file,...args)=>{const basename=c.path.basename(String(file));if(basename==='test_fixde.js'||basename==='index.html')return actualRead(path.join(ROOT,basename),...args);return actualRead(file,...args);};
     const localRequire=id=>id==='fs'?{...fs,readFileSync:read}:id==='path'?portablePath:id.startsWith('.')?require(path.resolve(ROOT,path.dirname(rel),id)):require(id);
     let game,called=0,exit;
     function CaptureFunction(...args){called++;const code=args.pop(),anchor='\neval(js);\n';assert.equal(code.split(anchor).length,2,'Capture only the original execution boundary');const fn=new Function(...args,code.replace(anchor,'\nreturn js;\n'));return function(...values){game=fn(...values);return game;};}
-    vm.runInNewContext(sourceText,{require:localRequire,__dirname:c.path.join(root,'docs','tasks',rel.includes('test602')?'t602-shots':'t603-shots'),Function:CaptureFunction,process:{exit:n=>{exit=n;}},console:{log(){},error(){}}},{filename:rel,timeout:10000});
+    vm.runInNewContext(sourceText,{require:localRequire,__dirname:c.path.join(root,'docs','tasks',rel.includes('test602')?'t602-shots':'t603-shots'),Function:CaptureFunction,process:{exit:n=>{exit=n;}},console:{log(){},error(){}}},{filename:rel,timeout});
     assert.equal(called,1);assert.equal(exit,0);assert.equal(typeof game,'string');return game;
   }
+  // T636：每份台架第一次組裝含一次性模組載入（git 讀凍結提交、4.6MB 雜湊），保險絲 30 秒、斷言同正式案例；之後各案例仍 10 秒。
+  test(rel+' first assembly warms module cache under 30s fuse '+cases[0].root,()=>{new vm.Script(generated(source,cases[0],30000),{filename:rel+'-generated.js'});});
   for(const c of cases)test(rel+' binds data path without template interpolation '+c.root,()=>{new vm.Script(generated(source,c),{filename:rel+'-generated.js'});});
   test(rel+' original Windows interpolation fails at the named syntax boundary',()=>{
     const decl=rel.includes('test602')?'const':'let';
