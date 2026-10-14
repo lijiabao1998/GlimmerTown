@@ -39,7 +39,7 @@ T634 已批准的 315 款設計（108 款住宅／商業／工業、207 款設�
 - [同一精確 main 提交的發布工作流](https://github.com/lijiabao1998/GlimmerTown/actions/runs/38201218382)：必要回歸、三組 Chrome 場景、315 款批准圖、消防圖、套件、原生瀏覽器存讀／離線，以及 deploy／verify-published 成功。原回歸 **12,597 PASS／0 FAIL**、工具鏈 **63／63**。
 - **不能把工作流成功說成每項全綠**：`native-acceptance` 仍為 failure，包含歷史 CRC、完整收集／控制與原相對計時判準；依既有 T630 政策是保留診斷，不阻擋部署。沒有改紅為綠或宣稱實機 FPS。
 
-2026-10-13 本機收件：已將遠端收進 bay/codex、核對七個執行檔與實際 HTTPS 套件，但 Windows 本機完整回歸為 **12,594 PASS／1 FAIL**（T635 跨平台 bootstrap 的 10 秒 VM 逾時），主線接收因此停止。本機 canonical 仍 v11.214、玩家 8123 仍 v11.210；沒有把線上發布當成本機部署。詳見 [收件與阻塞記錄](docs/tasks/T635-Local-receipt-records.md)。
+2026-10-13 本機收件：已將遠端收進 bay/codex、核對七個執行檔與實際 HTTPS 套件，但 Windows 本機完整回歸為 **12,594 PASS／1 FAIL**（T635 跨平台 bootstrap 的 10 秒 VM 逾時），主線接收因此停止。本機 canonical 仍 v11.214、玩家 8123 仍 v11.210；沒有把線上發布當成本機部署。詳見 [收件與阻塞記錄](docs/tasks/T635-Local-receipt-records.md)。 **2026-10-14 收件完成**：T636 把可攜開機台架每份台架的第一次組裝移出 10 秒保險絲（暖機 30 秒、之後各案例仍 10 秒）後，`merge_bay.py codex --deploy` 三道全綠（B=12,569、S=M=12,606，648 條 CHANGELOG 保留），canonical master 2c0fab7（樹與 origin/main 1141223 相同）、玩家 8123 升到 v11.221（業主 10-14「1」），receipt=match，四車位同步。詳見 [T636](docs/tasks/T636-可攜開機台架第一次載入移出10秒保險絲.md)。
 
 ## 已整合背景：T603 原生美術與雲端發布整合
 

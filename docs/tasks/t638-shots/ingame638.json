@@ -1,0 +1,277 @@
+{
+ "runs": [
+  {
+   "label": "on",
+   "seed": 22,
+   "k": 61,
+   "x": 36,
+   "y": 8,
+   "sz": 4,
+   "vi": 1,
+   "age": 177,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "30_3_0_2",
+    "61_4_0_1"
+   ],
+   "file": "on-seed22-k61-36_8-vi1.png"
+  },
+  {
+   "label": "on",
+   "seed": 22,
+   "k": 30,
+   "x": 27,
+   "y": 14,
+   "sz": 3,
+   "vi": 2,
+   "age": 210,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "30_3_0_2",
+    "61_4_0_1"
+   ],
+   "file": "on-seed22-k30-27_14-vi2.png"
+  },
+  {
+   "label": "on",
+   "seed": 22,
+   "k": 6,
+   "x": 37,
+   "y": 40,
+   "sz": 2,
+   "vi": 2,
+   "age": 409,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "6_2_0_2"
+   ],
+   "file": "on-seed22-k6-37_40-vi2.png"
+  },
+  {
+   "label": "on",
+   "seed": 22,
+   "k": 30,
+   "x": 32,
+   "y": 61,
+   "sz": 3,
+   "vi": 0,
+   "age": 325,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "on-seed22-k30-32_61-vi0.png"
+  },
+  {
+   "label": "on",
+   "seed": 301,
+   "k": 30,
+   "x": 7,
+   "y": 25,
+   "sz": 3,
+   "vi": 2,
+   "age": 233,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "30_3_0_2",
+    "30_3_0_1"
+   ],
+   "file": "on-seed301-k30-7_25-vi2.png"
+  },
+  {
+   "label": "on",
+   "seed": 301,
+   "k": 30,
+   "x": 14,
+   "y": 27,
+   "sz": 3,
+   "vi": 1,
+   "age": 317,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "30_3_0_2",
+    "30_3_0_1"
+   ],
+   "file": "on-seed301-k30-14_27-vi1.png"
+  },
+  {
+   "label": "on",
+   "seed": 301,
+   "k": 6,
+   "x": 34,
+   "y": 38,
+   "sz": 2,
+   "vi": 1,
+   "age": 409,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "6_2_0_1"
+   ],
+   "file": "on-seed301-k6-34_38-vi1.png"
+  },
+  {
+   "label": "on",
+   "seed": 7,
+   "k": 6,
+   "x": 33,
+   "y": 43,
+   "sz": 2,
+   "vi": 2,
+   "age": 409,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "6_2_0_2"
+   ],
+   "file": "on-seed7-k6-33_43-vi2.png"
+  },
+  {
+   "label": "on",
+   "seed": 7,
+   "k": 30,
+   "x": 29,
+   "y": 59,
+   "sz": 3,
+   "vi": 2,
+   "age": 265,
+   "t638": true,
+   "t635": true,
+   "spr638Keys": [
+    "30_3_0_2"
+   ],
+   "file": "on-seed7-k30-29_59-vi2.png"
+  },
+  {
+   "label": "off",
+   "seed": 22,
+   "k": 61,
+   "x": 36,
+   "y": 8,
+   "sz": 4,
+   "vi": 1,
+   "age": 177,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed22-k61-36_8-vi1.png"
+  },
+  {
+   "label": "off",
+   "seed": 22,
+   "k": 30,
+   "x": 27,
+   "y": 14,
+   "sz": 3,
+   "vi": 2,
+   "age": 210,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed22-k30-27_14-vi2.png"
+  },
+  {
+   "label": "off",
+   "seed": 22,
+   "k": 6,
+   "x": 37,
+   "y": 40,
+   "sz": 2,
+   "vi": 2,
+   "age": 409,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed22-k6-37_40-vi2.png"
+  },
+  {
+   "label": "off",
+   "seed": 22,
+   "k": 30,
+   "x": 32,
+   "y": 61,
+   "sz": 3,
+   "vi": 0,
+   "age": 325,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed22-k30-32_61-vi0.png"
+  },
+  {
+   "label": "off",
+   "seed": 301,
+   "k": 30,
+   "x": 7,
+   "y": 25,
+   "sz": 3,
+   "vi": 2,
+   "age": 233,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed301-k30-7_25-vi2.png"
+  },
+  {
+   "label": "off",
+   "seed": 301,
+   "k": 30,
+   "x": 14,
+   "y": 27,
+   "sz": 3,
+   "vi": 1,
+   "age": 317,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed301-k30-14_27-vi1.png"
+  },
+  {
+   "label": "off",
+   "seed": 301,
+   "k": 6,
+   "x": 34,
+   "y": 38,
+   "sz": 2,
+   "vi": 1,
+   "age": 409,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed301-k6-34_38-vi1.png"
+  },
+  {
+   "label": "off",
+   "seed": 7,
+   "k": 6,
+   "x": 33,
+   "y": 43,
+   "sz": 2,
+   "vi": 2,
+   "age": 409,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed7-k6-33_43-vi2.png"
+  },
+  {
+   "label": "off",
+   "seed": 7,
+   "k": 30,
+   "x": 29,
+   "y": 59,
+   "sz": 3,
+   "vi": 2,
+   "age": 265,
+   "t638": false,
+   "t635": true,
+   "spr638Keys": [],
+   "file": "off-seed7-k30-29_59-vi2.png"
+  }
+ ],
+ "exceptions": []
+}
