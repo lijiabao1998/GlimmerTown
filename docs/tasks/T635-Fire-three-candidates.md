@@ -1,5 +1,7 @@
 # T635 消防設施三方向本地候選（未批准，預設關閉）
 
+> **最新狀態（2026-10-13 補記）**：標題與下文是候選階段的原始紀錄。bc9c70f 修正圖後已獲業主批准；發布版 v11.221 經 PR #17 合入 main 8d79bc42，普通網址預設啟用。正式同 SHA 必要 CI、deploy／verify-published 已成功，原生 Mac diagnostic 仍紅。本機收件完整套件另為 12594 PASS／1 FAIL（bootstrap VM 10 秒逾時），不能以遠端成功冒稱本機綠燈；詳見 Approved-fire-release 與 Local-receipt-records 補卡。原 12590／1 Windows FAIL、未批准階段與所有退修證據保留。
+
 業主委派：先少量真正外觀不同的英式款，更多變體留未來 DLC；本次總三方向，k6 鄉鎮小站、k30 紅磚城鎮局、k61 現代區域中心，k95 保留。只有本地候選，不推送／PR／合併／部署。卡面只在本地留底，依業主明令不推卡。
 
 基準：最新 origin/main `7ad6931eaa1bed87af053f8097b05a0e669656a6`，v11.218。獨立 checkout 與本地分支 `gpt/town-fire-three-candidates-635`，不改 C:/dev/glimmer-town、任何 bay、玩家 8123、Lab36 或 3D。

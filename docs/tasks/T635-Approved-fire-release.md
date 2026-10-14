@@ -35,3 +35,11 @@
 ## 回滾
 
 發布前紅留分支，main／正式站不動；noT635即退原批准消防圖且不改存檔。正式回滾只經正常PR与原发布管线，禁手搬runtime、改receipt或強推main。
+
+## 發布閉合與本機收件（2026-10-13 補記）
+
+PR #17 已於 2026-10-12 03:48:34 UTC 正常合入 main `8d79bc42b9f67f8acd087044debf2a2d32f4be83`（v11.221）。同 SHA 的 run [38201218382](https://github.com/lijiabao1998/GlimmerTown/actions/runs/38201218382) 必要 validate／三 phase browser／approved-art-release／approved-fire-release／package／pages-browser 全成功，deploy 與 verify-published 也成功；原回歸 12597 PASS／0 FAIL、63 工具鏈。Codex 本次讀回 PR 與各 job 結果，並以原 release-identity 的 live 模式核對七檔 HTTPS 與提交套件完全一致，不以先前候選綠燈代替正式發佈證據。
+
+原 native-acceptance job 仍為 failure，報告列出 complete unchanged T620 collection、approved runtime/source/model/save controls 與 unchanged timing windows 三類拒絕；歷史 CRC 860 差異保留。T630 已將它設為診斷，不擋部署，但不是全部原生驗收通過或只有計時紅。
+
+本機收件只 fast-forward 到 bay/codex；親跑原套件為 12594 PASS／1 FAIL，六哨兵不變，獨立工具鏈 63／63 通過。T635 G1 的跨平台 VM 限制 10000ms 在第一次 T603 Windows 造境逾時；聚焦重現 10 例中 9 過、1 逾時（10429.6867ms），不是路徑／原 body SHA 斷言失敗。不改時限、不重跑賭過、不繞主線閘。canonical 仍 d88e36d／v11.214、玩家仍 v11.210，receipt=match；本次未新增第三方美術覆核。完整證據與後續修台架的範圍阻塞見 Local-receipt-records 補卡。

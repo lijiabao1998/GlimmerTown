@@ -20,7 +20,9 @@ The T634 seasonal, construction, old-save, overlay, smoke, actors, preserved-art
 The main Pages workflow retains every original blocking gate and adds `approved-art-release` to `deploy.needs`. The same required normal-default Chrome suite runs before merge and again on the main merge SHA. Deploy and actual HTTPS `verify-published` must succeed before publication is reported successful. Native timing remains reference-only under the existing T630 policy.
 
 ## Evidence status
-Implementation-time record only. Exact release commit, CI results and published HTTPS verification will be recorded after they actually complete. The prior 7105 candidate had six green jobs; that does not substitute for release-default or main deployment checks.
+Current closure (read back 2026-10-13): PR #16 merged at `7ad6931eaa1bed87af053f8097b05a0e669656a6` on 2026-10-11 14:39:54 UTC, releasing the approved default-on v11.218. PR #17 subsequently released v11.221 at `8d79bc42b9f67f8acd087044debf2a2d32f4be83`. Its exact main run [38201218382](https://github.com/lijiabao1998/GlimmerTown/actions/runs/38201218382) passed the required 315-art release lane, all original required correctness/package/browser jobs, deploy and verify-published. The original regression recorded 12,597 PASS / 0 FAIL and 63 toolchain tests passed.
+
+The native-acceptance diagnostic remains **failure**, including historical CRC, collection/control and timing clauses; the existing T630 policy does not make this a blocking deploy dependency. It is not called green, exhaustive native acceptance, or a physical-device performance guarantee. The old implementation-time failures below remain unchanged. The Windows local receipt on 2026-10-13 separately failed T635's portable-bootstrap VM limit (12,594 PASS / 1 FAIL), so canonical master and the player's local deployment were not advanced; see the local receipt supplement.
 
 ## First exact-release CI result and bounded fixture correction
 
