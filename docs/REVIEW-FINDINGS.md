@@ -12,3 +12,8 @@
 | #26 | P2 | tools/scope.py:161 | 照改 c0fb94c：新卡第一個 commit 就要有合法卡頭 |
 | #27 | P2 | tools/scope.py:187 | 照改 29c4e61：純 revert 比對改用 patch-id --verbatim，只差空白不算 |
 | #28 | P1 | docs/tasks/T641-scope與gate文件快道卡頭機讀欄GPT越道與PASS棘輪.md:2 | 不成立：唯一的提交 7072cef 作者與提交者都是 `Claude <noreply@anthropic.com>`（同 #24）。**合併後才回覆**：合併步驟把意見印出來卻沒停，因此補了 `session_audit.py --premerge` |
+| #29 | P1 | tools/session_audit.py:74 | 照改：premerge 要求 Codex 摘要的 headSha＝當前 head 且 status＝completed |
+| #29 | P1 | tools/session_audit.py:76 | 照改：審查意見等清單一律分頁 |
+| #29 | P2 | tools/session_audit.py:126 | 照改：gate 沒綠就合的 PR 報 gate-not-green |
+| #29 | P2 | tools/session_audit.py:134 | 照改：發現帳比完整位置 `| #N |`＋`路徑:行號` |
+| #30 | P2 | docs/tasks/T641-…md:62 | 照改：先標「待 CI」，有了 run 號與結果才改成綠 |
