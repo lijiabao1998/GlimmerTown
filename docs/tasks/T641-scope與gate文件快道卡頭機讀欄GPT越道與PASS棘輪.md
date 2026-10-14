@@ -1,5 +1,5 @@
 # T641 scope／gate：文件快道、卡頭機讀欄、gpt/ 越道判紅、PASS 棘輪
-<!-- card: families=無; valve=; owner_ok=; removed_asserts=0 -->
+<!-- card: families=fire; valve=; owner_ok=; removed_asserts=0 -->
 
 **發卡／施工**：Claude。T639 主線跑法總綱第二張施工卡（業主 2026-10-14「你決定主綫怎麽加」「方案出來之後直接施工就行」）。
 **claim**：Claude；分支 `claude/town-scope-gate-641`。
