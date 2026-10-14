@@ -15,7 +15,8 @@
 - 分支 → CI 綠 → PR → 合併；**能直推 `main` 也不直推**，main 隨時要綠，不准帶紅合併、不准靠重跑賭過。
 - **開分支就開 draft PR**，CI 自動跑（T640）；不准再把分支名寫進工作流，也不要拿手動 dispatch 代替 PR 的自動 CI（例外：動繪製迴圈或宣稱效能的卡，要手動 dispatch 一次跑只紀錄的 native-acceptance，結果寫進卡面）；轉 ready 會重跑一輪；合併前把 Codex 的 P0／P1 在 PR 上一行回覆（修了附 commit，不修寫理由）。
 - **GPT 可以自己合併自己的 PR**（業主 2026-10-14「自己合就行」）：分支 CI 綠、PR 接在最新 `main` 上、`docs/迭代不改壞標準.md` 第 8 節自檢逐條打勾才合；美術要業主看圖的，照舊等業主點頭再合。
-- **main 紅了**：讓它變紅的那次合併，由作者先開純 `git revert -m 1 <合併提交>` 的 PR，不在 main 上疊修補賭綠（T639）。
+- **main 紅了**：讓它變紅的那次合併，由作者先開純 `git revert -m 1 <合併提交>` 的 PR，不在 main 上疊修補賭綠（T639）。直推進 main 的普通提交同樣用 `git revert <提交>`。純 revert 免卡面規則，棘輪以被撤提交的父提交為基準，這條路不會被守衛擋住（T650）。
+- **開分支與推送**：`git switch --no-track -c <分支> origin/main`、`git push origin HEAD:refs/heads/<分支>`。本倉庫 `push.default=upstream`，從 origin/main 開的分支會追蹤 main，裸推會直推 main（T650 起因）。
 - **提交身分**：Claude 提交一律 `git -c user.name=Claude -c user.email=noreply@anthropic.com commit`；GPT 在自己的工作樹設 repo-local `user.name="GPT (Codex)"`；不動全域設定（T639）。
 - 卡面（`docs/tasks/Txxx-*.md`）動手前先推，驗收條件之後不准改鬆；**claim 寫在卡頭**，不另開 `.claim` 檔（T639）。
 - **新卡標題下一行要有卡頭機讀欄**（T641，CI 的 scope 會核）：`<!-- card: families=無; valve=; owner_ok=; removed_asserts=0 -->`。`families`（改哪些美術家族，沒有寫「無」）、`valve`（逃生閥）、`removed_asserts`（有意刪掉幾條既有斷言）從卡面第一個 commit 起不准改；`owner_ok` 只准從空變成業主原話（附日期），有字之後不准改。一個 PR 一張卡；純文件（全部 `.md`）走快道，不跑瀏覽器各道。`gpt/` 分支動 `.github/`、`tools/`、規則檔、改既有斷言，CI 直接判紅，交 main 寫入者。

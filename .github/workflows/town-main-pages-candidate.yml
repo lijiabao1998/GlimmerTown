@@ -21,6 +21,7 @@ jobs:
       lane: ${{ steps.scope.outputs.lane }}
       ok: ${{ steps.scope.outputs.ok }}
       removed_asserts: ${{ steps.scope.outputs.removed_asserts }}
+      ratchet_base: ${{ steps.scope.outputs.ratchet_base }}
       base: ${{ steps.base.outputs.base }}
     steps:
       - uses: actions/checkout@v4
@@ -373,9 +374,12 @@ jobs:
       - name: PASS ratchet against base
         env:
           BASE: ${{ needs.scope.outputs.base }}
+          RATCHET_BASE: ${{ needs.scope.outputs.ratchet_base }}
           REMOVED: ${{ needs.scope.outputs.removed_asserts }}
         run: |
           mkdir -p evidence
+          # T650：純 revert 的基準是被撤提交的第一父（scope 給 ratchet_base）；舊版 scope.py 沒給就用 base
+          BASE="${RATCHET_BASE:-$BASE}"
           git worktree add -q "$RUNNER_TEMP/base" "$BASE"
           (cd "$RUNNER_TEMP/base" && node test_fixde.js > "$GITHUB_WORKSPACE/evidence/base.out" 2>&1) || true
           (node test_fixde.js > evidence/head.out 2>&1) || true
