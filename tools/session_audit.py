@@ -42,7 +42,10 @@ class GhApi:
 
 
 def _t(s):
-    return dt.datetime.fromisoformat(s.replace('Z', '+00:00')) if s else None
+    if not s:
+        return None
+    t = dt.datetime.fromisoformat(s.replace('Z', '+00:00'))
+    return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)  # --since 只給日期時沒有時區，一律當 UTC
 
 
 def audit(api, repo, since, findings_text=''):

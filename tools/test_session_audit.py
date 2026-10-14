@@ -110,6 +110,11 @@ class AuditTests(unittest.TestCase):
         f['repos/%s/issues/50/comments' % R] = [{'body': '<!-- %s -->' % sa.SUMMARY_TAG, 'created_at': '2026-10-15T02:00:00Z'}]
         self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), ['merged-before-codex'])
 
+    def test_since_date_only_is_utc(self):
+        # 實跑 `--since 2026-10-14` 曾因不帶時區的時間跟 API 時間比較而崩潰
+        self.assertEqual(sa._t('2026-10-14'), SINCE)
+        self.assertEqual(kinds(sa.audit(Fake(base_fixture()), R, sa._t('2026-10-14'))), [])
+
     def test_main_red(self):
         f = base_fixture()
         f['repos/%s/actions/runs?branch=main&per_page=20' % R]['workflow_runs'][0]['conclusion'] = 'failure'
