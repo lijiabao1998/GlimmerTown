@@ -88,6 +88,29 @@ class ScopeTests(unittest.TestCase):
         self.r.write('docs/tasks/T641-x.md', card(641)); self.r.write('docs/tasks/T642-y.md', card(642)); self.r.commit('x')
         self.assertIn('one-card', self.rules(self.r.run()))
 
+    def test_docs_lane_two_new_cards_is_red(self):
+        self.r.branch('claude/a'); self.r.write('docs/tasks/T641-x.md', card(641)); self.r.write('docs/tasks/T642-y.md', card(642)); self.r.commit('x')
+        res = self.r.run()
+        self.assertEqual(res['lane'], 'docs'); self.assertIn('one-card', self.rules(res))
+
+    def test_new_card_plus_modified_headered_card_is_red(self):
+        # base 有一張帶卡頭、removed_asserts=5 的舊卡；新 PR 加自己的卡又碰那張，不能借它的 5
+        self.r.write('docs/tasks/T630-舊有頭.md', card(630, r='5')); self.r.commit('old headered')
+        self.r.branch('claude/a'); self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T641-x.md', card(641))
+        self.r.write('docs/tasks/T630-舊有頭.md', card(630, r='5', body='補一句')); self.r.commit('x')
+        res = self.r.run()
+        self.assertIn('one-card', self.rules(res))
+
+    def test_header_removed_after_first_commit_is_red(self):
+        self.r.branch('claude/a'); self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T641-x.md', card(641)); self.r.commit('with header')
+        self.r.write('docs/tasks/T641-x.md', '# T641 x\n\n卡頭拿掉了\n'); self.r.commit('header gone')
+        self.assertIn('card-header', self.rules(self.r.run()))
+
+    def test_first_commit_without_header_is_red(self):
+        self.r.branch('claude/a'); self.r.write('docs/tasks/T641-x.md', '# T641 x\n\n沒卡頭\n'); self.r.commit('card without header')
+        self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T641-x.md', card(641)); self.r.commit('header added later')
+        self.assertIn('card-header', self.rules(self.r.run()))
+
     def test_new_card_without_header_is_red(self):
         self.r.branch('claude/a'); self.r.write('index.html', 'v2\n')
         self.r.write('docs/tasks/T641-x.md', '# T641 x\n\n沒卡頭\n'); self.r.commit('x')
@@ -156,6 +179,60 @@ class ScopeTests(unittest.TestCase):
         self.assertTrue(res['ok'], res); self.assertEqual(res['revert_of'], m)
         self.r.write('index.html', '<html>v3</html>\n'); self.r.commit('extra')
         self.assertEqual(self.rules(self.r.run(base='main')), ['one-card'])
+
+    def test_revert_of_direct_push_restoring_frozen_field_is_green(self):
+        # T650 起因：丟棄用的「改凍結欄」提交被直推進 main；撤銷它的 PR 不准被凍結欄規則擋住
+        self.r.write('docs/tasks/T630-有頭.md', card(630)); self.r.commit('headered card')
+        self.r.write('docs/tasks/T630-有頭.md', card(630, f='fire')); bad = self.r.commit('direct push: families 無->fire')
+        self.r.git('checkout', '-q', '-b', 'claude/revert'); self.r.git('revert', '--no-edit', bad)
+        res = self.r.run(base='main')
+        self.assertTrue(res['ok'], res); self.assertEqual(res['revert_of'], bad)
+        self.assertEqual(res['ratchet_base'], self.r.git('rev-parse', bad + '^1'))
+
+    def test_whitespace_altered_revert_is_not_pure(self):
+        # 內容等於反向 patch、只多一個前導空白：卡頭因此失效，不能被當成純 revert 免掉（Codex #27 P2）
+        self.r.write('docs/tasks/T630-有頭.md', card(630)); self.r.commit('headered card')
+        self.r.write('docs/tasks/T630-有頭.md', card(630, f='fire')); self.r.commit('direct push')
+        self.r.branch('claude/fix'); self.r.write('docs/tasks/T630-有頭.md', card(630).replace('<!-- card:', ' <!-- card:')); self.r.commit('near revert')
+        res = self.r.run(base='main')
+        self.assertIsNone(res['revert_of']); self.assertIn('card-header', self.rules(res))
+
+    def test_non_pure_revert_of_frozen_field_stays_red(self):
+        self.r.write('docs/tasks/T630-有頭.md', card(630)); self.r.commit('headered card')
+        self.r.write('docs/tasks/T630-有頭.md', card(630, f='fire')); self.r.commit('direct push')
+        self.r.branch('claude/fix'); self.r.write('docs/tasks/T630-有頭.md', card(630, body='順手改內文')); self.r.commit('not a pure revert')
+        res = self.r.run(base='main')
+        self.assertIsNone(res['revert_of']); self.assertIn('card-frozen', self.rules(res))
+
+    def test_revert_of_direct_code_push_resets_ratchet_base(self):
+        self.r.write('test_fixde.js', 'assert(1);\nassert(2);\nassert(3);\n'); bad = self.r.commit('direct push adds an assert')
+        self.r.git('checkout', '-q', '-b', 'claude/revert'); self.r.git('revert', '--no-edit', bad)
+        res = self.r.run(base='main')
+        self.assertTrue(res['ok'], res); self.assertEqual(res['lane'], 'full')
+        self.assertEqual(res['ratchet_base'], self.r.git('rev-parse', bad + '^1'))
+
+    def test_clean_card_revert_still_resets_ratchet_base(self):
+        # 撤銷的合併只動了有卡頭舊卡的內文＋加斷言：卡面沒違規，但棘輪基準照樣要換成被撤合併的第一父
+        self.r.write('docs/tasks/T630-有頭.md', card(630)); self.r.commit('headered card')
+        self.r.branch('claude/feat'); self.r.write('docs/tasks/T630-有頭.md', card(630, body='補紀錄'))
+        self.r.write('test_fixde.js', 'assert(1);\nassert(2);\nassert(3);\n'); self.r.commit('feat')
+        self.r.git('checkout', '-q', 'main'); self.r.git('merge', '-q', '--no-ff', 'claude/feat', '-m', 'Merge feat')
+        m = self.r.git('rev-parse', 'HEAD')
+        self.r.git('checkout', '-q', '-b', 'claude/revert'); self.r.git('revert', '--no-edit', '-m', '1', m)
+        res = self.r.run(base='main')
+        self.assertTrue(res['ok'], res); self.assertEqual(res['revert_of'], m)
+        self.assertEqual(res['ratchet_base'], self.r.git('rev-parse', m + '^1'))
+
+    def test_ratchet_base_is_base_when_not_revert(self):
+        self.r.branch('claude/a'); self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T641-x.md', card(641)); self.r.commit('x')
+        res = self.r.run()
+        self.assertIsNone(res['revert_of']); self.assertEqual(res['ratchet_base'], self.r.git('rev-parse', 'main'))
+
+    def test_pure_revert_still_checks_gpt_lane(self):
+        self.r.write('tools/verify.py', 'print(2)\n'); bad = self.r.commit('direct push to tools')
+        self.r.git('checkout', '-q', '-b', 'gpt/revert'); self.r.git('revert', '--no-edit', bad)
+        res = self.r.run(base='main', ref='gpt/revert')
+        self.assertEqual(res['revert_of'], bad); self.assertEqual(self.rules(res), ['gpt-lane'])
 
     def test_removed_asserts_reported(self):
         self.r.branch('claude/a'); self.r.write('docs/tasks/T641-x.md', card(641, r='2')); self.r.write('test_fixde.js', 'assert(1);\n'); self.r.commit('x')

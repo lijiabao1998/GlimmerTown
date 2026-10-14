@@ -13,7 +13,10 @@
   <!-- card: families=<無|家族,家族>; valve=<逃生閥或空>; owner_ok=<空或業主原話（日期）>; removed_asserts=<整數> -->
   families、valve、removed_asserts 從第一個加入這張卡的 commit 起凍結；owner_ok 只准從空變成有字，有字之後不准再改。
   base 已經有卡頭的卡，在這次範圍內同樣不准改凍結欄位。新卡的號碼在 base 已經存在＝撞號。
-- full 道：恰好一張卡（新增的卡，或沒有新增時恰好一張已有卡頭的卡被修改）；純 revert（diff 的 patch-id 等於某個 main 合併提交第一父反向 diff）免卡。
+- full 道：恰好一張卡（新增的卡，或沒有新增時恰好一張已有卡頭的卡被修改）。
+- 純 revert（diff 的 patch-id 等於 main 第一父鏈上某個提交——合併或直推——對其第一父的反向 diff）免一切卡面規則
+  （一 PR 一卡、卡頭、凍結欄、owner_ok、撞號），因為它只是把 main 退回它自己有過的內容；gpt 越道與寫死 SHA 照查。
+  棘輪基準改成被撤提交的第一父（ratchet_base），不跟撤銷前的 base 比（T650：「main 紅就開 revert PR」這條路不准被守衛擋住）。
 - gpt/ 分支越道：碰 .github/、tools/、test_fixde.js 的刪改行（只新增不算）、不屬於本卡的 docs/tasks/*-shots/、docs/SPR_PINS.json、規則檔。
 - 守衛程式（.github/、tools/、docs/tasks/*-shots/、test_fixde.js 裡的 .js/.cjs/.mjs/.py/.yml/.yaml/.sh）新增行出現 40 位十六進位＝寫死提交 SHA；docs/APPROVED_ART.json 例外；64 位只警告。
 """
@@ -102,7 +105,8 @@ def patch_id(repo, a, b):
     diff = subprocess.run(['git', 'diff', '--binary', a, b], cwd=repo, capture_output=True).stdout
     if not diff.strip():
         return None
-    r = subprocess.run(['git', 'patch-id', '--stable'], cwd=repo, input=diff, capture_output=True)
+    # --verbatim 不剝空白：純 revert 要免掉全部卡面規則，只差空白的「近似撤銷」不能算（Codex #27 P2）
+    r = subprocess.run(['git', 'patch-id', '--verbatim'], cwd=repo, input=diff, capture_output=True)
     out = r.stdout.decode().split()
     return out[0] if out else None
 
@@ -111,7 +115,7 @@ def is_pure_revert(repo, base, head, depth=60):
     pid = patch_id(repo, base, head)
     if not pid:
         return None
-    for m in git(repo, 'rev-list', '--merges', '--first-parent', '-n', str(depth), base).split():
+    for m in git(repo, 'rev-list', '--first-parent', '-n', str(depth), base).split():  # 合併與直推都算（T650）
         if patch_id(repo, m, m + '^1') == pid:
             return m
     return None
@@ -155,8 +159,12 @@ def analyse(repo, base, head, head_ref=''):
                 v.append({'rule': 'card-header', 'path': p, 'detail': '卡頭被拿掉了'})
         # 凍結欄位與 owner_ok 單向：從 base（或第一個加入這張卡的 commit）一路走到 head
         prev = bh
+        first = True
         for c in card_history(repo, base, head, p):
             ch, cerr = parse_header(show(repo, c, p))
+            if first and base_text is None and ch is None:  # 卡頭要從第一個加入這張卡的 commit 就有（Codex #26 P2）
+                v.append({'rule': 'card-header', 'path': p, 'detail': '第一個加入這張卡的 commit（%s）沒有合法卡頭；卡頭要從第一個 commit 就有，之後才凍結得住' % c[:7]})
+            first = False
             if ch is None:
                 continue
             if prev is not None:
@@ -167,17 +175,21 @@ def analyse(repo, base, head, head_ref=''):
                     v.append({'rule': 'card-owner-ok', 'path': p, 'detail': 'owner_ok 有字之後在 %s 被改動（只准從空變成業主原話）' % c[:7]})
             prev = ch
 
-    revert = None
-    if lane == 'full':
-        if len(added_cards) > 1:
-            v.append({'rule': 'one-card', 'path': '', 'detail': '一個 PR 一張卡，這次新增了 %d 張：%s' % (len(added_cards), '、'.join(c['path'] for c in added_cards))})
-        elif not added_cards and len(headered_mod) != 1:
-            revert = is_pure_revert(repo, base, head)
-            if not revert:
-                v.append({'rule': 'one-card', 'path': '', 'detail': 'full 道的 PR 要帶一張卡（新增一張，或修改恰好一張已有卡頭的卡）；純 revert 例外'})
+    own = added_cards + headered_mod  # 新增的卡與動到的有卡頭舊卡一起算（Codex #26 P2），任何道都最多一張；否則碰一下別張舊卡就能借它的 removed_asserts
+    if len(own) > 1:
+        v.append({'rule': 'one-card', 'path': '', 'detail': '一個 PR 一張卡，這次新增或修改了 %d 張有卡頭的卡：%s' % (len(own), '、'.join(c['path'] for c in own))})
+    elif lane == 'full' and not own:
+        v.append({'rule': 'one-card', 'path': '', 'detail': 'full 道的 PR 要帶一張卡（新增一張，或修改恰好一張已有卡頭的卡）；純 revert 例外'})
+
+    # 到這裡 v 裡只有卡面規則。卡面有違規、或要跑棘輪（full 道）時，才算是不是純 revert（要算幾十個 patch-id）。
+    revert = is_pure_revert(repo, base, head) if (v or lane == 'full') else None
+    ratchet_base = base
+    if revert:
+        v = []  # T650：純 revert 只是把 main 退回它自己有過的內容，卡面規則全免；gpt 越道與寫死 SHA 在下面照查
+        ratchet_base = git(repo, 'rev-parse', revert + '^1').strip()
 
     removed = 0
-    for c in added_cards + headered_mod:
+    for c in own:
         if c['header']:
             removed = max(removed, int(c['header']['removed_asserts']))
 
@@ -219,14 +231,14 @@ def analyse(repo, base, head, head_ref=''):
                 w.append({'rule': 'hardcoded-sha256', 'path': p, 'detail': '新增行有 64 位雜湊（只警告）：' + line[1:].strip()[:160]})
 
     return {'base': base, 'head': head, 'head_ref': head_ref, 'lane': lane, 'ok': not v, 'removed_asserts': removed,
-            'revert_of': revert, 'files': len(paths), 'cards': [{'path': c['path'], 'added': c['added'], 'header': c['header']} for c in cards],
+            'revert_of': revert, 'ratchet_base': ratchet_base, 'files': len(paths), 'cards': [{'path': c['path'], 'added': c['added'], 'header': c['header']} for c in cards],
             'violations': v, 'warnings': w}
 
 
 def summary_md(r):
     out = ['## scope（T641）', '', '- 道別：**%s**（%d 個檔）' % (r['lane'], r['files']), '- 結論：%s' % ('綠' if r['ok'] else '**紅**')]
     if r['revert_of']:
-        out.append('- 純 revert：%s' % r['revert_of'][:12])
+        out.append('- 純 revert：%s（卡面規則免；棘輪基準＝其第一父 %s）' % (r['revert_of'][:12], r['ratchet_base'][:12]))
     for c in r['cards']:
         h = c['header'] or {}
         out.append('- 卡：`%s`%s families=%s；valve=%s；owner_ok=%s；removed_asserts=%s' % (
@@ -255,7 +267,7 @@ def main(argv=None):
     print(json.dumps(r, ensure_ascii=False, indent=1))
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as f:
-            f.write('lane=%s\nok=%s\nremoved_asserts=%d\n' % (r['lane'], 'true' if r['ok'] else 'false', r['removed_asserts']))
+            f.write('lane=%s\nok=%s\nremoved_asserts=%d\nratchet_base=%s\n' % (r['lane'], 'true' if r['ok'] else 'false', r['removed_asserts'], r['ratchet_base']))
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as f:
             f.write(summary_md(r))
