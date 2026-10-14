@@ -46,7 +46,7 @@ jobs:
         id: scope
         env:
           BASE: ${{ steps.base.outputs.base }}
-          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}  # T642：手動 dispatch 沒有 head_ref，用 ref_name，gpt/ 越道規則照查
         run: |
           mkdir -p evidence
           if git cat-file -e "$BASE:tools/scope.py" 2>/dev/null; then git show "$BASE:tools/scope.py" > "$RUNNER_TEMP/scope.py"; else cp tools/scope.py "$RUNNER_TEMP/scope.py"; fi
@@ -404,6 +404,7 @@ jobs:
         env:
           LANE: ${{ needs.scope.outputs.lane }}
           NEEDS: ${{ toJSON(needs) }}
+          EVENT: ${{ github.event_name }}
         run: |
           python3 - <<'PY'
           import json, os, sys
@@ -411,6 +412,10 @@ jobs:
           res = {k: v['result'] for k, v in needs.items()}
           heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'ratchet']
           bad = [k for k in ('scope', 'validate') if res.get(k) != 'success']
+          # T642（Codex #29 P1）：必要檢查只看提交上最新的 gate，手動 dispatch 的綠 gate 會蓋掉 PR 那輪的紅 gate。
+          # dispatch 只用來跑只紀錄的 native-acceptance，一律判紅（fail-closed；不用 skipped，skipped 會被當成通過）。
+          if os.environ.get('EVENT') == 'workflow_dispatch':
+              bad.append('workflow_dispatch 不產生可合併的 gate（重跑 PR 那一輪即可恢復）')
           if lane == 'full':
               bad += [k for k in heavy if res.get(k) != 'success']
           elif lane == 'docs':

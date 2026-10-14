@@ -83,6 +83,26 @@ def registered(findings_text, n, c):
     return any(re.search(pr, row) and re.search(loc, row) for row in (findings_text or '').splitlines())
 
 
+GATE_RUN = re.compile(r'/actions/runs/(\d+)/')
+
+
+def gate_state(api, repo, sha):
+    """head 上最新那個 gate 的結論；必須是 pull_request 那一輪跑出來的才算 success。
+    手動 dispatch 的 head_ref 是空的、scope 會漏掉 gpt 越道規則，而必要檢查只看最新那個 gate，
+    所以 dispatch 的綠 gate 不能拿來蓋掉 PR 那輪的紅 gate（Codex #29 P1）。"""
+    cr = (api.get('repos/%s/commits/%s/check-runs?check_name=gate' % (repo, sha)) or {}).get('check_runs', [])
+    if not cr:
+        return '沒有 gate'
+    c = cr[0]
+    if c.get('conclusion') != 'success':
+        return c.get('conclusion') or c.get('status') or '？'
+    m = GATE_RUN.search(c.get('details_url') or c.get('html_url') or '')
+    run = (api.get('repos/%s/actions/runs/%s' % (repo, m.group(1))) or {}) if m else {}
+    if run.get('event') != 'pull_request':
+        return '不是 PR 那一輪（event=%s）' % run.get('event')
+    return 'success'
+
+
 def is_codex_summary(c):
     """Codex 的審查摘要：作者必須是 Codex 本身。公開倉庫任何人都能貼一則帶同樣標記的留言冒充（Codex #29 P1）。"""
     return c.get('user', {}).get('login') == CODEX and SUMMARY_TAG in (c.get('body') or '')
@@ -125,9 +145,9 @@ def premerge_check(api, repo, n):
     bad = []
     pr = api.get('repos/%s/pulls/%d' % (repo, n)) or {}
     sha = pr.get('head', {}).get('sha', '')
-    cr = (api.get('repos/%s/commits/%s/check-runs?check_name=gate' % (repo, sha)) or {}).get('check_runs', [])
-    if not cr or cr[0].get('conclusion') != 'success':
-        bad.append('gate 不是綠（head %s：%s）' % (sha[:7], cr[0].get('conclusion') if cr else '沒有 gate'))
+    g = gate_state(api, repo, sha)
+    if g != 'success':
+        bad.append('gate 不是綠（head %s：%s）' % (sha[:7], g))
     ok, why = codex_reviewed(api, repo, n, sha)
     if not ok:
         bad.append(why)
@@ -181,8 +201,7 @@ def audit(api, repo, since, findings_text=''):
             continue
         n, ref, sha = pr['number'], pr['head']['ref'], pr['head']['sha']
         row = {'pr': n, 'ref': ref, 'merged_at': pr['merged_at']}
-        cr = (api.get('repos/%s/commits/%s/check-runs?check_name=gate' % (repo, sha)) or {}).get('check_runs', [])
-        row['gate'] = cr[0].get('conclusion') if cr else '無'
+        row['gate'] = gate_state(api, repo, sha)
         if row['gate'] != 'success':  # Codex #29 P2：沒綠就合的要報出來，這正是繞過保護的痕跡
             flags.append({'kind': 'gate-not-green', 'detail': '#%d 合併時 head 的 gate：%s' % (n, row['gate'])})
         summary = [c for c in api.get('repos/%s/issues/%d/comments' % (repo, n), paginate=True) or [] if is_codex_summary(c)]

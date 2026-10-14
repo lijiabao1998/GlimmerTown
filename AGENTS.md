@@ -13,7 +13,7 @@
 ## 最常被忘的幾條
 
 - 分支 → CI 綠 → PR → 合併；**能直推 `main` 也不直推**，main 隨時要綠，不准帶紅合併、不准靠重跑賭過。
-- **開分支就開 draft PR**，CI 自動跑（T640）；不准再把分支名寫進工作流，也不要拿手動 dispatch 代替 PR 的自動 CI（例外：動繪製迴圈或宣稱效能的卡，要手動 dispatch 一次跑只紀錄的 native-acceptance，結果寫進卡面）；轉 ready 會重跑一輪；合併前把 Codex 的 P0／P1 在 PR 上一行回覆（修了附 commit，不修寫理由）。**合併一律 `sha=$(python tools/session_audit.py --premerge <PR>) && gh pr merge <PR> --merge --match-head-commit "$sha"`**：gate 綠、Codex 審過**當前 head** 且審完、P0／P1 都回覆了才放行，合併釘在驗過的 head 上；推了修補提交後，在 PR 留言 `@codex review` 讓它重審（T642）。
+- **開分支就開 draft PR**，CI 自動跑（T640）；不准再把分支名寫進工作流，也不要拿手動 dispatch 代替 PR 的自動 CI（例外：動繪製迴圈或宣稱效能的卡，要手動 dispatch 一次跑只紀錄的 native-acceptance，結果寫進卡面；dispatch 那一輪的 gate 一律紅，跑完要在 Actions 重跑 PR 那一輪，gate 才會回綠，T642）；轉 ready 會重跑一輪；合併前把 Codex 的 P0／P1 在 PR 上一行回覆（修了附 commit，不修寫理由）。**合併一律 `sha=$(python tools/session_audit.py --premerge <PR>) && gh pr merge <PR> --merge --match-head-commit "$sha"`**：gate 綠、Codex 審過**當前 head** 且審完、P0／P1 都回覆了才放行，合併釘在驗過的 head 上；推了修補提交後，在 PR 留言 `@codex review` 讓它重審（T642）。
 - **開工巡檢**：Claude 每次開工跑 `python tools/session_audit.py`，把四行結論給業主；沒回覆的 Codex P0／P1 登記在 `docs/REVIEW-FINDINGS.md`（T642）。
 - **GPT 可以自己合併自己的 PR**（業主 2026-10-14「自己合就行」）：分支 CI 綠、PR 接在最新 `main` 上、`docs/迭代不改壞標準.md` 第 8 節自檢逐條打勾才合；美術要業主看圖的，照舊等業主點頭再合。
 - **main 紅了**：讓它變紅的那次合併，由作者先開純 `git revert -m 1 <合併提交>` 的 PR，不在 main 上疊修補賭綠（T639）。直推進 main 的普通提交同樣用 `git revert <提交>`。純 revert 免卡面規則，棘輪以被撤提交的父提交為基準，這條路不會被守衛擋住（T650）。
