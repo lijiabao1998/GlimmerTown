@@ -20,4 +20,5 @@
 | #29 | P2 | tools/session_audit.py:156 | 照改：巡檢新增 unreviewed-head（合併時的 head Codex 沒審過） |
 | #29 | P2 | tools/session_audit.py:137 | 照改：rule-suites 分頁 |
 | #29 | P2 | tools/session_audit.py:164 | 照改：line 為空時訊息退回 original_line |
+| #29 | P1 | tools/session_audit.py:236 | 照改：premerge 通過時 stdout 只印驗過的 SHA，合併加 `--match-head-commit`，堵住檢查後到合併前的競態 |
 | #29 | P2 | tools/session_audit.py:177 | → T644：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |

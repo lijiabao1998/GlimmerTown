@@ -3,8 +3,9 @@
 
 用法：python tools/session_audit.py [--repo lijiabao1998/GlimmerTown] [--since 2026-10-14T00:00:00Z] [--findings docs/REVIEW-FINDINGS.md] [--json 路徑]
 沒給 --since 時看最近 7 天合併的 PR。詳細結果用 --json 寫到倉庫外（例如 scratchpad），不進倉庫。
-合併前檢查：python tools/session_audit.py --premerge <PR 號> && gh pr merge <PR 號> --merge
-（head 的 gate 綠、Codex 審過當前 head、沒有未回覆的 P0／P1，不過就 exit 1）。
+合併前檢查：sha=$(python tools/session_audit.py --premerge <PR 號>) && gh pr merge <PR 號> --merge --match-head-commit "$sha"
+（head 的 gate 綠、Codex 審過當前 head、沒有未回覆的 P0／P1，不過就 exit 1；通過時 stdout 只印驗過的 head SHA，
+合併釘在這個 SHA 上，檢查完到合併前有人再推就合不進去）。
 
 四段：① main 最近一輪 Town main 的結論與 deploy／verify-published；② 設定有沒有被動過
 （require-gate 規則集在且沒有繞過者、只准 merge commit、自動刪分支、近 7 天規則集被繞過的次數）；
@@ -103,8 +104,14 @@ def codex_reviewed(api, repo, n, sha):
 
 
 def premerge(api, repo, n):
-    """合併前檢查：head 的 gate 綠、Codex 審過**當前 head**、沒有未回覆的 P0／P1。回傳不過的原因清單（空＝可以合）。
-    2026-10-15 #28 的合併步驟把 Codex P1 印了出來卻沒有停，先合後回；之後合併一律 `--premerge N && gh pr merge N`。
+    return premerge_check(api, repo, n)[0]
+
+
+def premerge_check(api, repo, n):
+    """合併前檢查：head 的 gate 綠、Codex 審過**當前 head**、沒有未回覆的 P0／P1。回傳 (不過的原因清單, 驗過的 head SHA)。
+    2026-10-15 #28 的合併步驟把 Codex P1 印了出來卻沒有停，先合後回；之後合併一律
+    `sha=$(python tools/session_audit.py --premerge N) && gh pr merge N --merge --match-head-commit "$sha"`：
+    合併釘在驗過的 head 上，中間有人再推就合不進去（Codex #29 P1）。
     推了新提交以後，舊的審查不算數（Codex #29 P1）：在 PR 上留言 `@codex review` 讓它重審。"""
     bad = []
     pr = api.get('repos/%s/pulls/%d' % (repo, n)) or {}
@@ -117,7 +124,7 @@ def premerge(api, repo, n):
         bad.append(why)
     for lvl, c in unanswered_p01(api.get('repos/%s/pulls/%d/comments' % (repo, n), paginate=True) or []):
         bad.append('未回覆的 %s：%s:%s（comment %s）' % (lvl, c.get('path'), c.get('line') or c.get('original_line'), c.get('id')))
-    return bad
+    return bad, sha
 
 
 def audit(api, repo, since, findings_text=''):
@@ -236,11 +243,13 @@ def main(argv=None):
     ap.add_argument('--premerge', type=int, metavar='PR', help='合併前檢查，不過 exit 1：python tools/session_audit.py --premerge N && gh pr merge N --merge')
     a = ap.parse_args(argv)
     if a.premerge:
-        bad = premerge(GhApi(), a.repo, a.premerge)
+        # 訊息走 stderr；通過時 stdout 只印驗過的 head SHA，給 gh pr merge --match-head-commit 用
+        bad, sha = premerge_check(GhApi(), a.repo, a.premerge)
         for b in bad:
-            print('PREMERGE ✗ #%d %s' % (a.premerge, b))
+            print('PREMERGE ✗ #%d %s' % (a.premerge, b), file=sys.stderr)
         if not bad:
-            print('PREMERGE ✓ #%d：gate 綠、Codex 審過當前 head、沒有未回覆的 P0／P1' % a.premerge)
+            print('PREMERGE ✓ #%d：head %s gate 綠、Codex 審過、沒有未回覆的 P0／P1' % (a.premerge, sha[:7]), file=sys.stderr)
+            print(sha)
         return 1 if bad else 0
     since = _t(a.since) if a.since else dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=7)
     findings = open(a.findings, encoding='utf-8').read() if os.path.exists(a.findings) else ''

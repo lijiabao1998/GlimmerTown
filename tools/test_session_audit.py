@@ -200,6 +200,23 @@ class AuditTests(unittest.TestCase):
         f['repos/%s/pulls/52/reviews' % R] = [{'user': {'login': sa.CODEX}, 'commit_id': SHA[52]}]
         self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), [])
 
+    def test_premerge_cli_prints_only_validated_sha(self):
+        # stdout 只有驗過的 head SHA，才能接 gh pr merge --match-head-commit（Codex #29 P1：檢查後到合併前的競態）
+        import contextlib
+        import io
+        from unittest import mock
+        f = base_fixture()
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(sa, 'GhApi', lambda: Fake(f)), contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = sa.main(['--repo', R, '--premerge', '52'])
+        self.assertEqual((rc, out.getvalue()), (0, SHA[52] + '\n'))
+        f['repos/%s/commits/%s/check-runs?check_name=gate' % (R, SHA[52])] = {'check_runs': [{'conclusion': 'failure'}]}
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(sa, 'GhApi', lambda: Fake(f)), contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = sa.main(['--repo', R, '--premerge', '52'])
+        self.assertEqual((rc, out.getvalue()), (1, ''))
+        self.assertIn('gate', err.getvalue())
+
     def test_bypass_past_first_page_of_rule_suites(self):
         f = base_fixture()
         f['repos/%s/rulesets/rule-suites?time_period=week' % R] = [{'result': 'pass', 'ref': 'refs/heads/main'}] * 30 + [{'result': 'bypass', 'ref': 'refs/heads/main'}]
