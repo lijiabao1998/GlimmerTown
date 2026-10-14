@@ -1,0 +1,5882 @@
+{
+  "audit": {
+    "type": "read-only source-derived inventory; runtime verification recorded separately",
+    "head": "d88e36d866226ac182dd92ecab63c29a540a4ef8",
+    "branch": "gpt/town-british-whole-batch-local",
+    "version": "11.214",
+    "source_sha256": "681f52b42d2b6d10210436dcb7fce85b1c76f9a40e906dcecfb2b4aa58de0cd3",
+    "pins_count": 1586,
+    "notes": [
+      "No tracked repository files modified",
+      "No public state changed",
+      "No claim or release authorization inferred from historical task prose",
+      "Newer-art coverage identifies existing families, not a new judgment of British-style adequacy"
+    ],
+    "browser_verification": {
+      "status": "blocked before navigation",
+      "rci_height_attempt": "Chrome did not start",
+      "route_attempt": "Chromium ProcessSingleton socket() failed Operation not permitted; crashpad config read-only",
+      "passed": false
+    }
+  },
+  "summary": {
+    "kind_count": 133,
+    "expanded_lot_count": 105,
+    "nonexpanded_count": 28,
+    "newer_default_kind_count": 61,
+    "remaining_default_k": [
+      1,
+      2,
+      3,
+      9,
+      16,
+      22,
+      24,
+      25,
+      26,
+      27,
+      31,
+      45,
+      46,
+      49,
+      50,
+      51,
+      54,
+      57,
+      58,
+      59,
+      62,
+      64,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      82,
+      83,
+      86,
+      89,
+      90,
+      91,
+      93,
+      94,
+      96,
+      98,
+      99,
+      100,
+      101,
+      103,
+      107,
+      109,
+      110,
+      111,
+      112,
+      115,
+      116,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127,
+      128,
+      129,
+      131,
+      132,
+      133
+    ],
+    "remaining_recipe_k": [
+      9,
+      16,
+      22,
+      25,
+      26,
+      27,
+      31,
+      45,
+      46,
+      49,
+      50,
+      51,
+      54,
+      58,
+      59,
+      62,
+      64,
+      68,
+      71,
+      75,
+      76,
+      80,
+      83,
+      86,
+      89,
+      90,
+      91,
+      93,
+      94,
+      96,
+      98,
+      99,
+      100,
+      101,
+      103,
+      107,
+      109,
+      110,
+      111,
+      112,
+      115,
+      116,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127,
+      128,
+      129,
+      131,
+      132,
+      133
+    ],
+    "remaining_nonlot_nonrci_k": [
+      24,
+      57,
+      67,
+      69,
+      70,
+      72,
+      73,
+      74,
+      77,
+      78,
+      79,
+      82
+    ],
+    "old_without_lot_newer_art_count": 50,
+    "old_gap_in_approved_group_k": [
+      8,
+      29,
+      53,
+      60,
+      63,
+      66,
+      85,
+      88,
+      92,
+      104,
+      117
+    ],
+    "remaining_old_k": [
+      1,
+      2,
+      3,
+      8,
+      9,
+      16,
+      22,
+      24,
+      25,
+      26,
+      27,
+      29,
+      31,
+      45,
+      46,
+      49,
+      50,
+      51,
+      53,
+      54,
+      57,
+      58,
+      59,
+      60,
+      62,
+      63,
+      64,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      82,
+      83,
+      85,
+      86,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      96,
+      98,
+      99,
+      100,
+      101,
+      103,
+      104,
+      107,
+      109,
+      110,
+      111,
+      112,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127,
+      128,
+      129,
+      131,
+      132,
+      133
+    ],
+    "rci_base_combinations": 108,
+    "rci_base_pin_missing": [],
+    "rci_wealth_extra_pin_count": 72,
+    "preview_direct_facade_counts": {
+      "generic": 77,
+      "British": 18,
+      "American": 13
+    }
+  },
+  "approved_groups": {
+    "T590": [
+      5,
+      6,
+      7,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      17,
+      18,
+      19,
+      20,
+      21,
+      23,
+      28,
+      30,
+      32,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      47,
+      48,
+      52,
+      55,
+      56,
+      61,
+      65,
+      84,
+      87,
+      95,
+      102,
+      108,
+      113,
+      114,
+      130
+    ],
+    "T593": [
+      105,
+      106
+    ],
+    "T599": [
+      33,
+      34
+    ],
+    "T601": [
+      4,
+      5,
+      8,
+      60,
+      63,
+      66,
+      81,
+      97
+    ],
+    "T602": [
+      53,
+      104,
+      117,
+      97
+    ],
+    "T603": [
+      29,
+      85,
+      92,
+      88
+    ]
+  },
+  "hooks": [
+    {
+      "anchor": "function lotVariant574(",
+      "line": 3294
+    },
+    {
+      "anchor": "function lotFarFrame574(",
+      "line": 3305
+    },
+    {
+      "anchor": "function lotSprite574(",
+      "line": 3317
+    },
+    {
+      "anchor": "function t596On(",
+      "line": 3389
+    },
+    {
+      "anchor": "function spr596(",
+      "line": 3409
+    },
+    {
+      "anchor": "function smoke596(",
+      "line": 3421
+    },
+    {
+      "anchor": "function neonRects596(",
+      "line": 3423
+    },
+    {
+      "anchor": "function lotKey591(",
+      "line": 3436
+    },
+    {
+      "anchor": "function lotV591(",
+      "line": 3437
+    },
+    {
+      "anchor": "function bakeLot574(",
+      "line": 3438
+    },
+    {
+      "anchor": "function reflectSprite(",
+      "line": 12781
+    },
+    {
+      "anchor": "if(bd.lot574)s=lotSprite574(",
+      "line": 19507
+    },
+    {
+      "anchor": "let u596=false;",
+      "line": 17202
+    },
+    {
+      "anchor": "function load(",
+      "line": 24746
+    },
+    {
+      "anchor": "const MSZ=",
+      "line": 24708
+    },
+    {
+      "anchor": "function getBlockSprite594(",
+      "line": 30724
+    },
+    {
+      "anchor": "const ARCHE594=",
+      "line": 30234
+    }
+  ],
+  "building_types": [
+    {
+      "k": 1,
+      "name": "住宅",
+      "category": "R",
+      "tool": null,
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy RCI SPR.bld + wealthSpr; den>=4 and lv3 forces 1_3_4",
+      "old_render_path": "legacy RCI SPR.bld + wealthSpr; den>=4 and lv3 forces 1_3_4",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/1_1_0",
+        "bld/1_1_0_w0",
+        "bld/1_1_0_w2",
+        "bld/1_1_1",
+        "bld/1_1_10",
+        "bld/1_1_10_w0",
+        "bld/1_1_10_w2",
+        "bld/1_1_11",
+        "bld/1_1_11_w0",
+        "bld/1_1_11_w2",
+        "bld/1_1_1_w0",
+        "bld/1_1_1_w2",
+        "bld/1_1_2",
+        "bld/1_1_2_w0",
+        "bld/1_1_2_w2",
+        "bld/1_1_3",
+        "bld/1_1_3_w0",
+        "bld/1_1_3_w2",
+        "bld/1_1_4",
+        "bld/1_1_4_w0",
+        "bld/1_1_4_w2",
+        "bld/1_1_5",
+        "bld/1_1_5_w0",
+        "bld/1_1_5_w2",
+        "bld/1_1_6",
+        "bld/1_1_6_w0",
+        "bld/1_1_6_w2",
+        "bld/1_1_7",
+        "bld/1_1_7_w0",
+        "bld/1_1_7_w2",
+        "bld/1_1_8",
+        "bld/1_1_8_w0",
+        "bld/1_1_8_w2",
+        "bld/1_1_9",
+        "bld/1_1_9_w0",
+        "bld/1_1_9_w2",
+        "bld/1_2_0",
+        "bld/1_2_0_w0",
+        "bld/1_2_0_w2",
+        "bld/1_2_1",
+        "bld/1_2_10",
+        "bld/1_2_10_w0",
+        "bld/1_2_10_w2",
+        "bld/1_2_11",
+        "bld/1_2_11_w0",
+        "bld/1_2_11_w2",
+        "bld/1_2_1_w0",
+        "bld/1_2_1_w2",
+        "bld/1_2_2",
+        "bld/1_2_2_w0",
+        "bld/1_2_2_w2",
+        "bld/1_2_3",
+        "bld/1_2_3_w0",
+        "bld/1_2_3_w2",
+        "bld/1_2_4",
+        "bld/1_2_4_w0",
+        "bld/1_2_4_w2",
+        "bld/1_2_5",
+        "bld/1_2_5_w0",
+        "bld/1_2_5_w2",
+        "bld/1_2_6",
+        "bld/1_2_6_w0",
+        "bld/1_2_6_w2",
+        "bld/1_2_7",
+        "bld/1_2_7_w0",
+        "bld/1_2_7_w2",
+        "bld/1_2_8",
+        "bld/1_2_8_w0",
+        "bld/1_2_8_w2",
+        "bld/1_2_9",
+        "bld/1_2_9_w0",
+        "bld/1_2_9_w2",
+        "bld/1_3_0",
+        "bld/1_3_0_w0",
+        "bld/1_3_0_w2",
+        "bld/1_3_1",
+        "bld/1_3_10",
+        "bld/1_3_10_w0",
+        "bld/1_3_10_w2",
+        "bld/1_3_11",
+        "bld/1_3_11_w0",
+        "bld/1_3_11_w2",
+        "bld/1_3_1_w0",
+        "bld/1_3_1_w2",
+        "bld/1_3_2",
+        "bld/1_3_2_w0",
+        "bld/1_3_2_w2",
+        "bld/1_3_3",
+        "bld/1_3_3_w0",
+        "bld/1_3_3_w2",
+        "bld/1_3_4",
+        "bld/1_3_4_w0",
+        "bld/1_3_4_w2",
+        "bld/1_3_5",
+        "bld/1_3_5_w0",
+        "bld/1_3_5_w2",
+        "bld/1_3_6",
+        "bld/1_3_6_w0",
+        "bld/1_3_6_w2",
+        "bld/1_3_7",
+        "bld/1_3_7_w0",
+        "bld/1_3_7_w2",
+        "bld/1_3_8",
+        "bld/1_3_8_w0",
+        "bld/1_3_8_w2",
+        "bld/1_3_9",
+        "bld/1_3_9_w0",
+        "bld/1_3_9_w2"
+      ],
+      "notes": [
+        "T596 opt-in preview; default old and new 1x1 paths remain legacy",
+        "36 base k/lv/v keys each; residential also has 72 wealth-side keys"
+      ]
+    },
+    {
+      "k": 2,
+      "name": "商業",
+      "category": "C",
+      "tool": null,
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy RCI SPR.bld",
+      "old_render_path": "legacy RCI SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/2_1_0",
+        "bld/2_1_1",
+        "bld/2_1_10",
+        "bld/2_1_11",
+        "bld/2_1_2",
+        "bld/2_1_3",
+        "bld/2_1_4",
+        "bld/2_1_5",
+        "bld/2_1_6",
+        "bld/2_1_7",
+        "bld/2_1_8",
+        "bld/2_1_9",
+        "bld/2_2_0",
+        "bld/2_2_1",
+        "bld/2_2_10",
+        "bld/2_2_11",
+        "bld/2_2_2",
+        "bld/2_2_3",
+        "bld/2_2_4",
+        "bld/2_2_5",
+        "bld/2_2_6",
+        "bld/2_2_7",
+        "bld/2_2_8",
+        "bld/2_2_9",
+        "bld/2_3_0",
+        "bld/2_3_1",
+        "bld/2_3_10",
+        "bld/2_3_11",
+        "bld/2_3_2",
+        "bld/2_3_3",
+        "bld/2_3_4",
+        "bld/2_3_5",
+        "bld/2_3_6",
+        "bld/2_3_7",
+        "bld/2_3_8",
+        "bld/2_3_9"
+      ],
+      "notes": [
+        "T596 opt-in preview; default old and new 1x1 paths remain legacy",
+        "36 base k/lv/v keys each; residential also has 72 wealth-side keys"
+      ]
+    },
+    {
+      "k": 3,
+      "name": "工業",
+      "category": "I",
+      "tool": null,
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy RCI SPR.bld",
+      "old_render_path": "legacy RCI SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/3_1_0",
+        "bld/3_1_1",
+        "bld/3_1_10",
+        "bld/3_1_11",
+        "bld/3_1_2",
+        "bld/3_1_3",
+        "bld/3_1_4",
+        "bld/3_1_5",
+        "bld/3_1_6",
+        "bld/3_1_7",
+        "bld/3_1_8",
+        "bld/3_1_9",
+        "bld/3_2_0",
+        "bld/3_2_1",
+        "bld/3_2_10",
+        "bld/3_2_11",
+        "bld/3_2_2",
+        "bld/3_2_3",
+        "bld/3_2_4",
+        "bld/3_2_5",
+        "bld/3_2_6",
+        "bld/3_2_7",
+        "bld/3_2_8",
+        "bld/3_2_9",
+        "bld/3_3_0",
+        "bld/3_3_1",
+        "bld/3_3_10",
+        "bld/3_3_11",
+        "bld/3_3_2",
+        "bld/3_3_3",
+        "bld/3_3_4",
+        "bld/3_3_5",
+        "bld/3_3_6",
+        "bld/3_3_7",
+        "bld/3_3_8",
+        "bld/3_3_9"
+      ],
+      "notes": [
+        "T596 opt-in preview; default old and new 1x1 paths remain legacy",
+        "36 base k/lv/v keys each; residential also has 72 wealth-side keys"
+      ]
+    },
+    {
+      "k": 4,
+      "name": "公園",
+      "category": "G",
+      "tool": "park",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T601 SPR.art601 park",
+      "old_render_path": "T601 SPR.art601 park",
+      "approved_groups": [
+        "T601"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "park/0",
+        "park/1",
+        "park/2",
+        "park/3",
+        "park/4",
+        "park/5",
+        "park/6",
+        "park/7",
+        "park/8",
+        "parkA/0",
+        "parkA/1",
+        "parkA/2",
+        "parkA/3",
+        "parkA/4",
+        "parkA/5",
+        "parkA/6",
+        "parkA/7",
+        "parkA/8",
+        "parkS/0",
+        "parkS/1",
+        "parkS/2",
+        "parkS/3",
+        "parkS/4",
+        "parkS/5",
+        "parkS/6",
+        "parkS/7",
+        "parkS/8",
+        "parkW/0",
+        "parkW/1",
+        "parkW/2",
+        "parkW/3",
+        "parkW/4",
+        "parkW/5",
+        "parkW/6",
+        "parkW/7",
+        "parkW/8"
+      ],
+      "notes": []
+    },
+    {
+      "k": 5,
+      "name": "發電廠",
+      "category": "E",
+      "tool": "plant",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T601 SPR.lot601",
+      "old_render_path": "T590 SPR.plant/plantVar (different approved art from new T601 lot)",
+      "approved_groups": [
+        "T590",
+        "T601"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "plant/",
+        "plantVar/1",
+        "plantVar/2"
+      ],
+      "notes": [
+        "Preserve both old T590 plant and newer T601 lot; neither is a remaining old-art hole"
+      ]
+    },
+    {
+      "k": 6,
+      "name": "消防局",
+      "category": "S",
+      "tool": "fire",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3847,
+      "source_sprite_pins": [
+        "bld/6_1_0",
+        "bld/6_1_0.win563",
+        "bld/6_1_1",
+        "bld/6_1_2",
+        "bld/6_1_3",
+        "bld/6_1_3.win563",
+        "bld/6_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 7,
+      "name": "學校",
+      "category": "D",
+      "tool": "school",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3850,
+      "source_sprite_pins": [
+        "bld/7_1_0",
+        "bld/7_1_1",
+        "bld/7_1_2",
+        "bld/7_1_3",
+        "bld/7_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 8,
+      "name": "垃圾場",
+      "category": "W",
+      "tool": "dump",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T601 bakeArt601",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T601"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3854,
+      "source_sprite_pins": [
+        "bld/8_1_0",
+        "bld/8_1_1",
+        "bld/8_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 9,
+      "name": "體育場",
+      "category": "A",
+      "tool": "stad",
+      "new_size": 4,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3859,
+      "source_sprite_pins": [
+        "bld/9_1_0",
+        "bld/9_1_1",
+        "bld/9_1_10",
+        "bld/9_1_11",
+        "bld/9_1_12",
+        "bld/9_1_13",
+        "bld/9_1_14",
+        "bld/9_1_2",
+        "bld/9_1_3",
+        "bld/9_1_4",
+        "bld/9_1_5",
+        "bld/9_1_6",
+        "bld/9_1_7",
+        "bld/9_1_8",
+        "bld/9_1_9"
+      ],
+      "notes": []
+    },
+    {
+      "k": 10,
+      "name": "水塔",
+      "category": "W",
+      "tool": "water",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T590 SPR.waterTower/waterTowerVar",
+      "old_render_path": "T590 SPR.waterTower/waterTowerVar",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "waterTower/",
+        "waterTowerVar/1",
+        "waterTowerVar/2",
+        "waterTowerVar/2.win563",
+        "waterTowerVar/3",
+        "waterTowerVar/4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 11,
+      "name": "警察局",
+      "category": "S",
+      "tool": "police",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.police/policeVar",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3847,
+      "source_sprite_pins": [
+        "police/",
+        "policeVar/1",
+        "policeVar/2",
+        "policeVar/2.win563",
+        "policeVar/3",
+        "policeVar/4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 12,
+      "name": "醫院",
+      "category": "H",
+      "tool": "hospital",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.hospital/hospitalVar",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3865,
+      "source_sprite_pins": [
+        "hospital/",
+        "hospitalVar/1",
+        "hospitalVar/2",
+        "hospitalVar/3",
+        "hospitalVar/4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 13,
+      "name": "診所",
+      "category": "H",
+      "tool": "clinic",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T590 SPR.clinic/clinicVar",
+      "old_render_path": "T590 SPR.clinic/clinicVar",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "clinic/",
+        "clinicVar/1",
+        "clinicVar/2",
+        "clinicVar/3",
+        "clinicVar/4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 14,
+      "name": "圖書館",
+      "category": "D",
+      "tool": "library",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3870,
+      "source_sprite_pins": [
+        "bld/14_1_0",
+        "bld/14_1_1",
+        "bld/14_1_2",
+        "bld/14_1_3",
+        "bld/14_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 15,
+      "name": "郵局",
+      "category": "S",
+      "tool": "post",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3872,
+      "source_sprite_pins": [
+        "bld/15_1_0",
+        "bld/15_1_1",
+        "bld/15_1_2",
+        "bld/15_1_3",
+        "bld/15_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 16,
+      "name": "墓園",
+      "category": "H",
+      "tool": "cemetery",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3873,
+      "source_sprite_pins": [
+        "bld/16_1_0",
+        "bld/16_1_1",
+        "bld/16_1_2",
+        "bld/16_1_3",
+        "bld/16_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 17,
+      "name": "火車站",
+      "category": "T",
+      "tool": "station",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3878,
+      "source_sprite_pins": [
+        "bld/17_1_0",
+        "bld/17_1_1",
+        "bld/17_1_2",
+        "bld/17_1_3",
+        "bld/17_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 18,
+      "name": "港口",
+      "category": "T",
+      "tool": "port",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3883,
+      "source_sprite_pins": [
+        "bld/18_1_0",
+        "bld/18_1_1",
+        "bld/18_1_2",
+        "bld/18_1_3",
+        "bld/18_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 19,
+      "name": "機場",
+      "category": "T",
+      "tool": "airport",
+      "new_size": 7,
+      "old_size": 4,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3889,
+      "source_sprite_pins": [
+        "bld/19_1_0",
+        "bld/19_1_0.win563",
+        "bld/19_1_1",
+        "bld/19_1_1.win563",
+        "bld/19_1_2",
+        "bld/19_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 20,
+      "name": "停車場",
+      "category": "T",
+      "tool": "parking",
+      "new_size": 2,
+      "old_size": 2,
+      "new_lot574": false,
+      "new_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/20_1_0",
+        "bld/20_1_1",
+        "bld/20_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 21,
+      "name": "輕軌站",
+      "category": "T",
+      "tool": "tramStation",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3878,
+      "source_sprite_pins": [
+        "bld/21_1_0",
+        "bld/21_1_1",
+        "bld/21_1_1.win563",
+        "bld/21_1_2",
+        "bld/21_1_3",
+        "bld/21_1_4",
+        "bld/21_1_4.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 22,
+      "name": "農場",
+      "category": "F",
+      "tool": "farm",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld + SPR.farmSea/farmGrow four-stage crop selection",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3899,
+      "source_sprite_pins": [
+        "bld/22_1_0",
+        "bld/22_1_1",
+        "bld/22_1_10",
+        "bld/22_1_11",
+        "bld/22_1_12",
+        "bld/22_1_13",
+        "bld/22_1_14",
+        "bld/22_1_15",
+        "bld/22_1_2",
+        "bld/22_1_3",
+        "bld/22_1_4",
+        "bld/22_1_5",
+        "bld/22_1_6",
+        "bld/22_1_7",
+        "bld/22_1_8",
+        "bld/22_1_9"
+      ],
+      "notes": [
+        "Four crop stages, four seasons; changing base SPR alone misses farmSea/farmGrow"
+      ]
+    },
+    {
+      "k": 23,
+      "name": "牧場",
+      "category": "F",
+      "tool": "ranch",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3915,
+      "source_sprite_pins": [
+        "bld/23_1_0",
+        "bld/23_1_0.win563",
+        "bld/23_1_1",
+        "bld/23_1_1.win563",
+        "bld/23_1_2",
+        "bld/23_1_2.win563",
+        "bld/23_1_3",
+        "bld/23_1_3.win563",
+        "bld/23_1_4",
+        "bld/23_1_4.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 24,
+      "name": "地標",
+      "category": "A",
+      "tool": "landmark",
+      "new_size": 2,
+      "old_size": 2,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/24_1_0",
+        "bld/24_1_1",
+        "bld/24_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 25,
+      "name": "太陽能",
+      "category": "E",
+      "tool": "solar",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3920,
+      "source_sprite_pins": [
+        "bld/25_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 26,
+      "name": "風力",
+      "category": "E",
+      "tool": "wind",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3923,
+      "source_sprite_pins": [
+        "bld/26_1_0",
+        "bld/26_1_1",
+        "bld/26_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 27,
+      "name": "污水廠",
+      "category": "W",
+      "tool": "sewage",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3927,
+      "source_sprite_pins": [
+        "bld/27_1_0",
+        "bld/27_1_1",
+        "bld/27_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 28,
+      "name": "救護站",
+      "category": "H",
+      "tool": "ambulance",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3847,
+      "source_sprite_pins": [
+        "bld/28_1_0",
+        "bld/28_1_1",
+        "bld/28_1_2",
+        "bld/28_1_2.win563",
+        "bld/28_1_3",
+        "bld/28_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 29,
+      "name": "回收中心",
+      "category": "W",
+      "tool": "recycling",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T603 bakeArt603",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T603"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3854,
+      "source_sprite_pins": [
+        "bld/29_1_0",
+        "bld/29_1_1",
+        "bld/29_1_2",
+        "bld/29_1_3",
+        "bld/29_1_4"
+      ],
+      "notes": []
+    },
+    {
+      "k": 30,
+      "name": "高級消防",
+      "category": "S",
+      "tool": "fireStation2",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3933,
+      "source_sprite_pins": [
+        "bld/30_1_0",
+        "bld/30_1_1",
+        "bld/30_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 31,
+      "name": "監獄",
+      "category": "S",
+      "tool": "prison",
+      "new_size": 4,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3936,
+      "source_sprite_pins": [
+        "bld/31_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 32,
+      "name": "大學",
+      "category": "D",
+      "tool": "university",
+      "new_size": 4,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3850,
+      "source_sprite_pins": [
+        "bld/32_1_0",
+        "bld/32_1_0.win563",
+        "bld/32_1_1",
+        "bld/32_1_1.win563",
+        "bld/32_1_2",
+        "bld/32_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 33,
+      "name": "住宅摩天樓",
+      "category": "R",
+      "tool": null,
+      "new_size": 2,
+      "old_size": 2,
+      "new_lot574": false,
+      "new_render_path": "T599 SPR.bld via vtower599",
+      "old_render_path": "T599 SPR.bld via vtower599",
+      "approved_groups": [
+        "T599"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/33_1_0",
+        "bld/33_1_1",
+        "bld/33_1_2",
+        "bld/33_1_3"
+      ],
+      "notes": []
+    },
+    {
+      "k": 34,
+      "name": "商業摩天樓",
+      "category": "C",
+      "tool": null,
+      "new_size": 2,
+      "old_size": 2,
+      "new_lot574": false,
+      "new_render_path": "T599 SPR.bld via vtower599",
+      "old_render_path": "T599 SPR.bld via vtower599",
+      "approved_groups": [
+        "T599"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/34_1_0",
+        "bld/34_1_1",
+        "bld/34_1_2",
+        "bld/34_1_3"
+      ],
+      "notes": []
+    },
+    {
+      "k": 35,
+      "name": "博物館",
+      "category": "A",
+      "tool": "museum",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/35_1_0",
+        "bld/35_1_0.win563",
+        "bld/35_1_1",
+        "bld/35_1_2",
+        "bld/35_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 36,
+      "name": "劇院",
+      "category": "A",
+      "tool": "theater",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/36_1_0",
+        "bld/36_1_1",
+        "bld/36_1_2",
+        "bld/36_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 37,
+      "name": "水族館",
+      "category": "A",
+      "tool": "aquarium",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3945,
+      "source_sprite_pins": [
+        "bld/37_1_0",
+        "bld/37_1_1",
+        "bld/37_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 38,
+      "name": "動物園",
+      "category": "A",
+      "tool": "zoo",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3949,
+      "source_sprite_pins": [
+        "bld/38_1_0",
+        "bld/38_1_0.win563",
+        "bld/38_1_1",
+        "bld/38_1_1.win563",
+        "bld/38_1_2",
+        "bld/38_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 39,
+      "name": "遊樂園",
+      "category": "A",
+      "tool": "amuse",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3952,
+      "source_sprite_pins": [
+        "bld/39_1_0",
+        "bld/39_1_0.win563",
+        "bld/39_1_1",
+        "bld/39_1_1.win563",
+        "bld/39_1_2",
+        "bld/39_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 40,
+      "name": "電影院",
+      "category": "A",
+      "tool": "cinema",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3957,
+      "source_sprite_pins": [
+        "bld/40_1_0",
+        "bld/40_1_1",
+        "bld/40_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 41,
+      "name": "圖書總館",
+      "category": "D",
+      "tool": "grandlib",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3870,
+      "source_sprite_pins": [
+        "bld/41_1_0",
+        "bld/41_1_0.win563",
+        "bld/41_1_1",
+        "bld/41_1_1.win563",
+        "bld/41_1_2",
+        "bld/41_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 42,
+      "name": "市政廳",
+      "category": "S",
+      "tool": "civichall",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/42_1_0",
+        "bld/42_1_0.win563",
+        "bld/42_1_1",
+        "bld/42_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 43,
+      "name": "法院",
+      "category": "S",
+      "tool": "court",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/43_1_0",
+        "bld/43_1_0.win563",
+        "bld/43_1_1",
+        "bld/43_1_1.win563",
+        "bld/43_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 44,
+      "name": "會展中心",
+      "category": "A",
+      "tool": "convention",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3957,
+      "source_sprite_pins": [
+        "bld/44_1_0",
+        "bld/44_1_1",
+        "bld/44_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 45,
+      "name": "研究院",
+      "category": "D",
+      "tool": "institute",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3961,
+      "source_sprite_pins": [
+        "bld/45_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 46,
+      "name": "氣象站",
+      "category": "A",
+      "tool": "wstation",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3965,
+      "source_sprite_pins": [
+        "bld/46_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 47,
+      "name": "植物園",
+      "category": "G",
+      "tool": "botanical",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3945,
+      "source_sprite_pins": [
+        "bld/47_1_0",
+        "bld/47_1_0.win563",
+        "bld/47_1_1",
+        "bld/47_1_1.win563",
+        "bld/47_1_2",
+        "bld/47_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 48,
+      "name": "綜合醫院",
+      "category": "H",
+      "tool": "megahosp",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3865,
+      "source_sprite_pins": [
+        "bld/48_1_0",
+        "bld/48_1_0.win563",
+        "bld/48_1_1",
+        "bld/48_1_1.win563",
+        "bld/48_1_2",
+        "bld/48_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 49,
+      "name": "油井",
+      "category": "I",
+      "tool": "oilwell",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3969,
+      "source_sprite_pins": [
+        "bld/49_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 50,
+      "name": "礦場",
+      "category": "I",
+      "tool": "mine",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3969,
+      "source_sprite_pins": [
+        "bld/50_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 51,
+      "name": "太空研究中心",
+      "category": "A",
+      "tool": "megaproject",
+      "new_size": 7,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3974,
+      "source_sprite_pins": [
+        "bld/51_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 52,
+      "name": "派出所",
+      "category": "S",
+      "tool": "policeBox",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T590 SPR.policeBox/policeBoxVar590",
+      "old_render_path": "T590 SPR.policeBox/policeBoxVar590",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "policeBox/",
+        "policeBoxVar590/0",
+        "policeBoxVar590/1",
+        "policeBoxVar590/2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 53,
+      "name": "大農場",
+      "category": "F",
+      "tool": "bigFarm",
+      "new_size": 7,
+      "old_size": 5,
+      "new_lot574": true,
+      "new_render_path": "T602 bakeArt602",
+      "old_render_path": "legacy SPR.bld + SPR.farmSea/farmGrow four-stage crop selection",
+      "approved_groups": [
+        "T602"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3899,
+      "source_sprite_pins": [
+        "bld/53_1_0"
+      ],
+      "notes": [
+        "Four crop stages, four seasons; changing base SPR alone misses farmSea/farmGrow"
+      ]
+    },
+    {
+      "k": 54,
+      "name": "大墓園",
+      "category": "H",
+      "tool": "bigCemetery",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3873,
+      "source_sprite_pins": [
+        "bld/54_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 55,
+      "name": "中央車站",
+      "category": "T",
+      "tool": "grandStation",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3878,
+      "source_sprite_pins": [
+        "bld/55_1_0",
+        "bld/55_1_0.win563",
+        "bld/55_1_1",
+        "bld/55_1_1.win563",
+        "bld/55_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 56,
+      "name": "體育園區",
+      "category": "A",
+      "tool": "sportsComplex",
+      "new_size": 7,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3859,
+      "source_sprite_pins": [
+        "bld/56_1_0",
+        "bld/56_1_0.win563",
+        "bld/56_1_1",
+        "bld/56_1_1.win563",
+        "bld/56_1_2",
+        "bld/56_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 57,
+      "name": "食品加工廠",
+      "category": "I",
+      "tool": "foodPlant",
+      "new_size": 3,
+      "old_size": 3,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/57_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 58,
+      "name": "核電廠",
+      "category": "E",
+      "tool": "nuclear",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3978,
+      "source_sprite_pins": [
+        "bld/58_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 59,
+      "name": "水力發電廠",
+      "category": "E",
+      "tool": "hydro",
+      "new_size": 4,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3927,
+      "source_sprite_pins": [
+        "bld/59_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 60,
+      "name": "地熱發電",
+      "category": "E",
+      "tool": "geo",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T601 bakeArt601",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T601"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3981,
+      "source_sprite_pins": [
+        "bld/60_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 61,
+      "name": "消防總局",
+      "category": "S",
+      "tool": "fireHQ",
+      "new_size": 4,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3933,
+      "source_sprite_pins": [
+        "bld/61_1_0",
+        "bld/61_1_0.win563",
+        "bld/61_1_1",
+        "bld/61_1_2",
+        "bld/61_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 62,
+      "name": "垃圾焚化發電廠",
+      "category": "E",
+      "tool": "wasteIncinerator",
+      "new_size": 4,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3981,
+      "source_sprite_pins": [
+        "bld/62_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 63,
+      "name": "溫室",
+      "category": "F",
+      "tool": "greenhouse",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T601 bakeArt601",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T601"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3988,
+      "source_sprite_pins": [
+        "bld/63_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 64,
+      "name": "倉儲物流中心",
+      "category": "I",
+      "tool": "warehouse",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3994,
+      "source_sprite_pins": [
+        "bld/64_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 65,
+      "name": "大型購物中心",
+      "category": "C",
+      "tool": "grandMall",
+      "new_size": 5,
+      "old_size": 4,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3957,
+      "source_sprite_pins": [
+        "bld/65_1_0",
+        "bld/65_1_1",
+        "bld/65_1_1.win563",
+        "bld/65_1_2",
+        "bld/65_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 66,
+      "name": "信仰中心",
+      "category": "A",
+      "tool": "faithCenter",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T601 bakeArt601",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T601"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/66_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 67,
+      "name": "鐘樓",
+      "category": "A",
+      "tool": "clockTower",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/67_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 68,
+      "name": "天文台",
+      "category": "A",
+      "tool": "observatory",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3965,
+      "source_sprite_pins": [
+        "bld/68_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 69,
+      "name": "燈塔",
+      "category": "A",
+      "tool": "lighthouse",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/69_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 70,
+      "name": "風車",
+      "category": "A",
+      "tool": "windmill",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/70_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 71,
+      "name": "噴泉廣場",
+      "category": "A",
+      "tool": "fountain",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3997,
+      "source_sprite_pins": [
+        "bld/71_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 72,
+      "name": "紀念碑",
+      "category": "A",
+      "tool": "monument",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/72_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 73,
+      "name": "觀景塔",
+      "category": "A",
+      "tool": "skytower",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/73_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 74,
+      "name": "涼亭",
+      "category": "A",
+      "tool": "pavilion",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/74_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 75,
+      "name": "凱旋門",
+      "category": "A",
+      "tool": "archway",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3999,
+      "source_sprite_pins": [
+        "bld/75_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 76,
+      "name": "摩天輪",
+      "category": "A",
+      "tool": "ferriswheel",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3952,
+      "source_sprite_pins": [
+        "bld/76_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 77,
+      "name": "水塔景觀",
+      "category": "A",
+      "tool": "watertowerlm",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/77_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 78,
+      "name": "古樹神木",
+      "category": "A",
+      "tool": "ancienttree",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/78_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 79,
+      "name": "碼頭亭",
+      "category": "A",
+      "tool": "harborlm",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/79_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 80,
+      "name": "旋轉木馬",
+      "category": "A",
+      "tool": "carousel",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3952,
+      "source_sprite_pins": [
+        "bld/80_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 81,
+      "name": "民宿",
+      "category": "A",
+      "tool": "guesthouse",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T601 SPR.art601",
+      "old_render_path": "T601 SPR.art601",
+      "approved_groups": [
+        "T601"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/81_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 82,
+      "name": "商務旅館",
+      "category": "A",
+      "tool": "hotel",
+      "new_size": 2,
+      "old_size": 2,
+      "new_lot574": false,
+      "new_render_path": "legacy SPR.bld",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/82_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 83,
+      "name": "度假酒店",
+      "category": "A",
+      "tool": "resort",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4002,
+      "source_sprite_pins": [
+        "bld/83_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 84,
+      "name": "幼兒園",
+      "category": "D",
+      "tool": "kindergarten",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4002,
+      "source_sprite_pins": [
+        "bld/84_1_0",
+        "bld/84_1_1",
+        "bld/84_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 85,
+      "name": "樂齡中心",
+      "category": "D",
+      "tool": "seniorCenter",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T603 bakeArt603",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T603"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 4002,
+      "source_sprite_pins": [
+        "bld/85_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 86,
+      "name": "銀行",
+      "category": "C",
+      "tool": "bank",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/86_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 87,
+      "name": "農貿市場",
+      "category": "F",
+      "tool": "market",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3994,
+      "source_sprite_pins": [
+        "bld/87_1_0",
+        "bld/87_1_1",
+        "bld/87_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 88,
+      "name": "堆肥場",
+      "category": "W",
+      "tool": "compost",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T603 bakeArt603",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T603"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3854,
+      "source_sprite_pins": [
+        "bld/88_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 89,
+      "name": "電視塔",
+      "category": "A",
+      "tool": "tvtower",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3965,
+      "source_sprite_pins": [
+        "bld/89_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 90,
+      "name": "遊艇碼頭",
+      "category": "A",
+      "tool": "marina",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3883,
+      "source_sprite_pins": [
+        "bld/90_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 91,
+      "name": "貿易站",
+      "category": "C",
+      "tool": "tradepost",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3994,
+      "source_sprite_pins": [
+        "bld/91_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 92,
+      "name": "遛狗公園",
+      "category": "G",
+      "tool": "dogpark",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T603 bakeArt603",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T603"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 4012,
+      "source_sprite_pins": [
+        "bld/92_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 93,
+      "name": "溜冰場",
+      "category": "A",
+      "tool": "icerink",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4020,
+      "source_sprite_pins": [
+        "bld/93_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 94,
+      "name": "滑板公園",
+      "category": "A",
+      "tool": "skatepark",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4012,
+      "source_sprite_pins": [
+        "bld/94_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 95,
+      "name": "消防瞭望塔",
+      "category": "S",
+      "tool": "firewatch",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/95_1_0",
+        "bld/95_1_0.win563",
+        "bld/95_1_1",
+        "bld/95_1_1.win563",
+        "bld/95_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 96,
+      "name": "游泳池",
+      "category": "A",
+      "tool": "pool",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4020,
+      "source_sprite_pins": [
+        "bld/96_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 97,
+      "name": "釣魚碼頭",
+      "category": "F",
+      "tool": "fishpier",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T601 front-water / T602 rear-water SPR.art601/art602",
+      "old_render_path": "T601 front-water / T602 rear-water SPR.art601/art602",
+      "approved_groups": [
+        "T601",
+        "T602"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/97_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 98,
+      "name": "青年旅舍",
+      "category": "A",
+      "tool": "hostel",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4002,
+      "source_sprite_pins": [
+        "bld/98_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 99,
+      "name": "婚禮教堂",
+      "category": "A",
+      "tool": "chapel",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/99_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 100,
+      "name": "釀酒廠",
+      "category": "I",
+      "tool": "brewery",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3981,
+      "source_sprite_pins": [
+        "bld/100_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 101,
+      "name": "水上樂園",
+      "category": "A",
+      "tool": "waterpark",
+      "new_size": 5,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3952,
+      "source_sprite_pins": [
+        "bld/101_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 102,
+      "name": "寵物醫院",
+      "category": "H",
+      "tool": "vetclinic",
+      "new_size": 1,
+      "old_size": 1,
+      "new_lot574": false,
+      "new_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/102_1_0",
+        "bld/102_1_1",
+        "bld/102_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 103,
+      "name": "天際觀景餐廳",
+      "category": "C",
+      "tool": "skyrest",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3965,
+      "source_sprite_pins": [
+        "bld/103_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 104,
+      "name": "社區菜園",
+      "category": "F",
+      "tool": "cgarden",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T602 bakeArt602",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T602"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 4012,
+      "source_sprite_pins": [
+        "bld/104_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 105,
+      "name": "住宅巨廈",
+      "category": "R",
+      "tool": null,
+      "new_size": 3,
+      "old_size": 3,
+      "new_lot574": false,
+      "new_render_path": "T593 SPR.bld via vdraw590",
+      "old_render_path": "T593 SPR.bld via vdraw590",
+      "approved_groups": [
+        "T593"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/105_1_0",
+        "bld/105_1_1",
+        "bld/105_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 106,
+      "name": "商業綜合體",
+      "category": "C",
+      "tool": null,
+      "new_size": 3,
+      "old_size": 3,
+      "new_lot574": false,
+      "new_render_path": "T593 SPR.bld via vdraw590",
+      "old_render_path": "T593 SPR.bld via vdraw590",
+      "approved_groups": [
+        "T593"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": null,
+      "source_sprite_pins": [
+        "bld/106_1_0",
+        "bld/106_1_1",
+        "bld/106_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 107,
+      "name": "火葬場",
+      "category": "H",
+      "tool": "crematorium",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/107_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 108,
+      "name": "高中",
+      "category": "D",
+      "tool": "highschool",
+      "new_size": 4,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3850,
+      "source_sprite_pins": [
+        "bld/108_1_0",
+        "bld/108_1_0.win563",
+        "bld/108_1_1",
+        "bld/108_1_1.win563",
+        "bld/108_1_2",
+        "bld/108_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 109,
+      "name": "科技園",
+      "category": "D",
+      "tool": "techpark",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3961,
+      "source_sprite_pins": [
+        "bld/109_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 110,
+      "name": "貨運站",
+      "category": "C",
+      "tool": "freight",
+      "new_size": 4,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3878,
+      "source_sprite_pins": [
+        "bld/110_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 111,
+      "name": "資源回收廠",
+      "category": "W",
+      "tool": "upcycle",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3854,
+      "source_sprite_pins": [
+        "bld/111_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 112,
+      "name": "中央公園",
+      "category": "G",
+      "tool": "centralpark",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4012,
+      "source_sprite_pins": [
+        "bld/112_1_0",
+        "bld/112_1_0.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 113,
+      "name": "大學城",
+      "category": "D",
+      "tool": "unicampus",
+      "new_size": 7,
+      "old_size": 4,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3850,
+      "source_sprite_pins": [
+        "bld/113_1_0",
+        "bld/113_1_0.win563",
+        "bld/113_1_1",
+        "bld/113_1_1.win563",
+        "bld/113_1_2",
+        "bld/113_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 114,
+      "name": "國際機場",
+      "category": "T",
+      "tool": "megaport",
+      "new_size": 9,
+      "old_size": 5,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3889,
+      "source_sprite_pins": [
+        "bld/114_1_0",
+        "bld/114_1_0.win563",
+        "bld/114_1_1",
+        "bld/114_1_1.win563",
+        "bld/114_1_2",
+        "bld/114_1_2.win563"
+      ],
+      "notes": []
+    },
+    {
+      "k": 115,
+      "name": "市民中心",
+      "category": "S",
+      "tool": "civiccenter",
+      "new_size": 4,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3939,
+      "source_sprite_pins": [
+        "bld/115_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 116,
+      "name": "數據中心",
+      "category": "C",
+      "tool": "datacenter",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3961,
+      "source_sprite_pins": [
+        "bld/116_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 117,
+      "name": "天然氣井",
+      "category": "E",
+      "tool": "gaswell",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T602 bakeArt602",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [
+        "T602"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": false,
+      "remaining_old": true,
+      "old_gap_in_approved_group": true,
+      "recipe_case_line": 3969,
+      "source_sprite_pins": [
+        "bld/117_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 118,
+      "name": "化肥廠",
+      "category": "I",
+      "tool": "fertplant",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3981,
+      "source_sprite_pins": [
+        "bld/118_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 119,
+      "name": "中央廚房",
+      "category": "F",
+      "tool": "kitchen",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3981,
+      "source_sprite_pins": [
+        "bld/119_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 120,
+      "name": "魚塘",
+      "category": "F",
+      "tool": "fishfarm",
+      "new_size": 3,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3990,
+      "source_sprite_pins": [
+        "bld/120_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 121,
+      "name": "煉油廠",
+      "category": "I",
+      "tool": "refinery",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3981,
+      "source_sprite_pins": [
+        "bld/121_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 122,
+      "name": "鋼鐵廠",
+      "category": "I",
+      "tool": "steelMill",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3981,
+      "source_sprite_pins": [
+        "bld/122_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 123,
+      "name": "造船廠",
+      "category": "I",
+      "tool": "shipyard",
+      "new_size": 5,
+      "old_size": 3,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3883,
+      "source_sprite_pins": [
+        "bld/123_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 124,
+      "name": "籃球場",
+      "category": "G",
+      "tool": "basketballCourt",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4020,
+      "source_sprite_pins": [
+        "bld/124_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 125,
+      "name": "網球場",
+      "category": "G",
+      "tool": "tennisCourt",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4020,
+      "source_sprite_pins": [
+        "bld/125_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 126,
+      "name": "兒童遊樂場",
+      "category": "G",
+      "tool": "playground",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4012,
+      "source_sprite_pins": [
+        "bld/126_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 127,
+      "name": "社會住宅",
+      "category": "R",
+      "tool": "socialHousing",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4002,
+      "source_sprite_pins": [
+        "bld/127_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 128,
+      "name": "變電所",
+      "category": "E",
+      "tool": "substation",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4006,
+      "source_sprite_pins": [
+        "bld/128_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 129,
+      "name": "海水淡化廠",
+      "category": "W",
+      "tool": "desalination",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3927,
+      "source_sprite_pins": [
+        "bld/129_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 130,
+      "name": "抽水站",
+      "category": "W",
+      "tool": "pumpStation",
+      "new_size": 2,
+      "old_size": 1,
+      "new_lot574": true,
+      "new_render_path": "T591/T592 pasted T590 art",
+      "old_render_path": "T590 SPR.bld lv1 with legacy higher-level fallback",
+      "approved_groups": [
+        "T590"
+      ],
+      "default_new_has_newer_art": true,
+      "old_without_lot_has_newer_art": true,
+      "remaining_new": false,
+      "remaining_old": false,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3927,
+      "source_sprite_pins": [
+        "bld/130_1_0",
+        "bld/130_1_1",
+        "bld/130_1_2"
+      ],
+      "notes": []
+    },
+    {
+      "k": 131,
+      "name": "防災中心",
+      "category": "S",
+      "tool": "disasterCenter",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3933,
+      "source_sprite_pins": [
+        "bld/131_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 132,
+      "name": "避難公園",
+      "category": "G",
+      "tool": "shelterPark",
+      "new_size": 4,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 4012,
+      "source_sprite_pins": [
+        "bld/132_1_0"
+      ],
+      "notes": []
+    },
+    {
+      "k": 133,
+      "name": "防災雷達",
+      "category": "S",
+      "tool": "disasterRadar",
+      "new_size": 3,
+      "old_size": 2,
+      "new_lot574": true,
+      "new_render_path": "T574 recipe lot",
+      "old_render_path": "legacy SPR.bld",
+      "approved_groups": [],
+      "default_new_has_newer_art": false,
+      "old_without_lot_has_newer_art": false,
+      "remaining_new": true,
+      "remaining_old": true,
+      "old_gap_in_approved_group": false,
+      "recipe_case_line": 3965,
+      "source_sprite_pins": [
+        "bld/133_1_0"
+      ],
+      "notes": []
+    }
+  ],
+  "rci_combinations": [
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 0,
+      "key": "bld/1_1_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "villa",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 60,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_0_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_0_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 1,
+      "key": "bld/1_1_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "bungalow",
+      "preview_direct_facade": "ukSemi",
+      "preview_geography": "British",
+      "preview_height_ht600": 51,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_1_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_1_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 2,
+      "key": "bld/1_1_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "cottage",
+      "preview_direct_facade": "ukTerrace",
+      "preview_geography": "British",
+      "preview_height_ht600": 65,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_2_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_2_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 3,
+      "key": "bld/1_1_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modern",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 44,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_3_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_3_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 4,
+      "key": "bld/1_1_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "town",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 59,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_4_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_4_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 5,
+      "key": "bld/1_1_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "mews",
+      "preview_direct_facade": "ukMews",
+      "preview_geography": "British",
+      "preview_height_ht600": 49,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_5_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_5_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 6,
+      "key": "bld/1_1_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "bungalow",
+      "preview_direct_facade": "ukSemi",
+      "preview_geography": "British",
+      "preview_height_ht600": 51,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_6_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_6_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 7,
+      "key": "bld/1_1_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "cottage",
+      "preview_direct_facade": "ukTerrace",
+      "preview_geography": "British",
+      "preview_height_ht600": 60,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_7_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_7_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 8,
+      "key": "bld/1_1_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modern",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 44,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_8_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_8_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 9,
+      "key": "bld/1_1_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "town",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 59,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_9_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_9_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 10,
+      "key": "bld/1_1_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "villa",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 60,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_10_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_10_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 1,
+      "v": 11,
+      "key": "bld/1_1_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "bungalow",
+      "preview_direct_facade": "ukSemi",
+      "preview_geography": "British",
+      "preview_height_ht600": 51,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_1_11_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_1_11_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 0,
+      "key": "bld/1_2_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "walkup",
+      "preview_direct_facade": "usBrownstone",
+      "preview_geography": "American",
+      "preview_height_ht600": 63,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_0_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_0_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 1,
+      "key": "bld/1_2_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "courtyard",
+      "preview_direct_facade": "ukMansion",
+      "preview_geography": "British",
+      "preview_height_ht600": 67,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_1_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_1_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 2,
+      "key": "bld/1_2_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "terrace",
+      "preview_direct_facade": "ukVictorian",
+      "preview_geography": "British",
+      "preview_height_ht600": 66,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_2_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_2_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 3,
+      "key": "bld/1_2_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernWalk",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_3_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_3_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 4,
+      "key": "bld/1_2_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "townWalk",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 69,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_4_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_4_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 5,
+      "key": "bld/1_2_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "walkup",
+      "preview_direct_facade": "usBrownstone",
+      "preview_geography": "American",
+      "preview_height_ht600": 70,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_5_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_5_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 6,
+      "key": "bld/1_2_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "courtyard",
+      "preview_direct_facade": "ukMansion",
+      "preview_geography": "British",
+      "preview_height_ht600": 67,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_6_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_6_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 7,
+      "key": "bld/1_2_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "terrace",
+      "preview_direct_facade": "ukVictorian",
+      "preview_geography": "British",
+      "preview_height_ht600": 66,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_7_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_7_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 8,
+      "key": "bld/1_2_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernWalk",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_8_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_8_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 9,
+      "key": "bld/1_2_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "townWalk",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 69,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_9_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_9_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 10,
+      "key": "bld/1_2_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "walkup",
+      "preview_direct_facade": "usBrownstone",
+      "preview_geography": "American",
+      "preview_height_ht600": 63,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_10_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_10_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 2,
+      "v": 11,
+      "key": "bld/1_2_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "courtyard",
+      "preview_direct_facade": "ukMansion",
+      "preview_geography": "British",
+      "preview_height_ht600": 67,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_2_11_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_2_11_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 0,
+      "key": "bld/1_3_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "slab",
+      "preview_direct_facade": "usPrewar",
+      "preview_geography": "American",
+      "preview_height_ht600": 89,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_0_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_0_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 1,
+      "key": "bld/1_3_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "point",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 89,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_1_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_1_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 2,
+      "key": "bld/1_3_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "twin",
+      "preview_direct_facade": "usPrewar",
+      "preview_geography": "American",
+      "preview_height_ht600": 118,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_2_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_2_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 3,
+      "key": "bld/1_3_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernPoint",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 101,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_3_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_3_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 4,
+      "key": "bld/1_3_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "townSlab",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 79,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_4_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_4_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 5,
+      "key": "bld/1_3_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stepTwin",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 122,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_5_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_5_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 6,
+      "key": "bld/1_3_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "slab",
+      "preview_direct_facade": "usPrewar",
+      "preview_geography": "American",
+      "preview_height_ht600": 88,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_6_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_6_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 7,
+      "key": "bld/1_3_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "point",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 89,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_7_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_7_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 8,
+      "key": "bld/1_3_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "twin",
+      "preview_direct_facade": "usPrewar",
+      "preview_geography": "American",
+      "preview_height_ht600": 115,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_8_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_8_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 9,
+      "key": "bld/1_3_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernPoint",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 100,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_9_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_9_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 10,
+      "key": "bld/1_3_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "townSlab",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 79,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_10_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_10_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 1,
+      "lv": 3,
+      "v": 11,
+      "key": "bld/1_3_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stepTwin",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 123,
+      "residential_wealth_pins": [
+        {
+          "key": "bld/1_3_11_w0",
+          "present": true
+        },
+        {
+          "key": "bld/1_3_11_w2",
+          "present": true
+        }
+      ],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 0,
+      "key": "bld/2_1_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "shophouse",
+      "preview_direct_facade": "usMainStreet",
+      "preview_geography": "American",
+      "preview_height_ht600": 68,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 1,
+      "key": "bld/2_1_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "market",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 45,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 2,
+      "key": "bld/2_1_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "cornerLot",
+      "preview_direct_facade": "ukHighStreet",
+      "preview_geography": "British",
+      "preview_height_ht600": 67,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 3,
+      "key": "bld/2_1_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernShop",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 41,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 4,
+      "key": "bld/2_1_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "townShop",
+      "preview_direct_facade": "ukCornerShopGPT001",
+      "preview_geography": "British",
+      "preview_height_ht600": 71,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 5,
+      "key": "bld/2_1_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "shophouse",
+      "preview_direct_facade": "usMainStreet",
+      "preview_geography": "American",
+      "preview_height_ht600": 59,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 6,
+      "key": "bld/2_1_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "market",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 45,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 7,
+      "key": "bld/2_1_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "cornerLot",
+      "preview_direct_facade": "ukHighStreet",
+      "preview_geography": "British",
+      "preview_height_ht600": 67,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 8,
+      "key": "bld/2_1_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernShop",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 41,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 9,
+      "key": "bld/2_1_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "townShop",
+      "preview_direct_facade": "ukCornerShopGPT001",
+      "preview_geography": "British",
+      "preview_height_ht600": 71,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 10,
+      "key": "bld/2_1_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "shophouse",
+      "preview_direct_facade": "usMainStreet",
+      "preview_geography": "American",
+      "preview_height_ht600": 58,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 1,
+      "v": 11,
+      "key": "bld/2_1_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "market",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 45,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 0,
+      "key": "bld/2_2_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "office",
+      "preview_direct_facade": "usMainStreet",
+      "preview_geography": "American",
+      "preview_height_ht600": 87,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 1,
+      "key": "bld/2_2_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "hotel",
+      "preview_direct_facade": "ukHighStreet",
+      "preview_geography": "British",
+      "preview_height_ht600": 83,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 2,
+      "key": "bld/2_2_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "dept",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 56,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 3,
+      "key": "bld/2_2_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernOffice",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 57,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 4,
+      "key": "bld/2_2_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stoneHotel",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 69,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 5,
+      "key": "bld/2_2_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "office",
+      "preview_direct_facade": "usMainStreet",
+      "preview_geography": "American",
+      "preview_height_ht600": 85,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 6,
+      "key": "bld/2_2_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "hotel",
+      "preview_direct_facade": "ukHighStreet",
+      "preview_geography": "British",
+      "preview_height_ht600": 83,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 7,
+      "key": "bld/2_2_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "dept",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 56,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 8,
+      "key": "bld/2_2_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernOffice",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 57,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 9,
+      "key": "bld/2_2_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stoneHotel",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 69,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 10,
+      "key": "bld/2_2_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "office",
+      "preview_direct_facade": "usMainStreet",
+      "preview_geography": "American",
+      "preview_height_ht600": 93,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 2,
+      "v": 11,
+      "key": "bld/2_2_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "hotel",
+      "preview_direct_facade": "ukHighStreet",
+      "preview_geography": "British",
+      "preview_height_ht600": 83,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 0,
+      "key": "bld/2_3_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "podTower",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 104,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 1,
+      "key": "bld/2_3_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "setback",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 88,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 2,
+      "key": "bld/2_3_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "slabC",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 78,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 3,
+      "key": "bld/2_3_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stoneTower",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 97,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 4,
+      "key": "bld/2_3_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernNeedle",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 104,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 5,
+      "key": "bld/2_3_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "courtC",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 77,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 6,
+      "key": "bld/2_3_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "podTower",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 104,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 7,
+      "key": "bld/2_3_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "setback",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 88,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 8,
+      "key": "bld/2_3_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "slabC",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 78,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 9,
+      "key": "bld/2_3_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stoneTower",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 97,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 10,
+      "key": "bld/2_3_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "modernNeedle",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 106,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 2,
+      "lv": 3,
+      "v": 11,
+      "key": "bld/2_3_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "courtC",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 77,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 0,
+      "key": "bld/3_1_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "shed",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 1,
+      "key": "bld/3_1_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "workshop",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 59,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 2,
+      "key": "bld/3_1_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "sawShed",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 57,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 3,
+      "key": "bld/3_1_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "yard",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 53,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 4,
+      "key": "bld/3_1_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "shed",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 5,
+      "key": "bld/3_1_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "workshop",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 59,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 6,
+      "key": "bld/3_1_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "sawShed",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 57,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 7,
+      "key": "bld/3_1_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "yard",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 53,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 8,
+      "key": "bld/3_1_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "shed",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 9,
+      "key": "bld/3_1_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "workshop",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 59,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 10,
+      "key": "bld/3_1_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "sawShed",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 57,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 1,
+      "v": 11,
+      "key": "bld/3_1_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "yard",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 53,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 0,
+      "key": "bld/3_2_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "factory",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 66,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 1,
+      "key": "bld/3_2_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "mill",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 62,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 2,
+      "key": "bld/3_2_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "warehouse",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 3,
+      "key": "bld/3_2_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stack",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 97,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 4,
+      "key": "bld/3_2_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "factory",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 66,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 5,
+      "key": "bld/3_2_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "mill",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 62,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 6,
+      "key": "bld/3_2_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "warehouse",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 7,
+      "key": "bld/3_2_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stack",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 97,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 8,
+      "key": "bld/3_2_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "factory",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 66,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 9,
+      "key": "bld/3_2_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "mill",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 62,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 10,
+      "key": "bld/3_2_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "warehouse",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 55,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 2,
+      "v": 11,
+      "key": "bld/3_2_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "stack",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 97,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 0,
+      "key": "bld/3_3_0",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "heavy",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 82,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 1,
+      "key": "bld/3_3_1",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "mill3",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 70,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 2,
+      "key": "bld/3_3_2",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "tankfarm",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 63,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 3,
+      "key": "bld/3_3_3",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "chimneyHall",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 113,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 4,
+      "key": "bld/3_3_4",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "heavy",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 82,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 5,
+      "key": "bld/3_3_5",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "mill3",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 70,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 6,
+      "key": "bld/3_3_6",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "tankfarm",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 63,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 7,
+      "key": "bld/3_3_7",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "chimneyHall",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 113,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 8,
+      "key": "bld/3_3_8",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "heavy",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 82,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 9,
+      "key": "bld/3_3_9",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "mill3",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 70,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 10,
+      "key": "bld/3_3_10",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "tankfarm",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 63,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    },
+    {
+      "k": 3,
+      "lv": 3,
+      "v": 11,
+      "key": "bld/3_3_11",
+      "pinned": true,
+      "default": "legacy SPR.bld",
+      "preview": "T596 spr596 -> T600 v600 -> getBlockSprite594(k,lv,1,1,selected_v)",
+      "preview_direct_archetype": "chimneyHall",
+      "preview_direct_facade": null,
+      "preview_geography": "generic",
+      "preview_height_ht600": 113,
+      "residential_wealth_pins": [],
+      "caveat": "Direct candidate v shown; actual on-map preview v is remapped by v600 from saved v + coordinates."
+    }
+  ]
+}

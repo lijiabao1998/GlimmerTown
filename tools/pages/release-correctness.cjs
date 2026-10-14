@@ -52,6 +52,8 @@ function build(input = fs.readFileSync(path.join(SCENES, 'scene603.js'), 'utf8')
   replace("path.join(os.tmpdir(),'native617')", "path.join(os.tmpdir(),'release-correctness')", 'separate default evidence directory');
   replace("performanceNote:'Headless Chromium timings do not establish physical-device 55 FPS.'",
     "performanceNote:'Timing intentionally not run in Linux correctness. Original thresholds and liveness are required in the separate native acceptance lane.'", 'honest lane description');
+  const worldFilters634 = require('./release-world-filters634.cjs'), worldFilterFixture = worldFilters634.sourceIdentity();
+  worldFilters634.install(replace, worldFilterFixture);
   let reversed = source;
   for (const { from, to, label } of [...edits].reverse()) {
     if (reversed.split(to).length !== 2) throw Error('Release correctness inverse anchor drift: ' + label);
@@ -62,7 +64,7 @@ function build(input = fs.readFileSync(path.join(SCENES, 'scene603.js'), 'utf8')
   new Function('require', '__filename', '__dirname', source);
   return { source, sha256: mac.sha256(source), canonicalHarnessSHA256: original.canonicalHarnessSHA256,
     canonicalOutputSHA256: original.sha256, canonicalAdapterSHA256: CANONICAL_ADAPTER_SHA256, policy: POLICY,
-    delegatedTiming: TIMING_SPANS, changes: edits.map(({ label, from, to }) => ({ label, occurrences: 1,
+    delegatedTiming: TIMING_SPANS, worldFilterFixture, changes: edits.map(({ label, from, to }) => ({ label, occurrences: 1,
       beforeSHA256: mac.sha256(from), afterSHA256: mac.sha256(to) })) };
 }
 
@@ -70,7 +72,7 @@ async function main() {
   const built = build();
   if (process.argv.includes('--check-overlay')) { console.log('RELEASE_CORRECTNESS_OVERLAY_OK ' + built.sha256); return; }
   if (process.argv.includes('--self-test')) {
-    const result = spawnSync(process.execPath, ['--test', path.join(__dirname, 'release-acceptance.test.mjs')], { stdio: 'inherit' });
+    const result = spawnSync(process.execPath, ['--test', path.join(__dirname, 'release-acceptance.test.mjs'), path.join(__dirname, 'release-world-filters634.test.mjs')], { stdio: 'inherit' });
     process.exitCode = result.status === 0 ? 0 : 1; return;
   }
   if (process.platform !== 'linux') throw Error('Release correctness requires the original Ubuntu/Linux headless environment');

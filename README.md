@@ -4,8 +4,8 @@
 
 GlimmerTown 是一個從單檔瀏覽器城市建造遊戲一路演化而來的長期工程：核心玩法、城市系統、程序化美術、驗證工具與數百輪迭代都保留在同一條可追溯的開發歷史裡。
 
-目前原始碼：**v11.212 · T603**
-核心執行檔：`index.html`（約 **4.5 MB / 50,852 行**）
+目前遠端主線與已核驗 Pages：**v11.221 · T635**（2026-10-13 核對）
+核心執行檔：`index.html`（**4,666,236 B / 4.45 MiB / 52,386 行**）
 
 > Build a city. Let it live. Keep the history.
 
@@ -30,11 +30,22 @@ GlimmerTown 是一個從單檔瀏覽器城市建造遊戲一路演化而來的�
 
 ---
 
-## 本輪：T603 原生美術與雲端發布整合
+## 本輪：T634 全批英式美術與 T635 三款消防設施
+
+T634 已批准的 315 款設計（108 款住宅／商業／工業、207 款設施）於 v11.218 上線；T635 的鄉鎮木門小站、三拱紅磚消防局與現代雙翼中心於 v11.221 上線。普通網址預設啟用，保留 `?noT634=1`／`?noT635=1` 與各自執行期逃生閥。既有批准素材、占地、能力、模擬與存檔契約保留。
+
+- [T634 合併 PR #16](https://github.com/lijiabao1998/GlimmerTown/pull/16)：main `7ad6931e`，v11.218。
+- [T635 合併 PR #17](https://github.com/lijiabao1998/GlimmerTown/pull/17)：main `8d79bc42`，v11.221。
+- [同一精確 main 提交的發布工作流](https://github.com/lijiabao1998/GlimmerTown/actions/runs/38201218382)：必要回歸、三組 Chrome 場景、315 款批准圖、消防圖、套件、原生瀏覽器存讀／離線，以及 deploy／verify-published 成功。原回歸 **12,597 PASS／0 FAIL**、工具鏈 **63／63**。
+- **不能把工作流成功說成每項全綠**：`native-acceptance` 仍為 failure，包含歷史 CRC、完整收集／控制與原相對計時判準；依既有 T630 政策是保留診斷，不阻擋部署。沒有改紅為綠或宣稱實機 FPS。
+
+2026-10-13 本機收件：已將遠端收進 bay/codex、核對七個執行檔與實際 HTTPS 套件，但 Windows 本機完整回歸為 **12,594 PASS／1 FAIL**（T635 跨平台 bootstrap 的 10 秒 VM 逾時），主線接收因此停止。本機 canonical 仍 v11.214、玩家 8123 仍 v11.210；沒有把線上發布當成本機部署。詳見 [收件與阻塞記錄](docs/tasks/T635-Local-receipt-records.md)。
+
+## 已整合背景：T603 原生美術與雲端發布整合
 
 回收中心、長者中心、狗公園、堆肥站各三款已批准藍灰美術；保留完整原生 Canvas、日夜動畫、既有存檔、模擬與亂數契約。沒有採用實驗性的保留圖層、來源觀察器或 CanvasKit renderer。
 
-GitHub 本倉庫是本輪原始碼與驗收紀錄來源。雲端 Pages 只發布七個已核對的 runtime 檔案，沿用獨立主線存檔／快取空間，不讀写 Lab 或使用者電腦的城市。候選分支不會部署；main 必須通過完整驗證、Linux 畫面／模型／存檔檢查、原生前景瀏覽器的原相對效能／存活門檻、套件契約與真瀏覽器升級／離線存檔重開，才可發布並驗實際 HTTPS。
+GitHub 本倉庫是原始碼與驗收紀錄來源。雲端 Pages 只發布七個已核對的 runtime 檔案，沿用獨立主線存檔／快取空間，不讀寫 Lab 或使用者電腦的城市。候選分支不會部署；main 必須通過必要回歸、Linux 畫面／模型／存檔、批准美術專項、套件與真瀏覽器升級／離線重開，才可發布並驗實際 HTTPS。原生相對計時與存活診斷依 T630 保留原判準，但不再是 deploy 的阻擋依賴；實際依賴以當前工作流為準。
 
 這是已批准美術的增量發布，不宣稱 55 FPS、速度提升或新效能架構完成。活躍整城診斷的未通過項與原始資料獨立保留。實際是否已部署，以 [Pages 工作流](https://github.com/lijiabao1998/GlimmerTown/actions/workflows/town-main-pages-candidate.yml) 和發布後驗證結果為準。
 
@@ -43,7 +54,7 @@ GitHub 本倉庫是本輪原始碼與驗收紀錄來源。雲端 Pages 只發布
 - [雲端套件與發布邊界](docs/tasks/main-pages/README.md)
 - [T602 → T603 升級、存檔與離線重開契約](tools/pages/UPGRADE618.md)
 
-## 前輪已驗：T602
+## 已整合背景：T602
 
 **藍灰第二批：大農場、社區菜園、天然氣井，各三款新圖；補齊背水碼頭。**
 
@@ -149,14 +160,16 @@ GlimmerTown 現在不是只有一個 repo，而是三條彼此有明確角色的
 若要透過本機 HTTP：
 
 ```bash
-python -m http.server 8123
+python -m http.server 8124 --bind 127.0.0.1
 ```
 
 然後開啟：
 
 ```text
-http://localhost:8123/
+http://127.0.0.1:8124/
 ```
+
+這是 canonical 原始碼的工程驗證埠；車位使用 COLLAB 的各自埠。測試載入前先選槽 3，玩家 8123 不用來跑測試，也不因遠端同步而更新。直接遊玩可用 [已發布 Pages](https://lijiabao1998.github.io/GlimmerTown/)。
 
 手機若要使用完整 PWA / Service Worker，請使用固定的 HTTPS 網址。
 LAN IP 的明文 HTTP 並不等於 localhost，也不保證完整 PWA 能力。
@@ -216,5 +229,5 @@ GlimmerTown 使用「城市建造模擬」這一公共玩法類型，但程式�
 
 **Active development.**
 
-主線目前：**v11.210 · T601**  
+遠端主線與 Pages：**v11.221 · T635**；本機接收阻塞另見上述收件記錄。
 實驗線與 3D 線仍持續演化；README 只描述可公開確認的現況，不取代 `docs/ARCH.md` 與 commit history 作為工程真相源。
