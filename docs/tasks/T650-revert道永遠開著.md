@@ -53,7 +53,8 @@ T641 合併（e4d9402）後，要做「文件快道＋凍結欄違規」的實�
 - 誤推那輪剛好成了 T641「文件道＋凍結欄違規」的真實紅源，比原本打算的丟棄用 PR 更直接：push main run 38621256674 的結果是 scope 紅（`card-frozen`：families 在 0a2b1d8 從「無」改成 fire），validate 綠，重的各道 7 個全 skipped（docs 道），gate 紅，deploy／verify-published skipped。網站沒有被重新部署，停在 T641 那輪（run 38621187714，deploy＋verify-published 綠）。
 - 實作照「改什麼」。scope 對真倉庫跑一次 18 秒（Windows；60 個 patch-id）。
 - 本機預演撤銷 0a2b1d8（`commit-tree` 拿 e4d9402 的樹、父提交 0a2b1d8）：docs 道、`revert_of`＝0a2b1d8、`ratchet_base`＝e4d9402、無違規。
-- **紅源（本機突變）**：本卡 4 條加 T641 原有 14 條，共 18 條全首紅在目標測試。第一輪「只在卡面違規時才查 revert」沒被抓到：所有測試的純 revert 都恰好帶卡面違規。補了「撤銷只改有卡頭舊卡內文＋加斷言的合併」（卡面乾淨、棘輪照樣要換基準）後抓到。單元測試 20→26 例，工具鏈 83→89 例全綠。
+- **紅源（本機突變）**：本卡 5 條加 T641 原有 13 條，共 18 條全首紅在目標測試。第一輪「只在卡面違規時才查 revert」沒被抓到：所有測試的純 revert 都恰好帶卡面違規。補了「撤銷只改有卡頭舊卡內文＋加斷言的合併」（卡面乾淨、棘輪照樣要換基準）後抓到。單元測試 20→27 例，工具鏈 83→90 例全綠。（PR 第一版的說明寫「18 種」，其實當時是 4＋13＝17 種，T641 原有的條數數錯了；加了下一條的第 5 條後才是 18。）
+- **Codex 審查 P2（PR #27），照改**：`git patch-id --stable` 會剝掉空白。內容等於反向 patch、只多一個空白的改動（例如卡頭前多一個空格，卡頭因此失效）會被認成純 revert，連卡頭規則一起免掉。純 revert 既然要免掉全部卡面規則，比對就得逐字：改用 `--verbatim`（git 2.40 起有），加 `test_whitespace_altered_revert_is_not_pure`，突變「patch-id 剝空白」首紅在它。預演撤銷 0a2b1d8 照樣判純 revert。
 - AGENTS 加兩行：「main 紅了」補直推提交與純 revert 免卡面規則；「開分支與推送」寫明 `--no-track` 與 `HEAD:refs/heads/<分支>`。
 - 本卡不碰 T641 卡（一 PR 一卡）。T641 卡面「文件快道實測結果補在下方」那一筆，等本卡和撤銷 PR 合併後，由一個純文件 PR 去補。那個 PR 本身也就是文件快道的綠色實測：gate 綠、重的各道 skipped、合併後不部署。
 - `verify.py` ALL GREEN。

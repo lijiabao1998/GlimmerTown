@@ -105,7 +105,8 @@ def patch_id(repo, a, b):
     diff = subprocess.run(['git', 'diff', '--binary', a, b], cwd=repo, capture_output=True).stdout
     if not diff.strip():
         return None
-    r = subprocess.run(['git', 'patch-id', '--stable'], cwd=repo, input=diff, capture_output=True)
+    # --verbatim 不剝空白：純 revert 要免掉全部卡面規則，只差空白的「近似撤銷」不能算（Codex #27 P2）
+    r = subprocess.run(['git', 'patch-id', '--verbatim'], cwd=repo, input=diff, capture_output=True)
     out = r.stdout.decode().split()
     return out[0] if out else None
 

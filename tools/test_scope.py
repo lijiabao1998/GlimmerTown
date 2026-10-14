@@ -189,6 +189,14 @@ class ScopeTests(unittest.TestCase):
         self.assertTrue(res['ok'], res); self.assertEqual(res['revert_of'], bad)
         self.assertEqual(res['ratchet_base'], self.r.git('rev-parse', bad + '^1'))
 
+    def test_whitespace_altered_revert_is_not_pure(self):
+        # 內容等於反向 patch、只多一個前導空白：卡頭因此失效，不能被當成純 revert 免掉（Codex #27 P2）
+        self.r.write('docs/tasks/T630-有頭.md', card(630)); self.r.commit('headered card')
+        self.r.write('docs/tasks/T630-有頭.md', card(630, f='fire')); self.r.commit('direct push')
+        self.r.branch('claude/fix'); self.r.write('docs/tasks/T630-有頭.md', card(630).replace('<!-- card:', ' <!-- card:')); self.r.commit('near revert')
+        res = self.r.run(base='main')
+        self.assertIsNone(res['revert_of']); self.assertIn('card-header', self.rules(res))
+
     def test_non_pure_revert_of_frozen_field_stays_red(self):
         self.r.write('docs/tasks/T630-有頭.md', card(630)); self.r.commit('headered card')
         self.r.write('docs/tasks/T630-有頭.md', card(630, f='fire')); self.r.commit('direct push')
