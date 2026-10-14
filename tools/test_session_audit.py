@@ -110,6 +110,31 @@ class AuditTests(unittest.TestCase):
         f['repos/%s/issues/50/comments' % R] = [{'body': '<!-- %s -->' % sa.SUMMARY_TAG, 'created_at': '2026-10-15T02:00:00Z'}]
         self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), ['merged-before-codex'])
 
+    def premerge_fixture(self):
+        f = base_fixture()
+        f['repos/%s/pulls/52' % R] = {'number': 52, 'head': {'ref': 'claude/c', 'sha': 's52'}}
+        return f
+
+    def test_premerge_clean_passes(self):
+        self.assertEqual(sa.premerge(Fake(self.premerge_fixture()), R, 52), [])
+
+    def test_premerge_blocks_unanswered_p1_until_replied(self):
+        # #28 那天的情形：P1 印出來了，合併步驟卻沒停
+        f = self.premerge_fixture()
+        f['repos/%s/pulls/52/comments' % R] = [{'id': 7, 'user': {'login': sa.CODEX}, 'body': P1, 'path': 'AGENTS.md', 'line': 20}]
+        bad = sa.premerge(Fake(f), R, 52)
+        self.assertEqual(len(bad), 1); self.assertIn('P1', bad[0])
+        f['repos/%s/pulls/52/comments' % R].append({'id': 8, 'user': {'login': 'x'}, 'body': '不成立：作者是 Claude', 'in_reply_to_id': 7})
+        self.assertEqual(sa.premerge(Fake(f), R, 52), [])
+
+    def test_premerge_blocks_missing_summary_and_red_gate(self):
+        f = self.premerge_fixture()
+        f['repos/%s/issues/52/comments' % R] = []
+        f['repos/%s/commits/s52/check-runs?check_name=gate' % R] = {'check_runs': [{'conclusion': 'failure'}]}
+        bad = sa.premerge(Fake(f), R, 52)
+        self.assertEqual(len(bad), 2)
+        self.assertTrue(any('gate' in b for b in bad)); self.assertTrue(any('摘要' in b for b in bad))
+
     def test_since_date_only_is_utc(self):
         # 實跑 `--since 2026-10-14` 曾因不帶時區的時間跟 API 時間比較而崩潰
         self.assertEqual(sa._t('2026-10-14'), SINCE)

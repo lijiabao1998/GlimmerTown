@@ -3,6 +3,8 @@
 
 用法：python tools/session_audit.py [--repo lijiabao1998/GlimmerTown] [--since 2026-10-14T00:00:00Z] [--findings docs/REVIEW-FINDINGS.md] [--json 路徑]
 沒給 --since 時看最近 7 天合併的 PR。詳細結果用 --json 寫到倉庫外（例如 scratchpad），不進倉庫。
+合併前檢查：python tools/session_audit.py --premerge <PR 號> && gh pr merge <PR 號> --merge
+（head 的 gate 綠、Codex 摘要已到、沒有未回覆的 P0／P1，不過就 exit 1）。
 
 四段：① main 最近一輪 Town main 的結論與 deploy／verify-published；② 設定有沒有被動過
 （require-gate 規則集在且沒有繞過者、只准 merge commit、自動刪分支、近 7 天規則集被繞過的次數）；
@@ -46,6 +48,33 @@ def _t(s):
         return None
     t = dt.datetime.fromisoformat(s.replace('Z', '+00:00'))
     return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)  # --since 只給日期時沒有時區，一律當 UTC
+
+
+def unanswered_p01(comments):
+    """Codex 的 P0／P1 審查意見裡，PR 上還沒有人回覆的：[(等級, 意見)]。"""
+    replied = {c.get('in_reply_to_id') for c in comments if c.get('in_reply_to_id')}
+    out = []
+    for c in comments:
+        m = BADGE.search(c.get('body') or '')
+        if c.get('user', {}).get('login') == CODEX and m and m.group(1) in ('P0', 'P1') and c['id'] not in replied:
+            out.append((m.group(1), c))
+    return out
+
+
+def premerge(api, repo, n):
+    """合併前檢查：head 的 gate 綠、Codex 審查摘要已到、沒有未回覆的 P0／P1。回傳不過的原因清單（空＝可以合）。
+    2026-10-15 #28 的合併步驟把 Codex P1 印了出來卻沒有停，先合後回；之後合併一律 `--premerge N && gh pr merge N`。"""
+    bad = []
+    pr = api.get('repos/%s/pulls/%d' % (repo, n)) or {}
+    sha = pr.get('head', {}).get('sha', '')
+    cr = (api.get('repos/%s/commits/%s/check-runs?check_name=gate' % (repo, sha)) or {}).get('check_runs', [])
+    if not cr or cr[0].get('conclusion') != 'success':
+        bad.append('gate 不是綠（head %s：%s）' % (sha[:7], cr[0].get('conclusion') if cr else '沒有 gate'))
+    if not any(SUMMARY_TAG in (c.get('body') or '') for c in api.get('repos/%s/issues/%d/comments' % (repo, n)) or []):
+        bad.append('Codex 審查摘要還沒到')
+    for lvl, c in unanswered_p01(api.get('repos/%s/pulls/%d/comments' % (repo, n)) or []):
+        bad.append('未回覆的 %s：%s:%s（comment %s）' % (lvl, c.get('path'), c.get('line'), c.get('id')))
+    return bad
 
 
 def audit(api, repo, since, findings_text=''):
@@ -99,19 +128,15 @@ def audit(api, repo, since, findings_text=''):
         row['codex_summary_at'] = summary[0]['created_at'] if summary else None
         if summary and _t(pr['merged_at']) < _t(summary[0]['created_at']):
             flags.append({'kind': 'merged-before-codex', 'detail': '#%d 在 Codex 摘要之前就合了（合 %s、摘要 %s）' % (n, pr['merged_at'], summary[0]['created_at'])})
-        comments = api.get('repos/%s/pulls/%d/comments' % (repo, n)) or []
-        replied = {c.get('in_reply_to_id') for c in comments if c.get('in_reply_to_id')}
-        for c in comments:
-            m = BADGE.search(c.get('body') or '')
-            if c.get('user', {}).get('login') == CODEX and m and m.group(1) in ('P0', 'P1') and c['id'] not in replied:
-                key = '#%d' % n
-                if key in findings_text and (c.get('path') or '') in findings_text:
-                    continue
-                title = (c.get('body') or '').split('\n')[0]
-                for pat in (r'!\[[^\]]*\]\([^)]*\)', r'</?sub>', r'\*'):
-                    title = re.sub(pat, '', title)
-                title = title.strip()
-                flags.append({'kind': 'codex-unanswered', 'detail': '#%d %s %s:%s 沒回覆也沒登記：%s' % (n, m.group(1), c.get('path'), c.get('line'), title[:120])})
+        for lvl, c in unanswered_p01(api.get('repos/%s/pulls/%d/comments' % (repo, n)) or []):
+            key = '#%d' % n
+            if key in findings_text and (c.get('path') or '') in findings_text:
+                continue
+            title = (c.get('body') or '').split('\n')[0]
+            for pat in (r'!\[[^\]]*\]\([^)]*\)', r'</?sub>', r'\*'):
+                title = re.sub(pat, '', title)
+            title = title.strip()
+            flags.append({'kind': 'codex-unanswered', 'detail': '#%d %s %s:%s 沒回覆也沒登記：%s' % (n, lvl, c.get('path'), c.get('line'), title[:120])})
         files = api.get('repos/%s/pulls/%d/files?per_page=100' % (repo, n)) or []
         paths = [f['filename'] for f in files]
         owner_quotes = []
@@ -160,7 +185,15 @@ def main(argv=None):
     ap.add_argument('--since')
     ap.add_argument('--findings', default='docs/REVIEW-FINDINGS.md')
     ap.add_argument('--json')
+    ap.add_argument('--premerge', type=int, metavar='PR', help='合併前檢查，不過 exit 1：python tools/session_audit.py --premerge N && gh pr merge N --merge')
     a = ap.parse_args(argv)
+    if a.premerge:
+        bad = premerge(GhApi(), a.repo, a.premerge)
+        for b in bad:
+            print('PREMERGE ✗ #%d %s' % (a.premerge, b))
+        if not bad:
+            print('PREMERGE ✓ #%d：gate 綠、Codex 摘要已到、沒有未回覆的 P0／P1' % a.premerge)
+        return 1 if bad else 0
     since = _t(a.since) if a.since else dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=7)
     findings = open(a.findings, encoding='utf-8').read() if os.path.exists(a.findings) else ''
     r = audit(GhApi(), a.repo, since, findings)
