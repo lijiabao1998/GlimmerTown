@@ -86,10 +86,11 @@ def registered(findings_text, n, c):
 GATE_RUN = re.compile(r'/actions/runs/(\d+)/')
 
 
-def gate_state(api, repo, sha):
-    """head 上最新那個 gate 的結論；必須是 pull_request 那一輪跑出來的才算 success。
+def gate_state(api, repo, sha, ref=None):
+    """head 上最新那個 gate 的結論；必須是 pull_request 那一輪、而且是**這個 PR 的分支**跑出來的才算 success。
     手動 dispatch 的 head_ref 是空的、scope 會漏掉 gpt 越道規則，而必要檢查只看最新那個 gate，
-    所以 dispatch 的綠 gate 不能拿來蓋掉 PR 那輪的紅 gate（Codex #29 P1）。"""
+    所以 dispatch 的綠 gate 不能拿來蓋掉 PR 那輪的紅 gate（Codex #29 P1）。
+    兩個 PR 指向同一個提交時，claude/ 分支的綠 gate 也不能蓋掉 gpt/ 分支的紅 gate：scope 的規則依分支名而定（Codex #29 P1）。"""
     cr = (api.get('repos/%s/commits/%s/check-runs?check_name=gate' % (repo, sha)) or {}).get('check_runs', [])
     if not cr:
         return '沒有 gate'
@@ -100,6 +101,8 @@ def gate_state(api, repo, sha):
     run = (api.get('repos/%s/actions/runs/%s' % (repo, m.group(1))) or {}) if m else {}
     if run.get('event') != 'pull_request':
         return '不是 PR 那一輪（event=%s）' % run.get('event')
+    if ref is not None and run.get('head_branch') != ref:
+        return '不是這個 PR 分支跑的（branch=%s）' % run.get('head_branch')
     return 'success'
 
 
@@ -145,7 +148,7 @@ def premerge_check(api, repo, n):
     bad = []
     pr = api.get('repos/%s/pulls/%d' % (repo, n)) or {}
     sha = pr.get('head', {}).get('sha', '')
-    g = gate_state(api, repo, sha)
+    g = gate_state(api, repo, sha, pr.get('head', {}).get('ref'))
     if g != 'success':
         bad.append('gate 不是綠（head %s：%s）' % (sha[:7], g))
     ok, why = codex_reviewed(api, repo, n, sha)
@@ -201,7 +204,7 @@ def audit(api, repo, since, findings_text=''):
             continue
         n, ref, sha = pr['number'], pr['head']['ref'], pr['head']['sha']
         row = {'pr': n, 'ref': ref, 'merged_at': pr['merged_at']}
-        row['gate'] = gate_state(api, repo, sha)
+        row['gate'] = gate_state(api, repo, sha, ref)
         if row['gate'] != 'success':  # Codex #29 P2：沒綠就合的要報出來，這正是繞過保護的痕跡
             flags.append({'kind': 'gate-not-green', 'detail': '#%d 合併時 head 的 gate：%s' % (n, row['gate'])})
         summary = [c for c in api.get('repos/%s/issues/%d/comments' % (repo, n), paginate=True) or [] if is_codex_summary(c)]

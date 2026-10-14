@@ -46,7 +46,7 @@ def base_fixture():
     }
     for n in (50, 51, 52):
         f['repos/%s/commits/%s/check-runs?check_name=gate' % (R, SHA[n])] = {'check_runs': [gate_run(n)]}
-        f['repos/%s/actions/runs/7%d' % (R, n)] = {'event': 'pull_request'}
+        f['repos/%s/actions/runs/7%d' % (R, n)] = {'event': 'pull_request', 'head_branch': {50: 'claude/a', 51: 'gpt/b', 52: 'claude/c'}[n]}
         f['repos/%s/issues/%d/comments' % (R, n)] = [summary(SHA[n])]
         f['repos/%s/pulls/%d/comments' % (R, n)] = []
         f['repos/%s/pulls/%d/reviews' % (R, n)] = []
@@ -242,8 +242,16 @@ class AuditTests(unittest.TestCase):
         bad = sa.premerge(Fake(f), R, 52)
         self.assertEqual(len(bad), 1); self.assertIn('workflow_dispatch', bad[0])
         self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), ['gate-not-green'])
-        f['repos/%s/actions/runs/752' % R] = {'event': 'pull_request'}
+        f['repos/%s/actions/runs/752' % R] = {'event': 'pull_request', 'head_branch': 'claude/c'}
         self.assertEqual(sa.premerge(Fake(f), R, 52), [])
+
+    def test_gate_from_another_branch_on_same_sha_does_not_count(self):
+        # 兩個 PR 指向同一個提交：別的分支跑出的綠 gate 不能蓋掉這個 PR 的（Codex #29 P1，scope 規則依分支名而定）
+        f = base_fixture()
+        f['repos/%s/actions/runs/752' % R] = {'event': 'pull_request', 'head_branch': 'claude/other'}
+        bad = sa.premerge(Fake(f), R, 52)
+        self.assertEqual(len(bad), 1); self.assertIn('claude/other', bad[0])
+        self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), ['gate-not-green'])
 
     def test_bypass_past_first_page_of_rule_suites(self):
         f = base_fixture()
