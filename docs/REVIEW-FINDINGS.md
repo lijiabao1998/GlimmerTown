@@ -17,3 +17,7 @@
 | #29 | P2 | tools/session_audit.py:126 | 照改：gate 沒綠就合的 PR 報 gate-not-green |
 | #29 | P2 | tools/session_audit.py:134 | 照改：發現帳比完整位置 `| #N |`＋`路徑:行號` |
 | #30 | P2 | docs/tasks/T641-…md:62 | 照改：先標「待 CI」，有了 run 號與結果才改成綠 |
+| #29 | P2 | tools/session_audit.py:156 | 照改：巡檢新增 unreviewed-head（合併時的 head Codex 沒審過） |
+| #29 | P2 | tools/session_audit.py:137 | 照改：rule-suites 分頁 |
+| #29 | P2 | tools/session_audit.py:164 | 照改：line 為空時訊息退回 original_line |
+| #29 | P2 | tools/session_audit.py:177 | → T644：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |

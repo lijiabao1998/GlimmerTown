@@ -13,7 +13,7 @@ R = 'o/r'
 SINCE = dt.datetime(2026, 10, 14, tzinfo=dt.timezone.utc)
 CARD = '# T650 測試\n<!-- card: families=fire; valve=__noT650; owner_ok=全部沒問題（2026-10-15）; removed_asserts=0 -->\n'
 P1 = '**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Remove the hard-coded approval commit**\n\nbody'
-SHA = {n: '%040x' % (0xabc000 + n) for n in (49, 50, 51, 52)}
+SHA = {n: ('%02d' % n) * 20 for n in (49, 50, 51, 52)}  # 前綴就不同，「Reviewed commit」前綴比對才測得出來
 
 
 def summary(sha, status='completed', at='2026-10-15T00:30:00Z'):
@@ -43,6 +43,7 @@ def base_fixture():
         f['repos/%s/commits/%s/check-runs?check_name=gate' % (R, SHA[n])] = {'check_runs': [{'conclusion': 'success'}]}
         f['repos/%s/issues/%d/comments' % (R, n)] = [summary(SHA[n])]
         f['repos/%s/pulls/%d/comments' % (R, n)] = []
+        f['repos/%s/pulls/%d/reviews' % (R, n)] = []
         f['repos/%s/pulls/%d/files?per_page=100' % (R, n)] = [{'filename': 'README.md'}]
         f['repos/%s/pulls/%d/commits?per_page=100' % (R, n)] = [{'commit': {'author': {'name': 'GPT (Codex)' if n == 51 else 'Claude'}}}]
     # 卡頭 owner_ok 原話
@@ -174,6 +175,41 @@ class AuditTests(unittest.TestCase):
         f['repos/%s/issues/52/comments' % R] = [summary(SHA[52], status='in_progress')]
         bad = sa.premerge(Fake(f), R, 52)
         self.assertEqual(len(bad), 1); self.assertIn('還沒跑完', bad[0])
+
+    def test_premerge_accepts_rereview_by_review_object_or_comment(self):
+        # `@codex review` 重審時 Codex 不更新摘要，只回審查物件（#29）或「Reviewed commit」留言（#30）
+        f = base_fixture()
+        f['repos/%s/issues/52/comments' % R] = [summary(SHA[51])]
+        self.assertEqual(len(sa.premerge(Fake(f), R, 52)), 1)
+        f['repos/%s/pulls/52/reviews' % R] = [{'user': {'login': sa.CODEX}, 'commit_id': SHA[51], 'state': 'COMMENTED'}]  # 審的是舊提交（#29 推修補前）
+        self.assertEqual(len(sa.premerge(Fake(f), R, 52)), 1)
+        f['repos/%s/pulls/52/reviews' % R] = [{'user': {'login': sa.CODEX}, 'commit_id': SHA[52], 'state': 'COMMENTED'}]
+        self.assertEqual(sa.premerge(Fake(f), R, 52), [])
+        f['repos/%s/pulls/52/reviews' % R] = [{'user': {'login': 'x'}, 'commit_id': SHA[52]}]  # 別人的審查不算
+        self.assertEqual(len(sa.premerge(Fake(f), R, 52)), 1)
+        f['repos/%s/issues/52/comments' % R].append({'user': {'login': sa.CODEX}, 'body': "Codex Review: Didn't find any major issues.\n\n**Reviewed commit:** `%s`" % SHA[52][:10]})
+        self.assertEqual(sa.premerge(Fake(f), R, 52), [])
+        f['repos/%s/issues/52/comments' % R][-1]['body'] = "**Reviewed commit:** `%s`" % SHA[51][:10]  # 審的是別的提交
+        self.assertEqual(len(sa.premerge(Fake(f), R, 52)), 1)
+
+    def test_audit_flags_merged_head_codex_never_reviewed(self):
+        # #26、#27 的情形：摘要早於合併，但合併時的 head 是之後推的修補提交，Codex 沒審過（Codex #29 P2）
+        f = base_fixture()
+        f['repos/%s/issues/52/comments' % R] = [summary(SHA[51])]
+        self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), ['unreviewed-head'])
+        f['repos/%s/pulls/52/reviews' % R] = [{'user': {'login': sa.CODEX}, 'commit_id': SHA[52]}]
+        self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), [])
+
+    def test_bypass_past_first_page_of_rule_suites(self):
+        f = base_fixture()
+        f['repos/%s/rulesets/rule-suites?time_period=week' % R] = [{'result': 'pass', 'ref': 'refs/heads/main'}] * 30 + [{'result': 'bypass', 'ref': 'refs/heads/main'}]
+        self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), ['bypass'])
+
+    def test_unanswered_message_uses_original_line_when_outdated(self):
+        f = base_fixture()
+        f['repos/%s/pulls/52/comments' % R] = [{'id': 7, 'user': {'login': sa.CODEX}, 'body': P1, 'path': 'a.yml', 'line': None, 'original_line': 12}]
+        self.assertIn('a.yml:12', sa.premerge(Fake(f), R, 52)[0])
+        self.assertIn('a.yml:12', sa.audit(Fake(f), R, SINCE)['flags'][0]['detail'])
 
     def test_since_date_only_is_utc(self):
         # 實跑 `--since 2026-10-14` 曾因不帶時區的時間跟 API 時間比較而崩潰

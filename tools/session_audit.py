@@ -4,7 +4,7 @@
 用法：python tools/session_audit.py [--repo lijiabao1998/GlimmerTown] [--since 2026-10-14T00:00:00Z] [--findings docs/REVIEW-FINDINGS.md] [--json 路徑]
 沒給 --since 時看最近 7 天合併的 PR。詳細結果用 --json 寫到倉庫外（例如 scratchpad），不進倉庫。
 合併前檢查：python tools/session_audit.py --premerge <PR 號> && gh pr merge <PR 號> --merge
-（head 的 gate 綠、Codex 摘要已到、沒有未回覆的 P0／P1，不過就 exit 1）。
+（head 的 gate 綠、Codex 審過當前 head、沒有未回覆的 P0／P1，不過就 exit 1）。
 
 四段：① main 最近一輪 Town main 的結論與 deploy／verify-published；② 設定有沒有被動過
 （require-gate 規則集在且沒有繞過者、只准 merge commit、自動刪分支、近 7 天規則集被繞過的次數）；
@@ -29,6 +29,7 @@ BADGE = re.compile(r'!\[(P[0-3]) Badge\]')
 SUMMARY_TAG = 'codex-pull-request-review-summary'
 SUMMARY_HEAD = re.compile(r'"headSha":"([0-9a-f]{40})"')
 SUMMARY_STATUS = re.compile(r'"status":"([a-z_]+)"')
+REVIEWED_COMMIT = re.compile(r'Reviewed commit:\*\*\s*`([0-9a-f]{7,40})`')
 EXPECT_AUTHOR = {'claude/': {'Claude'}, 'gpt/': {'GPT (Codex)'}}
 
 
@@ -77,27 +78,45 @@ def registered(findings_text, n, c):
     return any(re.search(pr, row) and re.search(loc, row) for row in (findings_text or '').splitlines())
 
 
+def codex_reviewed(api, repo, n, sha):
+    """Codex 有沒有審完當前 head：(True, 訊號) 或 (False, 原因)。
+    三種訊號任一即可：摘要的 headSha＝head 且 completed；Codex 審查物件的 commit_id＝head；
+    Codex 留言裡的「Reviewed commit: `前綴`」對得上 head。`@codex review` 重審時，Codex 只回後兩種，不更新摘要
+    （#29、#30 實測：照只認摘要的寫法，兩個都被誤擋 45 分鐘）。"""
+    issue = api.get('repos/%s/issues/%d/comments' % (repo, n), paginate=True) or []
+    summaries = [c for c in issue if SUMMARY_TAG in (c.get('body') or '')]
+    head, status = summary_state(summaries[-1].get('body')) if summaries else (None, None)
+    if head == sha and status == 'completed':
+        return True, 'summary'
+    for c in issue:
+        m = REVIEWED_COMMIT.search(c.get('body') or '') if c.get('user', {}).get('login') == CODEX else None
+        if m and sha.startswith(m.group(1)):
+            return True, 'comment'
+    for r in api.get('repos/%s/pulls/%d/reviews' % (repo, n), paginate=True) or []:
+        if r.get('user', {}).get('login') == CODEX and r.get('commit_id') == sha:
+            return True, 'review'
+    if not summaries:
+        return False, 'Codex 審查摘要還沒到'
+    if head == sha:
+        return False, 'Codex 審查還沒跑完（status=%s）' % status
+    return False, 'Codex 還沒審過當前 head %s（摘要停在 %s；留言 @codex review 重審）' % (sha[:7], (head or '？')[:7])
+
+
 def premerge(api, repo, n):
-    """合併前檢查：head 的 gate 綠、Codex 審查了**當前 head** 而且審完、沒有未回覆的 P0／P1。回傳不過的原因清單（空＝可以合）。
+    """合併前檢查：head 的 gate 綠、Codex 審過**當前 head**、沒有未回覆的 P0／P1。回傳不過的原因清單（空＝可以合）。
     2026-10-15 #28 的合併步驟把 Codex P1 印了出來卻沒有停，先合後回；之後合併一律 `--premerge N && gh pr merge N`。
-    推了新提交以後，舊摘要不算數（Codex #29 P1）：在 PR 上留言 `@codex review` 讓它重審。"""
+    推了新提交以後，舊的審查不算數（Codex #29 P1）：在 PR 上留言 `@codex review` 讓它重審。"""
     bad = []
     pr = api.get('repos/%s/pulls/%d' % (repo, n)) or {}
     sha = pr.get('head', {}).get('sha', '')
     cr = (api.get('repos/%s/commits/%s/check-runs?check_name=gate' % (repo, sha)) or {}).get('check_runs', [])
     if not cr or cr[0].get('conclusion') != 'success':
         bad.append('gate 不是綠（head %s：%s）' % (sha[:7], cr[0].get('conclusion') if cr else '沒有 gate'))
-    summaries = [c for c in api.get('repos/%s/issues/%d/comments' % (repo, n), paginate=True) or [] if SUMMARY_TAG in (c.get('body') or '')]
-    if not summaries:
-        bad.append('Codex 審查摘要還沒到')
-    else:
-        head, status = summary_state(summaries[-1].get('body'))
-        if head != sha:
-            bad.append('Codex 摘要審的是 %s，不是當前 head %s（留言 @codex review 重審）' % ((head or '？')[:7], sha[:7]))
-        elif status != 'completed':
-            bad.append('Codex 審查還沒跑完（status=%s）' % status)
+    ok, why = codex_reviewed(api, repo, n, sha)
+    if not ok:
+        bad.append(why)
     for lvl, c in unanswered_p01(api.get('repos/%s/pulls/%d/comments' % (repo, n), paginate=True) or []):
-        bad.append('未回覆的 %s：%s:%s（comment %s）' % (lvl, c.get('path'), c.get('line'), c.get('id')))
+        bad.append('未回覆的 %s：%s:%s（comment %s）' % (lvl, c.get('path'), c.get('line') or c.get('original_line'), c.get('id')))
     return bad
 
 
@@ -134,7 +153,7 @@ def audit(api, repo, since, findings_text=''):
         if g.get('enforcement') != 'active' or g.get('bypass_actors') or 'gate' not in contexts:
             flags.append({'kind': 'setting', 'detail': 'require-gate 被動過：enforcement=%s、繞過者 %d 個、必要檢查 %s' % (
                 g.get('enforcement'), len(g.get('bypass_actors') or []), contexts)})
-    suites = api.get('repos/%s/rulesets/rule-suites?time_period=week' % repo) or []
+    suites = api.get('repos/%s/rulesets/rule-suites?time_period=week' % repo, paginate=True) or []  # Codex #29 P2：要分頁
     bypass = [s for s in suites if s.get('result') == 'bypass']
     if bypass:
         flags.append({'kind': 'bypass', 'detail': '近 7 天規則集被繞過 %d 次（%s）' % (len(bypass), '、'.join(sorted({s.get('ref', '') for s in bypass})))})
@@ -154,6 +173,10 @@ def audit(api, repo, since, findings_text=''):
         row['codex_summary_at'] = summary[0]['created_at'] if summary else None
         if summary and _t(pr['merged_at']) < _t(summary[0]['created_at']):
             flags.append({'kind': 'merged-before-codex', 'detail': '#%d 在 Codex 摘要之前就合了（合 %s、摘要 %s）' % (n, pr['merged_at'], summary[0]['created_at'])})
+        elif summary:
+            ok, why = codex_reviewed(api, repo, n, sha)  # Codex #29 P2：合併時的 head 要真的被審過（#26、#27 就是修補提交沒被審）
+            if not ok:
+                flags.append({'kind': 'unreviewed-head', 'detail': '#%d 合併時的 head %s Codex 沒審過' % (n, sha[:7])})
         for lvl, c in unanswered_p01(api.get('repos/%s/pulls/%d/comments' % (repo, n), paginate=True) or []):
             if registered(findings_text, n, c):
                 continue
@@ -161,7 +184,7 @@ def audit(api, repo, since, findings_text=''):
             for pat in (r'!\[[^\]]*\]\([^)]*\)', r'</?sub>', r'\*'):
                 title = re.sub(pat, '', title)
             title = title.strip()
-            flags.append({'kind': 'codex-unanswered', 'detail': '#%d %s %s:%s 沒回覆也沒登記：%s' % (n, lvl, c.get('path'), c.get('line'), title[:120])})
+            flags.append({'kind': 'codex-unanswered', 'detail': '#%d %s %s:%s 沒回覆也沒登記：%s' % (n, lvl, c.get('path'), c.get('line') or c.get('original_line'), title[:120])})
         files = api.get('repos/%s/pulls/%d/files?per_page=100' % (repo, n), paginate=True) or []
         paths = [f['filename'] for f in files]
         owner_quotes = []
@@ -196,7 +219,7 @@ def four_lines(r):
     l1 = '① main：%s（run %s）deploy=%s verify-published=%s' % (m.get('conclusion', '？'), m.get('run'), m.get('deploy'), m.get('verify_published')) if m.get('run') else '① main：找不到最近一輪'
     st = [f['detail'] for f in r['flags'] if f['kind'] in ('setting', 'bypass')]
     l2 = '② 設定：' + ('沒變' if not st else '；'.join(st))
-    pf = [f['detail'] for f in r['flags'] if f['kind'] in ('gate-not-green', 'merged-before-codex', 'codex-unanswered', 'gpt-lane', 'author')]
+    pf = [f['detail'] for f in r['flags'] if f['kind'] in ('gate-not-green', 'merged-before-codex', 'unreviewed-head', 'codex-unanswered', 'gpt-lane', 'author')]
     quotes = [q for p in r['prs'] for q in p['owner_ok']]
     l3 = '③ 期間合併 %d 個 PR：%s%s' % (len(r['prs']), '沒有異常' if not pf else '；'.join(pf),
                                     ('；owner_ok 原話：' + '／'.join(quotes)) if quotes else '')
@@ -217,7 +240,7 @@ def main(argv=None):
         for b in bad:
             print('PREMERGE ✗ #%d %s' % (a.premerge, b))
         if not bad:
-            print('PREMERGE ✓ #%d：gate 綠、Codex 摘要已到、沒有未回覆的 P0／P1' % a.premerge)
+            print('PREMERGE ✓ #%d：gate 綠、Codex 審過當前 head、沒有未回覆的 P0／P1' % a.premerge)
         return 1 if bad else 0
     since = _t(a.since) if a.since else dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=7)
     findings = open(a.findings, encoding='utf-8').read() if os.path.exists(a.findings) else ''
