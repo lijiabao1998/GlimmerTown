@@ -465,6 +465,7 @@ main 前進後 PR 顯示衝突，或想先拿到 main 的新東西：在自己�
 | `index.html`／`sw.js` 的版本號 | 先取 main 的值，再 `python tools/bump.py <比 main 大的版本>`；不要手改兩處 | `verify.py` 版本雙處同步 |
 | `docs/ARCH.md` 現況行 | 取 main 的，再 `python tools/arch_map.py --fix` | validate |
 | `docs/SPR_PINS.json`、`docs/ART_PINS.json` | 取 main 的版本（`git checkout origin/main -- docs/SPR_PINS.json docs/ART_PINS.json`），推上去等 CI 的 fp 重烘，再原封提交那一輪 fp 附件裡的檔案；不准手合 | fp（T643／T646） |
+| `docs/APPROVED_ART.json` | 兩邊新增的批次與閥都留；既有批次的提交、標籤、雜湊一律取 main 的，不准在解衝突時改 | 載入器與 scope 的 owner_ok（T647） |
 | 卡頭機讀欄 | 自己卡的凍結欄位不准動；衝突多半落在別張卡，取 main 的 | scope（T641） |
 | `test_fixde.js` 斷言 | 兩邊的斷言都留，不准為了解衝突刪斷言 | PASS 棘輪（T641） |
 | 其他程式碼 | 照常解，解完跑 `python tools/verify.py` | CI 全套 |

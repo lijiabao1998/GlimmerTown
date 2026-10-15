@@ -4,8 +4,8 @@
 
 | PR | 等級 | 位置 | 處置 |
 |---|---|---|---|
-| #16 | P1 | .github/workflows/town-main-pages-candidate.yml:217 | 工作流寫死批准提交（APPROVED_BASE634）→ T647 核准美術登記冊取代 |
-| #17 | P1 | docs/tasks/t635-shots/release635.cjs:44 | squash 合併後祖先檢查必紅 → 業主設定只留 merge commit 後已化解；T647 改用 approved/* 標籤＋雜湊 |
+| #16 | P1 | .github/workflows/town-main-pages-candidate.yml:217 | 工作流寫死批准提交（APPROVED_BASE634）→ T647 已結案：改讀 docs/APPROVED_ART.json＋approved/t634 標籤，工作流不再寫死 |
+| #17 | P1 | docs/tasks/t635-shots/release635.cjs:44 | squash 合併後祖先檢查必紅 → 業主設定只留 merge commit 後已化解；T647 已結案：錨點改成登記冊＋approved/* 標籤＋index 雜湊，祖先檢查留在共用載入器 |
 | #24 | P1 | docs/tasks/T640-CI改由PR自動觸發與收斂工作流.md:3 | 不成立：PR 的 7 個提交作者都是 `Claude <noreply@anthropic.com>`，審查看到的 Codex 作者應是審查環境自己的合併提交（PR 上已回覆） |
 | #24 | P2 | AGENTS.md:16 | 照改 8e95b18：「不要手動 dispatch」加 native-acceptance 例外 |
 | #26 | P2 | tools/scope.py:174 | 照改 c0fb94c：一 PR 一卡改成新卡＋動到的有卡頭舊卡合計、任何道都數（順手堵掉「碰別張舊卡借 removed_asserts」） |
