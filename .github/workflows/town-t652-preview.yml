@@ -1,0 +1,44 @@
+name: Town T652 isolated PNG preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/town-t652-preview.yml'
+      - 'docs/tasks/t652-shots/**'
+
+# Owner approved this preview-only workflow exception on 2026-10-15.
+# Existing GPT scope guard remains unchanged; this PR is not merge-ready.
+# Preview only: no Pages, deployment, OIDC, or repository write permissions.
+permissions:
+  contents: read
+
+jobs:
+  isolated-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser tooling outside repository
+        run: |
+          npm install --prefix "$RUNNER_TEMP/town652-browser" playwright@1.64.0
+          "$RUNNER_TEMP/town652-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Install CJK labels font
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Render isolated candidates and validate pixels
+        env:
+          NODE_PATH: ${{ runner.temp }}/town652-browser/node_modules
+        run: node docs/tasks/t652-shots/render652.cjs evidence/t652-preview
+      - name: Preserve real Chromium PNGs and validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-t652-isolated-preview-${{ github.event.pull_request.head.sha }}
+          path: evidence/t652-preview/
+          if-no-files-found: error
+          retention-days: 14
