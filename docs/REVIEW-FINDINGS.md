@@ -29,3 +29,5 @@
 | #29 | P1 | tools/session_audit.py:105 | 照改（只在 premerge）：gate 那一輪的 pull_requests 要含這個 PR 號；分支自動刪除後該欄會變空，巡檢只比分支名 |
 | #29 | P2 | tools/session_audit.py:79 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
 | #29 | P2 | tools/session_audit.py:177 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
+| #32 | P1 | tools/landing_gates.py:69 | 照改（在 #33 落地）：CHANGELOG-CORRECTION 的卡號改成完整詞比對，T425A 不再放行 T425；merge_bay 共用一起收緊 |
+| #33 | P2 | tools/landing_gates.py:80 | 不改：宣告粒度是卡號不是條目（T433 R02 原意）；#18 用一行 T634 改寫七條是合法前例，逐條計數會讓它變紅（PR 上已回覆） |
