@@ -355,13 +355,13 @@ jobs:
           if-no-files-found: error
           retention-days: 14
   fp:
-    # T643：像素指紋在 CI 實算（正本）。量測期：continue-on-error、不進 gate。同一輪用釘版 Playwright Chromium
-    # 與跑機 google-chrome 各算一次（各冷啟兩次驗 G1），逐鍵比對兩者與倉庫基線；零差且恆等才轉擋門。
+    # T643：像素指紋在 CI 實算，這裡是正本。釘版 Playwright Chromium 實算全部 SPR 鍵（冷啟兩次逐鍵恆等），
+    # fp_diff 要求實算等於提交的 docs/SPR_PINS.json、動到的家族是卡頭 families 的子集且 owner_ok 有字。
+    # 量測（PR #31，run 38671312400）：釘版 Chromium 156／跑機 google-chrome 155／Windows Chrome 與倉庫 1586 鍵零差且恆等，rebake 與倉庫檔逐位元組相同。
     needs: [scope]
     if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
-    continue-on-error: true
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -381,8 +381,7 @@ jobs:
           (cd "$RUNNER_TEMP/town643-pw" && npx playwright install --with-deps chromium)
           P=$(node -e "console.log(require(process.argv[1]).chromium.executablePath())" "$RUNNER_TEMP/town643-pw/node_modules/playwright")
           echo "path=$P" >> "$GITHUB_OUTPUT"
-          echo "playwright chromium: $P"; "$P" --version || true
-          /usr/bin/google-chrome --version || true
+          "$P" --version
       - name: Take fp tools from base when it has them (a PR must not rewrite its own check)
         env:
           BASE: ${{ needs.scope.outputs.base }}
@@ -391,62 +390,19 @@ jobs:
           for f in fp_snapshot.py fp_diff.py scope.py; do
             if git cat-file -e "$BASE:tools/fp_diff.py" 2>/dev/null; then git show "$BASE:tools/$f" > "$RUNNER_TEMP/fp-tools/$f"; else cp "tools/$f" "$RUNNER_TEMP/fp-tools/$f"; fi
           done
-          ls -l "$RUNNER_TEMP/fp-tools"
-      - name: fp with pinned Playwright Chromium
+      - name: Recompute every SPR pin (two cold boots must agree) and write the rebake
         env:
           CHROME_PATH: ${{ steps.pw.outputs.path }}
-        run: |
-          set +e
-          python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --check --out evidence/pins-playwright.json --report evidence/report-playwright.json 2>&1 | tee evidence/fp-playwright.log
-          echo "exit=${PIPESTATUS[0]}" | tee -a evidence/fp-playwright.log
-      - name: fp with runner google-chrome
-        env:
-          CHROME_PATH: /usr/bin/google-chrome
-        run: |
-          set +e
-          python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --check --out evidence/pins-chrome.json --report evidence/report-chrome.json 2>&1 | tee evidence/fp-chrome.log
-          echo "exit=${PIPESTATUS[0]}" | tee -a evidence/fp-chrome.log
-      - name: Compare both browsers with the repo baseline
-        run: |
-          python3 - <<'PY'
-          import json, os, sys
-          sys.path.insert(0, os.path.join(os.environ['RUNNER_TEMP'], 'fp-tools'))
-          import fp_snapshot as fs
-          def load(p):
-              if not os.path.exists(p):
-                  return None, '沒有產出'
-              return fs.parse_pins(open(p, encoding='utf-8').read())
-          repo, rerr = fs.parse_pins(open('docs/SPR_PINS.json', encoding='utf-8').read())
-          lines = ['## fp 量測（T643）', '', '- 倉庫基線：%s' % (rerr or '%d 鍵' % len(repo))]
-          got = {}
-          for name in ('playwright', 'chrome'):
-              pins, err = load('evidence/pins-%s.json' % name)
-              rep = json.load(open('evidence/report-%s.json' % name, encoding='utf-8')) if os.path.exists('evidence/report-%s.json' % name) else {}
-              if err:
-                  lines.append('- %s：%s' % (name, err)); continue
-              got[name] = pins
-              a, r, c = fs.diff_pins(repo or {}, pins)
-              lines.append('- %s（%s）：%d 鍵；兩次快照 %s 秒；G1 漂移 %d；有 nightCity 沒 night %d；與倉庫差 新增 %d／移除 %d／變更 %d %s' % (
-                  name, rep.get('browser', '?'), len(pins), rep.get('seconds'), len(rep.get('g1_drift') or []),
-                  len(rep.get('nightCityNoNight') or []), len(a), len(r), len(c), (a + r + c)[:20]))
-          if len(got) == 2:
-              a, r, c = fs.diff_pins(got['chrome'], got['playwright'])
-              lines.append('- playwright 對 chrome：新增 %d／移除 %d／變更 %d %s' % (len(a), len(r), len(c), (a + r + c)[:20]))
-          text = '\n'.join(lines) + '\n'
-          print(text)
-          open('evidence/compare.md', 'w', encoding='utf-8').write(text)
-          open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8').write(text)
-          PY
-      - name: fp_diff (computed equals committed; touched families vs card header)
+        run: python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --out evidence/SPR_PINS.json --report evidence/report.json
+      - name: fp_diff (rebake equals committed file; touched families vs card header)
         env:
           BASE: ${{ needs.scope.outputs.base }}
-        run: |
-          python "$RUNNER_TEMP/fp-tools/fp_diff.py" --base "$BASE" --computed evidence/pins-chrome.json 2>&1 | tee evidence/fp_diff.log
-      - name: Preserve fp evidence and rebake
+        run: python "$RUNNER_TEMP/fp-tools/fp_diff.py" --base "$BASE" --computed evidence/SPR_PINS.json
+      - name: Preserve the rebake (an art PR commits this exact docs/SPR_PINS.json, never a hand edit)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Town-main-fp-${{ github.sha }}
+          name: Town-main-fp-${{ github.event.pull_request.head.sha || github.sha }}
           path: evidence/
           retention-days: 90
   ratchet:
@@ -496,7 +452,7 @@ jobs:
   gate:
     # T641：唯一的必要檢查（業主在 GitHub 規則集只要求它）。docs 道：scope＋validate 綠；full 道：每一道都要綠。
     if: ${{ always() }}
-    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, ratchet]
+    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, ratchet]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -510,7 +466,7 @@ jobs:
           import json, os, sys
           lane, needs = os.environ.get('LANE', ''), json.loads(os.environ['NEEDS'])
           res = {k: v['result'] for k, v in needs.items()}
-          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'ratchet']
+          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'ratchet']
           bad = [k for k in ('scope', 'validate') if res.get(k) != 'success']
           # T642（Codex #29 P1）：必要檢查只看提交上最新的 gate，手動 dispatch 的綠 gate 會蓋掉 PR 那輪的紅 gate。
           # dispatch 只用來跑只紀錄的 native-acceptance，一律判紅（fail-closed；不用 skipped，skipped 會被當成通過）。
