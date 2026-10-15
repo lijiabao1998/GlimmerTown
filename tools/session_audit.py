@@ -86,7 +86,7 @@ def registered(findings_text, n, c):
 GATE_RUN = re.compile(r'/actions/runs/(\d+)/')
 
 
-def gate_state(api, repo, sha, ref=None):
+def gate_state(api, repo, sha, ref=None, pr_number=None):
     """head 上最新那個 gate 的結論；必須是 pull_request 那一輪、而且是**這個 PR 的分支**跑出來的才算 success。
     手動 dispatch 的 head_ref 是空的、scope 會漏掉 gpt 越道規則，而必要檢查只看最新那個 gate，
     所以 dispatch 的綠 gate 不能拿來蓋掉 PR 那輪的紅 gate（Codex #29 P1）。
@@ -103,6 +103,10 @@ def gate_state(api, repo, sha, ref=None):
         return '不是 PR 那一輪（event=%s）' % run.get('event')
     if ref is not None and run.get('head_branch') != ref:
         return '不是這個 PR 分支跑的（branch=%s）' % run.get('head_branch')
+    # 合併前（PR 還開著）再要求那一輪掛在這個 PR 號上：同一分支同一提交開了兩個 PR、指向不同 base 時不互蓋（Codex #29 P1）。
+    # 只用在 premerge：分支被自動刪除後 run.pull_requests 會變空（#28、#30 實測為 []），巡檢已合併的 PR 只能比分支名。
+    if pr_number is not None and pr_number not in [p.get('number') for p in run.get('pull_requests') or []]:
+        return '那一輪沒有掛在 #%d 上（pull_requests=%s）' % (pr_number, [p.get('number') for p in run.get('pull_requests') or []])
     return 'success'
 
 
@@ -148,7 +152,7 @@ def premerge_check(api, repo, n):
     bad = []
     pr = api.get('repos/%s/pulls/%d' % (repo, n)) or {}
     sha = pr.get('head', {}).get('sha', '')
-    g = gate_state(api, repo, sha, pr.get('head', {}).get('ref'))
+    g = gate_state(api, repo, sha, pr.get('head', {}).get('ref'), n)
     if g != 'success':
         bad.append('gate 不是綠（head %s：%s）' % (sha[:7], g))
     ok, why = codex_reviewed(api, repo, n, sha)
