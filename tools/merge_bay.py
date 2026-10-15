@@ -33,6 +33,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Mapping, NamedTuple, Optional, Sequence, Tuple
 
+try:  # T644：CHANGELOG 帳本閘的純函式，CI（scope job）與本機收件共用同一份
+    from tools import landing_gates
+except ImportError:  # 直接 `python tools/merge_bay.py` 時 tools 不是套件
+    import landing_gates
+
 
 ROOT = Path(r'C:\dev\glimmer-town')
 DEPLOY = Path(r'C:\Users\Leon1\OneDrive\Desktop\安卓探索\glimmer-town')
@@ -1132,7 +1137,7 @@ def validate_deploy_target(config: MergeConfig) -> None:
             raise DeployError('runtime target missing or unsafe: ' + str(target))
 
 
-SIGNOFF_PARTIES = ('Claude', 'Kimi', 'Codex', 'Grok', 'DeepSeek', '業主', 'GPT')
+SIGNOFF_PARTIES = landing_gates.SIGNOFF_PARTIES
 
 
 def changelog_entries_added_by(
@@ -1153,16 +1158,10 @@ def changelog_entries_added_by(
     if result.returncode != 0:
         raise ToolError('cannot diff CHANGELOG for bay ' + name + ': '
                         + _command_detail(result))
-    added = []
-    for line in result.stdout.split('\n'):
-        if line.startswith('+') and not line.startswith('+++'):
-            body = line[1:]
-            if re.match(r'^\d{4}-\d{2}-\d{2} \| ', body):
-                added.append(body)
-    return added
+    return landing_gates.entries_in_diff(result.stdout, '+')
 
 
-CORRECTION_TAG = 'CHANGELOG-CORRECTION:'
+CORRECTION_TAG = landing_gates.CORRECTION_TAG
 
 
 def changelog_entries_removed_by(
@@ -1199,13 +1198,7 @@ def changelog_entries_removed_by(
     if result.returncode != 0:
         raise ToolError('cannot diff CHANGELOG for bay ' + name + ': '
                         + _command_detail(result))
-    removed = []
-    for line in result.stdout.split('\n'):
-        if line.startswith('-') and not line.startswith('---'):
-            body = line[1:]
-            if re.match(r'^\d{4}-\d{2}-\d{2} \| ', body):
-                removed.append(body)
-    return removed
+    return landing_gates.entries_in_diff(result.stdout, '-')
 
 
 def bay_commit_messages(
@@ -1271,15 +1264,10 @@ def assert_integration_keeps_changelog(
             'not -- the whole ledger would be deleted by this merge. '
             + _command_detail(merged_text)
         )
-    entry = re.compile(r'^\d{4}-\d{2}-\d{2} \| ')
-    before = [l for l in master_text.stdout.split('\n') if entry.match(l)]
-    after = set(l for l in merged_text.stdout.split('\n') if entry.match(l))
-    missing = [l for l in before if l not in after]
+    before = [l for l in master_text.stdout.split('\n') if landing_gates.ENTRY.match(l)]
+    missing = landing_gates.missing_entries(master_text.stdout, merged_text.stdout)
     if missing:
-        cards = []
-        for line in missing:
-            match = re.match(r'^\S+ \| (\S+)', line)
-            cards.append(match.group(1) if match else '?')
+        cards = [landing_gates.card_of(line) for line in missing]
         raise ToolError(
             'T433: the integration commit drops %d CHANGELOG entr%s that master '
             'has (%s). This is the conflict-resolution direction the bay-side '
@@ -1305,25 +1293,16 @@ def assert_changelog_only_grows(
     removed = changelog_entries_removed_by(config, name, runner=runner)
     if not removed:
         return
-    cards = []
-    for entry in removed:
-        match = re.match(r'^\S+ \| (\S+)', entry)
-        cards.append(match.group(1) if match else '?')
+    cards = [landing_gates.card_of(entry) for entry in removed]
     messages = bay_commit_messages(config, name, runner=runner)
-    declared = [
-        line.strip()
-        for line in messages.split('\n')
-        if line.strip().startswith(CORRECTION_TAG)
-    ]
+    declared = landing_gates.correction_lines(messages)
     # R02 (adversarial review): the first cut accepted ANY single declaration
     # line anywhere in the bay and let every other deletion through with it --
     # one legitimate correction in commit 1 would have unlocked a silent
     # release-tail overwrite in commit 5, which is the exact accident this
-    # guard exists to stop.  Each removed entry must now be named by name.
-    undeclared = [
-        card for card in cards
-        if not any(card in line for line in declared)
-    ]
+    # guard exists to stop.  Each removed entry must now be named by name
+    # (T644: the rule itself lives in landing_gates.undeclared_removals).
+    undeclared = landing_gates.undeclared_removals(removed, messages)
     if undeclared:
         raise ToolError(
             'T433: this merge deletes %d CHANGELOG entr%s (%s) and %s. '
@@ -1363,18 +1342,7 @@ def assert_signoff_landed(
         added = changelog_entries_added_by(config, name, runner=runner)
     except ToolError:
         raise
-    problems = []
-    for entry in added:
-        card = (re.match(r'^\S+ \| (\S+)', entry) or [None, '?'])[1]
-        field = entry.split('驗收:', 1)[1] if '驗收:' in entry else None
-        if field is None:
-            problems.append('%s: no 驗收 field' % card)
-            continue
-        if '待' in field:
-            problems.append('%s: 驗收 still pending (%s)' % (card, field.strip()[:24]))
-            continue
-        if not any(party in field for party in SIGNOFF_PARTIES):
-            problems.append('%s: 驗收 names no reviewer (%s)' % (card, field.strip()[:24]))
+    problems = landing_gates.signoff_problems(added)  # T644：規則本身在 landing_gates，CI 也跑同一份
     if problems:
         raise ToolError(
             'sign-off has not landed for this merge -- '

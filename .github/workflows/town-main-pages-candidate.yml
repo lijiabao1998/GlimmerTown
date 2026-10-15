@@ -55,6 +55,14 @@ jobs:
           mkdir -p evidence
           if git cat-file -e "$BASE:tools/scope.py" 2>/dev/null; then git show "$BASE:tools/scope.py" > "$RUNNER_TEMP/scope.py"; else cp tools/scope.py "$RUNNER_TEMP/scope.py"; fi
           python "$RUNNER_TEMP/scope.py" --base "$BASE" --head HEAD --head-ref "$HEAD_REF" > evidence/scope.json
+      - name: Ledger gates (CHANGELOG sign-off, only grows, keeps every entry)
+        # T644：原本只在本機 merge_bay 收件時跑，搬到合併前。文件道與 full 道都跑（CHANGELOG 是 .md）；工具取自 base。
+        if: ${{ !cancelled() }}
+        env:
+          BASE: ${{ steps.base.outputs.base }}
+        run: |
+          if git cat-file -e "$BASE:tools/landing_gates.py" 2>/dev/null; then git show "$BASE:tools/landing_gates.py" > "$RUNNER_TEMP/landing_gates.py"; else cp tools/landing_gates.py "$RUNNER_TEMP/landing_gates.py"; fi
+          python "$RUNNER_TEMP/landing_gates.py" --base "$BASE" --head HEAD | tee evidence/ledger.md
       - uses: actions/upload-artifact@v4
         if: always()
         with:
