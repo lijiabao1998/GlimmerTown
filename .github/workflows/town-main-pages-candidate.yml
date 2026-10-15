@@ -353,6 +353,101 @@ jobs:
           path: evidence/
           if-no-files-found: error
           retention-days: 14
+  fp:
+    # T643：像素指紋在 CI 實算（正本）。量測期：continue-on-error、不進 gate。同一輪用釘版 Playwright Chromium
+    # 與跑機 google-chrome 各算一次（各冷啟兩次驗 G1），逐鍵比對兩者與倉庫基線；零差且恆等才轉擋門。
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chinese UI fonts (same environment as scene602)
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install pinned Playwright Chromium
+        id: pw
+        run: |
+          npm install --silent --prefix "$RUNNER_TEMP/town643-pw" playwright@1.64.0
+          (cd "$RUNNER_TEMP/town643-pw" && npx playwright install --with-deps chromium)
+          P=$(node -e "console.log(require(process.argv[1]).chromium.executablePath())" "$RUNNER_TEMP/town643-pw/node_modules/playwright")
+          echo "path=$P" >> "$GITHUB_OUTPUT"
+          echo "playwright chromium: $P"; "$P" --version || true
+          /usr/bin/google-chrome --version || true
+      - name: Take fp tools from base when it has them (a PR must not rewrite its own check)
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/fp-tools" evidence
+          for f in fp_snapshot.py fp_diff.py scope.py; do
+            if git cat-file -e "$BASE:tools/fp_diff.py" 2>/dev/null; then git show "$BASE:tools/$f" > "$RUNNER_TEMP/fp-tools/$f"; else cp "tools/$f" "$RUNNER_TEMP/fp-tools/$f"; fi
+          done
+          ls -l "$RUNNER_TEMP/fp-tools"
+      - name: fp with pinned Playwright Chromium
+        env:
+          CHROME_PATH: ${{ steps.pw.outputs.path }}
+        run: |
+          set +e
+          python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --check --out evidence/pins-playwright.json --report evidence/report-playwright.json 2>&1 | tee evidence/fp-playwright.log
+          echo "exit=${PIPESTATUS[0]}" | tee -a evidence/fp-playwright.log
+      - name: fp with runner google-chrome
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set +e
+          python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --check --out evidence/pins-chrome.json --report evidence/report-chrome.json 2>&1 | tee evidence/fp-chrome.log
+          echo "exit=${PIPESTATUS[0]}" | tee -a evidence/fp-chrome.log
+      - name: Compare both browsers with the repo baseline
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, os.path.join(os.environ['RUNNER_TEMP'], 'fp-tools'))
+          import fp_snapshot as fs
+          def load(p):
+              if not os.path.exists(p):
+                  return None, '沒有產出'
+              return fs.parse_pins(open(p, encoding='utf-8').read())
+          repo, rerr = fs.parse_pins(open('docs/SPR_PINS.json', encoding='utf-8').read())
+          lines = ['## fp 量測（T643）', '', '- 倉庫基線：%s' % (rerr or '%d 鍵' % len(repo))]
+          got = {}
+          for name in ('playwright', 'chrome'):
+              pins, err = load('evidence/pins-%s.json' % name)
+              rep = json.load(open('evidence/report-%s.json' % name, encoding='utf-8')) if os.path.exists('evidence/report-%s.json' % name) else {}
+              if err:
+                  lines.append('- %s：%s' % (name, err)); continue
+              got[name] = pins
+              a, r, c = fs.diff_pins(repo or {}, pins)
+              lines.append('- %s（%s）：%d 鍵；兩次快照 %s 秒；G1 漂移 %d；有 nightCity 沒 night %d；與倉庫差 新增 %d／移除 %d／變更 %d %s' % (
+                  name, rep.get('browser', '?'), len(pins), rep.get('seconds'), len(rep.get('g1_drift') or []),
+                  len(rep.get('nightCityNoNight') or []), len(a), len(r), len(c), (a + r + c)[:20]))
+          if len(got) == 2:
+              a, r, c = fs.diff_pins(got['chrome'], got['playwright'])
+              lines.append('- playwright 對 chrome：新增 %d／移除 %d／變更 %d %s' % (len(a), len(r), len(c), (a + r + c)[:20]))
+          text = '\n'.join(lines) + '\n'
+          print(text)
+          open('evidence/compare.md', 'w', encoding='utf-8').write(text)
+          open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8').write(text)
+          PY
+      - name: fp_diff (computed equals committed; touched families vs card header)
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+        run: |
+          python "$RUNNER_TEMP/fp-tools/fp_diff.py" --base "$BASE" --computed evidence/pins-chrome.json 2>&1 | tee evidence/fp_diff.log
+      - name: Preserve fp evidence and rebake
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-main-fp-${{ github.sha }}
+          path: evidence/
+          retention-days: 90
   ratchet:
     # T641：PASS 棘輪——同一台跑機上 base 與 head 各跑一次完整 test_fixde，head 不准少於 base 減卡頭宣告的 removed_asserts（取代寫死的 --min-pass 下限）。
     needs: [scope]
