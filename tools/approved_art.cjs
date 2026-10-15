@@ -7,9 +7,9 @@
    4. 該提交的 index.html 位元組 sha256 等於登記值；
    5. 該提交是 HEAD 的祖先；
    6. 後批規則：HEAD 裡有、批准提交裡沒有的每個 `function tNNNOn(){`，都要在 valves 登記一個 __noTNNN，
-      而且那一行要真的讀 `!window.<閥>`——否則台架隔離不了它。回傳這些閥，台架一律打開它們。
+      而且在沙箱裡打開那個閥時啟用函式真的回傳假——否則台架隔離不了它。回傳這些閥，台架一律打開它們。
    T635 這類有「批准前的 main」的批次，base 用同樣的 2～5 條驗。 */
-const crypto = require('crypto'), fs = require('fs'), path = require('path'), {execFileSync} = require('child_process');
+const crypto = require('crypto'), fs = require('fs'), path = require('path'), vm = require('vm'), {execFileSync} = require('child_process');
 
 const REGISTRY = 'docs/APPROVED_ART.json';
 const HEX40 = /^[0-9a-f]{40}$/, HEX64 = /^[0-9a-f]{64}$/, VALVE = /^__noT\d+$/;
@@ -17,6 +17,16 @@ const ON = /^function t(\d+)On\(\)\{.*$/gm;
 
 function activations(source) {
   return new Map([...source.matchAll(ON)].map(m => ['T' + m[1], m[0]]));
+}
+
+/* 真的執行啟用函式（Codex #36 P2）：只看字面會讓寫在註解或字串裡的 !window.__noTNNN 混過去。
+   在空白沙箱裡打開閥、網址不帶參數，函式必須回傳假；讀不到別的遊戲狀態就無法單獨判定，也算不過。 */
+function valveIsIgnored(line, id, valve) {
+  try {
+    return !!vm.runInNewContext(line + ';' + id.toLowerCase() + 'On()', {window: {[valve]: true}, location: {search: ''}}, {timeout: 1000});
+  } catch (e) {
+    return true;
+  }
 }
 
 function loadApproved(root, batch) {
@@ -52,7 +62,7 @@ function loadApproved(root, batch) {
     if (then.has(id)) continue;
     const valve = reg.valves && reg.valves[id];
     if (typeof valve !== 'string' || !VALVE.test(valve)) fail('later batch ' + id + ' has no escape valve registered in ' + REGISTRY + ' valves');
-    if (!line.includes('!window.' + valve)) fail('later batch ' + id + ' activation line does not read !window.' + valve);
+    if (valveIsIgnored(line, id, valve)) fail('setting window.' + valve + ' does not turn later batch ' + id + ' off');
     later.push({id, valve});
   }
   return {batch, head, approved, base, later, valves: later.map(x => x.valve)};

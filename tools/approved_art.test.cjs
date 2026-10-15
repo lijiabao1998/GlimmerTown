@@ -86,8 +86,23 @@ test('approved commit that is not an ancestor of HEAD is red', () => {
 
 test('later batch without a registered valve is red', () => red({later: T635}, /later batch T635 has no escape valve registered/));
 
-test('later batch whose activation line ignores its valve is red', () =>
-  red({later: 'function t635On(){return true;}\n', valves: {T635: '__noT635'}}, /later batch T635 activation line does not read !window.__noT635/));
+test('later batch whose activation ignores its valve is red', () =>
+  red({later: 'function t635On(){return true;}\n', valves: {T635: '__noT635'}}, /setting window.__noT635 does not turn later batch T635 off/));
+
+test('a valve that only appears in a comment or string does not count (Codex #36 P2)', () => {
+  red({later: 'function t635On(){/* !window.__noT635 */return true;}\n', valves: {T635: '__noT635'}}, /does not turn later batch T635 off/);
+  red({later: "function t635On(){const s='!window.__noT635';return !!s;}\n", valves: {T635: '__noT635'}}, /does not turn later batch T635 off/);
+});
+
+test('an activation that cannot be evaluated on its own is red', () =>
+  red({later: 'function t635On(){return gameStateNobodyDefined.on&&!window.__noT635;}\n', valves: {T635: '__noT635'}}, /does not turn later batch T635 off/));
+
+test('the real T635 and T638 activation lines are turned off by their valves', () => {
+  const real = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const lines = [...real.matchAll(/^function t(635|638)On\(\)\{.*$/gm)].map(m => m[0] + '\n').join('');
+  const {r} = setup({later: lines, valves: {T635: '__noT635', T638: '__noT638'}});
+  try { assert.deepEqual(loadApproved(r.dir, 'T634').valves, ['__noT635', '__noT638']); } finally { r.close(); }
+});
 
 test('registry on disk that differs from HEAD is red', () => red({}, /on disk differs from HEAD/, r => {
   fs.appendFileSync(path.join(r.dir, 'docs/APPROVED_ART.json'), ' ');
