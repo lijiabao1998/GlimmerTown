@@ -55,6 +55,15 @@ jobs:
           mkdir -p evidence
           if git cat-file -e "$BASE:tools/scope.py" 2>/dev/null; then git show "$BASE:tools/scope.py" > "$RUNNER_TEMP/scope.py"; else cp tools/scope.py "$RUNNER_TEMP/scope.py"; fi
           python "$RUNNER_TEMP/scope.py" --base "$BASE" --head HEAD --head-ref "$HEAD_REF" > evidence/scope.json
+      - name: Ledger gates (CHANGELOG sign-off, only grows, keeps every entry)
+        # T644：原本只在本機 merge_bay 收件時跑，搬到合併前。文件道與 full 道都跑（CHANGELOG 是 .md）；工具取自 base。
+        if: ${{ !cancelled() }}
+        env:
+          BASE: ${{ steps.base.outputs.base }}
+        run: |
+          set -o pipefail  # 預設 shell 是 bash -e、沒有 pipefail：沒有這行，| tee 會吃掉紅（紅源第一輪實踩）
+          if git cat-file -e "$BASE:tools/landing_gates.py" 2>/dev/null; then git show "$BASE:tools/landing_gates.py" > "$RUNNER_TEMP/landing_gates.py"; else cp tools/landing_gates.py "$RUNNER_TEMP/landing_gates.py"; fi
+          python "$RUNNER_TEMP/landing_gates.py" --base "$BASE" --head HEAD | tee evidence/ledger.md
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -215,6 +224,7 @@ jobs:
           node-version: '22'
       - name: Build pinned package and record native browser identity
         run: |
+          set -o pipefail
           mkdir -p evidence
           git rev-parse HEAD | tee evidence/source-commit.txt
           node tools/pages/build-main.mjs _site/main > evidence/package-manifest.json
@@ -433,6 +443,7 @@ jobs:
           RATCHET_BASE: ${{ needs.scope.outputs.ratchet_base }}
           REMOVED: ${{ needs.scope.outputs.removed_asserts }}
         run: |
+          set -o pipefail
           mkdir -p evidence
           # T650：純 revert 的基準是被撤提交的第一父（scope 給 ratchet_base）；舊版 scope.py 沒給就用 base
           BASE="${RATCHET_BASE:-$BASE}"
