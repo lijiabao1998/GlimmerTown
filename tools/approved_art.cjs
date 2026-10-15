@@ -74,4 +74,19 @@ function loadApproved(root, batch) {
   return {batch, head, approved, base, later, valves: later.map(x => x.valve)};
 }
 
-module.exports = {loadApproved, activations, REGISTRY};
+/* Codex #36 P2：台架只讀 T634、T635；之後新登記的批次（approved 裡任何一批）也要有人驗錨點。
+   validate 跑 `node tools/approved_art.cjs --check-all`：登記冊裡每一批都走一次 loadApproved。 */
+function checkAll(root) {
+  const reg = JSON.parse(execFileSync('git', ['show', 'HEAD:' + REGISTRY], {cwd: root, maxBuffer: 64e6}).toString('utf8'));
+  return Object.keys(reg.approved || {}).sort().map(batch => loadApproved(root, batch));
+}
+
+if (require.main === module) {
+  if (!process.argv.includes('--check-all')) { console.error('usage: node tools/approved_art.cjs --check-all'); process.exit(2); }
+  try {
+    for (const a of checkAll(process.cwd()))
+      console.log('T647 ' + a.batch + ': ' + a.approved.tag + ' = ' + a.approved.commit.slice(0, 12) + (a.base ? '（base ' + a.base.tag + '）' : '') + '；後批閥 ' + (a.valves.join('、') || '無'));
+  } catch (e) { console.error(e.message); process.exit(1); }
+}
+
+module.exports = {loadApproved, checkAll, activations, REGISTRY};

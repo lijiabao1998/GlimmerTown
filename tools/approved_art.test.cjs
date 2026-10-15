@@ -2,7 +2,7 @@
 /* T647 approved_art.cjs 的單元測試：臨時 git 倉庫，每條檢查一個該紅、一個不該紅。執行：node --test tools/approved_art.test.cjs */
 const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('fs'), os = require('os'), path = require('path'), crypto = require('crypto'), {execFileSync} = require('child_process');
-const {loadApproved} = require('./approved_art.cjs');
+const {loadApproved, checkAll} = require('./approved_art.cjs');
 
 const ENV = {...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: os.devnull, GIT_TERMINAL_PROMPT: '0'};
 const OLD = 'function t634On(){return !window.__noT634&&!t634On.off;}\n';
@@ -114,6 +114,17 @@ test('the real T635 and T638 activation lines are turned off by their valves', (
 test('registry on disk that differs from HEAD is red', () => red({}, /on disk differs from HEAD/, r => {
   fs.appendFileSync(path.join(r.dir, 'docs/APPROVED_ART.json'), ' ');
 }));
+
+test('checkAll validates every approved entry, not just the ones a harness asks for (Codex #36 P2)', () => {
+  const {r, approved, sha} = setup();
+  try {
+    assert.deepEqual(checkAll(r.dir).map(a => a.batch), ['T634']);
+    const reg = JSON.parse(fs.readFileSync(path.join(r.dir, 'docs/APPROVED_ART.json'), 'utf8'));
+    reg.approved.T699 = {tag: 'approved/t634', commit: approved, index_sha256: sha.replace(/^./, c => c === '0' ? '1' : '0')};
+    r.write('docs/APPROVED_ART.json', JSON.stringify(reg) + '\n'); r.commit('new batch with a bad hash');
+    assert.throws(() => checkAll(r.dir), /T647 T699: T699: index\.html sha256/);
+  } finally { r.close(); }
+});
 
 test('base anchor is checked with the same rules', () => {
   const {r, approved, sha} = setup();

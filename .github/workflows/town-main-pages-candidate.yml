@@ -114,6 +114,7 @@ jobs:
           node tools/pages/release-correctness.cjs --self-test | tee evidence/release-correctness-contracts.log
           node --test tools/pages/native-mac-diagnostic.test.cjs tools/pages/native-portability-diagnostic.test.cjs | tee evidence/native-acceptance-contracts.log
           node --test tools/approved_art.test.cjs | tee evidence/approved-art-contracts.log
+          node tools/approved_art.cjs --check-all | tee evidence/approved-art-registry.log
       - name: Prior-version seeded save and simulation compatibility
         if: always()
         run: |
