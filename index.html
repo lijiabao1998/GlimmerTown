@@ -51684,7 +51684,7 @@ function bakeFire635(k,n,winter=false){
     F([P(u,v,he),P(mid,v,rid),P(mid,v+dv,rid),P(u,v+dv,he)],winter?'#edf3f3':slate);
     F([P(u,v+dv,he),P(u+du,v+dv,he),P(mid,v+dv,rid)],pal.brick[0]);
     for(let z=he+3;z<rid-1;z+=3){const f=(z-he)/rise;L(P(u+du*f/2,v+dv,z),P(u+du-du*f/2,v+dv,z),'#915845');}
-    L(P(u-ov,v+dv,he),P(mid,v+dv,rid+1),stone,2);L(P(mid,v+dv,rid+1),P(u+du+ov,v+dv,he),stone,2);L(P(mid,v-.03,rid+1),P(mid,v+dv+.02,rid+1),'#8b979d');
+    L(P(u-ov,v+dv,he),P(mid,v+dv,rid+1),stone,2);L(P(mid,v+dv,rid+1),P(u+du+ov,v+dv,he),stone,2);L(P(mid,v-.03,rid+1),P(mid,v+dv+.02,rid+1),'#8b979c');
     for(let i=1;i<6;i++){const f=i/6,z=rid-rise*f;L(P(mid+du*f/2,v,z),P(mid+du*f/2,v+dv,z),winter?'#c2d2d9':'#32434d');L(P(mid-du*f/2,v,z),P(mid-du*f/2,v+dv,z),winter?'#d5e0e3':'#647783');}
     L(P(u+du,v,he),P(u+du,v+dv,he),edge);return rid;};
   const door=(u,v,du,hh,type='roller')=>{faceV(u-.022,v,du+.044,0,hh+1.2,type==='wood'?'#ddd0ac':'#ced4cf');faceV(u,v,du,.7,hh,type==='wood'?'#765b40':'#4f656b');
