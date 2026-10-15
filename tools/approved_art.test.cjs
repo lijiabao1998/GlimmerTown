@@ -97,6 +97,10 @@ test('a valve that only appears in a comment or string does not count (Codex #36
 test('a batch that only honours the runtime valve but not the URL escape is red (Codex #36 P2)', () =>
   red({later: 'function t635On(){return !window.__noT635;}\n', valves: {T635: '__noT635'}}, /the URL \?noT635=1 does not turn later batch T635 off/));
 
+test("a batch registered with another batch's valve is red (Codex #36 P2)", () =>
+  red({later: T635.replace(/T635|t635|noT635/g, m => m.replace('635', '699')).replace('__noT699', '__noT638').replace('noT699(', 'noT638('), valves: {T699: '__noT638'}},
+    /later batch T699 must use its own valve __noT699, registry says __noT638/));
+
 test('an activation that cannot be evaluated on its own is red', () =>
   red({later: 'function t635On(){return gameStateNobodyDefined.on&&!window.__noT635;}\n', valves: {T635: '__noT635'}}, /does not turn later batch T635 off/));
 

@@ -66,6 +66,7 @@ function loadApproved(root, batch) {
     if (then.has(id)) continue;
     const valve = reg.valves && reg.valves[id];
     if (typeof valve !== 'string' || !VALVE.test(valve)) fail('later batch ' + id + ' has no escape valve registered in ' + REGISTRY + ' valves');
+    if (valve !== '__no' + id) fail('later batch ' + id + ' must use its own valve __no' + id + ', registry says ' + valve); // Codex #36 P2：閥名要對上批次號
     const leak = escapeFails(line, id, valve);
     if (leak) fail(leak + ' does not turn later batch ' + id + ' off');
     later.push({id, valve});
