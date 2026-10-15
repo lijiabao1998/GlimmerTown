@@ -37,3 +37,8 @@
 | #36 | P2 | tools/approved_art.cjs:68 | 照改（#36 內）：閥名必須是 __no 加自己的批次號 |
 | #36 | P2 | tools/approved_art.cjs:46 | 照改（#36 內）：--check-all，validate 驗登記冊裡每一批 |
 | #36 | P2 | tools/approved_art.cjs:61 | → T643b：anchor() 要求批准提交裡有 t<NNN>On（目前兩筆登記都對得上，新增登記才會遇到） |
+| #37 | P1 | tools/pages/frame-compare.cjs:40 | 照改 b26a88b：非美術卡（families=無）畫面變了就紅，owner_ok 有字也不算 |
+| #37 | P1 | tools/pages/frame-compare.cjs:46 | 照改 b26a88b：美術卡畫面變了而 valve 沒寫 → no-valve 紅 |
+| #37 | P1 | tools/pages/frame-compare.cjs:68 | 照改：每個場景加高畫質（quality=2）晝夜各一幀 |
+| #37 | P1 | tools/pages/frame-compare.cjs:150 | 照改：加春天與沒積雪的冬天 |
+| #37 | P1 | tools/pages/frame-compare.cjs:51 | → T648b：宣告的美術不在任何場景時目前只警告。要改紅，得先讓陣列從遊戲資料自動列出所有建築款式（base 與 head 取聯集、各頁只放自己認得的），否則新建築在自己的 PR 永遠進不了 base 的場景、會卡死；fp／ART_PINS 仍逐張釘住它的像素 |

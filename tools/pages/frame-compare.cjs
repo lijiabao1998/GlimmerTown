@@ -106,14 +106,15 @@ function bridge648() {
       else c = rig(ids);
       // 暖身：第一次繪製會觸發按需烘焙與地面快取，量第一幀之前先在每個季節畫過一次（試跑實測：不暖身時陣列場景的第一幀畫兩次會不同）
       GV.setZoom(zoom); GV.lookAt(c[0], c[1]);
-      for (const sea of [1, 2, 3]) { GV.setSeason(sea); rainDays = sea === 3 ? SNOW_ACC_DAYS + 3 : 0; for (const t of [55, 5]) { visT = t; groundDirty = true; GV.forceDraw(); } }
+      for (const sea of [0, 1, 2, 3]) { GV.setSeason(sea); rainDays = sea === 3 ? SNOW_ACC_DAYS + 3 : 0; for (const t of [55, 5]) { visT = t; groundDirty = true; GV.forceDraw(); } }
       return c;
     },
-    frame: async ({cx, cy, zoom, rot, sea, snow, night, png}) => {
+    frame: async ({cx, cy, zoom, rot, sea, snow, night, hq, png}) => {
       freeze(); GV.setRot(rot); GV.setSeason(sea); rainDays = snow ? SNOW_ACC_DAYS + 3 : 0; GV.setZoom(zoom); GV.lookAt(cx, cy);
       const draw = () => { visT = night ? 5 : 55; trafClock = 12; waterT = waterF = 0; shakeT = 0; groundDirty = true; ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; GV.forceDraw(); };
       // 按需烘焙是跨幀漸進的（換季後快取被擠掉，要畫幾次才收斂；試跑實測）：畫到連續兩次逐位元組相同為止，最多 8 次，收斂不了才算不穩
-      const grab = () => { freeze(); draw(); return ctx.getImageData(0, 0, cvs.width, cvs.height).data.slice(); };
+      // hq：高畫質（quality=2）才有的分支，例如白天陰影（Codex #37 P1）
+      const grab = () => { freeze(); quality = hq ? 2 : 1; draw(); return ctx.getImageData(0, 0, cvs.width, cvs.height).data.slice(); };
       let a = grab(), b = grab(), draws = 2, unstable = 0;
       const diff = () => { let n = 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) n++; return n; };
       while ((unstable = diff()) && draws < 8) { a = b; b = grab(); draws++; }
@@ -146,8 +147,12 @@ function scenes(repo) {
 function states(s) {
   const out = [];
   for (let rot = 0; rot < 4; rot++) for (const night of [false, true]) out.push({id: s.scene + '-r' + rot + (night ? '-night' : '-day'), rot, sea: 1, snow: false, night, zoom: s.zoom});
+  // 標準 §3.4 的必看狀態：春夏秋四季色、冬天有雪／沒雪（Codex #37 P1：原本少了春天與沒積雪的冬天）
+  out.push({id: s.scene + '-spring', rot: 0, sea: 0, snow: false, night: false, zoom: s.zoom});
   out.push({id: s.scene + '-autumn', rot: 0, sea: 2, snow: false, night: false, zoom: s.zoom});
+  out.push({id: s.scene + '-winter-nosnow', rot: 0, sea: 3, snow: false, night: false, zoom: s.zoom});
   for (const night of [false, true]) out.push({id: s.scene + '-snow' + (night ? '-night' : '-day'), rot: 0, sea: 3, snow: true, night, zoom: s.zoom});
+  for (const night of [false, true]) out.push({id: s.scene + '-hq' + (night ? '-night' : '-day'), rot: 0, sea: 1, snow: false, night, hq: true, zoom: s.zoom}); // 高畫質分支（Codex #37 P1）
   if (s.sky) out.push({id: s.scene + '-sky-night', rot: 0, sea: 1, snow: false, night: true, zoom: 0.65});
   return out;
 }
