@@ -7,7 +7,8 @@
    4. 該提交的 index.html 位元組 sha256 等於登記值；
    5. 該提交是 HEAD 的祖先；
    6. 後批規則：HEAD 裡有、批准提交裡沒有的每個 `function tNNNOn(){`，都要在 valves 登記一個 __noTNNN，
-      而且在沙箱裡打開那個閥時啟用函式真的回傳假——否則台架隔離不了它。回傳這些閥，台架一律打開它們。
+      而且在沙箱裡打開那個閥、或網址帶 ?noTNNN=1 時，啟用函式都真的回傳假——否則台架隔離不了它、玩家也沒有退路。
+      回傳這些閥，台架一律打開它們。
    T635 這類有「批准前的 main」的批次，base 用同樣的 2～5 條驗。 */
 const crypto = require('crypto'), fs = require('fs'), path = require('path'), vm = require('vm'), {execFileSync} = require('child_process');
 
@@ -19,14 +20,17 @@ function activations(source) {
   return new Map([...source.matchAll(ON)].map(m => ['T' + m[1], m[0]]));
 }
 
-/* 真的執行啟用函式（Codex #36 P2）：只看字面會讓寫在註解或字串裡的 !window.__noTNNN 混過去。
-   在空白沙箱裡打開閥、網址不帶參數，函式必須回傳假；讀不到別的遊戲狀態就無法單獨判定，也算不過。 */
-function valveIsIgnored(line, id, valve) {
-  try {
-    return !!vm.runInNewContext(line + ';' + id.toLowerCase() + 'On()', {window: {[valve]: true}, location: {search: ''}}, {timeout: 1000});
-  } catch (e) {
-    return true;
-  }
+/* 真的執行啟用函式（Codex #36 P2 兩條）：只看字面會讓寫在註解或字串裡的 !window.__noTNNN 混過去；
+   只驗執行期的閥又會漏掉「網址 ?noTNNN=1 關不掉」——玩家的退路是網址。
+   在空白沙箱裡各跑一次：打開 window 閥、網址不帶參數；不開 window 閥、網址帶 ?noTNNN=1。兩次都必須回傳假。
+   讀不到別的遊戲狀態就無法單獨判定，也算不過。回傳哪一種關不掉（null＝都關得掉）。 */
+function escapeFails(line, id, valve) {
+  const run = (win, search) => {
+    try { return !!vm.runInNewContext(line + ';' + id.toLowerCase() + 'On()', {window: win, location: {search}}, {timeout: 1000}); } catch (e) { return true; }
+  };
+  if (run({[valve]: true}, '')) return 'setting window.' + valve;
+  if (run({}, '?' + valve.slice(2) + '=1')) return 'the URL ?' + valve.slice(2) + '=1';
+  return null;
 }
 
 function loadApproved(root, batch) {
@@ -62,7 +66,8 @@ function loadApproved(root, batch) {
     if (then.has(id)) continue;
     const valve = reg.valves && reg.valves[id];
     if (typeof valve !== 'string' || !VALVE.test(valve)) fail('later batch ' + id + ' has no escape valve registered in ' + REGISTRY + ' valves');
-    if (valveIsIgnored(line, id, valve)) fail('setting window.' + valve + ' does not turn later batch ' + id + ' off');
+    const leak = escapeFails(line, id, valve);
+    if (leak) fail(leak + ' does not turn later batch ' + id + ' off');
     later.push({id, valve});
   }
   return {batch, head, approved, base, later, valves: later.map(x => x.valve)};

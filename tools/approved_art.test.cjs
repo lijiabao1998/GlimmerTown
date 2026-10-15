@@ -6,7 +6,7 @@ const {loadApproved} = require('./approved_art.cjs');
 
 const ENV = {...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: os.devnull, GIT_TERMINAL_PROMPT: '0'};
 const OLD = 'function t634On(){return !window.__noT634&&!t634On.off;}\n';
-const T635 = 'function t635On(){if(t635On.u===undefined){t635On.u=1;}return !window.__noT635&&!t635On.off;}\n';
+const T635 = 'function t635On(){if(t635On.off===undefined)t635On.off=/(?:^|[?&])noT635(?:=1)?(?:&|$)/.test(location.search);return !window.__noT635&&!t635On.off;}\n';
 
 function repo() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 't647-'));
@@ -93,6 +93,9 @@ test('a valve that only appears in a comment or string does not count (Codex #36
   red({later: 'function t635On(){/* !window.__noT635 */return true;}\n', valves: {T635: '__noT635'}}, /does not turn later batch T635 off/);
   red({later: "function t635On(){const s='!window.__noT635';return !!s;}\n", valves: {T635: '__noT635'}}, /does not turn later batch T635 off/);
 });
+
+test('a batch that only honours the runtime valve but not the URL escape is red (Codex #36 P2)', () =>
+  red({later: 'function t635On(){return !window.__noT635;}\n', valves: {T635: '__noT635'}}, /the URL \?noT635=1 does not turn later batch T635 off/));
 
 test('an activation that cannot be evaluated on its own is red', () =>
   red({later: 'function t635On(){return gameStateNobodyDefined.on&&!window.__noT635;}\n', valves: {T635: '__noT635'}}, /does not turn later batch T635 off/));
