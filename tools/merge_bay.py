@@ -432,6 +432,64 @@ def rev_count(cwd: Path, range_spec: str, runner: Runner = run_cmd) -> int:
     return value
 
 
+ORIGIN_MAIN = 'refs/remotes/origin/main'
+
+
+def assert_master_landed(
+    config: MergeConfig,
+    master_oid: str,
+    runner: Runner = run_cmd,
+) -> int:
+    """T645: the player directory only receives commits that already landed on main.
+
+    Every commit on main went through the PR gate on CI.  Local master is a
+    fast-forward mirror of origin/main, so the publishable set is exactly
+    "master is origin/main or one of its ancestors".  A master that is ahead
+    (a local merge, an accidental commit) never passed that gate.
+
+    No fetch here: main is protected against force-push, so origin/main only
+    moves forward and a stale remote-tracking ref still proves the commit
+    landed.  Behind is allowed (an older landed build) and only reported.
+    """
+    found = git_result(
+        config.root, 'rev-parse', '--verify', '--quiet', ORIGIN_MAIN + '^{commit}', runner=runner
+    )
+    main_oid = found.stdout.strip().lower() if found.returncode == 0 else ''
+    if not main_oid:
+        raise ToolError(
+            'T645: %s is missing; run git fetch origin, then git merge --ff-only origin/main'
+            % ORIGIN_MAIN
+        )
+    if not is_ancestor(config.root, master_oid, main_oid, runner=runner):
+        ahead = rev_count(config.root, main_oid + '..' + master_oid, runner=runner)
+        raise ToolError(
+            'T645: master %s is %d commit(s) ahead of origin/main %s; only commits that '
+            'landed on main through the PR gate may reach the player directory '
+            '(push them as a branch and open a PR, then fast-forward master)'
+            % (master_oid[:12], ahead, main_oid[:12])
+        )
+    behind = rev_count(config.root, master_oid + '..' + main_oid, runner=runner)
+    if behind:
+        info(
+            'master is %d commit(s) behind origin/main; publishing that older landed commit '
+            '(git fetch origin && git merge --ff-only origin/main for the latest)' % behind
+        )
+    return behind
+
+
+def refuse_bay_deploy(deploy_requested: bool) -> None:
+    """T645: a bay transaction's merge commit M is made locally and was never on
+    main, so ``BAY --deploy`` would hand players an unlanded build.  It is
+    retired; ``BAY --no-deploy`` and the resume of an older deploy transaction
+    still work."""
+    if deploy_requested:
+        raise ToolError(
+            'T645: BAY --deploy is retired; the player directory only receives commits on '
+            'origin/main. Land through a PR, fast-forward master, then run --publish '
+            '(BAY --no-deploy still merges locally)'
+        )
+
+
 def state_locations(config: MergeConfig, runner: Runner = run_cmd) -> Tuple[Path, Path]:
     directory = git_common_dir(config.root, runner=runner) / 'glimmer-merge'
     return directory / STATE_NAME, directory / 'lock'
@@ -2231,6 +2289,7 @@ def start_transaction(
     deploy_requested: bool,
     runner: Runner = run_cmd,
 ) -> int:
+    refuse_bay_deploy(deploy_requested)
     state_path, _ = state_locations(config, runner=runner)
     if load_state(state_path) is not None:
         raise ToolError('an active transaction exists; use --resume or --abort')
@@ -2341,6 +2400,8 @@ def publish_master(
 
     step('publish: freeze clean canonical master')
     source_oid = validate_master(config, runner=runner, require_clean=True)
+    behind = assert_master_landed(config, source_oid, runner=runner)
+    ok('master is on origin/main (behind=%d)' % behind)
     validate_deploy_target(config)
     assert_deploy_pristine(Path(config.deploy), config)
     ok('master=' + source_oid[:12])

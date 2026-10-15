@@ -66,6 +66,7 @@ class TempRepo:
         self.git(self.root, 'add', '-A')
         self.git(self.root, 'commit', '-m', 'base')
         self.base_oid = self.oid(self.root)
+        self.land()  # T645：base 已經落在 main 上（--publish 只發佈 origin/main 上的提交）
         self.git(self.root, 'worktree', 'add', '-b', 'bay/kimi', self.bay, 'master')
         (self.deploy / 'index.html').write_bytes(b'old-index')
         (self.deploy / 'sw.js').write_bytes(b'old-sw')
@@ -113,6 +114,16 @@ class TempRepo:
 
     def oid(self, cwd, ref='HEAD'):
         return self.git(cwd, 'rev-parse', ref).stdout.strip().lower()
+
+    def land(self, ref='HEAD'):
+        """模擬「這個提交已經經 PR 落在 main 上、本機 fetch 過」：把 origin/main 指過去。"""
+        self.git(self.root, 'update-ref', merge_bay.ORIGIN_MAIN, self.oid(self.root, ref))
+
+
+def legacy_bay_deploy():
+    """T645 退役了 BAY --deploy；T645 之前開的 deploy 交易仍要能 resume。
+    只有測 resume／清理機制的舊測試用它造出那種交易，不拿來證明任何新行為。"""
+    return mock.patch.object(merge_bay, 'refuse_bay_deploy', lambda deploy_requested: None)
 
 
 class GateRunner:
@@ -850,7 +861,7 @@ class ToolchainRegressionTests(unittest.TestCase):
                 return original_unlink(path, *args, **kwargs)
 
             with mock.patch.object(Path, 'unlink', locked_backup):
-                with self.assertRaises(merge_bay.DeployCleanupPending):
+                with self.assertRaises(merge_bay.DeployCleanupPending), legacy_bay_deploy():
                     merge_bay.start_transaction(
                         repo.config,
                         'kimi',
@@ -1374,7 +1385,7 @@ class ToolchainRegressionTests(unittest.TestCase):
                     return merge_bay.CommandResult(9, '', 'injected cleanup interruption')
                 return GateRunner([0, 0, 0])(rendered, Path(cwd), timeout)
 
-            with self.assertRaisesRegex(merge_bay.ToolError, 'injected cleanup interruption'):
+            with self.assertRaisesRegex(merge_bay.ToolError, 'injected cleanup interruption'), legacy_bay_deploy():
                 merge_bay.start_transaction(
                     repo.config,
                     'kimi',
@@ -1440,6 +1451,81 @@ class ToolchainRegressionTests(unittest.TestCase):
             with self.assertRaisesRegex(merge_bay.DeployError, 'exact source OID'):
                 merge_bay.verify_deploy_receipt(repo.config)
 
+    def test_publish_master_refuses_a_master_ahead_of_origin_main(self):
+        # T645 紅源：master 多了一個沒經 PR 落地的提交（0a2b1d8 那種），首紅必須是前置檢查
+        with TempRepo() as repo:
+            repo.write(repo.root, 'index.html', "<script>const GAME_VER='2.0';</script>\n")
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            repo.commit(repo.root, 'local commit that never landed')
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+            receipt_path = merge_bay.deploy_receipt_path(repo.config)
+            receipt_before = self._optional_bytes(receipt_path)
+            runner = GateRunner([])
+
+            with self.assertRaisesRegex(merge_bay.ToolError, r'T645: master \w+ is 1 commit\(s\) ahead of origin/main'):
+                merge_bay.publish_master(repo.config, runner=runner)
+
+            self.assertEqual(runner.gate_calls, [])
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+            self.assertEqual(self._optional_bytes(receipt_path), receipt_before)
+
+    def test_publish_master_refuses_without_origin_main(self):
+        with TempRepo() as repo:
+            repo.git(repo.root, 'update-ref', '-d', merge_bay.ORIGIN_MAIN)
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+            runner = GateRunner([])
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'T645: refs/remotes/origin/main is missing'):
+                merge_bay.publish_master(repo.config, runner=runner)
+
+            self.assertEqual(runner.gate_calls, [])
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+
+    def test_publish_master_behind_origin_main_publishes_the_older_landed_commit(self):
+        # 落後不擋：發佈的是較舊、但上過 main 的版本；印一行提示
+        with TempRepo() as repo:
+            repo.write(repo.root, 'index.html', "<script>const GAME_VER='2.0';</script>\n")
+            repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
+            repo.commit(repo.root, 'newer commit on main')
+            repo.land()
+            repo.git(repo.root, 'reset', '-q', '--hard', repo.base_oid)
+            runner = GateRunner([0])
+
+            with mock.patch('sys.stdout', new=io.StringIO()) as output:
+                self.assertEqual(merge_bay.publish_master(repo.config, runner=runner), 0)
+
+            self.assertIn('1 commit(s) behind origin/main', output.getvalue())
+            self.assertIn('behind=1', output.getvalue())
+            expected = merge_bay.runtime_bytes_at_commit(repo.config, repo.base_oid)
+            for name in merge_bay.RUNTIME:
+                self.assertEqual((repo.deploy / name).read_bytes(), expected[name])
+            self.assertEqual(merge_bay.verify_deploy_receipt(repo.config), 'match')
+
+    def test_publish_master_equal_to_origin_main_is_green(self):
+        with TempRepo() as repo:
+            with mock.patch('sys.stdout', new=io.StringIO()) as output:
+                self.assertEqual(merge_bay.publish_master(repo.config, runner=GateRunner([0])), 0)
+            self.assertIn('master is on origin/main (behind=0)', output.getvalue())
+            self.assertNotIn('behind origin/main;', output.getvalue())
+
+    def test_bay_deploy_is_retired_before_any_state_or_master_change(self):
+        with TempRepo() as repo:
+            repo.write(repo.bay, 'feature.txt', 'incoming\n')
+            repo.commit(repo.bay, 'incoming feature')
+            master_before = repo.oid(repo.root)
+            before_tree = self._deploy_tree_bytes(repo.deploy)
+            runner = GateRunner([])
+
+            with self.assertRaisesRegex(merge_bay.ToolError, 'T645: BAY --deploy is retired'):
+                merge_bay.start_transaction(repo.config, 'kimi', True, runner=runner)
+
+            state_path, _ = merge_bay.state_locations(repo.config)
+            self.assertFalse(state_path.exists())
+            self.assertFalse(repo.integration.exists())
+            self.assertEqual(repo.oid(repo.root), master_before)
+            self.assertEqual(runner.commands, [], 'refusal must come before any git or verifier call')
+            self.assertEqual(self._deploy_tree_bytes(repo.deploy), before_tree)
+
     def test_publish_master_writes_exact_master_bytes_receipt_and_status(self):
         with TempRepo() as repo:
             repo.write(
@@ -1449,6 +1535,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             )
             repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
             source_oid = repo.commit(repo.root, 'direct master runtime')
+            repo.land()  # T645：直寫 master 的卡已經經 PR 落在 main 上
             bay_before = repo.oid(repo.bay)
             runner = GateRunner([0])
 
@@ -1483,6 +1570,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             )
             repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
             source_oid = repo.commit(repo.root, 'master newer than receipt')
+            repo.land()  # T645：直寫 master 的卡已經經 PR 落在 main 上
             current_bytes = merge_bay.runtime_bytes_at_commit(repo.config, source_oid)
             for name in merge_bay.RUNTIME:
                 (repo.deploy / name).write_bytes(current_bytes[name])
@@ -1596,6 +1684,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             )
             repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
             source_oid = repo.commit(repo.root, 'direct runtime for hard kill')
+            repo.land()  # T645：直寫 master 的卡已經經 PR 落在 main 上
             original_write = merge_bay._durable_write
             calls = []
 
@@ -1635,6 +1724,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             )
             repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
             source_oid = repo.commit(repo.root, 'direct runtime for cleanup kill')
+            repo.land()  # T645：直寫 master 的卡已經經 PR 落在 main 上
             original_unlink = Path.unlink
 
             def kill_before_journal_cleanup(path, *args, **kwargs):
@@ -1672,6 +1762,7 @@ class ToolchainRegressionTests(unittest.TestCase):
             )
             repo.write(repo.root, 'sw.js', "const APP_VER='2.0';\n")
             repo.commit(repo.root, 'publish source')
+            repo.land()  # T645：直寫 master 的卡已經經 PR 落在 main 上
             before_tree = self._deploy_tree_bytes(repo.deploy)
 
             def advance_master(gate_index):
