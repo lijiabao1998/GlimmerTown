@@ -1,22 +1,39 @@
 # -*- coding: utf-8 -*-
-"""T549 像素指紋快照（ARCH §10.6 收口）
-用法：python tools/fp_snapshot.py            # 從倉庫根執行；重算全部 sprite CRC32 → docs/SPR_PINS.json
-     python tools/fp_snapshot.py --check    # 只比對不覆寫（差異非零時 exit 1）
+"""T549 像素指紋快照（ARCH §10.6 收口）；T643 起 CI 的 fp job 是正本，本機（Windows）跑只是預覽。
+
+用法（從倉庫根執行）：
+  python tools/fp_snapshot.py                 # 預覽：重算全部 sprite CRC32，印出與 docs/SPR_PINS.json 的差異，不寫檔
+  python tools/fp_snapshot.py --check         # 比對：有差異、或基線缺漏／無法解析／格式不符 → exit 1
+  python tools/fp_snapshot.py --out PATH      # 把重算結果（新排版）寫到 PATH（CI 的 rebake 附件）
+  python tools/fp_snapshot.py --write         # 覆寫 docs/SPR_PINS.json（只在要原封提交 CI 附件以外的特殊情況用）
+  python tools/fp_snapshot.py --report PATH   # 量測紀錄：耗時、瀏覽器版本、清冊數字、「有 nightCity 卻沒有 night」的鍵
+Chrome：依序找環境變數 CHROME_PATH、Windows 兩條路徑、/usr/bin/google-chrome、/usr/bin/chromium；Linux 加 --no-sandbox。
+結束碼：0＝一致／預覽完成；1＝與基線不符或基線有問題（--check）；2＝環境錯誤（找不到 Chrome、快照失敗）；3＝兩次快照不恆等（G1）。
+守衛不用 assert（python -O 會把 assert 拿掉）。
 
 原理：無頭 Chrome 載入 index.html（暫存複本、拋棄式 profile、槽 3 紀律），
 經 GV.sprAtlas356() 清冊逐條 CRC32（img/night/nightCity 三列，與 atlas.html bPins 同算法同格式）。
-基線不含時間戳＝同碼重跑必逐鍵恆等（確定性由 T549 G1 驗證）。
-收束順序（T549 起）：bump → arch --fix → ARCH 行 → **fp_snapshot（審差異）** → 套件。
+基線不含時間戳也不含版本號＝同碼重跑必逐鍵恆等（確定性由 G1 驗證：每次都冷啟兩次快照逐鍵比對）。
+排版（T643）：一鍵一行、鍵排序、結尾換行；__meta 只留 count。兩個 PR 改到不同的鍵時不再整檔衝突。
 """
-import io, json, os, shutil, subprocess, threading, functools, time, sys, tempfile
+import argparse
+import functools
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASELINE = os.path.join(REPO, 'docs', 'SPR_PINS.json')
-CHECK_ONLY = '--check' in sys.argv
-CHROME = next((c for c in [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                           r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"] if os.path.exists(c)), None)
-assert CHROME, 'Chrome not found'
+SCRIPT_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HEX = re.compile(r'^[0-9a-f]{1,8}$')
+CHROME_CANDIDATES = [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                     r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                     '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']
 
 PROBE = r"""<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><div id="fr"></div><script>
 try{localStorage.setItem('glimmerville.v1.slot','3');}catch(e){}
@@ -36,14 +53,14 @@ const tick=()=>{
     try{
       const r=w.GV.sprAtlas356();
       if(!r.entries.length){done({err:'sprAtlas356 empty after boot'});return;}
-      const pins={};
+      const pins={},ncnn=[];
       for(const e of r.entries){
         const id=e.fam+'/'+e.key;
         pins[id]=[crcOf(e.img)];
         if(e.night)pins[id].push(crcOf(e.night));
-        if(e.nightCity)pins[id].push(crcOf(e.nightCity));
+        if(e.nightCity){pins[id].push(crcOf(e.nightCity));if(!e.night)ncnn.push(id);}
       }
-      done({pins,entries:r.entries.length,families:r.families,skipped:r.skipped});return;
+      done({pins,entries:r.entries.length,families:r.families,skipped:r.skipped,nightCityNoNight:ncnn});return;
     }catch(e){done({err:e.message});return;}
   }
   if(++n>600){done({err:'boot timeout'});return;}
@@ -51,81 +68,208 @@ const tick=()=>{
 };tick();
 </script></body></html>"""
 
-REPORT = {}
-class Q(SimpleHTTPRequestHandler):
-    def log_message(self, *a): pass
-    def do_POST(self):
-        if self.path.startswith('/__report'):
-            ln = int(self.headers.get('Content-Length', '0'))
-            REPORT['data'] = json.loads(self.rfile.read(ln).decode('utf-8'))
-            self.send_response(200); self.send_header('Content-Length', '2'); self.end_headers()
-            self.wfile.write(b'ok'); return
-        self.send_response(404); self.end_headers()
 
-def snap(port):
-    """跑一次無頭快照，回傳 {pins,...}"""
-    REPORT.clear()
-    lab = tempfile.mkdtemp(prefix='fp549_')
+# ---------- 基線格式（fp_diff 共用） ----------
+
+def dumps_pins(pins):
+    """新排版：{"__meta":{"count":N}, 然後一鍵一行（鍵排序）, 結尾 } 與換行。pins 不含 __meta。"""
+    keys = sorted(pins)
+    lines = ['{"__meta":' + json.dumps({'count': len(keys)}, separators=(',', ':')) + (',' if keys else '')]
+    for i, k in enumerate(keys):
+        lines.append(json.dumps(k, ensure_ascii=False) + ':' + json.dumps(pins[k], separators=(',', ':'))
+                     + (',' if i < len(keys) - 1 else ''))
+    lines.append('}')
+    return '\n'.join(lines) + '\n'
+
+
+def parse_pins(text):
+    """解析基線（新舊排版都收）。回傳 (pins 不含 __meta, 錯誤字串或 None)。格式不符一律當錯，不放行。"""
     try:
-        shutil.copy2(os.path.join(REPO, 'index.html'), os.path.join(lab, 'index.html'))
-        open(os.path.join(lab, 'p.html'), 'wb').write(PROBE.encode('utf-8'))
-        srv = ThreadingHTTPServer(('127.0.0.1', port), functools.partial(Q, directory=lab))
+        d = json.loads(text)
+    except Exception as e:
+        return None, 'SPR_PINS 無法解析：%s' % e
+    if not isinstance(d, dict) or not isinstance(d.get('__meta'), dict):
+        return None, 'SPR_PINS 缺 __meta'
+    count = d['__meta'].get('count')
+    pins = {k: v for k, v in d.items() if k != '__meta'}
+    if not isinstance(count, int) or count != len(pins):
+        return None, 'SPR_PINS __meta.count（%r）不等於實際鍵數（%d）' % (count, len(pins))
+    for k, v in pins.items():
+        if '/' not in k or not isinstance(v, list) or not 1 <= len(v) <= 3 or not all(isinstance(x, str) and HEX.match(x) for x in v):
+            return None, 'SPR_PINS 鍵 %r 格式異常（應為「家族/鍵」對 1～3 個小寫 hex CRC）' % k
+    return pins, None
+
+
+def family_of(key):
+    return key.split('/', 1)[0]
+
+
+def diff_pins(old, new):
+    """回傳 (新增, 移除, 變更) 三個排序過的鍵清單。"""
+    added = sorted(k for k in new if k not in old)
+    removed = sorted(k for k in old if k not in new)
+    changed = sorted(k for k in new if k in old and old[k] != new[k])
+    return added, removed, changed
+
+
+# ---------- 快照 ----------
+
+class SnapError(Exception):
+    pass
+
+
+def find_chrome():
+    env = os.environ.get('CHROME_PATH')
+    if env:
+        if not os.path.exists(env):
+            raise SnapError('CHROME_PATH=%s 不存在' % env)
+        return env
+    return next((c for c in CHROME_CANDIDATES if os.path.exists(c)), None)
+
+
+def chrome_version(chrome):
+    try:
+        r = subprocess.run([chrome, '--version'], capture_output=True, timeout=30)
+        return r.stdout.decode('utf-8', 'replace').strip() or r.stderr.decode('utf-8', 'replace').strip()
+    except Exception as e:
+        return '（取不到版本：%s）' % e
+
+
+def snap(chrome, repo, timeout=300):
+    """冷啟一次無頭快照，回傳 {pins, entries, families, skipped, nightCityNoNight, seconds}。"""
+    report = {}
+
+    class Q(SimpleHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def do_POST(self):
+            if self.path.startswith('/__report'):
+                ln = int(self.headers.get('Content-Length', '0'))
+                report['data'] = json.loads(self.rfile.read(ln).decode('utf-8'))
+                self.send_response(200); self.send_header('Content-Length', '2'); self.end_headers()
+                self.wfile.write(b'ok'); return
+            self.send_response(404); self.end_headers()
+
+    lab = tempfile.mkdtemp(prefix='fp549_')
+    ud = tempfile.mkdtemp(prefix='fp549p_')
+    log = os.path.join(lab, 'chrome.log')
+    t0 = time.time()
+    try:
+        shutil.copy2(os.path.join(repo, 'index.html'), os.path.join(lab, 'index.html'))
+        with open(os.path.join(lab, 'p.html'), 'wb') as f:
+            f.write(PROBE.encode('utf-8'))
+        srv = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Q, directory=lab))  # 臨時埠，不碰 8123／8199
+        port = srv.server_address[1]
         threading.Thread(target=srv.serve_forever, daemon=True).start()
-        ud = tempfile.mkdtemp(prefix='fp549p_')
-        proc = subprocess.Popen([CHROME, '--headless=new', '--disable-gpu', '--window-size=800,600',
-                                 '--user-data-dir=' + ud, '--no-first-run', '--disable-extensions',
-                                 'http://127.0.0.1:%d/p.html' % port],
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        t0 = time.time()
-        while 'data' not in REPORT and time.time() - t0 < 300: time.sleep(0.3)
-        proc.kill(); srv.shutdown()
-        shutil.rmtree(ud, ignore_errors=True)
+        args = [chrome, '--headless=new', '--disable-gpu', '--window-size=800,600', '--user-data-dir=' + ud,
+                '--no-first-run', '--disable-extensions']
+        if sys.platform.startswith('linux'):
+            args.append('--no-sandbox')
+        with open(log, 'wb') as lf:
+            proc = subprocess.Popen(args + ['http://127.0.0.1:%d/p.html' % port], stdout=lf, stderr=subprocess.STDOUT)
+            try:
+                while 'data' not in report and time.time() - t0 < timeout:
+                    if proc.poll() is not None:
+                        break
+                    time.sleep(0.3)
+            finally:
+                proc.kill()
+                srv.shutdown()
+        d = report.get('data')
+        if not d or 'pins' not in d:
+            tail = open(log, 'rb').read().decode('utf-8', 'replace')[-1500:]
+            why = d.get('err') if isinstance(d, dict) else ('Chrome 提前結束（exit %s）' % proc.returncode if proc.returncode is not None else '逾時 %ds' % timeout)
+            raise SnapError('快照失敗：%s\n--- chrome log 尾段 ---\n%s' % (why, tail))
+        d['seconds'] = round(time.time() - t0, 1)
+        return d
     finally:
+        shutil.rmtree(ud, ignore_errors=True)
         shutil.rmtree(lab, ignore_errors=True)
-    d = REPORT.get('data')
-    assert d and 'pins' in d, 'snapshot failed: %r' % (d,)
-    return d
 
-def game_ver():
-    b = open(os.path.join(REPO, 'index.html'), 'rb').read().decode('utf-8')
-    import re
-    m = re.search(r"const GAME_VER='([^']*)'", b)
-    return m.group(1)
 
-def main():
-    ver = game_ver()
-    print('fp_snapshot: GAME_VER %s' % ver)
-    a = snap(8397)
-    b = snap(8398)
-    ka, kb = a['pins'], b['pins']
-    drift = [k for k in ka if ka[k] != kb.get(k)] + [k for k in kb if k not in ka]
-    assert not drift, 'G1 確定性破裂：兩次快照不恆等（%d 鍵）：%s' % (len(drift), drift[:10])
-    print('G1 確定性 OK：兩次快照 %d 鍵逐鍵恆等（entries %d／families %d／skipped %d）'
-          % (len(ka), a['entries'], a['families'], a['skipped']))
-    new = {'__meta': {'ver': ver, 'count': len(ka)}}
-    for k in sorted(ka): new[k] = ka[k]
-    old = None
-    if os.path.exists(BASELINE):
-        try: old = json.loads(open(BASELINE, 'rb').read().decode('utf-8'))
-        except Exception as e: print('舊基線解析失敗（視為無）：%s' % e)
-    if old:
-        added = [k for k in new if k != '__meta' and k not in old]
-        removed = [k for k in old if k != '__meta' and k not in new]
-        changed = [k for k in new if k != '__meta' and k in old and old[k] != new[k]]
-        print('—— 與舊基線（ver %s）差異 ——' % old.get('__meta', {}).get('ver', '?'))
-        print('新增 %d：%s' % (len(added), '、'.join(added[:10])))
-        print('移除 %d：%s' % (len(removed), '、'.join(removed[:10])))
-        print('變更 %d：%s' % (len(changed), '、'.join(changed[:10])))
-        if not (added or removed or changed): print('像素指紋完全一致 ✓')
-        elif CHECK_ONLY:
-            print('--check 模式：存在差異，exit 1'); sys.exit(1)
-        else:
-            print('⚠ 收束者必須逐條確認以上差異是本卡預期內的（意外差異＝亂數位移/誤傷素材）')
+def default_repo():
+    """目前目錄有 index.html 就用目前目錄（CI 會把本腳本複製到別處跑），否則用腳本所在的倉庫。"""
+    cwd = os.getcwd()
+    return cwd if os.path.exists(os.path.join(cwd, 'index.html')) else SCRIPT_REPO
+
+
+def game_ver(repo):
+    m = re.search(r"const GAME_VER='([^']*)'", open(os.path.join(repo, 'index.html'), 'rb').read().decode('utf-8'))
+    return m.group(1) if m else '？'
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description='SPR 像素指紋快照（T549／T643）')
+    ap.add_argument('--check', action='store_true', help='與基線比對，有差異或基線有問題就 exit 1')
+    ap.add_argument('--write', action='store_true', help='覆寫基線（預設只預覽）')
+    ap.add_argument('--out', help='把重算結果寫到這個路徑')
+    ap.add_argument('--repo', help='倉庫根目錄（預設：目前目錄有 index.html 就用它，否則用本腳本所在的倉庫）')
+    ap.add_argument('--baseline', help='基線路徑（預設 <repo>/docs/SPR_PINS.json）')
+    ap.add_argument('--report', help='量測紀錄（JSON）寫到這個路徑')
+    ap.add_argument('--timeout', type=int, default=300)
+    a = ap.parse_args(argv)
+    repo = os.path.abspath(a.repo or default_repo())
+    baseline = a.baseline or os.path.join(repo, 'docs', 'SPR_PINS.json')
+    if not os.path.exists(os.path.join(repo, 'index.html')):
+        print('倉庫根目錄 %s 沒有 index.html' % repo, file=sys.stderr)
+        return 2
+
+    try:
+        chrome = find_chrome()
+        if not chrome:
+            raise SnapError('找不到 Chrome（可設環境變數 CHROME_PATH）')
+        ver = chrome_version(chrome)
+        print('fp_snapshot: 倉庫 %s；GAME_VER %s；瀏覽器 %s（%s）' % (repo, game_ver(repo), ver, chrome))
+        s1 = snap(chrome, repo, a.timeout)
+        s2 = snap(chrome, repo, a.timeout)
+    except SnapError as e:
+        print(str(e), file=sys.stderr)
+        return 2
+    ka, kb = s1['pins'], s2['pins']
+    drift = sorted(k for k in set(ka) | set(kb) if ka.get(k) != kb.get(k))
+    print('兩次快照耗時 %ss／%ss；entries %d／families %d／skipped %d；有 nightCity 卻沒有 night 的鍵 %d 個'
+          % (s1['seconds'], s2['seconds'], s1['entries'], s1['families'], s1['skipped'], len(s1.get('nightCityNoNight') or [])))
+    if a.report:
+        with open(a.report, 'w', encoding='utf-8') as f:
+            json.dump({'browser': ver, 'chrome': chrome, 'game_ver': game_ver(repo), 'seconds': [s1['seconds'], s2['seconds']],
+                       'entries': s1['entries'], 'families': s1['families'], 'skipped': s1['skipped'], 'keys': len(ka),
+                       'g1_drift': drift[:50], 'nightCityNoNight': s1.get('nightCityNoNight') or []}, f, ensure_ascii=False, indent=1)
+    if drift:
+        print('G1 確定性破裂：兩次快照不恆等（%d 鍵）：%s' % (len(drift), '、'.join(drift[:10])), file=sys.stderr)
+        return 3
+    print('G1 確定性 OK：兩次快照 %d 鍵逐鍵恆等' % len(ka))
+    text = dumps_pins(ka)
+    if a.out:
+        with open(a.out, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(text)
+        print('重算結果已寫到 %s' % a.out)
+
+    old, err = (None, '基線 %s 不存在' % baseline)
+    if os.path.exists(baseline):
+        old, err = parse_pins(open(baseline, 'rb').read().decode('utf-8'))
+    rc = 0
+    if err:
+        print('基線有問題：%s' % err)
+        rc = 1 if a.check else 0
     else:
-        print('（無舊基線＝首次入庫）')
-    if not CHECK_ONLY:
-        open(BASELINE, 'wb').write(json.dumps(new, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
-        print('已寫 docs/SPR_PINS.json（%d 鍵、ver %s）' % (len(new) - 1, ver))
+        added, removed, changed = diff_pins(old, ka)
+        print('—— 與基線差異 —— 新增 %d、移除 %d、變更 %d' % (len(added), len(removed), len(changed)))
+        for name, ks in (('新增', added), ('移除', removed), ('變更', changed)):
+            if ks:
+                print('%s：%s%s' % (name, '、'.join(ks[:20]), '…' if len(ks) > 20 else ''))
+        if not (added or removed or changed):
+            print('像素指紋完全一致 ✓')
+        elif a.check:
+            rc = 1
+        else:
+            print('⚠ 這只是預覽；正本是 CI fp job 的 rebake 附件，改圖的 PR 只准原封提交那份檔案')
+    if a.write:
+        with open(baseline, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(text)
+        print('已寫 %s（%d 鍵）' % (baseline, len(ka)))
+    return rc
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

@@ -328,7 +328,8 @@ jobs:
   scene602:
     needs: [scope]
     if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
-    # T640：由 town602-candidate.yml 原樣搬入並升為部署閘——CI 上唯一的全量 SPR 指紋（1586 鍵）比對
+    # T640：由 town602-candidate.yml 原樣搬入並升為部署閘。T643：v11.210 凍結夾具斷言退役，全量 SPR 指紋改由 fp job 實算＋fp_diff；
+    # 這裡留「候選檔等於這顆 Chromium」與其餘（舊存檔、手機 UI、遮擋）。scene603 在 browser job 也比全量 SPR（凍結鎖，T643b 解）。
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -353,6 +354,57 @@ jobs:
           path: evidence/
           if-no-files-found: error
           retention-days: 14
+  fp:
+    # T643：像素指紋在 CI 實算，這裡是正本。釘版 Playwright Chromium 實算全部 SPR 鍵（冷啟兩次逐鍵恆等），
+    # fp_diff 要求實算等於提交的 docs/SPR_PINS.json、動到的家族是卡頭 families 的子集且 owner_ok 有字。
+    # 量測（PR #31，run 38671312400）：釘版 Chromium 156／跑機 google-chrome 155／Windows Chrome 與倉庫 1586 鍵零差且恆等，rebake 與倉庫檔逐位元組相同。
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chinese UI fonts (same environment as scene602)
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install pinned Playwright Chromium
+        id: pw
+        run: |
+          npm install --silent --prefix "$RUNNER_TEMP/town643-pw" playwright@1.64.0
+          (cd "$RUNNER_TEMP/town643-pw" && npx playwright install --with-deps chromium)
+          P=$(node -e "console.log(require(process.argv[1]).chromium.executablePath())" "$RUNNER_TEMP/town643-pw/node_modules/playwright")
+          echo "path=$P" >> "$GITHUB_OUTPUT"
+          "$P" --version
+      - name: Take fp tools from base when it has them (a PR must not rewrite its own check)
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/fp-tools" evidence
+          for f in fp_snapshot.py fp_diff.py scope.py; do
+            if git cat-file -e "$BASE:tools/fp_diff.py" 2>/dev/null; then git show "$BASE:tools/$f" > "$RUNNER_TEMP/fp-tools/$f"; else cp "tools/$f" "$RUNNER_TEMP/fp-tools/$f"; fi
+          done
+      - name: Recompute every SPR pin (two cold boots must agree) and write the rebake
+        env:
+          CHROME_PATH: ${{ steps.pw.outputs.path }}
+        run: python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --out evidence/SPR_PINS.json --report evidence/report.json
+      - name: fp_diff (rebake equals committed file; touched families vs card header)
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+        run: python "$RUNNER_TEMP/fp-tools/fp_diff.py" --base "$BASE" --computed evidence/SPR_PINS.json
+      - name: Preserve the rebake (an art PR commits this exact docs/SPR_PINS.json, never a hand edit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-main-fp-${{ github.event.pull_request.head.sha || github.sha }}
+          path: evidence/
+          retention-days: 90
   ratchet:
     # T641：PASS 棘輪——同一台跑機上 base 與 head 各跑一次完整 test_fixde，head 不准少於 base 減卡頭宣告的 removed_asserts（取代寫死的 --min-pass 下限）。
     needs: [scope]
@@ -400,7 +452,7 @@ jobs:
   gate:
     # T641：唯一的必要檢查（業主在 GitHub 規則集只要求它）。docs 道：scope＋validate 綠；full 道：每一道都要綠。
     if: ${{ always() }}
-    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, ratchet]
+    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, ratchet]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -414,7 +466,7 @@ jobs:
           import json, os, sys
           lane, needs = os.environ.get('LANE', ''), json.loads(os.environ['NEEDS'])
           res = {k: v['result'] for k, v in needs.items()}
-          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'ratchet']
+          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'ratchet']
           bad = [k for k in ('scope', 'validate') if res.get(k) != 'success']
           # T642（Codex #29 P1）：必要檢查只看提交上最新的 gate，手動 dispatch 的綠 gate 會蓋掉 PR 那輪的紅 gate。
           # dispatch 只用來跑只紀錄的 native-acceptance，一律判紅（fail-closed；不用 skipped，skipped 會被當成通過）。
