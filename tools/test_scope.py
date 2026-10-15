@@ -154,6 +154,57 @@ class ScopeTests(unittest.TestCase):
         res = self.r.run(ref='gpt/a')
         self.assertEqual(sorted(x['path'] for x in res['violations']), ['AGENTS.md', 'docs/tasks/t635-shots/release635.cjs'])
 
+    # ---------- T647 核准美術登記冊 ----------
+
+    def registry(self, approved, valves=None):
+        import json
+        return json.dumps({'schema': 1, 'approved': approved, 'valves': valves or {'T635': '__noT635'}}, indent=1) + '\n'
+
+    REG_T635 = {'T635': {'tag': 'approved/t635', 'commit': 'c' * 40, 'index_sha256': 'd' * 64}}
+
+    def registry_on_main(self):
+        self.r.write('docs/APPROVED_ART.json', self.registry(self.REG_T635)); self.r.commit('registry on main')
+
+    def test_approved_change_needs_owner_ok(self):
+        self.registry_on_main(); self.r.branch('claude/a')
+        moved = {'T635': dict(self.REG_T635['T635'], commit='e' * 40)}
+        self.r.write('docs/APPROVED_ART.json', self.registry(moved)); self.r.write('docs/tasks/T647-x.md', card(647)); self.r.commit('re-point')
+        res = self.r.run()
+        self.assertEqual(self.rules(res), ['approved-owner-ok'])
+        self.r.write('docs/tasks/T647-x.md', card(647, o='批准新的消防局（2026-10-15）')); self.r.commit('owner said yes')
+        self.assertTrue(self.r.run()['ok'])
+
+    def test_adding_or_removing_an_approved_batch_needs_owner_ok(self):
+        self.registry_on_main(); self.r.branch('claude/a')
+        more = dict(self.REG_T635, T699={'tag': 'approved/t699', 'commit': 'f' * 40, 'index_sha256': 'a' * 64})
+        self.r.write('docs/APPROVED_ART.json', self.registry(more)); self.r.write('docs/tasks/T647-x.md', card(647)); self.r.commit('add')
+        self.assertEqual(self.rules(self.r.run()), ['approved-owner-ok'])
+        self.r.write('docs/APPROVED_ART.json', self.registry({})); self.r.commit('remove all')
+        self.assertEqual(self.rules(self.r.run()), ['approved-owner-ok'])
+
+    def test_valves_only_change_is_green(self):
+        self.registry_on_main(); self.r.branch('claude/a')
+        self.r.write('docs/APPROVED_ART.json', self.registry(self.REG_T635, {'T635': '__noT635', 'T699': '__noT699'}))
+        self.r.write('docs/tasks/T647-x.md', card(647)); self.r.commit('new valve')
+        self.assertTrue(self.r.run()['ok'])
+
+    def test_registry_bootstrap_is_green_and_deletion_is_red(self):
+        self.r.branch('claude/a'); self.r.write('docs/APPROVED_ART.json', self.registry(self.REG_T635)); self.r.write('docs/tasks/T647-x.md', card(647)); self.r.commit('create')
+        res = self.r.run()
+        self.assertTrue(res['ok'], res); self.assertIn('approved-bootstrap', [x['rule'] for x in res['warnings']])
+        self.r.git('checkout', '-q', 'main'); self.registry_on_main()
+        self.r.git('checkout', '-q', '-b', 'claude/b'); self.r.git('rm', '-q', 'docs/APPROVED_ART.json'); self.r.write('docs/tasks/T648-x.md', card(648, o='同意（2026-10-15）')); self.r.commit('delete')
+        self.assertEqual(self.rules(self.r.run()), ['approved-registry'])
+        self.r.write('docs/APPROVED_ART.json', '{"approved":\n'); self.r.commit('broken')
+        self.assertEqual(self.rules(self.r.run()), ['approved-registry'])
+
+    def test_gpt_touching_the_registry_is_red(self):
+        self.registry_on_main(); self.r.branch('gpt/a')
+        self.r.write('docs/APPROVED_ART.json', self.registry(self.REG_T635, {'T635': '__noT635', 'T699': '__noT699'}))
+        self.r.write('docs/tasks/T647-x.md', card(647)); self.r.commit('gpt valve')
+        res = self.r.run(ref='gpt/a')
+        self.assertEqual(self.rules(res), ['gpt-lane']); self.assertEqual(res['violations'][0]['path'], 'docs/APPROVED_ART.json')
+
     def test_hardcoded_sha_in_guard_code(self):
         sha = 'a' * 7 + '1234567890abcdef1234567890abcdef1'
         self.assertEqual(len(sha), 40)

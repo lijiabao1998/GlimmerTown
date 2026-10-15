@@ -17,7 +17,9 @@
 - 純 revert（diff 的 patch-id 等於 main 第一父鏈上某個提交——合併或直推——對其第一父的反向 diff）免一切卡面規則
   （一 PR 一卡、卡頭、凍結欄、owner_ok、撞號），因為它只是把 main 退回它自己有過的內容；gpt 越道與寫死 SHA 照查。
   棘輪基準改成被撤提交的第一父（ratchet_base），不跟撤銷前的 base 比（T650：「main 紅就開 revert PR」這條路不准被守衛擋住）。
-- gpt/ 分支越道：碰 .github/、tools/、test_fixde.js 的刪改行（只新增不算）、不屬於本卡的 docs/tasks/*-shots/、docs/SPR_PINS.json、規則檔。
+- gpt/ 分支越道：碰 .github/、tools/、test_fixde.js 的刪改行（只新增不算）、不屬於本卡的 docs/tasks/*-shots/、docs/SPR_PINS.json、docs/APPROVED_ART.json、規則檔。
+- 核准美術登記冊（T647）：docs/APPROVED_ART.json 的 approved 一節（新增、修改、刪除任一批）有變動，卡頭 owner_ok 必須有字——登記批准就是業主的批准；
+  valves 一節不受限；base 沒有登記冊＝建立；登記冊不准刪；純 revert 照例免。
 - 守衛程式（.github/、tools/、docs/tasks/*-shots/、test_fixde.js 裡的 .js/.cjs/.mjs/.py/.yml/.yaml/.sh）新增行出現 40 位十六進位＝寫死提交 SHA；docs/APPROVED_ART.json 例外；64 位只警告。
 """
 import argparse
@@ -37,6 +39,7 @@ CODE_EXT = ('.js', '.cjs', '.mjs', '.py', '.yml', '.yaml', '.sh')
 SHA40 = re.compile(r'(?<![0-9a-f])[0-9a-f]{40}(?![0-9a-f])')
 SHA64 = re.compile(r'(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])')
 SHOTS_RE = re.compile(r'^docs/tasks/(t\d{3,4})-shots/')
+REGISTRY = 'docs/APPROVED_ART.json'
 
 
 class GitError(Exception):
@@ -181,6 +184,22 @@ def analyse(repo, base, head, head_ref=''):
     elif lane == 'full' and not own:
         v.append({'rule': 'one-card', 'path': '', 'detail': 'full 道的 PR 要帶一張卡（新增一張，或修改恰好一張已有卡頭的卡）；純 revert 例外'})
 
+    # T647：核准美術登記冊的 approved 一節是業主的批准，改它要卡頭 owner_ok（算卡面規則：純 revert 一起免）
+    if REGISTRY in paths:
+        bt, ht = show(repo, base, REGISTRY), show(repo, head, REGISTRY)
+        if bt is None:
+            w.append({'rule': 'approved-bootstrap', 'path': REGISTRY, 'detail': 'base 沒有登記冊：建立'})
+        elif ht is None:
+            v.append({'rule': 'approved-registry', 'path': REGISTRY, 'detail': '登記冊被刪掉了'})
+        else:
+            try:
+                changed_approved = json.loads(bt).get('approved') != json.loads(ht).get('approved')
+            except (ValueError, AttributeError) as e:
+                v.append({'rule': 'approved-registry', 'path': REGISTRY, 'detail': '登記冊無法解析：%s' % e})
+            else:
+                if changed_approved and not any((c['header'] or {}).get('owner_ok') for c in own):
+                    v.append({'rule': 'approved-owner-ok', 'path': REGISTRY, 'detail': '改到 approved（業主批准的批次），卡頭 owner_ok 卻是空的'})
+
     # 到這裡 v 裡只有卡面規則。卡面有違規、或要跑棘輪（full 道）時，才算是不是純 revert（要算幾十個 patch-id）。
     revert = is_pure_revert(repo, base, head) if (v or lane == 'full') else None
     ratchet_base = base
@@ -204,6 +223,8 @@ def analyse(repo, base, head, head_ref=''):
                 why = '規則檔'
             elif p == 'docs/SPR_PINS.json':
                 why = '像素指紋基線'
+            elif p == REGISTRY:
+                why = '核准美術登記冊'
             elif p == 'test_fixde.js' and st != 'A':
                 ns = git(repo, 'diff', '--numstat', base, head, '--', p).split()
                 if ns and ns[1] not in ('0', '-'):

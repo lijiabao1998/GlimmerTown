@@ -1,8 +1,9 @@
 // T634 發佈啟用補充驗證：已批准 immutable git 圖像，對正常無 query 進站逐 RGBA 位元比對。
-// CI: APPROVED_BASE634=<full approved commit> CHROME_PATH=/usr/bin/google-chrome node docs/tasks/t634-shots/release634.cjs
+// CI: CHROME_PATH=/usr/bin/google-chrome node docs/tasks/t634-shots/release634.cjs（T647 起批准提交讀 docs/APPROVED_ART.json 與 approved/t634 標籤）
 // --self-test 只驗工具；--check 只驗 immutable 來源／注入語法。兩者絕不啟動瀏覽器或監聽 socket。
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http'),crypto=require('crypto'),zlib=require('zlib'),vm=require('vm'),{execFileSync}=require('child_process');
+const {loadApproved}=require('../../../tools/approved_art.cjs'); // T647：核准美術登記冊
 const ROOT=path.resolve(__dirname,'../../..'),OUT=path.resolve(process.env.OUT634||'evidence/t634-release');
 const SOURCE_PATH='index.html',BRIDGE_PATH='docs/tasks/t634-shots/scene634.cjs',INVENTORY_PATH='docs/tasks/t634-shots/asset-coverage-baseline.json',FIXTURE_PATH='docs/tasks/t603-shots/fixtures/seed22-d3-420-v11.211.json';
 const VIEWPORT={width:1800,height:1120},SCENES=['street','civic','industry','legacy','seed22'];
@@ -186,8 +187,9 @@ function selfTest(){
 }
 async function main(){
   if(process.argv.includes('--self-test')){selfTest();return;}
-  need(process.env.APPROVED_BASE634&&/^[0-9a-f]{40}$/.test(process.env.APPROVED_BASE634),'APPROVED_BASE634 must name the full immutable owner-approved commit; no moving-ref or current-source fallback is allowed');
-  const approved=git('rev-parse',process.env.APPROVED_BASE634+'^{commit}'),head=git('rev-parse','HEAD');need(approved===process.env.APPROVED_BASE634,'Approval reference did not resolve exactly');
+  // T647：批准提交原本由工作流的 APPROVED_BASE634 傳進來；改讀登記冊——標籤、提交、index.html 雜湊、祖先與後批的逃生閥都由 tools/approved_art.cjs 驗。
+  const art=loadApproved(ROOT,'T634'),approved=art.approved.commit,head=git('rev-parse','HEAD');need(head===art.head,'HEAD moved while reading the approved-art registry');
+  need(art.valves.includes('__noT635'),'Registry must isolate the separately verified T635 fire art');
   git('merge-base','--is-ancestor',approved,head);
   const approvedSource=gitRaw('show',approved+':'+SOURCE_PATH),releaseSource=fs.readFileSync(path.join(ROOT,SOURCE_PATH),'utf8');
   need(releaseSource===gitRaw('show',head+':'+SOURCE_PATH),'Release index.html must exactly match HEAD before any evidence is recorded');
@@ -219,23 +221,25 @@ async function main(){
   const {chromium}=require('playwright');let browser,server,origin;const openContexts=new Set();
   async function open(spec){
     const context=await browser.newContext({viewport:VIEWPORT,deviceScaleFactor:1,serviceWorkers:'block'});openContexts.add(context);
-    await context.addInitScript(({explicit,simulation})=>{
+    await context.addInitScript(({explicit,simulation,valves})=>{
       // 第一個 storage 操作就是選 slot3；頁面載入前阻擋自動儲存及所有非 fixture 寫檔。
       localStorage.setItem('glimmerville.v1.slot','3');localStorage.setItem('glimmerville.v1.snd','0');window.__freeze634=true;
        // T635: preserve every immutable 315-design/world assertion in this historical lane.
        // The separate required approved-fire-release job verifies ordinary-URL fire activation and pixels.
-       window.__noT635=true;
+       // T647：比批准提交晚的每個批次（T635、T638…）都用登記冊的逃生閥關掉，不再在這裡手寫。
+       for(const v of valves)window[v]=true;
       if(explicit==='true')window.__t634=true;else if(explicit==='false')window.__t634=false;
       window.__release634Simulation=simulation;window.__release634Safety={allowedSaveCalls:0,allowedSaveWrites:0,allowedBackupWrites:0,fixtureWrites:0,blockedSaveWrites:0,wrongSlotWrites:0,blockedSaveCalls:0,blockedAutosaveRegistrations:0};
       const interval=window.setInterval;window.setInterval=function(fn,delay,...args){if(delay===25000&&typeof fn==='function'&&/if\(tiles\)save\(\)/.test(String(fn))){window.__release634Safety.blockedAutosaveRegistrations++;return 0;}return interval.call(this,fn,delay,...args);};
       const put=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(this===localStorage&&/^glimmerville\.v1(?:\.s\d+)?(?:_bak)?$/.test(k)){if(k!=='glimmerville.v1.s3'&&k!=='glimmerville.v1.s3_bak'){window.__release634Safety.wrongSlotWrites++;throw Error('Non-disposable save slot write blocked');}if(window.__release634Simulation&&window.__release634Saving){window.__release634Safety[k.endsWith('_bak')?'allowedBackupWrites':'allowedSaveWrites']++;}else if(window.__release634Loading&&k==='glimmerville.v1.s3')window.__release634Safety.fixtureWrites++;else{window.__release634Safety.blockedSaveWrites++;throw Error('Gameplay save write blocked');}}return put.call(this,k,v);};
-    },{explicit:spec.explicit||'absent',simulation:spec.simulation===true});
+    },{explicit:spec.explicit||'absent',simulation:spec.simulation===true,valves:art.valves});
     await context.route('**/*',route=>route.request().url().startsWith(origin+'/')?route.continue():route.abort());
     const page=await context.newPage();page.on('pageerror',e=>{report.errors.push({mode:spec.name,message:e.stack||e.message});persist();});
     const url=origin+'/'+spec.source+'.html'+(spec.query||'');await page.goto(url,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.GV&&window.__release634&&window.__qa634&&window.__boot426&&__boot426().ready,null,{timeout:180000});
     const boot=await page.evaluate(()=>__release634.flags());report.contexts.push({name:spec.name,url,source:spec.source,boot});persist();
      check(boot.fire635Isolated===true&&boot.fire635On===false,spec.name+' explicitly isolates separately verified T635 fire art');
+     check(await page.evaluate(vs=>vs.every(v=>window[v]===true),art.valves),spec.name+' isolates every later batch from the registry: '+art.valves.join(','));
     return{context,page,boot,spec};
   }
   async function close(run,fixtureWrites,saveCalls=0,backupWrites=0){

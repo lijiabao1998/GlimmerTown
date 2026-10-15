@@ -1,0 +1,25 @@
+{
+ "schema": 1,
+ "note": "T647 核准美術登記冊。approved：業主批准的批次——批准提交、approved/* 標籤、該提交 index.html 的 sha256；改這一節要卡頭 owner_ok（scope 會查）。valves：每個 tNNNOn 批次的逃生閥，發佈台架用它隔離比被測批次晚的批次；新批次加了 tNNNOn 就要在這裡登記。讀取與驗證在 tools/approved_art.cjs。",
+ "approved": {
+  "T634": {
+   "tag": "approved/t634",
+   "commit": "7105c58532ec0a77220e0f9caedb5364cb05396a",
+   "index_sha256": "aaac53dd81d7dc381b2984c8498b0244c9cf9b9aac451f4258f0f7d258d25aac"
+  },
+  "T635": {
+   "tag": "approved/t635",
+   "commit": "bc9c70fdd0cdc03fc6679c23ad45d7e7eb205105",
+   "index_sha256": "4a89ed0c069211fe1967102ebe11eb9a9d9f917bbae4496d628c75c8e7e1b751",
+   "base": {
+    "tag": "approved/t635-base",
+    "commit": "7ad6931eaa1bed87af053f8097b05a0e669656a6",
+    "index_sha256": "b714f4488e02bfd054681b918e4319126e12dd7efd00027bc8ad974c5361517c"
+   }
+  }
+ },
+ "valves": {
+  "T635": "__noT635",
+  "T638": "__noT638"
+ }
+}

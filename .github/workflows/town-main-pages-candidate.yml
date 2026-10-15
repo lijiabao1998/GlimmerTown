@@ -113,6 +113,7 @@ jobs:
           node tools/pages/native-correctness.cjs --self-test | tee evidence/native-correctness-contracts.log
           node tools/pages/release-correctness.cjs --self-test | tee evidence/release-correctness-contracts.log
           node --test tools/pages/native-mac-diagnostic.test.cjs tools/pages/native-portability-diagnostic.test.cjs | tee evidence/native-acceptance-contracts.log
+          node --test tools/approved_art.test.cjs | tee evidence/approved-art-contracts.log
       - name: Prior-version seeded save and simulation compatibility
         if: always()
         run: |
@@ -298,7 +299,7 @@ jobs:
       - name: Required normal-URL simulation, saves and immutable owner-approved art
         env:
           CHROME_PATH: /usr/bin/google-chrome
-          APPROVED_BASE634: 7105c58532ec0a77220e0f9caedb5364cb05396a
+        # T647：批准提交改讀 docs/APPROVED_ART.json 與 approved/* 標籤（fetch-depth 0 會帶標籤），不再寫死在工作流
         run: node docs/tasks/t634-shots/release634.cjs
       - uses: actions/upload-artifact@v4
         if: always()
