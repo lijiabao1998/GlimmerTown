@@ -115,6 +115,7 @@ jobs:
           node --test tools/pages/native-mac-diagnostic.test.cjs tools/pages/native-portability-diagnostic.test.cjs | tee evidence/native-acceptance-contracts.log
           node --test tools/approved_art.test.cjs | tee evidence/approved-art-contracts.log
           node tools/approved_art.cjs --check-all | tee evidence/approved-art-registry.log
+          node tools/pages/frame-compare.cjs --self-test | tee evidence/frame-compare-contracts.log
       - name: Prior-version seeded save and simulation compatibility
         if: always()
         run: |
@@ -422,6 +423,64 @@ jobs:
           name: Town-main-fp-${{ github.event.pull_request.head.sha || github.sha }}
           path: evidence/
           retention-days: 90
+  frame:
+    # T648：整幀比對。base 與 head 在同一個釘版 Chromium 裡逐幀比畫布 RGBA（存檔城市兩座＋新美術陣列四張，每頁 67 幀）：
+    # 非美術卡畫面零變；卡頭寫了逃生閥時閥關後整幀等於 base；畫面變了就出接觸表（base｜head｜head+閥｜差異），業主看了點頭＝owner_ok。
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chinese UI fonts (same environment as scene602)
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install pinned Playwright Chromium
+        id: pw
+        run: |
+          npm install --silent --prefix "$RUNNER_TEMP/town648-pw" playwright@1.64.0
+          (cd "$RUNNER_TEMP/town648-pw" && npx playwright install --with-deps chromium)
+          P=$(node -e "console.log(require(process.argv[1]).chromium.executablePath())" "$RUNNER_TEMP/town648-pw/node_modules/playwright")
+          echo "path=$P" >> "$GITHUB_OUTPUT"
+          echo "NODE_PATH=$RUNNER_TEMP/town648-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Take frame tools from base when it has them (a PR must not rewrite its own check)
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/frame-tools" evidence/frame
+          # 只有 T648 自己的 PR 的 base 還沒有 frame-compare.cjs，那一次用 head 的（同 T643／T646 的起步）
+          if git cat-file -e "$BASE:tools/pages/frame-compare.cjs" 2>/dev/null; then
+            echo "frame tools from base"
+            git show "$BASE:tools/pages/frame-compare.cjs" > "$RUNNER_TEMP/frame-tools/frame-compare.cjs"
+            git show "$BASE:tools/scope.py" > "$RUNNER_TEMP/frame-tools/scope.py"
+          else
+            echo "frame tools from head"
+            cp tools/pages/frame-compare.cjs tools/scope.py "$RUNNER_TEMP/frame-tools/"
+          fi
+      - name: Card header of this PR (scope.py from the same source as the tool)
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
+        run: python "$RUNNER_TEMP/frame-tools/scope.py" --base "$BASE" --head HEAD --head-ref "$HEAD_REF" > evidence/frame/scope.json || true
+      - name: Frame comparison and contact sheets
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+          CHROME_PATH: ${{ steps.pw.outputs.path }}
+        run: node "$RUNNER_TEMP/frame-tools/frame-compare.cjs" --base "$BASE" --scope evidence/frame/scope.json --out evidence/frame
+      - name: Preserve contact sheets and the frame report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-main-frame-${{ github.event.pull_request.head.sha || github.sha }}
+          path: evidence/frame/
+          retention-days: 90
   ratchet:
     # T641：PASS 棘輪——同一台跑機上 base 與 head 各跑一次完整 test_fixde，head 不准少於 base 減卡頭宣告的 removed_asserts（取代寫死的 --min-pass 下限）。
     needs: [scope]
@@ -470,7 +529,7 @@ jobs:
   gate:
     # T641：唯一的必要檢查（業主在 GitHub 規則集只要求它）。docs 道：scope＋validate 綠；full 道：每一道都要綠。
     if: ${{ always() }}
-    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, ratchet]
+    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, frame, ratchet]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -484,7 +543,7 @@ jobs:
           import json, os, sys
           lane, needs = os.environ.get('LANE', ''), json.loads(os.environ['NEEDS'])
           res = {k: v['result'] for k, v in needs.items()}
-          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'ratchet']
+          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'frame', 'ratchet']
           bad = [k for k in ('scope', 'validate') if res.get(k) != 'success']
           # T642（Codex #29 P1）：必要檢查只看提交上最新的 gate，手動 dispatch 的綠 gate 會蓋掉 PR 那輪的紅 gate。
           # dispatch 只用來跑只紀錄的 native-acceptance，一律判紅（fail-closed；不用 skipped，skipped 會被當成通過）。

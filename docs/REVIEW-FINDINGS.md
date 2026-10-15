@@ -31,3 +31,9 @@
 | #29 | P2 | tools/session_audit.py:177 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
 | #32 | P1 | tools/landing_gates.py:69 | 照改（在 #33 落地）：CHANGELOG-CORRECTION 的卡號改成完整詞比對，T425A 不再放行 T425；merge_bay 共用一起收緊 |
 | #33 | P2 | tools/landing_gates.py:80 | 不改：宣告粒度是卡號不是條目（T433 R02 原意）；#18 用一行 T634 改寫七條是合法前例，逐條計數會讓它變紅（PR 上已回覆） |
+| #36 | P2 | .github/workflows/town-main-pages-candidate.yml:116 | 不成立：那一步開頭就是 set -o pipefail（T644 守衛也會擋），PR 上已回覆 |
+| #36 | P2 | tools/approved_art.cjs:55 | 照改（#36 內）：後批的閥改成在沙箱裡實際執行，不看字面 |
+| #36 | P2 | tools/approved_art.cjs:65 | 照改（#36 內）：網址 ?noTNNN=1 也要關得掉 |
+| #36 | P2 | tools/approved_art.cjs:68 | 照改（#36 內）：閥名必須是 __no 加自己的批次號 |
+| #36 | P2 | tools/approved_art.cjs:46 | 照改（#36 內）：--check-all，validate 驗登記冊裡每一批 |
+| #36 | P2 | tools/approved_art.cjs:61 | → T643b：anchor() 要求批准提交裡有 t<NNN>On（目前兩筆登記都對得上，新增登記才會遇到） |
