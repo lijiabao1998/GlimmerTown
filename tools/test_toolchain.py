@@ -24,7 +24,7 @@ from tools import verify
 from tools.test_scope import ScopeTests  # noqa: E402,F401  T641：scope.py 的單元測試跟著工具鏈一起跑
 from tools.test_session_audit import AuditTests  # noqa: E402,F401  T642：開工巡檢的單元測試跟著工具鏈一起跑
 from tools.test_fp_diff import FpDiffTests  # noqa: E402,F401  T643：像素指紋家族比對的單元測試跟著工具鏈一起跑
-from tools.test_landing_gates import LandingGateTests  # noqa: E402,F401  T644：CHANGELOG 帳本閘的單元測試跟著工具鏈一起跑
+from tools.test_landing_gates import LandingGateTests, WorkflowPipefailTests  # noqa: E402,F401  T644：CHANGELOG 帳本閘的單元測試跟著工具鏈一起跑
 
 
 class TempRepo:

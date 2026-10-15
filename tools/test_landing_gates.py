@@ -107,5 +107,44 @@ class LandingGateTests(unittest.TestCase):
         self.assertEqual(lg.entries_in_diff(diff, '-'), [E601.rstrip('\n')])
 
 
+WORKFLOW = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.github', 'workflows', 'town-main-pages-candidate.yml')
+
+
+def run_blocks(text):
+    """把工作流裡每個 `run: |` 區塊切出來：[(行號, 區塊內文)]。只認多行區塊，單行 run 沒有 tee。"""
+    lines = text.splitlines()
+    blocks = []
+    for i, line in enumerate(lines):
+        if line.strip() != 'run: |':
+            continue
+        indent = len(line) - len(line.lstrip())
+        body = []
+        for nxt in lines[i + 1:]:
+            if nxt.strip() and len(nxt) - len(nxt.lstrip()) <= indent:
+                break
+            body.append(nxt)
+        blocks.append((i + 1, '\n'.join(body)))
+    return blocks
+
+
+def unprotected_tee(text):
+    return [n for n, body in run_blocks(text) if '| tee' in body and 'set -o pipefail' not in body]
+
+
+class WorkflowPipefailTests(unittest.TestCase):
+    """T644 紅源實踩：GitHub 預設 shell 是 bash -e、沒有 pipefail，`cmd | tee` 的紅會被 tee 吃掉、這一步顯示成功。"""
+
+    def test_parser_catches_unprotected_tee(self):
+        sample = ('    steps:\n      - name: a\n        run: |\n          set -o pipefail\n          x | tee a.log\n'
+                  '      - name: b\n        run: |\n          y | tee b.log\n      - name: c\n        run: z\n')
+        self.assertEqual(unprotected_tee(sample), [7])
+
+    def test_every_tee_step_sets_pipefail(self):
+        with open(WORKFLOW, encoding='utf-8') as f:
+            text = f.read()
+        self.assertGreater(len(run_blocks(text)), 10)
+        self.assertEqual(unprotected_tee(text), [], 'run 區塊有 | tee 卻沒 set -o pipefail（行號是 run: | 那一行）')
+
+
 if __name__ == '__main__':
     unittest.main()
