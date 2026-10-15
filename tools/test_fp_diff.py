@@ -9,6 +9,7 @@ import fp_snapshot  # noqa: E402
 from test_scope import Repo, card  # noqa: E402
 
 BASE_PINS = {'park/0': ['a1'], 'parkA/0': ['b2'], 'fire/0': ['c3', 'c4'], 'bld/r.1': ['d5']}
+ART_PINS = {'art638/6_1_0_1': ['a1', 'a2'], 'art603/29_0_2_0_1': ['b1', 'b2'], 'art634/L29_0_1_2_0_1': ['c1', 'c2']}
 
 
 def pins_text(p):
@@ -115,6 +116,78 @@ class FpDiffTests(unittest.TestCase):
         self.r.branch('claude/a'); self.r.write('docs/SPR_PINS.json', pins_text(BASE_PINS)); self.r.write('docs/tasks/T650-x.md', card(650)); self.r.commit('reformat')
         res = self.run_diff(BASE_PINS)
         self.assertTrue(res['ok'], res); self.assertEqual(res['touched'], [])
+
+    # ---------- T646 新美術清冊 docs/ART_PINS.json ----------
+
+    def art_on_main(self):
+        self.r.write('docs/ART_PINS.json', pins_text(ART_PINS)); self.r.commit('art pins on main')
+
+    def art_change(self, mutate, header):
+        self.r.branch('claude/a')
+        p = dict(ART_PINS); mutate(p)
+        self.r.write('docs/ART_PINS.json', pins_text(p)); self.r.write('docs/tasks/T650-x.md', header); self.r.commit('art')
+        return p
+
+    def run_art(self, art, spr=None):
+        art = pins_text(art) if isinstance(art, dict) else art
+        return fp_diff.analyse(self.r.dir, self.r.git('rev-parse', 'main'), self.r.git('rev-parse', 'HEAD'),
+                               pins_text(spr or BASE_PINS), art)
+
+    def test_art_bootstrap_builds_the_baseline_without_touching_families(self):
+        self.r.branch('claude/a'); self.r.write('docs/ART_PINS.json', pins_text(ART_PINS)); self.r.write('docs/tasks/T650-x.md', card(650)); self.r.commit('bootstrap')
+        res = self.run_art(ART_PINS)
+        self.assertTrue(res['ok'], res); self.assertEqual(res['touched'], [])
+        self.assertIn('art-bootstrap', [x['rule'] for x in res['warnings']])
+        self.assertEqual(self.rules(self.run_art({'art638/6_1_0_1': ['ff']})), ['computed-mismatch'])  # 建立基線也要等於實算
+
+    def test_art_computed_must_equal_committed_file(self):
+        self.art_on_main(); self.r.branch('claude/a'); self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T650-x.md', card(650)); self.r.commit('x')
+        self.assertTrue(self.run_art(ART_PINS)['ok'])
+        changed = dict(ART_PINS); changed['art638/6_1_0_1'] = ['ff', '01']
+        res = self.run_art(changed)
+        self.assertEqual(self.rules(res), ['computed-mismatch']); self.assertIn('ART_PINS', res['violations'][0]['detail'])
+
+    def test_art_change_needs_family_and_owner_ok(self):
+        self.art_on_main()
+        p = self.art_change(lambda p: p.__setitem__('art638/6_1_0_1', ['ff', '01']), card(650))
+        res = self.run_art(p)
+        self.assertEqual(self.rules(res), ['families', 'owner-ok']); self.assertEqual(res['touched'], ['art638'])
+        self.assertEqual(res['changed'], ['ART:art638/6_1_0_1'])
+
+    def test_art_change_declared_with_owner_ok_is_green(self):
+        self.art_on_main()
+        p = self.art_change(lambda p: p.__setitem__('art638/6_1_0_1', ['ff', '01']), card(650, f='art638', o='上綫吧（2026-10-15）'))
+        res = self.run_art(p)
+        self.assertTrue(res['ok'], res); self.assertEqual(res['touched'], ['art638'])
+
+    def test_art_and_spr_families_are_checked_together(self):
+        # 改 T603 的畫法會同時動到 art603（園區）與 art634（縮放舊版）；SPR 那邊只宣告 park 不夠
+        self.art_on_main(); self.r.branch('claude/a')
+        a = dict(ART_PINS); a['art603/29_0_2_0_1'] = ['ee', 'ef']; a['art634/L29_0_1_2_0_1'] = ['dd', 'de']
+        s = dict(BASE_PINS); s['park/0'] = ['ff']
+        self.r.write('docs/ART_PINS.json', pins_text(a)); self.r.write('docs/SPR_PINS.json', pins_text(s))
+        self.r.write('docs/tasks/T650-x.md', card(650, f='park,art603', o='同意（2026-10-15）')); self.r.commit('both')
+        res = self.run_art(a, s)
+        self.assertEqual(res['touched'], ['art603', 'art634', 'park']); self.assertEqual(self.rules(res), ['families'])
+        self.assertIn('art634', res['violations'][0]['detail'])
+
+    def test_art_baseline_cannot_be_deleted_or_left_without_an_atlas(self):
+        self.art_on_main(); self.r.branch('claude/a'); self.r.git('rm', '-q', 'docs/ART_PINS.json'); self.r.write('docs/tasks/T650-x.md', card(650)); self.r.commit('rm art')
+        self.assertEqual(self.rules(self.run_art(ART_PINS)), ['pins-missing'])                           # 遊戲還有清冊，基線卻沒了
+        self.assertEqual(self.rules(fp_diff.analyse(self.r.dir, self.r.git('rev-parse', 'main'), 'HEAD')), ['pins-missing'])  # 本機不給實算也一樣
+        self.assertTrue(self.run_art(fp_diff.MISSING)['ok'])                                              # 清冊和基線一起撤（撤掉 T646）
+        self.r.write('docs/ART_PINS.json', pins_text(ART_PINS)); self.r.commit('back')
+        self.assertEqual(self.rules(self.run_art(fp_diff.MISSING)), ['art-not-computable'])               # 有基線、沒清冊
+
+    def test_unparseable_art_baseline_is_red(self):
+        self.art_on_main(); self.r.branch('claude/a'); self.r.write('docs/ART_PINS.json', '{"__meta":{"count":1}}\n'); self.r.write('docs/tasks/T650-x.md', card(650)); self.r.commit('broken art')
+        res = self.run_art(ART_PINS)
+        self.assertEqual(self.rules(res), ['pins-invalid']); self.assertIn('ART_PINS', res['violations'][0]['detail'])
+
+    def test_no_art_anywhere_is_green(self):
+        # T646 以前的提交：兩邊都沒有 ART_PINS、遊戲也沒有清冊
+        self.r.branch('claude/a'); self.r.write('index.html', 'v2\n'); self.r.write('docs/tasks/T650-x.md', card(650)); self.r.commit('x')
+        self.assertTrue(self.run_art(fp_diff.MISSING)['ok'])
 
     def test_default_repo_follows_cwd_when_script_is_copied(self):
         # CI 把 fp_snapshot.py 從 base 複製到 $RUNNER_TEMP 跑：倉庫根目錄要跟著目前目錄，不能跟著腳本位置（PR #31 第一輪實踩）

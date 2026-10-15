@@ -368,10 +368,11 @@ jobs:
     # T643：像素指紋在 CI 實算，這裡是正本。釘版 Playwright Chromium 實算全部 SPR 鍵（冷啟兩次逐鍵恆等），
     # fp_diff 要求實算等於提交的 docs/SPR_PINS.json、動到的家族是卡頭 families 的子集且 owner_ok 有字。
     # 量測（PR #31，run 38671312400）：釘版 Chromium 156／跑機 google-chrome 155／Windows Chrome 與倉庫 1586 鍵零差且恆等，rebake 與倉庫檔逐位元組相同。
+    # T646：同一次冷啟也實算 GV.artAtlas646（SPR 之外按需烘焙的新美術，docs/ART_PINS.json），規則相同；本機一次冷啟約 70 秒，逾時放寬到 25 分。
     needs: [scope]
     if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -397,18 +398,22 @@ jobs:
           BASE: ${{ needs.scope.outputs.base }}
         run: |
           mkdir -p "$RUNNER_TEMP/fp-tools" evidence
+          # T646：base 的工具還不會 ART_PINS（只有 T646 自己的 PR）就用 head 的，同 T643 的起步；之後 base 一定會。
+          SRC=head
+          if git cat-file -e "$BASE:tools/fp_diff.py" 2>/dev/null && git show "$BASE:tools/fp_diff.py" | grep -q -- '--art-computed'; then SRC=base; fi
+          echo "fp tools from $SRC"
           for f in fp_snapshot.py fp_diff.py scope.py; do
-            if git cat-file -e "$BASE:tools/fp_diff.py" 2>/dev/null; then git show "$BASE:tools/$f" > "$RUNNER_TEMP/fp-tools/$f"; else cp "tools/$f" "$RUNNER_TEMP/fp-tools/$f"; fi
+            if [ "$SRC" = base ]; then git show "$BASE:tools/$f" > "$RUNNER_TEMP/fp-tools/$f"; else cp "tools/$f" "$RUNNER_TEMP/fp-tools/$f"; fi
           done
-      - name: Recompute every SPR pin (two cold boots must agree) and write the rebake
+      - name: Recompute every SPR and ART pin (two cold boots must agree) and write the rebake
         env:
           CHROME_PATH: ${{ steps.pw.outputs.path }}
-        run: python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --out evidence/SPR_PINS.json --report evidence/report.json
+        run: python "$RUNNER_TEMP/fp-tools/fp_snapshot.py" --out evidence/SPR_PINS.json --art-out evidence/ART_PINS.json --report evidence/report.json
       - name: fp_diff (rebake equals committed file; touched families vs card header)
         env:
           BASE: ${{ needs.scope.outputs.base }}
-        run: python "$RUNNER_TEMP/fp-tools/fp_diff.py" --base "$BASE" --computed evidence/SPR_PINS.json
-      - name: Preserve the rebake (an art PR commits this exact docs/SPR_PINS.json, never a hand edit)
+        run: python "$RUNNER_TEMP/fp-tools/fp_diff.py" --base "$BASE" --computed evidence/SPR_PINS.json --art-computed evidence/ART_PINS.json
+      - name: Preserve the rebake (an art PR commits these exact docs/SPR_PINS.json and docs/ART_PINS.json, never a hand edit)
         if: always()
         uses: actions/upload-artifact@v4
         with:
