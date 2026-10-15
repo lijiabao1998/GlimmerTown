@@ -65,6 +65,27 @@ class LandingGateTests(unittest.TestCase):
         res = self.run_gates()
         self.assertNotIn('only-grows', self.gates(res))
 
+    def test_declaring_a_longer_card_id_does_not_authorize_its_prefix(self):
+        # Codex #32 P1：倉庫裡同時有 T425 與 T425A；宣告 T425A 不能放行 T425 的刪除（兩道都要紅）
+        e425 = '2026-08-01 | T425 | 舊卡 | 驗收:通過（Kimi 非作者覆核）\n'
+        e425a = '2026-08-02 | T425A | 舊卡 A | 驗收:通過（Kimi 非作者覆核）\n'
+        self.r.git('checkout', '-q', 'main'); self.ledger(e425a, e425, E601, E600); self.r.commit('ledger with prefix pair')
+        self.r.git('checkout', '-q', 'claude/a'); self.r.git('merge', '-q', 'main')
+        self.ledger(e425a, E601, E600)
+        self.r.commit('drop T425\n\nCHANGELOG-CORRECTION: T425A typo fix')
+        res = self.run_gates()
+        self.assertEqual(self.gates(res), ['keeps', 'only-grows'], res)
+
+    def test_card_must_appear_as_a_whole_word(self):
+        # 宣告照舊是自由文字；卡號緊貼中文或全形標點也算，緊貼英數字不算
+        self.assertTrue(lg.is_declared('T998', ['CHANGELOG-CORRECTION: 移除T998條目，理由是該卡從未落地']))
+        self.assertTrue(lg.is_declared('T600', ['CHANGELOG-CORRECTION: T600：重複']))
+        self.assertTrue(lg.is_declared('T425', ['CHANGELOG-CORRECTION: T425、T425A 兩條都重複']))
+        self.assertFalse(lg.is_declared('T425', ['CHANGELOG-CORRECTION: T425A typo']))
+        self.assertFalse(lg.is_declared('T42', ['CHANGELOG-CORRECTION: T425 typo']))
+        self.assertFalse(lg.is_declared('T425', ['CHANGELOG-CORRECTION: XT425 typo']))
+        self.assertFalse(lg.is_declared('T600', []))
+
     def test_rewrite_in_place_counts_as_removal(self):
         # T423–T425A 就是這樣丟的：原地改寫（+1/-1）也算刪除
         self.ledger(E601, E600.replace('舊卡', '舊卡（改寫）')); self.r.commit('rewrite')
