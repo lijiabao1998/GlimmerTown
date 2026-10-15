@@ -29,8 +29,7 @@ import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASELINE = os.path.join(REPO, 'docs', 'SPR_PINS.json')
+SCRIPT_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HEX = re.compile(r'^[0-9a-f]{1,8}$')
 CHROME_CANDIDATES = [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
                      r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
@@ -136,7 +135,7 @@ def chrome_version(chrome):
         return '（取不到版本：%s）' % e
 
 
-def snap(chrome, timeout=300):
+def snap(chrome, repo, timeout=300):
     """冷啟一次無頭快照，回傳 {pins, entries, families, skipped, nightCityNoNight, seconds}。"""
     report = {}
 
@@ -157,7 +156,7 @@ def snap(chrome, timeout=300):
     log = os.path.join(lab, 'chrome.log')
     t0 = time.time()
     try:
-        shutil.copy2(os.path.join(REPO, 'index.html'), os.path.join(lab, 'index.html'))
+        shutil.copy2(os.path.join(repo, 'index.html'), os.path.join(lab, 'index.html'))
         with open(os.path.join(lab, 'p.html'), 'wb') as f:
             f.write(PROBE.encode('utf-8'))
         srv = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Q, directory=lab))  # 臨時埠，不碰 8123／8199
@@ -189,8 +188,14 @@ def snap(chrome, timeout=300):
         shutil.rmtree(lab, ignore_errors=True)
 
 
-def game_ver():
-    m = re.search(r"const GAME_VER='([^']*)'", open(os.path.join(REPO, 'index.html'), 'rb').read().decode('utf-8'))
+def default_repo():
+    """目前目錄有 index.html 就用目前目錄（CI 會把本腳本複製到別處跑），否則用腳本所在的倉庫。"""
+    cwd = os.getcwd()
+    return cwd if os.path.exists(os.path.join(cwd, 'index.html')) else SCRIPT_REPO
+
+
+def game_ver(repo):
+    m = re.search(r"const GAME_VER='([^']*)'", open(os.path.join(repo, 'index.html'), 'rb').read().decode('utf-8'))
     return m.group(1) if m else '？'
 
 
@@ -199,19 +204,25 @@ def main(argv=None):
     ap.add_argument('--check', action='store_true', help='與基線比對，有差異或基線有問題就 exit 1')
     ap.add_argument('--write', action='store_true', help='覆寫基線（預設只預覽）')
     ap.add_argument('--out', help='把重算結果寫到這個路徑')
-    ap.add_argument('--baseline', default=BASELINE)
+    ap.add_argument('--repo', help='倉庫根目錄（預設：目前目錄有 index.html 就用它，否則用本腳本所在的倉庫）')
+    ap.add_argument('--baseline', help='基線路徑（預設 <repo>/docs/SPR_PINS.json）')
     ap.add_argument('--report', help='量測紀錄（JSON）寫到這個路徑')
     ap.add_argument('--timeout', type=int, default=300)
     a = ap.parse_args(argv)
+    repo = os.path.abspath(a.repo or default_repo())
+    baseline = a.baseline or os.path.join(repo, 'docs', 'SPR_PINS.json')
+    if not os.path.exists(os.path.join(repo, 'index.html')):
+        print('倉庫根目錄 %s 沒有 index.html' % repo, file=sys.stderr)
+        return 2
 
     try:
         chrome = find_chrome()
         if not chrome:
             raise SnapError('找不到 Chrome（可設環境變數 CHROME_PATH）')
         ver = chrome_version(chrome)
-        print('fp_snapshot: GAME_VER %s；瀏覽器 %s（%s）' % (game_ver(), ver, chrome))
-        s1 = snap(chrome, a.timeout)
-        s2 = snap(chrome, a.timeout)
+        print('fp_snapshot: 倉庫 %s；GAME_VER %s；瀏覽器 %s（%s）' % (repo, game_ver(repo), ver, chrome))
+        s1 = snap(chrome, repo, a.timeout)
+        s2 = snap(chrome, repo, a.timeout)
     except SnapError as e:
         print(str(e), file=sys.stderr)
         return 2
@@ -221,7 +232,7 @@ def main(argv=None):
           % (s1['seconds'], s2['seconds'], s1['entries'], s1['families'], s1['skipped'], len(s1.get('nightCityNoNight') or [])))
     if a.report:
         with open(a.report, 'w', encoding='utf-8') as f:
-            json.dump({'browser': ver, 'chrome': chrome, 'game_ver': game_ver(), 'seconds': [s1['seconds'], s2['seconds']],
+            json.dump({'browser': ver, 'chrome': chrome, 'game_ver': game_ver(repo), 'seconds': [s1['seconds'], s2['seconds']],
                        'entries': s1['entries'], 'families': s1['families'], 'skipped': s1['skipped'], 'keys': len(ka),
                        'g1_drift': drift[:50], 'nightCityNoNight': s1.get('nightCityNoNight') or []}, f, ensure_ascii=False, indent=1)
     if drift:
@@ -234,9 +245,9 @@ def main(argv=None):
             f.write(text)
         print('重算結果已寫到 %s' % a.out)
 
-    old, err = (None, '基線 %s 不存在' % a.baseline)
-    if os.path.exists(a.baseline):
-        old, err = parse_pins(open(a.baseline, 'rb').read().decode('utf-8'))
+    old, err = (None, '基線 %s 不存在' % baseline)
+    if os.path.exists(baseline):
+        old, err = parse_pins(open(baseline, 'rb').read().decode('utf-8'))
     rc = 0
     if err:
         print('基線有問題：%s' % err)
@@ -254,9 +265,9 @@ def main(argv=None):
         else:
             print('⚠ 這只是預覽；正本是 CI fp job 的 rebake 附件，改圖的 PR 只准原封提交那份檔案')
     if a.write:
-        with open(a.baseline, 'w', encoding='utf-8', newline='\n') as f:
+        with open(baseline, 'w', encoding='utf-8', newline='\n') as f:
             f.write(text)
-        print('已寫 %s（%d 鍵）' % (a.baseline, len(ka)))
+        print('已寫 %s（%d 鍵）' % (baseline, len(ka)))
     return rc
 
 

@@ -176,12 +176,14 @@ const chromePath=()=>[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Ap
     await send('Page.navigate',{url:'http://127.0.0.1:'+PORT+'/index.html'});await ready();
     check(await ev('localStorage.getItem("glimmerville.v1.slot")==="3"'),'slot3 set before game boot');
     report.flags=await ev('__s602.flags()');check(report.flags.T602&&!report.flags.T596&&!report.flags.T600&&(await ev('__s602.rep()')).ok===1,'T602 enabled; T596/T600 effective previews off');
-    // Baseline fixture is immutable v11.210, not the candidate pin file.
+    // T643: the frozen v11.210 fixture checks (1580 keys unchanged, exactly six art602 keys) are retired; the CI fp job
+    // recomputes every SPR pin and tools/fp_diff.py checks touched families against the card header. Kept here: the
+    // candidate file must still equal this Chromium's pins (sampled at fresh boot, before any season change).
     const pinsOf=p=>p.pins||Object.fromEntries(Object.entries(p).filter(([k])=>k!=='__meta'));
-    const baseline=pinsOf(JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures','sprite-pins-v11.210.json'),'utf8'))),candidate=pinsOf(JSON.parse(fs.readFileSync(path.join(ROOT,'docs/SPR_PINS.json'),'utf8'))),actual=await ev('__s602.pins()');
-    report.pinDiff=Object.keys(baseline).filter(k=>JSON.stringify(baseline[k])!==JSON.stringify(actual[k]));report.newPins=Object.keys(actual).filter(k=>!(k in baseline));report.candidatePinDiff=[...new Set([...Object.keys(candidate),...Object.keys(actual)])].filter(k=>JSON.stringify(candidate[k])!==JSON.stringify(actual[k]));
+    const candidate=pinsOf(JSON.parse(fs.readFileSync(path.join(ROOT,'docs/SPR_PINS.json'),'utf8'))),actual=await ev('__s602.pins()');
+    report.candidatePinDiff=[...new Set([...Object.keys(candidate),...Object.keys(actual)])].filter(k=>JSON.stringify(candidate[k])!==JSON.stringify(actual[k]));
     fs.writeFileSync(path.join(OUT,'sprite-pins.json'),JSON.stringify(actual));
-    check(Object.keys(baseline).length===1580,'immutable baseline has 1580 keys');check(!report.pinDiff.length,'approved 1580 keys unchanged: '+JSON.stringify(report.pinDiff));check(report.newPins.length===6&&report.newPins.every(k=>/^art602\//.test(k)),'exactly six new art602 keys');check(!report.candidatePinDiff.length,'candidate pins match Chromium: '+JSON.stringify(report.candidatePinDiff));
+    check(!report.candidatePinDiff.length,'candidate pins match Chromium: '+JSON.stringify(report.candidatePinDiff));
     // Independent second boot, same Chrome: the new pixels must be reproducible.
     const previousTimeOrigin=await ev('performance.timeOrigin');await send('Page.reload',{ignoreCache:true});await ready(previousTimeOrigin);const repeated=await ev('__s602.pins()');
     check(JSON.stringify(actual)===JSON.stringify(repeated),'two independent Chrome boots have identical complete sprite pins');

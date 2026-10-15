@@ -116,6 +116,15 @@ class FpDiffTests(unittest.TestCase):
         res = self.run_diff(BASE_PINS)
         self.assertTrue(res['ok'], res); self.assertEqual(res['touched'], [])
 
+    def test_default_repo_follows_cwd_when_script_is_copied(self):
+        # CI 把 fp_snapshot.py 從 base 複製到 $RUNNER_TEMP 跑：倉庫根目錄要跟著目前目錄，不能跟著腳本位置（PR #31 第一輪實踩）
+        old = os.getcwd()
+        try:
+            self.r.write('index.html', 'x\n'); os.chdir(self.r.dir)
+            self.assertEqual(os.path.realpath(fp_snapshot.default_repo()), os.path.realpath(self.r.dir))
+        finally:
+            os.chdir(old)
+
     def test_dumps_pins_round_trip_and_layout(self):
         t = pins_text(BASE_PINS)
         self.assertTrue(t.startswith('{"__meta":{"count":4},\n') and t.endswith('\n}\n'))
