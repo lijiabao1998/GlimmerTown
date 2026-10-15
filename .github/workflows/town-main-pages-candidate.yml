@@ -37,7 +37,11 @@ jobs:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           BEFORE: ${{ github.event.before }}
         run: |
-          if [ "$EVENT" = "pull_request" ]; then BASE="$PR_BASE"
+          # T642：PR 的 base.sha 會過期（main 前進後不更新），而 checkout 的是 GitHub 的測試合併提交；
+          # 用過期 base 會把 main 上別人的改動算成這個 PR 的（#29 被 #30 的 T641 卡改動判成一 PR 兩卡）。
+          # 測試合併提交的第一父就是建立它時 main 的 tip，用它當基準。
+          if [ "$EVENT" = "pull_request" ] && [ "$(git rev-list --parents -n 1 HEAD | wc -w)" = "3" ]; then BASE=$(git rev-parse HEAD^1)
+          elif [ "$EVENT" = "pull_request" ]; then BASE="$PR_BASE"
           elif [ "$EVENT" = "push" ] && [ -n "$BEFORE" ] && ! printf '%s' "$BEFORE" | grep -qE '^0+$'; then BASE="$BEFORE"
           else git fetch -q origin main && BASE=$(git merge-base origin/main HEAD); fi
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
