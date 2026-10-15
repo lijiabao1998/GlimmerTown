@@ -7,6 +7,8 @@
   python tools/fp_snapshot.py --out PATH      # 把重算結果（新排版）寫到 PATH（CI 的 rebake 附件）
   python tools/fp_snapshot.py --write         # 覆寫 docs/SPR_PINS.json（只在要原封提交 CI 附件以外的特殊情況用）
   python tools/fp_snapshot.py --report PATH   # 量測紀錄：耗時、瀏覽器版本、清冊數字、「有 nightCity 卻沒有 night」的鍵
+  python tools/fp_snapshot.py --art-out PATH  # T646：新美術清冊 GV.artAtlas646() 的重算結果寫到 PATH（基線 docs/ART_PINS.json）
+--check／--write 兩份基線一起比、一起寫；遊戲沒有 GV.artAtlas646（T646 以前的提交）時只做 SPR。
 Chrome：依序找環境變數 CHROME_PATH、Windows 兩條路徑、/usr/bin/google-chrome、/usr/bin/chromium；Linux 加 --no-sandbox。
 結束碼：0＝一致／預覽完成；1＝與基線不符或基線有問題（--check）；2＝環境錯誤（找不到 Chrome、快照失敗）；3＝兩次快照不恆等（G1）。
 守衛不用 assert（python -O 會把 assert 拿掉）。
@@ -60,7 +62,13 @@ const tick=()=>{
         if(e.night)pins[id].push(crcOf(e.night));
         if(e.nightCity){pins[id].push(crcOf(e.nightCity));if(!e.night)ncnn.push(id);}
       }
-      done({pins,entries:r.entries.length,families:r.families,skipped:r.skipped,nightCityNoNight:ncnn});return;
+      let art=null,artCount=0;
+      if(typeof w.GV.artAtlas646==='function'){ // T646：SPR 之外按需烘焙的新美術，逐張算完就丟，不留畫布
+        art={};const ar=w.GV.artAtlas646(e=>{const id=e.fam+'/'+e.key;if(art[id])throw new Error('artAtlas646 duplicate key '+id);
+          art[id]=[crcOf(e.img)];if(e.night)art[id].push(crcOf(e.night));});
+        artCount=ar.count;if(!artCount||artCount!==Object.keys(art).length){done({err:'artAtlas646 count mismatch '+artCount});return;}
+      }
+      done({pins,entries:r.entries.length,families:r.families,skipped:r.skipped,nightCityNoNight:ncnn,art,artCount});return;
     }catch(e){done({err:e.message});return;}
   }
   if(++n>600){done({err:'boot timeout'});return;}
@@ -82,21 +90,22 @@ def dumps_pins(pins):
     return '\n'.join(lines) + '\n'
 
 
-def parse_pins(text):
-    """解析基線（新舊排版都收）。回傳 (pins 不含 __meta, 錯誤字串或 None)。格式不符一律當錯，不放行。"""
+def parse_pins(text, name='SPR_PINS'):
+    """解析基線（新舊排版都收）。回傳 (pins 不含 __meta, 錯誤字串或 None)。格式不符一律當錯，不放行。
+    name 只用在訊息裡（T646 的 ART_PINS 同一個格式）。"""
     try:
         d = json.loads(text)
     except Exception as e:
-        return None, 'SPR_PINS 無法解析：%s' % e
+        return None, '%s 無法解析：%s' % (name, e)
     if not isinstance(d, dict) or not isinstance(d.get('__meta'), dict):
-        return None, 'SPR_PINS 缺 __meta'
+        return None, '%s 缺 __meta' % name
     count = d['__meta'].get('count')
     pins = {k: v for k, v in d.items() if k != '__meta'}
     if not isinstance(count, int) or count != len(pins):
-        return None, 'SPR_PINS __meta.count（%r）不等於實際鍵數（%d）' % (count, len(pins))
+        return None, '%s __meta.count（%r）不等於實際鍵數（%d）' % (name, count, len(pins))
     for k, v in pins.items():
         if '/' not in k or not isinstance(v, list) or not 1 <= len(v) <= 3 or not all(isinstance(x, str) and HEX.match(x) for x in v):
-            return None, 'SPR_PINS 鍵 %r 格式異常（應為「家族/鍵」對 1～3 個小寫 hex CRC）' % k
+            return None, '%s 鍵 %r 格式異常（應為「家族/鍵」對 1～3 個小寫 hex CRC）' % (name, k)
     return pins, None
 
 
@@ -208,9 +217,12 @@ def main(argv=None):
     ap.add_argument('--baseline', help='基線路徑（預設 <repo>/docs/SPR_PINS.json）')
     ap.add_argument('--report', help='量測紀錄（JSON）寫到這個路徑')
     ap.add_argument('--timeout', type=int, default=300)
+    ap.add_argument('--art-out', help='T646：新美術清冊（GV.artAtlas646）的重算結果寫到這個路徑')
+    ap.add_argument('--art-baseline', help='新美術基線路徑（預設 <repo>/docs/ART_PINS.json）')
     a = ap.parse_args(argv)
     repo = os.path.abspath(a.repo or default_repo())
     baseline = a.baseline or os.path.join(repo, 'docs', 'SPR_PINS.json')
+    art_baseline = a.art_baseline or os.path.join(repo, 'docs', 'ART_PINS.json')
     if not os.path.exists(os.path.join(repo, 'index.html')):
         print('倉庫根目錄 %s 沒有 index.html' % repo, file=sys.stderr)
         return 2
@@ -227,47 +239,62 @@ def main(argv=None):
         print(str(e), file=sys.stderr)
         return 2
     ka, kb = s1['pins'], s2['pins']
+    aa, ab = s1.get('art'), s2.get('art')
     drift = sorted(k for k in set(ka) | set(kb) if ka.get(k) != kb.get(k))
-    print('兩次快照耗時 %ss／%ss；entries %d／families %d／skipped %d；有 nightCity 卻沒有 night 的鍵 %d 個'
-          % (s1['seconds'], s2['seconds'], s1['entries'], s1['families'], s1['skipped'], len(s1.get('nightCityNoNight') or [])))
+    if (aa is None) != (ab is None):
+        drift.append('ART_PINS（一次有 artAtlas646、一次沒有）')
+    elif aa is not None:
+        drift += sorted(k for k in set(aa) | set(ab) if aa.get(k) != ab.get(k))
+    print('兩次快照耗時 %ss／%ss；entries %d／families %d／skipped %d；有 nightCity 卻沒有 night 的鍵 %d 個；新美術清冊 %s'
+          % (s1['seconds'], s2['seconds'], s1['entries'], s1['families'], s1['skipped'], len(s1.get('nightCityNoNight') or []),
+             '%d 鍵' % len(aa) if aa is not None else '沒有（遊戲沒有 GV.artAtlas646）'))
     if a.report:
         with open(a.report, 'w', encoding='utf-8') as f:
             json.dump({'browser': ver, 'chrome': chrome, 'game_ver': game_ver(repo), 'seconds': [s1['seconds'], s2['seconds']],
                        'entries': s1['entries'], 'families': s1['families'], 'skipped': s1['skipped'], 'keys': len(ka),
+                       'art_keys': len(aa) if aa is not None else None,
                        'g1_drift': drift[:50], 'nightCityNoNight': s1.get('nightCityNoNight') or []}, f, ensure_ascii=False, indent=1)
     if drift:
         print('G1 確定性破裂：兩次快照不恆等（%d 鍵）：%s' % (len(drift), '、'.join(drift[:10])), file=sys.stderr)
         return 3
-    print('G1 確定性 OK：兩次快照 %d 鍵逐鍵恆等' % len(ka))
-    text = dumps_pins(ka)
-    if a.out:
-        with open(a.out, 'w', encoding='utf-8', newline='\n') as f:
-            f.write(text)
-        print('重算結果已寫到 %s' % a.out)
+    print('G1 確定性 OK：兩次快照 %d 鍵%s逐鍵恆等' % (len(ka), '＋新美術 %d 鍵' % len(aa) if aa is not None else ''))
+    for path, pins in ((a.out, ka), (a.art_out, aa)):
+        if path and pins is not None:
+            with open(path, 'w', encoding='utf-8', newline='\n') as f:
+                f.write(dumps_pins(pins))
+            print('重算結果已寫到 %s' % path)
+        elif path:
+            print('沒有寫 %s：遊戲沒有 GV.artAtlas646' % path)
 
-    old, err = (None, '基線 %s 不存在' % baseline)
-    if os.path.exists(baseline):
-        old, err = parse_pins(open(baseline, 'rb').read().decode('utf-8'))
     rc = 0
-    if err:
-        print('基線有問題：%s' % err)
-        rc = 1 if a.check else 0
-    else:
-        added, removed, changed = diff_pins(old, ka)
-        print('—— 與基線差異 —— 新增 %d、移除 %d、變更 %d' % (len(added), len(removed), len(changed)))
-        for name, ks in (('新增', added), ('移除', removed), ('變更', changed)):
-            if ks:
-                print('%s：%s%s' % (name, '、'.join(ks[:20]), '…' if len(ks) > 20 else ''))
-        if not (added or removed or changed):
-            print('像素指紋完全一致 ✓')
-        elif a.check:
-            rc = 1
+    for name, path, pins in (('SPR_PINS', baseline, ka), ('ART_PINS', art_baseline, aa)):
+        if pins is None:
+            if os.path.exists(path):
+                print('%s 在，但遊戲沒有 GV.artAtlas646 可以實算' % name)
+                rc = 1 if a.check else rc
+            continue
+        old, err = (None, '基線 %s 不存在' % path)
+        if os.path.exists(path):
+            old, err = parse_pins(open(path, 'rb').read().decode('utf-8'), name)
+        if err:
+            print('%s 基線有問題：%s' % (name, err))
+            rc = 1 if a.check else rc
         else:
-            print('⚠ 這只是預覽；正本是 CI fp job 的 rebake 附件，改圖的 PR 只准原封提交那份檔案')
-    if a.write:
-        with open(baseline, 'w', encoding='utf-8', newline='\n') as f:
-            f.write(text)
-        print('已寫 %s（%d 鍵）' % (baseline, len(ka)))
+            added, removed, changed = diff_pins(old, pins)
+            print('—— %s 與基線差異 —— 新增 %d、移除 %d、變更 %d' % (name, len(added), len(removed), len(changed)))
+            for label, ks in (('新增', added), ('移除', removed), ('變更', changed)):
+                if ks:
+                    print('%s：%s%s' % (label, '、'.join(ks[:20]), '…' if len(ks) > 20 else ''))
+            if not (added or removed or changed):
+                print('%s 像素指紋完全一致 ✓' % name)
+            elif a.check:
+                rc = 1
+            else:
+                print('⚠ 這只是預覽；正本是 CI fp job 的 rebake 附件，改圖的 PR 只准原封提交那份檔案')
+        if a.write:
+            with open(path, 'w', encoding='utf-8', newline='\n') as f:
+                f.write(dumps_pins(pins))
+            print('已寫 %s（%d 鍵）' % (path, len(pins)))
     return rc
 
 
