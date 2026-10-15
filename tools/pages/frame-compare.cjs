@@ -36,14 +36,19 @@ function verdict({card, baseA, baseB, head, valve}) {
   }
   const changed = ids.filter(id => head[id].hash !== baseA[id].hash);
   const leaked = valve ? ids.filter(id => valve[id].hash !== baseA[id].hash) : [];
-  if (changed.length && !card.ownerOk)
-    problems.push({rule: 'frame-changed', detail: '畫面變了（' + changed.length + ' 幀：' + changed.slice(0, 8).join('、') + '），卡頭 owner_ok 是空的——非美術卡要畫面零變；美術卡要業主看接觸表點頭再寫 owner_ok'});
+  // Codex #37 P1：畫面要能變，卡必須同時宣告美術家族並有業主原話；非美術卡的 owner_ok（例如登記冊的批准）不能拿來放行畫面變動
+  const shown = changed.slice(0, 8).join('、');
+  if (changed.length && !card.families.length)
+    problems.push({rule: 'frame-changed', detail: '畫面變了（' + changed.length + ' 幀：' + shown + '），卡頭 families 是「無」——非美術卡要畫面零變' + (card.ownerOk ? '（owner_ok 有字也不算，要宣告美術家族）' : '')});
+  else if (changed.length && !card.ownerOk)
+    problems.push({rule: 'frame-changed', detail: '畫面變了（' + changed.length + ' 幀：' + shown + '），卡頭 owner_ok 是空的——美術卡要業主看接觸表點頭再寫 owner_ok'});
+  // Codex #37 P1：每張新圖都要有逃生閥，閥關時整幀等於 base；畫面變了卻沒寫 valve 就驗不了，判紅
+  if (changed.length && card.families.length && !card.valves.length)
+    problems.push({rule: 'no-valve', detail: '美術卡的畫面變了，卡頭 valve 卻沒寫逃生閥（?noTNNN／window.__noTNNN）——「閥關時整幀與改前相同」沒辦法驗'});
   if (leaked.length)
     problems.push({rule: 'valve-leak', detail: '打開逃生閥 ' + card.valves.join('、') + ' 後仍和 base 不同（' + leaked.length + ' 幀：' + leaked.slice(0, 8).join('、') + '）——閥漏關了某處'});
   if (card.families.length && !changed.length)
     warnings.push({rule: 'no-visible-change', detail: '卡頭宣告了美術家族 ' + card.families.join('、') + '，但所有場景都沒有變——新圖可能不在場景裡'});
-  if (card.families.length && changed.length && !card.valves.length)
-    warnings.push({rule: 'no-valve', detail: '美術卡的畫面變了，但卡頭 valve 沒寫逃生閥，閥關時整幀相同這條沒辦法驗'});
   return {code: problems.length ? 1 : 0, problems, warnings, changed, leaked};
 }
 
@@ -274,7 +279,9 @@ function selfTest() {
   assert.equal(run({head: frames({b: H('9')}), card: {ownerOk: true, families: ['art638'], valves: ['__noT638']}, valve: frames()}).code, 0, 'approved art with a working valve is green');
   assert.deepEqual(run({head: frames({b: H('9')}), card: {ownerOk: true, families: ['art638'], valves: ['__noT638']}, valve: frames({b: H('9')})}).problems.map(p => p.rule), ['valve-leak'], 'leaking valve is red');
   assert.deepEqual(run({card: {families: ['art638']}}).warnings.map(w => w.rule), ['no-visible-change']);
-  assert.deepEqual(run({head: frames({b: H('9')}), card: {ownerOk: true, families: ['art638']}}).warnings.map(w => w.rule), ['no-valve']);
+  assert.deepEqual(run({head: frames({b: H('9')}), card: {ownerOk: true, families: ['art638']}}).problems.map(p => p.rule), ['no-valve'], 'art change without a valve is red (Codex #37 P1)');
+  assert.deepEqual(run({head: frames({b: H('9')}), card: {ownerOk: true}}).problems.map(p => p.rule), ['frame-changed'], 'owner_ok on a non-art card does not waive frame changes (Codex #37 P1)');
+  assert.deepEqual(run({head: frames({b: H('9')}), card: {families: ['art638'], valves: ['__noT638']}, valve: frames()}).problems.map(p => p.rule), ['frame-changed'], 'art change without owner_ok is red');
   assert.equal(run({baseB: frames({a: H('7')})}).code, 3, 'base drift is unstable');
   assert.equal(run({head: frames({a: {hash: '1', unstable: 4}})}).code, 3, 'a frame that changes between two draws is unstable');
   const c = cardOf({cards: [{path: 'p', header: {families: 'art638, park', valve: '?noT638 / window.__noT638 ?noT638', owner_ok: '上綫吧'}}], revert_of: null});
