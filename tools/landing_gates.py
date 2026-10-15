@@ -6,7 +6,8 @@
 
 三道閘（語意與 T371／T433 原樣相同，只是搬上 CI）：
 1. 簽核欄（T371）：base...head 新增的每個條目，「驗收:」欄不准含「待」，而且要寫出 SIGNOFF_PARTIES 之一。
-2. 只增不減（T433）：base...head 刪掉的每個條目，都要有一行以 CHANGELOG-CORRECTION: 開頭的提交訊息點名那張卡。
+2. 只增不減（T433）：base...head 刪掉的每個條目，都要有一行以 CHANGELOG-CORRECTION: 開頭的提交訊息點名那張卡
+   （卡號要以完整的詞出現；Codex #32 P1 起不再用子字串比對，T425A 的宣告不會放行 T425）。
    「原地改寫」（+1/-1）也算刪除——T423／T424／T425／T425A 就是這樣丟的。
 3. 不准丟條目（T433 R03）：head 的 CHANGELOG 必須保有 base 的每一條（擋合併時解衝突吃掉對方條目的方向）。
    base 沒有 CHANGELOG＝沒有東西要保護；base 有而 head 整個沒有＝整本帳被刪，判紅。
@@ -63,10 +64,20 @@ def correction_lines(messages):
     return [line.strip() for line in (messages or '').split('\n') if line.strip().startswith(CORRECTION_TAG)]
 
 
+def is_declared(card, declared):
+    """卡號要在某行 CHANGELOG-CORRECTION: 裡以完整的詞出現（前後不接英數字）。
+
+    Codex #32 P1：原本（merge_bay 自 T433 起）用子字串比對，`T425A` 的宣告會順帶放行 `T425`
+    的刪除；倉庫裡真的同時有 T425 和 T425A。宣告格式照舊是自由文字（「移除 T998 條目，理由…」）。
+    """
+    word = re.compile(r'(?<![0-9A-Za-z])' + re.escape(card) + r'(?![0-9A-Za-z])')
+    return any(word.search(line[len(CORRECTION_TAG):]) for line in declared)
+
+
 def undeclared_removals(removed, messages):
     """T433：被刪掉、卻沒有被任何 CHANGELOG-CORRECTION: 行點名的卡（逐條點名，一行宣告不能放行別條）。"""
     declared = correction_lines(messages)
-    return [card for card in (card_of(e) for e in removed) if not any(card in line for line in declared)]
+    return [card for card in (card_of(e) for e in removed) if not is_declared(card, declared)]
 
 
 def missing_entries(before_text, after_text):
@@ -115,7 +126,7 @@ def analyse(repo, base, head):
         # CI 的 head 一定包含 base（PR 是測試合併提交、推 main 是 after），已宣告更正的卡與「只增不減」一致地豁免；
         # 不豁免的話，正式宣告的更正（例如 #18 改寫 T634／T635 的驗收欄）會被這道閘反過來擋下。
         declared = correction_lines(messages)
-        missing = [e for e in missing_entries(before, after) if not any(card_of(e) in line for line in declared)]
+        missing = [e for e in missing_entries(before, after) if not is_declared(card_of(e), declared)]
         if missing:
             problems.append({'gate': 'keeps', 'detail': 'head 少了 base 的 %d 個條目（%s）' % (
                 len(missing), '、'.join(card_of(e) for e in missing[:6]))})
