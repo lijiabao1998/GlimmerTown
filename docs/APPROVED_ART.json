@@ -10,7 +10,7 @@
   "T635": {
    "tag": "approved/t635",
    "commit": "bc9c70fdd0cdc03fc6679c23ad45d7e7eb205105",
-   "index_sha256": "4a89ed0c069211fe1967102ebe11eb9a9d9f917bbae4496d628c75c8e7e1b751",
+   "index_sha256": "5a89ed0c069211fe1967102ebe11eb9a9d9f917bbae4496d628c75c8e7e1b751",
    "base": {
     "tag": "approved/t635-base",
     "commit": "7ad6931eaa1bed87af053f8097b05a0e669656a6",
