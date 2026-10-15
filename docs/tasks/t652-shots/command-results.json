@@ -1,0 +1,20 @@
+{
+  "checks": 147388,
+  "candidates": 10,
+  "statesPerCandidate": 40,
+  "commandCases": 400,
+  "negativeControls": 6,
+  "oldCatalogCount": 108,
+  "protectedPaths": [
+    "index.html",
+    "sw.js",
+    "docs/SPR_PINS.json",
+    "docs/ART_PINS.json",
+    "docs/APPROVED_ART.json",
+    "test_fixde.js"
+  ],
+  "limitations": [
+    "Command recorder is not pixel validation.",
+    "No browser screenshots, night-mask pixel proof or gameplay integration claimed."
+  ]
+}

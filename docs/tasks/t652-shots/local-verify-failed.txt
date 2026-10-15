@@ -1,0 +1,13 @@
+verify @ /workspace/shared/glimmer-town-twenty-waves
+  [OK]   test_fixde.js syntax
+  [OK]   sw.js syntax
+  [OK]   index inline syntax
+  [OK]   CRLF=0
+  [OK]   version in sync: 11.223
+  [FAIL] suite RED: PASS=4108 :: process exit code 1; 1 FAIL line(s); completion marker is not the final stdout line
+         FAIL: T270 生成器 --check 應連跑兩次逐 bytes 重建成功，且不寫入／改時戳
+  [OK]   test harness fail-fast contract
+  [FAIL] seed pins=0 below baseline 3 (SEEDPIN lines emitted by the suite)
+  [OK]   code map fresh: docs/ARCH.md §1 anchors and line numbers match index.html
+
+RESULT: 2 CHECK(S) FAILED

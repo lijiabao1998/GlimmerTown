@@ -42,3 +42,5 @@
 | #37 | P1 | tools/pages/frame-compare.cjs:68 | 照改：每個場景加高畫質（quality=2）晝夜各一幀 |
 | #37 | P1 | tools/pages/frame-compare.cjs:150 | 照改：加春天與沒積雪的冬天 |
 | #37 | P1 | tools/pages/frame-compare.cjs:51 | → T648b：宣告的美術不在任何場景時目前只警告。要改紅，得先讓陣列從遊戲資料自動列出所有建築款式（base 與 head 取聯集、各頁只放自己認得的），否則新建築在自己的 PR 永遠進不了 base 的場景、會卡死；fp／ART_PINS 仍逐張釘住它的像素 |
+| #37 | P1 | tools/pages/frame-compare.cjs:68 | → T648b：要有一幀決定性的懸停／選取建築（前景淡出）；業主 2026-10-15 選擇收尾，PR 上已回覆 |
+| #37 | P1 | tools/pages/frame-compare.cjs:136 | → T648b：存檔夾具改從 base 讀（和工具取自 base 同理）；業主 2026-10-15 選擇收尾，PR 上已回覆 |
