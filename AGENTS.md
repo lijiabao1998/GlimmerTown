@@ -26,6 +26,7 @@
 - 量測先用最簡單的新舊交錯對比確認是不是真問題；**同一個問題診斷卡最多連開 2 張**，再來就交業主。
 - 改到 `index.html`／`sw.js` 就 bump 版本；不准把雜湊或版本號寫死在腳本。
 - 玩家本機目錄（`安卓探索\glimmer-town`、埠 8123）只在業主明說後用 `tools/merge_bay.py --publish` 發佈，任何人不得在那裡跑測試；載入遊戲的工具一律先把 `localStorage` 的 `glimmerville.v1.slot` 設成 `'3'`。
+- **本機 master 只快轉**（T645）：`C:\dev\glimmer-town` 的 master 只做 `git fetch origin` 加 `git merge --ff-only origin/main`，不在上面施工、提交或合併；`--publish` 會擋領先 origin/main 的 master，`BAY --deploy` 已退役。
 - 沒跑過的不寫「通過」；試兩次沒進展就停，交業主。
 
 實驗線（`lijiabao1998/GlimmerTown-lab`，業主桌面 `新的迭代`）有自己的 `AGENTS.md`；兩條線卡號各自獨立，規矩不要串。

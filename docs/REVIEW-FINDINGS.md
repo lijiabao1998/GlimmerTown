@@ -27,5 +27,5 @@
 | #29 | P1 | tools/session_audit.py:130 | 照改（T641 工作流缺口）：dispatch 時 scope 用 ref_name、gate 一律紅；premerge／巡檢只認 pull_request 那一輪的 gate |
 | #29 | P1 | tools/session_audit.py:102 | 照改：gate 那一輪的 head_branch 必須是這個 PR 的分支（同一提交多個 PR 時不互蓋） |
 | #29 | P1 | tools/session_audit.py:105 | 照改（只在 premerge）：gate 那一輪的 pull_requests 要含這個 PR 號；分支自動刪除後該欄會變空，巡檢只比分支名 |
-| #29 | P2 | tools/session_audit.py:79 | → T645（T644 沒收，改掛）：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
-| #29 | P2 | tools/session_audit.py:177 | → T645（T644 沒收，改掛）：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
+| #29 | P2 | tools/session_audit.py:79 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
+| #29 | P2 | tools/session_audit.py:177 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |

@@ -72,8 +72,8 @@ grep -o "GAME_VER='[0-9.]*'" index.html
    `FAIL:`」不再可能被當成綠燈。
    第五項專防一種作弊：為了讓測試變綠而刪掉釘定種子斷言 —— 那等於拆掉整個位元契約。
 
-6. `git commit` 到自己分支 → 通知合併（合併流程見第七節；出卡與合併權見第八節）。
-7. 部署只在 `master` 上做，並且交給合併腳本的 `--deploy`（它會驗逐位元相同）。手動 `cp` 是歷史做法，已不建議。
+6. `git commit` 到自己分支 → 推分支開 PR，CI gate 綠才合（現行落地路見 `AGENTS.md` 與 T639；第七節的車位交易是 2026-09～10 的歷史流程）。
+7. 部署玩家目錄只用 `python tools/merge_bay.py --publish`（業主明說才發），它只發佈已經落在 `origin/main` 上的 master（T645）。`BAY --deploy` 已退役；手動 `cp` 是歷史做法，禁止。
 
 ---
 
@@ -144,6 +144,8 @@ git checkout -- <file>  # 復原到自己的 commit
 
 ## 七、交易式合併流程（T358）
 
+> **現況（T645，2026-10-15）**：本節的車位交易是 2026-09～10 的收件流程，現在不再用來落地。現行是 PR → CI gate → main，本機 master 只快轉跟 `origin/main`（第九節）。`merge_bay.py` 只剩兩個用途：`--publish` 發佈玩家目錄（加了「master 必須在 origin/main 上」的前置檢查，見下方 T373 段）、`--status` 查收據。`BAY --deploy` 已退役（一開始就拒絕）；`BAY --no-deploy`、`--resume`、`--abort` 還在，只為處理 T645 之前留下的交易。下面保留原文，作為歷史與 journal／receipt 機制的說明。
+
 車位施工完成後，由當班者在 `master` 執行**一條命令**：
 
 ```bash
@@ -168,6 +170,13 @@ cd C:\dev\glimmer-town && python tools/merge_bay.py --publish
 純淨度、只從 frozen HEAD 的 Git blobs 取 `index.html`／`sw.js`，再走同一條 journal／原子替換／receipt
 寫入路徑。它與 `BAY --deploy/--no-deploy`、`--resume`、`--abort`、`--status` 互斥，且有 active transaction
 時直接拒絕。
+
+**T645 前置檢查**：凍結 master 之後、跑 verifier 之前，`--publish` 先查 `refs/remotes/origin/main`：
+- 不存在 → 紅（先 `git fetch origin`）；
+- master 領先 origin/main（有沒經 PR 落地的本機提交）→ 紅，玩家目錄零寫入；
+- master 等於 origin/main → 綠；落後 → 綠，印一行「發佈的是較舊、但上過 main 的版本」。
+
+它不在裡面 fetch：main 禁強推，origin/main 只會前進，舊的遠端追蹤 ref 一樣能證明「這個提交上過 main」。要發最新版，先照第九節快轉。
 
 這是**唯一**允許在 receipt 已誠實報紅時修復的明示動作：`--publish` 不會在前置階段把舊 receipt 當作
 通行證；它重發已驗證 master，完成後仍必須讓既有 receipt verifier 回 `match`。不要手改 receipt，也不要
@@ -270,10 +279,13 @@ bay 回同步的 clean→`--ff-only` 仍以本文件的**單寫者協議**為前
 1. **發卡集中**：任何一方都可以**提案**卡面（定位錨／允許觸碰／禁區／驗收／回滾五欄齊全，
    如 Codex 提案 T358.1），但卡號與「先做哪張」經發卡源確認才生效。
    杜絕兩張卡同時存在而互不知曉。
-2. **開工鎖序＋觸碰宣告**：接卡第一件事永遠是把最新 master 併入自己車位再動工
-   （T358.1 若出卡時就做這步，後續衝突不會發生）；同時在 `docs/tasks/` 留一條 claim
-   （卡號／施工者／預計觸碰的檔案群）。兩卡觸碰集合相交——尤其 `tools/`、`index.html`
-   共用段、`docs/CHANGELOG.md`——**強制串行**：後卡等前卡進 master 才開工。
+2. **從最新 origin/main 開工＋卡頭 claim**（T645 改寫，拿掉原本的「強制串行」）：接卡第一件事是
+   `git fetch origin`，從最新 `origin/main` 開分支（`AGENTS.md` 的 `--no-track` 寫法），claim 寫在卡頭。
+   兩卡碰到同一批檔案不再強制串行：後合的一方把 `origin/main` 併進自己的分支，照第九節
+   「PR 分支的衝突配方」解，CI gate 綠再合。CHANGELOG 丟條目有帳本閘（T644）擋、像素指紋走樣有
+   fp（T643）擋，平行施工的風險由機器接住。
+   （2026-09 原文：接卡先把最新 master 併入車位；兩卡觸碰集合相交——尤其 `tools/`、`index.html`
+   共用段、`docs/CHANGELOG.md`——強制串行，後卡等前卡進 master 才開工。）
 3. **作者不自合**（2026-10-14 範圍：本條只管本機 `merge_bay.py`；GitHub PR 的合併權依 `AGENTS.md` 與 T639 分道表）：`merge_bay.py` 只能由**非作者**的一方從 canonical master 執行
    （T361 由 Kimi 覆核合併 Grok 即為正例；Grok 主動聲明「不自審自合」是對的自律，
    本節把它變成制度）。合併者須會解 integration 衝突與 `--resume` 續接；
@@ -384,7 +396,7 @@ T378 卡面自己寫了「不得蓋到農場自帶的穀倉／建築（各變體
 
 ## 九、GitHub 遠端與雲端施工同步（T589）
 
-> **適用提醒（2026-10-13 補記）**：下文的遠端設定與直推敘述是 2026-09-24 首推時的歷史。2026-10-10 起以根目錄 AGENTS.md 與「迭代不改壞標準」為準：遠端交付走分支 → 必要 CI → PR → 正常合併，能直推也不直推；不要把下面歷史的直接 `git push` 當成現行落地方式。本機收件仍走車位與第七節交易閘，不直接在 master 合遠端。Pages 與本機玩家是兩個發布目標，Pages 上線不更新 8123，後者須業主明示 --publish。T634／T635 本輪實際收件與阻塞見 T635-Local-receipt-records.md。（2026-10-14：T636 修台架後本機收件已完成，玩家 8123 升到 v11.221；收件後 master 經 PR 回到 main，不直推。）
+> **適用提醒（2026-10-13 補記）**：下文的遠端設定與直推敘述是 2026-09-24 首推時的歷史。2026-10-10 起以根目錄 AGENTS.md 與「迭代不改壞標準」為準：遠端交付走分支 → 必要 CI → PR → 正常合併，能直推也不直推；不要把下面歷史的直接 `git push` 當成現行落地方式。本機收件仍走車位與第七節交易閘，不直接在 master 合遠端（T645 起改成：master 只快轉跟 origin/main，見下方「GitHub → 本機」）。Pages 與本機玩家是兩個發布目標，Pages 上線不更新 8123，後者須業主明示 --publish。T634／T635 本輪實際收件與阻塞見 T635-Local-receipt-records.md。（2026-10-14：T636 修台架後本機收件已完成，玩家 8123 升到 v11.221；收件後 master 經 PR 回到 main，不直推。）
 
 2026-09-24 起主線有遠端。**遠端不取代第七節**：`main` 上的東西最後都要經過本機閘門，
 GitHub 只是鏡像和雲端施工的收件處。一句話版本：**落地只在本機，GitHub 只收件與備份。**（2026-09-24 歷史；現行是 GitHub PR → 機器閘門 → main，本機 master 是 origin/main 的快轉鏡像，見 T639 總綱。）
@@ -431,7 +443,35 @@ cd C:\dev\glimmer-town && git fetch origin && git push
 `git push` 被拒（non-fast-forward）＝遠端有本機沒有的提交，多半是 Codex 雲端直推 → 走下面的收件。
 **禁止 `--force`**：規則集會擋，而且那會抹掉別人的提交。
 
-### GitHub → 本機（收件：一律經車位，不在 master 上直接 merge 遠端）
+### GitHub → 本機（收件：只快轉，T645）
+
+```bash
+git -C C:\dev\glimmer-town fetch origin
+git -C C:\dev\glimmer-town merge --ff-only origin/main
+```
+
+- 成功＝收件完成。main 上的每個提交都過了 CI gate，本機不再另驗一次。
+- **不能快轉**＝master 有本機提交（領先 origin/main，例如 T650 起因那種誤提交）。不准在 master 上合遠端，也不准 `--force`。把那幾個提交推成分支開 PR（`git push origin master:refs/heads/claude/<名字>`）；用合併提交落地後，它們就是 main 的祖先，再快轉一次即可。
+- master 工作樹不乾淨：先弄清楚是誰的改動，不要丟。
+- 要更新玩家目錄（業主明說）才跑 `python tools/merge_bay.py --publish`；它會擋領先 origin/main 的 master。
+
+### PR 分支的衝突配方（T645）
+
+main 前進後 PR 顯示衝突，或想先拿到 main 的新東西：在自己的分支 `git fetch origin && git merge origin/main`。用 merge，不 rebase、不 `--force`；推送照 `git push origin HEAD:refs/heads/<分支>`。
+
+| 檔案 | 怎麼解 | 解錯了誰會擋 |
+|---|---|---|
+| `docs/CHANGELOG.md` | 兩邊的新行都留，自己那一行放最上面；main 的任何一行都不准改寫或刪掉 | 帳本閘 only-grows／keeps（T644） |
+| `index.html`／`sw.js` 的版本號 | 先取 main 的值，再 `python tools/bump.py <比 main 大的版本>`；不要手改兩處 | `verify.py` 版本雙處同步 |
+| `docs/ARCH.md` 現況行 | 取 main 的，再 `python tools/arch_map.py --fix` | validate |
+| `docs/SPR_PINS.json` | 取 main 的版本（`git checkout origin/main -- docs/SPR_PINS.json`），推上去等 CI 的 fp 重烘，再原封提交那一輪 fp 附件裡的檔案；不准手合 | fp（T643） |
+| 卡頭機讀欄 | 自己卡的凍結欄位不准動；衝突多半落在別張卡，取 main 的 | scope（T641） |
+| `test_fixde.js` 斷言 | 兩邊的斷言都留，不准為了解衝突刪斷言 | PASS 棘輪（T641） |
+| 其他程式碼 | 照常解，解完跑 `python tools/verify.py` | CI 全套 |
+
+解完：本機 `verify.py` ALL GREEN → 推分支 → CI gate 綠再合。兩邊語意打架、解不動，停手交業主。
+
+#### 2026-09 原文：收件經車位（T645 起退役，保留作歷史）
 
 1. 在 canonical master 執行 `git fetch origin`，再看 `git log --oneline master..origin/main`。空＝無事。
 2. 非空：收進該施工者的車位。Codex 雲端的成果收進 `bay-codex`；由**車位擁有者本人或業主指定的一方**執行（第七節單寫者協議）。先確認車位 clean、沒有未落地的本地工作（`git log --oneline master..HEAD` 為空），然後：
