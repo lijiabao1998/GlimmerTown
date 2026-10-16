@@ -339,12 +339,11 @@ class AuditTests(unittest.TestCase):
         return sa.audit(Fake(f), R, SINCE)
 
     def test_gpt_lane_uses_the_full_scope_predicate(self):
-        # 原本巡檢只粗查守衛與規則檔（Codex #29 P2）；現在 test_fixde 刪改行、別張卡的台架目錄、SPR_PINS、登記冊也算
+        # 原本巡檢只粗查守衛與規則檔（Codex #29 P2）；現在 test_fixde 刪改行、別張卡的台架目錄也算（T653 起 SPR_PINS、登記冊不再是路徑越道）
         for files, path in [
             ([{'filename': 'test_fixde.js', 'status': 'modified', 'additions': 3, 'deletions': 1}], 'test_fixde.js'),
             ([{'filename': 'docs/tasks/t635-shots/x.cjs', 'status': 'added', 'deletions': 0}], 'docs/tasks/t635-shots/x.cjs'),
-            ([{'filename': 'docs/SPR_PINS.json', 'status': 'modified', 'deletions': 1}], 'docs/SPR_PINS.json'),
-            ([{'filename': 'docs/APPROVED_ART.json', 'status': 'modified', 'deletions': 1}], 'docs/APPROVED_ART.json'),
+            ([{'filename': 'AGENTS.md', 'status': 'modified', 'deletions': 1}], 'AGENTS.md'),
             ([{'filename': 'docs/x.py', 'previous_filename': 'tools/x.py', 'status': 'renamed', 'deletions': 0}], 'tools/x.py'),
         ]:
             r = self.gpt_files(files)
@@ -356,6 +355,7 @@ class AuditTests(unittest.TestCase):
             [{'filename': 'test_fixde.js', 'status': 'modified', 'additions': 3, 'deletions': 0}],
             [{'filename': 'docs/tasks/T641-x.md', 'status': 'added', 'deletions': 0}, {'filename': 'docs/tasks/t641-shots/own.cjs', 'status': 'added', 'deletions': 0}],
             [{'filename': 'index.html', 'status': 'modified', 'deletions': 9}],
+            [{'filename': 'docs/SPR_PINS.json', 'status': 'modified', 'deletions': 1}, {'filename': 'docs/APPROVED_ART.json', 'status': 'modified', 'deletions': 0}],  # T653
         ]:
             f = base_fixture()
             f['repos/%s/pulls/51/files?per_page=100' % R] = files
@@ -363,6 +363,38 @@ class AuditTests(unittest.TestCase):
                 if x['filename'].endswith('.md'):
                     f['repos/%s/contents/%s?ref=%s' % (R, x['filename'], SHA[51])] = {'content': base64.b64encode(b'# T641\n').decode()}
             self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), [], files)
+
+    def registry_merge(self, before, after):
+        # gpt/b（#51）合併時改了登記冊：合併提交 m51，第一個父提交 p51
+        import json
+        f = base_fixture()
+        f['repos/%s/pulls?state=closed&sort=updated&direction=desc&per_page=50' % R][1]['merge_commit_sha'] = 'm51'
+        f['repos/%s/pulls/51/files?per_page=100' % R] = [{'filename': 'docs/APPROVED_ART.json', 'status': 'modified', 'deletions': 1}]
+        f['repos/%s/commits/m51' % R] = {'parents': [{'sha': 'p51'}, {'sha': 'x'}]}
+        for rev, reg in (('p51', before), ('m51', after)):
+            f['repos/%s/contents/docs/APPROVED_ART.json?ref=%s' % (R, rev)] = {'content': base64.b64encode(json.dumps(reg).encode()).decode()}
+        return sa.audit(Fake(f), R, SINCE)
+
+    def test_gpt_registry_valves_only_is_not_flagged_but_approved_is(self):
+        # T653 審查：gpt/ 只准改登記冊的 valves；scope 在 CI 擋，巡檢回頭看也要看得到（比照 CI：合併提交對它的第一個父提交）
+        base = {'schema': 1, 'approved': {'T635': {'commit': 'c'}}, 'valves': {'T635': '__noT635'}}
+        self.assertEqual(kinds(self.registry_merge(base, dict(base, valves={'T635': '__noT635', 'T670': '__noT670'}))), [])
+        r = self.registry_merge(base, dict(base, approved={'T635': {'commit': 'e'}}))
+        self.assertEqual(kinds(r), ['gpt-lane']); self.assertIn('approved', r['flags'][0]['detail'])
+
+    def test_registry_pair_only_swallows_a_real_404(self):
+        # Codex #42 P2：讀登記冊時只有「這個版本沒有檔案」（gh 回 HTTP 404）才當成沒有；暫時錯誤、限流要往外丟，不能讓檢查悄悄跳過
+        class Raising:
+            def __init__(self, msg): self.msg = msg
+            def get(self, path, paginate=False):
+                if '/commits/' in path:
+                    return {'parents': [{'sha': 'p'}]}
+                raise RuntimeError('gh api %s：%s' % (path, self.msg))
+        self.assertEqual(sa.registry_pair(Raising('gh: Not Found (HTTP 404)'), R, 'm'), (None, None))
+        with self.assertRaises(RuntimeError):
+            sa.registry_pair(Raising('gh: API rate limit exceeded (HTTP 403)'), R, 'm')
+        with self.assertRaises(RuntimeError):
+            sa.registry_pair(Raising('gh: Bad Gateway (HTTP 502)'), R, 'm')
 
     def test_api_files_matches_scope_changed_shape(self):
         out, deleted = sa.api_files([

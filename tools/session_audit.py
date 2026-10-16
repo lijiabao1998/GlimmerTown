@@ -112,6 +112,24 @@ def registered(findings_text, n, c, siblings=()):
     return False
 
 
+def registry_pair(api, repo, merge_sha):
+    """合併提交的第一個父提交與合併提交上的核准美術登記冊文字（沒有就是 None）。
+    比照 CI：scope 的 base 是測試合併提交的第一個父提交（T653，巡檢補上 gpt/ 只准改 valves 的判定）。"""
+    def text(rev):
+        if not rev:
+            return None
+        try:
+            got = api.get('repos/%s/contents/%s?ref=%s' % (repo, scope.REGISTRY, rev))
+        except RuntimeError as e:
+            if 'HTTP 404' in str(e):  # 這個版本沒有登記冊
+                return None
+            raise  # Codex #42 P2：其他失敗（暫時錯誤、限流）不准當成「沒有」，否則檢查會悄悄跳過
+
+        return base64.b64decode(got['content']).decode('utf-8') if got and got.get('content') else None
+    parents = ((api.get('repos/%s/commits/%s' % (repo, merge_sha)) or {}).get('parents') or []) if merge_sha else []
+    return text(parents[0]['sha'] if parents else None), text(merge_sha)
+
+
 def api_files(files):
     """PR files API 轉成 scope.changed() 的形狀 [(status, path)]（改名拆成刪除＋新增），加上每檔刪改行數。
     複製只算新增目的地（Codex #41 P2）：scope 跑的是 `git diff -M`，不偵測複製，來源沒改就不會出現；來源真的改了，API 會另列一筆 modified。"""
@@ -285,10 +303,15 @@ def audit(api, repo, since, findings_text=''):
                 if h and h.get('owner_ok'):
                     owner_quotes.append('%s：%s' % (p, h['owner_ok']))
         row['owner_ok'] = owner_quotes
-        if ref.startswith('gpt/'):  # T656：和 scope 同一份完整判定（test_fixde 刪改行、別張卡的台架目錄、SPR_PINS、登記冊也算）
+        if ref.startswith('gpt/'):  # T656：和 scope 同一份完整判定（test_fixde 刪改行、別張卡的台架目錄）；T653：登記冊只准改 valves
             changed, deleted = api_files(files)
             own = {'t' + m.group(1) for st, p in changed if st == 'A' for m in [scope.CARD_RE.match(p)] if m}
             bad = scope.gpt_lane(changed, own, deleted.get)
+            if any(p == scope.REGISTRY for _, p in changed):
+                pair = registry_pair(api, repo, pr.get('merge_commit_sha'))
+                why = scope.gpt_registry_problem(*pair) if pair != (None, None) else None  # 兩邊都讀不到＝沒法判，不亂報
+                if why:
+                    bad = bad + [(scope.REGISTRY, '核准美術登記冊' + why)]
             if bad:
                 flags.append({'kind': 'gpt-lane', 'detail': '#%d（gpt/）越道：%s' % (n, '、'.join('%s（%s）' % x for x in bad[:6]))})
         for prefix, want in EXPECT_AUTHOR.items():

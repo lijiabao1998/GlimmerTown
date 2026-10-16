@@ -17,7 +17,8 @@
 - 純 revert（diff 的 patch-id 等於 main 第一父鏈上某個提交——合併或直推——對其第一父的反向 diff）免一切卡面規則
   （一 PR 一卡、卡頭、凍結欄、owner_ok、撞號），因為它只是把 main 退回它自己有過的內容；gpt 越道與寫死 SHA 照查。
   棘輪基準改成被撤提交的第一父（ratchet_base），不跟撤銷前的 base 比（T650：「main 紅就開 revert PR」這條路不准被守衛擋住）。
-- gpt/ 分支越道：碰 .github/、tools/、test_fixde.js 的刪改行（只新增不算）、不屬於本卡的 docs/tasks/*-shots/、docs/SPR_PINS.json、docs/APPROVED_ART.json、規則檔。
+- gpt/ 分支越道（T653 起只擋守衛）：碰 .github/、tools/、test_fixde.js 的刪改行（只新增不算）、不屬於本卡的 docs/tasks/*-shots/、規則檔；
+  docs/APPROVED_ART.json 只准改 valves 一節（建立、刪除、改 approved 等其他頂層鍵都算越道）。docs/SPR_PINS.json 不算越道（fp 照查）。
 - 核准美術登記冊（T647）：docs/APPROVED_ART.json 的 approved 一節（新增、修改、刪除任一批）有變動，卡頭 owner_ok 必須有字——登記批准就是業主的批准；
   valves 一節不受限；base 沒有登記冊＝建立；登記冊不准刪；純 revert 照例免。
 - 守衛程式（.github/、tools/、docs/tasks/*-shots/、test_fixde.js 裡的 .js/.cjs/.mjs/.py/.yml/.yaml/.sh）新增行出現 40 位十六進位＝寫死提交 SHA；docs/APPROVED_ART.json 例外；64 位只警告。
@@ -127,7 +128,9 @@ def is_pure_revert(repo, base, head, depth=60):
 def gpt_lane(files, own_cards, deleted_lines):
     """gpt/ 越道的完整判定，scope 與開工巡檢（session_audit）共用這一份（T656；Codex #29 P2：巡檢原本只粗查守衛與規則檔）。
     files：[(status, path)]，改名已拆成刪除＋新增；own_cards：本 PR 新增的卡的小寫卡號，例如 {'t641'}；
-    deleted_lines(path)：該檔刪改了幾行，二進位或不知道回 None。回傳 [(path, 理由)]。"""
+    deleted_lines(path)：該檔刪改了幾行，二進位或不知道回 None。回傳 [(path, 理由)]。
+    T653 起只擋守衛：docs/SPR_PINS.json 與核准美術登記冊不算越道（業主信任 GPT 當 main 寫入者）；
+    登記冊只准改 valves 一節，那條要讀檔案內容，在 analyse() 用 gpt_registry_problem() 判。"""
     out = []
     for st, p in files:
         why = None
@@ -135,10 +138,6 @@ def gpt_lane(files, own_cards, deleted_lines):
             why = '守衛／工作流路徑'
         elif p in RULE_FILES:
             why = '規則檔'
-        elif p == 'docs/SPR_PINS.json':
-            why = '像素指紋基線'
-        elif p == REGISTRY:
-            why = '核准美術登記冊'
         elif p == 'test_fixde.js' and st != 'A':
             if st == 'D' or deleted_lines(p) not in (0, None):
                 why = '既有斷言被刪改（只准新增行）'
@@ -149,6 +148,25 @@ def gpt_lane(files, own_cards, deleted_lines):
         if why:
             out.append((p, why))
     return out
+
+
+def gpt_registry_problem(bt, ht):
+    """gpt/ 對核准美術登記冊只准改 valves 一節（T653）：approved 是業主批准的批次與發佈台架的錨點，
+    建立、刪除、改 valves 以外的頂層鍵都交 main 寫入者。bt／ht：base／head 的檔案文字（沒有就是 None）。
+    比較用排序過的 JSON 字串，不用 ==（Python 裡 True == 1）。回傳理由；沒問題回 None。"""
+    if bt is None:
+        return '建立登記冊'
+    if ht is None:
+        return '刪掉登記冊'
+    try:
+        b, h = json.loads(bt), json.loads(ht)
+    except ValueError as e:
+        return '登記冊無法解析：%s' % e
+    if not isinstance(b, dict) or not isinstance(h, dict):
+        return '登記冊頂層不是物件'
+    canon = lambda x: json.dumps(x, sort_keys=True, ensure_ascii=False)
+    bad = [k for k in sorted((set(b) | set(h)) - {'valves'}) if k not in b or k not in h or canon(b[k]) != canon(h[k])]
+    return ('改到 ' + '、'.join(bad) + ' 一節（只准改 valves）') if bad else None
 
 
 def card_history(repo, base, head, path):
@@ -241,11 +259,22 @@ def analyse(repo, base, head, head_ref=''):
 
     # gpt/ 越道
     if head_ref.startswith('gpt/'):
+        # T653：gpt/ 的純 revert 改查被撤提交自己的正向 diff——問的是「這個改動當初能不能從 gpt/ 落地」。
+        # 純 revert 的 diff 正好是它的反向：GPT 撤自己那一波（刪自己的台架目錄、拿掉自己加的 test_fixde 行）不會被誤判成越道，
+        # 撤別人的守衛或 approved 改動照樣紅。放在純 revert 清空之後，revert 洗不掉。
+        lb, lh = (ratchet_base, revert) if revert else (base, head)
+        lfiles = changed(repo, lb, lh) if revert else files
+        lown = ({'t' + m.group(1) for st, p in lfiles if st == 'A' for m in [CARD_RE.match(p)] if m}
+                if revert else {'t' + c['num'] for c in added_cards})
         def deleted(p):
-            ns = git(repo, 'diff', '--numstat', base, head, '--', p).split()
+            ns = git(repo, 'diff', '--numstat', lb, lh, '--', p).split()
             return int(ns[1]) if ns and ns[1] != '-' else None
-        for p, why in gpt_lane(files, {'t' + c['num'] for c in added_cards}, deleted):
+        for p, why in gpt_lane(lfiles, lown, deleted):
             v.append({'rule': 'gpt-lane', 'path': p, 'detail': why + '：gpt/ 分支不准動，交 main 寫入者'})
+        if REGISTRY in {p for _, p in lfiles}:
+            why = gpt_registry_problem(show(repo, lb, REGISTRY), show(repo, lh, REGISTRY))
+            if why:
+                v.append({'rule': 'gpt-lane', 'path': REGISTRY, 'detail': '核准美術登記冊' + why + '：gpt/ 分支只准在 valves 登記閥，其餘交 main 寫入者'})
 
     # 守衛程式新寫死的提交 SHA
     for st, p in files:
