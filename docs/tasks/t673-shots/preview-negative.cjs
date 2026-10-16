@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
 const root=path.resolve(__dirname,'../../..'),test=fs.readFileSync(path.join(root,'test_fixde.js'),'utf8'),html=fs.readFileSync(process.argv[2]||path.join(root,'index.html'),'utf8');
-const source=test.slice(test.indexOf('  const on596=html.slice('),test.indexOf('  T6.reset();',test.indexOf('  const on596=html.slice(')));
+const source=test.slice(test.indexOf('  // T673：CI 也執行'),test.indexOf('  T6.reset();',test.indexOf('  // T673：CI 也執行')));
 function check(h){vm.runInNewContext(source,{html:h,assert,vm,Map,Math});}
 check(html);
 const families=[670,671].filter(n=>html.includes('function spr'+n+'('));
@@ -15,7 +15,7 @@ for(const n of families){
  const prefix='function spr'+n+'(b,x,y,winter=false){if(!t'+n+'On()||t596On())return null;';
  reject('missing-family-preview-'+n,html.replace(prefix,prefix.replace('||t596On()','')));
  reject('missing-family-overlay-'+n,html.replace('&&!s.__t'+n,''));
- const behaviorSource=source.slice(source.indexOf('  // T673：CI 也執行'));
+ const behaviorSource=source.slice(0,source.indexOf('  // G1a／G2 原文釘'));
  for(const [name,replacement] of [['ignored-preview',prefix.replace('||t596On()','||false')],['ignored-family-valve',prefix.replace('!t'+n+'On()','false')]]){
   let error='';try{vm.runInNewContext(behaviorSource,{html:html.replace(prefix,replacement),families673:[n],on596:html.split('\n').find(l=>l.startsWith('function t596On(')),assert,vm,Map,Math});}catch(e){error=e.message;}
   assert(error.includes('T673 G2'),'actual selector negative must fail T673 G2: '+name);negatives.push({name:name+'-'+n,error:error.split('\n')[0]});
