@@ -43,5 +43,6 @@
 | #37 | P1 | tools/pages/frame-compare.cjs:150 | 意見 4282650267：照改：加春天與沒積雪的冬天 |
 | #37 | P1 | tools/pages/frame-compare.cjs:51 | → T648b：宣告的美術不在任何場景時目前只警告。要改紅，得先讓陣列從遊戲資料自動列出所有建築款式（base 與 head 取聯集、各頁只放自己認得的），否則新建築在自己的 PR 永遠進不了 base 的場景、會卡死；fp／ART_PINS 仍逐張釘住它的像素 |
 | #37 | P1 | tools/pages/frame-compare.cjs:68 | 意見 4282884938：→ T648b：要有一幀決定性的懸停／選取建築（前景淡出）；業主 2026-10-15 選擇收尾，PR 上已回覆 |
+| #42 | P2 | tools/scope.py:268 | 意見 4292118205：→ 後續卡（未發）：開工巡檢對 gpt/ PR 仍用 API 的檔案狀態判越道，GPT 照 T653 撤自己那一波的純 revert 會被誤報（gate 已改查被撤提交的正向 diff 而放行）。非回歸（T653 前兩邊一致），只影響 Claude 的巡檢。修法：巡檢對 gpt/ PR 用本機 git 跑 scope.analyse(合併提交^1, 合併提交^2, head_ref)。業主 2026-10-16 選擇先合 T653；由 T657 第一個 commit 補登 |
 | #41 | P1 | docs/tasks/T656-巡檢意見ID與完整越道判定.md:2 | 意見 4290085613：成立，承認違規——T656 的卡和第一版程式同一個 commit（a9990c6），沒先單獨推卡面（AGENTS:22）。不重排歷史；PR 上回覆附 `git diff a9990c6 ddc2f8d -- 卡檔` 證明驗收、紅源、放寬沒改鬆。照 T651 由下一張卡（T653）的第一個 commit 補登 |
 | #37 | P1 | tools/pages/frame-compare.cjs:136 | → T648b：存檔夾具改從 base 讀（和工具取自 base 同理）；業主 2026-10-15 選擇收尾，PR 上已回覆 |
