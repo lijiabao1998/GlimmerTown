@@ -2,6 +2,8 @@
   "passed": true,
   "states": 50,
   "models": 10,
+  "smokeModels": 8,
+  "smokePipeline": true,
   "records": [
     {
       "vi": 0,
@@ -514,6 +516,11 @@
       "mutation": "valve",
       "rejected": true,
       "reason": "global-valve"
+    },
+    {
+      "mutation": "smoke-disconnected",
+      "rejected": true,
+      "reason": "smoke-pipeline-selected-chimney"
     }
   ]
 }

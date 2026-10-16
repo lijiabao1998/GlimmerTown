@@ -43,3 +43,6 @@
 - 此 native workspace 啟動 Chromium 失敗：必要的 process_singleton socket 返回 Operation not permitted；普通與一次正式提升權限嘗試相同。已停本機重試，不能聲稱 Chrome 驗收。
 - head efd61c55：完整原 verify ALL GREEN，12,681 PASS、6 種子哨兵恆等；scope 本機與 CI 綠。
 - 本 head GitHub Chrome/FP/frame、全部模型真瀏覽器畫面、native-acceptance、第一波展示／等待與合併尚未完成。CI fp 原件已取得並原封複製：run 38888025201、artifact 12040398240；SPR 相同，ART 只增加 art670 50 鍵，其餘零變更。
+
+## 煙口接線補記
+Codex 發現 k=2 不會從既有粒子鏈取得新煙口。現在僅 T670 有煙囪八款、冬季、供電、落成且無暴亂／火災時接原管線；florist/cycles 及 fallback 仍不冒煙。`check670.cjs` 從真實粒子段提取本波接線，逐款與直接烘圖煙口比對，核對畫面錨定、狀態排除與關閥。移除接線的反例會在目標斷言失敗。這是行為驗證，不替代真 Chrome 煙霧實拍。
