@@ -19479,3 +19479,24 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
   assert(!/🏛️ 政策　<label><input type="checkbox" id="polFreeT"/.test(html), 'T514 G6 舊政策牆已拆除');
   assert(!/📦 科學套餐　<button class="hbtn" id="packTransit481">/.test(html), 'T514 G6b 舊套餐單行已拆除');
 }
+
+/* T670：只追加本波契約；原守衛一行不改。真像素與反例在本卡 check670.cjs，Chrome 見 CI。 */
+{
+  const on670=html.match(/^function t670On\(\)\{[^\n]+/m);
+  assert(!!on670,'T670 G1 雙逃生閥入口存在');
+  const probe670=(q,w)=>vm.runInNewContext(on670[0]+';t670On()',{window:w||{},location:{search:q}});
+  assert(probe670('')===true,'T670 G2 預設啟用');
+  assert(probe670('?noT670=1')===false,'T670 G3 URL 逃生閥關閉');
+  assert(probe670('',{__noT670:true})===false,'T670 G4 window 逃生閥關閉');
+  assert(probe670('?noT670=0')===true,'T670 G5 非關閉值不誤關');
+  const pick670=html.match(/^function variant670\([^\n]+/m)[0];
+  const run670=(b,h)=>vm.runInNewContext(pick670+';variant670(b,10,12)',{b,streetHash:()=>h,Math});
+  assert(run670({k:2,lv:1},0)===0&&run670({k:2,lv:1},9/22+.001)===9,'T670 G6 新款十個索引邊界');
+  assert(run670({k:2,lv:1},.99)===-1,'T670 G7 舊款回退保留');
+  for(const b of[{k:1},{k:3},{k:2,lv:2},{k:2,sz:2},{k:2,ref:[1,2]},{k:2,lot574:1}])assert(run670(b,0)===-1,'T670 G8 不觸及非本波建築 '+JSON.stringify(b));
+  const before670={k:2,lv:1,age:40},copy670=JSON.stringify(before670);run670(before670,.1);
+  assert(JSON.stringify(before670)===copy670,'T670 G9 選款不寫存檔物件');
+  const artreg670=JSON.parse(fs.readFileSync(path.join(__dirname,'docs/APPROVED_ART.json'),'utf8'));
+  assert(artreg670.valves.T670==='__noT670','T670 G10 發佈台架登記閥');
+  assert(html.includes("emit('art670',[v,win,sea].join('_'),bake670(v,!!win,sea))"),'T670 G11 真烘焙登記清冊');
+}
