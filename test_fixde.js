@@ -19517,3 +19517,6 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
   assert(artreg670.valves.T670==='__noT670','T670 G10 發佈台架登記閥');
   assert(html.includes("emit('art670',[v,win,sea].join('_'),bake670(v,!!win,sea))"),'T670 G11 真烘焙登記清冊');
 }
+
+/* T670：原 CI 也執行關閥後既有煙粒的真接點與負控制。 */
+{const q670=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t670-shots/check-smoke-valve.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q670.status===0&&JSON.parse(q670.stdout).passed===true,'T670 G12 煙粒即時關閥與三負控制：'+q670.stderr);}
