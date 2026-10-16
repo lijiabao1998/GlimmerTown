@@ -1,0 +1,11 @@
+{
+  "gpt_lane": [
+    [
+      "test_fixde.js",
+      "既有斷言被刪改（只准新增行）"
+    ]
+  ],
+  "deleted_or_replaced_lines": 2,
+  "assert_count_base": 4012,
+  "assert_count_head": 4014
+}

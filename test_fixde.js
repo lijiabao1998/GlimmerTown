@@ -530,6 +530,8 @@ window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveS
     const images=new Map(),painted=[],objects=[];let calls=0,cycles=null,nightCalls=0,nightMasks=0;
     for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b.lot574)images.set(lotSprite574(b.k,lotV591(p.x,p.y,b),2,false,z<1).img,p.id); // T591：與繪製同一個變體
       else for(const key of Object.keys(SPR.bld))if(+key.split('_')[0]===b.k)images.set(SPR.bld[key].img,p.id);}
+    // T672：補入實際選中的單格住宅影像；仍須真的 drawImage 才計入 painted。
+    for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b&&b.k===1&&!b.ref&&!b.lot574&&(b.sz||1)===1){const s=reflectSprite(b,p.x,p.y);if(s&&s.img)images.set(s.img,p.id);}}
     try{const a=lotViewBase574(points[0].x,points[0].y,tiles[idx(points[0].x,points[0].y)].bld.sz);
       cam.x=a[0];cam.y=a[1]-tiles[idx(points[0].x,points[0].y)].bld.sz*16;cam.z=z;visT=night?100:55;weather=0;shakeT=0;zoomAnim=null;tool='pan';selTile=null;groundDirty=true;
       lotOrder574=function(items,sparse){const r=oldTopo(items,sparse);if(sparse)cycles=r.cycles574;return r;};
@@ -13498,6 +13500,17 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   // G6 關回去：舊圖回來、生成器不再被叫
   const n6=T6.stat();G.forceDraw();G.setVisT(55);G.forceDraw();
   assert(T6.stat().calls===n6.calls&&T6.stat().views===n6.views&&bld596.every(b=>!(T6.reflect({k:b.k,lv:b.lv,v:b.v,we:1},b.x,b.y)||{}).__t596),'T596 G6 關回去之後繪製端不再取新圖（spr596 呼叫數不動）、倒影回到舊圖');
+  // T673：CI 也執行實際家族 selector 的預覽／逃生閥五模式；烘圖依賴隔離，原真遊戲預覽檢查仍在上方。
+  const families673=[670,671].filter(n=>html.includes('function spr'+n+'('));
+  const switch673=html.split('\n').find(l=>l.startsWith('function t596On('));
+  for(const n of families673)for(const mode of ['off','window-preview','url-preview','window-valve','url-valve']){
+    const on=html.split('\n').find(l=>l.startsWith('function t'+n+'On(')),a=html.indexOf('function spr'+n+'('),b=html.indexOf('\nfunction ',a+1),selector=html.slice(a,b<0?html.length:b);
+    const probe={window:{},location:{search:mode==='url-preview'?'?T596=1':mode==='url-valve'?'?noT'+n+'=1':''},Map,Math,season:()=>0};
+    if(mode==='window-preview')probe.window.__t596=true;if(mode==='window-valve')probe.window['__noT'+n]=true;
+    probe['variant'+n]=()=>0;probe['bake'+n]=()=>({family:n});
+    const result=vm.runInNewContext(switch673+'\n'+on+'\n'+selector+'\nspr'+n+'({k:1,lv:1},0,0,false);',probe);
+    assert(mode==='off'?result&&result.family===n:result===null,'T673 G2 實際 selector '+n+' '+mode+' 預覽與逃生閥契約');
+  }
   // G1a／G2 原文釘（放在行為釘之後）：開關定義逐字、不進 ALLOW436；選圖行位置；七個舊疊層閘
   const on596=html.slice(html.indexOf('function t596On(){'),html.indexOf('\n',html.indexOf('function t596On(){')));
   assert(on596==="function t596On(){if(t596On.u===undefined)t596On.u=/(?:^|[?&])T596=1(?:&|$)/.test((typeof location!=='undefined'&&location.search)||'');return window.__t596===true||t596On.u;}"
@@ -13505,7 +13518,11 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   assert(html.includes("    if((bd.k===1||bd.k===2||bd.k===3)&&!(bd.sz>=2)&&!bd.lot574&&t596On()){const p596=spr596(bd,true,o.x,o.y);if(p596)s=p596;} // T596：")
     &&html.indexOf('if((bd.k===1||bd.k===2||bd.k===3)&&!(bd.sz>=2)&&!bd.lot574&&t596On()){const p596=spr596(bd,true,o.x,o.y)')<html.indexOf('    if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd)'),'T596 G2a 選圖行在舊選圖鏈之後、園區與冬側版之前');
   const gates596=["(bd.age|0)>=9&&!s.__t596){ /* T571 連棟屋頂線錯落","if((bd.age|0)>=9&&!constrRise&&!s.__t596)drawLotFence565(ctx,o,bd,z,0,drawA);","if(!s.__t596)drawActivityPocket422(","if(!s.__t596)drawMicroLife429(","if(!s.__t596)drawPartyWall565(","if(!s.__t596)drawCorner571(","if(!s.__t596)drawLotFence565(ctx,o,bd,z,1,drawA);"];
-  const miss596=gates596.filter(g=>html.split(g).length!==2);
+  // T673：只接納具名新家族的一處預覽讓出；五處舊呼叫與七道原預覽閘仍逐字核。
+  const guard673=n=>'function spr'+n+'(b,x,y,winter=false){if(!t'+n+'On()||t596On())return null;';
+  assert(families673.every(n=>html.split(guard673(n)).length===2),'T673 G1 新家族各恰一處明確預覽讓出，不靠假預覽標記或未知呼叫');
+  const gates673=gates596.map(g=>g.replace('!s.__t596','!s.__t596'+families673.map(n=>'&&!s.__t'+n).join('')));
+  const miss596=gates673.filter(g=>html.split(g).length!==2);
   const selLine596="    if((bd.k===1||bd.k===2||bd.k===3)&&!(bd.sz>=2)&&!bd.lot574&&t596On()){const p596=spr596(bd,true,o.x,o.y);if(p596)s=p596;}";
   const chainLast596=html.split('\n').find(l=>l.startsWith("    else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0'];"));
   assert(chainLast596&&html.includes(chainLast596+'\n'+selLine596),'T596 G2c 選圖行緊接在舊選圖鏈最後一行之後');
@@ -13515,7 +13532,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
     "      if(nr596){nr596.forEach((r,i)=>{const col=i?NEON[(NEON.indexOf(nCol)+2)%NEON.length]:nCol;nightSprites.push({rect:[r[0]-2*z,r[1]-2*z,r[2]+4*z,r[3]+4*z],col:shade(col,-96)});nightSprites.push({rect:r,col});});}\n      else if((bd.lv||1)>=2){ // T368b 合流升級",
     "  if((bd.k===1||bd.k===2||bd.k===3)&&!bd.lot574&&t596On()){const p596=spr596(bd,true,x,y);if(p596)return p596;}"];
   const pmiss596=pins596.filter(p=>html.split(p).length!==2);
-  assert(pmiss596.length===0&&(html.match(/t596On\(\)/g)||[]).length===5,'T596 G2d 開關只在五處（定義＋選圖、倒影、煙、頂層霓虹），各處原文逐字：缺 '+pmiss596.map(p=>p.slice(0,40)).join('｜')+'；t596On() 共 '+(html.match(/t596On\(\)/g)||[]).length);
+  assert(pmiss596.length===0&&(html.match(/t596On\(\)/g)||[]).length===5+families673.length,'T596 G2d 保留五處舊呼叫（定義＋選圖、倒影、煙、頂層霓虹）及每個具名新家族的一處讓出，各處原文逐字：缺 '+pmiss596.map(p=>p.slice(0,40)).join('｜')+'；t596On() 共 '+(html.match(/t596On\(\)/g)||[]).length);
   assert(miss596.length===0&&(html.match(/!s\.__t596/g)||[]).length===7,'T596 G2b 七個舊疊層（T571 錯落、T565 圍籬兩半、T422、T429、T565 派對牆、T571 街角）各恰一道 !s.__t596 閘：缺 '+miss596.join('｜'));
   T6.reset();
 }

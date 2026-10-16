@@ -4,8 +4,8 @@ const fs=require('fs'),vm=require('vm'),path=require('path'),crypto=require('cry
 const src=fs.readFileSync(path.resolve(__dirname,'../../../index.html'),'utf8');
 function run(mutation){
  const part=(a,b)=>src.slice(src.indexOf(a),src.indexOf(b,src.indexOf(a)));
- const C={window:{},location:{search:''},Map,Math,Error,season:()=>1,rainDays:0,streetHash:(x,y,s)=>((x*13+y*7+s)%220)/220,cv:(w,h)=>{const c=createCanvas(w,h);return[c,c.getContext('2d')];},shade:(c,n)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,parseInt(c.slice(i,i+2),16)+n)).toString(16).padStart(2,'0')).join('')};
- vm.createContext(C);vm.runInContext(part('function lotLine574(','function lotVariant574(')+part('function makeIso590(','function silhouette590(')+part('/* T670：第一波','/* T670 END')+(mutation==='duplicate'?'CATALOG670[1]=CATALOG670[0];':'')+(mutation==='valve'?'t670On=function(){return true;};':'')+'this.api={bake670,spr670,variant670,t670On,CATALOG670,smoke670};',C);
+ const C={window:{},location:{search:''},Map,Math,Error,season:()=>1,t596On:()=>!!C.window.__t596,rainDays:0,streetHash:(x,y,s)=>((x*13+y*7+s)%220)/220,cv:(w,h)=>{const c=createCanvas(w,h);return[c,c.getContext('2d')];},shade:(c,n)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,parseInt(c.slice(i,i+2),16)+n)).toString(16).padStart(2,'0')).join('')};
+ vm.createContext(C);vm.runInContext(part('function lotLine574(','function lotVariant574(')+part('function makeIso590(','function silhouette590(')+part('/* T670：第一波','/* T670 END').replace(mutation==='preview-priority'?'||t596On()':'NEVER_MATCH','')+(mutation==='duplicate'?'CATALOG670[1]=CATALOG670[0];':'')+(mutation==='valve'?'t670On=function(){return true;};':'')+'this.api={bake670,spr670,variant670,t670On,CATALOG670,smoke670};',C);
  const A=C.api,hash=x=>crypto.createHash('sha256').update(x).digest('hex');
  assert.equal(A.CATALOG670.length,10,'model-count');assert.equal(new Set(A.CATALOG670.map(d=>d.id)).size,10,'model-identity');
  const expected=['parapet','dutch','gable','halfhip','catslide','stepped','hip','barrel','northlight','mansard'];
@@ -25,6 +25,7 @@ function run(mutation){
   C.window.__noT670=true;assert.equal(choose(b,x).offs,null,'smoke-family-valve');delete C.window.__noT670;
  }
  assert.equal(checked,8,'eight-chimney-models-reach-pipeline');
+ C.window.__t596=true;for(let x=0;x<220;x++)assert.equal(A.spr670({k:2,lv:1},x,1),null,'explicit-preview-takes-priority');delete C.window.__t596;assert(!A.bake670(0,false,1).__t596,'independent-preview-marker');
  const silhouettes=new Set(),records=[];
  for(let vi=0;vi<10;vi++)for(const[sea,snow]of[[0,false],[1,false],[2,false],[3,false],[3,true]]){
   const s=A.bake670(vi,snow,sea),q=A.bake670(vi,snow,sea),px=s.img.getContext('2d').getImageData(0,0,s.w,s.h).data,np=s.night.getContext('2d').getImageData(0,0,s.w,s.h).data,qp=q.img.getContext('2d').getImageData(0,0,q.w,q.h).data;
@@ -37,5 +38,5 @@ function run(mutation){
  assert.equal(silhouettes.size,10,'ten-distinct-silhouettes');return{passed:true,states:records.length,models:10,smokeModels:checked,smokePipeline:true,records};
 }
 const report=run();report.negativeControls=[];
-for(const m of['duplicate','valve','smoke-disconnected']){let error='';try{run(m);}catch(e){error=e.message;}assert(error,'negative-control-did-not-fail:'+m);report.negativeControls.push({mutation:m,rejected:true,reason:error.split('\n')[0]});}
+for(const m of['duplicate','valve','smoke-disconnected','preview-priority']){let error='';try{run(m);}catch(e){error=e.message;}assert(error,'negative-control-did-not-fail:'+m);report.negativeControls.push({mutation:m,rejected:true,reason:error.split('\n')[0]});}
 console.log(JSON.stringify(report,null,2));
