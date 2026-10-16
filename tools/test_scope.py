@@ -154,13 +154,14 @@ class ScopeTests(unittest.TestCase):
         res = self.r.run(ref='gpt/a')
         self.assertEqual(sorted(x['path'] for x in res['violations']), ['AGENTS.md', 'docs/tasks/t635-shots/release635.cjs'])
 
-    def test_gpt_may_commit_spr_pins(self):
-        # T654：gpt/ 改像素時一起提交重烘的 SPR_PINS 不算越道；等不等於實算、家族與 owner_ok 由 CI 的 fp 查
+    def test_gpt_committing_spr_pins_stays_red_until_t653(self):
+        # T654 對抗審查：gpt/ 可以在一張已核准的舊卡卡身加一行，借它的 families／owner_ok 改 SPR 並提交重烘、全綠。
+        # owner_ok 出處規則做好之前（T653），gpt/ 提交 SPR_PINS 照舊越道；claude/ 不受限
         self.r.branch('gpt/a'); self.r.write('docs/tasks/T641-x.md', card(641))
         self.r.write('docs/SPR_PINS.json', '{"park/0":[1]}\n'); self.r.write('index.html', 'v2\n'); self.r.commit('art')
-        self.assertTrue(self.r.run(ref='gpt/a')['ok'])
-        self.r.write('tools/fp_diff.py', 'x\n'); self.r.commit('guard')
-        self.assertEqual(self.rules(self.r.run(ref='gpt/a')), ['gpt-lane'])
+        res = self.r.run(ref='gpt/a')
+        self.assertEqual(self.rules(res), ['gpt-lane']); self.assertEqual(res['violations'][0]['path'], 'docs/SPR_PINS.json')
+        self.assertTrue(self.r.run(ref='claude/a')['ok'])
 
     # ---------- T647 核准美術登記冊 ----------
 

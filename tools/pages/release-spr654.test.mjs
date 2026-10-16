@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const spr = require('./release-spr654.cjs'), linux = require('./release-correctness.cjs');
@@ -70,7 +71,63 @@ test('the same-Chrome previous-document check follows the committed changes too'
   assert.throws(() => go(['fire/0'], ['park/0']), /differ only where the committed SPR_PINS differ, in this Chrome: \["fire\/0"\]/);
 });
 
-test('helper logic matches the injected logic', () => {
-  assert.deepEqual(spr.committedChanges(P, { ...P, 'park/0': ['ff'], 'x/1': ['1'] }).sort(), ['park/0', 'x/1']);
-  assert.deepEqual(spr.onlyCommitted(['park/0', 'fire/0'], ['park/0']), ['fire/0']);
+test('committedChanges is the same algorithm as the injected COMMITTED snippet (run both)', () => {
+  const cases = [
+    [P, P],
+    [P, { ...P, 'park/0': ['ff'] }],
+    [P, { ...P, 'x/1': ['1'] }],
+    [{ ...P, 'gone/0': ['9'] }, P],
+    [P, { 'park/0': ['a1'], 'fire/0': ['b3', 'b2'] }],
+  ];
+  for (const [baseline, candidate] of cases) {
+    const report = {};
+    vm.runInNewContext(spr.COMMITTED, { report, baseline, candidate });
+    assert.deepEqual([...report.committedPinChanges654].sort(), spr.committedChanges(baseline, candidate).sort());
+  }
+});
+
+// release635 第 66 行：base＝7ad6931 實算，release＝後批閥全關的實算，prev／head＝兩份提交檔
+const base = { 'park/0': ['a1'], 'fire/0': ['b2'], 'bld/1': ['c4'] };
+test('release635: nothing declared and nothing changed is green', () => {
+  assert.deepEqual(spr.releaseSprCheck(base, base, base, base), { declared: [], stray: [], wrong: [] });
+});
+
+test('release635: a declared change without a valve (release == HEAD file) is green', () => {
+  const head = { ...base, 'park/0': ['ff'] };
+  const r = spr.releaseSprCheck(base, head, base, head);
+  assert.deepEqual([r.declared, r.stray, r.wrong], [['park/0'], [], []]);
+});
+
+test('release635: a declared change hidden by a closed later valve (release == base) is green (T654 review P1)', () => {
+  const head = { ...base, 'park/0': ['ff'], 'art660/0': ['n1'] };
+  const r = spr.releaseSprCheck(base, base, base, head);
+  assert.deepEqual([r.declared.sort(), r.stray, r.wrong], [['art660/0', 'park/0'], [], []]);
+});
+
+test('release635: a declared key that is neither the HEAD file nor base is red', () => {
+  const head = { ...base, 'park/0': ['ff'] };
+  assert.deepEqual(spr.releaseSprCheck(base, { ...base, 'park/0': ['ee'] }, base, head).wrong, ['park/0']);
+});
+
+test('release635: an undeclared change, added key or removed key is red', () => {
+  assert.deepEqual(spr.releaseSprCheck(base, { ...base, 'fire/0': ['zz'] }, base, base).stray, ['fire/0']);
+  assert.deepEqual(spr.releaseSprCheck(base, { ...base, 'new/0': ['1'] }, base, base).stray, ['new/0']);
+  const removed = { ...base }; delete removed['bld/1'];
+  assert.deepEqual(spr.releaseSprCheck(base, removed, base, base).stray, ['bld/1']);
+  // 宣告了 park 不代表別的家族也能動
+  const head = { ...base, 'park/0': ['ff'] };
+  assert.deepEqual(spr.releaseSprCheck(base, { ...head, 'fire/0': ['zz'] }, base, head).stray, ['fire/0']);
+});
+
+test('release635 really calls releaseSprCheck and no longer freezes every key', () => {
+  const src = fs.readFileSync(new URL('../../docs/tasks/t635-shots/release635.cjs', import.meta.url), 'utf8');
+  assert.equal(src.includes("assert.deepEqual(pins.release,pins.base"), false);
+  assert.equal(src.split("require('../../../tools/pages/release-spr654.cjs')").length, 2);
+  assert.equal(src.split('spr654.releaseSprCheck(pins.base,pins.release,').length, 2);
+  assert(src.includes('need(!r654.stray.length,') && src.includes('need(!r654.wrong.length,'));
+  assert(src.includes("assert.deepEqual(pins.approved,pins.base)"), 'approved == base stays');
+});
+
+test('sprPinsOf drops __meta and keeps every key', () => {
+  assert.deepEqual(spr.sprPinsOf('{"__meta":{"count":2},"a/0":["1"],"b/":["2","3"]}'), { 'a/0': ['1'], 'b/': ['2', '3'] });
 });

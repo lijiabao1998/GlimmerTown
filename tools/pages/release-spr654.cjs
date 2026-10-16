@@ -30,12 +30,26 @@ function install(replace) {
   replace(LOCK_307, NEW_307_CHECK, 'T654 same-Chrome previous-document pins follow the committed SPR_PINS changes');
 }
 
-/* 與覆寫後的頁內判定同一個邏輯（單元測試用）：changed＝和上一版不同的鍵，committed＝兩份提交檔有差異的鍵 */
+/* 兩份提交的 SPR_PINS 有差異的鍵（含新增、移除）。和上面 COMMITTED 那段注入字串同一個算法，單元測試在 vm 裡對拍兩者。 */
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 function committedChanges(previousFile, currentFile) {
-  return [...new Set([...Object.keys(previousFile), ...Object.keys(currentFile)])].filter(k => JSON.stringify(previousFile[k]) !== JSON.stringify(currentFile[k]));
+  return [...new Set([...Object.keys(previousFile), ...Object.keys(currentFile)])].filter(k => !same(previousFile[k], currentFile[k]));
 }
-function onlyCommitted(changed, committed) {
-  return changed.filter(k => !committed.includes(k));
+function sprPinsOf(text) {
+  const d = JSON.parse(text); delete d.__meta; return d;
 }
 
-module.exports = { LOCK_297, LOCK_307, REPLACED_CHECKS, NEW_CHECKS, install, committedChanges, onlyCommitted };
+/* release635 第 66 行用（T654）：原本 pins.release 必須逐鍵等於 7ad6931。
+   release 開機時台架把比 T635 晚的批次閥全關（ART.valves），被登記閥擋住的改圖在這裡會還原成 7ad6931 的值；
+   沒有閥擋的改圖則等於 HEAD 的提交檔（fp 在閥全開時實算、要求提交檔等於實算）。所以：
+   - 兩份提交檔有差異的鍵（declared）：等於 HEAD 提交檔或等於 7ad6931 都算對，兩個都不是就紅；
+   - 其餘的鍵（stray）：照舊逐鍵等於 7ad6931。
+   審查（T654 對抗審查 P1）：只認 HEAD 提交檔會讓照規矩用 tNNNOn 閥的 SPR 美術 PR 永遠紅。 */
+function releaseSprCheck(base, release, previousFile, headFile) {
+  const declared = committedChanges(previousFile, headFile);
+  const stray = [...new Set([...Object.keys(base), ...Object.keys(release)])].filter(k => !declared.includes(k) && !same(base[k], release[k]));
+  const wrong = declared.filter(k => !same(release[k], headFile[k]) && !same(release[k], base[k]));
+  return { declared, stray, wrong };
+}
+
+module.exports = { LOCK_297, LOCK_307, REPLACED_CHECKS, NEW_CHECKS, COMMITTED, install, committedChanges, sprPinsOf, releaseSprCheck };
