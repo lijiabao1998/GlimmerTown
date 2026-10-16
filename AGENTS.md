@@ -41,18 +41,18 @@
 - 待辦、卡住、已完成三節由 GPT 維護，跟著每一波的 PR 一起更新。
 
 **卡號**：GPT 用 **T670–T699**，用完接 **T800–T999**（T657）；Claude 兩段都不用。`git fetch origin --prune` 後，取這段裡 `origin/main` 與每一條 `origin/gpt/*` 分支的 `docs/tasks/` 都還沒用過的最小號（開著的 `[等業主]`、`[卡住]` 與等著合的 PR，佔的號只在它自己的分支上，main 看不到）。T999 也用完才停，在卡住表寫「卡號用完，請 Claude 再劃一段」。
-**PR 標題**一律寫 `T6xx［待辦 N］主題`（N 是待辦表的序），下一波才知道哪些項已經有人在做。
+**PR 標題**一律寫 `T<號>［待辦 N］主題`（N 是待辦表的序），下一波才知道哪些項已經有人在做。下面的 `T<號>`／`t<號>On`／`__noT<號>` 一律代入這一波實際的卡號（例如 T670、t670On、__noT670；用到第二段就是 T800 這種）。
 
 **每一波**：
 0. **開工**：`git fetch origin`；開關不是「運行」就不開新卡。看 main 最近一次跑完的主工作流與部署，紅了照下面「停手」處理。手上已經有一個要自己合的 gpt PR 開著，先把它做完或標卡住（第一波的 `[等業主]` PR 記在卡住表就算標過；等第一波而還不能合的第二波，算開著）。
 1. **挑題**：待辦最上面、而且沒有開著的 gpt PR 標題寫著它的序的那一項（開著的 PR 正在做的項，main 的待辦表上看不出來）。待辦空了，照方向原話拆下一波寫進待辦：每項寫對應原話哪一句、要動的美術家族。
 2. **卡面先推**：`git switch --no-track -c gpt/<主題> origin/main`。
-   - 第一個 commit 只放卡 `docs/tasks/T6xx-*.md`。
-   - 卡頭 `families` 寫要動的家族，`valve` 寫這波的逃生閥 `?noT6xx / window.__noT6xx`，`owner_ok` 見下。
+   - 第一個 commit 只放卡 `docs/tasks/T<號>-*.md`。
+   - 卡頭 `families` 寫要動的家族，`valve` 寫這波的逃生閥 `?noT<號> / window.__noT<號>`，`owner_ok` 見下。
    - 推上去，開 draft PR。
 3. **施工**：照標準 §3 畫圖。
-   - 新批次用行首 `function t6xxOn(){` 的啟用函式，網址 `?noT6xx=1` 與 `window.__noT6xx` 都要關得掉。
-   - 在 `docs/APPROVED_ART.json` 的 `valves` 登記 `"T6xx": "__noT6xx"`（gpt/ 只准改這一節）。
+   - 新批次用行首 `function t<號>On(){` 的啟用函式，網址 `?noT<號>=1` 與 `window.__noT<號>` 都要關得掉。
+   - 在 `docs/APPROVED_ART.json` 的 `valves` 登記 `"T<號>": "__noT<號>"`（gpt/ 只准改這一節）。
    - 新美術登記進 `GV.artAtlas646()`，不登記 fp 看不到。
    - 提交身分：能設 repo-local `user.name="GPT (Codex)"` 就設；只能經 GitHub 連接器以業主帳號提交時照樣提交，PR 內文第一行寫「GPT 編輯」（T657）。作者不是閘門，不要為這個停下來。
 4. **看 CI**：
