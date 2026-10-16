@@ -18,7 +18,7 @@
 - **GPT 可以自己合併自己的 PR**（業主 2026-10-14「自己合就行」）：分支 CI 綠、PR 接在最新 `main` 上、`docs/迭代不改壞標準.md` 第 8 節自檢逐條打勾才合；美術照下面「GPT 連續迭代（T653）」一節：業主授權連續做的方向，第一波等業主看，第二波起自己合。
 - **main 紅了**：讓它變紅的那次合併，由作者先開純 `git revert -m 1 <合併提交>` 的 PR，不在 main 上疊修補賭綠（T639）。直推進 main 的普通提交同樣用 `git revert <提交>`。純 revert 免卡面規則，棘輪以被撤提交的父提交為基準，這條路不會被守衛擋住（T650）。
 - **開分支與推送**：`git switch --no-track -c <分支> origin/main`、`git push origin HEAD:refs/heads/<分支>`。本倉庫 `push.default=upstream`，從 origin/main 開的分支會追蹤 main，裸推會直推 main（T650 起因）。
-- **提交身分**：Claude 提交一律 `git -c user.name=Claude -c user.email=noreply@anthropic.com commit`；GPT 在自己的工作樹設 repo-local `user.name="GPT (Codex)"`；不動全域設定（T639）。
+- **提交身分**：Claude 提交一律 `git -c user.name=Claude -c user.email=noreply@anthropic.com commit`；GPT 在自己的工作樹設 repo-local `user.name="GPT (Codex)"`，只能經 GitHub 連接器以業主帳號提交時也可以（業主 2026-10-16 允許，T657），PR 內文第一行寫「GPT 編輯」；不動全域設定（T639）。
 - 卡面（`docs/tasks/Txxx-*.md`）動手前先推，驗收條件之後不准改鬆；**claim 寫在卡頭**，不另開 `.claim` 檔（T639）。
 - **新卡標題下一行要有卡頭機讀欄**（T641，CI 的 scope 會核）：`<!-- card: families=無; valve=; owner_ok=; removed_asserts=0 -->`。`families`（改哪些美術家族，用 SPR_PINS 鍵「/」前的家族名逐字寫，逗號分隔，沒有寫「無」；CI 的 fp_diff 會比對，T643）、`valve`（逃生閥）、`removed_asserts`（有意刪掉幾條既有斷言）從卡面第一個 commit 起不准改；`owner_ok` 只准從空變成業主原話（附日期），有字之後不准改。一個 PR 一張卡；純文件（全部 `.md`）走快道，不跑瀏覽器各道。`gpt/` 分支動 `.github/`、`tools/`、規則檔、改既有斷言，CI 直接判紅，交 main 寫入者。
 - 美術先給業主看樣張、業主點頭才接（業主授權連續做的方向照下面 T653 一節）；每張新圖要有逃生閥，閥關時整幀與改前相同；既有像素指紋零變動。**像素指紋以 CI 的 fp job 為正本**（T643）：改圖的 PR 只准原封提交同一個 PR 最近一輪 fp 附件（`Town-main-fp-<sha>`）裡的 `docs/SPR_PINS.json` 與 `docs/ART_PINS.json`，不准手改；動到的家族要寫進卡頭 `families`、`owner_ok` 要有業主原話；兩份基線衝突時都取 main 的版本，等 CI 重烘再原封提交。本機 `fp_snapshot.py` 只是預覽。**T654 起 SPR 家族解凍**：scene603 的精靈指紋鎖不再凍結 1586 鍵，改成跟著提交的 `docs/SPR_PINS.json` 走——只准在提交檔有差異的鍵上變，其餘照舊逐鍵不變。release635 不放寬：它把後批閥全關，照規矩掛登記 `tNNNOn` 閥的 SPR 美術在那裡會還原成舊值，所以仍逐鍵等於批准前的 main——沒掛閥或閥漏關的改圖照紅。gpt/ 分支可以提交 CI 重烘的 SPR_PINS（T653）。**SPR 之外按需烘焙的新美術要登記進 `GV.artAtlas646()`**（T646，`index.html` 裡 `sprAtlas356` 下面那一個），不登記 fp 就看不到。**整幀比對（T648）**：CI 的 frame job 逐幀比 base 與 head——非美術卡畫面要零變；美術卡卡頭要寫 `valve`，閥關時整幀等於 base；畫面變了 CI 出接觸表（附件 `Town-main-frame-<sha>`），業主看了點頭才寫 `owner_ok`（T653 連續迭代：owner_ok 逐字寫業主授權原話，見下面一節）。**業主批准的美術批次登記在 `docs/APPROVED_ART.json`**（T647：批准提交、`approved/*` 標籤、index 雜湊），發佈台架從這裡讀；改 `approved` 一節要卡頭 `owner_ok`，新批次加了 `tNNNOn` 就要在 `valves` 登記逃生閥（gpt/ 分支只准改 `valves` 一節，T653）。
@@ -40,7 +40,7 @@
 - 「開關」（運行／暫停／停止／等方向）與「方向」只照業主原話改。業主在對話給方向時，GPT 開一個只改方向檔的 PR（文件道，gate 綠就自己合），原話逐字抄進「方向」、開關改「運行」，寫日期。
 - 待辦、卡住、已完成三節由 GPT 維護，跟著每一波的 PR 一起更新。
 
-**卡號**：GPT 用 **T670–T699**，Claude 不用這一段。`git fetch origin --prune` 後，取這段裡 `origin/main` 與每一條 `origin/gpt/*` 分支的 `docs/tasks/` 都還沒用過的最小號（開著的 `[等業主]`、`[卡住]` 與等著合的 PR，佔的號只在它自己的分支上，main 看不到）。用完就停，在卡住表寫「卡號用完，請 Claude 再劃一段」。
+**卡號**：GPT 用 **T670–T699**，用完接 **T800–T999**（T657）；Claude 兩段都不用。`git fetch origin --prune` 後，取這段裡 `origin/main` 與每一條 `origin/gpt/*` 分支的 `docs/tasks/` 都還沒用過的最小號（開著的 `[等業主]`、`[卡住]` 與等著合的 PR，佔的號只在它自己的分支上，main 看不到）。T999 也用完才停，在卡住表寫「卡號用完，請 Claude 再劃一段」。
 **PR 標題**一律寫 `T6xx［待辦 N］主題`（N 是待辦表的序），下一波才知道哪些項已經有人在做。
 
 **每一波**：
@@ -54,7 +54,7 @@
    - 新批次用行首 `function t6xxOn(){` 的啟用函式，網址 `?noT6xx=1` 與 `window.__noT6xx` 都要關得掉。
    - 在 `docs/APPROVED_ART.json` 的 `valves` 登記 `"T6xx": "__noT6xx"`（gpt/ 只准改這一節）。
    - 新美術登記進 `GV.artAtlas646()`，不登記 fp 看不到。
-   - 提交身分用 repo-local `user.name="GPT (Codex)"`。
+   - 提交身分：能設 repo-local `user.name="GPT (Codex)"` 就設；只能經 GitHub 連接器以業主帳號提交時照樣提交，PR 內文第一行寫「GPT 編輯」（T657）。作者不是閘門，不要為這個停下來。
 4. **看 CI**：
    - fp 摘要動到的家族要包含在卡頭 `families` 裡。
    - 從這個 PR 最近一輪的 fp 附件 `Town-main-fp-<sha>`，原封提交 `docs/SPR_PINS.json`／`docs/ART_PINS.json`，不准手改；再推一次等 fp 綠。
@@ -69,7 +69,7 @@
 **owner_ok**：卡頭 owner_ok 逐字寫業主授權這個方向的原話與日期，例如 `業主 2026-10-16「我覺得就第一波看 如果沒回應 繼續」`。不准寫業主沒說過的話。
 
 **業主授權連續做**（方向原話寫明「第一波看、沒回應就繼續」這類授權時）：
-- **數量**：方向寫了波數或總數，就照那個數量做完。
+- **數量**：方向寫了波數或總數，就照那個數量做完；方向寫明「我不說停就一直做」這類話（業主 2026-10-16「我不説停就無限迭代」，T657），就沒有上限，一直做到業主說停或開關改掉。
 - **第一波**：PR 標題加 `[等業主]`，CI 綠之後先不合，在卡住表記「等業主看第一波」。
   - PR 開滿 **12 小時**，業主沒在 PR 或對話裡說不行，就當同意：照第 5 步自己合，PR 內文引用授權原話。
   - 業主說要改，就照改再合。
