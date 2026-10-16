@@ -372,8 +372,13 @@ class AuditTests(unittest.TestCase):
             {'filename': 'e.js', 'status': 'added', 'deletions': 0},
             {'filename': 'f.js', 'status': 'modified', 'deletions': 1},
         ])
-        self.assertEqual(out, [('D', 'a.js'), ('A', 'b.js'), ('M', 'a.js'), ('A', 'c.js'), ('D', 'd.js'), ('A', 'e.js'), ('M', 'f.js')])
+        self.assertEqual(out, [('D', 'a.js'), ('A', 'b.js'), ('A', 'c.js'), ('D', 'd.js'), ('A', 'e.js'), ('M', 'f.js')])
         self.assertEqual(deleted['f.js'], 1)
+
+    def test_gpt_copying_a_guard_file_out_is_not_a_lane_violation(self):
+        # Codex #41 P2：scope 用 git diff -M，不偵測複製；巡檢不能把沒改的來源 tools/x.py 記成修改而誤報越道
+        r = self.gpt_files([{'filename': 'docs/x.py', 'previous_filename': 'tools/x.py', 'status': 'copied', 'deletions': 0}])
+        self.assertEqual(kinds(r), [])
 
 
 if __name__ == '__main__':

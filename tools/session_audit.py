@@ -113,14 +113,15 @@ def registered(findings_text, n, c, siblings=()):
 
 
 def api_files(files):
-    """PR files API 轉成 scope.changed() 的形狀 [(status, path)]（改名拆成刪除＋新增，複製＝來源修改＋新增），加上每檔刪改行數。"""
+    """PR files API 轉成 scope.changed() 的形狀 [(status, path)]（改名拆成刪除＋新增），加上每檔刪改行數。
+    複製只算新增目的地（Codex #41 P2）：scope 跑的是 `git diff -M`，不偵測複製，來源沒改就不會出現；來源真的改了，API 會另列一筆 modified。"""
     out, deleted = [], {}
     for f in files:
         st, p, prev = f.get('status'), f['filename'], f.get('previous_filename')
         if st == 'renamed' and prev:
             out += [('D', prev), ('A', p)]
-        elif st == 'copied' and prev:
-            out += [('M', prev), ('A', p)]
+        elif st == 'copied':
+            out.append(('A', p))
         else:
             out.append(({'added': 'A', 'removed': 'D'}.get(st, 'M'), p))
         deleted[p] = f.get('deletions')
