@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const linux = require('./release-correctness.cjs'), native = require('./release-native-acceptance.cjs');
 const canonical = require('./native-correctness.cjs'), mac = require('./native-mac-diagnostic.cjs');
 const portability = require('./native-portability-diagnostic.cjs'), identity = require('./release-identity.cjs');
+const spr654 = require('./release-spr654.cjs');
 const root = path.resolve(import.meta.dirname, '../..');
 const raw = fs.readFileSync(path.join(root, 'docs/tasks/t603-shots/scene603.js'), 'utf8');
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -42,6 +43,13 @@ test('Linux delegates exactly the two pinned timing spans, retaining every other
     nonTiming = nonTiming.replace(block, '');
   }
   nonTiming = nonTiming.replace(linux.ORIGINAL_VERDICT, '');
+  // T654（原 T643b）：只豁免被換掉的四條凍結精靈指紋斷言，而且新的兩條必須出現
+  for (const assertion of spr654.REPLACED_CHECKS) {
+    assert.equal(nonTiming.split(assertion).length, 2, 'T654 replaced assertion exists exactly once: ' + assertion);
+    assert.equal(built.source.includes(assertion), false, 'T654 frozen assertion is gone: ' + assertion);
+    nonTiming = nonTiming.replace(assertion, '');
+  }
+  for (const assertion of spr654.NEW_CHECKS) assert.equal(built.source.split(assertion).length, 2, 'T654 new assertion present once: ' + assertion);
   for (const assertion of nonTiming.match(/(?:check|perfCheck)\([^\n]*?\);/g)) assert(built.source.includes(assertion), assertion);
   assert.equal(built.source.split(canonical.CHROME_LAUNCH).length, 2);
   assert.equal(built.source.includes('all unchanged performance gates must pass:'), false);
