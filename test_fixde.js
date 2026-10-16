@@ -530,6 +530,8 @@ window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveS
     const images=new Map(),painted=[],objects=[];let calls=0,cycles=null,nightCalls=0,nightMasks=0;
     for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b.lot574)images.set(lotSprite574(b.k,lotV591(p.x,p.y,b),2,false,z<1).img,p.id); // T591：與繪製同一個變體
       else for(const key of Object.keys(SPR.bld))if(+key.split('_')[0]===b.k)images.set(SPR.bld[key].img,p.id);}
+    // T672：補入實際選中的單格住宅影像；仍須真的 drawImage 才計入 painted。
+    for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b&&b.k===1&&!b.ref&&!b.lot574&&(b.sz||1)===1){const s=reflectSprite(b,p.x,p.y);if(s&&s.img)images.set(s.img,p.id);}}
     try{const a=lotViewBase574(points[0].x,points[0].y,tiles[idx(points[0].x,points[0].y)].bld.sz);
       cam.x=a[0];cam.y=a[1]-tiles[idx(points[0].x,points[0].y)].bld.sz*16;cam.z=z;visT=night?100:55;weather=0;shakeT=0;zoomAnim=null;tool='pan';selTile=null;groundDirty=true;
       lotOrder574=function(items,sparse){const r=oldTopo(items,sparse);if(sparse)cycles=r.cycles574;return r;};
