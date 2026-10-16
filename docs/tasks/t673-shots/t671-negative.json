@@ -23,7 +23,15 @@
     },
     {
       "name": "missing-family-overlay-671",
-      "error": "T596 G2b 七個舊疊層（T571 錯落、T565 圍籬兩半、T422、T429、T565 派對牆、T571 街角）各恰一道 !s.__t596 閘：缺 if(!s.__t596&&!s.__t671)drawActivityPocket422("
+      "error": "T596 G2b 七個舊疊層（T571 錯落、T565 圍籬兩半、T422、T429、T565 派對牆、T571 街角）各恰一道 !s.__t596 閘：缺 (bd.age|0)>=9&&!s.__t596&&!s.__t671){ /* T571 連棟屋頂線錯落"
+    },
+    {
+      "name": "ignored-preview-671",
+      "error": "T673 G2 實際 selector 671 window-preview 預覽與逃生閥契約"
+    },
+    {
+      "name": "ignored-family-valve-671",
+      "error": "T673 G2 實際 selector 671 window-valve 預覽與逃生閥契約"
     }
   ],
   "limit": "Source checks and isolated actual-selector contracts; full game verify remains required."

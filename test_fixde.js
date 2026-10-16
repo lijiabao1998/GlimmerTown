@@ -530,6 +530,8 @@ window.__t574={read:readLots574,cap:computePower,inflate:saveInflate,shape:saveS
     const images=new Map(),painted=[],objects=[];let calls=0,cycles=null,nightCalls=0,nightMasks=0;
     for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b.lot574)images.set(lotSprite574(b.k,lotV591(p.x,p.y,b),2,false,z<1).img,p.id); // T591：與繪製同一個變體
       else for(const key of Object.keys(SPR.bld))if(+key.split('_')[0]===b.k)images.set(SPR.bld[key].img,p.id);}
+    // T672：補入實際選中的單格住宅影像；仍須真的 drawImage 才計入 painted。
+    for(const p of points){const b=tiles[idx(p.x,p.y)].bld;if(b&&b.k===1&&!b.ref&&!b.lot574&&(b.sz||1)===1){const s=reflectSprite(b,p.x,p.y);if(s&&s.img)images.set(s.img,p.id);}}
     try{const a=lotViewBase574(points[0].x,points[0].y,tiles[idx(points[0].x,points[0].y)].bld.sz);
       cam.x=a[0];cam.y=a[1]-tiles[idx(points[0].x,points[0].y)].bld.sz*16;cam.z=z;visT=night?100:55;weather=0;shakeT=0;zoomAnim=null;tool='pan';selTile=null;groundDirty=true;
       lotOrder574=function(items,sparse){const r=oldTopo(items,sparse);if(sparse)cycles=r.cycles574;return r;};
@@ -13522,6 +13524,15 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const pmiss596=pins596.filter(p=>html.split(p).length!==2);
   assert(pmiss596.length===0&&(html.match(/t596On\(\)/g)||[]).length===5+families673.length,'T596 G2d 保留五處舊呼叫（定義＋選圖、倒影、煙、頂層霓虹）及每個具名新家族的一處讓出，各處原文逐字：缺 '+pmiss596.map(p=>p.slice(0,40)).join('｜')+'；t596On() 共 '+(html.match(/t596On\(\)/g)||[]).length);
   assert(miss596.length===0&&(html.match(/!s\.__t596/g)||[]).length===7,'T596 G2b 七個舊疊層（T571 錯落、T565 圍籬兩半、T422、T429、T565 派對牆、T571 街角）各恰一道 !s.__t596 閘：缺 '+miss596.join('｜'));
+  // T673：CI 也執行實際家族 selector 的預覽／逃生閥五模式；烘圖依賴隔離，原真遊戲預覽檢查仍在上方。
+  for(const n of families673)for(const mode of ['off','window-preview','url-preview','window-valve','url-valve']){
+    const on=html.split('\n').find(l=>l.startsWith('function t'+n+'On(')),a=html.indexOf('function spr'+n+'('),b=html.indexOf('\nfunction ',a+1),selector=html.slice(a,b<0?html.length:b);
+    const probe={window:{},location:{search:mode==='url-preview'?'?T596=1':mode==='url-valve'?'?noT'+n+'=1':''},Map,Math,season:()=>0};
+    if(mode==='window-preview')probe.window.__t596=true;if(mode==='window-valve')probe.window['__noT'+n]=true;
+    probe['variant'+n]=()=>0;probe['bake'+n]=()=>({family:n});
+    const result=vm.runInNewContext(on596+'\n'+on+'\n'+selector+'\nspr'+n+'({k:1,lv:1},0,0,false);',probe);
+    assert(mode==='off'?result&&result.family===n:result===null,'T673 G2 實際 selector '+n+' '+mode+' 預覽與逃生閥契約');
+  }
   T6.reset();
 }
 
