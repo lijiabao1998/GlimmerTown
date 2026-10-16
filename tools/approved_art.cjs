@@ -6,7 +6,8 @@
    3. 標籤存在，而且指到登記的提交（標籤只是方便人找，登記的提交才是錨點；兩者不一致就紅）；
    4. 該提交的 index.html 位元組 sha256 等於登記值；
    5. 該提交是 HEAD 的祖先；
-   6. 後批規則：HEAD 裡有、批准提交裡沒有的每個 `function tNNNOn(){`，都要在 valves 登記一個 __noTNNN，
+   6. 登記的提交裡有這一批自己的 `function tNNNOn(){`（T654）；
+   7. 後批規則：HEAD 裡有、批准提交裡沒有的每個 `function tNNNOn(){`，都要在 valves 登記一個 __noTNNN，
       而且在沙箱裡打開那個閥、或網址帶 ?noTNNN=1 時，啟用函式都真的回傳假——否則台架隔離不了它、玩家也沒有退路。
       回傳這些閥，台架一律打開它們。
    T635 這類有「批准前的 main」的批次，base 用同樣的 2～5 條驗。 */
@@ -62,6 +63,8 @@ function loadApproved(root, batch) {
   const base = entry.base ? anchor(entry.base, batch + '.base') : null;
 
   const then = activations(approved.source), later = [];
+  // Codex #36 P2（T654 收）：登記的提交裡要有這一批自己的啟用函式，否則登記錯了提交（例如填成批准前的 main），後批規則會把這一批也當成「批准過的」
+  if (!then.has(batch)) fail(approved.commit + ' has no function ' + batch.toLowerCase() + 'On(){ of its own; the registered commit is not this batch');
   for (const [id, line] of activations(git('show', 'HEAD:index.html').toString('utf8'))) {
     if (then.has(id)) continue;
     const valve = reg.valves && reg.valves[id];

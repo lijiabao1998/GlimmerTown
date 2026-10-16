@@ -36,7 +36,7 @@
 | #36 | P2 | tools/approved_art.cjs:65 | 照改（#36 內）：網址 ?noTNNN=1 也要關得掉 |
 | #36 | P2 | tools/approved_art.cjs:68 | 照改（#36 內）：閥名必須是 __no 加自己的批次號 |
 | #36 | P2 | tools/approved_art.cjs:46 | 照改（#36 內）：--check-all，validate 驗登記冊裡每一批 |
-| #36 | P2 | tools/approved_art.cjs:61 | → T643b：anchor() 要求批准提交裡有 t<NNN>On（目前兩筆登記都對得上，新增登記才會遇到） |
+| #36 | P2 | tools/approved_art.cjs:61 | T654（原 T643b）已收：登記的提交裡沒有自己那一批的 `tNNNOn` 就紅，單元測試一條。原登記：anchor() 要求批准提交裡有 t<NNN>On（目前兩筆登記都對得上，新增登記才會遇到） |
 | #37 | P1 | tools/pages/frame-compare.cjs:40 | 照改 b26a88b：非美術卡（families=無）畫面變了就紅，owner_ok 有字也不算 |
 | #37 | P1 | tools/pages/frame-compare.cjs:46 | 照改 b26a88b：美術卡畫面變了而 valve 沒寫 → no-valve 紅 |
 | #37 | P1 | tools/pages/frame-compare.cjs:68 | 意見 4282650261：照改：每個場景加高畫質（quality=2）晝夜各一幀 |

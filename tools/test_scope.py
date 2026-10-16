@@ -167,6 +167,15 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(g([('M', 'docs/SPR_PINS.json'), ('M', 'docs/APPROVED_ART.json'), ('M', 'AGENTS.md'), ('A', '.github/x.yml'), ('M', 'index.html')]),
                          ['docs/SPR_PINS.json', 'docs/APPROVED_ART.json', 'AGENTS.md', '.github/x.yml'])
 
+    def test_gpt_committing_spr_pins_stays_red_until_t653(self):
+        # T654 對抗審查：gpt/ 可以在一張已核准的舊卡卡身加一行，借它的 families／owner_ok 改 SPR 並提交重烘、全綠。
+        # owner_ok 出處規則做好之前（T653），gpt/ 提交 SPR_PINS 照舊越道；claude/ 不受限
+        self.r.branch('gpt/a'); self.r.write('docs/tasks/T641-x.md', card(641))
+        self.r.write('docs/SPR_PINS.json', '{"park/0":[1]}\n'); self.r.write('index.html', 'v2\n'); self.r.commit('art')
+        res = self.r.run(ref='gpt/a')
+        self.assertEqual(self.rules(res), ['gpt-lane']); self.assertEqual(res['violations'][0]['path'], 'docs/SPR_PINS.json')
+        self.assertTrue(self.r.run(ref='claude/a')['ok'])
+
     # ---------- T647 核准美術登記冊 ----------
 
     def registry(self, approved, valves=None):
