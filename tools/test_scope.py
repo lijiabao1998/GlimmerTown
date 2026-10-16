@@ -165,16 +165,16 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(g([('A', 'docs/tasks/t641-shots/a.js')], own={'t641'}), [])
         self.assertEqual(g([('A', 'docs/tasks/t641-shots/a.js')], own={'t642'}), ['docs/tasks/t641-shots/a.js'])
         self.assertEqual(g([('M', 'docs/SPR_PINS.json'), ('M', 'docs/APPROVED_ART.json'), ('M', 'AGENTS.md'), ('A', '.github/x.yml'), ('M', 'index.html')]),
-                         ['docs/SPR_PINS.json', 'docs/APPROVED_ART.json', 'AGENTS.md', '.github/x.yml'])
+                         ['AGENTS.md', '.github/x.yml'], 'T653：SPR_PINS 與登記冊不再是路徑越道（登記冊的 approved 由 gpt_registry_problem 判）')
 
-    def test_gpt_committing_spr_pins_stays_red_until_t653(self):
-        # T654 對抗審查：gpt/ 可以在一張已核准的舊卡卡身加一行，借它的 families／owner_ok 改 SPR 並提交重烘、全綠。
-        # owner_ok 出處規則做好之前（T653），gpt/ 提交 SPR_PINS 照舊越道；claude/ 不受限
+    def test_gpt_may_commit_spr_pins(self):
+        # T653（業主 2026-10-16「gpt main 改 main 做就行」）：gpt/ 提交 CI 重烘的 SPR_PINS 不算越道；等不等於實算、家族與 owner_ok 由 fp 查。
+        # T654 審查找到的「借舊卡 owner_ok」風險業主選擇接受（卡面寫明），巡檢把 owner_ok 原話列給業主看
         self.r.branch('gpt/a'); self.r.write('docs/tasks/T641-x.md', card(641))
         self.r.write('docs/SPR_PINS.json', '{"park/0":[1]}\n'); self.r.write('index.html', 'v2\n'); self.r.commit('art')
-        res = self.r.run(ref='gpt/a')
-        self.assertEqual(self.rules(res), ['gpt-lane']); self.assertEqual(res['violations'][0]['path'], 'docs/SPR_PINS.json')
-        self.assertTrue(self.r.run(ref='claude/a')['ok'])
+        self.assertTrue(self.r.run(ref='gpt/a')['ok'])
+        self.r.write('tools/fp_diff.py', 'x\n'); self.r.commit('guard')
+        self.assertEqual(self.rules(self.r.run(ref='gpt/a')), ['gpt-lane'], '守衛照擋')
 
     # ---------- T647 核准美術登記冊 ----------
 
@@ -220,12 +220,45 @@ class ScopeTests(unittest.TestCase):
         self.r.write('docs/APPROVED_ART.json', '{"approved":\n'); self.r.commit('broken')
         self.assertEqual(self.rules(self.r.run()), ['approved-registry'])
 
-    def test_gpt_touching_the_registry_is_red(self):
+    def test_gpt_may_register_a_valve(self):
+        # T653：gpt/ 只准改登記冊的 valves 一節——新美術批次登記自己的閥（原本整檔算越道，GPT 的美術 PR 一定紅）
         self.registry_on_main(); self.r.branch('gpt/a')
         self.r.write('docs/APPROVED_ART.json', self.registry(self.REG_T635, {'T635': '__noT635', 'T699': '__noT699'}))
         self.r.write('docs/tasks/T647-x.md', card(647)); self.r.commit('gpt valve')
+        self.assertTrue(self.r.run(ref='gpt/a')['ok'])
+
+    def test_gpt_changing_approved_or_other_sections_is_red(self):
+        # approved 是業主批准的批次與發佈台架的錨點：gpt/ 改它，就算卡頭 owner_ok 有字也算越道；同一提交在 claude/ 綠
+        self.registry_on_main(); self.r.branch('gpt/a')
+        moved = {'T635': dict(self.REG_T635['T635'], commit='e' * 40)}
+        self.r.write('docs/APPROVED_ART.json', self.registry(moved)); self.r.write('docs/tasks/T647-x.md', card(647, o='批准（2026-10-16）')); self.r.commit('re-point')
         res = self.r.run(ref='gpt/a')
-        self.assertEqual(self.rules(res), ['gpt-lane']); self.assertEqual(res['violations'][0]['path'], 'docs/APPROVED_ART.json')
+        self.assertEqual(self.rules(res), ['gpt-lane']); self.assertIn('approved', res['violations'][0]['detail'])
+        self.assertTrue(self.r.run(ref='claude/a')['ok'])
+
+    def test_gpt_registry_problem_pure_function(self):
+        import json, scope
+        base = json.dumps({'schema': 1, 'approved': {'T635': {'commit': 'c'}}, 'valves': {'T635': '__noT635'}})
+        same = lambda **o: json.dumps({**json.loads(base), **o})
+        self.assertIsNone(scope.gpt_registry_problem(base, same(valves={'T635': '__noT635', 'T699': '__noT699'})))
+        self.assertIsNone(scope.gpt_registry_problem(base, same(valves={})), 'valves 一節可以刪改（閥的正確性由 approved_art 的後批規則查）')
+        self.assertIn('approved', scope.gpt_registry_problem(base, same(approved={})))
+        self.assertIn('schema', scope.gpt_registry_problem(base, same(schema=True)), 'True 與 1 不能算相同')
+        self.assertIn('note', scope.gpt_registry_problem(base, same(note='x')))
+        self.assertEqual(scope.gpt_registry_problem(None, base), '建立登記冊')
+        self.assertEqual(scope.gpt_registry_problem(base, None), '刪掉登記冊')
+        self.assertIn('無法解析', scope.gpt_registry_problem(base, '{'))
+        self.assertEqual(scope.gpt_registry_problem(base, '[]'), '登記冊頂層不是物件')
+
+    def test_gpt_pure_revert_cannot_wash_an_approved_change(self):
+        # 純 revert 免卡面規則，但 gpt/ 改 approved 照樣越道（檢查在清空 v 之後）
+        self.registry_on_main()
+        self.r.branch('claude/pt'); moved = {'T635': dict(self.REG_T635['T635'], commit='e' * 40)}
+        self.r.write('docs/APPROVED_ART.json', self.registry(moved)); self.r.write('docs/tasks/T647-x.md', card(647, o='批准（2026-10-16）')); bad = self.r.commit('approved move')
+        self.r.git('checkout', '-q', 'main'); self.r.git('merge', '-q', '--no-ff', 'claude/pt', '-m', 'merge')
+        self.r.git('checkout', '-q', '-b', 'gpt/revert'); self.r.git('revert', '--no-edit', '-m', '1', 'HEAD')
+        res = self.r.run(base='main', ref='gpt/revert')
+        self.assertTrue(res['revert_of']); self.assertEqual(self.rules(res), ['gpt-lane'])
 
     def test_hardcoded_sha_in_guard_code(self):
         sha = 'a' * 7 + '1234567890abcdef1234567890abcdef1'
@@ -306,6 +339,19 @@ class ScopeTests(unittest.TestCase):
         self.r.git('checkout', '-q', '-b', 'gpt/revert'); self.r.git('revert', '--no-edit', bad)
         res = self.r.run(base='main', ref='gpt/revert')
         self.assertEqual(res['revert_of'], bad); self.assertEqual(self.rules(res), ['gpt-lane'])
+
+    def test_gpt_can_revert_its_own_wave(self):
+        # T653 審查：GPT 的一波（自己的卡、自己的台架目錄、test_fixde 只新增）合進 main 把 main 弄紅，AGENTS 要它先開純 revert。
+        # 原本 revert 的 diff 會把「刪自己的台架目錄、拿掉自己加的斷言」判成越道，main 一直紅到 Claude 來（違反 T650 revert 道永遠開著）
+        self.r.write('test_fixde.js', 'assert(1);\n'); self.r.commit('base asserts')
+        self.r.git('checkout', '-q', '-b', 'gpt/w1')
+        self.r.write('docs/tasks/T670-wave.md', card(670)); self.r.write('docs/tasks/t670-shots/contact.png', 'png\n')
+        self.r.write('test_fixde.js', 'assert(1);\nassert(670);\n'); self.r.write('index.html', 'v2\n'); self.r.commit('wave 1')
+        self.assertTrue(self.r.run(ref='gpt/w1')['ok'], '這一波本身可以從 gpt/ 落地')
+        self.r.git('checkout', '-q', 'main'); self.r.git('merge', '-q', '--no-ff', 'gpt/w1', '-m', 'merge wave 1')
+        self.r.git('checkout', '-q', '-b', 'gpt/revert-670'); self.r.git('revert', '--no-edit', '-m', '1', 'HEAD')
+        res = self.r.run(base='main', ref='gpt/revert-670')
+        self.assertTrue(res['revert_of']); self.assertTrue(res['ok'], res['violations'])
 
     def test_removed_asserts_reported(self):
         self.r.branch('claude/a'); self.r.write('docs/tasks/T641-x.md', card(641, r='2')); self.r.write('test_fixde.js', 'assert(1);\n'); self.r.commit('x')

@@ -24,6 +24,8 @@
 1. **`tools/scope.py`**：gpt/ 越道只擋守衛。
    - 照擋：`.github/`、`tools/`、規則檔、`test_fixde.js` 刪改既有行、別張卡的 `docs/tasks/t*-shots/`（裡面是台架程式）。
    - 拿掉：`docs/SPR_PINS.json`、`docs/APPROVED_ART.json`。
+   - gpt/ 的純 revert 查被撤提交自己的正向 diff（審查修正 2）。
+   - 巡檢（session_audit）同步，含登記冊只准改 valves（審查修正 5）。
    - 但 gpt/ 改登記冊的 `approved` 一節（業主批准的批次與錨點）照樣算越道；`valves` 一節可以改。
    - `gpt_lane()` 純函式同步（巡檢共用）；docstring 同步。
 2. **`docs/GPT-方向.md`（新）**：主線版方向檔，照實驗線的格式：開關、方向（業主原話逐字）、待辦、卡住、已完成。GPT 卡號保留 T670–T699，避免和 Claude 撞號。
@@ -39,7 +41,9 @@
 
 ## 範圍外
 
-- GitHub 設定（App、必要檢查、bypass）一律不動。現況：require-gate 規則集對 ChatGPT Codex Connector 是 Always allow（COLLAB §規則集），GPT 經連接器合併在技術上可以不等 gate。這條守不住的是自律，寫進 AGENTS，不改設定。
+- GitHub 設定（App、必要檢查、bypass）一律不動。現況（2026-10-16 用 `gh api .../rulesets/<id>` 實查）：
+  - require-gate 沒有繞過者，gate 紅誰都合不進 main；
+  - protect-main 對 Codex 連接器（Integration 1144995）是 Always allow（COLLAB 規則集表），GPT 技術上可以不經 PR 直推 main。這條守不住的是自律，寫進 AGENTS，不改設定。
 - 美術核准改成 PR 留言、owner_ok 出處驗證：不做，業主選擇信任。
 - T655（整幀比對後續）。
 
@@ -81,6 +85,25 @@
 
 ## 施工紀錄
 
-（施工後補）
+- **scope**：`gpt_lane()` 拿掉 SPR_PINS 與登記冊兩條；新純函式 `gpt_registry_problem(bt, ht)` 只准改 `valves`（建立、刪除、解析失敗、頂層不是物件、改其他頂層鍵都算越道，用排序 JSON 比，`True` 不等於 `1`）。檢查放在純 revert 清空之後。
+- **方向檔、AGENTS 新節、標準 §3.2、HANDOFF 作廢說明、補登 Codex #41 P1**：照「做什麼」。
+- 實查規則集（`gh api .../rulesets/<id>`）：require-gate 沒有繞過者；protect-main 對 Codex 連接器 Always allow。AGENTS 原本寫「規則集對連接器開了繞過、不准拿來合紅的 PR」不準確，改成「gate 紅本來就合不進去；protect-main 的繞過（不經 PR 直推）GPT 不准用」。
+- **施工前對抗審查**（工作流 3 面向、每條再派人反駁，12 個代理）：成立 7 條（去重 6 件），全修；駁回 1 條。
+  1. P1 撞號：第一波等業主時先做第二波，第二波只看 main，會拿到同一個卡號、做同一個待辦項（審查者用 scope 實際模擬出撞號紅）。
+     改成卡號要看 main 加每一條 `origin/gpt/*` 分支；PR 標題寫 `T6xx［待辦 N］`，下一波跳過開著的 PR 正在做的項。
+  2. P1 GPT 撤不了自己那一波：照 AGENTS 開純 revert，scope 會把刪自己的台架目錄、拿掉自己加的 test_fixde 行判成越道，main 一直紅到 Claude 來（違反 T650）。
+     改成 gpt/ 的純 revert 查被撤提交自己的正向 diff（問「當初能不能從 gpt/ 落地」）。撤別人的守衛或 approved 改動照紅（既有兩條測試照過），補單元一條。
+  3. P1 標準 §1.6、§3.1、§3.3、§8 與 AGENTS 第 24 行還寫「美術要業主點頭」：照字面 GPT 第二波起永遠不敢自己合。
+     各處加 T653 例外；新節開頭寫明「本節是標準對美術『業主點頭』的業主授權例外」。
+  4. P1 第二波可能在第一波被業主看到之前就合併上線：改成第二波可以先做到 CI 綠，但第一波合併之前不合；業主對第一波的意見也套到第二波。
+  5. P2 巡檢不再查 gpt/ 改登記冊 `approved`：補上 `registry_pair()`，比照 CI 拿合併提交的第一個父提交和合併提交比，補單元一條。
+  6. P2 T639 總綱還寫「待辦空了就停、GPT 不自己出題」：T639 不改；AGENTS 必讀清單那一行註明「GPT 怎麼跑以 T653 一節為準，T639 那兩句與 T649 不再適用」。
+  - 駁回：「照自然方式給既有種類加款式會撞發佈台架紅」——台架事實正確，但 GPT 照新節做（新批次 tNNNOn＋登記閥，台架會關掉它）就不會撞上。
+- 單元：test_scope 38 條、test_session_audit 35 條；工具鏈 176 條；verify.py ALL GREEN。
+- 突變 14 個全殺：
+  - gpt 改 approved 不擋、登記冊檢查整段拿掉、只比 approved、用 == 比、建立放行、刪除放行；
+  - SPR_PINS 又算越道、登記冊又整檔算越道（scope 與巡檢各一）、守衛不擋；
+  - gpt 純 revert 改回查反向 diff、純 revert 不認被撤的卡；
+  - 巡檢不查登記冊、巡檢比錯父提交。
 
 **聲明**：Claude 出卡＝施工同一方，未經第三方覆核，如實聲明。
