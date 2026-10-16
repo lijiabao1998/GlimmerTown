@@ -41,4 +41,5 @@
 - 原生 Canvas：50態通過、10個不同輪廓、閥與兩個針對性反例通過。這不代替 Chrome。
 - 助手 cloud CUA 對此 native workspace 的 localhost 連線被拒；它不是使用者電腦。
 - 此 native workspace 啟動 Chromium 失敗：必要的 process_singleton socket 返回 Operation not permitted；普通與一次正式提升權限嘗試相同。已停本機重試，不能聲稱 Chrome 驗收。
-- 本 head GitHub Chrome/FP/frame、全部模型真瀏覽器畫面、native-acceptance、第一波展示／等待與合併尚未完成。CI 原件指紋尚未取得，不手改基線。
+- head efd61c55：完整原 verify ALL GREEN，12,681 PASS、6 種子哨兵恆等；scope 本機與 CI 綠。
+- 本 head GitHub Chrome/FP/frame、全部模型真瀏覽器畫面、native-acceptance、第一波展示／等待與合併尚未完成。CI fp 原件已取得並原封複製：run 38888025201、artifact 12040398240；SPR 相同，ART 只增加 art670 50 鍵，其餘零變更。
