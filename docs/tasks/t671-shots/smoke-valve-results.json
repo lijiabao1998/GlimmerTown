@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "negative": [
+    {
+      "mutation": "missing-tag",
+      "reason": "family emission tagged"
+    },
+    {
+      "mutation": "missing-draw-filter",
+      "reason": "paused close immediately suppresses existing family particle"
+    },
+    {
+      "mutation": "missing-purge",
+      "reason": "closed valve purges only family particles"
+    }
+  ],
+  "limit": "Actual source hooks with isolated particle inputs; not full game/browser performance acceptance."
+}
