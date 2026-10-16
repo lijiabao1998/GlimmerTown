@@ -120,8 +120,11 @@ def registry_pair(api, repo, merge_sha):
             return None
         try:
             got = api.get('repos/%s/contents/%s?ref=%s' % (repo, scope.REGISTRY, rev))
-        except (RuntimeError, KeyError):  # 404：這個版本沒有登記冊
-            return None
+        except RuntimeError as e:
+            if 'HTTP 404' in str(e):  # 這個版本沒有登記冊
+                return None
+            raise  # Codex #42 P2：其他失敗（暫時錯誤、限流）不准當成「沒有」，否則檢查會悄悄跳過
+
         return base64.b64decode(got['content']).decode('utf-8') if got and got.get('content') else None
     parents = ((api.get('repos/%s/commits/%s' % (repo, merge_sha)) or {}).get('parents') or []) if merge_sha else []
     return text(parents[0]['sha'] if parents else None), text(merge_sha)

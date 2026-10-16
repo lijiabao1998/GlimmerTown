@@ -382,6 +382,20 @@ class AuditTests(unittest.TestCase):
         r = self.registry_merge(base, dict(base, approved={'T635': {'commit': 'e'}}))
         self.assertEqual(kinds(r), ['gpt-lane']); self.assertIn('approved', r['flags'][0]['detail'])
 
+    def test_registry_pair_only_swallows_a_real_404(self):
+        # Codex #42 P2：讀登記冊時只有「這個版本沒有檔案」（gh 回 HTTP 404）才當成沒有；暫時錯誤、限流要往外丟，不能讓檢查悄悄跳過
+        class Raising:
+            def __init__(self, msg): self.msg = msg
+            def get(self, path, paginate=False):
+                if '/commits/' in path:
+                    return {'parents': [{'sha': 'p'}]}
+                raise RuntimeError('gh api %s：%s' % (path, self.msg))
+        self.assertEqual(sa.registry_pair(Raising('gh: Not Found (HTTP 404)'), R, 'm'), (None, None))
+        with self.assertRaises(RuntimeError):
+            sa.registry_pair(Raising('gh: API rate limit exceeded (HTTP 403)'), R, 'm')
+        with self.assertRaises(RuntimeError):
+            sa.registry_pair(Raising('gh: Bad Gateway (HTTP 502)'), R, 'm')
+
     def test_api_files_matches_scope_changed_shape(self):
         out, deleted = sa.api_files([
             {'filename': 'b.js', 'previous_filename': 'a.js', 'status': 'renamed', 'deletions': 2},
