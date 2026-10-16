@@ -124,6 +124,33 @@ def is_pure_revert(repo, base, head, depth=60):
     return None
 
 
+def gpt_lane(files, own_cards, deleted_lines):
+    """gpt/ 越道的完整判定，scope 與開工巡檢（session_audit）共用這一份（T656；Codex #29 P2：巡檢原本只粗查守衛與規則檔）。
+    files：[(status, path)]，改名已拆成刪除＋新增；own_cards：本 PR 新增的卡的小寫卡號，例如 {'t641'}；
+    deleted_lines(path)：該檔刪改了幾行，二進位或不知道回 None。回傳 [(path, 理由)]。"""
+    out = []
+    for st, p in files:
+        why = None
+        if p.startswith(GUARD_PREFIXES):
+            why = '守衛／工作流路徑'
+        elif p in RULE_FILES:
+            why = '規則檔'
+        elif p == 'docs/SPR_PINS.json':
+            why = '像素指紋基線'
+        elif p == REGISTRY:
+            why = '核准美術登記冊'
+        elif p == 'test_fixde.js' and st != 'A':
+            if st == 'D' or deleted_lines(p) not in (0, None):
+                why = '既有斷言被刪改（只准新增行）'
+        else:
+            m = SHOTS_RE.match(p)
+            if m and m.group(1) not in own_cards:
+                why = '不屬於本卡的證據／台架目錄'
+        if why:
+            out.append((p, why))
+    return out
+
+
 def card_history(repo, base, head, path):
     """範圍內碰過這張卡的提交（舊到新）。"""
     return git(repo, 'log', '--format=%H', '--reverse', '%s..%s' % (base, head), '--', path).split()
@@ -214,27 +241,11 @@ def analyse(repo, base, head, head_ref=''):
 
     # gpt/ 越道
     if head_ref.startswith('gpt/'):
-        own = {'t' + c['num'] for c in added_cards}
-        for st, p in files:
-            why = None
-            if p.startswith(GUARD_PREFIXES):
-                why = '守衛／工作流路徑'
-            elif p in RULE_FILES:
-                why = '規則檔'
-            elif p == 'docs/SPR_PINS.json':
-                why = '像素指紋基線'
-            elif p == REGISTRY:
-                why = '核准美術登記冊'
-            elif p == 'test_fixde.js' and st != 'A':
-                ns = git(repo, 'diff', '--numstat', base, head, '--', p).split()
-                if ns and ns[1] not in ('0', '-'):
-                    why = '既有斷言被刪改（只准新增行）'
-            else:
-                m = SHOTS_RE.match(p)
-                if m and m.group(1) not in own:
-                    why = '不屬於本卡的證據／台架目錄'
-            if why:
-                v.append({'rule': 'gpt-lane', 'path': p, 'detail': why + '：gpt/ 分支不准動，交 main 寫入者'})
+        def deleted(p):
+            ns = git(repo, 'diff', '--numstat', base, head, '--', p).split()
+            return int(ns[1]) if ns and ns[1] != '-' else None
+        for p, why in gpt_lane(files, {'t' + c['num'] for c in added_cards}, deleted):
+            v.append({'rule': 'gpt-lane', 'path': p, 'detail': why + '：gpt/ 分支不准動，交 main 寫入者'})
 
     # 守衛程式新寫死的提交 SHA
     for st, p in files:

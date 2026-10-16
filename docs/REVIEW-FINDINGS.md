@@ -1,6 +1,6 @@
 # 審查發現帳（T642）
 
-合併前到的 Codex P0／P1，在 PR 上一行回覆（修了附 commit，不修寫理由）就好；沒回覆的會被開工巡檢（`tools/session_audit.py`）列出，登記在這裡。每條一行，不展開——發現帳本身不准長成新的儀式。
+合併前到的 Codex P0／P1，在 PR 上一行回覆（修了附 commit，不修寫理由）就好；沒回覆的會被開工巡檢（`tools/session_audit.py`）列出，登記在這裡。每條一行，不展開——發現帳本身不准長成新的儀式。 T656 起新登記在處置欄寫「意見 <ID>」（巡檢的未登記訊息會附上 ID）：寫了 ID 就只認 ID；沒寫 ID 的舊行只有在同一 PR、同一位置恰好一條 P0／P1 時才算。
 
 | PR | 等級 | 位置 | 處置 |
 |---|---|---|---|
@@ -27,8 +27,8 @@
 | #29 | P1 | tools/session_audit.py:130 | 照改（T641 工作流缺口）：dispatch 時 scope 用 ref_name、gate 一律紅；premerge／巡檢只認 pull_request 那一輪的 gate |
 | #29 | P1 | tools/session_audit.py:102 | 照改：gate 那一輪的 head_branch 必須是這個 PR 的分支（同一提交多個 PR 時不互蓋） |
 | #29 | P1 | tools/session_audit.py:105 | 照改（只在 premerge）：gate 那一輪的 pull_requests 要含這個 PR 號；分支自動刪除後該欄會變空，巡檢只比分支名 |
-| #29 | P2 | tools/session_audit.py:79 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
-| #29 | P2 | tools/session_audit.py:177 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
+| #29 | P2 | tools/session_audit.py:79 | T656（原 T642b）已收：登記認意見 ID，沒 ID 的舊行在同位置多條時不算。原登記：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
+| #29 | P2 | tools/session_audit.py:177 | T656（原 T642b）已收：巡檢改呼叫 scope.gpt_lane 同一份判定。原登記：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
 | #32 | P1 | tools/landing_gates.py:69 | 照改（在 #33 落地）：CHANGELOG-CORRECTION 的卡號改成完整詞比對，T425A 不再放行 T425；merge_bay 共用一起收緊 |
 | #33 | P2 | tools/landing_gates.py:80 | 不改：宣告粒度是卡號不是條目（T433 R02 原意）；#18 用一行 T634 改寫七條是合法前例，逐條計數會讓它變紅（PR 上已回覆） |
 | #36 | P2 | .github/workflows/town-main-pages-candidate.yml:116 | 不成立：那一步開頭就是 set -o pipefail（T644 守衛也會擋），PR 上已回覆 |
@@ -39,8 +39,8 @@
 | #36 | P2 | tools/approved_art.cjs:61 | T654（原 T643b）已收：登記的提交裡沒有自己那一批的 `tNNNOn` 就紅，單元測試一條。原登記：anchor() 要求批准提交裡有 t<NNN>On（目前兩筆登記都對得上，新增登記才會遇到） |
 | #37 | P1 | tools/pages/frame-compare.cjs:40 | 照改 b26a88b：非美術卡（families=無）畫面變了就紅，owner_ok 有字也不算 |
 | #37 | P1 | tools/pages/frame-compare.cjs:46 | 照改 b26a88b：美術卡畫面變了而 valve 沒寫 → no-valve 紅 |
-| #37 | P1 | tools/pages/frame-compare.cjs:68 | 照改：每個場景加高畫質（quality=2）晝夜各一幀 |
-| #37 | P1 | tools/pages/frame-compare.cjs:150 | 照改：加春天與沒積雪的冬天 |
+| #37 | P1 | tools/pages/frame-compare.cjs:68 | 意見 4282650261：照改：每個場景加高畫質（quality=2）晝夜各一幀 |
+| #37 | P1 | tools/pages/frame-compare.cjs:150 | 意見 4282650267：照改：加春天與沒積雪的冬天 |
 | #37 | P1 | tools/pages/frame-compare.cjs:51 | → T648b：宣告的美術不在任何場景時目前只警告。要改紅，得先讓陣列從遊戲資料自動列出所有建築款式（base 與 head 取聯集、各頁只放自己認得的），否則新建築在自己的 PR 永遠進不了 base 的場景、會卡死；fp／ART_PINS 仍逐張釘住它的像素 |
-| #37 | P1 | tools/pages/frame-compare.cjs:68 | → T648b：要有一幀決定性的懸停／選取建築（前景淡出）；業主 2026-10-15 選擇收尾，PR 上已回覆 |
+| #37 | P1 | tools/pages/frame-compare.cjs:68 | 意見 4282884938：→ T648b：要有一幀決定性的懸停／選取建築（前景淡出）；業主 2026-10-15 選擇收尾，PR 上已回覆 |
 | #37 | P1 | tools/pages/frame-compare.cjs:136 | → T648b：存檔夾具改從 base 讀（和工具取自 base 同理）；業主 2026-10-15 選擇收尾，PR 上已回覆 |
