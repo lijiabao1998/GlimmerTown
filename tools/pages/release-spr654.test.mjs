@@ -86,48 +86,10 @@ test('committedChanges is the same algorithm as the injected COMMITTED snippet (
   }
 });
 
-// release635 第 66 行：base＝7ad6931 實算，release＝後批閥全關的實算，prev／head＝兩份提交檔
-const base = { 'park/0': ['a1'], 'fire/0': ['b2'], 'bld/1': ['c4'] };
-test('release635: nothing declared and nothing changed is green', () => {
-  assert.deepEqual(spr.releaseSprCheck(base, base, base, base), { declared: [], stray: [], wrong: [] });
-});
-
-test('release635: a declared change without a valve (release == HEAD file) is green', () => {
-  const head = { ...base, 'park/0': ['ff'] };
-  const r = spr.releaseSprCheck(base, head, base, head);
-  assert.deepEqual([r.declared, r.stray, r.wrong], [['park/0'], [], []]);
-});
-
-test('release635: a declared change hidden by a closed later valve (release == base) is green (T654 review P1)', () => {
-  const head = { ...base, 'park/0': ['ff'], 'art660/0': ['n1'] };
-  const r = spr.releaseSprCheck(base, base, base, head);
-  assert.deepEqual([r.declared.sort(), r.stray, r.wrong], [['art660/0', 'park/0'], [], []]);
-});
-
-test('release635: a declared key that is neither the HEAD file nor base is red', () => {
-  const head = { ...base, 'park/0': ['ff'] };
-  assert.deepEqual(spr.releaseSprCheck(base, { ...base, 'park/0': ['ee'] }, base, head).wrong, ['park/0']);
-});
-
-test('release635: an undeclared change, added key or removed key is red', () => {
-  assert.deepEqual(spr.releaseSprCheck(base, { ...base, 'fire/0': ['zz'] }, base, base).stray, ['fire/0']);
-  assert.deepEqual(spr.releaseSprCheck(base, { ...base, 'new/0': ['1'] }, base, base).stray, ['new/0']);
-  const removed = { ...base }; delete removed['bld/1'];
-  assert.deepEqual(spr.releaseSprCheck(base, removed, base, base).stray, ['bld/1']);
-  // 宣告了 park 不代表別的家族也能動
-  const head = { ...base, 'park/0': ['ff'] };
-  assert.deepEqual(spr.releaseSprCheck(base, { ...head, 'fire/0': ['zz'] }, base, head).stray, ['fire/0']);
-});
-
-test('release635 really calls releaseSprCheck and no longer freezes every key', () => {
+// release635 第 66 行不放寬（Codex #40 P1）：後批閥全關時，合規的 SPR 美術一定還原成 7ad6931，逐鍵相等正是「閥能還原精靈」的證明
+test('release635 keeps the strict all-keys equality with the pre-approval main', () => {
   const src = fs.readFileSync(new URL('../../docs/tasks/t635-shots/release635.cjs', import.meta.url), 'utf8');
-  assert.equal(src.includes("assert.deepEqual(pins.release,pins.base"), false);
-  assert.equal(src.split("require('../../../tools/pages/release-spr654.cjs')").length, 2);
-  assert.equal(src.split('spr654.releaseSprCheck(pins.base,pins.release,').length, 2);
-  assert(src.includes('need(!r654.stray.length,') && src.includes('need(!r654.wrong.length,'));
-  assert(src.includes("assert.deepEqual(pins.approved,pins.base)"), 'approved == base stays');
-});
-
-test('sprPinsOf drops __meta and keeps every key', () => {
-  assert.deepEqual(spr.sprPinsOf('{"__meta":{"count":2},"a/0":["1"],"b/":["2","3"]}'), { 'a/0': ['1'], 'b/': ['2', '3'] });
+  assert.equal(src.split("assert.deepEqual(pins.release,pins.base,'all 1586 inherited atlas pixels');").length, 2);
+  assert.equal(src.includes('release-spr654'), false, 'release635 does not use the T654 relaxation');
+  assert.equal(spr.releaseSprCheck, undefined, 'the withdrawn either-value rule is gone');
 });

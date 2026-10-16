@@ -35,21 +35,8 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 function committedChanges(previousFile, currentFile) {
   return [...new Set([...Object.keys(previousFile), ...Object.keys(currentFile)])].filter(k => !same(previousFile[k], currentFile[k]));
 }
-function sprPinsOf(text) {
-  const d = JSON.parse(text); delete d.__meta; return d;
-}
+/* release635 第 66 行（pins.release 逐鍵等於 7ad6931）不放寬（Codex #40 P1）：release 開機時台架把比 T635 晚的批次閥全關，
+   照規矩掛 tNNNOn 閥的 SPR 美術在那裡一定還原成 7ad6931——原本的斷言不會擋合規美術，它擋的正是「閥漏關或沒掛閥」。
+   第一版曾讓宣告的鍵等於 HEAD 提交檔也算對，等於拿掉了「閥能還原精靈」唯一的證明，已撤回。 */
 
-/* release635 第 66 行用（T654）：原本 pins.release 必須逐鍵等於 7ad6931。
-   release 開機時台架把比 T635 晚的批次閥全關（ART.valves），被登記閥擋住的改圖在這裡會還原成 7ad6931 的值；
-   沒有閥擋的改圖則等於 HEAD 的提交檔（fp 在閥全開時實算、要求提交檔等於實算）。所以：
-   - 兩份提交檔有差異的鍵（declared）：等於 HEAD 提交檔或等於 7ad6931 都算對，兩個都不是就紅；
-   - 其餘的鍵（stray）：照舊逐鍵等於 7ad6931。
-   審查（T654 對抗審查 P1）：只認 HEAD 提交檔會讓照規矩用 tNNNOn 閥的 SPR 美術 PR 永遠紅。 */
-function releaseSprCheck(base, release, previousFile, headFile) {
-  const declared = committedChanges(previousFile, headFile);
-  const stray = [...new Set([...Object.keys(base), ...Object.keys(release)])].filter(k => !declared.includes(k) && !same(base[k], release[k]));
-  const wrong = declared.filter(k => !same(release[k], headFile[k]) && !same(release[k], base[k]));
-  return { declared, stray, wrong };
-}
-
-module.exports = { LOCK_297, LOCK_307, REPLACED_CHECKS, NEW_CHECKS, COMMITTED, install, committedChanges, sprPinsOf, releaseSprCheck };
+module.exports = { LOCK_297, LOCK_307, REPLACED_CHECKS, NEW_CHECKS, COMMITTED, install, committedChanges };
