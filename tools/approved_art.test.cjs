@@ -84,6 +84,20 @@ test('approved commit that is not an ancestor of HEAD is red', () => {
   } finally { r.close(); }
 });
 
+test("a registered commit without the batch's own activation is red (Codex #36 P2, T654)", () => {
+  const r = repo();
+  try {
+    r.write('index.html', '<script>\n</script>\n');
+    const pre = r.commit('main before the art landed');
+    const sha = crypto.createHash('sha256').update(fs.readFileSync(path.join(r.dir, 'index.html'))).digest('hex');
+    r.git('tag', '-a', 'approved/t634', pre, '-m', 'wrong commit');
+    r.write('index.html', '<script>\n' + OLD + '</script>\n');
+    r.write('docs/APPROVED_ART.json', JSON.stringify({schema: 1, approved: {T634: {tag: 'approved/t634', commit: pre, index_sha256: sha}}, valves: {}}) + '\n');
+    r.commit('art and registry');
+    assert.throws(() => loadApproved(r.dir, 'T634'), /T647 T634: [0-9a-f]{40} has no function t634On\(\)\{ of its own/);
+  } finally { r.close(); }
+});
+
 test('later batch without a registered valve is red', () => red({later: T635}, /later batch T635 has no escape valve registered/));
 
 test('later batch whose activation ignores its valve is red', () =>

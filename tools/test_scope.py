@@ -154,6 +154,14 @@ class ScopeTests(unittest.TestCase):
         res = self.r.run(ref='gpt/a')
         self.assertEqual(sorted(x['path'] for x in res['violations']), ['AGENTS.md', 'docs/tasks/t635-shots/release635.cjs'])
 
+    def test_gpt_may_commit_spr_pins(self):
+        # T654：gpt/ 改像素時一起提交重烘的 SPR_PINS 不算越道；等不等於實算、家族與 owner_ok 由 CI 的 fp 查
+        self.r.branch('gpt/a'); self.r.write('docs/tasks/T641-x.md', card(641))
+        self.r.write('docs/SPR_PINS.json', '{"park/0":[1]}\n'); self.r.write('index.html', 'v2\n'); self.r.commit('art')
+        self.assertTrue(self.r.run(ref='gpt/a')['ok'])
+        self.r.write('tools/fp_diff.py', 'x\n'); self.r.commit('guard')
+        self.assertEqual(self.rules(self.r.run(ref='gpt/a')), ['gpt-lane'])
+
     # ---------- T647 核准美術登記冊 ----------
 
     def registry(self, approved, valves=None):

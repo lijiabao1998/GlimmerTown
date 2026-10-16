@@ -17,7 +17,8 @@
 - 純 revert（diff 的 patch-id 等於 main 第一父鏈上某個提交——合併或直推——對其第一父的反向 diff）免一切卡面規則
   （一 PR 一卡、卡頭、凍結欄、owner_ok、撞號），因為它只是把 main 退回它自己有過的內容；gpt 越道與寫死 SHA 照查。
   棘輪基準改成被撤提交的第一父（ratchet_base），不跟撤銷前的 base 比（T650：「main 紅就開 revert PR」這條路不准被守衛擋住）。
-- gpt/ 分支越道：碰 .github/、tools/、test_fixde.js 的刪改行（只新增不算）、不屬於本卡的 docs/tasks/*-shots/、docs/SPR_PINS.json、docs/APPROVED_ART.json、規則檔。
+- gpt/ 分支越道：碰 .github/、tools/、test_fixde.js 的刪改行（只新增不算）、不屬於本卡的 docs/tasks/*-shots/、docs/APPROVED_ART.json、規則檔。
+  docs/SPR_PINS.json 不算越道（T654 兌現 T641 的承諾）：檔案要等於 CI 實算、動到的家族要在卡頭、要有 owner_ok，fp_diff 照查。
 - 核准美術登記冊（T647）：docs/APPROVED_ART.json 的 approved 一節（新增、修改、刪除任一批）有變動，卡頭 owner_ok 必須有字——登記批准就是業主的批准；
   valves 一節不受限；base 沒有登記冊＝建立；登記冊不准刪；純 revert 照例免。
 - 守衛程式（.github/、tools/、docs/tasks/*-shots/、test_fixde.js 裡的 .js/.cjs/.mjs/.py/.yml/.yaml/.sh）新增行出現 40 位十六進位＝寫死提交 SHA；docs/APPROVED_ART.json 例外；64 位只警告。
@@ -221,8 +222,6 @@ def analyse(repo, base, head, head_ref=''):
                 why = '守衛／工作流路徑'
             elif p in RULE_FILES:
                 why = '規則檔'
-            elif p == 'docs/SPR_PINS.json':
-                why = '像素指紋基線'
             elif p == REGISTRY:
                 why = '核准美術登記冊'
             elif p == 'test_fixde.js' and st != 'A':

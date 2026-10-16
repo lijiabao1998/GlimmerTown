@@ -54,6 +54,7 @@ function build(input = fs.readFileSync(path.join(SCENES, 'scene603.js'), 'utf8')
     "performanceNote:'Timing intentionally not run in Linux correctness. Original thresholds and liveness are required in the separate native acceptance lane.'", 'honest lane description');
   const worldFilters634 = require('./release-world-filters634.cjs'), worldFilterFixture = worldFilters634.sourceIdentity();
   worldFilters634.install(replace, worldFilterFixture);
+  require('./release-spr654.cjs').install(replace); // T654（原 T643b）：解凍 scene603 的兩把精靈指紋鎖，改由 fp 與卡頭把關
   let reversed = source;
   for (const { from, to, label } of [...edits].reverse()) {
     if (reversed.split(to).length !== 2) throw Error('Release correctness inverse anchor drift: ' + label);
@@ -72,7 +73,7 @@ async function main() {
   const built = build();
   if (process.argv.includes('--check-overlay')) { console.log('RELEASE_CORRECTNESS_OVERLAY_OK ' + built.sha256); return; }
   if (process.argv.includes('--self-test')) {
-    const result = spawnSync(process.execPath, ['--test', path.join(__dirname, 'release-acceptance.test.mjs'), path.join(__dirname, 'release-world-filters634.test.mjs')], { stdio: 'inherit' });
+    const result = spawnSync(process.execPath, ['--test', path.join(__dirname, 'release-acceptance.test.mjs'), path.join(__dirname, 'release-world-filters634.test.mjs'), path.join(__dirname, 'release-spr654.test.mjs')], { stdio: 'inherit' });
     process.exitCode = result.status === 0 ? 0 : 1; return;
   }
   if (process.platform !== 'linux') throw Error('Release correctness requires the original Ubuntu/Linux headless environment');
