@@ -284,6 +284,80 @@ class AuditTests(unittest.TestCase):
         f['repos/%s/actions/runs?branch=main&per_page=20' % R]['workflow_runs'][0]['conclusion'] = 'failure'
         self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), ['main-red'])
 
+    # ---------- T656：發現帳認意見 ID；巡檢的 gpt 越道用 scope 的完整判定 ----------
+
+    def test_id_row_registers_only_that_comment(self):
+        # 同一位置跨輪兩條 P1（Codex #29 P2）：寫了「意見 7」的行只登記 7，8 照報，訊息帶 ID 方便登記
+        f = base_fixture()
+        f['repos/%s/pulls/52/comments' % R] = [p1_at(7, 'a.yml', 3), p1_at(8, 'a.yml', 3)]
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #52 | P1 | a.yml:3 | 意見 7：→ T647 |')
+        self.assertEqual(kinds(r), ['codex-unanswered'])
+        self.assertIn('（意見 8）', r['flags'][0]['detail'])
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #52 | P1 | a.yml:3 | 意見 7：→ T647 |\n| #52 | P1 | a.yml:3 | 意見 8：照改 |')
+        self.assertEqual(kinds(r), [])
+
+    def test_legacy_row_without_id_is_ambiguous_when_two_comments_share_a_location(self):
+        f = base_fixture()
+        f['repos/%s/pulls/52/comments' % R] = [p1_at(7, 'a.yml', 3), p1_at(8, 'a.yml', 3)]
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #52 | P1 | a.yml:3 | → T647 |')
+        self.assertEqual(kinds(r), ['codex-unanswered', 'codex-unanswered'])
+        # 回覆過的那條仍算同位置的兄弟：舊行可能是替它寫的，不能拿來蓋另一條
+        f['repos/%s/pulls/52/comments' % R].append({'id': 99, 'in_reply_to_id': 7, 'author_association': 'OWNER', 'user': {'login': 'x'}, 'body': '照改'})
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #52 | P1 | a.yml:3 | → T647 |')
+        self.assertEqual(kinds(r), ['codex-unanswered'])
+        self.assertIn('（意見 8）', r['flags'][0]['detail'])
+
+    def test_id_row_for_another_comment_does_not_cover_by_location(self):
+        f = base_fixture()
+        f['repos/%s/pulls/52/comments' % R] = [p1_at(8, 'a.yml', 3)]
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #52 | P1 | a.yml:3 | 意見 7：舊的那條 |')
+        self.assertEqual(kinds(r), ['codex-unanswered'])
+        # ID 要在同一個 PR 的行裡才算
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #5 | P1 | a.yml:3 | 意見 8 |')
+        self.assertEqual(kinds(r), ['codex-unanswered'])
+
+    def gpt_files(self, files):
+        f = base_fixture()
+        f['repos/%s/pulls/51/files?per_page=100' % R] = files
+        return sa.audit(Fake(f), R, SINCE)
+
+    def test_gpt_lane_uses_the_full_scope_predicate(self):
+        # 原本巡檢只粗查守衛與規則檔（Codex #29 P2）；現在 test_fixde 刪改行、別張卡的台架目錄、SPR_PINS、登記冊也算
+        for files, path in [
+            ([{'filename': 'test_fixde.js', 'status': 'modified', 'additions': 3, 'deletions': 1}], 'test_fixde.js'),
+            ([{'filename': 'docs/tasks/t635-shots/x.cjs', 'status': 'added', 'deletions': 0}], 'docs/tasks/t635-shots/x.cjs'),
+            ([{'filename': 'docs/SPR_PINS.json', 'status': 'modified', 'deletions': 1}], 'docs/SPR_PINS.json'),
+            ([{'filename': 'docs/APPROVED_ART.json', 'status': 'modified', 'deletions': 1}], 'docs/APPROVED_ART.json'),
+            ([{'filename': 'docs/x.py', 'previous_filename': 'tools/x.py', 'status': 'renamed', 'deletions': 0}], 'tools/x.py'),
+        ]:
+            r = self.gpt_files(files)
+            self.assertEqual(kinds(r), ['gpt-lane'], path)
+            self.assertIn(path, r['flags'][0]['detail'])
+
+    def test_gpt_lane_allows_what_scope_allows(self):
+        for files in [
+            [{'filename': 'test_fixde.js', 'status': 'modified', 'additions': 3, 'deletions': 0}],
+            [{'filename': 'docs/tasks/T641-x.md', 'status': 'added', 'deletions': 0}, {'filename': 'docs/tasks/t641-shots/own.cjs', 'status': 'added', 'deletions': 0}],
+            [{'filename': 'index.html', 'status': 'modified', 'deletions': 9}],
+        ]:
+            f = base_fixture()
+            f['repos/%s/pulls/51/files?per_page=100' % R] = files
+            for x in files:
+                if x['filename'].endswith('.md'):
+                    f['repos/%s/contents/%s?ref=%s' % (R, x['filename'], SHA[51])] = {'content': base64.b64encode(b'# T641\n').decode()}
+            self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), [], files)
+
+    def test_api_files_matches_scope_changed_shape(self):
+        out, deleted = sa.api_files([
+            {'filename': 'b.js', 'previous_filename': 'a.js', 'status': 'renamed', 'deletions': 2},
+            {'filename': 'c.js', 'previous_filename': 'a.js', 'status': 'copied', 'deletions': 0},
+            {'filename': 'd.js', 'status': 'removed', 'deletions': 5},
+            {'filename': 'e.js', 'status': 'added', 'deletions': 0},
+            {'filename': 'f.js', 'status': 'modified', 'deletions': 1},
+        ])
+        self.assertEqual(out, [('D', 'a.js'), ('A', 'b.js'), ('M', 'a.js'), ('A', 'c.js'), ('D', 'd.js'), ('A', 'e.js'), ('M', 'f.js')])
+        self.assertEqual(deleted['f.js'], 1)
+
 
 if __name__ == '__main__':
     unittest.main()

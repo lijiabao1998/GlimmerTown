@@ -154,6 +154,19 @@ class ScopeTests(unittest.TestCase):
         res = self.r.run(ref='gpt/a')
         self.assertEqual(sorted(x['path'] for x in res['violations']), ['AGENTS.md', 'docs/tasks/t635-shots/release635.cjs'])
 
+    def test_gpt_lane_pure_function(self):
+        # T656：抽出來給巡檢共用的純函式；刪掉 test_fixde 一定越道，只新增行不越道，二進位或不知道不算
+        import scope
+        g = lambda files, own=(), d=None: [p for p, _ in scope.gpt_lane(files, set(own), lambda p: d)]
+        self.assertEqual(g([('D', 'test_fixde.js')]), ['test_fixde.js'])
+        self.assertEqual(g([('M', 'test_fixde.js')], d=0), [])
+        self.assertEqual(g([('M', 'test_fixde.js')], d=None), [])
+        self.assertEqual(g([('M', 'test_fixde.js')], d=2), ['test_fixde.js'])
+        self.assertEqual(g([('A', 'docs/tasks/t641-shots/a.js')], own={'t641'}), [])
+        self.assertEqual(g([('A', 'docs/tasks/t641-shots/a.js')], own={'t642'}), ['docs/tasks/t641-shots/a.js'])
+        self.assertEqual(g([('M', 'docs/SPR_PINS.json'), ('M', 'docs/APPROVED_ART.json'), ('M', 'AGENTS.md'), ('A', '.github/x.yml'), ('M', 'index.html')]),
+                         ['docs/SPR_PINS.json', 'docs/APPROVED_ART.json', 'AGENTS.md', '.github/x.yml'])
+
     # ---------- T647 核准美術登記冊 ----------
 
     def registry(self, approved, valves=None):

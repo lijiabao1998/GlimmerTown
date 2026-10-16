@@ -1,6 +1,6 @@
 # 審查發現帳（T642）
 
-合併前到的 Codex P0／P1，在 PR 上一行回覆（修了附 commit，不修寫理由）就好；沒回覆的會被開工巡檢（`tools/session_audit.py`）列出，登記在這裡。每條一行，不展開——發現帳本身不准長成新的儀式。
+合併前到的 Codex P0／P1，在 PR 上一行回覆（修了附 commit，不修寫理由）就好；沒回覆的會被開工巡檢（`tools/session_audit.py`）列出，登記在這裡。每條一行，不展開——發現帳本身不准長成新的儀式。 T656 起新登記在處置欄寫「意見 <ID>」（巡檢的未登記訊息會附上 ID）：寫了 ID 就只認 ID；沒寫 ID 的舊行只有在同一 PR、同一位置恰好一條 P0／P1 時才算。
 
 | PR | 等級 | 位置 | 處置 |
 |---|---|---|---|
@@ -27,8 +27,8 @@
 | #29 | P1 | tools/session_audit.py:130 | 照改（T641 工作流缺口）：dispatch 時 scope 用 ref_name、gate 一律紅；premerge／巡檢只認 pull_request 那一輪的 gate |
 | #29 | P1 | tools/session_audit.py:102 | 照改：gate 那一輪的 head_branch 必須是這個 PR 的分支（同一提交多個 PR 時不互蓋） |
 | #29 | P1 | tools/session_audit.py:105 | 照改（只在 premerge）：gate 那一輪的 pull_requests 要含這個 PR 號；分支自動刪除後該欄會變空，巡檢只比分支名 |
-| #29 | P2 | tools/session_audit.py:79 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
-| #29 | P2 | tools/session_audit.py:177 | → T642b（巡檢小修；T644、T645 都與它無關，沒收）：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
+| #29 | P2 | tools/session_audit.py:79 | T656（原 T642b）已收：登記認意見 ID，沒 ID 的舊行在同位置多條時不算。原登記：發現帳加意見 ID 欄（目前以 PR＋路徑:行號比對，跨輪同位置才會互相遮蓋） |
+| #29 | P2 | tools/session_audit.py:177 | T656（原 T642b）已收：巡檢改呼叫 scope.gpt_lane 同一份判定。原登記：巡檢的 gpt 越道只做粗查；完整判斷在 scope，gate 已是必要檢查，合併當下就擋 |
 | #32 | P1 | tools/landing_gates.py:69 | 照改（在 #33 落地）：CHANGELOG-CORRECTION 的卡號改成完整詞比對，T425A 不再放行 T425；merge_bay 共用一起收緊 |
 | #33 | P2 | tools/landing_gates.py:80 | 不改：宣告粒度是卡號不是條目（T433 R02 原意）；#18 用一行 T634 改寫七條是合法前例，逐條計數會讓它變紅（PR 上已回覆） |
 | #36 | P2 | .github/workflows/town-main-pages-candidate.yml:116 | 不成立：那一步開頭就是 set -o pipefail（T644 守衛也會擋），PR 上已回覆 |

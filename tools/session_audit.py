@@ -76,11 +76,52 @@ def summary_state(body):
     return (h.group(1) if h else None, s.group(1) if s else None)
 
 
-def registered(findings_text, n, c):
-    """發現帳裡有沒有登記這一條：同一行要有 `| #N |` 和完整位置 `路徑:行號`（Codex #29 P2：只比路徑會一條蓋兩條）。"""
-    loc = re.escape('%s:%s' % (c.get('path') or '', c.get('line') or c.get('original_line') or '')) + r'(?!\d)'
+FINDING_ID = re.compile(r'意見\s*(\d+)')
+
+
+def codex_p01(comments):
+    """這個 PR 上 Codex 的全部 P0／P1 意見（回覆過的也算）。"""
+    return [c for c in comments if c.get('user', {}).get('login') == CODEX and (BADGE.search(c.get('body') or '') or [None, None])[1] in ('P0', 'P1')]
+
+
+def _loc(c):
+    return '%s:%s' % (c.get('path') or '', c.get('line') or c.get('original_line') or '')
+
+
+def registered(findings_text, n, c, siblings=()):
+    """發現帳裡有沒有登記這一條。同一行要有 `| #N |`，然後：
+    - 行裡寫了「意見 <ID>」（T656）：只認 ID。ID 對上才算；同位置別條意見的 ID 不算。
+    - 沒寫 ID 的舊行：要有完整位置 `路徑:行號`（Codex #29 P2：只比路徑會一條蓋兩條），
+      而且這個 PR 在同一位置只有這一條 P0／P1。同位置跨輪有兩條以上時，舊行分不出指哪條，都不算（Codex #29 P2，T656）。
+    siblings：這個 PR 上 Codex 的全部 P0／P1（codex_p01）。"""
+    loc = re.escape(_loc(c)) + r'(?!\d)'
     pr = r'\|\s*#%d\s*\|' % n
-    return any(re.search(pr, row) and re.search(loc, row) for row in (findings_text or '').splitlines())
+    alone = sum(1 for s in siblings if _loc(s) == _loc(c)) <= 1
+    for row in (findings_text or '').splitlines():
+        if not re.search(pr, row):
+            continue
+        ids = {int(x) for x in FINDING_ID.findall(row)}
+        if ids:
+            if c.get('id') in ids:
+                return True
+        elif alone and re.search(loc, row):
+            return True
+    return False
+
+
+def api_files(files):
+    """PR files API 轉成 scope.changed() 的形狀 [(status, path)]（改名拆成刪除＋新增，複製＝來源修改＋新增），加上每檔刪改行數。"""
+    out, deleted = [], {}
+    for f in files:
+        st, p, prev = f.get('status'), f['filename'], f.get('previous_filename')
+        if st == 'renamed' and prev:
+            out += [('D', prev), ('A', p)]
+        elif st == 'copied' and prev:
+            out += [('M', prev), ('A', p)]
+        else:
+            out.append(({'added': 'A', 'removed': 'D'}.get(st, 'M'), p))
+        deleted[p] = f.get('deletions')
+    return out, deleted
 
 
 GATE_RUN = re.compile(r'/actions/runs/(\d+)/')
@@ -219,14 +260,16 @@ def audit(api, repo, since, findings_text=''):
             ok, why = codex_reviewed(api, repo, n, sha)  # Codex #29 P2：合併時的 head 要真的被審過（#26、#27 就是修補提交沒被審）
             if not ok:
                 flags.append({'kind': 'unreviewed-head', 'detail': '#%d 合併時的 head %s Codex 沒審過' % (n, sha[:7])})
-        for lvl, c in unanswered_p01(api.get('repos/%s/pulls/%d/comments' % (repo, n), paginate=True) or []):
-            if registered(findings_text, n, c):
+        review_comments = api.get('repos/%s/pulls/%d/comments' % (repo, n), paginate=True) or []
+        siblings = codex_p01(review_comments)
+        for lvl, c in unanswered_p01(review_comments):
+            if registered(findings_text, n, c, siblings):
                 continue
             title = (c.get('body') or '').split('\n')[0]
             for pat in (r'!\[[^\]]*\]\([^)]*\)', r'</?sub>', r'\*'):
                 title = re.sub(pat, '', title)
             title = title.strip()
-            flags.append({'kind': 'codex-unanswered', 'detail': '#%d %s %s:%s 沒回覆也沒登記：%s' % (n, lvl, c.get('path'), c.get('line') or c.get('original_line'), title[:120])})
+            flags.append({'kind': 'codex-unanswered', 'detail': '#%d %s %s:%s（意見 %s）沒回覆也沒登記：%s' % (n, lvl, c.get('path'), c.get('line') or c.get('original_line'), c.get('id'), title[:120])})
         files = api.get('repos/%s/pulls/%d/files?per_page=100' % (repo, n), paginate=True) or []
         paths = [f['filename'] for f in files]
         owner_quotes = []
@@ -238,10 +281,12 @@ def audit(api, repo, since, findings_text=''):
                 if h and h.get('owner_ok'):
                     owner_quotes.append('%s：%s' % (p, h['owner_ok']))
         row['owner_ok'] = owner_quotes
-        if ref.startswith('gpt/'):
-            bad = [p for p in paths if p.startswith(scope.GUARD_PREFIXES) or p in scope.RULE_FILES]
+        if ref.startswith('gpt/'):  # T656：和 scope 同一份完整判定（test_fixde 刪改行、別張卡的台架目錄、SPR_PINS、登記冊也算）
+            changed, deleted = api_files(files)
+            own = {'t' + m.group(1) for st, p in changed if st == 'A' for m in [scope.CARD_RE.match(p)] if m}
+            bad = scope.gpt_lane(changed, own, deleted.get)
             if bad:
-                flags.append({'kind': 'gpt-lane', 'detail': '#%d（gpt/）碰了守衛或規則路徑：%s' % (n, '、'.join(bad[:6]))})
+                flags.append({'kind': 'gpt-lane', 'detail': '#%d（gpt/）越道：%s' % (n, '、'.join('%s（%s）' % x for x in bad[:6]))})
         for prefix, want in EXPECT_AUTHOR.items():
             if ref.startswith(prefix):
                 authors = {c['commit']['author']['name'] for c in api.get('repos/%s/pulls/%d/commits?per_page=100' % (repo, n), paginate=True) or []}
