@@ -1,0 +1,19 @@
+{
+  "passed": 24,
+  "originalHelper": true,
+  "originalAssertion": true,
+  "negative": [
+    {
+      "mode": "missing-recognition",
+      "firstFailure": "T574 G23f 真實draw必須走新排序並畫出五種混排，不能只單測 helper；rot=0 z=0.75 night=false {\"calls\":1,\"cycles\":0,\"painted\":[\"mall\",\"oldStadium\",\"school\",\"police\"],\"objects\":[[24,24],[24,29],[29,24],[21,24],[24,22]],\"nightCalls\":0,\"nightMasks\":0}"
+    },
+    {
+      "mode": "not-drawn",
+      "firstFailure": "T574 G23f 真實draw必須走新排序並畫出五種混排，不能只單測 helper；rot=0 z=0.75 night=false {\"calls\":1,\"cycles\":0,\"painted\":[\"mall\",\"oldStadium\",\"school\",\"police\"],\"objects\":[[24,24],[24,29],[29,24],[21,24],[24,22]],\"nightCalls\":0,\"nightMasks\":0}"
+    },
+    {
+      "mode": "wrong-image",
+      "firstFailure": "T574 G23f 真實draw必須走新排序並畫出五種混排，不能只單測 helper；rot=0 z=0.75 night=false {\"calls\":1,\"cycles\":0,\"painted\":[\"mall\",\"oldStadium\",\"school\",\"police\"],\"objects\":[[24,24],[24,29],[29,24],[21,24],[24,22]],\"nightCalls\":0,\"nightMasks\":0}"
+    }
+  ]
+}

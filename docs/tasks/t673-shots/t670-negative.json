@@ -1,0 +1,38 @@
+{
+  "sourcePins": "passed",
+  "families": [
+    670
+  ],
+  "actualSelectorBehaviorCases": 5,
+  "negative": [
+    {
+      "name": "missing-legacy-query",
+      "error": "T596 G2d 保留五處舊呼叫（定義＋選圖、倒影、煙、頂層霓虹）及每個具名新家族的一處讓出，各處原文逐字：缺     else if(k===2&&t596On())sy=_sy413(x,；t596On() 共 5"
+    },
+    {
+      "name": "unknown-extra-query",
+      "error": "T596 G2d 保留五處舊呼叫（定義＋選圖、倒影、煙、頂層霓虹）及每個具名新家族的一處讓出，各處原文逐字：缺 ；t596On() 共 7"
+    },
+    {
+      "name": "missing-legacy-overlay-gate",
+      "error": "T596 G2b 七個舊疊層（T571 錯落、T565 圍籬兩半、T422、T429、T565 派對牆、T571 街角）各恰一道 !s.__t596 閘：缺 if(!s.__t596&&!s.__t670)drawActivityPocket422("
+    },
+    {
+      "name": "missing-family-preview-670",
+      "error": "T673 G2 實際 selector 670 window-preview 預覽與逃生閥契約"
+    },
+    {
+      "name": "missing-family-overlay-670",
+      "error": "T596 G2b 七個舊疊層（T571 錯落、T565 圍籬兩半、T422、T429、T565 派對牆、T571 街角）各恰一道 !s.__t596 閘：缺 (bd.age|0)>=9&&!s.__t596&&!s.__t670){ /* T571 連棟屋頂線錯落"
+    },
+    {
+      "name": "ignored-preview-670",
+      "error": "T673 G2 實際 selector 670 window-preview 預覽與逃生閥契約"
+    },
+    {
+      "name": "ignored-family-valve-670",
+      "error": "T673 G2 實際 selector 670 window-valve 預覽與逃生閥契約"
+    }
+  ],
+  "limit": "Source checks and isolated actual-selector contracts; full game verify remains required."
+}
