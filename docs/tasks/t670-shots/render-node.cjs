@@ -4,7 +4,7 @@ const fs=require('fs'),vm=require('vm'),path=require('path'),{createCanvas}=requ
 const root=path.resolve(__dirname,'../../..'),source=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const slice=(a,b)=>source.slice(source.indexOf(a),source.indexOf(b,source.indexOf(a)));
 const ctx={window:{},location:{search:''},Map,Math,Error,cv:(w,h)=>{const c=createCanvas(w,h);return[c,c.getContext('2d')];},shade:(c,n)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,parseInt(c.slice(i,i+2),16)+n)).toString(16).padStart(2,'0')).join('')};
-vm.createContext(ctx);vm.runInContext(slice('function lotLine574(', 'function lotVariant574(')+slice('function makeIso590(','function silhouette590(')+slice('/* T670：第一波','/* T670 END')+'\nthis.bake670=bake670;this.names670=CATALOG670.map(d=>d.name);',ctx);
+vm.createContext(ctx);vm.runInContext(slice('function lotLine574(', 'function lotVariant574(')+slice('function makeIso590(','function silhouette590(')+slice('/* T670：第一波','/* T670 END')+'\nthis.bake670=bake670;this.names670=CATALOG670.map(d=>d.id);',ctx);
 const out=process.argv[2]||'/workspace/shared/t670-preview';fs.mkdirSync(out,{recursive:true});
 for(const night of[false,true])for(const snow of[false,true]){
  const c=createCanvas(1200,530),g=c.getContext('2d');g.fillStyle=night?'#1d2b37':'#e4e8df';g.fillRect(0,0,c.width,c.height);g.imageSmoothingEnabled=false;

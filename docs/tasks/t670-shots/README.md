@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 01 弓窗藥劑師 | [Historic England Lowestoft chemist research](https://historicengland.org.uk/research/results/reports/7462/FormerChemistsShopNos59-59aHighStreetLowestoft)：歷史藥房弓窗、細分格玻璃 | 中寬兩層方量體；兩個有深度的折線近似弓窗；實體女兒牆環住凹入平頂 | 2_1_5 石銀行是歇山與山花；本款無銀行山花，弓窗有突出量體，低平凹頂 |
 | 02 曲線山牆五金 | [Historic Environment Scotland 14 High Street, Dingwall](https://portal.historicenvironment.scot/apex/f?p=1505%3A300%3A%3A%3A%3A%3AVIEWTYPE%2CVIEWREF%3Adesignation%2CLB51618)：窄深地塊與愛德華曲線山牆；不是五金店用途證明 | 窄高三層、單層側翼；窄直立 sash；帶連續斜曲線輪廓的荷蘭山牆 | 2_1_7 窄文具是孟莎頂；本款高窄主體加低側翼，曲線山牆取代折坡頂 |
-| 03 窄面魚販 | [Historic England Brown and May Fishmongers](https://historicengland.org.uk/listing/the-list/list-entry/1316527)：兩層單開間、抹灰木構、二聯格窗、雙坡瓦頂 | 瘦小兩層單棟；上層單對開窗；短雙坡屋脊 | 2_1_3 炸魚店有後棚與雨棚；本款單窄主體，沒有後棚或大雨棚 |
+| 03 紅釉磚啤酒館（業主 12:24 修訂） | [Historic England Prince Arthur](https://historicengland.org.uk/listing/the-list/list-entry/1380269)：三層磚屋、約1905年紅釉磚底層改裝、石質門柱、蝕刻／彩玻璃及較低側頂 | 窄高三層主體、低雙坡與較低側翼；紅釉磚基座、石柱、蝕刻下玻璃，上層直立窗。原創改寫，非等比例重建 | T634 2_1_4 紅獅是寬矮兩層四坡主屋與都鐸附間，2_1_2 旅店是 L 型院落；本款窄高、低側屋與釉磚玻璃門面均不同。舊魚販候選撤下，總數仍十款 |
 | 04 木構皮革坊 | [Bedford Archives Saddler's Cottage](https://bedsarchives.bedford.gov.uk/CommunityHistories/Toddington/SaddlersCottage-21ChurchSquareToddington.aspx)：歷史馬具店、木框、閣樓與上層凸懸窗 | 上層比下層外挑；鉛條窗、突出 oriel 與支架；半歇山尖頂。用途擴為皮革修鞋是原創改寫 | 2_1_2 都鐸旅店是 L 型院落；本款單棟挑層加真凸窗，不用旅店院落構型 |
 | 05 三聯窗裁縫 | [Historic England Cobblers, Batcombe](https://historicengland.org.uk/listing/the-list/list-entry/1058559)：三聯木梃窗；後部大窗曾可能照亮裁縫房 | 扁寬低屋、側前低附間；三聯木梃與寬採光窗；長落坡屋面。屋面組合是本波原創 | 2_1_9 石屋茶室是高主棟和小側棚；本款低寬白灰體、主採光窗連續、長落坡主頂 |
 | 06 階梯山牆鐘錶 | [Ashwellthorpe local history](https://www.ashwellthorpehistory.net/shops-and-trades/)：Huggin 時計家族房屋記錄包含階梯山牆；來源是地方歷史研究 | 中高深屋、直角階梯山牆、正面實體鐘面與兩窗間距；不是02曲線山牆 | 2_2_4 鐘樓市場和2_2_8旅館帶塔；本款沒有塔，鐘面置於主屋山牆，量體仍一格小店 |
@@ -46,3 +46,13 @@
 
 ## 煙口接線補記
 Codex 發現 k=2 不會從既有粒子鏈取得新煙口。現在僅 T670 有煙囪八款、冬季、供電、落成且無暴亂／火災時接原管線；florist/cycles 及 fallback 仍不冒煙。`check670.cjs` 從真實粒子段提取本波接線，逐款與直接烘圖煙口比對，核對畫面錨定、狀態排除與關閥。移除接線的反例會在目標斷言失敗。這是行為驗證，不替代真 Chrome 煙霧實拍。
+
+## 2026-10-16 12:24 業主修訂中的候選
+
+玻璃加入上下明暗反光、按實際像素寬度限制細窗分格，保留 sash／casement／鉛條／大採光窗結構。窗台暗槽與較淡牆面灰縫減少高反差碎點。三號改為有史料語彙的啤酒館外觀；不新增 gameplay。畫布維持 80×144，LRU 上限仍50；只把本波線段同列連續像素合併填色，沒有全局抗鋸齒改動。
+
+首次原生 Canvas 新舊交錯40樣本：冷烘10款中位數 81.18→86.37ms，發現冷成本增加，沒有當作完成。合併本波線段同列填色後再交錯40樣本：冷烘中位數82.52→70.42ms、p90 101.46→85.55ms；熱選圖11000次中位數11.89→12.12ms、p90 14.74→15.36ms。熱路徑程式逐字未改，微小差值仍照實記錄；這不是瀏覽器整幀或macOS驗收結論。詳見 bench-polish.cjs 與 bench-polish-results.json。
+
+修訂版仍為候選，未完成真Chrome全條件圖審、native-acceptance、CI指紋重烘與當前head審查。接受數仍0/10。
+
+重現本次原生對照：先用 git show 76610621ac59f4725ffccce4a7f5ef1d881f325f:index.html 輸出基準檔，再執行 node docs/tasks/t670-shots/compare-polish.cjs <基準檔> <輸出目錄>。compare-day/night.png 同列列出 4× 最近鄰放大與 1× 原生尺寸；第三槽是魚販撤下改啤酒館，並非同一座的細修假對照。英文字標為避免環境缺中文字型；遊戲內名稱不改。check-polish.cjs 以原 lotLine574 的120組非整數端點及兩種寬度逐像素驗新批次線段合併；故意漏末點反例首紅在 batched-line-pixel-equivalence。
