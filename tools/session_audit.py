@@ -91,11 +91,14 @@ def _loc(c):
 def registered(findings_text, n, c, siblings=()):
     """發現帳裡有沒有登記這一條。同一行要有 `| #N |`，然後：
     - 行裡寫了「意見 <ID>」（T656）：只認 ID。ID 對上才算；同位置別條意見的 ID 不算。
-    - 沒寫 ID 的舊行：要有完整位置 `路徑:行號`（Codex #29 P2：只比路徑會一條蓋兩條），
+    - 沒寫 ID 的舊行：等級欄要等於這條意見的等級（`| #N | P1 |`），要有完整位置 `路徑:行號`（Codex #29 P2：只比路徑會一條蓋兩條），
       而且這個 PR 在同一位置只有這一條 P0／P1。同位置跨輪有兩條以上時，舊行分不出指哪條，都不算（Codex #29 P2，T656）。
+      等級欄也要對上（T656 審查）：替同位置 P2 寫的舊行不能拿來蓋後來的 P1。
     siblings：這個 PR 上 Codex 的全部 P0／P1（codex_p01）。"""
     loc = re.escape(_loc(c)) + r'(?!\d)'
     pr = r'\|\s*#%d\s*\|' % n
+    badge = BADGE.search(c.get('body') or '')
+    level = r'\|\s*#%d\s*\|\s*%s\s*\|' % (n, badge.group(1) if badge else 'P[0-9]')
     alone = sum(1 for s in siblings if _loc(s) == _loc(c)) <= 1
     for row in (findings_text or '').splitlines():
         if not re.search(pr, row):
@@ -104,7 +107,7 @@ def registered(findings_text, n, c, siblings=()):
         if ids:
             if c.get('id') in ids:
                 return True
-        elif alone and re.search(loc, row):
+        elif alone and re.search(level, row) and re.search(loc, row):
             return True
     return False
 
@@ -273,7 +276,7 @@ def audit(api, repo, since, findings_text=''):
         files = api.get('repos/%s/pulls/%d/files?per_page=100' % (repo, n), paginate=True) or []
         paths = [f['filename'] for f in files]
         owner_quotes = []
-        for p in paths:
+        for p in [f['filename'] for f in files if f.get('status') != 'removed']:  # T656 審查：刪掉的卡（revert PR）在 head 讀不到，會讓整個巡檢崩掉
             if scope.CARD_RE.match(p):
                 got = api.get('repos/%s/contents/%s?ref=%s' % (repo, p, sha))
                 text = base64.b64decode(got['content']).decode('utf-8') if got and got.get('content') else ''

@@ -307,6 +307,23 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(kinds(r), ['codex-unanswered'])
         self.assertIn('（意見 8）', r['flags'][0]['detail'])
 
+    def test_legacy_p2_row_does_not_cover_a_p1_at_the_same_location(self):
+        # T656 審查：P2 照 T651 直接登記、通常不帶 ID；後一輪同位置冒出 P1，舊的 P2 行不能把它蓋掉
+        f = base_fixture()
+        p2 = p1_at(7, 'a.yml', None); p2['original_line'] = 3; p2['body'] = P1.replace('P1', 'P2')
+        f['repos/%s/pulls/52/comments' % R] = [p2, p1_at(8, 'a.yml', 3)]
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #52 | P2 | a.yml:3 | → T660 |')
+        self.assertEqual(kinds(r), ['codex-unanswered'])
+        self.assertIn('（意見 8）', r['flags'][0]['detail'])
+        r = sa.audit(Fake(f), R, SINCE, findings_text='| #52 | P2 | a.yml:3 | → T660 |\n| #52 | P1 | a.yml:3 | → T661 |')
+        self.assertEqual(kinds(r), [])
+
+    def test_pr_that_deletes_a_card_does_not_crash_the_audit(self):
+        # T656 審查：revert PR 刪卡時，head 讀不到那張卡（API 404），原本整個巡檢會崩掉
+        f = base_fixture()
+        f['repos/%s/pulls/52/files?per_page=100' % R] = [{'filename': 'docs/tasks/T649-x.md', 'status': 'removed', 'deletions': 9}]
+        self.assertEqual(kinds(sa.audit(Fake(f), R, SINCE)), [])
+
     def test_id_row_for_another_comment_does_not_cover_by_location(self):
         f = base_fixture()
         f['repos/%s/pulls/52/comments' % R] = [p1_at(8, 'a.yml', 3)]
