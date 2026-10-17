@@ -62,3 +62,7 @@ Lowestoft 329 Whapload Road 只曾作初步研究，其長排倉庫不支持本�
 cache-benchmark.cjs 對原 spr634 和實際 spr675 做交錯熱快取比較：每款30樣本、每樣本1000呼叫、200對預熱；原款中位0.232–1.426µs，新款0.141–1.167µs。完整p90及樣本數在 cache-benchmark.json；cold-benchmark.json 保留30組冷烘及模型3較慢結果。此為隔離來源量測，不宣稱瀏覽器、手機或原生績效。
 
 量測標籤補正：上述候選冷烘腳本實際使用 @napi-rs/canvas 原生 Canvas backend；早期摘要誤稱軟體Canvas。px601是另跑的像素契約backend，不能混稱。數值未改，完整冷烘檔已更正backend標籤。
+
+## 真 Chrome 與原生記錄
+
+chrome-evidence.json 列出精確f4aa5e3e的470張原圖hash與覆蓋；native-record.json 保留267條後的前景／視口資格失敗和零RAF窗口，不能當原生通過。frame-evidence.json記錄原CI91幀／零閥洩漏及12張接觸表覆核。三者與上方候選Canvas明確分開，最新程式需以卡面runtime hash核對。
