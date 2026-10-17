@@ -1,0 +1,12 @@
+verify @ repository root (path redacted)
+  [OK]   test_fixde.js syntax
+  [OK]   sw.js syntax
+  [OK]   index inline syntax
+  [OK]   CRLF=0
+  [OK]   version in sync: 11.232
+  [OK]   suite green: PASS=12735 exit=0
+  [OK]   test harness fail-fast contract
+  [OK]   seed pins ran and matched: 6 (seed22=639, seed22m=14523, seed301=780, seed301m=2297, seed7=117, seed7m=77)
+  [OK]   code map fresh: docs/ARCH.md §1 anchors and line numbers match index.html
+
+RESULT: ALL GREEN

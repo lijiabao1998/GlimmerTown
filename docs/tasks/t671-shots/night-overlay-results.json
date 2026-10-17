@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "position": [
+    39,
+    3
+  ],
+  "legacyLightRects": 3,
+  "backend": "repository-px601-software-mask",
+  "limit": "Actual source hooks with software-mask replay by default; --native is explicit parity mode. Not full-browser acceptance.",
+  "negative": {
+    "mutation": "remove-t671-exclusion",
+    "reason": "T671 generic lights excluded"
+  }
+}

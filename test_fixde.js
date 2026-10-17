@@ -19520,3 +19520,35 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
 
 /* T670：原 CI 也執行關閥後既有煙粒的真接點與負控制。 */
 {const q670=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t670-shots/check-smoke-valve.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q670.status===0&&JSON.parse(q670.stdout).passed===true,'T670 G12 煙粒即時關閥與三負控制：'+q670.stderr);}
+/* T671：只追加本波契約；原守衛一行不改。真像素與反例在本卡 check671.cjs，Chrome 見 CI。 */
+{
+  const on671=html.match(/^function t671On\(\)\{[^\n]+/m);
+  assert(!!on671,'T671 G1 雙逃生閥入口存在');
+  const probe671=(q,w)=>vm.runInNewContext(on671[0]+';t671On()',{window:w||{},location:{search:q}});
+  assert(probe671('')===true,'T671 G2 預設啟用');
+  assert(probe671('?noT671=1')===false,'T671 G3 URL 逃生閥關閉');
+  assert(probe671('',{__noT671:true})===false,'T671 G4 window 逃生閥關閉');
+  assert(probe671('?noT671=0')===true,'T671 G5 非關閉值不誤關');
+  const pick671=html.match(/^function variant671\([^\n]+/m)[0];
+  const run671=(b,h)=>vm.runInNewContext(pick671+';variant671(b,10,12)',{b,streetHash:()=>h,Math});
+  assert(run671({k:1,lv:1},0)===0&&run671({k:1,lv:1},9/22+.001)===9,'T671 G6 新款十個索引邊界');
+  assert(run671({k:1,lv:1},.99)===-1,'T671 G7 舊款回退保留');
+  for(const b of[{k:2},{k:3},{k:1,lv:2},{k:1,sz:2},{k:1,ref:[1,2]},{k:1,lot574:1}])assert(run671(b,0)===-1,'T671 G8 不觸及非本波建築 '+JSON.stringify(b));
+  const before671={k:1,lv:1,age:40},copy671=JSON.stringify(before671);run671(before671,.1);
+  assert(JSON.stringify(before671)===copy671,'T671 G9 選款不寫存檔物件');
+  const artreg671=JSON.parse(fs.readFileSync(path.join(__dirname,'docs/APPROVED_ART.json'),'utf8'));
+  assert(artreg671.valves.T671==='__noT671','T671 G10 發佈台架登記閥');
+  assert(html.includes("emit('art671',[v,win,sea].join('_'),bake671(v,!!win,sea))"),'T671 G11 真烘焙登記清冊');
+}
+
+/* T671：原 CI 也執行關閥後既有煙粒的真接點與負控制。 */
+{const q671=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-smoke-valve.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671.status===0&&JSON.parse(q671.stdout).passed===true,'T671 G12 煙粒即時關閥與三負控制：'+q671.stderr);}
+
+/* T671：黑屋只用自身開口夜層；真細節座標及移除閥反例。 */
+{const q671n=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-night-overlay.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671n.status===0&&JSON.parse(q671n.stdout).passed===true,'T671 G13 夜燈疊層不越開口與負控制：'+q671n.stderr);}
+
+/* T671：真座標重放舊矩形疊層，四個逐項移除修復反例。 */
+{const q671o=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-legacy-overlays.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671o.status===0&&JSON.parse(q671o.stdout).passed===true,'T671 G14 舊疊層本家族隔離與四負控制：'+q671o.stderr);}
+
+/* T671：黑屋自己的門光不產生泛用地面光池；其他款保持。 */
+{const q671g=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-ground-glow.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671g.status===0&&JSON.parse(q671g.stdout).passed===true,'T671 G15 黑屋地面光池限定與負控制：'+q671g.stderr);}

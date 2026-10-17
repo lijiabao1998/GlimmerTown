@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "position": [
+    39,
+    3
+  ],
+  "originalArc": [
+    40,
+    44,
+    44,
+    0,
+    6.283185307179586
+  ],
+  "otherT671ModelsPreserved": 9,
+  "backend": "repository-px601-software-mask",
+  "limit": "Recorded actual production T149 gradient geometry with software/native opening masks; not complete-browser acceptance.",
+  "negative": {
+    "mutation": "remove-blackhouse-ground-glow-exclusion",
+    "reason": "blackhouse T149 ground glow excluded"
+  }
+}
