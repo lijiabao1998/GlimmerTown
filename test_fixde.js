@@ -19546,3 +19546,6 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
 
 /* T671：黑屋只用自身開口夜層；真細節座標及移除閥反例。 */
 {const q671n=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-night-overlay.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671n.status===0&&JSON.parse(q671n.stdout).passed===true,'T671 G13 夜燈疊層不越開口與負控制：'+q671n.stderr);}
+
+/* T671：真座標重放舊矩形疊層，四個逐項移除修復反例。 */
+{const q671o=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-legacy-overlays.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671o.status===0&&JSON.parse(q671o.stdout).passed===true,'T671 G14 舊疊層本家族隔離與四負控制：'+q671o.stderr);}

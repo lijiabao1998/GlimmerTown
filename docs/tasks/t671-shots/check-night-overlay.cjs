@@ -1,6 +1,6 @@
 /* T671：真選款座標與真細節判定重放；不改既有夜燈函式。 */
 'use strict';
-const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert/strict'),{createCanvas}=require('@napi-rs/canvas');
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert/strict'),{createCanvas,backend}=require('./pixel-contract.cjs');
 const src=fs.readFileSync(path.resolve(__dirname,'../../../index.html'),'utf8');
 const part=(a,b)=>src.slice(src.indexOf(a),src.indexOf(b,src.indexOf(a)));
 const hook=(src.match(/if\(!s\.__t671\)\{\s*if\(!s\.__t590\)drawNightMicro431\(ctx,o,bd,s,bx,by,z,drawA,nightDepth\);[^}]*\}/)||[])[0];
@@ -21,4 +21,4 @@ function run(mutation=false){
  C.s={...C.s,__t670:1};calls.length=0;vm.runInContext(hook,C);assert.equal(calls.length,3,'T670 route unchanged');
  return {passed:true,position:[39,3],legacyLightRects:3};
 }
-const report=run();let reason='';try{run(true);}catch(e){reason=e.message;}assert(reason.includes('T671 generic lights excluded'),'negative control fails at target');report.negative={mutation:'remove-t671-exclusion',reason:reason.split('\n')[0]};console.log(JSON.stringify(report,null,2));
+const report=run();report.backend=backend;report.limit="Actual source hooks with software-mask replay by default; --native is explicit parity mode. Not full-browser acceptance.";let reason='';try{run(true);}catch(e){reason=e.message;}assert(reason.includes('T671 generic lights excluded'),'negative control fails at target');report.negative={mutation:'remove-t671-exclusion',reason:reason.split('\n')[0]};console.log(JSON.stringify(report,null,2));
