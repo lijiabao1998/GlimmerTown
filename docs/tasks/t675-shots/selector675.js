@@ -1,0 +1,4 @@
+/* T675 independent industrial selector; original preview and valve rules retained. */
+function t675On(){if(t675On.off===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t675On.off=/(?:^|[?&])noT675(?:=1)?(?:&|$)/.test(q);}return !window.__noT675&&!t675On.off;}
+function variant675(b,x,y){if(!b||b.ref||b.lot574||b.k!==3||(b.lv||1)!==2||(b.sz||1)!==1)return -1;const v=Math.min(21,Math.floor(streetHash(x|0,y|0,675)*22));return v<10?v:-1;}
+function spr675(b,x,y,winter=false){if(!t675On()||t596On())return null;const v=variant675(b,x,y);if(v<0)return null;const sea=season(),key=[v,+winter,sea].join('_'),C=spr675.cache||(spr675.cache=new Map());if(C.has(key)){const s=C.get(key);C.delete(key);C.set(key,s);return s;}const s=bake675(v,winter,sea);while(C.size>=50)C.delete(C.keys().next().value);C.set(key,s);return s;}

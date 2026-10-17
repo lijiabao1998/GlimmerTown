@@ -1,0 +1,88 @@
+{
+  "commit": "f4aa5e3e1ec7b83ee2527598fa7464d632cb18c7",
+  "run": 39024649413,
+  "artifact": 12098267185,
+  "report": {
+    "card": {
+      "path": "docs/tasks/T675-英式工業工坊第三波.md",
+      "families": [
+        "art675"
+      ],
+      "valves": [
+        "__noT675"
+      ],
+      "ownerOk": true,
+      "revertOf": null
+    },
+    "base": "b0f81b21a6258130533dc974d3a3360fe55fccdc",
+    "scenes": [
+      "seed22",
+      "seed777",
+      "fire-lots",
+      "rci",
+      "civic",
+      "industry"
+    ],
+    "problems": [],
+    "warnings": [
+      {
+        "rule": "sheet-limit",
+        "detail": "接觸表只出前 12 幀"
+      }
+    ],
+    "changed": [
+      "rci-autumn",
+      "rci-hq-day",
+      "rci-hq-night",
+      "rci-r0-day",
+      "rci-r0-night",
+      "rci-r1-day",
+      "rci-r1-night",
+      "rci-r2-day",
+      "rci-r2-night",
+      "rci-r3-day",
+      "rci-r3-night",
+      "rci-snow-day",
+      "rci-snow-night",
+      "rci-spring",
+      "rci-winter-nosnow",
+      "seed22-sky-night",
+      "seed777-autumn",
+      "seed777-hq-day",
+      "seed777-hq-night",
+      "seed777-r0-day",
+      "seed777-r0-night",
+      "seed777-r1-day",
+      "seed777-r1-night",
+      "seed777-r2-day",
+      "seed777-r2-night",
+      "seed777-r3-day",
+      "seed777-r3-night",
+      "seed777-snow-day",
+      "seed777-snow-night",
+      "seed777-spring",
+      "seed777-winter-nosnow"
+    ],
+    "leaked": [],
+    "sheets": [
+      "sheet-rci-autumn.png",
+      "sheet-rci-hq-day.png",
+      "sheet-rci-hq-night.png",
+      "sheet-rci-r0-day.png",
+      "sheet-rci-r0-night.png",
+      "sheet-rci-r1-day.png",
+      "sheet-rci-r1-night.png",
+      "sheet-rci-r2-day.png",
+      "sheet-rci-r2-night.png",
+      "sheet-rci-r3-day.png",
+      "sheet-rci-r3-night.png",
+      "sheet-rci-snow-day.png"
+    ],
+    "browser": "156.0.8078.4",
+    "frames": 91,
+    "seconds": 386,
+    "slowToSettle": [],
+    "code": 0
+  },
+  "visualReview": "All twelve generated base/head/valve contact sheets reviewed; no new regression observed. Reported 91 frames, zero leaked valve frames; generation caps contact sheets at twelve."
+}
