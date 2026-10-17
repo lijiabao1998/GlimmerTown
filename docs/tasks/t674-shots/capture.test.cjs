@@ -1,0 +1,10 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),{plan,validate,bridge}=require('./capture.cjs');
+const fixture=()=>({commit:'candidate',models:Array.from({length:10},(_,variant)=>({variant,frames:plan().map(s=>({...s,png:'frame.png',sha256:'hash',slot:'3',bodyDrawn:true,reflected:true,hoverApplied:true,overlayChanged:true,smokeCount:1,chimneys:1}))}))});
+test('complete ten-model coverage accepted',()=>assert(validate(fixture(),'candidate')));
+test('missing model negative control',()=>{const r=fixture();r.models.pop();assert.throws(()=>validate(r,'candidate'),/missing model/);});
+test('missing required state negative control',()=>{const r=fixture();r.models[2].frames.pop();assert.throws(()=>validate(r,'candidate'),/missing state/);});
+test('wrong candidate negative control',()=>assert.throws(()=>validate(fixture(),'other'),/SHA mismatch/));
+for(const layer of ['hover','construction6','pedestrian','smoke'])test('absent '+layer+' negative control',()=>{const r=fixture(),f=r.models[3].frames.find(f=>f.layer===layer);f.hoverApplied=f.overlayChanged=false;f.smokeCount=0;assert.throws(()=>validate(r,'candidate'));});
+test('wrong selected model negative control',()=>{const r=fixture();r.models[2].variant=1;assert.throws(()=>validate(r,'candidate'),/wrong variant/);});
+test('bridge parses without rewriting production source',()=>assert.doesNotThrow(()=>new Function('return ('+bridge.toString().replace('FAMILY_NUMBER','670')+')')));

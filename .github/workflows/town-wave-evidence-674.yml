@@ -1,0 +1,118 @@
+name: Town T674 supplemental wave evidence
+on:
+  push:
+    branches: [gpt/town-capture-evidence-674]
+    paths: ['.github/workflows/town-wave-evidence-674.yml', 'docs/tasks/t674-shots/**']
+permissions:
+  contents: read
+concurrency:
+  group: town-wave-evidence-674-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      candidates: ${{ steps.refs.outputs.candidates }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Lock both candidate branch heads once
+        id: refs
+        run: |
+          python - <<'PY'
+          import json,os,subprocess
+          rows=[]
+          for family,branch in [(670,'gpt/town-british-wave01-670'),(671,'gpt/town-british-wave02-671')]:
+              line=subprocess.check_output(['git','ls-remote','origin','refs/heads/'+branch],text=True).strip().split()
+              if len(line)!=2 or len(line[0])!=40: raise SystemExit('Missing candidate ref '+branch)
+              rows.append({'family':family,'sha':line[0],'branch':branch})
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('candidates='+json.dumps(rows,separators=(',',':'))+'\n')
+          print(json.dumps(rows,indent=2))
+          PY
+  visual:
+    needs: resolve
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate: ${{ fromJSON(needs.resolve.outputs.candidates) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.candidate.sha }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare genuine pinned Chrome and Chinese fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+          mkdir -p "$RUNNER_TEMP/t674-driver"
+          npm install --prefix "$RUNNER_TEMP/t674-driver" --ignore-scripts --no-audit --no-fund playwright@1.64.0
+          cd "$RUNNER_TEMP/t674-driver"
+          npx playwright install --with-deps chromium
+      - name: Supplemental positive and negative controls
+        run: node --test harness/docs/tasks/t674-shots/capture.test.cjs
+      - name: Capture each model through the original game renderer
+        env:
+          NODE_PATH: ${{ runner.temp }}/t674-driver/node_modules
+          CANDIDATE_SHA: ${{ matrix.candidate.sha }}
+          FAMILY: ${{ matrix.candidate.family }}
+        run: |
+          set -o pipefail
+          node harness/docs/tasks/t674-shots/capture.cjs --repo candidate --sha "$CANDIDATE_SHA" --family "$FAMILY" --out evidence/visual | tee evidence-visual.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T674-visual-${{ matrix.candidate.family }}-${{ matrix.candidate.sha }}
+          path: |
+            evidence/
+            evidence-visual.log
+          retention-days: 30
+          if-no-files-found: error
+  native:
+    needs: resolve
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate: ${{ fromJSON(needs.resolve.outputs.candidates) }}
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Start unchanged native resource clock
+        run: echo "T619_JOB_START_MS=$(node -p 'Date.now()')" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.candidate.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record original native timing without relaxing thresholds
+        env:
+          CHROME_PATH: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+          CANDIDATE_SHA: ${{ matrix.candidate.sha }}
+        run: |
+          set -o pipefail
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          export GITHUB_SHA="$CANDIDATE_SHA"
+          mkdir -p evidence/native-acceptance
+          node tools/pages/release-native-acceptance.cjs --out=evidence/native-acceptance | tee evidence/native-acceptance.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-T674-native-${{ matrix.candidate.family }}-${{ matrix.candidate.sha }}
+          path: evidence/
+          retention-days: 30
+          if-no-files-found: error
