@@ -1,7 +1,8 @@
 /* T675 isolated candidate checks. This is not runtime/Chrome acceptance. */
 'use strict';
 const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert'),crypto=require('crypto');
-const {createCanvas}=require('@napi-rs/canvas');
+const software=process.argv.includes('--software');
+const {createCanvas}=software?require('../t671-shots/pixel-contract.cjs'):require('@napi-rs/canvas');
 const root=path.resolve(__dirname,'../../..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const slice=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
 const ctx={window:{},Map,Math,Error,cv:(w,h)=>{const c=createCanvas(w,h);return[c,c.getContext('2d')];},shade:(c,n)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,parseInt(c.slice(i,i+2),16)+n)).toString(16).padStart(2,'0')).join('')};
@@ -32,4 +33,4 @@ reject('wrong-family',0,s=>s.__t675=0,'family');
 reject('out-of-bounds-hook',0,s=>{s.smoke[0].dx=1000;s.lotMeta574.hooks.smoke[0][0]=1000+s.ax;},'hook-bounds');
 reject('night-outside-body',0,s=>{s.img.getContext('2d').clearRect(0,0,1,1);s.night.getContext('2d').fillRect(0,0,1,1);},'night-outside-body');
 assert.throws(()=>ctx.bake(-1,false,1),/unknown model/);assert.throws(()=>ctx.bake(10,false,1),/unknown model/);
-process.stdout.write(JSON.stringify({status:'pass',scope:'isolated Canvas candidates only; no runtime, CI or Chrome claim',cases:rows.length,negativeControls:negatives,rows},null,2)+'\n');
+process.stdout.write(JSON.stringify({status:'pass',backend:software?'repository-px601-software-mask':'native-canvas',scope:'isolated Canvas candidates only; no runtime, CI or Chrome claim',cases:rows.length,negativeControls:negatives,rows},null,2)+'\n');

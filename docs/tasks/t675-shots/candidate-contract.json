@@ -1,5 +1,6 @@
 {
   "status": "pass",
+  "backend": "native-canvas",
   "scope": "isolated Canvas candidates only; no runtime, CI or Chrome claim",
   "cases": 50,
   "negativeControls": [
@@ -55,9 +56,9 @@
       "model": 2,
       "winter": false,
       "season": 0,
-      "body": 1507,
+      "body": 1513,
       "night": 30,
-      "hash": "cef1a1b9afc68502b759d39d19b5d61504123a5c27c75b0021e5d33652c396f8",
+      "hash": "efafa47dd245a9f29b6ae2ce5402a69d44c65c768b7be637f70344426a9e7726",
       "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
     },
     {
@@ -145,9 +146,9 @@
       "model": 2,
       "winter": false,
       "season": 1,
-      "body": 1507,
+      "body": 1513,
       "night": 30,
-      "hash": "90691c208465e3d9e383c960e05d3ea55addde07ae1266c666e0ed6b1dd80b18",
+      "hash": "02ff69f102c7ea916301b72bc0dc21f0a3ec0d8833446ec39f630c32fb20f1fd",
       "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
     },
     {
@@ -235,9 +236,9 @@
       "model": 2,
       "winter": false,
       "season": 2,
-      "body": 1507,
+      "body": 1513,
       "night": 30,
-      "hash": "ddf695d5696d0baf88699befb13f815df4e37f6cd13f1d237ad7edd1ce938bc3",
+      "hash": "b43c0b1d55aa56ef352160573aeb9808621bd371895f8bd4b1f24c08d86a48b6",
       "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
     },
     {
@@ -325,9 +326,9 @@
       "model": 2,
       "winter": false,
       "season": 3,
-      "body": 1507,
+      "body": 1513,
       "night": 30,
-      "hash": "4f7324da37b095f7dd3c46826cceade0a8846a513ab7205ddd6280c75e69c6b4",
+      "hash": "3da3c503f56934461085a5f92f758761e09c2e543d9d80737cf954fdaedde80c",
       "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
     },
     {
@@ -415,9 +416,9 @@
       "model": 2,
       "winter": true,
       "season": 3,
-      "body": 1507,
+      "body": 1513,
       "night": 30,
-      "hash": "3e98e89add76340ba4afe2cc13c9dfd4c74182df95a131a607b9924bbe135801",
+      "hash": "807217cbffceab0a21b0fe2a461f473aaf3283b2c09d99c89551559427358142",
       "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
     },
     {

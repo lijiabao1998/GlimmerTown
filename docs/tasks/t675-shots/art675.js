@@ -1,4 +1,4 @@
-/* T675 獨立工坊候選；尚未接入遊戲，不冒充已驗收。 */
+/* T675 獨立工坊家族；驗收進行中，不冒充已驗收。 */
 const CATALOG675=[
 {id:'enginehouse',name:'石機房低鍋爐翼',wall:'#a69f8b',trim:'#d0c4a6'},
 {id:'panhouse',name:'屋脊通風煮鹽棚',wall:'#9b8164',trim:'#c1b39a'},
@@ -15,11 +15,12 @@ function bake675(vi,winter=false,sea=1){
   const d=CATALOG675[vi];if(!d)throw Error('T675 unknown model '+vi);
   const w=80,h=144,ax=40,ay=136,[c,g]=cv(w,h),[nc,ng]=cv(w,h),{P}=makeIso590(w,h,ax,ay,1),hooks={};
   const S=(col,n)=>shade(col,n),roof=winter?'#dce4dc':'#56616b',edge=winter?'#c0cfc8':'#414f58';
-  const F=(ps,col,ctx=g)=>{if(ctx===g){ng.save();ng.globalCompositeOperation='destination-out';lotPoly574(ng,ps,'#000');ng.restore();}lotPoly574(ctx,ps,col);};
+  let hasNight675=false;
+  const F=(ps,col,ctx=g)=>{if(ctx===ng)hasNight675=true;if(ctx===g&&hasNight675){ng.save();ng.globalCompositeOperation='destination-out';lotPoly574(ng,ps,'#000');ng.restore();}lotPoly574(ctx,ps,col);};
   const L=(a,b,col,wd=1)=>{
     const dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)))),rows=[];
     for(let i=0;i<=n;i++){const x=Math.round(a[0]+dx*i/n),y=Math.round(a[1]+dy*i/n),r=rows[rows.length-1];if(r&&r[0]===y){r[1]=Math.min(r[1],x);r[2]=Math.max(r[2],x+wd);}else rows.push([y,x,x+wd]);}
-    const paint=(q,color)=>{q.fillStyle=color;for(const r of rows)q.fillRect(r[1],r[0],r[2]-r[1],1);};ng.save();ng.globalCompositeOperation='destination-out';paint(ng,'#000');ng.restore();paint(g,col);
+    const paint=(q,color)=>{q.fillStyle=color;for(const r of rows)q.fillRect(r[1],r[0],r[2]-r[1],1);};if(hasNight675){ng.save();ng.globalCompositeOperation='destination-out';paint(ng,'#000');ng.restore();}paint(g,col);
   };
   const Q=(u,v,du,dv,z=0)=>[P(u,v,z),P(u+du,v,z),P(u+du,v+dv,z),P(u,v+dv,z)];
   function masonry675(u,v,du,dv,z,bh,col){if(bh<9||du<.18||dv<.18||vi===4||(vi===1&&col===d.wall)||(vi===6&&z>=15))return;const stone=vi===0||vi===9,step=stone?4:3;for(let zz=z+step;zz<z+bh-1;zz+=step){const row=Math.round((zz-z)/step);for(let side=0;side<2;side++){const at=(t,h)=>side?P(u+du+.002,v+dv*t,h):P(u+du*t,v+dv+.002,h),n=stone?4:6;L(at(.02,zz),at(.98,zz),S(col,side?-28:-9));for(let j=0;j<n;j++){const t=(j+(row%2?.5:0))/n;if(t>.04&&t<.96)L(at(t,zz-step+.6),at(t,zz-.5),S(col,side?-30:-12));}}}}
@@ -53,7 +54,7 @@ function bake675(vi,winter=false,sea=1){
     B(.1,.13,.78,.62,0,12);gable(.1,.13,.78,.62,12,11,winter?roof:'#6e746c');for(const u of[.16,.3,.44,.58,.72,.84])L(P(u,.755,1),P(u,.755,11),'#665c4e');vent(.19,.747,.53,.015,5,5);door(.13,.756,0,8,.12);vent(.425,.14,.13,.59,23,4);B(.41,.12,.16,.63,27,1,winter?'#e2e7dd':'#7e8982');
     B(.61,.66,.27,.23,0,16,'#9e775d');window675(.61,.66,.27,.23,0,.2,.8,7,5);hip(.61,.66,.27,.23,16,3);chimney(.76,.7,18);
   }else if(vi===2){
-    B(.1,.11,.3,.5,0,10,'#a88469');gable(.1,.11,.3,.5,10,4);window675(.1,.11,.3,.5,0,.18,.82,3,5);const ps=circle(.57,.56,.32,.31,16),top=ps.map(([u,v])=>[.57+(u-.57)*.25,.56+(v-.56)*.25]);frustum(ps,0,top,51,d.wall);for(const zz of[7,14,21,28,35,42]){const f=1-.75*zz/51,p=ps.map(([u,v])=>[.57+(u-.57)*f,.56+(v-.56)*f]);for(let i=0;i<8;i++)L(P(...p[i],zz),P(...p[i+1],zz),S(d.wall,-7));}F(top.map(p=>P(...p,51)),'#343b37');for(let i=0;i<16;i++)L(P(...top[i],51),P(...top[(i+1)%16],51),winter?'#d7dfd4':'#ba9675');arch(.49,.872,0,.16,11,'#3c4240',true);hooks.smoke=[P(.57,.56,52)];
+    B(.1,.11,.3,.5,0,10,'#a88469');gable(.1,.11,.3,.5,10,4);window675(.1,.11,.3,.5,0,.18,.82,3,5);const ps=circle(.57,.56,.32,.31,16),top=ps.map(([u,v])=>[.57+(u-.57)*.25,.56+(v-.56)*.25]);frustum(ps,0,top,51,d.wall);for(const zz of[4,8,12,16,20,24,28,32,36,40,44,48]){const f=1-.75*zz/51,p=ps.map(([u,v])=>[.57+(u-.57)*f,.56+(v-.56)*f]);for(let i=0;i<8;i++){L(P(...p[i],zz),P(...p[i+1],zz),S(d.wall,-5));if(i%2===(zz/4)%2){const t=(i+.5)*Math.PI/8,ff=1-.75*(zz+2.2)/51;L(P(.57+.32*f*Math.cos(t),.56+.31*f*Math.sin(t),zz),P(.57+.32*ff*Math.cos(t),.56+.31*ff*Math.sin(t),zz+2.2),S(d.wall,-9));}}}F(top.map(p=>P(...p,51)),'#343b37');for(let i=0;i<16;i++)L(P(...top[i],51),P(...top[(i+1)%16],51),winter?'#d7dfd4':'#ba9675');arch(.49,.872,0,.16,11,'#3c4240',true);hooks.smoke=[P(.57,.56,52)];
   }else if(vi===3){
     B(.1,.14,.27,.67,0,36);B(.37,.14,.43,.22,0,36);for(const zz of[9,19,28]){L(P(.1,.813,zz),P(.37,.813,zz),S(d.wall,-9));L(P(.373,.36,zz),P(.373,.81,zz),S(d.wall,-19));}vent(.12,.797,.22,.018,31,3);vent(.358,.39,.018,.37,31,3);vent(.4,.346,.35,.018,31,3);B(.085,.125,.3,.7,36,1,roof);B(.37,.125,.445,.25,36,1,roof);for(const [u,v]of[[.18,.24],[.18,.57],[.57,.2]]){vent(u,v,.07,.08,37,2);hip(u-.015,v-.015,.1,.11,39,2);hooks.smoke=(hooks.smoke||[]).concat([P(u+.035,v+.04,42)]);}door(.17,.815,0,9,.13);B(.37,.36,.47,.45,0,17,'#b19a7a');hip(.37,.36,.47,.45,17,6);window675(.37,.36,.47,.45,0,.1,.4,8,5);window675(.37,.36,.47,.45,1,.15,.75,8,5);door(.65,.815,0,10,.13);
   }else if(vi===4){

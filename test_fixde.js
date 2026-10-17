@@ -13501,7 +13501,7 @@ if (T578.mode === 'worker') t578Replay('T574G18'); else {
   const n6=T6.stat();G.forceDraw();G.setVisT(55);G.forceDraw();
   assert(T6.stat().calls===n6.calls&&T6.stat().views===n6.views&&bld596.every(b=>!(T6.reflect({k:b.k,lv:b.lv,v:b.v,we:1},b.x,b.y)||{}).__t596),'T596 G6 關回去之後繪製端不再取新圖（spr596 呼叫數不動）、倒影回到舊圖');
   // T673：CI 也執行實際家族 selector 的預覽／逃生閥五模式；烘圖依賴隔離，原真遊戲預覽檢查仍在上方。
-  const families673=[670,671].filter(n=>html.includes('function spr'+n+'('));
+  const families673=[670,671,675].filter(n=>html.includes('function spr'+n+'('));
   const switch673=html.split('\n').find(l=>l.startsWith('function t596On('));
   for(const n of families673)for(const mode of ['off','window-preview','url-preview','window-valve','url-valve']){
     const on=html.split('\n').find(l=>l.startsWith('function t'+n+'On(')),a=html.indexOf('function spr'+n+'('),b=html.indexOf('\nfunction ',a+1),selector=html.slice(a,b<0?html.length:b);
@@ -19552,3 +19552,15 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
 
 /* T671：黑屋自己的門光不產生泛用地面光池；其他款保持。 */
 {const q671g=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-ground-glow.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671g.status===0&&JSON.parse(q671g.stdout).passed===true,'T671 G15 黑屋地面光池限定與負控制：'+q671g.stderr);}
+
+/* T676：追加具名清單修復的原契約負控制；不取代任何既有斷言。 */
+{const r676=childProcess.spawnSync(process.execPath,[path.join(__dirname,"docs/tasks/t676-shots/preview-negative.cjs")],{cwd:__dirname,encoding:"utf8",timeout:30000});let j676=null;try{j676=JSON.parse(r676.stdout);}catch{}assert(r676.status===0&&j676&&j676.sourcePins==="passed","T676 原預覽契約與具名清單負控制："+r676.stderr);}
+
+/* T675：追加新工坊契約；所有既有斷言保持。 */
+for(const [name675,file675,args675] of [
+  ['候選50組與七負控制','candidate-contract.cjs',['--software']],
+  ['實際來源與選款／快取／預覽','selector-contract.cjs',[]],
+  ['主繪／倒影／工業煙真接點','check-runtime-hooks.cjs',[]],
+  ['煙粒關閥與三負控制','check-smoke-valve.cjs',[]],
+  ['窯口地面光池適用性','check-ground-glow.cjs',[]]
+]){const r675=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t675-shots',file675),...args675],{cwd:__dirname,encoding:'utf8',timeout:30000});let j675=null;try{j675=JSON.parse(r675.stdout);}catch{}assert(r675.status===0&&j675&&(j675.passed===true||j675.status==='pass'),'T675 '+name675+'：'+r675.stderr);}

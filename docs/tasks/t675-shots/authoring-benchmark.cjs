@@ -9,4 +9,4 @@ const time=f=>{const a=performance.now();f();return performance.now()-a;};
 const stats=a=>{const b=[...a].sort((x,y)=>x-y);return {n:b.length,medianMs:b[Math.floor(b.length*.5)],p90Ms:b[Math.ceil(b.length*.9)-1]};};
 for(let n=0;n<20;n++){candidate.bake(n%10,false,1);base.bake(3,n%10,1,2,1,2,false,1);}
 const rows=[];for(let model=0;model<10;model++){const old=[],fresh=[];for(let n=0;n<30;n++){const A=()=>old.push(time(()=>base.bake(3,model,1,2,1,2,false,1))),B=()=>fresh.push(time(()=>candidate.bake(model,false,1)));if(n%2){B();A();}else{A();B();}}rows.push({model,baseline:stats(old),candidate:stats(fresh)});}
-console.log(JSON.stringify({scope:'isolated software Canvas cold bake only, not Chrome/native or runtime hot-cache acceptance',samplesPerModel:30,order:'alternating A/B and B/A after 20 warm-up pairs',rows},null,2));
+console.log(JSON.stringify({scope:'isolated native Canvas cold bake only, not Chrome/native or runtime hot-cache acceptance',samplesPerModel:30,order:'alternating A/B and B/A after 20 warm-up pairs',rows},null,2));
