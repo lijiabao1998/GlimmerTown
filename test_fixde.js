@@ -19549,3 +19549,6 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
 
 /* T671：真座標重放舊矩形疊層，四個逐項移除修復反例。 */
 {const q671o=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-legacy-overlays.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671o.status===0&&JSON.parse(q671o.stdout).passed===true,'T671 G14 舊疊層本家族隔離與四負控制：'+q671o.stderr);}
+
+/* T671：黑屋自己的門光不產生泛用地面光池；其他款保持。 */
+{const q671g=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t671-shots/check-ground-glow.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});assert(q671g.status===0&&JSON.parse(q671g.stdout).passed===true,'T671 G15 黑屋地面光池限定與負控制：'+q671g.stderr);}
