@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "t634Enabled": true,
+      "base": {
+        "draw": 634,
+        "reflection": 634
+      },
+      "head": {
+        "draw": 634,
+        "reflection": 634
+      }
+    },
+    {
+      "t634Enabled": false,
+      "base": {
+        "draw": 596,
+        "reflection": 596
+      },
+      "head": {
+        "draw": 596,
+        "reflection": 596
+      }
+    }
+  ],
+  "negativeControl": "removed T670 yield changes base selection",
+  "limit": "Actual selection and reflection source with isolated bake identities; not full-game pixel or browser acceptance."
+}

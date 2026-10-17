@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "position": [
+    39,
+    3
+  ],
+  "legacyLightRects": 3,
+  "negative": {
+    "mutation": "remove-t671-exclusion",
+    "reason": "T671 generic lights excluded"
+  }
+}
