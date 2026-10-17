@@ -1,0 +1,7 @@
+/* T670 線段批次等價測試：舊純函式為獨立基準，故意縮短線段須首紅。 */
+'use strict';
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert/strict'),{createCanvas}=require('@napi-rs/canvas');
+const src=fs.readFileSync(path.resolve(__dirname,'../../../index.html'),'utf8'),start=src.indexOf('  const L=',src.indexOf('function bake670(')),end=src.indexOf('  const Q=',start),line=src.slice(start,end).replace('const L=','this.line=');
+function check(broken){const c=createCanvas(80,144),d=createCanvas(80,144),g=c.getContext('2d'),q=d.getContext('2d'),C={g,Math,erase:()=>{}};vm.createContext(C);vm.runInContext(broken?line.replace('i<=n','i<n'):line,C);const old=src.slice(src.indexOf('function lotLine574('),src.indexOf('function lotPoly574('));vm.runInContext(old+'this.old=lotLine574;',C);
+for(let k=0;k<120;k++){const a=[4+(k*7)%63+.3,4+(k*11)%125+.7],b=[4+(k*13)%63+.8,4+(k*17)%125+.2],width=k%2+1;g.clearRect(0,0,80,144);q.clearRect(0,0,80,144);C.line(a,b,'#af9163',width);C.old(q,a,b,'#af9163',width);assert.deepEqual(g.getImageData(0,0,80,144).data,q.getImageData(0,0,80,144).data,'batched-line-pixel-equivalence');}return 120;}
+const cases=check(false);let rejected=false;try{check(true);}catch(e){assert(e.message.includes('batched-line-pixel-equivalence'));rejected=true;}assert(rejected,'short-line-negative-control');console.log(JSON.stringify({cases,passed:true,negativeControl:'short line fails batched-line-pixel-equivalence'}));

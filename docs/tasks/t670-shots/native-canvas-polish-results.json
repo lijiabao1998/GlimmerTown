@@ -1,0 +1,526 @@
+{
+  "passed": true,
+  "states": 50,
+  "models": 10,
+  "smokeModels": 8,
+  "smokePipeline": true,
+  "records": [
+    {
+      "vi": 0,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 70,
+      "ink": 1960,
+      "lit": 147,
+      "hash": "aa843fbac0576f2374c268192f1a1f924c06d5bb1413909f52f4bb1f02bead95"
+    },
+    {
+      "vi": 0,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 70,
+      "ink": 1960,
+      "lit": 147,
+      "hash": "d119ba41812afd2dd372969fbd7f7e5b3d13abadb3d8e7aac2a694c20d7d60d2"
+    },
+    {
+      "vi": 0,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 70,
+      "ink": 1960,
+      "lit": 147,
+      "hash": "ad08be1aa3c72d515d4e7f19daaef3a3ea224f67c2ddcef393be7bef03af8f4e"
+    },
+    {
+      "vi": 0,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 70,
+      "ink": 1960,
+      "lit": 147,
+      "hash": "cb359cd556312360262f8274a740b67aaf9f90771eaf53639e23d88b6cee7d1a"
+    },
+    {
+      "vi": 0,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 70,
+      "ink": 1960,
+      "lit": 147,
+      "hash": "2d2c30035d3109906896875d17fb6ecaff6ca8c60767e6113c6f072c5203e6f7"
+    },
+    {
+      "vi": 1,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 80,
+      "ink": 2126,
+      "lit": 151,
+      "hash": "5b0ec493ecafd5d673eea562b98150135212b1091c91cab83948e569ef8ac2b4"
+    },
+    {
+      "vi": 1,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 80,
+      "ink": 2126,
+      "lit": 151,
+      "hash": "0a13f63703af2048c8d5af7e6e08f9a32c15168fac0d3fdb1b6fc7b4bb486e9a"
+    },
+    {
+      "vi": 1,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 80,
+      "ink": 2126,
+      "lit": 151,
+      "hash": "b2dab3e25042b29de64ee0b3d4d9ed8fb305dbb9cd711b068699b279c27ac0f0"
+    },
+    {
+      "vi": 1,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 80,
+      "ink": 2126,
+      "lit": 151,
+      "hash": "8303cd43fac23227da7b262f595260cfdf4634a959e78071c7c4ae1d4b79dea1"
+    },
+    {
+      "vi": 1,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 80,
+      "ink": 2126,
+      "lit": 151,
+      "hash": "7d4cd6b1651ff9d2c0b0099136023f41ec23fb5a5f8149978dccf06726e884e9"
+    },
+    {
+      "vi": 2,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 78,
+      "ink": 1961,
+      "lit": 97,
+      "hash": "002547bd1d937b552e31530d1b28d29b78ce97f14c27e5056a06b0a692f64cb4"
+    },
+    {
+      "vi": 2,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 78,
+      "ink": 1961,
+      "lit": 97,
+      "hash": "3e8bfeccd254ffcf0a743211c95b08b71a14456363c0f528d2e9fade1dce23f9"
+    },
+    {
+      "vi": 2,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 78,
+      "ink": 1961,
+      "lit": 97,
+      "hash": "2d1adcc93bbdadb309a5768e63fb27fb534bfc032447f417a8dc3ce81b32886e"
+    },
+    {
+      "vi": 2,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 78,
+      "ink": 1961,
+      "lit": 97,
+      "hash": "a45710b1da3f7149714240fcdff7a60e1adfad87344c6a2f8152e3a8e3617405"
+    },
+    {
+      "vi": 2,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 78,
+      "ink": 1961,
+      "lit": 97,
+      "hash": "f5a4fb04f071150940f3ecb78b47b5eeb99eec6c320a565aedb02b7dce0e751d"
+    },
+    {
+      "vi": 3,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 74,
+      "ink": 1912,
+      "lit": 125,
+      "hash": "40d91ab39281a3ef027e9e7c4b5cfd3594da0bc83d2ec0e32519ee743df871bb"
+    },
+    {
+      "vi": 3,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 74,
+      "ink": 1912,
+      "lit": 125,
+      "hash": "4f474c7d9decbf4a768d85a4945b2dc7a2e12a79307ac113d5af6941bfd056ed"
+    },
+    {
+      "vi": 3,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 74,
+      "ink": 1912,
+      "lit": 125,
+      "hash": "d48f470510a10dc722300860489dce77488f83397819c2192ec94441ac759ba4"
+    },
+    {
+      "vi": 3,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 74,
+      "ink": 1912,
+      "lit": 125,
+      "hash": "eb0c38957fd6975c71d084df8fa9e456f86c0634cc796cc46bd5ca938e0625b6"
+    },
+    {
+      "vi": 3,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 74,
+      "ink": 1912,
+      "lit": 125,
+      "hash": "429e49442e3130d40475bdd034b522a8c19cf21cf934eeecbee9e62d757b13e6"
+    },
+    {
+      "vi": 4,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 68,
+      "ink": 1845,
+      "lit": 135,
+      "hash": "f7fb5be4d5a6f1b6f7553c223ac3c416dab887dc499af426755738feb64e671e"
+    },
+    {
+      "vi": 4,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 68,
+      "ink": 1845,
+      "lit": 135,
+      "hash": "be4b8627ce7e9cc2896ee887772f4e189a76328bc7ddf0eef1042ba7321024be"
+    },
+    {
+      "vi": 4,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 68,
+      "ink": 1845,
+      "lit": 135,
+      "hash": "fdb35038bd1f48ce76a7bf0121ea898bd6fb1afb862c887da6e9cbc71d530232"
+    },
+    {
+      "vi": 4,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 68,
+      "ink": 1845,
+      "lit": 135,
+      "hash": "93c286be06627679382c32811a30aaa45685175a062a99b7ce2c8817564cecfd"
+    },
+    {
+      "vi": 4,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 68,
+      "ink": 1845,
+      "lit": 135,
+      "hash": "8ecd3385bf98c615cd4ebbeb9337a69ac3bd139b56f324324a096db1d1235495"
+    },
+    {
+      "vi": 5,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 77,
+      "ink": 2101,
+      "lit": 133,
+      "hash": "dbb77a7ab1f313800c695bdbb3fc91d0933c2e5073ad9efabd345065e05aef09"
+    },
+    {
+      "vi": 5,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 77,
+      "ink": 2101,
+      "lit": 133,
+      "hash": "a1220f645a80d2a5bd2d279e12ddbc0e5201c0530c8b69ba8284c063e6ddc01c"
+    },
+    {
+      "vi": 5,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 77,
+      "ink": 2101,
+      "lit": 133,
+      "hash": "29cc64a86a75ab4bdfc5d03c57b52efc8ef204599371a90a95f6239b45a1ff8f"
+    },
+    {
+      "vi": 5,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 77,
+      "ink": 2101,
+      "lit": 133,
+      "hash": "b42bbb0013c18a15c47d5b33716f5c92c209c3e5b7ed9078d8d95bc43ed820d8"
+    },
+    {
+      "vi": 5,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 77,
+      "ink": 2101,
+      "lit": 133,
+      "hash": "ea0e864e00590f832b10ba4f7370e8d0238f4d82aa694652e84f668e9de10bbb"
+    },
+    {
+      "vi": 6,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 65,
+      "ink": 1620,
+      "lit": 61,
+      "hash": "51f80c910fd190ef70d423873ffb16e5d95d294f929e77b7d919f0f0dc09d7f9"
+    },
+    {
+      "vi": 6,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 65,
+      "ink": 1620,
+      "lit": 61,
+      "hash": "25590a5114fd46ca0ae6d4bcea87f386b67dc71b292a7b220d78bc08502bda1c"
+    },
+    {
+      "vi": 6,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 65,
+      "ink": 1620,
+      "lit": 61,
+      "hash": "3b4ec68fb1267c81629a33e90a2064ebdd8ac12987e89681a0f42a00addae520"
+    },
+    {
+      "vi": 6,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 65,
+      "ink": 1620,
+      "lit": 61,
+      "hash": "e8c2f19ae83c96751e85b01991b7eb773fc08aafc43d8094872c236734b17c8c"
+    },
+    {
+      "vi": 6,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 65,
+      "ink": 1620,
+      "lit": 61,
+      "hash": "4d4acf6f249f70ebb678f5aa3f4d5a285d29f5887cdb07a6170492ebcdb83cc6"
+    },
+    {
+      "vi": 7,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 55,
+      "ink": 1508,
+      "lit": 87,
+      "hash": "11af34e54ed01504f91adab4e6c5f719ac469e030901bed231ccde28b8c7c60c"
+    },
+    {
+      "vi": 7,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 55,
+      "ink": 1508,
+      "lit": 87,
+      "hash": "f74f7596fb64ffc376e26b85312f5c23b34fc6712b36f905ed40a9b16c530c99"
+    },
+    {
+      "vi": 7,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 55,
+      "ink": 1508,
+      "lit": 87,
+      "hash": "5c98c3d49b4c5e1bbaa1e07abdb6e1474213837650ea58c9b39c0c157abe9bf8"
+    },
+    {
+      "vi": 7,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 55,
+      "ink": 1508,
+      "lit": 87,
+      "hash": "9fc2f40455da518a10e7c09e11876f7b39d376a9bf4ae199b2c1f2d86408964f"
+    },
+    {
+      "vi": 7,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 55,
+      "ink": 1508,
+      "lit": 87,
+      "hash": "5a661b65b2a850f29c276788dd9e7c08aeaf5c6c5752f9441ded0262a609acf1"
+    },
+    {
+      "vi": 8,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 76,
+      "ink": 2342,
+      "lit": 192,
+      "hash": "17f1679b7a9d0c1f6e25b37a467d99ff07a55fb9b98e819ecd9809f54f75f331"
+    },
+    {
+      "vi": 8,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 76,
+      "ink": 2342,
+      "lit": 192,
+      "hash": "724c89be82381ec765b18ba24244de1e27cfdc35686658c49dae1f49cb99db12"
+    },
+    {
+      "vi": 8,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 76,
+      "ink": 2342,
+      "lit": 192,
+      "hash": "aaa29097ceb05889704f6ee5a1cf7a1e413655cfd1a2945b7f9ef32ff4ae550e"
+    },
+    {
+      "vi": 8,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 76,
+      "ink": 2342,
+      "lit": 192,
+      "hash": "cc45d228304d418ca5b4fba3f5cd7f5e725e25b1004076eccdb180fcbff10f64"
+    },
+    {
+      "vi": 8,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 76,
+      "ink": 2342,
+      "lit": 192,
+      "hash": "0067372bf5b993843b717b1e6c0ea034ba3ee5941ca5a38a6b1963229f3fccff"
+    },
+    {
+      "vi": 9,
+      "sea": 0,
+      "snow": false,
+      "w": 80,
+      "h": 79,
+      "ink": 2021,
+      "lit": 142,
+      "hash": "73e1b86f09e2118d2f2ea4ce019391f9282d5f2e1e5b3ec3f1bc5c624e8c47a7"
+    },
+    {
+      "vi": 9,
+      "sea": 1,
+      "snow": false,
+      "w": 80,
+      "h": 79,
+      "ink": 2021,
+      "lit": 142,
+      "hash": "8df45b4e9338612886109f6a3c22813c65915b3daa8ae4092698e1e5ae863f30"
+    },
+    {
+      "vi": 9,
+      "sea": 2,
+      "snow": false,
+      "w": 80,
+      "h": 79,
+      "ink": 2021,
+      "lit": 142,
+      "hash": "d05a16249319c5487195121197dea528ac0bdd8e5713d2bf21934f1d507d77bb"
+    },
+    {
+      "vi": 9,
+      "sea": 3,
+      "snow": false,
+      "w": 80,
+      "h": 79,
+      "ink": 2021,
+      "lit": 142,
+      "hash": "07551139742aa0e4eaffafe9135600f4989310c8cdb594bc9496cfedc1470c6e"
+    },
+    {
+      "vi": 9,
+      "sea": 3,
+      "snow": true,
+      "w": 80,
+      "h": 79,
+      "ink": 2021,
+      "lit": 142,
+      "hash": "617d2735a24a19b9de870e3e95d69357eaa5d5e4f683a245340ea28ffa85fe10"
+    }
+  ],
+  "negativeControls": [
+    {
+      "mutation": "duplicate",
+      "rejected": true,
+      "reason": "model-identity"
+    },
+    {
+      "mutation": "valve",
+      "rejected": true,
+      "reason": "global-valve"
+    },
+    {
+      "mutation": "smoke-disconnected",
+      "rejected": true,
+      "reason": "smoke-pipeline-selected-chimney"
+    }
+  ]
+}
