@@ -35,7 +35,7 @@ function bridge(){
     setup(vi){GV.setMapSize(72);GV.newWorldSeeded(674);GV.setDiff(3);GV.ai(false);GV.setSpeed(0);quiet();money=1e9;
       for(const t of tiles)Object.assign(t,{t:2,tree:0,gv:0,road:0,rc:0,mask:0,bridge:0,zone:0,bld:null,deco:0,rail:0,tram:0,dock:0,el:0});
       building={k:family===670?2:1,lv:1,v:0,age:60,pw:true,wa:true,h:1,we:1,den:3};position=null;
-      for(let y=18;y<48&&!position;y++)for(let x=18;x<48;x++)if(choose(building,x,y)===vi){position=[x,y];break;}
+      for(let y=18;y<48&&!position;y++)for(let x=18;x<48;x++)if(choose(building,x,y)===vi&&(family!==671||vi!==0||detailPermit432(x,y,431,1,.42))){position=[x,y];break;}
       if(!position)throw Error('no genuine selector position for '+vi);const[x,y]=position;T(idx(x,y)).bld=building;
       for(let xx=x-3;xx<=x+3;xx++){Object.assign(T(idx(xx,y-1)),{road:1,rc:2});for(let yy=y+1;yy<=y+3;yy++)T(idx(xx,yy)).t=0;}
       recalcAllMasks();computeFoam();computePower();computeWater();rebuildCov();building.pw=building.wa=true;GV.setZoom(2);GV.lookAt(x,y);groundDirty=true;

@@ -38,6 +38,9 @@ jobs:
               if same==0: print('Preserved rejected native record',artifact,'for',old,'candidate',line[0],': all files except the T670 card and direction status identical')
               elif same==1: native.append(row)
               else: raise SystemExit('Cannot verify native evidence identity')
+          # Recheck the deployed first family inside the integrated second-wave runtime.
+          integrated=next(r for r in rows if r['family']==671)
+          rows.append({**integrated,'family':670})
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('candidates='+json.dumps(rows,separators=(',',':'))+'\n')
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('native_candidates='+json.dumps(native,separators=(',',':'))+'\n')
           print(json.dumps(rows,indent=2))
