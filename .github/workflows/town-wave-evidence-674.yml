@@ -19,28 +19,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Lock both candidate branch heads once
+      - name: Lock third-wave candidate SHA once
         id: refs
         run: |
           python - <<'PY'
           import json,os,subprocess
-          rows=[]; native=[]
-          # Completed record-only results are retained, including failure. Do not rerun
-          # native timing merely because the evidence validator or documentation changed.
-          recorded={670:('28d161f1215ed04cff331592fa61b3defb63e775',12088881907),671:('4b3a2dc8a19c1b91f11153a217e6510d08116551',12088014098)}
-          for family,branch in [(670,'refs/pull/45/head'),(671,'refs/heads/gpt/town-british-wave02-671')]:
-              line=subprocess.check_output(['git','ls-remote','origin',branch],text=True).strip().split()
-              if len(line)!=2 or len(line[0])!=40: raise SystemExit('Missing candidate ref '+branch)
-              row={'family':family,'sha':line[0],'branch':branch}; rows.append(row)
-              old,artifact=recorded[family]
-              subprocess.check_call(['git','fetch','--no-tags','origin',old,line[0]])
-              same=subprocess.run(['git','diff','--exit-code',old,line[0],'--','.',':(exclude)docs/GPT-方向.md',':(exclude)docs/tasks/T670-英式高街第一波.md'],stdout=subprocess.DEVNULL).returncode
-              if same==0: print('Preserved rejected native record',artifact,'for',old,'candidate',line[0],': all files except the T670 card and direction status identical')
-              elif same==1: native.append(row)
-              else: raise SystemExit('Cannot verify native evidence identity')
-          # Recheck the deployed first family inside the integrated second-wave runtime.
-          integrated=next(r for r in rows if r['family']==671)
-          rows.append({**integrated,'family':670})
+          # Third wave only. Existing 670/671 captures and rejected native records remain retained.
+          branch='refs/heads/gpt/town-british-workshops-675'
+          line=subprocess.check_output(['git','ls-remote','origin',branch],text=True).strip().split()
+          if len(line)!=2 or len(line[0])!=40: raise SystemExit('Missing candidate ref '+branch)
+          sha=line[0]
+          subprocess.check_call(['git','fetch','--no-tags','origin',sha])
+          source=subprocess.check_output(['git','show',sha+':index.html'],text=True)
+          if 'function spr675(' not in source: raise SystemExit('Third-wave runtime not integrated at candidate SHA')
+          rows=[{'family':675,'sha':sha,'branch':branch}]
+          native=rows.copy()
+          record_path='docs/tasks/t674-shots/native675-record.json'
+          if os.path.isfile(record_path):
+              record=json.load(open(record_path))
+              if record.get('sha')==sha:
+                  if not isinstance(record.get('artifact'),int) or record['artifact']<=0: raise SystemExit('Invalid preserved native artifact')
+                  if record.get('result') not in ['accepted','rejected']: raise SystemExit('Missing original native outcome')
+                  native=[]
+                  print('Preserved original native record for exact candidate',json.dumps(record,sort_keys=True))
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('candidates='+json.dumps(rows,separators=(',',':'))+'\n')
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('native_candidates='+json.dumps(native,separators=(',',':'))+'\n')
           print(json.dumps(rows,indent=2))
