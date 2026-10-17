@@ -28,8 +28,8 @@ jobs:
           # Completed record-only results are retained, including failure. Do not rerun
           # native timing merely because the evidence validator or documentation changed.
           recorded={670:('28d161f1215ed04cff331592fa61b3defb63e775',12088881907),671:('4b3a2dc8a19c1b91f11153a217e6510d08116551',12088014098)}
-          for family,branch in [(670,'gpt/town-british-wave01-670'),(671,'gpt/town-british-wave02-671')]:
-              line=subprocess.check_output(['git','ls-remote','origin','refs/heads/'+branch],text=True).strip().split()
+          for family,branch in [(670,'refs/pull/45/head'),(671,'refs/heads/gpt/town-british-wave02-671')]:
+              line=subprocess.check_output(['git','ls-remote','origin',branch],text=True).strip().split()
               if len(line)!=2 or len(line[0])!=40: raise SystemExit('Missing candidate ref '+branch)
               row={'family':family,'sha':line[0],'branch':branch}; rows.append(row)
               old,artifact=recorded[family]
