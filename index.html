@@ -37410,7 +37410,8 @@ function port590_trans_a(A){
       A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
       S.run(g,ng);
       if(o.front)o.front(g,ng);
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
       const[sc]=A.cv(W,H);
       B[k+'_1_'+slot]=K.finish(c,g,sc,nc,{fence:false,smoke:[]});}
     if(B[k+'_1_3'])B[k+'_1_3']=B[k+'_1_0'];
@@ -38831,7 +38832,8 @@ function port590_trans_c(A){
       A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
       S.run(g,ng);
       if(o.front)o.front(g,ng);
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
       const[sc]=A.cv(W,H);
       B[k+'_1_'+slot]=K.finish(c,g,sc,nc,{fence:false,smoke:[]});}
     if(B[k+'_1_3'])B[k+'_1_3']=B[k+'_1_0'];
@@ -41031,7 +41033,8 @@ function port590_civ_b(A){
     for(let v=0;v<3;v++){const[c,g]=A.cv(W,H),[nc,ng]=A.cv(W,H),S=L.scene();
       const o=layouts[v](g,ng,S)||{};S.run(g,ng);const[sc]=A.cv(W,H);
       const spr=K.finish(c,g,sc,nc,{fence:false});if(o.flagAt)spr.flagAt=o.flagAt;
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只留在白天有實體的像素上（燈頭光暈不外溢到天空）
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只留在白天有實體的像素上（燈頭光暈不外溢到天空）
       B['61_1_'+v]=spr;}
   }catch(e){errs.push('k61 '+(e&&e.stack||e));}
 
@@ -44908,7 +44911,8 @@ function port590_civ_g(A){
     for(let v=0;v<3;v++){const[c,g]=A.cv(W,H),[nc,ng]=A.cv(W,H),S=L.scene();
       const o=layouts[v](g,ng,S)||{};S.run(g,ng);const[sc]=A.cv(W,H);
       const spr=K.finish(c,g,sc,nc,{fence:false});if(o.flagAt){spr.flagAt=o.flagAt;REP.flag['48_'+v]=o.flagAt;}
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
       L.clipLot(c);L.clipLot(nc);
       out.push(spr);B['48_1_'+v]=spr;}
     for(const k of Object.keys(B)){const m=/^48_1_(\d+)$/.exec(k);if(m&&+m[1]>2)B[k]=out[(+m[1])%3];}
@@ -45133,7 +45137,8 @@ function port590_civ_g(A){
     for(let v=0;v<3;v++){const[c,g]=A.cv(W,H),[nc,ng]=A.cv(W,H),S=L.scene();
       const o=layouts[v](g,ng,S)||{};S.run(g,ng);const[sc]=A.cv(W,H);
       const spr=K.finish(c,g,sc,nc,{fence:false});if(o.flagAt){spr.flagAt=o.flagAt;REP.flag['102_'+v]=o.flagAt;}
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
       L.clipLot(c);L.clipLot(nc);
       out.push(spr);B['102_1_'+v]=spr;}
     for(const k of Object.keys(B)){const m=/^102_1_(\d+)$/.exec(k);if(m&&+m[1]>2)B[k]=out[(+m[1])%3];}
@@ -48710,7 +48715,8 @@ function port590_cul_d(A){
         A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
         S.run(g,ng);
         if(o.front)o.front(g,ng);
-        ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
+        g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
         const[sc]=A.cv(W,H);const spr=K.finish(c,g,sc,nc,{fence:false,smoke:[]});
         const at=[],cut=clip(c,W,H,AX,AY,at),cutN=clip(nc,W,H,AX,AY);
         let fop=0;if(o.flagAt){spr.flagAt=o.flagAt;const[fx,fy]=o.flagAt,idd=c.getContext('2d').getImageData(fx-1,fy-1,2,1).data;for(let i=3;i<idd.length;i+=4)if(idd[i])fop++;}
@@ -49742,7 +49748,8 @@ function port590_cul_e(A){
         A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
         S.run(g,ng);
         if(o.front)o.front(g,ng);
-        ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
+        g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
         const[sc]=A.cv(W,H);const spr=K.finish(c,g,sc,nc,{fence:false,smoke:[]});
         const at=[],cut=clip(c,W,H,AX,AY,at,SZ),cutN=clip(nc,W,H,AX,AY,null,SZ);
         let fop=0;if(o.flagAt){spr.flagAt=o.flagAt;const[fx,fy]=o.flagAt,idd=c.getContext('2d').getImageData(fx-1,fy-1,2,1).data;for(let i=3;i<idd.length;i+=4)if(idd[i])fop++;}
@@ -51792,6 +51799,7 @@ function bakeFire635(k,n,winter=false){
     tree(n*.94,n*.25);light(n*.93,n*.90,8);
   }
   /* 夜燈先按本體 alpha 裁切；只裁透明天空，保留原地塊底錨與原生施工／淡出層。 */
+  g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
   ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
   const rgba=g.getImageData(0,0,w,h).data;let y0=h;for(let y=0;y<h&&y0===h;y++)for(let x=0;x<w;x++)if(rgba[(y*w+x)*4+3]){y0=Math.max(0,y-2);break;}
   const nh=h-y0,[ic,ig]=cv(w,nh),[lc,lg]=cv(w,nh);ig.drawImage(c,0,y0,w,nh,0,0,w,nh);lg.drawImage(nc,0,y0,w,nh,0,0,w,nh);
@@ -51855,6 +51863,7 @@ function bakeFire638(k,n,winter=false,vi=1){
   const H638={P,Q,F,L,E,pixel635,faceV,faceU,box,course,windowV,windowU,light,pitched,door,arch,pave,tree,truck,pal,edge,stone,glass,lit,slate,slateD,occlude635,n,winter,k,w,h,ax,ay,top,g,ng};
   (k===6?fire638K6:k===30?fire638K30:fire638K61)(H638,vi); // T638：只換三類的畫法；前後畫筆、地塊、夜燈裁切、裁頂與 bakeFire635 逐字相同
   /* 夜燈先按本體 alpha 裁切；只裁透明天空，保留原地塊底錨與原生施工／淡出層。 */
+  g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
   ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
   const rgba=g.getImageData(0,0,w,h).data;let y0=h;for(let y=0;y<h&&y0===h;y++)for(let x=0;x<w;x++)if(rgba[(y*w+x)*4+3]){y0=Math.max(0,y-2);break;}
   const nh=h-y0,[ic,ig]=cv(w,nh),[lc,lg]=cv(w,nh);ig.drawImage(c,0,y0,w,nh,0,0,w,nh);lg.drawImage(nc,0,y0,w,nh,0,0,w,nh);
@@ -52554,7 +52563,7 @@ function bake658(i,winter=false,sea=0,n=1){
     const mv=v+dv/2,kk=Math.min(du,dv)/2,rid=he+rise;
     F([P(u,v+dv,he),P(u+du,v+dv,he),P(u+du-kk,mv,rid),P(u+kk,mv,rid)],rf);
     F([P(u+du,v,he),P(u+du,v+dv,he),P(u+du-kk,mv,rid)],endC||rfD);
-    for(let k=1;k<4;k++){const f=k/4;L(P(u,v+dv-dv/2*f,he+rise*f),P(u+du,v+dv-dv/2*f,he+rise*f),rfD);}
+    for(let k=1;k<4;k++){const f=k/4;L(P(u+kk*f,v+dv-dv/2*f,he+rise*f),P(u+du-kk*f,v+dv-dv/2*f,he+rise*f),rfD);}
     L(P(u+kk,mv,rid+.5),P(u+du-kk,mv,rid+.5),shade(rf,24));
     L(P(u,v+dv,he),P(u+du,v+dv,he),shade(rfD,-10));
     return rid;
@@ -52590,6 +52599,7 @@ function bake658(i,winter=false,sea=0,n=1){
   else if(i===3)civic658Post(H658);
   else if(i===4)civic658Police(H658);
   else throw Error('T658 unknown model '+i);
+  g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
   ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
   const rgba=g.getImageData(0,0,W,H).data;let y0=H;
   for(let y=0;y<H&&y0===H;y++)for(let x=0;x<W;x++)if(rgba[(y*W+x)*4+3]){y0=Math.max(0,y-2);break;}
@@ -52616,8 +52626,9 @@ function civic658School(H){
   for(const eu of [u-.02,u1-.12]){
     const w2=.14;
     box(eu,v-.02,w2,dv+.04,0,he+3,O.stock);
-    F([P(eu,v+dv+.02,he+3),P(eu+w2,v+dv+.02,he+3),P(eu+w2,v+dv/2+.02,he+9),P(eu,v+dv/2+.02,he+9)],rf);
-    F([P(eu+w2,v-.02,he+3),P(eu+w2,v+dv+.02,he+3),P(eu+w2,v+dv/2+.02,he+9)],O.stock);
+    F([P(eu,v+dv+.01,he+3),P(eu+w2,v+dv+.01,he+3),P(eu+w2,v+dv/2,he+8),P(eu,v+dv/2,he+8)],rf);
+    F([P(eu,v+dv+.03,he+3),P(eu+w2,v+dv+.03,he+3),P(eu+w2/2,v+dv+.03,he+8)],O.stock);
+    L(P(eu,v+dv+.03,he+3),P(eu+w2/2,v+dv+.03,he+8),O.stone);
     F([P(eu,v+dv+.02,he+2),P(eu+w2,v+dv+.02,he+2),P(eu+w2,v+dv+.02,he+3),P(eu,v+dv+.02,he+3)],O.stone);
   }
   /* 窗：地面層高拱窗（教室），一樓多格上下推拉窗。 */
@@ -52643,7 +52654,7 @@ function civic658School(H){
   const tt=faceV(tu,tv+th,tw);
   for(let z=tz+2;z<tz+9;z+=2)L(tt(.12,z),tt(.88,z),'#4a4038');
   roofPyr(tu,tv,tw,th,tz+10,4,winter?'#dfe8ea':O.slateD,shade(O.slateD,-12));
-  L(P(tu+tw/2,tv+th/2,tz+15),P(tu+tw/2,tv+th/2,tz+18),'#8b979c');
+  {const kx=P(tu+tw/2,tv+th/2,tz+15)[0],ky=P(tu+tw/2,tv+th/2,tz+15)[1];F([[kx-1,ky-2],[kx+1,ky-2],[kx+1,ky],[kx-1,ky]],'#9aa4a8');}
   /* 煙囪。 */
   for(const cu of [.20,.78])box(cu,.34,.05,.06,rid-1,6,O.redband,{top:shade(O.redband,18)});
   /* 圍牆＋鐵欄杆＋大門。 */
@@ -52674,7 +52685,7 @@ function civic658Library(H){
   box(vu,vv,.11,.11,he+1,8,O.limestone,{top:lit});
   F([P(vu,vv+.11,he+3),P(vu+.11,vv+.11,he+3),P(vu+.11,vv+.11,he+7),P(vu,vv+.11,he+7)],'#6b6455');
   roofPyr(vu,vv,.11,.11,he+9,5,rfD,rf);
-  L(P(vu+.055,vv+.055,he+14),P(vu+.055,vv+.055,he+17),'#8b979c');
+  {const kx=P(vu+.055,vv+.055,he+14)[0],ky=P(vu+.055,vv+.055,he+14)[1];F([[kx-1,ky-2],[kx+1,ky-2],[kx+1,ky],[kx-1,ky]],'#9aa4a8');}
   /* 立面：四扇高拱窗（窗檯高給牆邊書架）。 */
   const at=faceV(u,v1,du);
   for(const [a,b] of [[.03,.15],[.20,.32],[.68,.80],[.85,.97]])archWin(at,a,b,7.2,13.8,17.4,{});
@@ -52722,6 +52733,8 @@ function civic658Hospital(H){
   F([P(wu,pv,vz),P(wu+wdu,pv,vz),P(wu+wdu,pv+.07,vz+.7),P(wu,pv+.07,vz+.7)],shade(pale,-10));
   F([P(wu,pv+.07,vz+.7),P(wu+wdu,pv+.07,vz+.7),P(wu+wdu,pv+.07,vz-.4),P(wu,pv+.07,vz-.4)],pale);
   rail(wu,pv+.08,wu+wdu,pv+.08,2.2,2.0,pale);
+  /* 右翼端牆（+u 面）補窗，別留一大片紅磚。 */
+  for(const [a2,b2] of [[.22,.44],[.58,.80]])win(faceU(wu+wdu,wv,wdv),a2,b2,3.2,7.6,{});
   /* 中央入口樓：抬高、石板瓦、鐘亭。 */
   const cu=.35,cv=.18,cdu=.30,cdv=.40,cv1=cv+cdv,ch=16;
   box(cu,cv,cdu,cdv,0,ch,O.brick,{right:shade(O.brick,8)});
@@ -52731,11 +52744,12 @@ function civic658Hospital(H){
   for(const [a,b] of [[.12,.30],[.70,.88]])win(cat,a,b,8.6,13.4,{bars:1});
   F([P(cu-.01,cv1,ch-.6),P(cu+cdu+.01,cv1,ch-.6),P(cu+cdu+.01,cv1,ch),P(cu-.01,cv1,ch)],O.stone);
   /* 鐘亭：白色方形＋四面拱洞＋四坡帽＋風標。 */
-  box(cu+cdu*.40,cv+cdv*.32,.20,.14,rid-2,7,O.stone,{top:pale});
-  const bt=faceV(cu+cdu*.40,cv+cdv*.32+.14,.20);
-  archWin(bt,.28,.72,rid+1,rid+4,rid+5.2,{glass:'#3a3f45',stone:O.stone,sill:false});
-  roofPyr(cu+cdu*.40,cv+cdv*.32,.20,.14,rid+5,4,O.slateD,O.slate);
-  L(P(cu+cdu*.5,cv+cdv*.39,rid+9),P(cu+cdu*.5,cv+cdv*.39,rid+13),'#8b979c');
+  const btU=cu+cdu*.42,btV=cv+cdv*.28,btW=.16,btD=.12,btTop=rid+6;
+  box(btU,btV,btW,btD,rid-4,btTop-rid+4,O.stone,{top:pale});
+  archWin(faceV(btU,btV+btD,btW),.26,.74,rid-2,btTop-3,btTop-1,{glass:'#3a3f45',stone:O.stone,sill:false});
+  roofPyr(btU,btV,btW,btD,btTop,4,O.slateD,O.slate);
+  {const kp=P(btU+btW/2,btV+btD/2,btTop+4);F([[kp[0]-1,kp[1]-2],[kp[0]+1,kp[1]-2],[kp[0]+1,kp[1]],[kp[0]-1,kp[1]]],'#9aa4a8');}
+  for(const [a,b] of [[.16,.40],[.60,.84]])win(faceU(cu+cdu,cv,cdv),a,b,7,12,{});
   /* 煙囪與樹。 */
   for(const cu2 of [.12,.72])box(cu2,wv+wdv*.3,.05,.06,wh+2,6,O.brick,{top:shade(O.brick,18)});
   tree(.03,.80,6);tree(.97,.76,5);
