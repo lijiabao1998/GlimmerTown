@@ -1,0 +1,3 @@
+# Blackhouse ground-glow correction capture
+
+Capture requested for PR46 72f4f08ec2a112d91bad8b4fe3d1cba0b4b772a0 (v11.234): only T671 blackhouse variant0 no longer enters the generic T149 ground-glow branch; other nine models and T670 remain unchanged. This is a new runtime correction for review4301821657. Prior aad1d79e visual and rejected native timing records remain historical, not evidence for this revision. Resolve must bind the actual branch SHA once; verify it matches this request before using evidence. Record both art families and original native timing without threshold changes or retries of the same runtime to seek green.
