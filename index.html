@@ -52521,7 +52521,6 @@ function bake658(i,winter=false,sea=0,n=1){
   const at2=(at,pts)=>pts.map(([t,z])=>at(t,z));
   const win=(at,t0,t1,z0,z1,o={})=>{
     const fr=o.frame||PAL658.joinery,gl=o.glass||PAL658.glass,st=o.stone||PAL658.white,pad=o.pad===undefined?.006:o.pad;
-    F(at2(at,[[t0-pad,z0+.5],[t1+pad,z0+.5],[t1+pad,z1+.5],[t0-pad,z1+.5]]),st);
     const ps=at2(at,[[t0,z0+1],[t1,z0+1],[t1,z1],[t0,z1]]);
     F(ps,gl);
     if(o.night!==false)F(ps,PAL658.lit,ng);
@@ -52529,15 +52528,11 @@ function bake658(i,winter=false,sea=0,n=1){
     if(z1-z0>=5)L(at(t0,mid),at(t1,mid),fr);
     const bars=o.bars||0;
     for(let k=1;k<=bars;k++){const tt=t0+(t1-t0)*k/(bars+1);L(at(tt,z0+1),at(tt,z1-.5),fr);}
-    L(at(t0,z0+1),at(t0,z1),fr);L(at(t1,z0+1),at(t1,z1),fr);
+    L(at(t0,z0+1),at(t0,z1),st);L(at(t1,z0+1),at(t1,z1),st);
     if(o.sill!==false)L(at(t0-pad,z0+.5),at(t1+pad,z0+.5),PAL658.stoneD);
   };
   const archWin=(at,t0,t1,z0,zs,zc,o={})=>{
     const tm=(t0+t1)/2,r=(t1-t0)/2,fr=o.frame||PAL658.joinery,gl=o.glass||PAL658.glass;
-    const outer=[at(t0-.008,z0+.5),at(t1+.008,z0+.5),at(t1+.008,zs)];
-    for(let k=1;k<8;k++){const f=k/8;outer.push(at(tm+(r+.008)*Math.cos(Math.PI*f),zs+(zc-zs+.5)*Math.sin(Math.PI*f)));}
-    outer.push(at(t0-.008,zs));
-    F(outer,o.stone||PAL658.white);
     const ps=[at(t0,z0+1),at(t1,z0+1),at(t1,zs)];
     for(let k=1;k<8;k++){const f=k/8;ps.push(at(tm+r*Math.cos(Math.PI*f),zs+(zc-zs)*Math.sin(Math.PI*f)));}
     ps.push(at(t0,zs));
@@ -52545,6 +52540,9 @@ function bake658(i,winter=false,sea=0,n=1){
     if(o.night!==false)F(ps,PAL658.lit,ng);
     L(at(tm,z0+1),at(tm,zc-.5),fr);
     L(at(t0,zs),at(t1,zs),fr);
+    for(let k=0;k<7;k++){const f1=k/7,f2=(k+1)/7;
+      L(at(tm+r*Math.cos(Math.PI*f1),zs+(zc-zs)*Math.sin(Math.PI*f1)),at(tm+r*Math.cos(Math.PI*f2),zs+(zc-zs)*Math.sin(Math.PI*f2)),o.stone||PAL658.white);}
+    L(at(t0,z0+1),at(t0,zs),o.stone||PAL658.white);L(at(t1,z0+1),at(t1,zs),o.stone||PAL658.white);
     if(o.sill!==false)L(at(t0-.008,z0+.5),at(t1+.008,z0+.5),PAL658.stoneD);
   };
   const dots=(at,t0,t1,z,n,col)=>{
@@ -52770,8 +52768,9 @@ function civic658Post(H){
   F([P(u,v1,13.0),P(u1,v1,13.0),P(u1,v1,13.4),P(u,v1,13.4)],'#15302a');
   dots(at,.08,.50,11.8,6,'#efe6cf');
   F(at2(at,[[.05,1.8],[.51,1.8],[.51,9.8],[.05,9.8]]),O.stoneD);
-  F(at2(at,[[.065,2.4],[.495,2.4],[.495,9.2],[.065,9.2]]),'#2f4a44');
+  F(at2(at,[[.065,2.4],[.495,2.4],[.495,9.2],[.065,9.2]]),'#3d5f57');
   F(at2(at,[[.065,2.4],[.495,2.4],[.495,9.2],[.065,9.2]]),'#c8a26a',ng);
+  L(at(.065,6.2),at(.495,6.2),'#6f8c80');L(at(.28,2.6),at(.28,9.0),'#6f8c80');
   L(at(.10,2.6),at(.16,9.0),'#7d9a92');L(at(.30,2.6),at(.34,9.0),'#7d9a92');
   /* 門（凹入半步）＋門罩。 */
   F(at2(at,[[.55,0],[.71,0],[.71,9.8],[.55,9.8]]),'#2a3f38');
@@ -52790,7 +52789,7 @@ function civic658Post(H){
   const ext=faceV(.02,.60,.14);
   win(ext,.20,.80,3,8,{glass:'#39534d'});
   /* 煙囪兩支。 */
-  for(const cu of [.22,.74])box(cu,v+dv*.30,.05,.06,he+2,6,O.brick,{top:shade(O.brick,20)});
+  for(const cu of [.24,.72])box(cu,v+dv*.5-.03,.05,.06,he+6.5,5,O.brick,{top:shade(O.brick,20)});
   /* 路邊紅色郵筒：圓柱＋圓頂＋金色投信口。 */
   const pp=P(.38,.86,0);
   E(pp[0],pp[1],2.4,1.2,O.pored);
@@ -52817,19 +52816,19 @@ function civic658Police(H){
   const rid=roofHipU(u,v,du,dv,he,8,rf,rfD,shade(rfD,12));
   L(P(u+du*.2,v+dv*.5,rid+.6),P(u+du*.8,v+dv*.5,rid+.6),O.terra);
   /* 中央凸出：拱門＋匾額＋弧形山花。 */
-  const pu=u+du*.40,pdu=du*.20,pv=v1,pdv=.08,ph=26;
+  const pu=u+du*.40,pdu=du*.20,pv=v1,pdv=.08,ph=24;
   box(pu,pv,pdu,pdv,0,ph,O.brick,{right:shade(O.brick,6)});
-  F([P(pu,pv+pdv,ph),P(pu+pdu,pv+pdv,ph),P(pu+pdu,pv+pdv,ph+3.4),P(pu,pv+pdv,ph+3.4)],O.terra);
-  F([P(pu,pv+pdv,ph+3.4),P(pu+pdu*.5,pv+pdv,ph+6),P(pu+pdu,pv+pdv,ph+3.4)],shade(O.terra,10));
+  F([P(pu+pdu*.18,pv+pdv,8.4),P(pu+pdu*.82,pv+pdv,8.4),P(pu+pdu*.82,pv+pdv,9.6),P(pu+pdu*.18,pv+pdv,9.6)],O.stone);
   const pat=faceV(pu,pv+pdv,pdu);
   dots(pat,.12,.88,17.4,7,'#efe6cf');
   archWin(pat,.34,.66,0,5.4,8.2,{glass:'#243c33',stone:O.stone});
   for(let k=0;k<2;k++)box(pu-k*.014,pv+pdv+k*.01,pdu+k*.028,.035,0,(2-k)*1.2,O.stoneD,{top:O.stone});
   /* 藍燈：門上方鐵架＋藍玻璃燈籠，夜裡發藍光。 */
-  const bp=pat(.5,12.6);
-  L([bp[0],bp[1]],[bp[0],bp[1]-4],O.iron,1);
-  F([[bp[0]-1.6,bp[1]-4],[bp[0]+1.6,bp[1]-4],[bp[0]+1.6,bp[1]-7],[bp[0]-1.6,bp[1]-7]],O.blue);
-  F([[bp[0]-1.4,bp[1]-4.4],[bp[0]+1.4,bp[1]-4.4],[bp[0]+1.4,bp[1]-6.6],[bp[0]-1.4,bp[1]-6.6]],'#7fa8ff',ng);
+  const bp=pat(.5,10.2);
+  L([bp[0],bp[1]-1],[bp[0],bp[1]-3.6],O.iron,1);
+  F([[bp[0]-1,bp[1]-3.6],[bp[0]+1,bp[1]-3.6],[bp[0]+1,bp[1]-1.2],[bp[0]-1,bp[1]-1.2]],O.iron);
+  F([[bp[0]-1,bp[1]-3.2],[bp[0]+1,bp[1]-3.2],[bp[0]+1,bp[1]-1.6],[bp[0]-1,bp[1]-1.6]],'#7fa8ff',ng);
+  F([[bp[0]-.8,bp[1]-3.2],[bp[0]+.8,bp[1]-3.2],[bp[0]+.8,bp[1]-1.6],[bp[0]-.8,bp[1]-1.6]],'#3f6fc4');
   /* 地面層半圓拱窗（陶土罩線）與一樓高窗。 */
   const at=faceV(u,v1,du);
   for(const [a,b] of [[.04,.16],[.20,.32],[.68,.80],[.84,.96]]){
@@ -52840,14 +52839,14 @@ function civic658Police(H){
   const au=faceU(u1,v,dv);
   for(const [a,b] of [[.18,.34],[.64,.80]])win(au,a,b,14.4,21,{bars:1});
   /* 煙囪三支＋脊瓦。 */
-  for(const cu of [.18,.50,.82])box(cu,v+dv*.42,.05,.06,rid-1,6,O.brick,{top:shade(O.brick,18)});
+  for(const cu of [.36,.50,.64])box(cu,v+dv*.5-.03,.05,.06,rid-1.5,5.5,O.brick,{top:shade(O.brick,18)});
   /* 圍牆（陶土壓頂）＋鐵欄杆＋門柱。 */
   box(.04,.82,.34,.03,0,4,O.brick);
   box(.62,.82,.34,.03,0,4,O.brick);
   F([P(.04,.85,4),P(.38,.85,4),P(.38,.85,4.8),P(.04,.85,4.8)],O.terra);
   F([P(.62,.85,4),P(.96,.85,4),P(.96,.85,4.8),P(.62,.85,4.8)],O.terra);
   rail(.05,.835,.37,.835,4.8,3.2,O.iron);rail(.63,.835,.95,.835,4.8,3.2,O.iron);
-  for(const gu of [.38,.62])box(gu-.02,.815,.06,.06,0,7,O.stone,{top:O.white});
+  for(const gu of [.38,.62])box(gu-.018,.82,.05,.05,0,4.8,O.stone,{top:O.white});
 }
 /* ===== T658 FIVE ENGLISH CIVIC BUILDINGS END ===== */
 /* T670：第一波十座英式專門店；獨立家族，不改 T634 舊款，不寫存檔、不抽模擬亂數。 */
