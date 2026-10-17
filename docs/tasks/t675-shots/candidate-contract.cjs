@@ -17,6 +17,7 @@ function check(s,i){
  const a=pixels(s.img),b=pixels(s.night);assert.equal(a.length,b.length,'mask-size');let night=0,body=0;
  for(let p=3;p<a.length;p+=4){if(a[p])body++;if(b[p]){night++;assert(a[p]>0,'night-outside-body');}}
  assert(body>150,'body-pixels');assert(night>0,'missing-night-openings');
+ const seen=new Uint8Array(s.w*s.h),components=[];for(let n=0;n<seen.length;n++){if(seen[n]||!a[n*4+3])continue;let size=0;const q=[n];seen[n]=1;while(q.length){const p=q.pop(),x=p%s.w,y=Math.floor(p/s.w);size++;for(let yy=Math.max(0,y-1);yy<=Math.min(s.h-1,y+1);yy++)for(let xx=Math.max(0,x-1);xx<=Math.min(s.w-1,x+1);xx++){const k=yy*s.w+xx;if(!seen[k]&&a[k*4+3]){seen[k]=1;q.push(k);}}}components.push(size);}assert.equal(components.length,1,'disconnected-body-component');
  for(let n=0;n<s.smoke.length;n++){const p=s.smoke[n],q=s.lotMeta574.hooks.smoke[n];assert.equal(p.dx+s.ax,q[0],'hook-x');assert.equal(p.dy+s.ay,q[1],'hook-y');assert(q[0]>=0&&q[0]<s.w&&q[1]>=0&&q[1]<s.h,'hook-bounds');}
  return {body,night,hash:hash(s.img),nightHash:hash(s.night)};
 }
@@ -26,6 +27,7 @@ function reject(name,i,change,expected){const s=ctx.bake(i,false,1);change(s);as
 reject('missing-night-mask',0,s=>s.night.getContext('2d').clearRect(0,0,s.w,s.h),'missing-night-openings');
 reject('missing-chimney',0,s=>s.smoke.pop(),'outlet-count');
 reject('invented-granary-smoke',4,s=>s.smoke.push({dx:0,dy:0}),'outlet-count');
+reject('floating-body-pixel',0,s=>{s.img.getContext('2d').fillRect(0,0,1,1);},'disconnected-body-component');
 reject('wrong-family',0,s=>s.__t675=0,'family');
 reject('out-of-bounds-hook',0,s=>{s.smoke[0].dx=1000;s.lotMeta574.hooks.smoke[0][0]=1000+s.ax;},'hook-bounds');
 reject('night-outside-body',0,s=>{s.img.getContext('2d').clearRect(0,0,1,1);s.night.getContext('2d').fillRect(0,0,1,1);},'night-outside-body');
