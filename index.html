@@ -802,7 +802,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.235'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.236'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -12786,6 +12786,7 @@ function reflectSprite(bd,x,y){ // T600：x、y＝這棟的格子（預覽新圖
   if(t670On()){const p670=spr670(bd,x,y,inWinter()&&rainDays>0);if(p670)return p670;} // T670：倒影選同一款與同一季節雪態
   if(t671On()){const p671=spr671(bd,x,y,inWinter()&&rainDays>0);if(p671)return p671;} // T671：倒影與住宅本體選同款
   if(t675On()){const p675=spr675(bd,x,y,inWinter()&&rainDays>0);if(p675)return p675;} // T675：同款工坊倒影
+  if(t658On()){const p658=spr658(bd,x,y,inWinter()&&rainDays>0);if(p658)return p658;} // T658：倒影與公共建築本體選同一款
   if(t634On()){const p634=spr634(bd,x,y,inWinter()&&rainDays>0);if(p634)return p634;} // T634：倒影同本體、同錨點
   if(bd.k===4){if(t601On()&&SPR.art601)return one601(4,x,y,bd,inWinter(),season()); // T601：倒影用同一款新公園（同季節色）
     const sea2=season();return(inWinter()?SPR.parkW:sea2===1?(SPR.parkS||SPR.park):sea2===2?(SPR.parkA||SPR.park):SPR.park)[bd.v];} // T204：倒影用公園也套季節色
@@ -19536,6 +19537,7 @@ function draw(dt){
     if(t670On()){const p670=spr670(bd,o.x,o.y,win&&snowLvl>0);if(p670)s=p670;} // T670：新增十款低密商業，未選中保留原圖
     if(t671On()){const p671=spr671(bd,o.x,o.y,win&&snowLvl>0);if(p671)s=p671;} // T671：十款住宅，未選中保留舊款
     if(t675On()){const p675=spr675(bd,o.x,o.y,win&&snowLvl>0);if(p675)s=p675;} // T675：十款工坊，未選中保留舊款
+    if(t658On()){const p658=spr658(bd,o.x,o.y,win&&snowLvl>0);if(p658)s=p658;} // T658：五座英式公共建築（k7／k11 v0／k12／k14／k15），未選中保留原圖
     /* T364a sc sprite view：新波素材以 2× 畫布保存細節，僅在世界繪製時縮放。
        無 sc 的既有素材直接保留原物件／原 w,h,ax,ay，下面所有舊算式逐位元不變；
        有 sc 才建立一次快取檢視，將邏輯尺寸與錨點同步縮放，並保留原圖尺寸給施工裁切與遮罩快取。 */
@@ -37408,7 +37410,8 @@ function port590_trans_a(A){
       A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
       S.run(g,ng);
       if(o.front)o.front(g,ng);
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
       const[sc]=A.cv(W,H);
       B[k+'_1_'+slot]=K.finish(c,g,sc,nc,{fence:false,smoke:[]});}
     if(B[k+'_1_3'])B[k+'_1_3']=B[k+'_1_0'];
@@ -38829,7 +38832,8 @@ function port590_trans_c(A){
       A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
       S.run(g,ng);
       if(o.front)o.front(g,ng);
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
       const[sc]=A.cv(W,H);
       B[k+'_1_'+slot]=K.finish(c,g,sc,nc,{fence:false,smoke:[]});}
     if(B[k+'_1_3'])B[k+'_1_3']=B[k+'_1_0'];
@@ -41029,7 +41033,8 @@ function port590_civ_b(A){
     for(let v=0;v<3;v++){const[c,g]=A.cv(W,H),[nc,ng]=A.cv(W,H),S=L.scene();
       const o=layouts[v](g,ng,S)||{};S.run(g,ng);const[sc]=A.cv(W,H);
       const spr=K.finish(c,g,sc,nc,{fence:false});if(o.flagAt)spr.flagAt=o.flagAt;
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只留在白天有實體的像素上（燈頭光暈不外溢到天空）
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只留在白天有實體的像素上（燈頭光暈不外溢到天空）
       B['61_1_'+v]=spr;}
   }catch(e){errs.push('k61 '+(e&&e.stack||e));}
 
@@ -44906,7 +44911,8 @@ function port590_civ_g(A){
     for(let v=0;v<3;v++){const[c,g]=A.cv(W,H),[nc,ng]=A.cv(W,H),S=L.scene();
       const o=layouts[v](g,ng,S)||{};S.run(g,ng);const[sc]=A.cv(W,H);
       const spr=K.finish(c,g,sc,nc,{fence:false});if(o.flagAt){spr.flagAt=o.flagAt;REP.flag['48_'+v]=o.flagAt;}
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
       L.clipLot(c);L.clipLot(nc);
       out.push(spr);B['48_1_'+v]=spr;}
     for(const k of Object.keys(B)){const m=/^48_1_(\d+)$/.exec(k);if(m&&+m[1]>2)B[k]=out[(+m[1])%3];}
@@ -45131,7 +45137,8 @@ function port590_civ_g(A){
     for(let v=0;v<3;v++){const[c,g]=A.cv(W,H),[nc,ng]=A.cv(W,H),S=L.scene();
       const o=layouts[v](g,ng,S)||{};S.run(g,ng);const[sc]=A.cv(W,H);
       const spr=K.finish(c,g,sc,nc,{fence:false});if(o.flagAt){spr.flagAt=o.flagAt;REP.flag['102_'+v]=o.flagAt;}
-      ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
+      g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
       L.clipLot(c);L.clipLot(nc);
       out.push(spr);B['102_1_'+v]=spr;}
     for(const k of Object.keys(B)){const m=/^102_1_(\d+)$/.exec(k);if(m&&+m[1]>2)B[k]=out[(+m[1])%3];}
@@ -48708,7 +48715,8 @@ function port590_cul_d(A){
         A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
         S.run(g,ng);
         if(o.front)o.front(g,ng);
-        ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
+        g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';   // 夜光只落在白天畫出的像素上
         const[sc]=A.cv(W,H);const spr=K.finish(c,g,sc,nc,{fence:false,smoke:[]});
         const at=[],cut=clip(c,W,H,AX,AY,at),cutN=clip(nc,W,H,AX,AY);
         let fop=0;if(o.flagAt){spr.flagAt=o.flagAt;const[fx,fy]=o.flagAt,idd=c.getContext('2d').getImageData(fx-1,fy-1,2,1).data;for(let i=3;i<idd.length;i+=4)if(idd[i])fop++;}
@@ -49740,7 +49748,8 @@ function port590_cul_e(A){
         A.diaEdge(g,6,'#8b877e',AX,AY-32*SZ,32*SZ);A.diaEdge(g,9,'#cfcbc1',AX,AY-32*SZ,32*SZ);
         S.run(g,ng);
         if(o.front)o.front(g,ng);
-        ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
+        g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
         const[sc]=A.cv(W,H);const spr=K.finish(c,g,sc,nc,{fence:false,smoke:[]});
         const at=[],cut=clip(c,W,H,AX,AY,at,SZ),cutN=clip(nc,W,H,AX,AY,null,SZ);
         let fop=0;if(o.flagAt){spr.flagAt=o.flagAt;const[fx,fy]=o.flagAt,idd=c.getContext('2d').getImageData(fx-1,fy-1,2,1).data;for(let i=3;i<idd.length;i+=4)if(idd[i])fop++;}
@@ -51790,6 +51799,7 @@ function bakeFire635(k,n,winter=false){
     tree(n*.94,n*.25);light(n*.93,n*.90,8);
   }
   /* 夜燈先按本體 alpha 裁切；只裁透明天空，保留原地塊底錨與原生施工／淡出層。 */
+  g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
   ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
   const rgba=g.getImageData(0,0,w,h).data;let y0=h;for(let y=0;y<h&&y0===h;y++)for(let x=0;x<w;x++)if(rgba[(y*w+x)*4+3]){y0=Math.max(0,y-2);break;}
   const nh=h-y0,[ic,ig]=cv(w,nh),[lc,lg]=cv(w,nh);ig.drawImage(c,0,y0,w,nh,0,0,w,nh);lg.drawImage(nc,0,y0,w,nh,0,0,w,nh);
@@ -51853,6 +51863,7 @@ function bakeFire638(k,n,winter=false,vi=1){
   const H638={P,Q,F,L,E,pixel635,faceV,faceU,box,course,windowV,windowU,light,pitched,door,arch,pave,tree,truck,pal,edge,stone,glass,lit,slate,slateD,occlude635,n,winter,k,w,h,ax,ay,top,g,ng};
   (k===6?fire638K6:k===30?fire638K30:fire638K61)(H638,vi); // T638：只換三類的畫法；前後畫筆、地塊、夜燈裁切、裁頂與 bakeFire635 逐字相同
   /* 夜燈先按本體 alpha 裁切；只裁透明天空，保留原地塊底錨與原生施工／淡出層。 */
+  g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
   ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
   const rgba=g.getImageData(0,0,w,h).data;let y0=h;for(let y=0;y<h&&y0===h;y++)for(let x=0;x<w;x++)if(rgba[(y*w+x)*4+3]){y0=Math.max(0,y-2);break;}
   const nh=h-y0,[ic,ig]=cv(w,nh),[lc,lg]=cv(w,nh);ig.drawImage(c,0,y0,w,nh,0,0,w,nh);lg.drawImage(nc,0,y0,w,nh,0,0,w,nh);
@@ -52443,6 +52454,401 @@ function fire638K61(H,vi){
 }
 /* ===== T638 FIRE VARIANTS END ===== */
 
+
+
+
+
+
+
+/* ===== T658 FIVE ENGLISH CIVIC BUILDINGS BEGIN =====
+   業主 2026-10-17「你做一下 town 五棟建築 英式的，要求有真實參考，做完給我看」。
+   五座既有公共建築的外觀（不是新種類、不寫存檔、不抽模擬亂數）。出處見 docs/tasks/T658-五座英式公共建築.md：
+     i0 k7  學校   1870 年代板書學校   HE 1298116 Bowling Green Lane 1874／1494938 Alnmouth 1876／1380503 Finsbury Road 1881
+     i1 k14 圖書館 卡內基圖書館       HE 1157878 Kendal 1908／1113256 Farnworth 1911
+     i2 k12 醫院   鄉村小醫院         HE 1128867 Almondsbury 1891／1390557 Woburn 1901–03
+     i3 k15 郵局   鄉村郵局           HE 1085623 Ickham／1294827 Ash／1189474 Shere／1324276 Milton Abbas
+     i4 k11 警察局 維多利亞警察局     HE 1480422 Darlaston 1899–1902／1459333 Acocks Green 1909
+   選款只看種類與存檔欄位（k=11 只換 v0，v1／v2 既有現代變體保留）；輸出只由 (i,winter,sea) 決定。
+   閥：?noT658=1／window.__noT658 → 這五類全部退回改前外觀，整幀與 base 相同。 */
+const CIVIC658=[{k:7,n:3},{k:14,n:2},{k:12,n:3},{k:15,n:2},{k:11,n:2}];
+function t658On(){if(t658On.off===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t658On.off=/(?:^|[?&])noT658(?:=1)?(?:&|$)/.test(q);}return !window.__noT658&&!t658On.off;}
+function vi658(b){if(!b||b.ref)return -1;for(let i=0;i<CIVIC658.length;i++){if(b.k===CIVIC658[i].k)return i;}return -1;}
+function spr658(b,x,y,winter=false){
+  if(!t658On()||t596On())return null;
+  const i=vi658(b);if(i<0)return null;
+  const n=b.sz||CIVIC658[i].n,sea=season(),key=i+'_'+n+'_'+(+winter)+'_'+sea,C=spr658.cache||(spr658.cache=new Map());
+  if(C.has(key)){const s=C.get(key);C.delete(key);C.set(key,s);return s;}
+  const s=bake658(i,!!winter,sea,n);
+  let px=s.w*s.h*2,tot=spr658.px||0;
+  while(C.size&&(C.size>=16||tot+px>2400000)){const k0=C.keys().next().value,o=C.get(k0);tot-=o.w*o.h*2;C.delete(k0);}
+  C.set(key,s);spr658.px=tot+px;return s;
+}
+/* 共用色票：材料取自各 Historic England 條目描述的材質（磚、石材、石板、黏土瓦、陶土、油漆木作）。 */
+const PAL658={
+  stock:'#b39a72',stockD:'#8d7657',redband:'#8e4034',stone:'#d9c7a3',stoneD:'#b5a382',white:'#efe9dc',
+  slate:'#4b5057',slateD:'#363b41',limestone:'#c9bfa8',limestoneD:'#a2977f',brick:'#8a3f33',brickD:'#682f26',
+  terra:'#b96a4a',tile:'#a65b44',tileD:'#7f4433',render:'#eee8da',renderD:'#cfc7b6',iron:'#22262a',
+  pored:'#b3202c',blue:'#1d4e9e',glass:'#42616a',glassD:'#2c434c',lit:'#f2d49e',joinery:'#46524f',
+  hedge:'#41613f',hedgeD:'#2f4a2f',grass:'#7f9a6a',gravel:'#b7b2a0',flag:'#b9b5a5'};
+function bake658(i,winter=false,sea=0,n=1){
+  /* n＝建築佔地（k7／k12 3×3、k11／k14／k15 2×2）：畫布與錨點照 T638 bakeFire638 的 n 公式，設計座標一律 0..1 再乘 n。 */
+  n=Math.max(1,Math.min(3,n|0));
+  const W=n*64+16,H=n*32+144,AX=W/2,AY=H-8,HS=1+(n-1)*.30,[c,g]=cv(W,H),[nc,ng]=cv(W,H),P0=makeIso590(W,H,AX,AY,n).P;
+  /* 建築只佔地塊中央一塊（n=1 0.92 格、n=2 1.34 格、n=3 1.76 格），四周留出前庭與草坪——比照既有園區大樓的畫法，不把整塊地填滿。 */
+  const PW=.92+(n-1)*.42,CC=n/2;
+  const P=(u,v,z=0)=>P0(CC+(u-.5)*PW,CC+(v-.5)*PW,z*HS);
+  /* 夜層：亮窗先畫在 nc，最後按日層 alpha 裁切；後畫的實體先把底下的夜光擦掉，燈不會漏到牆外。 */
+  const erase=paint=>{ng.save();ng.globalCompositeOperation='destination-out';paint(ng);ng.restore();};
+  const F=(ps,col,ctx=g)=>{if(ctx===g)erase(q=>lotPoly574(q,ps,'#000'));lotPoly574(ctx,ps,col);};
+  const E=(x,y,rx,ry,col)=>{if(!rx||!ry)return;erase(q=>lotEllipse574(q,x,y,rx,ry,'#000'));lotEllipse574(g,x,y,rx,ry,col);};
+  const L=(a,b,col,wd=1)=>{
+    const dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy)))),rows=[];
+    for(let k=0;k<=n;k++){const x=Math.round(a[0]+dx*k/n),y=Math.round(a[1]+dy*k/n),r=rows[rows.length-1];
+      if(r&&r[0]===y){r[1]=Math.min(r[1],x);r[2]=Math.max(r[2],x+wd);}else rows.push([y,x,x+wd]);}
+    const paint=(q,color)=>{q.fillStyle=color;for(const r of rows)q.fillRect(r[1],r[0],r[2]-r[1],1);};
+    erase(q=>paint(q,'#000'));paint(g,col);
+  };
+  const Q=(u,v,du,dv,z=0)=>[P(u,v,z),P(u+du,v,z),P(u+du,v+dv,z),P(u,v+dv,z)];
+  const box=(u,v,du,dv,z,h,col,o={})=>{
+    const a=Q(u,v,du,dv,z),b=Q(u,v,du,dv,z+h);
+    const cR=o.right||col,cL=o.left||shade(col,-26),cT=o.top||shade(col,12);
+    F([a[3],a[2],b[2],b[3]],cR);F([a[2],a[1],b[1],b[2]],cL);F(b,cT);
+    L(a[3],b[3],shade(cR,-26));L(a[2],b[2],shade(cR,-34));L(a[1],b[1],shade(cL,-22));
+    return b;
+  };
+  const faceV=(u,v,du)=>(t,z)=>P(u+t*du,v,z);
+  const faceU=(u,v,dv)=>(t,z)=>P(u,v+t*dv,z);
+  const at2=(at,pts)=>pts.map(([t,z])=>at(t,z));
+  const win=(at,t0,t1,z0,z1,o={})=>{
+    const fr=o.frame||PAL658.joinery,gl=o.glass||PAL658.glass,st=o.stone||PAL658.white,pad=o.pad===undefined?.006:o.pad;
+    const ps=at2(at,[[t0,z0+1],[t1,z0+1],[t1,z1],[t0,z1]]);
+    F(ps,gl);
+    if(o.night!==false)F(ps,PAL658.lit,ng);
+    const mid=z0+(z1-z0)*.5;
+    if(z1-z0>=5)L(at(t0,mid),at(t1,mid),fr);
+    const bars=o.bars||0;
+    for(let k=1;k<=bars;k++){const tt=t0+(t1-t0)*k/(bars+1);L(at(tt,z0+1),at(tt,z1-.5),fr);}
+    L(at(t0,z0+1),at(t0,z1),st);L(at(t1,z0+1),at(t1,z1),st);
+    if(o.sill!==false)L(at(t0-pad,z0+.5),at(t1+pad,z0+.5),PAL658.stoneD);
+  };
+  const archWin=(at,t0,t1,z0,zs,zc,o={})=>{
+    const tm=(t0+t1)/2,r=(t1-t0)/2,fr=o.frame||PAL658.joinery,gl=o.glass||PAL658.glass;
+    const ps=[at(t0,z0+1),at(t1,z0+1),at(t1,zs)];
+    for(let k=1;k<8;k++){const f=k/8;ps.push(at(tm+r*Math.cos(Math.PI*f),zs+(zc-zs)*Math.sin(Math.PI*f)));}
+    ps.push(at(t0,zs));
+    F(ps,gl);
+    if(o.night!==false)F(ps,PAL658.lit,ng);
+    L(at(tm,z0+1),at(tm,zc-.5),fr);
+    L(at(t0,zs),at(t1,zs),fr);
+    for(let k=0;k<7;k++){const f1=k/7,f2=(k+1)/7;
+      L(at(tm+r*Math.cos(Math.PI*f1),zs+(zc-zs)*Math.sin(Math.PI*f1)),at(tm+r*Math.cos(Math.PI*f2),zs+(zc-zs)*Math.sin(Math.PI*f2)),o.stone||PAL658.white);}
+    L(at(t0,z0+1),at(t0,zs),o.stone||PAL658.white);L(at(t1,z0+1),at(t1,zs),o.stone||PAL658.white);
+    if(o.sill!==false)L(at(t0-.008,z0+.5),at(t1+.008,z0+.5),PAL658.stoneD);
+  };
+  const dots=(at,t0,t1,z,n,col)=>{
+    for(let k=0;k<n;k++){const t=t0+(t1-t0)*(k+.5)/n,p=at(t,z);L([p[0],p[1]],[p[0]+1,p[1]],col);}
+  };
+  const roofGableU=(u,v,du,dv,he,rise,rf,rfD,wall)=>{
+    const mv=v+dv/2,rid=he+rise;
+    F([P(u,v+dv,he),P(u+du,v+dv,he),P(u+du,mv,rid),P(u,mv,rid)],rf);
+    F([P(u+du,v,he),P(u+du,v+dv,he),P(u+du,mv,rid)],wall);
+    for(let k=1;k<5;k++){const f=k/5;L(P(u,v+dv-dv/2*f,he+rise*f),P(u+du,v+dv-dv/2*f,he+rise*f),rfD);}
+    L(P(u,mv,rid+.5),P(u+du,mv,rid+.5),shade(rf,26));
+    L(P(u,v+dv,he),P(u+du,v+dv,he),shade(rfD,-8));
+    return rid;
+  };
+  const roofHipU=(u,v,du,dv,he,rise,rf,rfD,endC)=>{
+    const mv=v+dv/2,kk=Math.min(du,dv)/2,rid=he+rise;
+    F([P(u,v+dv,he),P(u+du,v+dv,he),P(u+du-kk,mv,rid),P(u+kk,mv,rid)],rf);
+    F([P(u+du,v,he),P(u+du,v+dv,he),P(u+du-kk,mv,rid)],endC||rfD);
+    for(let k=1;k<4;k++){const f=k/4;L(P(u+kk*f,v+dv-dv/2*f,he+rise*f),P(u+du-kk*f,v+dv-dv/2*f,he+rise*f),rfD);}
+    L(P(u+kk,mv,rid+.5),P(u+du-kk,mv,rid+.5),shade(rf,24));
+    L(P(u,v+dv,he),P(u+du,v+dv,he),shade(rfD,-10));
+    return rid;
+  };
+  const roofPyr=(u,v,du,dv,he,rise,rf,rfD)=>{
+    const mu=u+du/2,mv=v+dv/2,ap=[mu,mv,he+rise];
+    F([P(u,v+dv,he),P(u+du,v+dv,he),P(ap[0],ap[1],ap[2])],rf);
+    F([P(u+du,v,he),P(u+du,v+dv,he),P(ap[0],ap[1],ap[2])],rfD);
+    return he+rise;
+  };
+  const ground=(col,grid)=>{
+    F(Q(0,0,1,1),winter?'#e0e8e9':col);
+    if(grid)for(let t=.25;t<1;t+=.25){L(P(t,0),P(t,1),winter?'#cfdadb':'#94a08f');L(P(0,t),P(1,t),winter?'#cfdadb':'#94a08f');}
+  };
+  const pave=(u,v,du,dv,col)=>F(Q(u,v,du,dv),winter?'#e6edef':col);
+  const tree=(u,v,r)=>{
+    const p=P(u,v);L([p[0],p[1]],[p[0],p[1]-r-3],'#5b4a35',2);
+    const leaf=winter?'#e8eeea':(sea===2?'#8f7d3e':sea===1?'#3f6b48':'#4c7a4f');
+    if(winter){for(let k=-1;k<=1;k++)L([p[0],p[1]-r-2],[p[0]+k*3,p[1]-r-6],'#6a5a44');}
+    else{E(p[0]-1,p[1]-r-4,r-1,r-2,shade(leaf,-14));E(p[0],p[1]-r-5,r-1,r-2,leaf);}
+  };
+  const rail=(u0,v0,u1,v1,z,h,col)=>{
+    for(let x=0;x<=1.0001;x+=.08){const u=u0+(u1-u0)*x,v=v0+(v1-v0)*x;L(P(u,v,z),P(u,v,z+h),col);}
+    L(P(u0,v0,z+h),P(u1,v1,z+h),col);
+    L(P(u0,v0,z+h*.45),P(u1,v1,z+h*.45),col);
+  };
+  /* 五座共用：整格地面。 */
+  const H658={P,F,E,L,Q,box,faceV,faceU,at2,win,archWin,dots,roofGableU,roofHipU,roofPyr,ground,pave,tree,rail,
+    winter,sea,n,O:PAL658,W,H,AX,AY,ng,c,g};
+  if(i===0)civic658School(H658);
+  else if(i===1)civic658Library(H658);
+  else if(i===2)civic658Hospital(H658);
+  else if(i===3)civic658Post(H658);
+  else if(i===4)civic658Police(H658);
+  else throw Error('T658 unknown model '+i);
+  g.clearRect(0,AY+1,W,H-AY-1);ng.clearRect(0,AY+1,W,H-AY-1);
+  ng.globalCompositeOperation='destination-in';ng.drawImage(c,0,0);ng.globalCompositeOperation='source-over';
+  const rgba=g.getImageData(0,0,W,H).data;let y0=H;
+  for(let y=0;y<H&&y0===H;y++)for(let x=0;x<W;x++)if(rgba[(y*W+x)*4+3]){y0=Math.max(0,y-2);break;}
+  const nh=H-y0,[ic,ig]=cv(W,nh),[lc,lg]=cv(W,nh);
+  ig.drawImage(c,0,y0,W,nh,0,0,W,nh);lg.drawImage(nc,0,y0,W,nh,0,0,W,nh);
+  return {img:ic,night:lc,w:W,h:nh,ax:AX,ay:AY-y0,__t590:1,__t601:1,__t658:1,smoke:[],
+    lotMeta574:{sz:n,kind:i,variant:0,stage:2,winter,ground:[AX,AY-32*n,n*32],feet:[],hooks:{},order574:[],cycles574:0,t591:false}};
+}
+/* i0｜k7 板書學校：對稱長立面、兩端凸出山牆、中央鐘塔與石匾（HE 1298116／1494938／1380503）。 */
+function civic658School(H){
+  const {P,F,L,E,Q,box,faceV,faceU,win,archWin,dots,roofGableU,roofPyr,ground,pave,tree,rail,winter,O,ng}=H;
+  const u=.08,v=.14,du=.84,dv=.46,u1=u+du,v1=v+dv,he=26,rf=winter?'#e6ecee':O.slate,rfD=winter?'#c8d5d8':O.slateD;
+  ground(O.gravel,true);
+  pave(.02,.62,.96,.30,'#b9b5a3');
+  pave(.36,.62,.28,.10,'#a9a493');
+  box(u,v,du,dv,0,he,O.stock);
+  /* 紅磚腰線＋石勒腳（Bowling Green Lane 的 stock brick＋red banding）。 */
+  F([P(u,v1,10.4),P(u1,v1,10.4),P(u1,v1,12.2),P(u,v1,12.2)],O.redband);
+  F([P(u1,v,10.4),P(u1,v1,10.4),P(u1,v1,12.2),P(u1,v,12.2)],shade(O.redband,-20));
+  F([P(u,v1,0),P(u1,v1,0),P(u1,v1,1.8),P(u,v1,1.8)],O.stoneD);
+  F([P(u1,v,0),P(u1,v1,0),P(u1,v1,1.8),P(u1,v,1.8)],shade(O.stoneD,-18));
+  const rid=roofGableU(u,v,du,dv,he,13,rf,rfD,O.stock);
+  /* 兩端凸出山牆（量體抬高 2px 再收山）。 */
+  for(const eu of [u-.02,u1-.12]){
+    const w2=.14;
+    box(eu,v-.02,w2,dv+.04,0,he+3,O.stock);
+    F([P(eu,v+dv+.01,he+3),P(eu+w2,v+dv+.01,he+3),P(eu+w2,v+dv/2,he+8),P(eu,v+dv/2,he+8)],rf);
+    F([P(eu,v+dv+.03,he+3),P(eu+w2,v+dv+.03,he+3),P(eu+w2/2,v+dv+.03,he+8)],O.stock);
+    L(P(eu,v+dv+.03,he+3),P(eu+w2/2,v+dv+.03,he+8),O.stone);
+    F([P(eu,v+dv+.02,he+2),P(eu+w2,v+dv+.02,he+2),P(eu+w2,v+dv+.02,he+3),P(eu,v+dv+.02,he+3)],O.stone);
+  }
+  /* 窗：地面層高拱窗（教室），一樓多格上下推拉窗。 */
+  const at=faceV(u,v1,du);
+  for(const [a,b] of [[.03,.17],[.21,.35],[.65,.79],[.83,.97]]){
+    archWin(at,a,b,3.2,9.5,13,{});
+    win(at,a+.01,b-.01,16,23,{bars:1});
+  }
+  const au=faceU(u1,v,dv);
+  for(const [a,b] of [[.16,.34],[.62,.80]])win(au,a,b,16,23,{bars:1});
+  /* 中央門廊：三角山牆＋石匾＋拱門。 */
+  const pu=u+du*.41,pdv=.10,pdu=du*.18,ph=12;
+  box(pu,v1,pdu,pdv,0,ph,O.stock);
+  const pat=faceV(pu,v1+pdv,pdu);
+  F([P(pu,v1+pdv,ph),P(pu+pdu,v1+pdv,ph),P(pu+pdu/2,v1+pdv,ph+5.5)],O.stone);
+  F([P(pu+pdu/2,v1+pdv,ph+5.5),P(pu+pdu,v1+pdv,ph),P(pu+pdu,v1+pdv,pdv*0+ph)],shade(O.stone,-16));
+  archWin(pat,.28,.72,0,6,8.6,{stone:O.stone});
+  F([P(pu+pdu*.24,v1+pdv,8.6),P(pu+pdu*.76,v1+pdv,8.6),P(pu+pdu*.76,v1+pdv,11),P(pu+pdu*.24,v1+pdv,11)],O.stone);
+  dots(pat,.30,.70,9.9,4,'#6f6151');
+  /* 鐘塔（Alnmouth 的山牆鐘塔）：百葉＋小四坡帽＋鐘與尖頂。 */
+  const tu=.44,tv=.30,tw=.12,th=.12,tz=rid-4;
+  box(tu,tv,tw,th,tz,10,O.stock);
+  const tt=faceV(tu,tv+th,tw);
+  for(let z=tz+2;z<tz+9;z+=2)L(tt(.12,z),tt(.88,z),'#4a4038');
+  roofPyr(tu,tv,tw,th,tz+10,4,winter?'#dfe8ea':O.slateD,shade(O.slateD,-12));
+  {const kx=P(tu+tw/2,tv+th/2,tz+15)[0],ky=P(tu+tw/2,tv+th/2,tz+15)[1];F([[kx-1,ky-2],[kx+1,ky-2],[kx+1,ky],[kx-1,ky]],'#9aa4a8');}
+  /* 煙囪。 */
+  for(const cu of [.20,.78])box(cu,.34,.05,.06,rid-1,6,O.redband,{top:shade(O.redband,18)});
+  /* 圍牆＋鐵欄杆＋大門。 */
+  box(.05,.90,.36,.03,0,3,O.stoneD);
+  box(.59,.90,.36,.03,0,3,O.stoneD);
+  rail(.05,.915,.41,.915,3,4,O.iron);rail(.59,.915,.95,.915,3,4,O.iron);
+  tree(.04,.70,6);
+}
+/* i1｜k14 卡內基圖書館：抬高台階、中央神廟式門廊＋大山花、石刻館名、八角通風塔（HE 1157878／1113256）。 */
+function civic658Library(H){
+  const {P,F,L,E,Q,box,faceV,faceU,win,archWin,dots,roofHipU,roofPyr,ground,pave,tree,rail,winter,O,ng}=H;
+  const u=.12,v=.20,du=.76,dv=.42,u1=u+du,v1=v+dv,he=25;
+  ground('#c4bfae',true);
+  pave(.02,.62,.96,.32,'#cbc6b4');
+  const rf=winter?'#e4ebed':O.slate,rfD=winter?'#c6d3d6':O.slateD,lit=winter?'#f4f1e6':'#e7e0cd';
+  box(u,v,du,dv,0,he,O.limestone);
+  /* 石勒腳、腰線、檐口、女兒牆。 */
+  F([P(u,v1,0),P(u1,v1,0),P(u1,v1,2),P(u,v1,2)],O.limestoneD);
+  F([P(u1,v,0),P(u1,v1,0),P(u1,v1,2),P(u1,v,2)],shade(O.limestoneD,-16));
+  F([P(u,v1,13.2),P(u1,v1,13.2),P(u1,v1,14),P(u,v1,14)],lit);
+  F([P(u,v1,he-2.2),P(u1,v1,he-2.2),P(u1,v1,he-.2),P(u,v1,he-.2)],lit);
+  F([P(u1,v,he-2.2),P(u1,v1,he-2.2),P(u1,v1,he-.2),P(u1,v,he-.2)],shade(lit,-18));
+  F([P(u,v1,he-.2),P(u1,v1,he-.2),P(u1,v1,he+.6),P(u,v1,he+.6)],shade(lit,-10));
+  F([P(u1,v,he-.2),P(u1,v1,he-.2),P(u1,v1,he+.6),P(u1,v,he+.6)],shade(lit,-24));
+  roofHipU(u,v,du,dv,he+.6,5,rf,rfD,shade(rfD,12));
+  /* 八角百葉通風塔（Kendal）。 */
+  const vu=u+du*.44,vv=v+dv*.34;
+  box(vu,vv,.11,.11,he+1,8,O.limestone,{top:lit});
+  F([P(vu,vv+.11,he+3),P(vu+.11,vv+.11,he+3),P(vu+.11,vv+.11,he+7),P(vu,vv+.11,he+7)],'#6b6455');
+  roofPyr(vu,vv,.11,.11,he+9,5,rfD,rf);
+  {const kx=P(vu+.055,vv+.055,he+14)[0],ky=P(vu+.055,vv+.055,he+14)[1];F([[kx-1,ky-2],[kx+1,ky-2],[kx+1,ky],[kx-1,ky]],'#9aa4a8');}
+  /* 立面：四扇高拱窗（窗檯高給牆邊書架）。 */
+  const at=faceV(u,v1,du);
+  for(const [a,b] of [[.03,.15],[.20,.32],[.68,.80],[.85,.97]])archWin(at,a,b,7.2,13.8,17.4,{});
+  const au=faceU(u1,v,dv);
+  for(const [a,b] of [[.16,.38],[.60,.82]])win(au,a,b,8,16,{bars:1});
+  /* 中央神廟式門廊：四柱、簷部、大山花、館名、三階梯。 */
+  const pdu=.34,pdv=.12,pu=u+du*.50-pdu/2,pv=v1;
+  box(pu,pv,pdu,pdv,3.6,12.8,O.limestone,{top:lit});
+  const pat=faceV(pu,pv+pdv,pdu);
+  archWin(pat,.38,.62,3.6,9,11.4,{stone:O.stone});
+  for(const c of [.07,.28,.72,.93]){const q=pat(c,3.6);L([q[0],q[1]],[q[0],q[1]-9.4],lit,2);}
+  F([P(pu-.01,pv+pdv,12.8),P(pu+pdu+.01,pv+pdv,12.8),P(pu+pdu+.01,pv+pdv,15),P(pu-.01,pv+pdv,15)],lit);
+  dots(pat,.14,.86,13.5,5,'#6f6151');
+  F([P(pu-.03,pv+pdv,15),P(pu+pdu+.03,pv+pdv,15),P(pu+pdu/2,pv+pdv,22.4)],lit);
+  L([P(pu-.03,pv+pdv,15)[0],P(pu-.03,pv+pdv,15)[1]],[P(pu+pdu/2,pv+pdv,22.4)[0],P(pu+pdu/2,pv+pdv,22.4)[1]],'#8a7e68');
+  L([P(pu+pdu+.03,pv+pdv,15)[0],P(pu+pdu+.03,pv+pdv,15)[1]],[P(pu+pdu/2,pv+pdv,22.4)[0],P(pu+pdu/2,pv+pdv,22.4)[1]],'#8a7e68');
+  F([P(pu+pdu*.42,pv+pdv,17),P(pu+pdu*.58,pv+pdv,17),P(pu+pdu*.58,pv+pdv,19.4),P(pu+pdu*.42,pv+pdv,19.4)],O.limestoneD);
+  for(let k=0;k<3;k++)box(pu-k*.018,pv+pdv+k*.012,pdu+k*.036,.045+k*.012,0,(3-k)*1.4,O.flag,{top:shade(O.flag,10)});
+  /* 前院鐵欄杆、門柱與門燈。 */
+  rail(u+.02,.92,u1-.02,.92,0,5,O.iron);
+  box(u-.01,.90,.05,.04,0,7,O.stone,{top:lit});box(u1-.04,.90,.05,.04,0,7,O.stone,{top:lit});
+  for(const lu of [pu-.06,pu+pdu+.06]){
+    const p=P(lu,pv+pdv+.05,0);
+    L([p[0],p[1]],[p[0],p[1]-8],O.iron,1);
+    F([[p[0]-1,p[1]-11],[p[0]+1,p[1]-11],[p[0]+1,p[1]-8],[p[0]-1,p[1]-8]],lit);
+    F([[p[0],p[1]-10.4],[p[0]+1,p[1]-10.4],[p[0]+1,p[1]-8.4],[p[0],p[1]-8.4]],O.lit,ng);
+  }
+  tree(.06,.78,5);
+}
+/* i2｜k12 鄉村小醫院：低長病房翼＋整排木外廊、中央入口樓與鐘亭（HE 1128867／1390557）。 */
+function civic658Hospital(H){
+  const {P,F,L,E,Q,box,faceV,faceU,win,archWin,dots,roofGableU,roofPyr,ground,pave,tree,rail,winter,O,ng}=H;
+  const rf=winter?'#e8eef0':O.tile,rfD=winter?'#c8d4d6':O.tileD,pale=winter?'#dfe6e2':'#efe9d8';
+  ground('#93a681',true);
+  pave(.02,.58,.96,.36,'#b9b39f');
+  /* 病房翼：一整條低長量體，前面是連續木外廊。 */
+  const wu=.03,wv=.24,wdu=.94,wdv=.34,wv1=wv+wdv,wh=10;
+  box(wu,wv,wdu,wdv,0,wh,O.brick);
+  roofGableU(wu,wv,wdu,wdv,wh,6,rf,rfD,O.brick);
+  const at=faceV(wu,wv1,wdu);
+  for(let i=0;i<6;i++){const a=.04+i*.155;win(at,a,a+.09,3,6.8,{});}
+  /* 外廊：柱、欄杆、薄頂棚（鄉村醫院最認得的特徵）。 */
+  const pv=wv1,vz=7.4;
+  for(let t=.02;t<=.99;t+=.075){const uu=wu+t*wdu;L(P(uu,pv+.05,0),P(uu,pv+.05,vz),pale);}
+  F([P(wu,pv,vz),P(wu+wdu,pv,vz),P(wu+wdu,pv+.07,vz+.7),P(wu,pv+.07,vz+.7)],shade(pale,-10));
+  F([P(wu,pv+.07,vz+.7),P(wu+wdu,pv+.07,vz+.7),P(wu+wdu,pv+.07,vz-.4),P(wu,pv+.07,vz-.4)],pale);
+  rail(wu,pv+.08,wu+wdu,pv+.08,2.2,2.0,pale);
+  /* 右翼端牆（+u 面）補窗，別留一大片紅磚。 */
+  for(const [a2,b2] of [[.22,.44],[.58,.80]])win(faceU(wu+wdu,wv,wdv),a2,b2,3.2,7.6,{});
+  /* 中央入口樓：抬高、石板瓦、鐘亭。 */
+  const cu=.35,cv=.18,cdu=.30,cdv=.40,cv1=cv+cdv,ch=16;
+  box(cu,cv,cdu,cdv,0,ch,O.brick,{right:shade(O.brick,8)});
+  const rid=roofGableU(cu,cv,cdu,cdv,ch,7,winter?'#e6ecee':O.slate,winter?'#c8d4d6':O.slateD,O.brick);
+  const cat=faceV(cu,cv1,cdu);
+  archWin(cat,.40,.60,0,4.6,7,{});
+  for(const [a,b] of [[.12,.30],[.70,.88]])win(cat,a,b,8.6,13.4,{bars:1});
+  F([P(cu-.01,cv1,ch-.6),P(cu+cdu+.01,cv1,ch-.6),P(cu+cdu+.01,cv1,ch),P(cu-.01,cv1,ch)],O.stone);
+  /* 鐘亭：白色方形＋四面拱洞＋四坡帽＋風標。 */
+  const btU=cu+cdu*.42,btV=cv+cdv*.28,btW=.16,btD=.12,btTop=rid+6;
+  box(btU,btV,btW,btD,rid-4,btTop-rid+4,O.stone,{top:pale});
+  archWin(faceV(btU,btV+btD,btW),.26,.74,rid-2,btTop-3,btTop-1,{glass:'#3a3f45',stone:O.stone,sill:false});
+  roofPyr(btU,btV,btW,btD,btTop,4,O.slateD,O.slate);
+  {const kp=P(btU+btW/2,btV+btD/2,btTop+4);F([[kp[0]-1,kp[1]-2],[kp[0]+1,kp[1]-2],[kp[0]+1,kp[1]],[kp[0]-1,kp[1]]],'#9aa4a8');}
+  for(const [a,b] of [[.16,.40],[.60,.84]])win(faceU(cu+cdu,cv,cdv),a,b,7,12,{});
+  /* 煙囪與樹。 */
+  for(const cu2 of [.12,.72])box(cu2,wv+wdv*.3,.05,.06,wh+2,6,O.brick,{top:shade(O.brick,18)});
+  tree(.03,.80,6);tree(.97,.76,5);
+}
+/* i3｜k15 鄉村郵局：白色民居＋店面櫥窗與招牌、路邊紅色郵筒（HE 1085623／1294827／1189474／1324276）。 */
+function civic658Post(H){
+  const {P,F,L,E,Q,box,faceV,faceU,at2,win,archWin,dots,roofHipU,roofPyr,ground,pave,tree,rail,winter,O,ng}=H;
+  const u=.16,v=.24,du=.66,dv=.40,u1=u+du,v1=v+dv,he=21;
+  ground('#b0aa96',true);
+  pave(.03,.64,.94,.28,'#c2bca8');
+  const rf=winter?'#e5ecee':O.tile,rfD=winter?'#c8d4d6':O.tileD;
+  box(u,v,du,dv,0,he,O.render,{top:O.renderD});
+  roofHipU(u,v,du,dv,he,8,rf,rfD,shade(rfD,14));
+  F([P(u,v1,0),P(u1,v1,0),P(u1,v1,1.8),P(u,v1,1.8)],O.stoneD);
+  /* 店面：招牌帶＋大面櫥窗＋凹入的門＋門罩。 */
+  const at=faceV(u,v1,du);
+  F([P(u,v1,10.2),P(u1,v1,10.2),P(u1,v1,13.4),P(u,v1,13.4)],'#1f3b32');
+  F([P(u,v1,13.0),P(u1,v1,13.0),P(u1,v1,13.4),P(u,v1,13.4)],'#15302a');
+  dots(at,.08,.50,11.8,6,'#efe6cf');
+  F(at2(at,[[.05,1.8],[.51,1.8],[.51,9.8],[.05,9.8]]),O.stoneD);
+  F(at2(at,[[.065,2.4],[.495,2.4],[.495,9.2],[.065,9.2]]),'#3d5f57');
+  F(at2(at,[[.065,2.4],[.495,2.4],[.495,9.2],[.065,9.2]]),'#c8a26a',ng);
+  L(at(.065,6.2),at(.495,6.2),'#6f8c80');L(at(.28,2.6),at(.28,9.0),'#6f8c80');
+  L(at(.10,2.6),at(.16,9.0),'#7d9a92');L(at(.30,2.6),at(.34,9.0),'#7d9a92');
+  /* 門（凹入半步）＋門罩。 */
+  F(at2(at,[[.55,0],[.71,0],[.71,9.8],[.55,9.8]]),'#2a3f38');
+  F(at2(at,[[.565,.8],[.695,.8],[.695,9.2],[.565,9.2]]),'#3d5a4f');
+  F(at2(at,[[.565,7.2],[.695,7.2],[.695,9.2],[.565,9.2]]),'#c8a26a',ng);
+  F(Q(u+du*.52,v1,du*.22,.08,11.4),'#1f3b32');
+  L(P(u+du*.55,v1,10.4),P(u+du*.55,v1+.08,11.4),O.iron);L(P(u+du*.71,v1,10.4),P(u+du*.71,v1+.08,11.4),O.iron);
+  /* 樓上三扇上下推拉窗。 */
+  for(const [a,b] of [[.08,.22],[.32,.46],[.62,.76]])win(at,a,b,14.6,19.2,{bars:1});
+  const au=faceU(u1,v,dv);
+  win(au,.22,.42,14.6,19.2,{bars:1});
+  archWin(au,.58,.74,4.4,7.5,9,{});
+  /* 單層平頂加建（Ash 的店面延伸）。 */
+  box(.02,.30,.14,.30,0,9.4,O.render,{top:O.renderD});
+  F([P(.02,.60,9.4),P(.16,.60,9.4),P(.16,.60,10.2),P(.02,.60,10.2)],O.white);
+  const ext=faceV(.02,.60,.14);
+  win(ext,.20,.80,3,8,{glass:'#39534d'});
+  /* 煙囪兩支。 */
+  for(const cu of [.24,.72])box(cu,v+dv*.5-.03,.05,.06,he+6.5,5,O.brick,{top:shade(O.brick,20)});
+  /* 路邊紅色郵筒：圓柱＋圓頂＋金色投信口。 */
+  const pp=P(.38,.86,0);
+  E(pp[0],pp[1],2.4,1.2,O.pored);
+  L([pp[0]-2,pp[1]],[pp[0]-2,pp[1]-6],O.pored,5);
+  E(pp[0],pp[1]-6,2.6,1.4,shade(O.pored,14));
+  L([pp[0]-1,pp[1]-4],[pp[0]+1,pp[1]-4],'#e8c46a',2);
+  L([pp[0]-2,pp[1]],[pp[0]+2,pp[1]],'#2a2a2a',1);
+  tree(.94,.72,5);
+}
+/* i4｜k11 維多利亞警察局：紅磚＋陶土線腳、半圓拱窗、中央拱門與藍燈、圍牆鐵欄（HE 1480422／1459333）。 */
+function civic658Police(H){
+  const {P,F,L,E,Q,box,faceV,faceU,win,archWin,dots,roofHipU,ground,pave,rail,winter,O,ng}=H;
+  const u=.11,v=.20,du=.76,dv=.40,u1=u+du,v1=v+dv,he=24;
+  ground('#aca797',true);
+  pave(.02,.60,.96,.24,'#b7b2a1');
+  const rf=winter?'#e4ebed':O.slate,rfD=winter?'#c6d3d6':O.slateD;
+  box(u,v,du,dv,0,he,O.brick);
+  /* 粗石勒腳、陶土腰線、齒狀檐口、紅色脊瓦。 */
+  F([P(u,v1,0),P(u1,v1,0),P(u1,v1,2.6),P(u,v1,2.6)],O.brickD);
+  F([P(u1,v,0),P(u1,v1,0),P(u1,v1,2.6),P(u1,v,2.6)],shade(O.brickD,-16));
+  F([P(u,v1,9.6),P(u1,v1,9.6),P(u1,v1,10.4),P(u,v1,10.4)],O.terra);
+  F([P(u1,v,9.6),P(u1,v1,9.6),P(u1,v1,10.4),P(u1,v,10.4)],shade(O.terra,-22));
+  for(let t=0;t<1;t+=.06)for(const q of [P(u+t*du,v1,he-1),P(u1,v+t*dv,he-1)])F([[q[0],q[1]],[q[0]+1,q[1]],[q[0]+1,q[1]-1.4],[q[0],q[1]-1.4]],shade(O.brick,16));
+  const rid=roofHipU(u,v,du,dv,he,8,rf,rfD,shade(rfD,12));
+  L(P(u+du*.2,v+dv*.5,rid+.6),P(u+du*.8,v+dv*.5,rid+.6),O.terra);
+  /* 中央凸出：拱門＋匾額＋弧形山花。 */
+  const pu=u+du*.40,pdu=du*.20,pv=v1,pdv=.08,ph=24;
+  box(pu,pv,pdu,pdv,0,ph,O.brick,{right:shade(O.brick,6)});
+  F([P(pu+pdu*.18,pv+pdv,8.4),P(pu+pdu*.82,pv+pdv,8.4),P(pu+pdu*.82,pv+pdv,9.6),P(pu+pdu*.18,pv+pdv,9.6)],O.stone);
+  const pat=faceV(pu,pv+pdv,pdu);
+  dots(pat,.12,.88,17.4,7,'#efe6cf');
+  archWin(pat,.34,.66,0,5.4,8.2,{glass:'#243c33',stone:O.stone});
+  for(let k=0;k<2;k++)box(pu-k*.014,pv+pdv+k*.01,pdu+k*.028,.035,0,(2-k)*1.2,O.stoneD,{top:O.stone});
+  /* 藍燈：門上方鐵架＋藍玻璃燈籠，夜裡發藍光。 */
+  const bp=pat(.5,10.2);
+  L([bp[0],bp[1]-1],[bp[0],bp[1]-3.6],O.iron,1);
+  F([[bp[0]-1,bp[1]-3.6],[bp[0]+1,bp[1]-3.6],[bp[0]+1,bp[1]-1.2],[bp[0]-1,bp[1]-1.2]],O.iron);
+  F([[bp[0]-1,bp[1]-3.2],[bp[0]+1,bp[1]-3.2],[bp[0]+1,bp[1]-1.6],[bp[0]-1,bp[1]-1.6]],'#7fa8ff',ng);
+  F([[bp[0]-.8,bp[1]-3.2],[bp[0]+.8,bp[1]-3.2],[bp[0]+.8,bp[1]-1.6],[bp[0]-.8,bp[1]-1.6]],'#3f6fc4');
+  /* 地面層半圓拱窗（陶土罩線）與一樓高窗。 */
+  const at=faceV(u,v1,du);
+  for(const [a,b] of [[.04,.16],[.20,.32],[.68,.80],[.84,.96]]){
+    archWin(at,a,b,3.6,7.4,9.4,{});
+    L(at(a-.012,9.8),at(b+.012,9.8),O.terra);
+  }
+  for(const [a,b] of [[.06,.16],[.21,.30],[.68,.77],[.83,.93]])win(at,a,b,14.4,21,{bars:1});
+  const au=faceU(u1,v,dv);
+  for(const [a,b] of [[.18,.34],[.64,.80]])win(au,a,b,14.4,21,{bars:1});
+  /* 煙囪三支＋脊瓦。 */
+  for(const cu of [.36,.50,.64])box(cu,v+dv*.5-.03,.05,.06,rid-1.5,5.5,O.brick,{top:shade(O.brick,18)});
+  /* 圍牆（陶土壓頂）＋鐵欄杆＋門柱。 */
+  box(.04,.82,.34,.03,0,4,O.brick);
+  box(.62,.82,.34,.03,0,4,O.brick);
+  F([P(.04,.85,4),P(.38,.85,4),P(.38,.85,4.8),P(.04,.85,4.8)],O.terra);
+  F([P(.62,.85,4),P(.96,.85,4),P(.96,.85,4.8),P(.62,.85,4.8)],O.terra);
+  rail(.05,.835,.37,.835,4.8,3.2,O.iron);rail(.63,.835,.95,.835,4.8,3.2,O.iron);
+  for(const gu of [.38,.62])box(gu-.018,.82,.05,.05,0,4.8,O.stone,{top:O.white});
+}
+/* ===== T658 FIVE ENGLISH CIVIC BUILDINGS END ===== */
 /* T670：第一波十座英式專門店；獨立家族，不改 T634 舊款，不寫存檔、不抽模擬亂數。 */
 function t670On(){if(t670On.off===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t670On.off=/(?:^|[?&])noT670(?:=1)?(?:&|$)/.test(q);}return !window.__noT670&&!t670On.off;}
 const CATALOG670=[
@@ -53041,6 +53447,7 @@ window.GV={
     for(const fam in SPR)walk(fam,'',SPR[fam]);
     return {entries:out,skipped,families:Object.keys(SPR).length};
   },
+  art658:(i,w,n)=>{const s=bake658(+i,!!w,season(),n||CIVIC658[+i].n);return {i:+i,n:n||CIVIC658[+i].n,w:s.w,h:s.h,ax:s.ax,ay:s.ay,img:s.img.toDataURL(),night:s.night.toDataURL()};}, /* T658：只讀樣張鉤（樣張與驗收用；fp 仍以 artAtlas646 為正本） */
   artAtlas646:(visit)=>{ /* T646 新美術清冊：SPR 之外按需烘焙的批次（T601／T602／T603 園區、T634、T635、T638）全域烘一遍，
     逐張交給 visit({fam,key,img,night})，由 tools/fp_snapshot.py 算 CRC 釘進 docs/ART_PINS.json（CI 的 fp job 是正本）。
     不併進 SPR／sprAtlas356：多處守衛寫死 1586 鍵。直接呼叫各批的 bake*，不經 spr*／lotSprite574 的快取與統計；
@@ -53074,6 +53481,7 @@ window.GV={
       for(const k of ids(LEGACY634)){const n=MSZ[k]||1;for(let v=0;v<3;v++)lot('art634',['L'+k,v,n],(st,w)=>legacyArt634(k,v,n,w,st));}
       for(let v=0;v<10;v++)for(const [win,sea] of[[0,0],[0,1],[0,2],[0,3],[1,3]])emit('art671',[v,win,sea].join('_'),bake671(v,!!win,sea));
       for(let v=0;v<10;v++)for(const [win,sea] of[[0,0],[0,1],[0,2],[0,3],[1,3]])emit('art675',[v,win,sea].join('_'),bake675(v,!!win,sea));
+      for(let i=0;i<CIVIC658.length;i++)for(const[sea,win]of COMBO){atSea(sea);emit('art658',[i,win,sea].join('_'),bake658(i,!!win,sea));}
       for(const k of[6,30,61])for(let n=1;n<=4;n++)for(const w of[0,1]){
         emit('art635',[k,n,w].join('_'),bakeFire635(k,n,!!w));
         for(const vi of[1,2])emit('art638',[k,n,w,vi].join('_'),bakeFire638(k,n,!!w,vi));
