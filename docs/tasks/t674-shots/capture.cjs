@@ -3,7 +3,27 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),crypto=require('node:crypto'),{execFileSync}=require('node:child_process');
 const digest=b=>crypto.createHash('sha256').update(b).digest('hex');
 function plan(){const a=[];for(let rot=0;rot<4;rot++)for(const [season,snow] of [[0,false],[1,false],[2,false],[3,false],[3,true]])for(const night of [false,true])a.push({id:`r${rot}-s${season}-${snow?'snow':'clear'}-${night?'night':'day'}`,rot,season,snow,night,zoom:2,layer:'normal'});for(const layer of ['far','construction4','construction6','construction8','hover','pedestrian','smoke'])a.push({id:layer,rot:0,season:layer==='smoke'?3:1,snow:false,night:false,zoom:layer==='far'?.65:2,layer});return a;}
-function validate(r,expected){assert.equal(r.commit,expected,'candidate SHA mismatch');assert.equal(r.models.length,10,'missing model');for(let i=0;i<10;i++){const m=r.models[i];assert.equal(m.variant,i,'wrong variant');assert.deepEqual(m.frames.map(f=>f.id).sort(),plan().map(f=>f.id).sort(),'missing state');for(const f of m.frames){assert(f.png&&f.sha256,'missing PNG');assert(f.bodyDrawn||f.layer==='far','model not drawn');assert.equal(f.slot,'3','wrong save slot');if(f.layer==='hover')assert(f.hoverApplied,'hover not applied');if(f.layer.startsWith('construction'))assert(f.overlayChanged,'scaffold not visible');if(f.layer==='pedestrian')assert(f.overlayChanged,'pedestrian not visible');if(f.layer==='smoke'&&f.chimneys)assert(f.smokeCount>0&&f.overlayChanged,'smoke not visible');if(f.layer==='normal')assert(f.reflected,'reflection missing');}}return true;}
+// Explicit architectural applicability, fixed independently of measured sprite metadata.
+const NO_CHIMNEY={670:[6,7],671:[0,7]};
+function validate(r,expected){
+ assert.equal(r.commit,expected,'candidate SHA mismatch');assert(NO_CHIMNEY[r.family],'unknown family');assert.equal(r.models.length,10,'missing model');
+ for(let i=0;i<10;i++){
+  const m=r.models[i];assert.equal(m.variant,i,'wrong variant');assert.deepEqual(m.frames.map(f=>f.id).sort(),plan().map(f=>f.id).sort(),'missing state');
+  for(const f of m.frames){
+   const state=plan().find(s=>s.id===f.id);assert.equal(f.layer,state.layer,'wrong layer');assert.equal(f.variant,i,'wrong frame variant');
+   assert(f.png&&f.sha256,'missing PNG');assert(f.bodyDrawn,'model not drawn');assert.equal(f.slot,'3','wrong save slot');
+   if(state.night)assert(f.nightDraws>0,'night layer not drawn');
+   if(f.layer==='hover')assert(f.hoverApplied,'hover not applied');
+   if(f.layer.startsWith('construction'))assert(f.overlayChanged,'scaffold not visible');
+   if(f.layer==='pedestrian')assert(f.overlayChanged,'pedestrian not visible');
+   if(f.layer==='smoke'){
+    if(NO_CHIMNEY[r.family].includes(i)){assert.equal(f.chimneys,0,'declared chimneyless model changed');assert.equal(f.smokeCount,0,'chimneyless model emits smoke');}
+    else{assert(f.chimneys>0,'required chimney missing');assert(f.smokeCount>0&&f.overlayChanged,'smoke not visible');}
+   }
+   if(f.layer==='normal')assert(f.reflected,'reflection missing');
+  }
+ }return true;
+}
 function bridge(){
   const family=FAMILY_NUMBER, choose=family===670?variant670:variant671, sprite=family===670?spr670:spr671;
   let position,building,currentSprite,draws=[],nightDraws=0;

@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       candidates: ${{ steps.refs.outputs.candidates }}
+      native_candidates: ${{ steps.refs.outputs.native_candidates }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,12 +24,22 @@ jobs:
         run: |
           python - <<'PY'
           import json,os,subprocess
-          rows=[]
+          rows=[]; native=[]
+          # Completed record-only results are retained, including failure. Do not rerun
+          # native timing merely because the evidence validator or documentation changed.
+          recorded={670:('28d161f1215ed04cff331592fa61b3defb63e775',12088881907),671:('4b3a2dc8a19c1b91f11153a217e6510d08116551',12088014098)}
           for family,branch in [(670,'gpt/town-british-wave01-670'),(671,'gpt/town-british-wave02-671')]:
               line=subprocess.check_output(['git','ls-remote','origin','refs/heads/'+branch],text=True).strip().split()
               if len(line)!=2 or len(line[0])!=40: raise SystemExit('Missing candidate ref '+branch)
-              rows.append({'family':family,'sha':line[0],'branch':branch})
+              row={'family':family,'sha':line[0],'branch':branch}; rows.append(row)
+              old,artifact=recorded[family]
+              subprocess.check_call(['git','fetch','--no-tags','origin',old,line[0]])
+              same=subprocess.run(['git','diff','--exit-code',old,line[0],'--','.',':(exclude)docs/GPT-方向.md',':(exclude)docs/tasks/T670-英式高街第一波.md'],stdout=subprocess.DEVNULL).returncode
+              if same==0: print('Preserved rejected native record',artifact,'for',old,'candidate',line[0],': all files except the T670 card and direction status identical')
+              elif same==1: native.append(row)
+              else: raise SystemExit('Cannot verify native evidence identity')
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('candidates='+json.dumps(rows,separators=(',',':'))+'\n')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('native_candidates='+json.dumps(native,separators=(',',':'))+'\n')
           print(json.dumps(rows,indent=2))
           PY
   visual:
@@ -82,10 +93,11 @@ jobs:
           if-no-files-found: error
   native:
     needs: resolve
+    if: ${{ needs.resolve.outputs.native_candidates != '[]' }}
     strategy:
       fail-fast: false
       matrix:
-        candidate: ${{ fromJSON(needs.resolve.outputs.candidates) }}
+        candidate: ${{ fromJSON(needs.resolve.outputs.native_candidates) }}
     runs-on: macos-15
     timeout-minutes: 45
     steps:
