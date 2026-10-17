@@ -19555,3 +19555,12 @@ function prepPower574(seed){window.GV.setMapSize(72);window.GV.newWorldSeeded(se
 
 /* T676：追加具名清單修復的原契約負控制；不取代任何既有斷言。 */
 {const r676=childProcess.spawnSync(process.execPath,[path.join(__dirname,"docs/tasks/t676-shots/preview-negative.cjs")],{cwd:__dirname,encoding:"utf8",timeout:30000});let j676=null;try{j676=JSON.parse(r676.stdout);}catch{}assert(r676.status===0&&j676&&j676.sourcePins==="passed","T676 原預覽契約與具名清單負控制："+r676.stderr);}
+
+/* T675：追加新工坊契約；所有既有斷言保持。 */
+for(const [name675,file675,args675] of [
+  ['候選50組與七負控制','candidate-contract.cjs',['--software']],
+  ['實際來源與選款／快取／預覽','selector-contract.cjs',[]],
+  ['主繪／倒影／工業煙真接點','check-runtime-hooks.cjs',[]],
+  ['煙粒關閥與三負控制','check-smoke-valve.cjs',[]],
+  ['窯口地面光池適用性','check-ground-glow.cjs',[]]
+]){const r675=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t675-shots',file675),...args675],{cwd:__dirname,encoding:'utf8',timeout:30000});let j675=null;try{j675=JSON.parse(r675.stdout);}catch{}assert(r675.status===0&&j675&&(j675.passed===true||j675.status==='pass'),'T675 '+name675+'：'+r675.stderr);}

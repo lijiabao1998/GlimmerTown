@@ -1,0 +1,488 @@
+{
+  "status": "pass",
+  "backend": "native-canvas",
+  "scope": "isolated Canvas candidates only; no runtime, CI or Chrome claim",
+  "cases": 50,
+  "negativeControls": [
+    {
+      "name": "missing-night-mask",
+      "firstFailure": "missing-night-openings"
+    },
+    {
+      "name": "missing-chimney",
+      "firstFailure": "outlet-count"
+    },
+    {
+      "name": "invented-granary-smoke",
+      "firstFailure": "outlet-count"
+    },
+    {
+      "name": "floating-body-pixel",
+      "firstFailure": "disconnected-body-component"
+    },
+    {
+      "name": "wrong-family",
+      "firstFailure": "family"
+    },
+    {
+      "name": "out-of-bounds-hook",
+      "firstFailure": "hook-bounds"
+    },
+    {
+      "name": "night-outside-body",
+      "firstFailure": "night-outside-body"
+    }
+  ],
+  "rows": [
+    {
+      "model": 0,
+      "winter": false,
+      "season": 0,
+      "body": 2105,
+      "night": 105,
+      "hash": "eb19d7b12ece59f582cd538ba3f8076947bd656ba2c45c0412182b8afb065af6",
+      "nightHash": "03356e83e3d8a31eae26d6ae773ec78c0bcb136abe6755b91ea22c7acd8dcd12"
+    },
+    {
+      "model": 1,
+      "winter": false,
+      "season": 0,
+      "body": 1627,
+      "night": 7,
+      "hash": "a9df16e77263f8ef28e2dc19ad4571a253ac864afd4f5027672efe7fdd717901",
+      "nightHash": "1c28df58b165b9422170eff5bcf647d3f9ade1d6cab75ad3d9eda40bbc23b6bf"
+    },
+    {
+      "model": 2,
+      "winter": false,
+      "season": 0,
+      "body": 1513,
+      "night": 30,
+      "hash": "efafa47dd245a9f29b6ae2ce5402a69d44c65c768b7be637f70344426a9e7726",
+      "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
+    },
+    {
+      "model": 3,
+      "winter": false,
+      "season": 0,
+      "body": 2451,
+      "night": 40,
+      "hash": "18213046cf2fd5979e10a1aefd5acd8a261e374804203df65e1c2655a3fd1f84",
+      "nightHash": "8c5aa45cc234cfb045d2e8e480837abe9fc39c203f2491e7e2a3a44e144fafbd"
+    },
+    {
+      "model": 4,
+      "winter": false,
+      "season": 0,
+      "body": 1934,
+      "night": 17,
+      "hash": "37d6f8beb485507444f890dabd79f2f612a4ef4cd15eb9b5b430e48b8f5a9051",
+      "nightHash": "ea4a570199122ed6ad060c8141a45ae59c5fd634be106a7b1d94e70c477c8f68"
+    },
+    {
+      "model": 5,
+      "winter": false,
+      "season": 0,
+      "body": 2108,
+      "night": 257,
+      "hash": "23690f8c7db174af8805d53ace9f008c4b82238ff813ba38d6e8772581db6b4d",
+      "nightHash": "d93c4c95db8f8a9f611fc3c8fedd56f820291eed712ece6b0352571e18d10dca"
+    },
+    {
+      "model": 6,
+      "winter": false,
+      "season": 0,
+      "body": 1875,
+      "night": 123,
+      "hash": "010b7728c2779f0707f5f116de4dfd215eb0b11febd257a0486a3342b86fc909",
+      "nightHash": "6062234599434d3fbb2972ac25d115ae7fd0c38727d9c5a675a09d2c7fa51442"
+    },
+    {
+      "model": 7,
+      "winter": false,
+      "season": 0,
+      "body": 1715,
+      "night": 30,
+      "hash": "642cd1f6df7ff1ef76e85d7730d47bb802a8c0b63dec545284380a0a4058a0e5",
+      "nightHash": "8edea2c5f479ef8c68ad36f75a522d46bebcdb648722ee264ce81c67083aa2ae"
+    },
+    {
+      "model": 8,
+      "winter": false,
+      "season": 0,
+      "body": 1467,
+      "night": 69,
+      "hash": "0f57539aa061bd1906095dd48a46833cbd605c4e7a3f72c5a9a08ceedfb6811a",
+      "nightHash": "29f00bfbef7ca654c6b0d77316c2d06e012b5238ccc07574d21c7a091af4ada4"
+    },
+    {
+      "model": 9,
+      "winter": false,
+      "season": 0,
+      "body": 1809,
+      "night": 40,
+      "hash": "91b047ecc12ed894fb1849a5e721ec2f7891b7008fb4bf5e8478846523bd5aee",
+      "nightHash": "71a855598ecdf4a3eae27eba4f540fd75660981b74a5866a836d678995ce2521"
+    },
+    {
+      "model": 0,
+      "winter": false,
+      "season": 1,
+      "body": 2105,
+      "night": 105,
+      "hash": "91686691d867ae17be9292fd70e9b73bca7398d642eae385b1964a393562cc73",
+      "nightHash": "03356e83e3d8a31eae26d6ae773ec78c0bcb136abe6755b91ea22c7acd8dcd12"
+    },
+    {
+      "model": 1,
+      "winter": false,
+      "season": 1,
+      "body": 1627,
+      "night": 7,
+      "hash": "5d8af0c9b672ef611bad007782774e973651225cd6629b861a5fc126e6272fed",
+      "nightHash": "1c28df58b165b9422170eff5bcf647d3f9ade1d6cab75ad3d9eda40bbc23b6bf"
+    },
+    {
+      "model": 2,
+      "winter": false,
+      "season": 1,
+      "body": 1513,
+      "night": 30,
+      "hash": "02ff69f102c7ea916301b72bc0dc21f0a3ec0d8833446ec39f630c32fb20f1fd",
+      "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
+    },
+    {
+      "model": 3,
+      "winter": false,
+      "season": 1,
+      "body": 2451,
+      "night": 40,
+      "hash": "933a419e79d8c22b70a5bca1b005a81dd68ffab8fa0a3d85b1e8ee8d381f2698",
+      "nightHash": "8c5aa45cc234cfb045d2e8e480837abe9fc39c203f2491e7e2a3a44e144fafbd"
+    },
+    {
+      "model": 4,
+      "winter": false,
+      "season": 1,
+      "body": 1934,
+      "night": 17,
+      "hash": "3866ea0cd403667f5b617aa0a86e7c65eecf9f191bd2e16dc22bfbcda7b49345",
+      "nightHash": "ea4a570199122ed6ad060c8141a45ae59c5fd634be106a7b1d94e70c477c8f68"
+    },
+    {
+      "model": 5,
+      "winter": false,
+      "season": 1,
+      "body": 2108,
+      "night": 257,
+      "hash": "d7c5db1b400c4fba20b4b7ed3bd0d10a735fbf01203ddea3b21d6c0b9091c9ce",
+      "nightHash": "d93c4c95db8f8a9f611fc3c8fedd56f820291eed712ece6b0352571e18d10dca"
+    },
+    {
+      "model": 6,
+      "winter": false,
+      "season": 1,
+      "body": 1875,
+      "night": 123,
+      "hash": "0fc5e59809d157c6de05d8ba76866de55dea235f17a2decf06db0f22384741ea",
+      "nightHash": "6062234599434d3fbb2972ac25d115ae7fd0c38727d9c5a675a09d2c7fa51442"
+    },
+    {
+      "model": 7,
+      "winter": false,
+      "season": 1,
+      "body": 1715,
+      "night": 30,
+      "hash": "9eb1340ee885c7b83fa2e69d0eda18e36d497f860fa18efc8a1dec5f539d82ec",
+      "nightHash": "8edea2c5f479ef8c68ad36f75a522d46bebcdb648722ee264ce81c67083aa2ae"
+    },
+    {
+      "model": 8,
+      "winter": false,
+      "season": 1,
+      "body": 1467,
+      "night": 69,
+      "hash": "b3a75b9364f698f639e13351a5158e06c5dc1fdadffcf25a1ed664e5bfaca288",
+      "nightHash": "29f00bfbef7ca654c6b0d77316c2d06e012b5238ccc07574d21c7a091af4ada4"
+    },
+    {
+      "model": 9,
+      "winter": false,
+      "season": 1,
+      "body": 1809,
+      "night": 40,
+      "hash": "b25910351d8e4a32d137fa9d3a49ef7c61ccd894d9b88dec55cd550409b21a2d",
+      "nightHash": "71a855598ecdf4a3eae27eba4f540fd75660981b74a5866a836d678995ce2521"
+    },
+    {
+      "model": 0,
+      "winter": false,
+      "season": 2,
+      "body": 2105,
+      "night": 105,
+      "hash": "713d9445cba1e03b77733d8d0b63c3ad6dc39e3b66f922c36f2fcccb51bc4952",
+      "nightHash": "03356e83e3d8a31eae26d6ae773ec78c0bcb136abe6755b91ea22c7acd8dcd12"
+    },
+    {
+      "model": 1,
+      "winter": false,
+      "season": 2,
+      "body": 1627,
+      "night": 7,
+      "hash": "8f95e9eda97273a782c14f17d1bc5ecb8969e845866ca990e5e817b35115d409",
+      "nightHash": "1c28df58b165b9422170eff5bcf647d3f9ade1d6cab75ad3d9eda40bbc23b6bf"
+    },
+    {
+      "model": 2,
+      "winter": false,
+      "season": 2,
+      "body": 1513,
+      "night": 30,
+      "hash": "b43c0b1d55aa56ef352160573aeb9808621bd371895f8bd4b1f24c08d86a48b6",
+      "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
+    },
+    {
+      "model": 3,
+      "winter": false,
+      "season": 2,
+      "body": 2451,
+      "night": 40,
+      "hash": "01714130cd66e515d28aae363ab9e5996e2d5723d6ce0154e33edd79dc718a00",
+      "nightHash": "8c5aa45cc234cfb045d2e8e480837abe9fc39c203f2491e7e2a3a44e144fafbd"
+    },
+    {
+      "model": 4,
+      "winter": false,
+      "season": 2,
+      "body": 1934,
+      "night": 17,
+      "hash": "0cf99a152bddb178132833773637b3f4d135cede6b582df37c8e5af723592892",
+      "nightHash": "ea4a570199122ed6ad060c8141a45ae59c5fd634be106a7b1d94e70c477c8f68"
+    },
+    {
+      "model": 5,
+      "winter": false,
+      "season": 2,
+      "body": 2108,
+      "night": 257,
+      "hash": "0703faa70b038646c34453ecee4c7a2b4cd3358585f544490a437d00b16a3a87",
+      "nightHash": "d93c4c95db8f8a9f611fc3c8fedd56f820291eed712ece6b0352571e18d10dca"
+    },
+    {
+      "model": 6,
+      "winter": false,
+      "season": 2,
+      "body": 1875,
+      "night": 123,
+      "hash": "f0e86199f3568afd56760fd63e68378ecd89bea90f15cc95f4d1c3b6c8a420e5",
+      "nightHash": "6062234599434d3fbb2972ac25d115ae7fd0c38727d9c5a675a09d2c7fa51442"
+    },
+    {
+      "model": 7,
+      "winter": false,
+      "season": 2,
+      "body": 1715,
+      "night": 30,
+      "hash": "371b229e5de18dc5a4d2fb6a20cdcd983b8fe793f14ab0ee72f5b7365fab6745",
+      "nightHash": "8edea2c5f479ef8c68ad36f75a522d46bebcdb648722ee264ce81c67083aa2ae"
+    },
+    {
+      "model": 8,
+      "winter": false,
+      "season": 2,
+      "body": 1467,
+      "night": 69,
+      "hash": "58be06b329302c64450806ae742cdd9619b2bcd11d7ad7a5af1710a7fc3486b8",
+      "nightHash": "29f00bfbef7ca654c6b0d77316c2d06e012b5238ccc07574d21c7a091af4ada4"
+    },
+    {
+      "model": 9,
+      "winter": false,
+      "season": 2,
+      "body": 1809,
+      "night": 40,
+      "hash": "64337970899b14b69533fcfad7b9780f579b4d75c48239aa6b376e8409c85146",
+      "nightHash": "71a855598ecdf4a3eae27eba4f540fd75660981b74a5866a836d678995ce2521"
+    },
+    {
+      "model": 0,
+      "winter": false,
+      "season": 3,
+      "body": 2105,
+      "night": 105,
+      "hash": "2c5fe3b1548f82b19db815b30d83fbd0b8c287cc3198f99d8fcd78601f57a920",
+      "nightHash": "03356e83e3d8a31eae26d6ae773ec78c0bcb136abe6755b91ea22c7acd8dcd12"
+    },
+    {
+      "model": 1,
+      "winter": false,
+      "season": 3,
+      "body": 1627,
+      "night": 7,
+      "hash": "2a2ee3c0bdc4b90db826ed26dc7f29436d30dc915c574e741db8e5d489f2672c",
+      "nightHash": "1c28df58b165b9422170eff5bcf647d3f9ade1d6cab75ad3d9eda40bbc23b6bf"
+    },
+    {
+      "model": 2,
+      "winter": false,
+      "season": 3,
+      "body": 1513,
+      "night": 30,
+      "hash": "3da3c503f56934461085a5f92f758761e09c2e543d9d80737cf954fdaedde80c",
+      "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
+    },
+    {
+      "model": 3,
+      "winter": false,
+      "season": 3,
+      "body": 2451,
+      "night": 40,
+      "hash": "453cae4a0f1156936ca6152399b4e16e1dba240e35eec018e73418f8319a92cd",
+      "nightHash": "8c5aa45cc234cfb045d2e8e480837abe9fc39c203f2491e7e2a3a44e144fafbd"
+    },
+    {
+      "model": 4,
+      "winter": false,
+      "season": 3,
+      "body": 1934,
+      "night": 17,
+      "hash": "01342c76ccddef6afc550c2f0dd6759c0329cd8d61429ca5faced27e077f3dd7",
+      "nightHash": "ea4a570199122ed6ad060c8141a45ae59c5fd634be106a7b1d94e70c477c8f68"
+    },
+    {
+      "model": 5,
+      "winter": false,
+      "season": 3,
+      "body": 2108,
+      "night": 257,
+      "hash": "e7b68f119a8a536d3006b3dcf1d0eb65a39eccf5dc5f5861e64d87d9ce8e53f2",
+      "nightHash": "d93c4c95db8f8a9f611fc3c8fedd56f820291eed712ece6b0352571e18d10dca"
+    },
+    {
+      "model": 6,
+      "winter": false,
+      "season": 3,
+      "body": 1875,
+      "night": 123,
+      "hash": "3f3034117b4319f520885975f428b50d1d7961ccfcca5bd6b0c21ce3bf1f8cbd",
+      "nightHash": "6062234599434d3fbb2972ac25d115ae7fd0c38727d9c5a675a09d2c7fa51442"
+    },
+    {
+      "model": 7,
+      "winter": false,
+      "season": 3,
+      "body": 1715,
+      "night": 30,
+      "hash": "01ecaeabbcdc9da9f83b2fde29b4d04e660baabd7812e2e71c7d4d181c233f67",
+      "nightHash": "8edea2c5f479ef8c68ad36f75a522d46bebcdb648722ee264ce81c67083aa2ae"
+    },
+    {
+      "model": 8,
+      "winter": false,
+      "season": 3,
+      "body": 1467,
+      "night": 69,
+      "hash": "4244cce86b0e95c369d9123a7869cd327d3640dcff9c64d3e3d4edd28975f2eb",
+      "nightHash": "29f00bfbef7ca654c6b0d77316c2d06e012b5238ccc07574d21c7a091af4ada4"
+    },
+    {
+      "model": 9,
+      "winter": false,
+      "season": 3,
+      "body": 1809,
+      "night": 40,
+      "hash": "096c2a70a9f0d76894fccb4aa6ad76c27b7d4a039fcad5cbe1270214f1206264",
+      "nightHash": "71a855598ecdf4a3eae27eba4f540fd75660981b74a5866a836d678995ce2521"
+    },
+    {
+      "model": 0,
+      "winter": true,
+      "season": 3,
+      "body": 2105,
+      "night": 105,
+      "hash": "cbc2084559cc048a166b25fb8128a3c938bb1f37b3aca6ff23122f238b019929",
+      "nightHash": "03356e83e3d8a31eae26d6ae773ec78c0bcb136abe6755b91ea22c7acd8dcd12"
+    },
+    {
+      "model": 1,
+      "winter": true,
+      "season": 3,
+      "body": 1627,
+      "night": 7,
+      "hash": "ba793c2ff8c61669dba8b86a8abe54629bb05d2e9be91123bb0cbdee9a3ed348",
+      "nightHash": "1c28df58b165b9422170eff5bcf647d3f9ade1d6cab75ad3d9eda40bbc23b6bf"
+    },
+    {
+      "model": 2,
+      "winter": true,
+      "season": 3,
+      "body": 1513,
+      "night": 30,
+      "hash": "807217cbffceab0a21b0fe2a461f473aaf3283b2c09d99c89551559427358142",
+      "nightHash": "a1df5cc4a182f1e5ddd883bb259dc34ac58b2a5d6eb2f752238c7b0bf94f0cd3"
+    },
+    {
+      "model": 3,
+      "winter": true,
+      "season": 3,
+      "body": 2451,
+      "night": 40,
+      "hash": "ab954837bdbf5d475add78b5d0ba84992bd4b8f3596d35711ffd0e9359fdf4bc",
+      "nightHash": "8c5aa45cc234cfb045d2e8e480837abe9fc39c203f2491e7e2a3a44e144fafbd"
+    },
+    {
+      "model": 4,
+      "winter": true,
+      "season": 3,
+      "body": 1934,
+      "night": 17,
+      "hash": "8dd30b365b868ffdef8226f234badd6368510e00a70ba243e741a46c355f8716",
+      "nightHash": "ea4a570199122ed6ad060c8141a45ae59c5fd634be106a7b1d94e70c477c8f68"
+    },
+    {
+      "model": 5,
+      "winter": true,
+      "season": 3,
+      "body": 2108,
+      "night": 257,
+      "hash": "2835795ea9cf98367645300fe417ef6eccdae565d0efd2f57da87aeebcbcb3f8",
+      "nightHash": "d93c4c95db8f8a9f611fc3c8fedd56f820291eed712ece6b0352571e18d10dca"
+    },
+    {
+      "model": 6,
+      "winter": true,
+      "season": 3,
+      "body": 1875,
+      "night": 123,
+      "hash": "c5327e41ec07dede999c60b68a6035d29300ffc6bfaee3807c6c91aebe8f9cf9",
+      "nightHash": "6062234599434d3fbb2972ac25d115ae7fd0c38727d9c5a675a09d2c7fa51442"
+    },
+    {
+      "model": 7,
+      "winter": true,
+      "season": 3,
+      "body": 1715,
+      "night": 30,
+      "hash": "2bc918a2f87649d7496f3246c45f95a4aa2ce04369047efb618ad7959f2bbb66",
+      "nightHash": "8edea2c5f479ef8c68ad36f75a522d46bebcdb648722ee264ce81c67083aa2ae"
+    },
+    {
+      "model": 8,
+      "winter": true,
+      "season": 3,
+      "body": 1467,
+      "night": 69,
+      "hash": "a8097e4b95a47b68d9e5337ece8d4e8cc4c72be8d79fbbe6b04639448df6e15e",
+      "nightHash": "29f00bfbef7ca654c6b0d77316c2d06e012b5238ccc07574d21c7a091af4ada4"
+    },
+    {
+      "model": 9,
+      "winter": true,
+      "season": 3,
+      "body": 1809,
+      "night": 40,
+      "hash": "4b2ea22bd3ab86989af809e69a95f297b58dddf1689320e0e613426c7c4a9b5a",
+      "nightHash": "71a855598ecdf4a3eae27eba4f540fd75660981b74a5866a836d678995ce2521"
+    }
+  ]
+}

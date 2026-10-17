@@ -1,0 +1,83 @@
+{
+  "commit": "f4aa5e3e1ec7b83ee2527598fa7464d632cb18c7",
+  "runtimeSHA256": "82c3d06fe05ccb0254dddeec592ed47f6731a6232b7f1b78ccb5b59808123fb8",
+  "swSHA256": "20c3cd2c02e53f919b632194e8f3506821a508377ab65e12da3faaa8e351f2d8",
+  "run": 39024699262,
+  "artifact": 12098735495,
+  "status": "rejected",
+  "nativeLaneAccepted": false,
+  "completedChecks": 267,
+  "coverage": {
+    "core": false,
+    "world": false,
+    "neighbors": false
+  },
+  "stoppedBefore": "mobile-day-baseline",
+  "reason": "Original native foreground/viewport/runtime qualification failed before the first RAF sample window.",
+  "rafWindowsCompleted": 0,
+  "mobilePerformance": {
+    "day": {}
+  },
+  "historicalCRCDifferences": 860,
+  "sameBrowserComparisons": [
+    {
+      "label": "old-first-against-history",
+      "passed": false,
+      "differences": 860
+    },
+    {
+      "label": "old-repeat-against-history",
+      "passed": false,
+      "differences": 860
+    },
+    {
+      "label": "independent-old-reloads",
+      "passed": true,
+      "differences": 0
+    },
+    {
+      "label": "old-source-to-inherited-candidate",
+      "passed": true,
+      "differences": 0
+    },
+    {
+      "label": "returned-candidate-to-original",
+      "passed": true,
+      "differences": 0
+    },
+    {
+      "label": "original-candidate-repeat-to-old-source",
+      "passed": true,
+      "differences": 0
+    },
+    {
+      "label": "later-old-to-independent-old",
+      "passed": true,
+      "differences": 0
+    }
+  ],
+  "escapeFrameChangedPixels": {
+    "0/0/55": 0,
+    "0/0/100": 0,
+    "0/3/55": 0,
+    "0/3/100": 0,
+    "1/0/55": 0,
+    "1/0/100": 0,
+    "1/3/55": 0,
+    "1/3/100": 0,
+    "2/0/55": 0,
+    "2/0/100": 0,
+    "2/3/55": 0,
+    "2/3/100": 0,
+    "3/0/55": 0,
+    "3/0/100": 0,
+    "3/3/55": 0,
+    "3/3/100": 0
+  },
+  "exceptions": [],
+  "consoleErrors": [],
+  "originalChecksComplete": false,
+  "recordOnlyPolicy": "AGENTS T630: retain actual rejected result and incomplete scope; no threshold changes or repeated same-runtime native run. No physical-device FPS or complete native pass claim.",
+  "rawReleaseReportSHA256": "56f6b83e2a0ed48acf93e54e0fbbfb7ddbd3e674c3e8102718fea804d88b7cc6",
+  "rawInnerReportSHA256": "2a1961dd40237395ef0b62fda0b38434965efad4f34c0e8ff2cc75f572cd7160"
+}
