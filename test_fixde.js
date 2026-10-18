@@ -19564,3 +19564,7 @@ for(const [name675,file675,args675] of [
   ['煙粒關閥與三負控制','check-smoke-valve.cjs',[]],
   ['窯口地面光池適用性','check-ground-glow.cjs',[]]
 ]){const r675=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t675-shots',file675),...args675],{cwd:__dirname,encoding:'utf8',timeout:30000});let j675=null;try{j675=JSON.parse(r675.stdout);}catch{}assert(r675.status===0&&j675&&(j675.passed===true||j675.status==='pass'),'T675 '+name675+'：'+r675.stderr);}
+
+/* T659：第一波英式商店不吃舊 T427 建築疊層；只追加，既有斷言一字不改。 */
+{const r659=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t659-shots/check-legacy-overlays.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});let j659=null;try{j659=JSON.parse(r659.stdout);}catch{}assert(r659.status===0&&j659&&j659.passed===true&&j659.negativeControls.length===2,'T659 G1 第一波不吃七個舊疊層、兩閥退回改前路由、他家族路由不變、兩負控制首紅在 G1：'+r659.stderr);}
+{const reg659=JSON.parse(fs.readFileSync(path.join(__dirname,'docs/APPROVED_ART.json'),'utf8'));assert(reg659.valves.T659==='__noT659','T659 G2 發佈台架登記閥');}

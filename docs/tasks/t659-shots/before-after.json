@@ -1,0 +1,866 @@
+{
+ "tool": "docs/tasks/t659-shots/before-after.cjs",
+ "browser": "141.0.7390.37",
+ "shots_per_run": 120,
+ "runs": {
+  "main_9a91006": {
+   "index_sha256": "82c3d06fe05ccb0254dddeec592ed47f6731a6232b7f1b78ccb5b59808123fb8",
+   "legacy_overlay_visible": 116,
+   "errors": []
+  },
+  "T659_head": {
+   "index_sha256": "b262136d044508887608ceef3f4822f15a6f974a26c7027c4969d27844534b14",
+   "legacy_overlay_visible": 0,
+   "errors": []
+  },
+  "T659_head_with___noT659": {
+   "index_sha256": "b262136d044508887608ceef3f4822f15a6f974a26c7027c4969d27844534b14",
+   "legacy_overlay_visible": 116,
+   "errors": []
+  }
+ },
+ "valve_frames_equal_main": 120,
+ "head_frames_equal_main_with_7_overlays_off": 120,
+ "shots": [
+  {
+   "id": "v0-21_14-day",
+   "main": "3ab114e003eca651",
+   "main_overlays_off": "9a5298ec711ee2a9",
+   "head": "9a5298ec711ee2a9",
+   "head_valve_closed": "3ab114e003eca651"
+  },
+  {
+   "id": "v0-21_14-night",
+   "main": "da06037f1640b6b2",
+   "main_overlays_off": "830f4c971b3fdc2b",
+   "head": "830f4c971b3fdc2b",
+   "head_valve_closed": "da06037f1640b6b2"
+  },
+  {
+   "id": "v0-21_14-snow",
+   "main": "b15e40a984ddf284",
+   "main_overlays_off": "f5386be2f5b32189",
+   "head": "f5386be2f5b32189",
+   "head_valve_closed": "b15e40a984ddf284"
+  },
+  {
+   "id": "v0-39_16-day",
+   "main": "9d889c13e6dd1570",
+   "main_overlays_off": "404ba1d768f123d5",
+   "head": "404ba1d768f123d5",
+   "head_valve_closed": "9d889c13e6dd1570"
+  },
+  {
+   "id": "v0-39_16-night",
+   "main": "134f305a3e85641b",
+   "main_overlays_off": "938cb25391f17c6e",
+   "head": "938cb25391f17c6e",
+   "head_valve_closed": "134f305a3e85641b"
+  },
+  {
+   "id": "v0-39_16-snow",
+   "main": "f4cfc4408f5bcab7",
+   "main_overlays_off": "1864b59831f68cc2",
+   "head": "1864b59831f68cc2",
+   "head_valve_closed": "f4cfc4408f5bcab7"
+  },
+  {
+   "id": "v0-48_16-day",
+   "main": "9c9fe634fbcb1e1a",
+   "main_overlays_off": "74ad67258df66e40",
+   "head": "74ad67258df66e40",
+   "head_valve_closed": "9c9fe634fbcb1e1a"
+  },
+  {
+   "id": "v0-48_16-night",
+   "main": "591877c2bfb27628",
+   "main_overlays_off": "6eb17d50dd88ffd6",
+   "head": "6eb17d50dd88ffd6",
+   "head_valve_closed": "591877c2bfb27628"
+  },
+  {
+   "id": "v0-48_16-snow",
+   "main": "b3fe523fa1001588",
+   "main_overlays_off": "46bcae19dda390e5",
+   "head": "46bcae19dda390e5",
+   "head_valve_closed": "b3fe523fa1001588"
+  },
+  {
+   "id": "v0-51_16-day",
+   "main": "cb470e2093c19105",
+   "main_overlays_off": "e44eec5750e9f6a9",
+   "head": "e44eec5750e9f6a9",
+   "head_valve_closed": "cb470e2093c19105"
+  },
+  {
+   "id": "v0-51_16-night",
+   "main": "a08b4c4d40a75a57",
+   "main_overlays_off": "a645d0fe63c76986",
+   "head": "a645d0fe63c76986",
+   "head_valve_closed": "a08b4c4d40a75a57"
+  },
+  {
+   "id": "v0-51_16-snow",
+   "main": "05fb5e920a1be9cb",
+   "main_overlays_off": "5a2e4fd20b53a51d",
+   "head": "5a2e4fd20b53a51d",
+   "head_valve_closed": "05fb5e920a1be9cb"
+  },
+  {
+   "id": "v1-54_12-day",
+   "main": "bd10a1389de4dc7e",
+   "main_overlays_off": "ba841bbb20541700",
+   "head": "ba841bbb20541700",
+   "head_valve_closed": "bd10a1389de4dc7e"
+  },
+  {
+   "id": "v1-54_12-night",
+   "main": "9df8f5022cb6ea91",
+   "main_overlays_off": "670b92ea1a46f217",
+   "head": "670b92ea1a46f217",
+   "head_valve_closed": "9df8f5022cb6ea91"
+  },
+  {
+   "id": "v1-54_12-snow",
+   "main": "5c05640b55f04595",
+   "main_overlays_off": "e8361a08a2106f88",
+   "head": "e8361a08a2106f88",
+   "head_valve_closed": "5c05640b55f04595"
+  },
+  {
+   "id": "v1-27_14-day",
+   "main": "0708d325d6fd2b22",
+   "main_overlays_off": "fb0fee4b73a82751",
+   "head": "fb0fee4b73a82751",
+   "head_valve_closed": "0708d325d6fd2b22"
+  },
+  {
+   "id": "v1-27_14-night",
+   "main": "9d83649287f8b11f",
+   "main_overlays_off": "18299e6b250db452",
+   "head": "18299e6b250db452",
+   "head_valve_closed": "9d83649287f8b11f"
+  },
+  {
+   "id": "v1-27_14-snow",
+   "main": "70e5b21f3ff7876f",
+   "main_overlays_off": "76e1d5dfb49a6d42",
+   "head": "76e1d5dfb49a6d42",
+   "head_valve_closed": "70e5b21f3ff7876f"
+  },
+  {
+   "id": "v1-30_14-day",
+   "main": "953e16e8d8c635fc",
+   "main_overlays_off": "9a354dfb28e807b8",
+   "head": "9a354dfb28e807b8",
+   "head_valve_closed": "953e16e8d8c635fc"
+  },
+  {
+   "id": "v1-30_14-night",
+   "main": "8de3912f8af93eb3",
+   "main_overlays_off": "d5c35981286b47be",
+   "head": "d5c35981286b47be",
+   "head_valve_closed": "8de3912f8af93eb3"
+  },
+  {
+   "id": "v1-30_14-snow",
+   "main": "895eb9df9013e0c7",
+   "main_overlays_off": "83e9f001101a1074",
+   "head": "83e9f001101a1074",
+   "head_valve_closed": "895eb9df9013e0c7"
+  },
+  {
+   "id": "v1-21_22-day",
+   "main": "7ee54884ed40075b",
+   "main_overlays_off": "79b3d1a99a977d56",
+   "head": "79b3d1a99a977d56",
+   "head_valve_closed": "7ee54884ed40075b"
+  },
+  {
+   "id": "v1-21_22-night",
+   "main": "2c79bf19435f1383",
+   "main_overlays_off": "063d378a3fbf5af9",
+   "head": "063d378a3fbf5af9",
+   "head_valve_closed": "2c79bf19435f1383"
+  },
+  {
+   "id": "v1-21_22-snow",
+   "main": "4f8002947a3bd204",
+   "main_overlays_off": "3f27d69626388822",
+   "head": "3f27d69626388822",
+   "head_valve_closed": "4f8002947a3bd204"
+  },
+  {
+   "id": "v2-15_12-day",
+   "main": "b172a255bc28aff0",
+   "main_overlays_off": "261c27b1417183b0",
+   "head": "261c27b1417183b0",
+   "head_valve_closed": "b172a255bc28aff0"
+  },
+  {
+   "id": "v2-15_12-night",
+   "main": "a0283e0ca95c63d4",
+   "main_overlays_off": "c9703e8ea1db74c3",
+   "head": "c9703e8ea1db74c3",
+   "head_valve_closed": "a0283e0ca95c63d4"
+  },
+  {
+   "id": "v2-15_12-snow",
+   "main": "23f02b7bb2a0c935",
+   "main_overlays_off": "0b60d6445ecd426f",
+   "head": "0b60d6445ecd426f",
+   "head_valve_closed": "23f02b7bb2a0c935"
+  },
+  {
+   "id": "v2-36_12-day",
+   "main": "5a369112d199d551",
+   "main_overlays_off": "a716d7b3afc1b790",
+   "head": "a716d7b3afc1b790",
+   "head_valve_closed": "5a369112d199d551"
+  },
+  {
+   "id": "v2-36_12-night",
+   "main": "392547744463b598",
+   "main_overlays_off": "352b8605aee13566",
+   "head": "352b8605aee13566",
+   "head_valve_closed": "392547744463b598"
+  },
+  {
+   "id": "v2-36_12-snow",
+   "main": "720131fb9f951788",
+   "main_overlays_off": "af77ced3a34ef9a9",
+   "head": "af77ced3a34ef9a9",
+   "head_valve_closed": "720131fb9f951788"
+  },
+  {
+   "id": "v2-21_16-day",
+   "main": "25ad5f3e372673fc",
+   "main_overlays_off": "64e90cc6a5951a6a",
+   "head": "64e90cc6a5951a6a",
+   "head_valve_closed": "25ad5f3e372673fc"
+  },
+  {
+   "id": "v2-21_16-night",
+   "main": "fbcd4b5f24e996ea",
+   "main_overlays_off": "eaec91de12cce267",
+   "head": "eaec91de12cce267",
+   "head_valve_closed": "fbcd4b5f24e996ea"
+  },
+  {
+   "id": "v2-21_16-snow",
+   "main": "9992787f4252f434",
+   "main_overlays_off": "de3816bacc7e6589",
+   "head": "de3816bacc7e6589",
+   "head_valve_closed": "9992787f4252f434"
+  },
+  {
+   "id": "v2-21_18-day",
+   "main": "353eb2873eb02e39",
+   "main_overlays_off": "600877a5b656efd4",
+   "head": "600877a5b656efd4",
+   "head_valve_closed": "353eb2873eb02e39"
+  },
+  {
+   "id": "v2-21_18-night",
+   "main": "7fd93570f36a18d4",
+   "main_overlays_off": "3da8825b3234fc14",
+   "head": "3da8825b3234fc14",
+   "head_valve_closed": "7fd93570f36a18d4"
+  },
+  {
+   "id": "v2-21_18-snow",
+   "main": "3660bb89efb004f0",
+   "main_overlays_off": "a6682db5674f6a2a",
+   "head": "a6682db5674f6a2a",
+   "head_valve_closed": "3660bb89efb004f0"
+  },
+  {
+   "id": "v3-24_18-day",
+   "main": "9b9d3653c50c747e",
+   "main_overlays_off": "f7e846b94e11c046",
+   "head": "f7e846b94e11c046",
+   "head_valve_closed": "9b9d3653c50c747e"
+  },
+  {
+   "id": "v3-24_18-night",
+   "main": "638e37f461046db0",
+   "main_overlays_off": "6a4c12a2bc0a82e3",
+   "head": "6a4c12a2bc0a82e3",
+   "head_valve_closed": "638e37f461046db0"
+  },
+  {
+   "id": "v3-24_18-snow",
+   "main": "e5b1a6ae1690c9ae",
+   "main_overlays_off": "706378704aa95e6d",
+   "head": "706378704aa95e6d",
+   "head_valve_closed": "e5b1a6ae1690c9ae"
+  },
+  {
+   "id": "v3-33_18-day",
+   "main": "c1f7cb81d282457c",
+   "main_overlays_off": "987eb7ce1f1f4ce2",
+   "head": "987eb7ce1f1f4ce2",
+   "head_valve_closed": "c1f7cb81d282457c"
+  },
+  {
+   "id": "v3-33_18-night",
+   "main": "52b0f71defcf1b70",
+   "main_overlays_off": "a524ee39c3d6a597",
+   "head": "a524ee39c3d6a597",
+   "head_valve_closed": "52b0f71defcf1b70"
+  },
+  {
+   "id": "v3-33_18-snow",
+   "main": "ed55537f70a6c57d",
+   "main_overlays_off": "6fdb68c371f6ce01",
+   "head": "6fdb68c371f6ce01",
+   "head_valve_closed": "ed55537f70a6c57d"
+  },
+  {
+   "id": "v3-12_26-day",
+   "main": "50db0429e5ebb745",
+   "main_overlays_off": "b5816a65d3adb50b",
+   "head": "b5816a65d3adb50b",
+   "head_valve_closed": "50db0429e5ebb745"
+  },
+  {
+   "id": "v3-12_26-night",
+   "main": "eaeb7bea96dfd7bb",
+   "main_overlays_off": "9ea7c8064a125394",
+   "head": "9ea7c8064a125394",
+   "head_valve_closed": "eaeb7bea96dfd7bb"
+  },
+  {
+   "id": "v3-12_26-snow",
+   "main": "716ce7195d257b86",
+   "main_overlays_off": "f52916610dc3a92f",
+   "head": "f52916610dc3a92f",
+   "head_valve_closed": "716ce7195d257b86"
+  },
+  {
+   "id": "v3-57_26-day",
+   "main": "576a495409428a78",
+   "main_overlays_off": "576a495409428a78",
+   "head": "576a495409428a78",
+   "head_valve_closed": "576a495409428a78"
+  },
+  {
+   "id": "v3-57_26-night",
+   "main": "63774d70a096035f",
+   "main_overlays_off": "d776f6fd0445ac59",
+   "head": "d776f6fd0445ac59",
+   "head_valve_closed": "63774d70a096035f"
+  },
+  {
+   "id": "v3-57_26-snow",
+   "main": "c7cd38c6dad51e09",
+   "main_overlays_off": "c7cd38c6dad51e09",
+   "head": "c7cd38c6dad51e09",
+   "head_valve_closed": "c7cd38c6dad51e09"
+  },
+  {
+   "id": "v4-27_12-day",
+   "main": "e89b10bc400d1f10",
+   "main_overlays_off": "8b9bb2dc690e6491",
+   "head": "8b9bb2dc690e6491",
+   "head_valve_closed": "e89b10bc400d1f10"
+  },
+  {
+   "id": "v4-27_12-night",
+   "main": "e1fe8247c659a9d7",
+   "main_overlays_off": "29bb76b8d257caab",
+   "head": "29bb76b8d257caab",
+   "head_valve_closed": "e1fe8247c659a9d7"
+  },
+  {
+   "id": "v4-27_12-snow",
+   "main": "c4ab1d3ad52dbf1c",
+   "main_overlays_off": "509fb8d39df4bc49",
+   "head": "509fb8d39df4bc49",
+   "head_valve_closed": "c4ab1d3ad52dbf1c"
+  },
+  {
+   "id": "v4-33_12-day",
+   "main": "3e5ddf957f0a6148",
+   "main_overlays_off": "05e55d8bdd55e2b7",
+   "head": "05e55d8bdd55e2b7",
+   "head_valve_closed": "3e5ddf957f0a6148"
+  },
+  {
+   "id": "v4-33_12-night",
+   "main": "b5b29d5b976fd3cb",
+   "main_overlays_off": "4a43804eee80946c",
+   "head": "4a43804eee80946c",
+   "head_valve_closed": "b5b29d5b976fd3cb"
+  },
+  {
+   "id": "v4-33_12-snow",
+   "main": "ef857f08db562878",
+   "main_overlays_off": "d1826b404039ff4f",
+   "head": "d1826b404039ff4f",
+   "head_valve_closed": "ef857f08db562878"
+  },
+  {
+   "id": "v4-12_14-day",
+   "main": "26da91fabdf80585",
+   "main_overlays_off": "99c19bd55ac47d1a",
+   "head": "99c19bd55ac47d1a",
+   "head_valve_closed": "26da91fabdf80585"
+  },
+  {
+   "id": "v4-12_14-night",
+   "main": "0999261e5ecc6aea",
+   "main_overlays_off": "1e68d6939afe6412",
+   "head": "1e68d6939afe6412",
+   "head_valve_closed": "0999261e5ecc6aea"
+  },
+  {
+   "id": "v4-12_14-snow",
+   "main": "48cb80e383f82684",
+   "main_overlays_off": "0338ea45e19ce56e",
+   "head": "0338ea45e19ce56e",
+   "head_valve_closed": "48cb80e383f82684"
+  },
+  {
+   "id": "v4-12_18-day",
+   "main": "7c1144b2a52589c2",
+   "main_overlays_off": "0bc8343f9516c01a",
+   "head": "0bc8343f9516c01a",
+   "head_valve_closed": "7c1144b2a52589c2"
+  },
+  {
+   "id": "v4-12_18-night",
+   "main": "4e2852a1fb148818",
+   "main_overlays_off": "be95dff1ce8ebf24",
+   "head": "be95dff1ce8ebf24",
+   "head_valve_closed": "4e2852a1fb148818"
+  },
+  {
+   "id": "v4-12_18-snow",
+   "main": "3207bb4c303b49f7",
+   "main_overlays_off": "0635e926da3e8755",
+   "head": "0635e926da3e8755",
+   "head_valve_closed": "3207bb4c303b49f7"
+  },
+  {
+   "id": "v5-15_18-day",
+   "main": "8b47b7e58f5b2e51",
+   "main_overlays_off": "e5637f1bbea78b5b",
+   "head": "e5637f1bbea78b5b",
+   "head_valve_closed": "8b47b7e58f5b2e51"
+  },
+  {
+   "id": "v5-15_18-night",
+   "main": "2ee6b205b59741c2",
+   "main_overlays_off": "c146487c3ce52c88",
+   "head": "c146487c3ce52c88",
+   "head_valve_closed": "2ee6b205b59741c2"
+  },
+  {
+   "id": "v5-15_18-snow",
+   "main": "13bd2a905eba6625",
+   "main_overlays_off": "7f7c516f67a0f0ff",
+   "head": "7f7c516f67a0f0ff",
+   "head_valve_closed": "13bd2a905eba6625"
+  },
+  {
+   "id": "v5-15_20-day",
+   "main": "974e13160f1706bd",
+   "main_overlays_off": "7892be0a0603b4e5",
+   "head": "7892be0a0603b4e5",
+   "head_valve_closed": "974e13160f1706bd"
+  },
+  {
+   "id": "v5-15_20-night",
+   "main": "27fe392f9994c57b",
+   "main_overlays_off": "d37736f550ffc265",
+   "head": "d37736f550ffc265",
+   "head_valve_closed": "27fe392f9994c57b"
+  },
+  {
+   "id": "v5-15_20-snow",
+   "main": "dfa8774f36af5c6a",
+   "main_overlays_off": "b1cb2a71b469b0b6",
+   "head": "b1cb2a71b469b0b6",
+   "head_valve_closed": "dfa8774f36af5c6a"
+  },
+  {
+   "id": "v5-54_24-day",
+   "main": "e96b8dc932e5a0ad",
+   "main_overlays_off": "85b943f8cd6383e6",
+   "head": "85b943f8cd6383e6",
+   "head_valve_closed": "e96b8dc932e5a0ad"
+  },
+  {
+   "id": "v5-54_24-night",
+   "main": "800163a229e514a9",
+   "main_overlays_off": "108bb52390f7e60e",
+   "head": "108bb52390f7e60e",
+   "head_valve_closed": "800163a229e514a9"
+  },
+  {
+   "id": "v5-54_24-snow",
+   "main": "ceda83004c060c04",
+   "main_overlays_off": "6696f4fd75dcaede",
+   "head": "6696f4fd75dcaede",
+   "head_valve_closed": "ceda83004c060c04"
+  },
+  {
+   "id": "v5-24_26-day",
+   "main": "7b87ce543924428c",
+   "main_overlays_off": "6ed866b5983e41fa",
+   "head": "6ed866b5983e41fa",
+   "head_valve_closed": "7b87ce543924428c"
+  },
+  {
+   "id": "v5-24_26-night",
+   "main": "337ae6be38c3e290",
+   "main_overlays_off": "8c3110dd2cc70ba8",
+   "head": "8c3110dd2cc70ba8",
+   "head_valve_closed": "337ae6be38c3e290"
+  },
+  {
+   "id": "v5-24_26-snow",
+   "main": "2e48fd1c192527dd",
+   "main_overlays_off": "bf86bdd301fa01e3",
+   "head": "bf86bdd301fa01e3",
+   "head_valve_closed": "2e48fd1c192527dd"
+  },
+  {
+   "id": "v6-39_12-day",
+   "main": "83aa882ec1432ade",
+   "main_overlays_off": "c28b7b8140ad1f90",
+   "head": "c28b7b8140ad1f90",
+   "head_valve_closed": "83aa882ec1432ade"
+  },
+  {
+   "id": "v6-39_12-night",
+   "main": "29d25ee641e573e1",
+   "main_overlays_off": "e43230e5a56dc955",
+   "head": "e43230e5a56dc955",
+   "head_valve_closed": "29d25ee641e573e1"
+  },
+  {
+   "id": "v6-39_12-snow",
+   "main": "6ff31f0742088e08",
+   "main_overlays_off": "cb5d4cd76ab3563a",
+   "head": "cb5d4cd76ab3563a",
+   "head_valve_closed": "6ff31f0742088e08"
+  },
+  {
+   "id": "v6-48_20-day",
+   "main": "b54441910108bb67",
+   "main_overlays_off": "4def6627d909688e",
+   "head": "4def6627d909688e",
+   "head_valve_closed": "b54441910108bb67"
+  },
+  {
+   "id": "v6-48_20-night",
+   "main": "43079e7394c22f90",
+   "main_overlays_off": "0d9ed6644e67b226",
+   "head": "0d9ed6644e67b226",
+   "head_valve_closed": "43079e7394c22f90"
+  },
+  {
+   "id": "v6-48_20-snow",
+   "main": "2bf17e261e7b4bba",
+   "main_overlays_off": "b5fcf00a24f79324",
+   "head": "b5fcf00a24f79324",
+   "head_valve_closed": "2bf17e261e7b4bba"
+  },
+  {
+   "id": "v6-18_22-day",
+   "main": "8a82e447cdda67e5",
+   "main_overlays_off": "127be7c4875f31b8",
+   "head": "127be7c4875f31b8",
+   "head_valve_closed": "8a82e447cdda67e5"
+  },
+  {
+   "id": "v6-18_22-night",
+   "main": "cc5dd46c4dfd942e",
+   "main_overlays_off": "35e5a806ebc05e91",
+   "head": "35e5a806ebc05e91",
+   "head_valve_closed": "cc5dd46c4dfd942e"
+  },
+  {
+   "id": "v6-18_22-snow",
+   "main": "1c5a947635401195",
+   "main_overlays_off": "9484e58947960634",
+   "head": "9484e58947960634",
+   "head_valve_closed": "1c5a947635401195"
+  },
+  {
+   "id": "v6-42_22-day",
+   "main": "b6b6b689f7032936",
+   "main_overlays_off": "b6b6b689f7032936",
+   "head": "b6b6b689f7032936",
+   "head_valve_closed": "b6b6b689f7032936"
+  },
+  {
+   "id": "v6-42_22-night",
+   "main": "a8434eae8ae4514f",
+   "main_overlays_off": "7574dbb05e69ad02",
+   "head": "7574dbb05e69ad02",
+   "head_valve_closed": "a8434eae8ae4514f"
+  },
+  {
+   "id": "v6-42_22-snow",
+   "main": "a4f48c7262f11a5d",
+   "main_overlays_off": "a4f48c7262f11a5d",
+   "head": "a4f48c7262f11a5d",
+   "head_valve_closed": "a4f48c7262f11a5d"
+  },
+  {
+   "id": "v7-24_12-day",
+   "main": "bc5a50abc1db1601",
+   "main_overlays_off": "a6a40e27641604f7",
+   "head": "a6a40e27641604f7",
+   "head_valve_closed": "bc5a50abc1db1601"
+  },
+  {
+   "id": "v7-24_12-night",
+   "main": "a92443e041680fb5",
+   "main_overlays_off": "40d3d8911a051e44",
+   "head": "40d3d8911a051e44",
+   "head_valve_closed": "a92443e041680fb5"
+  },
+  {
+   "id": "v7-24_12-snow",
+   "main": "8145596ca11f7c62",
+   "main_overlays_off": "4478a8bf23c8cdd5",
+   "head": "4478a8bf23c8cdd5",
+   "head_valve_closed": "8145596ca11f7c62"
+  },
+  {
+   "id": "v7-48_18-day",
+   "main": "d060b02e507bac41",
+   "main_overlays_off": "a1eaf389006d876f",
+   "head": "a1eaf389006d876f",
+   "head_valve_closed": "d060b02e507bac41"
+  },
+  {
+   "id": "v7-48_18-night",
+   "main": "adf73a276c2cdac7",
+   "main_overlays_off": "a95bbd389f0fe78a",
+   "head": "a95bbd389f0fe78a",
+   "head_valve_closed": "adf73a276c2cdac7"
+  },
+  {
+   "id": "v7-48_18-snow",
+   "main": "c2f058abce3e8088",
+   "main_overlays_off": "09109ab30bdbc584",
+   "head": "09109ab30bdbc584",
+   "head_valve_closed": "c2f058abce3e8088"
+  },
+  {
+   "id": "v7-57_24-day",
+   "main": "2eec5d435cf3da96",
+   "main_overlays_off": "94091c4f52f84c7d",
+   "head": "94091c4f52f84c7d",
+   "head_valve_closed": "2eec5d435cf3da96"
+  },
+  {
+   "id": "v7-57_24-night",
+   "main": "15f9429947e100c5",
+   "main_overlays_off": "c0c22edc783db62f",
+   "head": "c0c22edc783db62f",
+   "head_valve_closed": "15f9429947e100c5"
+  },
+  {
+   "id": "v7-57_24-snow",
+   "main": "924107455d1386ed",
+   "main_overlays_off": "f31f4e2dd957b56b",
+   "head": "f31f4e2dd957b56b",
+   "head_valve_closed": "924107455d1386ed"
+  },
+  {
+   "id": "v7-39_26-day",
+   "main": "53e78d774408af0d",
+   "main_overlays_off": "b35ba43862c7d848",
+   "head": "b35ba43862c7d848",
+   "head_valve_closed": "53e78d774408af0d"
+  },
+  {
+   "id": "v7-39_26-night",
+   "main": "fa1dd2684d43c89b",
+   "main_overlays_off": "9a67011c3541d68d",
+   "head": "9a67011c3541d68d",
+   "head_valve_closed": "fa1dd2684d43c89b"
+  },
+  {
+   "id": "v7-39_26-snow",
+   "main": "ef9e16c9d7c68d14",
+   "main_overlays_off": "ae3664d810dda875",
+   "head": "ae3664d810dda875",
+   "head_valve_closed": "ef9e16c9d7c68d14"
+  },
+  {
+   "id": "v8-51_12-day",
+   "main": "adf1dfb6aaa46be7",
+   "main_overlays_off": "5d2a38487b0eb3fc",
+   "head": "5d2a38487b0eb3fc",
+   "head_valve_closed": "adf1dfb6aaa46be7"
+  },
+  {
+   "id": "v8-51_12-night",
+   "main": "736ce9586ff3fcb0",
+   "main_overlays_off": "1a031918abe970ab",
+   "head": "1a031918abe970ab",
+   "head_valve_closed": "736ce9586ff3fcb0"
+  },
+  {
+   "id": "v8-51_12-snow",
+   "main": "41eb4a3c3ac38727",
+   "main_overlays_off": "dc79b407b44e2558",
+   "head": "dc79b407b44e2558",
+   "head_valve_closed": "41eb4a3c3ac38727"
+  },
+  {
+   "id": "v8-24_14-day",
+   "main": "69bd9055f68ecfbf",
+   "main_overlays_off": "be4cfb896437b62f",
+   "head": "be4cfb896437b62f",
+   "head_valve_closed": "69bd9055f68ecfbf"
+  },
+  {
+   "id": "v8-24_14-night",
+   "main": "372bd134f36b6329",
+   "main_overlays_off": "0fdacc79742419d0",
+   "head": "0fdacc79742419d0",
+   "head_valve_closed": "372bd134f36b6329"
+  },
+  {
+   "id": "v8-24_14-snow",
+   "main": "528c6b768d05a71d",
+   "main_overlays_off": "453e45c6e0e6eb7f",
+   "head": "453e45c6e0e6eb7f",
+   "head_valve_closed": "528c6b768d05a71d"
+  },
+  {
+   "id": "v8-36_18-day",
+   "main": "94b7c743cf6aae3f",
+   "main_overlays_off": "c8b43ae5d53ea923",
+   "head": "c8b43ae5d53ea923",
+   "head_valve_closed": "94b7c743cf6aae3f"
+  },
+  {
+   "id": "v8-36_18-night",
+   "main": "dd70cfc78a3eeee4",
+   "main_overlays_off": "db57cdd250e1fc27",
+   "head": "db57cdd250e1fc27",
+   "head_valve_closed": "dd70cfc78a3eeee4"
+  },
+  {
+   "id": "v8-36_18-snow",
+   "main": "c4f14bf4dcceab5b",
+   "main_overlays_off": "63c90c06de091bfa",
+   "head": "63c90c06de091bfa",
+   "head_valve_closed": "c4f14bf4dcceab5b"
+  },
+  {
+   "id": "v8-39_18-day",
+   "main": "80cd278f91a5d8a2",
+   "main_overlays_off": "9cb82cf191554934",
+   "head": "9cb82cf191554934",
+   "head_valve_closed": "80cd278f91a5d8a2"
+  },
+  {
+   "id": "v8-39_18-night",
+   "main": "1459f88affad0dd5",
+   "main_overlays_off": "904afe1c3feaae4d",
+   "head": "904afe1c3feaae4d",
+   "head_valve_closed": "1459f88affad0dd5"
+  },
+  {
+   "id": "v8-39_18-snow",
+   "main": "3b43366fd200ceec",
+   "main_overlays_off": "42a4c2dd514a5844",
+   "head": "42a4c2dd514a5844",
+   "head_valve_closed": "3b43366fd200ceec"
+  },
+  {
+   "id": "v9-27_18-day",
+   "main": "c4c55e75bf61d3bf",
+   "main_overlays_off": "cb749a2510c2ddeb",
+   "head": "cb749a2510c2ddeb",
+   "head_valve_closed": "c4c55e75bf61d3bf"
+  },
+  {
+   "id": "v9-27_18-night",
+   "main": "706a4fc96390badf",
+   "main_overlays_off": "4165e2efbb72635c",
+   "head": "4165e2efbb72635c",
+   "head_valve_closed": "706a4fc96390badf"
+  },
+  {
+   "id": "v9-27_18-snow",
+   "main": "6b476c87b20593c0",
+   "main_overlays_off": "7c9716c3a718c5b9",
+   "head": "7c9716c3a718c5b9",
+   "head_valve_closed": "6b476c87b20593c0"
+  },
+  {
+   "id": "v9-36_20-day",
+   "main": "c7616cba731451bb",
+   "main_overlays_off": "fea262e2662d9da4",
+   "head": "fea262e2662d9da4",
+   "head_valve_closed": "c7616cba731451bb"
+  },
+  {
+   "id": "v9-36_20-night",
+   "main": "ce55ca5830693442",
+   "main_overlays_off": "adfd6c0c0db86728",
+   "head": "adfd6c0c0db86728",
+   "head_valve_closed": "ce55ca5830693442"
+  },
+  {
+   "id": "v9-36_20-snow",
+   "main": "29abb4c68423d906",
+   "main_overlays_off": "916dbf655e898dfd",
+   "head": "916dbf655e898dfd",
+   "head_valve_closed": "29abb4c68423d906"
+  },
+  {
+   "id": "v9-54_20-day",
+   "main": "a0c40330d8d8651c",
+   "main_overlays_off": "3451b24bfc5ddc13",
+   "head": "3451b24bfc5ddc13",
+   "head_valve_closed": "a0c40330d8d8651c"
+  },
+  {
+   "id": "v9-54_20-night",
+   "main": "5420dc0dbb6dc58f",
+   "main_overlays_off": "df4d6afc627f2e88",
+   "head": "df4d6afc627f2e88",
+   "head_valve_closed": "5420dc0dbb6dc58f"
+  },
+  {
+   "id": "v9-54_20-snow",
+   "main": "5b87e29a298b5844",
+   "main_overlays_off": "961487450e49bc23",
+   "head": "961487450e49bc23",
+   "head_valve_closed": "5b87e29a298b5844"
+  },
+  {
+   "id": "v9-45_22-day",
+   "main": "a2c20c77df441b17",
+   "main_overlays_off": "c2b2fc961a80dfc3",
+   "head": "c2b2fc961a80dfc3",
+   "head_valve_closed": "a2c20c77df441b17"
+  },
+  {
+   "id": "v9-45_22-night",
+   "main": "e4446c10bc544fce",
+   "main_overlays_off": "6e9010b59f8df15f",
+   "head": "6e9010b59f8df15f",
+   "head_valve_closed": "e4446c10bc544fce"
+  },
+  {
+   "id": "v9-45_22-snow",
+   "main": "4dea8fe2895cb67d",
+   "main_overlays_off": "5d04d21463dd1ada",
+   "head": "5d04d21463dd1ada",
+   "head_valve_closed": "4dea8fe2895cb67d"
+  }
+ ]
+}
