@@ -3439,7 +3439,7 @@ function lotKey591(k){if(t634On()&&REMAIN634.has(k))return '_t634_s'+season();if
 function lotV591(x,y,b){if(t634On()&&b&&REMAIN634.has(b.k))return v634(b.k,x,y,b);if(b&&LOT603.has(b.k)&&t603On())return v603(b.k,x,y,b);if(b&&LOT602.has(b.k)&&t602On())return v602(b.k,x,y);if(b&&LOT601.has(b.k)&&t601On())return v601(b.k,x,y,b);return b&&b.v===0&&vark590().has(b.k)&&t591On()&&portedLot591(b.k)?vdraw590({x,y},b):(b?b.v:0);} // 放置寫死 v:0 的園區，繪製期依格雜湊選款（同 T590）；繪製與縮略圖預算共用
 function bakeLot574(k,v,stage,winter){
   /* T658：五座英式公共建築（k7／k12 3×3、k11／k14／k15 2×2）走園區烘焙入口，遠景與快取照原管線。 */
-  if(t658On()){const i658=CIVIC658.findIndex(c=>c.k===k);if(i658>=0)return bake658(i658,!!winter,season(),CIVIC658[i658].n);}
+  if(t658On()&&!window.__noT591){const i658=CIVIC658.findIndex(c=>c.k===k);if(i658>=0)return bake658(i658,!!winter,season(),CIVIC658[i658].n);} // T658：關掉 T591 貼圖時一併退回原配方（T580 驗的是配方）
   if(t634On()&&REMAIN634.has(k)){const s634=bake634(k,v,LOT_PLAN574[k][1],1,1,stage,winter);if(s634){lotHookCache574.set(k+'_'+v+lotKey591(k),{ax:s634.ax,ay:s634.ay,hooks:s634.lotMeta574.hooks});return s634;}} // T634：保持原配方作逐位回退
   if(LOT603.has(k)&&t603On()){const r603=bakeArt603(k,v,stage,winter);if(r603)return r603;} // T603：本批原創園區；獨立快取與回退
   if(LOT602.has(k)&&t602On()){const r602=bakeArt602(k,v,stage,winter);if(r602)return r602;} // T602：本批滿版新圖，原配方為回退路徑
@@ -12788,7 +12788,6 @@ function reflectSprite(bd,x,y){ // T600：x、y＝這棟的格子（預覽新圖
   if(t670On()){const p670=spr670(bd,x,y,inWinter()&&rainDays>0);if(p670)return p670;} // T670：倒影選同一款與同一季節雪態
   if(t671On()){const p671=spr671(bd,x,y,inWinter()&&rainDays>0);if(p671)return p671;} // T671：倒影與住宅本體選同款
   if(t675On()){const p675=spr675(bd,x,y,inWinter()&&rainDays>0);if(p675)return p675;} // T675：同款工坊倒影
-  if(t658On()){const p658=spr658(bd,x,y,inWinter()&&rainDays>0);if(p658)return p658;} // T658：倒影與公共建築本體選同一款
   if(t634On()){const p634=spr634(bd,x,y,inWinter()&&rainDays>0);if(p634)return p634;} // T634：倒影同本體、同錨點
   if(bd.k===4){if(t601On()&&SPR.art601)return one601(4,x,y,bd,inWinter(),season()); // T601：倒影用同一款新公園（同季節色）
     const sea2=season();return(inWinter()?SPR.parkW:sea2===1?(SPR.parkS||SPR.park):sea2===2?(SPR.parkA||SPR.park):SPR.park)[bd.v];} // T204：倒影用公園也套季節色
@@ -19532,14 +19531,13 @@ function draw(dt){
     else s=SPR.bld[bd.k+'_'+bd.lv+'_'+bd.v]||SPR.bld[bd.k+'_'+bd.lv+'_0']||SPR.bld[bd.k+'_1_'+bd.v]||SPR.bld[bd.k+'_1_0']; // 變體鍵兜底：舊檔 v 無對應 sprite 時退回 _0（FIX-D）；T239：服務升級 lv>1 無對應圖時退回 lv1（升級不改外觀、僅疊等級星）
     if((bd.k===1||bd.k===2||bd.k===3)&&!(bd.sz>=2)&&!bd.lot574&&t596On()){const p596=spr596(bd,true,o.x,o.y);if(p596)s=p596;} // T596：預覽開關打開時單格住商工畫實驗線新圖（照實驗線預設，不看財富、密度）；T600：款式照座標挑（v600）
     if(!bd.lot574&&t634On()){const p634=spr634(bd,o.x,o.y,win&&snowLvl>0,cropStage574);if(p634)s=p634;} // T634：舊檔與住商工只換視覺，不改足跡
-    if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574); // T591：園區新圖依格雜湊選款
+    if(bd.lot574)s=lotSprite574(bd.k,lotV591(o.x,o.y,bd),cropStage574,win&&snowLvl>0,lotFar574); /* T658：五座英式公共建築由 bakeLot574 入口出圖，不在繪圖端另接 */ // T591：園區新圖依格雜湊選款
     if(t635On()){const p635=spr635(bd,win&&snowLvl>0);if(p635)s=p635;} // T635：三種消防外觀候選，只讀原足跡；預设關閉、原批准選圖鏈保留
     if(t638On()){const p638=spr638(bd,win&&snowLvl>0,o.x,o.y);if(p638)s=p638;} // T638：消防局 v1／v2 依根格雜湊選款，v0 回 null 保留 T635 原圖；?noT638=1 退回
     if(win&&snowLvl>0&&s&&s.win563)s=s.win563; // T563：烘焙草坪冬側版（比照 k4 季節分派；一行、兜底自動繼承；k9 刻意除外見卡面）
     if(t670On()){const p670=spr670(bd,o.x,o.y,win&&snowLvl>0);if(p670)s=p670;} // T670：新增十款低密商業，未選中保留原圖
     if(t671On()){const p671=spr671(bd,o.x,o.y,win&&snowLvl>0);if(p671)s=p671;} // T671：十款住宅，未選中保留舊款
     if(t675On()){const p675=spr675(bd,o.x,o.y,win&&snowLvl>0);if(p675)s=p675;} // T675：十款工坊，未選中保留舊款
-    if(t658On()){const p658=spr658(bd,o.x,o.y,win&&snowLvl>0);if(p658)s=p658;} // T658：五座英式公共建築（k7／k11 v0／k12／k14／k15），未選中保留原圖
     /* T364a sc sprite view：新波素材以 2× 畫布保存細節，僅在世界繪製時縮放。
        無 sc 的既有素材直接保留原物件／原 w,h,ax,ay，下面所有舊算式逐位元不變；
        有 sc 才建立一次快取檢視，將邏輯尺寸與錨點同步縮放，並保留原圖尺寸給施工裁切與遮罩快取。 */
@@ -52616,8 +52614,8 @@ function bake658(i,winter=false,sea=0,n=1){
   if(y0>=H)y0=0;
   let ic=c,lc=nc,nh=H,ayOut=AY;
   if(y0>0){const [c2,g2]=cv(W,H-y0),[n2,ng2]=cv(W,H-y0);
-    g2.drawImage(c,0,y0,W,H-y0,0,0,W,H-y0);ng2.drawImage(nc,0,y0,W,H-y0,0,0,W,H-y0);
-    ic=c2;lc=n2;nh=H-y0;ayOut=AY-y0;}
+    if(typeof g2.drawImage==='function'){g2.drawImage(c,0,y0,W,H-y0,0,0,W,H-y0);ng2.drawImage(nc,0,y0,W,H-y0,0,0,W,H-y0);
+      ic=c2;lc=n2;nh=H-y0;ayOut=AY-y0;}}
   const HKF=Object.fromEntries(Object.entries(HK).map(([kk,vv])=>[kk,[Math.max(0,Math.min(W-1,Math.round(vv[0]))),Math.max(0,Math.min(nh-1,Math.round(vv[1]-y0)))]]) );
   return {img:ic,night:lc,w:W,h:nh,ax:AX,ay:ayOut,__t590:1,__t658:1,smoke:[],
     lotMeta574:{sz:n,kind:i,variant:0,stage:2,winter,ground:[AX,AY-32*n,n*32],order574:ORD574,feet:FEET,hooks:HKF,cycles574:0,t591:false}};
