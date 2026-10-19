@@ -40,4 +40,29 @@ GV.bake(k, v=0, winter=false, season=null) → {
 
 ## 施工證據
 
-（施工中補。）
+**做了什麼**
+
+`index.html` 的 `GV` 物件新增一支 `bake(k, v=0, winter=false, season=null)`（放在 `artAtlas646` 之前），內容只有二十行：
+
+- `LOT_PLAN574[k]` 有配方 → `lotSprite574(k, v, 2, winter, false)`（這條就是畫面在走的路：T591 貼圖、T634／T601 各批、之後的新圖都在裡面）；
+- 否則退回 `SPR.policeVar`／`SPR.hospitalVar`（k11／k12）或 `SPR.bld['k_1_v']`／`'k_1_0'`；
+- `season` 給了就暫改 `day`（`[1,101,201,301][0..3]`）、`finally` 還原；
+- 回 `{k,v,winter,season,src,w,h,ax,ay,img,night}`，圖是 PNG dataURL；找不到圖回 `null`，例外回 `{error}`。
+
+**實際跑過的（不是推論）**
+
+- `node test_fixde.js`：**12768 PASS / 0 FAIL**（含 T371b 的 ARCH 版本釘）。
+- 樣張實烘（走插件 `town_bake`，起 headless Chrome 呼叫這支鉤子）：`k=7`、`v=0/1/2`、`season=0/3` 共 6 張，全部 `src="lot"`、`208×240`、`ax=104`、`ay=232`；拼成 1288×990 接觸表，三種配色與春天／冬天兩列都正確顯示出 T591 貼圖的學校外觀。
+- 版本 11.236 → 11.237（`tools/bump.py`）；`docs/ARCH.md` 版本行與 `arch_map.py --fix` 已同步。
+
+**還沒跑的（不寫「通過」）**
+
+- CI 的 frame／fp／browser 各道與 Codex 審查：交 PR。
+- 「同參數連呼兩次逐位相同、`GV.stats()` 不變」目前是設計上成立（純讀、不呼叫 `R()`、不改狀態），但**沒有寫成斷言**；若要釘進守衛，屬後續卡。
+- 四視角：這支鉤子只吃季節，視角仍由引擎在繪製時決定；要四視角得另開參數（後續卡）。
+
+**已知限制**
+
+- 需要該 checkout 的 `index.html` 已有這支鉤子；在 T660 合併前，插件要指到 `C:\dev\town-660` 這種工作樹。
+- dataURL 一次回一張圖，多張由呼叫端拼；沒有做磁碟快取（每次都是新烘焙，`lotSprite574` 自己的快取仍在）。
+
