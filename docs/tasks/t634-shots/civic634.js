@@ -300,6 +300,8 @@ const CIVIC634={
     else{C.g(.08,.08,.84,.82,'#b49e7c');for(let i=0;i<9;i++)L([.1,.1+i*.09,0],[.9,.1+i*.09,0],'#8e795f');T.hooks.wheel=wheel(.5,.51,Math.max(21,n*14),H(32,5),H(43,6),16,'#a9a883');C.canopy(.16,.81,.68,.1,10,'#815c54');}
     C.fence(.13,.84,.74,.02);C.lamp(.89,.85,15);
     civicDetail634(T);
+  
+    if(t663On()){C.g(.10,.80,.14,.08,'#b7c3bd');C.L([.26,.84],[.44,.84],'#c9c2b0',2);C.L([.26,.88],[.44,.88],'#c9c2b0',2);}
   }},
   77:{name:'英式歷史水塔',draw(T){
     const C=civicKit634(T),{V,stone,brick,iron,B,L}=C;C.lawn();C.path(.31,.37,.4,.57);
@@ -374,6 +376,8 @@ const CIVIC634={
     else{jetty(.09,.08,.82,.14);jetty(.45,.22,.07,.7);jetty(.13,.53,.73,.06);home(.55,.08,.32,.14,H(15,2),{roof:'gable',floors:1});for(const q of [[.25,.34],[.72,.34],[.25,.76],[.72,.75]])yacht(q[0],q[1]);C.canopy(.08,.08,.25,.13,15,'#586f67');}
     C.sign(.48,.2,9,'YACHT CLUB');C.lamp(.09,.89,18);C.lamp(.91,.13,18);
     civicDetail634(T);
+  
+    if(t663On()){for(const q of[[.16,.82],[.32,.86],[.48,.82]])C.L([q[0],q[1],0],[q[0],q[1],8],'#8d8a7f',2);C.g(.14,.76,.36,.02,'#8f948c');}
   }},
   93:{name:'英式溜冰場',draw(T){
     const C=civicKit634(T),{V,H,home,B,stone,L}=C;C.path(0,0,1,1);const ice=(a,b,c,d)=>{C.g(a,b,c,d,'#c8dfe0');C.outline([C.p(a,b),C.p(a+c,b),C.p(a+c,b+d),C.p(a,b+d)],'#f1eee1',2);L([a+c/2,b,.4],[a+c/2,b+d,.4],'#b35a59');for(const x of [a+c*.22,a+c*.78])C.outline(C.ring(x,b+d/2,c*.11,d*.12,.5,'#00000000'),'#7195a8');};
@@ -382,6 +386,8 @@ const CIVIC634={
     else{ice(.22,.22,.54,.58);B(.07,.22,.11,.56,9,C.brick);B(.81,.22,.11,.56,9,C.brick);for(let j=0;j<5;j++){L([.08,.27+j*.095,10],[.18,.27+j*.095,10],'#c9b395',2);L([.81,.27+j*.095,10],[.92,.27+j*.095,10],'#c9b395',2);}for(const a of [.24,.74])C.arch(a,.4,.07,.17,7,stone);home(.26,.05,.48,.11,12,{roof:'gable',floors:1,chimney:false});}
     C.sign(.49,.945,8,'ICE RINK');C.lamp(.07,.86,H(23,2));C.lamp(.92,.86,H(23,2));
     civicDetail634(T);
+  
+    if(t663On()){C.L([.12,.86],[.44,.86],'#c9c2b0',2);C.g(.12,.80,.10,.05,'#b7c3bd');}
   }},
   94:{name:'英式滑板公園',draw(T){
     const C=civicKit634(T),{V,p,f,L,stone}=C;C.lawn();C.path(.07,.08,.86,.82);

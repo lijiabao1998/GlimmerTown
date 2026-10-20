@@ -279,6 +279,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.1,.12,.69,.24,25,'saw');for(const q of[[.27,.64],[.59,.64]]){I.tank(...q,.115,31,'#b59869');const p=I.P(...q,31),r=T.n*3.8;I.F([[p[0]-r,p[1]],[p[0],p[1]-20],[p[0]+r,p[1]]],I.snow('#57636a'));I.L([p[0],p[1]-20],[p[0]+6,p[1]-20],'#c0c9bd',2);}I.stack(.84,.25,56,.029,true);}
     else{I.shed(.09,.1,.31,.48,46,'gable',true);I.shed(.49,.11,.35,.24,29,'gable');for(let j=0;j<3;j++)I.tank(.51+j*.15,.63,.057,27,'#c4c8b9');I.pipe([[.35,.41,25],[.68,.41,25],[.68,.6,25]],'#b28a53');I.stack(.23,.18,71,.027);}
     for(let j=0;j<3;j++)I.tank(.12+j*.095,.75,.029,7,'#8e7553');I.road();I.fence();I.sign(.26,.62,29,'BREWERY');
+  
+    if(t663On()){for(let i=0;i<3;i++)I.tank(.14+i*.10,.78,.045,20,'#b9c3bb');I.pipe([[.14,.84,3],[.34,.84,3]],'#8a938c',2);}
   }},
   109:{name:'英式科技園',draw(T){
     const I=industryKit634(T),v=T.v%3;

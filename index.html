@@ -802,7 +802,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.239'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.240'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -30371,6 +30371,8 @@ const CIVIC634={
     else{C.g(.08,.08,.84,.82,'#b49e7c');for(let i=0;i<9;i++)L([.1,.1+i*.09,0],[.9,.1+i*.09,0],'#8e795f');T.hooks.wheel=wheel(.5,.51,Math.max(21,n*14),H(32,5),H(43,6),16,'#a9a883');C.canopy(.16,.81,.68,.1,10,'#815c54');}
     C.fence(.13,.84,.74,.02);C.lamp(.89,.85,15);
     civicDetail634(T);
+  
+    if(t663On()){C.g(.10,.80,.14,.08,'#b7c3bd');C.L([.26,.84],[.44,.84],'#c9c2b0',2);C.L([.26,.88],[.44,.88],'#c9c2b0',2);}
   }},
   77:{name:'英式歷史水塔',draw(T){
     const C=civicKit634(T),{V,stone,brick,iron,B,L}=C;C.lawn();C.path(.31,.37,.4,.57);
@@ -30445,6 +30447,8 @@ const CIVIC634={
     else{jetty(.09,.08,.82,.14);jetty(.45,.22,.07,.7);jetty(.13,.53,.73,.06);home(.55,.08,.32,.14,H(15,2),{roof:'gable',floors:1});for(const q of [[.25,.34],[.72,.34],[.25,.76],[.72,.75]])yacht(q[0],q[1]);C.canopy(.08,.08,.25,.13,15,'#586f67');}
     C.sign(.48,.2,9,'YACHT CLUB');C.lamp(.09,.89,18);C.lamp(.91,.13,18);
     civicDetail634(T);
+  
+    if(t663On()){for(const q of[[.16,.82],[.32,.86],[.48,.82]])C.L([q[0],q[1],0],[q[0],q[1],8],'#8d8a7f',2);C.g(.14,.76,.36,.02,'#8f948c');}
   }},
   93:{name:'英式溜冰場',draw(T){
     const C=civicKit634(T),{V,H,home,B,stone,L}=C;C.path(0,0,1,1);const ice=(a,b,c,d)=>{C.g(a,b,c,d,'#c8dfe0');C.outline([C.p(a,b),C.p(a+c,b),C.p(a+c,b+d),C.p(a,b+d)],'#f1eee1',2);L([a+c/2,b,.4],[a+c/2,b+d,.4],'#b35a59');for(const x of [a+c*.22,a+c*.78])C.outline(C.ring(x,b+d/2,c*.11,d*.12,.5,'#00000000'),'#7195a8');};
@@ -30453,6 +30457,8 @@ const CIVIC634={
     else{ice(.22,.22,.54,.58);B(.07,.22,.11,.56,9,C.brick);B(.81,.22,.11,.56,9,C.brick);for(let j=0;j<5;j++){L([.08,.27+j*.095,10],[.18,.27+j*.095,10],'#c9b395',2);L([.81,.27+j*.095,10],[.92,.27+j*.095,10],'#c9b395',2);}for(const a of [.24,.74])C.arch(a,.4,.07,.17,7,stone);home(.26,.05,.48,.11,12,{roof:'gable',floors:1,chimney:false});}
     C.sign(.49,.945,8,'ICE RINK');C.lamp(.07,.86,H(23,2));C.lamp(.92,.86,H(23,2));
     civicDetail634(T);
+  
+    if(t663On()){C.L([.12,.86],[.44,.86],'#c9c2b0',2);C.g(.12,.80,.10,.05,'#b7c3bd');}
   }},
   94:{name:'英式滑板公園',draw(T){
     const C=civicKit634(T),{V,p,f,L,stone}=C;C.lawn();C.path(.07,.08,.86,.82);
@@ -30862,6 +30868,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.1,.12,.69,.24,25,'saw');for(const q of[[.27,.64],[.59,.64]]){I.tank(...q,.115,31,'#b59869');const p=I.P(...q,31),r=T.n*3.8;I.F([[p[0]-r,p[1]],[p[0],p[1]-20],[p[0]+r,p[1]]],I.snow('#57636a'));I.L([p[0],p[1]-20],[p[0]+6,p[1]-20],'#c0c9bd',2);}I.stack(.84,.25,56,.029,true);}
     else{I.shed(.09,.1,.31,.48,46,'gable',true);I.shed(.49,.11,.35,.24,29,'gable');for(let j=0;j<3;j++)I.tank(.51+j*.15,.63,.057,27,'#c4c8b9');I.pipe([[.35,.41,25],[.68,.41,25],[.68,.6,25]],'#b28a53');I.stack(.23,.18,71,.027);}
     for(let j=0;j<3;j++)I.tank(.12+j*.095,.75,.029,7,'#8e7553');I.road();I.fence();I.sign(.26,.62,29,'BREWERY');
+  
+    if(t663On()){for(let i=0;i<3;i++)I.tank(.14+i*.10,.78,.045,20,'#b9c3bb');I.pipe([[.14,.84,3],[.34,.84,3]],'#8a938c',2);}
   }},
   109:{name:'英式科技園',draw(T){
     const I=industryKit634(T),v=T.v%3;
