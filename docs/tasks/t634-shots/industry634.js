@@ -128,6 +128,8 @@ const INDUSTRY634={
     else if(v===1){shed(.08,.09,.21,.26,17,'gable',true);for(let j=0;j<3;j++)panel(.37,.1+j*.25,.52-j*.07,.17,5+j*4);box(.13,.55,.13,.13,11,'#91a3a0');}
     else{for(let k=0;k<2;k++)panel(.1+k*.42,.15,.31,.46,22);I.truck(.15,.55);I.truck(.58,.55,'#8c6250',false);shed(.13,.76,.24,.12,12,'flat');box(.6,.79,.21,.09,8,'#889894');}
     I.fence();I.sign(.26,.91,9,'SOLAR');
+  
+    if(t661On()){I.box(.10,.84,.16,.10,9,'#9aa39b',0);I.road(.04,.92,.9,.04);I.L(I.P(.10,.94,3),I.P(.90,.94,3),'#8d968f',1);}
   }},
   26:{name:'英式風力站',draw(T){
     const I=industryKit634(T),{P,L,F,tank,box}=I,v=T.v%3;
@@ -146,6 +148,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.07,.08,.2,.59,26,'gable',true);for(let j=0;j<3;j++){I.pond(.35,.1+j*.23,.55,.17);I.L(I.P(.41,.1+j*.23,6),I.P(.41,.27+j*.23,6),'#dad1ae',2);}I.pipe([[.31,.14,5],[.31,.82,5],[.85,.82,5]],'#839795');}
     else{I.dome(.27,.25,.16,25,'#899a91');I.shed(.57,.1,.31,.2,20,'saw');for(let j=0;j<2;j++){I.pond(.13+j*.41,.52,.31,.26);for(let k=0;k<4;k++){const p=I.P(.17+j*.41+k*.062,.69,5);I.L(p,[p[0],p[1]-7],'#81965e');}}I.pipe([[.27,.34,8],[.27,.45,8],[.72,.45,8]]);}
     I.road();I.fence();I.sign(.29,.91,8,'WATER');
+  
+    if(t661On()){for(const q of[[.16,.72],[.52,.72]])I.tank(q[0],q[1],.10,10,'#aeb9ae');I.box(.10,.86,.40,.08,7,'#9aa39b',0);I.pipe([[.30,.80,6],[.30,.88,6],[.62,.88,4]],'#8fa09c',3);}
   }},
   46:{name:'英式氣象站',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -168,6 +172,8 @@ const INDUSTRY634={
     else if(v===1){for(let j=0;j<4;j++)I.ground(.11+j*.06,.1+j*.065,.7-j*.12,.56-j*.115,['#aa9776','#8c7c62','#736754','#494f49'][j]);I.crane(.7,.66,.32,39);I.shed(.11,.74,.3,.16,18,'gable',true);I.pipe([[.28,.35,4],[.28,.6,15],[.65,.79,15]],'#ad986f',6);}
     else{for(const u of[.27,.69]){I.lattice(u,.29,61,.12,'#607276');const p=I.P(u,.29,61);I.ell(p[0],p[1],6+T.n,6+T.n,'#3e5058');I.L([p[0]-5,p[1]],[p[0]+5,p[1]],'#b4a478');}I.shed(.14,.51,.7,.22,25,'saw');I.rail(.07,.84,.84);}
     I.ground(.7,.78,.17,.1,'#5c6158');I.fence();I.sign(.39,.94,8,'COLLIERY');
+  
+    if(t661On()){{const b0=I.P(.10,.84),b1=I.P(.34,.88),b2=I.P(.34,.98),b3=I.P(.10,.94),ap=I.P(.22,.91,14);I.F([b0,b1,ap],'#8d7c61');I.F([b1,b2,ap],'#77685a');I.F([b2,b3,ap],'#6d6053');I.F([b3,b0,ap],'#83745f');}I.box(.10,.62,.14,.10,9,'#9aa39b',0);}
   }},
   51:{name:'英式太空研究中心',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -184,12 +190,40 @@ const INDUSTRY634={
     else{I.shed(.1,.1,.69,.24,25,'saw');I.shed(.1,.39,.46,.26,26,'saw');I.tank(.76,.6,.12,35,'#abbab2');I.box(.6,.76,.22,.09,10,'#a4b8b6');I.stack(.76,.6,47,.022,true);}
     const dockV=v===0?.79:v===1?.68:.65;I.dock(v===1?.07:.1,dockV,v===1?.34:v===0?.32:.46,v===0?.04:.065);I.door(v===1?.16:.22,dockV,.15,12);I.road();I.truck(.53,.86);I.fence();I.sign(.29,.7,24,'FOODS');
   }},
-  58:{name:'英式核電廠',draw(T){
+  58:{name:'英式核電廠',draw661base(T){
     const I=industryKit634(T),v=T.v%3;
     const cooling=(u,w,r,h)=>{const b=I.P(u,w),rx=r*T.n*32;for(let y=0;y<h;y++){const p=y/h,rr=rx*(.5+.48*Math.pow(Math.abs(p-.52)/.52,1.45));I.px(b[0]-rr,b[1]-h+y,'#aab9b5',rr*2,1);I.px(b[0]-rr,b[1]-h+y,'#ccd3c7',rr*.75,1);}I.ell(b[0],b[1],rx*.94,rx*.16,'#7b8f8e');for(const q of[-.65,-.2,.25,.68])I.L([b[0]+rx*q,b[1]-3],[b[0]+rx*q,b[1]+1],'#52696e',2);I.ell(b[0],b[1]-h,rx*.97,rx*.29,I.snow('#cbd4c9'));I.ell(b[0],b[1]-h,rx*.72,rx*.2,'#455d65');(T.hooks.steam||(T.hooks.steam=[])).push([b[0],b[1]-h-1]);};
     if(v===0){I.dome(.24,.25,.16,35);cooling(.68,.23,.13,69);cooling(.74,.59,.13,63);I.shed(.08,.57,.4,.24,27,'gable');}
     else if(v===1){cooling(.28,.27,.18,82);I.dome(.7,.26,.15,42);I.shed(.14,.63,.69,.22,27,'saw');I.pipe([[.29,.38,11],[.29,.55,11],[.72,.55,11]]);}
     else{I.dome(.27,.23,.14,38);I.dome(.66,.23,.14,38);I.shed(.1,.54,.69,.28,30,'flat');for(let j=0;j<3;j++){I.box(.2+j*.2,.61,.12,.12,10,'#a9b8b5',31);I.fan(.26+j*.2,.67,43,.055);}I.stack(.85,.52,67,.035,true);}
+    T.hooks.smoke=[];I.fence();I.road(.06,.9,.85,.06);I.sign(.41,.94,10,'ENERGY');if(v===0)I.beacon(.68,.23,69);else if(v===1)I.beacon(.28,.27,82);else I.beacon(.85,.52,67);
+  },
+  draw(T){
+    if(!t661On())return INDUSTRY634[58].draw661base(T);
+    const I=industryKit634(T),v=T.v%3;
+    const cooling=(u,w,r,h)=>{const b=I.P(u,w),rx=r*T.n*32;for(let y=0;y<h;y++){const p=y/h,rr=rx*(.5+.48*Math.pow(Math.abs(p-.52)/.52,1.45));I.px(b[0]-rr,b[1]-h+y,'#aab9b5',rr*2,1);I.px(b[0]-rr,b[1]-h+y,'#ccd3c7',rr*.75,1);}I.ell(b[0],b[1],rx*.94,rx*.16,'#7b8f8e');for(const q of[-.65,-.2,.25,.68])I.L([b[0]+rx*q,b[1]-3],[b[0]+rx*q,b[1]+1],'#52696e',2);I.ell(b[0],b[1]-h,rx*.97,rx*.29,I.snow('#cbd4c9'));I.ell(b[0],b[1]-h,rx*.72,rx*.2,'#455d65');(T.hooks.steam||(T.hooks.steam=[])).push([b[0],b[1]-h-1]);};
+    /* T661 新增：開關場（變壓器＋鐵塔）與輔助貯槽 */
+    const pylon=(u,w,h)=>{const b=I.P(u,w);I.L([b[0]-6,b[1]],[b[0],b[1]-h],'#78857f',2);I.L([b[0]+6,b[1]],[b[0],b[1]-h],'#78857f',2);
+      for(let z=8;z<h;z+=10){const t=z/h;I.L([b[0]-6*(1-t),b[1]-z],[b[0]+6*(1-t),b[1]-z],'#8f9b95',2);}
+      I.L([b[0]-8,b[1]-h],[b[0]+8,b[1]-h],'#a9b4ad',2);I.L([b[0]-8,b[1]-h-4],[b[0]+8,b[1]-h-4],'#a9b4ad',1);};
+    const substation=(u,w,du,dw)=>{I.box(u,w,du,dw,4,'#98a39e',0);
+      for(let i=0;i<3;i++){const uu=u+.05+i*(du*.3);I.box(uu,w+.04,du*.16,dw*.2,7,'#b7c1ba',4);I.L(I.P(uu+du*.08,w+.04,11),I.P(uu+du*.08,w+.04+dw*.2,11),'#8d9892',1);}};
+    if(v===0){
+      I.dome(.24,.25,.16,35);cooling(.68,.23,.13,69);cooling(.74,.59,.13,63);I.shed(.08,.57,.4,.24,27,'gable');
+      substation(.16,.72,.22,.13);
+      I.tank(.44,.86,.055,13,'#b9c3bb');I.tank(.54,.90,.055,13,'#b9c3bb');
+      pylon(.50,.86,42);pylon(.86,.88,42);
+      I.L(I.P(.62,.86,40),I.P(.86,.88,40),'#8f9b95',1);
+      for(let i=0;i<5;i++){const uu=.44+i*.03;I.L(I.P(uu,.98),I.P(uu,.98,7),'#8d968f',1);}
+    }
+    else if(v===1){
+      cooling(.28,.27,.18,82);I.dome(.7,.26,.15,42);I.shed(.14,.63,.69,.22,27,'saw');I.pipe([[.29,.38,11],[.29,.55,11],[.72,.55,11]]);
+      substation(.74,.74,.18,.12);pylon(.56,.90,40);
+    }
+    else{
+      I.dome(.27,.23,.14,38);I.dome(.66,.23,.14,38);I.shed(.1,.54,.69,.28,30,'flat');for(let j=0;j<3;j++){I.box(.2+j*.2,.61,.12,.12,10,'#a9b8b5',31);I.fan(.26+j*.2,.67,43,.055);}I.stack(.85,.52,67,.035,true);
+      substation(.14,.74,.2,.12);pylon(.86,.86,40);
+    }
     T.hooks.smoke=[];I.fence();I.road(.06,.9,.85,.06);I.sign(.41,.94,10,'ENERGY');if(v===0)I.beacon(.68,.23,69);else if(v===1)I.beacon(.28,.27,82);else I.beacon(.85,.52,67);
   }},
   59:{name:'英式水力發電廠',draw(T){
@@ -198,6 +232,8 @@ const INDUSTRY634={
     else if(v===1){I.pond(.1,.06,.77,.3);I.box(.08,.37,.8,.14,35,'#a8ab96');for(let j=0;j<4;j++){I.box(.14+j*.19,.36,.055,.18,40,'#999e8d');I.pond(.21+j*.19,.53,.1,.31);}I.shed(.1,.78,.32,.12,18,'gable',true);}
     else{I.pond(.1,.11,.25,.7);I.pond(.65,.11,.23,.7);I.shed(.31,.26,.35,.4,35,'gable',true);for(let j=0;j<2;j++){I.pipe([[.19,.21+j*.19,7],[.48,.3+j*.19,7],[.76,.3+j*.19,7]],'#73989e',5);}I.box(.31,.14,.35,.08,12,'#b4b5a1');}
     I.fence();I.sign(.34,.92,9,'HYDRO');
+  
+    if(t661On()){I.pipe([[.60,.34,6],[.60,.66,6],[.60,.84,4]],'#8fb7bb',7);I.pipe([[.66,.34,3],[.66,.84,3]],'#7fa9ad',5);I.box(.14,.80,.16,.10,8,'#9aa39b',0);I.road(.04,.94,.9,.04);}
   }},
   62:{name:'英式焚化發電廠',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -205,6 +241,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.07,.1,.31,.58,48,'gable');I.shed(.46,.14,.38,.25,26,'saw');I.stack(.66,.52,79,.035);I.stack(.81,.62,69,.03);I.container(.48,.76,.32,.09,10,'#8a9279');}
     else{I.shed(.12,.09,.72,.24,29,'saw');I.shed(.12,.41,.39,.28,38,'flat');I.stack(.68,.49,91,.055);I.tank(.79,.7,.095,31,'#9aaba0');I.pipe([[.43,.55,25],[.65,.55,25],[.78,.68,25]]);}
     I.road();I.truck(.2,.88,'#73907b');I.fence();I.sign(.31,.62,30,'ENERGY');const work=I.P(v===1?.24:.32,v===1?.68:v===2?.69:.6,8);I.lit([work[0]-5,work[1]-4],10,5);T.hooks.work=[work[0]-5,work[1]-4,10,5];
+  
+    if(t661On()){I.box(.10,.78,.30,.12,10,'#9aa39b',0);I.tank(.86,.76,.10,18,'#b2bdb4');I.pipe([[.42,.84,10],[.86,.84,14]],'#94a09a',4);I.road(.04,.94,.9,.04);}
   }},
   64:{name:'英式倉儲物流',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -248,6 +286,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.09,.44,.59,.26,42,'saw');I.crane(.8,.6,.2,47);I.container(.17,.17,.24,.1,12,'#96745a');I.container(.54,.17,.25,.1,12,'#759293');}
     else{I.shed(.09,.45,.27,.33,32,'gable',true);I.crane(.62,.52,.39,48,true);I.container(.46,.65,.2,.11,22,'#859476');I.container(.69,.68,.2,.11,11,'#ab775d');I.container(.23,.17,.46,.09,12,'#737f8e');}
     if(v===0)I.dock(.1,.81,.31,.025);else if(v===1)I.dock(.09,.7,.59,.06);else I.dock(.09,.78,.27,.04);I.road(.06,.85,.88,.095);I.truck(.51,.88);I.sign(.23,.82,24,'FREIGHT');I.fence();
+  
+    if(t661On()){for(let i=0;i<4;i++)I.container(.10+i*.16,.62,.12,.06,4,'#6d7873');for(let i=0;i<3;i++)I.container(.14+i*.16,.70,.12,.06,7,'#7f8a84');I.L(I.P(.62,.58,10),I.P(.62,.78,10),'#8d9891',2);I.L(I.P(.74,.58,10),I.P(.74,.78,10),'#8d9891',2);I.box(.08,.82,.18,.10,8,'#9aa39b',0);}
   }},
   111:{name:'英式資源回收廠',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -285,20 +325,88 @@ const INDUSTRY634={
     else{I.shed(.09,.13,.26,.55,20,'gable');for(const q of[[.61,.29],[.63,.69]]){const p=I.tank(...q,.19,8,'#a2b6b0',true);I.L([p[0]-T.n*6,p[1]],[p[0]+T.n*6,p[1]],'#b8aa83',2);}I.pipe([[.34,.23,5],[.4,.23,5],[.4,.76,5]],'#7baca9');}
     const p=I.P(.7,.65,8);I.L([p[0]-4,p[1]],[p[0]+4,p[1]],'#cdd9ce',2);I.fence();I.sign(.38,.91,7,'FISHERY');
   }},
-  121:{name:'英式煉油廠',draw(T){
+  121:{name:'英式煉油廠',draw661base(T){
     const I=industryKit634(T),v=T.v%3;
     const column=(u,w,h,r=.043)=>{I.tank(u,w,r,h,'#a7b8b4');for(let j=12;j<h;j+=15){I.plate(u-r*.62,w-r*.62,r*1.24,r*1.24,j,'#7c908e');I.L(I.P(u+r,w,j),I.P(u+r,w,j+6),'#a7a477');if(r*T.n*32>=6){for(const q of[[u-r*.62,w+r*.62],[u+r*.62,w+r*.62],[u+r*.62,w-r*.62]])I.L(I.P(q[0],q[1],j),I.P(q[0],q[1],j+4),'#c0c4a3');I.L(I.P(u-r*.62,w+r*.62,j+4),I.P(u+r*.62,w+r*.62,j+4),'#c0c4a3');I.L(I.P(u+r*.62,w-r*.62,j+4),I.P(u+r*.62,w+r*.62,j+4),'#98ac9e');}}I.L(I.P(u+r*1.3,w,3),I.P(u+r*1.3,w,h),'#d3c9a1');};
     if(v===0){for(let j=0;j<3;j++)column(.61+j*.12,.16+j*.19,62+j*13);I.shed(.08,.12,.35,.37,26,'saw');I.tank(.22,.72,.13,23,'#c1c5b6');I.tank(.56,.75,.11,20,'#b2beb0');I.stack(.87,.72,87,.024);}
     else if(v===1){column(.24,.27,87,.075);column(.59,.23,66,.056);I.shed(.1,.61,.43,.2,26,'saw');I.tank(.73,.64,.15,30,'#bfc9bb');I.stack(.82,.2,104,.027);}
     else{I.tank(.2,.22,.12,28,'#bfc8bb');I.tank(.52,.21,.12,28,'#bfc8bb');column(.77,.39,90,.048);column(.62,.61,63,.044);I.shed(.1,.61,.34,.21,28,'gable');I.stack(.87,.72,96,.025);}
     I.pipe([[.2,.44,18],[.2,.52,18],[.78,.52,18],[.78,.72,18]],'#a6b9ae',4);I.pipe([[.18,.82,7],[.81,.82,7]],'#c0a56b',3);I.fence();I.sign(.25,.9,8,'REFINERY');const work=I.P(v===1?.3:.25,v===0?.49:.81,9);I.lit([work[0]-5,work[1]-3],10,5);T.hooks.work=[work[0]-5,work[1]-3,10,5];
+  },
+  draw(T){
+    if(!t661On())return INDUSTRY634[121].draw661base(T);
+    const I=industryKit634(T),v=T.v%3;
+    const column=(u,w,h,r=.043)=>{I.tank(u,w,r,h,'#a7b8b4');for(let j=12;j<h;j+=15){I.plate(u-r*.62,w-r*.62,r*1.24,r*1.24,j,'#7c908e');I.L(I.P(u+r,w,j),I.P(u+r,w,j+6),'#a7a477');if(r*T.n*32>=6){for(const q of[[u-r*.62,w+r*.62],[u+r*.62,w+r*.62],[u+r*.62,w-r*.62]])I.L(I.P(q[0],q[1],j),I.P(q[0],q[1],j+4),'#c0c4a3');I.L(I.P(u-r*.62,w+r*.62,j+4),I.P(u+r*.62,w+r*.62,j+4),'#c0c4a3');I.L(I.P(u+r*.62,w-r*.62,j+4),I.P(u+r*.62,w+r*.62,j+4),'#98ac9e');}}I.L(I.P(u+r*1.3,w,3),I.P(u+r*1.3,w,h),'#d3c9a1');};
+    /* T661 新增：管架（主管＋支柱）與儲油槽區（槽＋圍堤），讓輸送關係與廠區分區讀得出來 */
+    const rack=(a,b,h=9)=>{const nn=Math.max(2,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])*T.n*2));
+      for(let i=0;i<=nn;i++){if(i%2)continue;const t=i/nn,u=a[0]+(b[0]-a[0])*t,w=a[1]+(b[1]-a[1])*t;I.L(I.P(u,w),I.P(u,w,h),'#7f8b84',2);}
+      I.L(I.P(a[0],a[1],h),I.P(b[0],b[1],h),'#96a29a',2);I.L(I.P(a[0],a[1],h+3),I.P(b[0],b[1],h+3),'#b9c3ba',1);};
+    const farm=(u,w,cols,rows,r,h)=>{for(let a=0;a<cols;a++)for(let b=0;b<rows;b++){const tu=u+a*r*2.4,tw=w+b*r*2.4;I.tank(tu,tw,r,h,'#9aa996');const tp=I.P(tu,tw,h);I.ell(tp[0],tp[1],r*T.n*32*.92,r*T.n*16*.92,'#b3c0ab');I.ell(tp[0],tp[1],r*T.n*32*.55,r*T.n*16*.55,'#8b9a87');}
+      const x0=u-r*1.5,y0=w-r*1.5,x1=u+(cols-1)*r*2.4+r*1.5,y1=w+(rows-1)*r*2.4+r*1.5;
+      const wall=(a,b)=>{I.L(I.P(a[0],a[1]),I.P(b[0],b[1]),'#7b867c',3);I.L(I.P(a[0],a[1],5),I.P(b[0],b[1],5),'#95a08f',2);
+        const seg=Math.max(2,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])*T.n*2));
+        for(let i=0;i<=seg;i++){const t=i/seg,u2=a[0]+(b[0]-a[0])*t,w2=a[1]+(b[1]-a[1])*t;I.L(I.P(u2,w2),I.P(u2,w2,5),'#87928a',2);}};
+      wall([x0,y1],[x1,y1]);wall([x1,y0],[x1,y1]);wall([x0,y0],[x1,y0]);};
+    if(v===0){
+      I.shed(.08,.12,.35,.37,26,'saw');
+      for(let j=0;j<3;j++)column(.61+j*.12,.16+j*.19,62+j*13);
+      I.box(.09,.57,.16,.11,9,'#b6c0b8');
+      farm(.30,.34,2,1,.055,14);
+      rack([.26,.54],[.56,.54],7);rack([.56,.54],[.56,.80],7);rack([.56,.80],[.44,.80],7);
+      I.pipe([[.26,.54,7],[.16,.54,7]],'#b3beb2',3);
+      I.stack(.50,.52,92,.022);{const b=I.P(.50,.52),t2=I.P(.50,.52,96);I.L([b[0]-7,b[1]-30],[t2[0]-2,t2[1]+8],'#8e8578',1);I.L([b[0]+7,b[1]-30],[t2[0]+2,t2[1]+8],'#8e8578',1);I.L([b[0]-6,b[1]-1],[b[0]+6,b[1]-1],'#7b7468',2);}
+    }
+    else if(v===1){
+      column(.24,.27,87,.075);column(.59,.23,66,.056);
+      I.shed(.1,.61,.43,.2,26,'saw');
+      farm(.30,.36,2,1,.055,16);
+      I.box(.44,.20,.12,.09,7,'#b6c0b8');
+      rack([.32,.30],[.56,.30],12);rack([.56,.30],[.70,.64],12);
+      I.stack(.50,.52,104,.024);
+    }
+    else{
+      I.shed(.1,.61,.34,.21,28,'gable');
+      column(.77,.39,90,.048);column(.62,.61,63,.044);
+      I.tank(.18,.20,.10,24,'#bfc8bb');I.tank(.38,.18,.10,24,'#bfc8bb');
+      I.box(.20,.34,.14,.09,8,'#b6c0b8');
+      rack([.26,.40],[.74,.52],11);
+      I.stack(.50,.52,81,.023);
+    }
+    I.pipe([[.2,.44,18],[.2,.52,18],[.78,.52,18],[.78,.72,18]],'#a6b9ae',4);I.pipe([[.18,.82,7],[.81,.82,7]],'#c0a56b',3);I.fence();I.sign(.25,.9,8,'REFINERY');const work=I.P(v===1?.3:.25,v===0?.49:.81,9);I.lit([work[0]-5,work[1]-3],10,5);T.hooks.work=[work[0]-5,work[1]-3,10,5];
   }},
-  122:{name:'英式鋼鐵廠',draw(T){
+  122:{name:'英式鋼鐵廠',draw661base(T){
     const I=industryKit634(T),v=T.v%3;
     const furnace=(u,w,h)=>{I.tank(u,w,.09,h,'#687f81');I.tank(u,w,.055,h+17,'#859797');I.pipe([[u-.1,w,h*.55],[u-.17,w,h*.55],[u-.17,w,10]],'#938b73',4);I.box(u-.078,w-.07,.156,.14,5,'#929c90',h*.54);const p=I.P(u,w,7);I.lit([p[0]-5,p[1]-2],10,5);};
     if(v===0){I.shed(.08,.12,.44,.42,34,'saw');furnace(.73,.28,54);I.stack(.86,.53,86,.036);I.crane(.58,.73,.53,44,true);}
     else if(v===1){furnace(.3,.25,68);furnace(.69,.29,59);I.shed(.09,.62,.67,.21,31,'saw');I.stack(.84,.62,89,.035);}
     else{I.shed(.08,.1,.66,.29,39,'saw');furnace(.28,.66,45);I.crane(.69,.64,.32,69,true);I.stack(.82,.2,96,.033);I.tank(.51,.7,.074,26,'#8c9c90');}
+    I.rail(.07,.88,.83);for(let j=0;j<3;j++)I.container(.49+j*.11,.84,.07,.035,3,'#555f63');I.fence();I.sign(.24,.57,31,'STEEL');
+  },
+  draw(T){
+    if(!t661On())return INDUSTRY634[122].draw661base(T);
+    const I=industryKit634(T),v=T.v%3;
+    const furnace=(u,w,h)=>{I.tank(u,w,.09,h,'#687f81');I.tank(u,w,.055,h+17,'#859797');I.pipe([[u-.1,w,h*.55],[u-.17,w,h*.55],[u-.17,w,10]],'#938b73',4);I.box(u-.078,w-.07,.156,.14,5,'#929c90',h*.54);const p=I.P(u,w,7);I.lit([p[0]-5,p[1]-2],10,5);};
+    /* T661 新增：礦料堆、輸送帶、焦爐列 */
+    const pile=(u,w,du,dv,h)=>{const b0=I.P(u,w),b1=I.P(u+du,w),b2=I.P(u+du,w+dv),b3=I.P(u,w+dv),ap=I.P(u+du*.5,w+dv*.5,h);
+      I.F([b0,b1,ap],'#9c8869');I.F([b1,b2,ap],'#87755a');I.F([b2,b3,ap],'#7a6a52');I.F([b3,b0,ap],'#8d7c61');};
+    const coke=(u,w,rows)=>{for(let i=0;i<rows;i++){const uu=u+i*.14;I.box(uu,w,.11,.075,9,'#8d8474',0);I.L(I.P(uu+.055,w+.075,9),I.P(uu+.055,w+.075,11),'#6d6656',2);}};
+    if(v===0){
+      I.shed(.08,.12,.44,.42,34,'saw');furnace(.73,.28,54);I.stack(.86,.53,86,.036);I.crane(.58,.73,.53,44,true);
+      pile(.10,.30,.20,.12,20);coke(.10,.44,3);
+      I.pipe([[.26,.66,27],[.48,.58,27],[.70,.36,35]],'#8a938c',6);
+      for(const t of[.12,.32,.52,.72]){const u=.26+(.70-.26)*t,w=.66+(.36-.66)*t,z=27+(35-27)*t;I.L(I.P(u,w,0),I.P(u,w,z-2),'#7f8a83',2);I.L(I.P(u,w,z-6),I.P(u,w,z),'#9aa39b',1);}
+      I.L(I.P(.26,.66,31),I.P(.48,.58,31),'#a7b1a8',1);I.L(I.P(.48,.58,31),I.P(.70,.36,39),'#a7b1a8',1);
+    }
+    else if(v===1){
+      furnace(.3,.25,68);furnace(.69,.29,59);I.shed(.09,.62,.67,.21,31,'saw');I.stack(.84,.62,89,.035);
+      pile(.10,.30,.20,.12,18);coke(.10,.44,3);
+      I.pipe([[.20,.36,9],[.28,.28,30]],'#8a938c',4);
+    }
+    else{
+      I.shed(.08,.1,.66,.29,39,'saw');furnace(.28,.66,45);I.crane(.69,.64,.32,69,true);I.stack(.82,.2,96,.033);I.tank(.51,.7,.074,26,'#8c9c90');
+      pile(.10,.30,.20,.12,18);coke(.10,.44,3);
+      I.pipe([[.24,.84,9],[.26,.70,28]],'#8a938c',4);
+    }
     I.rail(.07,.88,.83);for(let j=0;j<3;j++)I.container(.49+j*.11,.84,.07,.035,3,'#555f63');I.fence();I.sign(.24,.57,31,'STEEL');
   }},
   123:{name:'英式造船廠',draw(T){
@@ -308,6 +416,8 @@ const INDUSTRY634={
     else if(v===1){I.pond(.1,.41,.8,.39);I.shed(.1,.1,.36,.23,31,'gable');I.crane(.72,.25,.36,86);hull(.23,.54,.51,.18,19);I.container(.12,.86,.3,.07,10,'#98785c');}
     else{I.pond(.35,.08,.25,.75);I.pond(.66,.13,.22,.7);I.crane(.61,.39,.56,75,true);hull(.37,.38,.19,.28,16);hull(.68,.54,.17,.2,12);I.shed(.06,.13,.22,.57,35,'saw');}
     I.fence();I.sign(.24,.88,12,'SHIPYARD');I.beacon(v===1?.72:v===0?.56:.61,v===1?.25:v===0?.44:.39,v===1?86:v===0?78:75);
+  
+    if(t661On()){I.road(.04,.93,.9,.05);I.rail(.12,.10,.76);I.rail(.12,.20,.76);for(let i=0;i<3;i++)I.box(.10+i*.10,.28,.06,.05,6,'#8b948d',0);I.L(I.P(.60,.06,2),I.P(.60,.44,2),'#79837c',2);I.L(I.P(.72,.06,2),I.P(.72,.44,2),'#79837c',2);}
   }},
   128:{name:'英式變電所',draw(T){
     const I=industryKit634(T),v=T.v%3;
