@@ -280,6 +280,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.08,.11,.28,.61,47,'flat',true);I.shed(.46,.11,.38,.25,28,'saw');I.shed(.55,.51,.29,.23,35,'flat');I.pond(.14,.79,.36,.09);}
     else{I.shed(.1,.13,.34,.28,47,'gable');I.shed(.56,.13,.28,.28,39,'gable');I.shed(.17,.59,.61,.18,26,'flat');I.box(.4,.23,.19,.1,8,'#76959a',28);I.dome(.66,.66,.05,35);}
     I.ground(.4,.47,.12,.26,'#bdb797');I.K.tree(.46*T.n,.53*T.n,.11*T.n);I.K.hedge(.08*T.n,.9*T.n,.82*T.n,.04*T.n);I.sign(.43,.92,11,'SCIENCE');I.finish();
+  
+    if(t662On()){I.pipe([[.40,.60,2],[.62,.60,2]],'#8a938c',3);I.box(.40,.66,.12,.08,8,'#9aa39b',0);}
   }},
   110:{name:'英式貨運站',draw(T){
     const I=industryKit634(T),v=T.v%3;
