@@ -30570,13 +30570,13 @@ function industryKit634(T){
   const lit=(p,w=2,h=3,warm=true)=>T.LIT(p[0],p[1],w,h,C.glass,warm?'#ffdba0':'#b9dae0');
   const beacon=(u,v,h)=>{const p=P(u,v,h);px(p[0]-1,p[1]-1,'#c36d54',3,2);if(!T.hooks.aviation||p[1]<T.hooks.aviation[1])T.hooks.aviation=p;};
   const shed=(u,v,du,dv,h=24,roof='gable',stone=false)=>{
-    const wall=stone?C.stone:C.brick,side=stone?C.stoneD:C.dark,rh=Math.min(12,5+n*1.4),frontBays=Math.max(1,Math.floor(du*n*32/15)),sideBays=Math.max(1,Math.floor(dv*n*32/16));
+    const wall=stone?C.stone:C.brick,side=stone?C.stoneD:C.dark,rh=Math.min(12,5+1.4),frontBays=Math.max(1,Math.floor(du*32/15)),sideBays=Math.max(1,Math.floor(dv*32/16));
     T.box(u*n,v*n,du*n,dv*n,h,{left:wall,right:side,top:snow(C.slateD),edge:C.trim});
     /* 廠房承重分節：石勒腳、扶壁與腰線保留大片牆面，不用散點假裝細節。 */
     for(const right of[false,true]){const at=(a,z)=>right?P(u+du,v+dv*a,z):P(u+du*a,v+dv,z),base=right?side:wall;
       F([at(0,0),at(1,0),at(1,3),at(0,3)],right?'#72766c':'#96968a');L(at(0,3),at(1,3),right?'#555c58':'#71776b');
       for(let z=7;z<h-3;z+=stone?8:5)L(at(0,z),at(1,z),T.shade(base,stone?-12:-10));
-      const bays=right?sideBays:frontBays,pw=Math.min(.035,1.5/((right?dv:du)*n*32));
+      const bays=right?sideBays:frontBays,pw=Math.min(.035,1.5/((right?dv:du)*32));
       for(let j=0;j<=bays;j++){const q=j/bays,lo=Math.max(0,q-pw),hi=Math.min(1,q+pw);F([at(lo,3),at(hi,3),at(hi,h-2),at(lo,h-2)],T.shade(base,6));L(at(hi,3),at(hi,h-2),T.shade(base,-16));}
     }
     /* Lab 的板岩大面與連續瓦列；厚簷和暗色山牆邊界取代淺色描框。 */
@@ -30584,7 +30584,7 @@ function industryKit634(T){
       F([P(u+du,v,h),P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h)],side);
       F([P(u,v,h),P(u+du,v,h),P(u+du,v+dv*.5,h+rh),P(u,v+dv*.5,h+rh)],snow(C.slateL));
       F([P(u,v+dv*.5,h+rh),P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h),P(u,v+dv,h)],snow(C.slate));
-      const rows=Math.max(3,Math.min(6,Math.round(dv*n*3)));
+      const rows=Math.max(3,Math.min(6,Math.round(dv*3)));
       for(let j=1;j<rows;j++){const q=j/rows;L(P(u,v+dv*.5*q,h+rh*q),P(u+du,v+dv*.5*q,h+rh*q),T.winter?'#cbd8d3':'#53616b');L(P(u,v+dv*(.5+.5*q),h+rh*(1-q)),P(u+du,v+dv*(.5+.5*q),h+rh*(1-q)),T.winter?'#cbd8d3':C.slateD);}
       L(P(u,v+dv*.5,h+rh),P(u+du,v+dv*.5,h+rh),snow('#7c898f'),2);
       L(P(u+du,v,h),P(u+du,v+dv*.5,h+rh),C.trim,2);L(P(u+du,v+dv*.5,h+rh),P(u+du,v+dv,h),C.trim,2);
@@ -30596,7 +30596,7 @@ function industryKit634(T){
         F([P(u,va,h),P(u+du,va,h),P(u+du,va+d*.77,h+rh),P(u,va+d*.77,h+rh)],snow(C.slate));
         for(const q of[.33,.66])L(P(u,va+d*.77*q,h+rh*q),P(u+du,va+d*.77*q,h+rh*q),T.winter?'#cbd8d3':C.slateD);
         F([P(u,va+d*.77,h+rh),P(u+du,va+d*.77,h+rh),P(u+du,va+d,h),P(u,va+d,h)],T.winter?'#c5d6d8':'#557880');
-        const bars=Math.max(2,Math.ceil(du*n*32/18));for(let i=0;i<=bars;i++)L(P(u+du*i/bars,va+d*.77,h+rh),P(u+du*i/bars,va+d,h),C.trim);
+        const bars=Math.max(2,Math.ceil(du*32/18));for(let i=0;i<=bars;i++)L(P(u+du*i/bars,va+d*.77,h+rh),P(u+du*i/bars,va+d,h),C.trim);
         L(P(u,va+d*.77,h+rh),P(u+du,va+d*.77,h+rh),snow('#7d8d90'),2);L(P(u,va+d,h),P(u+du,va+d,h),C.trim,2);
       }
     }else{
@@ -30605,7 +30605,7 @@ function industryKit634(T){
     }
     /* 工業窗按承重開間縮減數量，暗凹口、薄金屬中梃和磚拱楣留下可讀牆面。 */
     const floors=Math.max(1,Math.round(h/18)),story=(h-6)/floors;
-    const millWindow=(a,b,z,span,hh,right=false)=>{const q=(d,k)=>right?P(a,b+d,k):P(a+d,b,k),e=Math.min(span*.15,1/(n*32)),r=span*.5,frame=right?'#607578':'#849894',ps=[q(-r+e,z+1),q(r-e,z+1),q(r-e,z+hh-1),q(-r+e,z+hh-1)];
+    const millWindow=(a,b,z,span,hh,right=false)=>{const q=(d,k)=>right?P(a,b+d,k):P(a+d,b,k),e=Math.min(span*.15,1/(32)),r=span*.5,frame=right?'#607578':'#849894',ps=[q(-r+e,z+1),q(r-e,z+1),q(r-e,z+hh-1),q(-r+e,z+hh-1)];
       F([q(-r,z),q(r,z),q(r,z+hh),q(-r,z+hh)],'#283c44');F(ps,right?'#344b56':'#466570');T.poly(T.ng,ps,'#c5d8ca');
       L(q(-r,z+1),q(-r,z+hh-1),frame);L(q(0,z+1),q(0,z+hh-1),C.trim);if(hh>7)L(q(-r+e,z+hh*.52),q(r-e,z+hh*.52),C.trim);
       L(q(-r,z+hh+1),q(r,z+hh+1),stone?T.shade(right?side:wall,-13):T.shade(right?side:wall,12));L(q(-r,z),q(r,z),right?'#8c9686':'#b4b29c');
@@ -30616,13 +30616,13 @@ function industryKit634(T){
     }
     L(P(u,v+dv,h-2),P(u+du,v+dv,h-2),T.shade(wall,-21));L(P(u+du,v,h-2),P(u+du,v+dv,h-2),T.shade(side,-18));
     L(P(u,v+dv,h),P(u+du,v+dv,h),C.trim,2);L(P(u+du,v,h),P(u+du,v+dv,h),C.trim,2);
-    if(du*n*32>=9&&h>=15){const dw=Math.min(du*.23,.17/n);door(u+du*.1,v+dv,dw,Math.min(11,h-5),'#496568');}
+    if(du*32>=9&&h>=15){const dw=Math.min(du*.23,.17/n);door(u+du*.1,v+dv,dw,Math.min(11,h-5),'#496568');}
     L(P(u+du-.018/n,v+dv,h-1),P(u+du-.018/n,v+dv,3),C.trim);
     return P(u+du*.5,v+dv*.5,h+rh);
   };
-  const door=(u,v,du,h=10,col='#4d6264')=>{const e=Math.min(du*.16,.035/n);F([P(u,v),P(u+du,v),P(u+du,v,h),P(u,v,h)],'#273c43');F([P(u+e,v,1),P(u+du-e,v,1),P(u+du-e,v,h-1),P(u+e,v,h-1)],col);for(let j=3;j<h-1;j+=4)L(P(u+e,v,j),P(u+du-e,v,j),T.shade(col,-15));L(P(u,v),P(u,v,h+1),C.trim,2);L(P(u+du,v),P(u+du,v,h+1),C.trim);L(P(u,v,h+1),P(u+du,v,h+1),'#9c6a53',2);L(P(u+e,v,h-1),P(u+du-e,v,h-1),'#273e44');L(P(u,v,1),P(u+du,v,1),'#a5a594',2);if(du*n*32>7){L(P(u+du*.5,v,2),P(u+du*.5,v,h-2),'#314a52');const p=P(u+du*.52,v,h*.4);px(p[0],p[1],'#c2a475',2,1);}};
+  const door=(u,v,du,h=10,col='#4d6264')=>{const e=Math.min(du*.16,.035/n);F([P(u,v),P(u+du,v),P(u+du,v,h),P(u,v,h)],'#273c43');F([P(u+e,v,1),P(u+du-e,v,1),P(u+du-e,v,h-1),P(u+e,v,h-1)],col);for(let j=3;j<h-1;j+=4)L(P(u+e,v,j),P(u+du-e,v,j),T.shade(col,-15));L(P(u,v),P(u,v,h+1),C.trim,2);L(P(u+du,v),P(u+du,v,h+1),C.trim);L(P(u,v,h+1),P(u+du,v,h+1),'#9c6a53',2);L(P(u+e,v,h-1),P(u+du-e,v,h-1),'#273e44');L(P(u,v,1),P(u+du,v,1),'#a5a594',2);if(du*32>7){L(P(u+du*.5,v,2),P(u+du*.5,v,h-2),'#314a52');const p=P(u+du*.52,v,h*.4);px(p[0],p[1],'#c2a475',2,1);}};
   const ell=(x,y,rx,ry,col)=>{rx=Math.max(1,rx);ry=Math.max(1,ry);for(let j=-Math.ceil(ry);j<=ry;j++){const r=rx*Math.sqrt(Math.max(0,1-j*j/(ry*ry)));px(x-r,y+j,col,Math.max(1,r*2),1);}};
-  const tank=(u,v,r,h=20,col=C.steel,open=false,z0=0)=>{const b=P(u,v,z0),rx=Math.max(3,r*n*32),ry=Math.max(2,rx*.43);
+  const tank=(u,v,r,h=20,col=C.steel,open=false,z0=0)=>{const b=P(u,v,z0),rx=Math.max(3,r*32),ry=Math.max(2,rx*.43);
     /* 圓槽以大塊明暗表現曲面，焊縫服從分段；底圈、頂口與檢修梯各有實際功能。 */
     ell(b[0],b[1]+1,rx+1,ry+1,'#586c6b');ell(b[0],b[1],rx,ry,T.shade(col,-25));px(b[0]-rx,b[1]-h,col,rx*2,h);
     px(b[0]+rx*.32,b[1]-h,T.shade(col,-24),rx*.68,h);px(b[0]-rx*.76,b[1]-h,T.shade(col,15),Math.max(1,rx*.28),h);px(b[0]-rx,b[1]-h,T.shade(col,-10),Math.max(1,rx*.15),h);
@@ -30631,8 +30631,8 @@ function industryKit634(T){
     if(open){ell(b[0],b[1]-h,Math.max(1,rx-2),Math.max(1,ry-1),T.winter?'#b2d1d7':C.water);L([b[0]-rx*.55,b[1]-h],[b[0]+rx*.36,b[1]-h],T.winter?'#d2deda':'#7298a0');}
     if(rx>=6&&h>=18&&!open){ell(b[0]-rx*.23,b[1]-h-2,Math.min(4,rx*.24),Math.max(1,ry*.2),T.winter?'#eef2eb':'#6c8385');const lx=b[0]+rx*.56;L([lx,b[1]-3],[lx,b[1]-h+4],'#526a70');L([lx+3,b[1]-3],[lx+3,b[1]-h+4],'#acbbb1');for(let j=5;j<h-3;j+=6)L([lx,b[1]-j],[lx+3,b[1]-j],'#bbc5b5');}
     return[b[0],b[1]-h];};
-  const dome=(u,v,r,h=20,col='#c6ceca')=>{const p=tank(u,v,r,h,col),rx=Math.max(3,r*n*32);ell(p[0],p[1]-rx*.3,rx,rx*.58,snow(col));ell(p[0]-rx*.19,p[1]-rx*.4,rx*.52,rx*.36,snow(T.shade(col,14)));return[p[0],p[1]-rx*.84];};
-  const stack=(u,v,h=55,r=.035,steam=false)=>{const p=tank(u,v,r,h,C.brick);const rp=Math.max(3,r*n*32);px(p[0]-rp-1,p[1]-2,C.cream,rp*2+2,3);ell(p[0],p[1]-2,rp-1,2,'#393b3d');const key=steam?'steam':'smoke';(T.hooks[key]||(T.hooks[key]=[])).push([p[0],p[1]-3]);T.hooks.exhaust=[p[0],p[1]-3];beacon(u,v,h+1);return p;};
+  const dome=(u,v,r,h=20,col='#c6ceca')=>{const p=tank(u,v,r,h,col),rx=Math.max(3,r*32);ell(p[0],p[1]-rx*.3,rx,rx*.58,snow(col));ell(p[0]-rx*.19,p[1]-rx*.4,rx*.52,rx*.36,snow(T.shade(col,14)));return[p[0],p[1]-rx*.84];};
+  const stack=(u,v,h=55,r=.035,steam=false)=>{const p=tank(u,v,r,h,C.brick);const rp=Math.max(3,r*32);px(p[0]-rp-1,p[1]-2,C.cream,rp*2+2,3);ell(p[0],p[1]-2,rp-1,2,'#393b3d');const key=steam?'steam':'smoke';(T.hooks[key]||(T.hooks[key]=[])).push([p[0],p[1]-3]);T.hooks.exhaust=[p[0],p[1]-3];beacon(u,v,h+1);return p;};
   const pipe=(points,col='#87a6a5',wd=3)=>{for(let j=1;j<points.length;j++){const a=P(...points[j-1]),b=P(...points[j]);L(a,b,'#3c545c',wd+2);L([a[0],a[1]-1],[b[0],b[1]-1],col,wd);if(wd>=3){const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.max(1,Math.hypot(dx,dy)),nx=-dy/len,ny=dx/len;for(const t of[len>20?.18:.5,.82]){const x=a[0]+dx*t,y=a[1]+dy*t;L([x-nx*(wd*.7+1),y-ny*(wd*.7+1)],[x+nx*(wd*.7+1),y+ny*(wd*.7+1)],'#49616a',2);L([x-nx*wd*.65,y-ny*wd*.65-1],[x+nx*wd*.65,y+ny*wd*.65-1],'#c2caba');}}}};
   const lattice=(u,v,h=58,spread=.075,col='#586e74')=>{
     const a=P(u-spread,v),b=P(u+spread,v),c=P(u,v,h);L(a,c,col,2);L(b,c,col,2);L(a,b,col,2);
@@ -30654,9 +30654,9 @@ function industryKit634(T){
   const sign=(u,v,h,text)=>{K.sign(u*n,v*n,h,text,'#305651');T.hooks.sign=P(u,v,h);};
   const lamp=(u,v,h=18)=>K.lamp(u*n,v*n,h);
   const pond=(u,v,du,dv)=>{const e=Math.min(.026,du*.1,dv*.1);box(u,v,du,dv,4,'#a5aa9c');plate(u+e,v+e,du-e*2,dv-e*2,4,'#3c626d');plate(u+e*1.6,v+e*1.6,du-e*3.2,dv-e*3.2,4,T.winter?'#b6d4da':C.water);L(P(u,v,5),P(u+du,v,5),snow('#c2c4b2'));L(P(u,v,5),P(u,v+dv,5),snow('#b7bdad'));for(const q of[.35,.7])L(P(u+du*.2,v+dv*q,4),P(u+du*.68,v+dv*q,4),T.winter?'#d5e1dc':'#7399a0');};
-  const rail=(u,v,du)=>{ground(u,v,du,.09,'#6f716b');for(let j=0;j<Math.max(5,n*5);j++){const x=u+du*j/Math.max(5,n*5);L(P(x,v),P(x+.018,v+.09),'#988d73',2);}L(P(u,v+.023),P(u+du,v+.023),'#b8c2bf',2);L(P(u,v+.068),P(u+du,v+.068),'#b8c2bf',2);};
-  const dish=(u,v,h=47,r=.095)=>{const p=lattice(u,v,h-5,.055);const rx=Math.max(5,r*n*32);ell(p[0],p[1]-6,rx,Math.max(3,rx*.35),snow('#c5cec8'));L([p[0]-rx*.65,p[1]-8],[p[0]+rx*.48,p[1]-2],'#839a9b');L([p[0],p[1]-6],[p[0]+rx*.65,p[1]-19],'#536e76',2);px(p[0]+rx*.65,p[1]-20,'#e1bb72',3,3);T.hooks.radar=[p[0],p[1]-7];return T.hooks.radar;};
-  const fan=(u,v,h=25,r=.05)=>{const p=P(u,v,h),rx=Math.max(3,r*n*32);ell(p[0],p[1],rx,rx*.48,'#293f47');for(let a=0;a<4;a++){const c=a*Math.PI/2+.4;L(p,[p[0]+Math.cos(c)*rx*.8,p[1]+Math.sin(c)*rx*.38],'#a7b8b8',2);}};
+  const rail=(u,v,du)=>{ground(u,v,du,.09,'#6f716b');for(let j=0;j<Math.max(5,5);j++){const x=u+du*j/Math.max(5,5);L(P(x,v),P(x+.018,v+.09),'#988d73',2);}L(P(u,v+.023),P(u+du,v+.023),'#b8c2bf',2);L(P(u,v+.068),P(u+du,v+.068),'#b8c2bf',2);};
+  const dish=(u,v,h=47,r=.095)=>{const p=lattice(u,v,h-5,.055);const rx=Math.max(5,r*32);ell(p[0],p[1]-6,rx,Math.max(3,rx*.35),snow('#c5cec8'));L([p[0]-rx*.65,p[1]-8],[p[0]+rx*.48,p[1]-2],'#839a9b');L([p[0],p[1]-6],[p[0]+rx*.65,p[1]-19],'#536e76',2);px(p[0]+rx*.65,p[1]-20,'#e1bb72',3,3);T.hooks.radar=[p[0],p[1]-7];return T.hooks.radar;};
+  const fan=(u,v,h=25,r=.05)=>{const p=P(u,v,h),rx=Math.max(3,r*32);ell(p[0],p[1],rx,rx*.48,'#293f47');for(let a=0;a<4;a++){const c=a*Math.PI/2+.4;L(p,[p[0]+Math.cos(c)*rx*.8,p[1]+Math.sin(c)*rx*.38],'#a7b8b8',2);}};
   const finish=()=>{lamp(.88,.87,15);};
   const grass=[22,25,26,46,109,120,133].includes(T.k);ground(.025,.025,.95,.95,grass?(T.sea===2?'#929466':T.sea===0?'#82956c':'#82956c'):'#9b9f92');
   L(P(.025,.975),P(.975,.975),T.winter?'#b9c8c5':'#657267',2);L(P(.975,.025),P(.975,.975),T.winter?'#c3ceca':'#7b8575',2);
