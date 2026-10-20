@@ -30760,7 +30760,7 @@ const INDUSTRY634={
     T.hooks.smoke=[];I.fence();I.road(.06,.9,.85,.06);I.sign(.41,.94,10,'ENERGY');if(v===0)I.beacon(.68,.23,69);else if(v===1)I.beacon(.28,.27,82);else I.beacon(.85,.52,67);
   },
   draw(T){
-    if(!t661On())return this.draw661base(T);
+    if(!t661On())return INDUSTRY634[58].draw661base(T);
     const I=industryKit634(T),v=T.v%3;
     const cooling=(u,w,r,h)=>{const b=I.P(u,w),rx=r*T.n*32;for(let y=0;y<h;y++){const p=y/h,rr=rx*(.5+.48*Math.pow(Math.abs(p-.52)/.52,1.45));I.px(b[0]-rr,b[1]-h+y,'#aab9b5',rr*2,1);I.px(b[0]-rr,b[1]-h+y,'#ccd3c7',rr*.75,1);}I.ell(b[0],b[1],rx*.94,rx*.16,'#7b8f8e');for(const q of[-.65,-.2,.25,.68])I.L([b[0]+rx*q,b[1]-3],[b[0]+rx*q,b[1]+1],'#52696e',2);I.ell(b[0],b[1]-h,rx*.97,rx*.29,I.snow('#cbd4c9'));I.ell(b[0],b[1]-h,rx*.72,rx*.2,'#455d65');(T.hooks.steam||(T.hooks.steam=[])).push([b[0],b[1]-h-1]);};
     /* T661 新增：開關場（變壓器＋鐵塔）與輔助貯槽 */
@@ -30895,7 +30895,7 @@ const INDUSTRY634={
     I.pipe([[.2,.44,18],[.2,.52,18],[.78,.52,18],[.78,.72,18]],'#a6b9ae',4);I.pipe([[.18,.82,7],[.81,.82,7]],'#c0a56b',3);I.fence();I.sign(.25,.9,8,'REFINERY');const work=I.P(v===1?.3:.25,v===0?.49:.81,9);I.lit([work[0]-5,work[1]-3],10,5);T.hooks.work=[work[0]-5,work[1]-3,10,5];
   },
   draw(T){
-    if(!t661On())return this.draw661base(T);
+    if(!t661On())return INDUSTRY634[121].draw661base(T);
     const I=industryKit634(T),v=T.v%3;
     const column=(u,w,h,r=.043)=>{I.tank(u,w,r,h,'#a7b8b4');for(let j=12;j<h;j+=15){I.plate(u-r*.62,w-r*.62,r*1.24,r*1.24,j,'#7c908e');I.L(I.P(u+r,w,j),I.P(u+r,w,j+6),'#a7a477');if(r*T.n*32>=6){for(const q of[[u-r*.62,w+r*.62],[u+r*.62,w+r*.62],[u+r*.62,w-r*.62]])I.L(I.P(q[0],q[1],j),I.P(q[0],q[1],j+4),'#c0c4a3');I.L(I.P(u-r*.62,w+r*.62,j+4),I.P(u+r*.62,w+r*.62,j+4),'#c0c4a3');I.L(I.P(u+r*.62,w-r*.62,j+4),I.P(u+r*.62,w+r*.62,j+4),'#98ac9e');}}I.L(I.P(u+r*1.3,w,3),I.P(u+r*1.3,w,h),'#d3c9a1');};
     /* T661 新增：管架（主管＋支柱）與儲油槽區（槽＋圍堤），讓輸送關係與廠區分區讀得出來 */
@@ -30944,7 +30944,7 @@ const INDUSTRY634={
     I.rail(.07,.88,.83);for(let j=0;j<3;j++)I.container(.49+j*.11,.84,.07,.035,3,'#555f63');I.fence();I.sign(.24,.57,31,'STEEL');
   },
   draw(T){
-    if(!t661On())return this.draw661base(T);
+    if(!t661On())return INDUSTRY634[122].draw661base(T);
     const I=industryKit634(T),v=T.v%3;
     const furnace=(u,w,h)=>{I.tank(u,w,.09,h,'#687f81');I.tank(u,w,.055,h+17,'#859797');I.pipe([[u-.1,w,h*.55],[u-.17,w,h*.55],[u-.17,w,10]],'#938b73',4);I.box(u-.078,w-.07,.156,.14,5,'#929c90',h*.54);const p=I.P(u,w,7);I.lit([p[0]-5,p[1]-2],10,5);};
     /* T661 新增：礦料堆、輸送帶、焦爐列 */
