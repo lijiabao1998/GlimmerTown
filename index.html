@@ -3320,7 +3320,7 @@ function lotSprite574(k,v=0,stage=2,winter=false,far=false){
   const p=LOT_PLAN574[k];if(!p||!lotSpec574(p[0]))return null;
   v=(far&&!(portedLot591(k)&&t591On())&&!(LOT601.has(k)&&t601On())&&!(LOT602.has(k)&&t602On())&&!(LOT603.has(k)&&t603On())&&!(t634On()&&REMAIN634.has(k)))?0:lotVariant574(k,v); // T591：貼新圖的園區遠景保留變體；T601 同
   stage=(k===22||k===53)?Math.max(0,Math.min(3,stage|0)):2;
-  const key=(far?'far:':'')+k+'_'+v+'_'+stage+'_'+(+winter)+lotKey591(k);let s=lotCache574.get(key);
+  sync661();const key=(far?'far:':'')+k+'_'+v+'_'+stage+'_'+(+winter)+lotKey591(k);let s=lotCache574.get(key);
   if(s){lotCache574.delete(key);lotCache574.set(key,s);return s;}
   s=bakeLot574(k,v,stage,winter);
   if(far){
@@ -3440,6 +3440,7 @@ function lotV591(x,y,b){if(t634On()&&b&&REMAIN634.has(b.k))return v634(b.k,x,y,b
 /* ===== T661 大型建築升級：逃生閥 ===== */
 const T661K=new Set([58,121,122,123,62,110,59,27,25,50]);
 function t661On(){return !(window.__noT661||/[?&]noT661=1/.test((typeof location!=='undefined'&&location.search)||''));}
+function sync661(){const on=t661On();if(sync661.on===undefined){sync661.on=on;return;}if(sync661.on===on)return;sync661.on=on;lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;CACHE634.clear();STAT634.pixels=0;} // T661：T634 那批的園區快取鍵（lotKey591）與單格快取鍵（spr634）都不含 T661 開關，同一頁先畫新圖再設 window.__noT661 會拿到快取裡的新圖（scene603 的 T634 只關新圖比對紅了 7115 像素）。開關一變就清掉三個快取；鍵本身被 T591 G1c 逐字釘住，不動
 function bakeLot574(k,v,stage,winter){
   if(t634On()&&REMAIN634.has(k)){const s634=bake634(k,v,LOT_PLAN574[k][1],1,1,stage,winter);if(s634){lotHookCache574.set(k+'_'+v+lotKey591(k),{ax:s634.ax,ay:s634.ay,hooks:s634.lotMeta574.hooks});return s634;}} // T634：保持原配方作逐位回退
   if(LOT603.has(k)&&t603On()){const r603=bakeArt603(k,v,stage,winter);if(r603)return r603;} // T603：本批原創園區；獨立快取與回退
@@ -18321,6 +18322,7 @@ function farNightRect422(bd,x,y,blkX,blkY,blkSz){
 }
 function draw(dt){
   updWind441(); // T429：幀首更新風偏置（更新相各消費端用前幀值，1幀滯後不可見）
+  sync661(); // T661：T661 開關變了就清快取（只在撥動那一幀重烘，平常零成本）
   trafClock+=dt||0; // T289：交通時鐘推進（紅綠燈相位）
   const {b,dusk,ph,d}=daylight(); // T149：新增解構 ph/d（既有 b/dusk 用途不變）
   // 天空
