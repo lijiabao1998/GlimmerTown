@@ -182,6 +182,7 @@ T635 三款消防局已經業主圖審批准（2026-10-12「按照Claude的標�
 |　├ art601_k97 釣魚碼頭三款 | 29306 | `function art601_k97(){` |
 |　└ ART601 登記表／buildSpritesS21（k5 SPR.lot601、單格 SPR.art601） | 29639 | `function buildSpritesS21(){` |
 | T634 預覽開關、快取、舊檔適配與英式 civic 烘焙 | 29927 | `/* ===== T634 WHOLE BATCH BEGIN ===== */` |
+| ├ **T634 批次烘焙入口**（bake634：園區、變體、季節與夜光） | 30036 | `function bake634(` |
 | T634 工業／公用設施 30 類結構款 | 30729 | `const INDUSTRY634=` |
 | T634 住商工 108 明確設計目錄 | 31107 | `const RCI_CATALOG634=` |
 | `begin` / `toMainMenu` / 開始畫面注入 | 31641 | `function toMainMenu(){` |
