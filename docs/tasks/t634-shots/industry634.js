@@ -337,6 +337,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.11,.1,.27,.59,39,'gable');I.shed(.46,.11,.37,.24,26,'saw');I.box(.35,.24,.14,.12,8,'#819a98',20);I.box(.57,.56,.26,.18,18,'#bfc5b2');I.stack(.22,.19,58,.024,true);}
     else{I.shed(.11,.1,.69,.24,29,'saw');I.shed(.12,.43,.22,.3,24,'gable');I.shed(.57,.43,.23,.3,24,'gable');I.box(.36,.52,.19,.14,11,'#8d9f92');I.stack(.65,.16,48,.022,true);}
     I.road();I.truck(.17,.85,'#bfc5b6',false);I.truck(.58,.85,'#82988b',false);I.fence();I.sign(.26,.61,25,'KITCHEN');
+  
+    if(t664On()){I.ground(.10,.80,.30,.08,'#8f948c');I.box(.12,.86,.14,.07,6,'#9aa39b',0);I.pipe([[.19,.84,3],[.32,.84,3]],'#8a938c',2);}
   }},
   120:{name:'英式魚塘',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -344,6 +346,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.1,.1,.74,.16,18,'gable');for(let j=0;j<3;j++){I.pond(.1+j*.27,.39,.21,.44);I.L(I.P(.1+j*.27,.59,6),I.P(.31+j*.27,.59,6),'#bfb58f',2);}}
     else{I.shed(.09,.13,.26,.55,20,'gable');for(const q of[[.61,.29],[.63,.69]]){const p=I.tank(...q,.19,8,'#a2b6b0',true);I.L([p[0]-T.n*6,p[1]],[p[0]+T.n*6,p[1]],'#b8aa83',2);}I.pipe([[.34,.23,5],[.4,.23,5],[.4,.76,5]],'#7baca9');}
     const p=I.P(.7,.65,8);I.L([p[0]-4,p[1]],[p[0]+4,p[1]],'#cdd9ce',2);I.fence();I.sign(.38,.91,7,'FISHERY');
+  
+    if(t664On()){I.ground(.10,.78,.32,.06,'#6f8b93');I.box(.14,.84,.08,.05,4,'#9aa39b',0);I.pipe([[.18,.84,2],[.34,.84,2]],'#8a938c',2);}
   }},
   121:{name:'英式煉油廠',draw661base(T){
     const I=industryKit634(T),v=T.v%3;
@@ -454,6 +458,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.09,.11,.68,.22,28,'saw');for(let j=0;j<3;j++){I.box(.15+j*.23,.51,.16,.22,15,'#b0c1bb');for(let k=0;k<3;k++)I.pipe([[.17+j*.23+k*.038,.54,17],[.17+j*.23+k*.038,.72,17]],'#8aafb6',2);}I.pond(.08,.83,.76,.09);}
     else{I.tank(.23,.23,.13,29,'#bfcbc1');I.tank(.65,.23,.13,29,'#bfcbc1');I.shed(.12,.58,.45,.23,27,'flat',true);I.pond(.67,.53,.22,.28);I.pipe([[.22,.38,10],[.22,.47,10],[.75,.47,10],[.75,.65,10]],'#739eaa',4);}
     I.fence();I.sign(.29,.82,19,'DESAL');I.finish();
+  
+    if(t664On()){I.tank(.16,.80,.05,16,'#b8c2ba');I.pipe([[.16,.86,3],[.36,.86,3],[.36,.70,3]],'#8a938c',3);}
   }},
   131:{name:'英式防災中心',draw(T){
     const I=industryKit634(T),v=T.v%3;

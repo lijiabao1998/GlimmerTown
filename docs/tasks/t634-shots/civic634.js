@@ -505,6 +505,8 @@ const CIVIC634={
     else{home(.1,.11,.27,.52,H(32,3),{roof:'hip',floors:4,bay:true});home(.62,.11,.27,.52,H(32,3),{roof:'hip',floors:4,bay:true});home(.37,.11,.25,.17,H(22,2),{stone:true,roof:'gable',floors:3});C.court(.41,.36,.14,.25,'basket');C.canopy(.43,.71,.3,.1,11);C.hedge(.1,.78,.22,.06);}
     C.sign(.44,.965,7,'COUNCIL HOMES');C.lamp(.12,.9,17);C.lamp(.88,.9,17);C.fence(.05,.9,.28,.025);C.fence(.68,.9,.27,.025);
     civicDetail634(T);
+  
+    if(t664On()){C.g(.10,.82,.30,.06,'#9aa39b');for(const q of[[.14,.84],[.24,.84],[.34,.84]])C.L([q[0],q[1],0],[q[0],q[1],4],'#b9b3a2',2);}
   }},
   132:{name:'英式防災避難公園',draw(T){
     const C=civicKit634(T),{V,H,home,lawn,path,stone}=C;lawn();path(.44,.04,.11,.91);path(.05,.44,.9,.11);
