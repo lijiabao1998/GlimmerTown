@@ -802,7 +802,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.241'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.242'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -3440,7 +3440,7 @@ function lotV591(x,y,b){if(t634On()&&b&&REMAIN634.has(b.k))return v634(b.k,x,y,b
 /* ===== T661 大型建築升級：逃生閥 ===== */
 const T661K=new Set([58,121,122,123,62,110,59,27,25,50]);
 function t661On(){return !(window.__noT661||/[?&]noT661=1/.test((typeof location!=='undefined'&&location.search)||''));}
-function sync661(){const on=(t661On()?'1':'0')+'|'+(t662On()?'1':'0')+'|'+(t663On()?'1':'0')+'|'+(t664On()?'1':'0');if(sync661.on===undefined){sync661.on=on;return;}if(sync661.on===on)return;sync661.on=on;lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;CACHE634.clear();STAT634.pixels=0;} // T661：T634 那批的園區快取鍵（lotKey591）與單格快取鍵（spr634）都不含 T661 開關，同一頁先畫新圖再設 window.__noT661 會拿到快取裡的新圖（scene603 的 T634 只關新圖比對紅了 7115 像素）。開關一變就清掉三個快取；鍵本身被 T591 G1c 逐字釘住，不動
+function sync661(){const on=(t661On()?'1':'0')+'|'+(t662On()?'1':'0')+'|'+(t663On()?'1':'0')+'|'+(t664On()?'1':'0')+'|'+(t665On()?'1':'0');if(sync661.on===undefined){sync661.on=on;return;}if(sync661.on===on)return;sync661.on=on;lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;CACHE634.clear();STAT634.pixels=0;} // T661：T634 那批的園區快取鍵（lotKey591）與單格快取鍵（spr634）都不含 T661 開關，同一頁先畫新圖再設 window.__noT661 會拿到快取裡的新圖（scene603 的 T634 只關新圖比對紅了 7115 像素）。開關一變就清掉三個快取；鍵本身被 T591 G1c 逐字釘住，不動
 function bakeLot574(k,v,stage,winter){
   if(t634On()&&REMAIN634.has(k)){const s634=bake634(k,v,LOT_PLAN574[k][1],1,1,stage,winter);if(s634){lotHookCache574.set(k+'_'+v+lotKey591(k),{ax:s634.ax,ay:s634.ay,hooks:s634.lotMeta574.hooks});return s634;}} // T634：保持原配方作逐位回退
   if(LOT603.has(k)&&t603On()){const r603=bakeArt603(k,v,stage,winter);if(r603)return r603;} // T603：本批原創園區；獨立快取與回退
@@ -29933,6 +29933,8 @@ function t662On(){try{if(typeof window!=='undefined'&&window.__noT662)return fal
 function t663On(){try{if(typeof window!=='undefined'&&window.__noT663)return false;if(typeof location!=='undefined'&&/[?&]noT663=1/.test(location.search||''))return false;}catch(e){}return true;}
 /* T664 大型建築第四波閥（?noT664=1／window.__noT664；砂箱無 window 時視為開啟） */
 function t664On(){try{if(typeof window!=='undefined'&&window.__noT664)return false;if(typeof location!=='undefined'&&/[?&]noT664=1/.test(location.search||''))return false;}catch(e){}return true;}
+/* T665 大型建築第五波閥（?noT665=1／window.__noT665；砂箱無 window 時視為開啟） */
+function t665On(){try{if(typeof window!=='undefined'&&window.__noT665)return false;if(typeof location!=='undefined'&&/[?&]noT665=1/.test(location.search||''))return false;}catch(e){}return true;}
 /* T634：全批英式美術（業主已批准）。只讀視覺，不改模擬／舊精靈；預設開啟，逐家族按需烘焙。 */
 const REMAIN634=new Set([1,2,3,9,16,22,24,25,26,27,31,45,46,49,50,51,54,57,58,59,62,64,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,86,89,90,91,93,94,96,98,99,100,101,103,107,109,110,111,112,115,116,118,119,120,121,122,123,124,125,126,127,128,129,131,132,133]);
 const LEGACY634=new Set([8,29,53,60,63,66,85,88,92,104,117]);
@@ -30257,6 +30259,8 @@ const CIVIC634={
     else{C.cyl(.5,.4,.26,H(23,3),stone);C.dome(.5,.4,.28,H(23,3),H(20,2));for(let i=0;i<7;i++){const a=.18+i*.105;B(a,.62,.035,.1,H(17,2),stone);}C.pyramid(.13,.61,.75,.19,H(18,2),9,'#af9e7e');C.arch(.35,.75,.3,.08,H(15,1),stone);}
     C.flag(.51,.45,H(74,2));C.lamp(.12,.87,17);C.lamp(.89,.87,17);
     civicDetail634(T);
+  
+    if(t665On()){C.g(.10,.82,.28,.06,'#9aa39b');C.L([.12,.86],[.38,.86],'#c9c2b0',2);for(const q of[[.14,.88],[.30,.88]])C.L([q[0],q[1],0],[q[0],q[1],4],'#b9b3a2',2);}
   }},
   31:{name:'維多利亞監獄',draw(T){
     const C=civicKit634(T),{V,B,home,H,stone,brick,path}=C;path(0,0,1,1);
@@ -30297,6 +30301,8 @@ const CIVIC634={
     else{home(.13,.22,.7,.43,16,{stone:true,roof:'hip',floors:1,chimney:false});B(.36,.24,.32,.34,35,stone);B(.34,.22,.36,.38,2,stone,34);C.clock(.52,.59,28,4.5);C.pyramid(.34,.22,.36,.38,36,17);C.window(.52,.585,17,3,6);}
     C.bench(.13,.8);C.bench(.68,.8);C.lamp(.8,.72,15);
     civicDetail634(T);
+  
+    if(t665On()){C.g(.10,.82,.30,.06,'#8f948c');for(const q of[[.14,.86],[.24,.86],[.34,.86]])C.g(q[0]-.04,q[1]-.03,.08,.05,'#c9c2b0');}
   }},
   68:{name:'英式天文台',draw(T){
     const C=civicKit634(T),{V,H,home,cyl,dome,stone,path,lawn}=C;lawn();path(.38,.45,.18,.5);
@@ -30317,6 +30323,8 @@ const CIVIC634={
     for(let i=0;i<6;i++){const t=i*Math.PI/3;L([a+.145*Math.cos(t),b+.145*Math.sin(t),z+3],[a+.145*Math.cos(t),b+.145*Math.sin(t),z+12],'#39464f');}
     C.pyramid(a-.175,b-.175,.35,.35,z+12,7,'#55636d');const q=p(a,b,z+7);T.LIT(q[0]-3,q[1]-2,6,4,'#c4caaa','#ffe9aa');T.hooks.aviation=p(a,b,z+7);C.fence(.2,.74,.61,.04);
     civicDetail634(T);
+  
+    if(t665On()){for(const q of[[.12,.88],[.22,.90],[.32,.88]])C.L([q[0],q[1],0],[q[0],q[1],7],'#8d8a7f',2);C.g(.10,.82,.26,.04,'#9aa39b');}
   }},
   70:{name:'英式古風車',draw(T){
     const C=civicKit634(T),{V,B,p,f,l,L,stone,brick}=C;C.lawn();let hub,z,rr=23;
@@ -30334,6 +30342,8 @@ const CIVIC634={
     else{C.pool(.14,.35,.72,.23);cyl(.5,.47,.07,16,stone,3);C.B(.475,.43,.05,.05,9,stone,19);for(const a of [.24,.36,.64,.76])L([a,.465,2],[a,.465,15],'#c9e5df',2);C.hedge(.12,.18,.75,.06);C.hedge(.12,.73,.75,.06);}
     C.bench(.1,.83);C.bench(.76,.83);C.lamp(.09,.13,17);C.lamp(.91,.13,17);C.tree(.92,.9,.07);
     civicDetail634(T);
+  
+    if(t665On()){for(const q of[[.14,.84],[.28,.84]])C.g(q[0]-.03,q[1]-.01,.06,.02,'#8a7a5e');for(const q of[[.10,.88],[.36,.88]])C.L([q[0],q[1],0],[q[0],q[1],9],'#b9b3a2',2);}
   }},
   72:{name:'英式紀念碑',draw(T){
     const C=civicKit634(T),{V,B,stone,H}=C;C.path(0,0,1,1);B(.2,.2,.6,.6,3,stone);B(.28,.28,.44,.44,4,stone,3);
@@ -30342,6 +30352,8 @@ const CIVIC634={
     else{B(.29,.3,.42,.38,26,stone,7);B(.26,.27,.48,.44,3,stone,33);B(.32,.31,.36,.36,7,stone,36);C.sign(.5,.69,21,'PEACE');C.flag(.19,.7,33);C.flag(.81,.7,33);}
     C.ring(.5,.75,.085,.04,8,'#6b7748');for(let i=0;i<5;i++)C.K.px(C.p(.46+i*.023,.76,9)[0],C.p(.46+i*.023,.76,9)[1],'#ad4d40',2,2);C.bench(.09,.9);
     civicDetail634(T);
+  
+    if(t665On()){C.g(.10,.84,.28,.05,'#9aa39b');C.L([.12,.87],[.36,.87],'#c9c2b0',2);}
   }},
   73:{name:'英式觀景塔',draw(T){
     const C=civicKit634(T),{V,B,H,stone,iron,L}=C;C.lawn();C.path(.33,.15,.37,.73);let top=H(39,2);
@@ -30350,6 +30362,8 @@ const CIVIC634={
     else{C.home(.13,.23,.74,.45,16,{roof:'hip',floors:1,chimney:false});for(const a of [.35,.65])L([a,.46,16],[a,.46,top],'#39464f',4);for(let z=15;z<top;z+=8){L([.37,.46,z],[.62,.46,z+8],'#859490');L([.62,.46,z],[.37,.46,z+8],'#859490');}C.cyl(.5,.46,.26,8,iron,top);C.dome(.5,.46,.27,top+8,10);}
     C.fence(.25,.25,.5,.5);C.sign(.49,.88,7,'LOOKOUT');C.lamp(.8,.83,15);
     civicDetail634(T);
+  
+    if(t665On()){C.g(.10,.84,.30,.05,'#8f948c');for(const q of[[.14,.87],[.26,.87]])C.L([q[0],q[1],0],[q[0],q[1],5],'#b9b3a2',2);}
   }},
   74:{name:'英式公園涼亭',draw(T){
     const C=civicKit634(T),{V,p,L,stone}=C;C.lawn();C.path(.4,.52,.2,.43);
@@ -30366,6 +30380,8 @@ const CIVIC634={
     else{arch(.22,.29,.56,.34,H(29,3),stone);for(const a of [.12,.71]){B(a,.25,.17,.43,H(40,3),C.brick);C.pyramid(a-.02,.23,.21,.47,H(40,3),13);}B(.33,.28,.34,.36,4,stone,H(30,3));C.clock(.5,.66,H(27,2),5);}
     C.flag(.12,.18,H(37,2));C.flag(.9,.18,H(37,2));C.lamp(.16,.86,15);C.lamp(.84,.86,15);
     civicDetail634(T);
+  
+    if(t665On()){C.g(.12,.84,.26,.05,'#9aa39b');C.L([.14,.87],[.36,.87],'#c9c2b0',2);C.g(.22,.78,.08,.04,'#b7c3bd');}
   }},
   76:{name:'英式遊樂摩天輪',draw(T){
     const C=civicKit634(T),{V,n,H,p,f,l,L,stone}=C;C.path(0,0,1,1);
@@ -30396,6 +30412,8 @@ const CIVIC634={
     else{limb(.43,.45,0,.31,.42,29,8);limb(.54,.52,0,.68,.55,32,8);limb(.42,.46,17,.2,.57,29,5);for(const q of [[.27,.38,36,.26],[.7,.5,41,.27],[.24,.65,29,.23],[.64,.75,31,.24]])crown(...q);}
     for(const q of [[.32,.52],[.68,.5],[.49,.71]])L([.5,.5,3],[q[0],q[1],0],'#6e6048',3);C.bench(.15,.82);C.sign(.62,.91,6,'ANCIENT OAK');
     civicDetail634(T);
+  
+    if(t665On()){C.g(.10,.84,.30,.05,'#8f948c');for(const q of[[.16,.87],[.32,.87]])C.g(q[0]-.02,q[1]-.01,.04,.02,'#8a7a5e');}
   }},
   79:{name:'英式碼頭亭',draw(T){
     const C=civicKit634(T),{V,L,B,stone}=C;C.g(0,0,1,1,'#708f95');const plank=(a,b,c,d)=>{C.g(a,b,c,d,'#af9675');for(let j=0;j<8;j++)L([a,b+d*j/8,0],[a+c,b+d*j/8,0],'#826c53');};
@@ -30415,6 +30433,8 @@ const CIVIC634={
     else{for(let i=0;i<12;i++){const t=i*Math.PI/6,t2=(i+1)*Math.PI/6;f([p(.5+r*1.1*Math.cos(t),.49+r*1.1*Math.sin(t),z+4),p(.5+r*1.1*Math.cos(t2),.49+r*1.1*Math.sin(t2),z+4),p(.5,.49,z+18)],i%2?'#d4b67d':'#a45b4a');}C.cyl(.5,.49,.035,6,stone,z+18);}
     C.flag(.5,.49,z+32,'#ad4c43');C.sign(.46,.92,6,'CAROUSEL');C.lamp(.84,.9,15);
     civicDetail634(T);
+  
+    if(t665On()){C.g(.10,.84,.28,.05,'#9aa39b');C.L([.14,.87],[.34,.87],'#c9c2b0',2);C.g(.22,.80,.06,.03,'#b7c3bd');}
   }},
   82:{name:'英式商務旅館',draw(T){
     const C=civicKit634(T),{V,home,H,path,stone}=C;path(0,0,1,1);
@@ -30496,6 +30516,8 @@ const CIVIC634={
     else{home(.18,.23,.62,.34,H(22,3),{stone:true,roof:'gable',pitch:17,floors:1,chimney:false});C.cyl(.2,.4,.15,H(20,2),stone);C.dome(.2,.4,.16,H(20,2),12);C.arch(.5,.56,.21,.09,15,stone);B(.66,.25,.095,.1,H(32,3),stone);C.pyramid(.65,.24,.115,.12,H(32,3),15);cross=[.51,.25,H(46,2)];}
     C.L([cross[0],cross[1],cross[2]-6],[cross[0],cross[1],cross[2]+5],'#cbb98e',2);C.L([cross[0]-.04,cross[1],cross[2]+1],[cross[0]+.04,cross[1],cross[2]+1],'#cbb98e',2);C.arch(.38,.82,.24,.06,12,stone);C.hedge(.09,.79,.22,.07);C.hedge(.72,.79,.19,.07);C.tree(.88,.2,.08);C.sign(.45,.97,6,'CHAPEL');
     civicDetail634(T);
+  
+    if(t665On()){C.g(.10,.84,.30,.05,'#8f948c');C.L([.12,.88],[.38,.88],'#c9c2b0',2);C.g(.14,.90,.06,.03,'#b7c3bd');}
   }},
   101:{name:'英式水上樂園',draw(T){
     const C=civicKit634(T),{V,H,p,L,f,stone}=C;C.lawn();C.path(.04,.08,.92,.84);
