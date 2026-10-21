@@ -261,6 +261,8 @@ const CIVIC634={
     for(let i=0;i<4;i++){const t=Math.PI/4+i*Math.PI/2,dx=Math.cos(t),dy=Math.sin(t),u=[-dy,dx];l([hub[0]-dx*5,hub[1]-dy*5],[hub[0]+dx*rr,hub[1]+dy*rr],'#e0d2ac',2);const q=[6,rr].map(r=>[hub[0]+dx*r,hub[1]+dy*r]);f([[q[0][0]+u[0]*2,q[0][1]+u[1]*2],[q[1][0]+u[0]*2,q[1][1]+u[1]*2],[q[1][0]+u[0]*7,q[1][1]+u[1]*7],[q[0][0]+u[0]*5,q[0][1]+u[1]*5]],'#cbbd99');for(let j=8;j<rr;j+=4)l([hub[0]+dx*j+u[0],hub[1]+dy*j+u[1]],[hub[0]+dx*j+u[0]*7,hub[1]+dy*j+u[1]*7],'#786c54');}
     C.K.px(hub[0]-2,hub[1]-2,'#65513b',5,5);C.path(.43,.75,.15,.2);C.sign(.49,.91,6,'MILL');
     civicDetail634(T);
+  
+    if(t701On()){C.g(.10,.82,.28,.06,'#9aa39b');C.L([.12,.86],[.36,.86],'#c9c2b0',2);}
   }},
   71:{name:'英式噴泉廣場',draw(T){
     const C=civicKit634(T),{V,cyl,stone,p,L}=C;C.path(0,0,1,1);
@@ -299,6 +301,8 @@ const CIVIC634={
     else{C.cyl(.5,.45,.37,3,stone);for(let i=0;i<6;i++){const t=i*Math.PI/3,a=.5+.31*Math.cos(t),b=.45+.31*Math.sin(t);L([a,b,3],[a,b,20],'#3d5a54',2);}C.pyramid(.15,.1,.7,.7,20,13,'#48665f');for(let i=0;i<3;i++)C.bench(.3+i*.15,.56);}
     C.tree(.11,.8,.075);C.tree(.89,.75,.075);C.lamp(.76,.88,14);
     civicDetail634(T);
+  
+    if(t701On()){C.g(.12,.82,.26,.05,'#b6b4a2');C.L([.14,.86],[.36,.86],'#c9c2b0',2);}
   }},
   75:{name:'英式石造凱旋門',draw(T){
     const C=civicKit634(T),{V,stone,B,arch,H}=C;C.path(0,0,1,1);
@@ -351,6 +355,8 @@ const CIVIC634={
     else{plank(.14,.18,.73,.65);C.cyl(.5,.46,.32,3,stone);for(let i=0;i<6;i++){const t=i*Math.PI/3;L([.5+.28*Math.cos(t),.46+.28*Math.sin(t),3],[.5+.28*Math.cos(t),.46+.28*Math.sin(t),18],'#9eaa93',2);}C.dome(.5,.46,.33,18,12);C.fence(.15,.74,.7,.02);}
     for(const a of [.22,.79])B(a,.79,.035,.035,6,{left:'#877459',right:'#665b47',top:'#ab9670'});C.lamp(.83,.88,17);
     civicDetail634(T);
+  
+    if(t701On()){C.g(.10,.84,.30,.05,'#9aa39b');C.L([.16,.87],[.34,.87],'#c9c2b0',2);}
   }},
   80:{name:'英式古典旋轉木馬',draw(T){
     const C=civicKit634(T),{V,n,p,f,l,L,stone}=C;C.path(0,0,1,1);const z=V===1?29:23,r=V===2?.36:.33;
@@ -445,6 +451,8 @@ const CIVIC634={
     else{home(.12,.12,.49,.52,H(31,3),{stone:true,roof:'hip',floors:3,bay:true});home(.6,.2,.23,.21,H(15,1),{roof:'gable',floors:1});C.canopy(.59,.54,.27,.2,12);for(let i=0;i<4;i++){const q=C.p(.62+i*.05,.7,4);C.l([q[0]-3,q[1]],[q[0]+3,q[1]],'#4d6461');}C.sign(.35,.665,15,'HOSTEL');}
     C.tree(.9,.12,.075);C.tree(.92,.83,.075);C.fence(.07,.84,.35,.05);C.lamp(.51,.89,17);
     civicDetail634(T);
+  
+    if(t701On()){C.g(.10,.84,.30,.05,'#9aa39b');C.L([.14,.87],[.36,.87],'#c9c2b0',2);C.g(.14,.90,.08,.04,'#b7c3bd');}
   }},
   99:{name:'英式婚禮教堂',draw(T){
     const C=civicKit634(T),{V,H,home,B,stone}=C;C.lawn();C.path(.4,.4,.2,.55);let cross;
@@ -474,6 +482,8 @@ const CIVIC634={
     else{for(const a of [.22,.61])home(a,.31,.18,.33,h,{stone:true,roof:'flat',floors:4,chimney:false});B(.14,.26,.75,.47,12,{left:'#7e999f',right:'#4e6971',top:'#b4beb4'},h);for(let i=0;i<8;i++)C.window(.19+i*.09,.742,h+9,3,6);C.pyramid(.12,.24,.79,.51,h+12,12);C.sign(.5,.77,h+3,'PANORAMA');C.arch(.36,.5,.26,.15,13,stone);}
     C.tree(.11,.83,.08);C.tree(.91,.81,.08);C.lamp(.15,.93,18);C.lamp(.87,.93,18);
     civicDetail634(T);
+  
+    if(t701On()){C.g(.12,.82,.26,.05,'#b6b4a2');C.L([.14,.86],[.36,.86],'#c9c2b0',2);}
   }},
   107:{name:'英式紀念火葬場',draw(T){
     const C=civicKit634(T),{V,H,home,B,stone,brick}=C;C.lawn();C.path(.08,.46,.84,.44);
@@ -483,6 +493,8 @@ const CIVIC634={
     else{home(.13,.13,.25,.54,H(20,2),{roof:'hip',floors:2,chimney:false});B(.37,.22,.45,.25,H(13,1),stone);for(let i=0;i<7;i++)C.window(.4+i*.061,.48,H(11,1),3,7);C.pyramid(.35,.2,.5,.3,H(14,1),7);stack(.13,.13,H(43,2));C.ring(.67,.68,.14,.11,0,'#b8aa87');C.cyl(.67,.68,.035,11,stone);C.sign(.5,.52,10,'MEMORIAL');}
     C.hedge(.12,.82,.25,.07);C.hedge(.62,.82,.26,.07);C.tree(.9,.68,.09);C.tree(.07,.69,.075);C.lamp(.52,.92,16);
     civicDetail634(T);
+  
+    if(t701On()){C.g(.10,.80,.30,.06,'#9aa39b');C.L([.12,.86],[.38,.86],'#c9c2b0',2);C.g(.20,.72,.10,.05,'#b7c3bd');}
   }},
   112:{name:'英式中央公園',draw(T){
     const C=civicKit634(T),{V,H,lawn,path,tree,home,stone}=C;lawn();
@@ -533,6 +545,8 @@ const CIVIC634={
     else{for(const q of [[.2,.22],[.65,.22],[.2,.61]]){C.B(q[0],q[1],.15,.15,17,stone);C.pyramid(q[0]-.015,q[1]-.015,.18,.18,17,9,'#8b644f');}for(let i=0;i<5;i++){L([.34,.3+i*.03,10],[.67,.3+i*.03,10],'#aa9971');L([.34+i*.08,.3,8],[.34+i*.08,.3,15],'#847654');}slide(.25,.77,16);for(let i=0;i<5;i++)L([.67,.48+i*.05,0],[.82,.48+i*.05,11],'#8c9b81');}
     C.fence(.04,.04,.92,.92);C.bench(.12,.93);C.sign(.62,.94,6,'PLAY');C.tree(.92,.11,.07);C.lamp(.91,.83,16);
     civicDetail634(T);
+  
+    if(t701On()){C.g(.10,.82,.30,.06,'#b6b4a2');C.L([.12,.86],[.38,.86],'#c9c2b0',2);C.g(.16,.74,.10,.05,'#b7c3bd');}
   }},
   127:{name:'英式公共住宅',draw(T){
     const C=civicKit634(T),{V,H,home,lawn,path}=C;lawn();path(.08,.64,.84,.24);
