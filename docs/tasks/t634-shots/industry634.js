@@ -143,6 +143,8 @@ const INDUSTRY634={
     else if(v===1){turbine(.18,.5,52,20);T.hooks.rotor=turbine(.75,.35,67,24);I.shed(.1,.72,.26,.13,12,'gable');}
     else{box(.435,.375,.11,.11,3,'#a6b4a3');const p=tank(.49,.43,.028,65,'#aebebb');for(const s of[-1,1]){F([[p[0],p[1]-3],[p[0]+s*12,p[1]+11],[p[0]+s*8,p[1]+44],[p[0],p[1]+56],[p[0]+s*4,p[1]+27]],'#a9c2c1');L([p[0],p[1]],[p[0],p[1]+58],'#566f74',2);}for(const y of[14,44])L([p[0]-8,p[1]+y],[p[0]+8,p[1]+y],'#6b8a8e',2);T.hooks.rotor=p;T.hooks.rotorStatic=true;I.shed(.1,.73,.32,.13,12,'gable',true);box(.66,.71,.2,.12,9,'#73938c');}
     I.road(.08,.89,.8,.06);I.fence(.055,.08,.89,.88);
+  
+    if(t700On()){I.ground(.10,.80,.30,.06,'#8f948c');I.box(.30,.84,.10,.08,8,'#9aa39b',0);}
   }},
   27:{name:'英式污水處理',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -159,6 +161,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.1,.12,.27,.54,27,'gable');const p=I.dome(.69,.38,.16,32,'#c4d1ce');T.hooks.radar=p;I.box(.58,.66,.23,.12,7,'#729391');}
     else{I.shed(.1,.64,.56,.2,19,'flat',true);I.dish(.57,.24,51,.16);I.lattice(.17,.22,37,.035);I.pond(.76,.7,.11,.12);}
     const p=I.P(.32,.58,9);for(let j=0;j<4;j++)I.px(p[0]-4,p[1]+j*2,'#e7e8dc',9,1);I.fence();I.sign(.43,.91,7,'MET');T.hooks.radarStatic=true;
+  
+    if(t700On()){I.ground(.10,.82,.28,.06,'#9aa39b');I.box(.30,.84,.08,.05,7,'#b7c3bd',0);}
   }},
   49:{name:'英式油井',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -167,6 +171,8 @@ const INDUSTRY634={
     else if(v===1){I.lattice(.49,.32,81,.14,'#85745a');I.box(.36,.2,.26,.22,7,'#637d7c',48);I.pipe([[.5,.37,4],[.75,.58,4],[.75,.8,4]]);I.shed(.1,.67,.34,.16,16,'gable');I.tank(.78,.75,.09,21);}
     else{jack(.3,.27,32,.25);jack(.7,.57,40,.25);I.shed(.08,.69,.3,.16,17,'flat');I.tank(.79,.84,.07,19);}
     I.road(.06,.9,.87,.07);I.fence();
+  
+    if(t700On()){I.ground(.10,.82,.32,.06,'#8f948c');I.box(.14,.86,.10,.05,5,'#9aa39b',0);I.tank(.28,.86,.045,12,'#b8c2ba');}
   }},
   50:{name:'英式礦場',draw(T){
     const I=industryKit634(T),v=T.v%3;
