@@ -204,6 +204,8 @@ const CIVIC634={
     else{home(.08,.2,.56,.27,H(32,3),{stone:true,roof:'hip',floors:3});home(.52,.5,.36,.19,H(17,2),{roof:'gable',floors:2});C.cyl(.78,.25,.14,H(17,2),C.brick);C.dome(.78,.25,.15,H(17,2),14,true);C.B(.2,.61,.17,.14,9,C.stone);C.K.tank(.29*T.n,.68*T.n,.065*T.n,15,'#849ba0');}
     C.sign(.43,.83,9,'RESEARCH');C.tree(.1,.84,.075);C.tree(.86,.84,.075);C.lamp(.69,.82,17);
     civicDetail634(T);
+  
+    if(t664On()){C.g(.10,.80,.30,.08,'#9aa39b');C.L([.14,.84],[.36,.84],'#c9c2b0',2);C.L([.14,.88],[.36,.88],'#c9c2b0',2);}
   }},
   54:{name:'英式大墓園',draw(T){
     const C=civicKit634(T),{V,home,H,graves,lawn,path,tree,stone}=C;lawn();path(.455,.05,.09,.92);path(.08,.52,.84,.065);
@@ -477,6 +479,8 @@ const CIVIC634={
     else{court(.15,.28,.7,.58,'basket');home(.1,.08,.4,.12,H(12,1),{roof:'gable',floors:1,chimney:false});for(const a of [.12,.87])for(const b of [.27,.55,.86])L([a,b,0],[a,b,H(23,1)],'#697a70',2);for(const b of [.27,.55,.86]){L([.12,b,H(23,1)],[.5,b,H(32,1)],'#8a9b89',2);L([.5,b,H(32,1)],[.87,b,H(23,1)],'#8a9b89',2);}L([.5,.27,H(32,1)],[.5,.86,H(32,1)],'#687f74',2);C.fence(.08,.24,.83,.66);}
     C.sign(.45,.96,7,'BASKETBALL');C.lamp(.07,.13,H(24,2));C.lamp(.93,.13,H(24,2));C.lamp(.07,.91,H(24,2));C.lamp(.93,.91,H(24,2));
     civicDetail634(T);
+  
+    if(t664On()){C.g(.10,.82,.30,.06,'#9aa39b');for(const q of[[.14,.85],[.26,.85]])C.L([q[0],q[1],0],[q[0],q[1],4],'#b9b3a2',2);}
   }},
   125:{name:'英式網球俱樂部',draw(T){
     const C=civicKit634(T),{V,H,court,home}=C;C.lawn();
@@ -485,6 +489,8 @@ const CIVIC634={
     else{court(.4,.23,.48,.63,'tennis');home(.07,.1,.24,.45,H(18,2),{stone:true,roof:'gable',floors:2,porch:true});C.canopy(.07,.61,.25,.14,13,'#64806e');C.hedge(.38,.09,.52,.065);C.fence(.35,.19,.59,.73);C.bench(.09,.85);}
     C.sign(.47,.96,7,'TENNIS CLUB');C.lamp(.06,.15,H(22,1));C.lamp(.94,.15,H(22,1));C.lamp(.07,.93,H(22,1));C.lamp(.93,.93,H(22,1));
     civicDetail634(T);
+  
+    if(t664On()){C.g(.10,.82,.30,.06,'#8f948c');C.L([.14,.85],[.36,.85],'#c9c2b0',2);C.g(.14,.88,.08,.04,'#b7c3bd');}
   }},
   126:{name:'英式兒童遊樂場',draw(T){
     const C=civicKit634(T),{V,H,p,f,L,stone,brick}=C;C.lawn();C.ring(.5,.49,.42,.39,0,T.winter?'#d7e1d9':'#b49c73');
@@ -503,6 +509,8 @@ const CIVIC634={
     else{home(.1,.11,.27,.52,H(32,3),{roof:'hip',floors:4,bay:true});home(.62,.11,.27,.52,H(32,3),{roof:'hip',floors:4,bay:true});home(.37,.11,.25,.17,H(22,2),{stone:true,roof:'gable',floors:3});C.court(.41,.36,.14,.25,'basket');C.canopy(.43,.71,.3,.1,11);C.hedge(.1,.78,.22,.06);}
     C.sign(.44,.965,7,'COUNCIL HOMES');C.lamp(.12,.9,17);C.lamp(.88,.9,17);C.fence(.05,.9,.28,.025);C.fence(.68,.9,.27,.025);
     civicDetail634(T);
+  
+    if(t664On()){C.g(.10,.82,.30,.06,'#9aa39b');for(const q of[[.14,.84],[.24,.84],[.34,.84]])C.L([q[0],q[1],0],[q[0],q[1],4],'#b9b3a2',2);}
   }},
   132:{name:'英式防災避難公園',draw(T){
     const C=civicKit634(T),{V,H,home,lawn,path,stone}=C;lawn();path(.44,.04,.11,.91);path(.05,.44,.9,.11);
@@ -512,6 +520,8 @@ const CIVIC634={
     else{for(let i=0;i<3;i++)C.B(.13,.16+i*.13,.61,.08,2+i*2,stone);home(.13,.63,.3,.18,H(14,1),{stone:true,roof:'hip',floors:1,chimney:false});emergency(.68,.14);C.canopy(.59,.64,.3,.18,H(16,1));C.sign(.47,.57,8,'MEETING POINT');}
     C.flag(.88,.52,H(28,1),'#65836f');C.sign(.45,.97,7,'SAFE ASSEMBLY');for(const q of [[.04,.15],[.04,.87],[.96,.16],[.96,.88]])C.tree(q[0],q[1],.05);C.lamp(.44,.88,19);C.lamp(.57,.12,19);
     civicDetail634(T);
+  
+    if(t664On()){C.g(.10,.80,.32,.08,'#9aa39b');C.L([.12,.86],[.40,.86],'#c9c2b0',2);C.g(.20,.74,.12,.05,'#b7c3bd');}
   }}
 };
 /* T634 公共與休閒候選結束。 */
