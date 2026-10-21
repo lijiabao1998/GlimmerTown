@@ -459,6 +459,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.08,.1,.2,.61,24,'gable');for(let j=0;j<3;j++)transformer(.43,.15+j*.24,.29,.16);bus(.39,.77,.47);}
     else{I.shed(.12,.1,.62,.18,22,'flat',true);bus(.13,.4,.65);bus(.13,.69,.65);transformer(.15,.48,.24,.16);transformer(.56,.48,.24,.16);}
     I.fence();I.sign(.3,.91,7,'GRID');I.finish();T.hooks.smoke=[];
+  
+    if(t701On()){I.ground(.12,.84,.26,.05,'#9aa39b');I.box(.16,.88,.10,.05,6,'#9aa39b',0);}
   }},
   129:{name:'英式海水淡化廠',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -484,5 +486,7 @@ const INDUSTRY634={
     else if(v===1){I.shed(.12,.13,.31,.28,40,'flat',true);T.hooks.radar=I.dome(.28,.27,.155,56,'#cbd3c8');I.lattice(.7,.29,77,.055);I.shed(.48,.62,.36,.17,22,'gable');}
     else{I.shed(.1,.62,.68,.17,22,'flat');I.dish(.23,.23,55,.14);I.dish(.69,.36,76,.14);I.box(.12,.76,.18,.1,11,'#8d9b8b');}
     const p=I.P(.55,.67,19);I.F([[p[0]-7,p[1]-2],[p[0]-1,p[1]],[p[0]-1,p[1]+4],[p[0]-7,p[1]+6]],'#c4ae6e');I.fence();I.sign(.31,.93,8,'RADAR');I.beacon(v===0?.63:v===1?.7:.69,v===0?.31:v===1?.29:.36,v===0?83:v===1?77:76);
+  
+    if(t701On()){I.ground(.10,.82,.28,.06,'#8f948c');I.box(.14,.86,.10,.05,7,'#9aa39b',0);}
   }}
 };
