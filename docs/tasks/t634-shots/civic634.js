@@ -204,6 +204,8 @@ const CIVIC634={
     else{home(.08,.2,.56,.27,H(32,3),{stone:true,roof:'hip',floors:3});home(.52,.5,.36,.19,H(17,2),{roof:'gable',floors:2});C.cyl(.78,.25,.14,H(17,2),C.brick);C.dome(.78,.25,.15,H(17,2),14,true);C.B(.2,.61,.17,.14,9,C.stone);C.K.tank(.29*T.n,.68*T.n,.065*T.n,15,'#849ba0');}
     C.sign(.43,.83,9,'RESEARCH');C.tree(.1,.84,.075);C.tree(.86,.84,.075);C.lamp(.69,.82,17);
     civicDetail634(T);
+  
+    if(t664On()){C.g(.10,.80,.30,.08,'#9aa39b');C.L([.14,.84],[.36,.84],'#c9c2b0',2);C.L([.14,.88],[.36,.88],'#c9c2b0',2);}
   }},
   54:{name:'英式大墓園',draw(T){
     const C=civicKit634(T),{V,home,H,graves,lawn,path,tree,stone}=C;lawn();path(.455,.05,.09,.92);path(.08,.52,.84,.065);

@@ -265,6 +265,8 @@ const INDUSTRY634={
     else if(v===1){I.lattice(.5,.36,106,.18,'#647b7e');for(let j=0;j<3;j++){const p=I.P(.5,.36,55+j*15);I.ell(p[0]+7,p[1],6,4,'#c5d1c9');I.L([p[0]-8,p[1]],[p[0]+8,p[1]],'#b9c6bd',2);}I.shed(.12,.66,.65,.2,23,'flat');T.hooks.radar=I.P(.5,.36,100);}
     else{I.shed(.31,.18,.27,.28,56,'flat',true);I.box(.25,.13,.39,.37,12,'#7c999c',55);I.tank(.45,.32,.035,108,'#c0c6b9');I.dish(.79,.66,43,.1);I.shed(.11,.73,.48,.13,18,'gable');T.hooks.radar=I.P(.45,.32,101);}
     I.beacon(v===0?.59:v===1?.5:.45,v===0?.35:v===1?.36:.32,v===0?114:v===1?106:108);I.fence();I.sign(.27,.94,9,'BBC');
+  
+    if(t664On()){I.box(.12,.78,.14,.09,9,'#9aa39b',0);I.pipe([[.19,.78,3],[.19,.62,6],[.30,.62,6]],'#8a938c',2);}
   }},
   91:{name:'英式貿易站',draw(T){
     const I=industryKit634(T),v=T.v%3;
@@ -272,6 +274,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.1,.1,.73,.24,34,'gable',true);I.shed(.1,.4,.22,.32,22,'gable');for(let j=0;j<3;j++)I.container(.4+j*.16,.62,.12,.13,12,['#9b735a','#6d8c87','#9b9b78'][j]);I.sign(.39,.4,20,'EXCHANGE');}
     else{I.shed(.1,.1,.28,.52,42,'gable');I.shed(.5,.16,.33,.41,23,'saw');I.box(.35,.28,.17,.09,7,'#879792',22);I.container(.52,.68,.3,.1,14,'#776b62');}
     I.road();I.truck(.18,.85,'#71968a',false);I.fence();I.sign(.24,.63,24,'TRADE');
+  
+    if(t664On()){for(let i=0;i<3;i++)I.box(.12+i*.12,.84,.09,.06,5,'#a5aca5',0);I.ground(.10,.74,.36,.06,'#8f948c');}
   }},
   100:{name:'英式釀酒廠',draw(T){
     const I=industryKit634(T),v=T.v%3;
