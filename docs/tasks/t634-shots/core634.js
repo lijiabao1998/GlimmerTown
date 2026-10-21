@@ -4,6 +4,8 @@ function t661On(){try{if(typeof window!=='undefined'&&window.__noT661)return fal
 function t662On(){try{if(typeof window!=='undefined'&&window.__noT662)return false;if(typeof location!=='undefined'&&/[?&]noT662=1/.test(location.search||''))return false;}catch(e){}return true;}
 /* T663 大型建築第三波閥（?noT663=1／window.__noT663；砂箱無 window 時視為開啟） */
 function t663On(){try{if(typeof window!=='undefined'&&window.__noT663)return false;if(typeof location!=='undefined'&&/[?&]noT663=1/.test(location.search||''))return false;}catch(e){}return true;}
+/* T664 大型建築第四波閥（?noT664=1／window.__noT664；砂箱無 window 時視為開啟） */
+function t664On(){try{if(typeof window!=='undefined'&&window.__noT664)return false;if(typeof location!=='undefined'&&/[?&]noT664=1/.test(location.search||''))return false;}catch(e){}return true;}
 /* T634：全批英式美術（業主已批准）。只讀視覺，不改模擬／舊精靈；預設開啟，逐家族按需烘焙。 */
 const REMAIN634=new Set([1,2,3,9,16,22,24,25,26,27,31,45,46,49,50,51,54,57,58,59,62,64,67,68,69,70,71,72,73,74,75,76,77,78,79,80,82,83,86,89,90,91,93,94,96,98,99,100,101,103,107,109,110,111,112,115,116,118,119,120,121,122,123,124,125,126,127,128,129,131,132,133]);
 const LEGACY634=new Set([8,29,53,60,63,66,85,88,92,104,117]);
