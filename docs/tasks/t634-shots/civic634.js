@@ -176,6 +176,8 @@ const CIVIC634={
     else{path(.12,.55,.76,.07);home(.59,.1,.29,.23,H(12,1),{stone:true,roof:'hip',floors:1,chimney:false});for(let i=0;i<7;i++)grave(.1+i*.105,.76,i%3);graves(.13,.18,3,2,.13);tree(.48,.24,.12);tree(.78,.48,.095);}
     C.edge();tree(.12,.88,.06);tree(.86,.86,.06);C.sign(.44,.97,5,'CHURCHYARD');
     civicDetail634(T);
+  
+    if(t700On()){C.g(.10,.80,.30,.06,'#9aa39b');C.L([.12,.86],[.38,.86],'#c9c2b0',2);C.g(.14,.90,.06,.03,'#b7c3bd');}
   }},
   24:{name:'英倫歷史地標',draw(T){
     const C=civicKit634(T),{V,B,home,H,stone,brick,path,lawn}=C;lawn();path(.1,.1,.8,.8);
@@ -326,6 +328,8 @@ const CIVIC634={
     else{B(.24,.22,.52,.45,35,stone);B(.2,.18,.6,.53,4,stone,33);for(let i=0;i<3;i++){B(.2+i*.26,.67,.08,.055,3,stone,37);C.window(.33+i*.17,.68,25,3,7);}C.pyramid(.2,.18,.6,.53,40,10,'#55636d');C.arch(.38,.67,.24,.06,14,stone);}
     C.sign(.49,.91,7,'WATERWORKS');C.fence(.1,.1,.8,.8);
     civicDetail634(T);
+  
+    if(t700On()){C.g(.12,.84,.26,.05,'#9aa39b');C.L([.16,.87],[.34,.87],'#c9c2b0',2);}
   }},
   78:{name:'英式千年古樹',draw(T){
     const C=civicKit634(T),{V,n,p,f,l,L,sea,W}=C;C.lawn();C.ring(.5,.5,.44,.42,0,'#b7ab86');C.ring(.5,.5,.36,.34,.2,W?'#d7e0dc':'#859264');
@@ -368,6 +372,8 @@ const CIVIC634={
     else{home(.15,.16,.7,.22,H(30,4),{stone:true,roof:'hip',floors:3});home(.15,.39,.23,.34,H(29,3),{roof:'gable',floors:3});home(.64,.39,.21,.34,H(29,3),{roof:'gable',floors:3});C.cyl(.51,.6,.085,3,stone);C.ring(.51,.6,.06,.06,3,'#6a9ba5');C.arch(.42,.72,.18,.09,13,stone);C.sign(.51,.82,14,'INN');}
     C.lamp(.08,.86,17);C.lamp(.9,.86,17);C.tree(.1,.09,.055);C.tree(.91,.09,.055);
     civicDetail634(T);
+  
+    if(t700On()){C.g(.10,.84,.30,.05,'#8f948c');C.L([.14,.87],[.36,.87],'#c9c2b0',2);C.g(.14,.90,.08,.04,'#b7c3bd');}
   }},
   83:{name:'英式莊園度假酒店',draw(T){
     const C=civicKit634(T),{V,home,H,path,lawn,stone}=C;lawn();path(.04,.47,.92,.41);
@@ -386,6 +392,8 @@ const CIVIC634={
     else{B(.14,.2,.72,.46,H(24,3),stone);B(.28,.27,.44,.29,H(13,2),stone,H(24,3));B(.39,.32,.22,.2,8,stone,H(37,3));for(let i=0;i<6;i++)C.window(.22+i*.11,.675,H(19,2),4,12);B(.36,.65,.28,.12,3,stone);C.canopy(.34,.63,.32,.16,14,'#4a5d60');C.sign(.5,.65,H(25,2),'BANK');}
     C.flag(.84,.11,H(31,2));C.lamp(.1,.82,16);C.lamp(.88,.82,16);
     civicDetail634(T);
+  
+    if(t700On()){for(const q of[[.12,.86],[.32,.86],[.52,.86]])C.L([q[0],q[1],0],[q[0],q[1],9],'#b9b3a2',2);C.g(.10,.90,.46,.03,'#9aa39b');}
   }},
   90:{name:'英式遊艇碼頭',draw(T){
     const C=civicKit634(T),{V,n,p,f,L,home,H}=C;C.g(0,0,1,1,T.winter?'#a5c0c5':'#688f9b');for(let j=0;j<7;j++)L([.05,.12+j*.13,0],[.9,.12+j*.13,0],T.winter?'#d9e3dd':'#9bbabf');
@@ -417,6 +425,8 @@ const CIVIC634={
     else{for(let i=0;i<5;i++)C.B(.16+i*.045,.2,.045,.22,2+i*2,stone);ramp(.57,.16,.25,.2,13);C.B(.24,.62,.35,.12,5,stone);C.L([.24,.65,9],[.59,.65,9],'#4c6365',2);C.ring(.75,.73,.11,.12,1,'#788a88');}
     C.bench(.15,.93);C.sign(.6,.93,6,'SKATE');C.lamp(.94,.3,19);C.fence(.04,.04,.92,.92);
     civicDetail634(T);
+  
+    if(t700On()){C.g(.10,.84,.30,.05,'#b6b4a2');C.L([.12,.88],[.38,.88],'#c9c2b0',2);C.g(.20,.78,.10,.04,'#b7c3bd');}
   }},
   96:{name:'英式市民游泳池',draw(T){
     const C=civicKit634(T),{V,H,home,pool,stone}=C;C.path(0,0,1,1);
@@ -425,6 +435,8 @@ const CIVIC634={
     else{pool(.11,.16,.36,.65,3);pool(.56,.23,.31,.42,2);home(.53,.69,.35,.16,H(12,1),{roof:'gable',floors:1,chimney:false});C.cyl(.71,.1,.09,2,stone);C.ring(.71,.1,.07,.07,2,'#74aeba');C.B(.46,.51,.04,.13,10,stone);}
     C.sign(.5,.96,8,'LIDO');C.lamp(.07,.89,17);C.lamp(.92,.89,17);for(let i=0;i<3;i++)C.bench(.23+i*.22,.915);
     civicDetail634(T);
+  
+    if(t700On()){for(const q of[[.14,.88],[.28,.88],[.42,.88]]){C.g(q[0]-.03,q[1]-.02,.06,.03,'#d8c9a0');C.L([q[0],q[1],0],[q[0],q[1],7],'#b9b3a2',2);}}
   }},
   98:{name:'英式青年旅舍',draw(T){
     const C=civicKit634(T),{V,H,home}=C;C.lawn();C.path(.05,.53,.9,.41);
