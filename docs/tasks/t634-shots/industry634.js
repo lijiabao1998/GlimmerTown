@@ -311,6 +311,8 @@ const INDUSTRY634={
     else if(v===1){I.shed(.08,.1,.3,.62,37,'gable');I.shed(.48,.1,.36,.2,23,'flat');I.pipe([[.35,.32,19],[.64,.48,19],[.64,.7,12]],'#a4956b',6);for(let j=0;j<2;j++)I.container(.52+j*.18,.72,.15,.13,15,'#778e7a');}
     else{I.shed(.1,.1,.67,.23,25,'saw');I.shed(.12,.48,.3,.26,26,'saw');I.crane(.67,.52,.38,47,true);for(let j=0;j<3;j++)I.box(.52+j*.11,.69,.075,.09,7,'#a49d7c');}
     I.road();I.truck(.25,.86,'#73927d');I.fence();I.sign(.27,.53,25,'RECYCLE');
+  
+    if(t700On()){I.box(.10,.84,.16,.10,7,'#7e8674',0);I.box(.32,.84,.10,.07,5,'#9a8d6c',0);I.ground(.08,.76,.36,.03,'#8f948c');}
   }},
   116:{name:'英式數據中心',draw(T){
     const I=industryKit634(T),v=T.v%3;

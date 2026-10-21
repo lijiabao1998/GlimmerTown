@@ -386,6 +386,8 @@ const CIVIC634={
     else{B(.14,.2,.72,.46,H(24,3),stone);B(.28,.27,.44,.29,H(13,2),stone,H(24,3));B(.39,.32,.22,.2,8,stone,H(37,3));for(let i=0;i<6;i++)C.window(.22+i*.11,.675,H(19,2),4,12);B(.36,.65,.28,.12,3,stone);C.canopy(.34,.63,.32,.16,14,'#4a5d60');C.sign(.5,.65,H(25,2),'BANK');}
     C.flag(.84,.11,H(31,2));C.lamp(.1,.82,16);C.lamp(.88,.82,16);
     civicDetail634(T);
+  
+    if(t700On()){for(const q of[[.12,.86],[.32,.86],[.52,.86]])C.L([q[0],q[1],0],[q[0],q[1],9],'#b9b3a2',2);C.g(.10,.90,.46,.03,'#9aa39b');}
   }},
   90:{name:'英式遊艇碼頭',draw(T){
     const C=civicKit634(T),{V,n,p,f,L,home,H}=C;C.g(0,0,1,1,T.winter?'#a5c0c5':'#688f9b');for(let j=0;j<7;j++)L([.05,.12+j*.13,0],[.9,.12+j*.13,0],T.winter?'#d9e3dd':'#9bbabf');
@@ -425,6 +427,8 @@ const CIVIC634={
     else{pool(.11,.16,.36,.65,3);pool(.56,.23,.31,.42,2);home(.53,.69,.35,.16,H(12,1),{roof:'gable',floors:1,chimney:false});C.cyl(.71,.1,.09,2,stone);C.ring(.71,.1,.07,.07,2,'#74aeba');C.B(.46,.51,.04,.13,10,stone);}
     C.sign(.5,.96,8,'LIDO');C.lamp(.07,.89,17);C.lamp(.92,.89,17);for(let i=0;i<3;i++)C.bench(.23+i*.22,.915);
     civicDetail634(T);
+  
+    if(t700On()){for(const q of[[.14,.88],[.28,.88],[.42,.88]]){C.g(q[0]-.03,q[1]-.02,.06,.03,'#d8c9a0');C.L([q[0],q[1],0],[q[0],q[1],7],'#b9b3a2',2);}}
   }},
   98:{name:'英式青年旅舍',draw(T){
     const C=civicKit634(T),{V,H,home}=C;C.lawn();C.path(.05,.53,.9,.41);
