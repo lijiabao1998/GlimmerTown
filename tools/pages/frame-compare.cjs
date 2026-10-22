@@ -98,23 +98,49 @@ function bridge648() {
     groundDirty = true;
     return [33, Math.round((20 + bottom) / 2)];
   };
+  // T705：鐵道測試場。用遊戲本身的 GV.place 鋪（和玩家操作同一條路），列車位置固定，freeze() 清空載具後再放回
+  let fixedTrains = [];
+  const keepTrains = () => { freeze(); for (const t of fixedTrains) trains.push({...t}); };
+  const railRig = () => {
+    GV.setMapSize(72); GV.newWorldSeeded(705); GV.setDiff(3); GV.ai(false); GV.setSpeed(0); freeze(); money = 1e9;
+    for (const t of tiles) Object.assign(t, {t: 2, tree: 0, gv: 0, road: 0, rc: 0, mask: 0, bridge: 0, zone: 0, bld: null, deco: 0, rail: 0, tram: 0, dock: 0, el: 0});
+    const R = (x0, x1, y0, y1, f) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) f(x, y); };
+    R(18, 23, 30, 33, (x, y) => { T(idx(x, y)).t = 0; }); recalcAllMasks(); computeFoam();
+    const put = kind => (x, y) => { if (T(idx(x, y))[kind]) return; if (!GV.place(kind, x, y)) throw new Error('rail scene: cannot place ' + kind + ' at ' + x + ',' + y); }; // 交叉處第二次經過同一格就跳過
+    const rail = put('rail'), road = put('road'), tram = put('tram');
+    R(26, 26, 17, 29, road);                    // 南北向道路，主線從上面跨過＝平交道（先鋪路再鋪軌）
+    R(19, 44, 22, 22, rail);                    // 東西向主線
+    R(44, 44, 23, 34, rail);                    // 東端 L 彎往南
+    R(36, 43, 34, 34, rail);                    // 南端 L 彎往西
+    R(32, 32, 23, 28, rail);                    // T 字岔線往南，(32,28) 是線尾
+    R(35, 41, 28, 28, rail); R(38, 38, 25, 31, rail); // 十字交叉
+    R(16, 26, 31, 31, rail);                    // 過水的鐵路橋
+    put('station')(36, 19);                     // 車站 3×3，南邊挨著主線
+    R(22, 30, 38, 38, tram); R(31, 34, 38, 38, rail); // 輕軌接鐵路
+    R(36, 44, 40, 40, rail); R(36, 44, 41, 41, rail); // 平行雙線
+    for (const t of tiles) if (t.bld && !t.bld.ref) Object.assign(t.bld, {age: 60, pw: true, wa: true});
+    recalcAllMasks(); recalcAllRailMasks(); computePower(); computeWater(); rebuildCov(); groundDirty = true;
+    fixedTrains = [{x: 23, y: 22, d: 1, p: .35, pt: 0}, {x: 44, y: 23, d: 2, p: .35, pt: 1}, /* 東端轉角：車頭剛轉過彎、後兩節還在彎前 */ {x: 32, y: 26, d: 2, p: .5, pt: 0}, {x: 20, y: 31, d: 3, p: .4, pt: 1}, {x: 40, y: 40, d: 1, p: .2, pt: 0}];
+  };
   const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
   window.__frame648 = {
-    setup: ({scene, fixture, ids, zoom}) => {
+    setup: ({scene, fixture, ids, zoom, rail, center}) => {
       let c;
-      if (fixture) { localStorage.setItem('glimmerville.v1.s3', fixture); if (!GV.load()) throw new Error('fixture load rejected: ' + scene); GV.ai(false); GV.setSpeed(0); freeze(); c = densest(); }
+      fixedTrains = [];
+      if (rail) { railRig(); c = center; }
+      else if (fixture) { localStorage.setItem('glimmerville.v1.s3', fixture); if (!GV.load()) throw new Error('fixture load rejected: ' + scene); GV.ai(false); GV.setSpeed(0); freeze(); c = densest(); }
       else c = rig(ids);
       // 暖身：第一次繪製會觸發按需烘焙與地面快取，量第一幀之前先在每個季節畫過一次（試跑實測：不暖身時陣列場景的第一幀畫兩次會不同）
       GV.setZoom(zoom); GV.lookAt(c[0], c[1]);
-      for (const sea of [0, 1, 2, 3]) { GV.setSeason(sea); rainDays = sea === 3 ? SNOW_ACC_DAYS + 3 : 0; for (const t of [55, 5]) { visT = t; groundDirty = true; GV.forceDraw(); } }
+      for (const sea of [0, 1, 2, 3]) { GV.setSeason(sea); rainDays = sea === 3 ? SNOW_ACC_DAYS + 3 : 0; for (const t of [55, 5]) { if (fixedTrains.length) keepTrains(); visT = t; groundDirty = true; GV.forceDraw(); } }
       return c;
     },
     frame: async ({cx, cy, zoom, rot, sea, snow, night, hq, png}) => {
-      freeze(); GV.setRot(rot); GV.setSeason(sea); rainDays = snow ? SNOW_ACC_DAYS + 3 : 0; GV.setZoom(zoom); GV.lookAt(cx, cy);
+      keepTrains(); GV.setRot(rot); GV.setSeason(sea); rainDays = snow ? SNOW_ACC_DAYS + 3 : 0; GV.setZoom(zoom); GV.lookAt(cx, cy);
       const draw = () => { visT = night ? 5 : 55; trafClock = 12; waterT = waterF = 0; shakeT = 0; groundDirty = true; ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; GV.forceDraw(); };
       // 按需烘焙是跨幀漸進的（換季後快取被擠掉，要畫幾次才收斂；試跑實測）：畫到連續兩次逐位元組相同為止，最多 8 次，收斂不了才算不穩
       // hq：高畫質（quality=2）才有的分支，例如白天陰影（Codex #37 P1）
-      const grab = () => { freeze(); quality = hq ? 2 : 1; draw(); return ctx.getImageData(0, 0, cvs.width, cvs.height).data.slice(); };
+      const grab = () => { keepTrains(); quality = hq ? 2 : 1; draw(); return ctx.getImageData(0, 0, cvs.width, cvs.height).data.slice(); };
       let a = grab(), b = grab(), draws = 2, unstable = 0;
       const diff = () => { let n = 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) n++; return n; };
       while ((unstable = diff()) && draws < 8) { a = b; b = grab(); draws++; }
@@ -141,6 +167,8 @@ function scenes(repo) {
     {scene: 'rci', ids: RCI, zoom: 0.9},
     {scene: 'civic', ids: CIVIC, zoom: 0.55},
     {scene: 'industry', ids: INDUSTRY, zoom: 0.55},
+    {scene: 'rail', rail: true, center: [31, 29], zoom: 0.7},        // T705：鐵道測試場全景
+    {scene: 'rail-close', rail: true, center: [40, 26], zoom: 1.6}, // T705：轉角、十字、車站一帶近景
   ];
 }
 
@@ -170,7 +198,7 @@ async function render(browser, origin, key, valves, plan, wantPng) {
     for (const s of plan) {
       await page.goto(origin + '/' + key + '.html');
       await page.waitForFunction(() => window.GV && window.__frame648 && window.__boot426 && __boot426().ready, null, {timeout: 120000});
-      const [cx, cy] = await page.evaluate(a => __frame648.setup(a), {scene: s.scene, fixture: s.fixture || null, ids: s.ids || null, zoom: s.zoom});
+      const [cx, cy] = await page.evaluate(a => __frame648.setup(a), {scene: s.scene, fixture: s.fixture || null, ids: s.ids || null, zoom: s.zoom, rail: !!s.rail, center: s.center || null});
       for (const st of states(s)) out[st.id] = await page.evaluate(a => __frame648.frame(a), {...st, cx, cy, png: !!wantPng});
     }
     if (errors.length) throw new Error(key + ' page errors: ' + errors.slice(0, 3).join(' | '));
@@ -280,6 +308,7 @@ function selfTest() {
   const card = (o = {}) => ({path: 'docs/tasks/T650-x.md', families: [], valves: [], ownerOk: false, revertOf: null, ...o});
   const run = o => verdict({card: card(o.card), baseA: frames(), baseB: o.baseB || frames(), head: o.head || frames(), valve: o.valve || null});
   assert.equal(run({}).code, 0, 'identical frames are green');
+  { const sc = scenes(path.resolve(__dirname, '..', '..')); assert.ok(['rail', 'rail-close'].every(n => sc.some(s => s.scene === n && s.rail && s.center)), 'T705: rail scenes present'); }
   assert.deepEqual(run({head: frames({b: H('9')})}).problems.map(p => p.rule), ['frame-changed'], 'non-art change is red');
   assert.equal(run({head: frames({b: H('9')}), card: {ownerOk: true, families: ['art638'], valves: ['__noT638']}, valve: frames()}).code, 0, 'approved art with a working valve is green');
   assert.deepEqual(run({head: frames({b: H('9')}), card: {ownerOk: true, families: ['art638'], valves: ['__noT638']}, valve: frames({b: H('9')})}).problems.map(p => p.rule), ['valve-leak'], 'leaking valve is red');
