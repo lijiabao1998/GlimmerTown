@@ -17551,6 +17551,18 @@ function railDirs(x,y){
 function listBldK(k){
   const a=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k===k)a.push(i);}return a;
 }
+/* T702：列車關節化閥（?noT702=1／window.__noT702；關掉回舊的單向直線排列） */
+function t702On(){try{if(typeof window!=='undefined'&&window.__noT702)return false;if(typeof location!=='undefined'&&/[?&]noT702=1/.test(location.search||''))return false;}catch(e){}return true;}
+/* T702：給第 i 節車廂取樣（沿頭車軌跡回推弧長）；trail[j] 是「第 j 格」的節點。 */
+function trainCar702(tr,i,sp){
+  const S=(tr.n||0)+tr.p-i*sp;
+  if(!(S>=0)||!tr.trail)return null;
+  const k=Math.floor(S);
+  const node=(k<=(tr.n||0)-1)?tr.trail[tr.trail.length-((tr.n||0)-k)]:null;
+  const d=node?node.d:tr.d, bx=node?node.x:tr.x, by=node?node.y:tr.y;
+  const fr=S-k;
+  return {x:bx+DIRV[d][0]*fr,y:by+DIRV[d][1]*fr,d};
+}
 function updTrains(dt){
   const sts=listBldK(17).concat(listBldK(55)); // T234：中央車站亦為列車起訖點
   const target=sts.length>=2?Math.min(4,sts.length-1):0; // T234：中央車站入網後上限 3→4 列
@@ -17568,13 +17580,14 @@ function updTrains(dt){
     const d0=ds[vri(ds.length)];
     const tx0=ports574?ports574[d0][0]:x+DIRV[d0][0],ty0=ports574?ports574[d0][1]:y+DIRV[d0][1];
     const pt=window.__noVeh?0:(streetHash(tx0,ty0,940)<.5?0:1); // T155：車廂塗裝（0既有暗紅/1新塗裝）依生成格座標決定性挑選，不消耗R()，終生固定；__noVeh 時恆 0＝零位移
-    trains.push({x:tx0,y:ty0,d:d0,p:0,pt}); // 生在鄰接的軌道格（站牌格本身不可行走）
+    trains.push({x:tx0,y:ty0,d:d0,p:0,pt,trail:[{x:tx0,y:ty0,d:d0}],n:0}); // T702 // 生在鄰接的軌道格（站牌格本身不可行走）
     if(trains.length>=target)break;
   }
   for(let i=trains.length-1;i>=0;i--){
     const c=trains[i];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).rail){trains.splice(i,1);continue;}
     c.p+=dt*1.1;if(c.p<1)continue;c.p-=1;
+    if(t702On()){if(!c.trail)c.trail=[{x:c.x,y:c.y,d:c.d}];else c.trail.push({x:c.x,y:c.y,d:c.d});if(c.trail.length>64)c.trail.shift();c.n=(c.n||0)+1;} /* T702 trail push */
     c.x+=DIRV[c.d][0];c.y+=DIRV[c.d][1];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).rail){trains.splice(i,1);continue;}
     const ds=railDirs(c.x,c.y);if(!ds.length){trains.splice(i,1);continue;}
@@ -19010,9 +19023,10 @@ function draw(dt){
     const nSeg=(SPR.trainLoco&&!window.__noTrainSpr&&!window.__noTrainCars)?3:1;
     for(let ci=nSeg-1;ci>=0;ci--){
       const back=ci*.62;
-      const fx=tr.x+DIRV[tr.d][0]*(tr.p-back), fy=tr.y+DIRV[tr.d][1]*(tr.p-back);
+      let _c702=null; if(t702On()){try{_c702=trainCar702(tr,ci,.62);}catch(e){_c702=null;}}
+      const fx=_c702?_c702.x:(tr.x+DIRV[tr.d][0]*(tr.p-back)), fy=_c702?_c702.y:(tr.y+DIRV[tr.d][1]*(tr.p-back)); /* T702 car sample */
       const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-      objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:tr.d});
+      objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:(_c702?_c702.d:tr.d)});
     }
   }
   for(const sh of cargoShips){                            // 貨船（T64）：同小車/火車位置內插公式，沿水面 t===0 緩動
