@@ -2455,7 +2455,31 @@ function railTrack(g,m,cy,len,cfg){
     g.fillStyle='#c0403a'; g.fillRect(rx-2,ry-4,2,2);
     g.fillStyle='#e8e4dc'; g.fillRect(rx,ry-4,2,2);
   };
-  for(const bit of [1,2,4,8]) if(m&bit) drawAxis(bit,len);
+  /* T703 corner arc：相鄰兩向＝轉角，用二次貝茲弧取代兩段直軌硬拼 */
+  const drawCorner=(b1,b2)=>{
+    const e1=[cx+AX[b1][0]*8, cy+AX[b1][1]*8];
+    const e2=[cx+AX[b2][0]*8, cy+AX[b2][1]*8];
+    const at=t=>{const u=1-t;return [u*u*e1[0]+2*u*t*cx+t*t*e2[0], u*u*e1[1]+2*u*t*cy+t*t*e2[1]];};
+    const N=20;
+    for(let k2=0;k2<=N;k2++){
+      const t=k2/N, pt=at(t), pt2=at(Math.min(1,t+.02));
+      let dx=pt2[0]-pt[0], dy=pt2[1]-pt[1];
+      const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
+      const nx=-dy, ny=dx;
+      if(ballast){for(let kk=-slHalf-2;kk<=slHalf+2;kk+=1){g.fillStyle=((Math.round(pt[0]+nx*kk)+Math.round(pt[1]+ny*kk))&1)?'#7d7060':'#6a5f50';g.fillRect(Math.round(pt[0]+nx*kk),Math.round(pt[1]+ny*kk),1,1);}}
+      if(slHalf>0&&k2%2===0){for(let kk=-slHalf;kk<=slHalf;kk+=1){g.fillStyle=Math.abs(kk)>slHalf-1.2?sleeperHi:sleeperC;g.fillRect(Math.round(pt[0]+nx*kk),Math.round(pt[1]+ny*kk),1,1);}}
+      for(const sg of [1,-1]){
+        const rx=Math.round(pt[0]+nx*gauge*sg), ry=Math.round(pt[1]+ny*gauge*sg);
+        g.fillStyle=railSh; g.fillRect(rx,ry+1,1,1);
+        g.fillStyle=railC;  g.fillRect(rx,ry,1,1);
+      }
+    }
+  };
+  const _bits=[1,2,4,8].filter(b=>m&b);
+  const _x=_bits.length===2?(_bits[0]^_bits[1]):0;
+  if(_x===3||_x===6||_x===9||_x===12){drawCorner(_bits[0],_bits[1]);}
+  else for(const bit of [1,2,4,8]) if(m&bit) drawAxis(bit,len);
+
   const pc=STOPPC582(m);                               // 與繪製端共用同一個 popcount
   if(pc===0){ drawAxis(1,2.5); bufferStop(1); }        // 孤立格：短軌樁＋車擋
   else if(pc===1){ bufferStop(m); }                    // 死路：閉合側車擋
