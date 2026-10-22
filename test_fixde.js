@@ -19571,3 +19571,6 @@ for(const [name675,file675,args675] of [
 
 /* T661：開關撥動要讓快取失效（只追加）。T634 那批的園區快取鍵（lotKey591，T591 G1c 逐字釘住）與單格快取鍵（spr634）都不含 T661 開關，同一頁先畫新圖再設 window.__noT661 會拿到快取裡的新圖——scene603 的 T634 只關新圖比對（fractional-r0-z0.65-day）紅了 7115 像素。改由 sync661() 在 T661 開關變動時清掉三個快取，每幀開畫與取園區快取前各檢查一次。 */
 {assert(html.includes('function sync661(){')&&html.includes('lotCache574.clear();lotHookCache574.clear();lotCachePixels574=0;CACHE634.clear();STAT634.pixels=0;}'),'T661 sync661 清掉園區、掛點、單格三個快取');assert(html.includes('function draw(dt){\n  updWind441();')&&/function draw\(dt\)\{\n  updWind441\(\);[^\n]*\n  sync661\(\);/.test(html),'T661 每幀開畫第二行就檢查 T661 開關');assert(html.includes("  sync661();const key=(far?'far:':'')+k+'_'+v+'_'+stage+'_'+(+winter)+lotKey591(k);let s=lotCache574.get(key);"),'T661 取園區快取前檢查 T661 開關');}
+
+/* T704：鐵路線尾夜間白屏——T149 光暈迴圈不因缺座標條目丟錯；只追加，既有斷言一字不改。 */
+{const r704=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t704-shots/check-halo.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});let j704=null;try{j704=JSON.parse(r704.stdout);}catch{}assert(r704.status===0&&j704&&j704.passed===true&&j704.negativeControls.length===3,'T704 G1 光暈迴圈遇缺座標條目不丟錯、save/restore 成對、rect 條目帶 noHalo、三負控制首紅在目標：'+r704.stderr);}
