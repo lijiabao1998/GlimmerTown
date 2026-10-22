@@ -2372,8 +2372,8 @@ function diaEdge(g,edges,col,cx=32,ty=0,hw=32){
 function STOPPC582(m){return (m&1)+((m>>1)&1)+((m>>2)&1)+((m>>3)&1);}
 function railTrack(g,m,cy,len,cfg){
   cfg=cfg||{};
-  const gauge=cfg.gauge!==undefined?cfg.gauge:3.4;      // 半軌距（像素）＝兩軌相距 6.8px，遠看仍可辨
-  const slHalf=cfg.slHalf!==undefined?cfg.slHalf:5.2;   // 枕木半長（比軌距寬＝露出枕木端頭）
+  const gauge=cfg.gauge!==undefined?cfg.gauge:4.4;      // 半軌距（像素）＝兩軌相距 6.8px，遠看仍可辨
+  const slHalf=cfg.slHalf!==undefined?cfg.slHalf:6.2;   // 枕木半長（比軌距寬＝露出枕木端頭）
   const ballast=cfg.ballast!==false;
   const railC=cfg.railC||'#c6cad2', railTop=cfg.railTop||'#e8ecf2', railSh=cfg.railSh||'#7a7e86';
   const sleeperC=cfg.sleeperC||'#4a3a2a', sleeperHi=cfg.sleeperHi||'#5d4a34';
@@ -2413,7 +2413,7 @@ function railTrack(g,m,cy,len,cfg){
     // ② 枕木：每 2 步一根，2px 厚，端頭高光（T582：下緣補落影）
     /* T582：slHalf<=0 代表「嵌入鋪面」（輕軌），枕木埋在鋪面下本來就不該露出來——
        舊碼在 slHalf=0 時仍讓 k=0 跑一輪，每格留 8 個棕色像素浮在石板上（實測數出來的）。 */
-    if(slHalf>0)for(let u=1.5;u<=uMax-.5;u+=2){
+    if(slHalf>0)for(let u=1.2;u<=uMax-.4;u+=1.5){
       const bx=cx+ax*u, by=cy+ay*u;
       for(let k=-slHalf;k<=slHalf;k+=1){
         const qx=Math.round(bx+px*k), qy=Math.round(by+py*k);
@@ -2430,6 +2430,8 @@ function railTrack(g,m,cy,len,cfg){
         if(ballast){g.fillStyle=groundSh;g.fillRect(qx,qy+2,1,1);}               // T582 軌腰接地
         g.fillStyle=railSh; g.fillRect(qx,qy+1,1,1);
         g.fillStyle=railC;  g.fillRect(qx,qy,1,1);
+        g.fillStyle=railTop; g.fillRect(Math.round(qx+px),Math.round(qy+py),1,1); /* T703 rail thick */
+        g.fillStyle=railSh;  g.fillRect(Math.round(qx-px),Math.round(qy-py),1,1);
         g.fillStyle=railTop;g.fillRect(qx,qy-1,1,1);
         if(grooveC){                                                            // T582 凹槽（僅輕軌）
           const gx=Math.round(bx+px*(gauge-0.8)*sgn), gy=Math.round(by+py*(gauge-0.8)*sgn); // 緊貼軌頭內側（1.2 太遠，實測離軌 2-3px）
@@ -19205,7 +19207,7 @@ function draw(dt){
       const sp=(o.carIdx===0)?SPR.trainLoco[pt]:SPR.trainCar[pt];
       // T581 幀索引由**行進進度**驅動（不是 visT）：車停下來輪子就停，這是時間驅動做不到的
       const fr581=(window.__noVehAnim581||!sp.AF)?0:(Math.floor((o.train.p||0)*4)&3);
-      ctx.drawImage(sp.AF?(face==='A'?sp.AF[fr581]:sp.BF[fr581]):sp[face],sx-sp.ox*z,sy-sp.oy*z,sp.w*z,sp.h*z);
+      ctx.drawImage(sp.AF?(face==='A'?sp.AF[fr581]:sp.BF[fr581]):sp[face],sx-sp.ox*z*.85,sy-sp.oy*z*.85,sp.w*z*.85,sp.h*z*.85);
       if(b<.55){
         nightSprites.push({img:sp.NAF?(face==='A'?sp.NAF[fr581]:sp.NBF[fr581]):sp[face==='A'?'NA':'NB'],x:sx-sp.ox*z,y:sy-sp.oy*z,w:sp.w*z,h:sp.h*z});
         const v=DIRSCR[tdv];
@@ -19274,8 +19276,8 @@ function draw(dt){
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
       const mir=(o.sd===1||o.sd===3)?-1:1;
       ctx.save();
-      if(mir<0){ctx.translate(sx,sy);ctx.scale(-1,1);ctx.drawImage(sp.img,-sp.ax*z,-sp.ay*z,sp.w*z,sp.h*z);}
-      else ctx.drawImage(sp.img,sx-sp.ax*z,sy-sp.ay*z,sp.w*z,sp.h*z);
+      if(mir<0){ctx.translate(sx,sy);ctx.scale(-1,1);ctx.drawImage(sp.img,-sp.ax*z,-sp.ay*z,sp.w*z*.85,sp.h*z*.85);}
+      else ctx.drawImage(sp.img,sx-sp.ax*z,sy-sp.ay*z,sp.w*z*.85,sp.h*z*.85);
       ctx.restore();
       if(b<.55){
         const v=DIRSCR[(o.sd+viewRotEff())&3]; // T376 B5：只轉航行燈；船的 mir 依覆核判定不動
@@ -19289,7 +19291,7 @@ function draw(dt){
       const face=(tv===0||tv===2)?'A':'B';
       const sp=(o.carIdx===0)?SPR.tramVeh:SPR.tramVehB;
       const fr581t=(window.__noVehAnim581||!sp.AF)?0:(Math.floor((o.tram.p||0)*4)&3); // T581 同款：進度驅動
-      ctx.drawImage(sp.AF?(face==='A'?sp.AF[fr581t]:sp.BF[fr581t]):sp[face],sx-sp.ox*z,sy-sp.oy*z,sp.w*z,sp.h*z);
+      ctx.drawImage(sp.AF?(face==='A'?sp.AF[fr581t]:sp.BF[fr581t]):sp[face],sx-sp.ox*z*.85,sy-sp.oy*z*.85,sp.w*z*.85,sp.h*z*.85);
       if(b<.55){
         nightSprites.push({img:sp.NAF?(face==='A'?sp.NAF[fr581t]:sp.NBF[fr581t]):sp[face==='A'?'NA':'NB'],x:sx-sp.ox*z,y:sy-sp.oy*z,w:sp.w*z,h:sp.h*z});
         if(o.carIdx===0){const v=DIRSCR[tv];nightSprites.push({rect:[sx+v[0]*z-z,sy+v[1]*z-z,2*z,2*z]});
