@@ -33,9 +33,9 @@ CI 的 frame job（T648）有 6 個場景：兩座存檔城市、消防、住商
 
 ## 驗收條件（動手前寫好，之後不改鬆）
 
-- [ ] `node tools/pages/frame-compare.cjs --self-test` 綠。
-- [ ] 本機用新工具跑 main 對 main：兩個鐵道場景每一幀都穩定（unstable 0）且 base 兩頁相同；接觸表看得到軌道與列車，晝夜、雪都看過。
-- [ ] 紅源：本機把 head 的 `index.html` 改壞一處鐵道畫法（例如 `SPR.railBridge` 的軌長），新工具在鐵道場景報出變動的幀，原有 6 個場景不變。
+- [x] `node tools/pages/frame-compare.cjs --self-test` 綠。
+- [x] 本機用新工具跑 main 對 main：兩個鐵道場景每一幀都穩定（unstable 0）且 base 兩頁相同；接觸表看得到軌道與列車，晝夜、雪都看過。
+- [x] 紅源：本機把 head 的 `index.html` 改壞一處鐵道畫法（例如 `SPR.railBridge` 的軌長），新工具在鐵道場景報出變動的幀，原有 6 個場景不變。
 - [ ] 本 PR 的 CI frame job 用 base 的工具（照 T648 設計），所以本 PR 自己那一輪看不到新場景，這是預期；證據以本機實跑為準，寫在本卡。
 - [ ] CI 每一道綠；Codex 照 T651；`session_audit.py --premerge` 放行才合。
 
@@ -53,4 +53,12 @@ CI 的 frame job（T648）有 6 個場景：兩座存檔城市、消防、住商
 
 ## 施工紀錄
 
-（施工後填）
+**2026-10-22（Claude）**
+
+- 卡面先推（`ddac446`），之後提交工具（`f6ae2e1`）。
+- `tools/pages/frame-compare.cjs`：頁內橋加 `railRig()`（`GV.place` 鋪場；同一格第二次經過就跳過，其餘放置失敗直接丟錯）與 `keepTrains()`（`freeze()` 後放回固定列車；非鐵道場景沒有固定列車，行為和原本逐字相同）；場景表加 `rail`（中心 31,29、zoom 0.7）與 `rail-close`（中心 40,26、zoom 1.6）；`--self-test` 加一條。
+- 固定列車五列：主線直線、東端轉角（車頭剛轉過彎）、T 岔線尾前、橋上、平行線。
+- 本機：`--self-test` ok；同版對同版 8 場景 121 幀 0 變；紅源（橋的軌長 6→8）只紅在 `rail` 全景 15 幀，原 6 場景 0 變，base 兩頁逐幀相同。詳 `t705-shots/README.md`。
+- CI、Codex：見 PR，結果回填這裡。
+
+**聲明**：Claude 出卡＝施工同一方，未經第三方覆核。
