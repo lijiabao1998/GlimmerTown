@@ -17563,6 +17563,18 @@ function trainCar702(tr,i,sp){
   const fr=S-k;
   return {x:bx+DIRV[d][0]*fr,y:by+DIRV[d][1]*fr,d};
 }
+/* T702 除錯鉤子：唯讀，把列車素材暴露給外部預覽用；不進遊戲路徑。 */
+window.__peekTrain=()=>({loco:SPR.trainLoco,car:SPR.trainCar,tram:SPR.tramVeh});
+/* T702 預覽用：鋪一小段 L 形軌道、放一列車並把鏡頭移過去（僅 dev 預覽呼叫，不進遊戲路徑） */
+/* T702 預覽：鋪 L 形軌道 + 放一列車 + 鏡頭就位（dev 專用，不進遊戲路徑） */
+window.__devScene=()=>{try{
+  for(let x=10;x<16;x++){const t=T(idx(x,10));if(t){t.rail=true;t.road=false;t.bld=null;t.tram=false;}}
+  for(let y=11;y<16;y++){const t=T(idx(15,y));if(t){t.rail=true;t.road=false;t.bld=null;t.tram=false;}}
+  window.__devKeepTrains=1; trains.push({x:15,y:13,d:2,p:0,pt:0,trail:[{x:15,y:13,d:2}],n:0});
+  if(typeof camLookWorld==='function')camLookWorld(15,13.5);
+  cam.z=2.6;
+  return 'ok trains='+trains.length;
+}catch(e){return 'ERR '+e.message;}};
 function updTrains(dt){
   const sts=listBldK(17).concat(listBldK(55)); // T234：中央車站亦為列車起訖點
   const target=sts.length>=2?Math.min(4,sts.length-1):0; // T234：中央車站入網後上限 3→4 列
@@ -17586,14 +17598,16 @@ function updTrains(dt){
   for(let i=trains.length-1;i>=0;i--){
     const c=trains[i];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).rail){trains.splice(i,1);continue;}
-    c.p+=dt*1.1;if(c.p<1)continue;c.p-=1;
+    if(c.dwell>0){c.dwell-=dt;continue;} /* T702 hold */
+const _spd=(c.slow>0?0.45:1)*1.1; /* T702 curve slow */
+c.p+=dt*_spd;if(c.slow>0)c.slow-=dt;if(c.p<1)continue;c.p-=1;
     if(t702On()){if(!c.trail)c.trail=[{x:c.x,y:c.y,d:c.d}];else c.trail.push({x:c.x,y:c.y,d:c.d});if(c.trail.length>64)c.trail.shift();c.n=(c.n||0)+1;} /* T702 trail push */
     c.x+=DIRV[c.d][0];c.y+=DIRV[c.d][1];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).rail){trains.splice(i,1);continue;}
     const ds=railDirs(c.x,c.y);if(!ds.length){trains.splice(i,1);continue;}
-    const rev=(c.d+2)%4;const fwd=ds.filter(d=>d!==rev);c.d=fwd.length?fwd[vri(fwd.length)]:rev;
+    const rev=(c.d+2)%4;const fwd=ds.filter(d=>d!==rev);if(!fwd.length&&t702On()){c.dwell=(c.dwell||0)+0.9;c.d=rev;}else{const _nd=fwd.length?fwd[vri(fwd.length)]:rev;if(_nd!==c.d)c.slow=1.1;c.d=_nd;} /* T702 dwell */
   }
-  if(trains.length>target)trains.length=target;
+  if(trains.length>target && !window.__devKeepTrains)trains.length=target; /* T702 dev：預覽時不截斷 */
 }
 function updTrams(dt){
   const sts=listBldK(21);
@@ -17620,7 +17634,7 @@ function updTrams(dt){
     c.x+=DIRV[c.d][0];c.y+=DIRV[c.d][1];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).tram){tramCars.splice(i,1);continue;}
     const ds=railDirs(c.x,c.y);if(!ds.length){tramCars.splice(i,1);continue;}
-    const rev=(c.d+2)%4;const fwd=ds.filter(d=>d!==rev);c.d=fwd.length?fwd[vri(fwd.length)]:rev;
+    const rev=(c.d+2)%4;const fwd=ds.filter(d=>d!==rev);if(!fwd.length&&t702On()){c.dwell=(c.dwell||0)+0.9;c.d=rev;}else{c.d=fwd.length?fwd[vri(fwd.length)]:rev;} /* T702 dwell */
   }
   if(tramCars.length>target)tramCars.length=target;
 }
@@ -19022,8 +19036,8 @@ function draw(dt){
      T367：dep/wx/wy 改 view 空間，語意同「每節獨立 dep」。 */
     const nSeg=(SPR.trainLoco&&!window.__noTrainSpr&&!window.__noTrainCars)?3:1;
     for(let ci=nSeg-1;ci>=0;ci--){
-      const back=ci*.62;
-      let _c702=null; if(t702On()){try{_c702=trainCar702(tr,ci,.62);}catch(e){_c702=null;}}
+      const back=ci*.9;
+      let _c702=null; if(t702On()){try{_c702=trainCar702(tr,ci,.9);}catch(e){_c702=null;}}
       const fx=_c702?_c702.x:(tr.x+DIRV[tr.d][0]*(tr.p-back)), fy=_c702?_c702.y:(tr.y+DIRV[tr.d][1]*(tr.p-back)); /* T702 car sample */
       const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
       objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:(_c702?_c702.d:tr.d)});
