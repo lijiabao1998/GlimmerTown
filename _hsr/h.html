@@ -1,0 +1,59 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#8c9b6e">
+<canvas id="c" width="300" height="200"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const CX=150,CY=150,SC=3.4;
+function P(b,a,z=0){return [CX+(b-a)*32*SC, CY+(a+b)*16*SC - z*SC];}
+function SH(col,amt){const n=parseInt(col.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+ r=Math.max(0,Math.min(255,r+amt));g=Math.max(0,Math.min(255,g+amt));b=Math.max(0,Math.min(255,b+amt));
+ return '#'+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1);}
+function fp(g,pts,col){g.fillStyle=col;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();g.fill();}
+function BL(g,p,q,col){g.strokeStyle=col;g.lineWidth=1;g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();}
+function RC(g,x,y,w,h,col){g.fillStyle=col;g.fillRect(x,y,w,h);}
+function boxZ(g,b0,a0,db,da,z,h,top,l,r){const A=P(b0,a0,z),B=P(b0+db,a0,z),C=P(b0+db,a0+da,z),D=P(b0,a0+da,z);
+ const A2=P(b0,a0,z+h),B2=P(b0+db,a0,z+h),C2=P(b0+db,a0+da,z+h),D2=P(b0,a0+da,z+h);
+ fp(g,[A,B,C,D],l); fp(g,[B,C,C2,B2],r); fp(g,[A2,B2,C2,D2],top);}
+function scene(){const items=[];return {o:(d,fn)=>items.push({d,fn}),
+ render:(g,n)=>{items.sort((x,y)=>x.d-y.d);for(const it of items)it.fn(g,n);}};}
+function AXF(ax){return {lit:false,
+ pt:(b,a,z=0)=>ax==='u'?P(b,a,z):P(a,b,z),
+ bx:(g,b0,db,a0,da,z,h,t,l,r)=>ax==='u'?boxZ(g,b0,a0,db,da,z,h,t,l,r):boxZ(g,a0,b0,da,db,z,h,t,l,r),
+ side:(g,a,b0,b1,za,zb,c)=>{const p=[P(b0,a,za),P(b1,a,za),P(b1,a,zb),P(b0,a,zb)];if(ax!=='u'){fp(g,p.map(q=>[q[0]+2,q[1]]),c);}else fp(g,p,c);},
+ end:()=>{}};}
+const HW=.06;
+const hsr=(S,ax,c,b0,cars,o={})=>{const X=AXF(ax),Lc=o.Lc||.46,NL=o.NL||.3,blue=o.blue||'#2f6fb3',lit=X.lit;
+      const TOP='#e8ecef',SL=lit?'#f5f7f8':'#bcc4ca',SD=lit?'#bcc4ca':'#f5f7f8';
+      const WIN=lit?'#2d3b4a':'#223040',BLU=lit?blue:SH(blue,-26);
+      const body=(g,n,ba,bb)=>{X.bx(g,ba,bb-ba,c-HW+.005,2*HW-.01,1,2,'#4f555a','#60666b','#3d4246');
+        X.bx(g,ba,bb-ba,c-HW,2*HW,3,8,TOP,'#f5f7f8','#bcc4ca');
+        X.side(g,c+HW,ba,bb,4,5,BLU);X.side(g,c+HW,ba+.012,bb-.012,7,9,WIN);
+        if(n)for(let t=ba+.03;t<bb-.04;t+=.055)X.side(n,c+HW,t,t+.03,7,9,'#ffe6ae');};
+      const nose=(g,n,ba,dir)=>{const N=7,sl=[];for(let i=0;i<=N;i++){const t=i/N;sl.push({b:ba+dir*NL*t,w:HW*(1-.55*t*t),z:3+8*(1-Math.pow(t,2.1))});}
+        X.bx(g,Math.min(ba,ba+dir*(NL-.04)),NL-.04,c-HW*.8,HW*1.6,1,2,'#4f555a','#60666b','#3d4246');
+        for(let i=0;i<N;i++){const s0=sl[i],s1=sl[i+1];
+          fp(g,[X.pt(s0.b,c+s0.w,2),X.pt(s1.b,c+s1.w,2),X.pt(s1.b,c+s1.w,s1.z),X.pt(s0.b,c+s0.w,s0.z)],SL);
+          const t=(i+.5)/N,wind=t>.14&&t<.42;
+          fp(g,[X.pt(s0.b,c-s0.w,s0.z),X.pt(s1.b,c-s1.w,s1.z),X.pt(s1.b,c+s1.w,s1.z),X.pt(s0.b,c+s0.w,s0.z)],wind?'#26323f':(i<2?TOP:SH(TOP,dir>0===lit?6:-10)));}
+        // 飾帶沿車鼻側面收到鼻尖
+        for(let i=0;i<N;i++){const s0=sl[i],s1=sl[i+1];BL(g,X.pt(s0.b,c+s0.w,Math.min(5,s0.z-1)),X.pt(s1.b,c+s1.w,Math.min(5,s1.z-1)),BLU);}
+        BL(g,X.pt(sl[0].b,c+HW,8),X.pt(sl[2].b,c+sl[2].w,Math.max(4,sl[2].z-2)),WIN);
+        const tip=sl[N],hl=X.pt(tip.b-dir*.03,c+tip.w,3);RC(g,hl[0],hl[1]-1,1,1,'#fff6d8');if(n)RC(n,hl[0],hl[1]-1,1,1,'#fff6d8');};
+      const pan=(g,bm)=>{const p=X.pt(bm,c,11),q=X.pt(bm+.05,c,15);BL(g,p,q,'#555b60');BL(g,[q[0]-2,q[1]],[q[0]+2,q[1]],'#555b60');};
+      for(let i=0;i<cars;i++){const ba=b0+i*Lc,bb=ba+Lc,isA=i===0&&o.noseA,isB=i===cars-1&&o.noseB;
+        const d=o.dAt?o.dAt(ba,bb,i):(ax==='u'?bb+c+HW:c+HW+bb);
+        S.o(d,(g,n)=>{const x0=isA?ba+NL:ba,x1=isB?bb-NL:bb;
+          if(isA)nose(g,n,x0,-1);
+          body(g,n,x0,x1);
+          if(isB)nose(g,n,x1,1);
+          if(i>0)X.side(g,c+HW,ba,ba+.008,3,11,SH(lit?'#f5f7f8':'#bcc4ca',-40));
+          if(i%3===1)pan(g,ba+Lc*.3);
+          X.bx(g,ba+Lc*.55,.08,c-.03,.06,11,1,'#c5cbd0','#d5dade','#a4abb1');});}};
+window.frames=[];
+const S=scene();
+hsr(S,'u',0.0,-0.35,3,{noseA:true,noseB:true,Lc:0.46});
+const g=ctx;
+g.clearRect(0,0,300,200);
+S.render(g,null);
+window.ready=1;
+</script>
+</body>
