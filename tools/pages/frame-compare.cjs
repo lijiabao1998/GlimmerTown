@@ -115,12 +115,12 @@ function bridge648() {
     R(32, 32, 23, 28, rail);                    // T 字岔線往南，(32,28) 是線尾
     R(35, 41, 28, 28, rail); R(38, 38, 25, 31, rail); // 十字交叉
     R(16, 26, 31, 31, rail);                    // 過水的鐵路橋
-    put('station')(36, 19);                     // 車站 3×3，南邊挨著主線
+    put('station')(36, 19);                     // 車站：T574 起是 3×3 地塊（LOT_PLAN574 的 k17），占 36–38 × 19–21，南邊緊貼主線
     R(22, 30, 38, 38, tram); R(31, 34, 38, 38, rail); // 輕軌接鐵路
     R(36, 44, 40, 40, rail); R(36, 44, 41, 41, rail); // 平行雙線
     for (const t of tiles) if (t.bld && !t.bld.ref) Object.assign(t.bld, {age: 60, pw: true, wa: true});
     recalcAllMasks(); recalcAllRailMasks(); computePower(); computeWater(); rebuildCov(); groundDirty = true;
-    fixedTrains = [{x: 23, y: 22, d: 1, p: .35, pt: 0}, {x: 44, y: 23, d: 2, p: .35, pt: 1}, /* 東端轉角：車頭剛轉過彎、後兩節還在彎前 */ {x: 32, y: 26, d: 2, p: .5, pt: 0}, {x: 20, y: 31, d: 3, p: .4, pt: 1}, {x: 40, y: 40, d: 1, p: .2, pt: 0}];
+    fixedTrains = [{x: 23, y: 22, d: 1, p: .35, pt: 0}, {x: 44, y: 22, d: 2, p: .3, pt: 1}, /* 東端轉角：車頭剛出彎 0.3 格，後兩節還在彎的西邊（跨在彎上） */ {x: 32, y: 26, d: 2, p: .5, pt: 0}, {x: 20, y: 31, d: 3, p: .4, pt: 1}, {x: 40, y: 40, d: 1, p: .2, pt: 0}];
   };
   const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
   window.__frame648 = {
