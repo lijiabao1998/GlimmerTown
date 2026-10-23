@@ -344,7 +344,7 @@ jobs:
     # T640：由 town602-candidate.yml 原樣搬入並升為部署閘。T643：v11.210 凍結夾具斷言退役，全量 SPR 指紋改由 fp job 實算＋fp_diff；
     # 這裡留「候選檔等於這顆 Chromium」與其餘（舊存檔、手機 UI、遮擋）。scene603 在 browser job 也比全量 SPR（凍結鎖，T643b 解）。
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40  # T714：runner 偶爾分到很慢的 apt 鏡像，光裝字型就要 12～22 分鐘（原本 20）
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -375,7 +375,7 @@ jobs:
     needs: [scope]
     if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45  # T714：runner 偶爾分到很慢的 apt 鏡像，光裝字型就要 12～22 分鐘（原本 25）
     steps:
       - uses: actions/checkout@v4
         with:
@@ -429,7 +429,7 @@ jobs:
     needs: [scope]
     if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45  # T714：runner 偶爾分到很慢的 apt 鏡像，光裝字型就要 12～22 分鐘（原本 30）
     steps:
       - uses: actions/checkout@v4
         with:
