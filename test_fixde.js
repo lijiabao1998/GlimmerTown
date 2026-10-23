@@ -19580,3 +19580,15 @@ for(const [name675,file675,args675] of [
 
 /* T707：列車關節化、線尾推拉折返、停站、閉塞——取 updTrains 與 T706／T707 helper 原文在小網格重放，車廂位置取畫面用的 cars707；只追加，既有斷言一字不改。 */
 {const r707=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t707-shots/check-articulation.cjs')],{cwd:__dirname,encoding:'utf8',timeout:120000});let j707=null;try{j707=JSON.parse(r707.stdout);}catch{}assert(r707.status===0&&j707&&j707.passed===true&&j707.result.corner.maxOff<=.02&&j707.result.deadend.maxOff<=.02&&j707.result.headon.minGap>=.9&&j707.result.station.dwellSecs>=1.4&&j707.result.base&&j707.result.cornerPlaced.maxOff<=.02&&j707.negativeControls.length===4,'T707 G0–G8 轉角與線尾不離軌、剛放上彎道格的列車沿彎排開、折返不瞬移、對向不穿過、停站、尾燈一節、閥全關逐步等於改前、四負控制首紅在目標：'+r707.stderr);}
+
+/* T707 列車新造型（只追加）：舊車廂圖斜度 1/4、身長 24px，比 1/2 的鐵軌平、比 0.62 格的車廂間距長——一頭翹出軌道、車廂排成台階（業主看到的「出軌」）。
+   新造型照鐵軌斜度與車廂間距重畫；這幾條釘住會讓它再歪掉的地方。 */
+{const a707=html.indexOf('if(o.train&&o.c707){'),b707=html.indexOf('if(o.train&&SPR.trainLoco&&!window.__noTrainSpr){');
+ assert(a707>0&&b707>0&&a707<b707,'T707 新造型的繪製分支在舊 sprite 分支之前（每節帶 c707 時走新造型）');
+ assert(html.includes('const P=(u,v,z)=>[OX+2*u+2*v,OY-u+v-z];'),'T707 車廂投影：沿軌道一步＝右 2px、上 1px，和等距鐵軌同斜度（舊圖 1/4 斜度會翹出軌道）');
+ const lh707=+((html.match(/W=36,H=28,OX=18,OY=19,LH=(\d+),WD=1;/)||[])[1]),sp707=+((html.match(/const SP707=([\d.]+),CARS707=/)||[])[1]);
+ assert(lh707>0&&sp707>0&&Math.abs(lh707*2*2-sp707*32)<1,'T707 車身長（'+(lh707*4)+'px）等於車廂間距（'+(sp707*32).toFixed(2)+'px）：不疊、不留大縫');
+ assert(html.includes('const n=(o.c707.d+(last?2:0)+rot)&3'),'T707 頭車車鼻朝行進方向、尾車車鼻朝後（兩頭尖）');
+ assert(html.includes("objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:q707.td,loco707:q707.loco,tail707:q707.tail,c707:{ci,d:q707.d}});"),'T707 每節帶節號與自己的行進方向');
+ assert(html.includes("emit('trainLoco',['707',pt,n].join('_'),q)")&&html.includes("emit('trainCar',['707',pt,f].join('_'),S7.mid[f])"),'T707 新造型登記進 artAtlas646（fp 看得到；家族沿用 trainLoco／trainCar）');
+ assert(!/window\.__trainStyle707|TRAIN707_STYLES/.test(html),'T707 樣張選款開關不進遊戲（業主定稿：pt 0 子彈頭、1 英式城際）');}
