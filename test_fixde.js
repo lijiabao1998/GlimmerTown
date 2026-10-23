@@ -19574,3 +19574,6 @@ for(const [name675,file675,args675] of [
 
 /* T704：鐵路線尾夜間白屏——T149 光暈迴圈不因缺座標條目丟錯；只追加，既有斷言一字不改。 */
 {const r704=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t704-shots/check-halo.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});let j704=null;try{j704=JSON.parse(r704.stdout);}catch{}assert(r704.status===0&&j704&&j704.passed===true&&j704.negativeControls.length===3,'T704 G1 光暈迴圈遇缺座標條目不丟錯、save/restore 成對、rect 條目帶 noHalo、三負控制首紅在目標：'+r704.stderr);}
+
+/* T706：列車從車站生成時朝軌道走向、鐵路與輕軌各走各的——取 updTrains／updTrams 原文在小網格重放；只追加，既有斷言一字不改。 */
+{const r706=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t706-shots/check-trains.cjs')],{cwd:__dirname,encoding:'utf8',timeout:60000});let j706=null;try{j706=JSON.parse(r706.stdout);}catch{}assert(r706.status===0&&j706&&j706.passed===true&&j706.result.a.deleted===0&&j706.result.b.deleted===0&&j706.result.base&&j706.result.base.a>0&&j706.result.base.b>0&&j706.negativeControls.length===2,'T706 G0–G4 車站旁直線與鐵路接輕軌零刪車、改前會刪車、閥全關逐步等於改前、兩負控制首紅在目標：'+r706.stderr);}
