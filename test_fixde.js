@@ -19577,3 +19577,6 @@ for(const [name675,file675,args675] of [
 
 /* T706：列車從車站生成時朝軌道走向、鐵路與輕軌各走各的——取 updTrains／updTrams 原文在小網格重放；只追加，既有斷言一字不改。 */
 {const r706=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t706-shots/check-trains.cjs')],{cwd:__dirname,encoding:'utf8',timeout:60000});let j706=null;try{j706=JSON.parse(r706.stdout);}catch{}assert(r706.status===0&&j706&&j706.passed===true&&j706.result.a.deleted===0&&j706.result.b.deleted===0&&j706.result.base&&j706.result.base.a>0&&j706.result.base.b>0&&j706.negativeControls.length===2,'T706 G0–G4 車站旁直線與鐵路接輕軌零刪車、改前會刪車、閥全關逐步等於改前、兩負控制首紅在目標：'+r706.stderr);}
+
+/* T707：列車關節化、線尾推拉折返、停站、閉塞——取 updTrains 與 T706／T707 helper 原文在小網格重放，車廂位置取畫面用的 cars707；只追加，既有斷言一字不改。 */
+{const r707=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t707-shots/check-articulation.cjs')],{cwd:__dirname,encoding:'utf8',timeout:120000});let j707=null;try{j707=JSON.parse(r707.stdout);}catch{}assert(r707.status===0&&j707&&j707.passed===true&&j707.result.corner.maxOff<=.02&&j707.result.deadend.maxOff<=.02&&j707.result.headon.minGap>=.9&&j707.result.station.dwellSecs>=1.4&&j707.result.base&&j707.result.cornerPlaced.maxOff<=.02&&j707.negativeControls.length===4,'T707 G0–G8 轉角與線尾不離軌、剛放上彎道格的列車沿彎排開、折返不瞬移、對向不穿過、停站、尾燈一節、閥全關逐步等於改前、四負控制首紅在目標：'+r707.stderr);}
