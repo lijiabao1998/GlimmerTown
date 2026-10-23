@@ -1,13 +1,13 @@
 /* T706：列車／輕軌各走自己的軌道，生成時面向軌道方向。
    從 index.html 取出實際的 updTrains／updTrams／railDirs／railDirs706／spawnDir706／t706On／listBldK／streetHash 原文，
    在 vm 裡的小網格上重放（Math.random 換成固定種子的 LCG）。期望值的獨立來源：同一個場景用 git 上 main 的原文跑一次＝改前行為。
-   只驗車輛移動與生成，不是像素驗收。改前基準固定為 eacb7ff（v11.245，T704／T706 之前的 main，永久留在歷史裡；可用參數覆寫）。 */
+   只驗車輛移動與生成，不是像素驗收。改前基準是同資料夾的固定檔 base-v11.245.js（v11.245 的 main 裡這五個函式的原文，逐字抽出；怎麼產生的見 README.md），不在執行時讀 git 歷史。 */
 'use strict';
-const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict'),{execFileSync}=require('child_process');
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
 const ROOT=path.resolve(__dirname,'../../..');
 const HEAD=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
-const BASE_REV=process.argv[2]||'eacb7ff';
-const BASE=execFileSync('git',['show',BASE_REV+':index.html'],{cwd:ROOT,encoding:'utf8',maxBuffer:64e6});
+const BASE_LABEL='base-v11.245.js';
+const BASE=fs.readFileSync(path.join(__dirname,BASE_LABEL),'utf8');
 // 關閥比對要連之後各卡的閥一起關（它們可能也改列車移動），才會等於改前：T706 起每一個 function tNNNOn(){ 的閥
 const LATER=[...new Set([...HEAD.matchAll(/\nfunction t(\d+)On\(\)\{/g)].map(m=>+m[1]).filter(n=>n>=706))].map(n=>'__noT'+n);
 
@@ -69,10 +69,10 @@ function check(src,base){
     for(const flags of [Object.fromEntries(LATER.map(k=>[k,true]))]){
       for(const [id,sc,n] of [['A',SCENE_A,1800],['B',SCENE_B,900]]){
         const h=run(world(src,{...sc,flags}),n),m=run(world(base,sc),n);
-        assert.deepEqual(h.log,m.log,'G3 '+LATER.join('、')+' 全關時場景 '+id+' 逐步等於改前（'+BASE_REV+'）');
+        assert.deepEqual(h.log,m.log,'G3 '+LATER.join('、')+' 全關時場景 '+id+' 逐步等於改前（'+BASE_LABEL+'）');
       }
     }
-    out.base={rev:BASE_REV,a:a0.deleted,b:b0.deleted,closedValves:LATER};
+    out.base={rev:BASE_LABEL,a:a0.deleted,b:b0.deleted,closedValves:LATER};
   }
   return out;
 }

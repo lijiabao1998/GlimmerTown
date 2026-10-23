@@ -4,12 +4,13 @@
 
 取 `index.html` 實際的 `updTrains`／`updTrams`／`railDirs` 與 T706 helper 原文，在 20×20 小網格上用固定種子的亂數重放（每步 1/30 秒）。
 
-| 場景 | 本卡 | 改前（eacb7ff） |
+| 場景 | 本卡 | 改前（eacb7ff，見下） |
 |---|---|---|
 | A 車站旁直線 60 秒 | 刪 0 次，走過 18 格 | 刪 64 次 |
 | B 鐵路接輕軌 30 秒 | 刪 0 次 | 刪 105 次 |
 
-- 閥全關（T706 起每一張卡的 `__noTNNN`）：兩個場景每一步每一輛車都和 eacb7ff 相同。
+- 閥全關（T706 起每一張卡的 `__noTNNN`）：兩個場景每一步每一輛車都和改前相同。
+- 改前基準是固定檔 `base-v11.245.js`：v11.245 的 main（eacb7ff，T704、T706 之前）`index.html` 裡 `streetHash`、`listBldK`、`railDirs`、`updTrains`、`updTrams` 五個函式的原文，用和 `check-trains.cjs` 相同的大括號配對逐字抽出、未改一字。測試只讀這個檔，不在執行時去 git 歷史裡找（Codex 在 PR #69 指出寫死提交雜湊、淺層 clone 會壞）。要重新產生：對 `git show eacb7ff:index.html` 用 `check-trains.cjs` 裡的 `fn()` 抽這五個函式，依序以換行串起，前面加檔頭註解。
 - `?noT706=1` 關、`?noT706=0` 不誤關。
 - 負控制：生成不看軌道 → 首紅 G1（刪 64 次）；路由混用鐵路輕軌 → 首紅 G2（刪 10 次）。
 - 之後的卡（T707 起）加在 `updTrains` 裡的頂層函式與常數會一起載入（閥關時不會被用到，但要有定義），所以後面的卡合進來，這支測試照樣能跑。
