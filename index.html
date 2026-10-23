@@ -802,7 +802,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.247'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.248'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -17567,6 +17567,142 @@ function railDirs(x,y){
 function listBldK(k){
   const a=[];for(let i=0;i<N*N;i++){const b=tiles[i].bld;if(b&&!b.ref&&b.k===k)a.push(i);}return a;
 }
+/* T707：列車關節化、折返、停站、閉塞（參考 TheoTown 的觀感，不抄代碼）。
+   每列車記住頭車走過的格（trail，最近的在前）；第 i 節車廂取在頭車後方弧長 i×SP707 的位置，方向是它所在那一段的行進方向，
+   所以轉彎時前後車廂各自轉向、不會整列跟著車頭甩出軌道。線尾先停 1.2 秒，再推拉折返：新車頭就是原本最後一節的位置（不瞬移、不穿過自己）。
+   車站旁停 1.5 秒；進彎、線尾、車站前減速；前方格被別的列車佔著就等，等超過 2.5 秒就折返。
+   trail 缺的時候（剛生成、frame 場景直接放的列車）沿軌道往回補。列車不進存檔，這些欄位只影響畫面。
+   ?noT707=1 或 window.__noT707 退回 T706 的行為與畫法。 */
+function t707On(){if(t707On.off===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t707On.off=/(?:^|[?&])noT707(?:=1)?(?:&|$)/.test(q);}return !window.__noT707&&!t707On.off;}
+const SP707=.62,CARS707=3,NEED707=Math.ceil(CARS707*SP707)+2;
+function dir707(a,b){return b[1]<a[1]?0:b[0]>a[0]?1:b[1]>a[1]?2:3;} // a→b 的行進方向（相鄰格中心）
+function trailFill707(tr){ // 沿軌道往回補：每一格除了來的方向以外，直走優先，其次任一條鐵路；遇線尾就停（車頭停在彎道格上時也從彎的另一條腿補）
+  const out=[];let cx=tr.x,cy=tr.y,back=(tr.d+2)%4,fwd=tr.d;
+  for(let k=0;k<NEED707;k++){
+    const ds=railDirs706(cx,cy,'rail').filter(d=>d!==fwd);if(!ds.length)break;
+    back=ds.includes(back)?back:ds[0];
+    const nx=cx+DIRV[back][0],ny=cy+DIRV[back][1];
+    out.push([nx,ny]);fwd=(back+2)%4;cx=nx;cy=ny;
+  }
+  return out;
+}
+function trainPath707(tr){const tl=tr.trail&&tr.trail.length?tr.trail:trailFill707(tr);return [[tr.x+DIRV[tr.d][0]*tr.p,tr.y+DIRV[tr.d][1]*tr.p],[tr.x,tr.y],...tl];}
+function trainCar707(tr,i,P){ // 第 i 節（0＝最前）的位置與自己的行進方向；路徑不夠長時停在最後一格（疊在一起，不飄出軌道）
+  let s=i*SP707;
+  for(let k=0;k<P.length-1;k++){
+    const a=P[k],b=P[k+1],L=Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);if(L<1e-9)continue;
+    if(s<=L||k===P.length-2){const f=Math.min(s,L)/L;return {fx:a[0]+(b[0]-a[0])*f,fy:a[1]+(b[1]-a[1])*f,d:dir707(b,a)};}
+    s-=L;
+  }
+  return {fx:P[0][0],fy:P[0][1],d:tr.d};
+}
+function cars707(tr){ // 畫面用：每節的位置、畫面朝向 td、是不是機車、尾燈（0 不亮；1 亮在行進的反方向；-1 機車朝後時亮在它的前方＝列車尾端）
+  const P=trainPath707(tr),r=[];
+  for(let ci=0;ci<CARS707;ci++){
+    const q=trainCar707(tr,ci,P),last=ci===CARS707-1,rearLoco=!!tr.flip&&last; // 推拉折返後機車在最後、車頭朝後
+    r.push({fx:q.fx,fy:q.fy,d:q.d,td:rearLoco?(q.d+2)&3:q.d,loco:ci===(tr.flip?CARS707-1:0),tail:!last?0:rearLoco?-1:1});
+  }
+  return r;
+}
+/* T707 列車造型（業主 2026-10-23：「我看到火車出軌了」「還可以有車廂更好的車廂，比如兩頭尖，中間粗，現在火車太簡陋了」；
+   看過三款樣張後：「不要雙層，單層就行，其它的太完美了」——子彈頭與英式城際兩款都留）。
+   舊車廂圖（T344c 的 mkVeh）車身每 4px 才升 1px（斜度 1/4），等距鐵軌是 1/2：車身比軌道平、一頭翹出軌道，相鄰車廂排成台階；
+   身長 24px 又比車廂間距 0.62 格（約 20px）長，互相疊住；同一條軸只有一張圖，車頭有一半時間朝後。
+   這裡改成真的等距立體，用像素步長設計：沿軌道一步＝右 2px、上 1px（和鐵軌同斜度），車身長 10 步＝20px＝車廂間距，
+   頂點都落在整數像素上，線條乾淨；錨點＝地面中心，壓在兩條鐵軌正中間。兩端各一節駕駛車、車鼻朝外（兩頭尖），中間車略高。
+   關閥（?noT707=1）照舊畫 T344c 的舊圖。不進 SPR（多處守衛寫死 SPR 鍵數），登記在 GV.artAtlas646，
+   家族沿用 trainLoco（駕駛車）／trainCar（中間車）。零亂數。 */
+const TRAIN707_KINDS=[ // 依塗裝編號 pt（生成格雜湊決定、終生固定、不耗亂數）：0＝子彈頭、1＝英式城際（黃色警示鼻）
+  {cabH:6,midH:7,nose:5,noseH:2,body:'#eef1f3',band:'#c23a3a',roof:'#d5dbe0',skirt:'#3b414b',glass:'#242c42',lit:'#ffe9b0'},
+  {cabH:7,midH:8,nose:3,noseH:4,yellow:1,body:'#26467a',band:'#ece6d4',roof:'#808a96',skirt:'#262b35',glass:'#171c28',lit:'#ffe3a0'}
+];
+const TRAIN707_CACHE={};
+function bakeTrain707(pt){
+  const key=pt?1:0;if(TRAIN707_CACHE[key])return TRAIN707_CACHE[key];
+  const K=TRAIN707_KINDS[key],W=36,H=28,OX=18,OY=19,LH=5,WD=1;             // 半長 5 步、半寬 1 步
+  const P=(u,v,z)=>[OX+2*u+2*v,OY-u+v-z];                                // A 軸：u 往右上、v 往右下、z 往上
+  const mir=src=>{const[c,g]=cv(W,H);g.translate(W,0);g.scale(-1,1);g.drawImage(src,0,0);return c;};
+  const one=(nose,h)=>{                                                  // nose：+1 車鼻在 +u（右上）、-1 在 -u（左下）、0＝中間車
+    const[c,g]=cv(W,H),[nc,ng]=cv(W,H),poly=(q,col,gg)=>lotPoly574(gg||g,q,col);
+    const t=u=>{if(!nose)return 0;const d=nose>0?u-(LH-K.nose):(K.nose-LH)-u;return Math.max(0,Math.min(1,d/K.nose));};
+    const hz=u=>Math.round(h-(h-K.noseH)*t(u)*t(u));                     // 車鼻往下彎（整數高度）
+    const us=[];for(let u=-LH;u<=LH;u++)us.push(u);
+    const face=(v,z0,z1,col,gg)=>{const top=us.map(u=>P(u,v,z1(u))),bot=us.map(u=>P(u,v,z0(u))).reverse();poly(top.concat(bot),col,gg);};
+    poly([P(-LH,WD,0),P(LH,WD,0),P(LH,-WD,0),P(-LH,-WD,0)].map(p=>[p[0]+1,p[1]+1]),'rgba(0,0,0,.30)'); // 地面落影
+    face(WD,()=>0,u=>Math.min(2,hz(u)),K.skirt);                         // 東側（畫面右下）：底裙
+    face(WD,()=>2,hz,K.body);                                             // 車身
+    face(WD,()=>2,()=>3,shade(K.body,-18));                               // 裙上暗線
+    face(WD,()=>3,u=>Math.min(4,hz(u)),K.band);                           // 塗裝色帶
+    {const z=Math.max(4,h-3),ok=us.filter(u=>hz(u)>=z+2&&u<LH&&u>-LH);    // 一排窗：一條暗帶＋每 2 步一根窗柱（畫面上的垂直 1px）
+     if(ok.length>=2){const a=ok[0],b=ok[ok.length-1],q=[P(a,WD,z+1),P(b,WD,z+1),P(b,WD,z-.01),P(a,WD,z-.01)];
+       poly(q,K.glass);poly(q,K.lit,ng);g.fillStyle=K.body;
+       for(let u=a+1;u<b;u+=2){const p=P(u,WD,z+1);g.fillRect(p[0],p[1],1,2);ng.clearRect(p[0],p[1],1,2);}}}
+    {const u=-LH,z=hz(u);poly([P(u,-WD,0),P(u,WD,0),P(u,WD,z),P(u,-WD,z)],shade(K.body,-30));   // 畫面左下那一端（-u）
+     poly([P(u,-WD,0),P(u,WD,0),P(u,WD,Math.min(2,z)),P(u,-WD,Math.min(2,z))],shade(K.skirt,-12));
+     if(nose<0){if(K.yellow)poly([P(u,-WD,2),P(u,WD,2),P(u,WD,z),P(u,-WD,z)],'#e8c83a');
+       const p=P(u,0,Math.max(1,z-1));g.fillStyle='#f6efd0';g.fillRect(p[0]-1,p[1]+1,1,1);g.fillRect(p[0]+1,p[1]+2,1,1);}}  // 車鼻端頭燈
+    const top=us.map(u=>P(u,WD,hz(u))).concat(us.slice().reverse().map(u=>P(u,-WD,hz(u))));
+    poly(top,K.roof);                                                     // 車頂（車鼻段順著往下彎）
+    if(nose){                                                             // 擋風玻璃：車鼻起彎處，橫跨車頂
+      const u0=nose>0?LH-K.nose:-LH+1,u1=nose>0?LH-1:-LH+K.nose,ws=us.filter(u=>u>=u0&&u<=u1&&t(u)>.05&&t(u)<.9);
+      if(ws.length>=1){const a=ws[0],b=ws[ws.length-1]+(ws.length===1?1:0),q=[P(a,WD,hz(a)),P(b,WD,hz(b)),P(b,-WD,hz(b)),P(a,-WD,hz(a))];
+        poly(q,K.glass);poly(q,'rgba(120,150,190,.35)',ng);}             // 駕駛室玻璃夜裡只微亮（司機室是暗的）
+      if(K.yellow&&nose>0){const u=LH,z=hz(u);poly([P(u-1,WD,2),P(u,WD,2),P(u,WD,z),P(u-1,WD,z)],'#e8c83a');}
+    }else{                                                                // 中間車：車頂冷氣箱
+      for(const uu of[-3,2])poly([P(uu,.5,h+1),P(uu+1,.5,h+1),P(uu+1,-.5,h+1),P(uu,-.5,h+1)],shade(K.roof,-22));
+    }
+    outlineSprite(c,26,30,40);
+    return{img:c,night:nc};
+  };
+  const up=one(1,K.cabH),dn=one(-1,K.cabH),mid=one(0,K.midH);
+  const fl=s=>({img:mir(s.img),night:mir(s.night)});
+  const r={cab:[up,fl(dn),dn,fl(up)],mid:{A:mid,B:fl(mid)},w:W,h:H,ox:OX,oy:OY}; // cab 以 DIRSCR 方向索引：0 右上、1 右下、2 左下、3 左上
+  TRAIN707_CACHE[key]=r;return r;
+}
+function stationNear707(x,y){ // 與車站（k17／k55）相鄰的軌道格＝停靠位
+  for(let d=0;d<4;d++){const nx=x+DIRV[d][0],ny=y+DIRV[d][1];if(!inMap(nx,ny))continue;const b=T(idx(nx,ny)).bld;if(!b)continue;const r=b.ref?T(idx(b.ref[0],b.ref[1])).bld:b;if(r&&(r.k===17||r.k===55))return true;}
+  return false;
+}
+function reverse707(c){ // 推拉折返：新車頭＝原本最後一節的位置，往遠離原車頭的方向走；新的最後一節正好落在原車頭的位置
+  const P=trainPath707(c),oldD=c.d,oldP=c.p;let s=(CARS707-1)*SP707;
+  for(let k=0;k<P.length-1;k++){
+    const a=P[k],b=P[k+1],L=Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);if(L<1e-9)continue;
+    if(s<=L){
+      if(k<1)break;                                        // 尾車還在車頭那一段（車太短）：用原本的就地掉頭
+      c.x=a[0];c.y=a[1];c.d=dir707(a,b);c.p=s/L;           // 尾車在 a→b、距 a 為 s：新車頭站在 a 格、朝 b 走了 s
+      const tl=[];for(let j=k-1;j>=1;j--)tl.push(P[j]);    // 身後：原車頭那一側的格
+      const nx=P[1][0]+DIRV[oldD][0],ny=P[1][1]+DIRV[oldD][1];
+      if(oldP>0&&inMap(nx,ny)&&T(idx(nx,ny)).rail)tl.push([nx,ny]); // 原車頭已駛出格中心時，它正要進的那一格也在身後
+      c.trail=tl;c.flip=!c.flip;c.v=0;return;
+    }
+    s-=L;
+  }
+  c.d=(c.d+2)%4;c.flip=!c.flip;c.v=0;c.trail=null;
+}
+function occupancy707(){ // 各列車車身壓到的格（每節所在的格與它正跨進的下一格）＋車頭格 → 壓到它的列車（可能不只一列）
+  const m=new Map(),put=(x,y,t)=>{if(!inMap(x,y))return;const k=idx(x,y),a=m.get(k);if(!a)m.set(k,[t]);else if(!a.includes(t))a.push(t);};
+  for(const t of trains){const P=trainPath707(t);put(t.x,t.y,t);for(let i=0;i<CARS707;i++){const q=trainCar707(t,i,P);
+    for(const x of [Math.floor(q.fx),Math.ceil(q.fx)])for(const y of [Math.floor(q.fy),Math.ceil(q.fy)])put(x,y,t);}}
+  return m;
+}
+function hold707(c,dt,occ){ // true＝這一幀不前進：停站或線尾停車中（線尾停完就推拉折返）、前方格被別列佔著（等超過 2.5 秒就折返）
+  if(c.wait>0){c.wait-=dt;c.v=0;if(c.wait<=0&&c.rev707){c.rev707=0;reverse707(c);}return true;}
+  const nx=c.x+DIRV[c.d][0],ny=c.y+DIRV[c.d][1],o=inMap(nx,ny)?occ.get(idx(nx,ny)):null;
+  if(o&&o.some(t=>t!==c)){c.v=0;c.blk707=(c.blk707||0)+dt;if(c.blk707>2.5){c.blk707=0;reverse707(c);}return true;} // 前一格有別列就停在本格（兩列之間至少隔一格）
+  c.blk707=0;return false;
+}
+function speed707(c,dt){ // 下一格要轉彎、是線尾或車站旁就減到 0.55 格／秒，否則 1.1（原速）；加速 0.8、減速 1.4 格／秒²
+  const nx=c.x+DIRV[c.d][0],ny=c.y+DIRV[c.d][1];
+  const ahead=inMap(nx,ny)&&T(idx(nx,ny)).rail?railDirs706(nx,ny,'rail'):[];
+  const vt=(!ahead.includes(c.d)||stationNear707(nx,ny))?.55:1.1,v=c.v===undefined?vt:c.v;
+  c.v=v<vt?Math.min(vt,v+.8*dt):Math.max(vt,v-1.4*dt);
+  return c.v;
+}
+function arrive707(c,nFwd,rev){ // 進到新的一格之後：線尾＝車頭停在擋車器前等 1.2 秒再折返；車站旁＝停 1.5 秒（同一座車站只停一次）
+  if(!nFwd){c.d=(rev+2)%4;c.p=0;c.wait=1.2;c.rev707=1;return;}
+  const st=stationNear707(c.x,c.y);
+  if(st&&!c.inSt707){c.inSt707=1;c.wait=1.5;}else if(!st)c.inSt707=0;
+}
 function updTrains(dt){
   const sts=listBldK(17).concat(listBldK(55)); // T234：中央車站亦為列車起訖點
   const target=sts.length>=2?Math.min(4,sts.length-1):0; // T234：中央車站入網後上限 3→4 列
@@ -17587,14 +17723,18 @@ function updTrains(dt){
     trains.push({x:tx0,y:ty0,d:t706On()?spawnDir706(tx0,ty0,d0,'rail'):d0,p:0,pt}); // 生在鄰接的軌道格（站牌格本身不可行走）；T706：面向軌道
     if(trains.length>=target)break;
   }
+  const on707=t707On()&&t706On(),occ707=on707?occupancy707():null; // T707 建在 T706 的分流上
   for(let i=trains.length-1;i>=0;i--){
     const c=trains[i];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).rail){trains.splice(i,1);continue;}
-    c.p+=dt*1.1;if(c.p<1)continue;c.p-=1;
+    if(on707&&hold707(c,dt,occ707))continue; // T707：停站／線尾停車後折返／前方有車就等
+    c.p+=dt*(on707?speed707(c,dt):1.1);if(c.p<1)continue;c.p-=1;
+    if(on707){if(!c.trail)c.trail=trailFill707(c);c.trail.unshift([c.x,c.y]);if(c.trail.length>NEED707)c.trail.length=NEED707;} // T707：記住走過的格
     c.x+=DIRV[c.d][0];c.y+=DIRV[c.d][1];
     if(!inMap(c.x,c.y)||!T(idx(c.x,c.y)).rail){trains.splice(i,1);continue;}
     const ds=t706On()?railDirs706(c.x,c.y,'rail'):railDirs(c.x,c.y);if(!ds.length){trains.splice(i,1);continue;} // T706：只走鐵路，接輕軌處當線尾折返
     const rev=(c.d+2)%4;const fwd=ds.filter(d=>d!==rev);c.d=fwd.length?fwd[vri(fwd.length)]:rev;
+    if(on707)arrive707(c,fwd.length,rev);
   }
   if(trains.length>target)trains.length=target;
 }
@@ -19026,11 +19166,14 @@ function draw(dt){
      源碼錨（T344c 斷言）：objs.push({dep:fx+fy+.01,train:tr,carIdx:ci,wx,wy,td:tr.d});
      T367：dep/wx/wy 改 view 空間，語意同「每節獨立 dep」。 */
     const nSeg=(SPR.trainLoco&&!window.__noTrainSpr&&!window.__noTrainCars)?3:1;
+    const C707=nSeg===CARS707&&t707On()&&t706On()?cars707(tr):null; // T707：每節沿軌跡取樣，各自的方向
     for(let ci=nSeg-1;ci>=0;ci--){
       const back=ci*.62;
-      const fx=tr.x+DIRV[tr.d][0]*(tr.p-back), fy=tr.y+DIRV[tr.d][1]*(tr.p-back);
+      const q707=C707?C707[ci]:null;
+      const fx=q707?q707.fx:tr.x+DIRV[tr.d][0]*(tr.p-back), fy=q707?q707.fy:tr.y+DIRV[tr.d][1]*(tr.p-back);
       const _iso=isoW2V((fx-fy)*32,(fx+fy)*16+16); const wx=_iso[0], wy=_iso[1]; // T367
-      objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:tr.d});
+      if(!q707){objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:tr.d});continue;}
+      objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:q707.td,loco707:q707.loco,tail707:q707.tail,c707:{ci,d:q707.d}});
     }
   }
   for(const sh of cargoShips){                            // 貨船（T64）：同小車/火車位置內插公式，沿水面 t===0 緩動
@@ -19187,12 +19330,28 @@ function draw(dt){
       }
       continue;
     }
+    if(o.train&&o.c707){ /* T707 新造型：兩端駕駛車車鼻朝外（兩頭尖）、中間車較高；斜度、長度、錨點和軌道一致（舊圖斜度 1/4 會翹出軌道） */
+      const sx=ox+o.wx*z, sy=oy+o.wy*z, S=bakeTrain707(o.train.pt===1?1:0), rot=viewRotEff();
+      const head=o.c707.ci===0, last=o.c707.ci===CARS707-1;
+      const n=(o.c707.d+(last?2:0)+rot)&3, sp=(head||last)?S.cab[n]:S.mid[((o.c707.d+rot)&1)?'B':'A'];
+      ctx.drawImage(sp.img,sx-S.ox*z,sy-S.oy*z,S.w*z,S.h*z);
+      if(b<.55){
+        nightSprites.push({img:sp.night,x:sx-S.ox*z,y:sy-S.oy*z,w:S.w*z,h:S.h*z});
+        const v=DIRSCR[n];
+        if(head){
+          nightSprites.push({rect:[sx+v[0]*2.2*z-z,sy+v[1]*2.2*z-z,2*z,2*z]});
+          nightSprites.push({rect:[sx+v[0]*3.4*z-1.5*z,sy+v[1]*3.4*z-1.5*z,3*z,3*z],col:'#e8dcaa'});nightSprites.push({rect:[sx+v[0]*4.6*z-2*z,sy+v[1]*4.6*z-2*z,4*z,4*z],col:'#c8bc8a'}); // 頭燈光池（T707 新造型的一部分，在 __noT707 後面；不另看 T581 動畫閥，G6a 釘住那個閥恰 4 處）
+        }
+        else if(last)nightSprites.push({rect:[sx+v[0]*2.2*z-z,sy+v[1]*2.2*z-z,2*z,2*z],col:'#ff4636'}); // 尾端駕駛車的車鼻＝列車尾燈
+      }
+      continue;
+    }
     if(o.train&&SPR.trainLoco&&!window.__noTrainSpr){ /* T344c 精細 sprite 路徑（舊 fillRect 保留為 __noTrainSpr fallback） */
       const sx=ox+o.wx*z, sy=oy+o.wy*z;
       const tdv=(o.td+viewRotEff())&3; // T376 B4 精細路徑：face 兩處使用（本體＋夜光面）與頭燈共用
       const face=(tdv===0||tdv===2)?'A':'B';
       const pt=o.train.pt===1?1:0;
-      const sp=(o.carIdx===0)?SPR.trainLoco[pt]:SPR.trainCar[pt];
+      const sp=(o.loco707!==undefined?o.loco707:o.carIdx===0)?SPR.trainLoco[pt]:SPR.trainCar[pt]; // T707：推拉折返後機車在最後一節
       // T581 幀索引由**行進進度**驅動（不是 visT）：車停下來輪子就停，這是時間驅動做不到的
       const fr581=(window.__noVehAnim581||!sp.AF)?0:(Math.floor((o.train.p||0)*4)&3);
       ctx.drawImage(sp.AF?(face==='A'?sp.AF[fr581]:sp.BF[fr581]):sp[face],sx-sp.ox*z,sy-sp.oy*z,sp.w*z,sp.h*z);
@@ -19206,7 +19365,7 @@ function draw(dt){
             nightSprites.push({rect:[sx+v[0]*3.6*z-2*z,sy+v[1]*3.6*z-2*z,4*z,4*z],col:'#c8bc8a'});
           }
         }
-        else nightSprites.push({rect:[sx-v[0]*z-z,sy-v[1]*z-z,2*z,2*z],col:'#ff4636'});
+        else if(o.tail707!==0)nightSprites.push({rect:[sx-(o.tail707||1)*v[0]*z-z,sy-(o.tail707||1)*v[1]*z-z,2*z,2*z],col:'#ff4636'}); // T707：尾燈只亮最後一節的車尾
       }
       continue;
     }
@@ -53366,6 +53525,7 @@ window.GV={
         for(const vi of[1,2])emit('art638',[k,n,w,vi].join('_'),bakeFire638(k,n,!!w,vi));
       }
       for(let v=0;v<10;v++)for(const[sea,win]of COMBO){atSea(sea);emit('art670',[v,win,sea].join('_'),bake670(v,!!win,sea));}
+      for(const pt of[0,1]){const S7=bakeTrain707(pt);S7.cab.forEach((q,n)=>emit('trainLoco',['707',pt,n].join('_'),q));for(const f of['A','B'])emit('trainCar',['707',pt,f].join('_'),S7.mid[f]);} // T707 列車新造型（駕駛車四個車鼻方向、中間車兩軸）
     }finally{day=day0;}
     return out;
   },
