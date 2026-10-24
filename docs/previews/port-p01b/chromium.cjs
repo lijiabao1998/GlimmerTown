@@ -1,7 +1,7 @@
 // Real Chromium acceptance only. No sandbox/access-policy bypass flags.
 const {chromium}=require('playwright'),fs=require('fs'),http=require('http'),crypto=require('crypto');
 const out='chromium';fs.mkdirSync(out,{recursive:true});const summary={status:'running',errors:[],resourceFailures:[],consoleErrors:[],frames:[],checks:[],offComparisons:[],performance:[]};
-const save=()=>fs.writeFileSync(`${out}/result.json`,JSON.stringify(summary,null,2));
+const save=()=>{summary.candidateCommit=process.env.GITHUB_SHA||'local-uncommitted';summary.sourceManifest=JSON.parse(fs.readFileSync('evidence/source-manifest.json','utf8'));summary.pngSHA256=Object.fromEntries(fs.readdirSync(out).filter(f=>f.endsWith('.png')).map(f=>[f,crypto.createHash('sha256').update(fs.readFileSync(`${out}/${f}`)).digest('hex')]));fs.writeFileSync(`${out}/result.json`,JSON.stringify(summary,null,2));};
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 (async()=>{const server=http.createServer((q,r)=>{if(q.url==='/favicon.ico'){r.writeHead(204);r.end();return;}const p=q.url.split('?')[0];if(!['/','/native-preview.html'].includes(p)){r.writeHead(404);r.end();return;}r.setHeader('Content-Type','text/html');r.end(fs.readFileSync('native-preview.html'));});await new Promise(r=>server.listen(8126,'127.0.0.1',r));let browser;try{
  browser=await chromium.launch({headless:true,chromiumSandbox:true,...(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{})});summary.browser=browser.version();const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();

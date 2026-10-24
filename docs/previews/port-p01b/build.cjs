@@ -2,6 +2,9 @@ const fs=require('fs'),crypto=require('crypto');
 const raw=fs.readFileSync(fs.existsSync('baseline/index.html')?'baseline/index.html':'../../../index.html','utf8');fs.mkdirSync('evidence',{recursive:true});
 if(crypto.createHash('sha256').update(raw).digest('hex')!=="19339e4e87bf395413eff64c6e79505944e24789f421f68d68ad11829f180de5")throw Error('Pinned main source differs; stop before preview generation');
 let h=raw;const patches=[];function replace(a,b){if(h.split(a).length!==2)throw Error('Nonunique anchor: '+a);h=h.replace(a,b);patches.push(a);}
+const icon=fs.readFileSync(fs.existsSync('baseline/icon.svg')?'baseline/icon.svg':'../../../icon.svg');
+replace('<link rel="icon" href="icon.svg">','<link rel="icon" href="data:image/svg+xml;base64,'+icon.toString('base64')+'">');
+replace('<link rel="manifest" href="manifest.json">','<!-- Independent preview is not an installable PWA. -->');
 replace('function draw(dt){','function draw(dt){\n if(window.P01B)visT=window.P01B.phase;');
 replace('  objs.sort((a,b2)=>a.dep-b2.dep);','  if(window.P01B&&!window.__noHarborP01B) for(const p of window.P01B.parts) objs.push({dep:(["slab","reserve"].includes(p.type)?-100000:viewDep(p.x+20,p.y+20)+.001),p01b:p});\n  objs.sort((a,b2)=>a.dep-b2.dep);');
 replace('  for(const o of objs){\n    if(o.sta){','  for(const o of objs){\n    if(o.p01b){ ctx.save();window.P01B.paint(ctx,o.p01b,(x,y,h=0)=>[sxOf(x+20,y+20)+32*z,syOf(x+20,y+20)+16*z-h*z],z,b);ctx.restore();continue;}\n    if(window.P01B&&!window.__noHarborP01B&&o.t&&o.t.bld&&o.t.bld.k===18)continue;\n    if(o.sta){');

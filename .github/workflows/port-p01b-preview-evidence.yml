@@ -22,6 +22,8 @@ jobs:
         run: |
           git rev-parse HEAD
           /usr/bin/google-chrome --version
+      - name: Install official Ubuntu CJK fonts for native labels
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Install declared test-only dependencies
         working-directory: docs/previews/port-p01b
         run: npm ci --ignore-scripts
