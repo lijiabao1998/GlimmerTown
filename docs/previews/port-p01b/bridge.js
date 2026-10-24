@@ -1,6 +1,6 @@
 // Independent P01-B preview bridge. World, terrain, roads, camera, sprites and object queue are native.
 window.P01B={phase:55,parts:[],stats:{},
-diag(){const seen=new Set();let canvasCount=0,pixels=0;const walk=o=>{if(!o||typeof o!=='object'||seen.has(o))return;seen.add(o);if(o instanceof HTMLCanvasElement){canvasCount++;pixels+=o.width*o.height;return;}if(o instanceof Map){for(const v of o.values())walk(v);return;}for(const v of Object.values(o))walk(v);};walk(SPR);walk(CACHE634);walk(this.freightCache);return{cam:{...cam},sim:{running,speed},cache:{canvasCount,pixels,rgbaBytes:pixels*4,native634:CACHE634.size,freight:this.freightCache?.size||0},bake:window.__p01cBake||{count:0,totalMs:0,firstMs:null},parts:this.parts.length};},
+diag(){const seen=new Set();let canvasCount=0,pixels=0;const walk=o=>{if(!o||typeof o!=='object'||seen.has(o))return;seen.add(o);if(o instanceof HTMLCanvasElement){canvasCount++;pixels+=o.width*o.height;return;}if(o instanceof Map){for(const v of o.values())walk(v);return;}for(const v of Object.values(o))walk(v);};walk(SPR);walk(CACHE634);walk(this.freightCache);return{cam:{...cam},sim:{running,speed},cache:{canvasCount,pixels,rgbaBytes:pixels*4,native634:CACHE634.size,freight:this.freightCache?.size||0},bake:{...(window.__p01cBake||{count:0,totalMs:0,firstMs:null})},parts:this.parts.length};},
 
 freightDraw(T){
  const I=industryKit634(T);
