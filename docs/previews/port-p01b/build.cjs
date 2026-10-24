@@ -1,0 +1,19 @@
+const fs=require('fs'),crypto=require('crypto');
+const raw=fs.readFileSync(fs.existsSync('baseline/index.html')?'baseline/index.html':'../../../index.html','utf8');fs.mkdirSync('evidence',{recursive:true});
+if(crypto.createHash('sha256').update(raw).digest('hex')!=="19339e4e87bf395413eff64c6e79505944e24789f421f68d68ad11829f180de5")throw Error('Pinned main source differs; stop before preview generation');
+let h=raw;const patches=[];function replace(a,b){if(h.split(a).length!==2)throw Error('Nonunique anchor: '+a);h=h.replace(a,b);patches.push(a);}
+replace('function draw(dt){','function draw(dt){\n if(window.P01B)visT=window.P01B.phase;');
+replace('  objs.sort((a,b2)=>a.dep-b2.dep);','  if(window.P01B&&!window.__noHarborP01B) for(const p of window.P01B.parts) objs.push({dep:(["slab","reserve"].includes(p.type)?-100000:viewDep(p.x+20,p.y+20)+.001),p01b:p});\n  objs.sort((a,b2)=>a.dep-b2.dep);');
+replace('  for(const o of objs){\n    if(o.sta){','  for(const o of objs){\n    if(o.p01b){ ctx.save();window.P01B.paint(ctx,o.p01b,(x,y,h=0)=>[sxOf(x+20,y+20)+32*z,syOf(x+20,y+20)+16*z-h*z],z,b);ctx.restore();continue;}\n    if(window.P01B&&!window.__noHarborP01B&&o.t&&o.t.bld&&o.t.bld.k===18)continue;\n    if(o.sta){');
+replace('setInterval(()=>{if(tiles)save();},25000);','/* P01-B isolated preview: automatic writes disabled. */');
+replace("document.addEventListener('visibilitychange',()=>{if(document.hidden&&tiles)save();});",'/* P01-B no visibility autosave. */');
+replace("if(location.protocol!=='file:'){","if(false){ /* P01-B no service worker registration. */");
+replace('    if(o.t){const sz=b?', '    if(o.p01b&&!['+JSON.stringify('slab')+','+JSON.stringify('reserve')+'].includes(o.p01b.type)){const a=o.p01b,w=a.w||.1,d=a.d||.1,p=w2v(a.x+20-w/2,a.y+20-d/2),q=w2v(a.x+20+w/2,a.y+20+d/2);foot574=[Math.min(p[0],q[0]),Math.min(p[1],q[1]),Math.max(p[0],q[0]),Math.max(p[1],q[1])];}else if(o.t){const sz=b?');
+replace('  const art=ART634[k];if(!art)return null;', '  const art=(window.__p01bFreightBake&&k===110)?{draw:window.P01B.freightDraw}:ART634[k];if(!art)return null;');
+replace('    if(s.sc!==undefined){','    if(window.P01B&&!window.__noHarborP01B&&!window.__noFreightP01B&&bd.k===110&&o.x===31&&o.y===27){s=window.P01B.freightSprite(bd,lotV591(o.x,o.y,bd),win&&snowLvl>0)||s;}\n    if(s.sc!==undefined){');
+const bridge=fs.readFileSync('bridge.js','utf8');
+replace('})();\n</script>\n</body>',bridge+'\n})();\n</script>\n</body>');
+const isolation=`<script>(()=>{const data=new Map([['glimmerville.v1.slot','3'],['glimmerville.v1.snd','0']]);Object.defineProperty(window,'localStorage',{value:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k),clear:()=>data.clear()}});})();</script>`;
+h=h.replace('<head>','<head>'+isolation);
+h=h.replace('</body>',`<aside style="position:fixed;top:8px;left:8px;z-index:99999;background:#17242de8;color:white;padding:10px;font:14px sans-serif">P01-B 原生渲染候選・非發布版 <button onclick="P01B.view(55,0)">日</button><button onclick="P01B.view(0,0)">夜</button><button onclick="P01B.view(55,3)">冬</button><button onclick="P01B.rotate()">旋轉</button><button onclick="__noHarborP01B=!window.__noHarborP01B;GV.forceDraw()">原圖／候選</button><br>僅美術預覽；無經濟流量或新船舶邏輯。記憶體存檔，不存玩家資料。</aside><script>const ready=setInterval(()=>{if(window.__boot426&&__boot426().ready){clearInterval(ready);P01B.setup();const tick=()=>{P01B.redraw();requestAnimationFrame(tick)};requestAnimationFrame(tick);}},150)</script></body>`);
+fs.writeFileSync('native-preview.html',h);fs.writeFileSync('evidence/source-manifest.json',JSON.stringify({baseline:'379b7ad92eaa34be5a10ce5a5e1786a8f67e6bd8',sourceSHA256:crypto.createHash('sha256').update(raw).digest('hex'),patchAnchors:patches,trackedSourceModified:false,scope:'Independent generated preview copy only'},null,2));
