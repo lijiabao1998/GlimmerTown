@@ -5,7 +5,8 @@ let h=raw;const patches=[];function replace(a,b){if(h.split(a).length!==2)throw 
 const icon=fs.readFileSync(fs.existsSync('baseline/icon.svg')?'baseline/icon.svg':'../../../icon.svg');
 replace('<link rel="icon" href="icon.svg">','<link rel="icon" href="data:image/svg+xml;base64,'+icon.toString('base64')+'">');
 replace('<link rel="manifest" href="manifest.json">','<!-- Independent preview is not an installable PWA. -->');
-replace('function draw(dt){','function draw(dt){\n if(window.P01B)visT=window.P01B.phase;');
+replace('function draw(dt){','function draw(dt){const r=drawMeasuredP01C(dt);window.__p01cDrawCompleted=(window.__p01cDrawCompleted||0)+1;return r;}\nfunction drawMeasuredP01C(dt){\n if(window.P01B)visT=window.P01B.phase;');
+replace('function tick(){','function tick(){const r=tickMeasuredP01C();window.__p01cTickCompleted=(window.__p01cTickCompleted||0)+1;return r;}\nfunction tickMeasuredP01C(){');
 replace('function bake634(k,v,n,lv=1,we=1,stage=2,winter=false,sea=season()){','function bake634(...args){const st=performance.now();try{return bake634Measured(...args);}finally{const m=window.__p01cBake||(window.__p01cBake={count:0,totalMs:0,firstMs:null});const ms=performance.now()-st;m.count++;m.totalMs+=ms;if(m.firstMs===null)m.firstMs=ms;}}\nfunction bake634Measured(k,v,n,lv=1,we=1,stage=2,winter=false,sea=season()){');
 replace('  objs.sort((a,b2)=>a.dep-b2.dep);','  if(window.P01B&&!window.__noHarborP01B) for(const p of window.P01B.parts) objs.push({dep:(["slab","reserve"].includes(p.type)?-100000:viewDep(p.x+20,p.y+20)+.001),p01b:p});\n  objs.sort((a,b2)=>a.dep-b2.dep);');
 replace('  for(const o of objs){\n    if(o.sta){','  for(const o of objs){\n    if(o.p01b){ ctx.save();window.P01B.paint(ctx,o.p01b,(x,y,h=0)=>[sxOf(x+20,y+20)+32*z,syOf(x+20,y+20)+16*z-h*z],z,b);ctx.restore();continue;}\n    if(window.P01B&&!window.__noHarborP01B&&o.t&&o.t.bld&&o.t.bld.k===18)continue;\n    if(o.sta){');
