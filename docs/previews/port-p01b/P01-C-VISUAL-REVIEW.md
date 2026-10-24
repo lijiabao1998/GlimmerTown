@@ -13,3 +13,8 @@ Observed and scope decisions:
 - Mobile full harbor framing reduces details, and the existing game toolbar is dense. This round tests native real touch pan/pinch/zoom-button behavior and measures whether these controls remain usable. Desktop source UI is not silently replaced to obtain a pass.
 
 Pending this round's measured outcome: native mobile touch tests and detailed night/feet/corner captures. This document is not owner art approval and not a declaration that all graphics are final.
+
+## Measured refinements after real closeups
+The crane-leg footprint test exposed four real container intersections. Testing the full 0.22×0.22 footpads (not merely thin legs) caught an additional intermediate failed clearance attempt, retained in evidence. Final minimal repair: middle container row y13.20→13.05; quay crane centerline y14.00→14.08. Front and rear container rows stay y14.05 and y12.35. All 24 boxes remain within the original two 3×3 yards; all footpads remain landward of y15 and away from the native road. No building root, container count, crane count, quay extent or overall scheme changes. A diagnostic legacy flag reproduces the original four intersections and before/fixed images at all four rotations.
+
+The preview-only description panel covered native HUD controls in 320px actual Chrome output. It now starts collapsed at y140, clear of native HUD, categories and zoom buttons; tests check rectangle non-overlap plus real touch operation of Roads/Base categories. This changes no native game control logic.

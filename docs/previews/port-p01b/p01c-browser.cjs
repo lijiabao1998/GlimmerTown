@@ -3,6 +3,9 @@ module.exports=async({page,context,summary,out,fs,save})=>{
  const assert=(name,result)=>{summary.checks.push({name,result});save();if(!result)throw Error(name);};
  const stat=a=>{a=[...a].sort((x,y)=>x-y);return {n:a.length,median:a[Math.floor(a.length*.5)],p95:a[Math.min(a.length-1,Math.floor(a.length*.95))],min:a[0],max:a.at(-1)};};
  summary.p01c={touch:[],performance:[],longRun:null};
+ summary.p01c.clearanceViews=[];
+ for(let rot=0;rot<4;rot++){let pair=[];for(const legacy of[true,false]){const data=await page.evaluate(({rot,legacy})=>{window.__p01cLegacyClearance=legacy;P01B.build();GV.setRot(rot);GV.setZoom(1.8);GV.lookAt(29,33);P01B.view(55,0);return document.querySelector('#game').toDataURL('image/png');},{rot,legacy});pair.push(data);fs.writeFileSync(`${out}/clearance-${legacy?'before':'fixed'}-r${rot}.png`,Buffer.from(data.split(',')[1],'base64'));}assert(`Crane foot clearance repair changes visible pixels r${rot}`,pair[0]!==pair[1]);summary.p01c.clearanceViews.push({rot,before:`clearance-before-r${rot}.png`,fixed:`clearance-fixed-r${rot}.png`});}
+
  // Independent fresh context, same original source, but candidate valve disabled before boot.
  const coldContext=await context.browser().newContext({viewport:{width:1440,height:1000}});const coldPage=await coldContext.newPage();await coldPage.goto('http://127.0.0.1:8126/?baseline=1');await coldPage.waitForFunction(()=>window.P01B?.parts.length>0,null,{timeout:120000});summary.coldBaseline=await coldPage.evaluate(()=>({readyMs:performance.now()-window.__p01cStart,...P01B.diag()}));await coldContext.close();
  for(const [name,x,y,phase,sea] of [['shore-west',23,35,55,0],['shore-east',35,35,55,0],['crane-feet-height',30,34,55,0],['lamp-closeup',29,32,0,0],['winter-feet',30,33,55,3]]){await page.evaluate(({x,y,phase,sea})=>{GV.setRot(0);GV.setZoom(2);GV.lookAt(x,y);P01B.view(phase,sea);},{x,y,phase,sea});await page.screenshot({path:`${out}/detail-${name}.png`});}
