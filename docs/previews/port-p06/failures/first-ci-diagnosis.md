@@ -1,0 +1,7 @@
+# First official P06 red — e5adc779 / 40190499774
+
+112 real Chrome checks passed before the native-resume assertion sampled after only 350 ms. The independently saved FAILED-last.png already shows native speed 1x and P06 city-synchronized 0.6 s: real native background fallback waits ≥400 ms since last draw, then checks on a 250 ms interval. The test now foregrounds the candidate and awaits the same speed===1 && operatingTime>pausedTime condition for at most 5 seconds; it records pre/post visibility, running and time. No expected state or production timing was relaxed.
+
+The separate focused old-save harness exposed unqualified window-only P01B/UMD names in the generated candidate closure. Candidate builder now introduces explicit closure aliases. This is a candidate adapter compatibility fix, not an official save/load implementation or format edit. All eight baseline+candidate focused T706/T707/oldsave602/oldsave603 tests passed locally afterward, originals unchanged. The first fingerprint run pointed to the P05 wrapper while only P06 wrapper was executable; new P06 orchestration points to its own sandbox-preserving wrapper.
+
+Raw first-run result, logs and PNGs are preserved in official artifact 12597901358 (SHA256 493a241d8741e67069dbd0853cfab09e2921a5ba5be5af51c8698a39cc40207d), locally extracted under /workspace/shared/own-cloud-migration-20261024/port-p06-first-red. These corrections still require the next genuine Chromium run, and are not recorded as full acceptance.

@@ -22,6 +22,10 @@ function inspect(world,port,q,parts,api,options={}){const F=frame(world,port,q),
  const approach=L.line({x:startX,y:31.5},L.LOAD),outbound=L.line(L.LOAD,{x:20.8,y:31.5}),checks=[L.sweep(approach,cells,nativeObstacles),L.sweep(outbound,cells,nativeObstacles)],route={safe:checks.every(c=>c.safe),approach,outbound,gate:L.GATE,checks,load:L.LOAD,fullyOutside:p=>L.bounds(p).x1<L.GATE.x-L.EPS};
  for(const s of[approach,outbound])for(let u=0;u<=1.0001;u+=.02)for(const k of L.occupied(s.pose(u))){const[x,y]=k.split(',').map(Number);watch(x,y);}
  if(!route.safe)add('ROAD_GATE','真實道路無法承載整車進場／裝載／全車出閘；不會補造道路',checks.flatMap(c=>c.failures).map(v=>v.cell||v.id));
+ /* 原生倉庫／貨運站必須以真道路接到出閘路網；不把全城存在當作連通。 */
+ const inv=inventory(world),roadStart=key(20,31),connected=new Set(cells.has(roadStart)?[roadStart]:[]),queue=[...connected],parents=new Map();for(let i=0;i<queue.length;i++){const[x,y]=queue[i].split(',').map(Number);for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const k=key(x+dx,y+dy);if(cells.has(k)&&!connected.has(k)){connected.add(k);parents.set(k,queue[i]);queue.push(k);}}}
+ const access=b=>{const found=[];for(let y=b.y-1;y<=b.y+b.size;y++)for(let x=b.x-1;x<=b.x+b.size;x++){if(x>=b.x&&x<b.x+b.size&&y>=b.y&&y<b.y+b.size)continue;if((x<b.x||x>=b.x+b.size)&&(y<b.y||y>=b.y+b.size))continue;const p=F.inverse(x+.5,y+.5),k=key(Math.floor(p[0]),Math.floor(p[1]));if(connected.has(k))found.push(k);}return found;},supports={};
+ for(const[kind,list,code]of[['warehouse',inv.warehouses,'WAREHOUSE'],['freight',inv.freight,'FREIGHT']]){const eligible=list.filter(b=>b.age>=9).map(b=>({building:b,access:access(b)})).filter(b=>b.access.length);if(!eligible.length)add(code+'_UNREACHABLE','缺少已完工且與真實出閘道路連通的'+(kind==='warehouse'?'倉庫 k64':'貨運站 k110'));else{const chosen=eligible[0];supports[kind]=chosen;const b=chosen.building;for(let y=b.y;y<b.y+b.size;y++)for(let x=b.x;x<b.x+b.size;x++)watched.add(key(x,y));let k=chosen.access[0];while(k){const[x,y]=k.split(',').map(Number);watch(x,y);k=parents.get(k);}}}
  const geometry=L.transferGeometry([...obstacles,...nativeObstacles]);if(!geometry.safe)add('LANDSIDE_SWEEP','陸側吊架完整掃掠被占用',geometry.failures.map(v=>v.obstacle));
  let nav=null,p04=null,p05=null,rawNav=null;const navFailures=[];
  if(!errors.length&&!options.quick){const grid={width:n,height:n,cells:water},berth={x:26.5+F.dx,y:36.5+F.dy,angle:Math.PI,quayY:35+F.dy},entries=[];for(let x=1.5;x<n-1;x++)if(V.validPose(grid,{x,y:n-3.5,angle:Math.PI*1.5}))entries.push(x);entries.sort((a,b)=>Math.abs(a-(40.5+F.dx))-Math.abs(b-(40.5+F.dx)));
@@ -36,6 +40,6 @@ function inspect(world,port,q,parts,api,options={}){const F=frame(world,port,q),
   }
  }
  const watchList=[...watched].map(k=>{const[x,y]=k.split(',').map(Number);return{k,x,y,signature:signature(world.cells[y*n+x])};});
- return{valid:!errors.length,port,q,orientation:ORIENTATIONS[q],frame:F,errors,docks,route,geometry,nav,rawNav,p04,p05,watchList,footprint:{apron:[23,32,35,35],gate:{...L.GATE},noGeneratedRoad:true},native:{warehouses:inventory(world).warehouses,freight:inventory(world).freight},navFailures};
+ return{valid:!errors.length,port,q,orientation:ORIENTATIONS[q],frame:F,errors,docks,route,geometry,nav,rawNav,p04,p05,watchList,footprint:{apron:[23,32,35,35],gate:{...L.GATE},noGeneratedRoad:true},native:{warehouses:inv.warehouses,freight:inv.freight,supports},navFailures};
 }
 return{ORIENTATIONS,rotate,frame,inventory,signature,inspect};});

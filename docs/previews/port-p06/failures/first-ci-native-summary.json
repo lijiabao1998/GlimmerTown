@@ -1,0 +1,468 @@
+{
+  "status": "failed",
+  "started": "2026-10-25T11:50:26.190Z",
+  "commit": "e5adc779258095b5e69b791b84c96920bbea7219",
+  "browser": "155.0.8059.39",
+  "browserSandbox": true,
+  "failure": "AssertionError [ERR_ASSERTION]: Native speed button resumes real city and candidate clocks\n    at check (/home/runner/work/GlimmerTown/GlimmerTown/docs/previews/port-p06/native-browser.cjs:11:89)\n    at /home/runner/work/GlimmerTown/GlimmerTown/docs/previews/port-p06/native-browser.cjs:57:439",
+  "finished": "2026-10-25T11:51:25.870Z",
+  "checks": [
+    {
+      "name": "P06 is optional and default OFF on untouched native title",
+      "pass": true
+    },
+    {
+      "name": "Storage slot is isolated before native code and no service-worker controller",
+      "pass": true
+    },
+    {
+      "name": "south true native port layout compiles",
+      "pass": true
+    },
+    {
+      "name": "south does not generate road cells",
+      "pass": true
+    },
+    {
+      "name": "south/ship exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "south/ship exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "south/quay exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "south/quay exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "south/yard exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "south/yard exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "south/landside exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "south/landside exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "south/truck exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "south/truck exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "south/dispatched exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "south/dispatched exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "south fixed-time replay does not write native city cells",
+      "pass": true
+    },
+    {
+      "name": "south arbitrary replay returns identical immutable terminal ledger",
+      "pass": true
+    },
+    {
+      "name": "south replay is explicitly labeled, not economic throughput",
+      "pass": true
+    },
+    {
+      "name": "west true native port layout compiles",
+      "pass": true
+    },
+    {
+      "name": "west does not generate road cells",
+      "pass": true
+    },
+    {
+      "name": "west/ship exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "west/ship exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "west/quay exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "west/quay exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "west/yard exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "west/yard exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "west/landside exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "west/landside exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "west/truck exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "west/truck exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "west/dispatched exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "west/dispatched exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "west fixed-time replay does not write native city cells",
+      "pass": true
+    },
+    {
+      "name": "west arbitrary replay returns identical immutable terminal ledger",
+      "pass": true
+    },
+    {
+      "name": "west replay is explicitly labeled, not economic throughput",
+      "pass": true
+    },
+    {
+      "name": "north true native port layout compiles",
+      "pass": true
+    },
+    {
+      "name": "north does not generate road cells",
+      "pass": true
+    },
+    {
+      "name": "north/ship exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "north/ship exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "north/quay exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "north/quay exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "north/yard exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "north/yard exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "north/landside exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "north/landside exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "north/truck exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "north/truck exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "north/dispatched exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "north/dispatched exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "north fixed-time replay does not write native city cells",
+      "pass": true
+    },
+    {
+      "name": "north arbitrary replay returns identical immutable terminal ledger",
+      "pass": true
+    },
+    {
+      "name": "north replay is explicitly labeled, not economic throughput",
+      "pass": true
+    },
+    {
+      "name": "east true native port layout compiles",
+      "pass": true
+    },
+    {
+      "name": "east does not generate road cells",
+      "pass": true
+    },
+    {
+      "name": "east/ship exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "east/ship exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "east/quay exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "east/quay exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "east/yard exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "east/yard exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "east/landside exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "east/landside exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "east/truck exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "east/truck exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "east/dispatched exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "east/dispatched exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "east fixed-time replay does not write native city cells",
+      "pass": true
+    },
+    {
+      "name": "east arbitrary replay returns identical immutable terminal ledger",
+      "pass": true
+    },
+    {
+      "name": "east replay is explicitly labeled, not economic throughput",
+      "pass": true
+    },
+    {
+      "name": "offset true native port layout compiles",
+      "pass": true
+    },
+    {
+      "name": "offset does not generate road cells",
+      "pass": true
+    },
+    {
+      "name": "offset/ship exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "offset/ship exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "offset/quay exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "offset/quay exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "offset/yard exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "offset/yard exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "offset/landside exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "offset/landside exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "offset/truck exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "offset/truck exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "offset/dispatched exact independent 30-ID ledger",
+      "pass": true
+    },
+    {
+      "name": "offset/dispatched exclusive expected ownership",
+      "pass": true
+    },
+    {
+      "name": "offset fixed-time replay does not write native city cells",
+      "pass": true
+    },
+    {
+      "name": "offset arbitrary replay returns identical immutable terminal ledger",
+      "pass": true
+    },
+    {
+      "name": "offset replay is explicitly labeled, not economic throughput",
+      "pass": true
+    },
+    {
+      "name": "Actual enable UI selects a legal native harbor",
+      "pass": true
+    },
+    {
+      "name": "Actual disable UI stops the candidate without deleting ledger",
+      "pass": true
+    },
+    {
+      "name": "Repeated enable preserves the same clock and cargo",
+      "pass": true
+    },
+    {
+      "name": "Cancel reset preserves the candidate manifest",
+      "pass": true
+    },
+    {
+      "name": "Confirmed reset returns one original batch, not a duplicate",
+      "pass": true
+    },
+    {
+      "name": "Actual live UI explicitly returns to city time",
+      "pass": true
+    },
+    {
+      "name": "Actual native roads and water fit full retained bodies at every route sample",
+      "pass": true
+    },
+    {
+      "name": "no-port refused with visible reason",
+      "pass": true
+    },
+    {
+      "name": "no-port never falsely dispatches",
+      "pass": true
+    },
+    {
+      "name": "no-dock refused with visible reason",
+      "pass": true
+    },
+    {
+      "name": "no-dock never falsely dispatches",
+      "pass": true
+    },
+    {
+      "name": "apron-building refused with visible reason",
+      "pass": true
+    },
+    {
+      "name": "apron-building never falsely dispatches",
+      "pass": true
+    },
+    {
+      "name": "road-cut refused with visible reason",
+      "pass": true
+    },
+    {
+      "name": "road-cut never falsely dispatches",
+      "pass": true
+    },
+    {
+      "name": "closed-water refused with visible reason",
+      "pass": true
+    },
+    {
+      "name": "closed-water never falsely dispatches",
+      "pass": true
+    },
+    {
+      "name": "narrow-water refused with visible reason",
+      "pass": true
+    },
+    {
+      "name": "narrow-water never falsely dispatches",
+      "pass": true
+    },
+    {
+      "name": "gate-cut refused with visible reason",
+      "pass": true
+    },
+    {
+      "name": "gate-cut never falsely dispatches",
+      "pass": true
+    },
+    {
+      "name": "Demolished harbor stops instead of inventing a successful handoff",
+      "pass": true
+    },
+    {
+      "name": "Demolition preserves all original IDs",
+      "pass": true
+    },
+    {
+      "name": "Rebuilding preserves the same manifest without a fresh batch",
+      "pass": true
+    },
+    {
+      "name": "Native pause freezes the operating clock while renderer may continue",
+      "pass": true
+    },
+    {
+      "name": "Native speed button resumes real city and candidate clocks",
+      "pass": false
+    }
+  ],
+  "artifact": {
+    "run": 40190499774,
+    "id": 12597901358,
+    "sha256": "493a241d8741e67069dbd0853cfab09e2921a5ba5be5af51c8698a39cc40207d"
+  }
+}

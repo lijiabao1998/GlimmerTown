@@ -3,7 +3,7 @@
    node docs/previews/port-p06/regression.cjs [--repo=/checkout] [--lane=validate|focused|fingerprints]
    validate is the original non-browser validation plus actual-preview routing/save checks.
    fingerprints explicitly launches the original fp_snapshot.py against both sources.
-   Browser rendering/interaction/full-frame parity belongs to chromium.cjs, not this runner. */
+   Browser rendering/interaction/full-frame parity belongs to native-browser.cjs, not this runner. */
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto'),cp=require('node:child_process');
 const opt=(k,d)=>{const s=process.argv.find(a=>a.startsWith('--'+k+'='));return s?s.slice(k.length+3):d;};
 const HERE=__dirname,ROOT=path.resolve(opt('repo',fs.existsSync(path.resolve(HERE,'../../../test_fixde.js'))?path.resolve(HERE,'../../..'):path.resolve(HERE,'../GlimmerTown-port-exploration'))),OUT=path.resolve(opt('out',path.join(HERE,'evidence/native-regression'))),LANE=opt('lane','validate');
@@ -12,6 +12,9 @@ const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const read=p=>fs.readFileSync(p,'utf8');
 if(!['validate','focused','fingerprints'].includes(LANE))throw Error('Unknown --lane');
 fs.mkdirSync(OUT,{recursive:true});
+// Preserve every red result before a rerun; corrected checks never erase failure history.
+const oldReport=path.join(OUT,'regression-'+LANE+'.json');
+if(fs.existsSync(oldReport)){const old=JSON.parse(read(oldReport));if(old.status!=='passed'){const archive=path.join(HERE,'failures','regression-'+LANE+'-'+new Date().toISOString().replace(/[:.]/g,'-'));fs.mkdirSync(archive,{recursive:true});fs.copyFileSync(oldReport,path.join(archive,path.basename(oldReport)));for(const c of old.checks||[]){if(c.log&&fs.existsSync(path.join(OUT,c.log)))fs.copyFileSync(path.join(OUT,c.log),path.join(archive,c.log));}}}
 const report={kind:'P06 original regression orchestration',lane:LANE,status:'running',started:new Date().toISOString(),scope:{baseline:'Untouched repository runtime and original tests',candidate:'Exact P06 native-preview.html bytes; unchanged original T706/T707 replays and oldsave602/603 wrappers',notEquivalentTo:'This report is not a production CI gate, browser visual acceptance, or deployment approval'},checks:[],errors:[],notRun:[]};
 const persist=()=>fs.writeFileSync(path.join(OUT,'regression-'+LANE+'.json'),JSON.stringify(report,null,2)+'\n');
 const env={...process.env,PYTHONDONTWRITEBYTECODE:'1',PYTHONUTF8:'1',PYTHONIOENCODING:'utf-8',NODE_PATH:[process.env.NODE_PATH||'',path.join(HERE,'node_modules')].filter(Boolean).join(path.delimiter)};
@@ -67,7 +70,7 @@ try{
   report.notRun.push('Native Chromium inherited SPR/ART recomputation: run --lane=fingerprints in a permitted browser environment.','Original full browser release/frame matrices and candidate visual/input/performance checks are not replaced by these Node checks.','Full test_fixde/verify validates the baseline, not the standalone preview: preview deliberately disables persistent autosave and PWA registration, so their original source-contract assertions are not equivalent.');
  }else{
   // Explicit transport adapter strengthens the original launch without changing its checks.
-  if(process.platform==='linux'){env.CHROME_PATH=path.join(HERE,'../port-p05/chrome-sandboxed.sh');report.browserTransport={adapter:'../port-p05/chrome-sandboxed.sh (unchanged P05)' ,effect:'Removes only the original --no-sandbox argument; real Chrome sandbox stays enabled',realBinary:process.env.CHROME_SANDBOXED_BINARY||'/usr/bin/google-chrome',adapterSHA256:hash(fs.readFileSync(env.CHROME_PATH))};}
+  if(process.platform==='linux'){env.CHROME_PATH=path.join(HERE,'chrome-sandboxed.sh');report.browserTransport={adapter:'chrome-sandboxed.sh (P06-owned, sandbox enabled)' ,effect:'Removes only the original --no-sandbox argument; real Chrome sandbox stays enabled',realBinary:process.env.CHROME_SANDBOXED_BINARY||'/usr/bin/google-chrome',adapterSHA256:hash(fs.readFileSync(env.CHROME_PATH))};}
   for(const [label,target] of [['baseline',ROOT],['candidate',STAGE]])command(label+'-original-fingerprints',PYTHON,['-B',path.join(ROOT,'tools/fp_snapshot.py'),'--repo',target,'--check','--report',path.join(OUT,label+'-original-fingerprints.json')],target);
   report.notRun.push('Non-browser regression was not requested in this lane.','This fingerprint lane checks original inherited atlas keys only, not P06 placement/clock correctness or whole-frame valve equality.');
  }

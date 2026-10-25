@@ -29,10 +29,10 @@ const P06=window.P06={enabled:false,mode:'live',timeMs:0,layout:null,reasons:[],
  focus(){if(this.layout){const p=this.map(29,33);GV.setZoom(1.5);GV.lookAt(...p);GV.forceDraw();}},
  legacyReserved(x,y){if(!this.active())return false;const p=this.layout.frame.inverse(x,y);return p[0]>=23&&p[0]<=36&&p[1]>=34&&p[1]<=40;}
 };
-P01B.build();
+window.P01B.build();
 /* P01–P05 各繪製器／純狀態機保留；只替換候選初始化、坐標投影與時鐘來源。 */
-P01B.setup=()=>{throw Error('P06 native mode never creates the fixed P01 scene');};
-P01B.redraw=()=>draw(0);
+window.P01B.setup=()=>{throw Error('P06 native mode never creates the fixed P01 scene');};
+window.P01B.redraw=()=>draw(0);
 P02.active=()=>P06.active();P03.active=()=>P06.active();P04.active=()=>P06.active();P05.active=()=>P06.active();
 P03.time=()=>P06.timeMs;P02.time=()=>P06.timeMs;
 P03.seek=ms=>P06.replay(ms);P04.seek=ms=>P06.replay(ms);P05.seek=ms=>P06.replay(ms);
