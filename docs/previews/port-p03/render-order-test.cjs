@@ -24,7 +24,7 @@ function scene(rot,angle){
   const viewDep=(x,y)=>{const [a,b]=w2v(x,y);return a+b;};
   const project=(x,y,z)=>{const [a,b]=w2v(x,y);return[32*(a-b),16*(a+b)-z,z];};
   const context={window:{},QuayMotion:Q,VesselNavigation:V,P01B:{setup(){},phase:55},P02:{},viewDep,performance:{now:()=>0},URLSearchParams,location:{search:''},season:()=>0};
-  vm.createContext(context);vm.runInContext(source,context,{filename:'vessel-bridge.js'});
+  context.window.P01B=context.P01B;context.window.VesselNavigation=V;vm.createContext(context);vm.runInContext(source,context,{filename:'vessel-bridge.js'});
   const bridge=context.window.P03;
   bridge.plan={at:()=>({x:26.5,y:36.5,angle,visible:true})};bridge.time=()=>0;
   const objects=bridge.objects().sort((a,b)=>a.dep-b.dep);

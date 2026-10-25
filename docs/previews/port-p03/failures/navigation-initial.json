@@ -11,5 +11,16 @@
       "Independently sorted cabin mast could be covered by its supporting roof"
     ],
     "repair": "URL valve and hierarchy preserving ship/prism/cabin painter ordering; independent ray-depth regression added before next CI"
+  },
+  "firstOfficialRegression": {
+    "run": 40158218006,
+    "head": "49d2688d5f92a0e7fea31ebb32a922b01e13137e",
+    "passed": 18,
+    "failed": [
+      "candidate-oldsave602",
+      "candidate-oldsave603"
+    ],
+    "error": "ReferenceError: P01B is not defined in newly added setup binding",
+    "repair": "Use explicit window.P01B, not browser implicit global alias. Original oldsave tests and expectations remain unchanged. Both original fingerprints passed."
   }
 }
