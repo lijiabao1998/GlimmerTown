@@ -1,0 +1,284 @@
+{
+  "frameCount": 128,
+  "sampleCount": 183906,
+  "boundaryProbes": 448,
+  "failureCount": 12,
+  "failures": [
+    {
+      "rot": 2,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.3599999999999,
+        1250.3200000000002
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.319999999999823
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.15999999999982
+      }
+    },
+    {
+      "rot": 2,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.35999999999967,
+        1250.48
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.159999999999854
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.000000000000092
+      }
+    },
+    {
+      "rot": 2,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.3599999999999,
+        1250.3200000000002
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.319999999999823
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.15999999999982
+      }
+    },
+    {
+      "rot": 2,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.35999999999967,
+        1250.48
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.159999999999854
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.000000000000092
+      }
+    },
+    {
+      "rot": 2,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.3599999999999,
+        1250.3200000000002
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.319999999999823
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.15999999999982
+      }
+    },
+    {
+      "rot": 2,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.35999999999967,
+        1250.48
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.159999999999854
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.000000000000092
+      }
+    },
+    {
+      "rot": 2,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.3599999999999,
+        1250.3200000000002
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.319999999999823
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.15999999999982
+      }
+    },
+    {
+      "rot": 2,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.35999999999967,
+        1250.48
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.159999999999854
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.000000000000092
+      }
+    },
+    {
+      "rot": 2,
+      "time": 111004.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.3599999999999,
+        1250.3200000000002
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.319999999999823
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.15999999999982
+      }
+    },
+    {
+      "rot": 2,
+      "time": 111004.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        99.35999999999967,
+        1250.48
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 24.159999999999854
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 20.000000000000092
+      }
+    },
+    {
+      "rot": 2,
+      "time": 123504.95209220854,
+      "status": "traverse",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        104.48000000000025,
+        1248.2599999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 19.659999999999854
+      }
+    },
+    {
+      "rot": 2,
+      "time": 123504.95209220854,
+      "status": "traverse",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        104.48000000000002,
+        1248.4199999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 25.000000000000004
+        }
+      ],
+      "actual": {
+        "owner": "new-composite",
+        "color": "rgb(53,67,75)",
+        "z": 19.499999999999886
+      }
+    }
+  ]
+}

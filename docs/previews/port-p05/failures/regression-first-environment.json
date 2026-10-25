@@ -1,0 +1,340 @@
+{
+  "kind": "P01-C original regression orchestration",
+  "lane": "validate",
+  "status": "failed",
+  "started": "2026-10-25T05:00:03.494Z",
+  "scope": {
+    "baseline": "Untouched repository runtime and original tests",
+    "candidate": "Exact native-preview.html bytes; original T706/T707 source replays and original oldsave602/603 wrappers",
+    "notEquivalentTo": "This report is not a production CI gate, browser visual acceptance, or deployment approval"
+  },
+  "checks": [
+    {
+      "id": "baseline-verify",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/verify.py",
+        "--min-pass",
+        "12534"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "durationMs": 75206,
+      "passed": false,
+      "log": "baseline-verify.log"
+    },
+    {
+      "id": "baseline-toolchain",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "tools.test_toolchain"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 10517,
+      "passed": true,
+      "log": "baseline-toolchain.log"
+    },
+    {
+      "id": "baseline-pixels602",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "docs/tasks/t602-shots/test602.js"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 4501,
+      "passed": true,
+      "log": "baseline-pixels602.log"
+    },
+    {
+      "id": "baseline-pixels603",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "docs/tasks/t603-shots/test603.js"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 4813,
+      "passed": true,
+      "log": "baseline-pixels603.log"
+    },
+    {
+      "id": "baseline-clearance603",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "docs/tasks/t603-shots/clearance603.js",
+        "index.html",
+        "-",
+        "1"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 544,
+      "passed": true,
+      "log": "baseline-clearance603.log"
+    },
+    {
+      "id": "baseline-native-contracts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/pages/native-correctness.cjs",
+        "--self-test"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 75,
+      "passed": true,
+      "log": "baseline-native-contracts.log"
+    },
+    {
+      "id": "baseline-release-contracts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/pages/release-correctness.cjs",
+        "--self-test"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 522,
+      "passed": true,
+      "log": "baseline-release-contracts.log"
+    },
+    {
+      "id": "baseline-native-diagnostic-contracts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "tools/pages/native-mac-diagnostic.test.cjs",
+        "tools/pages/native-portability-diagnostic.test.cjs"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 4129,
+      "passed": true,
+      "log": "baseline-native-diagnostic-contracts.log"
+    },
+    {
+      "id": "baseline-approved-contracts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "tools/approved_art.test.cjs"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 867,
+      "passed": true,
+      "log": "baseline-approved-contracts.log"
+    },
+    {
+      "id": "baseline-approved-registry",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/approved_art.cjs",
+        "--check-all"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "durationMs": 66,
+      "passed": false,
+      "log": "baseline-approved-registry.log"
+    },
+    {
+      "id": "baseline-frame-contracts",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/pages/frame-compare.cjs",
+        "--self-test"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 55,
+      "passed": true,
+      "log": "baseline-frame-contracts.log"
+    },
+    {
+      "id": "baseline-independent634",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "docs/tasks/t634-shots/check634.cjs"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "durationMs": 349,
+      "passed": false,
+      "log": "baseline-independent634.log"
+    },
+    {
+      "id": "baseline-t706",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/tasks/t706-shots/check-trains.cjs"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 4704,
+      "passed": true,
+      "log": "baseline-t706.log"
+    },
+    {
+      "id": "baseline-t707",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/tasks/t707-shots/check-articulation.cjs"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 14701,
+      "passed": true,
+      "log": "baseline-t707.log"
+    },
+    {
+      "id": "baseline-oldsave602",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/tasks/t602-shots/oldsave602.js",
+        "--repo=/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+        "--json=/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/previews/port-p05/evidence/p01c-regression/baseline-oldsave602.json"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 3104,
+      "passed": true,
+      "log": "baseline-oldsave602.log"
+    },
+    {
+      "id": "baseline-oldsave603",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/tasks/t603-shots/oldsave603.js",
+        "--repo=/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+        "--json=/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/previews/port-p05/evidence/p01c-regression/baseline-oldsave603.json"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 3091,
+      "passed": true,
+      "log": "baseline-oldsave603.log"
+    },
+    {
+      "id": "candidate-t706",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/tmp/p01c-original-guards-FOJZeB/docs/tasks/t706-shots/check-trains.cjs"
+      ],
+      "cwd": "/tmp/p01c-original-guards-FOJZeB",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 4909,
+      "passed": true,
+      "log": "candidate-t706.log"
+    },
+    {
+      "id": "candidate-t707",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/tmp/p01c-original-guards-FOJZeB/docs/tasks/t707-shots/check-articulation.cjs"
+      ],
+      "cwd": "/tmp/p01c-original-guards-FOJZeB",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 14539,
+      "passed": true,
+      "log": "candidate-t707.log"
+    },
+    {
+      "id": "candidate-oldsave602",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/tasks/t602-shots/oldsave602.js",
+        "--repo=/tmp/p01c-original-guards-FOJZeB",
+        "--json=/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/previews/port-p05/evidence/p01c-regression/candidate-oldsave602.json"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 3112,
+      "passed": true,
+      "log": "candidate-oldsave602.log"
+    },
+    {
+      "id": "candidate-oldsave603",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/tasks/t603-shots/oldsave603.js",
+        "--repo=/tmp/p01c-original-guards-FOJZeB",
+        "--json=/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05/docs/previews/port-p05/evidence/p01c-regression/candidate-oldsave603.json"
+      ],
+      "cwd": "/workspace/shared/own-cloud-migration-20261024/GlimmerTown-port-p05",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "durationMs": 3197,
+      "passed": true,
+      "log": "candidate-oldsave603.log"
+    }
+  ],
+  "errors": [],
+  "notRun": [
+    "Native Chromium inherited SPR/ART recomputation: run --lane=fingerprints in a permitted browser environment.",
+    "Original full browser release/frame matrices and candidate visual/input/performance checks are not replaced by these Node checks.",
+    "Full test_fixde/verify validates the baseline, not the standalone preview: preview deliberately disables persistent autosave and PWA registration, so their original source-contract assertions are not equivalent."
+  ],
+  "originalSource": {
+    "rootIndexSHA256": "19339e4e87bf395413eff64c6e79505944e24789f421f68d68ad11829f180de5",
+    "testSuiteSHA256": "50ee226f24bdc29669f6285b68fe645412fc28e63fbf69f0c2422fc51febc8f3",
+    "trackedFileCount": 1296,
+    "SPR": {
+      "count": 1586
+    },
+    "ART": {
+      "count": 3534
+    }
+  },
+  "previewSHA256": "a2612826a9e7f95f14fcbd04bd186216acc72f53aeff4fca0761ccb1931d285f",
+  "originalWorkflowMinPass": 12534,
+  "originalBytesUnchanged": true,
+  "originalChangedPaths": [],
+  "finished": "2026-10-25T05:02:37.145Z"
+}

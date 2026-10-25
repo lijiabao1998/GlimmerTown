@@ -1,0 +1,1908 @@
+{
+  "frameCount": 128,
+  "sampleCount": 183906,
+  "boundaryProbes": 1072,
+  "failureCount": 3498,
+  "failures": [
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "harbor-slab",
+      "boundary": false,
+      "point": [
+        -88.31999999999994,
+        985.9599999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 22.680000000000064
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -90.88,
+        970.86
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(37,49,59)",
+          "z": 2.4000000000000004
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(185,96,61)",
+        "z": 2.2599999999998746
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -71.67999999999995,
+        961.26
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -66.55999999999995,
+        962.22
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999939
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -69.75999999999999,
+        963.82
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999938
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -68.15999999999997,
+        961.9200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.20000000000005,
+        958.74
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -77.75999999999999,
+        961.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.67999999999995,
+        957.54
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -84.15999999999997,
+        960.02
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -72.63999999999999,
+        965.78
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 5.9
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -78.39999999999998,
+        962
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -76.79999999999995,
+        957.5
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -87.67999999999995,
+        961.6600000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000007
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -85.12,
+        962.94
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.499999999999943
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -86.39999999999998,
+        962.0000000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-cantilever",
+      "boundary": false,
+      "point": [
+        -87.03999999999996,
+        982.0799999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-telescopic-rail",
+      "boundary": false,
+      "point": [
+        -92.15999999999985,
+        979.52
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-telescopic-rail",
+      "boundary": false,
+      "point": [
+        -87.03999999999996,
+        982.0799999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-telescopic-rail",
+      "boundary": false,
+      "point": [
+        -89.59999999999991,
+        979.8
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-trolley",
+      "boundary": false,
+      "point": [
+        -86.39999999999986,
+        981.1999999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 24.559999999999945
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24.559999999999945
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-trolley",
+      "boundary": false,
+      "point": [
+        -92.79999999999995,
+        984.4
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24.559999999999945
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-trolley",
+      "boundary": false,
+      "point": [
+        -89.59999999999991,
+        981.8
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-spreader",
+      "boundary": false,
+      "point": [
+        -87.03999999999996,
+        985.02
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109003.95209220854,
+      "status": "reserved-ready",
+      "sampleOwner": "new-crane-transfer-spreader",
+      "boundary": false,
+      "point": [
+        -89.59999999999991,
+        985.8
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 22.20000000000005
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "harbor-slab",
+      "boundary": false,
+      "point": [
+        -88.31999999999994,
+        985.9599999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 22.680000000000064
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -90.88,
+        970.86
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(37,49,59)",
+          "z": 2.4000000000000004
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(185,96,61)",
+        "z": 2.2599999999998746
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -71.67999999999995,
+        961.26
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -66.55999999999995,
+        962.22
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999939
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -69.75999999999999,
+        963.82
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999938
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -68.15999999999997,
+        961.9200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.20000000000005,
+        958.74
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -77.75999999999999,
+        961.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.67999999999995,
+        957.54
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -84.15999999999997,
+        960.02
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -72.63999999999999,
+        965.78
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 5.9
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -78.39999999999998,
+        962
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -76.79999999999995,
+        957.5
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -87.67999999999995,
+        961.6600000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000007
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -85.12,
+        962.94
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.499999999999943
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -86.39999999999998,
+        962.0000000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-cantilever",
+      "boundary": false,
+      "point": [
+        -87.03999999999996,
+        982.0799999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-telescopic-rail",
+      "boundary": false,
+      "point": [
+        -92.15999999999985,
+        979.52
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-telescopic-rail",
+      "boundary": false,
+      "point": [
+        -87.03999999999996,
+        982.0799999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-telescopic-rail",
+      "boundary": false,
+      "point": [
+        -89.59999999999991,
+        979.8
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-trolley",
+      "boundary": false,
+      "point": [
+        -86.39999999999986,
+        981.1999999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 24.559999999999945
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24.559999999999945
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-trolley",
+      "boundary": false,
+      "point": [
+        -92.79999999999995,
+        984.4
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 24.559999999999945
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-trolley",
+      "boundary": false,
+      "point": [
+        -89.59999999999991,
+        981.8
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-cantilever",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        },
+        {
+          "owner": "new-crane-transfer-telescopic-rail",
+          "color": "rgb(120,169,173)",
+          "z": 25
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-trolley",
+        "color": "rgb(120,169,173)",
+        "z": 23
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-spreader",
+      "boundary": false,
+      "point": [
+        -87.03999999999996,
+        985.02
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 109004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-spreader",
+      "boundary": false,
+      "point": [
+        -89.59999999999991,
+        985.8
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 22.20000000000005
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "harbor-slab",
+      "boundary": false,
+      "point": [
+        -88.31999999999994,
+        985.9599999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 22.680000000000064
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -90.88,
+        970.86
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(37,49,59)",
+          "z": 2.4000000000000004
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(185,96,61)",
+        "z": 2.2599999999998746
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -71.67999999999995,
+        961.26
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -66.55999999999995,
+        962.22
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999939
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -69.75999999999999,
+        963.82
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999938
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -68.15999999999997,
+        961.9200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.20000000000005,
+        958.74
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -77.75999999999999,
+        961.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.67999999999995,
+        957.54
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -84.15999999999997,
+        960.02
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -72.63999999999999,
+        965.78
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 5.9
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -78.39999999999998,
+        962
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -76.79999999999995,
+        957.5
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -87.67999999999995,
+        961.6600000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000007
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -85.12,
+        962.94
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.499999999999943
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -86.39999999999998,
+        962.0000000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-spreader",
+      "boundary": false,
+      "point": [
+        -87.03999999999996,
+        985.02
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 110004.95209220854,
+      "status": "extend",
+      "sampleOwner": "new-crane-transfer-spreader",
+      "boundary": false,
+      "point": [
+        -89.59999999999991,
+        985.8
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 22.20000000000005
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "harbor-slab",
+      "boundary": false,
+      "point": [
+        -88.31999999999994,
+        985.9599999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-crane-transfer-trolley",
+          "color": "rgb(120,169,173)",
+          "z": 22.680000000000064
+        }
+      ],
+      "actual": {
+        "owner": "new-crane-transfer-spreader",
+        "color": "rgb(120,169,173)",
+        "z": 19
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -90.88,
+        970.86
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(37,49,59)",
+          "z": 2.4000000000000004
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(185,96,61)",
+        "z": 2.2599999999998746
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -71.67999999999995,
+        961.26
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -66.55999999999995,
+        962.22
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999939
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -69.75999999999999,
+        963.82
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 7.999999999999999
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.419999999999938
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -68.15999999999997,
+        961.9200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.20000000000005,
+        958.74
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -77.75999999999999,
+        961.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.799999999999999
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -67.67999999999995,
+        957.54
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -84.15999999999997,
+        960.02
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(225,210,157)",
+        "z": 2.8000000000000003
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -72.63999999999999,
+        965.78
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 5.9
+      }
+    },
+    {
+      "rot": 0,
+      "time": 111004.95109220853,
+      "status": "extend",
+      "sampleOwner": "new-truck",
+      "boundary": false,
+      "point": [
+        -78.39999999999998,
+        962
+      ],
+      "expected": [
+        {
+          "owner": "new-truck",
+          "color": "rgb(185,96,61)",
+          "z": 8
+        }
+      ],
+      "actual": {
+        "owner": "new-truck",
+        "color": "rgb(70,110,125)",
+        "z": 6.8
+      }
+    }
+  ]
+}
