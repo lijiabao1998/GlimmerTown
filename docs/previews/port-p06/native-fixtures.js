@@ -31,7 +31,8 @@ window.P06Test={fixture:null,placementLog:[],
  setRun(run,s=1){running=!!run;GV.setSpeed(s);lastT=performance.now();this.syncHud();return{running,speed};},
  setSpeed(s){GV.setSpeed(s);return speed;},
  view({rot=0,zoom=1.05,phase=55,season:sea=0}={}){GV.setRot(rot);GV.setZoom(zoom);visT=phase;GV.setSeason(sea);rainDays=sea===3?6:0;weather=0;waterT=waterF=0;trafClock=12;shakeT=0;groundDirty=true;const f=this.fixture;if(f)GV.lookAt(...f.cell(f.px+7,f.py+1));draw(0);return true;},
- draw(){draw(0);},
+ visualState(){return{flashT,shakeT,weather};},
+ draw(dt=0){if(!Number.isFinite(dt)||dt<0||dt>.05)throw Error('Visual draw dt must be 0..0.05');draw(dt);},
  mutate(kind){const f=this.fixture;if(!f)throw Error('No native fixture');const p=(x,y)=>f.cell(x,y),place=(tool,x,y)=>GV.place(tool,...p(x,y));let result;
   if(kind==='remove-port'||kind==='port')result=GV.place('doze',...f.port);
   else if(kind==='rebuild-port'){result=GV.place('port',...f.port);for(let i=0;i<12;i++)tick();}

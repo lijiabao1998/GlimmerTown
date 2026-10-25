@@ -1,0 +1,16 @@
+# Seventh all-green evidence is not final product acceptance
+
+Source `d1441efbfecce79a5fa022e63d5d2e44e16d4f5b`, dedicated run `40197755725`: all seven jobs passed, genuine sandboxed Chromium 218/218 checks and 65 PNGs. Artifact `12600845394`, ZIP SHA-256 `967062ef314d4f81657ad79b8a4bbfd50226cd19e1477efaebe0d65c7e7c4a5d`. The archive and original results remain unchanged.
+
+## Material performance concern
+
+The fresh seventh run still has ordinary moving median increments of about 6.1–8.8 ms, with the desktop 0.5× truck case at +28.5 ms using the existing upper-median estimator. ON draw p95 reaches 74.3 ms. Steady-state rAF intervals (only the first incomplete callback interval excluded, all later stalls retained) yield approximately 37–39 fps ON versus 59–60 fps OFF. The sixth run was worse: moving upper-median increments 8.9–50.2 ms and ON p95 up to 130.8 ms. Neither result is discarded or attributed to the host without evidence.
+
+Sixth raw sequences show alternating short/long calls throughout the desktop 0.5× samples, not isolated startup outliers. At other views, stalls also move between adjacent OFF and ON calls. The existing synchronous 80-call AB/BA loop may include queued Canvas work in a later call, but that is a hypothesis, not an excuse for the real rAF slowdown. The original 40-pair benchmark remains unchanged. A separate bounded diagnostic now runs **after** all original acceptance/performance checks, after closing that browser: fresh genuine Chromium, actual populated city and native traffic, synchronous and rAF-paced pairs, repeated uninstrumented controls, inclusive/exclusive component timings, wrapper-restoration checks and a brief separate JS CPU profile. It is not a replacement for product acceptance or a claim of optimization.
+
+## Visual evidence findings
+
+1. `new-world-no-ghost-harbor.png` correctly removes stale hardware, and state already refuses the replaced world, but the panel can retain its preceding operating text until the 400 ms refresh. The adapter now updates the refusal text on the first invalidation transition, without repeated per-object DOM writes. The browser requires immediate panel text, not a delayed wait.
+2. `native-undo-road-no-ghost-handoff.png` catches a full-screen native lightning flash. Native `tick` can set `flashT=.4` (index 15649), and only actual `draw(dt)` decays it (20635); the paused fixture's zero-dt draws preserve the flash. The original image is retained, not called visible-road proof. An additional rAF-paced native-draw observation lets the flash naturally decay, without simulation advancement, flash reset, masking or disabling weather, then captures `native-undo-road-post-flash.png`. Raw money/day/pop/simAcc/native tick count and cargo state must remain identical. This is a test observation fix, not a change to native weather or the economy.
+
+The earlier giant night discs are fixed and independently checked in all four sixth-run night cameras and the terminal frame. Main, Pages, original P01–P05 source, protected existing workflows, player save schema, economy and train logic remain untouched. Performance diagnosis and exact-head rerun are still required before delivery can be accepted.

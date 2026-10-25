@@ -5,7 +5,7 @@ const P06=window.P06={enabled:false,mode:'live',timeMs:0,layout:null,worldCells:
  map(x,y){return this.layout?this.layout.frame.point(x,y):[x,y];},
  nativeTileAtScreen(x,y){return toTile(x/DPR,y/DPR);},
  dep(x,y){const p=this.map(x,y);return viewDep(p[0]-.5,p[1]-.5);},
- checkWorld(){if(this.layout&&this.worldCells!==tiles){this.layout.valid=false;this.reasons=[{code:'WORLD_REPLACED',message:'城市已新建／重新載入；原港區帳凍結，不能把舊貨櫃帶入另一份城市。請明確重設候選帳後重新檢查。'}];window.__noHarborP01B=true;return false;}return true;},
+ checkWorld(){if(this.layout&&this.worldCells!==tiles){if(this.layout.valid||this.reasons[0]?.code!=='WORLD_REPLACED'){this.layout.valid=false;this.reasons=[{code:'WORLD_REPLACED',message:'城市已新建／重新載入；原港區帳凍結，不能把舊貨櫃帶入另一份城市。請明確重設候選帳後重新檢查。'}];window.__noHarborP01B=true;const out=document.getElementById('p06-status');if(this.enabled&&out)out.textContent='不能營運：'+this.reasons[0].message;}return false;}return true;},
  active(){return this.checkWorld()&&this.enabled&&!!this.layout?.valid&&!window.__noP06;},
  scan(){if(!tiles?.length)return{ports:[],warehouses:[],freight:[],counts:{},reasons:[{code:'NO_CITY',message:'請先開啟正常城市'}]};this.scans++;return NativeHarborLayout.inventory(this.world());},
  enable(portKey,q){this.enabled=true;if(!this.checkWorld()){this.refresh();return this.inspect();}const inv=this.scan(),port=portKey?inv.ports.find(p=>p.key===portKey):inv.ports[0];this.enabled=true;window.__noHarborP01B=true;if(!port){this.reasons=[{code:'PORT_MISSING',message:'城市沒有原生港口 k18'}];this.layout&& (this.layout.valid=false);this.refresh();return this.inspect();}
