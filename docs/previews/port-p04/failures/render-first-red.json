@@ -1,0 +1,1263 @@
+{
+  "frameCount": 228,
+  "sampleCount": 12996,
+  "actualCargoCountsPass": true,
+  "alignmentHits": [],
+  "failureCount": 38,
+  "failures": [
+    {
+      "rot": 2,
+      "time": 19000,
+      "status": "lift",
+      "cargoZ": 7,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        181.27999999999997,
+        1201.46
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 12
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 19000,
+      "status": "lift",
+      "cargoZ": 7,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        199.68000000000006,
+        1202.66
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 12
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 19000,
+      "status": "lift",
+      "cargoZ": 7,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        183.68000000000006,
+        1210.66
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 9.5
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7.000000000000001
+      }
+    },
+    {
+      "rot": 2,
+      "time": 19000,
+      "status": "lift",
+      "cargoZ": 7,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        191.68000000000006,
+        1204.16
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 12
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        181.27999999999997,
+        1195.835
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 17.625
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        199.68000000000006,
+        1197.035
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 17.625
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b44f3b",
+        "z": 11.284999999999966
+      }
+    },
+    {
+      "rot": 2,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        183.68000000000006,
+        1205.035
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 15.125
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        202.08000000000015,
+        1206.2350000000001
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 15.125
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        191.68000000000006,
+        1198.535
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 17.625
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        203.51999999999998,
+        1200.74
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 17.625
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b44f3b",
+        "z": 9.5
+      }
+    },
+    {
+      "rot": 2,
+      "time": 21000,
+      "status": "lift",
+      "cargoZ": 25,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        181.27999999999997,
+        1183.46
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 30
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 13.260000000000105
+      }
+    },
+    {
+      "rot": 2,
+      "time": 21000,
+      "status": "lift",
+      "cargoZ": 25,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        183.68000000000006,
+        1192.66
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 27.5
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 2,
+      "time": 21000,
+      "status": "lift",
+      "cargoZ": 25,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        202.08000000000015,
+        1193.8600000000001
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 27.5
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b44f3b",
+        "z": 12
+      }
+    },
+    {
+      "rot": 2,
+      "time": 21000,
+      "status": "lift",
+      "cargoZ": 25,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        191.68000000000006,
+        1186.16
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 30
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7.000000000000001
+      }
+    },
+    {
+      "rot": 2,
+      "time": 21000,
+      "status": "lift",
+      "cargoZ": 25,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        176.31999999999994,
+        1187.56
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 28.92000000000007
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#e0ddd1",
+        "z": 11
+      }
+    },
+    {
+      "rot": 2,
+      "time": 21000,
+      "status": "lift",
+      "cargoZ": 25,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        176.96000000000004,
+        1184.88
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 30.000000000000004
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 14
+      }
+    },
+    {
+      "rot": 2,
+      "time": 21000,
+      "status": "lift",
+      "cargoZ": 25,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        201.1199999999999,
+        1191.54
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 30
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b44f3b",
+        "z": 12
+      }
+    },
+    {
+      "rot": 2,
+      "time": 22000,
+      "status": "lift",
+      "cargoZ": 37.375,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        181.27999999999997,
+        1171.085
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 42.375
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 22000,
+      "status": "lift",
+      "cargoZ": 37.375,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        183.68000000000006,
+        1180.285
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 39.875
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 22000,
+      "status": "lift",
+      "cargoZ": 37.375,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        182.39999999999998,
+        1174.6
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 42.37499999999999
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 22000,
+      "status": "lift",
+      "cargoZ": 37.375,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        183.36,
+        1171.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 42.375
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 22999.998999999996,
+      "status": "lift",
+      "cargoZ": 42.99999999999325,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        183.68000000000006,
+        1174.660000000007
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 45.49999999999325
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 22999.998999999996,
+      "status": "lift",
+      "cargoZ": 42.99999999999325,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        182.39999999999998,
+        1174.6
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 44.9200000000002
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 22999.998999999996,
+      "status": "lift",
+      "cargoZ": 42.99999999999325,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        183.36,
+        1171.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 47.99999999999325
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 23000,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        183.68000000000006,
+        1174.66
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 45.5
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 23000,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        182.39999999999998,
+        1174.6
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 44.92000000000013
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 23000,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.01299999999999
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        183.36,
+        1171.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 48
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 24250,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.2270625
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        174.42999999999984,
+        1168.885
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 48
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 14.999999999999998
+      }
+    },
+    {
+      "rot": 2,
+      "time": 24250,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.2270625
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        176.82999999999993,
+        1178.085
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 45.5
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 24250,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.2270625
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        184.82999999999993,
+        1171.585
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 48
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 14.999999999999998
+      }
+    },
+    {
+      "rot": 2,
+      "time": 24250,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.2270625
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        182.39999999999998,
+        1174.6
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 48
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 24250,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.2270625
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        183.36,
+        1171.1200000000001
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 48
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#42697a",
+        "z": 15
+      }
+    },
+    {
+      "rot": 2,
+      "time": 24250,
+      "status": "translate",
+      "cargoZ": 43,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.2270625
+        },
+        {
+          "kind": "ship",
+          "dep": 76.4501
+        }
+      ],
+      "sampleOwner": "ship",
+      "point": [
+        167.99999999999977,
+        1173.6
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 45.57000000000005
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#d5d2bb",
+        "z": 17
+      }
+    },
+    {
+      "rot": 3,
+      "time": 19000,
+      "status": "lift",
+      "cargoZ": 7,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.99300000000001
+        },
+        {
+          "kind": "ship",
+          "dep": 78.0501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        -149.91999999999985,
+        1217.1399999999999
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 12
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 3,
+      "time": 19000,
+      "status": "lift",
+      "cargoZ": 7,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.99300000000001
+        },
+        {
+          "kind": "ship",
+          "dep": 78.0501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        -152.31999999999994,
+        1226.34
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 9.5
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 3,
+      "time": 19000,
+      "status": "lift",
+      "cargoZ": 7,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.99300000000001
+        },
+        {
+          "kind": "ship",
+          "dep": 78.0501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        -160.31999999999994,
+        1219.84
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 12
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 3,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.99300000000001
+        },
+        {
+          "kind": "ship",
+          "dep": 78.0501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        -152.31999999999994,
+        1220.715
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 15.125
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#b1b5a5",
+        "z": 7
+      }
+    },
+    {
+      "rot": 3,
+      "time": 20000,
+      "status": "lift",
+      "cargoZ": 12.625,
+      "queue": [
+        {
+          "kind": "transfer",
+          "dep": 76.99300000000001
+        },
+        {
+          "kind": "ship",
+          "dep": 78.0501
+        }
+      ],
+      "sampleOwner": "transfer",
+      "point": [
+        -170.72000000000003,
+        1221.915
+      ],
+      "expected": [
+        {
+          "owner": "transfer",
+          "color": "rgb(214,163,72)",
+          "z": 15.125
+        }
+      ],
+      "actual": {
+        "owner": "ship",
+        "color": "#234d62",
+        "z": 6
+      }
+    }
+  ]
+}

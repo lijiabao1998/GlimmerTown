@@ -168,6 +168,8 @@ jobs:
           node geometry-test.cjs
           node transfer-test.cjs
           node build.cjs
+          node occlusion-test.cjs
+          node render-transfer-test.cjs
           node p04-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()

@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),O=require('./transfer-occlusion.js');
+const square=(x0,y0,x1,y1,z)=>[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],cargo=square(0,0,10,10,5),area=polys=>polys.reduce((n,p)=>n+Math.abs(O.area(p)),0),near=(a,b)=>assert(Math.abs(a-b)<1e-5,`${a} != ${b}`),checks=[];
+const test=(name,f)=>{f();checks.push(name);};
+test('rear faces do not erase cargo',()=>near(area(O.visible(cargo,[square(2,2,8,8,3)])),100));
+test('nearer opaque face subtracts only its intersection',()=>near(area(O.visible(cargo,[square(2,2,8,8,7)])),64));
+test('overlapping occluders subtract their union, not XOR',()=>near(area(O.visible(cargo,[square(2,2,7,8,7),square(5,2,9,8,8)])),58));
+test('duplicate opaque and rgba geometry does not double-subtract',()=>near(area(O.visible(cargo,[square(2,2,8,8,7),square(2,2,8,8,7)])),64));
+test('affine depth crossing clips half a face rather than centroid guess',()=>near(area(O.visible(cargo,[[[0,0,0],[10,0,10],[10,10,10],[0,10,0]]])),50));
+test('opposite winding preserves exact visibility',()=>near(area(O.visible([...cargo].reverse(),[[...square(2,2,8,8,7)].reverse()])),64));
+test('coincident faces are contact, not front occlusion',()=>near(area(O.visible(cargo,[square(0,0,10,10,5)])),100));
+test('screen-degenerate faces can be prepared and ignored',()=>near(area(O.visible(cargo,[O.prepare([[0,0,1],[1,1,2],[2,2,3]])])),100));
+test('per-frame cache reuses equivalent rgba paths',()=>{const c=O.createCache([square(2,2,8,8,7)]),a=c.visible(cargo),b=c.visible(cargo.map(p=>[...p]));assert.equal(a,b);assert.equal(c.size,1);near(area(a),64);});
+console.log(JSON.stringify({passed:checks.length,checks}));

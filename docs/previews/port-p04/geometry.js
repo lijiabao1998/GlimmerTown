@@ -5,6 +5,7 @@
 (function(root,factory){const api=factory();root.PortTransferGeometry=api;if(typeof module==='object'&&module.exports)module.exports=api;})(typeof window==='object'?window:globalThis,function(){
  'use strict';
  const EPS=1e-9,CARGO=Object.freeze({w:.65,d:.5,h:5}),RIG=Object.freeze({spreaderW:.76,spreaderD:.20,spreaderH:3,trolleyW:.80,trolleyD:.24,trolleyZ:64,trolleyH:2,ropeW:.012});
+ function cargoShape(value={}){const c={w:value.w===undefined?(value.length===undefined?CARGO.w:value.length):value.w,d:value.d===undefined?(value.width===undefined?CARGO.d:value.width):value.d,h:value.h===undefined?(value.height===undefined?CARGO.h:value.height):value.h};if(!Object.values(c).every(v=>Number.isFinite(v)&&v>0))throw Error('Invalid cargo dimensions');return c;}
  function bounds(x,y,w,d,z,h){return{x0:x-w/2,x1:x+w/2,y0:y-d/2,y1:y+d/2,z0:z,z1:z+h};}
  function overlap(a,b){return a.x0<b.x1-EPS&&a.x1>b.x0+EPS&&a.y0<b.y1-EPS&&a.y1>b.y0+EPS&&a.z0<b.z1-EPS&&a.z1>b.z0+EPS;}
  function union(a,b){return{x0:Math.min(a.x0,b.x0),x1:Math.max(a.x1,b.x1),y0:Math.min(a.y0,b.y0),y1:Math.max(a.y1,b.y1),z0:Math.min(a.z0,b.z0),z1:Math.max(a.z1,b.z1)};}
@@ -46,7 +47,7 @@
   if(![x,y,spreaderZ].every(Number.isFinite)||spreaderZ+RIG.spreaderH>RIG.trolleyZ)throw Error('Invalid rig pose');
   return{spreader:bounds(x,y,RIG.spreaderW,RIG.spreaderD,spreaderZ,RIG.spreaderH),trolley:bounds(x,y,RIG.trolleyW,RIG.trolleyD,RIG.trolleyZ,RIG.trolleyH),ropes:[-.28,.28].flatMap(dx=>[-.06,.06].map(dy=>bounds(x+dx,y+dy,RIG.ropeW,RIG.ropeW,spreaderZ+RIG.spreaderH,RIG.trolleyZ-spreaderZ-RIG.spreaderH)))};
  }
- function bodyList(x,y,z,loaded,cargo=CARGO){const r=rigBodies(x,y,z),a=[{id:'spreader',bounds:r.spreader},{id:'trolley',bounds:r.trolley},...r.ropes.map((b,i)=>({id:'rope-'+i,bounds:b}))];if(loaded)a.push({id:'cargo',bounds:bounds(x,y,cargo.w,cargo.d,z-cargo.h,cargo.h)});return a;}
+ function bodyList(x,y,z,loaded,cargo=CARGO){cargo=cargoShape(cargo);const r=rigBodies(x,y,z),a=[{id:'spreader',bounds:r.spreader},{id:'trolley',bounds:r.trolley},...r.ropes.map((b,i)=>({id:'rope-'+i,bounds:b}))];if(loaded)a.push({id:'cargo',bounds:bounds(x,y,cargo.w,cargo.d,z-cargo.h,cargo.h)});return a;}
  function worldPoint(p,x,y){const c=Math.cos(p.angle),s=Math.sin(p.angle);return[p.x+c*x-s*y,p.y+s*x+c*y];}
  function polygonBox(points,z,h){const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);return{x0:Math.min(...xs),x1:Math.max(...xs),y0:Math.min(...ys),y1:Math.max(...ys),z0:z,z1:z+h};}
  function shipCargo(pose){const out=[];for(let row=0;row<2;row++)for(let col=0;col<3;col++){const x=-.75+col*.72,y=-.31+row*.62,c=worldPoint(pose,x,y),b=polygonBox([[-.325,-.25],[.325,-.25],[.325,.25],[-.325,.25]].map(([dx,dy])=>worldPoint(pose,x+dx,y+dy)),7,5);out.push({id:'P03-original-row'+row+'-col'+col,row,col,x:c[0],y:c[1],z:7,bounds:b,kind:'ship-cargo'});}return out;}
@@ -60,6 +61,7 @@
   return out.concat(shipCargo(pose).filter(c=>!excluded.has(c.id)));
  }
  function supportAt(target,obstacles,cargo=CARGO){
+  cargo=cargoShape(cargo);
   const footprint=bounds(target.x,target.y,cargo.w,cargo.d,target.z,cargo.h),corners=[[footprint.x0,footprint.y0],[footprint.x1,footprint.y0],[footprint.x1,footprint.y1],[footprint.x0,footprint.y1]],surfaces=obstacles.filter(o=>o.support&&Math.abs(o.bounds.z1-target.z)<EPS);
   // Retained .98-tile slabs have .02 expansion joints. All four container
   // corners must rest on coplanar solid supports; an edge-only balance is invalid.
@@ -69,7 +71,7 @@
  function phaseSweeps(phase,cargo=CARGO){const a=bodyList(phase.a.x,phase.a.y,phase.a.z,phase.loaded,cargo),b=bodyList(phase.b.x,phase.b.y,phase.b.z,phase.loaded,cargo);return a.map((v,i)=>({id:v.id,bounds:union(v.bounds,b[i].bounds)}));}
  function validateSweep(source,target,height,options={}){
   if(source&&source.source){const all=source;source=all.source;target=all.target;height=all.liftZ===undefined?48:all.liftZ;options=all;}
-  const cargo={...CARGO,...options.cargo},liftZ=height===undefined?48:height,obstacles=options.obstacles||[],pick=source.z+cargo.h,drop=target.z+cargo.h;
+  const cargo=cargoShape(options.cargo),liftZ=height===undefined?48:height,obstacles=options.obstacles||[],pick=source.z+cargo.h,drop=target.z+cargo.h;
   if(![source.x,source.y,source.z,target.x,target.y,target.z,liftZ].every(Number.isFinite)||liftZ<Math.max(pick,drop)||liftZ+RIG.spreaderH>RIG.trolleyZ||Math.abs(source.x-target.x)>EPS)throw Error('Transfer requires a finite same-x original gantry path');
   if(!obstacles.every(o=>validBox(o.bounds||o)))throw Error('Invalid obstacle bounds');
   const p=(v,z)=>({x:v.x,y:v.y,z}),phases=[
@@ -90,5 +92,5 @@
   const rail=options.crane?{safe:Math.min(source.y,target.y)-RIG.trolleyD/2>=options.crane.y-.7-EPS&&Math.max(source.y,target.y)+RIG.trolleyD/2<=options.crane.y+2.15+EPS&&Math.abs(source.x-options.crane.x)<EPS,min:options.crane.y-.7,max:options.crane.y+2.15}:null;
   return{safe:failures.length===0&&support.safe&&(!rail||rail.safe),source:{...source},target:{...target},liftZ,cargo,phases:tested,failures,support,rail,margins,method:'Continuous monotone AABB phase envelopes; exact solid boxes; retained padded upper envelope and subdivided brace envelopes; four-corner coplanar support'};
  }
- return{EPS,CARGO,RIG,bounds,overlap,union,axisGaps,separation,staticObstacles,rigBodies,bodyList,shipCargo,shipObstacles,supportAt,phaseSweeps,validateSweep};
+ return{EPS,CARGO,RIG,cargoShape,bounds,overlap,union,axisGaps,separation,staticObstacles,rigBodies,bodyList,shipCargo,shipObstacles,supportAt,phaseSweeps,validateSweep};
 });
