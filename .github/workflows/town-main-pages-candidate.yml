@@ -565,6 +565,7 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
           npm ci --ignore-scripts --prefix docs/tasks/t677-shots/qa
+          python3 -m pip install --disable-pip-version-check --no-deps --target "$RUNNER_TEMP/t677-png-verify" Pillow==12.2.0
       - name: Exact-head harbor, touch, old-save and independent-process performance
         if: steps.promotion.outputs.applicable == 'true'
         env:
@@ -576,9 +577,13 @@ jobs:
         if: steps.promotion.outputs.applicable == 'true'
         env:
           EXPECTED_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          PYTHONPATH: ${{ runner.temp }}/t677-png-verify
         run: |
           python3 - <<'PY678'
-          import datetime, hashlib, json, math, os, pathlib, re, struct, subprocess
+          import datetime, hashlib, io, json, math, os, pathlib, re, struct, subprocess
+          from PIL import Image, ImageFile, __version__ as pillow_version
+          ImageFile.LOAD_TRUNCATED_IMAGES = False
+          Image.MAX_IMAGE_PIXELS = 16777216
           root = pathlib.Path.cwd()
           out = root / 'evidence/port-t677'
           started = datetime.datetime.fromisoformat(os.environ['T677_RUN_STARTED'].replace('Z', '+00:00'))
@@ -593,6 +598,7 @@ jobs:
               require(started <= require_time(report['started']) <= require_time(report['finished']) <= datetime.datetime.now(datetime.timezone.utc), 'Stale/future/incomplete execution timestamps')
           def require(ok, message):
               if not ok: raise RuntimeError(message)
+          require(pillow_version == '12.2.0', 'Pinned isolated PNG verifier required')
           def read(path):
               p = evidence_file(path)
               return json.loads(p.read_text())
@@ -663,10 +669,21 @@ jobs:
               if expected_names is not None: require(set(names) == set(expected_names), 'Incomplete screenshot matrix')
               for row in rows:
                   name = row['file']; require(pathlib.Path(name).name == name and name.endswith('.png'), 'Invalid screenshot path')
-                  file = evidence_file(out / folder / name); data = file.read_bytes()
+                  file = evidence_file(out / folder / name)
+                  require(file.stat().st_size <= 67108864, 'Oversized PNG evidence: ' + name)
+                  data = file.read_bytes()
                   require(len(data) > 32 and data[:8] == b'\x89PNG\r\n\x1a\n' and data[12:16] == b'IHDR' and sha(file) == row['sha256'], 'Missing/corrupt/raw-PNG hash mismatch: ' + name)
+                  dimensions = struct.unpack('>II', data[16:24])
+                  require(all(0 < n <= 8192 for n in dimensions) and dimensions[0] * dimensions[1] <= Image.MAX_IMAGE_PIXELS, 'Unsafe PNG pixel bounds: ' + name)
+                  require(data[-12:] == b'\x00\x00\x00\x00IEND\xaeB`\x82', 'Incomplete PNG IEND: ' + name)
+                  with Image.open(io.BytesIO(data)) as image:
+                      require(image.format == 'PNG' and image.size == dimensions and image.n_frames == 1, 'Not a single complete PNG: ' + name)
+                      image.verify()
+                  with Image.open(io.BytesIO(data)) as image:
+                      image.load()
+                      require(image.size == dimensions, 'Decoded PNG dimensions mismatch: ' + name)
                   if 'viewport' in row:
-                      v = row['viewport']; require(struct.unpack('>II', data[16:24]) == (v['width'] * v['dpr'], v['height'] * v['dpr']), 'Screenshot backing dimensions mismatch')
+                      v = row['viewport']; require(dimensions == (v['width'] * v['dpr'], v['height'] * v['dpr']), 'Screenshot backing dimensions mismatch')
           pngs(p, 'primary')
           f = suites['formal-save-product-negatives']; formal_names = checks(f, 19)
           required_formal = ['Independent original main produces a real old city without harbor ledger', 'Old-save load/save/load keeps every native field equal to independent main', 'Second formal load/save is field-stable and adds no save schema fields', 'Loaded old city defaults OFF and has no resurrected transport ledger', 'Uninstrumented public product has no QA globals or engineering controls', 'Uninstrumented actual player check leaves cargoOFF', 'Uninstrumented actual player enable starts one30-ID batch', 'Uninstrumented actual player disable retains ledger', 'Original service worker reopens saved city offline with fresh harborOFF']
