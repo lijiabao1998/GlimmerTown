@@ -27,7 +27,6 @@ try{
  const shot=async name=>{const p=path.join(OUT,name+'.png');await page.screenshot({path:p});report.screenshots.push({file:name+'.png',sha256:hash(fs.readFileSync(p))});save();};
  const seek=async t=>{await page.evaluate(t=>{P06.replay(t);GV.forceDraw();},t);return snap(page);};
  const world=p=>p.evaluate(()=>JSON.stringify(Array.from({length:GV.N()*GV.N()},(_,i)=>GV.tile(i%GV.N(),i/GV.N()|0))));
- const economy=p=>p.evaluate(()=>{const s=GV.stats();return{day:s.day,money:s.money,pop:s.pop,buildings:s.buildings,roads:s.roads,zones:s.zones,chain:GV.chain346(),supplies:GV.supplies()};});
  for(const name of['south','west','north','east','offset']){
   const receipt=await build(page,name),beforeEnable=await world(page);await page.evaluate(()=>P06.enable());const s=await snap(page);check(name+' enabling never creates hidden roads or edits native cells',beforeEnable===await world(page));report.layouts.push({name,receipt,inspect:s.inspect});
   check(name+' true native port layout compiles',s.inspect.valid===true,s.inspect.reasons||s.inspect.errors);
@@ -80,8 +79,25 @@ try{
  }
  const pure=await page.evaluate(()=>{const a=P03.time();for(let i=0;i<80;i++)GV.forceDraw();return{before:a,after:P03.time()};});check('80 renders cannot produce operating time or cargo',pure.before===pure.after,pure);
  const live=await snap(page);await seek(live.time);const fixed=await snap(page);check('Live accepted time and explicitly fixed replay have identical handoff state',JSON.stringify(live.frame)===JSON.stringify(fixed.frame));
- // Candidate/control pair uses actual native simulation and economic chains at identical steps.
- await build(page,'south',true);await build(control,'south',true);await page.evaluate(()=>{P06.enable();P06.reset();P06.live();});for(const p of[page,control])await p.evaluate(()=>{GV.setSpeed(3);for(let i=0;i<100;i++)P06Test.advance(.05);});const ec=[await economy(control),await economy(page)];report.economyPair=ec;check('Native population, money, industry, ship fleet and supplies unchanged by candidate',JSON.stringify(ec[0])===JSON.stringify(ec[1]),ec);
+ // Equal city seed + dt alone is NOT equal native economic input: ambient Math.random car
+ // routes feed roadPass -> roadLoad -> LAND -> residential tax. Fresh contexts also remove
+ // prior-scenario transient state. Synchronize this one paired experiment only, then restore.
+ const economyContexts=[],economyRaw=[];
+ try{for(const [which,enabled]of[['/control',false],['/',true]]){const ctx=await browser.newContext({viewport:{width:1440,height:1000}});economyContexts.push(ctx);await ctx.addInitScript(()=>{localStorage.setItem('glimmerville.v1.slot','3');localStorage.setItem('glimmerville.v1.snd','0');});const p=await ctx.newPage();attach(p);await ready(p,which);economyRaw.push(await p.evaluate(enabled=>{
+  const original=Math.random,streams={},trace=[];let calls=0,state=0;
+  const input=seed=>{state=seed>>>0;calls=0;Math.random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;calls++;return state/4294967296;};};
+  let before,after,adapterRandomCalls,active=false,restored;
+  try{input(7070601);P06Test.buildCity('south',true);P06Test.setRun(false,0);streams.setup={seed:7070601,calls,state};const prior=calls;if(enabled){P06.enable();P06.reset();P06.live();active=P06.inspect().active;}adapterRandomCalls=calls-prior;before=P06Test.economyState();input(7070602);GV.setSpeed(3);for(let i=0;i<100;i++){P06Test.advance(.05);const n=P06Test.snapshot();trace.push({step:i+1,day:n.day,simAcc:n.simAcc,money:n.money,pop:n.pop});}streams.advance={seed:7070602,calls,state};after=P06Test.economyState();}
+  finally{Math.random=original;restored=Math.random===original;P06Test.setRun(false,0);}
+  return{enabled,active,before,after,streams,trace,adapterRandomCalls,restored};
+ },enabled));}}
+ finally{for(const ctx of economyContexts)await ctx.close();}
+ const economyRawFile=path.join(OUT,'economy-pair-raw.json');fs.writeFileSync(economyRawFile,JSON.stringify(economyRaw,null,2)+'\n');
+ const economyDigest=n=>{const {world,roadLoad,roadPass,land,...rest}=n;return{...rest,worldSHA256:hash(world),roadLoadSHA256:hash(JSON.stringify(roadLoad)),roadPassSHA256:hash(JSON.stringify(roadPass)),landSHA256:hash(JSON.stringify(land))};};
+ report.economyPair=economyRaw.map(r=>({enabled:r.enabled,active:r.active,before:economyDigest(r.before),after:economyDigest(r.after),streams:r.streams,adapterRandomCalls:r.adapterRandomCalls,restored:r.restored}));report.economyPairEvidence={file:'economy-pair-raw.json',sha256:hash(fs.readFileSync(economyRawFile)),method:'Two fresh contexts; identical native tool/tick/dt schedule and bounded shared ambient RNG inputs; original native Math.random restored before all performance/live tests; full unrounded money and road/LAND/world arrays retained'};
+ check('Matched native economic state is exact before advancement and both ambient streams match',JSON.stringify(economyRaw[0].before)===JSON.stringify(economyRaw[1].before)&&JSON.stringify(economyRaw[0].streams)===JSON.stringify(economyRaw[1].streams),report.economyPair);
+ check('Active candidate consumes no ambient randomness and paired RNG is restored',economyRaw[1].active&&economyRaw.every(r=>r.restored&&r.adapterRandomCalls===0),report.economyPair.map(r=>({enabled:r.enabled,active:r.active,adapterRandomCalls:r.adapterRandomCalls,restored:r.restored})));
+ check('Native population, unrounded money, industry, ship fleet, supplies and road feedback unchanged by candidate',JSON.stringify(economyRaw[0].after)===JSON.stringify(economyRaw[1].after)&&JSON.stringify(economyRaw[0].trace)===JSON.stringify(economyRaw[1].trace),report.economyPair);
  // OFF compares independent T707 control bytes, not P06's own disabled renderer against itself.
  const busyReceipt=await build(page,'south',true);await build(control,'south',true);const nativeStars=await control.evaluate(()=>P06Test.skyStars());await page.evaluate(s=>P06Test.skyStars(s),nativeStars);report.sharedNativeSky={source:'Untouched native control page randomized starfield, copied only as shared visual fixture input',stars:nativeStars,sha256:hash(JSON.stringify(nativeStars))};report.busyCity=busyReceipt;check('Busy-city benchmark contains at least 50 native building roots',busyReceipt.stats.buildings>=50,busyReceipt.stats);check('Busy-city benchmark contains genuine native population',busyReceipt.stats.pop>0,busyReceipt.stats);await page.evaluate(()=>P06.disable());
  for(const [label,phase,season]of[['day',55,0],['night',0,0],['winter',55,3]])for(let rot=0;rot<4;rot++)for(const zoom of[.5,1.1]){for(const p of[page,control])await p.evaluate(v=>P06Test.view(v),{rot,zoom,phase,season});const a=await canvas(page),b=await canvas(control);if(hash(a)!==hash(b)){fs.writeFileSync(path.join(OUT,`FAILED-off-${label}-${rot}-${zoom}.png`),Buffer.from(a.split(',')[1],'base64'));fs.writeFileSync(path.join(OUT,`FAILED-control-${label}-${rot}-${zoom}.png`),Buffer.from(b.split(',')[1],'base64'));}check(`OFF native T707 whole frame ${label}/r${rot}/z${zoom}`,hash(a)===hash(b),{candidate:hash(a),control:hash(b)});}

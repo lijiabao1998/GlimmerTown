@@ -25,3 +25,9 @@ The P01–P05 machinery and load dimensions remain unchanged. A normal city with
 ## Candidate conservatism
 
 P06 1.0 reserves the unchanged 12×3 apron, a straight full-truck road approach/gate, a ship-sized external water route, and a completed warehouse plus freight building reached by the same actual cardinal land-road network. It does not imply native rail forwarding. Plans that require bends in the retained truck maneuver, islands outside the selected external-water search, irregular/tiny aprons or alternate machinery layouts are refused with reasons rather than silently synthesized. The initial single batch is intentionally not replenished.
+
+## Native economic comparison input found during acceptance
+
+The existing ambient car stream is not economically inert. `updCars` uses `Math.random` / `vri` for spawning and routes (near lines 17105–17161), increments `roadPass` when crossing cells (17148), and native `tick` smooths that into `roadLoad` (15669). `recomputeLandDynamic` then updates congestion-adjusted `LAND` (15676); residential tax uses that value directly (16593). Consequently, the same deterministic city seed and tick schedule do not imply identical economic inputs when ambient traffic differs. The fifth P06 browser run exposed a one-dollar rounded paired result difference, retained as a failed comparison rather than accepted with a tolerance.
+
+This is existing T707 behavior, not a P06 revenue mechanism, and is not changed here. Economic paired tests must control the ambient input as well as city seed/time, retain exact unrounded equality, and restore native randomness outside that comparison. Real live-cycle/performance evidence still uses ordinary native traffic. Future shadow accounting must likewise distinguish actual traffic-dependent native taxes from any proposed cargo ledger; fixing or redesigning that native coupling is outside P06.
