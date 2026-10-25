@@ -33,6 +33,7 @@ window.P06Test={fixture:null,placementLog:[],
  view({rot=0,zoom=1.05,phase=55,season:sea=0}={}){GV.setRot(rot);GV.setZoom(zoom);visT=phase;GV.setSeason(sea);rainDays=sea===3?6:0;weather=0;waterT=waterF=0;trafClock=12;shakeT=0;groundDirty=true;const f=this.fixture;if(f)GV.lookAt(...f.cell(f.px+7,f.py+1));draw(0);return true;},
  // Test-only view-cache observation/control: no world, simulation or fiscal writes.
  groundState(){return{dirty:groundDirty,key:groundCacheKey,allocated:!!groundCache,width:groundCache?.width||0,height:groundCache?.height||0,canvasCount:groundCache?1:0,camera:{x:cam.x,y:cam.y,z:cam.z},rot:GV.rot(),waterF,day,DPR};},
+ inputState(){return{tool,selected:selTile?{...selTile}:null,hover:{...hover},pointers:Array.from(pointers.entries()).map(([id,p])=>({id,...p})),downInfo:downInfo?{...downInfo}:null,panBase:panBase?{...panBase}:null,pinchBase:pinchBase?{...pinchBase}:null,rect:{...rect}};},
  invalidateGround(){groundDirty=true;return this.groundState();},
  visualState(){return{flashT,shakeT,weather};},
  draw(dt=0){if(!Number.isFinite(dt)||dt<0||dt>.05)throw Error('Visual draw dt must be 0..0.05');draw(dt);},
