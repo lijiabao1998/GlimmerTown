@@ -41,4 +41,6 @@ Draft PR73，不合併、不部署。正式 main T707、Pages、存檔與經濟�
 
 另有新驗收可見性缺口：原因 drawer 在先前測試後可能仍 open，無條件再次點 summary 反而關閉；只有 textContent 不能證明原因可見。第二版以真點擊明確關閉／打開，再查 open、isVisible 與第一條理由位於內部 scroll viewport。原 222 predicates 不變。這是加強新驗收，不是拿變更過的舊門檻換綠。
 
+同時補齊兩個新 UI oracle：手機手指向下滑時，必須記錄內部 scrollTop 實際減少，不能只靠 trusted touchmove 與零世界洩漏；live return 必須除了 replay→live，還保持 frame/layout/timeMs/acceptedMs 全同。首輪四組 live-return 原始快照已符合後者，但最終 head 仍須實跑更完整的明確判定。
+
 第一輪觀察性能亦全留：長週期 steady fps 13.93→12.73，p95 interval 316.7→333.4ms，max 633.3→666.7ms；5 秒 ON 兩組 27.83/27.19→26.56/25.52fps。不同官方執行的實際末端城市也不同，不能直接推成純 UI 因果。兩次原始完整矩陣與新的精確 head 結果都須交付，不能只選比較好看的那輪。
