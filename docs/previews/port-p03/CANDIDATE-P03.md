@@ -1,0 +1,11 @@
+# P03 Vessel Navigation & Berthing 1.0 — independent candidate
+
+Owner 2026-10-25 explicitly authorizes a separate P03 candidate branch based on completed P02 b0dc527966bf0d55c6b124a2dd99488e30c8a213. Do not redo P02 or treat similar baseline timing tails as a mandatory blocker. Main T707, Pages, player saves and docs/GPT-方向.md pause remain unchanged.
+
+Scope: docs/previews/port-p03/** only. A new protected evidence workflow requires separate exact authorization before any edit. Existing P01-C/P02 sources and tests remain byte-identical.
+
+Deliver one actual procedural container ship with waiting, inbound, deceleration, berthing, dwell, unberthing and outbound continuous repeatable navigation. Read actual native water cells; validate connected boundary entrance to a legal berth, full hull length/width/heading and continuous swept occupancy. No center-only collision, teleport, collision shrink or terrain edits. Preserve 26x23 Scheme A, 208 harbor water cells, four cranes, 24 yard containers and all facilities. No freight economy, income, rail flow, real hydrodynamics or P04/P05 implementation.
+
+Frozen acceptance: sealed harbor, narrow channel, wrong berth heading, intermediate blockage and full-hull negative controls; quay alignment and full crane/building clearance; deterministic pause/resume/reset and fixed time replay under60Hz and large jumps; actual native Canvas sorting with P02; real Chromium day/night/winter × four rotations × near/far, dynamic sequence and runnable preview; inherited42 P01-C +44 P02 browser checks,20 regressions and2 fingerprints unchanged; P03 OFF equals actual P02 and P02 OFF equals P01-C; world/save/economy/RNG unchanged. Performance paired P02/P03 warmed draw median/p95, rAF, cold start, cache, rebake and pause. Reproducible material sustained regressions require minimal repair; similar baseline rare tails are recorded, not endlessly diagnosed. All failed attempts retained. Candidate art may precede final art approval; no formal publication authority.
+
+Rollback: ?noP03=1 restores P02; ?noP02=1 with noP03 restores P01-C; ?baseline=1 restores original renderer. Independent memory-only save slot3 and isolated browser origin. Tests never use player origin8123.
