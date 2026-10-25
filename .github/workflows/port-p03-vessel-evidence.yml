@@ -1,0 +1,148 @@
+name: P03 isolated vessel evidence only
+on:
+  push:
+    branches: [gpt/port-p03-vessel-navigation]
+    paths:
+      - docs/previews/port-p03/**
+      - .github/workflows/port-p03-vessel-evidence.yml
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record source and official runner browser
+        run: |
+          git rev-parse HEAD
+          /usr/bin/google-chrome --version
+      - name: Install official Ubuntu CJK fonts for native labels
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - name: Install declared test-only dependencies
+        working-directory: docs/previews/port-p02
+        run: npm ci --ignore-scripts
+      - name: Native isolated preview in real Chromium
+        working-directory: docs/previews/port-p02
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          node motion-test.cjs
+          node clearance-p01c.cjs
+          node freight-contract.cjs
+          node build.cjs
+          node chromium.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P02-inherited-chromium-${{ github.sha }}
+          path: |
+            docs/previews/port-p02/chromium/
+            docs/previews/port-p02/evidence/
+          retention-days: 30
+          if-no-files-found: error
+  inherited-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install original fingerprint CJK font dependency
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Build same isolated preview
+        working-directory: docs/previews/port-p03
+        run: |
+          npm ci --ignore-scripts
+          chmod +x chrome-sandboxed.sh
+          node build.cjs
+      - name: Run unchanged original guards with pinned PNG runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/town634-canvas" @napi-rs/canvas@1.0.11
+          export NODE_PATH="$RUNNER_TEMP/town634-canvas/node_modules"
+          source tools/setup_t602_zlib.sh "$RUNNER_TEMP/p01c-png-runtime"
+          node docs/previews/port-p03/regression.cjs --repo="$GITHUB_WORKSPACE" --lane=validate
+      - name: Original atlas fingerprints with sandboxed official Chrome
+        if: ${{ !cancelled() }}
+        run: node docs/previews/port-p03/regression.cjs --repo="$GITHUB_WORKSPACE" --lane=fingerprints
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P03-original-regression-${{ github.sha }}
+          path: docs/previews/port-p03/evidence/
+          retention-days: 30
+          if-no-files-found: error
+
+  crane-operations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install original CJK fonts
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: P02 animation and paired performance in sandboxed Chrome
+        working-directory: docs/previews/port-p02
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci --ignore-scripts
+          node motion-test.cjs
+          node build.cjs
+          node p02-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P02-crane-operations-${{ github.sha }}
+          path: |
+            docs/previews/port-p02/chromium-p02/
+            docs/previews/port-p02/evidence/
+          retention-days: 30
+          if-no-files-found: error
+
+  vessel-navigation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Actual vessel and unchanged baseline comparison
+        working-directory: docs/previews/port-p03
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci --ignore-scripts
+          node navigation-test.cjs
+          node build.cjs
+          node p03-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P03-vessel-evidence-${{ github.sha }}
+          path: |
+            docs/previews/port-p03/chromium-p03/
+            docs/previews/port-p03/evidence/
+            docs/previews/port-p03/native-preview.html
+          retention-days: 30
+          if-no-files-found: error

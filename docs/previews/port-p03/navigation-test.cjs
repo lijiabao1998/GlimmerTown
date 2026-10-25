@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict'),fs=require('fs'),V=require('./vessel-navigation.js');
+const grid=()=>({width:72,height:72,cells:Array.from({length:5184},(_,i)=>i>=72*35)}),g=grid(),start=performance.now(),p=V.compile(g),checks=[];
+function test(name,f){f();checks.push({name,pass:true});}
+test('connected native bottom map exit',()=>assert(p.segments.length>0&&V.component(g,p.berth).has(71*72+40)));
+test('208 harbor water cells unchanged',()=>assert.equal(Array.from({length:26*23},(_,i)=>g.cells[(20+Math.floor(i/26))*72+20+i%26]).filter(Boolean).length,208));
+test('all route segments continuous conservative full hull sweep',()=>p.segments.forEach(s=>assert(V.swept(g,s,V.HULL,p.portal)))) ;
+test('dense independent occupied cell test full cycle',()=>{for(let t=0;t<p.duration;t+=71){const q=p.at(t);for(const[x,y]of V.occupied(g,q))assert(y>=72?(x>=p.portal.x0&&x<p.portal.x1):g.cells[y*72+x]);}});
+test('sealed basin rejected',()=>{const a=grid();for(let x=0;x<72;x++)a.cells[55*72+x]=false;assert.throws(()=>V.compile(a),/connected boundary/);});
+test('narrow connected channel rejected full hull',()=>{const a=grid();for(let y=60;y<64;y++)for(let x=0;x<72;x++)a.cells[y*72+x]=x===40;assert.throws(()=>V.compile(a),/swept-hull/);});
+test('wrong berth direction rejected',()=>assert.throws(()=>V.compile(g,{berth:{...p.berth,angle:Math.PI/2}}),/alignment/));
+test('blocked intermediate swept route rejected',()=>{const a=grid(),s=p.segments.find(s=>s.kind==='arc'),q=s.pose(.5),[x,y]=V.occupied(g,q)[0];a.cells[y*72+x]=false;assert(!V.swept(a,s));});
+test('center remains water but hull land collision rejected',()=>{const a=grid(),q={x:40.5,y:48.5,angle:0};a.cells[48*72+42]=false;assert(a.cells[48*72+40]);assert(!V.validPose(a,q));});
+test('hull fully fits and aligns parallel quay',()=>{assert.equal(p.berth.angle,Math.PI);assert.equal(p.berth.y-V.HULL.width/2,35.8);assert(V.validPose(g,p.berth));assert(V.HULL.height<20);});
+test('phase endpoint positional continuity visible voyage',()=>{for(let i=0;i<p.phases.length-1;i++){const a=p.phases[i],b=p.phases[i+1],q=a.pose(a.end-a.start),r=b.pose(0);assert(Math.hypot(q.x-r.x,q.y-r.y)<1e-7);assert(Math.abs(Math.sin(q.angle-r.angle))<1e-7);}});
+test('finite phases and bounded speed',()=>{for(const f of p.phases){assert(f.end>f.start);const q=f.pose(0),r=f.pose(1);assert(Math.hypot(q.x-r.x,q.y-r.y)<=.001501);}});
+test('60Hz and low FPS deterministic same absolute times',()=>{for(const step of[1000/60,250,1700,23000])for(let target=0;target<p.duration;target+=7000){let t=0;while(t+step<target)t+=step;t=target;assert.deepEqual(p.at(t),p.at(target));}});
+test('fixed replay exact and full cycle equality',()=>{for(const t of[0,2300,40000,80000,120000]){assert.deepEqual(p.at(t),p.at(t));const a=p.at(t),b=p.at(t+p.duration);for(const k of['x','y','angle'])assert(Math.abs(a[k]-b[k])<1e-8);}});
+test('invalid time rejects',()=>[-1,NaN,Infinity].forEach(t=>assert.throws(()=>p.at(t))));
+test('no world mutation',()=>assert.deepEqual(g,grid()));
+fs.mkdirSync('evidence',{recursive:true});const result={checks,passed:checks.length,planningMs:performance.now()-start,duration:p.duration,expanded:p.expanded,hull:V.HULL,turnRadius:V.RADIUS,phases:p.phases.map(({name,start,end})=>({name,start,end})),limitations:['External invisible queue resets heading only after the complete hull exits the map.','Synthetic kinematic demonstration, no fluid dynamics or cargo economy.']};fs.writeFileSync('evidence/navigation.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result));

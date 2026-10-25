@@ -1,0 +1,19 @@
+{
+  "name": "port-p01b-native",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.cjs",
+    "render:skia": "node render.cjs",
+    "test": "node tests.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "commonjs",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.13",
+    "playwright": "^1.64.1"
+  },
+  "private": true
+}
