@@ -28,3 +28,17 @@
 ## 一直保留的發布限制
 
 Draft PR73，不合併、不部署。正式 main T707、Pages、存檔與經濟不變。原 generic scope/gate 紅、原 cold-view +2.4–3.9ms、long-run severe stalls、同候選 ON/OFF Canvas queue cross-charge 的因果歸屬未解除；OFF stall 不是已證明原生獨有問題。UI 成功不等於 release-ready。完整新結果與 first-red logs 由 CI artifact 及交付 receipt 記錄，不改凍結卡面要求。
+
+## 第一輪官方綠，原圖人工紅（保留）
+
+`65f423353a8d524237d526d9ca40ad7c4ab28229` 的證據 run `40214233089` 七 job 通過，原 Chromium 222/222、新 UI 856/856。原始附件 `12607616309`（56,981,402 bytes），SHA256 `ce7c320f803b49d74d0635f2c9683022197927428f79745bf66d7c8d43be5083`。
+
+然而 2026-10-25 17:24 UTC 人工打開四尺寸全畫面 PNG，發現 canvas 幾乎全白，只有原生閃電分岔線。immutable f1483c40 的 before 也有同樣現象。這些 36 張 PNG 保留為失敗證據，不能以 856 綠宣稱真城市視覺驗收完成。
+
+實際原因：正常 fixture 的 80 次原生 tick 可留下 `flashT`；fixture 隨後暫停、只做 `draw(0)`，原生 `draw(dt)` 才會遞減閃光，因此單純等待 DOM wall time 不能讓它消退。修補只在新 UI 驗收的準備／截圖同步，沿用既有原生 lifecycle 驗收的真 requestAnimationFrame 時差驅動 `P06Test.draw(dt)`，核對 flash 消退、shake 維持零與城市／財政／貨櫃／clock 完全不變；不直接清 flash、不改原生 renderer 或 fixture。
+
+同輪第一張桌面 default-collapsed 圖另留有 boot overlay：原生 `__boot426.ready` 早於最後 double-rAF 的 overlay 隱藏。新 runner 必須等實際 overlay hidden 才建 fixture，且每張圖再次檢查；不靠任意延長 sleep 或直接藏 overlay。`shakeT` 依原生 tick 而非 draw 遞減，故本同步只對原生 flash 做視覺衰減，並要求 fixture 已有的 shake=0 維持；不為了去震動推進城市。
+
+另有新驗收可見性缺口：原因 drawer 在先前測試後可能仍 open，無條件再次點 summary 反而關閉；只有 textContent 不能證明原因可見。第二版以真點擊明確關閉／打開，再查 open、isVisible 與第一條理由位於內部 scroll viewport。原 222 predicates 不變。這是加強新驗收，不是拿變更過的舊門檻換綠。
+
+第一輪觀察性能亦全留：長週期 steady fps 13.93→12.73，p95 interval 316.7→333.4ms，max 633.3→666.7ms；5 秒 ON 兩組 27.83/27.19→26.56/25.52fps。不同官方執行的實際末端城市也不同，不能直接推成純 UI 因果。兩次原始完整矩陣與新的精確 head 結果都須交付，不能只選比較好看的那輪。
