@@ -1,1 +1,15 @@
-{"experiment":"Initial 3-tile turn radius","result":"rejected by conservative full swept hull planner","reason":"Near-quay turning has only approximately 0.035 tile clearance at the extremal rotated hull corner; continuous interval inflation rejects it. Kept 5 x 1.4 hull and unchanged water grid, increased the physical turn radius to 4 tiles.","otherFailure":"First derived HTML build anchor still expected </body> immediately after native closure, but P02 adds a control panel. Build failed before output. Fixed to target the exact closure before <details>."}
+{
+  "experiment": "Initial 3-tile turn radius",
+  "result": "rejected by conservative full swept hull planner",
+  "reason": "Near-quay turning has only approximately 0.035 tile clearance at the extremal rotated hull corner; continuous interval inflation rejects it. Kept 5 x 1.4 hull and unchanged water grid, increased the physical turn radius to 4 tiles.",
+  "otherFailure": "First derived HTML build anchor still expected </body> immediately after native closure, but P02 adds a control panel. Build failed before output. Fixed to target the exact closure before <details>.",
+  "independentReview": {
+    "source": "49d2688 first official CI40158218006; visual checks alone were insufficient",
+    "findings": [
+      "Missing noP03 URL valve",
+      "Global per-face depth sorting let deck cover rear cargo roofs",
+      "Independently sorted cabin mast could be covered by its supporting roof"
+    ],
+    "repair": "URL valve and hierarchy preserving ship/prism/cabin painter ordering; independent ray-depth regression added before next CI"
+  }
+}

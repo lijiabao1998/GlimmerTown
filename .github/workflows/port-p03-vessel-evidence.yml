@@ -134,6 +134,7 @@ jobs:
         run: |
           npm ci --ignore-scripts
           node navigation-test.cjs
+          node render-order-test.cjs
           node build.cjs
           node p03-browser.cjs
       - uses: actions/upload-artifact@v4
