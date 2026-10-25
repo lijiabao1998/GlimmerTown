@@ -6,7 +6,7 @@ const sha=s=>crypto.createHash('sha256').update(s).digest('hex'),extract=(from,t
 const view=extract('function w2v(x,y){','function isoW2V('),point=extract('function toTile(cssX,cssY){','function isRectTool('),sx=native.split('\n').find(s=>s.includes('const sxOf=(x,y)=>')),sy=native.split('\n').find(s=>s.includes('const syOf=(x,y)=>'));
 assert(sx&&sy,'Native rendering transforms required');
 const matches=[...builder.matchAll(/P06\.project=\(x,y,h=0\)=>\{[^\n]+\};/g)];assert.equal(matches.length,1,'One actual renderer projection assignment');const actual=matches[0][0];
-assert(builder.includes('const PP=P06.project,PL=(x,y,h=0)=>PP(x+20,y+20,h);'),'Object painters must use tested projection');for(const call of['P05.paint(ctx,o.p05,PP,z)','P04.paint(ctx,o.p04,PP,z,b)','P03.paint(ctx,o.p03,PP,z)','P01B.paint(ctx,o.p01b,PL,z,b)'])assert(builder.includes(call),'Projection disconnected from '+call);
+assert(builder.includes('const PP=P06.project,PL=(x,y,h=0)=>PP(x+20,y+20,h).slice(0,2);'),'Object painters must use tested projection');for(const call of['P05.paint(ctx,o.p05,PP,z)','P04.paint(ctx,o.p04,PP,z,b)','P03.paint(ctx,o.p03,PP,z)','P01B.paint(ctx,o.p01b,PL,z,b)'])assert(builder.includes(call),'Projection disconnected from '+call);
 const old=actual.replaceAll('p[0]-.5','p[0]').replaceAll('p[1]-.5','p[1]');assert.notEqual(old,actual,'Half-cell red mutation must change renderer');
 /* 此旋轉只建立期待的原生道路格；不讀被測 map 的回傳來產生標準答案。 */
 const n=72,rotate=(x,y,q)=>q===0?[x,y]:q===1?[n-y,x]:q===2?[n-x,n-y]:[y,n-x],cases=[];
