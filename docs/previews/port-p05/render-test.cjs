@@ -47,6 +47,7 @@ function audit(frame){
  }
  return{failures,samples:samples.length,boundaryProbes};
 }
+const upstream=harness(0);upstream.P05.init({fullYard:true});assert(upstream.P05.error);assert.equal(upstream.P05.plan.at(170000).owner,'ship');upstream.P05.init();assert(!upstream.P05.error);assert.equal(upstream.P05.plan.at(170000).owner,'dispatched');
 let sampleCount=0,frameCount=0,boundaryProbes=0;const failures=[];
 for(let rot=0;rot<4;rot++){const h=harness(rot),p=h.P05.plan,times=[p.start-1,...p.phases.flatMap(f=>[f.start,(f.start+f.end)/2,f.end-.001]),p.finished+1000];for(const ms of times){const f=h.frame(ms),a=audit(f);sampleCount+=a.samples;boundaryProbes+=a.boundaryProbes;frameCount++;for(const fail of a.failures)failures.push({rot,time:ms,status:f.frame.status,...fail});}}
 const report={frameCount,sampleCount,boundaryProbes,failureCount:failures.length,failures:failures.slice(0,80)};fs.mkdirSync('evidence',{recursive:true});fs.writeFileSync('evidence/p05-render.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));assert.equal(failures.length,0,'Actual P05 native queue disagrees with independent ray depth');

@@ -11,3 +11,7 @@ P05 rendering first red: independent actual native painter ray-depth oracle foun
 Second red: 12 samples remained in rotation 2. A duplicated numerical clipping vertex creates a zero-length clip edge; the inherited convex subtraction can then mistakenly retain the entire outside subject. Added P05-only duplicate-vertex normalization before subtraction; original P04 module and tests remain unchanged. The raw first and second reports are retained.
 
 Local original regression first run: 17/20 checks passed. Three failed before candidate logic due to missing approved/t634 tag, historical d88e36d object and fixed PNG runtime setup. Preserve report, use unchanged official full-history/pinned-runtime workflow before claiming acceptance.
+
+Native grouping follow-up: placing every new part after all original sprites would bypass ordinary building sorting. Returning each clipped group to its native queue exposed40 cross-crane samples. The new transfer crane now uses its full plan footprint's nearest rotated ground depth (not the moving trolley's center), while the truck/road/gate retain ordinary native depths. The actual nearest-ray oracle returns zero errors; original building painter is still the original queue.
+
+Full-yard negative now invokes the unchanged P04 physical slot-obstruction fixture before compiling P05, so an undelivered source remains aboard, not an invented yard cargo. Clearing the fixture restores the original P04 plan.

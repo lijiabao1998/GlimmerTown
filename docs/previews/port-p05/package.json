@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "node build.cjs",
-    "render:skia": "node render.cjs",
-    "test": "node tests.cjs"
+    "test": "node geometry-test.cjs && node state-test.cjs && node build.cjs && node render-test.cjs",
+    "test:browser": "node p05-browser.cjs"
   },
   "keywords": [],
   "author": "",

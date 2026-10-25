@@ -1,0 +1,940 @@
+{
+  "frameCount": 128,
+  "sampleCount": 183906,
+  "boundaryProbes": 464,
+  "failureCount": 40,
+  "failures": [
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -125.75999999999976,
+        993.8399999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 15.599999999999913
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -124.96141421356218,
+        994.4814142135622
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.55929289321886
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -124.9619999999998,
+        994.4799999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.561000000000057
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -124.96141421356218,
+        994.4785857864374
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.562121320343625
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -125.27999999999986,
+        994.4799999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.719999999999972
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -124.96141421356229,
+        994.6414142135624
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.399292893218718
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -124.96199999999992,
+        994.64
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.400999999999918
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -124.96141421356229,
+        994.6385857864376
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23.000000000000004
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.402121320343491
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -125.27999999999997,
+        994.6400000000001
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.559999999999832
+      }
+    },
+    {
+      "rot": 0,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -125.11999999999989,
+        993.56
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 15.559999999999944
+      }
+    },
+    {
+      "rot": 1,
+      "time": 117004.95109220853,
+      "status": "lower-hook",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        216.64,
+        1050.96
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.4399999999999125
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 1,
+      "time": 117004.95109220853,
+      "status": "lower-hook",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        214.56000000000006,
+        1052.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999803
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.0599999999999454
+      }
+    },
+    {
+      "rot": 1,
+      "time": 117004.95209220854,
+      "status": "lock",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        216.64,
+        1050.96
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.439999999999884
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 1,
+      "time": 117004.95209220854,
+      "status": "lock",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        214.56000000000006,
+        1052.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999775
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.0599999999999454
+      }
+    },
+    {
+      "rot": 1,
+      "time": 117504.95209220854,
+      "status": "lock",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        216.64,
+        1050.96
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.439999999999884
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 1,
+      "time": 117504.95209220854,
+      "status": "lock",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        214.56000000000006,
+        1052.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999775
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.0599999999999454
+      }
+    },
+    {
+      "rot": 1,
+      "time": 118004.95109220853,
+      "status": "lock",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        216.64,
+        1050.96
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.439999999999884
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 1,
+      "time": 118004.95109220853,
+      "status": "lock",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        214.56000000000006,
+        1052.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999775
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.0599999999999454
+      }
+    },
+    {
+      "rot": 1,
+      "time": 118004.95209220854,
+      "status": "lift",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        216.64,
+        1050.96
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.439999999999884
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 1,
+      "time": 118004.95209220854,
+      "status": "lift",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        214.56000000000006,
+        1052.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999775
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.0599999999999454
+      }
+    },
+    {
+      "rot": 2,
+      "time": 117004.95109220853,
+      "status": "lower-hook",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        135.3599999999999,
+        1226.9599999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.440000000000083
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 2,
+      "time": 117004.95109220853,
+      "status": "lower-hook",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        137.43999999999983,
+        1228.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.0599999999997465
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.059999999999718
+      }
+    },
+    {
+      "rot": 2,
+      "time": 117004.95209220854,
+      "status": "lock",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        135.3599999999999,
+        1226.9599999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.440000000000055
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 2,
+      "time": 117004.95209220854,
+      "status": "lock",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        137.43999999999983,
+        1228.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999717
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.059999999999718
+      }
+    },
+    {
+      "rot": 2,
+      "time": 117504.95209220854,
+      "status": "lock",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        135.3599999999999,
+        1226.9599999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.440000000000055
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 2,
+      "time": 117504.95209220854,
+      "status": "lock",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        137.43999999999983,
+        1228.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999717
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.059999999999718
+      }
+    },
+    {
+      "rot": 2,
+      "time": 118004.95109220853,
+      "status": "lock",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        135.3599999999999,
+        1226.9599999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.440000000000055
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 2,
+      "time": 118004.95109220853,
+      "status": "lock",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        137.43999999999983,
+        1228.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999717
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.059999999999718
+      }
+    },
+    {
+      "rot": 2,
+      "time": 118004.95209220854,
+      "status": "lift",
+      "sampleOwner": "harbor-crane",
+      "boundary": false,
+      "point": [
+        135.3599999999999,
+        1226.9599999999998
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.440000000000055
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 4
+      }
+    },
+    {
+      "rot": 2,
+      "time": 118004.95209220854,
+      "status": "lift",
+      "sampleOwner": "transfer",
+      "boundary": false,
+      "point": [
+        137.43999999999983,
+        1228.38
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 7.059999999999717
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(40,56,66)",
+        "z": 3.059999999999718
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -226.24000000000024,
+        1169.84
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 15.599999999999927
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -227.03800000000018,
+        1170.48
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.560999999999835
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -227.0385857864378,
+        1170.4814142135624
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.55929289321865
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -227.0385857864378,
+        1170.4785857864376
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.562121320343417
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -226.72000000000025,
+        1170.48
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.7199999999998
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -226.72000000000003,
+        1170.6399999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.56000000000007
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -227.03799999999995,
+        1170.6399999999999
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.401000000000098
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -227.03858578643758,
+        1170.6414142135623
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.399292893218906
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "edgeProbe": true,
+      "boundary": false,
+      "point": [
+        -227.03858578643758,
+        1170.6385857864375
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 14.402121320343673
+      }
+    },
+    {
+      "rot": 3,
+      "time": 112504.95209220854,
+      "status": "approach-hook",
+      "sampleOwner": "new-composite",
+      "boundary": false,
+      "point": [
+        -226.8800000000001,
+        1169.56
+      ],
+      "expected": [
+        {
+          "owner": "new-composite",
+          "color": "rgb(120,169,173)",
+          "z": 23
+        }
+      ],
+      "actual": {
+        "owner": "harbor-crane",
+        "color": "rgb(223,180,72)",
+        "z": 15.55999999999995
+      }
+    }
+  ]
+}
