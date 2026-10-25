@@ -9,6 +9,7 @@ h=replace(h,'function advance(dtReal){','function advance(dtReal){const __p06Acc
 h=replace(h,'  if(steps>=8)simAcc=0; // 落後太多就放棄追趕','  if(steps>=8)simAcc=0; // 落後太多就放棄追趕\n  if(window.P06)P06.advance(Math.max(0,(steps*DAYLEN+simAcc-__p06Acc)*1000));');
 h=replace(h,'function doPlace(toolId,x,y,silent){','function doPlace(toolId,x,y,silent){try{return doPlaceP06Native(toolId,x,y,silent);}finally{window.P06?.changed();}}\nfunction doPlaceP06Native(toolId,x,y,silent){');
 h=replace(h,'  objs.sort((a,b2)=>a.dep-b2.dep);',`  if(window.P06?.active()){
+    P06.project=(x,y,h=0)=>{const p=P06.map(x,y);return[sxOf(p[0]-.5,p[1]-.5)+32*z,syOf(p[0]-.5,p[1]-.5)+16*z-h*z,h];};
     for(const p of P01B.parts)if(p.type!=='reserve')objs.push({dep:['slab'].includes(p.type)?-100000:P06.dep(p.x+20,p.y+20)+.001,p01b:p});
     for(const p of P02.objects())objs.push({dep:p.dep,p02:p});
     for(const p of P03.objects())objs.push({dep:p.dep,p03:p});
@@ -18,7 +19,7 @@ h=replace(h,'  objs.sort((a,b2)=>a.dep-b2.dep);',`  if(window.P06?.active()){
   objs.sort((a,b2)=>a.dep-b2.dep);`);
 h=replace(h,'  for(const o of objs){\n    if(o.sta){',`  for(const o of objs){
     if(window.P06?.active()){
-      const PP=(x,y,h=0)=>{const p=P06.map(x,y);return[sxOf(p[0],p[1])+32*z,syOf(p[0],p[1])+16*z-h*z,h];},PL=(x,y,h=0)=>PP(x+20,y+20,h);
+      const PP=P06.project,PL=(x,y,h=0)=>PP(x+20,y+20,h);
       if(o.p05){ctx.save();P05.paint(ctx,o.p05,PP,z);ctx.restore();continue;}
       if(o.p04){ctx.save();P04.paint(ctx,o.p04,PP,z,b);ctx.restore();continue;}
       if(o.p03){ctx.save();P03.paint(ctx,o.p03,PP,z);ctx.restore();continue;}
@@ -30,7 +31,7 @@ h=replace(h,'  for(const o of objs){\n    if(o.sta){',`  for(const o of objs){
 /* 原生氛圍船只在候選泊位保留區不重複顯示；其模擬／經濟完全不變。 */
 h=replace(h,'    objs.push({dep:viewDep(fx,fy)+.01,ship:sh,wx,wy,sd:sh.d});','    if(!window.P06?.legacyReserved(fx,fy))objs.push({dep:viewDep(fx,fy)+.01,ship:sh,wx,wy,sd:sh.d});');
 h=replace(h,'    objs.push({dep:viewDep(fx,fy)+.012,lifeShip:sh,wx,wy,sd:sh.d});','    if(!window.P06?.legacyReserved(fx,fy))objs.push({dep:viewDep(fx,fy)+.012,lifeShip:sh,wx,wy,sd:sh.d});');
-h=replace(h,'    if(o.t){const sz=b?',`    if(o.p01b&&!['slab','reserve'].includes(o.p01b.type)){const a=o.p01b,w=a.w||.1,d=a.d||.1,pts=[[-w/2,-d/2],[w/2,-d/2],[-w/2,d/2],[w/2,d/2]].map(v=>{const q=P06.map(a.x+20+v[0],a.y+20+v[1]);return w2v(q[0],q[1]);});foot574=[Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1]))];}else if(o.t){const sz=b?`);
+h=replace(h,'    if(o.t){const sz=b?',`    if(o.p01b&&!['slab','reserve'].includes(o.p01b.type)){const a=o.p01b,w=a.w||.1,d=a.d||.1,pts=[[-w/2,-d/2],[w/2,-d/2],[-w/2,d/2],[w/2,d/2]].map(v=>{const q=P06.map(a.x+20+v[0],a.y+20+v[1]);return w2v(q[0]-.5,q[1]-.5).map(v=>v+.5);});foot574=[Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1]))];}else if(o.t){const sz=b?`);
 let p01=read('../port-p02/bridge.js').replace("if(p.type==='crane'){","if(p.type==='crane'&&window.P02?.active()){P02.paintAssembly.call(this,c,p,P,z,bright);return;}if(p.type==='crane'){");
 let p03=read('../port-p03/vessel-bridge.js').replace('const p=this.plan.at(this.time());this.frame=p;','const p=window.P04?.active()&&P04.frame?P04.frame.ship:this.plan.at(this.time());this.frame=p;').replace('for(let row=0;row<2;row++)for(let col=0;col<3;col++)box(',"for(let row=0;row<2;row++)for(let col=0;col<3;col++)if(window.P04?.active()&&row===1&&col===0&&!P04.onShip()){groups.push({faces:[],dep:0,lo:7});}else box(");
 let p04=read('../port-p04/transfer-bridge.js').replace('season(),this.frame.time,P02.frameTime','season(),this.frame.time,P02.frameTime,window.P05?.active()').replace('for(const ship of P03.objects())P03.paint(q,ship,p,z);','for(const ship of P03.objects())P03.paint(q,ship,p,z);if(window.P05?.active())for(const o of P05.rawObjects())P05.rawPaint(q,o,p,z);');

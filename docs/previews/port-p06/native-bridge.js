@@ -3,15 +3,16 @@ const P06=window.P06={enabled:false,mode:'live',timeMs:0,layout:null,reasons:[],
  world(){return{width:N,height:N,cells:tiles||[]};},
  api(){return{L:LandsideGeometry,G:PortTransferGeometry,V:VesselNavigation,C:ContainerTransfer,D:LandsideDispatch};},
  map(x,y){return this.layout?this.layout.frame.point(x,y):[x,y];},
- dep(x,y){const p=this.map(x,y);return viewDep(p[0],p[1]);},
+ nativeTileAtScreen(x,y){return toTile(x/DPR,y/DPR);},
+ dep(x,y){const p=this.map(x,y);return viewDep(p[0]-.5,p[1]-.5);},
  active(){return this.enabled&&!!this.layout?.valid&&!window.__noP06;},
  scan(){if(!tiles?.length)return{ports:[],warehouses:[],freight:[],counts:{},reasons:[{code:'NO_CITY',message:'請先開啟正常城市'}]};this.scans++;return NativeHarborLayout.inventory(this.world());},
- enable(portKey,q){const inv=this.scan(),port=inv.ports.find(p=>p.key===portKey)||inv.ports[0];this.enabled=true;window.__noHarborP01B=true;if(!port){this.reasons=[{code:'PORT_MISSING',message:'城市沒有原生港口 k18'}];this.layout&& (this.layout.valid=false);this.refresh();return this.inspect();}
+ enable(portKey,q){const inv=this.scan(),port=portKey?inv.ports.find(p=>p.key===portKey):inv.ports[0];this.enabled=true;window.__noHarborP01B=true;if(!port){this.reasons=[{code:'PORT_MISSING',message:'城市沒有原生港口 k18'}];this.layout&& (this.layout.valid=false);this.refresh();return this.inspect();}
   if(this.layout&&this.timeMs>0&&(this.layout.port.key!==port.key||q!==undefined&&+q!==this.layout.q)){this.reasons=[{code:'RESET_REQUIRED',message:'既有貨櫃仍在本港；換港／方向前須明確重設候選帳，不能瞬移貨物'}];this.layout.valid=false;this.refresh();return this.inspect();}
-  const orientations=q===undefined?[0,1,2,3]:[+q],candidates=orientations.map(o=>NativeHarborLayout.inspect(this.world(),port,o,P01B.parts,this.api(),{quick:true}));let selected=null;
+  const orientations=q===undefined?(this.layout&&this.timeMs>0?[this.layout.q]:[0,1,2,3]):[+q],candidates=orientations.map(o=>NativeHarborLayout.inspect(this.world(),port,o,P01B.parts,this.api(),{quick:true}));let selected=null;
   for(const c of candidates.filter(c=>c.valid)){const full=NativeHarborLayout.inspect(this.world(),port,c.q,P01B.parts,this.api());if(full.valid){selected=full;break;}if(!selected)selected=full;}
   selected=selected?.valid?selected:(selected||candidates.sort((a,b)=>a.errors.length-b.errors.length)[0]);
-  if(this.layout&&this.timeMs>0&&selected.valid&&Math.abs(selected.p05.start-this.layout.p05?.start)>1e-7){selected.valid=false;selected.errors.push({code:'REPLAY_TIMING_CHANGED',message:'航道已改變；保留原貨櫃位置，明確重設後才能採用新航次'});}
+  if(this.layout&&this.timeMs>0&&selected.valid&&selected.planKey!==this.layout.planKey){selected.valid=false;selected.errors.push({code:'PLAN_GEOMETRY_CHANGED',message:'航道／貨車路徑已改變；保留原貨櫃與車輛位置，明確重設後才能採用新航次'});}
   if(!selected.valid){this.reasons=selected.errors;if(this.layout)this.layout.valid=false;else this.layout=selected;this.refresh();return this.inspect();}
   this.layout=selected;this.reasons=[];P03.plan=selected.nav;P03.error=null;P04.plan=selected.p04;P04.error=null;P04.baseAt=selected.nav.at;P05.plan=selected.p05;P05.geometry=selected.geometry;P05.route=selected.route;P05.connector=[];P05.originalRoads=[...selected.route.checks];P05.error=null;P04.renderKey=null;P05.paintKey=null;P05.staticKey=null;P05.visibilityCache=new Map();this.update();this.refresh();return this.inspect();
  },
