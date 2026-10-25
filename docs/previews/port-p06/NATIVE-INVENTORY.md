@@ -1,0 +1,33 @@
+# T707 actual native harbor inventory (2026-10-25)
+
+Source is repository `index.html`, GAME_VER 11.248, formal T707 379b7ad92eaa34be5a10ce5a5e1786a8f67e6bd8, unchanged P05 baseline. Facts below are executable-source observations, not a restatement of old cards. Line numbers are secondary; searchable anchors are authoritative.
+
+| Area | Actual source state | P06 boundary |
+|---|---|---|
+| Port k18 | `LOT574`/tool lot table assigns `port` 3×3. `canPlace` first takes `lotSpec574`, requires a legal land lot and at least two water cells around its outer ring. Native construction does not prove a ship-sized route, dock, yard or truck access. | Read the actual root/ref footprint, coast and completed construction. A normally buildable port may honestly be operationally invalid. |
+| Warehouse k64 | Active `warehouse` lot is 3×3. Older 2×2 fallback/comment/UI survives below the lot route. Daily `whN284` and `whCap284` count roots, capacity 120 + 60/level. | Do not confuse a visual container slot with native goods capacity. Completed root plus cardinal real-road connectivity from the exit gate; no capacity or goods writes. |
+| Freight k110 | Active `freight` lot is 4×4. An old 2×2 fallback remains. `stampCov('freight',...)` and the daily coverage/tax chain remain native. It is not a per-container railway terminal. | Completed root must be connected to the exit gate by actual cardinal land roads. No claiming native rail accepted the candidate cargo; no train edits. |
+| Dock | `canPlace('dock')` requires water and no existing dock; it does not require a neighboring port, road or navigable water connection. `doPlace` sets `dock=1`. | Real dock adjacency is checked separately. Dock platforms are obstacles for the full candidate vessel, not magic portal water. |
+| Roads | Road tools can build on water via bridge semantics; native masks rebuilt for neighbors. Road presence alone is not full-truck clearance. | Only actual existing land-road cells usable for this slice; no candidate connector is fabricated. Complete truck footprint and continuous route sweeps required. |
+| Rail | T706 filters railway/light rail; T707 handles articulated traces, station stops, tail reversal and blocking. | Untouched, including original tests. Candidate dispatch is a road gate, never a rail delivery. |
+| T64 `cargoShips` | Generated from dock cells when ports exist. Visual target min(3, ports+1). Moves cell-wise on water; heading may rotate on blocked next cell. No cargo ID or ship-footprint navigation. | Remains native scenery. P06's distinct ledger ship does not count these sprites as container handoffs. |
+| T361a `lifeShips` | Cargo hubs are k18; deterministic near-water spawn. Cargo target min(2, hubs, 1+shipCount). Point-tile navigation, independent of T64. | Simulation kept; native ambient ship drawing is suppressed only in the small active candidate berth reservation to avoid visual overlap. This is not an economic or fleet rewrite. No duplicated economic shipment. |
+| T364b/T418 economy | Daily refinery/steel/shipyard aggregation; steel use adds shipProgress, SHIP_STEEL advances shipCount, capped by port count. `shipPortGold`, `shipDailyGold418`, fuel exports feed income. k18/k64 are explicit empty branches in tax chain. | No additions or edits. Candidate 30-ID ledger is not an economic shipment or an income source. |
+| Native time | `advance(dtReal)` adds dtReal×speed to simAcc, consumes DAYLEN=.9 ticks, maximum eight ticks, discards excess backlog. Visual fleets use capped dtA; service fleets use dtA×speed. `frame`/background fallback call advance only while running. | P06 consumes accepted native simulation progress, not draw count or browser elapsed wall time. No per-draw economic production. |
+| Persistence | Native saves include optional shipCount/shipProgress, aggregate goods, and grid dock/road/rail data. | Candidate preview uses isolated in-memory storage, no automatic persistent write/PWA. No schema changes, no player saves touched. |
+
+## Existing P05 assumptions to remove at the adapter boundary
+
+`P01B.setup` replaces the whole city with a 72×72 scene; `P03.init` uses fixed berth/entry; P05 reads one fixed road row and adds three visible candidate-only connector cells. Those were valid fixed-scene evidence, not a normal-city adapter. P06 must not call that scene setup or generate that connector in native mode. Existing P01–P05 source and regression remain unchanged and runnable separately.
+
+The P01–P05 machinery and load dimensions remain unchanged. A normal city with insufficient empty apron, full-hull water route or full-truck road clearance receives an explicit refusal rather than scaled-down machinery, hidden roads or invented throughput. Initial 24 scene-stock entries remain labeled as initial stock, not proven imports; the one original P03 cargo ID carries the demonstrated handoff.
+
+## Candidate conservatism
+
+P06 1.0 reserves the unchanged 12×3 apron, a straight full-truck road approach/gate, a ship-sized external water route, and a completed warehouse plus freight building reached by the same actual cardinal land-road network. It does not imply native rail forwarding. Plans that require bends in the retained truck maneuver, islands outside the selected external-water search, irregular/tiny aprons or alternate machinery layouts are refused with reasons rather than silently synthesized. The initial single batch is intentionally not replenished.
+
+## Native economic comparison input found during acceptance
+
+The existing ambient car stream is not economically inert. `updCars` uses `Math.random` / `vri` for spawning and routes (near lines 17105–17161), increments `roadPass` when crossing cells (17148), and native `tick` smooths that into `roadLoad` (15669). `recomputeLandDynamic` then updates congestion-adjusted `LAND` (15676); residential tax uses that value directly (16593). Consequently, the same deterministic city seed and tick schedule do not imply identical economic inputs when ambient traffic differs. The fifth P06 browser run exposed a one-dollar rounded paired result difference, retained as a failed comparison rather than accepted with a tolerance.
+
+This is existing T707 behavior, not a P06 revenue mechanism, and is not changed here. Economic paired tests must control the ambient input as well as city seed/time, retain exact unrounded equality, and restore native randomness outside that comparison. Real live-cycle/performance evidence still uses ordinary native traffic. Future shadow accounting must likewise distinguish actual traffic-dependent native taxes from any proposed cargo ledger; fixing or redesigning that native coupling is outside P06.

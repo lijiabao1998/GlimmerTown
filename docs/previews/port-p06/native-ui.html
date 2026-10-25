@@ -1,0 +1,81 @@
+<style>
+/* P06 候選介面：只在自己的節點內排版，不改原生 HUD／工具列。 */
+#p06-panel{position:fixed;left:max(8px,env(safe-area-inset-left));top:var(--p06-safe-top);z-index:29;width:max-content;max-width:calc(100vw - max(8px,env(safe-area-inset-left)) - max(8px,env(safe-area-inset-right)));color:#e8f1f2;font:14px/1.45 system-ui,sans-serif;touch-action:pan-y;overscroll-behavior:contain;--p06-safe-top:max(var(--p06-top,120px),calc(env(safe-area-inset-top) + 8px));--p06-available:min(var(--p06-height,calc(100dvh - 270px)),calc(100dvh - var(--p06-safe-top) - max(8px,env(safe-area-inset-bottom))));--p06-edge:#3c5969;--p06-muted:#adc1c9}
+#p06-panel,#p06-panel *{box-sizing:border-box}
+#p06-panel [hidden]{display:none!important}
+#p06-panel button,#p06-panel select,#p06-panel summary{min-width:44px;min-height:44px;font:inherit;touch-action:pan-y;cursor:pointer}
+#p06-panel button,#p06-panel select{border:1px solid var(--p06-edge);border-radius:8px;background:#203744;color:#eef6f5;padding:9px 12px}
+#p06-panel button:focus-visible,#p06-panel select:focus-visible,#p06-panel summary:focus-visible{outline:3px solid #92dfd2;outline-offset:-3px}
+#p06-panel button:disabled,#p06-panel select:disabled{opacity:.55;cursor:default}
+#p06-panel button:active{background:#31505e}
+#p06-panel select{width:100%;font-size:16px;min-height:48px}
+#p06-toggle{display:flex;align-items:center;gap:10px;min-height:48px!important;box-shadow:0 5px 18px #0004;background:#152c37f5!important}
+#p06-chip-status{font-size:12px;color:var(--p06-muted);max-width:7em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p06-expanded{width:360px;max-width:100%;max-height:var(--p06-available);display:flex;flex-direction:column;background:#132b36f5;border:1px solid var(--p06-edge);border-radius:12px;box-shadow:0 8px 25px #0005;overflow:hidden}
+#p06-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 6px 14px;border-bottom:1px solid #36505c;flex-shrink:0}
+#p06-title{font-size:16px;margin:0;letter-spacing:.04em}
+#p06-collapse{min-height:48px!important;min-width:48px!important;background:transparent!important;border-color:transparent!important;font-size:13px!important}
+#p06-content{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;padding:12px;min-height:0;scrollbar-width:thin;scrollbar-color:#597780 #132b36;scroll-padding-block:8px}
+#p06-panel p{margin:0}
+#p06-port-label{display:block;color:var(--p06-muted);font-size:12px;margin-bottom:5px}
+#p06-state-card{margin:10px 0;padding:10px 11px;border-radius:8px;background:#203c47;border-left:3px solid #84b9bb}
+#p06-state-card[data-tone="ready"]{border-color:#83d5ae}
+#p06-state-card[data-tone="blocked"]{border-color:#e8b37b}
+#p06-player-status{font-weight:650;font-size:14px}
+#p06-player-note{color:#c4d5da;font-size:12px;margin-top:3px!important;overflow-wrap:anywhere}
+#p06-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 6px}
+#p06-counts div{text-align:center;border:1px solid #304c59;border-radius:8px;padding:6px 2px;background:#10232d}
+#p06-counts dt{color:var(--p06-muted);font-size:12px}
+#p06-counts dd{margin:1px 0 0;font-size:21px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+#p06-cargo-note{min-height:18px;color:#c0d6d7;font-size:12px;margin-bottom:9px!important}
+#p06-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#p06-actions button{min-height:48px}
+#p06-enable{background:#35695f!important;border-color:#73b4a7!important;color:#fff!important}
+#p06-disable{background:#263f4b!important}
+#p06-live-player{width:100%;min-height:48px!important;margin-top:8px;border-color:#c2a86c!important}
+#p06-panel details{border-top:1px solid #34505c;margin-top:10px}
+#p06-panel summary{display:flex;align-items:center;gap:7px;padding:8px 2px;list-style:none;color:#cadce1}
+#p06-panel summary::-webkit-details-marker{display:none}
+#p06-panel summary::before{content:'▸';font-size:14px;flex-shrink:0}
+#p06-panel details[open]>summary::before{content:'▾'}
+#p06-reason-list{margin:0 0 8px;padding-left:20px;font-size:12px;color:#e4cbae;overflow-wrap:anywhere}
+#p06-reason-list li+li{margin-top:5px}
+#p06-diagnostics .p06-help{font-size:12px;color:var(--p06-muted);margin-bottom:9px}
+#p06-diagnostics label{display:block;font-size:12px;color:var(--p06-muted);margin:9px 0 4px}
+#p06-demo,#p06-live,#p06-reset{width:100%;margin-top:8px}
+#p06-replays{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+#p06-replays button{padding:8px 3px;font-size:12px;min-height:48px}
+#p06-reset{color:#efd0b4!important;border-color:#856d56!important;background:#352f2c!important}
+#p06-status,#p06-detail{font:12px/1.55 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:#0d2029;border:1px solid #304c59;border-radius:6px;padding:9px;margin-top:8px!important}
+#p06-footnote{font-size:11px;color:#99b0b9;padding-top:10px}
+@media(max-width:600px){#p06-expanded{width:calc(100vw - max(8px,env(safe-area-inset-left)) - max(8px,env(safe-area-inset-right)));max-height:min(var(--p06-available),50dvh)}#p06-content{padding:10px}#p06-title{font-size:15px}}
+@media(prefers-reduced-motion:no-preference){#p06-panel button{transition:background-color .12s}}
+</style>
+<section id="p06-panel" aria-label="港區營運">
+  <button type="button" id="p06-toggle" aria-expanded="false" aria-controls="p06-expanded"><strong>⚓ 港區營運</strong><span id="p06-chip-status">未啟用</span><span aria-hidden="true">▸</span></button>
+  <div id="p06-expanded" hidden>
+    <header id="p06-header"><h2 id="p06-title">⚓ 港區營運</h2><button type="button" id="p06-collapse" aria-label="收合港區營運">收合 ▴</button></header>
+    <div id="p06-content">
+      <label for="p06-port" id="p06-port-label">選擇港口</label>
+      <select id="p06-port" aria-label="選擇港口"><option value="">尚未發現港口</option></select>
+      <div id="p06-state-card" data-tone="idle"><p id="p06-player-status" role="status" aria-live="polite">尚未啟用營運</p><p id="p06-player-note">先檢查城市中的港口，再決定是否啟用。</p></div>
+      <dl id="p06-counts" aria-label="貨櫃數量"><div><dt>船上</dt><dd id="p06-count-ship">—</dd></div><div><dt>堆場</dt><dd id="p06-count-yard">—</dd></div><div><dt>車上</dt><dd id="p06-count-truck">—</dd></div><div><dt>已出閘</dt><dd id="p06-count-dispatched">—</dd></div></dl>
+      <p id="p06-cargo-note">尚未啟用候選貨物帳</p>
+      <div id="p06-actions"><button type="button" id="p06-scan">檢查港區</button><button type="button" id="p06-enable">啟用營運</button><button type="button" id="p06-disable" hidden>停用營運</button></div>
+      <button type="button" id="p06-live-player" hidden>結束重播 · 返回城市時間</button>
+      <details id="p06-reasons" hidden><summary>查看詳細原因</summary><ul id="p06-reason-list"></ul></details>
+      <details id="p06-diagnostics"><summary>測試與診斷</summary>
+        <p class="p06-help">以下是候選驗收工具，不是城市產業指令。示範會替換記憶體中的城市；重播不代表產量。</p>
+        <label for="p06-demo-layout">示範城市布局</label>
+        <select id="p06-demo-layout"><option value="south">南岸</option><option value="west">西岸</option><option value="north">北岸</option><option value="east">東岸</option><option value="offset">偏移南岸</option></select>
+        <button type="button" id="p06-demo">新建示範城市</button>
+        <div id="p06-replays"><button type="button" id="p06-replay-pickup">重播吊起</button><button type="button" id="p06-replay-loaded">重播裝車</button><button type="button" id="p06-replay-finished">重播出閘</button></div>
+        <button type="button" id="p06-live">返回城市時間</button>
+        <button type="button" id="p06-reset">重設候選帳…</button>
+        <p id="p06-status" role="status">P06 關閉：先開啟正常城市</p>
+        <pre id="p06-detail" aria-label="原始港區診斷">尚未檢查港區</pre>
+      </details>
+      <p id="p06-footnote">獨立候選 · 無新增收入 · 貨物帳不寫入存檔</p>
+    </div>
+  </div>
+</section>

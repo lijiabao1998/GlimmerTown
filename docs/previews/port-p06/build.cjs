@@ -1,0 +1,51 @@
+'use strict';
+const fs=require('fs'),crypto=require('crypto'),path=require('path');process.chdir(__dirname);const ROOT=path.resolve('../../..'),raw=fs.readFileSync(path.join(ROOT,'index.html'),'utf8'),read=p=>fs.readFileSync(p,'utf8'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+const patches=[];function replace(h,a,b){if(h.split(a).length!==2)throw Error('Nonunique P06 anchor: '+a);patches.push(a);return h.replace(a,b);}
+const isolation=`<script>window.__p06Start=performance.now();(()=>{const data=new Map([['glimmerville.v1.slot','3'],['glimmerville.v1.snd','0']]);Object.defineProperty(window,'localStorage',{value:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k),clear:()=>data.clear()}});})();</script>`;
+function common(h){h=h.replace('<head>','<head>'+isolation);h=replace(h,'<link rel="icon" href="icon.svg">','<link rel="icon" href="data:image/svg+xml;base64,'+fs.readFileSync(path.join(ROOT,'icon.svg')).toString('base64')+'">');h=replace(h,'<link rel="manifest" href="manifest.json">','<!-- Independent in-memory candidate; no PWA. -->');h=replace(h,'setInterval(()=>{if(tiles)save();},25000);','/* Independent candidate: no persistent autosave. */');h=replace(h,"document.addEventListener('visibilitychange',()=>{if(document.hidden&&tiles)save();});",'/* Independent candidate: no visibility autosave. */');h=replace(h,"if(location.protocol!=='file:'){",'if(false){ /* Independent candidate: no service worker. */');h=replace(h,'function tick(){','function tick(){const r=tickP06Measured();window.__p06Ticks=(window.__p06Ticks||0)+1;return r;}\nfunction tickP06Measured(){');h=replace(h,'function bake634(k,v,n,lv=1,we=1,stage=2,winter=false,sea=season()){','function bake634(...args){const st=performance.now();try{return bakeP06Measured(...args);}finally{const a=window.__p06Bake||(window.__p06Bake={count:0,totalMs:0,firstMs:null});const t=performance.now()-st;a.count++;a.totalMs+=t;if(a.firstMs===null)a.firstMs=t;}}\nfunction bakeP06Measured(k,v,n,lv=1,we=1,stage=2,winter=false,sea=season()){');return h;}
+let control=common(raw);control=replace(control,'})();\n</script>\n</body>',read('native-fixtures.js')+'\n})();\n</script>\n</body>');fs.writeFileSync('native-control.html',control);
+let h=common(raw);h=replace(h,'function draw(dt){','function draw(dt){if(window.P04)P04.begin();');
+h=replace(h,'function advance(dtReal){','function advance(dtReal){const __p06Acc=simAcc;');
+h=replace(h,'  if(steps>=8)simAcc=0; // 落後太多就放棄追趕','  if(steps>=8)simAcc=0; // 落後太多就放棄追趕\n  if(window.P06)P06.advance(Math.max(0,(steps*DAYLEN+simAcc-__p06Acc)*1000));');
+h=replace(h,'function doPlace(toolId,x,y,silent){','function doPlace(toolId,x,y,silent){try{return doPlaceP06Native(toolId,x,y,silent);}finally{window.P06?.changed();}}\nfunction doPlaceP06Native(toolId,x,y,silent){');
+h=replace(h,'function undo(){','function undo(){try{return undoP06Native();}finally{window.P06?.changed();}}\nfunction undoP06Native(){');
+h=replace(h,'function undoPlace(f){','function undoPlace(f){try{return undoPlaceP06Native(f);}finally{window.P06?.changed();}}\nfunction undoPlaceP06Native(f){');
+h=replace(h,'  objs.sort((a,b2)=>a.dep-b2.dep);',`  if(window.P06?.active()){
+    P06.project=(x,y,h=0)=>{const p=P06.map(x,y);return[sxOf(p[0]-.5,p[1]-.5)+32*z,syOf(p[0]-.5,p[1]-.5)+16*z-h*z,h];};
+    for(const p of P01B.parts)if(p.type!=='reserve')objs.push({dep:['slab'].includes(p.type)?-100000:P06.dep(p.x+20,p.y+20)+.001,p01b:p});
+    for(const p of P02.objects())objs.push({dep:p.dep,p02:p});
+    for(const p of P03.objects())objs.push({dep:p.dep,p03:p});
+    for(const p of P04.objects())objs.push({dep:P06.dep(p.x+20,p.y+20)+.008,p04:p});
+    for(const p of P05.objects())objs.push({dep:p.dep,p05:p});
+  }
+  objs.sort((a,b2)=>a.dep-b2.dep);`);
+h=replace(h,'  for(const o of objs){\n    if(o.sta){',`  for(const o of objs){
+    if(window.P06?.active()){
+      const PP=P06.project,PL=(x,y,h=0)=>PP(x+20,y+20,h).slice(0,2);
+      if(o.p05){ctx.save();P05.paint(ctx,o.p05,PP,z);ctx.restore();continue;}
+      if(o.p04){ctx.save();P04.paint(ctx,o.p04,PP,z,b);ctx.restore();continue;}
+      if(o.p03){ctx.save();P03.paint(ctx,o.p03,PP,z);ctx.restore();continue;}
+      if(o.p02){ctx.save();if(o.p02.upper)P02.paintAssembly.call(P01B,ctx,o.p02.crane,PL,z,b,true);else P02.paint(ctx,o.p02,PL,z,b);ctx.restore();continue;}
+      if(o.p01b){ctx.save();P01B.paint(ctx,o.p01b,PL,z,b);ctx.restore();continue;}
+      if(o.t?.bld?.k===18&&o.x===P06.layout.port.x&&o.y===P06.layout.port.y)continue;
+    }
+    if(o.sta){`);
+/* 原生氛圍船只在候選泊位保留區不重複顯示；其模擬／經濟完全不變。 */
+h=replace(h,'    objs.push({dep:viewDep(fx,fy)+.01,ship:sh,wx,wy,sd:sh.d});','    if(!window.P06?.legacyReserved(fx,fy))objs.push({dep:viewDep(fx,fy)+.01,ship:sh,wx,wy,sd:sh.d});');
+h=replace(h,'    objs.push({dep:viewDep(fx,fy)+.012,lifeShip:sh,wx,wy,sd:sh.d});','    if(!window.P06?.legacyReserved(fx,fy))objs.push({dep:viewDep(fx,fy)+.012,lifeShip:sh,wx,wy,sd:sh.d});');
+h=replace(h,'    if(o.t){const sz=b?',`    if(o.p01b&&!['slab','reserve'].includes(o.p01b.type)){const a=o.p01b,w=a.w||.1,d=a.d||.1,pts=[[-w/2,-d/2],[w/2,-d/2],[-w/2,d/2],[w/2,d/2]].map(v=>{const q=P06.map(a.x+20+v[0],a.y+20+v[1]);return w2v(q[0]-.5,q[1]-.5).map(v=>v+.5);});foot574=[Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1]))];}else if(o.t){const sz=b?`);
+let p01=read('../port-p02/bridge.js').replace("if(p.type==='crane'){","if(p.type==='crane'&&window.P02?.active()){P02.paintAssembly.call(this,c,p,P,z,bright);return;}if(p.type==='crane'){");
+let p03=read('../port-p03/vessel-bridge.js').replace('const p=this.plan.at(this.time());this.frame=p;','const p=window.P04?.active()&&P04.frame?P04.frame.ship:this.plan.at(this.time());this.frame=p;').replace('for(let row=0;row<2;row++)for(let col=0;col<3;col++)box(',"for(let row=0;row<2;row++)for(let col=0;col<3;col++)if(window.P04?.active()&&row===1&&col===0&&!P04.onShip()){groups.push({faces:[],dep:0,lo:7});}else box(");
+let p04=read('../port-p04/transfer-bridge.js').replace('season(),this.frame.time,P02.frameTime','season(),this.frame.time,P02.frameTime,window.P05?.active()').replace('for(const ship of P03.objects())P03.paint(q,ship,p,z);','for(const ship of P03.objects())P03.paint(q,ship,p,z);if(window.P05?.active())for(const o of P05.rawObjects())P05.rawPaint(q,o,p,z);').replace('arc(x,y,r,a,b){for(let i=0;i<=16;i++){',"arc(...args){const[x,y,r,a,b]=args.length===6?[args[0],args[1],args[3],args[4],args[5]]:args;for(let i=0;i<=16;i++){");
+const modules=[p01+'\nconst P01B=window.P01B;',read('../port-p02/crane-motion.js'),read('../port-p02/animation-bridge.js'),read('../port-p02/crane-assembly.js'),read('../port-p03/vessel-navigation.js'),p03,read('../port-p04/geometry.js'),read('../port-p04/transfer-state.js'),read('../port-p04/transfer-occlusion.js'),p04,read('../port-p05/landside-geometry.js'),read('../port-p05/dispatch-state.js'),read('../port-p05/dispatch-occlusion.js'),read('../port-p05/dispatch-bridge.js')].map(s=>s.replaceAll('viewDep(','P06.dep('));
+h=replace(h,'})();\n</script>\n</body>',modules.join('\n')+'\n'+read('native-layout.js')+'\nconst NativeHarborLayout=window.NativeHarborLayout,LandsideGeometry=window.LandsideGeometry,PortTransferGeometry=window.PortTransferGeometry,VesselNavigation=window.VesselNavigation,ContainerTransfer=window.ContainerTransfer,LandsideDispatch=window.LandsideDispatch;\n'+read('native-bridge.js')+'\n'+read('native-performance.js')+'\n'+read('native-vector-cache.js')+'\n'+read('native-fixtures.js')+'\n})();\n</script>\n</body>');
+const ui=read('native-ui.html')+'<script data-p06-ui>'+read('native-ui.js')+'</script>';
+h=h.replace('</body>',ui+'</body>');fs.writeFileSync('native-preview.html',h);fs.mkdirSync('evidence',{recursive:true});fs.writeFileSync('evidence/build-manifest.json',JSON.stringify({sourceSHA256:hash(raw),previewSHA256:hash(h),controlSHA256:hash(control),patchAnchors:patches,originalRuntimeModified:false,originalModulesModified:false,storage:'in-memory slot3 only',normalCity:true,fixedP01SetupInvoked:false},null,2));
+for(const [name,html]of[['native-preview',h],['native-control',control]])for(const m of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new Function(m[1]);console.log(JSON.stringify({built:true,previewBytes:h.length,controlBytes:control.length,patches:patches.length}));
+
+require("./night-contract-test.cjs");
+require("./lifecycle-test.cjs");
+
+require("./performance-equivalence-test.cjs");
+
+require("./vector-cache-test.cjs");

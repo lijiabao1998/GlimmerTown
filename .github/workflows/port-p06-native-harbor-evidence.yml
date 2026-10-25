@@ -1,0 +1,261 @@
+name: P06 isolated native harbor evidence only
+on:
+  push:
+    branches: [gpt/port-p06-native-harbor]
+    paths:
+      - docs/previews/port-p06/**
+      - .github/workflows/port-p06-native-harbor-evidence.yml
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record source and official runner browser
+        run: |
+          git rev-parse HEAD
+          /usr/bin/google-chrome --version
+      - name: Install official Ubuntu CJK fonts for native labels
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - name: Install declared test-only dependencies
+        working-directory: docs/previews/port-p02
+        run: npm ci --ignore-scripts
+      - name: Native isolated preview in real Chromium
+        working-directory: docs/previews/port-p02
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          node motion-test.cjs
+          node clearance-p01c.cjs
+          node freight-contract.cjs
+          node build.cjs
+          node chromium.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P02-inherited-chromium-${{ github.sha }}
+          path: |
+            docs/previews/port-p02/chromium/
+            docs/previews/port-p02/evidence/
+          retention-days: 30
+          if-no-files-found: error
+  inherited-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install original fingerprint CJK font dependency
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Build same isolated preview
+        working-directory: docs/previews/port-p05
+        run: |
+          npm ci --ignore-scripts
+          chmod +x chrome-sandboxed.sh
+          node build.cjs
+      - name: Run unchanged original guards with pinned PNG runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/town634-canvas" @napi-rs/canvas@1.0.11
+          export NODE_PATH="$RUNNER_TEMP/town634-canvas/node_modules"
+          source tools/setup_t602_zlib.sh "$RUNNER_TEMP/p01c-png-runtime"
+          node docs/previews/port-p05/regression.cjs --repo="$GITHUB_WORKSPACE" --lane=validate
+      - name: Original atlas fingerprints with sandboxed official Chrome
+        if: ${{ !cancelled() }}
+        run: node docs/previews/port-p05/regression.cjs --repo="$GITHUB_WORKSPACE" --lane=fingerprints
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P05-original-regression-${{ github.sha }}
+          path: docs/previews/port-p05/evidence/
+          retention-days: 30
+          if-no-files-found: error
+
+  crane-operations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install original CJK fonts
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: P02 animation and paired performance in sandboxed Chrome
+        working-directory: docs/previews/port-p02
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci --ignore-scripts
+          node motion-test.cjs
+          node build.cjs
+          node p02-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P02-crane-operations-${{ github.sha }}
+          path: |
+            docs/previews/port-p02/chromium-p02/
+            docs/previews/port-p02/evidence/
+          retention-days: 30
+          if-no-files-found: error
+
+  vessel-navigation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Actual vessel and unchanged baseline comparison
+        working-directory: docs/previews/port-p03
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci --ignore-scripts
+          node navigation-test.cjs
+          node render-order-test.cjs
+          node build.cjs
+          node p03-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P03-vessel-evidence-${{ github.sha }}
+          path: |
+            docs/previews/port-p03/chromium-p03/
+            docs/previews/port-p03/evidence/
+            docs/previews/port-p03/native-preview.html
+          retention-days: 30
+          if-no-files-found: error
+
+  container-transfer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Native single-container handoff and paired performance
+        working-directory: docs/previews/port-p04
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci --ignore-scripts
+          node geometry-test.cjs
+          node transfer-test.cjs
+          node build.cjs
+          node occlusion-test.cjs
+          node render-transfer-test.cjs
+          node p04-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P04-container-evidence-${{ github.sha }}
+          path: |
+            docs/previews/port-p04/chromium-p04/
+            docs/previews/port-p04/evidence/
+            docs/previews/port-p04/native-preview.html
+          retention-days: 30
+          if-no-files-found: error
+
+  landside-dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Single cargo truck dispatch with full occupancy and raw images
+        working-directory: docs/previews/port-p05
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci --ignore-scripts
+          node geometry-test.cjs
+          node state-test.cjs
+          node build.cjs
+          node render-test.cjs
+          node p05-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P05-landside-evidence-${{ github.sha }}
+          path: |
+            docs/previews/port-p05/chromium-p05/
+            docs/previews/port-p05/evidence/
+            docs/previews/port-p05/native-preview.html
+          retention-days: 30
+          if-no-files-found: error
+
+  native-harbor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Native city adapter and genuine Chromium acceptance
+        working-directory: docs/previews/port-p06
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci --ignore-scripts
+          node layout-test.cjs
+          node build.cjs
+          node native-browser.cjs
+      - name: Unchanged native train and old-save guards on exact P06 output
+        if: ${{ !cancelled() }}
+        run: node docs/previews/port-p06/regression.cjs --repo="$GITHUB_WORKSPACE" --lane=focused
+      - name: Original atlas fingerprints against actual P06 candidate
+        if: ${{ !cancelled() }}
+        run: |
+          chmod +x docs/previews/port-p06/chrome-sandboxed.sh
+          node docs/previews/port-p06/regression.cjs --repo="$GITHUB_WORKSPACE" --lane=fingerprints
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: P06-native-harbor-evidence-${{ github.sha }}
+          path: |
+            docs/previews/port-p06/chromium-p06/
+            docs/previews/port-p06/evidence/
+            docs/previews/port-p06/failures/
+            docs/previews/port-p06/native-preview.html
+            docs/previews/port-p06/native-control.html
+          retention-days: 30
+          if-no-files-found: error

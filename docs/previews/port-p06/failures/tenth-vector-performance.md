@@ -1,0 +1,15 @@
+# Tenth: exact static-vector replay and measured gain; residual costs retained
+
+Head `78baefab36e6ec194e05297f276382c55eb8750c`, dedicated run `40204561701`: seven jobs successful, native 221/221 and 66 original PNGs. All 311 exact pixel comparisons pass: 288 original/cold/warm DPR1 comparisons, 16 actual DPR2 comparisons and seven camera/layout invalidations. All 640 moving-pair draws prove separate clipping caches, first optimized cold construction and subsequent warm reuse. Artifact `12602839127`, 51,496,317 bytes, SHA-256 `0b7a0ebc63b0ce7ba69c38228cfd817bb7c3de3a672d9c4ebca88a2025a053e2`.
+
+Same-city paced reference → combined-optimization upper medians (ms): 0.5× lift 13.7→10.6, truck 13.0→10.2; 1.8× lift 12.7→9.3, truck 12.3→8.8. All paced means improve by 2.44–3.15 ms with every first cold sample retained. This is a real measured improvement, not an inference from passing correctness checks.
+
+Costs remain: first optimized cold draws 17.2–26.2 ms; paced 1.8× truck p95 17.3→20.9 ms; synchronous 1.8× lift mean worsens by about 1.3 ms. Primary ON steady rAF is about 26.86–28.32 fps, OFF 52.50–54.42. The full live cycle is about 13.65 fps, p95 350 ms, max 683.3 ms; original complete raw samples remain unchanged. No uniform speedup, native-equivalent frame rate, physical-phone performance or production readiness is claimed.
+
+## Camera observation confound and bounded attribution
+
+Single changed-view observations show first optimized draws of 104.8 ms (pan), 97.1 ms (zoom), 102.2 ms (rotation), and 77.8 ms (harbor reset), followed by reference draws of 16.3/18.2/14.4/21.9 ms. **These are not isolated vector regressions**: optimized was always first after a native view change. T707's original ground key includes camera origin, zoom, water frame, season/date and rotation; the first draw can rebuild the entire native ground cache while the reference uses it warm. Both the real hitch and this confound are preserved.
+
+The separate matched first-pair cold optimized-minus-reference observations range from −0.8 to +7.4 ms, rather than demonstrating a 100 ms vector penalty. Heterogeneous day/winter cold-parity observations are not substituted for powered timing distributions.
+
+The next evidence-only probe forces identical original native view/cache-dirty input for both modes, alternating AB/BA with all samples retained, checks real cache-key/city/ledger equality, and compares uninstrumented versus separately instrumented static-painter costs. Test-only `groundState` reads the existing cache and `invalidateGround` sets only its original dirty flag; neither writes world/simulation/fiscal state. A single frozen terminal-city ON/OFF pair matrix also distinguishes aged-city draw cost from the young-city comparisons without changing the recorded live cycle. No third production optimization or native renderer change is included. Remaining frame-time tails may still be delivered as explicit candidate limitations rather than fabricated passes or an invented 60 fps gate.

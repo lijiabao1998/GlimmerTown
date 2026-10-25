@@ -1,0 +1,20 @@
+{
+  "name": "port-p06-native-harbor",
+  "version": "1.0.0",
+  "description": "Isolated native-city harbor acceptance; test-only dependencies",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.cjs",
+    "test": "node layout-test.cjs && node build.cjs",
+    "test:browser": "node native-browser.cjs",
+    "test:regression": "node regression.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "commonjs",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.13",
+    "playwright": "^1.64.1"
+  },
+  "private": true
+}

@@ -1,0 +1,37 @@
+'use strict';const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');process.chdir(__dirname);const A=require('./native-layout.js'),api={L:require('../port-p05/landside-geometry.js'),G:require('../port-p04/geometry.js'),V:require('../port-p03/vessel-navigation.js'),C:require('../port-p04/transfer-state.js'),D:require('../port-p05/dispatch-state.js')};const ctx={window:{},console};vm.createContext(ctx);vm.runInContext(fs.readFileSync('../port-p02/bridge.js','utf8'),ctx);ctx.window.P01B.build();const parts=JSON.parse(JSON.stringify(ctx.window.P01B.parts)),results=[],check=(name,fn)=>{fn();results.push({name,pass:true});console.log('PASS '+name);};
+function fixture(q=0,offset=false){const n=72,px=offset?25:16,py=offset?30:24,world={width:n,height:n,cells:Array.from({length:n*n},()=>({t:2,el:0,road:0,bld:null}))},point=(x,y)=>A.rotate(x,y,q,n),cell=(x,y)=>point(x+.5,y+.5).map(Math.floor),tile=(x,y)=>{const[a,b]=cell(x,y);return world.cells[b*n+a];};for(let y=py+3;y<n;y++)for(let x=0;x<n;x++)Object.assign(tile(x,y),{t:0,wm:y===py+3?1:0});const corners=[[px,py],[px+3,py],[px,py+3],[px+3,py+3]].map(p=>point(...p)),x=Math.min(...corners.map(p=>p[0])),y=Math.min(...corners.map(p=>p[1]));for(let j=0;j<3;j++)for(let i=0;i<3;i++)world.cells[(y+j)*n+x+i].bld=i||j?{k:18,ref:[x,y]}:{k:18,sz:3,lot574:3,age:60};for(let i=px-4;i<=px+20;i++)tile(i,py-1).road=1;tile(px+11,py+3).dock=1;for(const[k,bx,by,sz]of[[64,px+1,py-5,3],[110,px+9,py-6,4]]){const pp=[[bx,by],[bx+sz,by],[bx,by+sz],[bx+sz,by+sz]].map(p=>point(...p)),rx=Math.min(...pp.map(p=>p[0])),ry=Math.min(...pp.map(p=>p[1]));for(let j=0;j<sz;j++)for(let i=0;i<sz;i++)world.cells[(ry+j)*n+rx+i].bld=i||j?{k,ref:[rx,ry]}:{k,sz,age:60};tile(bx,py-2).road=1;}return{world,port:A.inventory(world).ports[0],q,px,py,tile};}
+const layouts=[];for(const q of[0,1,2,3])check('Actual oriented cells compile full original hull and truck '+q,()=>{const f=fixture(q),p=A.inspect(f.world,f.port,q,parts,api);assert.equal(p.valid,true,JSON.stringify(p.errors));assert(p.p05&&!p.p05.errors.length);assert.equal(p.footprint.noGeneratedRoad,true);assert(p.watchList.length>100);layouts.push(p);});
+check('Different world position and shoreline depth compile',()=>{const f=fixture(0,true),p=A.inspect(f.world,f.port,0,parts,api);assert(p.valid,JSON.stringify(p.errors));assert.notEqual(p.p05.start,layouts[0].p05.start);});
+check('Same start time cannot conceal a changed truck maneuver',()=>{const f=fixture(),a=A.inspect(f.world,f.port,0,parts,api);f.tile(f.px+19,f.py-1).road=0;f.tile(f.px+20,f.py-1).road=0;const b=A.inspect(f.world,f.port,0,parts,api);assert(a.valid&&b.valid);assert.equal(a.p05.start,b.p05.start);assert.notEqual(a.planKey,b.planKey);assert.notDeepEqual(a.p05.at(a.p05.start-18000).truck,b.p05.at(b.p05.start-18000).truck);});
+check('Rotation maps preserve exact full cargo dimensions and unique 30 IDs',()=>{for(const p of layouts)for(const t of[0,p.p04.pickup,p.p04.delivery,p.p05.pickup,p.p05.loaded,p.p05.finished]){const f=p.p05.at(t);assert.equal(new Set(f.manifest.map(x=>x.id)).size,30);assert.equal(Object.entries(f.counts).filter(([k])=>k!=='total').reduce((s,[k,v])=>s+v,0),30);const a=p.frame.point(f.cargo.x,f.cargo.y),b=p.frame.inverse(...a);assert(Math.hypot(b[0]-f.cargo.x,b[1]-f.cargo.y)<1e-8);}});
+for(const[name,edit,code]of[
+ ['unfinished port',f=>{f.port.age=0;},'PORT_CONSTRUCTION'],
+ ['yard building',f=>{f.tile(f.px+5,f.py+1).bld={k:4,sz:1,age:60};},'APRON_BLOCKED'],
+ ['one-way road unsupported',f=>{f.tile(f.px+3,f.py-1).oneway=2;},'ROAD_GATE'],
+ ['road missing',f=>{f.tile(f.px+3,f.py-1).road=0;},'ROAD_GATE'],
+ ['gate post occupied',f=>{f.tile(f.px-2,f.py).bld={k:4,sz:1,age:60};},'GATE_OCCUPIED'],
+ ['gate end missing',f=>{f.tile(f.px-3,f.py-1).road=0;},'ROAD_GATE'],
+ ['warehouse missing',f=>{for(const t of f.world.cells)if(t.bld?.k===64)t.bld=null;},'WAREHOUSE_UNREACHABLE'],
+ ['freight missing',f=>{for(const t of f.world.cells)if(t.bld?.k===110)t.bld=null;},'FREIGHT_UNREACHABLE'],
+ ['warehouse access severed',f=>{f.tile(f.px+1,f.py-2).road=0;},'WAREHOUSE_UNREACHABLE'],
+ ['freight access severed',f=>{f.tile(f.px+9,f.py-2).road=0;},'FREIGHT_UNREACHABLE'],
+ ['dock missing',f=>{f.tile(f.px+11,f.py+3).dock=0;},'DOCK_MISSING'],
+ ['inland coast',f=>{for(let x=f.px;x<f.px+12;x++)f.tile(x,f.py+3).t=2;},'SHORE_DIRECTION'],
+ ['water boundary sealed',f=>{for(let x=0;x<72;x++)f.tile(x,71).t=2;},'WATER_ROUTE'],
+ ['hull lane too narrow',f=>{for(let x=f.px+1;x<f.px+12;x++)f.tile(x,f.py+4).t=2;},'WATER_ROUTE']
+])check('Fail closed: '+name,()=>{const f=fixture();edit(f);const p=A.inspect(f.world,f.port,0,parts,api);assert(!p.valid);assert(p.errors.some(e=>e.code===code),JSON.stringify(p.errors));});
+check('Independent map remains byte-identical after plan and 2000 replays',()=>{const f=fixture(),before=JSON.stringify(f.world),p=A.inspect(f.world,f.port,0,parts,api);for(let i=0;i<2000;i++)p.p05.at(i*173);assert.equal(JSON.stringify(f.world),before);});
+check('Topology signatures distinguish demolition but ignore cosmetic tick aging',()=>{assert.notEqual(A.signature({t:2,road:1,oneway:0}),A.signature({t:2,road:1,oneway:2}));assert.notEqual(A.signature({t:2,bld:{k:18,sz:3,age:20}}),A.signature({t:2,bld:null}));assert.equal(A.signature({t:2,bld:{k:18,sz:3,age:20}}),A.signature({t:2,bld:{k:18,sz:3,age:21}}));});
+// 紅源證明：刪除每個實作守門後，獨立負控必須真的抓到缺失，而非只相信 valid。
+const redSources=[],source=fs.readFileSync('native-layout.js','utf8');
+for(const[name,from,to,edit,code]of[
+ ['apron guard',"if(blocked.length)add('APRON_BLOCKED'","if(false)add('APRON_BLOCKED'",f=>{f.tile(f.px+5,f.py+1).bld={k:4,sz:1,age:60};},'APRON_BLOCKED'],
+ ['road full-body guard',"if(!route.safe)add('ROAD_GATE'","if(false)add('ROAD_GATE'",f=>{f.tile(f.px+3,f.py-1).road=0;},'ROAD_GATE'],
+ ['real dock guard',"if(!docks.length)add('DOCK_MISSING'","if(false)add('DOCK_MISSING'",f=>{f.tile(f.px+11,f.py+3).dock=0;},'DOCK_MISSING'],
+ ['full-hull water guard',"if(!rawNav)add('WATER_ROUTE'","if(!rawNav)add('MUTATED_OMISSION'",f=>{for(let x=0;x<72;x++)f.tile(x,71).t=2;},'WATER_ROUTE'],
+ ['gate full-volume guard',"if(gateHits.length)add('GATE_OCCUPIED'","if(false)add('GATE_OCCUPIED'",f=>{f.tile(f.px-2,f.py).bld={k:4,sz:1,age:60};},'GATE_OCCUPIED'],
+ ['connected support guard',"if(!eligible.length)add(code+'_UNREACHABLE'","if(!eligible.length)add('MUTATED_OMISSION'",f=>{f.tile(f.px+1,f.py-2).road=0;},'WAREHOUSE_UNREACHABLE']
+])check('Red source killed: '+name,()=>{assert.equal(source.split(from).length,2);const sandbox={window:{}};vm.createContext(sandbox);vm.runInContext(source.replace(from,to),sandbox);const f=fixture();edit(f);const p=sandbox.window.NativeHarborLayout.inspect(f.world,f.port,0,parts,api);let rejected=false;try{assert(p.errors.some(e=>e.code===code),'Required guard missing: '+code);}catch(e){rejected=true;}assert(rejected,'Mutant escaped '+name);redSources.push({name,mutation:from+' => '+to,expectedGuard:code,mutantRejected:true});});
+fs.mkdirSync('evidence',{recursive:true});fs.writeFileSync('evidence/layout-tests.json',JSON.stringify({status:'passed',checks:results,redSources,notBrowser:true},null,2));
+
+require("./projection-test.cjs");
