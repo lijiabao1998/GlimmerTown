@@ -11,6 +11,8 @@ This directory builds a **normal T707 city**, with P06 **off by default**. It do
 
 This preview uses **memory-only storage** and disables persistent autosave/PWA registration. Reload discards candidate state. It never reads or overwrites existing player saves. Manually importing a city through native UI is an optional player action, not a change to the save format.
 
+Starting or loading a native city replaces the grid identity and immediately freezes the old candidate ledger, including while paused or disabled. Even a loaded harbor at identical coordinates requires an explicit **重設候選帳** before a new batch can operate. Native save bytes never contain or restore candidate cargo.
+
 ## What a legal harbor needs
 
 - Actual completed native port k18, with the T707 3×3 root/ref footprint.

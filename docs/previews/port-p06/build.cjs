@@ -8,6 +8,8 @@ let h=common(raw);h=replace(h,'function draw(dt){','function draw(dt){if(window.
 h=replace(h,'function advance(dtReal){','function advance(dtReal){const __p06Acc=simAcc;');
 h=replace(h,'  if(steps>=8)simAcc=0; // 落後太多就放棄追趕','  if(steps>=8)simAcc=0; // 落後太多就放棄追趕\n  if(window.P06)P06.advance(Math.max(0,(steps*DAYLEN+simAcc-__p06Acc)*1000));');
 h=replace(h,'function doPlace(toolId,x,y,silent){','function doPlace(toolId,x,y,silent){try{return doPlaceP06Native(toolId,x,y,silent);}finally{window.P06?.changed();}}\nfunction doPlaceP06Native(toolId,x,y,silent){');
+h=replace(h,'function undo(){','function undo(){try{return undoP06Native();}finally{window.P06?.changed();}}\nfunction undoP06Native(){');
+h=replace(h,'function undoPlace(f){','function undoPlace(f){try{return undoPlaceP06Native(f);}finally{window.P06?.changed();}}\nfunction undoPlaceP06Native(f){');
 h=replace(h,'  objs.sort((a,b2)=>a.dep-b2.dep);',`  if(window.P06?.active()){
     P06.project=(x,y,h=0)=>{const p=P06.map(x,y);return[sxOf(p[0]-.5,p[1]-.5)+32*z,syOf(p[0]-.5,p[1]-.5)+16*z-h*z,h];};
     for(const p of P01B.parts)if(p.type!=='reserve')objs.push({dep:['slab'].includes(p.type)?-100000:P06.dep(p.x+20,p.y+20)+.001,p01b:p});
@@ -42,3 +44,4 @@ h=h.replace('</body>',ui+'</body>');fs.writeFileSync('native-preview.html',h);fs
 for(const [name,html]of[['native-preview',h],['native-control',control]])for(const m of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new Function(m[1]);console.log(JSON.stringify({built:true,previewBytes:h.length,controlBytes:control.length,patches:patches.length}));
 
 require("./night-contract-test.cjs");
+require("./lifecycle-test.cjs");
