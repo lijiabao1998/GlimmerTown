@@ -37,7 +37,7 @@ Invalid layouts display a reason and remain stopped. The conservative search can
 
 The 24 original yard-stock entries remain honestly marked as initial scene stock, not proved imported goods. The demonstrated original ship container `P03-original-row1-col0` transfers through ship → quay crane → yard → landside crane → truck → fully outside gate. The conserved total is always 30. There is no automatic new batch or money credit.
 
-P05's previously measured moving-frame increase of roughly **2.5–3.8 ms versus P04** remains part of the cost history. P06's real populated-city OFF/ON paired distributions, cold startup, native sprite/cache allocation, rAF and full-cycle statistics must be read separately; a desktop/headless viewport is not a physical-phone result.
+P05's previously measured moving-frame increase of roughly **2.5–3.8 ms versus P04** remains part of the cost history. P06's real populated-city OFF/ON paired distributions, cold startup, native sprite/cache allocation, rAF and full-cycle statistics must be read separately; a desktop/headless viewport is not a physical-phone result. Static vector replay has an explicit cold-build tradeoff; matched native-ground-cold comparisons and frozen terminal-city pairs supplement—not replace—the original samples. Rendering gains do not imply native-equivalent frame rates or production readiness.
 
 ## Following research, not implemented
 
