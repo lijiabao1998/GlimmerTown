@@ -1,0 +1,62 @@
+{
+  "passed": true,
+  "limit": "Pure-function/source checks only. Real Chromium full-frame pixels and performance are separate evidence.",
+  "result": {
+    "G2": {
+      "trials": 2000,
+      "corners": 8000,
+      "negativeDimensions": true,
+      "rotationShearAndCompression": true,
+      "integerPadding": 2,
+      "transformRestored": true,
+      "missingAPIsNoop": true
+    },
+    "G3": {
+      "trials": 2000,
+      "calls": 2,
+      "nativeCorners": 16000,
+      "actualArguments": [
+        "ax2-rs.ax*z,ay2+.35*rs.ay*z,rs.w*z,-.35*rs.h*z",
+        "bx+SHOX*z,by+s.h*z-sh717+SHOY*z,s.w*z,sh717"
+      ],
+      "actualShadowHeight": "Math.max(2,s.h*z*.32)"
+    },
+    "G4": {
+      "queryCases": 6,
+      "windowFlagToggle": true
+    },
+    "G1": {
+      "nativeBlocks": 2,
+      "byteIdentical": true,
+      "adjacentWrappers": true,
+      "filterSites": 2
+    }
+  },
+  "negativeControls": [
+    {
+      "mutation": "reflection-compression-omitted",
+      "firstRed": "G3",
+      "reason": "G3 reflection native destination trial 0 actual=[819,-663,1083,-302] expected=[840,-788,1090,-658]"
+    },
+    {
+      "mutation": "shadow-height-uncompressed",
+      "firstRed": "G3",
+      "reason": "G3 shadow native destination trial 0 actual=[589,-795,1108,-789] expected=[589,-794,1108,-789]"
+    },
+    {
+      "mutation": "transform-ignored",
+      "firstRed": "G2",
+      "reason": "G2 original transform restored"
+    },
+    {
+      "mutation": "first-corner-is-minimum",
+      "firstRed": "G2",
+      "reason": "G2 trial 0 exact outward 2px padding actual=[-506,-467,-75,-462] expected=[-537,-555,-75,-462]"
+    },
+    {
+      "mutation": "padding-removed",
+      "firstRed": "G2",
+      "reason": "G2 trial 0 exact outward 2px padding actual=[-535,-553,-77,-464] expected=[-537,-555,-75,-462]"
+    }
+  ]
+}

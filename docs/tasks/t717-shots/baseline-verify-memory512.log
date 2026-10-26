@@ -1,0 +1,12 @@
+verify @ /tmp/GlimmerTown-t717
+  [OK]   test_fixde.js syntax
+  [OK]   sw.js syntax
+  [OK]   index inline syntax
+  [OK]   CRLF=0
+  [OK]   version in sync: 11.249
+  [FAIL] suite RED: PASS=298 :: process exit code -9; PASS=298 below baseline 1902; completion marker is not the final stdout line
+  [OK]   test harness fail-fast contract
+  [FAIL] seed pins=0 below baseline 3 (SEEDPIN lines emitted by the suite)
+  [OK]   code map fresh: docs/ARCH.md §1 anchors and line numbers match index.html
+
+RESULT: 2 CHECK(S) FAILED

@@ -743,10 +743,85 @@ jobs:
           path: evidence/port-t677/
           if-no-files-found: error
           retention-days: 90
+  t717-evidence:
+    # T717：業主 2026-10-26 一次性批准 CI-first；新 job，不改既有驗收或批准門。
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Fail-closed T717 applicability and exact source
+        id: applicable
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p evidence/t717
+          python3 - <<'PY717'
+          import json, os, pathlib, subprocess
+          root=pathlib.Path('.')
+          actual=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          assert actual == os.environ['SOURCE_HEAD'], 'Not the exact event source head'
+          source=(root/'index.html').read_text()
+          registry=json.loads((root/'docs/APPROVED_ART.json').read_text())
+          card=list((root/'docs/tasks').glob('T717-*.md'))
+          product='function clip717(' in source
+          valve=registry.get('valves',{}).get('T717')=='__noT717'
+          shots=root/'docs/tasks/t717-shots'
+          present=bool(card or product or valve or shots.exists())
+          if present:
+              assert len(card)==1 and product and valve, 'Partial T717 promotion'
+              for name in ('ci717.py','browser717.cjs','eq.cjs','perfab.cjs','check-717.cjs'):
+                  assert (shots/name).is_file(), 'Missing T717 evidence runner: '+name
+          result={'sourceHead':actual,'applicable':present,'note':'T717 candidate evidence required' if present else 'No T717; not a T717 acceptance pass'}
+          (root/'evidence/t717/applicability.json').write_text(json.dumps(result,indent=2))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('present='+str(present).lower()+'\n')
+          print(json.dumps(result))
+          PY717
+      - uses: actions/setup-node@v4
+        if: steps.applicable.outputs.present == 'true'
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        if: steps.applicable.outputs.present == 'true'
+        with:
+          python-version: '3.13'
+      - name: Match original verification and pinned Chromium environment
+        if: steps.applicable.outputs.present == 'true'
+        run: |
+          python -m pip install Pillow==12.2.0
+          source tools/setup_t602_zlib.sh "$RUNNER_TEMP/t717-zlib"
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          echo "PYTHONPATH=$PYTHONPATH" >> "$GITHUB_ENV"
+          sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+          npm install --silent --prefix "$RUNNER_TEMP/t717-pw" playwright@1.64.0
+          (cd "$RUNNER_TEMP/t717-pw" && npx playwright install --with-deps chromium)
+          echo "NODE_PATH=$RUNNER_TEMP/t717-pw/node_modules" >> "$GITHUB_ENV"
+          P=$(node -e "console.log(require(process.argv[1]).chromium.executablePath())" "$RUNNER_TEMP/t717-pw/node_modules/playwright")
+          echo "CHROME_PATH=$P" >> "$GITHUB_ENV"
+      - name: Exact baseline and candidate regression, full frames and interleaved raw performance
+        if: steps.applicable.outputs.present == 'true'
+        env:
+          BASE: ${{ needs.scope.outputs.base }}
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -o pipefail
+          python docs/tasks/t717-shots/ci717.py --base "$BASE" --head "$SOURCE_HEAD" --out evidence/t717/receipt | tee evidence/t717/runner.log
+      - name: Preserve every receipt, first failure, original frame and raw sample
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Town-T717-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: evidence/t717/
+          if-no-files-found: error
+          retention-days: 90
   gate:
     # T641：唯一的必要檢查（業主在 GitHub 規則集只要求它）。docs 道：scope＋validate 綠；full 道：每一道都要綠。
     if: ${{ always() }}
-    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, frame, ratchet, port-t677]
+    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, frame, ratchet, port-t677, t717-evidence]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -760,7 +835,7 @@ jobs:
           import json, os, sys
           lane, needs = os.environ.get('LANE', ''), json.loads(os.environ['NEEDS'])
           res = {k: v['result'] for k, v in needs.items()}
-          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'frame', 'ratchet', 'port-t677']
+          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'frame', 'ratchet', 'port-t677', 't717-evidence']
           bad = [k for k in ('scope', 'validate') if res.get(k) != 'success']
           # T642（Codex #29 P1）：必要檢查只看提交上最新的 gate，手動 dispatch 的綠 gate 會蓋掉 PR 那輪的紅 gate。
           # dispatch 只用來跑只紀錄的 native-acceptance，一律判紅（fail-closed；不用 skipped，skipped 會被當成通過）。
