@@ -31,6 +31,6 @@ one('    objs.push({dep:viewDep(fx,fy)+.012,lifeShip:sh,wx,wy,sd:sh.d});','    i
 one('    if(o.t){const sz=b?',`    if(o.p01b&&!['slab','reserve'].includes(o.p01b.type)){const a=o.p01b,w=a.w||.1,d=a.d||.1,pts=[[-w/2,-d/2],[w/2,-d/2],[-w/2,d/2],[w/2,d/2]].map(v=>{const q=P06.map(a.x+20+v[0],a.y+20+v[1]);return w2v(q[0]-.5,q[1]-.5).map(v=>v+.5);});foot574=[Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1])),Math.max(...pts.map(p=>p[0])),Math.max(...pts.map(p=>p[1]))];}else if(o.t){const sz=b?`);
 /* artAtlas現有emit合約，舊家族位元組保持。 */
 one("    const ids=s=>[...s].sort((a,b)=>a-b);\n    try{", "    const ids=s=>[...s].sort((a,b)=>a-b);\n    try{\n      art677(emit);");
-one('\n<script>\n(()=>{', '\n'+read('product-ui.html')+'\n<script>\n(()=>{');
+one('<div id="start">',read('product-ui.html')+'\n<div id="start">');
 one('})();\n</script>\n</body>',read('product-runtime.js')+'\n'+read('product-atlas.js')+'\n'+read('product-ui.js')+'\n})();\n</script>\n</body>');
 const scripts=[...h.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)];if(scripts.length!==1)throw Error('Native single script contract');new Function(scripts[0][1]);fs.writeFileSync(path.join(ROOT,'index.html'),h);fs.writeFileSync(path.join(HERE,'integration-manifest.json'),JSON.stringify({mainBaseline:meta.mainBaseline,source:meta.sourceCommit,preBumpIndexSHA256:hash(h),singleScript:true,originalStorageAndPWA:true,changes},null,2)+'\n');console.log(JSON.stringify({bytes:Buffer.byteLength(h),anchors:changes.length,sha256:hash(h)}));

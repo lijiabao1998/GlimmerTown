@@ -1,7 +1,7 @@
 {
   "mainBaseline": "379b7ad92eaa34be5a10ce5a5e1786a8f67e6bd8",
   "source": "d0de1e9e594145af43608013ad173e34a91e63a8",
-  "preBumpIndexSHA256": "b8debd86406f1ca5afaf26f843ae5cc74cf0d8d9bce0b7e6dd25d3ff4f6f7aa2",
+  "preBumpIndexSHA256": "6f9783123e363f888a4082513e0d08f8b29c15f8fea77cd38a13a2d5cebf45f6",
   "singleScript": true,
   "originalStorageAndPWA": true,
   "changes": [
@@ -46,9 +46,9 @@
       "afterSHA256": "98c9df56a0bd3c19e3e20cdfcb17ce7ed38952c7beced8ccd780eda9a0125d60"
     },
     {
-      "anchor": "\n<script>\n(()=>{",
-      "beforeSHA256": "884354f0be298f4d6d89326c5f01e4ec9c50ba5d6c60e00e6949e445837270d6",
-      "afterSHA256": "daa79b759e23ad2025338b06b7c63fc3e2b06a17e79f1a82eb071866ea2f0198"
+      "anchor": "<div id=\"start\">",
+      "beforeSHA256": "75a06fe9653b8037c15de641aa308e651bba3e65259b2a07b566b985e1e4a0f8",
+      "afterSHA256": "0b65fe79f8f20adc56873a5271da4f987b2aa98110b74bc41adb66beab6bfd42"
     },
     {
       "anchor": "})();\n</script>\n</body>",
