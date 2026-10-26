@@ -6,7 +6,7 @@ const root=process.argv[2]||path.resolve(__dirname,'../../..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const runtime=read('docs/tasks/t677-shots/product-runtime.js'),atlas=read('docs/tasks/t677-shots/product-atlas.js'),native=read('index.html');
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
-const projection=native.slice(native.indexOf('function viewRotEff(){'),native.indexOf('function isoW2V('));
+const projection=native.match(/const TW=64,TH=32;[^\n]*/)[0]+'\n'+native.slice(native.indexOf('function viewRotEff(){'),native.indexOf('function rotMask('));
 const season=native.match(/const season=\(\)=>\{[^\n]+/)[0];
 const models=['slab-marking','slab-rail','edge','box#dba346','box#527d8b','box#47796a','box#d9d4b7','box#c95538','crane','lamp','vessel','truck','gate','landside-crane','transfer-cargo'];
 function create(search='',source=atlas,code=runtime){

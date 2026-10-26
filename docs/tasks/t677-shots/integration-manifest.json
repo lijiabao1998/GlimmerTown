@@ -1,7 +1,7 @@
 {
   "mainBaseline": "379b7ad92eaa34be5a10ce5a5e1786a8f67e6bd8",
   "source": "d0de1e9e594145af43608013ad173e34a91e63a8",
-  "preBumpIndexSHA256": "b6e5e08afb4b67de6d4bbf490048a1d941d1d8208a9761eb00d9d74d4747ae3c",
+  "preBumpIndexSHA256": "b8debd86406f1ca5afaf26f843ae5cc74cf0d8d9bce0b7e6dd25d3ff4f6f7aa2",
   "singleScript": true,
   "originalStorageAndPWA": true,
   "changes": [
@@ -53,7 +53,7 @@
     {
       "anchor": "})();\n</script>\n</body>",
       "beforeSHA256": "33fd2d1ff878ae810e41fabbc3adb02e6925c67228690b701d7e4dd4e0eee127",
-      "afterSHA256": "0473cce8cf433fc5617c8b8ed6b28096b58a97efa128a737957f2decfe4187b2"
+      "afterSHA256": "2df8c2024c95675c3b44dd0646e67359adfae3efdf1b1be3a29cdf4fbddc4433"
     }
   ]
 }

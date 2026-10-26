@@ -142,9 +142,29 @@
       "label": "CYCLE,pose,clock,bounds",
       "beforeSHA256": "f180329b9d381fc46c7649abafd39dc80aa9a157383ea30013aa915c515e427e",
       "afterSHA256": "f6c61cef2276e7fc34fcdbcd8ca50659217569281d2c337bf6662ac8cbc6eaee"
+    },
+    {
+      "label": "T677 watch transformed complete equipment bounds",
+      "beforeSHA256": "26e9f1a03eb9c0ce9af55302c54623b46058f78b3f01745d77681e4d4454fc0e",
+      "afterSHA256": "2f65dcd5b06a34dc56f3a8b67e6823957d8f259e6f4882ddd4fc36ab6bf9fe5a"
+    },
+    {
+      "label": "T677 watch every retained static equipment envelope",
+      "beforeSHA256": "f8da1376952e9480d955352915f063f8075d10949de3169700f78dcc85ab5fb3",
+      "afterSHA256": "a871f6c9034e503ecec5b97cf2fed4fbfa5914e72ea9a0e84b102244ea541100"
+    },
+    {
+      "label": "T677 watch unchanged landside lifting phase envelopes",
+      "beforeSHA256": "2d895a4a01e9c92e1615051a421714d2365cef32fd75a9ed71994bd4f627494a",
+      "afterSHA256": "4fb5fef87a47ad3e16a7f6689eeaa58a15978064f43c1b3120d5f778dfb17939"
+    },
+    {
+      "label": "T677 watch validated ship-to-yard lifting phase envelopes",
+      "beforeSHA256": "e9f4a717a8cfeaddfd5530bb8326abbae32c11d36c205c83f0a1b11bda68743f",
+      "afterSHA256": "930b06af28244be466bd2101ea397d497efcbdcbf3a2cf25416b078ce2acb8e8"
     }
   ],
-  "runtimeSHA256": "c671003648ab19a35d906ff55dd8cb991e24141436ceeb15e949b955031a90e3",
+  "runtimeSHA256": "589502be63f40a4702929919bce048cb5e5427f7177e7806e10fe5c1338aa714",
   "excluded": [
     "P01 fixed setup/diagnostics",
     "P02 wallclock controls",

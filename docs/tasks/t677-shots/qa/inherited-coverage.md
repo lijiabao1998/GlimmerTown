@@ -119,3 +119,79 @@ These gaps are being closed by the separately required new browser receipt, not 
 - **Visual truth:** native flash settlement uses existing actual rAF/draw path; each full-frame capture requires flash/shake settled and native/cargo invariants. Errors/resources are captured and fail closed. First failure screenshot/JSON are retained.
 
 Planned raw PNG count: `110 + 2 × navigation phase count`; current south geometry's pure navigation model has16phases, hence expected142PNGs. This count is a source estimate, not a completed artifact claim. Expected added runtime120–180s, unmeasured; no sleep/wallclock/performance loop is added. Actual run identity/status/runtime/case count and evidence will be authoritative. Local syntax/export checks pass; real Chromium remains pending official CI.
+
+## Review4373149554: complete equipment watch-footprint regression
+
+The pre-fix integrated product allowed native construction in crane-overhang cells
+that its initial full layout inspection considered occupied but its incremental
+watch list did not contain. At the canonical south port(23,32), these are(32,36)
+and(33,36). A fresh inspector rejected `CRANE_OCCUPIED`, while construction followed
+by `changed`/accepted time still left the old plan active. The original first-red
+source/VM evidence is retained separately; it is **not** Chromium evidence.
+
+The source binding now permits only four recorded promotion edits: transformed
+complete equipment bounds; retained static equipment envelopes; unchanged landside
+lifting envelopes; validated ship-to-yard lifting envelopes. Each old anchor and
+manifest before/after SHA is checked, the edit order/count is exact, and reversing
+all four edits must reconstruct the original candidate native-layout bytes. The
+historical layout assertions and six guard-mutant assertions are unchanged and
+execute against the exact promoted module, not the historical implementation.
+P01–P05 geometry/state modules remain byte-identical.
+
+The required inherited Chromium subreceipt additionally tests **both cells in all
+four orientations** on real normal-city fixtures:
+
+1. Fill the two native water cells using `GV.place('tland',...)` **before** enabling;
+   require a valid actual plan on the resulting legal land. Advance the real P06
+   accepted-time API to an in-flight state with30 unique IDs.
+2. Construct an actual native park using `GV.place('park',...)`. Read the immediate
+   product fields in that same JavaScript turn: no manual `changed`, `enable`,
+   rescan, draw or inspector is allowed before the invalidation observation.
+   Require `LAYOUT_CHANGED`, inactive/invalid plan, and exact frame/time/acceptedMs.
+3. Attempt direct P06 advancement and the real native `advance(.016)` hook at1×.
+   Both must preserve the complete frame, clock and30-ID ledger. A separate
+   read-only full layout inspection must independently report `CRANE_OCCUPIED`
+   without changing the native world/economy.
+4. Demolish via the actual native tool, keep the prepared land, then explicitly
+   recheck the same port/orientation. Require the identical planKey, frame and clock
+   before accepting new time; a new native16ms input must resume that same plan,
+   not reset or teleport cargo.
+
+These are44 additional checks and16 intended blocked/repaired uncropped PNGs in
+`primary/inherited-browser/`; primary222, formal19 and the five top-level stages
+remain unchanged. The browser assertions are implemented but not reported passed
+until exact-head official Chromium runs. Tool APIs are real native construction
+paths driven by QA, not trusted physical pointer/touch claims; trusted UI input
+coverage remains the separately required four-viewport product UI suite.
+
+## First official inherited pixel red: atomic zero-delta replay capture
+
+On official run40250461461, product150f66a7 passed all222 primary checks, then
+failed `vessel day/r0 exact full-city fixed replay pixels`. Original artifact
+12620601914, its JSON/logs and original PNGs remain retained. The initial capture
+saved only hashes for that pair; it cannot identify the exact changed pixels.
+
+A concrete harness mismatch was found: historical `P01B.redraw()` fixed visual
+inputs and used `draw(0)`, whereas this formal harness called native
+`GV.forceDraw()` (`draw(.016)`) after each replay and capture. Native draw advances
+traffic/water time and decays rainbow/meteor overlays even with city simulation
+paused. A source trace of the native ground/visual-clock path held cargo and
+native economy identical but observed traffic12.144→12.192 and rainbow8.856→8.808;
+waterF and visible signal phases were unchanged. This proves unequal visual
+inputs, **not** a complete pixel attribution or exoneration of the harbor painter.
+A separate full NAPI-raster diagnostic was killed with exit137; it is failed,
+unproven evidence and was not retried.
+
+The bounded QA repair uses existing `P06Test.draw(0)` for deterministic replay
+captures and executes target→different-time→target in **one synchronous browser
+task**, preventing rAF/timer interleaving. The original exact whole-canvas hash
+equality remains mandatory. Additional checks require exact native world/economy,
+accepted time, target frame/clock and available visual/camera/water-frame inputs;
+the different harbor time must still change actual pixels. Every first, detour
+and again uncropped native-canvas PNG plus its input trace is saved **before**
+assertions, including on failure. Existing uncropped full-browser screenshots are
+still captured separately. No product draw, timing, thresholds, timeout, original
+primary222, formal19, performance sample or guard is changed.
+
+The zero-delta source trace is not Chromium pixel acceptance. Exact-head official
+Chromium must rerun and any remaining equality failure still blocks release.
