@@ -45,3 +45,11 @@ owner_ok保持空；業主確認最終圖像與性能之前，不Ready／合併�
 - 原frame job另有23 changed、0 leaked，唯一失敗為owner_ok空；不代填owner_ok。原validate明確ALL GREEN，fp/scene602/ratchet/approved-art/fire通過；world亦已通過。首輪gate因frame及T717專項紅而紅，deploy/verify-published跳過。
 - 新job限定baseline尚無T717的初次promotion，避免以已含T717的未來main錯比valve-off；部分promotion仍failclosed，原jobs與門檻不變。
 - Mac原生官方dispatch及最終head Codex仍待完成；本節不是最終圖像或性能批准。
+
+## 官方 CI 第二輪：定格白閃首紅保留
+
+run [40315117631](https://github.com/lijiabao1998/GlimmerTown/actions/runs/40315117631)，head `8e061c18b3340fbdbbfef96581ba49a8b51b1d3a`，artifact12647428797保留全部正式圖、attempt圖、raw與logs。原有jobs除等待owner_ok的frame外均綠；專項雙verify/六哨兵/原生/存檔再次綠。48組A/A及閥關全0差；閥開最多46/1024000像素，最大色階49。但前3個白天遠景的4頁都無法在8draw收斂，其餘45條穩定，故仍紅。
+
+原始attempt有藍色分岔閃電，原因是模擬後flashT=.4殘留，draw每次減.016，25次後清零；第25次像素與原白閃公式逐通道相符。這不是產品回歸或提高8次上限的理由；晴天台架只補flashT=0、meteorTrail=null，並納入前後／跨draw／獨立Python收據斷言。沒有修改產品或原門檻。首紅不覆蓋；詳見second-ci-receipt.json。性能保留所有480raw，但在最終圖像與Mac證據前仍不作驗收宣稱。
+
+第二輪首個day-z1性能情境前約21筆raw也可能受flash消退污染，不能當固定場景改善證據。原raw完整保留不刪；下一輪每筆raw額外記錄flash/meteor前後皆零，獨立校驗，不裁除任何樣本。

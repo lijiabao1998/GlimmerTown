@@ -93,6 +93,7 @@ def performance_receipt(path, head_hash):
             require(sample['round'] == round_id and sample['off'] is expected_off and sample['enabled'] is not expected_off, 'AB/BA order or actual valve mismatch')
             require(all(isinstance(sample[k], (int, float)) and math.isfinite(sample[k]) and sample[k] >= 0 for k in ('js', 'total')), 'invalid raw timing')
             require(sample['total'] >= sample['js'], 'readback total shorter than JS')
+            require(sample['flashBefore'] == sample['flashAfter'] == 0 and sample['meteorBefore'] is None and sample['meteorAfter'] is None, 'performance draw contains transient flash/meteor')
         for label, off in [('off', True), ('on', False)]:
             for metric in ('js', 'total'):
                 values = sorted(s[metric] for s in raw if s['off'] is off)
@@ -175,6 +176,7 @@ def image_receipt(out, base_hash, head_hash):
             require(attempt['before'] == attempts[0]['before'], 'capture state differs between repeated draws')
             state = attempt['before']
             require(state['running'] is False and state['speed'] == 0 and state['titleStopped'] and state['startHidden'] and state['bootHidden'] and state['canvasVisible'] and state['canvasBodyChild'], 'capture overlay/simulation state invalid')
+            require(state['flashT'] == 0 and state['meteorTrail'] is None, 'clear-weather capture contains transient flash/meteor')
             require(all(n == 0 for n in state['actors']) and [state['width'], state['height']] == list(frame_size), 'capture actors/dimensions drift')
             name = Path(attempt['file'])
             require(not name.is_absolute() and '..' not in name.parts and name.parts[0] == 'attempts', 'invalid attempt path')
