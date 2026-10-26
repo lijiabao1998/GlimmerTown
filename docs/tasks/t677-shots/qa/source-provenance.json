@@ -1,0 +1,10 @@
+{
+  "kind": "QA-only retained candidate source",
+  "files": [
+    {
+      "path": "fixtures.js",
+      "candidatePath": "docs/previews/port-p06/native-fixtures.js",
+      "sha256": "60745118a6524ebf3c21ab267de2cd40f23486f1bb8af65d28a41cee949eea2c"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "sourceCommit": "d0de1e9e594145af43608013ad173e34a91e63a8",
+  "mainBaseline": "379b7ad92eaa34be5a10ce5a5e1786a8f67e6bd8",
+  "sourcePR": 73,
+  "landingCard": "T677",
+  "sourceFiles": [
+    {
+      "path": "docs/previews/port-p02/bridge.js",
+      "sha256": "70cc512e8e2ff6d63cd7a29054791fe18e09903e2ed3c3f456bf4e15209e3538"
+    },
+    {
+      "path": "docs/previews/port-p02/crane-motion.js",
+      "sha256": "fce12816c7e565f9bfc975cc9b6e3c170e9a139214891e1c70022a20cb964227"
+    },
+    {
+      "path": "docs/previews/port-p02/animation-bridge.js",
+      "sha256": "329c27a96a3298e7da5aeb6d2a49fc5ab55c678b944cc2adfbdbbbb1095bd693"
+    },
+    {
+      "path": "docs/previews/port-p02/crane-assembly.js",
+      "sha256": "a4c09b5e4388c175a543efc18b417cc36f7482b63b537a8c4af1a66875d0ab90"
+    },
+    {
+      "path": "docs/previews/port-p03/vessel-navigation.js",
+      "sha256": "11fa92cbbf050c8db589e9f368c7eb51ce5f455a347dc07b8271daf72ff68b1a"
+    },
+    {
+      "path": "docs/previews/port-p03/vessel-bridge.js",
+      "sha256": "79bac0605ccddc21828da7956c1b96730bfeb6c6cf08aa53a0033a4d05b32ce0"
+    },
+    {
+      "path": "docs/previews/port-p04/geometry.js",
+      "sha256": "7c7c622265236a857631c092bfc9bcdc1fb78106b07297c029f17f8fc2853247"
+    },
+    {
+      "path": "docs/previews/port-p04/transfer-state.js",
+      "sha256": "c5428dfdec4f6eaf225c384dc8148ed67138c21c06088bf6367916043473ce16"
+    },
+    {
+      "path": "docs/previews/port-p04/transfer-occlusion.js",
+      "sha256": "d77e75aac3c55983078447f73a788804d5e88b9ab6e17afef085fe20e07ab324"
+    },
+    {
+      "path": "docs/previews/port-p04/transfer-bridge.js",
+      "sha256": "bda2840a64cf226d0718d9b399e65dd6583f3857a4125f83716df49004cc2061"
+    },
+    {
+      "path": "docs/previews/port-p05/landside-geometry.js",
+      "sha256": "4bd44b5d5e3137fc0e15ccac579de36abf9c4339fcf9555acf883a7d3fcc6380"
+    },
+    {
+      "path": "docs/previews/port-p05/dispatch-state.js",
+      "sha256": "caffc9b1318f0af97d2211556f45bafd119bae4bb1beaef67c6915cb9620397d"
+    },
+    {
+      "path": "docs/previews/port-p05/dispatch-occlusion.js",
+      "sha256": "4d7d8a869cfa05b40917853477dcd070022fde21dcc0d6a006c5aaa3dfda8d7e"
+    },
+    {
+      "path": "docs/previews/port-p05/dispatch-bridge.js",
+      "sha256": "5ce1d807763558ba732e03d5e7a7e16da379747417cc4245d63fbe418b038630"
+    },
+    {
+      "path": "docs/previews/port-p06/native-layout.js",
+      "sha256": "5fac6bc2cd3da183fe0ea8e027ada7312246bc79a644f2f4834a3da71c11c50e"
+    },
+    {
+      "path": "docs/previews/port-p06/native-bridge.js",
+      "sha256": "86c0a84f1bef139504a99ecfebba15779aaf8c6e19df90f535fb749b16701dbc"
+    },
+    {
+      "path": "docs/previews/port-p06/native-performance.js",
+      "sha256": "fdf42682d24a791cb3c3dfe4dd36540287e40f75844cd81665dd0d47591f303f"
+    },
+    {
+      "path": "docs/previews/port-p06/native-vector-cache.js",
+      "sha256": "b1268e328ea93ec183ebc2e9cc3f1b598e7cb4da065ce9f7afb1eafdd9b95816"
+    },
+    {
+      "path": "docs/previews/port-p06/native-ui.html",
+      "sha256": "61a40527eacd3eedd687d48378831321ccce25fa4d8121f686731d22e71192c0"
+    },
+    {
+      "path": "docs/previews/port-p06/native-ui.js",
+      "sha256": "140234a5c557973456fb58d76dc7ac5751f3f912445eb7f89b0f13bbf01379c6"
+    }
+  ]
+}

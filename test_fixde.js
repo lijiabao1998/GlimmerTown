@@ -19592,3 +19592,7 @@ for(const [name675,file675,args675] of [
  assert(html.includes("objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:q707.td,loco707:q707.loco,tail707:q707.tail,c707:{ci,d:q707.d}});"),'T707 每節帶節號與自己的行進方向');
  assert(html.includes("emit('trainLoco',['707',pt,n].join('_'),q)")&&html.includes("emit('trainCar',['707',pt,f].join('_'),S7.mid[f])"),'T707 新造型登記進 artAtlas646（fp 看得到；家族沿用 trainLoco／trainCar）');
  assert(!/window\.__trainStyle707|TRAIN707_STYLES/.test(html),'T707 樣張選款開關不進遊戲（業主定稿：pt 0 子彈頭、1 英式城際）');}
+
+/* T677：正式港區產品邊界；只追加，原有斷言逐字保留。真 Chromium 專項另由必要 port-t677 job 執行。 */
+{const r677=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t677-shots/check-product.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});let j677=null;try{j677=JSON.parse(r677.stdout);}catch{}assert(r677.status===0&&j677&&j677.passed===true&&j677.checks>=28,'T677 G1 單檔、來源hash、獨立產品片段、無儲存／PWA覆寫、無工程控制、記憶體批次、雙閥與完整模型清冊：'+r677.stderr);}
+{const r677=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t677-shots/check-atlas.cjs')],{cwd:__dirname,encoding:'utf8',timeout:30000});let j677=null;try{j677=JSON.parse(r677.stdout);}catch{}assert(r677.status===0&&j677&&j677.status==='passed'&&j677.entries===480&&j677.negativeControls.length===4,'T677 G2 15模型×32季節日夜視角、真投影有限邊界、正常／throw狀態還原、雙閥與四負控制（非像素／瀏覽器替代）：'+r677.stderr);}

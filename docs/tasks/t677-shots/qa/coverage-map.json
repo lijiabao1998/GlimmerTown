@@ -1,0 +1,1235 @@
+{
+  "candidateHarnessSHA256": "ab4489c726341fe35c33794a1c397aaaab053354262b5ac13f5eeade5741eb91",
+  "primary": [
+    {
+      "candidate": "P06 is optional and default OFF on untouched native title",
+      "formal": "P06 is optional and default OFF on untouched native title",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Storage slot is isolated before native code and no service-worker controller",
+      "formal": "Formal storage slot3 is isolated before native code; original service worker retained",
+      "adaptation": "Formal storage/UI semantics changed as required by owner"
+    },
+    {
+      "candidate": "south enabling never creates hidden roads or edits native cells",
+      "formal": "south enabling never creates hidden roads or edits native cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south true native port layout compiles",
+      "formal": "south true native port layout compiles",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south does not generate road cells",
+      "formal": "south does not generate road cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south rendered full truck maps back to actual native tiles in all four camera rotations",
+      "formal": "south rendered full truck maps back to actual native tiles in all four camera rotations",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/ship exact independent 30-ID ledger",
+      "formal": "south/ship exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/ship exclusive expected ownership",
+      "formal": "south/ship exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/quay exact independent 30-ID ledger",
+      "formal": "south/quay exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/quay exclusive expected ownership",
+      "formal": "south/quay exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/yard exact independent 30-ID ledger",
+      "formal": "south/yard exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/yard exclusive expected ownership",
+      "formal": "south/yard exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/landside exact independent 30-ID ledger",
+      "formal": "south/landside exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/landside exclusive expected ownership",
+      "formal": "south/landside exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/truck exact independent 30-ID ledger",
+      "formal": "south/truck exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/truck exclusive expected ownership",
+      "formal": "south/truck exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/dispatched exact independent 30-ID ledger",
+      "formal": "south/dispatched exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south/dispatched exclusive expected ownership",
+      "formal": "south/dispatched exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south fixed-time replay does not write native city cells",
+      "formal": "south fixed-time replay does not write native city cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south arbitrary replay returns identical immutable terminal ledger",
+      "formal": "south arbitrary replay returns identical immutable terminal ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "south replay is explicitly labeled, not economic throughput",
+      "formal": "south replay is explicitly labeled, not economic throughput",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west enabling never creates hidden roads or edits native cells",
+      "formal": "west enabling never creates hidden roads or edits native cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west true native port layout compiles",
+      "formal": "west true native port layout compiles",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west does not generate road cells",
+      "formal": "west does not generate road cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west rendered full truck maps back to actual native tiles in all four camera rotations",
+      "formal": "west rendered full truck maps back to actual native tiles in all four camera rotations",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/ship exact independent 30-ID ledger",
+      "formal": "west/ship exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/ship exclusive expected ownership",
+      "formal": "west/ship exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/quay exact independent 30-ID ledger",
+      "formal": "west/quay exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/quay exclusive expected ownership",
+      "formal": "west/quay exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/yard exact independent 30-ID ledger",
+      "formal": "west/yard exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/yard exclusive expected ownership",
+      "formal": "west/yard exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/landside exact independent 30-ID ledger",
+      "formal": "west/landside exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/landside exclusive expected ownership",
+      "formal": "west/landside exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/truck exact independent 30-ID ledger",
+      "formal": "west/truck exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/truck exclusive expected ownership",
+      "formal": "west/truck exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/dispatched exact independent 30-ID ledger",
+      "formal": "west/dispatched exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west/dispatched exclusive expected ownership",
+      "formal": "west/dispatched exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west fixed-time replay does not write native city cells",
+      "formal": "west fixed-time replay does not write native city cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west arbitrary replay returns identical immutable terminal ledger",
+      "formal": "west arbitrary replay returns identical immutable terminal ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "west replay is explicitly labeled, not economic throughput",
+      "formal": "west replay is explicitly labeled, not economic throughput",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north enabling never creates hidden roads or edits native cells",
+      "formal": "north enabling never creates hidden roads or edits native cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north true native port layout compiles",
+      "formal": "north true native port layout compiles",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north does not generate road cells",
+      "formal": "north does not generate road cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north rendered full truck maps back to actual native tiles in all four camera rotations",
+      "formal": "north rendered full truck maps back to actual native tiles in all four camera rotations",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/ship exact independent 30-ID ledger",
+      "formal": "north/ship exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/ship exclusive expected ownership",
+      "formal": "north/ship exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/quay exact independent 30-ID ledger",
+      "formal": "north/quay exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/quay exclusive expected ownership",
+      "formal": "north/quay exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/yard exact independent 30-ID ledger",
+      "formal": "north/yard exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/yard exclusive expected ownership",
+      "formal": "north/yard exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/landside exact independent 30-ID ledger",
+      "formal": "north/landside exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/landside exclusive expected ownership",
+      "formal": "north/landside exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/truck exact independent 30-ID ledger",
+      "formal": "north/truck exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/truck exclusive expected ownership",
+      "formal": "north/truck exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/dispatched exact independent 30-ID ledger",
+      "formal": "north/dispatched exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north/dispatched exclusive expected ownership",
+      "formal": "north/dispatched exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north fixed-time replay does not write native city cells",
+      "formal": "north fixed-time replay does not write native city cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north arbitrary replay returns identical immutable terminal ledger",
+      "formal": "north arbitrary replay returns identical immutable terminal ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "north replay is explicitly labeled, not economic throughput",
+      "formal": "north replay is explicitly labeled, not economic throughput",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east enabling never creates hidden roads or edits native cells",
+      "formal": "east enabling never creates hidden roads or edits native cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east true native port layout compiles",
+      "formal": "east true native port layout compiles",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east does not generate road cells",
+      "formal": "east does not generate road cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east rendered full truck maps back to actual native tiles in all four camera rotations",
+      "formal": "east rendered full truck maps back to actual native tiles in all four camera rotations",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/ship exact independent 30-ID ledger",
+      "formal": "east/ship exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/ship exclusive expected ownership",
+      "formal": "east/ship exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/quay exact independent 30-ID ledger",
+      "formal": "east/quay exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/quay exclusive expected ownership",
+      "formal": "east/quay exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/yard exact independent 30-ID ledger",
+      "formal": "east/yard exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/yard exclusive expected ownership",
+      "formal": "east/yard exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/landside exact independent 30-ID ledger",
+      "formal": "east/landside exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/landside exclusive expected ownership",
+      "formal": "east/landside exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/truck exact independent 30-ID ledger",
+      "formal": "east/truck exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/truck exclusive expected ownership",
+      "formal": "east/truck exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/dispatched exact independent 30-ID ledger",
+      "formal": "east/dispatched exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east/dispatched exclusive expected ownership",
+      "formal": "east/dispatched exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east fixed-time replay does not write native city cells",
+      "formal": "east fixed-time replay does not write native city cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east arbitrary replay returns identical immutable terminal ledger",
+      "formal": "east arbitrary replay returns identical immutable terminal ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "east replay is explicitly labeled, not economic throughput",
+      "formal": "east replay is explicitly labeled, not economic throughput",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset enabling never creates hidden roads or edits native cells",
+      "formal": "offset enabling never creates hidden roads or edits native cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset true native port layout compiles",
+      "formal": "offset true native port layout compiles",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset does not generate road cells",
+      "formal": "offset does not generate road cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset rendered full truck maps back to actual native tiles in all four camera rotations",
+      "formal": "offset rendered full truck maps back to actual native tiles in all four camera rotations",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/ship exact independent 30-ID ledger",
+      "formal": "offset/ship exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/ship exclusive expected ownership",
+      "formal": "offset/ship exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/quay exact independent 30-ID ledger",
+      "formal": "offset/quay exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/quay exclusive expected ownership",
+      "formal": "offset/quay exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/yard exact independent 30-ID ledger",
+      "formal": "offset/yard exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/yard exclusive expected ownership",
+      "formal": "offset/yard exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/landside exact independent 30-ID ledger",
+      "formal": "offset/landside exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/landside exclusive expected ownership",
+      "formal": "offset/landside exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/truck exact independent 30-ID ledger",
+      "formal": "offset/truck exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/truck exclusive expected ownership",
+      "formal": "offset/truck exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/dispatched exact independent 30-ID ledger",
+      "formal": "offset/dispatched exact independent 30-ID ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset/dispatched exclusive expected ownership",
+      "formal": "offset/dispatched exclusive expected ownership",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset fixed-time replay does not write native city cells",
+      "formal": "offset fixed-time replay does not write native city cells",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset arbitrary replay returns identical immutable terminal ledger",
+      "formal": "offset arbitrary replay returns identical immutable terminal ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "offset replay is explicitly labeled, not economic throughput",
+      "formal": "offset replay is explicitly labeled, not economic throughput",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Actual enable UI selects a legal native harbor",
+      "formal": "Actual enable UI selects a legal native harbor",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Actual disable UI stops the candidate without deleting ledger",
+      "formal": "Actual disable UI stops the candidate without deleting ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Repeated enable preserves the same clock and cargo",
+      "formal": "Repeated enable preserves the same clock and cargo",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Cancel reset preserves the candidate manifest",
+      "formal": "Cancel reset preserves the candidate manifest",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Confirmed reset returns one original batch, not a duplicate",
+      "formal": "Confirmed reset returns one original batch, not a duplicate",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Actual live UI explicitly returns to city time",
+      "formal": "QA-only fixed replay explicitly returns to native city time (no product replay UI)",
+      "adaptation": "Formal storage/UI semantics changed as required by owner"
+    },
+    {
+      "candidate": "Actual native roads and water fit full retained bodies at every route sample",
+      "formal": "Actual native roads and water fit full retained bodies at every route sample",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "no-port refused with visible reason",
+      "formal": "no-port refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "no-port reason is visible in the real UI",
+      "formal": "no-port reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "no-port never falsely dispatches",
+      "formal": "no-port never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "no-dock refused with visible reason",
+      "formal": "no-dock refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "no-dock reason is visible in the real UI",
+      "formal": "no-dock reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "no-dock never falsely dispatches",
+      "formal": "no-dock never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "apron-building refused with visible reason",
+      "formal": "apron-building refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "apron-building reason is visible in the real UI",
+      "formal": "apron-building reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "apron-building never falsely dispatches",
+      "formal": "apron-building never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "road-cut refused with visible reason",
+      "formal": "road-cut refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "road-cut reason is visible in the real UI",
+      "formal": "road-cut reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "road-cut never falsely dispatches",
+      "formal": "road-cut never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "closed-water refused with visible reason",
+      "formal": "closed-water refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "closed-water reason is visible in the real UI",
+      "formal": "closed-water reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "closed-water never falsely dispatches",
+      "formal": "closed-water never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "narrow-water refused with visible reason",
+      "formal": "narrow-water refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "narrow-water reason is visible in the real UI",
+      "formal": "narrow-water reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "narrow-water never falsely dispatches",
+      "formal": "narrow-water never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "gate-cut refused with visible reason",
+      "formal": "gate-cut refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "gate-cut reason is visible in the real UI",
+      "formal": "gate-cut reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "gate-cut never falsely dispatches",
+      "formal": "gate-cut never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "missing-warehouse refused with visible reason",
+      "formal": "missing-warehouse refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "missing-warehouse reason is visible in the real UI",
+      "formal": "missing-warehouse reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "missing-warehouse never falsely dispatches",
+      "formal": "missing-warehouse never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "missing-freight refused with visible reason",
+      "formal": "missing-freight refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "missing-freight reason is visible in the real UI",
+      "formal": "missing-freight reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "missing-freight never falsely dispatches",
+      "formal": "missing-freight never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "warehouse-disconnected refused with visible reason",
+      "formal": "warehouse-disconnected refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "warehouse-disconnected reason is visible in the real UI",
+      "formal": "warehouse-disconnected reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "warehouse-disconnected never falsely dispatches",
+      "formal": "warehouse-disconnected never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "freight-disconnected refused with visible reason",
+      "formal": "freight-disconnected refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "freight-disconnected reason is visible in the real UI",
+      "formal": "freight-disconnected reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "freight-disconnected never falsely dispatches",
+      "formal": "freight-disconnected never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "gate-post-occupied refused with visible reason",
+      "formal": "gate-post-occupied refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "gate-post-occupied reason is visible in the real UI",
+      "formal": "gate-post-occupied reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "gate-post-occupied never falsely dispatches",
+      "formal": "gate-post-occupied never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "one-way-road refused with visible reason",
+      "formal": "one-way-road refused with visible reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "one-way-road reason is visible in the real UI",
+      "formal": "one-way-road reason is visible in the real UI",
+      "adaptation": "Visible friendly status and explanatory list replace removed raw engineering status; engine refusal/reasons predicate unchanged."
+    },
+    {
+      "candidate": "one-way-road never falsely dispatches",
+      "formal": "one-way-road never falsely dispatches",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Demolished harbor stops instead of inventing a successful handoff",
+      "formal": "Demolished harbor stops instead of inventing a successful handoff",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Demolition preserves all original IDs",
+      "formal": "Demolition preserves all original IDs",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Rebuilding preserves the same manifest without a fresh batch",
+      "formal": "Rebuilding preserves the same manifest without a fresh batch",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Demolished native warehouse freezes operations with a reason",
+      "formal": "Demolished native warehouse freezes operations with a reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Demolished native warehouse retains the exact 30-ID manifest",
+      "formal": "Demolished native warehouse retains the exact 30-ID manifest",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Demolished native freight freezes operations with a reason",
+      "formal": "Demolished native freight freezes operations with a reason",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Demolished native freight retains the exact 30-ID manifest",
+      "formal": "Demolished native freight retains the exact 30-ID manifest",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Building beside the live gate blocks its full physical post volume",
+      "formal": "Building beside the live gate blocks its full physical post volume",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Changed legal approach geometry requires reset instead of teleporting cargo",
+      "formal": "Changed legal approach geometry requires reset instead of teleporting cargo",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Restoring the original approach resumes the identical frozen plan",
+      "formal": "Restoring the original approach resumes the identical frozen plan",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Switching native ports with live cargo requires explicit reset",
+      "formal": "Switching native ports with live cargo requires explicit reset",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Paused native new-world replacement invalidates before a simulation advance",
+      "formal": "Paused native new-world replacement invalidates before a simulation advance",
+      "adaptation": "Immediate engine/read-only-status invalidation retained; product friendly UI polls400ms and is checked separately by ui.cjs."
+    },
+    {
+      "candidate": "New native world hides stale harbor hardware and freezes the exact prior ledger",
+      "formal": "New native world hides stale harbor hardware and freezes the exact prior ledger",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native same-layout load invalidates old operations even at matching port coordinates",
+      "formal": "Native same-layout load invalidates old operations even at matching port coordinates",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Loaded native city requires explicit cargo reset instead of resurrecting old operations",
+      "formal": "Loaded native city requires explicit cargo reset instead of resurrecting old operations",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native memory-slot save format and bytes remain candidate-free and unchanged",
+      "formal": "Formal persistent slot3 save format and bytes remain cargo-free and unchanged",
+      "adaptation": "Formal storage/UI semantics changed as required by owner"
+    },
+    {
+      "candidate": "Confirmed reset may start one fresh batch in the loaded native city",
+      "formal": "Confirmed reset may start one fresh batch in the loaded native city",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Disabled zero-time harbor also detects replacement through read-only status and inspect",
+      "formal": "Disabled zero-time harbor also detects replacement through read-only status and inspect",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Actual native undo removes the critical road and invalidates while paused",
+      "formal": "Actual native undo removes the critical road and invalidates while paused",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native undo freezes original time and all30 IDs without a fabricated delivery",
+      "formal": "Native undo freezes original time and all30 IDs without a fabricated delivery",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native lightning decays through real visual time without city or cargo progress",
+      "formal": "Native lightning decays through real visual time without city or cargo progress",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native pause freezes the operating clock while renderer may continue",
+      "formal": "Native pause freezes the operating clock while renderer may continue",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native speed button resumes real city and candidate clocks",
+      "formal": "Native speed button resumes real city and candidate clocks",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native 0x/2s clock consumes accepted time only",
+      "formal": "Native 0x/2s clock consumes accepted time only",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native 1x/0.2s clock consumes accepted time only",
+      "formal": "Native 1x/0.2s clock consumes accepted time only",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native 3x/0.2s clock consumes accepted time only",
+      "formal": "Native 3x/0.2s clock consumes accepted time only",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native 5x/0.2s clock consumes accepted time only",
+      "formal": "Native 5x/0.2s clock consumes accepted time only",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native 5x/2s clock consumes accepted time only",
+      "formal": "Native 5x/2s clock consumes accepted time only",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native 0x/2s clock consumes accepted time only",
+      "formal": "Native 0x/2s clock consumes accepted time only",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native 1x/0.01s clock consumes accepted time only",
+      "formal": "Native 1x/0.01s clock consumes accepted time only",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "80 renders cannot produce operating time or cargo",
+      "formal": "80 renders cannot produce operating time or cargo",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Live accepted time and explicitly fixed replay have identical handoff state",
+      "formal": "Live accepted time and explicitly fixed replay have identical handoff state",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Matched native economic state is exact before advancement and both ambient streams match",
+      "formal": "Matched native economic state is exact before advancement and both ambient streams match",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Active candidate consumes no ambient randomness and paired RNG is restored",
+      "formal": "Active candidate consumes no ambient randomness and paired RNG is restored",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Native population, unrounded money, industry, ship fleet, supplies and road feedback unchanged by candidate",
+      "formal": "Native population, unrounded money, industry, ship fleet, supplies and road feedback unchanged by candidate",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Busy-city benchmark contains at least 50 native building roots",
+      "formal": "Busy-city benchmark contains at least 50 native building roots",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Busy-city benchmark contains genuine native population",
+      "formal": "Busy-city benchmark contains genuine native population",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r0/z0.5",
+      "formal": "OFF native T707 whole frame day/r0/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r0/z1.1",
+      "formal": "OFF native T707 whole frame day/r0/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r1/z0.5",
+      "formal": "OFF native T707 whole frame day/r1/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r1/z1.1",
+      "formal": "OFF native T707 whole frame day/r1/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r2/z0.5",
+      "formal": "OFF native T707 whole frame day/r2/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r2/z1.1",
+      "formal": "OFF native T707 whole frame day/r2/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r3/z0.5",
+      "formal": "OFF native T707 whole frame day/r3/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame day/r3/z1.1",
+      "formal": "OFF native T707 whole frame day/r3/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r0/z0.5",
+      "formal": "OFF native T707 whole frame night/r0/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r0/z1.1",
+      "formal": "OFF native T707 whole frame night/r0/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r1/z0.5",
+      "formal": "OFF native T707 whole frame night/r1/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r1/z1.1",
+      "formal": "OFF native T707 whole frame night/r1/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r2/z0.5",
+      "formal": "OFF native T707 whole frame night/r2/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r2/z1.1",
+      "formal": "OFF native T707 whole frame night/r2/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r3/z0.5",
+      "formal": "OFF native T707 whole frame night/r3/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame night/r3/z1.1",
+      "formal": "OFF native T707 whole frame night/r3/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r0/z0.5",
+      "formal": "OFF native T707 whole frame winter/r0/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r0/z1.1",
+      "formal": "OFF native T707 whole frame winter/r0/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r1/z0.5",
+      "formal": "OFF native T707 whole frame winter/r1/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r1/z1.1",
+      "formal": "OFF native T707 whole frame winter/r1/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r2/z0.5",
+      "formal": "OFF native T707 whole frame winter/r2/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r2/z1.1",
+      "formal": "OFF native T707 whole frame winter/r2/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r3/z0.5",
+      "formal": "OFF native T707 whole frame winter/r3/z0.5",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "OFF native T707 whole frame winter/r3/z1.1",
+      "formal": "OFF native T707 whole frame winter/r3/z1.1",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Busy-city visuals contain real native traffic or citizens",
+      "formal": "Busy-city visuals contain real native traffic or citizens",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Actual night Canvas lamps retain their small original radius in all four cameras",
+      "formal": "Actual night Canvas lamps retain their small original radius in all four cameras",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Captured night lamp masks preserve small bounds and correct physical height",
+      "formal": "Captured night lamp masks preserve small bounds and correct physical height",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Real city simulation reaches conserved terminal dispatch",
+      "formal": "Real city simulation reaches conserved terminal dispatch",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "30 paused native draws reuse candidate visibility commands",
+      "formal": "30 paused native draws reuse candidate visibility commands",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Candidate visibility cache stays within inherited 512-entry bound",
+      "formal": "Candidate visibility cache stays within inherited 512-entry bound",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Candidate acceleration interner stays within8192 entries after actual live cycle",
+      "formal": "Candidate acceleration interner stays within8192 entries after actual live cycle",
+      "adaptation": "Same cache bound read via QA-only getter; getter absent from product."
+    },
+    {
+      "candidate": "Static vector display lists stay bounded without bitmap rebakes",
+      "formal": "Static vector display lists stay bounded without bitmap rebakes",
+      "adaptation": "Same bounds read via QA-only getter; no alternate renderer installed."
+    },
+    {
+      "candidate": "Frozen late-city40 ON/OFF pairs preserve exact native world, traffic, weather, day and cargo",
+      "formal": "Frozen late-city40 ON/OFF pairs preserve exact native world, traffic, weather, day and cargo",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Long-run terminal ledger never respawns the original container",
+      "formal": "Long-run terminal ledger never respawns the original container",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Original 400-day pin seed301 requestedP06=false",
+      "formal": "Original 400-day pin seed301 requestedP06=false",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Original 400-day pin seed7 requestedP06=false",
+      "formal": "Original 400-day pin seed7 requestedP06=false",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Original 400-day pin seed22 requestedP06=false",
+      "formal": "Original 400-day pin seed22 requestedP06=false",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Original 400-day pin seed301 requestedP06=true",
+      "formal": "Original 400-day pin seed301 requestedP06=true",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Original 400-day pin seed7 requestedP06=true",
+      "formal": "Original 400-day pin seed7 requestedP06=true",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Original 400-day pin seed22 requestedP06=true",
+      "formal": "Original 400-day pin seed22 requestedP06=true",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "No page errors or failed resources",
+      "formal": "No page errors or failed resources",
+      "adaptation": "Original behavioral predicate retained; API calls only redirected to explicitly QA-only setup where needed"
+    },
+    {
+      "candidate": "Preview saves remain memory-only across reload",
+      "formal": "Formal reload preserves native save but does not pretend to restore in-flight cargo",
+      "adaptation": "Formal storage/UI semantics changed as required by owner"
+    }
+  ],
+  "notes": [
+    "All222 named primary cases must run in original order; this is an explicit semantic mapping, not a claim of byte-identical candidate assertions.",
+    "Replay/live/nativeTileAtScreen are QA-only helpers; no replay UI or test globals ship.",
+    "Original service worker/autosave/localStorage retained; persistent city reloadOFF replaces candidate memory-storage isolation.",
+    "Raw18x40 pairs,6cold,4live,fullcycle and80terminal draws retained; historical30/144 research diagnostic matrix archived, not repeated.",
+    "Legacy hidden flag replaced by actual !P06.active() and native rendering behavior.",
+    "Actual product UI controls independently tested with trusted input, including pinch."
+  ],
+  "sourceEdits": [
+    {
+      "beforeSHA256": "f06d0d1556d35408b9ed795ef2f1d0e699117be455900415c81c3d47b2bf58c8",
+      "afterSHA256": "63d7b982331a4d5bd5015b828df7b91f6fd1627b369e49511b0416eb5848a9eb",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "52931f0849be9b9282bc74e08075cd7513851bcdb95944a46af669e694cc97b9",
+      "afterSHA256": "e2915e14bfe5b9586a6fc8e7bae7cbfd35e02fd13095932b60224f469d9b5c65",
+      "occurrences": 2
+    },
+    {
+      "beforeSHA256": "477504a84a0ab87979531ec0394d1fee6f47144142d040dfbea712355d3c46fe",
+      "afterSHA256": "abcd273d6a6e7bc18aca190de07b3545d5dbc36ce3b8d94382b1736c506cd5f4",
+      "occurrences": 2
+    },
+    {
+      "beforeSHA256": "49ce3e2df558d1c0e1925850efa007f8a114ee7478887a4fbada24adceab07f7",
+      "afterSHA256": "6098487b09bcecf6fd132c3216de9cc1980212c1cebf3ef6a5f9d9d73a45c7d9",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "5c147b96877d260e75d1d3c94683e3938848b8510c787158ae80385078777aef",
+      "afterSHA256": "0ad8e94d6b74bee1e9c4cea1c70295d65261c8b18c26b908385188ac556ad3fd",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "f1d679a9aba387e6b6722e6e6dfef0681d4e7f52105112ee4b84419fe5dd0f79",
+      "afterSHA256": "709e9527a1bacaa163d0e03482c0973daeccccfa036fae417276af89db19847b",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "eb0e581428454ade6fbc3d1a5ac6e3ffee9d4c27fc6cf7ff638a40574adabd70",
+      "afterSHA256": "9e4eb21276717d7d8a404c37abea74214840f7d7bb8a46aa7264845a3217729b",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "735bd3dee18834ba08bc51eb1f1ca681a811bcaf9dccfaf5d5f8c7c3736bdcea",
+      "afterSHA256": "314050da82c338ff9e51f544b30a4b8f62e7b0c90f8a3b4cb21b2bafe7d33f39",
+      "occurrences": 16
+    },
+    {
+      "beforeSHA256": "1d7f0757a6062e7e29df0917232fafd9f550c47766a54fb14335b9aedbb8b622",
+      "afterSHA256": "ad3117f2a705cee4d2ef7a6bc221af898dd7e908c2540c429775c272da8ed2b0",
+      "occurrences": 11
+    },
+    {
+      "beforeSHA256": "580f218fd4b46e41768021b631eb37987a6a66c3f40f6d85ccde5ad46f24c9d1",
+      "afterSHA256": "eeaa42254a841726be4c8d865c086a8d4995d45190e6e28a45aaecace48a68c3",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "1f030545bf7ace053f590615f87a7b9f158098a0b35e1a53bc26aafabbbdac60",
+      "afterSHA256": "494c2f623a70e81cfa2ff29beb9f000d5c3461f88565f6637968292526311dc5",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "c8b578fcd53573990d6bf52459cf28c17af2cd9e18e4c12e0d8863c04e24541b",
+      "afterSHA256": "931e09d28cf6a5e35466c8607dc11d93231e488c8d4d4a6bb9ec3569fac9b45c",
+      "occurrences": 6
+    },
+    {
+      "beforeSHA256": "54069634844c64f7b52993e47e46d065aa2a4b903fa2bfb3f7c0d35e8c879b17",
+      "afterSHA256": "8d3e3474a2e78dca9b0fe799cfe3e4732d72004af79ac6b2ad5126250ce18d78",
+      "occurrences": 3
+    },
+    {
+      "beforeSHA256": "3c723b1290d6fec93f1b772814566194c6acc88da0c6216366999294b05f5134",
+      "afterSHA256": "a49a210c05897abe7f7b4d776c4eacd4384832b652cb166affc573d2a7ebd10d",
+      "occurrences": 2
+    },
+    {
+      "beforeSHA256": "ecc8c3b429523da68c2eb2a8a7be6070ef04cf469131582909846906b08e5b38",
+      "afterSHA256": "8381c4a9239ae86359fb5522fe76df749d9dba3f817b9db44d4a9a50d00bf704",
+      "occurrences": 2
+    },
+    {
+      "beforeSHA256": "88b3c4f61446d06c13abfd4231443585894251d1f3d6a58f1a5a549d3bd6c352",
+      "afterSHA256": "f3195d58c8d5717ac4d4d42302e1ad2302607e148b97dfd9579a773e63b26a0d",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "118009ddb7cc4a297702b322953706d04d9a11ee45b6e372e377e10226fc68ea",
+      "afterSHA256": "4c2bcad4b709a45407c37b6d4654689a5455a386c943aa0205cbe5217655d9d3",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "f7e0298c7cbbee4eeee62104f37c82faa2250322a56a607c369719513611295d",
+      "afterSHA256": "81eb4047d5755425711c1d13adbd86a09b77d51bb44b3a7ad9d0dfa16a8af954",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "a3a4a353208cb643e99649316a98684f3a6f215cd815b1c583b3a787f2b3db72",
+      "afterSHA256": "2fb7fad0a79d6a4eece53062fa9a7ccb2593432a12999dacbcbabba1302cde70",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "b1b2c11947dfd3211fc2bf59030b71e6b40e64835108514f8ed11b744d265831",
+      "afterSHA256": "37bd8da782c842add5655166204307c9283a102a902966baee23a733778d35c9",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "90829cdddc88bd391d9bb047e6e8d2603a0ae51f2496cf5fcec22685925b5e0b",
+      "afterSHA256": "d92bb3b7a4dd40363c7ab628f9da206b3863d044946e581fb01baa162619ed36",
+      "occurrences": 1
+    },
+    {
+      "beforeSHA256": "0ab182d2d069d5cb674b3a5eb6b540c70c0862cc98397dd39f583538a33a96ec",
+      "afterSHA256": "8b06fa741f0552229804aa4c51203974f893d1bbf7bc6e19782e43507be6a88e",
+      "occurrences": 1
+    }
+  ]
+}
