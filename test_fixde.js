@@ -19592,3 +19592,6 @@ for(const [name675,file675,args675] of [
  assert(html.includes("objs.push({dep:viewDep(fx,fy)+.01,train:tr,carIdx:ci,wx,wy,td:q707.td,loco707:q707.loco,tail707:q707.tail,c707:{ci,d:q707.d}});"),'T707 每節帶節號與自己的行進方向');
  assert(html.includes("emit('trainLoco',['707',pt,n].join('_'),q)")&&html.includes("emit('trainCar',['707',pt,f].join('_'),S7.mid[f])"),'T707 新造型登記進 artAtlas646（fp 看得到；家族沿用 trainLoco／trainCar）');
  assert(!/window\.__trainStyle707|TRAIN707_STYLES/.test(html),'T707 樣張選款開關不進遊戲（業主定稿：pt 0 子彈頭、1 英式城際）');}
+
+/* T715：draw() 逐格迴圈只掃可見範圍——範圍保守（隨機鏡頭暴力比對，含園區與高塔）、五段迴圈都照舊過原本的可見判斷；只追加，既有斷言一字不改。 */
+{const r715=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t715-shots/check-715.cjs')],{cwd:__dirname,encoding:'utf8',timeout:240000});let j715=null;try{j715=JSON.parse(r715.stdout);}catch{}assert(r715.status===0&&j715&&j715.passed===true&&j715.result.G1.objectTilesChecked>100000&&j715.result.G2.loops===5&&j715.result.G3.maxLot<=9&&j715.negativeControls.length===2,'T715 G1–G4 可見範圍保守、五段迴圈照舊過可見判斷、園區不超過 9×9、兩負控制首紅在 G1：'+r715.stderr);}
