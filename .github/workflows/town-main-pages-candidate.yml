@@ -757,6 +757,7 @@ jobs:
       - name: Fail-closed T717 applicability and exact source
         id: applicable
         env:
+          BASE: ${{ needs.scope.outputs.base }}
           SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           mkdir -p evidence/t717
@@ -771,12 +772,22 @@ jobs:
           product='function clip717(' in source
           valve=registry.get('valves',{}).get('T717')=='__noT717'
           shots=root/'docs/tasks/t717-shots'
-          present=bool(card or product or valve or shots.exists())
+          base=os.environ['BASE']
+          base_source=subprocess.check_output(['git','show',base+':index.html'],text=True)
+          base_registry=json.loads(subprocess.check_output(['git','show',base+':docs/APPROVED_ART.json'],text=True))
+          base_product='function clip717(' in base_source
+          changed=[p for p in subprocess.check_output(['git','diff','--name-only','-z',base,actual,'--'],text=True).split('\0') if p]
+          owned=[p for p in changed if p.startswith('docs/tasks/t717-shots/') or (p.startswith('docs/tasks/T717-') and p.endswith('.md'))]
+          new_marker=product or ('T717' in registry.get('valves',{}) and 'T717' not in base_registry.get('valves',{}))
+          # This receipt compares native BASE with candidate valve-off: it is valid
+          # only for the initial promotion, never for a baseline already using T717.
+          present=not base_product and bool(owned or new_marker)
           if present:
               assert len(card)==1 and product and valve, 'Partial T717 promotion'
               for name in ('ci717.py','browser717.cjs','eq.cjs','perfab.cjs','check-717.cjs'):
                   assert (shots/name).is_file(), 'Missing T717 evidence runner: '+name
-          result={'sourceHead':actual,'applicable':present,'note':'T717 candidate evidence required' if present else 'No T717; not a T717 acceptance pass'}
+          note='T717 initial-promotion evidence required' if present else ('Baseline already contains T717; initial-promotion equivalence not applicable' if base_product else 'No T717 initial promotion in this diff; not a T717 acceptance pass')
+          result={'sourceHead':actual,'base':base,'baselineContainsT717':base_product,'changedT717Paths':owned,'applicable':present,'note':note}
           (root/'evidence/t717/applicability.json').write_text(json.dumps(result,indent=2))
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('present='+str(present).lower()+'\n')
           print(json.dumps(result))

@@ -162,6 +162,27 @@ def image_receipt(out, base_hash, head_hash):
             sheets.append(name)
     # Preserve independently decoded comparison evidence before evaluating limits.
     (out / 'png-validation.json').write_text(json.dumps({'decoded': decoded, 'frameSize': frame_size, 'comparisons': comparisons, 'contactSheets': sheets}, indent=2) + '\n')
+    captures = data.get('captureReceipts', [])
+    require(len(captures) == 192, 'all 192 compositor stability receipts required')
+    keys = {(c['condition']['phase'], c['condition']['vt'], c['condition']['z'], c['condition']['rot'], c['label']) for c in captures}
+    require(keys == {(*condition, label) for condition in expected for label in ['main', 'main-repeat', 'on', 'off']}, 'compositor receipt identity coverage')
+    for capture in captures:
+        attempts = capture['attempts']
+        require(capture.get('stable') is True and 2 <= len(attempts) <= 8 and capture['draws'] == len(attempts), 'compositor failed bounded consecutive stability')
+        require(attempts[-1]['sha256'] == attempts[-2]['sha256'] == capture['sha256'], 'last consecutive captures differ')
+        for number, attempt in enumerate(attempts, 1):
+            require(attempt['draw'] == number and attempt['before'] == attempt['after'], 'capture state drift')
+            require(attempt['before'] == attempts[0]['before'], 'capture state differs between repeated draws')
+            state = attempt['before']
+            require(state['running'] is False and state['speed'] == 0 and state['titleStopped'] and state['startHidden'] and state['bootHidden'] and state['canvasVisible'] and state['canvasBodyChild'], 'capture overlay/simulation state invalid')
+            require(all(n == 0 for n in state['actors']) and [state['width'], state['height']] == list(frame_size), 'capture actors/dimensions drift')
+            name = Path(attempt['file'])
+            require(not name.is_absolute() and '..' not in name.parts and name.parts[0] == 'attempts', 'invalid attempt path')
+            raw = (folder / name).read_bytes()
+            require(len(raw) == attempt['bytes'] and digest(raw) == attempt['sha256'], 'original compositor attempt hash mismatch')
+        c = capture['condition']
+        name = 'v%s-z%s-r%s-%s.png' % (c['vt'], c['z'], c['rot'], capture['label'])
+        require(digest((folder / name).read_bytes()) == capture['sha256'], 'final PNG is not last consecutive stable capture')
     require(data.get('passed') is True and not data.get('errors'), 'image harness predicates/errors failed')
     require(all(r['aa']['pixels'] == 0 and r['off']['pixels'] == 0 and r['on']['pixels'] <= r['on']['total'] / 10000 for r in comparisons), 'frozen pixel thresholds failed')
     return {'decoded': decoded, 'frameSize': frame_size, 'contactSheets': sheets, 'tileHash': data['tileHash'], 'city': data['city']}
@@ -190,6 +211,7 @@ def main():
         row = {'name': name, 'status': 'running'}
         report['stages'].append(row)
         save()
+        print('T717 stage start: ' + name, flush=True)
         try:
             row['result'] = action()
             row['status'] = 'passed'
@@ -200,6 +222,7 @@ def main():
                 report['firstFailure'] = {'stage': name, 'error': str(error)}
         row['seconds'] = round(time.monotonic() - start, 3)
         save()
+        print('T717 stage end: ' + name + ' ' + row['status'] + ' ' + str(row['seconds']) + 's', flush=True)
         return row
     def command(name, argv, cwd, timeout):
         log = out / (name + '.log')
@@ -248,7 +271,7 @@ def main():
             return 1
         base, head = temp / 'base', temp / 'head'
         shots = head / 'docs/tasks/t717-shots'
-        # Independent bounded stages fit the dedicated 120-minute CI job; original predicates stay unchanged.
+        # Independent bounded stages fit the dedicated 150-minute CI job; original predicates stay unchanged.
         def verify(label, tree):
             result = command('verify-' + label, [sys.executable, 'tools/verify.py'], tree, 1050)
             require('RESULT: ALL GREEN' in (out / ('verify-' + label + '.log')).read_text(errors='replace'), 'original verifier ALL GREEN receipt missing')
