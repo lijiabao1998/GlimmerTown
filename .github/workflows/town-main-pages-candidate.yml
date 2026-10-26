@@ -526,10 +526,227 @@ jobs:
           name: Town-main-ratchet-${{ github.sha }}
           path: evidence/ratchet.txt
           retention-days: 90
+  port-t677:
+    # Maintainer-owned wiring: baseline bootstrap is explicitly not harbor acceptance.
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.lane == 'full' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fail-closed promotion detection
+        id: promotion
+        run: |
+          mkdir -p evidence/port-t677
+          python3 - <<'PY677'
+          import json, pathlib, os
+          root = pathlib.Path('.')
+          html = (root / 'index.html').read_text()
+          qa = root / 'docs/tasks/t677-shots/qa'
+          markers = [s for s in ('T677 BEGIN', 'p06-panel', 'NativeHarborLayout', 'window.P06') if s in html]
+          valve = 'T677' in json.loads((root / 'docs/APPROVED_ART.json').read_text())['valves']
+          present = bool(markers or valve or (root / 'docs/tasks/t677-shots').exists())
+          if present:
+              assert markers and valve, 'Partial T677 promotion: product or valve absent'
+              for f in ('run.cjs', 'package.json', 'package-lock.json'):
+                  assert (qa / f).is_file(), 'Required T677 acceptance file absent: ' + f
+          result = {'applicable': present, 'markers': markers, 'valve': valve, 'note': 'Full harbor acceptance required' if present else 'Native baseline bootstrap only; no T677 product or evidence files exist; NOT a harbor pass'}
+          (root / 'evidence/port-t677/promotion-detection.json').write_text(json.dumps(result, indent=2))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f: f.write('applicable=' + str(present).lower() + '\n')
+          print(json.dumps(result))
+          PY677
+      - name: Install Chinese UI fonts and pinned QA dependencies
+        if: steps.promotion.outputs.applicable == 'true'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+          npm ci --ignore-scripts --prefix docs/tasks/t677-shots/qa
+          python3 -m pip install --disable-pip-version-check --no-deps --target "$RUNNER_TEMP/t677-png-verify" Pillow==12.2.0
+      - name: Exact-head harbor, touch, old-save and independent-process performance
+        if: steps.promotion.outputs.applicable == 'true'
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          echo "T677_RUN_STARTED=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          node docs/tasks/t677-shots/qa/run.cjs --out=evidence/port-t677
+      - name: Verify complete exact-head harbor evidence (not release approval)
+        if: steps.promotion.outputs.applicable == 'true'
+        env:
+          EXPECTED_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          PYTHONPATH: ${{ runner.temp }}/t677-png-verify
+        run: |
+          python3 - <<'PY678'
+          import datetime, hashlib, io, json, math, os, pathlib, re, struct, subprocess
+          from PIL import Image, ImageFile, __version__ as pillow_version
+          ImageFile.LOAD_TRUNCATED_IMAGES = False
+          Image.MAX_IMAGE_PIXELS = 16777216
+          root = pathlib.Path.cwd()
+          out = root / 'evidence/port-t677'
+          started = datetime.datetime.fromisoformat(os.environ['T677_RUN_STARTED'].replace('Z', '+00:00'))
+          require_time = lambda s: datetime.datetime.fromisoformat(s.replace('Z', '+00:00'))
+          def evidence_file(path):
+              p = pathlib.Path(path).absolute()
+              require(not any(q.is_symlink() for q in (p, *p.parents)), 'Symlink is not raw evidence: ' + str(p))
+              require(p.is_file() and p.stat().st_size > 0, 'Missing or empty file: ' + str(p))
+              if p.is_relative_to(out): require(p.stat().st_mtime >= started.timestamp(), 'Stale evidence file: ' + str(p))
+              return p
+          def completed(report):
+              require(started <= require_time(report['started']) <= require_time(report['finished']) <= datetime.datetime.now(datetime.timezone.utc), 'Stale/future/incomplete execution timestamps')
+          def require(ok, message):
+              if not ok: raise RuntimeError(message)
+          require(pillow_version == '12.2.0', 'Pinned isolated PNG verifier required')
+          def read(path):
+              p = evidence_file(path)
+              return json.loads(p.read_text())
+          def sha(path): return hashlib.sha256(evidence_file(path).read_bytes()).hexdigest()
+          def git(*args): return subprocess.check_output(['git', *args], cwd=root)
+          def finite(x): return type(x) in (int, float) and math.isfinite(x)
+          def checks(report, count=None):
+              rows = report['checks']
+              require(rows and (count is None or len(rows) == count), 'Incomplete check count')
+              require(all(r.get('pass') is True for r in rows), 'Failed or incomplete check')
+              names = [r['name'] for r in rows]
+              require(report['status'] == 'passed' and report.get('finished') and not report.get('failure'), 'Incomplete suite')
+              completed(report)
+              require(report['errors'] == [] and report['resources'] == [], 'Runtime/resource errors')
+              return names
+          head = os.environ['EXPECTED_SOURCE_HEAD']
+          require(re.fullmatch('[0-9a-f]{40}', head), 'Invalid event source head')
+          checkout = git('rev-parse', 'HEAD').decode().strip()
+          report = read(out / 'result.json')
+          require(report['status'] == 'execution-passed-performance-review-required' and report.get('executionComplete') is True, 'Harbor execution did not complete')
+          require(report.get('releaseReviewRequired') is True and report.get('releaseReady') is False, 'Measurements cannot authorize release')
+          require(report.get('finished') and finite(report.get('totalElapsedMs')) and report['totalElapsedMs'] >= 0 and not report.get('failure'), 'Incomplete overall receipt')
+          completed(report)
+          identity = report['identity']
+          require(identity == read(out / 'identity.json'), 'Identity receipt mismatch')
+          require(identity['sourceHead'] == head and identity['checkout'] == checkout and identity['prepareOnly'] is False, 'Wrong head/checkout or prepare-only evidence')
+          paths = ['index.html', 'sw.js'] + git('ls-files', 'docs/tasks/t677-shots').decode().splitlines()
+          require([r['file'] for r in identity['files']] == paths and len(set(paths)) == len(paths), 'Incomplete exact-source manifest')
+          for row in identity['files']:
+              name = row['file']
+              actual, expected = sha(root / name), hashlib.sha256(git('show', head + ':' + name)).hexdigest()
+              require(row['equal'] is True and row['actualSHA256'] == row['headSHA256'] == actual == expected, 'Executed bytes differ from event head: ' + name)
+          meta = read(root / 'docs/tasks/t677-shots/sources.json')
+          require(identity['mainBaseline'] == meta['mainBaseline'] and identity['candidateSource'] == meta['sourceCommit'], 'Source provenance mismatch')
+          native_hash = hashlib.sha256(git('show', meta['mainBaseline'] + ':index.html')).hexdigest()
+          product_hash = sha(root / 'index.html')
+          require(identity['productSHA256'] == product_hash, 'Wrong product hash')
+          require(report['browser'].get('sandbox') is True and report['browser'].get('version'), 'Missing sandboxed browser execution')
+          require(report['dependencies']['playwright'] == '1.64.1', 'Unexpected QA dependency')
+          stage_names = ['source-and-injection', 'mapped-original-primary222', 'formal-save-product-negatives', 'product-desktop-touch', 'independent-native-process-performance']
+          require([s['name'] for s in report['stages']] == stage_names, 'Missing, duplicated or reordered stages')
+          stages = dict(zip(stage_names, report['stages']))
+          require(all(finite(s['elapsedMs']) and s['elapsedMs'] >= 0 for s in stages.values()), 'Incomplete stage timings')
+          require(stages['source-and-injection']['status'] == 'passed', 'Source/injection stage failed')
+          locations = ['primary', 'formal-save-product-negatives', 'product-desktop-touch', 'independent-performance']
+          suites = {}
+          for name, folder in zip(stage_names[1:], locations):
+              file = out / folder / 'result.json'
+              suite = read(file); suites[folder] = suite; stage = stages[name]
+              require(stage['sha256'] == sha(file) and stage['status'] == suite['status'], 'Stage receipt hash/status mismatch: ' + name)
+              if folder != 'primary': require(suite['identity'] == identity, 'Suite source identity mismatch: ' + folder)
+              if folder != 'independent-performance':
+                  checks(suite)
+                  require(stage['checks'] == len(suite['checks']), 'Stage check-count mismatch: ' + name)
+          p = suites['primary']; names = checks(p, 222)
+          require(stages['mapped-original-primary222']['exit'] == 0 and not stages['mapped-original-primary222'].get('error'), 'Primary runner did not exit successfully')
+          require(p['commit'] == head and p['checkout'] == checkout and p['productSHA256'] == product_hash and p['browserSandbox'] is True, 'Primary exact-source/sandbox mismatch')
+          mapping_path = root / 'docs/tasks/t677-shots/qa/coverage-map.json'
+          require(names == [r['formal'] for r in read(mapping_path)['primary']], 'Primary222 mapping incomplete')
+          require(p['coverage']['executed'] == p['coverage']['originalPrimaryCount'] == 222 and p['coverage']['mappingSHA256'] == sha(mapping_path), 'Primary coverage receipt mismatch')
+          require(p['sourceSHA256'] == sha(out / 'served/qa-product.html') and p['controlSHA256'] == sha(out / 'served/qa-native.html'), 'Executed HTML evidence missing/mismatched')
+          require(sha(out / 'served/product.html') == product_hash, 'Uninstrumented product evidence mismatch')
+          inj = read(out / 'injection.json')
+          require(inj['noStorageOrServiceWorkerReplacement'] is True and all(inj[k]['inverseExact'] is True for k in ('product', 'native')), 'Incomplete reversible injection evidence')
+          def pngs(suite, folder, expected_names=None):
+              rows = suite['screenshots']; names = [r['file'] for r in rows]
+              require(rows and len(names) == len(set(names)), 'Missing/duplicate screenshot records')
+              if expected_names is not None: require(set(names) == set(expected_names), 'Incomplete screenshot matrix')
+              for row in rows:
+                  name = row['file']; require(pathlib.Path(name).name == name and name.endswith('.png'), 'Invalid screenshot path')
+                  file = evidence_file(out / folder / name)
+                  require(file.stat().st_size <= 67108864, 'Oversized PNG evidence: ' + name)
+                  data = file.read_bytes()
+                  require(len(data) > 32 and data[:8] == b'\x89PNG\r\n\x1a\n' and data[12:16] == b'IHDR' and sha(file) == row['sha256'], 'Missing/corrupt/raw-PNG hash mismatch: ' + name)
+                  dimensions = struct.unpack('>II', data[16:24])
+                  require(all(0 < n <= 8192 for n in dimensions) and dimensions[0] * dimensions[1] <= Image.MAX_IMAGE_PIXELS, 'Unsafe PNG pixel bounds: ' + name)
+                  require(data[-12:] == b'\x00\x00\x00\x00IEND\xaeB`\x82', 'Incomplete PNG IEND: ' + name)
+                  with Image.open(io.BytesIO(data)) as image:
+                      require(image.format == 'PNG' and image.size == dimensions and image.n_frames == 1, 'Not a single complete PNG: ' + name)
+                      image.verify()
+                  with Image.open(io.BytesIO(data)) as image:
+                      image.load()
+                      require(image.size == dimensions, 'Decoded PNG dimensions mismatch: ' + name)
+                  if 'viewport' in row:
+                      v = row['viewport']; require(dimensions == (v['width'] * v['dpr'], v['height'] * v['dpr']), 'Screenshot backing dimensions mismatch')
+          pngs(p, 'primary')
+          f = suites['formal-save-product-negatives']; formal_names = checks(f, 19)
+          required_formal = ['Independent original main produces a real old city without harbor ledger', 'Old-save load/save/load keeps every native field equal to independent main', 'Second formal load/save is field-stable and adds no save schema fields', 'Loaded old city defaults OFF and has no resurrected transport ledger', 'Uninstrumented public product has no QA globals or engineering controls', 'Uninstrumented actual player check leaves cargoOFF', 'Uninstrumented actual player enable starts one30-ID batch', 'Uninstrumented actual player disable retains ledger', 'Original service worker reopens saved city offline with fresh harborOFF']
+          require(set(required_formal) <= set(formal_names), 'Missing formal old-save/PWA/product checks')
+          old = read(out / 'formal-save-product-negatives/old-native-save.json')
+          native = read(out / 'formal-save-product-negatives/native-roundtrip.json'); product = read(out / 'formal-save-product-negatives/product-roundtrip.json')
+          def saved(raw): return {k: v for k, v in json.loads(raw).items() if k != 'gameVer'}
+          require(old and all(saved(native[k]) == saved(product[k]) for k in ('first', 'second')) and json.loads(product['first']) == json.loads(product['second']), 'Old-save evidence not field-stable/equal')
+          u = suites['product-desktop-touch']; ui_names = checks(u)
+          views = [(1440, 1000, 1), (412, 915, 1), (390, 844, 1), (360, 800, 2)]
+          require([(v['width'], v['height'], v['dpr']) for v in u['viewports']] == views and all(v['touch'] == (v['width'] < 900) and v['physicalDevice'] is False for v in u['viewports']), 'Missing actual UI viewport/DPR/touch coverage')
+          labels = [str(w) + 'x' + str(h) for w, h, _ in views]
+          shots = ['default-collapsed', 'readonly-invalid-selection', 'operating-expanded', 'loaded-handoff', 'batch-scrolled', 'collapsed', 'invalid-reasons', 'invalid-primary']
+          pngs(u, 'product-desktop-touch', [v + '-' + s + '.png' for v in labels for s in shots])
+          require([e['viewport'] for e in u['events']] == labels, 'Missing per-viewport trusted event evidence')
+          for e in u['events']:
+              require(len(e['capture']) > 20 and all(x.get('trusted') is True for x in e['capture']) and not e['bubble'], 'Untrusted/missing/leaked UI input')
+              require(any(x.get('panel') and x['type'] == 'pointerdown' and x['pointerType'] == ('mouse' if e['viewport'] == labels[0] else 'touch') for x in e['capture']), 'Missing actual panel input')
+          require([r['viewport'] for r in u['pinches']] == labels[1:], 'Missing three trusted mobile pinch records')
+          for label in labels:
+              require(label + ' all tested input was browser-trusted' in ui_names and label + ' native selector fired trusted input/change' in ui_names, 'Missing trusted-input assertions')
+          for r in u['pinches']:
+              require(r['viewport'] + ' trusted two-finger pinch changes zoom without world/cargo mutation and clears pointers' in ui_names, 'Missing trusted pinch assertion')
+              a, b = r['before'], r['after']
+              require(a['camera']['z'] != b['camera']['z'] and a['worldSHA256'] == b['worldSHA256'] and a['cargo'] == b['cargo'] and not b['input']['pointers'] and not r['eventsAfter']['captured'], 'Incomplete pinch outcome')
+          perf = suites['independent-performance']; stage = stages[stage_names[-1]]
+          require(perf['status'] == 'measured' and perf.get('executionComplete') is True and perf.get('releaseReviewRequired') is True and perf.get('releaseReady') is False and perf.get('finished') and not perf.get('failure'), 'Performance incomplete or falsely release-ready')
+          completed(perf)
+          require(stage.get('executionComplete') is True and stage.get('releaseReviewRequired') is True and perf['errors'] == [] and perf['resources'] == [], 'Performance stage/runtime failure')
+          require(len(perf['questions']) == 5 and perf['protocol']['coldView'] == perf['protocol']['steady'] == 30 and perf['protocol']['pairs'] == 2 and perf['protocol']['slowFramesNeverRemoved'] is True, 'Incomplete frozen performance protocol')
+          steps = perf['steps']; require(type(steps) is int and steps == math.ceil(perf['duration'] / 250) and steps > 0, 'Incomplete performance duration')
+          trace = read(out / 'independent-performance/input-trace.json')
+          require(trace == perf['inputTrace'] and trace == [{'step': i, 'seconds': .05, 'speed': 5, 'ambientSeed': 70767700 + i} for i in range(steps)], 'Missing/partial accepted-input trace')
+          require(sha(out / 'independent-performance/busy-native-save.json') == perf['saveSHA256'], 'Missing independent native save')
+          require([(r['pair'], r['enabled']) for r in perf['runs']] == [(0, False), (0, True), (1, True), (1, False)], 'Missing independent AB/BA process arms')
+          for r in perf['runs']:
+              require(r['sourceSHA256'] == (product_hash if r['enabled'] else native_hash), 'Wrong independent arm source bytes')
+              require(r['browserProcessId'] and all(len(r['draws'][k]) == len(r[k]['raw']) == 30 for k in ('cold', 'steady')), 'Missing process/cold/steady samples')
+              require(all(r[k]['raw'] == [x['elapsedMs'] for x in r['draws'][k]] for k in ('cold', 'steady')) and r['cycle']['distribution']['raw'] == r['cycle']['raw'], 'Raw timing receipt mismatch')
+              require(r['draws']['nativeExact'] is True and r['draws']['cargoExact'] is True, 'Draw observations mutated state')
+              require(len(r['cycle']['raw']) == len(r['cycle']['trace']) == steps and [x['i'] for x in r['cycle']['trace']] == list(range(steps)), 'Truncated cycle evidence')
+              require(all(finite(x) for k in ('cold', 'steady') for x in r[k]['raw']) and all(finite(x) for x in r['cycle']['raw']), 'Invalid raw timing')
+              if r['enabled']:
+                  frame = r['cycle']['frame']; require(frame['owner'] == 'dispatched' and frame['counts']['total'] == len(frame['manifest']) == len({x['id'] for x in frame['manifest']}) == 30, 'Product cycle did not finish conserved30')
+          for pair in (0, 1):
+              a, b = [r for r in perf['runs'] if r['pair'] == pair]
+              require(a['browserProcessId'] != b['browserProcessId'] and a['initial']['native'] == b['initial']['native'] and a['cycle']['before'] == b['cycle']['before'] and a['cycle']['after'] == b['cycle']['after'], 'Not independent matched native processes')
+          require([r['pair'] for r in perf['comparisons']] == [0, 1] and [r['enabled'] for r in perf['instrumented']] == [False, True] and all(len(r['frames']) == 30 for r in perf['instrumented']), 'Missing paired comparisons/instrumented evidence')
+          receipt = {'status': 'evidence-complete-not-release-approved', 'sourceHead': head, 'checkout': checkout, 'productSHA256': product_hash, 'primaryChecks': 222, 'formalChecks': len(f['checks']), 'uiChecks': len(u['checks']), 'uiRawPNGs': len(u['screenshots']), 'performanceArms': len(perf['runs']), 'releaseReviewRequired': True, 'releaseReady': False}
+          (out / 'completion-verification.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt))
+          PY678
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Town-main-port-T677-${{ github.sha }}
+          path: evidence/port-t677/
+          if-no-files-found: error
+          retention-days: 90
   gate:
     # T641：唯一的必要檢查（業主在 GitHub 規則集只要求它）。docs 道：scope＋validate 綠；full 道：每一道都要綠。
     if: ${{ always() }}
-    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, frame, ratchet]
+    needs: [scope, validate, browser, package, pages-browser, approved-art-release, approved-fire-release, scene602, fp, frame, ratchet, port-t677]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -543,7 +760,7 @@ jobs:
           import json, os, sys
           lane, needs = os.environ.get('LANE', ''), json.loads(os.environ['NEEDS'])
           res = {k: v['result'] for k, v in needs.items()}
-          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'frame', 'ratchet']
+          heavy = ['browser', 'package', 'pages-browser', 'approved-art-release', 'approved-fire-release', 'scene602', 'fp', 'frame', 'ratchet', 'port-t677']
           bad = [k for k in ('scope', 'validate') if res.get(k) != 'success']
           # T642（Codex #29 P1）：必要檢查只看提交上最新的 gate，手動 dispatch 的綠 gate 會蓋掉 PR 那輪的紅 gate。
           # dispatch 只用來跑只紀錄的 native-acceptance，一律判紅（fail-closed；不用 skipped，skipped 會被當成通過）。
