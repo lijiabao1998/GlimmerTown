@@ -19595,3 +19595,5 @@ for(const [name675,file675,args675] of [
 
 /* T715：draw() 逐格迴圈只掃可見範圍——範圍保守（隨機鏡頭暴力比對，含園區與高塔）、五段迴圈都照舊過原本的可見判斷；只追加，既有斷言一字不改。 */
 {const r715=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t715-shots/check-715.cjs')],{cwd:__dirname,encoding:'utf8',timeout:240000});let j715=null;try{j715=JSON.parse(r715.stdout);}catch{}assert(r715.status===0&&j715&&j715.passed===true&&j715.result.G1.objectTilesChecked>100000&&j715.result.G2.loops===5&&j715.result.G3.maxLot<=9&&j715.negativeControls.length===2,'T715 G1–G4 可見範圍保守、五段迴圈照舊過可見判斷、園區不超過 9×9、兩負控制首紅在 G1：'+r715.stderr);}
+/* T717：業主授權在 T603 原生區塊外裁切，不改 T603 G4/G4a/G4b 與 native603；幾何與負控制不是畫面批准。 */
+{const r717=childProcess.spawnSync(process.execPath,[path.join(__dirname,'docs/tasks/t717-shots/check-717.cjs')],{cwd:__dirname,encoding:'utf8',timeout:60000});let j717=null;try{j717=JSON.parse(r717.stdout);}catch{}assert(r717.status===0&&j717&&j717.passed===true&&j717.result.G1.byteIdentical&&j717.result.G2.trials===2000&&j717.result.G3.trials===2000&&j717.negativeControls.length===5,'T717 G1–G4 原生兩塊不動、2000組變換與原生呼叫幾何、雙閥、五破壞首紅：'+r717.stderr);}
