@@ -536,6 +536,50 @@ html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-
 .p432a.bad{border-color:rgba(206,84,74,.68)}.p432a.bad .p432aTop b,.p432a.bad .p432aState{color:#e08a80}.p432a.bad .p432aBar i{background:#d86e68}
 .p432a.na{opacity:.68}.p432a.na .p432aBar{display:none}
 @media (max-width:340px){.p432aTop{display:block}.p432aState{text-align:left;margin-top:2px}}
+/* ===== T679：手機上下操作列共用表面與安全區；桌面、DOM 與事件沿用原路 ===== */
+@media (max-width:899px){
+  html.ui679{--dock679:max(8px,env(safe-area-inset-bottom));--tools-exp-h:206px;
+    --dock-top679:calc(var(--dock679) + 74px + 6px + 50px)}
+  html.ui679 #hud{gap:6px;padding:8px max(8px,env(safe-area-inset-right)) 8px max(8px,env(safe-area-inset-left));
+    padding-top:max(8px,env(safe-area-inset-top));background:var(--panel-bg);border-bottom:1px solid var(--panel-border);font-size:12px}
+  html.ui679 #hud .chip{min-height:28px;padding:3px 6px;line-height:20px;background:#181f36;border-radius:8px}
+  html.ui679 #hud .spacer{flex:0 0 100%;height:0}
+  html.ui679 #hud .hudGrp552{display:contents}
+  html.ui679 #hud .hbtn{min-width:40px;min-height:40px;padding:6px 3px;line-height:24px;font:inherit;
+    background:#181f36;border-color:var(--panel-border-soft);border-radius:8px}
+  html.ui679 #hud .hbtn.on{background:#3a5a2f;border-color:var(--accent-green)}
+  html.ui679 #rci{height:28px}html.ui679 #rci .col{height:20px}
+  html.ui679 #tools,html.ui679 #toolcats{left:max(8px,env(safe-area-inset-left));
+    right:calc(max(8px,env(safe-area-inset-right)) + 48px);width:auto;max-width:none;transform:none;
+    gap:6px;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;box-shadow:var(--shadow-panel);touch-action:pan-x}
+  html.ui679 #tools{bottom:var(--dock679);padding:6px 52px 6px 6px}
+  html.ui679 #toolcats{bottom:calc(var(--dock679) + 80px);padding:4px}
+  html.ui679 #toolcats button{min-width:48px;min-height:40px;padding:6px 10px;font:inherit;font-size:12px;
+    background:#181f36;border-color:var(--panel-border-soft);border-radius:8px;white-space:nowrap}
+  html.ui679 #toolcats button.on{border-color:var(--accent);background:#33395e;color:#ffe9ad}
+  html.ui679 .tool{width:56px;min-width:56px;height:60px;font:inherit;font-size:11px;border-width:1px;border-radius:8px}
+  html.ui679 .tool .ic{font-size:20px;line-height:22px}html.ui679 .tool .pr{font-size:10px}
+  html.ui679 #toolsExp{top:6px;right:6px;width:40px;height:40px;font:inherit;font-size:16px;border-radius:8px}
+  html.ui679 body.toolsExp{--dock-top679:calc(var(--dock679) + var(--tools-exp-h) + 6px + 50px)}
+  html.ui679 body.toolsExp #tools{width:auto;height:var(--tools-exp-h);max-height:var(--tools-exp-h);align-content:flex-start;touch-action:pan-y}
+  html.ui679 body.toolsExp #toolcats{bottom:calc(var(--dock679) + var(--tools-exp-h) + 6px)}
+  html.ui679 #zoomer{right:max(8px,env(safe-area-inset-right));bottom:var(--dock679);gap:6px}
+  html.ui679 #zoomer button{width:40px;height:40px;background:#181f36;border:1px solid var(--panel-border);border-radius:8px}
+  html.ui679 #hint{top:calc(var(--hud-h,40px) + 8px)!important;left:max(8px,env(safe-area-inset-left));
+    right:calc(max(8px,env(safe-area-inset-right)) + 152px);transform:none;max-width:none;padding:6px 8px;font-size:12px}
+  html.ui679 #mini{top:calc(var(--hud-h,40px) + 8px);right:max(8px,env(safe-area-inset-right));width:96px;height:96px}
+  html.ui679 #miniToggle{top:calc(var(--hud-h,40px) + 8px);right:calc(max(8px,env(safe-area-inset-right)) + 104px);width:40px;height:40px;line-height:36px;font-size:14px}
+  html.ui679 #toasts{bottom:calc(var(--dock-top679) + 8px)}
+  /* 資訊面板沿用覆蓋式底錨：橫向展開工具列時仍有可讀內容高度。 */
+  html.ui679 #info{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(80px,env(safe-area-inset-bottom));
+    max-width:min(70vw,calc(100vw - max(8px,env(safe-area-inset-left)) - max(8px,env(safe-area-inset-right))));
+    max-height:max(0px,calc(100vh - var(--hud-h,40px) - max(80px,env(safe-area-inset-bottom)) - 12px))}
+  html.ui679 #hud .hbtn:focus-visible,html.ui679 #toolcats button:focus-visible,html.ui679 .tool:focus-visible,
+  html.ui679 #toolsExp:focus-visible,html.ui679 #zoomer button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+}
+@media (max-width:600px){html.ui679 #info{max-width:calc(100vw - max(8px,env(safe-area-inset-left)) - max(8px,env(safe-area-inset-right)))}}
+@media (max-width:360px){html.ui679 #hud{gap:4px}}
+@media (max-width:899px) and (orientation:landscape){html.ui679{--tools-exp-h:140px}}
 </style>
 </head>
 <body>
@@ -802,7 +846,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.250'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.251'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -31915,6 +31959,9 @@ const startEl=$('#start');
 if(!window.__noTitle428){try{if(/[?&]noT428=1/.test(location.search)||localStorage.getItem(SAVEKEY+'.noT428')==='1')window.__noTitle428=true;}catch(e){}}
 // 掛載：harness 的 documentElement 可能無 classList，故逐層可選保護（同 window.ResizeObserver&& 慣例）
 if(window.__noTitle428&&document.documentElement&&document.documentElement.classList)document.documentElement.classList.add('noT428');
+/* T679：只掛手機樣式旗標；載入前的 window 閥與網址閥都退回原 UI。 */
+function t679On(){return !(window.__noT679||/(?:^|[?&])noT679(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''));}
+if(t679On()&&document.documentElement&&document.documentElement.classList)document.documentElement.classList.add('ui679');
 const moreEl=$('#startMore')||startEl; // T158：次級選項分組容器（難度/挑戰/戰役收攏於此，視覺降階），缺容器時退回 startEl 保底
 /* T515：真瀏覽器有三個語義 section；Node mock 不會建靜態 class tree，故每個目標都有無副作用回退。
    回退只服務測試 harness，正式 DOM 一律落到對應 group；不改任何按鈕 id／事件／儲存鍵。 */

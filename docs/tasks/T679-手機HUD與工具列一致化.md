@@ -49,4 +49,17 @@ Canvas／引擎／模擬／經濟／平衡／價格／存檔格式／閾值／�
 
 ## 沒做成的事
 
-尚未施工／候選驗收；原始 Library 圖片尚無可讀位元；session_audit.py 因本地 gh Forbidden 未完成。
+原始 Library 圖片尚無可讀位元，未完成原圖比較；session_audit.py 因本地 gh Forbidden 未完成；最終提交的完整 CI／官方 Codex 審查尚待記錄於 PR78，未合併／未發布。
+
+
+## 施工與首紅紀錄（2026-10-27）
+
+- 卡面第一提交 6dcdbf1af729211748c56e715646bd0bc95ed633，Draft PR78；卡頭與上述驗收條件原封保留。
+- 本體只加 T679 mobile CSS、t679On／root class 和版本字；既有 CSS／DOM／事件／Canvas／T715／T717／模擬與存檔程式逐字保留。新閥只加 valves；APPROVED_ART 的批准批次未動。
+- 主操作最小40×40，工具56×60，分類與工具共用安全底距及縮放通道；原工具橫滑、展開縱滑與返回頂端收合的行為保留。資訊面板沿用可覆蓋工具的原底錨，避免橫屏展開後只剩一行內容；雙側 safe-area、HUD 下方限高另驗。
+- 同模型獨立代理覆核抓到320px旋轉鈕40.09375px造成6+6+1，修為40px後7+6、HUD213→169px。另修面板雙邊安全區；獨立844×390非零安全區真touch Stats開／關、展開面板197px可讀高度通過。這是同模型獨立覆核，不是外部第三方或官方GitHub Codex簽核。
+- 首輪原樣verify：4279 PASS、T270 PNG環境首紅；依既有setup_t602_zlib.sh隔離Pillow12.2.0／zlib-ng後，base12837 PASS與六哨兵全過。候選12840 PASS、六哨兵全過；施工中曾因新增CSS後ARCH未同步首紅，之後重新產圖並ALL GREEN。未改任何斷言或判準。
+- 新QA首輪讀5MB基底時Node預設buffer不足，保留ENOBUFS日誌並只加讀取容量。後續首紅保留：hint原inline top蓋CSS（以限定手機CSS處理）、地形類有兩個on導致locator不唯一（限定分類）、既有panelIn動畫另有0.16秒delay（等待真動畫完成）、寬橫屏分類全數可見不需捲動（只在overflow驗native scroll）。
+- 六手機／橫屏狀態、非零四邊safe-area、真touch到最後工具及返回收合、最後分類、速度／縮放／面板互動與query/window兩回退路已驗。Desktop computed styles／geometry已與精確base相同；完整label比較首紅差在原0.35秒數字動畫仍差1（如2098→2099、982→983），固定等待不是定稿證據，改驗可見數字已穩定後再比；原失敗保留，未改產品動畫。最後比較與exact-head結果以PR78收據為準。
+- safe-area定向壞法首紅為「safe-area HUD」，分類bottom=0壞法首紅為「dock separation」，兩者均exit1，未落其他守衛；未刪既有守衛／閾值。
+- 所有原PNG、每次首紅與完整log留在本次獨立evidence目錄，交付時另存可下載證據。正式產品仍T717 v11.250；本分支v11.251僅Draft。
