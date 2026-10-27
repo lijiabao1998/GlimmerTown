@@ -49,7 +49,7 @@ function worker(code){
   const handlers={},calls={open:[],addAll:[],deleted:[],claimed:0,skip:0};
   const owned=[CACHE_PREFIX+'v0.0.1',CACHE_PREFIX+'v0.0.2'];
   const keep=['glimmerville-shell-v11.211','gv-v1','gv-v2','lab-shell-vT731','unrelated',CACHE_NAME];
-  vm.runInNewContext(code,{URL,Set,Response,self:{location:new URL('https://lijiabao1998.github.io/GlimmerTown/sw.js'),registration:{scope:'https://lijiabao1998.github.io/GlimmerTown/'},addEventListener:(k,f)=>handlers[k]=f,skipWaiting:async()=>{calls.skip++;},clients:{claim:async()=>{calls.claimed++;}}},caches:{open:async k=>{calls.open.push(k);return{addAll:async a=>calls.addAll.push(Array.from(a))};},keys:async()=>[...owned,...keep],delete:async k=>{calls.deleted.push(k);return true;}}});
+  vm.runInNewContext(code,{URL,Set,Response,self:{location:new URL('https://game.lijiabao.uk/glimmertown/sw.js'),registration:{scope:'https://game.lijiabao.uk/glimmertown/'},addEventListener:(k,f)=>handlers[k]=f,skipWaiting:async()=>{calls.skip++;},clients:{claim:async()=>{calls.claimed++;}}},caches:{open:async k=>{calls.open.push(k);return{addAll:async a=>calls.addAll.push(Array.from(a))};},keys:async()=>[...owned,...keep],delete:async k=>{calls.deleted.push(k);return true;}}});
   return {handlers,calls,owned,keep};
 }
 async function event(fn){let pending;fn({waitUntil:p=>{pending=p;}});assert(pending);await pending;}
