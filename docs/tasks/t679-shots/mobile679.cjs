@@ -33,7 +33,7 @@ async function open(name,width,height,{baseMode=false,insets=null,valve=null}={}
  if(insets)await cdp.send('Emulation.setSafeAreaInsetsOverride',{insets});
  const url=report.origin+'/'+(baseMode?'base/':'')+'index.html'+(valve==='query'?'?noT679=1':'');
  await page.goto(url,{waitUntil:'load'});
- await page.waitForFunction(()=>window.GV&&window.__boot426&&window.__boot426().ready&&document.querySelector('#boot426').classList.contains('hide'),{timeout:120000});
+ await page.waitForFunction(()=>window.GV&&window.__boot426&&window.__boot426().ready&&document.querySelector('#boot426').classList.contains('hide'),null,{timeout:120000});
  await page.locator('#bNewGame').click();
  await page.evaluate(()=>{GV.newWorldSeeded(301);GV.setSpeed(0);GV.ai(true);for(let i=0;i<6;i++)GV.step(60);GV.ai(false);GV.setSpeed(0);});
  await delay(900);
@@ -44,7 +44,7 @@ async function open(name,width,height,{baseMode=false,insets=null,valve=null}={}
   if(s.value!==key){s.value=key;s.time=performance.now();}
   const stats=GV.stats(),num=v=>Number(v.replace(/,/g,''));
   return num(values[1])===stats.pop&&num(values[2])===stats.jobs&&performance.now()-s.time>=450;
- },{timeout:15000});
+ },null,{timeout:15000});
  const state=await snap(page);check(page.url()===url&&state.title.includes('微光小鎮'),name+' page identity',{url:page.url(),title:state.title});
  check(state.slot==='3',name+' slot 3 before load',state.slot);
  check(state.buttons.length>20&&!await page.locator('#start').isVisible(),name+' meaningful game screen',state.buttons.length);
