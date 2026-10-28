@@ -96,7 +96,7 @@ function fakeRelease(version,changes={}){
 
 test('strict literals are unchanged and build-main re-exports the same namespace table',()=>{
   assert.deepEqual([...RUNTIME_FILES],['index.html','sw.js','manifest.json','icon.svg','icon-v1-192.png','icon-v1-512.png','icon-v1-maskable-512.png']);
-  assert.equal(PAGES_BASE,'https://lijiabao1998.github.io/GlimmerTown/');
+  assert.equal(PAGES_BASE,'https://game.lijiabao.uk/glimmertown/');
   assert.equal(SAVE_NAMESPACE,'glimmerville.main.v1');assert.equal(CACHE_PREFIX,'glimmerville-main-shell-');
   assert.deepEqual(JSON.parse(JSON.stringify(identity.substitutions)),{
     'index.html':[["const SAVEKEY='glimmerville.v1';","const SAVEKEY='glimmerville.main.v1';"]],

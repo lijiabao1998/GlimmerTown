@@ -32,7 +32,7 @@ const original = [
   ["const LEGACY_CACHES=new Set(['gv-v1','gv-v2']);", 'const LEGACY_CACHES=new Set([]);']
 ].reduce((text, [from, to]) => uniqueReplace(text, from, to), originalBytes.toString('utf8'));
 const ORIGIN = 'https://example.test';
-const SCOPE = `${ORIGIN}/GlimmerTown/`;
+const SCOPE = `${ORIGIN}/glimmertown/`;
 const INDEX = `${SCOPE}index.html`;
 const MANIFEST = `${SCOPE}manifest.json`;
 const CACHE = CACHE_NAME;
@@ -468,9 +468,9 @@ for (const [name, hook] of [
 
 for (const [name, request] of [
   ['non-GET', { method: 'POST' }],
-  ['cross-origin', { url: 'https://elsewhere.test/GlimmerTown/' }],
+  ['cross-origin', { url: 'https://elsewhere.test/glimmertown/' }],
   ['out of scope', { url: `${ORIGIN}/other-town/` }],
-  ['same-prefix sibling outside scope', { url: `${ORIGIN}/GlimmerTownElsewhere/` }],
+  ['same-prefix sibling outside scope', { url: `${ORIGIN}/glimmertownElsewhere/` }],
   ['nonshell asset', { mode: 'cors', url: `${SCOPE}unlisted.js` }]
 ]) {
   test(`${name} remains unintercepted`, () => {

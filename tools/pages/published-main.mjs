@@ -1,6 +1,6 @@
 /** Published main Pages / full browser-network outage acceptance, Node 22+.
  * Local raw-package CI: --site=PATH --out=EVIDENCE [--port=8933]
- * Published HTTPS:      --site=PATH --url=https://HOST/GlimmerTown/ --out=EVIDENCE
+ * Published HTTPS:      --site=PATH --url=https://HOST/glimmertown/ --out=EVIDENCE
  * Local upgrade:        --site=PATH --upgrade-from-main --out=EVIDENCE
  *   (T627: "from main" now means from the release the live Pages site serves, found in git;
  *   with no runtime change it records not-applicable-no-runtime-change and exits 0 before Chrome.)
@@ -24,7 +24,7 @@ import {loadVerifiedPackage,storageProbeSource,foreignStorageFixture,browserPrep
 import identity from './release-identity.cjs';
 
 const ROOT=fileURLToPath(new URL('../../',import.meta.url));
-const PROJECT='/GlimmerTown/',CACHE=CACHE_NAME;
+const PROJECT='/glimmertown/',CACHE=CACHE_NAME;
 const FOREIGN_CACHES=['gv-v1','gv-v2','glimmerville-shell-v11.211'];
 const SHELL=Object.keys(PINS).filter(name=>name!=='sw.js');
 export const UPGRADE_NOT_APPLICABLE='not-applicable-no-runtime-change';
@@ -46,8 +46,8 @@ export function options(args){
     assert(!out.upgradeFromMain,'upgrade mode requires the local raw-package server');
     const url=new URL(out.url);
     assert(url.protocol==='https:'&&!url.username&&!url.password&&!url.search&&!url.hash,'published URL must be ordinary HTTPS without credentials/query/fragment');
-    assert.equal(url.origin,'https://lijiabao1998.github.io','published origin must be the verified GlimmerTown GitHub Pages account');
-    assert(url.pathname===PROJECT,'published URL must end in /GlimmerTown/');out.url=url.href;
+    assert.equal(url.origin,'https://game.lijiabao.uk','published origin must be the verified GlimmerTown GitHub Pages account');
+    assert(url.pathname===PROJECT,'published URL must end in /glimmertown/');out.url=url.href;
   }
   return out;
 }
@@ -284,7 +284,7 @@ async function seedForeignCaches(names){
   if((await caches.keys()).length)throw Error('Fresh profile must have no caches before fixture seeding');
   for(const name of names){
     const cache=await caches.open(name);
-    for(const pathname of ['/GlimmerTown-lab/index.html','/GlimmerTown/index.html']){
+    for(const pathname of ['/GlimmerTown-lab/index.html','/glimmertown/index.html']){
       await cache.put(location.origin+pathname,new Response('FAKE LAB SENTINEL '+name+' '+pathname,{headers:{'content-type':'text/plain','x-fake-lab-sentinel':name}}));
     }
   }

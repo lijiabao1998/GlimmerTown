@@ -19,7 +19,7 @@ function probe(){
     key(index){return [...this.values.keys()][index]??null;}
   }
   const events=[],backing=new Storage();
-  const ctx={Storage,location:{origin:'http://127.0.0.1:8893',href:'http://127.0.0.1:8893/GlimmerTown/bootstrap'},performance:{timeOrigin:123},localStorage:backing,__pagesStorageEvent:raw=>events.push(JSON.parse(raw))};
+  const ctx={Storage,location:{origin:'http://127.0.0.1:8893',href:'http://127.0.0.1:8893/glimmertown/bootstrap'},performance:{timeOrigin:123},localStorage:backing,__pagesStorageEvent:raw=>events.push(JSON.parse(raw))};
   ctx.window=ctx;vm.createContext(ctx);
   vm.runInContext(storageProbeSource(ctx.location.origin),ctx);
   return {ctx,events,backing,read:code=>vm.runInContext(code,ctx),snapshot:()=>JSON.parse(JSON.stringify(ctx.__pagesStorageProbe.snapshot()))};
@@ -75,7 +75,7 @@ test('save fixture helper needs an explicit well-formed version equal to the run
 });
 
 test('first-visit evidence rejects worker-controlled, cached, stale, partial and unproven network loads',()=>{
-  const url='http://127.0.0.1:8893/GlimmerTown/';
+  const url='http://127.0.0.1:8893/glimmertown/';
   const valid={beforeWorker:{registrations:[],controller:null},url,expectedSHA:'exact-package-sha',
     commit:{url},response:{url,type:'Document',status:200,fromServiceWorker:false,fromDiskCache:false,fromPrefetchCache:false},
     bodySHA256:'exact-package-sha',http:[{url,status:200,finishedAt:123}]};
@@ -112,7 +112,7 @@ test('browser source requires uncontrolled network first visit and app-managed p
     assert.equal((code.match(/await navigate\(/g)||[]).length,7,'retain the seven existing controlled game navigation cases');
   };
   validate(source);
-  assert.throws(()=>validate(source.replace('const firstVisitBefore = await ev(',"await navigator.serviceWorker.register('/GlimmerTown/sw.js'); const firstVisitBefore = await ev(")),/never register/);
+  assert.throws(()=>validate(source.replace('const firstVisitBefore = await ev(',"await navigator.serviceWorker.register('/glimmertown/sw.js'); const firstVisitBefore = await ev(")),/never register/);
   const cacheGate="await verifyAllShellBodies('app-managed first install complete before controlled navigation or outage')";
   const moved=source.replace(cacheGate,'null').replace('const firstVisitBefore = await ev(',cacheGate+'; const firstVisitBefore = await ev(');
   assert.throws(()=>validate(moved),/out-of-order/);

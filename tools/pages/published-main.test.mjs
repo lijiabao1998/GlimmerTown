@@ -6,7 +6,7 @@ import {options,chromeArgs,verifyAssetResponse,denyProxyRequest,proxyTargetsOrig
 import {loadVerifiedPackage} from './browser-main.mjs';
 import {PINS,sha256} from './build-main.mjs';
 
-const base='https://lijiabao1998.github.io/GlimmerTown/';
+const base='https://game.lijiabao.uk/glimmertown/';
 const pack=loadVerifiedPackage();after(()=>pack.cleanup());
 const mime=name=>name.endsWith('.html')?'text/html; charset=utf-8':name.endsWith('.js')?'application/javascript':name.endsWith('.json')?'application/json':name.endsWith('.svg')?'image/svg+xml':'image/png';
 function response(name,{body=pack.files.get(name),status=200,type=mime(name),url=base+name,redirected=false}={}){
@@ -16,8 +16,8 @@ function response(name,{body=pack.files.get(name),status=200,type=mime(name),url
 
 test('publication options permit only the known HTTPS project and isolated local ports',()=>{
   assert.equal(options([]).port,8933);assert.equal(options(['--url='+base]).url,base);
-  assert.equal(options(['--url=https://lijiabao1998.github.io:443/GlimmerTown/']).url,base);
-  for(const url of ['http://lijiabao1998.github.io/GlimmerTown/','https://someone-else.github.io/GlimmerTown/',base+'?x=1',base+'#x','https://user@lijiabao1998.github.io/GlimmerTown/','https://lijiabao1998.github.io:8443/GlimmerTown/','https://lijiabao1998.github.io/GlimmerTown-lab/'])assert.throws(()=>options(['--url='+url]));
+  assert.equal(options(['--url=https://game.lijiabao.uk:443/glimmertown/']).url,base);
+  for(const url of ['http://game.lijiabao.uk/glimmertown/','https://someone-else.github.io/glimmertown/',base+'?x=1',base+'#x','https://user@game.lijiabao.uk/glimmertown/','https://game.lijiabao.uk:8443/glimmertown/','https://game.lijiabao.uk/GlimmerTown-lab/'])assert.throws(()=>options(['--url='+url]));
   for(const port of [8123,8199,8000,65000,8933.5])assert.throws(()=>options(['--port='+port]));
   assert.throws(()=>options(['--port=8933','--port=8934']),/Duplicate/);assert.throws(()=>options(['--headless']),/Unknown/);
 });
@@ -51,20 +51,20 @@ test('asset verification rejects truncated, oversized and equal-length altered b
 });
 
 test('rejecting proxy destroys HTTP and CONNECT sockets without forwarding or returning an application response',()=>{
-  for(const request of [{method:'GET',url:'http://127.0.0.1:8933/GlimmerTown/'},{method:'CONNECT',url:'lijiabao1998.github.io:443'}]){
+  for(const request of [{method:'GET',url:'http://127.0.0.1:8933/glimmertown/'},{method:'CONNECT',url:'game.lijiabao.uk:443'}]){
     let destroyed=0;const rows=[];denyProxyRequest(request,{destroy(){destroyed++;}},row=>rows.push(row));
     assert.equal(destroyed,1);assert.equal(rows.length,1);assert.equal(rows[0].target,request.url);assert.equal(rows[0].method,request.method);assert(Number.isFinite(rows[0].deniedAt));
   }
 });
 
 test('proxy evidence recognizes default HTTPS CONNECT authority while excluding unrelated hosts and ports',()=>{
-  const origin='https://lijiabao1998.github.io';
-  assert(proxyTargetsOrigin({method:'CONNECT',target:'lijiabao1998.github.io:443'},origin));
-  assert(proxyTargetsOrigin({method:'CONNECT',target:'LIJIABAO1998.GITHUB.IO:443'},origin));
+  const origin='https://game.lijiabao.uk';
+  assert(proxyTargetsOrigin({method:'CONNECT',target:'game.lijiabao.uk:443'},origin));
+  assert(proxyTargetsOrigin({method:'CONNECT',target:'GAME.LIJIABAO.UK:443'},origin));
   assert(proxyTargetsOrigin({method:'GET',target:base+'index.html'},origin));
-  assert(proxyTargetsOrigin({method:'GET',target:'http://127.0.0.1:8933/GlimmerTown/'},'http://127.0.0.1:8933'));
-  for(const target of ['lijiabao1998.github.io','lijiabao1998.github.io:80','lijiabao1998.github.io:8443','lijiabao1998.github.io.evil.test:443','elsewhere.test:443'])assert(!proxyTargetsOrigin({method:'CONNECT',target},origin));
-  assert(!proxyTargetsOrigin({method:'GET',target:'https://lijiabao1998.github.io.evil.test/GlimmerTown/'},origin));
+  assert(proxyTargetsOrigin({method:'GET',target:'http://127.0.0.1:8933/glimmertown/'},'http://127.0.0.1:8933'));
+  for(const target of ['game.lijiabao.uk','game.lijiabao.uk:80','game.lijiabao.uk:8443','game.lijiabao.uk.evil.test:443','elsewhere.test:443'])assert(!proxyTargetsOrigin({method:'CONNECT',target},origin));
+  assert(!proxyTargetsOrigin({method:'GET',target:'https://game.lijiabao.uk.evil.test/glimmertown/'},origin));
 });
 
 test('offline proof accepts persistent Cache Storage while rejecting network/HTTP-cache/fallback sources, process reuse and leaks',()=>{
