@@ -1,5 +1,5 @@
 # T679 手機 HUD、分類與工具列一致化候選
-<!-- card: families=無; valve=?noT679 / window.__noT679; owner_ok=; removed_asserts=0 -->
+<!-- card: families=無; valve=?noT679 / window.__noT679; owner_ok=業主 2026-10-27 對「Town PR78 你接受這批圖、要合併嗎？」選「圖我看過，接受，合」; removed_asserts=0 -->
 
 **發卡／施工**：GPT (Codex)，2026-10-27；業主有界 UI 指示。
 **claim**：GPT (Codex)；分支 `gpt/town-mobile-ui-t679`；base `ffd4d36c1c54274667d402e0d5a9a6866c3c068b`（T717 v11.250）。
@@ -63,3 +63,10 @@ Canvas／引擎／模擬／經濟／平衡／價格／存檔格式／閾值／�
 - 六手機／橫屏狀態、非零四邊safe-area、真touch到最後工具及返回收合、最後分類、速度／縮放／面板互動與query/window兩回退路已驗。Desktop computed styles／geometry已與精確base相同；完整label比較首紅差在原0.35秒數字動畫仍差1（如2098→2099、982→983），固定等待不是定稿證據，改驗可見數字已穩定後再比；原失敗保留，未改產品動畫。最後比較與exact-head結果以PR78收據為準。
 - safe-area定向壞法首紅為「safe-area HUD」，分類bottom=0壞法首紅為「dock separation」，兩者均exit1，未落其他守衛；未刪既有守衛／閾值。
 - 所有原PNG、每次首紅與完整log留在本次獨立evidence目錄，交付時另存可下載證據。正式產品仍T717 v11.250；本分支v11.251僅Draft。
+
+## 合併前同步（2026-10-28，Claude）
+
+- 業主 2026-10-27 看過 GPT 交付的 4 張官方原圖後，選「圖我看過，接受，合」（卡頭 owner_ok 由空寫成這句原話；families、valve、removed_asserts 未動）。
+- 順序：T718（PR79，v11.251）先合。理由是倉庫改名後，舊網址 `https://lijiabao1998.github.io/GlimmerTown/` 只回 301，本分支原有的 `fetchLiveFile`（`redirect: 'error'`）實測連試 6 次都失敗，pages-browser 必紅。PR79 已於 2026-10-28 以 merge commit `fd9ea8c` 合入 main；Codex 卡住，業主同意只對 PR79 這一次豁免。
+- 本分支做了兩件事：用 merge commit 接上 main `fd9ea8c`，以及用 `tools/bump.py` 升到 v11.252。唯一的衝突在 `docs/ARCH.md`：兩邊錨點集合完全相同，只差行號；取本分支版本後以 `tools/arch_map.py --fix` 重算。README 版本行、ARCH 現況與行數、CHANGELOG 本卡條目同步。產品 CSS／DOM／t679On 逐字未動；T718 的 `<head>` 標籤由合併帶入。
+- 未改任何斷言、守衛、tools、.github 或判準。最終 head 的完整 CI 與 Codex 審查以 PR78 收據為準；之前在 eeb0e16 跑過的綠燈不能代替新 head。
