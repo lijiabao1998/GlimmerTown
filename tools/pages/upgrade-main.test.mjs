@@ -26,7 +26,7 @@ let realPair=null;
 const livePair=()=>realPair??=liveRelease(ROOT).then(prev=>({prev,plan:upgradePlan(pack.files,prev)}));
 // The real-pair boot test's skip reason; it may only ever come from the resolved pair's skipReason.
 const bootSkip=pair=>pair.skipReason?`${pair.skipReason}: live ${pair.commit} (${pair.version}) has the same seven runtime files as ${pair.current.commit} (${pair.current.version})`:false;
-const base='http://127.0.0.1:8933/GlimmerTown/',NS=SAVE_NAMESPACE,slot=NS+'.s3';
+const base='http://127.0.0.1:8933/glimmertown/',NS=SAVE_NAMESPACE,slot=NS+'.s3';
 const foreignCaches=['gv-v1','gv-v2','glimmerville-shell-v11.211'];
 // Synthetic receipts use fixed versions, independent of the network and of this release.
 const OLD='1.0',NEW='1.1';
@@ -40,7 +40,7 @@ const T602_LIVE_PACKAGE_SHA256={'index.html':'afa22141eade4c222d7cee48dcfb1ea815
 
 test('upgrade is explicit, local-only, and starts from the exact release the live Pages site serves',async t=>{
   assert.equal(options(['--upgrade-from-main']).upgradeFromMain,true);
-  for(const args of [['--upgrade-from-main','--upgrade-from-main'],['--upgrade-from-main','--url=https://lijiabao1998.github.io/GlimmerTown/'],['--url=https://lijiabao1998.github.io/GlimmerTown/','--upgrade-from-main']])assert.throws(()=>options(args));
+  for(const args of [['--upgrade-from-main','--upgrade-from-main'],['--upgrade-from-main','--url=https://game.lijiabao.uk/glimmertown/'],['--url=https://game.lijiabao.uk/glimmertown/','--upgrade-from-main']])assert.throws(()=>options(args));
   const {prev,plan}=await livePair();
   assert.equal(prev.current.commit,SOURCE_COMMIT);assert.deepEqual({...prev.current.sourcePins},{...PINS});assert.equal(prev.current.version,APP_VERSION);
   const found=identity.releaseAt(ROOT,prev.commit);

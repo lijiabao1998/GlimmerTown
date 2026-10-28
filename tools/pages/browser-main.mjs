@@ -2,7 +2,7 @@
  * node tools/pages/browser-main.mjs --site=dist/main-pages --out=evidence/pages --port=8893
  * --check verifies package/source and instrumentation syntax without a browser.
  * Test-only storage observation and SW delay/failure controls are in memory.
- * Local same-origin /GlimmerTown/ simulation; no published HTTPS, art or FPS claim.
+ * Local same-origin /glimmertown/ simulation; no published HTTPS, art or FPS claim.
  * Browser worker-version update/replacement is not exercised by this harness.
  */
 import assert from 'node:assert/strict';
@@ -18,7 +18,7 @@ import { buildMain, verifyPackagedFile, PINS, SAVE_NAMESPACE, SOURCE_COMMIT, APP
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const arg = (name, fallback) => process.argv.find(x => x.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
-const PROJECT = '/GlimmerTown/';
+const PROJECT = '/glimmertown/';
 const CACHE = CACHE_NAME;
 const FOREIGN_NAMESPACE = 'glimmerville.v1';
 // Lab (shared-origin) sentinels: the historical Lab shell plus the Lab shell of this release's version.
@@ -340,7 +340,7 @@ export async function run() {
   const instrumented = instrumentWorker(sw);
   fs.writeFileSync(path.join(OUT, 'sw-main-instrumented.txt'), instrumented);
   const report = {
-    status: 'running', scope: 'Local same-origin /GlimmerTown/ Pages package simulation; no real published HTTPS verification, renderer or art changes',
+    status: 'running', scope: 'Local same-origin /glimmertown/ Pages package simulation; no real published HTTPS verification, renderer or art changes',
     browserWorkerVersionUpdate: 'not-run; cache-version activation behavior is covered only by separate Node contracts',
     sourceCommit: SOURCE_COMMIT, node: process.version, site: SITE, origin: ORIGIN, projectPath: PROJECT, saveNamespace: SAVE_NAMESPACE, cacheName: CACHE,
     appVersion: APP_VERSION, sourceIndexSHA256: PINS['index.html'], sourceSwSHA256: PINS['sw.js'], packageFiles: Object.fromEntries([...pack.files].map(([name, bytes]) => [name, { bytes: bytes.length, sha256: sha(bytes) }])),
@@ -507,7 +507,7 @@ export async function run() {
       if((await caches.keys()).length)throw Error('Expected a fresh Cache Storage');
       for(const name of ${JSON.stringify(FOREIGN_CACHES)}){
         const cache=await caches.open(name);
-        for(const pathname of ['/GlimmerTown-lab/index.html','/GlimmerTown/index.html']){
+        for(const pathname of ['/GlimmerTown-lab/index.html','/glimmertown/index.html']){
           await cache.put(location.origin+pathname,new Response('FAKE LAB SENTINEL '+name+' '+pathname,{status:200,headers:{'content-type':'text/plain','x-fake-lab-sentinel':name}}));
         }
       }
