@@ -1,0 +1,131 @@
+PASS: T603 native frozen T603 candidate is 4dd0fa4 index.html from git objects
+PASS: T603 native frozen history refuses any commit other than 329f660 and 4dd0fa4
+PASS: T603 native production has no T603 clip helper, calls, or clip-mode escape
+PASS: T603 native unchanged native reflection save/filter/alpha/draw/restore block
+PASS: T603 native unchanged native shadow save/filter/alpha/draw/restore block
+PASS: T603 native exactly two original native filter sites
+PASS: T603 native unique new art block for exact-base reconstruction
+PASS: T603 native exact-base inverse anchor const GAME_VER='11.212'
+PASS: T603 native exact-base inverse anchor objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.l
+PASS: T603 native exact-base inverse anchor objs.push({dep:lifeDepth603(x,y,t.bld,t.bld.l
+PASS: T603 native exact-base inverse anchor   if(LOT603.has(k)&&t603On())return Math.max(
+PASS: T603 native exact-base inverse anchor &&!(LOT603.has(k)&&t603On())
+PASS: T603 native exact-base inverse anchor if(LOT603.has(k)&&t603On())return '_t603_s'+s
+PASS: T603 native exact-base inverse anchor if(b&&LOT603.has(b.k)&&t603On())return v603(b
+PASS: T603 native exact-base inverse anchor   if(LOT603.has(k)&&t603On()){const r603=bake
+PASS: T603 native reconstructed base exactly matches immutable main index SHA256
+PASS: T603 native approved art, variant hooks and owner/dog depth preserved in exact clean native candidate
+PASS: T603 native clean art inverse matches immutable main hash
+PASS: T603 native frozen inverse reproduces the 329f660 live release index.html exactly (11.211)
+PASS: T603 native current index.html: production has no T603 clip helper, calls, or clip-mode escape
+PASS: T603 native current index.html: unchanged native reflection save/filter/alpha/draw/restore block
+PASS: T603 native current index.html: unchanged native shadow save/filter/alpha/draw/restore block
+PASS: T603 native current index.html: exactly two original native filter sites
+PASS: T603 native structural contract rejects reflection alpha on frozen T603
+PASS: T603 native structural contract rejects reflection alpha on current index.html
+PASS: T603 native source contract rejects reflection alpha
+PASS: T603 native structural contract rejects shadow draw bounds on frozen T603
+PASS: T603 native structural contract rejects shadow draw bounds on current index.html
+PASS: T603 native source contract rejects shadow draw bounds
+PASS: T603 native structural contract rejects added native clip on frozen T603
+PASS: T603 native structural contract rejects added native clip on current index.html
+PASS: T603 native source contract rejects added native clip
+PASS: T603 native structural contract rejects removed-helper reintroduction on frozen T603
+PASS: T603 native structural contract rejects removed-helper reintroduction on current index.html
+PASS: T603 native source contract rejects removed-helper reintroduction
+PASS: T603 native structural contract rejects obsolete clip escape reintroduction on frozen T603
+PASS: T603 native structural contract rejects obsolete clip escape reintroduction on current index.html
+PASS: T603 native source contract rejects obsolete clip escape reintroduction
+PASS: T603 native structural contract rejects third native filter site on frozen T603
+PASS: T603 native structural contract rejects third native filter site on current index.html
+PASS: T603 native source contract rejects third native filter site
+PASS: T603 native source contract rejects approved art block drift
+PASS: T603 native source contract rejects unapproved code outside art inverse
+PASS: T603 native source contract rejects missing approved depth hook
+PASS: T603 native previous release is a full commit id
+PASS: T603 native previous release index.html matches its committed source pin
+PASS: T603 native previous release index.html is exact UTF-8
+PASS: T603 native previous release version is parsed from its own files
+PASS: T603 native previous release: production has no T603 clip helper, calls, or clip-mode escape
+PASS: T603 native previous release: unchanged native reflection save/filter/alpha/draw/restore block
+PASS: T603 native previous release: unchanged native shadow save/filter/alpha/draw/restore block
+PASS: T603 native previous release: exactly two original native filter sites
+PASS: T603 native production has no T603 clip helper, calls, or clip-mode escape
+PASS: T603 native unchanged native reflection save/filter/alpha/draw/restore block
+PASS: T603 native unchanged native shadow save/filter/alpha/draw/restore block
+PASS: T603 native exactly two original native filter sites
+PASS: T603 native frozen pair 329f660 -> 4dd0fa4 gives the same baseline evidence as the historical inverse
+PASS: T603 native current index.html: previous release is a full commit id
+PASS: T603 native current index.html: previous release index.html matches its committed source pin
+PASS: T603 native current index.html: previous release index.html is exact UTF-8
+PASS: T603 native current index.html: previous release version is parsed from its own files
+PASS: T603 native current index.html: previous release: production has no T603 clip helper, calls, or clip-mode escape
+PASS: T603 native current index.html: previous release: unchanged native reflection save/filter/alpha/draw/restore block
+PASS: T603 native current index.html: previous release: unchanged native shadow save/filter/alpha/draw/restore block
+PASS: T603 native current index.html: previous release: exactly two original native filter sites
+PASS: T603 native current index.html: production has no T603 clip helper, calls, or clip-mode escape
+PASS: T603 native current index.html: unchanged native reflection save/filter/alpha/draw/restore block
+PASS: T603 native current index.html: unchanged native shadow save/filter/alpha/draw/restore block
+PASS: T603 native current index.html: exactly two original native filter sites
+PASS: T603 native release pair binds the current index.html and reads the old side from git objects
+PASS: T603 native release pair rejects a wrong pin, version or commit id, a structurally changed old side, and a missing previous release
+PASS: T603 native PNG 3 channels / row filter 0 decodes exact RGBA
+PASS: T603 native PNG 3 channels / row filter 1 decodes exact RGBA
+PASS: T603 native PNG 3 channels / row filter 2 decodes exact RGBA
+PASS: T603 native PNG 3 channels / row filter 3 decodes exact RGBA
+PASS: T603 native PNG 3 channels / row filter 4 decodes exact RGBA
+PASS: T603 native PNG 4 channels / row filter 0 decodes exact RGBA
+PASS: T603 native PNG 4 channels / row filter 1 decodes exact RGBA
+PASS: T603 native PNG 4 channels / row filter 2 decodes exact RGBA
+PASS: T603 native PNG 4 channels / row filter 3 decodes exact RGBA
+PASS: T603 native PNG 4 channels / row filter 4 decodes exact RGBA
+PASS: T603 native identical PNG has exactly zero changed pixels
+PASS: T603 native one changed pixel counts once including alpha
+PASS: T603 native a second changed pixel is detected without tolerance
+PASS: T603 native dimension mismatch fails closed
+PASS: T603 native non-PNG fails closed
+PASS: T603 native truncated screenshot fails closed
+PASS: T603 native wrapper restores draw identity and context native
+PASS: T603 native real native draw arguments/filter/alpha preserved native
+PASS: T603 native actual mirrored fractional draw counted native
+PASS: T603 native only deliberate negative control clips native
+PASS: T603 native wrapper restores draw identity and context wrong-edge
+PASS: T603 native real native draw arguments/filter/alpha preserved wrong-edge
+PASS: T603 native actual mirrored fractional draw counted wrong-edge
+PASS: T603 native only deliberate negative control clips wrong-edge
+PASS: T603 native render exception restores original draw function
+PASS: T603 native native draw exception restores negative-control clip context
+PASS: T603 native real native draw clock advance is retained by frame bridge
+PASS: T603 native reset plus native draw produces identical post-draw snapshot clocks
+PASS: T603 native stationary post-draw presentation passes
+PASS: T603 native presentation-time clock drift rejected: visT
+PASS: T603 native presentation-time clock drift rejected: trafClock
+PASS: T603 native presentation-time clock drift rejected: waterT
+PASS: T603 native presentation-time clock drift rejected: waterF
+PASS: T603 native actor changes and resumed simulation rejected during presentation
+PASS: T603 native changed or missing sky input rejected during presentation
+PASS: T603 native frame snapshots reject live update and performance windows
+PASS: T603 native unchanged native star renderer is stable within a boot but differs across boot inputs
+PASS: T603 native shared sky setter rejects live rendering without changing stars
+PASS: T603 native shared sky setter requires explicit compositor freeze
+PASS: T603 native shared sky setter rejects live performance sampling
+PASS: T603 native malformed complete sky input fails atomically before saving or changing state
+PASS: T603 native same 90-star input restores exact unchanged native star draw commands across boots
+PASS: T603 native shared input and returned copies cannot mutate the captured sky
+PASS: T603 native wrong star input remains detectable by unchanged native star renderer
+PASS: T603 native restoring reference input recovers every native star draw command
+PASS: T603 native thaw restores original star values, array identity and running state
+PASS: T603 native dust setter rejects live or unfrozen inputs atomically
+PASS: T603 native dust setter rejects a live performance sample before saving state
+PASS: T603 native complete dust schema rejects omitted, extra, nested, accessor, sparse, nonfinite and wrong-stage fields atomically
+PASS: T603 native complete native dust input gives identical unchanged production draw commands
+PASS: T603 native caller and returned dust objects cannot mutate the installed snapshot
+PASS: T603 native one wrong native dust actor changes the exact original visible support
+PASS: T603 native restoring complete reference dust recovers every production draw command
+PASS: T603 native actual complete FX fingerprint detects every native draw, update and depth dependency
+PASS: T603 native thaw after failure restores array, all particle object identities, every field and running state
+PASS: T603 native repeated snapshot replacements retain the first original pool for thaw
+PASS: T603 native unknown original pool dependencies fail closed before overwrite
+PASS: T603 native same-task thaw verification captures detached originals before the next live RAF
+PASS: T603 native actual cleanup preserves the primary comparison failure and records secondary thaw failures
+T603_NATIVE_RESULT {"checks":130,"baseIndexSHA256":"b9190da54b0ac40ae5f64e61f7b919bb6fb46091192e2a5be9684970c9b94265","sourceSHA256":"99bea3bd0f9ec38b69f567971f8ba634b4d5211f700f151e6c77543e88a87f1d","frozenCommit":"4dd0fa4dfd27f56680e0d1b37e57842e90a45060","frozenPreviousCommit":"329f660e3d5f011ac28454cb6d6a68f8525c69cc","currentIndexSHA256":"3d738ffade77f3d8ccdff2a44e7f688f0a2446a74a7050305fa7bb888ceb15d1"}

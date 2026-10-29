@@ -1,0 +1,1769 @@
+{
+  "run": 40315117631,
+  "artifact": 12647428797,
+  "base": "34f6435a7041804ce62f98b20672cbfa60b28eb0",
+  "head": "8e061c18b3340fbdbbfef96581ba49a8b51b1d3a",
+  "checksPassed": false,
+  "firstFailure": {
+    "stage": "full-frame-browser",
+    "error": "eq failed; exact exit 1; see eq.log"
+  },
+  "stages": [
+    {
+      "name": "materialize-exact-objects",
+      "status": "passed",
+      "result": {
+        "temporaryRoot": "/tmp/t717-ci-fq5e4qlc",
+        "fullDetachedWorktrees": true
+      },
+      "seconds": 0.999
+    },
+    {
+      "name": "verify-base",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "/opt/hostedtoolcache/Python/3.13.16/x64/bin/python",
+          "tools/verify.py"
+        ],
+        "cwd": "/tmp/t717-ci-fq5e4qlc/base",
+        "log": "verify-base.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 322.81
+    },
+    {
+      "name": "verify-head",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "/opt/hostedtoolcache/Python/3.13.16/x64/bin/python",
+          "tools/verify.py"
+        ],
+        "cwd": "/tmp/t717-ci-fq5e4qlc/head",
+        "log": "verify-head.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 329.506
+    },
+    {
+      "name": "raw-suite-base",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "node",
+          "test_fixde.js"
+        ],
+        "cwd": "/tmp/t717-ci-fq5e4qlc/base",
+        "log": "raw-suite-base.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 324.271
+    },
+    {
+      "name": "suite-receipt-base",
+      "status": "passed",
+      "result": {
+        "passCount": 12833,
+        "sentinels": [
+          {
+            "name": "seed301",
+            "seed": 301,
+            "days": 400,
+            "expect": 780,
+            "actual": 780
+          },
+          {
+            "name": "seed301m",
+            "seed": 301,
+            "days": 400,
+            "expect": 2297,
+            "actual": 2297
+          },
+          {
+            "name": "seed7",
+            "seed": 7,
+            "days": 400,
+            "expect": 117,
+            "actual": 117
+          },
+          {
+            "name": "seed7m",
+            "seed": 7,
+            "days": 400,
+            "expect": 77,
+            "actual": 77
+          },
+          {
+            "name": "seed22",
+            "seed": 22,
+            "days": 400,
+            "expect": 639,
+            "actual": 639
+          },
+          {
+            "name": "seed22m",
+            "seed": 22,
+            "days": 400,
+            "expect": 14523,
+            "actual": 14523
+          }
+        ],
+        "completionMarker": true,
+        "failLines": []
+      },
+      "seconds": 0.021
+    },
+    {
+      "name": "raw-suite-head",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "node",
+          "test_fixde.js"
+        ],
+        "cwd": "/tmp/t717-ci-fq5e4qlc/head",
+        "log": "raw-suite-head.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 325.709
+    },
+    {
+      "name": "suite-receipt-head",
+      "status": "passed",
+      "result": {
+        "passCount": 12837,
+        "sentinels": [
+          {
+            "name": "seed301",
+            "seed": 301,
+            "days": 400,
+            "expect": 780,
+            "actual": 780
+          },
+          {
+            "name": "seed301m",
+            "seed": 301,
+            "days": 400,
+            "expect": 2297,
+            "actual": 2297
+          },
+          {
+            "name": "seed7",
+            "seed": 7,
+            "days": 400,
+            "expect": 117,
+            "actual": 117
+          },
+          {
+            "name": "seed7m",
+            "seed": 7,
+            "days": 400,
+            "expect": 77,
+            "actual": 77
+          },
+          {
+            "name": "seed22",
+            "seed": 22,
+            "days": 400,
+            "expect": 639,
+            "actual": 639
+          },
+          {
+            "name": "seed22m",
+            "seed": 22,
+            "days": 400,
+            "expect": 14523,
+            "actual": 14523
+          }
+        ],
+        "completionMarker": true,
+        "failLines": []
+      },
+      "seconds": 0.02
+    },
+    {
+      "name": "suite-pair",
+      "status": "passed",
+      "result": {
+        "baselinePASS": 12833,
+        "candidatePASS": 12837,
+        "sixSentinelsExact": true
+      },
+      "seconds": 0.001
+    },
+    {
+      "name": "native603",
+      "status": "passed",
+      "result": {
+        "checks": 130
+      },
+      "seconds": 1.871
+    },
+    {
+      "name": "oldsave603",
+      "status": "passed",
+      "result": {
+        "fixtures": 3
+      },
+      "seconds": 4.233
+    },
+    {
+      "name": "full-frame-browser",
+      "status": "failed",
+      "error": "eq failed; exact exit 1; see eq.log",
+      "seconds": 278.072
+    },
+    {
+      "name": "decode-and-contact-sheets",
+      "status": "failed",
+      "error": "compositor failed bounded consecutive stability",
+      "seconds": 8.295
+    },
+    {
+      "name": "interleaved-performance",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "node",
+          "/tmp/t717-ci-fq5e4qlc/head/docs/tasks/t717-shots/perfab.cjs",
+          "/tmp/t717-ci-fq5e4qlc/head/index.html",
+          "/home/runner/work/GlimmerTown/GlimmerTown/evidence/t717/receipt/perf.json"
+        ],
+        "cwd": "/tmp/t717-ci-fq5e4qlc/head",
+        "log": "perf.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 117.388
+    },
+    {
+      "name": "performance-raw-integrity",
+      "status": "passed",
+      "result": {
+        "rawSamples": 480,
+        "conditions": 6,
+        "performanceVerdict": "manual-review-required",
+        "tileHash": "b8021990caf9e3cf318c2871cedd5e34d1aeddc2ad7e0608df337ef50f23d065",
+        "city": {
+          "money": 14523,
+          "pop": 639,
+          "jobs": 2913,
+          "day": 401,
+          "buildings": 796,
+          "poweredBld": 297,
+          "roads": 285,
+          "zones": 233,
+          "happy": 0.61,
+          "dem": {
+            "1": 0.7047439979019164,
+            "2": 0.6966292134831461,
+            "3": -1
+          },
+          "cars": 0,
+          "fires": 0,
+          "ruins": 0,
+          "weather": 0,
+          "buses": 0
+        }
+      },
+      "seconds": 0.002
+    },
+    {
+      "name": "final-identity",
+      "status": "passed",
+      "result": {
+        "sourceUnchanged": true,
+        "sameCity": true
+      },
+      "seconds": 0.111
+    }
+  ],
+  "imageConditions": [
+    {
+      "id": "v55-z0.6-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 15,
+        "maxColor": 2,
+        "total": 1024000
+      },
+      "captureStable": false,
+      "captureFailures": [
+        {
+          "label": "main",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "main-repeat",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "on",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "off",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "id": "v55-z0.6-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 29,
+        "maxColor": 2,
+        "total": 1024000
+      },
+      "captureStable": false,
+      "captureFailures": [
+        {
+          "label": "main",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "main-repeat",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "on",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "off",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "id": "v55-z0.6-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 32,
+        "maxColor": 3,
+        "total": 1024000
+      },
+      "captureStable": false,
+      "captureFailures": [
+        {
+          "label": "main",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "main-repeat",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "on",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        },
+        {
+          "label": "off",
+          "failure": "T717 compositor did not converge within 8 identical-state draws"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "id": "v55-z0.6-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 35,
+        "maxColor": 2,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z1-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 1,
+        "maxColor": 40,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z1-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 10,
+        "maxColor": 36,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z1-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 16,
+        "maxColor": 49,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z1-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 16,
+        "maxColor": 36,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z2-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z2-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z2-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 46,
+        "maxColor": 45,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z2-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z3-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z3-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z3-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v55-z3-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z0.6-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 23,
+        "maxColor": 2,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z0.6-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 25,
+        "maxColor": 1,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z0.6-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 20,
+        "maxColor": 1,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z0.6-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 21,
+        "maxColor": 1,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z1-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 1,
+        "maxColor": 33,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z1-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 10,
+        "maxColor": 30,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z1-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 16,
+        "maxColor": 40,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z1-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 16,
+        "maxColor": 30,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z2-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z2-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z2-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 46,
+        "maxColor": 39,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z2-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z3-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z3-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z3-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v5-z3-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z0.6-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 27,
+        "maxColor": 3,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z0.6-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 33,
+        "maxColor": 3,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z0.6-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 30,
+        "maxColor": 3,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z0.6-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 29,
+        "maxColor": 2,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z1-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 1,
+        "maxColor": 31,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z1-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 10,
+        "maxColor": 29,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z1-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 16,
+        "maxColor": 39,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z1-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 16,
+        "maxColor": 29,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z2-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z2-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z2-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 46,
+        "maxColor": 37,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z2-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z3-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 0,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z3-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 1,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z3-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 2,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    },
+    {
+      "id": "v80-z3-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 3,
+      "aa": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 0,
+        "maxColor": 0,
+        "total": 1024000
+      },
+      "captureStable": true,
+      "captureFailures": [],
+      "passed": true
+    }
+  ],
+  "performanceSummary": [
+    {
+      "id": "day-z1",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 7.249999999883585,
+            "p95": 21.5999999998603,
+            "min": 5.300000000046566,
+            "max": 27.199999999953434
+          },
+          "total": {
+            "n": 40,
+            "median": 503.4000000000233,
+            "p95": 521.8999999999069,
+            "min": 497.69999999995343,
+            "max": 527.8000000000466
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 7.349999999976717,
+            "p95": 9.600000000093132,
+            "min": 5.800000000046566,
+            "max": 12.199999999953434
+          },
+          "total": {
+            "n": 40,
+            "median": 17.949999999953434,
+            "p95": 22.600000000093132,
+            "min": 15.5,
+            "max": 22.899999999906868
+          }
+        }
+      }
+    },
+    {
+      "id": "night-z1",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 16.800000000046566,
+            "p95": 31.300000000046566,
+            "min": 15.300000000046566,
+            "max": 32.9000000001397
+          },
+          "total": {
+            "n": 40,
+            "median": 526.1999999999534,
+            "p95": 538.8999999999069,
+            "min": 521.7000000001863,
+            "max": 543.8999999999069
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 17.699999999953434,
+            "p95": 19,
+            "min": 16.100000000093132,
+            "max": 24.800000000046566
+          },
+          "total": {
+            "n": 40,
+            "median": 41.750000000116415,
+            "p95": 44.10000000009313,
+            "min": 39.199999999953434,
+            "max": 48.5
+          }
+        }
+      }
+    },
+    {
+      "id": "day-z2",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 4,
+            "p95": 13.099999999860302,
+            "min": 3,
+            "max": 15.900000000139698
+          },
+          "total": {
+            "n": 40,
+            "median": 325.30000000004657,
+            "p95": 335.60000000009313,
+            "min": 323.0999999998603,
+            "max": 339.30000000004657
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 4.100000000093132,
+            "p95": 5.5,
+            "min": 3.1000000000931323,
+            "max": 6.399999999906868
+          },
+          "total": {
+            "n": 40,
+            "median": 16.699999999953434,
+            "p95": 19.899999999906868,
+            "min": 15.400000000139698,
+            "max": 20.100000000093132
+          }
+        }
+      }
+    },
+    {
+      "id": "night-z2",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 18.699999999953434,
+            "p95": 29.199999999953434,
+            "min": 17.5999999998603,
+            "max": 31.199999999953434
+          },
+          "total": {
+            "n": 40,
+            "median": 349.19999999995343,
+            "p95": 359.19999999995343,
+            "min": 347.60000000009313,
+            "max": 360.80000000004657
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 18.9000000001397,
+            "p95": 23.0999999998603,
+            "min": 17.5999999998603,
+            "max": 25.100000000093132
+          },
+          "total": {
+            "n": 40,
+            "median": 40.699999999953434,
+            "p95": 45.300000000046566,
+            "min": 39,
+            "max": 46.699999999953434
+          }
+        }
+      }
+    },
+    {
+      "id": "day-z0.6",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 6.5,
+            "p95": 7.800000000046566,
+            "min": 5.199999999953434,
+            "max": 25.399999999906868
+          },
+          "total": {
+            "n": 40,
+            "median": 251.44999999995343,
+            "p95": 256.4000000001397,
+            "min": 248.69999999995343,
+            "max": 275
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 6.699999999953434,
+            "p95": 7.5,
+            "min": 6.100000000093132,
+            "max": 8.199999999953434
+          },
+          "total": {
+            "n": 40,
+            "median": 21,
+            "p95": 22.799999999813735,
+            "min": 19.699999999953434,
+            "max": 23.5
+          }
+        }
+      }
+    },
+    {
+      "id": "night-z0.6",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 15.70000000006985,
+            "p95": 19.0999999998603,
+            "min": 13.699999999953434,
+            "max": 32.4000000001397
+          },
+          "total": {
+            "n": 40,
+            "median": 270.30000000004657,
+            "p95": 285.80000000004657,
+            "min": 267.80000000004657,
+            "max": 287.80000000004657
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 16.150000000023283,
+            "p95": 20.699999999953434,
+            "min": 13.5,
+            "max": 35.700000000186265
+          },
+          "total": {
+            "n": 40,
+            "median": 40.40000000002328,
+            "p95": 50.199999999953434,
+            "min": 37.39999999990687,
+            "max": 59.60000000009313
+          }
+        }
+      }
+    }
+  ],
+  "diagnosis": "All 48 AA/off differences zero; on at most46/1024000 pixels with maximum channel49. First3 day-z0.6 conditions fail bounded8-draw stability in all4 pages. Snapshot omitted native flashT=.4, reduced by .016 per draw. At global draw25 pixel(74,134,198) matches white alpha.032 and warm lighter alpha.014 over stable pixel(64,126,193); draw26/27 stable. Fix only clear-weather test freeze flashT=0, meteorTrail=null, assert both. No threshold/cap/product changes. Full original attempt PNGs/logs/raw retained in official artifact and local ZIP. This receipt is failed, not visual/performance/native/owner acceptance."
+}

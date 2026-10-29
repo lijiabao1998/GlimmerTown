@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant-TW">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -7,7 +7,22 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
-<title>微光小鎮 Glimmerville</title>
+<title>微光小鎮 Glimmerville — 免費網頁像素城市建造遊戲</title>
+<meta name="description" content="微光小鎮：原創等距像素風城市建造小遊戲。規劃道路、蓋房子、經營小鎮，免安裝，手機電腦皆可玩，可離線遊玩。">
+<link rel="canonical" href="https://game.lijiabao.uk/glimmertown/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:site_name" content="李家寶遊戲站">
+<meta property="og:title" content="微光小鎮 Glimmerville — 像素城市建造">
+<meta property="og:description" content="原創等距像素風城市建造小遊戲，免安裝即玩。">
+<meta property="og:url" content="https://game.lijiabao.uk/glimmertown/">
+<meta property="og:image" content="https://game.lijiabao.uk/thumbs/glimmertown.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="微光小鎮 Glimmerville">
+<meta name="twitter:description" content="原創等距像素風城市建造小遊戲，免安裝即玩。">
+<meta name="twitter:image" content="https://game.lijiabao.uk/thumbs/glimmertown.jpg">
 <style>
 /* ============================================================
    微光小鎮 Glimmerville — 原創等距像素城市建造小遊戲
@@ -536,6 +551,50 @@ html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-
 .p432a.bad{border-color:rgba(206,84,74,.68)}.p432a.bad .p432aTop b,.p432a.bad .p432aState{color:#e08a80}.p432a.bad .p432aBar i{background:#d86e68}
 .p432a.na{opacity:.68}.p432a.na .p432aBar{display:none}
 @media (max-width:340px){.p432aTop{display:block}.p432aState{text-align:left;margin-top:2px}}
+/* ===== T679：手機上下操作列共用表面與安全區；桌面、DOM 與事件沿用原路 ===== */
+@media (max-width:899px){
+  html.ui679{--dock679:max(8px,env(safe-area-inset-bottom));--tools-exp-h:206px;
+    --dock-top679:calc(var(--dock679) + 74px + 6px + 50px)}
+  html.ui679 #hud{gap:6px;padding:8px max(8px,env(safe-area-inset-right)) 8px max(8px,env(safe-area-inset-left));
+    padding-top:max(8px,env(safe-area-inset-top));background:var(--panel-bg);border-bottom:1px solid var(--panel-border);font-size:12px}
+  html.ui679 #hud .chip{min-height:28px;padding:3px 6px;line-height:20px;background:#181f36;border-radius:8px}
+  html.ui679 #hud .spacer{flex:0 0 100%;height:0}
+  html.ui679 #hud .hudGrp552{display:contents}
+  html.ui679 #hud .hbtn{min-width:40px;min-height:40px;padding:6px 3px;line-height:24px;font:inherit;
+    background:#181f36;border-color:var(--panel-border-soft);border-radius:8px}
+  html.ui679 #hud .hbtn.on{background:#3a5a2f;border-color:var(--accent-green)}
+  html.ui679 #rci{height:28px}html.ui679 #rci .col{height:20px}
+  html.ui679 #tools,html.ui679 #toolcats{left:max(8px,env(safe-area-inset-left));
+    right:calc(max(8px,env(safe-area-inset-right)) + 48px);width:auto;max-width:none;transform:none;
+    gap:6px;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;box-shadow:var(--shadow-panel);touch-action:pan-x}
+  html.ui679 #tools{bottom:var(--dock679);padding:6px 52px 6px 6px}
+  html.ui679 #toolcats{bottom:calc(var(--dock679) + 80px);padding:4px}
+  html.ui679 #toolcats button{min-width:48px;min-height:40px;padding:6px 10px;font:inherit;font-size:12px;
+    background:#181f36;border-color:var(--panel-border-soft);border-radius:8px;white-space:nowrap}
+  html.ui679 #toolcats button.on{border-color:var(--accent);background:#33395e;color:#ffe9ad}
+  html.ui679 .tool{width:56px;min-width:56px;height:60px;font:inherit;font-size:11px;border-width:1px;border-radius:8px}
+  html.ui679 .tool .ic{font-size:20px;line-height:22px}html.ui679 .tool .pr{font-size:10px}
+  html.ui679 #toolsExp{top:6px;right:6px;width:40px;height:40px;font:inherit;font-size:16px;border-radius:8px}
+  html.ui679 body.toolsExp{--dock-top679:calc(var(--dock679) + var(--tools-exp-h) + 6px + 50px)}
+  html.ui679 body.toolsExp #tools{width:auto;height:var(--tools-exp-h);max-height:var(--tools-exp-h);align-content:flex-start;touch-action:pan-y}
+  html.ui679 body.toolsExp #toolcats{bottom:calc(var(--dock679) + var(--tools-exp-h) + 6px)}
+  html.ui679 #zoomer{right:max(8px,env(safe-area-inset-right));bottom:var(--dock679);gap:6px}
+  html.ui679 #zoomer button{width:40px;height:40px;background:#181f36;border:1px solid var(--panel-border);border-radius:8px}
+  html.ui679 #hint{top:calc(var(--hud-h,40px) + 8px)!important;left:max(8px,env(safe-area-inset-left));
+    right:calc(max(8px,env(safe-area-inset-right)) + 152px);transform:none;max-width:none;padding:6px 8px;font-size:12px}
+  html.ui679 #mini{top:calc(var(--hud-h,40px) + 8px);right:max(8px,env(safe-area-inset-right));width:96px;height:96px}
+  html.ui679 #miniToggle{top:calc(var(--hud-h,40px) + 8px);right:calc(max(8px,env(safe-area-inset-right)) + 104px);width:40px;height:40px;line-height:36px;font-size:14px}
+  html.ui679 #toasts{bottom:calc(var(--dock-top679) + 8px)}
+  /* 資訊面板沿用覆蓋式底錨：橫向展開工具列時仍有可讀內容高度。 */
+  html.ui679 #info{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(80px,env(safe-area-inset-bottom));
+    max-width:min(70vw,calc(100vw - max(8px,env(safe-area-inset-left)) - max(8px,env(safe-area-inset-right))));
+    max-height:max(0px,calc(100vh - var(--hud-h,40px) - max(80px,env(safe-area-inset-bottom)) - 12px))}
+  html.ui679 #hud .hbtn:focus-visible,html.ui679 #toolcats button:focus-visible,html.ui679 .tool:focus-visible,
+  html.ui679 #toolsExp:focus-visible,html.ui679 #zoomer button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+}
+@media (max-width:600px){html.ui679 #info{max-width:calc(100vw - max(8px,env(safe-area-inset-left)) - max(8px,env(safe-area-inset-right)))}}
+@media (max-width:360px){html.ui679 #hud{gap:4px}}
+@media (max-width:899px) and (orientation:landscape){html.ui679{--tools-exp-h:140px}}
 </style>
 </head>
 <body>
@@ -871,7 +930,7 @@ const COMMUTE_PEN_UNREACH=.30;   // T141：不可達（孤島，無路網連到�
 const COMMUTE_TRIP_W=1;          // T141：每叢集代表每天沿快取路徑貢獻的通勤 trip 權重（累加進 roadPass/commutePass，同 T129 尺度）
 const COST={road:15,bridge:60,zone:8,park:60,plant:550,water:400,wpipe:10,doze:2,fire:400,police:500,hospital:600,clinic:250,school:350,library:280,post:320,cemetery:350,dump:300,rdec:25,hwy:45,hwyBridge:180,stad:1200,tree:5,fill:20,bus:80,rail:40,railBridge:160,station:900,port:1100,dock:80,airport:3500,oneway:20,light:60,parking:150,parkMeter:15,busLane:35,tram:70,tramStation:700,officeZone:12,farm:120,ranch:180,landmark:2000,solar:450,wind:600,sewage:500,ambulance:550,recycling:350,fireStation2:800,prison:900,university:1200,levee:60,tdig:40,tland:60,traise:50,museum:1400,theater:1100,aquarium:1700,zoo:2300,amuse:2700,cinema:550,grandlib:1900,civicHall:2000,court:900,convention:3200,institute:1600,wstation:700,botanical:2200,megahosp:2800,oilwell:1300,mine:1500,megaproject:4500,policeBox:250,bigFarm:750,bigCemetery:1400,grandStation:2200,sportsComplex:2600,foodPlant:1800,nuclear:5000,hydro:2200,geo:900,fireHQ:1600,wasteIncinerator:1800,greenhouse:950,warehouse:1200,grandMall:3000,faithCenter:1600,clockTower:1100,observatory:2400,windmill:900,skytower:1300,ancienttree:600,harborlm:900,carousel:1700,pavilion:800,lighthouse:1400,fountain:700,monument:1600,archway:1500,ferriswheel:2000,watertowerlm:1100,guesthouse:380,hotel:1500,resort:3800,kindergarten:420,seniorCenter:450,bank:1300,market:950,compost:550,tvtower:2200,marina:1700,tradepost:1100,dogpark:320,icerink:900,skatepark:550,firewatch:180,pool:650,fishpier:520,hostel:600,chapel:1250,brewery:1350,waterpark:2400,vetclinic:480,skyrest:1900,cgarden:260,crematorium:900,highschool:1600,techpark:4200,freight:1800,upcycle:1900,centralpark:2200,unicampus:6800,megaport:9500,civiccenter:3000,datacenter:3600,gaswell:1400,fertplant:1700,kitchen:1500,fishfarm:700}; // T290：大型購物中心 4×4 商業旗艦 // T280：溫室 $950（2×2 全年恆溫食物+金幣，冬季免疫） // T265：焚化發電 2×2／$1800／垃圾容量100／供電60+8/級／高污染 // T257：核電 $5000（3×3 容量250+40/級）／水力 $2200（2×2 鄰水 100+15/級）／地熱 $900（1×1 45+8/級）／消防總局 $1600（3×3 fireHQ 半徑16） // T254：食品加工廠 $1800（3×3，農場加工鏈：食物盈餘轉金幣/就業25/維護14/可升級加工容量） // T241：體育園區 $2600（3×3，就業40/幸福半徑16/維護18） // T234：中央車站 $2200（3×3，就業30/維護15/列車上限+1） // T233：大墓園 $1400（3×3，容量24/半徑16/維護8） // T228：大農場 $750（5×5，食物20/就業18/維護6） // T222：派出所 $250（警察局 $500 的小型分型，半徑 5<10、維護 1.5<4） // T95：ambulance 400→550（原價+維護皆低於醫院、效果卻等同醫院且多送5就業，數值失衡，微調拉近但仍小於醫院600、保留半徑10<12的合理折價）；T121：tdig=挖水 tland=填土 traise=抬升削平（地形筆刷，$/格）；T138：museum博物館/theater劇院/aquarium水族館/zoo動物園/amuse遊樂園/cinema電影院/grandlib圖書總館（k=35-41）；T139：civicHall市政廳/court法院/convention會展中心/institute研究院/wstation氣象站/botanical植物園/megahosp綜合醫院（k=42-48，megahosp 比照 T95 教訓：造價2800/維護16 遠高於醫院600/5，避免以超大半徑碾壓既有醫療建築）；T140：oilwell油井/mine礦場（k=49-50，需對應資源格）/megaproject太空研究中心（k=51，終局消耗supplies大型建築，比照T95教訓造價4500/維護高於一般服務建築）
 
-const GAME_VER='11.251'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
+const GAME_VER='11.253'; // T552 指令面板與 HUD 分組：13 顆平排按鈕分四語義群（純包裹層）＋Ctrl/Cmd+K 或 / 開指令面板，索引建築153/政策51/面板13＝217 個目標；核心紀律＝路由器不是第二套實作（只 .click() 既有控制項，T517 判例）；Ctrl+K 判定插在修飾鍵早退之前、面板開啟時攔截 Esc 不落到「選回第一個工具」
 Object.assign(COST,{refinery:2800,steelMill:3200,shipyard:3800}); // T364b：3×3 深加工投資
 Object.assign(COST,{basketballCourt:260,tennisCourt:300,playground:220,socialHousing:1100,substation:520,desalination:1800,pumpStation:650,disasterCenter:2100,shelterPark:850,disasterRadar:1450}); // T364c/d：休閒／社宅／防災基礎設施
 const TOOLS=[
@@ -18193,6 +18252,30 @@ function v2w(vx,vy){
   return [N-1-vy,vx];
 }
 function viewDep(x,y){const p=w2v(x,y);return p[0]+p[1];}
+/* T715：逐格迴圈只掃看得到的範圍（畫面逐位不變）。
+   水面波光、水禽、浪花與倒影、雨天水花四段，以及物件層收集，原本每幀都把全地圖逐格掃一遍再篩可見；地圖越大越慢
+   （216 格的地圖約四萬七千格，縮放 1 時白天每幀 JS 約 29 毫秒，其中一半在掃看不到的格子）。
+   改成只掃「篩選可能為真」的格子範圍：用同一組可見不等式反推，四周多留 1 格；物件層另外加大邊界，涵蓋最大 9×9 的園區與最高的塔。
+   每格照舊再過原本的可見判斷，所以畫哪些格、什麼順序都和原本一樣。?noT715=1 或 window.__noT715 退回全圖掃描。 */
+function t715On(){if(t715On.off===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t715On.off=/(?:^|[?&])noT715(?:=1)?(?:&|$)/.test(q);}return !window.__noT715&&!t715On.off;}
+const OBJPAD715=1200; // 物件層邊界多加的像素（×縮放）：9×9 園區（lotVisible574：中心偏離根格 4 格、上緣再高 9×32+136）與最高的塔（+440）都在裡面
+function visRange715(ox,oy,z,W,H,pad){ // 螢幕位置 sx/sy 落在 (-pad, W+pad)×(-pad, H+pad) 的格子，一定在這個世界座標矩形裡
+  const u0=(-pad-ox)/(32*z)+1,u1=(W+pad-ox)/(32*z)+1,s0=(-pad-oy)/(16*z),s1=(H+pad-oy)/(16*z);
+  const vx0=Math.floor((u0+s0)/2)-1,vx1=Math.ceil((u1+s1)/2)+1,vy0=Math.floor((s0-u1)/2)-1,vy1=Math.ceil((s1-u0)/2)+1;
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const q of [[vx0,vy0],[vx1,vy0],[vx0,vy1],[vx1,vy1]]){const p=v2w(q[0],q[1]);if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];}
+  return [Math.max(0,x0),Math.min(N-1,x1),Math.max(0,y0),Math.min(N-1,y1)];
+}
+/* T717：在原生投影／倒影濾鏡外包裝裝置像素裁切；四角外擴 2px，原生區塊不動。 */
+function t717On(){if(t717On.off===undefined){const q=(typeof location!=='undefined'&&location.search)||'';t717On.off=/(?:^|[?&])noT717(?:=1)?(?:&|$)/.test(q);}return !window.__noT717&&!t717On.off;}
+function clip717(g,dx,dy,dw,dh){
+  if(typeof g.getTransform!=='function'||typeof Path2D==='undefined')return;
+  const m=g.getTransform(),xs=[],ys=[];
+  for(const p of [[dx,dy],[dx+dw,dy],[dx,dy+dh],[dx+dw,dy+dh]]){xs.push(m.a*p[0]+m.c*p[1]+m.e);ys.push(m.b*p[0]+m.d*p[1]+m.f);}
+  const x0=Math.floor(Math.min(...xs))-2,y0=Math.floor(Math.min(...ys))-2,x1=Math.ceil(Math.max(...xs))+2,y1=Math.ceil(Math.max(...ys))+2;
+  const p=new Path2D();p.rect(x0,y0,x1-x0,y1-y0);
+  g.setTransform(1,0,0,1,0,0);g.clip(p);g.setTransform(m);
+}
 function isoW2V(wx,wy,off){ // T367：世界等距座標→view 等距（實體 wx/wy 用）
   off=off===undefined?16:off;
   const fx=(wx/32+(wy-off)/16)/2, fy=((wy-off)/16-wx/32)/2;
@@ -18666,6 +18749,9 @@ function draw(dt){
   const syOf=(x,y)=>{const p=w2v(x,y);return oy+((p[0]+p[1])*16)*z;};
   const pad=160*z;
   const vis=(sx,sy)=>sx>-pad&&sx<W+pad&&sy>-pad&&sy<H+pad;
+  const on715=t715On();
+  const [vx0715,vx1715,vy0715,vy1715]=on715?visRange715(ox,oy,z,W,H,pad):[0,N-1,0,N-1]; // T715：逐格迴圈只掃可能看得到的範圍
+  const [ox0715,ox1715,oy0715,oy1715]=on715?visRange715(ox,oy,z,W,H,pad+OBJPAD715*z):[0,N-1,0,N-1]; // T715：物件層（含園區、高塔）
   /* ===== T256 地圖外海洋環繞（玩家反饋：世界在懸崖處切斷、外圍一片空白天空色＝像懸浮）：在地平線（地圖鑽石頂點
      syOf(0,0)=oy）以下、groundCache 貼回前於主 ctx 填海水漸層＋波紋；groundCache 於地圖外為透明，貼回後即透出
      此海洋＝島嶼坐落海上、懸崖入海。隨白晝 b 調色、visT 決定性波紋不消耗 R()、__noSeaEdge 開關供 A/B 回歸。 ===== */
@@ -19019,7 +19105,7 @@ function draw(dt){
      首幀」＝不疊加）滿足卡面 LOD 兩檔要求 ===== */
   if(animOn&&!lodFar){
     ctx.save();
-    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    for(let y=vy0715;y<=vy1715;y++)for(let x=vx0715;x<=vx1715;x++){ // T715：只掃可見範圍，每格照舊過 vis()
       const t=T(idx(x,y));
       if(t.t!==0)continue;
       const sx=sxOf(x,y),sy=syOf(x,y);
@@ -19038,7 +19124,7 @@ function draw(dt){
   }
   if(animOn&&!lodFar&&!win&&SPR.waterfowl&&!window.__noFowl){ // T196 水面浮禽（Opus 親手，審計缺口）——水面原只有天上飛過的鳥，無浮於水上生物。稀疏(~2%)平靜水格浮一隻天鵝/鴨，visT 決定性緩慢漂移＋身後 V 形淡白尾跡；非冬(!win 避 T186 冰面)、遠景不繪、每幀動態不烘 groundCache、純 streetHash/visT 不消耗 R()，__noFowl 開關
     ctx.save();
-    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    for(let y=vy0715;y<=vy1715;y++)for(let x=vx0715;x<=vx1715;x++){ // T715：只掃可見範圍，每格照舊過 vis()
       const t=T(idx(x,y));
       if(t.t!==0||t.dock||t.bridge||t.wm)continue; // 開闊平靜水（避岸邊）
       const ph=streetHash(x,y,950);
@@ -19062,7 +19148,7 @@ function draw(dt){
      簡化，已於卡面驗收確認） ===== */
   if(oceanOn&&!lodFar){
     ctx.save();
-    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    for(let y=vy0715;y<=vy1715;y++)for(let x=vx0715;x<=vx1715;x++){ // T715：只掃可見範圍，每格照舊過 vis()
       const t=T(idx(x,y));
       if(t.t!==0||!t.wm)continue;
       const sx=sxOf(x,y),sy=syOf(x,y);
@@ -19082,12 +19168,15 @@ function draw(dt){
       const rs=rb&&reflectSprite(rb,rx,ry);
       if(rs){
         const ax2=sx+32*z,ay2=sy+32*z;
+        const c717=t717On();
+        if(c717){ctx.save();clip717(ctx,ax2-rs.ax*z,ay2+.35*rs.ay*z,rs.w*z,-.35*rs.h*z);}
         ctx.save();
         ctx.translate(ax2,ay2);ctx.scale(1,-.35);
         ctx.filter='brightness(0)';
         ctx.globalAlpha=.22;
         ctx.drawImage(rs.img,-rs.ax*z,-rs.ay*z,rs.w*z,rs.h*z);
         ctx.restore();
+        if(c717)ctx.restore();
       }
     }
     ctx.restore();
@@ -19109,7 +19198,7 @@ function draw(dt){
     ctx.restore();
   }
   if(wxUp&&weather&&!win&&!lodFar){ // 落點水花：僅非冬季雨天（冬季由既有雪花粒子代表降水，不疊加水花圈）；z<1 略去個體（同既有 drawRain 之 !lodFar 慣例）
-    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    for(let y=vy0715;y<=vy1715;y++)for(let x=vx0715;x<=vx1715;x++){ // T715：只掃可見範圍，每格照舊過 vis()
       const t=T(idx(x,y));
       if(t.t===0)continue; // 水面不畫地面水花
       const sx=sxOf(x,y),sy=syOf(x,y);
@@ -19128,7 +19217,7 @@ function draw(dt){
   }
   // ---- 物件層（依深度排序） ----
   const objs=[];
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+  for(let y=oy0715;y<=oy1715;y++)for(let x=ox0715;x<=ox1715;x++){ // T715：只掃可能看得到的範圍，每格照舊過下面原本的可見判斷
     const t=T(idx(x,y));
     if(t.bld&&t.bld.ref)continue;                          // 多格建築只由 root 繪製（T22）
     if(!t.tree&&!t.bld&&!t.deco)continue;
@@ -19917,12 +20006,15 @@ function draw(dt){
        陰影/光暈皆為動態層、每幀畫、不烘進 groundCache；shadowA/nightDepth 已在 draw() 起手依 fxOn／b<.72
        算好且日間（含正午）恆為 0，此處零額外判斷即可保證硬性不變量 ===== */
     if(shadowA>0&&!(s&&s.__t590)){ // T590：新圖自帶落地影與地坪，不再疊壓扁剪影｜陰影：取既有 sprite 本體 alpha 剪影，垂直壓扁＋固定偏移模擬躺地投影，不新增 sprite、不消耗 R()
+      const c717=t717On(),sh717=Math.max(2,s.h*z*.32);
+      if(c717){ctx.save();clip717(ctx,bx+SHOX*z,by+s.h*z-sh717+SHOY*z,s.w*z,sh717);}
       const shH=Math.max(2,s.h*z*.32);
       ctx.save();
       ctx.filter='brightness(0)';
       ctx.globalAlpha=shadowA;
       ctx.drawImage(s.img,bx+SHOX*z,by+s.h*z-shH+SHOY*z,s.w*z,shH);
       ctx.restore();
+      if(c717)ctx.restore();
     }
     if(!(s.__t675&&s.lotMeta574&&(s.lotMeta574.variant===2||s.lotMeta574.variant===9))){ // T675：窯口只保留本體夜光，不產生室外泛光池
     if(!(s.__t671&&s.lotMeta574&&s.lotMeta574.variant===0)){ // T671：黑屋僅門洞微光，不接泛用地面光池
@@ -31969,6 +32061,9 @@ const startEl=$('#start');
 if(!window.__noTitle428){try{if(/[?&]noT428=1/.test(location.search)||localStorage.getItem(SAVEKEY+'.noT428')==='1')window.__noTitle428=true;}catch(e){}}
 // 掛載：harness 的 documentElement 可能無 classList，故逐層可選保護（同 window.ResizeObserver&& 慣例）
 if(window.__noTitle428&&document.documentElement&&document.documentElement.classList)document.documentElement.classList.add('noT428');
+/* T679：只掛手機樣式旗標；載入前的 window 閥與網址閥都退回原 UI。 */
+function t679On(){return !(window.__noT679||/(?:^|[?&])noT679(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''));}
+if(t679On()&&document.documentElement&&document.documentElement.classList)document.documentElement.classList.add('ui679');
 const moreEl=$('#startMore')||startEl; // T158：次級選項分組容器（難度/挑戰/戰役收攏於此，視覺降階），缺容器時退回 startEl 保底
 /* T515：真瀏覽器有三個語義 section；Node mock 不會建靜態 class tree，故每個目標都有無副作用回退。
    回退只服務測試 harness，正式 DOM 一律落到對應 group；不改任何按鈕 id／事件／儲存鍵。 */

@@ -1,0 +1,1691 @@
+{
+  "run": 40310599842,
+  "artifact": 12645163840,
+  "artifactZipSHA256": "b32773ad3dfc143ed538df3f77a60b69d51fbb353cfbb8161b32869e7e6b29d0",
+  "base": "34f6435a7041804ce62f98b20672cbfa60b28eb0",
+  "head": "5ccb62289778fea23c0496276a8b23b09cbe5a91",
+  "checksPassed": false,
+  "firstFailure": {
+    "stage": "full-frame-browser",
+    "error": "eq failed; exact exit 1; see eq.log"
+  },
+  "stages": [
+    {
+      "name": "materialize-exact-objects",
+      "status": "passed",
+      "result": {
+        "temporaryRoot": "/tmp/t717-ci-w3mx_5it",
+        "fullDetachedWorktrees": true
+      },
+      "seconds": 0.965
+    },
+    {
+      "name": "verify-base",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "/opt/hostedtoolcache/Python/3.13.16/x64/bin/python",
+          "tools/verify.py"
+        ],
+        "cwd": "/tmp/t717-ci-w3mx_5it/base",
+        "log": "verify-base.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 260.086
+    },
+    {
+      "name": "verify-head",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "/opt/hostedtoolcache/Python/3.13.16/x64/bin/python",
+          "tools/verify.py"
+        ],
+        "cwd": "/tmp/t717-ci-w3mx_5it/head",
+        "log": "verify-head.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 264.818
+    },
+    {
+      "name": "raw-suite-base",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "node",
+          "test_fixde.js"
+        ],
+        "cwd": "/tmp/t717-ci-w3mx_5it/base",
+        "log": "raw-suite-base.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 262.176
+    },
+    {
+      "name": "suite-receipt-base",
+      "status": "passed",
+      "result": {
+        "passCount": 12833,
+        "sentinels": [
+          {
+            "name": "seed301",
+            "seed": 301,
+            "days": 400,
+            "expect": 780,
+            "actual": 780
+          },
+          {
+            "name": "seed301m",
+            "seed": 301,
+            "days": 400,
+            "expect": 2297,
+            "actual": 2297
+          },
+          {
+            "name": "seed7",
+            "seed": 7,
+            "days": 400,
+            "expect": 117,
+            "actual": 117
+          },
+          {
+            "name": "seed7m",
+            "seed": 7,
+            "days": 400,
+            "expect": 77,
+            "actual": 77
+          },
+          {
+            "name": "seed22",
+            "seed": 22,
+            "days": 400,
+            "expect": 639,
+            "actual": 639
+          },
+          {
+            "name": "seed22m",
+            "seed": 22,
+            "days": 400,
+            "expect": 14523,
+            "actual": 14523
+          }
+        ],
+        "completionMarker": true,
+        "failLines": []
+      },
+      "seconds": 0.016
+    },
+    {
+      "name": "raw-suite-head",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "node",
+          "test_fixde.js"
+        ],
+        "cwd": "/tmp/t717-ci-w3mx_5it/head",
+        "log": "raw-suite-head.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 256.616
+    },
+    {
+      "name": "suite-receipt-head",
+      "status": "passed",
+      "result": {
+        "passCount": 12837,
+        "sentinels": [
+          {
+            "name": "seed301",
+            "seed": 301,
+            "days": 400,
+            "expect": 780,
+            "actual": 780
+          },
+          {
+            "name": "seed301m",
+            "seed": 301,
+            "days": 400,
+            "expect": 2297,
+            "actual": 2297
+          },
+          {
+            "name": "seed7",
+            "seed": 7,
+            "days": 400,
+            "expect": 117,
+            "actual": 117
+          },
+          {
+            "name": "seed7m",
+            "seed": 7,
+            "days": 400,
+            "expect": 77,
+            "actual": 77
+          },
+          {
+            "name": "seed22",
+            "seed": 22,
+            "days": 400,
+            "expect": 639,
+            "actual": 639
+          },
+          {
+            "name": "seed22m",
+            "seed": 22,
+            "days": 400,
+            "expect": 14523,
+            "actual": 14523
+          }
+        ],
+        "completionMarker": true,
+        "failLines": []
+      },
+      "seconds": 0.016
+    },
+    {
+      "name": "suite-pair",
+      "status": "passed",
+      "result": {
+        "baselinePASS": 12833,
+        "candidatePASS": 12837,
+        "sixSentinelsExact": true
+      },
+      "seconds": 0.001
+    },
+    {
+      "name": "geometry",
+      "status": "passed",
+      "result": {
+        "passed": true,
+        "limit": "Pure-function/source checks only. Real Chromium full-frame pixels and performance are separate evidence.",
+        "result": {
+          "G2": {
+            "trials": 2000,
+            "corners": 8000,
+            "negativeDimensions": true,
+            "rotationShearAndCompression": true,
+            "integerPadding": 2,
+            "transformRestored": true,
+            "missingAPIsNoop": true
+          },
+          "G3": {
+            "trials": 2000,
+            "calls": 2,
+            "nativeCorners": 16000,
+            "actualArguments": [
+              "ax2-rs.ax*z,ay2+.35*rs.ay*z,rs.w*z,-.35*rs.h*z",
+              "bx+SHOX*z,by+s.h*z-sh717+SHOY*z,s.w*z,sh717"
+            ],
+            "actualShadowHeight": "Math.max(2,s.h*z*.32)"
+          },
+          "G4": {
+            "queryCases": 6,
+            "windowFlagToggle": true
+          },
+          "G1": {
+            "nativeBlocks": 2,
+            "byteIdentical": true,
+            "adjacentWrappers": true,
+            "filterSites": 2
+          }
+        },
+        "negativeControls": [
+          {
+            "mutation": "reflection-compression-omitted",
+            "firstRed": "G3",
+            "reason": "G3 reflection native destination trial 0 actual=[819,-663,1083,-302] expected=[840,-788,1090,-658]"
+          },
+          {
+            "mutation": "shadow-height-uncompressed",
+            "firstRed": "G3",
+            "reason": "G3 shadow native destination trial 0 actual=[589,-795,1108,-789] expected=[589,-794,1108,-789]"
+          },
+          {
+            "mutation": "transform-ignored",
+            "firstRed": "G2",
+            "reason": "G2 original transform restored"
+          },
+          {
+            "mutation": "first-corner-is-minimum",
+            "firstRed": "G2",
+            "reason": "G2 trial 0 exact outward 2px padding actual=[-506,-467,-75,-462] expected=[-537,-555,-75,-462]"
+          },
+          {
+            "mutation": "padding-removed",
+            "firstRed": "G2",
+            "reason": "G2 trial 0 exact outward 2px padding actual=[-535,-553,-77,-464] expected=[-537,-555,-75,-462]"
+          }
+        ]
+      },
+      "seconds": 0.517
+    },
+    {
+      "name": "native603",
+      "status": "passed",
+      "result": {
+        "checks": 130
+      },
+      "seconds": 1.52
+    },
+    {
+      "name": "oldsave603",
+      "status": "passed",
+      "result": {
+        "fixtures": 3
+      },
+      "seconds": 3.274
+    },
+    {
+      "name": "full-frame-browser",
+      "status": "failed",
+      "error": "eq failed; exact exit 1; see eq.log",
+      "seconds": 137.086
+    },
+    {
+      "name": "decode-and-contact-sheets",
+      "status": "failed",
+      "error": "image harness predicates/errors failed",
+      "seconds": 5.255
+    },
+    {
+      "name": "interleaved-performance",
+      "status": "passed",
+      "result": {
+        "argv": [
+          "node",
+          "/tmp/t717-ci-w3mx_5it/head/docs/tasks/t717-shots/perfab.cjs",
+          "/tmp/t717-ci-w3mx_5it/head/index.html",
+          "/home/runner/work/GlimmerTown/GlimmerTown/evidence/t717/receipt/perf.json"
+        ],
+        "cwd": "/tmp/t717-ci-w3mx_5it/head",
+        "log": "perf.log",
+        "exitCode": 0,
+        "timedOut": false,
+        "firstDiagnostic": null
+      },
+      "seconds": 78.624
+    },
+    {
+      "name": "performance-raw-integrity",
+      "status": "passed",
+      "result": {
+        "rawSamples": 480,
+        "conditions": 6,
+        "performanceVerdict": "manual-review-required",
+        "tileHash": "b8021990caf9e3cf318c2871cedd5e34d1aeddc2ad7e0608df337ef50f23d065",
+        "city": {
+          "money": 14523,
+          "pop": 639,
+          "jobs": 2913,
+          "day": 401,
+          "buildings": 796,
+          "poweredBld": 297,
+          "roads": 285,
+          "zones": 233,
+          "happy": 0.61,
+          "dem": {
+            "1": 0.7047439979019164,
+            "2": 0.6966292134831461,
+            "3": -1
+          },
+          "cars": 0,
+          "fires": 0,
+          "ruins": 0,
+          "weather": 0,
+          "buses": 0
+        }
+      },
+      "seconds": 0.002
+    },
+    {
+      "name": "final-identity",
+      "status": "passed",
+      "result": {
+        "sourceUnchanged": true,
+        "sameCity": true
+      },
+      "seconds": 0.087
+    }
+  ],
+  "imageConditions": [
+    {
+      "id": "v55-z0.6-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 0,
+      "aa": {
+        "pixels": 744076,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744234,
+        "maxColor": 183,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744070,
+        "maxColor": 192,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z0.6-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 1,
+      "aa": {
+        "pixels": 744246,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 733043,
+        "maxColor": 78,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744251,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z0.6-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 2,
+      "aa": {
+        "pixels": 744258,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 732912,
+        "maxColor": 69,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744277,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z0.6-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 0.6,
+      "rot": 3,
+      "aa": {
+        "pixels": 744278,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 37859,
+        "maxColor": 61,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744253,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z1-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 0,
+      "aa": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 733032,
+        "maxColor": 79,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744276,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z1-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 1,
+      "aa": {
+        "pixels": 744245,
+        "maxColor": 146,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744232,
+        "maxColor": 144,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744278,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z1-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 2,
+      "aa": {
+        "pixels": 732921,
+        "maxColor": 53,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744267,
+        "maxColor": 200,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744237,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z1-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 1,
+      "rot": 3,
+      "aa": {
+        "pixels": 733019,
+        "maxColor": 55,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744242,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z2-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 0,
+      "aa": {
+        "pixels": 744251,
+        "maxColor": 153,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744227,
+        "maxColor": 213,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744232,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z2-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 1,
+      "aa": {
+        "pixels": 744216,
+        "maxColor": 193,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 743939,
+        "maxColor": 209,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 743251,
+        "maxColor": 203,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z2-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 2,
+      "aa": {
+        "pixels": 744275,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 49190,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 42246,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z2-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 2,
+      "rot": 3,
+      "aa": {
+        "pixels": 744277,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 47779,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744022,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z3-r0",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 0,
+      "aa": {
+        "pixels": 744246,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 50234,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744256,
+        "maxColor": 215,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z3-r1",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 1,
+      "aa": {
+        "pixels": 744277,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 49958,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 213,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z3-r2",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 2,
+      "aa": {
+        "pixels": 744274,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 49817,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744274,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v55-z3-r3",
+      "phase": "day",
+      "vt": 55,
+      "z": 3,
+      "rot": 3,
+      "aa": {
+        "pixels": 744279,
+        "maxColor": 216,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 49980,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z0.6-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 0,
+      "aa": {
+        "pixels": 744252,
+        "maxColor": 215,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 41898,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744277,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z0.6-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 1,
+      "aa": {
+        "pixels": 743759,
+        "maxColor": 203,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 44596,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z0.6-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 2,
+      "aa": {
+        "pixels": 31158,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 46803,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z0.6-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 0.6,
+      "rot": 3,
+      "aa": {
+        "pixels": 31433,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 45287,
+        "maxColor": 112,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744209,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z1-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 0,
+      "aa": {
+        "pixels": 30551,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744080,
+        "maxColor": 196,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744274,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z1-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 1,
+      "aa": {
+        "pixels": 30539,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744275,
+        "maxColor": 213,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744277,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z1-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 2,
+      "aa": {
+        "pixels": 29909,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z1-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 1,
+      "rot": 3,
+      "aa": {
+        "pixels": 744199,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744259,
+        "maxColor": 163,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 743003,
+        "maxColor": 136,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z2-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 0,
+      "aa": {
+        "pixels": 744279,
+        "maxColor": 216,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744216,
+        "maxColor": 135,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z2-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 1,
+      "aa": {
+        "pixels": 744242,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 733023,
+        "maxColor": 77,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744258,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z2-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 2,
+      "aa": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 732855,
+        "maxColor": 68,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744242,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z2-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 2,
+      "rot": 3,
+      "aa": {
+        "pixels": 744262,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 732062,
+        "maxColor": 62,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744256,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z3-r0",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 0,
+      "aa": {
+        "pixels": 744269,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 732914,
+        "maxColor": 70,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744277,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z3-r1",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 1,
+      "aa": {
+        "pixels": 744253,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 733023,
+        "maxColor": 77,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744272,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z3-r2",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 2,
+      "aa": {
+        "pixels": 744255,
+        "maxColor": 163,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744205,
+        "maxColor": 133,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744276,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v5-z3-r3",
+      "phase": "night",
+      "vt": 5,
+      "z": 3,
+      "rot": 3,
+      "aa": {
+        "pixels": 744235,
+        "maxColor": 141,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744251,
+        "maxColor": 144,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744239,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z0.6-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 0,
+      "aa": {
+        "pixels": 732962,
+        "maxColor": 52,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744271,
+        "maxColor": 181,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z0.6-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 1,
+      "aa": {
+        "pixels": 732810,
+        "maxColor": 44,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744276,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744278,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z0.6-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 2,
+      "aa": {
+        "pixels": 744206,
+        "maxColor": 139,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744279,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 212,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z0.6-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 0.6,
+      "rot": 3,
+      "aa": {
+        "pixels": 744263,
+        "maxColor": 167,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744187,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744185,
+        "maxColor": 205,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z1-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 0,
+      "aa": {
+        "pixels": 744248,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 45596,
+        "maxColor": 111,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 39980,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z1-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 1,
+      "aa": {
+        "pixels": 744275,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 46050,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744092,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z1-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 2,
+      "aa": {
+        "pixels": 744270,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 43850,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744275,
+        "maxColor": 213,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z1-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 1,
+      "rot": 3,
+      "aa": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 46609,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z2-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 0,
+      "aa": {
+        "pixels": 744255,
+        "maxColor": 213,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 46953,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744277,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z2-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 1,
+      "aa": {
+        "pixels": 743936,
+        "maxColor": 201,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 47064,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z2-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 2,
+      "aa": {
+        "pixels": 32044,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 47647,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744275,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z2-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 2,
+      "rot": 3,
+      "aa": {
+        "pixels": 31446,
+        "maxColor": 111,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 46350,
+        "maxColor": 111,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744274,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z3-r0",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 0,
+      "aa": {
+        "pixels": 31872,
+        "maxColor": 112,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 47423,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744274,
+        "maxColor": 219,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z3-r1",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 1,
+      "aa": {
+        "pixels": 31870,
+        "maxColor": 112,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744155,
+        "maxColor": 216,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744276,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z3-r2",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 2,
+      "aa": {
+        "pixels": 32012,
+        "maxColor": 112,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744258,
+        "maxColor": 217,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744257,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    },
+    {
+      "id": "v80-z3-r3",
+      "phase": "dusk",
+      "vt": 80,
+      "z": 3,
+      "rot": 3,
+      "aa": {
+        "pixels": 31866,
+        "maxColor": 113,
+        "total": 1024000
+      },
+      "off": {
+        "pixels": 744279,
+        "maxColor": 213,
+        "total": 1024000
+      },
+      "on": {
+        "pixels": 744279,
+        "maxColor": 218,
+        "total": 1024000
+      },
+      "passed": false
+    }
+  ],
+  "imageErrors": [],
+  "performanceSummary": [
+    {
+      "id": "day-z1",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 5.599999999976717,
+            "p95": 17,
+            "min": 4.300000000046566,
+            "max": 23.100000000093132
+          },
+          "total": {
+            "n": 40,
+            "median": 318.5999999999767,
+            "p95": 330.80000000004657,
+            "min": 315.20000000018626,
+            "max": 338.9000000001397
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 5.700000000069849,
+            "p95": 11.300000000046566,
+            "min": 4.800000000046566,
+            "max": 17.5
+          },
+          "total": {
+            "n": 40,
+            "median": 13.949999999953434,
+            "p95": 19.199999999953434,
+            "min": 12.399999999906868,
+            "max": 25.699999999953434
+          }
+        }
+      }
+    },
+    {
+      "id": "night-z1",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 13.95000000006985,
+            "p95": 20.9000000001397,
+            "min": 12.100000000093132,
+            "max": 27.300000000046566
+          },
+          "total": {
+            "n": 40,
+            "median": 335.3499999999767,
+            "p95": 345.20000000018626,
+            "min": 332.5,
+            "max": 350.4000000001397
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 14.350000000093132,
+            "p95": 18.699999999953434,
+            "min": 12.699999999953434,
+            "max": 22.800000000046566
+          },
+          "total": {
+            "n": 40,
+            "median": 31.249999999883585,
+            "p95": 35,
+            "min": 28.600000000093132,
+            "max": 40.10000000009313
+          }
+        }
+      }
+    },
+    {
+      "id": "day-z2",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 3.5,
+            "p95": 11,
+            "min": 2.699999999953434,
+            "max": 14.099999999860302
+          },
+          "total": {
+            "n": 40,
+            "median": 206.30000000004657,
+            "p95": 213.60000000009313,
+            "min": 204.69999999995343,
+            "max": 218.39999999990687
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 3.4499999998370185,
+            "p95": 4.800000000046566,
+            "min": 2.699999999953434,
+            "max": 5.800000000046566
+          },
+          "total": {
+            "n": 40,
+            "median": 12.349999999860302,
+            "p95": 13.899999999906868,
+            "min": 11.400000000139698,
+            "max": 17.700000000186265
+          }
+        }
+      }
+    },
+    {
+      "id": "night-z2",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 16.550000000046566,
+            "p95": 24.399999999906868,
+            "min": 15.400000000139698,
+            "max": 32.300000000046566
+          },
+          "total": {
+            "n": 40,
+            "median": 225.84999999997672,
+            "p95": 233.19999999995343,
+            "min": 223.10000000009313,
+            "max": 240.30000000004657
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 16.849999999976717,
+            "p95": 19.700000000186265,
+            "min": 15.599999999860302,
+            "max": 23.800000000046566
+          },
+          "total": {
+            "n": 40,
+            "median": 31.199999999953434,
+            "p95": 34.0999999998603,
+            "min": 29.699999999953434,
+            "max": 38.0999999998603
+          }
+        }
+      }
+    },
+    {
+      "id": "day-z0.6",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 5.399999999906868,
+            "p95": 7.400000000139698,
+            "min": 4.599999999860302,
+            "max": 20.300000000046566
+          },
+          "total": {
+            "n": 40,
+            "median": 161.70000000006985,
+            "p95": 165.60000000009313,
+            "min": 159.89999999990687,
+            "max": 177
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 5.450000000069849,
+            "p95": 6.099999999860302,
+            "min": 4.900000000139698,
+            "max": 7.899999999906868
+          },
+          "total": {
+            "n": 40,
+            "median": 16.54999999993015,
+            "p95": 17.5,
+            "min": 15.5,
+            "max": 19.300000000046566
+          }
+        }
+      }
+    },
+    {
+      "id": "night-z0.6",
+      "summary": {
+        "off": {
+          "js": {
+            "n": 40,
+            "median": 12.949999999953434,
+            "p95": 22,
+            "min": 12.100000000093132,
+            "max": 26.399999999906868
+          },
+          "total": {
+            "n": 40,
+            "median": 176.5,
+            "p95": 185.19999999995343,
+            "min": 174.5,
+            "max": 190.39999999990687
+          }
+        },
+        "on": {
+          "js": {
+            "n": 40,
+            "median": 13.349999999976717,
+            "p95": 20.5999999998603,
+            "min": 12.199999999953434,
+            "max": 26.9000000001397
+          },
+          "total": {
+            "n": 40,
+            "median": 31.75,
+            "p95": 38.89999999990687,
+            "min": 30.399999999906868,
+            "max": 45.10000000009313
+          }
+        }
+      }
+    }
+  ],
+  "diagnosis": "Canvas locator compositor screenshots included visible start/title animation overlay: adding class hide has no CSS effect on #start. A/A fails; these images cannot establish product equivalence. Source product unchanged in harness repair. All original PNGs, raw samples and logs retained in official artifact; performance is unaccepted and not native-GPU evidence."
+}

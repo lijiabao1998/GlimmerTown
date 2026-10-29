@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """T642 開工巡檢：唯讀，只呼叫 gh api，不擋任何東西。Claude 每次開工跑一次，給業主四行內的結論。
 
-用法：python tools/session_audit.py [--repo lijiabao1998/GlimmerTown] [--since 2026-10-14T00:00:00Z] [--findings docs/REVIEW-FINDINGS.md] [--json 路徑]
+用法：python tools/session_audit.py [--repo lijiabao1998/glimmertown] [--since 2026-10-14T00:00:00Z] [--findings docs/REVIEW-FINDINGS.md] [--json 路徑]
 沒給 --since 時看最近 7 天合併的 PR。詳細結果用 --json 寫到倉庫外（例如 scratchpad），不進倉庫。
 合併前檢查：sha=$(python tools/session_audit.py --premerge <PR 號>) && gh pr merge <PR 號> --merge --match-head-commit "$sha"
 （head 的 gate 綠、Codex 審過當前 head、沒有未回覆的 P0／P1，不過就 exit 1；通過時 stdout 只印驗過的 head SHA，
@@ -343,7 +343,7 @@ def four_lines(r):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument('--repo', default='lijiabao1998/GlimmerTown')
+    ap.add_argument('--repo', default='lijiabao1998/glimmertown')
     ap.add_argument('--since')
     ap.add_argument('--findings', default='docs/REVIEW-FINDINGS.md')
     ap.add_argument('--json')
