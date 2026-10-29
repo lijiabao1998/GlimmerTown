@@ -1,0 +1,12 @@
+1-initial-promotion          before exit=0 applicable=true   {"applicable": true, "markers": ["T677 BEGIN", "p06-panel", "NativeHarborLayout", "window.P06"], "valve": true, "note": "Full harbor acceptance required"}
+1-initial-promotion          after  exit=0 applicable=true   {"applicable": true, "base": "fce0354654a51f6e248df73f807d3ad0a5d2281d", "baselineContainsT677": false, "markers": ["T677 BEGIN", "p06-panel", "NativeHarborLayout", "window.P06"], "valve": true, "note
+2-later-unrelated-pr         before exit=0 applicable=true   {"applicable": true, "markers": ["T677 BEGIN", "p06-panel", "NativeHarborLayout", "window.P06"], "valve": true, "note": "Full harbor acceptance required"}
+2-later-unrelated-pr         after  exit=0 applicable=false  {"applicable": false, "base": "6b07c34aa5d6e8c1615bbf962e332a3160129d17", "baselineContainsT677": true, "markers": ["T677 BEGIN", "p06-panel", "NativeHarborLayout", "window.P06"], "valve": true, "note
+3a-partial-markers-only      before exit=1 applicable=(none) AssertionError: Partial T677 promotion: product or valve absent
+3a-partial-markers-only      after  exit=1 applicable=(none) AssertionError: Partial T677 promotion: product or valve absent
+3b-partial-valve-only        before exit=1 applicable=(none) AssertionError: Partial T677 promotion: product or valve absent
+3b-partial-valve-only        after  exit=1 applicable=(none) AssertionError: Partial T677 promotion: product or valve absent
+4-later-t677-shots-edit      before exit=0 applicable=true   {"applicable": true, "markers": ["T677 BEGIN", "p06-panel", "NativeHarborLayout", "window.P06"], "valve": true, "note": "Full harbor acceptance required"}
+4-later-t677-shots-edit      after  exit=0 applicable=false  {"applicable": false, "base": "6b07c34aa5d6e8c1615bbf962e332a3160129d17", "baselineContainsT677": true, "markers": ["T677 BEGIN", "p06-panel", "NativeHarborLayout", "window.P06"], "valve": true, "note
+5-empty-base-fails-closed    before exit=0 applicable=true   {"applicable": true, "markers": ["T677 BEGIN", "p06-panel", "NativeHarborLayout", "window.P06"], "valve": true, "note": "Full harbor acceptance required"}
+5-empty-base-fails-closed    after  exit=1 applicable=(none) AssertionError: Scope base is not a commit: ''
