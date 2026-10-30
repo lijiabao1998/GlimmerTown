@@ -646,6 +646,16 @@ html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-
     <span class="col r"><i></i></span><span class="col c"><i></i></span><span class="col i"><i></i></span>
   </span>
   <span class="spacer"></span>
+  <details id="hudMore680">
+    <summary class="hbtn" aria-label="更多操作">⋯ 更多</summary>
+    <div class="hudMoreDismiss680" aria-hidden="true"></div>
+    <div class="hudMorePanel680" role="group" aria-label="次級操作">
+      <button class="hbtn" data-hud680="bRot">🔄 調整方向</button>
+      <button class="hbtn" data-hud680="bMetro">🚇 地鐵</button>
+      <button class="hbtn" data-hud680="bNew">🆕 新建地圖</button>
+      <button class="hbtn" data-hud680="bHelp">❓ 遊戲說明</button>
+    </div>
+  </details>
   <!-- T552 A：13 顆平排按鈕依語義分四群（檢視／世界／編輯／系統）。
        只加包裹層——所有 id、onclick 與 DOM 物件原封不動。 -->
   <span class="hudGrp552" data-hud-grp="view">
@@ -670,16 +680,6 @@ html.noT428 #start .settingsGrid{min-width:auto;width:auto;max-width:420px;grid-
     <button class="hbtn" id="bMenu" title="返回主選單（選難度／挑戰／戰役／畫質）">🏠</button>
     <button class="hbtn" id="bSound">🔊</button>
   </span>
-  <details id="hudMore680">
-    <summary class="hbtn" aria-label="更多操作">⋯ 更多</summary>
-    <div class="hudMoreDismiss680" aria-hidden="true"></div>
-    <div class="hudMorePanel680" role="group" aria-label="次級操作">
-      <button class="hbtn" data-hud680="bRot">🔄 調整方向</button>
-      <button class="hbtn" data-hud680="bMetro">🚇 地鐵</button>
-      <button class="hbtn" data-hud680="bNew">🆕 新建地圖</button>
-      <button class="hbtn" data-hud680="bHelp">❓ 遊戲說明</button>
-    </div>
-  </details>
 </div>
 <!-- T552 B：指令面板。路由器，不是第二套實作——所有動作一律 .click() 既有控制項（T517 判例）。 -->
 <div id="cmdk552" role="dialog" aria-modal="true" aria-label="指令面板" style="display:none">
