@@ -32092,8 +32092,8 @@ if(window.__noTitle428&&document.documentElement&&document.documentElement.class
 function t679On(){return !(window.__noT679||/(?:^|[?&])noT679(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''));}
 if(t679On()&&document.documentElement&&document.documentElement.classList)document.documentElement.classList.add('ui679');
 /* T680：二級只路由到原按鈕；保留 confirm、旋轉／圖層與說明的唯一實作。 */
-function t680On(){return t679On()&&!(window.__noT680||/(?:^|[?&])noT680(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''));}
-if(t680On()&&document.documentElement&&document.documentElement.classList){
+function t680On(){return !(window.__noT680||/(?:^|[?&])noT680(?:=1)?(?:&|$)/.test((typeof location!=='undefined'&&location.search)||''));}
+if(t679On()&&t680On()&&document.documentElement&&document.documentElement.classList){
   document.documentElement.classList.add('ui680');
   const more680=$('#hudMore680');
   if(more680&&more680.querySelectorAll&&more680.addEventListener){
