@@ -1,0 +1,179 @@
+{
+  "source": "d0de1e9e594145af43608013ad173e34a91e63a8",
+  "sourceFiles": [
+    {
+      "path": "docs/previews/port-p02/bridge.js",
+      "sha256": "70cc512e8e2ff6d63cd7a29054791fe18e09903e2ed3c3f456bf4e15209e3538"
+    },
+    {
+      "path": "docs/previews/port-p02/crane-motion.js",
+      "sha256": "fce12816c7e565f9bfc975cc9b6e3c170e9a139214891e1c70022a20cb964227"
+    },
+    {
+      "path": "docs/previews/port-p02/animation-bridge.js",
+      "sha256": "329c27a96a3298e7da5aeb6d2a49fc5ab55c678b944cc2adfbdbbbb1095bd693"
+    },
+    {
+      "path": "docs/previews/port-p02/crane-assembly.js",
+      "sha256": "a4c09b5e4388c175a543efc18b417cc36f7482b63b537a8c4af1a66875d0ab90"
+    },
+    {
+      "path": "docs/previews/port-p03/vessel-navigation.js",
+      "sha256": "11fa92cbbf050c8db589e9f368c7eb51ce5f455a347dc07b8271daf72ff68b1a"
+    },
+    {
+      "path": "docs/previews/port-p03/vessel-bridge.js",
+      "sha256": "79bac0605ccddc21828da7956c1b96730bfeb6c6cf08aa53a0033a4d05b32ce0"
+    },
+    {
+      "path": "docs/previews/port-p04/geometry.js",
+      "sha256": "7c7c622265236a857631c092bfc9bcdc1fb78106b07297c029f17f8fc2853247"
+    },
+    {
+      "path": "docs/previews/port-p04/transfer-state.js",
+      "sha256": "c5428dfdec4f6eaf225c384dc8148ed67138c21c06088bf6367916043473ce16"
+    },
+    {
+      "path": "docs/previews/port-p04/transfer-occlusion.js",
+      "sha256": "d77e75aac3c55983078447f73a788804d5e88b9ab6e17afef085fe20e07ab324"
+    },
+    {
+      "path": "docs/previews/port-p04/transfer-bridge.js",
+      "sha256": "bda2840a64cf226d0718d9b399e65dd6583f3857a4125f83716df49004cc2061"
+    },
+    {
+      "path": "docs/previews/port-p05/landside-geometry.js",
+      "sha256": "4bd44b5d5e3137fc0e15ccac579de36abf9c4339fcf9555acf883a7d3fcc6380"
+    },
+    {
+      "path": "docs/previews/port-p05/dispatch-state.js",
+      "sha256": "caffc9b1318f0af97d2211556f45bafd119bae4bb1beaef67c6915cb9620397d"
+    },
+    {
+      "path": "docs/previews/port-p05/dispatch-occlusion.js",
+      "sha256": "4d7d8a869cfa05b40917853477dcd070022fde21dcc0d6a006c5aaa3dfda8d7e"
+    },
+    {
+      "path": "docs/previews/port-p05/dispatch-bridge.js",
+      "sha256": "5ce1d807763558ba732e03d5e7a7e16da379747417cc4245d63fbe418b038630"
+    },
+    {
+      "path": "docs/previews/port-p06/native-layout.js",
+      "sha256": "5fac6bc2cd3da183fe0ea8e027ada7312246bc79a644f2f4834a3da71c11c50e"
+    },
+    {
+      "path": "docs/previews/port-p06/native-bridge.js",
+      "sha256": "86c0a84f1bef139504a99ecfebba15779aaf8c6e19df90f535fb749b16701dbc"
+    },
+    {
+      "path": "docs/previews/port-p06/native-performance.js",
+      "sha256": "fdf42682d24a791cb3c3dfe4dd36540287e40f75844cd81665dd0d47591f303f"
+    },
+    {
+      "path": "docs/previews/port-p06/native-vector-cache.js",
+      "sha256": "b1268e328ea93ec183ebc2e9cc3f1b598e7cb4da065ce9f7afb1eafdd9b95816"
+    },
+    {
+      "path": "docs/previews/port-p06/native-ui.html",
+      "sha256": "61a40527eacd3eedd687d48378831321ccce25fa4d8121f686731d22e71192c0"
+    },
+    {
+      "path": "docs/previews/port-p06/native-ui.js",
+      "sha256": "140234a5c557973456fb58d76dc7ac5751f3f912445eb7f89b0f13bbf01379c6"
+    }
+  ],
+  "changes": [
+    {
+      "label": "window.__p01cLegacyClearance?[12.35,13.2,14.05]:[12.35,13.05,14.05]",
+      "beforeSHA256": "fcb0315285d285e1f93ea08efbc2d58df7d3b64cfc9ca8cf75492300a2ebcb89",
+      "afterSHA256": "6840357bb1a2fa4aaa1dd85a3c1d8846fba88f71ee90595fdd787f5f08a434fd"
+    },
+    {
+      "label": "window.__p01cLegacyClearance?14:14.08",
+      "beforeSHA256": "057904ca2d2f5cb5c4753cf7b52f3bb5007abcaec43d0def2da68cb662f8c28e",
+      "afterSHA256": "5c884090e4067457a0349a17683e39e9a7e15e9b556e80b75696f9459d0945a0"
+    },
+    {
+      "label": "if(p.type==='crane'){",
+      "beforeSHA256": "8a6ae4d372b3353ec7d236c3f22777e34f97b48f2957235561eaf0cc14e39645",
+      "afterSHA256": "be3f4b072c62cbbacf9f53f5e0f1181ffefa9c27e2196285a593acaa3639a269"
+    },
+    {
+      "label": "const p=this.plan.at(this.time());this.frame=p;",
+      "beforeSHA256": "df7b4a65a4592e33eb5a17c36c91071f3c2ff994d99d78a4daeed0896abeb8b6",
+      "afterSHA256": "5bf407768042e853264c47d0c246606edc2388082810566c6608a76fb44a26d4"
+    },
+    {
+      "label": "for(let row=0;row<2;row++)for(let col=0;col<3;col++)box(",
+      "beforeSHA256": "471fc01502279262aeb4f19248abeeabb3484aa2cf5b5e76fbf2c6c310bff4b3",
+      "afterSHA256": "455e47f791262435a7d381dc141ee1aca346b7cb1acd1bdd3a84cda4d67dc419"
+    },
+    {
+      "label": "season(),this.frame.time,P02.frameTime",
+      "beforeSHA256": "5353d32aa902d13e315967625cb8c64b77f6f9e1791844d96c1e990bbc216bac",
+      "afterSHA256": "746195b57dac8b374e51863c1f5576be07f2aa3550dea3108e27318dec001fa9"
+    },
+    {
+      "label": "for(const ship of P03.objects())P03.paint(q,ship,p,z);",
+      "beforeSHA256": "5ad8033cb51e752766d3c9ca5f84eec230860acccb2f63a331d64183af80272f",
+      "afterSHA256": "bc23edc3b3e3a64399834a6143085e5fbf1d49f023bc00fae31d81e732b5abf4"
+    },
+    {
+      "label": "arc(x,y,r,a,b){for(let i=0;i<=16;i++){",
+      "beforeSHA256": "6653b51629ec1d4718016d908666f05b4bd056d0178fc1f2cfe951feb1480172",
+      "afterSHA256": "52c2fd32976cb3b31309255d883b9c79ee82e628f7c1040bc7edb148833aa742"
+    },
+    {
+      "label": "const out=document.getElementById('p06-status');if(this.enabled&&out)out.textContent='不能營運：'+this.reasons[0].message;",
+      "beforeSHA256": "0d1431519d56bee80d2acc2a4a2db96bb7e9a3cba81563d7d7bc3f198ecadcd6",
+      "afterSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "return root.__p06BaselinePerf?original(...args):accelerated(...args);",
+      "beforeSHA256": "5dd7699e611738b25f2953cf9c8ed623f564e171c4a41a7077c72f349b0e8aee",
+      "afterSHA256": "3e42a12e603e90c04205b2169db3760bb4c1c90ed43dc860e3ee5189c4a7aab4"
+    },
+    {
+      "label": " function clock(){let elapsed=0,anchor=0,running=false;return{time(now){return elapsed+(running?Math.max(0,now-anchor):0);},play(now){if(!running){anchor=now;running=true;}},pause(now){elapsed=this.time(now);running=false;},reset(now){elapsed=0;anchor=now;running=false;},seek(ms,now){if(!Number.isFinite(ms)||ms<0)throw Error('Invalid seek');elapsed=ms;anchor=now;},get running(){return running;}};}\n",
+      "beforeSHA256": "7c6be20bded4d7b1abca884cc6125c95b74b4528f36eb5f1a873e29d64d1aff3",
+      "afterSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "CYCLE,pose,clock,bounds",
+      "beforeSHA256": "f180329b9d381fc46c7649abafd39dc80aa9a157383ea30013aa915c515e427e",
+      "afterSHA256": "f6c61cef2276e7fc34fcdbcd8ca50659217569281d2c337bf6662ac8cbc6eaee"
+    },
+    {
+      "label": "T677 watch transformed complete equipment bounds",
+      "beforeSHA256": "26e9f1a03eb9c0ce9af55302c54623b46058f78b3f01745d77681e4d4454fc0e",
+      "afterSHA256": "2f65dcd5b06a34dc56f3a8b67e6823957d8f259e6f4882ddd4fc36ab6bf9fe5a"
+    },
+    {
+      "label": "T677 watch every retained static equipment envelope",
+      "beforeSHA256": "f8da1376952e9480d955352915f063f8075d10949de3169700f78dcc85ab5fb3",
+      "afterSHA256": "a871f6c9034e503ecec5b97cf2fed4fbfa5914e72ea9a0e84b102244ea541100"
+    },
+    {
+      "label": "T677 watch unchanged landside lifting phase envelopes",
+      "beforeSHA256": "2d895a4a01e9c92e1615051a421714d2365cef32fd75a9ed71994bd4f627494a",
+      "afterSHA256": "4fb5fef87a47ad3e16a7f6689eeaa58a15978064f43c1b3120d5f778dfb17939"
+    },
+    {
+      "label": "T677 watch validated ship-to-yard lifting phase envelopes",
+      "beforeSHA256": "e9f4a717a8cfeaddfd5530bb8326abbae32c11d36c205c83f0a1b11bda68743f",
+      "afterSHA256": "930b06af28244be466bd2101ea397d497efcbdcbf3a2cf25416b078ce2acb8e8"
+    }
+  ],
+  "runtimeSHA256": "589502be63f40a4702929919bce048cb5e5427f7177e7806e10fe5c1338aa714",
+  "excluded": [
+    "P01 fixed setup/diagnostics",
+    "P02 wallclock controls",
+    "P03-05 synthetic init/toggle/seek/status",
+    "P06 replay/raw status",
+    "P06Performance benchmark API",
+    "P06VectorCache diagnostic API",
+    "native fixtures",
+    "candidate storage/PWA/autosave replacements",
+    "tick/bake timer wrappers"
+  ]
+}

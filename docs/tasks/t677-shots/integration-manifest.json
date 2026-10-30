@@ -1,0 +1,59 @@
+{
+  "mainBaseline": "fce0354654a51f6e248df73f807d3ad0a5d2281d",
+  "source": "d0de1e9e594145af43608013ad173e34a91e63a8",
+  "preBumpIndexSHA256": "a69f335b2be90b938b67562f1cf6c7476c4f7430632d7cf98160344e50b4027d",
+  "singleScript": true,
+  "originalStorageAndPWA": true,
+  "changes": [
+    {
+      "anchor": "function advance(dtReal){",
+      "beforeSHA256": "22ef74028f1d42d81e0e69c5669086884f4cb04606fe269fe43651ab0ca6ae44",
+      "afterSHA256": "210bf18272dd43a75bae3bcfb8fee2eb9b9332b0e09991ee85a8ff5cad7392a6"
+    },
+    {
+      "anchor": "  if(steps>=8)simAcc=0; // 落後太多就放棄追趕",
+      "beforeSHA256": "17c20e50aa5ee64cd8b6767849628b765791b285dbd2aaff6031a92bdefad17f",
+      "afterSHA256": "a3e7f3a8cf3e3a5c477a7073606adce03a9bcb46d93ae680f4601b869e618342"
+    },
+    {
+      "anchor": "  objs.sort((a,b2)=>a.dep-b2.dep);",
+      "beforeSHA256": "4d390ef911769ab97abc8807c85eb839a3992d38a6e32bcf38c7aa67f023de7d",
+      "afterSHA256": "bc4083adc6d006aea3cb51e866fbca7ceba6c4bb6b4fc0753e9d9225397fda52"
+    },
+    {
+      "anchor": "  for(const o of objs){\n    if(o.sta){",
+      "beforeSHA256": "f5158f92eb42728fd082ef8a0063299e7c205159eb6256fcf32cef1daa876b44",
+      "afterSHA256": "97ce2cbdb3814ef88b64f3012e4aee6eecfd153eee20b7a7bb388a88d8ea13fa"
+    },
+    {
+      "anchor": "    objs.push({dep:viewDep(fx,fy)+.01,ship:sh,wx,wy,sd:sh.d});",
+      "beforeSHA256": "49ee533d534076e670f0a91e19351c9ea38fb555f8b9077543bea09383674859",
+      "afterSHA256": "03ee433563f0f90a9dc70ee5207d84e60dfc646210764c249ea3ba9011ca993f"
+    },
+    {
+      "anchor": "    objs.push({dep:viewDep(fx,fy)+.012,lifeShip:sh,wx,wy,sd:sh.d});",
+      "beforeSHA256": "7f60b65cca9380fea00cce62d2e88e9fe741c132d4385548a7b588aa6c7ac40b",
+      "afterSHA256": "2c4c812a3606c67ccae4a3dc97d0f81cdb5ccc9dee1fd0aa0e8ed1f18edbd835"
+    },
+    {
+      "anchor": "    if(o.t){const sz=b?",
+      "beforeSHA256": "fc0cecc07f7c9a9809bc56a48cf6901e4b19b182ca516a3ffb5473924d999a89",
+      "afterSHA256": "2d9c806578d803bd61339abf1cd92eafc938dcadda141afa87d7b594e42ad5c2"
+    },
+    {
+      "anchor": "    const ids=s=>[...s].sort((a,b)=>a-b);\n    try{",
+      "beforeSHA256": "1be2f2a040aad3105d9d40e377b77897062018fee31343e5a95dc2f3779197c5",
+      "afterSHA256": "98c9df56a0bd3c19e3e20cdfcb17ce7ed38952c7beced8ccd780eda9a0125d60"
+    },
+    {
+      "anchor": "<div id=\"start\">",
+      "beforeSHA256": "75a06fe9653b8037c15de641aa308e651bba3e65259b2a07b566b985e1e4a0f8",
+      "afterSHA256": "0b65fe79f8f20adc56873a5271da4f987b2aa98110b74bc41adb66beab6bfd42"
+    },
+    {
+      "anchor": "})();\n</script>\n</body>",
+      "beforeSHA256": "33fd2d1ff878ae810e41fabbc3adb02e6925c67228690b701d7e4dd4e0eee127",
+      "afterSHA256": "2df8c2024c95675c3b44dd0646e67359adfae3efdf1b1be3a29cdf4fbddc4433"
+    }
+  ]
+}
